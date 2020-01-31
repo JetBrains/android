@@ -1,4 +1,3 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android;
 
 import org.jetbrains.annotations.NotNull;
@@ -45,6 +44,6 @@ public class AndroidAdditionalRootProviderService extends AdditionalRootsProvide
   }
 
   private static void addRoot(List<JavaSourceRootDescriptor> result, ModuleBuildTarget buildTarget, final File file) {
-    result.add(new JavaSourceRootDescriptor(file, buildTarget, true, false, "", Collections.emptySet()));
+    result.add(new JavaSourceRootDescriptor(file, buildTarget, true, false, "", Collections.<File>emptySet()));
   }
 }

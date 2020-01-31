@@ -15,10 +15,9 @@
  */
 package com.android.tools.profilers.network;
 
-import static com.android.tools.profiler.proto.NetworkProfiler.ConnectivityData;
-import static com.android.tools.profiler.proto.NetworkProfiler.NetworkProfilerData;
 import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME;
 import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME;
+import static com.android.tools.profiler.proto.NetworkProfiler.NetworkProfilerData;
 import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE;
 import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_DETACHED_RESPONSE;
 import static com.google.common.truth.Truth.assertThat;
@@ -30,11 +29,12 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
+import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
-import com.android.tools.profiler.protobuf3jarjar.ByteString;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
+import com.android.tools.profiler.proto.Network;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
-import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.StudioProfilers;
@@ -49,7 +49,6 @@ import com.google.common.collect.ImmutableList;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPOutputStream;
@@ -68,7 +67,7 @@ public class NetworkProfilerStageTest {
       .add(FakeNetworkService.newConnectionData(0, 4))
       .add(FakeNetworkService.newConnectionData(10, 6))
       .add(FakeNetworkService.newConnectionData(100, 8000))
-      .add(FakeNetworkService.newRadioData(5, ConnectivityData.NetworkType.MOBILE))
+      .add(FakeNetworkService.newRadioData(5, Network.NetworkTypeData.NetworkType.MOBILE))
       .build();
 
   private static final String TEST_PAYLOAD_ID = "test";
@@ -414,7 +413,7 @@ public class NetworkProfilerStageTest {
   private static ByteString gzip(String input) {
     ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
     try (GZIPOutputStream compressor = new GZIPOutputStream(byteOutputStream)) {
-      compressor.write(input.getBytes(StandardCharsets.UTF_8));
+      compressor.write(input.getBytes());
     }
     catch (IOException ignored) {
     }
@@ -456,7 +455,7 @@ public class NetworkProfilerStageTest {
 
     assertThat(myStage.getStudioProfilers().isAgentAttached()).isTrue();
 
-    myStage.getSelectionModel().set(0, 100);
+    myStage.getRangeSelectionModel().set(0, 100);
     assertThat(selection.getMin()).isWithin(EPSILON).of(0);
     assertThat(selection.getMax()).isWithin(EPSILON).of(100);
 
@@ -465,7 +464,7 @@ public class NetworkProfilerStageTest {
     assertThat(myStage.getStudioProfilers().isAgentAttached()).isFalse();
 
     // Attempting to select a range should do nothing.
-    myStage.getSelectionModel().set(100, 200);
+    myStage.getRangeSelectionModel().set(100, 200);
     assertThat(selection.getMin()).isWithin(EPSILON).of(0);
     assertThat(selection.getMax()).isWithin(EPSILON).of(100);
   }
@@ -474,8 +473,8 @@ public class NetworkProfilerStageTest {
   public void testHasUserUsedSelection() {
     assertThat(myStage.getInstructionsEaseOutModel().getPercentageComplete()).isWithin(0f).of(0f);
     assertThat(myStage.hasUserUsedNetworkSelection()).isFalse();
-    myStage.getSelectionModel().setSelectionEnabled(true);
-    myStage.getSelectionModel().set(0, 100);
+    myStage.getRangeSelectionModel().setSelectionEnabled(true);
+    myStage.getRangeSelectionModel().set(0, 100);
     assertThat(myStage.getInstructionsEaseOutModel().getPercentageComplete()).isWithin(0f).of(1f);
     assertThat(myStage.hasUserUsedNetworkSelection()).isTrue();
   }

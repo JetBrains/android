@@ -367,7 +367,7 @@ public final class Haxm extends InstallableComponent {
         else {
           installContext.print(
             String.format("HAXM installation failed. To install HAXM follow the instructions found at: %s",
-                          SystemInfo.isWindows ? FirstRunWizardDefaults.HAXM_WINDOWS_INSTALL_URL
+                            SystemInfo.isWindows ? FirstRunWizardDefaults.HAXM_WINDOWS_INSTALL_URL
                                                  : FirstRunWizardDefaults.HAXM_MAC_INSTALL_URL),
             ConsoleViewContentType.ERROR_OUTPUT);
         }

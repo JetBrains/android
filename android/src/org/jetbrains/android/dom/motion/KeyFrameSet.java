@@ -29,4 +29,5 @@ public interface KeyFrameSet extends MotionElement {
   List<KeyCycle> getKeyCycles();
   List<KeyPosition> getKeyPositions();
   List<KeyTimeCycle> getKeyTimeCycles();
+  List<KeyTrigger> getKeyTriggers();
 }

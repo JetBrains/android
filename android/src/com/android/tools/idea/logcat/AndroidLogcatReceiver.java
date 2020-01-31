@@ -16,7 +16,7 @@
 
 package com.android.tools.idea.logcat;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.logcat.LogCatHeader;
 import com.android.ddmlib.logcat.LogCatLongEpochMessageParser;

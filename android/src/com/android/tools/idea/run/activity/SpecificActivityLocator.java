@@ -94,7 +94,7 @@ public class SpecificActivityLocator extends ActivityLocator {
   }
 
   private static boolean doesPackageContainMavenProperty(@NotNull AndroidFacet facet) {
-    final Manifest manifest = facet.getManifest();
+    final Manifest manifest = Manifest.getMainManifest(facet);
 
     if (manifest == null) {
       return false;

@@ -33,6 +33,8 @@ import org.jetbrains.annotations.TestOnly;
  */
 @TestOnly
 public class DisposerExplorer {
+  private static final Object treeLock = getTreeLock();
+
   /**
    * Checks if the given disposable is referenced by the Disposer's tree.
    */
@@ -52,7 +54,22 @@ public class DisposerExplorer {
    */
   @NotNull
   public static Collection<Disposable> getTreeRoots() {
+    synchronized (treeLock) {
+      return getTreeRootsInternal();
+    }
+  }
+
+  /**
+   * The same as {@link #getTreeRoots()} but without locking. Must be called while holding the disposer tree lock.
+   */
+  @NotNull
+  private static Collection<Disposable> getTreeRootsInternal() {
     return getFieldValue(Disposer.getTree(), "myRootObjects");
+  }
+
+  @NotNull
+  private static Object getTreeLock() {
+    return getFieldValue(Disposer.getTree(), "treeLock");
   }
 
   /**
@@ -60,19 +77,21 @@ public class DisposerExplorer {
    */
   @NotNull
   public static List<Disposable> getChildren(@NotNull Disposable disposable) {
-    Object objectNode = getObjectNode(disposable);
-    if (objectNode == null) {
-      return ImmutableList.of();
+    synchronized (treeLock) {
+      Object objectNode = getObjectNode(disposable);
+      if (objectNode == null) {
+        return ImmutableList.of();
+      }
+      List<?> childNodes = getObjectNodeChildren(objectNode);
+      if (childNodes.isEmpty()) {
+        return ImmutableList.of();
+      }
+      ImmutableList.Builder<Disposable> builder = ImmutableList.builderWithExpectedSize(childNodes.size());
+      for (Object node : childNodes) {
+        builder.add(getObjectNodeDisposable(node));
+      }
+      return builder.build();
     }
-    List<?> childNodes = getObjectNodeChildren(objectNode);
-    if (childNodes.isEmpty()) {
-      return ImmutableList.of();
-    }
-    ImmutableList.Builder<Disposable> builder = ImmutableList.builderWithExpectedSize(childNodes.size());
-    for (Object node : childNodes) {
-      builder.add(getObjectNodeDisposable(node));
-    }
-    return builder.build();
   }
 
   /**
@@ -80,22 +99,26 @@ public class DisposerExplorer {
    */
   @Nullable
   public static Disposable getParent(@NotNull Disposable disposable) {
-    Object objectNode = getObjectNode(disposable);
-    if (objectNode != null) {
-      Object parentNode = getObjectNodeParent(objectNode);
-      if (parentNode != null) {
-        return getObjectNodeDisposable(parentNode);
+    synchronized (treeLock) {
+      Object objectNode = getObjectNode(disposable);
+      if (objectNode != null) {
+        Object parentNode = getObjectNodeParent(objectNode);
+        if (parentNode != null) {
+          return getObjectNodeDisposable(parentNode);
+        }
       }
+      return null;
     }
-    return null;
   }
 
   /**
    * Checks if the given disposable has children.
    */
   public static boolean hasChildren(@NotNull Disposable disposable) {
-    Object objectNode = getObjectNode(disposable);
-    return objectNode != null && !getObjectNodeChildren(objectNode).isEmpty();
+    synchronized (treeLock) {
+      Object objectNode = getObjectNode(disposable);
+      return objectNode != null && !getObjectNodeChildren(objectNode).isEmpty();
+    }
   }
 
   /**
@@ -146,15 +169,17 @@ public class DisposerExplorer {
    */
   @NotNull
   public static VisitResult visitTree(@NotNull Visitor visitor) {
-    Map<Disposable, ?> objectToNodeMap = getObjectToNodeMap();
-    for (Disposable root : getTreeRoots()) {
-      Object rootNode = objectToNodeMap.get(root);
-      VisitResult result = visitSubtree(rootNode, visitor);
-      if (result == VisitResult.ABORT) {
-        return result;
+    synchronized (treeLock) {
+      Map<Disposable, ?> objectToNodeMap = getObjectToNodeMap();
+      for (Disposable root : getTreeRootsInternal()) {
+        Object rootNode = objectToNodeMap.get(root);
+        VisitResult result = visitSubtree(rootNode, visitor);
+        if (result == VisitResult.ABORT) {
+          return result;
+        }
       }
+      return VisitResult.CONTINUE;
     }
-    return VisitResult.CONTINUE;
   }
 
   /**
@@ -170,11 +195,13 @@ public class DisposerExplorer {
    */
   @NotNull
   public static VisitResult visitDescendants(@NotNull Disposable disposable, @NotNull Visitor visitor) {
-    Object objectNode = getObjectNode(disposable);
-    if (objectNode != null) {
-      return visitDescendants(objectNode, visitor);
+    synchronized (treeLock) {
+      Object objectNode = getObjectNode(disposable);
+      if (objectNode != null) {
+        return visitDescendants(objectNode, visitor);
+      }
+      return VisitResult.CONTINUE;
     }
-    return VisitResult.CONTINUE;
   }
 
   @NotNull

@@ -28,12 +28,14 @@ import static org.mockito.Mockito.*;
  * Tests for {@link IdeVersionReader}.
  */
 public class IdeVersionReaderTest extends AndroidGradleTestCase {
+  private IdeComponents myIdeComponents;
   private IdeVersionReader myVersionReader;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     myVersionReader = new IdeVersionReader("Android Studio");
+    myIdeComponents = new IdeComponents(getProject(), getTestRootDisposable());
   }
 
   public void testAppliesToWithAndroidStudio() {
@@ -82,7 +84,7 @@ public class IdeVersionReaderTest extends AndroidGradleTestCase {
 
   @NotNull
   private ApplicationInfo replaceApplicationInfo() {
-    ApplicationInfo applicationInfo = IdeComponents.mockApplicationService(ApplicationInfo.class, getTestRootDisposable());
+    ApplicationInfo applicationInfo = myIdeComponents.mockApplicationService(ApplicationInfo.class);
     when(applicationInfo.getBuild()).thenReturn(BuildNumber.fromString("123.4567.89.0"));
     return applicationInfo;
   }

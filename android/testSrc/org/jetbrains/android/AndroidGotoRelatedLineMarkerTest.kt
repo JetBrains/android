@@ -1,0 +1,269 @@
+package org.jetbrains.android
+
+import com.android.SdkConstants
+import com.android.tools.idea.res.addAarDependency
+import com.android.tools.idea.testing.caret
+import com.google.common.collect.ImmutableSet
+import com.google.common.truth.Truth.assertThat
+import com.intellij.codeInsight.daemon.LineMarkerInfo
+import com.intellij.codeInsight.daemon.RelatedItemLineMarkerInfo
+import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerImpl
+import com.intellij.ide.actions.GotoRelatedSymbolAction
+import com.intellij.navigation.GotoRelatedItem
+import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.vfs.VfsUtil.findFileByIoFile
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiFile
+import com.intellij.psi.xml.XmlAttributeValue
+import com.intellij.testFramework.TestActionEvent
+import junit.framework.TestCase
+import org.jetbrains.kotlin.psi.KtClass
+import java.io.File
+import java.util.ArrayList
+import java.util.HashSet
+
+/**
+ * Tests of [AndroidGotoRelatedLineMarkerProvider] for Android.
+ *
+ * This class tests related items for Kotlin/Java activities and fragments. These include related xml layouts and manifest declarations.
+ * It also tests the corresponding activities and fragments for layout files. Also checks the LineMarkers are present.
+ */
+class AndroidGotoRelatedLineMarkerTest : AndroidTestCase() {
+
+  override fun providesCustomManifest(): Boolean {
+    return true
+  }
+
+  fun testKotlinActivityToLayout() {
+    createManifest()
+    val layoutFile = myFixture.addFileToProject("res/layout/layout.xml", BASIC_LAYOUT).virtualFile
+    val activityFile = myFixture.addFileToProject("src/p1/p2/MyActivity.kt", KOTLIN_ACTIVITY).virtualFile
+    doTestGotoRelatedFile(activityFile, setOf(layoutFile), PsiFile::class.java)
+    doCheckLineMarkers(setOf(layoutFile), PsiFile::class.java)
+  }
+
+  fun testKotlinActivityToLayoutAndManifest() {
+    val manifestFile = myFixture.addFileToProject("AndroidManifest.xml", MANIFEST).virtualFile
+    val layoutFile = myFixture.addFileToProject("res/layout/layout.xml", BASIC_LAYOUT).virtualFile
+    val activityFile = myFixture.addFileToProject("src/p1/p2/MyActivity.kt", KOTLIN_ACTIVITY).virtualFile
+    val items = doGotoRelatedFile(activityFile)
+    assertThat(items).hasSize(2)
+    var manifestDeclarationTarget: XmlAttributeValue? = null
+    var psiFileTarget: PsiFile? = null
+
+    for (item in items) {
+      when (val element = item.element) {
+        is PsiFile -> psiFileTarget = element
+        is XmlAttributeValue -> manifestDeclarationTarget = element
+        else -> TestCase.fail("Unexpected element: " + element!!)
+      }
+    }
+    assertThat(psiFileTarget!!.virtualFile).isEqualTo(layoutFile)
+    assertThat(manifestDeclarationTarget!!.containingFile.virtualFile).isEqualTo(manifestFile)
+  }
+
+  fun testActivityToLayout() {
+    createManifest()
+    val layout = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout.xml")
+    val layout1 = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout1.xml")
+    val layoutLand = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout-land/layout.xml")
+    val layout2 = arrayOfNulls<VirtualFile>(1)
+    addAarDependency(myModule, "myLibrary", "com.library") { dir ->
+      val destination = File(dir, "res/layout/layout2.xml")
+      FileUtil.copy(File(AndroidTestBase.getTestDataPath() + BASE_PATH + "layout1.xml"), destination)
+      layout2[0] = findFileByIoFile(destination, true)
+    }
+
+    val activityFile = myFixture.copyFileToProject(BASE_PATH + "Activity1.java", "src/p1/p2/MyActivity.java")
+    val expectedTargetFiles = setOf(layout, layout1, layout2[0]!!, layoutLand)
+    doTestGotoRelatedFile(activityFile, expectedTargetFiles, PsiFile::class.java)
+    doCheckLineMarkers(expectedTargetFiles, PsiFile::class.java)
+  }
+
+  fun testActivityToLayoutAndManifest() {
+    val layoutFile = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout.xml")
+    val manifestFile = myFixture.copyFileToProject(BASE_PATH + "Manifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML)
+    val activityFile = myFixture.copyFileToProject(BASE_PATH + "Activity1.java", "src/p1/p2/MyActivity.java")
+
+    val items = doGotoRelatedFile(activityFile)
+    assertThat(items).hasSize(2)
+    var manifestDeclarationTarget: XmlAttributeValue? = null
+    var psiFileTarget: PsiFile? = null
+
+    for (item in items) {
+      when (val element = item.element) {
+        is PsiFile -> psiFileTarget = element
+        is XmlAttributeValue -> manifestDeclarationTarget = element
+        else -> TestCase.fail("Unexpected element: " + element!!)
+      }
+    }
+    assertThat(psiFileTarget!!.virtualFile).isEqualTo(layoutFile)
+    assertThat(manifestDeclarationTarget!!.containingFile.virtualFile).isEqualTo(manifestFile)
+  }
+
+  fun testActivityToAndManifest() {
+    val manifestFile = myFixture.copyFileToProject(BASE_PATH + "Manifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML)
+    val activityFile = myFixture.copyFileToProject(BASE_PATH + "Activity1.java", "src/p1/p2/MyActivity.java")
+
+    val items = doGotoRelatedFile(activityFile)
+    assertThat(items).hasSize(1)
+    val item = items[0]
+    val element = item.element
+    assertThat(element).isInstanceOf(XmlAttributeValue::class.java)
+    assertThat(element!!.containingFile.virtualFile).isEqualTo(manifestFile)
+  }
+
+  fun testSimpleClassToLayout() {
+    createManifest()
+    myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout.xml")
+    val file = myFixture.copyFileToProject(BASE_PATH + "Class1.java", "src/p1/p2/Class1.java")
+    doTestGotoRelatedFile(file, ImmutableSet.of(), PsiFile::class.java)
+    val markerInfos = doGetRelatedLineMarkers()
+    assertThat(markerInfos).isEmpty()
+  }
+
+  fun testFragmentToLayout() {
+    createManifest()
+    val layout = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout.xml")
+    val layoutLand = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout-land/layout.xml")
+    val fragmentFile = myFixture.copyFileToProject(BASE_PATH + "Fragment1.java", "src/p1/p2/MyFragment.java")
+    val expectedTargetFiles = ImmutableSet.of(layout, layoutLand)
+    doTestGotoRelatedFile(fragmentFile, expectedTargetFiles, PsiFile::class.java)
+    doCheckLineMarkers(expectedTargetFiles, PsiFile::class.java)
+  }
+
+  fun testLayoutToJavaContext() {
+    createManifest()
+    val layout = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout.xml")
+    myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout1.xml")
+    myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout2.xml")
+    myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout-land/layout.xml")
+    val activityFile = myFixture.copyFileToProject(BASE_PATH + "Activity1.java", "src/p1/p2/MyActivity.java")
+    myFixture.copyFileToProject(BASE_PATH + "Class1.java", "src/p1/p2/Class1.java")
+    myFixture.copyFileToProject(BASE_PATH + "Activity2.java", "src/p1/p2/Activity2.java")
+    val fragmentFile = myFixture.copyFileToProject(BASE_PATH + "Fragment1.java", "src/p1/p2/MyFragment.java")
+    myFixture.copyFileToProject(BASE_PATH + "Fragment2.java", "src/p1/p2/Fragment2.java")
+    val expectedTargetFiles = ImmutableSet.of(activityFile, fragmentFile)
+    doTestGotoRelatedFile(layout, expectedTargetFiles, PsiClass::class.java)
+    doCheckLineMarkers(expectedTargetFiles, PsiClass::class.java)
+  }
+
+  fun testLayoutToKotlinContext() {
+    createManifest()
+    val layout = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout.xml")
+    val activityFile = myFixture.copyFileToProject(BASE_PATH + "Activity1.kt", "src/p1/p2/MyActivity.kt")
+    val expectedTargetFiles = ImmutableSet.of(activityFile)
+    doTestGotoRelatedFile(layout, expectedTargetFiles, KtClass::class.java)
+    doCheckLineMarkers(expectedTargetFiles, KtClass::class.java)
+  }
+
+  fun testNestedActivity() {
+    createManifest()
+    val layout = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout.xml")
+    val layout1 = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout1.xml")
+    val layout2 = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout2.xml")
+    val layoutLand = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout-land/layout.xml")
+    val activityFile = myFixture.copyFileToProject(BASE_PATH + "Activity3.java", "src/p1/p2/MyActivity.java")
+    doTestGotoRelatedFile(activityFile, ImmutableSet.of(layout, layoutLand, layout1, layout2), PsiFile::class.java)
+  }
+
+  fun testSpecifiedWithAttribute() {
+    createManifest()
+    val layout = myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml")
+    val activityFile = myFixture.copyFileToProject(BASE_PATH + "Activity4.java", "src/p1/p2/MyActivity.java")
+    doTestGotoRelatedFile(layout, ImmutableSet.of(activityFile), PsiClass::class.java)
+  }
+
+  private fun doTestGotoRelatedFile(file: VirtualFile, expectedTargetFiles: Set<VirtualFile>, targetElementClass: Class<*>) {
+    val items = doGotoRelatedFile(file)
+    doCheckItems(expectedTargetFiles, items, targetElementClass)
+  }
+
+  private fun doGotoRelatedFile(file: VirtualFile): List<GotoRelatedItem> {
+    myFixture.configureFromExistingVirtualFile(file)
+
+    val action = GotoRelatedSymbolAction()
+    val e = TestActionEvent(action)
+    action.beforeActionPerformedUpdate(e)
+    val presentation = e.presentation
+    assertThat(presentation.isEnabled && presentation.isVisible).isTrue()
+    return GotoRelatedSymbolAction.getItems(myFixture.file, myFixture.editor, null)
+  }
+
+  private fun doCheckLineMarkers(expectedTargetFiles: Set<VirtualFile>, targetElementClass: Class<*>) {
+    val relatedMarkers = doGetRelatedLineMarkers()
+    assertThat(relatedMarkers).hasSize(1)
+    val marker = relatedMarkers[0] as RelatedItemLineMarkerInfo
+    doCheckItems(expectedTargetFiles, marker.createGotoRelatedItems().toList(),
+                 targetElementClass)
+  }
+
+  private fun doGetRelatedLineMarkers(): List<LineMarkerInfo<*>> {
+    myFixture.doHighlighting()
+
+    val markers = DaemonCodeAnalyzerImpl.getLineMarkers(myFixture.editor.document, myFixture.project)
+    val relatedMarkers = ArrayList<LineMarkerInfo<*>>()
+
+    for (marker in markers) {
+      if (marker is RelatedItemLineMarkerInfo) {
+        relatedMarkers.add(marker)
+      }
+    }
+    return relatedMarkers
+  }
+
+  companion object {
+    private const val BASE_PATH = "/gotoRelated/"
+
+    private fun doCheckItems(expectedTargetFiles: Set<VirtualFile>, items: List<GotoRelatedItem>, targetElementClass: Class<*>) {
+      val targetFiles = HashSet<VirtualFile>()
+
+      for (item in items) {
+        val element = item.element
+        assertThat(element).isInstanceOf(targetElementClass)
+        val targetFile = element!!.containingFile.virtualFile
+        assertThat(targetFile).isNotNull()
+        targetFiles.add(targetFile)
+      }
+      assertThat(targetFiles).containsExactlyElementsIn(expectedTargetFiles)
+    }
+
+    private val BASIC_LAYOUT =
+      //language=XML
+      """
+       <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                      android:orientation="vertical"
+                      android:layout_width="match_parent"
+                      android:layout_height="match_parent">
+        </LinearLayout>
+     """.trimIndent()
+
+    private val KOTLIN_ACTIVITY =
+      //language=Kotlin
+      """
+        package p1.p2
+
+        import android.app.Activity
+        import android.os.Bundle
+
+        class MyActivity : Activity() {
+        ${caret}
+          public override fun onCreate(state: Bundle?) {
+            setContentView(R.layout.layout)
+          }
+        }
+      """.trimIndent()
+
+    private val MANIFEST =
+      //language=XML
+      """
+        <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="p1.p2">
+          <application>
+            <activity android:name="p1.p2.MyActivity"/>
+          </application>
+        </manifest>
+      """.trimIndent()
+  }
+}

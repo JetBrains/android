@@ -69,7 +69,7 @@ public class PropertiesTablePanelTest {
       "  node2@222 noun:eg=10,alpha beta mID=11,maybe-a-god \n" +
       "    node3@3333 mID=11,another-god cat:foo=19,this is a long text \n" +
       "DONE.\n";
-    return text.getBytes(StandardCharsets.UTF_8);
+    return text.getBytes();
   }
 
   @After

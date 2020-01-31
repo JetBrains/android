@@ -18,22 +18,27 @@ package com.android.tools.idea.res;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.annotations.concurrency.Slow;
 import com.android.builder.model.AaptOptions;
-import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
 import com.android.builder.model.level2.Library;
+import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.ide.common.resources.ResourceRepository;
+import com.android.ide.common.resources.ResourceRepositoryUtil;
+import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.projectmodel.ExternalLibrary;
 import com.android.tools.idea.AndroidProjectModelUtils;
+import com.android.tools.idea.concurrency.AndroidIoManager;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.LocalResourceRepository.EmptyRepository;
 import com.android.tools.idea.res.SampleDataResourceRepository.SampleDataRepositoryManager;
 import com.android.tools.idea.resources.aar.AarResourceRepository;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.intellij.openapi.Disposable;
@@ -47,14 +52,18 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
-import com.intellij.util.concurrency.AppExecutorUtil;
+import com.intellij.psi.util.CachedValue;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 import java.util.function.Function;
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
@@ -70,7 +79,7 @@ public final class ResourceRepositoryManager implements Disposable {
   private static final Object APP_RESOURCES_LOCK = new Object();
   private static final Object PROJECT_RESOURCES_LOCK = new Object();
   private static final Object MODULE_RESOURCES_LOCK = new Object();
-  private static final Object TEST_APP_RESOURCES_LOCK = new Object();
+  private static final Object TEST_RESOURCES_LOCK = new Object();
 
   @NotNull private final AndroidFacet myFacet;
   @NotNull private final AaptOptions.Namespacing myNamespacing;
@@ -78,7 +87,8 @@ public final class ResourceRepositoryManager implements Disposable {
   /**
    * If the module is namespaced, this is the shared {@link ResourceNamespace} instance corresponding to the package name from the manifest.
    */
-  @Nullable private ResourceNamespace myCachedNamespace;
+  @Nullable private ResourceNamespace mySharedNamespaceInstance;
+  @Nullable private ResourceNamespace mySharedTestNamespaceInstance;
 
   @GuardedBy("APP_RESOURCES_LOCK")
   private AppResourceRepository myAppResources;
@@ -89,8 +99,14 @@ public final class ResourceRepositoryManager implements Disposable {
   @GuardedBy("MODULE_RESOURCES_LOCK")
   private LocalResourceRepository myModuleResources;
 
-  @GuardedBy("TEST_APP_RESOURCES_LOCK")
+  @GuardedBy("TEST_RESOURCES_LOCK")
   private LocalResourceRepository myTestAppResources;
+
+  @GuardedBy("TEST_RESOURCES_LOCK")
+  private LocalResourceRepository myTestModuleResources;
+
+  @GuardedBy("PROJECT_RESOURCES_LOCK")
+  private CachedValue<LocalesAndLanguages> myLocalesAndLanguages;
 
   /** Libraries and their corresponding resource repositories. */
   @GuardedBy("myLibraryLock")
@@ -118,7 +134,7 @@ public final class ResourceRepositoryManager implements Disposable {
       if (instance == manager) {
         // Our object ended up stored in the facet.
         Disposer.register(facet, instance);
-        AndroidProjectRootListener.ensureSubscribed(facet.getModule().getProject());
+        AndroidProjectRootListener.ensureSubscribed(manager.getProject());
       }
     }
 
@@ -277,6 +293,19 @@ public final class ResourceRepositoryManager implements Disposable {
   }
 
   /**
+   * Returns the repository with all resources available to a given module, both framework and non-framework.
+   *
+   * @return the computed repository or null if framework resources cannot be determined for the module
+   * @see #getAppResources()
+   * @see #getFrameworkResources(Set)
+   */
+  @Nullable
+  public ResourceRepository getAllResources() {
+    ResourceRepository frameworkResources = getFrameworkResources(Collections.emptySet());
+    return frameworkResources == null ? null : new AllResourceRepository(getAppResources(), frameworkResources);
+  }
+
+  /**
    * Returns the repository with all non-framework resources available to a given module (in the current variant). This includes not just
    * the resources defined in this module, but in any other modules that this module depends on, as well as any libraries those modules may
    * depend on (e.g. appcompat). This repository also contains sample data resources associated with the {@link ResourceNamespace#TOOLS}
@@ -401,16 +430,9 @@ public final class ResourceRepositoryManager implements Disposable {
           if (myFacet.isDisposed()) {
             return new EmptyRepository(getNamespace());
           }
-          try {
-            myModuleResources = ModuleResourceRepository.forMainResources(myFacet, getNamespace());
-            Disposer.register(this, myModuleResources);
-          }
-          catch (Throwable t) {
-            if (myModuleResources != null) {
-              Disposer.dispose(myModuleResources);
-            }
-            throw t;
-          }
+          myModuleResources = ModuleResourceRepository.forMainResources(myFacet, getNamespace());
+          registerIfDisposable(this, myModuleResources);
+            // catch (Throwable t) { FIXME-ank2
         }
         return myModuleResources;
       }
@@ -437,15 +459,34 @@ public final class ResourceRepositoryManager implements Disposable {
   @NotNull
   public LocalResourceRepository getTestAppResources() {
     return ApplicationManager.getApplication().runReadAction((Computable<LocalResourceRepository>)() -> {
-      synchronized (TEST_APP_RESOURCES_LOCK) {
+      synchronized (TEST_RESOURCES_LOCK) {
         if (myTestAppResources == null) {
           if (myFacet.isDisposed()) {
             return new EmptyRepository(getTestNamespace());
           }
           myTestAppResources = computeTestAppResources();
-          Disposer.register(this, myTestAppResources);
+          registerIfDisposable(this, myTestAppResources);
         }
         return myTestAppResources;
+      }
+    });
+  }
+
+  /**
+   * Returns the resource repository with test resources defined in the given module.
+   */
+  @NotNull
+  public LocalResourceRepository getTestModuleResources() {
+    return ApplicationManager.getApplication().runReadAction((Computable<LocalResourceRepository>)() -> {
+      synchronized (TEST_RESOURCES_LOCK) {
+        if (myTestModuleResources == null) {
+          if (myFacet.isDisposed()) {
+            return new EmptyRepository(getTestNamespace());
+          }
+          myTestModuleResources = ModuleResourceRepository.forTestResources(myFacet, getTestNamespace());
+          registerIfDisposable(this, myTestModuleResources);
+        }
+        return myTestModuleResources;
       }
     });
   }
@@ -455,48 +496,36 @@ public final class ResourceRepositoryManager implements Disposable {
     // For disposal, the newly created test module repository ends up owned by the repository manager if returned from this method or the
     // TestAppResourceRepository if passed to it. This is slightly different to the main module repository, which is always owned by the
     // manager and stored in myModuleResources.
-    LocalResourceRepository moduleTestResources = ModuleResourceRepository.forTestResources(myFacet, getTestNamespace());
-
-    if (myNamespacing == AaptOptions.Namespacing.REQUIRED) {
-      // TODO(namespaces): Confirm that's how test resources will work.
-      return moduleTestResources;
-    }
+    LocalResourceRepository moduleTestResources = getTestModuleResources();
 
     AndroidModuleModel model = AndroidModuleModel.get(myFacet);
     if (model == null) {
       return moduleTestResources;
     }
 
-    try {
-      TestAppResourceRepository testAppRepo = TestAppResourceRepository.create(myFacet, moduleTestResources, model);
-      Disposer.register(testAppRepo, moduleTestResources);
-      return testAppRepo;
-    }
-    catch (Throwable t) {
-      Disposer.dispose(moduleTestResources);
-      throw t;
-    }
+    return TestAppResourceRepository.create(myFacet, moduleTestResources, model);
+    // catch (Throwable t) { FIXME-ank2
   }
 
   /**
    * Returns the resource repository with Android framework resources, for the module's compile SDK.
    *
-   * <p><b>Note:</b> This method should not be called on the event dispatch thread since it may take long time, or block waiting for a read
-   * action lock.
+   * <p><b>Note:</b> This method should not be called on the event dispatch thread since it may take long time.
    *
-   * @param needLocales if the return repository should contain resources defined using a locale qualifier (e.g. all translation strings).
-   *                    This makes creating the repository noticeably slower.
-   * @return the framework repository or null if the SDK resources directory cannot be determined for the module.
+   * @param languages the set of ISO 639 language codes determining the subset of resources to load.
+   *     May be empty to load only the language-neutral resources. The returned repository may contain resources
+   *     for more languages than was requested.
+   * @return the framework repository or null if the SDK resources directory cannot be determined for the module
    */
   @Slow
   @Nullable
-  public ResourceRepository getFrameworkResources(boolean needLocales) {
+  public ResourceRepository getFrameworkResources(@NotNull Set<String> languages) {
     AndroidPlatform androidPlatform = AndroidPlatform.getInstance(myFacet.getModule());
     if (androidPlatform == null) {
       return null;
     }
 
-    return androidPlatform.getSdkData().getTargetData(androidPlatform.getTarget()).getFrameworkResources(needLocales);
+    return androidPlatform.getSdkData().getTargetData(androidPlatform.getTarget()).getFrameworkResources(languages);
   }
 
   /**
@@ -530,7 +559,7 @@ public final class ResourceRepositoryManager implements Disposable {
 
     synchronized (MODULE_RESOURCES_LOCK) {
       if (myModuleResources != null) {
-        Disposer.dispose(myModuleResources);
+        disposeIfDisposable(myModuleResources);
         myModuleResources = null;
       }
     }
@@ -539,6 +568,7 @@ public final class ResourceRepositoryManager implements Disposable {
       if (myProjectResources != null) {
         Disposer.dispose(myProjectResources);
         myProjectResources = null;
+        myLocalesAndLanguages = null;
       }
     }
 
@@ -549,11 +579,27 @@ public final class ResourceRepositoryManager implements Disposable {
       }
     }
 
-    synchronized (TEST_APP_RESOURCES_LOCK) {
+    synchronized (TEST_RESOURCES_LOCK) {
       if (myTestAppResources != null) {
-        Disposer.dispose(myTestAppResources);
+        disposeIfDisposable(myTestAppResources);
         myTestAppResources = null;
       }
+      if (myTestModuleResources != null) {
+        disposeIfDisposable(myTestModuleResources);
+        myTestModuleResources = null;
+      }
+    }
+  }
+
+  private static void disposeIfDisposable(@NotNull Object object) {
+    if (object instanceof Disposable) {
+      Disposer.dispose((Disposable)object);
+    }
+  }
+
+  private static void registerIfDisposable(@NotNull Disposable parent, @NotNull Object object) {
+    if (object instanceof Disposable) {
+      Disposer.register(parent, (Disposable)object);
     }
   }
 
@@ -566,8 +612,13 @@ public final class ResourceRepositoryManager implements Disposable {
   public void resetAllCaches() {
     resetResources();
     ConfigurationManager.getOrCreateInstance(myFacet.getModule()).getResolverCache().reset();
-    ResourceFolderRegistry.getInstance(myFacet.getModule().getProject()).reset();
+    ResourceFolderRegistry.getInstance(getProject()).reset();
     AarResourceRepositoryCache.getInstance().clear();
+  }
+
+  @NotNull
+  private Project getProject() {
+    return myFacet.getModule().getProject();
   }
 
   private void resetVisibility() {
@@ -631,19 +682,34 @@ public final class ResourceRepositoryManager implements Disposable {
       return ResourceNamespace.RES_AUTO;
     }
 
-    if (myCachedNamespace == null || !packageName.equals(myCachedNamespace.getPackageName())) {
-      myCachedNamespace = ResourceNamespace.fromPackageName(packageName);
+    if (mySharedNamespaceInstance == null || !packageName.equals(mySharedNamespaceInstance.getPackageName())) {
+      mySharedNamespaceInstance = ResourceNamespace.fromPackageName(packageName);
     }
 
-    return myCachedNamespace;
+    return mySharedNamespaceInstance;
   }
 
   /**
    * Returns the {@link ResourceNamespace} used by test resources of the current module.
+   *
+   * TODO(namespaces): figure out semantics of test resources with namespaces.
    */
   @NotNull
   public ResourceNamespace getTestNamespace() {
-    return ResourceNamespace.TODO(); // TODO(namespaces): figure out semantics of test resources with namespaces.
+    if (myNamespacing == AaptOptions.Namespacing.DISABLED) {
+      return ResourceNamespace.RES_AUTO;
+    }
+
+    String testPackageName = AndroidManifestUtils.getTestPackageName(myFacet);
+    if (testPackageName == null) {
+      return ResourceNamespace.RES_AUTO;
+    }
+
+    if (mySharedTestNamespaceInstance == null || !testPackageName.equals(mySharedTestNamespaceInstance.getPackageName())) {
+      mySharedTestNamespaceInstance = ResourceNamespace.fromPackageName(testPackageName);
+    }
+
+    return mySharedTestNamespaceInstance;
   }
 
   @Nullable
@@ -666,7 +732,7 @@ public final class ResourceRepositoryManager implements Disposable {
     if (androidModel != null) {
       ResourceVisibilityLookup.Provider provider = getResourceVisibilityProvider();
       if (provider != null) {
-        AndroidProject androidProject = androidModel.getAndroidProject();
+        IdeAndroidProject androidProject = androidModel.getAndroidProject();
         Variant variant = androidModel.getSelectedVariant();
         return provider.get(androidProject, variant);
       }
@@ -730,14 +796,12 @@ public final class ResourceRepositoryManager implements Disposable {
                                                                aarResourceRepositoryCache::getSourceRepository :
                                                                aarResourceRepositoryCache::getProtoRepository;
 
-    int maxThreads = ForkJoinPool.getCommonPoolParallelism();
-    ExecutorService executorService =
-        AppExecutorUtil.createBoundedApplicationPoolExecutor(ResourceRepositoryManager.class.getName(), maxThreads);
+    ExecutorService executor = AndroidIoManager.getInstance().getBackgroundDiskIoExecutor();
 
     // Construct the repositories in parallel.
     Map<ExternalLibrary, Future<AarResourceRepository>> futures = Maps.newHashMapWithExpectedSize(libraries.size());
     for (ExternalLibrary library : libraries) {
-      futures.put(library, executorService.submit(() -> factory.apply(library)));
+      futures.put(library, executor.submit(() -> factory.apply(library)));
     }
 
     // Gather all the results.
@@ -762,5 +826,57 @@ public final class ResourceRepositoryManager implements Disposable {
 
   private static void cancelPendingTasks(Collection<Future<AarResourceRepository>> futures) {
     futures.forEach(f -> f.cancel(true));
+  }
+
+  /**
+   * Returns all locales of the project resources.
+   */
+  @NotNull
+  public ImmutableList<Locale> getLocalesInProject() {
+    return getLocalesAndLanguages().locales;
+  }
+
+  /**
+   * Returns a set of ISO 639 language codes derived from locales of the project resources.
+   */
+  @NotNull
+  public ImmutableSortedSet<String> getLanguagesInProject() {
+    return getLocalesAndLanguages().languages;
+  }
+
+  @NotNull
+  private LocalesAndLanguages getLocalesAndLanguages() {
+    synchronized (PROJECT_RESOURCES_LOCK) {
+      if (myLocalesAndLanguages == null) {
+        myLocalesAndLanguages = CachedValuesManager.getManager(getProject()).createCachedValue(
+          () -> {
+            // Get locales from modules, but not libraries.
+            LocalResourceRepository projectResources = getProjectResources(myFacet);
+            SortedSet<LocaleQualifier> localeQualifiers = ResourceRepositoryUtil.getLocales(projectResources);
+            ImmutableList.Builder<Locale> localesBuilder = ImmutableList.builderWithExpectedSize(localeQualifiers.size());
+            ImmutableSortedSet.Builder<String> languagesBuilder = ImmutableSortedSet.naturalOrder();
+            for (LocaleQualifier localeQualifier : localeQualifiers) {
+              localesBuilder.add(Locale.create(localeQualifier));
+              String language = localeQualifier.getLanguage();
+              if (language != null) {
+                languagesBuilder.add(language);
+              }
+            }
+            return CachedValueProvider.Result.create(new LocalesAndLanguages(localesBuilder.build(), languagesBuilder.build()),
+                                                     projectResources);
+          });
+      }
+      return myLocalesAndLanguages.getValue();
+    }
+  }
+
+  private static class LocalesAndLanguages {
+    @NotNull final ImmutableList<Locale> locales;
+    @NotNull final ImmutableSortedSet<String> languages;
+
+    LocalesAndLanguages(@NotNull ImmutableList<Locale> locales, @NotNull ImmutableSortedSet<String> languages) {
+      this.locales = locales;
+      this.languages = languages;
+    }
   }
 }

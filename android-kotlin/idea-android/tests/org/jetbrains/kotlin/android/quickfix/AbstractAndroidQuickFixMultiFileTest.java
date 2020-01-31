@@ -46,7 +46,7 @@ public abstract class AbstractAndroidQuickFixMultiFileTest extends AbstractQuick
     protected void tearDown() {
         try {
             Extensions.getRootArea().getExtensionPoint(ImportFilter.EP_NAME).unregisterExtension(KotlinTestImportFilter.INSTANCE);
-            AndroidFacet facet = FacetManager.getInstance(getModule()).getFacetByType(AndroidFacet.getFacetType().getId());
+            AndroidFacet facet = FacetManager.getInstance(myFixture.getModule()).getFacetByType(AndroidFacet.getFacetType().getId());
             FacetUtil.deleteFacet(facet);
         } finally {
             super.tearDown();
@@ -54,7 +54,7 @@ public abstract class AbstractAndroidQuickFixMultiFileTest extends AbstractQuick
     }
 
     private void addAndroidFacet() {
-        FacetManager facetManager = FacetManager.getInstance(getModule());
+        FacetManager facetManager = FacetManager.getInstance(myFixture.getModule());
         AndroidFacet facet = facetManager.createFacet(AndroidFacet.getFacetType(), "Android", null);
 
         ModifiableFacetModel facetModel = facetManager.createModifiableModel();

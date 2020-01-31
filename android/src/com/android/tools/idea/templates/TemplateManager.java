@@ -15,6 +15,18 @@
  */
 package com.android.tools.idea.templates;
 
+import static com.android.SdkConstants.FD_ADDONS;
+import static com.android.SdkConstants.FD_EXTRAS;
+import static com.android.SdkConstants.FD_GRADLE_WRAPPER;
+import static com.android.SdkConstants.FD_TEMPLATES;
+import static com.android.SdkConstants.FD_TOOLS;
+import static com.android.SdkConstants.FN_GRADLE_WRAPPER_UNIX;
+import static com.android.tools.idea.npw.project.AndroidPackageUtils.getModuleTemplates;
+import static com.android.tools.idea.npw.project.AndroidPackageUtils.getPackageForPath;
+import static com.android.tools.idea.templates.Template.TEMPLATE_XML_NAME;
+import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
+import static java.util.stream.Collectors.toMap;
+
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.annotations.concurrency.Slow;
 import com.android.prefs.AndroidLocation;
@@ -28,18 +40,30 @@ import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.npw.model.RenderTemplateModel;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.npw.template.ChooseActivityTypeStep;
+import com.android.tools.idea.npw.template.ChooseFragmentTypeStep;
+import com.android.tools.idea.npw.template.ChooseGalleryItemStep;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.utils.XmlUtils;
-import com.google.common.base.Charsets;
-import com.google.common.collect.*;
-import com.google.common.io.Files;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Table;
+import com.google.common.collect.TreeBasedTable;
 import com.intellij.ide.IdeView;
 import com.intellij.ide.actions.NonEmptyActionGroup;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -51,21 +75,21 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.platform.templates.github.ZipUtil;
 import icons.AndroidIcons;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.templates.Template.TEMPLATE_XML_NAME;
-import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
-import static java.util.stream.Collectors.toMap;
 
 /**
  * Handles locating templates and providing template metadata
@@ -78,13 +102,17 @@ public class TemplateManager {
    * templates with the application instead of waiting for SDK updates.
    */
   private static final String BUNDLED_TEMPLATE_PATH = "/plugins/android/lib/templates";
-  private static final String[] DEVELOPMENT_TEMPLATE_PATHS = {"/../../tools/base/templates", "/android/tools-base/templates", "/community/android/tools-base/templates"};
+  private static final String[] DEVELOPMENT_TEMPLATE_PATHS = {
+    "/../../tools/base/templates",
+    "/community/build/dependencies/build/android-sdk/tools-base/templates",
+    "/build/dependencies/build/android-sdk/tools-base/templates"
+  };
   private static final String EXPLODED_AAR_PATH = "build/intermediates/exploded-aar";
 
   public static final String CATEGORY_OTHER = "Other";
   public static final String CATEGORY_ACTIVITY = "Activity";
+  public static final String CATEGORY_FRAGMENT = "Fragment";
   public static final String CATEGORY_AUTOMOTIVE = "Automotive";
-  public static final String CATEGORY_ANDROID_AUTO = "Android Auto";
   private static final String ACTION_ID_PREFIX = "template.create.";
   private static final Set<String> EXCLUDED_CATEGORIES = ImmutableSet.of("Application", "Applications");
   public static final Set<String> EXCLUDED_TEMPLATES = ImmutableSet.of();
@@ -142,16 +170,6 @@ public class TemplateManager {
       }
     }
 
-    // Fall back to SDK template root
-    AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
-    if (sdkData != null) {
-      File location = sdkData.getLocation();
-      File folder = new File(location, FD_TOOLS + File.separator + FD_TEMPLATES);
-      if (folder.isDirectory()) {
-        return folder;
-      }
-    }
-
     return null;
   }
 
@@ -170,7 +188,7 @@ public class TemplateManager {
     List<File> folders = new ArrayList<>();
 
     String homeFolder = AndroidLocation.getFolderWithoutWrites();
-    if (homeFolder != null && StudioFlags.NPW_USE_HOME_FOLDER_AS_EXTRA_TEMPLATE_ROOT_FOLDER.get()) {
+    if (homeFolder != null) {
       // Look in $userhome/.android/templates
       File templatesFolder = new File(homeFolder, FD_TEMPLATES);
       if (templatesFolder.isDirectory()) {
@@ -305,7 +323,7 @@ public class TemplateManager {
 
     // Sort by file name (not path as is File's default)
     if (templates.size() > 1) {
-      Collections.sort(templates, (file1, file2) -> file1.getName().compareTo(file2.getName()));
+      Collections.sort(templates, Comparator.comparing(File::getName));
     }
 
     return templates;
@@ -317,6 +335,14 @@ public class TemplateManager {
   @NotNull
   public List<TemplateHandle> getTemplateList(@NotNull FormFactor formFactor) {
     return getTemplateList(formFactor, NewAndroidComponentAction.NEW_WIZARD_CATEGORIES, EXCLUDED_TEMPLATES);
+  }
+
+  /**
+   * Returns the list of currently available templates, for the specified FormFactor
+   */
+  @NotNull
+  public List<TemplateHandle> getFragmentTemplateList(@NotNull FormFactor formFactor) {
+    return getTemplateList(formFactor, NewAndroidComponentAction.FRAGMENT_CATEGORY, EXCLUDED_TEMPLATES);
   }
 
   @NotNull
@@ -448,7 +474,9 @@ public class TemplateManager {
       myTopGroup.addSeparator();
       ActionManager am = ActionManager.getInstance();
 
-      for (final String category : getCategoryTable(true, project).rowKeySet()) {
+      reloadCategoryTable(project); // Force reload
+
+      for (final String category : getCategoryTable().rowKeySet()) {
         if (EXCLUDED_CATEGORIES.contains(category)) {
           continue;
         }
@@ -475,7 +503,7 @@ public class TemplateManager {
     boolean isProjectReady = facet != null && facet.getModel() != null;
     presentation.setText(text + (isProjectReady ? "" : " (Project not ready)"));
     presentation.setVisible(visible && view != null && facet != null && facet.requiresAndroidModel());
-    presentation.setEnabled(disableIfNotReady ? isProjectReady : true);
+    presentation.setEnabled(!disableIfNotReady || isProjectReady);
   }
 
   @GuardedBy("CATEGORY_TABLE_LOCK")
@@ -490,56 +518,37 @@ public class TemplateManager {
 
         @Override
         public void actionPerformed(@NotNull AnActionEvent e) {
-          ProjectSyncInvoker projectSyncInvoker = new ProjectSyncInvoker.DefaultProjectSyncInvoker();
-
-          DataContext dataContext = e.getDataContext();
-          Module module = LangDataKeys.MODULE.getData(dataContext);
-          assert module != null;
-
-          VirtualFile targetFile = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
-          assert targetFile != null;
-
-          VirtualFile targetDirectory = targetFile;
-          if (!targetDirectory.isDirectory()) {
-            targetDirectory = targetFile.getParent();
-            assert targetDirectory != null;
-          }
-
-          AndroidFacet facet = AndroidFacet.getInstance(module);
-          assert facet != null && facet.getModel() != null;
-
-          List<NamedModuleTemplate> moduleTemplates = AndroidPackageUtils.getModuleTemplates(facet, targetDirectory);
-          assert (!moduleTemplates.isEmpty());
-
-          String initialPackageSuggestion = AndroidPackageUtils.getPackageForPath(facet, moduleTemplates, targetDirectory);
-          Project project = facet.getModule().getProject();
-
-          RenderTemplateModel renderModel = new RenderTemplateModel(facet, null, initialPackageSuggestion, moduleTemplates.get(0),
-                                                                    AndroidBundle
-                                                                      .message("android.wizard.activity.add", FormFactor.MOBILE.id),
-                                                                    projectSyncInvoker, true);
-
-          NewModuleModel moduleModel = new NewModuleModel(project, projectSyncInvoker);
-          ChooseActivityTypeStep chooseActivityTypeStep =
-            new ChooseActivityTypeStep(moduleModel, renderModel, FormFactor.MOBILE, targetDirectory);
-          ModelWizard wizard = new ModelWizard.Builder().addStep(chooseActivityTypeStep).build();
-
-          new StudioWizardDialogBuilder(wizard, "New Android Activity").build().show();
+          showWizardDialog(e, CATEGORY_ACTIVITY,
+                           AndroidBundle.message("android.wizard.activity.add", FormFactor.MOBILE.id),
+                          "New Android Activity");
         }
       };
       categoryGroup.add(galleryAction);
       categoryGroup.addSeparator();
       setPresentation(category, galleryAction);
     }
+
+    if (StudioFlags.NPW_SHOW_FRAGMENT_GALLERY.get() && category.equals(CATEGORY_FRAGMENT)) {
+      AnAction fragmentGalleryAction = new AnAction() {
+        @Override
+        public void update(@NotNull AnActionEvent e) {
+          updateAction(e, "Gallery...", true, true);
+        }
+
+        @Override
+        public void actionPerformed(@NotNull AnActionEvent e) {
+          showWizardDialog(e, CATEGORY_FRAGMENT,
+                           AndroidBundle.message("android.wizard.fragment.add", FormFactor.MOBILE.id),
+                           "New Android Fragment");
+        }
+      };
+      categoryGroup.add(fragmentGalleryAction);
+      categoryGroup.addSeparator();
+      setPresentation(category, fragmentGalleryAction);
+    }
+
     // Automotive category includes Car category templates. If a template is in both categories, use the automotive one.
     Map<String, String> templateCategoryMap = categoryRow.keySet().stream().collect(toMap(it -> it, it -> category));
-    if (category.equals(CATEGORY_AUTOMOTIVE)) {
-      for (String templateName : myCategoryTable.row(CATEGORY_ANDROID_AUTO).keySet()) {
-        if (!templateCategoryMap.containsKey(templateName)) {
-          templateCategoryMap.put(templateName, CATEGORY_ANDROID_AUTO);
-        }
-      }
-    }
     for (Map.Entry<String, String> templateNameAndCategory : templateCategoryMap.entrySet()) {
       String templateName = templateNameAndCategory.getKey();
       String templateCategory = templateNameAndCategory.getValue();
@@ -549,7 +558,7 @@ public class TemplateManager {
       TemplateMetadata metadata = getTemplateMetadata(myCategoryTable.get(templateCategory, templateName));
       int minSdkVersion = metadata == null ? 0 : metadata.getMinSdk();
       int minBuildSdkApi = metadata == null ? 0 : metadata.getMinBuildApi();
-      boolean androidXRequired = metadata == null ? false : metadata.getAndroidXRequired();
+      boolean androidXRequired = metadata != null && metadata.getAndroidXRequired();
       File templateFile = myCategoryTable.row(templateCategory).get(templateName);
       NewAndroidComponentAction templateAction = new NewAndroidComponentAction(
         category, templateName, minSdkVersion, minBuildSdkApi, androidXRequired, templateFile);
@@ -557,6 +566,51 @@ public class TemplateManager {
       am.replaceAction(actionId, templateAction);
       categoryGroup.add(templateAction);
     }
+  }
+
+  private void showWizardDialog(@NotNull AnActionEvent e, String category, String commandName, String dialogTitle) {
+    ProjectSyncInvoker projectSyncInvoker = new ProjectSyncInvoker.DefaultProjectSyncInvoker();
+
+    DataContext dataContext = e.getDataContext();
+    Module module = LangDataKeys.MODULE.getData(dataContext);
+    assert module != null;
+
+    VirtualFile targetFile = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
+    assert targetFile != null;
+
+    VirtualFile targetDirectory = targetFile;
+    if (!targetDirectory.isDirectory()) {
+      targetDirectory = targetFile.getParent();
+      assert targetDirectory != null;
+    }
+
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    assert facet != null && facet.getModel() != null;
+
+    List<NamedModuleTemplate> moduleTemplates = getModuleTemplates(facet, targetDirectory);
+    assert (!moduleTemplates.isEmpty());
+
+    String initialPackageSuggestion = getPackageForPath(facet, moduleTemplates, targetDirectory);
+    Project project = facet.getModule().getProject();
+
+    RenderTemplateModel renderModel = RenderTemplateModel.fromFacet(
+      facet, null, initialPackageSuggestion, moduleTemplates.get(0),
+      commandName, projectSyncInvoker, true);
+
+    NewModuleModel moduleModel = new NewModuleModel(project, null, projectSyncInvoker, moduleTemplates.get(0));
+    ChooseGalleryItemStep chooseTypeStep;
+    if (category.equals(CATEGORY_ACTIVITY)) {
+      chooseTypeStep =
+        new ChooseActivityTypeStep(moduleModel, renderModel, FormFactor.MOBILE, targetDirectory);
+    } else if (category.equals(CATEGORY_FRAGMENT)) {
+      chooseTypeStep =
+        new ChooseFragmentTypeStep(moduleModel, renderModel, FormFactor.MOBILE, targetDirectory);
+    } else {
+      throw new RuntimeException("Invalid category name: " + category);
+    }
+    ModelWizard wizard = new ModelWizard.Builder().addStep(chooseTypeStep).build();
+
+    new StudioWizardDialogBuilder(wizard, dialogTitle).build().show();
   }
 
   private static void setPresentation(String category, AnAction categoryGroup) {
@@ -567,47 +621,50 @@ public class TemplateManager {
 
   @GuardedBy("CATEGORY_TABLE_LOCK")
   private Table<String, String, File> getCategoryTable() {
-    return getCategoryTable(false, null);
+    if (myCategoryTable == null) {
+      reloadCategoryTable(null);
+    }
+
+    return myCategoryTable;
   }
 
   @Slow
   @GuardedBy("CATEGORY_TABLE_LOCK")
-  private Table<String, String, File> getCategoryTable(boolean forceReload, @Nullable Project project) {
-    if (myCategoryTable == null || forceReload) {
-      if (myTemplateMap != null) {
-        myTemplateMap.clear();
-      }
-      myCategoryTable = TreeBasedTable.create();
-      for (File categoryDirectory : listFiles(getTemplateRootFolder())) {
+  private void reloadCategoryTable(@Nullable Project project) {
+    if (myTemplateMap != null) {
+      myTemplateMap.clear();
+    }
+    myCategoryTable = TreeBasedTable.create();
+    File templateRootFolder = getTemplateRootFolder();
+    if (templateRootFolder != null) {
+      for (File categoryDirectory : listFiles(templateRootFolder)) {
         for (File newTemplate : listFiles(categoryDirectory)) {
-          addTemplateToTable(newTemplate, false);
-        }
-      }
-
-      for (File rootDirectory : getUserDefinedTemplateRootFolders()) {
-        for (File categoryDirectory : listFiles(rootDirectory)) {
-          for (File newTemplate : listFiles(categoryDirectory)) {
-            addTemplateToTable(newTemplate, true);
-          }
-        }
-      }
-
-      for (File rootDirectory : getAuxTemplateRootFolders()) {
-        for (File categoryDirectory : listFiles(rootDirectory)) {
-          for (File newTemplate : listFiles(categoryDirectory)) {
-            addTemplateToTable(newTemplate, false);
-          }
-        }
-      }
-
-      for (File aarDirectory : getTemplateDirectoriesFromAars(project)) {
-        for (File newTemplate : listFiles(aarDirectory)) {
           addTemplateToTable(newTemplate, false);
         }
       }
     }
 
-    return myCategoryTable;
+    for (File rootDirectory : getUserDefinedTemplateRootFolders()) {
+      for (File categoryDirectory : listFiles(rootDirectory)) {
+        for (File newTemplate : listFiles(categoryDirectory)) {
+          addTemplateToTable(newTemplate, true);
+        }
+      }
+    }
+
+    for (File rootDirectory : getAuxTemplateRootFolders()) {
+      for (File categoryDirectory : listFiles(rootDirectory)) {
+        for (File newTemplate : listFiles(categoryDirectory)) {
+          addTemplateToTable(newTemplate, false);
+        }
+      }
+    }
+
+    for (File aarDirectory : getTemplateDirectoriesFromAars(project)) {
+      for (File newTemplate : listFiles(aarDirectory)) {
+        addTemplateToTable(newTemplate, false);
+      }
+    }
   }
 
   @GuardedBy("CATEGORY_TABLE_LOCK")
@@ -659,13 +716,9 @@ public class TemplateManager {
       templates.addAll(getTemplateList(formFactor, category, excluded));
     }
 
-    // Special case for Android Wear and Android Auto: These tend not to be activities; allow
-    // you to create a module with for example just a watch face
+    // Special case for Android Wear: These tend not to be activities; allow you to create a module with for example just a watch face
     if (formFactor == FormFactor.WEAR) {
       templates.addAll(getTemplateList(formFactor, "Wear", excluded));
-    }
-    if (formFactor == FormFactor.CAR) {
-      templates.addAll(getTemplateList(formFactor, "Android Auto", excluded));
     }
 
     Collections.sort(templates, (o1, o2) -> {

@@ -23,7 +23,7 @@ import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
 /**
  * DOM element representing "nav-graph" Android manifest element.
  */
-interface NavGraph extends ManifestElement {
+public interface NavGraph extends ManifestElement {
 
   @Convert(ResourceReferenceConverter.class)
   @AndroidResourceType("navigation")

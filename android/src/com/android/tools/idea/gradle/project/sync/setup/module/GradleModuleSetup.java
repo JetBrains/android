@@ -21,13 +21,12 @@ import static java.util.Collections.emptyList;
 
 import com.android.builder.model.AndroidProject;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.java.model.GradlePluginModel;
+import com.android.ide.gradle.model.GradlePluginModel;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetType;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleModuleModels;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -39,6 +38,7 @@ import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.gradle.GradleScript;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.kapt.idea.KaptGradleModel;
 
 public class GradleModuleSetup {
   @NotNull
@@ -71,7 +71,7 @@ public class GradleModuleSetup {
     String agpVersion = androidProject != null ? androidProject.getModelVersion() : null;
 
     return new GradleModuleModel(module.getName(), gradleProject, getGradlePlugins(models), buildFilePath, getGradleVersion(module),
-                                 agpVersion);
+                                 agpVersion, models.findModel(KaptGradleModel.class));
   }
 
   @NotNull
@@ -93,9 +93,8 @@ public class GradleModuleSetup {
     facet.setGradleModuleModel(model);
 
     String gradleVersion = model.getGradleVersion();
-    GradleSyncSummary syncReport = GradleSyncState.getInstance(module.getProject()).getSummary();
-    if (isNotEmpty(gradleVersion) && syncReport.getGradleVersion() == null) {
-      syncReport.setGradleVersion(GradleVersion.parse(gradleVersion));
+    if (isNotEmpty(gradleVersion)) {
+      GradleSyncState.getInstance(module.getProject()).setLastSyncedGradleVersion(GradleVersion.parse(gradleVersion));
     }
   }
 

@@ -21,7 +21,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
-import com.android.tools.idea.tests.gui.framework.GuiTestFileUtils;
 import com.android.tools.idea.tests.util.WizardUtils;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
@@ -51,6 +50,7 @@ public class ConstraintLayoutTest {
     FileSystems.getDefault().getPath("app", "src", "main", "res", "layout", "activity_main.xml");
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   @Before
   public void setUp() {
@@ -128,9 +128,12 @@ public class ConstraintLayoutTest {
     WizardUtils.createNewProject(guiTest, "Empty Activity");
 
     EditorFixture editor = guiTest.ideFrame().getEditor();
+    // When we create a project using the wizard, files are open with the default editor before sync. After sync, close file in case it
+    // before opening, to cover the case of HIDE_DEFAULT_EDITOR policy.
+    editor.closeFile(ACTIVITY_MAIN_XML_RELATIVE_PATH.toString());
     editor.open(ACTIVITY_MAIN_XML_RELATIVE_PATH);
 
-    NlEditorFixture layoutEditor = editor.getLayoutEditor(false);
+    NlEditorFixture layoutEditor = editor.getLayoutEditor(true);
 
     layoutEditor.waitForRenderToFinish();
     layoutEditor.findView("TextView", 0).click();
@@ -165,7 +168,7 @@ public class ConstraintLayoutTest {
   }
 
   @Test
-  public void cleanUpAttributes() throws IOException {
+  public void cleanUpAttributes() {
     WizardUtils.createNewProject(guiTest);
 
     @Language("XML")
@@ -185,12 +188,14 @@ public class ConstraintLayoutTest {
                       "        app:layout_constraintTop_toTopOf=\"parent\" />\n" +
                       "</androidx.constraintlayout.widget.ConstraintLayout>";
 
-    GuiTestFileUtils.writeAndReloadDocument(guiTest.getProjectPath().toPath().resolve(ACTIVITY_MAIN_XML_RELATIVE_PATH), contents);
+    EditorFixture editor = guiTest.ideFrame().getEditor()
+      // When we create a project using the wizard, files are open with the default editor before sync. After sync, close file in case it
+      // before opening, to cover the case of HIDE_DEFAULT_EDITOR policy.
+      .closeFile(ACTIVITY_MAIN_XML_RELATIVE_PATH.toString())
+      .open(ACTIVITY_MAIN_XML_RELATIVE_PATH)
+      .replaceText(contents);
 
-    EditorFixture editor = guiTest.ideFrame().getEditor();
-    editor.open(ACTIVITY_MAIN_XML_RELATIVE_PATH);
-
-    NlEditorFixture layoutEditor = editor.getLayoutEditor(false);
+    NlEditorFixture layoutEditor = editor.getLayoutEditor(true);
     layoutEditor.waitForRenderToFinish();
     layoutEditor.showOnlyDesignView();
     layoutEditor.findView("TextView", 0).click();

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android_framework="http://schemas.android.com/apk/res/android">
+  <item android_framework:state_pressed="false" android_framework:drawable="@drawable/battery" />
+  <item android_framework:drawable="@android_framework:drawable/arrow_up_float"/>
+</selector>

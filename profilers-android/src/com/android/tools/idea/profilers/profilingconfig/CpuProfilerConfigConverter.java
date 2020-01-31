@@ -17,27 +17,26 @@ package com.android.tools.idea.profilers.profilingconfig;
 
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.profiler.proto.Cpu;
-import com.android.tools.profiler.proto.CpuProfiler;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 
 public class CpuProfilerConfigConverter {
 
   private CpuProfilerConfigConverter() {}
 
   /**
-   * Converts from list of {@link CpuProfilerConfig} to list of {@link CpuProfiler.CpuProfilerConfiguration}
+   * Converts from list of {@link CpuProfilerConfig} to list of {@link Cpu.CpuTraceConfiguration}
    */
-  public static List<CpuProfiler.CpuProfilerConfiguration> toProto(List<CpuProfilerConfig> configs) {
+  public static List<Cpu.CpuTraceConfiguration.UserOptions> toProto(List<CpuProfilerConfig> configs) {
     return configs.stream().map(CpuProfilerConfigConverter::toProto).collect(Collectors.toList());
   }
 
   /**
-   * Converts from {@link CpuProfilerConfig} to {@link CpuProfiler.CpuProfilerConfiguration}
+   * Converts from {@link CpuProfilerConfig} to {@link Cpu.CpuTraceConfiguration.UserOptions}
    */
-  public static CpuProfiler.CpuProfilerConfiguration toProto(CpuProfilerConfig config) {
-    CpuProfiler.CpuProfilerConfiguration.Builder protoBuilder = CpuProfiler.CpuProfilerConfiguration
-      .newBuilder()
+  public static Cpu.CpuTraceConfiguration.UserOptions toProto(CpuProfilerConfig config) {
+    Cpu.CpuTraceConfiguration.UserOptions.Builder protoBuilder = Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
       .setName(config.getName())
       .setBufferSizeInMb(config.getBufferSizeMb())
       .setSamplingIntervalUs(config.getSamplingIntervalUs())
@@ -66,9 +65,9 @@ public class CpuProfilerConfigConverter {
   }
 
   /**
-   * Converts from {@link CpuProfiler.CpuProfilerConfiguration} to {@link CpuProfilerConfig}
+   * Converts from {@link Cpu.CpuTraceConfiguration.UserOptions} to {@link CpuProfilerConfig}
    */
-  public static CpuProfilerConfig fromProto(CpuProfiler.CpuProfilerConfiguration proto) {
+  public static CpuProfilerConfig fromProto(Cpu.CpuTraceConfiguration.UserOptions proto) {
     CpuProfilerConfig config = new CpuProfilerConfig()
       .setName(proto.getName())
       .setSamplingIntervalUs(proto.getSamplingIntervalUs())

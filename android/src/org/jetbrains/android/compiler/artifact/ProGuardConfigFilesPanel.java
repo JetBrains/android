@@ -1,4 +1,3 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.compiler.artifact;
 
 import com.intellij.openapi.fileChooser.FileChooser;
@@ -16,12 +15,11 @@ import com.intellij.ui.CollectionListModel;
 import com.intellij.ui.ToolbarDecorator;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
-import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,7 +40,7 @@ public abstract class ProGuardConfigFilesPanel extends JPanel {
 
   public ProGuardConfigFilesPanel() {
     super(new BorderLayout());
-    myModel = new CollectionListModel<>();
+    myModel = new CollectionListModel<String>();
     myList = new JBList(myModel);
 
     final ToolbarDecorator decorator = ToolbarDecorator.createDecorator(myList).
@@ -56,8 +54,8 @@ public abstract class ProGuardConfigFilesPanel extends JPanel {
         }
       }
     });
-    JPanel tablePanel = decorator.setPreferredSize(new Dimension(-1, JBUIScale.scale(120))).createPanel();
-    tablePanel.setMinimumSize(new Dimension(-1, JBUIScale.scale(120)));
+    JPanel tablePanel = decorator.setPreferredSize(new Dimension(-1, JBUI.scale(120))).createPanel();
+    tablePanel.setMinimumSize(new Dimension(-1, JBUI.scale(120)));
     add(tablePanel, BorderLayout.CENTER);
     final JBLabel label = new JBLabel("Config file paths:");
     label.setBorder(JBUI.Borders.empty(0, 0, 5, 0));
@@ -92,14 +90,14 @@ public abstract class ProGuardConfigFilesPanel extends JPanel {
     if (paths.isEmpty()) {
       return Collections.emptyList();
     }
-    final List<String> result = new ArrayList<>(paths.size());
+    final List<String> result = new ArrayList<String>(paths.size());
 
     for (String path : paths) {
       String url = VfsUtilCore.pathToUrl(path);
       final String sdkHome = getCanonicalSdkHome();
 
       if (sdkHome != null) {
-        url = StringUtil.replace(url, sdkHome, AndroidCommonUtils.SDK_HOME_MACRO);
+        url = StringUtil.replace(url, sdkHome, AndroidBuildCommonUtils.SDK_HOME_MACRO);
       }
       result.add(url);
     }
@@ -116,7 +114,7 @@ public abstract class ProGuardConfigFilesPanel extends JPanel {
   }
 
   public void setOsPaths(@NotNull List<String> paths) {
-    myModel = new CollectionListModel<>(paths);
+    myModel = new CollectionListModel<String>(paths);
     myList.setModel(myModel);
   }
 

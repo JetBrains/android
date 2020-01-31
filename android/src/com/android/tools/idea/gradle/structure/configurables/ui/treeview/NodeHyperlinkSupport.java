@@ -138,7 +138,7 @@ public class NodeHyperlinkSupport<T extends SimpleNode> implements Disposable {
     MouseAdapter mouseListener = new MouseAdapter() {
       @Override
       public void mouseMoved(MouseEvent e) {
-        Cursor cursor = getDefaultCursor();
+        Cursor cursor = null;
         T node = getIfHyperlink(e);
         if (node != null) {
           cursor = getPredefinedCursor(HAND_CURSOR);
@@ -153,7 +153,7 @@ public class NodeHyperlinkSupport<T extends SimpleNode> implements Disposable {
     myKeyEventDispatcher = e -> {
       T node = null;
       if (e.getID() == KEY_PRESSED) {
-        Cursor cursor = getDefaultCursor();
+        Cursor cursor = null;
         if (isMetaOrCtrlKeyPressed(e)) {
           node = getNodeUnderMousePointer();
           if (node != null) {
@@ -167,7 +167,7 @@ public class NodeHyperlinkSupport<T extends SimpleNode> implements Disposable {
         if (isMetaOrCtrlKeyPressed(e)) {
           setHoveredNode(null);
         }
-        myTree.setCursor(getDefaultCursor());
+        myTree.setCursor(null);
       }
       return false;
     };

@@ -21,7 +21,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
-import com.android.tools.idea.welcome.wizard.WelcomeUIUtils;
+import com.android.tools.idea.welcome.wizard.WelcomeUiUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.utils.HtmlBuilder;
 import com.google.common.collect.Lists;
@@ -120,7 +120,7 @@ public class UpdateInfoDialog extends AbstractUpdateDialog {
 
     public UpdateInfoPanel(List<RemotePackage> packages) {
       configureMessageArea(mySettingsLink);
-      myDownloadSize.setText(WelcomeUIUtils.getSizeLabel(computeDownloadSize(packages)));
+      myDownloadSize.setText(WelcomeUiUtils.getSizeLabel(computeDownloadSize(packages)));
 
       // Unfortunately null keys aren't allowed, so non-versioned packages get this marker.
       AndroidVersion noVersion = new AndroidVersion(-1, null);

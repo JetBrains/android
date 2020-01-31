@@ -15,6 +15,17 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import static com.android.SdkConstants.FD_GRADLE_WRAPPER;
+import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
+import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
+import static com.android.tools.idea.util.PropertiesFiles.savePropertiesToFile;
+import static com.intellij.openapi.util.io.FileUtil.copyDirContent;
+import static com.intellij.openapi.util.io.FileUtil.join;
+import static com.intellij.openapi.util.io.FileUtilRt.extensionEquals;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_SHA_256_SUM;
+import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
+
 import com.android.SdkConstants;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.util.PropertiesFiles;
@@ -23,23 +34,14 @@ import com.google.common.base.Strings;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.util.PropertiesFiles.savePropertiesToFile;
-import static com.intellij.openapi.util.io.FileUtil.copyDirContent;
-import static com.intellij.openapi.util.io.FileUtil.join;
-import static com.intellij.openapi.util.io.FileUtilRt.extensionEquals;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class GradleWrapper {
   @NonNls public static final String GRADLEW_PROPERTIES_PATH = join(FD_GRADLE_WRAPPER, FN_GRADLE_WRAPPER_PROPERTIES);
@@ -226,6 +228,16 @@ public final class GradleWrapper {
       }
     }
     return null;
+  }
+
+  @Nullable
+  public String getDistributionSha256Sum() throws IOException {
+    return getProperties().getProperty(DISTRIBUTION_SHA_256_SUM);
+  }
+
+  @Nullable
+  public String getDistributionUrl() throws IOException {
+    return getProperties().getProperty(DISTRIBUTION_URL_PROPERTY);
   }
 
   @VisibleForTesting

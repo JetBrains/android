@@ -18,11 +18,15 @@ package com.android.tools.idea.apk.viewer;
 import com.android.SdkConstants;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.apk.analyzer.*;
+import com.android.tools.apk.analyzer.AndroidApplicationInfo;
+import com.android.tools.apk.analyzer.ArchiveEntry;
+import com.android.tools.apk.analyzer.ArchiveErrorEntry;
+import com.android.tools.apk.analyzer.ArchiveNode;
+import com.android.tools.apk.analyzer.ArchiveTreeStructure;
+import com.android.tools.apk.analyzer.Archives;
 import com.android.tools.apk.analyzer.internal.ApkArchive;
 import com.android.tools.apk.analyzer.internal.ArchiveTreeNode;
 import com.android.tools.apk.analyzer.internal.InstantAppBundleArchive;
-import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.stats.AnonymizerUtil;
 import com.google.common.primitives.Longs;
@@ -40,25 +44,36 @@ import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.*;
+import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.ui.IdeBorderFactory;
+import com.intellij.ui.LoadingNode;
+import com.intellij.ui.SideBorder;
+import com.intellij.ui.SimpleColoredComponent;
+import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.treeStructure.Tree;
+import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.concurrency.SameThreadExecutor;
 import com.intellij.util.ui.AnimatedIcon;
 import com.intellij.util.ui.AsyncProcessIcon;
 import icons.StudioIcons;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.ide.PooledThreadExecutor;
-
-import javax.swing.*;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreePath;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.util.List;
+import javax.swing.Icon;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JTree;
+import javax.swing.SwingConstants;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.ide.PooledThreadExecutor;
 
 public class ApkViewPanel implements TreeSelectionListener {
   private JPanel myContainer;
@@ -94,7 +109,7 @@ public class ApkViewPanel implements TreeSelectionListener {
         }
         setRootNode(result);
       }
-    } , EdtExecutor.INSTANCE);
+    } , EdtExecutorService.getInstance());
 
     // kick off computation of the compressed archive, and once its available, refresh the tree
     Futures.addCallback(apkParser.updateTreeWithDownloadSizes(), new FutureCallBackAdapter<ArchiveNode>() {
@@ -107,7 +122,7 @@ public class ApkViewPanel implements TreeSelectionListener {
           .sort(result, (o1, o2) -> Longs.compare(o2.getData().getDownloadFileSize(), o1.getData().getDownloadFileSize()));
         refreshTree();
       }
-    }, EdtExecutor.INSTANCE);
+    }, EdtExecutorService.getInstance());
 
     myContainer.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
 
@@ -141,7 +156,7 @@ public class ApkViewPanel implements TreeSelectionListener {
         }
         setAppInfo(result);
       }
-    }, EdtExecutor.INSTANCE);
+    }, EdtExecutorService.getInstance());
 
 
     // obtain and set the download size
@@ -162,7 +177,7 @@ public class ApkViewPanel implements TreeSelectionListener {
                               setApkSizes(uncompressed, compressed == null ? 0 : compressed.longValue());
                             }
                           }
-                        }, EdtExecutor.INSTANCE);
+                        }, EdtExecutorService.getInstance());
 
     Futures.addCallback(Futures.allAsList(uncompressedApkSize, compressedFullApkSize, applicationInfo),
                         new FutureCallBackAdapter<List<Object>>() {
@@ -243,7 +258,7 @@ public class ApkViewPanel implements TreeSelectionListener {
                    .setHeaderAlignment(SwingConstants.TRAILING)
                    .setRenderer(new SizeRenderer(true)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
-                   .setName("% of Total Download size")
+                   .setName("% of Total Download Size")
                    .setPreferredWidth(150)
                    .setHeaderAlignment(SwingConstants.LEADING)
                    .setRenderer(new PercentRenderer(percentProvider))
@@ -411,21 +426,20 @@ public class ApkViewPanel implements TreeSelectionListener {
       }
 
       ArchiveEntry entry = ((ArchiveNode)value).getData();
-
-      Path path = entry.getPath();
-      setIcon(getIconFor(path));
-
-      Path base = path.getFileName();
-      String name = base == null ? "" : base.toString();
-      name = StringUtil.trimEnd(name, "/");
-
-      SimpleTextAttributes attr = SimpleTextAttributes.REGULAR_ATTRIBUTES;
+      setIcon(getIconFor(entry));
+      String name = entry.getNodeDisplayString();
+      SimpleTextAttributes attr = entry instanceof ArchiveErrorEntry ? SimpleTextAttributes.ERROR_ATTRIBUTES
+                                                                     : SimpleTextAttributes.REGULAR_ATTRIBUTES;
       SearchUtil.appendFragments(mySpeedSearch.getEnteredPrefix(), name, attr.getStyle(), attr.getFgColor(),
                                  attr.getBgColor(), this);
     }
 
     @NotNull
-    private static Icon getIconFor(@NotNull Path path) {
+    private static Icon getIconFor(@NotNull ArchiveEntry entry) {
+      if(entry instanceof ArchiveErrorEntry) {
+        return StudioIcons.Common.WARNING;
+      }
+      Path path = entry.getPath();
       Path base = path.getFileName();
       String fileName = base == null ? "" : base.toString();
 

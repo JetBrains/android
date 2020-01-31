@@ -18,19 +18,18 @@ package com.android.tools.idea.naveditor.property.inspector
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_ID
 import com.android.SdkConstants.AUTO_URI
-import com.google.common.annotations.VisibleForTesting
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker
-import com.android.tools.idea.naveditor.model.actionDestinationId
+import com.android.tools.idea.naveditor.model.actionDestination
 import com.android.tools.idea.naveditor.model.createAction
-import com.android.tools.idea.naveditor.model.findVisibleDestination
 import com.android.tools.idea.naveditor.model.generateActionId
 import com.android.tools.idea.naveditor.model.inclusive
 import com.android.tools.idea.naveditor.model.isFragment
 import com.android.tools.idea.naveditor.model.isNavigation
 import com.android.tools.idea.naveditor.model.parentSequence
+import com.android.tools.idea.naveditor.model.popUpTo
 import com.android.tools.idea.naveditor.model.setActionDestinationIdAndLog
 import com.android.tools.idea.naveditor.model.setEnterAnimationAndLog
 import com.android.tools.idea.naveditor.model.setExitAnimationAndLog
@@ -45,6 +44,7 @@ import com.android.tools.idea.naveditor.model.visibleDestinations
 import com.android.tools.idea.naveditor.property.editors.getAnimatorsPopupContent
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.uibuilder.property.editors.support.ValueWithDisplayString
+import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.CREATE_ACTION
 import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.EDIT_ACTION
@@ -55,12 +55,12 @@ import com.intellij.openapi.util.Computable
 import com.intellij.ui.ListCellRendererWrapper
 import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.util.text.nullize
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DESTINATION
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_ENTER_ANIM
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_EXIT_ANIM
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_ENTER_ANIM
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_EXIT_ANIM
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_UP_TO
-import java.awt.Component
 import java.awt.Font
 import java.awt.event.ActionListener
 import java.awt.event.ItemListener
@@ -68,21 +68,28 @@ import javax.swing.Action
 import javax.swing.JComboBox
 import javax.swing.JComponent
 import javax.swing.JList
-import javax.swing.JSeparator
 
 /**
  * Shows an [AddActionDialog] and then updates the corresponding model.
  */
 @VisibleForTesting
 fun showAndUpdateFromDialog(actionDialog: AddActionDialog, surface: DesignSurface?, hadExisting: Boolean) {
-  if (actionDialog.showAndGet()) {
-    val action = actionDialog.writeUpdatedAction()
+  val action = showAndUpdateFromDialog(actionDialog, surface?.model, hadExisting)
+  if (action != null && !hadExisting) {
     surface?.selectionModel?.setSelection(listOf(action))
-    NavUsageTracker.getInstance(surface?.model).createEvent(if (hadExisting) EDIT_ACTION else CREATE_ACTION)
-      .withActionInfo(action)
-      .withSource(actionDialog.invocationSite)
-      .log()
   }
+}
+
+fun showAndUpdateFromDialog(actionDialog: AddActionDialog, model: NlModel?, hadExisting: Boolean): NlComponent? {
+  if (!actionDialog.showAndGet()) return null
+
+  val action = actionDialog.writeUpdatedAction()
+  NavUsageTracker.getInstance(model).createEvent(if (hadExisting) EDIT_ACTION else CREATE_ACTION)
+    .withActionInfo(action)
+    .withSource(actionDialog.invocationSite)
+    .log()
+
+  return action
 }
 
 /**
@@ -157,6 +164,7 @@ open class AddActionDialog(
 
     dialog.myFromComboBox.addItem(parent)
 
+    populateDestinations()
     if (existingAction != null) {
       setupFromExisting()
     }
@@ -196,7 +204,6 @@ open class AddActionDialog(
   }
 
   private fun setDefaults(type: Defaults) {
-    populateDestinations()
     if (type == Defaults.GLOBAL) {
       val sourceNav = parent.parent!!
       dialog.myFromComboBox.addItem(sourceNav)
@@ -209,6 +216,8 @@ open class AddActionDialog(
       selectItem(dialog.myDestinationComboBox, { entry -> entry.isReturnToSource }, true)
     }
     dialog.myIdTextField.text = generateActionId(source, destination?.id, popTo, isInclusive)
+
+    setAnimationComboBoxesEnabled(false)
   }
 
   private fun populateDestinations() {
@@ -223,6 +232,13 @@ open class AddActionDialog(
     dialog.myPopToComboBox.addItem(null)
 
     populateComboBox(dialog.myPopToComboBox, { it.isFragment || it.isNavigation })
+  }
+
+  private fun setAnimationComboBoxesEnabled(enable: Boolean) {
+    dialog.myEnterComboBox.isEnabled = enable
+    dialog.myExitComboBox.isEnabled = enable
+    dialog.myPopEnterComboBox.isEnabled = enable
+    dialog.myPopExitComboBox.isEnabled = enable
   }
 
   private fun populateComboBox(comboBox: JComboBox<DestinationListEntry>, filter: (NlComponent) -> Boolean) {
@@ -251,12 +267,13 @@ open class AddActionDialog(
       dialog.myFromComboBox.addItem(existingAction.parent)
     }
 
-    val destination = existingAction.actionDestinationId
-    dialog.myDestinationComboBox.addItem(
-      DestinationListEntry(destination?.let { existingAction.parent!!.findVisibleDestination(destination) })
-    )
-    dialog.myDestinationComboBox.selectedIndex = 0
-    dialog.myDestinationComboBox.isEnabled = false
+    if (existingAction.actionDestination == null && existingAction.popUpTo == parent.id && existingAction.inclusive == true) {
+      selectItem(dialog.myDestinationComboBox, { it.isReturnToSource }, true)
+    }
+    else {
+      selectItem(dialog.myDestinationComboBox, { it.component?.resolveAttribute(ANDROID_URI, ATTR_ID) }, ATTR_DESTINATION, AUTO_URI,
+                 existingAction)
+    }
 
     selectItem(dialog.myPopToComboBox, { it.component?.resolveAttribute(ANDROID_URI, ATTR_ID) }, ATTR_POP_UP_TO, AUTO_URI, existingAction)
     dialog.myInclusiveCheckBox.isSelected = existingAction.inclusive == true
@@ -264,11 +281,21 @@ open class AddActionDialog(
     selectItem(dialog.myExitComboBox, { it.value }, ATTR_EXIT_ANIM, AUTO_URI, existingAction)
     selectItem(dialog.myPopEnterComboBox, { it.value }, ATTR_POP_ENTER_ANIM, AUTO_URI, existingAction)
     selectItem(dialog.myPopExitComboBox, { it.value }, ATTR_POP_EXIT_ANIM, AUTO_URI, existingAction)
+
+    val component = (dialog.myDestinationComboBox.selectedItem as? DestinationListEntry)?.component
+                    ?: (dialog.myPopToComboBox.selectedItem as? DestinationListEntry)?.component
+
+    setAnimationComboBoxesEnabled(component != null)
+
     dialog.mySingleTopCheckBox.isSelected = existingAction.singleTop == true
     dialog.myIdTextField.text = existingAction.id
     dialog.myIdTextField.isEnabled = false
   }
 
+  /**
+   * Applies valueGetter to every item in the specified combobox
+   * and selects the first item that matches the specified targetValue
+   */
   private fun <T, U> selectItem(
     comboBox: JComboBox<T>,
     valueGetter: (T) -> U,
@@ -284,6 +311,11 @@ open class AddActionDialog(
     }
   }
 
+  /**
+   * Retrieves the specified attribute from the component, then applies
+   * valueGetter to every item in the combobox and selects the first one
+   * that matches that attribute value
+   */
   private fun <T> selectItem(
     comboBox: JComboBox<T>,
     valueGetter: (T) -> String?,
@@ -317,25 +349,12 @@ open class AddActionDialog(
     dialog.myFromComboBox.renderer = sourceRenderer
     dialog.myFromComboBox.isEnabled = false
 
-    val destinationRenderer = object : SimpleListCellRenderer<DestinationListEntry>() {
-      val separator = JSeparator()
-      override fun getListCellRendererComponent(list: JList<out DestinationListEntry>,
-                                                value: DestinationListEntry?,
-                                                index: Int,
-                                                isSelected: Boolean,
-                                                cellHasFocus: Boolean): Component {
-        if (value?.isSeparator == true) return separator;
-        return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
-      }
-
-      override fun customize(list: JList<out DestinationListEntry>,
-                             value: DestinationListEntry?,
-                             index: Int,
-                             selected: Boolean,
-                             hasFocus: Boolean) {
+    val destinationRenderer = object : ListCellRendererWrapper<DestinationListEntry>() {
+      override fun customize(list: JList<*>, value: DestinationListEntry?, index: Int, selected: Boolean, hasFocus: Boolean) {
         when {
           value == null -> setText("None")
           value.isReturnToSource -> setText("↵ Source")
+          value.isSeparator -> setSeparator()
           else -> {
             val component = value.component
             var text = if (component?.parent == null) "Root" else component.uiName
@@ -370,7 +389,10 @@ open class AddActionDialog(
 
       val component = (dialog.myDestinationComboBox.selectedItem as? DestinationListEntry)?.component
                       ?: (dialog.myPopToComboBox.selectedItem as? DestinationListEntry)?.component
-                      ?: return@ActionListener
+
+      setAnimationComboBoxesEnabled(component != null)
+
+      component ?: return@ActionListener
 
       if (repoManager != null) {
         getAnimatorsPopupContent(repoManager, component.isFragment)
@@ -404,6 +426,16 @@ open class AddActionDialog(
           dialog.myPopToComboBox.isEnabled = true
           dialog.myInclusiveCheckBox.isEnabled = true
         }
+      }
+    }
+
+    dialog.myPopToComboBox.addActionListener {
+      val popUpTo = dialog.myPopToComboBox.selectedItem
+      val destination = dialog.myDestinationComboBox.selectedItem as? DestinationListEntry
+
+      dialog.myInclusiveCheckBox.isEnabled = (popUpTo != null && destination?.isReturnToSource != true)
+      if (popUpTo == null) {
+        dialog.myInclusiveCheckBox.isSelected = false
       }
     }
 

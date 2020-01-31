@@ -16,7 +16,9 @@
 package com.android.tools.idea.common.type
 
 import com.android.tools.idea.common.editor.ToolbarActionGroups
+import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.psi.PsiFile
 
 /**
@@ -41,6 +43,12 @@ interface DesignerEditorFileType {
    * Whether this type of file can be edited using a designer editor.
    */
   fun isEditable() = false
+
+  /**
+   * Returns the toolbar actions that should be present for the given selection.
+   */
+  fun getSelectionContextToolbar(surface: DesignSurface, selection: List<NlComponent>): DefaultActionGroup =
+    surface.actionManager.getToolbarActions(null, selection)
 }
 
 /**

@@ -22,6 +22,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.JavaProjectTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +38,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link AndroidGeneratedSourcesFilter}.
  */
-public class AndroidGeneratedSourcesFilterTest extends JavaProjectTestCase {
+public class AndroidGeneratedSourcesFilterTest extends PlatformTestCase {
   @Mock private GradleProjectInfo myProjectInfo;
   private AndroidGeneratedSourcesFilter myGeneratedSourcesFilter;
 

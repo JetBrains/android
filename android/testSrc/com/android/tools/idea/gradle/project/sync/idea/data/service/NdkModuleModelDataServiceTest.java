@@ -24,6 +24,7 @@ import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
+import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.JavaProjectTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
 import org.mockito.Mock;
@@ -38,7 +39,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link NdkModuleModelDataService}.
  */
-public class NdkModuleModelDataServiceTest extends JavaProjectTestCase {
+public class NdkModuleModelDataServiceTest extends PlatformTestCase {
   @Mock private NdkModuleSetup myModuleSetup;
   @Mock private NdkModuleCleanupStep myCleanupStep;
   @Mock private GradleSyncState mySyncState;
@@ -76,8 +77,7 @@ public class NdkModuleModelDataServiceTest extends JavaProjectTestCase {
     when(myModuleSetupContextFactory.create(appModule, myModelsProvider)).thenReturn(myModuleSetupContext);
     myService.importData(dataNodes, null, getProject(), myModelsProvider);
 
-    verify(mySyncState).isSyncSkipped();
-    verify(myModuleSetup).setUpModule(myModuleSetupContext, model, false);
+    verify(myModuleSetup).setUpModule(myModuleSetupContext, model);
   }
 
   public void testOnModelsNotFound() {

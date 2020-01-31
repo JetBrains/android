@@ -18,6 +18,7 @@ package com.android.tools.adtui.workbench;
 import com.android.annotations.Nullable;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
+import java.awt.Component;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -31,6 +32,27 @@ import java.util.List;
  * @param <T> Specifies the type of data controlled by a {@link WorkBench}.
  */
 public interface ToolContent<T> extends Disposable {
+
+  /**
+   * Key used to store the current {@link ToolContent} in an {@link AttachedToolWindow} panel.
+   */
+  String TOOL_CONTENT_KEY = "com.android.tools.adtui.workbench.TOOL_CONTENT";
+
+  /**
+   * Return the {@link ToolContent} from a given component in a tool window.
+   */
+  @Nullable
+  static ToolContent getToolContent(@Nullable Component component) {
+    while (component instanceof JComponent) {
+      Object content = ((JComponent)component).getClientProperty(TOOL_CONTENT_KEY);
+      if (content instanceof  ToolContent) {
+        return (ToolContent)content;
+      }
+      component = component.getParent();
+    }
+    return null;
+  }
+
   /**
    * Set the context of a newly created {@link ToolContent}.
    * This value may be <code>null</code> for a floating tool window if there is no suitable content to show.

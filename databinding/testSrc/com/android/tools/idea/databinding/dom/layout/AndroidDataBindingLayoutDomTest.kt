@@ -59,7 +59,7 @@ class AndroidDataBindingLayoutDomTest(private val myDataBindingMode: DataBinding
     projectRule.fixture.testDataPath = "${TestDataPaths.TEST_DATA_ROOT}/dom/layout"
 
     val androidFacet = FacetManager.getInstance(projectRule.module).getFacetByType(AndroidFacet.ID)
-    ModuleDataBinding.getInstance(androidFacet!!).setMode(myDataBindingMode)
+    ModuleDataBinding.getInstance(androidFacet!!).dataBindingMode = myDataBindingMode
   }
 
   @Test
@@ -102,6 +102,11 @@ class AndroidDataBindingLayoutDomTest(private val myDataBindingMode: DataBinding
   @Test
   fun dataBindingHighlighting_mergeIsInvalidIfNotRoot() {
     domRule.testHighlighting("databinding_highlighting_invalid_merge_locations.xml")
+  }
+
+  @Test
+  fun dataBindingHighlighting_fragmentInLayoutIsNotAnError() {
+    domRule.testHighlighting("databinding_highlighting_fragment_as_layout_root.xml")
   }
 
   @Test

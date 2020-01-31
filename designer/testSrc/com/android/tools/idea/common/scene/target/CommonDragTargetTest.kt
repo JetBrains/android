@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.scene.target
 
 import com.android.SdkConstants
+import com.android.tools.adtui.ui.AdtUiCursors
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.flags.StudioFlags
@@ -23,6 +24,8 @@ import com.android.tools.idea.uibuilder.api.actions.ToggleAutoConnectAction
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
 import com.android.tools.idea.uibuilder.model.viewGroupHandler
 import com.android.tools.idea.uibuilder.scene.SceneTest
+import java.awt.Cursor
+import java.awt.event.InputEvent
 
 class CommonDragTargetTest : SceneTest() {
 
@@ -53,8 +56,7 @@ class CommonDragTargetTest : SceneTest() {
     assertEquals(1, myScreen.screen.selectionModel.selection.size)
   }
 
-  // b/129681462
-  fun ignore_testDragComponentInConstraintLayoutWithSnapping() {
+  fun testDragComponentInConstraintLayoutWithSnapping() {
     val textView2 = myScreen.get("@id/textView2").sceneComponent!!
     val constraintLayout = myScreen.get("@id/constraint").sceneComponent!!
 
@@ -230,6 +232,79 @@ class CommonDragTargetTest : SceneTest() {
 
     assertTrue(x == textView.drawX)
     assertTrue(y == textView.drawY)
+  }
+
+  fun testFinalSelection() {
+    val textView = myScreen.get("@id/textView").sceneComponent!!
+    val textView2 = myScreen.get("@id/textView2").sceneComponent!!
+
+    val target = CommonDragTarget(textView)
+    val target2 = CommonDragTarget(textView2)
+
+    run {
+      // Click textView should select only textView
+      myScene.select(listOf(textView, textView2))
+      target.mouseDown(10, 10)
+      target.mouseRelease(11, 10, listOf())
+      val newSelection = target.newSelection()
+      assertEquals(1, newSelection.size)
+      assertEquals(textView, newSelection[0])
+    }
+
+    run {
+      // Click textView2 should select only textView2
+      myScene.select(listOf(textView, textView2))
+      target2.mouseDown(10, 10)
+      target2.mouseRelease(11, 10, listOf())
+      val newSelection = target2.newSelection()
+      assertEquals(1, newSelection.size)
+      assertEquals(textView2, newSelection[0])
+    }
+
+    run {
+      // Drag textView should select both
+      myScene.select(listOf(textView, textView2))
+      target.mouseDown(10, 10)
+      target.mouseDrag(11, 11, listOf())
+      target.mouseRelease(12, 12, listOf())
+      val newSelection = target.newSelection()
+      assertEquals(2, newSelection.size)
+      assertEquals(textView, newSelection[0])
+      assertEquals(textView2, newSelection[1])
+    }
+
+    // Select 2
+    run {
+      // Drag textView2 should select both
+      myScene.select(listOf(textView, textView2))
+      target2.mouseDown(10, 10)
+      target2.mouseDrag(11, 11, listOf())
+      target2.mouseRelease(12, 12, listOf())
+      val newSelection = target2.newSelection()
+      assertEquals(2, newSelection.size)
+      assertEquals(textView2, newSelection[0])
+      assertEquals(textView, newSelection[1])
+    }
+  }
+
+  fun testMouseCursor() {
+    val textView = myScreen.get("@id/textView").sceneComponent!!
+
+    run {
+      // If component is not selected, the ALT_MASK doesn't change the cursor.
+      myScene.select(listOf())
+      val target = CommonDragTarget(textView)
+      assertEquals(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR), target.getMouseCursor(0))
+      assertEquals(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR), target.getMouseCursor(InputEvent.ALT_DOWN_MASK))
+    }
+
+    run {
+      // If component is selected, the ALT_MASK changes the cursor.
+      myScene.select(listOf(textView))
+      val target = CommonDragTarget(textView)
+      assertEquals(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR), target.getMouseCursor(0))
+      assertEquals(AdtUiCursors.MOVE, target.getMouseCursor(InputEvent.ALT_DOWN_MASK))
+    }
   }
 
   private fun setAutoConnection(component: SceneComponent, on: Boolean) {

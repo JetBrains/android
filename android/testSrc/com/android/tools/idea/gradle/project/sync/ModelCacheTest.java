@@ -30,10 +30,14 @@ import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 public class ModelCacheTest extends AndroidGradleTestCase {
+  private IdeComponents myIdeComponents;
+
   @Override
   public void setUp() throws Exception {
     super.setUp();
     Project project = getProject();
+
+    myIdeComponents = new IdeComponents(myFixture);
 
     GradleProjectSettings projectSettings = new GradleProjectSettings();
     projectSettings.setDistributionType(DEFAULT_WRAPPED);
@@ -48,12 +52,11 @@ public class ModelCacheTest extends AndroidGradleTestCase {
     // Simulate data node cache is missing modules.
     //noinspection unchecked
     DataNode<ProjectData> cache = mock(DataNode.class);
-    DataNodeCaches dataNodeCaches = IdeComponents.mockProjectService(getProject(), DataNodeCaches.class, getTestRootDisposable());
+    DataNodeCaches dataNodeCaches = myIdeComponents.mockProjectService(DataNodeCaches.class);
     when(dataNodeCaches.getCachedProjectData()).thenReturn(cache);
     when(dataNodeCaches.isCacheMissingModels(cache)).thenReturn(true);
 
     GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
-    request.generateSourcesOnSuccess = false;
     request.useCachedGradleModels = true;
 
     // Sync again, and a full sync should occur, since the cache is missing modules.

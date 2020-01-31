@@ -1,0 +1,83 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (C) 2019 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<tutorialBundle
+    name="Test What's New Update Flow from Server"
+    resourceRoot="/"
+    stepByStep="false"
+    hideStepIndex="true"
+    version="3.6.10">
+  <feature
+      name="What's New in 3.7">
+    <tutorial
+        key="whats-new"
+        label=" What's New in 3.7"
+        icon="preview/whats_new_icon.png"
+        remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/canary-release-notes.html"
+        remoteLinkLabel="Read in a browser">
+      <description>
+        <![CDATA[
+          This panel describes some of the new features and behavior changes
+          included in the next update.
+
+          <br><br>
+          To open this panel again later, select <b>Help &gt; What's New in Android Studio</b>
+          from the main menu.
+          ]]>
+      </description>
+      <step label="Update Available">
+        <stepElement>
+          <section>
+            <![CDATA[
+            Android Studio 3.7 is now available in the stable channel. Update and restart the IDE to
+            start taking advantage of the features below.
+           ]]>
+          </section>
+        </stepElement>
+        <stepElement>
+          <action key="wna.update.stable"
+                  label="Update and Restart"
+                  actionArgument="updateButtons">
+          </action>
+        </stepElement>
+        <stepElement>
+          <action key="wna.dismiss"
+                  label="Dismiss"
+                  actionArgument="updateButtons">
+          </action>
+        </stepElement>
+        <stepElement>
+          <panel factoryId="wna.update.status">
+          </panel>
+        </stepElement>
+        <stepElement>
+          <section>
+            <![CDATA[
+            <hr>
+            Features and images would go here.<br><br>
+            Some<br><br>
+            long<br><br>
+            text<br><br>
+            to<br><br>
+            test<br><br>
+            scrolling
+             ]]>
+          </section>
+        </stepElement>
+      </step>
+    </tutorial>
+  </feature>
+</tutorialBundle>

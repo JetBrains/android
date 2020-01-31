@@ -130,7 +130,7 @@ public class ApkParser {
       return AndroidApplicationInfo.UNKNOWN;
     }
     Path path = archive.getContentRoot().resolve(SdkConstants.FN_ANDROID_MANIFEST_XML);
-    return getAppInfo(pathToAapt, new ArchiveEntry(archive, path, ""));
+    return getAppInfo(pathToAapt, new ArchivePathEntry(archive, path, ""));
   }
 
   @NotNull

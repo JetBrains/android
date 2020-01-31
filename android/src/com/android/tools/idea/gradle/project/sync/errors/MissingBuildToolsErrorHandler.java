@@ -20,7 +20,6 @@ import static com.android.tools.idea.gradle.plugin.AndroidPluginInfo.findFromBui
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.MISSING_BUILD_TOOLS;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
@@ -28,6 +27,7 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.FixAndroidGradlePlug
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallBuildToolsHyperlink;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.project.Project;
 import java.util.ArrayList;

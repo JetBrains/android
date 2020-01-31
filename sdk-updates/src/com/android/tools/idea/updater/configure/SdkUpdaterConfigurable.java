@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.updater.configure;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.repository.api.*;
 import com.android.repository.impl.meta.Archive;
 import com.android.repository.impl.meta.RepositoryPackages;
@@ -398,7 +398,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
     return Pair.of(message, null);
   }
 
-  private static boolean confirmChange(HtmlBuilder message) {
+  static boolean confirmChange(HtmlBuilder message) {
     String[] options = {Messages.getOkButton(), Messages.getCancelButton()};
     Icon icon = AllIcons.General.Warning;
 

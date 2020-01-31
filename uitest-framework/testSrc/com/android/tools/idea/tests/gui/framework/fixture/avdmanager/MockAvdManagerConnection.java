@@ -82,6 +82,7 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
         EmulatorConsole emulatorConsole = EmulatorConsole.getConsole(device);
         if (emulatorConsole != null) {
           emulatorConsole.kill();
+          emulatorConsole.close();
           emulatorDevices.add(device);
         }
       }

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.configurations;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.resources.configuration.*;
 import com.android.resources.*;
 import com.android.sdklib.devices.Device;
@@ -58,7 +58,7 @@ public class OrientationMenuAction extends DropDownAction {
    */
   // TODO The surface is probably no needed, createVariationAction should be able to use the renderContext configuration
   public OrientationMenuAction(@NotNull ConfigurationHolder renderContext, @Nullable EditorDesignSurface surface) {
-    super("", "Orientation for Preview", StudioIcons.LayoutEditor.Toolbar.ROTATE_BUTTON);
+    super(null, "Orientation for Preview", StudioIcons.LayoutEditor.Toolbar.ROTATE_BUTTON);
     myRenderContext = renderContext;
     mySurface = surface;
   }

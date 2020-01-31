@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.java.dependencies;
 
+import com.android.tools.idea.gradle.structure.configurables.BasePerspectiveConfigurable;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.modules.AbstractModuleConfigurable;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.module.MainPanel;
@@ -23,8 +24,10 @@ import org.jetbrains.annotations.NotNull;
 
 public class JavaModuleDependenciesConfigurable extends AbstractModuleConfigurable<PsJavaModule, MainPanel> {
 
-  public JavaModuleDependenciesConfigurable(@NotNull PsJavaModule module, @NotNull PsContext context) {
-    super(context, module);
+  public JavaModuleDependenciesConfigurable(@NotNull PsJavaModule module,
+                                            @NotNull PsContext context,
+                                            @NotNull BasePerspectiveConfigurable perspectiveConfigurable) {
+    super(context, perspectiveConfigurable, module);
   }
 
   @Override

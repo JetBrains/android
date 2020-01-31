@@ -15,6 +15,14 @@
  */
 package com.android.tools.idea.startup;
 
+import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
+import static com.android.tools.idea.util.PropertiesFiles.getProperties;
+import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static org.jetbrains.android.sdk.AndroidSdkUtils.DEFAULT_JDK_NAME;
+import static org.jetbrains.android.sdk.AndroidSdkUtils.createNewAndroidPlatform;
+import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdkManagerEnabled;
+
 import com.android.SdkConstants;
 import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.repository.AndroidSdkHandler;
@@ -31,11 +39,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.util.SystemProperties;
-import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
-import org.jetbrains.android.sdk.AndroidSdkType;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.LinkedHashMap;
@@ -43,13 +46,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Callable;
-
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
-import static com.android.tools.idea.util.PropertiesFiles.getProperties;
-import static com.android.tools.idea.sdk.VersionCheck.isCompatibleVersion;
-import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static org.jetbrains.android.sdk.AndroidSdkUtils.*;
+import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
+import org.jetbrains.android.sdk.AndroidSdkType;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.Nullable;
 
 public class AndroidSdkInitializer implements Runnable {
   private static final Logger LOG = Logger.getInstance(AndroidSdkInitializer.class);
@@ -101,7 +101,7 @@ public class AndroidSdkInitializer implements Runnable {
   }
 
   private static void setUpSdks() {
-    Sdk sdk = findFirstCompatibleAndroidSdk();
+    Sdk sdk = findFirstAndroidSdk();
     if (sdk != null) {
       String sdkHomePath = sdk.getHomePath();
       assert sdkHomePath != null;
@@ -148,14 +148,8 @@ public class AndroidSdkInitializer implements Runnable {
   }
 
   @Nullable
-  private static Sdk findFirstCompatibleAndroidSdk() {
+  private static Sdk findFirstAndroidSdk() {
     List<Sdk> sdks = AndroidSdks.getInstance().getAllAndroidSdks();
-    for (Sdk sdk : sdks) {
-      String sdkPath = sdk.getHomePath();
-      if (isCompatibleVersion(sdkPath)) {
-        return sdk;
-      }
-    }
     return !sdks.isEmpty() ? sdks.get(0) : null;
   }
 

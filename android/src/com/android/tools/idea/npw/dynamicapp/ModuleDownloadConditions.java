@@ -90,7 +90,7 @@ public class ModuleDownloadConditions {
         @Override
         public void removeFeatureInvoked() {
           isFeatureActive.set(false);
-          deviceFeature.deviceFeatureValue().clear();
+          deviceFeature.deviceFeatureValue.clear();
           removeDeviceFeatureRow(deviceFeature);
         }
       });

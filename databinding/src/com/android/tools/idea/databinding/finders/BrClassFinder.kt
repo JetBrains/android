@@ -15,15 +15,16 @@
  */
 package com.android.tools.idea.databinding.finders
 
-import com.android.tools.idea.databinding.DataBindingProjectComponent
-import com.android.tools.idea.databinding.DataBindingUtil
-import com.android.tools.idea.databinding.psiclass.DataBindingClassFactory
+import com.android.tools.idea.databinding.util.DataBindingUtil
+import com.android.tools.idea.databinding.LayoutBindingProjectComponent
+import com.android.tools.idea.databinding.ModuleDataBinding
 import com.android.tools.idea.databinding.psiclass.LightBrClass
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.PsiPackage
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.search.PsiSearchScopeUtil
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
@@ -34,26 +35,22 @@ import com.intellij.psi.util.CachedValuesManager
  * See [LightBrClass]
  */
 class BrClassFinder(project: Project) : PsiElementFinder() {
+  private val component = project.getComponent(LayoutBindingProjectComponent::class.java)
   private val classByPackageCache: CachedValue<Map<String, PsiClass>>
 
   init {
-    classByPackageCache = CachedValuesManager.getManager(project).createCachedValue(
+    classByPackageCache = CachedValuesManager.getManager(component.project).createCachedValue(
       {
-        val component = project.getComponent(DataBindingProjectComponent::class.java)
         val classes = component.getDataBindingEnabledFacets()
-          .associate { facet ->
-            DataBindingUtil.getBrQualifiedName(facet) to DataBindingClassFactory.getOrCreateBrClassFor(facet)
-          }
+          .asSequence()
+          .mapNotNull { facet -> ModuleDataBinding.getInstance(facet).lightBrClass }
+          .associateBy { it.qualifiedName }
 
         CachedValueProvider.Result.create<Map<String, PsiClass>>(classes, component)
       }, false)
   }
 
   override fun getClasses(psiPackage: PsiPackage, scope: GlobalSearchScope): Array<PsiClass> {
-    if (psiPackage.project != scope.project) {
-      return PsiClass.EMPTY_ARRAY
-    }
-
     val qualifiedPackage = psiPackage.qualifiedName
     return if (qualifiedPackage.isNotEmpty()) {
       findClasses("$qualifiedPackage.${DataBindingUtil.BR}", scope)
@@ -68,7 +65,7 @@ class BrClassFinder(project: Project) : PsiElementFinder() {
       return null
     }
     val psiClass = classByPackageCache.value[qualifiedName]
-    return psiClass?.takeIf { psiClass.project == scope.project }
+    return psiClass?.takeIf { PsiSearchScopeUtil.isInScope(scope, it) }
   }
 
   override fun findClasses(qualifiedName: String, scope: GlobalSearchScope): Array<PsiClass> {

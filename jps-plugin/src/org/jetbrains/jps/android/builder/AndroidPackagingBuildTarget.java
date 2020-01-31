@@ -1,9 +1,8 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android.builder;
 
-import com.intellij.util.ArrayUtilRt;
+import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.compiler.tools.AndroidApkBuilder;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.ProjectPaths;
 import org.jetbrains.jps.android.AndroidJpsUtil;
@@ -36,7 +35,7 @@ public class AndroidPackagingBuildTarget extends AndroidBuildTarget {
 
   @NotNull
   public static String[] collectNativeLibsFolders(@NotNull JpsAndroidModuleExtension extension, boolean checkExistence) {
-    final List<String> result = new ArrayList<>();
+    final List<String> result = new ArrayList<String>();
     final File libsDir = extension.getNativeLibsDir();
 
     if (libsDir != null && (!checkExistence || libsDir.exists())) {
@@ -50,7 +49,7 @@ public class AndroidPackagingBuildTarget extends AndroidBuildTarget {
         result.add(depLibsDir.getPath());
       }
     }
-    return ArrayUtilRt.toStringArray(result);
+    return ArrayUtil.toStringArray(result);
   }
 
   @NotNull
@@ -62,7 +61,7 @@ public class AndroidPackagingBuildTarget extends AndroidBuildTarget {
     final File resPackage = AndroidResourcePackagingBuildTarget.getOutputFile(dataPaths, myModule);
     final File classesDexFile = AndroidDexBuildTarget.getOutputFile(dataPaths, myModule);
 
-    final List<BuildRootDescriptor> roots = new ArrayList<>();
+    final List<BuildRootDescriptor> roots = new ArrayList<BuildRootDescriptor>();
 
     roots.add(new BuildRootDescriptorImpl(this, resPackage));
     roots.add(new BuildRootDescriptorImpl(this, classesDexFile));
@@ -119,7 +118,7 @@ public class AndroidPackagingBuildTarget extends AndroidBuildTarget {
     public static final MyTargetType INSTANCE = new MyTargetType();
 
     private MyTargetType() {
-      super(AndroidCommonUtils.PACKAGING_BUILD_TARGET_TYPE_ID, "Packaging");
+      super(AndroidBuildCommonUtils.PACKAGING_BUILD_TARGET_TYPE_ID, "Packaging");
     }
 
     @Override

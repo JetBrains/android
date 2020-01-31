@@ -15,11 +15,13 @@
  */
 package com.android.tools.adtui;
 
-import com.intellij.util.ui.StartupUiUtil;
+import com.intellij.ui.HyperlinkLabel;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.border.Border;
+import javax.swing.event.HyperlinkEvent;
 import javax.swing.text.Document;
 import java.awt.*;
 
@@ -56,7 +58,7 @@ public class LabelWithEditButton extends JPanel implements DocumentAccessor  {
 
     myButton.addActionListener(e -> toggleEdit());
 
-    setFont(StartupUiUtil.getLabelFont());
+    setFont(UIUtil.getLabelFont());
   }
 
   private void toggleEdit() {

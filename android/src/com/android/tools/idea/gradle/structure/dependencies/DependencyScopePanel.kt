@@ -22,6 +22,7 @@ class DependencyScopePanel(module: PsModule, importantFor: PsModule.ImportantFor
 
   val configurations = module.getConfigurations().toSet()
   val comboBox = createQuickSearchComboBox(module.parent.ideProject, module.getConfigurations(), module.getConfigurations(importantFor))
+    .apply { name = "configuration" }
 
   init {
     setUpContents(comboBox, INSTRUCTIONS)
@@ -39,6 +40,6 @@ class DependencyScopePanel(module: PsModule, importantFor: PsModule.ImportantFor
 }
 
 private const val INSTRUCTIONS =
-    """Assign a scope to the new dependency by selecting the configurations below.<br/><a
+    """Assign your dependency to a configuration by selecting one of the configurations below.<br/><a
       |href='https://docs.gradle.org/current/userguide/artifact_dependencies_tutorial.html'>Open Documentation</a>"""
 

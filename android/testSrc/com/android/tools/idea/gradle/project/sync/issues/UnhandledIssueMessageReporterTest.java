@@ -59,7 +59,7 @@ public class UnhandledIssueMessageReporterTest extends AndroidGradleTestCase {
 
   public void testReportWithBuildFile() throws Exception {
     loadSimpleApplication();
-    mySyncMessagesStub.clearReportedMessages();
+    mySyncMessagesStub.removeAllMessages();
 
     Module appModule = myModules.getAppModule();
 
@@ -94,7 +94,7 @@ public class UnhandledIssueMessageReporterTest extends AndroidGradleTestCase {
 
   public void testReportWithoutBuildFile() throws Exception {
     loadSimpleApplication();
-    mySyncMessagesStub.clearReportedMessages();
+    mySyncMessagesStub.removeAllMessages();
 
     Module appModule = myModules.getAppModule();
 

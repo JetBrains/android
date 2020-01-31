@@ -34,5 +34,9 @@ public enum StepElementType {
   /**
    * Image
    */
-  IMAGE
+  IMAGE,
+  /**
+   * Panel for additional content
+   */
+  PANEL
 }

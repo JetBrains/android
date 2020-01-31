@@ -22,20 +22,29 @@ import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.*
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystemSyncManager
 import com.android.tools.idea.testing.IdeComponents
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.ide.startup.impl.StartupManagerImpl
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupManager
-import com.intellij.testFramework.JavaProjectTestCase
-import com.intellij.testFramework.replaceService
+import com.intellij.testFramework.PlatformTestCase
 import com.intellij.util.messages.MessageBusConnection
-import org.mockito.Mockito.*
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.any
+import org.mockito.Mockito.doAnswer
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.never
+import org.mockito.Mockito.same
+import org.mockito.Mockito.verify
 
-class GradleProjectSystemSyncManagerTest : JavaProjectTestCase() {
+class GradleProjectSystemSyncManagerTest : PlatformTestCase() {
+  private lateinit var ideComponents: IdeComponents
   private lateinit var gradleProjectInfo: GradleProjectInfo
   private lateinit var syncManager: ProjectSystemSyncManager
   private lateinit var gradleBuildState: GradleBuildState
@@ -47,12 +56,13 @@ class GradleProjectSystemSyncManagerTest : JavaProjectTestCase() {
 
   override fun setUp() {
     super.setUp()
+    ideComponents = IdeComponents(myProject)
 
-    syncInvoker = IdeComponents.mockApplicationService(GradleSyncInvoker::class.java, testRootDisposable)
+    syncInvoker = ideComponents.mockApplicationService(GradleSyncInvoker::class.java)
 
-    IdeComponents.mockProjectService(project, GradleDependencyManager::class.java, testRootDisposable)
-    IdeComponents.mockProjectService(project, GradleProjectBuilder::class.java, testRootDisposable)
-    gradleProjectInfo = IdeComponents.mockProjectService(project, GradleProjectInfo::class.java, testRootDisposable)
+    ideComponents.mockProjectService(GradleDependencyManager::class.java)
+    ideComponents.mockProjectService(GradleProjectBuilder::class.java)
+    gradleProjectInfo = ideComponents.mockProjectService(GradleProjectInfo::class.java)
     `when`<Boolean>(gradleProjectInfo.isBuildWithGradle).thenReturn(true)
 
     syncManager = GradleProjectSystemSyncManager(myProject)
@@ -64,31 +74,29 @@ class GradleProjectSystemSyncManagerTest : JavaProjectTestCase() {
     syncTopicConnection.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, syncTopicListener)
   }
 
-  private fun emulateSync(requireSourceGeneration: Boolean, syncSuccessful: Boolean):
+  private fun emulateSync(syncSuccessful: Boolean, buildResult: BuildStatus?):
       ListenableFuture<SyncResult> {
 
     doAnswer { invocation ->
       val request = invocation.getArgument<GradleSyncInvoker.Request>(1)
 
       ApplicationManager.getApplication().invokeAndWait {
-        gradleSyncState.syncStarted(false, request)
+        gradleSyncState.syncStarted(request, null)
 
         if (syncSuccessful) {
-          gradleSyncState.syncEnded()
+          gradleSyncState.syncSucceeded()
         }
         else {
-          gradleSyncState.syncFailed("")
+          gradleSyncState.syncFailed("", null, null)
         }
       }
-    }.`when`(syncInvoker).requestProjectSync(any(), any())
+    }.`when`(syncInvoker).requestProjectSync(any(), any<GradleSyncInvoker.Request>())
 
-    return syncManager.syncProject(SyncReason.PROJECT_MODIFIED, requireSourceGeneration)
-  }
-
-  private fun emulateBuild(result: BuildStatus) {
-    ApplicationManager.getApplication().invokeAndWait {
-      gradleBuildState.buildFinished(result)
+    val listenableFuture = syncManager.syncProject(SyncReason.PROJECT_MODIFIED)
+    if (buildResult != null) {
+      ApplicationManager.getApplication().invokeAndWait { gradleBuildState.buildFinished(buildResult) }
     }
+    return listenableFuture
   }
 
   fun testSyncProject_uninitializedProject() {
@@ -101,53 +109,12 @@ class GradleProjectSystemSyncManagerTest : JavaProjectTestCase() {
         action.run()
       }
     }
-
-    project.replaceService(StartupManager::class.java, startupManager, testRootDisposable)
+    ideComponents.replaceProjectService(StartupManager::class.java, startupManager)
     // http://b/62543184
     `when`(gradleProjectInfo.isImportedProject).thenReturn(true)
 
-    project.getProjectSystem().getSyncManager().syncProject(SyncReason.PROJECT_LOADED, true)
-    verify(syncInvoker, never()).requestProjectSync(same(project), any())
-  }
-
-  fun testSyncProject_noSourceGeneration() {
-    val result = emulateSync(false, true)
-
-    assertThat(result.isDone).isTrue()
-    assertThat(result.get()).isSameAs(SyncResult.SUCCESS)
-    verify(syncTopicListener).syncEnded(SyncResult.SUCCESS)
-  }
-
-  fun testSyncProject_sourceGenerationRequestedAndSyncFails() {
-    val result = emulateSync(true, false)
-
-    assertThat(result.isDone).isTrue()
-    assertThat(result.get()).isSameAs(SyncResult.FAILURE)
-    verify(syncTopicListener).syncEnded(SyncResult.FAILURE)
-  }
-
-  fun testSyncProject_waitsForSourceGeneration() {
-    val result = emulateSync(true, true)
-
-    assertThat(result.isDone).isFalse()
-  }
-
-  fun testSyncProject_sourceGenerationRequestedAndBuildFails() {
-    val result = emulateSync(true, true)
-    emulateBuild(BuildStatus.FAILED)
-
-    assertThat(result.isDone).isTrue()
-    assertThat(result.get()).isSameAs(SyncResult.SOURCE_GENERATION_FAILURE)
-    verify(syncTopicListener).syncEnded(SyncResult.SOURCE_GENERATION_FAILURE)
-  }
-
-  fun testSyncProject_sourceGenerationSuccessful() {
-    val result = emulateSync(true, true)
-    emulateBuild(BuildStatus.SUCCESS)
-
-    assertThat(result.isDone).isTrue()
-    assertThat(result.get()).isSameAs(SyncResult.SUCCESS)
-    verify(syncTopicListener).syncEnded(SyncResult.SUCCESS)
+    project.getProjectSystem().getSyncManager().syncProject(SyncReason.PROJECT_LOADED)
+    verify(syncInvoker, never()).requestProjectSync(same(project), any<GradleSyncInvoker.Request>())
   }
 
   fun testGetLastSyncResult_unknownIfNeverSynced() {
@@ -155,7 +122,7 @@ class GradleProjectSystemSyncManagerTest : JavaProjectTestCase() {
   }
 
   fun testGetLastSyncResult_sameAsSyncResult() {
-    emulateSync(false, true)
+    emulateSync(true, BuildStatus.SUCCESS)
 
     assertThat(syncManager.getLastSyncResult()).isSameAs(SyncResult.SUCCESS)
   }

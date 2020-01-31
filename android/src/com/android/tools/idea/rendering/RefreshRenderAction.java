@@ -21,6 +21,7 @@ import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
+import com.google.common.collect.ImmutableCollection;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
@@ -45,39 +46,40 @@ public class RefreshRenderAction extends AnAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
-    clearCache(mySurface.getConfiguration());
+    clearCache(mySurface.getConfigurations());
     mySurface.forceUserRequestedRefresh();
   }
 
   public static void clearCacheAndRefreshSurface(@NotNull EditorDesignSurface surface) {
-    clearCache(surface.getConfiguration());
+    clearCache(surface.getConfigurations());
     surface.forceUserRequestedRefresh();
   }
 
-  public static void clearCache(@Nullable Configuration configuration) {
+  public static void clearCache(@NotNull ImmutableCollection<Configuration> configurations) {
     ModuleClassLoader.clearCache();
 
-    if (configuration != null) {
-      // Clear layoutlib bitmap cache (in case files have been modified externally)
-      IAndroidTarget target = configuration.getTarget();
-      Module module = configuration.getModule();
-      if (module != null) {
-        ResourceIdManager.get(module).resetDynamicIds();
-        if (target != null) {
-          AndroidTargetData targetData = AndroidTargetData.getTargetData(target, module);
-          if (targetData != null) {
-            targetData.clearAllCaches(module);
+    configurations.stream()
+      .forEach(configuration -> {
+        // Clear layoutlib bitmap cache (in case files have been modified externally)
+        IAndroidTarget target = configuration.getTarget();
+        Module module = configuration.getModule();
+        if (module != null) {
+          ResourceIdManager.get(module).resetDynamicIds();
+          if (target != null) {
+            AndroidTargetData targetData = AndroidTargetData.getTargetData(target, module);
+            if (targetData != null) {
+              targetData.clearAllCaches(module);
+            }
           }
+
+          // Reset resources for the current module and all the dependencies
+          AndroidFacet facet = AndroidFacet.getInstance(module);
+          Stream.concat(AndroidUtils.getAllAndroidDependencies(module, true).stream(), Stream.of(facet))
+            .filter(Objects::nonNull)
+            .forEach(f -> ResourceRepositoryManager.getInstance(f).resetAllCaches());
         }
 
-        // Reset resources for the current module and all the dependencies
-        AndroidFacet facet = AndroidFacet.getInstance(module);
-        Stream.concat(AndroidUtils.getAllAndroidDependencies(module, true).stream(), Stream.of(facet))
-          .filter(Objects::nonNull)
-          .forEach(f -> ResourceRepositoryManager.getInstance(f).resetAllCaches());
-      }
-
-      configuration.updated(ConfigurationListener.MASK_RENDERING);
-    }
+        configuration.updated(ConfigurationListener.MASK_RENDERING);
+    });
   }
 }

@@ -15,6 +15,22 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post.cleanup;
 
+import static com.android.SdkConstants.FD_PKG_SOURCES;
+import static com.android.testutils.TestUtils.getSdk;
+import static com.android.tools.idea.gradle.project.sync.setup.post.cleanup.SdksCleanupStep.updateSdkIfNeeded;
+import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
+import static com.android.tools.idea.testing.Sdks.findLatestAndroidTarget;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.roots.OrderRootType.CLASSES;
+import static com.intellij.openapi.roots.OrderRootType.SOURCES;
+import static com.intellij.openapi.util.io.FileUtil.createDirectory;
+import static com.intellij.openapi.util.io.FileUtil.join;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.sdk.AndroidSdks;
@@ -25,12 +41,18 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.PlatformTestCase;
+import java.io.File;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -51,28 +73,45 @@ import static org.mockito.Mockito.*;
 /**
  * Tests for {@link SdksCleanupStep}.
  */
-public class SdksCleanupStepTest extends JavaProjectTestCase {
+public class SdksCleanupStepTest extends PlatformTestCase {
   @Nullable private Sdk myJdk;
   @Nullable private Sdk mySdk;
 
-  public void testCleanUpSdkWithMissingDocumentation() {
+  public void testUpdateSdkWithMissingDocumentation() {
     createSdk();
     try {
-      removeRoots(mySdk, JavadocOrderRootType.getInstance());
+      IAndroidTarget target = findLatestAndroidTarget(getSdk());
+      Sdk spy = spy(mySdk);
+      File mockJdkHome = new File(getProject().getBasePath(), "jdkHome");
+      when(spy.getHomePath()).thenReturn(mockJdkHome.getPath());
+      updateSdkIfNeeded(spy, AndroidSdks.getInstance(), target);
+      String[] urls = spy.getRootProvider().getUrls(JavadocOrderRootType.getInstance());
+      assertThat(urls).asList().containsExactly("http://developer.android.com/reference/");
+    }
+    finally {
+      removeSdk();
+    }
+  }
 
-      Module module = getModule();
-      setUpModuleAsAndroid(module, mySdk);
+  public void testUpdateSdkWithSourcesInstalled() {
+    createSdk();
+    try {
+      IAndroidTarget target = findLatestAndroidTarget(getSdk());
+      Sdk spy = spy(mySdk);
+      File mockJdkHome = new File(getProject().getBasePath(), "jdkHome");
+      when(spy.getHomePath()).thenReturn(mockJdkHome.getPath());
+      updateSdkIfNeeded(spy, AndroidSdks.getInstance(), target);
 
-      SdksCleanupStep cleanupStep = new SdksCleanupStep(AndroidSdks.getInstance());
-      Set<Sdk> fixedSdks = new HashSet<>();
-      Set<Sdk> invalidSdks = new HashSet<>();
-      cleanupStep.cleanUpSdk(module, fixedSdks, invalidSdks);
-
-      String[] urls = mySdk.getRootProvider().getUrls(JavadocOrderRootType.getInstance());
+      String[] urls = spy.getRootProvider().getUrls(JavadocOrderRootType.getInstance());
       assertThat(urls).asList().containsExactly("http://developer.android.com/reference/");
 
-      assertThat(fixedSdks).containsExactly(mySdk);
-      assertThat(invalidSdks).isEmpty();
+      // Simulate the case that sources are installed after the initial sync.
+      createDirectory(new File(mockJdkHome, join(FD_PKG_SOURCES, new File(target.getPath(IAndroidTarget.SOURCES)).getName())));
+      updateSdkIfNeeded(spy, AndroidSdks.getInstance(), target);
+
+      // Verify that Javadoc is set to empty since sources are now available.
+      assertThat(spy.getRootProvider().getUrls(JavadocOrderRootType.getInstance())).asList().isEmpty();
+      assertThat(spy.getRootProvider().getUrls(SOURCES)).hasLength(1);
     }
     finally {
       removeSdk();
@@ -82,8 +121,6 @@ public class SdksCleanupStepTest extends JavaProjectTestCase {
   public void testCleanUpSdkWithSdkWithoutAndroidLibrary() {
     createSdk();
     try {
-      removeRoots(mySdk, CLASSES);
-
       Module module = getModule();
       setUpModuleAsAndroid(module, mySdk);
 
@@ -159,9 +196,6 @@ public class SdksCleanupStepTest extends JavaProjectTestCase {
   public void testCleanUpProjectWithSdkWithUpdatedSources() {
     createSdk();
     try {
-      // We could have created the SDK without roots, but better make it explicit that we need an SDK without sources.
-      removeRoots(mySdk, SOURCES);
-
       Module module = getModule();
       setUpModuleAsAndroid(module, mySdk);
 
@@ -197,12 +231,6 @@ public class SdksCleanupStepTest extends JavaProjectTestCase {
   private void removeSdk() {
     ApplicationManager.getApplication().runWriteAction(() -> ProjectJdkTable.getInstance().removeJdk(myJdk));
     ApplicationManager.getApplication().runWriteAction(() -> ProjectJdkTable.getInstance().removeJdk(mySdk));
-  }
-
-  private static void removeRoots(@NotNull Sdk sdk, @NotNull OrderRootType rootType) {
-    SdkModificator sdkModificator = sdk.getSdkModificator();
-    sdkModificator.removeRoots(rootType);
-    sdkModificator.commitChanges();
   }
 
   private static void setUpModuleAsAndroid(@NotNull Module module, @NotNull Sdk sdk) {

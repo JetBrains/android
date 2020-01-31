@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.cpu.atrace;
 
-import com.android.tools.profiler.protobuf3jarjar.ByteString;
+import com.android.tools.idea.protobuf.ByteString;
 import com.google.common.base.Charsets;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +27,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.zip.DataFormatException;
@@ -191,7 +190,7 @@ public class AtraceProducer implements TrebuchetBufferProducer {
       myInputBufferOffset += inputBufferTotal;
 
       // Create a string from our decompressed buffer, and split it into the lines for that string.
-      myLastPartialLine += new String(myOutputBuffer, 0, bytesInOutputBuffer, StandardCharsets.UTF_8);
+      myLastPartialLine += new String(myOutputBuffer, 0, bytesInOutputBuffer);
       // By default string split gets passed 0, this indicates that the string should return minimum number of split lines. -1 indicates
       // that we want to return the actual number of splits. Allowing the split to handle the case of the last char of \n instead of
       // dropping it we get an additional line. So foo\nbar\n ends up returning 3 lines ("foo", "bar", "") which works with our
@@ -234,7 +233,7 @@ public class AtraceProducer implements TrebuchetBufferProducer {
       if (line != null) {
         // Due to a bug in StreamingLineReader we need to truncate all lines to 1023 characters including the \n appended to the end.
         // For more details see (b/77846431)
-        byte[] data = String.format("%s\n", line.substring(0, Math.min(1022, line.length()))).getBytes(StandardCharsets.UTF_8);
+        byte[] data = String.format("%s\n", line.substring(0, Math.min(1022, line.length()))).getBytes();
         return new DataSlice(data, 0, data.length);
       }
     }

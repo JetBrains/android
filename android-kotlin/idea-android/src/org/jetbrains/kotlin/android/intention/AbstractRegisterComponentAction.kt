@@ -19,7 +19,7 @@ package org.jetbrains.kotlin.android.intention
 import com.intellij.openapi.editor.Editor
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.android.insideBody
+import com.android.tools.idea.kotlin.insideBody
 import org.jetbrains.kotlin.idea.intentions.SelfTargetingIntention
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.psiUtil.isAbstract
@@ -35,7 +35,7 @@ abstract class AbstractRegisterComponentAction(text: String) : SelfTargetingInte
 
     final override fun isApplicableTo(element: KtClass, caretOffset: Int): Boolean {
         val androidFacet = AndroidFacet.getInstance(element.containingFile) ?: return false
-        val manifest = androidFacet.manifest ?: return false
+        val manifest = Manifest.getMainManifest(androidFacet) ?: return false
         return !element.isLocal &&
                !element.isAbstract() &&
                !element.isPrivate() &&
@@ -47,7 +47,7 @@ abstract class AbstractRegisterComponentAction(text: String) : SelfTargetingInte
     }
 
     final override fun applyTo(element: KtClass, editor: Editor?) {
-        AndroidFacet.getInstance(element.containingFile)?.manifest?.let {
+        AndroidFacet.getInstance(element.containingFile)?.let(Manifest::getMainManifest)?.let {
             applyTo(element, it)
         }
     }

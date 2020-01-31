@@ -15,20 +15,24 @@
  */
 package com.android.tools.adtui.validation;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.observable.BatchInvoker;
 import com.android.tools.idea.observable.BatchInvokerStrategyRule;
-import com.android.tools.idea.observable.core.*;
+import com.android.tools.idea.observable.core.BoolProperty;
+import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.IntProperty;
+import com.android.tools.idea.observable.core.IntValueProperty;
+import com.android.tools.idea.observable.core.StringProperty;
+import com.android.tools.idea.observable.core.StringValueProperty;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
+import java.util.function.Consumer;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
-
-import javax.swing.*;
-import java.util.function.Consumer;
-
-import static com.google.common.truth.Truth.assertThat;
 
 public class ValidatorPanelTest {
   @Rule
@@ -52,8 +56,12 @@ public class ValidatorPanelTest {
    * nothing to show, as this prevent its UI from jumping vertically every time a message appears
    * or disappears. Therefore, we can't test "text.isEmpty" directly.
    */
-  private static void assertThatNoMessageIsVisible(ValidatorPanel panel) {
-    assertThat(StringUtil.isEmptyOrSpaces(panel.getValidationLabel().getText())).isTrue();
+  private static void assertThatNoMessageIsVisible(@NotNull ValidatorPanel panel) {
+    assertThat(StringUtil.isEmptyOrSpaces(getValidationText(panel))).isTrue();
+  }
+
+  private static String getValidationText(@NotNull ValidatorPanel validatorPanel) {
+    return StringUtil.removeHtmlTags(validatorPanel.getValidationText().getText());
   }
 
   @Test
@@ -91,7 +99,7 @@ public class ValidatorPanelTest {
 
       shouldBePositive.set(-100);
       assertThat(panel.hasErrors().get()).isTrue();
-      assertThat(panel.getValidationLabel().getText()).isEqualTo("Negative value: -100");
+      assertThat(getValidationText(panel)).isEqualTo("Negative value: -100");
 
       shouldBePositive.set(100);
       assertThat(panel.hasErrors().get()).isFalse();
@@ -110,7 +118,7 @@ public class ValidatorPanelTest {
 
       shouldBeTrue.set(false);
       assertThat(panel.hasErrors().get()).isTrue();
-      assertThat(panel.getValidationLabel().getText()).isEqualTo("Value is false");
+      assertThat(getValidationText(panel)).isEqualTo("Value is false");
 
       shouldBeTrue.set(true);
       assertThat(panel.hasErrors().get()).isFalse();
@@ -129,11 +137,11 @@ public class ValidatorPanelTest {
 
       message.set("I can't let you do that Dave");
       assertThat(panel.hasErrors().get()).isTrue();
-      assertThat(panel.getValidationLabel().getText()).isEqualTo("I can't let you do that Dave");
+      assertThat(getValidationText(panel)).isEqualTo("I can't let you do that Dave");
 
       message.set("Error");
       assertThat(panel.hasErrors().get()).isTrue();
-      assertThat(panel.getValidationLabel().getText()).isEqualTo("Error");
+      assertThat(getValidationText(panel)).isEqualTo("Error");
 
       message.set("");
       assertThat(panel.hasErrors().get()).isFalse();
@@ -157,17 +165,17 @@ public class ValidatorPanelTest {
 
       infoIfFalse.set(false);
       assertThat(panel.hasErrors().get()).isFalse();
-      assertThat(panel.getValidationLabel().getText()).isEqualTo("Info");
+      assertThat(getValidationText(panel)).isEqualTo("Info");
 
       infoIfFalse.set(true);
       warningIfFalse.set(false);
       assertThat(panel.hasErrors().get()).isFalse();
-      assertThat(panel.getValidationLabel().getText()).isEqualTo("Warning");
+      assertThat(getValidationText(panel)).isEqualTo("Warning");
 
       warningIfFalse.set(true);
       errorIfFalse.set(false);
       assertThat(panel.hasErrors().get()).isTrue();
-      assertThat(panel.getValidationLabel().getText()).isEqualTo("Error");
+      assertThat(getValidationText(panel)).isEqualTo("Error");
     });
   }
 
@@ -186,22 +194,22 @@ public class ValidatorPanelTest {
       assertThatNoMessageIsVisible(panel);
 
       infoIfFalse.set(false);
-      assertThat(panel.getValidationLabel().getText()).isEqualTo("Info");
+      assertThat(getValidationText(panel)).isEqualTo("Info");
 
       warningIfFalse.set(false); // Warning > Info
-      assertThat(panel.getValidationLabel().getText()).isEqualTo("Warning");
+      assertThat(getValidationText(panel)).isEqualTo("Warning");
 
       errorIfFalse.set(false); // Error > Warning
-      assertThat(panel.getValidationLabel().getText()).isEqualTo("Error");
+      assertThat(getValidationText(panel)).isEqualTo("Error");
 
       errorIfFalse.set(true); // Error is gone; Warning is highest left
-      assertThat(panel.getValidationLabel().getText()).isEqualTo("Warning");
+      assertThat(getValidationText(panel)).isEqualTo("Warning");
 
       warningIfFalse.set(true); // Warning is gone; Info is highest left
-      assertThat(panel.getValidationLabel().getText()).isEqualTo("Info");
+      assertThat(getValidationText(panel)).isEqualTo("Info");
 
       errorIfFalse.set(false); // Error > Info
-      assertThat(panel.getValidationLabel().getText()).isEqualTo("Error");
+      assertThat(getValidationText(panel)).isEqualTo("Error");
     });
   }
 }

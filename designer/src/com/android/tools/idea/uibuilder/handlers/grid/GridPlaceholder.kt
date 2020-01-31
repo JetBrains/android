@@ -20,6 +20,7 @@ import com.android.tools.idea.common.model.NlAttributesHolder
 import com.android.tools.idea.common.scene.Placeholder
 import com.android.tools.idea.common.scene.Region
 import com.android.tools.idea.common.scene.SceneComponent
+import com.android.tools.idea.common.scene.SnappingInfo
 import java.awt.Point
 
 class GridPlaceholder(override val region: Region,
@@ -29,12 +30,10 @@ class GridPlaceholder(override val region: Region,
                       host: SceneComponent)
   : Placeholder(host) {
 
-  override fun snap(left: Int, top: Int, right: Int, bottom: Int, retPoint: Point): Boolean {
-    val centerX = (left + right) / 2
-    val centerY = (top + bottom) / 2
-    if (centerX in region.left..region.right && centerY in region.top..region.bottom) {
-      retPoint.x = left
-      retPoint.y = top
+  override fun snap(info: SnappingInfo, retPoint: Point): Boolean {
+    if (region.contains(info.centerX, info.centerY)) {
+      retPoint.x = info.left
+      retPoint.y = info.top
       return true
     }
     return false

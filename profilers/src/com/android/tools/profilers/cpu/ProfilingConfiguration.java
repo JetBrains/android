@@ -16,7 +16,7 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Cpu.CpuTraceMode;
 import com.android.tools.profiler.proto.Cpu.CpuTraceType;
 import com.android.utils.HashCodes;
@@ -137,10 +137,10 @@ public class ProfilingConfiguration {
   }
 
   /**
-   * Converts from {@link com.android.tools.profiler.proto.CpuProfiler.CpuProfilerConfiguration} to {@link ProfilingConfiguration}.
+   * Converts from {@link Cpu.CpuTraceConfiguration} to {@link ProfilingConfiguration}.
    */
   @NotNull
-  public static ProfilingConfiguration fromProto(@NotNull CpuProfiler.CpuProfilerConfiguration proto) {
+  public static ProfilingConfiguration fromProto(@NotNull Cpu.CpuTraceConfiguration.UserOptions proto) {
     ProfilingConfiguration configuration = new ProfilingConfiguration(proto.getName(), proto.getTraceType(), proto.getTraceMode());
     configuration.setProfilingSamplingIntervalUs(proto.getSamplingIntervalUs());
     configuration.setProfilingBufferSizeInMb(proto.getBufferSizeInMb());
@@ -149,11 +149,11 @@ public class ProfilingConfiguration {
   }
 
   /**
-   * Converts {@code this} to {@link com.android.tools.profiler.proto.CpuProfiler.CpuProfilerConfiguration}.
+   * Converts {@code this} to {@link Cpu.CpuTraceConfiguration.UserOptions}.
    */
   @NotNull
-  public CpuProfiler.CpuProfilerConfiguration toProto() {
-    return CpuProfiler.CpuProfilerConfiguration
+  public Cpu.CpuTraceConfiguration.UserOptions toProto() {
+    return Cpu.CpuTraceConfiguration.UserOptions
       .newBuilder()
       .setName(getName())
       .setTraceType(getTraceType())

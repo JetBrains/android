@@ -30,7 +30,7 @@ import java.awt.*;
  * The general look and feel for all Studio-specific wizards.
  */
 public final class SimpleStudioWizardLayout implements ModelWizardDialog.CustomLayout {
-  private static final Dimension DEFAULT_MIN_SIZE = JBUI.size(400, 350);
+  private static final Dimension DEFAULT_MIN_SIZE = JBUI.size(600, 350);
   private static final Dimension DEFAULT_PREFERRED_SIZE = JBUI.size(900, 700);
 
   private final BindingsManager myBindings = new BindingsManager();

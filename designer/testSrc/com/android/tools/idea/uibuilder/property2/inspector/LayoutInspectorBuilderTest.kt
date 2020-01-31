@@ -45,7 +45,7 @@ class LayoutInspectorBuilderTest {
     val builder = LayoutInspectorBuilder(projectRule.project, util.editorProvider)
     util.loadProperties()
     builder.attachToInspector(util.inspector, util.properties)
-    util.checkTitle(0, "Layout")
+    util.checkTitle(0, InspectorSection.LAYOUT.title)
     util.checkEditor(1, ANDROID_URI, ATTR_LAYOUT_WIDTH)
     util.checkEditor(2, ANDROID_URI, ATTR_LAYOUT_HEIGHT)
     util.checkEditor(3, ANDROID_URI, ATTR_LAYOUT_WEIGHT)

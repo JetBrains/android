@@ -22,6 +22,7 @@ package com.android.tools.profilers;
 public interface FeatureConfig {
   boolean isAtraceEnabled();
   boolean isCpuApiTracingEnabled();
+  boolean isCpuCaptureStageEnabled();
   boolean isCpuNewRecordingWorkflowEnabled();
   boolean isEnergyProfilerEnabled();
   boolean isExportCpuTraceEnabled();
@@ -34,6 +35,8 @@ public interface FeatureConfig {
   boolean isMemorySnapshotEnabled();
   boolean isPerfettoEnabled();
   boolean isPerformanceMonitoringEnabled();
+  boolean isAuditsEnabled();
+  boolean isCustomEventVisualizationEnabled();
   boolean isSessionImportEnabled();
   boolean isSimpleperfHostEnabled();
   boolean isStartupCpuProfilingEnabled();

@@ -33,14 +33,14 @@ public class ToggleDeviceOrientationAction extends AnAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
-    Configuration configuration = mySurface.getConfiguration();
-    if (configuration != null) {
-      configuration.getDeviceState();
-      State current = configuration.getDeviceState();
-      State flip = configuration.getNextDeviceState(current);
-      if (flip != null) {
-        configuration.setDeviceState(flip);
-      }
-    }
+    mySurface.getConfigurations()
+      .forEach(configuration -> {
+        configuration.getDeviceState();
+        State current = configuration.getDeviceState();
+        State flip = configuration.getNextDeviceState(current);
+        if (flip != null) {
+          configuration.setDeviceState(flip);
+        }
+      });
   }
 }

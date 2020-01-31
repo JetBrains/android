@@ -27,6 +27,7 @@ import org.junit.runner.RunWith;
   com.android.tools.idea.IdeaTestSuite.class,  // a suite mustn't contain itself
   com.android.tools.idea.rendering.RenderSecurityManagerTest.class,  // calls System.setSecurityManager
   com.android.tools.idea.testing.TestProjectPathsGeneratorTest.class, // This is for a standalone, test-only application
+  com.android.tools.idea.templates.TemplateTestBase.class, // This is a base class, does not contain actual tests
   com.android.tools.idea.templates.TemplateTest.CoverageChecker.class, // Inner class is used to test TemplateTest covers all templates
 
   // The following classes had failures when run in Bazel.
@@ -36,8 +37,6 @@ import org.junit.runner.RunWith;
   // https://github.com/bazelbuild/bazel/issues/374
   com.android.tools.idea.actions.annotations.InferSupportAnnotationsTest.class,
   org.jetbrains.android.dom.CreateMissingClassFixTest.class,
-  // This is not actually a test but a tool. See http://b/111785663
-  com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.generator.GenerateShippedSyncTest.class,
   // http://b/35788260
   com.android.tools.idea.gradle.project.sync.errors.OldAndroidPluginErrorHandlerTest.class
 })
@@ -49,7 +48,6 @@ public class IdeaTestSuite extends IdeaTestSuiteBase {
 
   static {
     symlinkToIdeaHome(
-        "prebuilts/tools/common/offline-m2",
         "prebuilts/studio/jdk",
         "prebuilts/studio/layoutlib",
         "prebuilts/studio/sdk",
@@ -58,7 +56,6 @@ public class IdeaTestSuite extends IdeaTestSuiteBase {
         "tools/adt/idea/android/lib",
         "tools/adt/idea/artwork/resources/device-art-resources",
         "tools/adt/idea/android/testData",
-        "tools/adt/idea/resources-aar/framework_res.jar",
         "tools/base/templates",
         "tools/idea/java");
 
@@ -66,6 +63,7 @@ public class IdeaTestSuite extends IdeaTestSuiteBase {
     setUpOfflineRepo("tools/adt/idea/android/test_deps.zip", "prebuilts/tools/common/m2/repository");
     setUpOfflineRepo("tools/base/third_party/kotlin/kotlin-m2repository.zip", "prebuilts/tools/common/m2/repository");
     setUpOfflineRepo("tools/base/build-system/previous-versions/1.5.0.zip", "prebuilts/tools/common/m2/repository");
+    setUpOfflineRepo("tools/base/build-system/previous-versions/2.2.0.zip", "prebuilts/tools/common/m2/repository");
     setUpOfflineRepo("tools/base/build-system/previous-versions/3.0.0.zip", "prebuilts/tools/common/m2/repository");
     setUpOfflineRepo("tools/base/build-system/previous-versions/3.3.2.zip", "prebuilts/tools/common/m2/repository");
     setUpOfflineRepo("tools/data-binding/data_binding_runtime.zip", "prebuilts/tools/common/m2/repository");

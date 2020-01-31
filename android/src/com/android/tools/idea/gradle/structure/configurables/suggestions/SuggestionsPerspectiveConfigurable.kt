@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.suggestions
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.gradle.structure.configurables.AbstractCounterDisplayConfigurable
-import com.android.tools.idea.gradle.structure.configurables.JavaModuleUnsupportedConfigurable
+import com.android.tools.idea.gradle.structure.configurables.ModuleUnsupportedConfigurable
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAllModulesFakeModule
 import com.android.tools.idea.gradle.structure.configurables.android.modules.AbstractModuleConfigurable
@@ -26,7 +26,6 @@ import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.structure.dialog.TrackedConfigurable
 import com.google.wireless.android.sdk.stats.PSDEvent
-import com.intellij.util.ui.UIUtil.invokeLaterIfNeeded
 import javax.swing.JComponent
 
 class SuggestionsPerspectiveConfigurable(context: PsContext)
@@ -53,7 +52,7 @@ class SuggestionsPerspectiveConfigurable(context: PsContext)
       when (module) {
         is PsAndroidModule -> createConfigurable(module)
         is PsAllModulesFakeModule -> createConfigurable(module)
-        else -> JavaModuleUnsupportedConfigurable(context, module)
+        else -> ModuleUnsupportedConfigurable(context, this, module)
       }
 
   override fun getDisplayName(): String = "Suggestions"
@@ -65,5 +64,5 @@ class SuggestionsPerspectiveConfigurable(context: PsContext)
   override fun createComponent(): JComponent = super.createComponent().apply { name = "SuggestionsView" }
 
   private fun createConfigurable(module: PsModule) =
-      AndroidModuleSuggestionsConfigurable(context, module).apply { setHistory(myHistory) }
+      AndroidModuleSuggestionsConfigurable(context, this, module).apply { setHistory(myHistory) }
 }

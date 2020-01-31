@@ -123,8 +123,8 @@ public class GuiTestSuiteRunner extends Suite {
         }
       }
     }
-    if (testGroup != null && TestGroup.valueOf(testGroup) == TestGroup.DEFAULT) {
-      // When running the default tests, we need to run the aspects agent log checker to verify no tests violated the aspect rules defined.
+    if (testGroup != null && TestGroup.valueOf(testGroup) == TestGroup.UNRELIABLE) {
+      // Add AspectsAgentLogTest after other tests since it reads a log written while they run.
       guiTestClasses.add(AspectsAgentLogTest.class);
     }
     return guiTestClasses.toArray(new Class<?>[guiTestClasses.size()]);

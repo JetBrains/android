@@ -68,6 +68,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
   private Map<String, String> myPropertiesMap = Maps.newHashMap();
   private SystemImageDescription myQImageDescription;
   private Device myFoldable;
+  private Device myAutomotive;
 
   @Override
   public void setUp() throws Exception {
@@ -149,6 +150,7 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     myQImageDescription = new SystemImageDescription(QImage);
     DeviceManager devMgr = DeviceManager.createInstance(sdkHandler, new NoErrorsOrWarningsLogger());
     myFoldable = devMgr.getDevice("7.3in Foldable", "Generic");
+    myAutomotive = devMgr.getDevice("automotive_1024p_landscape", "Google");
 
     myQAvdInfo =
       new AvdInfo("name", new File("ini"), "folder", QImage, myPropertiesMap);
@@ -175,7 +177,6 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
 
     assertThat(isGoogleApiTag(DEFAULT_TAG)).isFalse();
     assertThat(isGoogleApiTag(GOOGLE_APIS_X86_TAG)).isFalse();
-    assertThat(isGoogleApiTag(GLASS_TAG)).isFalse();
   }
 
   public void testGpuOtherMode() throws Exception {
@@ -190,6 +191,30 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     assertEquals(OFF, gpuOtherMode(22, true, true, true));
     assertEquals(OFF, gpuOtherMode(23, true, false, true));
     assertEquals(OFF, gpuOtherMode(23, false, false, true));
+  }
+
+  public void testAutomotiveDevice() {
+    ensureSdkManagerAvailable();
+
+    //Device without SdCard
+    AvdOptionsModel optionsModelNoSdCard = new AvdOptionsModel(myQAvdInfo);
+    ConfigureAvdOptionsStep optionsStepNoSdCard = new ConfigureAvdOptionsStep(getProject(), optionsModelNoSdCard);
+    optionsStepNoSdCard.addListeners();
+    Disposer.register(getTestRootDisposable(), optionsStepNoSdCard);
+    optionsModelNoSdCard.device().setNullableValue(myAutomotive);
+
+    assertFalse(optionsModelNoSdCard.useBuiltInSdCard().get());
+    assertFalse(optionsModelNoSdCard.useExternalSdCard().get());
+
+    // Device with SdCard
+    AvdOptionsModel optionsModelWithSdCard = new AvdOptionsModel(myQAvdInfo);
+    ConfigureAvdOptionsStep optionsStepWithSdCard = new ConfigureAvdOptionsStep(getProject(), optionsModelWithSdCard);
+    optionsStepWithSdCard.addListeners();
+    Disposer.register(getTestRootDisposable(), optionsStepWithSdCard);
+    optionsModelWithSdCard.device().setNullableValue(myFoldable);
+
+    assertTrue(optionsModelWithSdCard.useBuiltInSdCard().get());
+    assertFalse(optionsModelWithSdCard.useExternalSdCard().get());
   }
 
   public void testFoldedDevice() {

@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.ui.resourcemanager.plugin
 
+import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.ui.resourcemanager.ImageCache
 import com.android.tools.idea.ui.resourcemanager.importer.DesignAssetImporter
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManagerImpl
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.SketchParser
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.ui.IMPORT_DIALOG_TITLE
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.ui.SketchImporterPresenter
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.ui.SketchImporterView
@@ -55,11 +55,16 @@ class SketchImporter : ResourceImporter {
     }
     else {
       val view = SketchImporterView()
-      val imageCache = ImageCache()
-      val assetPreviewManager = AssetPreviewManagerImpl(facet, imageCache)
+      val disposable = Disposer.newDisposable("SketchImporter")
+      val imageCache = ImageCache.createLargeImageCache(disposable)
+      // FIXME(b/140494768): Currently unused, get the ResourceResolver asynchronously to use this class.
+      val resourceResolver = facet.module.project.projectFile?.let {
+        ConfigurationManager.getOrCreateInstance(facet).getConfiguration(it).resourceResolver
+      }?: return
+      val assetPreviewManager = AssetPreviewManagerImpl(facet, imageCache, resourceResolver)
       view.presenter = SketchImporterPresenter(view, sketchFile, DesignAssetImporter(), facet, assetPreviewManager)
       showImportDialog(view)
-      Disposer.dispose(imageCache)
+      Disposer.dispose(disposable)
     }
   }
 

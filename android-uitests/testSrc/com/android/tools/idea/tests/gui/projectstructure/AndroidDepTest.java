@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.tests.gui.projectstructure;
 
+import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
+import static org.junit.Assert.assertTrue;
+
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
@@ -23,20 +26,19 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplateDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.newpsd.AddModuleDependencyDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.newpsd.DependenciesPerspectiveConfigurableFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.newpsd.DependenciesPerspectiveConfigurableFixtureKt;
+import com.android.tools.idea.tests.gui.framework.fixture.newpsd.ProjectStructureDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.concurrent.TimeUnit;
-
-import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
-import static org.junit.Assert.assertTrue;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class AndroidDepTest {
@@ -45,7 +47,7 @@ public class AndroidDepTest {
 
   @Before
   public void setUp() {
-    StudioFlags.NEW_PSD_ENABLED.override(false);
+    StudioFlags.NEW_PSD_ENABLED.override(true);
   }
 
   @After
@@ -72,12 +74,12 @@ public class AndroidDepTest {
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void transitiveDependenciesResolve() {
-    IdeFrameFixture ideFrame = DependenciesTestUtil.createNewProject(guiTest, DependenciesTestUtil.APP_NAME, DependenciesTestUtil.MIN_SDK);
+    IdeFrameFixture ideFrame = DependenciesTestUtil.createNewProject(guiTest, DependenciesTestUtil.APP_NAME, DependenciesTestUtil.MIN_SDK, DependenciesTestUtil.LANGUAGE_JAVA);
 
     ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
-      .chooseModuleType("Android Library")
-      .clickNextToStep("Android Library")
-      .setModuleName("library_module")
+      .clickNextToAndroidLibrary()
+      .enterModuleName("library_module")
+      .wizard()
       .clickFinish()
       .waitForGradleProjectSyncToFinish();
 
@@ -92,10 +94,14 @@ public class AndroidDepTest {
 
     ideFrame.invokeMenuPath("Open Module Settings");
 
-    ProjectStructureDialogFixture.find(ideFrame)
-      .selectDependenciesTab()
-      .addModuleDependency(":library_module")
-      .clickOk();
+    ProjectStructureDialogFixture dialogFixture = ProjectStructureDialogFixture.Companion.find(ideFrame);
+    DependenciesPerspectiveConfigurableFixture dependenciesFixture =
+      DependenciesPerspectiveConfigurableFixtureKt.selectDependenciesConfigurable(dialogFixture);
+
+    AddModuleDependencyDialogFixture addModuleDependencyFixture = dependenciesFixture.findDependenciesPanel().clickAddModuleDependency();
+    addModuleDependencyFixture.toggleModule("library_module");
+    addModuleDependencyFixture.clickOk();
+    dialogFixture.clickOk();
 
     editor.open("/app/src/main/java/android/com/app/MainActivity.java")
       .moveBetween("setContentView(R.layout.activity_main);", "")

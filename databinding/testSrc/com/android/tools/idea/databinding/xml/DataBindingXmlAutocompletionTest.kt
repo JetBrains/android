@@ -56,7 +56,7 @@ class DataBindingXmlAutocompletionTest(private val dataBindingMode: DataBindingM
     myProjectRule.fixture.testDataPath = "${TestDataPaths.TEST_DATA_ROOT}/xml"
 
     val androidFacet = FacetManager.getInstance(myProjectRule.module).getFacetByType(AndroidFacet.ID)
-    ModuleDataBinding.getInstance(androidFacet!!).setMode(dataBindingMode)
+    ModuleDataBinding.getInstance(androidFacet!!).dataBindingMode = dataBindingMode
   }
 
   @Test

@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Disposer;
@@ -29,15 +29,24 @@ import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.scale.ScaleContext;
 import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.GraphicsConfiguration;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.Shape;
+import java.awt.Transparency;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Responsible for painting a screen view
@@ -86,7 +95,7 @@ public class ScreenViewLayer extends Layer {
    * </p>
    *
    * @param screenView The screenView containing the model to render
-   * @param executor   Executor used to debounce the calls to {@link #requestHighQualityScaledImage()}
+   * @param executor   Executor used to debounce the calls to {@link #requestHighQualityScaledImage}
    */
   @VisibleForTesting
   ScreenViewLayer(@NotNull ScreenView screenView, @Nullable ScheduledExecutorService executor) {
@@ -104,7 +113,8 @@ public class ScreenViewLayer extends Layer {
                                                int screenViewX, int screenViewY,
                                                @NotNull Rectangle screenViewVisibleSize,
                                                double xScaleFactor, double yScaleFactor,
-                                               @Nullable BufferedImage existingBuffer) {
+                                               @Nullable BufferedImage existingBuffer,
+                                               boolean screenViewHasBorderLayer) {
     // Extract from the result image only the visible rectangle. The result image might be bigger or smaller than the actual ScreenView
     // size so we need to also rescale.
     int sx1 = (int)Math.round((screenViewVisibleSize.x - screenViewX) * xScaleFactor);
@@ -112,9 +122,13 @@ public class ScreenViewLayer extends Layer {
     int sx2 = sx1 + (int)Math.round(screenViewVisibleSize.width * xScaleFactor);
     int sy2 = sy1 + (int)Math.round(screenViewVisibleSize.height * yScaleFactor);
     BufferedImage image;
-    if (existingBuffer != null &&
-        existingBuffer.getWidth() == screenViewVisibleSize.width &&
-        existingBuffer.getHeight() == screenViewVisibleSize.height) {
+    boolean bufferWithScreenViewSizeExists = existingBuffer != null && existingBuffer.getWidth() == screenViewVisibleSize.width
+                                             && existingBuffer.getHeight() == screenViewVisibleSize.height;
+    if (screenViewHasBorderLayer && bufferWithScreenViewSizeExists) {
+      // Reuse the buffered image if the screen view visible size matches the existing buffer's, and if we're rendering a screen view that
+      // has a border layer. Screen views without a border layer might contain transparent images, e.g. a drawable, and reusing the buffer
+      // might cause the unexpected effect of parts of the old image being rendered on the transparent parts of the new one. Therefore, we
+      // need to force the creation of a new image in this case.
       image = existingBuffer;
     }
     else {
@@ -147,6 +161,7 @@ public class ScreenViewLayer extends Layer {
     boolean drawNewImg = false;
     if (newRenderImageAvailable(renderResult)) {
       myLastRenderResult = renderResult;
+      myScreenView.getScene().needsRebuildList();
       drawNewImg = true;
     }
 
@@ -175,7 +190,7 @@ public class ScreenViewLayer extends Layer {
         cachedVisibleImage = getPreviewImage(g.getDeviceConfiguration(), renderedImage,
                                              myScreenView.getX(), myScreenView.getY(),
                                              myScreenViewVisibleSize, xScaleFactor, yScaleFactor,
-                                             previousVisibleImage);
+                                             previousVisibleImage, myScreenView.hasBorderLayer());
         myCachedVisibleImage = cachedVisibleImage;
       }
     }
@@ -185,7 +200,9 @@ public class ScreenViewLayer extends Layer {
       if (screenShape != null) {
         g.clip(screenShape);
       }
-      StartupUiUtil.drawImage(g, cachedVisibleImage, myScreenViewVisibleSize.x, myScreenViewVisibleSize.y, null);
+      // b/140428773 : Graphics.drawImage returns even it is not completed. Fill the default color here to avoid un-painted image.
+      g.fillRect(myScreenViewVisibleSize.x, myScreenViewVisibleSize.y, myScreenViewVisibleSize.width, myScreenViewVisibleSize.height);
+      UIUtil.drawImage(g, cachedVisibleImage, myScreenViewVisibleSize.x, myScreenViewVisibleSize.y, null);
     }
     g.dispose();
   }

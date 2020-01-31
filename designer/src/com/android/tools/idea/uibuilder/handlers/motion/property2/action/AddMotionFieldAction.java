@@ -21,6 +21,7 @@ import com.android.tools.property.panel.api.TableLineModel;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutAttributesModel;
 import com.android.tools.idea.uibuilder.property2.NeleNewPropertyItem;
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
+import com.android.tools.property.ptable.PTableItem;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -34,9 +35,9 @@ public class AddMotionFieldAction extends AnAction {
   public AddMotionFieldAction(@NotNull MotionLayoutAttributesModel model,
                               @NotNull FilteredPTableModel<NelePropertyItem> tableModel,
                               @NotNull PropertiesTable<NelePropertyItem> properties) {
-    super(null, "Add Property", AllIcons.General.Add);
+    super(null, "Add Attribute", AllIcons.General.Add);
     myTableModel = tableModel;
-    myNewProperty = new NeleNewPropertyItem(model, properties);
+    myNewProperty = new NeleNewPropertyItem(model, properties, (item) -> item.getRawValue() == null, (delegate) -> null);
   }
 
   public void setLineModel(@NotNull TableLineModel lineModel) {
@@ -45,6 +46,7 @@ public class AddMotionFieldAction extends AnAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent event) {
-    myTableModel.addNewItem(myNewProperty);
+    NelePropertyItem nextItem = myTableModel.addNewItem(myNewProperty);
+    myLineModel.requestFocus(nextItem);
   }
 }

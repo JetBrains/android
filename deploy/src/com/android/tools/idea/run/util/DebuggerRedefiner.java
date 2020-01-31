@@ -29,29 +29,24 @@ import com.intellij.debugger.impl.DebuggerContextImpl;
 import com.intellij.debugger.impl.DebuggerSession;
 import com.intellij.debugger.impl.DebuggerTask;
 import com.intellij.debugger.impl.MultiProcessCommand;
-import com.intellij.debugger.impl.RemoteConnectionBuilder;
 import com.intellij.debugger.jdi.ThreadReferenceProxyImpl;
 import com.intellij.debugger.jdi.VirtualMachineProxyImpl;
 import com.intellij.debugger.ui.breakpoints.BreakpointManager;
 import com.intellij.debugger.ui.breakpoints.StackCapturingLineBreakpoint;
 import com.intellij.execution.configurations.RemoteConnection;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.util.concurrency.Semaphore;
 import com.intellij.xdebugger.XDebugSession;
-import com.sun.jdi.ClassType;
-import com.sun.jdi.ReferenceType;
-import com.sun.jdi.ThreadReference;
 import com.sun.jdi.VirtualMachine;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.IntStream;
-import javax.swing.SwingUtilities;
 
 /**
  * Helper class for the deploy task to deal with the interactions with the IntelliJ debugger.
@@ -233,7 +228,7 @@ public class DebuggerRedefiner implements ClassRedefiner {
     final Semaphore waitSemaphore = new Semaphore();
     waitSemaphore.down();
     //noinspection SSBasedInspection
-    SwingUtilities.invokeLater(() -> {
+    ApplicationManager.getApplication().invokeLater(() -> {
       try {
         if (!project.isDisposed()) {
           breakpointManager.reloadBreakpoints();

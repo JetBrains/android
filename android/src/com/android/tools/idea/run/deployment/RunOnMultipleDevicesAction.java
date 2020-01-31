@@ -46,7 +46,7 @@ final class RunOnMultipleDevicesAction extends AnAction {
 
   @VisibleForTesting
   RunOnMultipleDevicesAction(@NotNull Function<Project, RunnerAndConfigurationSettings> getSelectedConfiguration) {
-    super("Run on multiple devices", null, AllIcons.Actions.Execute);
+    super("Run on Multiple Devices", null, AllIcons.Actions.Execute);
     myGetSelectedConfiguration = getSelectedConfiguration;
   }
 

@@ -20,19 +20,18 @@ import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.idea.common.scene.draw.DrawLassoUtil;
 import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
-import org.intellij.lang.annotations.JdkConstants.InputEventMask;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import java.awt.Graphics2D;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.intellij.lang.annotations.JdkConstants.InputEventMask;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A {@link MarqueeInteraction} is an interaction for swiping out a selection rectangle.
@@ -56,7 +55,7 @@ public class MarqueeInteraction extends Interaction {
   }
 
   @Override
-  public void update(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers) {
+  public void update(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx) {
     if (myOverlay == null) {
       return;
     }
@@ -84,7 +83,7 @@ public class MarqueeInteraction extends Interaction {
   public List<Layer> createOverlays() {
     ColorSet colorSet = mySceneView.getColorSet();
     myOverlay = new MarqueeLayer(colorSet);
-    return Collections.singletonList(myOverlay);
+    return Collections.<Layer>singletonList(myOverlay);
   }
 
   /**

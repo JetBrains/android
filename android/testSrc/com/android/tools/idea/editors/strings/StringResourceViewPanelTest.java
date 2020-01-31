@@ -24,12 +24,14 @@ import com.android.tools.idea.res.ResourcesTestsUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.util.Arrays;
+import java.util.Collections;
+import javax.swing.AbstractButton;
+import javax.swing.CellEditor;
+import javax.swing.DefaultCellEditor;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;
-
-import javax.swing.*;
-import java.util.Collections;
 
 public final class StringResourceViewPanelTest extends AndroidTestCase {
   private Disposable myParentDisposable;
@@ -49,8 +51,6 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
       ResourcesTestsUtil.createTestModuleRepository(myFacet, Collections.singletonList(resourceDirectory));
 
     myPanel.getTable().setModel(new StringResourceTableModel(StringResourceRepository.create(parent), myFacet));
-
-    myTable.getRowSorter().setSortKeys(Collections.singletonList(new RowSorter.SortKey(0, SortOrder.ASCENDING)));
   }
 
   @Override
@@ -66,61 +66,69 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
   }
 
   public void testSetShowingOnlyKeysNeedingTranslations() {
-    assertEquals(10, myTable.getRowCount());
-    assertEquals("key1", myTable.getValueAt(0, 0));
-    assertEquals("key10", myTable.getValueAt(1, 0));
-    assertEquals("key2", myTable.getValueAt(2, 0));
-    assertEquals("key3", myTable.getValueAt(3, 0));
-    assertEquals("key4", myTable.getValueAt(4, 0));
-    assertEquals("key5", myTable.getValueAt(5, 0));
-    assertEquals("key6", myTable.getValueAt(6, 0));
-    assertEquals("key7", myTable.getValueAt(7, 0));
-    assertEquals("key8", myTable.getValueAt(8, 0));
-    assertEquals("key9", myTable.getValueAt(9, 0));
+    Object expectedColumn = Arrays.asList(
+      "key1",
+      "key2",
+      "key3",
+      "key5",
+      "key6",
+      "key7",
+      "key8",
+      "key4",
+      "key9",
+      "key10");
+
+    assertEquals(expectedColumn, myTable.getColumnAt(StringResourceTableModel.KEY_COLUMN));
 
     myTable.setRowFilter(new NeedsTranslationsRowFilter());
 
-    assertEquals(7, myTable.getRowCount());
-    assertEquals("key1", myTable.getValueAt(0, 0));
-    assertEquals("key10", myTable.getValueAt(1, 0));
-    assertEquals("key3", myTable.getValueAt(2, 0));
-    assertEquals("key4", myTable.getValueAt(3, 0));
-    assertEquals("key7", myTable.getValueAt(4, 0));
-    assertEquals("key8", myTable.getValueAt(5, 0));
-    assertEquals("key9", myTable.getValueAt(6, 0));
+    expectedColumn = Arrays.asList(
+      "key1",
+      "key3",
+      "key7",
+      "key8",
+      "key4",
+      "key9",
+      "key10");
+
+    assertEquals(expectedColumn, myTable.getColumnAt(StringResourceTableModel.KEY_COLUMN));
   }
 
   public void testTableDoesntRefilterAfterEditingUntranslatableCell() {
     myTable.setRowFilter(new NeedsTranslationsRowFilter());
     editCellAt(true, 0, StringResourceTableModel.UNTRANSLATABLE_COLUMN);
 
-    assertEquals(7, myTable.getRowCount());
-    assertEquals("key1", myTable.getValueAt(0, 0));
-    assertEquals("key10", myTable.getValueAt(1, 0));
-    assertEquals("key3", myTable.getValueAt(2, 0));
-    assertEquals("key4", myTable.getValueAt(3, 0));
-    assertEquals("key7", myTable.getValueAt(4, 0));
-    assertEquals("key8", myTable.getValueAt(5, 0));
-    assertEquals("key9", myTable.getValueAt(6, 0));
+    Object expectedColumn = Arrays.asList(
+      "key1",
+      "key3",
+      "key7",
+      "key8",
+      "key4",
+      "key9",
+      "key10");
+
+    assertEquals(expectedColumn, myTable.getColumnAt(StringResourceTableModel.KEY_COLUMN));
   }
 
   public void testTableDoesntRefilterAfterEditingTranslationCell() {
     myTable.setRowFilter(new NeedsTranslationsRowFilter());
     editCellAt("Key 3 en-rGB", 2, 6);
 
-    assertEquals(7, myTable.getRowCount());
-    assertEquals("key1", myTable.getValueAt(0, 0));
-    assertEquals("key10", myTable.getValueAt(1, 0));
-    assertEquals("key3", myTable.getValueAt(2, 0));
-    assertEquals("key4", myTable.getValueAt(3, 0));
-    assertEquals("key7", myTable.getValueAt(4, 0));
-    assertEquals("key8", myTable.getValueAt(5, 0));
-    assertEquals("key9", myTable.getValueAt(6, 0));
+    Object expectedColumn = Arrays.asList(
+      "key1",
+      "key3",
+      "key7",
+      "key8",
+      "key4",
+      "key9",
+      "key10");
+
+    assertEquals(expectedColumn, myTable.getColumnAt(StringResourceTableModel.KEY_COLUMN));
   }
 
   public void testSelectingCell() {
     myTable.setRowFilter(new NeedsTranslationsRowFilter());
-    myTable.selectCellAt(2, 1);
+    myTable.selectCellAt(1, StringResourceTableModel.DEFAULT_VALUE_COLUMN);
 
     assertEquals("Key 3 default", myPanel.myDefaultValueTextField.getTextField().getText());
   }

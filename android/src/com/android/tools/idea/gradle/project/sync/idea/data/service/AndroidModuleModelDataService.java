@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
+
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.android.AndroidModuleCleanupStep;
@@ -27,14 +28,11 @@ import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import java.util.Collection;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
-
-import java.util.Collection;
-import java.util.Map;
-
-import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
 
 /**
  * Service that sets an Android SDK and facets to the modules of a project that has been imported from an Android-Gradle project.
@@ -74,11 +72,9 @@ public class AndroidModuleModelDataService extends ModuleModelDataService<Androi
                             @NotNull IdeModifiableModelsProvider modelsProvider,
                             @NotNull Map<String, AndroidModuleModel> modelsByModuleName) {
     AndroidModuleValidator moduleValidator = myModuleValidatorFactory.create(project);
-    boolean syncSkipped = GradleSyncState.getInstance(project).isSyncSkipped();
-
     for (Module module : modelsProvider.getModules()) {
       AndroidModuleModel androidModel = modelsByModuleName.get(module.getName());
-      setUpModule(module, moduleValidator, modelsProvider, androidModel, syncSkipped);
+      setUpModule(module, moduleValidator, modelsProvider, androidModel);
     }
 
     if (!modelsByModuleName.isEmpty()) {
@@ -89,11 +85,10 @@ public class AndroidModuleModelDataService extends ModuleModelDataService<Androi
   private void setUpModule(@NotNull Module module,
                            @NotNull AndroidModuleValidator moduleValidator,
                            @NotNull IdeModifiableModelsProvider modelsProvider,
-                           @Nullable AndroidModuleModel androidModel,
-                           boolean syncSkipped) {
+                           @Nullable AndroidModuleModel androidModel) {
     if (androidModel != null) {
       ModuleSetupContext context = myModuleSetupContextFactory.create(module, modelsProvider);
-      myModuleSetup.setUpModule(context, androidModel, syncSkipped);
+      myModuleSetup.setUpModule(context, androidModel);
       moduleValidator.validate(module, androidModel);
     }
     else {

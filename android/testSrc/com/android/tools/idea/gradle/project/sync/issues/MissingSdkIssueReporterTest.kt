@@ -46,7 +46,7 @@ class MissingSdkIssueReporterTest : AndroidGradleTestCase() {
 
   @Test
   fun testWithSingleModule() {
-    syncMessages.clearReportedMessages()
+    syncMessages.removeAllMessages()
     loadSimpleApplication()
 
     val localPropertiesPath = File(projectFolderPath, SdkConstants.FN_LOCAL_PROPERTIES)
@@ -84,10 +84,9 @@ class MissingSdkIssueReporterTest : AndroidGradleTestCase() {
 
   @Test
   fun testWithCompositeBuild() {
-    syncMessages.clearReportedMessages()
-    prepareMultipleProjectsForImport(COMPOSITE_BUILD, "TestCompositeApp", "TestCompositeLib1", "TestCompositeLib3", "TestCompositeLib2",
-                                     "TestCompositeLib4")
-    importProject(project.name, File(COMPOSITE_BUILD))
+    syncMessages.removeAllMessages()
+    prepareProjectForImport(COMPOSITE_BUILD)
+    importProject()
 
     val localPropertiesPath = File(projectFolderPath, SdkConstants.FN_LOCAL_PROPERTIES)
     val localPropertiesPathTwo = File(projectFolderPath, "TestCompositeLib1/${SdkConstants.FN_LOCAL_PROPERTIES}")

@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw.assetstudio;
 
 import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.utils.XmlUtils.formatFloatAttribute;
+import static com.android.utils.XmlUtils.formatFloatValue;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.res.ResourceHelper;
@@ -95,7 +95,7 @@ public class VectorDrawableTransformer {
       if (originalAlphaValue != null) {
         opacity *= parseDoubleValue(originalAlphaValue, "");
       }
-      String alphaValue = formatFloatAttribute(opacity);
+      String alphaValue = formatFloatValue(opacity);
       if (alphaValue.equals("1")) {
         alphaValue = null; // No need to set the default opacity.
       }
@@ -176,10 +176,10 @@ public class VectorDrawableTransformer {
         }
       }
 
-      result.append(String.format("%s%sandroid:width=\"%sdp\"", lineSeparator, DOUBLE_INDENT, formatFloatAttribute(targetWidth)));
-      result.append(String.format("%s%sandroid:height=\"%sdp\"", lineSeparator, DOUBLE_INDENT, formatFloatAttribute(targetHeight)));
-      result.append(String.format("%s%sandroid:viewportWidth=\"%s\"", lineSeparator, DOUBLE_INDENT, formatFloatAttribute(viewportWidth)));
-      result.append(String.format("%s%sandroid:viewportHeight=\"%s\"", lineSeparator, DOUBLE_INDENT, formatFloatAttribute(viewportHeight)));
+      result.append(String.format("%s%sandroid:width=\"%sdp\"", lineSeparator, DOUBLE_INDENT, formatFloatValue(targetWidth)));
+      result.append(String.format("%s%sandroid:height=\"%sdp\"", lineSeparator, DOUBLE_INDENT, formatFloatValue(targetHeight)));
+      result.append(String.format("%s%sandroid:viewportWidth=\"%s\"", lineSeparator, DOUBLE_INDENT, formatFloatValue(viewportWidth)));
+      result.append(String.format("%s%sandroid:viewportHeight=\"%s\"", lineSeparator, DOUBLE_INDENT, formatFloatValue(viewportHeight)));
       if (tintValue != null) {
         result.append(String.format("%s%sandroid:tint=\"%s\"", lineSeparator, DOUBLE_INDENT, tintValue));
       }
@@ -201,42 +201,59 @@ public class VectorDrawableTransformer {
       result.append('>');
 
       String indent = "";
-      String translateX = isSignificantlyDifferentFromZero(x / viewportWidth) ? formatFloatAttribute(x) : null;
-      String translateY = isSignificantlyDifferentFromZero(y / viewportHeight) ? formatFloatAttribute(y) : null;
+      int copyDepth = 2;
+      startLine = parser.getLineNumber();
+      startColumn = parser.getColumnNumber();
+      String translateX = isSignificantlyDifferentFromZero(x / viewportWidth) ? formatFloatValue(x) : null;
+      String translateY = isSignificantlyDifferentFromZero(y / viewportHeight) ? formatFloatValue(y) : null;
       if (translateX != null || translateY != null) {
-        // Wrap the contents of the drawable into a translation group.
-        result.append(lineSeparator).append(INDENT);
-        result.append("<group");
-        String delimiter = " ";
-        if (translateX != null) {
-          result.append(String.format("%sandroid:translateX=\"%s\"", delimiter, translateX));
-          delimiter = lineSeparator + INDENT + DOUBLE_INDENT;
+        double existingTranslateX = 0;
+        double existingTranslateY = 0;
+
+        x += existingTranslateX;
+        y += existingTranslateY;
+        translateX = isSignificantlyDifferentFromZero(x / viewportWidth) ? formatFloatValue(x) : null;
+        translateY = isSignificantlyDifferentFromZero(y / viewportHeight) ? formatFloatValue(y) : null;
+
+        if (translateX != null || translateY != null) {
+          // Wrap the contents of the drawable into a translation group.
+          result.append(lineSeparator).append(INDENT);
+          result.append("<group");
+          String delimiter = " ";
+          if (translateX != null) {
+            result.append(String.format("%sandroid:translateX=\"%s\"", delimiter, translateX));
+            delimiter = lineSeparator + INDENT + DOUBLE_INDENT;
+          }
+          if (translateY != null) {
+            result.append(String.format("%sandroid:translateY=\"%s\"", delimiter, translateY));
+          }
+          result.append('>');
+          indent = INDENT;
         }
-        if (translateY != null) {
-          result.append(String.format("%sandroid:translateY=\"%s\"", delimiter, translateY));
-        }
-        result.append('>');
-        indent = INDENT;
       }
 
       // Copy the contents before the </vector> tag.
-      startLine = parser.getLineNumber();
-      startColumn = parser.getColumnNumber();
-      while ((token = parser.nextToken()) != XmlPullParser.END_DOCUMENT && token != XmlPullParser.END_TAG || parser.getDepth() > 1) {
+      while ((token = parser.nextToken()) != XmlPullParser.END_DOCUMENT && token != XmlPullParser.END_TAG ||
+             parser.getDepth() >= copyDepth) {
         int endLineNumber = parser.getLineNumber();
         int endColumnNumber = parser.getColumnNumber();
         indenter.copy(startLine, startColumn, endLineNumber, endColumnNumber, token == XmlPullParser.CDSECT ? "" : indent, result);
         startLine = endLineNumber;
         startColumn = endColumnNumber;
       }
-      if (startColumn != 1) {
+      if (startColumn > INDENT.length() + 1) {
         result.append(lineSeparator);
+        startColumn = 1;
       }
       if (translateX != null || translateY != null) {
-        result.append(INDENT).append(String.format("</group>%s", lineSeparator));
+        if (startColumn == 1) {
+          result.append(INDENT);
+        }
+        result.append(String.format("</group>%s", lineSeparator));
       }
-      // Copy the closing </vector> tag and the remainder of the document.
-      while (parser.nextToken() != XmlPullParser.END_DOCUMENT) {
+
+      // Copy the closing </group> tag, the </vector> tag and the remainder of the document.
+      for (; token != XmlPullParser.END_DOCUMENT; token = parser.nextToken()) {
         int endLineNumber = parser.getLineNumber();
         int endColumnNumber = parser.getColumnNumber();
         indenter.copy(startLine, startColumn, endLineNumber, endColumnNumber, "", result);

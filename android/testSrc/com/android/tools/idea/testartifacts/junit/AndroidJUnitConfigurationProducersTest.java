@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.testartifacts.junit;
 
-import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromFile;
 import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createContext;
 import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createJUnitConfigurationFromClass;
 import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createJUnitConfigurationFromDirectory;
+import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createJUnitConfigurationFromFile;
 import static com.android.tools.idea.testartifacts.TestConfigurationTesting.getPsiElement;
 import static com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_KOTLIN;
 
@@ -74,7 +74,7 @@ public class AndroidJUnitConfigurationProducersTest extends AndroidGradleTestCas
 
   public void testCannotCreateJUnitConfigurationFromAndroidTestClassKotlin() throws Exception {
     loadProject(TEST_ARTIFACTS_KOTLIN);
-    assertNull(createAndroidTestConfigurationFromFile(
+    assertNull(createJUnitConfigurationFromFile(
       getProject(), "app/src/androidTest/java/com/example/android/kotlin/ExampleInstrumentedTest.kt"));
   }
 

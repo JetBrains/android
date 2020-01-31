@@ -1,4 +1,3 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android;
 
 import com.android.SdkConstants;
@@ -8,11 +7,12 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.io.TestFileSystemBuilder;
 import com.intellij.util.io.TestFileSystemItem;
 import org.jetbrains.android.util.AndroidBuildTestingManager;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.android.builder.*;
 import org.jetbrains.jps.android.model.*;
@@ -44,7 +44,6 @@ import org.jetbrains.jps.util.JpsPathUtil;
 
 import java.io.*;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -74,7 +73,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
 
   public void test1() throws Exception {
     final MyExecutor executor = new MyExecutor("com.example.simple");
-    final JpsModule module = setUpSimpleAndroidStructure(ArrayUtilRt.EMPTY_STRING_ARRAY, executor, null).getFirst();
+    final JpsModule module = setUpSimpleAndroidStructure(ArrayUtil.EMPTY_STRING_ARRAY, executor, null).getFirst();
     rebuildAndroidProject();
     checkBuildLog(executor, "expected_log");
     checkMakeUpToDate(executor);
@@ -451,7 +450,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
 
     final String systemProguardCfgPath = FileUtil.toSystemDependentName(androidModule.getSdk(
       JpsAndroidSdkType.INSTANCE).getHomePath() + "/tools/proguard/proguard-android.txt");
-    myBuildParams.put(AndroidCommonUtils.PROGUARD_CFG_PATHS_OPTION,
+    myBuildParams.put(AndroidBuildCommonUtils.PROGUARD_CFG_PATHS_OPTION,
                       systemProguardCfgPath + File.pathSeparator + getProjectPath("proguard-project.txt"));
 
     buildAndroidProject();
@@ -475,7 +474,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     addPathPatterns(executor, androidSdk);
 
     final JpsModule appModule = addAndroidModule("app", new String[]{"src"}, "app", "app", androidSdk).getFirst();
-    final JpsModule libModule = addAndroidModule("lib", ArrayUtilRt.EMPTY_STRING_ARRAY, "lib", "lib", androidSdk).getFirst();
+    final JpsModule libModule = addAndroidModule("lib", ArrayUtil.EMPTY_STRING_ARRAY, "lib", "lib", androidSdk).getFirst();
 
     final JpsAndroidModuleExtension libExtension = AndroidJpsUtil.getExtension(libModule);
     assert libExtension != null;
@@ -549,7 +548,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
         return super.doCreateProcess(args, environment);
       }
     };
-    setUpSimpleAndroidStructure(ArrayUtilRt.EMPTY_STRING_ARRAY, executor, null).getFirst();
+    setUpSimpleAndroidStructure(ArrayUtil.EMPTY_STRING_ARRAY, executor, null).getFirst();
     rebuildAndroidProject();
     checkBuildLog(executor, "expected_log");
     checkMakeUpToDate(executor);
@@ -654,17 +653,17 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     rebuildAndroidProject();
     checkMakeUpToDate(executor);
 
-    myBuildParams.put(AndroidCommonUtils.RELEASE_BUILD_OPTION, Boolean.TRUE.toString());
+    myBuildParams.put(AndroidBuildCommonUtils.RELEASE_BUILD_OPTION, Boolean.TRUE.toString());
     buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log");
     checkMakeUpToDate(executor);
 
-    myBuildParams.put(AndroidCommonUtils.RELEASE_BUILD_OPTION, Boolean.FALSE.toString());
+    myBuildParams.put(AndroidBuildCommonUtils.RELEASE_BUILD_OPTION, Boolean.FALSE.toString());
     buildAndroidProject().assertSuccessful();
     checkBuildLog(executor, "expected_log_1");
     checkMakeUpToDate(executor);
 
-    myBuildParams.remove(AndroidCommonUtils.RELEASE_BUILD_OPTION);
+    myBuildParams.remove(AndroidBuildCommonUtils.RELEASE_BUILD_OPTION);
     checkMakeUpToDate(executor);
   }
 
@@ -722,7 +721,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
 
   public void testResOverlay() throws Exception {
     final MyExecutor executor = new MyExecutor("com.example.simple");
-    final JpsModule module = setUpSimpleAndroidStructure(ArrayUtilRt.EMPTY_STRING_ARRAY, executor, null).getFirst();
+    final JpsModule module = setUpSimpleAndroidStructure(ArrayUtil.EMPTY_STRING_ARRAY, executor, null).getFirst();
     final JpsAndroidModuleProperties props = ((JpsAndroidModuleExtensionImpl)AndroidJpsUtil.getExtension(module)).getProperties();
     props.RES_OVERLAY_FOLDERS = Arrays.asList("/res-overlay");
     rebuildAndroidProject();
@@ -847,7 +846,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     checkMakeUpToDate(executor);
 
     change(getProjectPath("gen/com/example/simple/R.java"),
-           AndroidCommonUtils.AUTOGENERATED_JAVA_FILE_HEADER + "\n\n" +
+           AndroidBuildCommonUtils.AUTOGENERATED_JAVA_FILE_HEADER + "\n\n" +
            "package com.example.simple;\n" +
            "public class R {}");
 
@@ -868,7 +867,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     checkMakeUpToDate(executor);
 
     change(getProjectPath("gen/com/example/simple/MyGeneratedClass.java"),
-           AndroidCommonUtils.AUTOGENERATED_JAVA_FILE_HEADER + "\n\n" +
+           AndroidBuildCommonUtils.AUTOGENERATED_JAVA_FILE_HEADER + "\n\n" +
            "package com.example.simple;\n" +
            "public class MyGeneratedClass {}");
 
@@ -924,7 +923,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     addPathPatterns(executor, androidSdk);
 
     final JpsModule appModule = addAndroidModule("app", new String[]{"src"}, "app", "app", androidSdk).getFirst();
-    final JpsModule libModule = addAndroidModule("lib", ArrayUtilRt.EMPTY_STRING_ARRAY, "lib", "lib", androidSdk).getFirst();
+    final JpsModule libModule = addAndroidModule("lib", ArrayUtil.EMPTY_STRING_ARRAY, "lib", "lib", androidSdk).getFirst();
 
     final JpsAndroidModuleExtension libExtension = AndroidJpsUtil.getExtension(libModule);
     assert libExtension != null;
@@ -1339,7 +1338,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     final String outputPath = getAbsolutePath("out/production/" + moduleName);
     final String testOutputPath = getAbsolutePath("out/test/" + moduleName);
 
-    final JpsModule module = addModule(moduleName, ArrayUtilRt.EMPTY_STRING_ARRAY,
+    final JpsModule module = addModule(moduleName, ArrayUtil.EMPTY_STRING_ARRAY,
                                        outputPath, testOutputPath, androidSdk);
     module.getContentRootsList().addUrl(JpsPathUtil.pathToUrl(root));
 
@@ -1480,7 +1479,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
             final ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(outputPath)));
 
             try {
-              appendEntry(zos, "res_apk_entry", "res_apk_entry_content".getBytes(StandardCharsets.UTF_8));
+              appendEntry(zos, "res_apk_entry", "res_apk_entry_content".getBytes());
             }
             finally {
               zos.close();

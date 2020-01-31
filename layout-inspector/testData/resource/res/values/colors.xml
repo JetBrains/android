@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <color name="yellowBackground">#CCCC23</color>
+  <color name="textColor">#218823</color>
+  <color name="textRed">#F32133</color>
+  <color name="textRedIndirect">@color/textRed</color>
+  <color name="textBlue">#2122F8</color>
+  <color name="textBlueIndirect">@color/textBlue</color>
+  <color name="defaultForeground">@color/textColor</color>
+</resources>

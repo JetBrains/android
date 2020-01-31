@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:framework="http://schemas.android.com/apk/res/android"
+    framework:layout_width="match_parent"
+    framework:layout_height="match_parent"
+    framework:id="@+id/relativeLayout">
+
+  <TextView
+      framework:id="@+id/title"
+      framework:layout_width="wrap_content"
+      framework:layout_height="wrap_content"
+      framework:text="@string/hello"
+      framework:background="@drawable/battery"
+      framework:drawableLeft="@drawable/background_choice"
+      framework:drawableRight="@drawable/my_image"
+      framework:backgroundTint="?android:attr/colorBackgroundFloating"
+      framework:textAppearance="@style/MyTextStyle.Extra"
+      framework:textColor="@color/textRedIndirect"/>
+</RelativeLayout>

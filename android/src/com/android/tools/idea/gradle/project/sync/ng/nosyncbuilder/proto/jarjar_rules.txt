@@ -1,1 +1,0 @@
-rule com.google.protobuf.** com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.repackage.com.google.protobuf.@1

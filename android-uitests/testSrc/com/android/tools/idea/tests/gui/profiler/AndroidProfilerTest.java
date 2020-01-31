@@ -78,7 +78,7 @@ public class AndroidProfilerTest {
     // Start ADB with fake server and its port.
     AndroidDebugBridge.enableFakeAdbServerMode(myAdbServer.getPort());
 
-    Project project = openProject(PROJECT_NAME);
+    Project project = myGuiTest.openProject(PROJECT_NAME);
 
     // Get the bridge synchronously, since we're in test mode.
     myBridge = AdbService.getInstance().getDebugBridge(AndroidSdkUtils.getAdb(project)).get();
@@ -99,20 +99,6 @@ public class AndroidProfilerTest {
         return "Compares the serial of the actual device to the given serial";
       }
     }).containsExactly(SERIAL);
-  }
-
-  @NotNull
-  private Project openProject(@NotNull String projectDirName) throws Exception {
-    File projectDir = myGuiTest.copyProjectBeforeOpening(projectDirName);
-    VirtualFile fileToSelect = VfsUtil.findFileByIoFile(projectDir, true);
-    ProjectManager.getInstance().loadAndOpenProject(fileToSelect.getPath());
-
-    Wait.seconds(10).expecting("Project to be open").until(() -> ProjectManager.getInstance().getOpenProjects().length == 1);
-
-    Project project = ProjectManager.getInstance().getOpenProjects()[0];
-    GuiTests.waitForProjectIndexingToFinish(project);
-
-    return project;
   }
 
   @After

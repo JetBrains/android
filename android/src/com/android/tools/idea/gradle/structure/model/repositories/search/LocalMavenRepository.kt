@@ -16,14 +16,10 @@
 package com.android.tools.idea.gradle.structure.model.repositories.search
 
 import com.android.ide.common.repository.GradleVersion
-import com.google.common.base.Strings.nullToEmpty
 import com.google.wireless.android.sdk.stats.PSDEvent.PSDRepositoryUsage.PSDRepository.PROJECT_STRUCTURE_DIALOG_REPOSITORY_LOCAL
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.util.JDOMUtil.loadDocument
 import java.io.File
 import java.nio.file.FileVisitResult
-import java.nio.file.FileVisitResult.CONTINUE
-import java.nio.file.FileVisitResult.SKIP_SUBTREE
 import java.nio.file.Files.walkFileTree
 import java.nio.file.Path
 import java.nio.file.SimpleFileVisitor
@@ -36,22 +32,34 @@ data class LocalMavenRepository(val rootLocation: File, override val name: Strin
 
   override fun doSearch(request: SearchRequest): SearchResult {
     val foundArtifacts = mutableListOf<FoundArtifact>()
+    val groupIdPredicate = request.query.groupId?.toWildcardMatchingPredicate() ?: { true }
+    val artifactNamePredicate = request.query.artifactName?.toWildcardMatchingPredicate() ?: { true }
 
     try {
       walkFileTree(rootLocationPath, object : SimpleFileVisitor<Path>() {
         override fun preVisitDirectory(dir: Path, attrs: BasicFileAttributes): FileVisitResult {
-          val parent = dir.toFile()
-          val mavenMetadataFile = File(parent, "maven-metadata.xml")
+          val visitedDirFile: File = dir.toFile()
+          val repositoryRelativeDirectory = visitedDirFile.relativeTo(rootLocation)
+          if (repositoryRelativeDirectory.parentFile == null) return FileVisitResult.CONTINUE
+          val groupIdProbe = repositoryRelativeDirectory.parentFile.path.replace(File.separatorChar, '.')
+          val artifactNameProbe = visitedDirFile.name
 
-          if (!mavenMetadataFile.isFile) return CONTINUE
-
-          val match = isMatch(mavenMetadataFile, request.query.groupId?.toWildcardMatchingPredicate() ?: { true },
-                              request.query.artifactName?.toWildcardMatchingPredicate() ?: { true })
-          if (match != null) {
-            val versions = parent.listFiles()?.filter { it.isDirectory}?.mapNotNull { GradleVersion.tryParse(it.name) } ?: listOf()
-            foundArtifacts.add(FoundArtifact(name, match.groupId, match.artifactName, versions))
+          if (groupIdPredicate(groupIdProbe) && artifactNamePredicate(artifactNameProbe)) {
+            val versions =
+              visitedDirFile
+                .listFiles()
+                ?.mapNotNull {
+                  val versionProbe = it.name
+                  val expectedPomFileName = "$artifactNameProbe-$versionProbe.pom"
+                  if (it.isDirectory && it.resolve(expectedPomFileName).isFile) GradleVersion.tryParse(versionProbe) else null
+                }
+                .orEmpty()
+            if (versions.isNotEmpty()) {
+              foundArtifacts.add(FoundArtifact(name, groupIdProbe, artifactNameProbe, versions))
+              return FileVisitResult.SKIP_SUBTREE
+            }
           }
-          return SKIP_SUBTREE
+          return FileVisitResult.CONTINUE
         }
       })
     }
@@ -61,35 +69,6 @@ data class LocalMavenRepository(val rootLocation: File, override val name: Strin
     }
 
     return SearchResult(foundArtifacts.sortedWith(compareBy<FoundArtifact> { it.groupId }.thenBy { it.name }))
-  }
-
-  private fun isMatch(
-    mavenMetadataFile: File,
-    groupIdPredicate: ((String) -> Boolean),
-    artifactNamePredicate: (String) -> Boolean
-  ): Match? {
-
-    try {
-      val document = loadDocument(mavenMetadataFile)
-      val rootElement = document.rootElement
-      if (rootElement != null) {
-        val groupIdElement = rootElement.getChild("groupId")
-        val currentGroupId = groupIdElement?.value.orEmpty()
-        if (!groupIdPredicate(currentGroupId)) return null
-
-        val artifactIdElement = rootElement.getChild("artifactId") ?: return null
-        val currentArtifactName = artifactIdElement.value
-        if (artifactNamePredicate(currentArtifactName)) {
-          return Match(currentArtifactName, nullToEmpty(currentGroupId))
-        }
-      }
-    }
-    catch (e: Throwable) {
-      val msg = String.format("Failed to parse '%1\$s'", mavenMetadataFile.path)
-      Logger.getInstance(LocalMavenRepository::class.java).warn(msg, e)
-    }
-
-    return null
   }
 
   private data class Match internal constructor(internal val artifactName: String, internal val groupId: String)

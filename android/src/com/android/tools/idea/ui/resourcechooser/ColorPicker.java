@@ -1,10 +1,10 @@
 // Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.idea.ui.resourcechooser;
 
-import com.android.tools.idea.editors.theme.ColorUtils;
-import com.android.tools.idea.editors.theme.MaterialColorUtils;
 import com.android.tools.adtui.ui.ClickableLabel;
 import com.android.tools.adtui.util.GraphicsUtil;
+import com.android.tools.idea.editors.theme.ColorUtils;
+import com.android.tools.idea.editors.theme.MaterialColorUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -23,7 +23,6 @@ import com.intellij.ui.ColorUtil;
 import com.intellij.ui.HintHint;
 import com.intellij.ui.LightweightHint;
 import com.intellij.ui.awt.RelativePoint;
-import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.Alarm;
 import com.intellij.util.Consumer;
 import com.intellij.util.containers.ContainerUtil;
@@ -32,20 +31,44 @@ import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
-import java.util.Locale;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.Timer;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.plaf.basic.BasicButtonUI;
-import javax.swing.text.AttributeSet;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.PlainDocument;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.AWTException;
+import java.awt.AlphaComposite;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dialog;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Frame;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Insets;
+import java.awt.KeyboardFocusManager;
+import java.awt.LinearGradientPaint;
+import java.awt.MouseInfo;
+import java.awt.Point;
+import java.awt.PointerInfo;
+import java.awt.Polygon;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.Robot;
+import java.awt.Toolkit;
+import java.awt.Transparency;
+import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
@@ -54,6 +77,32 @@ import java.awt.image.MemoryImageSource;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.Icon;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JRootPane;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
+import javax.swing.UIManager;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.plaf.basic.BasicButtonUI;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.PlainDocument;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Color picker with support for Material suggestions and ARGB.
@@ -470,7 +519,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     myPreviewColorName.setFont(f.deriveFont(f.getStyle() | Font.BOLD));
 
     myColorSuggestionPreview = new ClickableLabel("CLOSEST MATERIAL COLOR");
-    myColorSuggestionPreview.setFont(f.deriveFont(JBUIScale.scale(8.0f)));
+    myColorSuggestionPreview.setFont(f.deriveFont(JBUI.scale(8.0f)));
     myColorSuggestionPreview.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -479,7 +528,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     });
 
     namePanel.add(myPreviewColorName);
-    namePanel.add(Box.createRigidArea(new Dimension(JBUIScale.scale(5), 0)));
+    namePanel.add(Box.createRigidArea(new Dimension(JBUI.scale(5), 0)));
     namePanel.add(myColorSuggestionPreview);
     namePanel.add(Box.createHorizontalGlue());
     result.add(namePanel);
@@ -518,22 +567,22 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     rgbPanel.add(myAlpha);
     myA.setVisible(isARGBMode());
     myAlpha.setVisible(isARGBMode());
-    rgbPanel.add(Box.createHorizontalStrut(JBUIScale.scale(3)));
+    rgbPanel.add(Box.createHorizontalStrut(JBUI.scale(3)));
     rgbPanel.add(myR);
     rgbPanel.add(myRed);
     rgbPanel.add(myR_after);
     myR_after.setVisible(false);
-    rgbPanel.add(Box.createHorizontalStrut(JBUIScale.scale(3)));
+    rgbPanel.add(Box.createHorizontalStrut(JBUI.scale(3)));
     rgbPanel.add(myG);
     rgbPanel.add(myGreen);
     rgbPanel.add(myG_after);
     myG_after.setVisible(false);
-    rgbPanel.add(Box.createHorizontalStrut(JBUIScale.scale(3)));
+    rgbPanel.add(Box.createHorizontalStrut(JBUI.scale(3)));
     rgbPanel.add(myB);
     rgbPanel.add(myBlue);
     rgbPanel.add(myB_after);
     myB_after.setVisible(false);
-    rgbPanel.add(Box.createHorizontalStrut(JBUIScale.scale(3)));
+    rgbPanel.add(Box.createHorizontalStrut(JBUI.scale(3)));
     rgbPanel.add(myFormat);
 
     JComponent valuesPanel = new Box(BoxLayout.LINE_AXIS);
@@ -614,7 +663,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
   }
 
   static class SaturationBrightnessComponent extends JComponent {
-    private static final int BORDER_SIZE = JBUIScale.scale(5);
+    private static final int BORDER_SIZE = JBUI.scale(5);
     private float myBrightness = 1f;
     private float myHue = 1f;
     private float mySaturation = 0f;
@@ -736,8 +785,8 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
       int knobX = BORDER_SIZE + x;
       int knobY = BORDER_SIZE + y;
       g.setColor(Color.WHITE);
-      g.drawOval(knobX - JBUIScale.scale(4), knobY - JBUIScale.scale(4), JBUIScale.scale(8), JBUIScale.scale(8));
-      g.drawOval(knobX - JBUIScale.scale(3), knobY - JBUIScale.scale(3), JBUIScale.scale(6), JBUIScale.scale(6));
+      g.drawOval(knobX - JBUI.scale(4), knobY - JBUI.scale(4), JBUI.scale(8), JBUI.scale(8));
+      g.drawOval(knobX - JBUI.scale(3), knobY - JBUI.scale(3), JBUI.scale(6), JBUI.scale(6));
     }
 
     public void dropImage() {
@@ -753,7 +802,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
   public static class ColorPreviewComponent extends JComponent {
     private static final Icon WARNING_ICON = AllIcons.General.BalloonWarning;
     private static final String TEXT = "Text";
-    private static final int PADDING = JBUIScale.scale(18);
+    private static final int PADDING = JBUI.scale(18);
     private static final float FONT_SIZE_RATIO = 1.5f;
 
     private Color myColor;
@@ -770,7 +819,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
 
     @Override
     public Dimension getMaximumSize() {
-      return new Dimension(Integer.MAX_VALUE, JBUIScale.scale(32));
+      return new Dimension(Integer.MAX_VALUE, JBUI.scale(32));
     }
 
     /**
@@ -837,7 +886,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
       // 1 added for rounding up the division, so that all the rectangles will fill the entire width of the component
       int colorCellWidth = width / myContrastColorSet.size() + 1;
       Rectangle drawingRectangle = new Rectangle(clipRectangle.x, clipRectangle.y, colorCellWidth, clipRectangle.height);
-      Font defaultFont = StartupUiUtil.getLabelFont();
+      Font defaultFont = UIUtil.getLabelFont();
       Font textFont = defaultFont.deriveFont(defaultFont.getSize() * FONT_SIZE_RATIO);
 
       for (Color color : myContrastColorSet) {
@@ -918,8 +967,8 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
   }
 
   private static class RecommendedColorsComponent extends JComponent {
-    private static final int SPACE = JBUIScale.scale(3);
-    private static final int CELL_SIZE = JBUIScale.scale(40);
+    private static final int SPACE = JBUI.scale(3);
+    private static final int CELL_SIZE = JBUI.scale(40);
     private static final int COLUMN_COUNT = 10;
 
     private List<Color> myRecommendedColors = new ArrayList<>();
@@ -1383,7 +1432,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
   // Thus, warning about using JBColor doesn't apply.
   @SuppressWarnings("UseJBColor")
   public static class SlideComponent extends JComponent {
-    protected static final int MARGIN = JBUIScale.scale(5);
+    protected static final int MARGIN = JBUI.scale(5);
     private static final Color SHADOW_COLOR = new Color(0, 0, 0, 70);
     private static final Color HEAD_COLOR = new Color(153, 51, 0);
     protected int myPointerValue = 0;
@@ -1582,7 +1631,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
 
     @Override
     public Dimension getMaximumSize() {
-      return new Dimension(Integer.MAX_VALUE, JBUIScale.scale(getPreferredSize().height));
+      return new Dimension(Integer.MAX_VALUE, JBUI.scale(getPreferredSize().height));
     }
 
     @Override
@@ -1596,32 +1645,32 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
       Color color = new Color(myColor.getRGB());
       Color transparent = ColorUtil.toAlpha(Color.WHITE, 0);
 
-      Rectangle clip = new Rectangle(MARGIN, JBUIScale.scale(7), getWidth() - 2 * MARGIN, JBUIScale.scale(12));
+      Rectangle clip = new Rectangle(MARGIN, JBUI.scale(7), getWidth() - 2 * MARGIN, JBUI.scale(12));
       GraphicsUtil.paintCheckeredBackground(g2d, clip);
 
       g2d.setPaint(UIUtil.getGradientPaint(0f, 0f, transparent, getWidth(), 0f, color));
       g.fillRect(clip.x, clip.y, clip.width, clip.height);
 
-      drawKnob(g2d, myPointerValue, JBUIScale.scale(7));
+      drawKnob(g2d, myPointerValue, JBUI.scale(7));
     }
 
     protected static void drawKnob(Graphics2D g2d, int x, int y) {
       g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-      x -= JBUIScale.scale(6);
+      x -= JBUI.scale(6);
 
       Polygon polygon = new Polygon();
-      polygon.addPoint(x + JBUIScale.scale(1), y - JBUIScale.scale(5));
-      polygon.addPoint(x + JBUIScale.scale(13), y - JBUIScale.scale(5));
-      polygon.addPoint(x + JBUIScale.scale(7), y + JBUIScale.scale(7));
+      polygon.addPoint(x + JBUI.scale(1), y - JBUI.scale(5));
+      polygon.addPoint(x + JBUI.scale(13), y - JBUI.scale(5));
+      polygon.addPoint(x + JBUI.scale(7), y + JBUI.scale(7));
 
       g2d.setColor(SHADOW_COLOR);
       g2d.fill(polygon);
 
       polygon.reset();
-      polygon.addPoint(x, y - JBUIScale.scale(6));
-      polygon.addPoint(x + JBUIScale.scale(12), y - JBUIScale.scale(6));
-      polygon.addPoint(x + JBUIScale.scale(6), y + JBUIScale.scale(6));
+      polygon.addPoint(x, y - JBUI.scale(6));
+      polygon.addPoint(x + JBUI.scale(12), y - JBUI.scale(6));
+      polygon.addPoint(x + JBUI.scale(6), y + JBUI.scale(6));
 
       g2d.setColor(HEAD_COLOR);
       g2d.fill(polygon);
@@ -1679,8 +1728,8 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
       final Graphics2D g2d = (Graphics2D)g;
 
       g2d.setPaint(new LinearGradientPaint(new Point2D.Double(0, 0), new Point2D.Double(getWidth() - 2 * MARGIN, 0), myPoints, myColors));
-      g.fillRect(MARGIN, JBUIScale.scale(7), getWidth() - 2 * MARGIN, JBUIScale.scale(12));
-      drawKnob(g2d, valueToPointerValue(Math.round(myHue * 360)), JBUIScale.scale(7));
+      g.fillRect(MARGIN, JBUI.scale(7), getWidth() - 2 * MARGIN, JBUI.scale(12));
+      drawKnob(g2d, valueToPointerValue(Math.round(myHue * 360)), JBUI.scale(7));
     }
   }
 }

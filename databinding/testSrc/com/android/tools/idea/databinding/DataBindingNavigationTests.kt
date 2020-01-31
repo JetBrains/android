@@ -16,8 +16,8 @@
 package com.android.tools.idea.databinding
 
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
-import com.android.tools.idea.res.DataBindingLayoutInfoFile
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.findClass
 import com.google.common.truth.Truth.assertThat
 import com.intellij.facet.FacetManager
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -26,8 +26,8 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.util.IncorrectOperationException
-import junit.framework.Assert.fail
 import org.jetbrains.android.facet.AndroidFacet
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -78,7 +78,7 @@ class DataBindingNavigationTests(private val mode: DataBindingMode) {
       </manifest>
     """.trimIndent())
 
-    ModuleDataBinding.getInstance(androidFacet).setMode(mode)
+    ModuleDataBinding.getInstance(androidFacet).dataBindingMode = mode
   }
 
   @Test
@@ -92,21 +92,22 @@ class DataBindingNavigationTests(private val mode: DataBindingMode) {
         </data>
       </layout>
     """.trimIndent())
+    val context = fixture.addClass("public class MainActivity {}")
 
     val editors = FileEditorManager.getInstance(fixture.project)
     assertThat(editors.selectedFiles).isEmpty()
     // ActivityMainBinding is in-memory and generated on the fly from activity_main.xml
-    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding") as LightBindingClass
+    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
     binding.navigate(true)
     assertThat(editors.selectedFiles[0].name).isEqualTo("activity_main.xml")
 
     // Additionally, let's verify the behavior of the LightBindingClass's navigation element, for
     // code coverage purposes.
     binding.navigationElement.let { navElement ->
-      assertThat(navElement).isInstanceOf(DataBindingLayoutInfoFile::class.java)
+      assertThat(navElement).isInstanceOf(BindingLayout.BindingLayoutFile::class.java)
       assertThat(navElement.containingFile).isSameAs(navElement)
       // This next cast has to be true or else Java code coverage will crash. More details in the
-      // header docs of DataBindingLayoutInfoFile
+      // header docs of BindingLayoutFile
       val psiClassOwner = navElement.containingFile as PsiClassOwner
       assertThat(psiClassOwner.classes).hasLength(1)
       assertThat(psiClassOwner.classes[0]).isEqualTo(binding)
@@ -116,8 +117,44 @@ class DataBindingNavigationTests(private val mode: DataBindingMode) {
         psiClassOwner.packageName = "setting.packages.is.not.supported"
         fail()
       }
-      catch (ignored: IncorrectOperationException) {}
+      catch (expected: IncorrectOperationException) {}
     }
+  }
 
+  @Test
+  fun canNavigateToXmlFromGeneratedViewFieldInLightClass() {
+    fixture.addFileToProject("res/layout/activity_main.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name="strValue" type="String"/>
+          <variable name="intValue" type="Integer"/>
+        </data>
+        <LinearLayout
+            android:id="@+id/test_id"
+            android:orientation="vertical"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent">
+          </LinearLayout>
+      </layout>
+    """.trimIndent())
+    val context = fixture.addClass("public class MainActivity {}")
+
+    val editors = FileEditorManager.getInstance(fixture.project)
+    assertThat(editors.selectedFiles).isEmpty()
+    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
+    val field = binding.fields[0]
+    field.navigate(true)
+    assertThat(editors.selectedFiles[0].name).isEqualTo("activity_main.xml")
+    fixture.openFileInEditor(editors.selectedFiles[0])
+    val element = fixture.file.findElementAt(fixture.editor.caretModel.offset)
+    assertThat(element!!.parent.text).isEqualTo("""
+      <LinearLayout
+            android:id="@+id/test_id"
+            android:orientation="vertical"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent">
+          </LinearLayout>
+    """.trimIndent())
   }
 }

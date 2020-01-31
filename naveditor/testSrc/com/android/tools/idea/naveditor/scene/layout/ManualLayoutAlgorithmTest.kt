@@ -29,7 +29,6 @@ import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.fileEditor.DocumentsEditor
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.testFramework.PlatformTestUtil
-import java.nio.charset.StandardCharsets.UTF_8
 
 /**
  * Tests for [ManualLayoutAlgorithm]

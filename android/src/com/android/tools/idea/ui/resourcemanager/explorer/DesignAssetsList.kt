@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.ui.resourcemanager.explorer
 
-import com.android.tools.idea.concurrent.EdtExecutor
-import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
-import com.android.tools.idea.ui.resourcemanager.model.DesignAssetSet
+import com.android.tools.idea.ui.resourcemanager.model.Asset
+import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.google.common.cache.CacheBuilder
+import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
@@ -40,15 +40,15 @@ private val ICON_SIZE = JBUI.size(64)
 private const val ITEM_BORDER_WIDTH = 1
 
 /**
- * A JList that display [DesignAssetSet].
+ * A JList that display [ResourceAssetSet].
  */
 class DesignAssetsList(
   private val browserViewModel: DesignAssetExplorer
-) : JList<DesignAssetSet>(browserViewModel.designAssetListModel) {
+) : JList<ResourceAssetSet>(browserViewModel.designAssetListModel) {
 
   var itemMargin = 16
 
-  private val assetToImage = CacheBuilder.newBuilder().softValues().build<DesignAssetSet, Image>()
+  private val assetToImage = CacheBuilder.newBuilder().softValues().build<ResourceAssetSet, Image>()
 
   init {
     layoutOrientation = JList.HORIZONTAL_WRAP
@@ -58,7 +58,7 @@ class DesignAssetsList(
 
   inner class Renderer :
     JPanel(BorderLayout()),
-    ListCellRenderer<DesignAssetSet> {
+    ListCellRenderer<ResourceAssetSet> {
 
     private val imageIcon = ImageIcon(EMPTY_ICON)
     private val nameLabel = JLabel("", JLabel.CENTER)
@@ -73,8 +73,8 @@ class DesignAssetsList(
     }
 
     override fun getListCellRendererComponent(
-      list: JList<out DesignAssetSet>?,
-      assetSet: DesignAssetSet,
+      list: JList<out ResourceAssetSet>?,
+      assetSet: ResourceAssetSet,
       index: Int,
       isSelected: Boolean,
       cellHasFocus: Boolean
@@ -88,7 +88,7 @@ class DesignAssetsList(
     }
 
     private fun getDesignAssetView(
-      asset: DesignAssetSet,
+      asset: ResourceAssetSet,
       name: String,
       selected: Boolean = false,
       statusLabel: String
@@ -112,7 +112,7 @@ class DesignAssetsList(
       return this
     }
 
-    private fun fetchImage(asset: DesignAssetSet): Image {
+    private fun fetchImage(asset: ResourceAssetSet): Image {
       browserViewModel.getPreview(asset.getHighestDensityAsset(), ICON_SIZE).whenCompleteAsync(
         BiConsumer { image: Image?, _: Throwable ->
           if (image != null) {
@@ -121,14 +121,14 @@ class DesignAssetsList(
             assetToImage.put(asset, EMPTY_ICON) //TODO use unsupported icon.
           }
           repaint()
-        }, EdtExecutor.INSTANCE)
+        }, EdtExecutorService.getInstance())
       return EMPTY_ICON
     }
   }
 }
 
 /**
- * Interface for classes that provide [DesignAsset] for [com.android.tools.idea.ui.resourcemanager.view.DesignAssetsList]
+ * Interface for classes that provide [Asset] for [com.android.tools.idea.ui.resourcemanager.view.DesignAssetsList]
  */
 interface DesignAssetExplorer {
 
@@ -139,15 +139,15 @@ interface DesignAssetExplorer {
    * The [dimension] is just an indication for the implementing class and it is not
    * assured that the computed image will be exactly of these dimension.
    */
-  fun getPreview(asset: DesignAsset, dimension: Dimension): CompletableFuture<out Image?>
+  fun getPreview(asset: Asset, dimension: Dimension): CompletableFuture<out Image?>
 
   /**
    * Returns a status label that will be displayed on
    */
-  fun getStatusLabel(assetSet: DesignAssetSet): String
+  fun getStatusLabel(assetSet: ResourceAssetSet): String
 
   /**
    * Returns the [ListModel] for [DesignAssetsList]
    */
-  val designAssetListModel: ListModel<DesignAssetSet>
+  val designAssetListModel: ListModel<ResourceAssetSet>
 }

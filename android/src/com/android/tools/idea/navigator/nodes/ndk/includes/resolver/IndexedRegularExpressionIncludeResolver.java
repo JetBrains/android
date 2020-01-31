@@ -74,8 +74,13 @@ public class IndexedRegularExpressionIncludeResolver extends RegularExpressionIn
       if (version != null) {
         // Convert NDK revision like 19.2.5345600 to standard NDK release name like r19c
         Revision revision = Revision.parseRevision(version);
-        char minor = (char)((int)'a' + revision.getMinor());
-        description += String.format(" r%s%s", revision.getMajor(), minor);
+        if (revision.getMinor() == 0) {
+          // Don't show 'a' in the NDK version. It should be r20 not r20a
+          description += String.format(" r%s", revision.getMajor());
+        } else {
+          char minor = (char)((int)'a' + revision.getMinor());
+          description += String.format(" r%s%s", revision.getMajor(), minor);
+        }
       }
       return new SimpleIncludeValue(myKind, description, libraryName, relativeFolder, includeFolder, new File(homeFolder));
     } catch (IllegalArgumentException e) {

@@ -40,8 +40,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
-import java.util.*;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 
@@ -49,13 +51,13 @@ public class ApplicationRunParameters<T extends AndroidAppRunConfigurationBase> 
   private JPanel myPanel;
 
   // Deploy options
-  private ComboBox<InstallOption> myDeployOptionCombo;
+  private ComboBox myDeployOptionCombo;
   private LabeledComponent<ComboBox> myCustomArtifactLabeledComponent;
-  private final ComboBox<Object> myArtifactCombo;
+  private final ComboBox myArtifactCombo;
   private LabeledComponent<JBTextField> myPmOptionsLabeledComponent;
 
   // Launch options
-  private ComboBox<LaunchOption> myLaunchOptionCombo;
+  private ComboBox myLaunchOptionCombo;
   private ConfigurableCardPanel myLaunchOptionsCardPanel;
   private LabeledComponent<JBTextField> myAmOptionsLabeledComponent;
   private JComponent myDynamicFeaturesParametersComponent;
@@ -72,12 +74,11 @@ public class ApplicationRunParameters<T extends AndroidAppRunConfigurationBase> 
     myProject = project;
     myModuleSelector = moduleSelector;
 
-    myDeployOptionCombo.setModel(new CollectionComboBoxModel<>(Arrays.asList(InstallOption.values())));
-    myDeployOptionCombo.setRenderer(SimpleListCellRenderer.create("", o -> o.displayName));
+    myDeployOptionCombo.setModel(new CollectionComboBoxModel(Arrays.asList(InstallOption.values())));
+    myDeployOptionCombo.setRenderer(new InstallOption.Renderer());
     myDeployOptionCombo.addActionListener(this);
     myDeployOptionCombo.setSelectedItem(InstallOption.DEFAULT_APK);
 
-    //noinspection unchecked
     myArtifactCombo = myCustomArtifactLabeledComponent.getComponent();
     myArtifactCombo.setRenderer(SimpleListCellRenderer.create((label, value, index) -> {
       if (value instanceof Artifact) {
@@ -89,13 +90,13 @@ public class ApplicationRunParameters<T extends AndroidAppRunConfigurationBase> 
         label.setText("<html><font color='red'>" + value + "</font></html>");
       }
     }));
-    myArtifactCombo.setModel(new DefaultComboBoxModel<>(getAndroidArtifacts().toArray()));
+    myArtifactCombo.setModel(new DefaultComboBoxModel(getAndroidArtifacts().toArray()));
     myArtifactCombo.addActionListener(this);
 
     myPmOptionsLabeledComponent.getComponent().getEmptyText().setText("Options to 'pm install' command");
 
-    myLaunchOptionCombo.setModel(new CollectionComboBoxModel<>(new ArrayList<>(AndroidRunConfiguration.LAUNCH_OPTIONS)));
-    myLaunchOptionCombo.setRenderer(SimpleListCellRenderer.create("", LaunchOption::getDisplayName));
+    myLaunchOptionCombo.setModel(new CollectionComboBoxModel(AndroidRunConfiguration.LAUNCH_OPTIONS));
+    myLaunchOptionCombo.setRenderer(new LaunchOption.Renderer());
     myLaunchOptionCombo.addActionListener(this);
 
     myAmOptionsLabeledComponent.getComponent().getEmptyText().setText("Options to 'am start' command");
@@ -199,13 +200,13 @@ public class ApplicationRunParameters<T extends AndroidAppRunConfigurationBase> 
       Artifact selectedArtifact = findArtifactByName(artifacts, artifactName);
 
       if (selectedArtifact != null) {
-        myArtifactCombo.setModel(new DefaultComboBoxModel<>(artifacts.toArray()));
+        myArtifactCombo.setModel(new DefaultComboBoxModel(artifacts.toArray()));
         myArtifactCombo.setSelectedItem(selectedArtifact);
       }
       else {
         List<Object> items = Lists.newArrayList(artifacts.toArray());
         items.add(artifactName);
-        myArtifactCombo.setModel(new DefaultComboBoxModel<>(items.toArray()));
+        myArtifactCombo.setModel(new DefaultComboBoxModel(items.toArray()));
         myArtifactCombo.setSelectedItem(artifactName);
       }
     }
@@ -272,13 +273,7 @@ public class ApplicationRunParameters<T extends AndroidAppRunConfigurationBase> 
   }
 
   @Override
-  public JComponent getAnchor() {
-    return null;
-  }
-
-  @Override
-  public void setAnchor(JComponent anchor) {
-  }
+  public void dispose() {}
 
   private void updateBuildArtifactBeforeRunSetting() {
     Artifact newArtifact = null;
@@ -358,6 +353,9 @@ public class ApplicationRunParameters<T extends AndroidAppRunConfigurationBase> 
     Module currentModule = myModuleSelector.getModule();
 
     if (currentModule == null) {
+      // Disable and deselect instant deploy checkbox if <no module> is selected.
+      myInstantAppDeployCheckBox.setEnabled(false);
+      myInstantAppDeployCheckBox.setSelected(false);
       return;
     }
 
@@ -371,6 +369,10 @@ public class ApplicationRunParameters<T extends AndroidAppRunConfigurationBase> 
     else {
       // Enable instant app deploy checkbox if module is instant enabled
       myInstantAppDeployCheckBox.setEnabled(model != null && model.getSelectedVariant().isInstantAppCompatible());
+      // If the module is not instant-eligible, uncheck the checkbox.
+      if (model == null || !model.getSelectedVariant().isInstantAppCompatible()) {
+        myInstantAppDeployCheckBox.setSelected(false);
+      }
 
       myLaunchOptionCombo.setSelectedItem(DefaultActivityLaunch.INSTANCE);
     }

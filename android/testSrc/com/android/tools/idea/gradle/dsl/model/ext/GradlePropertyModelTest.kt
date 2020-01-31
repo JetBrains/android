@@ -161,6 +161,7 @@ import com.intellij.testFramework.UsefulTestCase
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.instanceOf
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Assume.assumeTrue
 import org.junit.Ignore
 import org.junit.Test
 import java.io.File
@@ -483,8 +484,8 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     val extModel = gradleBuildModel.ext()
     val propertyModel = extModel.findProperty("prop2")
-    assertEquals("prop1", propertyModel.getValue(STRING_TYPE))
-    assertEquals("prop1", propertyModel.getRawValue(STRING_TYPE))
+    assertEquals(extraName("prop1"), propertyModel.getValue(STRING_TYPE))
+    assertEquals(extraName("prop1"), propertyModel.getRawValue(STRING_TYPE))
     assertEquals(REFERENCE, propertyModel.valueType)
     assertEquals(REGULAR, propertyModel.propertyType)
 
@@ -626,8 +627,8 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     assertEquals(REFERENCE, propertyModel.valueType)
     assertEquals(REGULAR, propertyModel.propertyType)
-    assertEquals("prop1", propertyModel.getRawValue(STRING_TYPE))
-    assertEquals("prop1", propertyModel.getValue(STRING_TYPE))
+    assertEquals(extraName("prop1"), propertyModel.getRawValue(STRING_TYPE))
+    assertEquals(extraName("prop1"), propertyModel.getValue(STRING_TYPE))
 
     assertSize(1, propertyModel.dependencies)
     val dep = propertyModel.dependencies[0]
@@ -650,8 +651,8 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     val propertyModel = extModel.findProperty("prop2")
     assertEquals(REFERENCE, propertyModel.valueType)
     assertEquals(REGULAR, propertyModel.propertyType)
-    assertEquals("prop1", propertyModel.getRawValue(STRING_TYPE))
-    assertEquals("prop1", propertyModel.getValue(STRING_TYPE))
+    assertEquals(extraName("prop1"), propertyModel.getRawValue(STRING_TYPE))
+    assertEquals(extraName("prop1"), propertyModel.getValue(STRING_TYPE))
 
     assertSize(1, propertyModel.dependencies)
     val dep = propertyModel.dependencies[0]
@@ -679,7 +680,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     val extModel = gradleBuildModel.ext()
     val propertyModel = extModel.findProperty("prop2")
-    assertEquals("\${prop1} world!", propertyModel.getRawValue(STRING_TYPE))
+    assertEquals("\${${extraName("prop1")}} world!", propertyModel.getRawValue(STRING_TYPE))
     assertEquals("hello world!", propertyModel.getValue(STRING_TYPE))
     assertEquals(STRING, propertyModel.valueType)
     assertEquals(REGULAR, propertyModel.propertyType)
@@ -938,7 +939,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     var expected = "987654321"
     val propertyModel = extModel.findProperty("prop9")
     assertEquals(expected, propertyModel.getValue(STRING_TYPE))
-    assertEquals("9\${prop8}", propertyModel.getRawValue(STRING_TYPE))
+    assertEquals("9\${${extraName("prop8")}}", propertyModel.getRawValue(STRING_TYPE))
     assertEquals(STRING, propertyModel.valueType)
     assertEquals(REGULAR, propertyModel.propertyType)
 
@@ -948,7 +949,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       val value = deps[0]
       expected = expected.drop(1)
       assertEquals(expected, value.getValue(STRING_TYPE))
-      assertEquals("${9 - i}\${prop${8 - i}}", value.getRawValue(STRING_TYPE))
+      assertEquals("${9 - i}\${${extraName("prop${8 - i}")}}", value.getRawValue(STRING_TYPE))
       assertEquals(STRING, propertyModel.valueType)
       assertEquals(REGULAR, propertyModel.propertyType)
       deps = deps[0].dependencies
@@ -982,7 +983,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       val value = map["key1"]!!
       assertEquals(REFERENCE, value.valueType)
       assertEquals(DERIVED, value.propertyType)
-      assertEquals("prop1", value.getValue(STRING_TYPE))
+      assertEquals(extraName("prop1"), value.getValue(STRING_TYPE))
       assertEquals("key1", value.name)
       assertEquals("ext.prop4.key1", value.fullyQualifiedName)
 
@@ -1366,7 +1367,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     writeToBuildFile(GRADLE_PROPERTY_MODEL_DEPENDENCY_BASIC_CYCLE)
     val buildModel = gradleBuildModel
     val propertyModel = buildModel.ext().findProperty("prop1")
-    verifyPropertyModel(propertyModel, STRING_TYPE, "${'$'}{prop1}", STRING, REGULAR, 0)
+    verifyPropertyModel(propertyModel, STRING_TYPE, "${'$'}{${extraName("prop1")}}", STRING, REGULAR, 0)
   }
 
   @Test
@@ -1374,7 +1375,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     writeToBuildFile(GRADLE_PROPERTY_MODEL_DEPENDENCY_BASIC_CYCLE_REFERENCE)
     val buildModel = gradleBuildModel
     val propertyModel = buildModel.ext().findProperty("prop1")
-    verifyPropertyModel(propertyModel, STRING_TYPE, "prop1", REFERENCE, REGULAR, 0)
+    verifyPropertyModel(propertyModel, STRING_TYPE, extraName("prop1"), REFERENCE, REGULAR, 0)
   }
 
   @Test
@@ -1406,12 +1407,12 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop2")
-      verifyPropertyModel(propertyModel, STRING_TYPE, "Value", STRING, REGULAR, 1)
+      verifyPropertyModel(propertyModel, STRING_TYPE, "abcValue", STRING, REGULAR, 1)
     }
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop1")
-      verifyPropertyModel(propertyModel, STRING_TYPE, "Value", STRING, REGULAR, 1)
+      verifyPropertyModel(propertyModel, STRING_TYPE, "bcValue", STRING, REGULAR, 1)
     }
   }
 
@@ -1629,6 +1630,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testCreateNewEmptyMapValue() {
+    assumeTrue(isGroovy())
     val text = ""
     writeToBuildFile(text)
 
@@ -1997,7 +1999,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop1")
-      verifyPropertyModel(propertyModel, STRING_TYPE, "val", REFERENCE, REGULAR, 1)
+      verifyPropertyModel(propertyModel, STRING_TYPE, "val1", REFERENCE, REGULAR, 1)
       val deps = propertyModel.dependencies
       assertSize(1, deps)
       val mapPropertyModel = deps[0]
@@ -2016,7 +2018,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop1")
-      verifyPropertyModel(propertyModel, STRING_TYPE, "val", REFERENCE, REGULAR, 1)
+      verifyPropertyModel(propertyModel, STRING_TYPE, "val1", REFERENCE, REGULAR, 1)
       val deps = propertyModel.dependencies
       assertSize(1, deps)
       val mapPropertyModel = deps[0]
@@ -2077,11 +2079,11 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       verifyPropertyModel(secondInnerMap["key4"], STRING_TYPE, "value2", STRING, DERIVED, 0)
       verifyPropertyModel(secondInnerMap["key5"], INTEGER_TYPE, 43, INTEGER, DERIVED, 0)
       // Delete one of these values, and change the other.
-      secondInnerMap["key4"]!!.setValue(ReferenceTo("var"))
+      secondInnerMap["key4"]!!.setValue(ReferenceTo("var1"))
       secondInnerMap["key5"]!!.delete()
 
       // Check the values are correct.
-      verifyPropertyModel(secondInnerMap["key4"], STRING_TYPE, "var", REFERENCE, DERIVED, 1)
+      verifyPropertyModel(secondInnerMap["key4"], STRING_TYPE, "var1", REFERENCE, DERIVED, 1)
       verifyPropertyModel(secondInnerMap["key5"], OBJECT_TYPE, null, NONE, DERIVED, 0)
 
       val thirdInnerMapModel = map["key6"]!!
@@ -2115,7 +2117,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       assertEquals(MAP, secondInnerMapModel.valueType)
       val secondInnerMap = secondInnerMapModel.getValue(MAP_TYPE)!!
       assertSize(1, secondInnerMap.entries)
-      verifyPropertyModel(secondInnerMap["key4"], STRING_TYPE, "var", REFERENCE, DERIVED, 1)
+      verifyPropertyModel(secondInnerMap["key4"], STRING_TYPE, "var1", REFERENCE, DERIVED, 1)
       assertNull(secondInnerMap["key5"])
 
       val thirdInnerMapModel = map["key6"]!!
@@ -2336,12 +2338,12 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       verifyListProperty(firstModel, listOf("5"), REGULAR, 0)
 
       val secondModel = buildModel.ext().findProperty("prop2")
-      verifyPropertyModel(secondModel, STRING_TYPE, "var", REFERENCE, REGULAR, 1)
+      verifyPropertyModel(secondModel, STRING_TYPE, "var1", REFERENCE, REGULAR, 1)
       val varModel = secondModel.dependencies[0]!!
       verifyPropertyModel(varModel, STRING_TYPE, "hello", STRING, VARIABLE, 0)
       varModel.convertToEmptyList().addListValue().setValue("goodbye")
-      secondModel.setValue(ReferenceTo("var[0]"))
-      verifyPropertyModel(secondModel, STRING_TYPE, "var[0]", REFERENCE, REGULAR, 1)
+      secondModel.setValue(ReferenceTo("var1[0]"))
+      verifyPropertyModel(secondModel, STRING_TYPE, "var1[0]", REFERENCE, REGULAR, 1)
       val depModel = secondModel.dependencies[0]!!
       verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)
 
@@ -2381,7 +2383,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
       // TODO: Order of statements is wrong so this model does not get correctly parsed.
       /*val secondModel = buildModel.ext().findProperty("prop2")
-verifyPropertyModel(secondModel, STRING_TYPE, "var[0]", REFERENCE, REGULAR, 1)
+verifyPropertyModel(secondModel, STRING_TYPE, "var1[0]", REFERENCE, REGULAR, 1)
 val depModel = secondModel.dependencies[0]!!
 verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
 
@@ -2486,14 +2488,16 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
 
     val buildModel = gradleBuildModel
 
+    val quoteChar = if(isGroovy) "'" else "\""
+
     run {
       val proguardFiles = buildModel.android().defaultConfig().proguardFiles()
-      verifyListProperty(proguardFiles, listOf("getDefaultProguardFile('proguard-android.txt')", "proguard-rules2.txt"), DERIVED, 0)
+      verifyListProperty(proguardFiles, listOf("getDefaultProguardFile(${quoteChar}proguard-android.txt${quoteChar})", "proguard-rules2.txt"), DERIVED, 0)
       proguardFiles.addListValueAt(0).setValue("z.txt")
       proguardFiles.addListValueAt(2).setValue("proguard-rules.txt")
       verifyListProperty(
         proguardFiles,
-        listOf("z.txt", "getDefaultProguardFile('proguard-android.txt')", "proguard-rules.txt", "proguard-rules2.txt"),
+        listOf("z.txt", "getDefaultProguardFile(${quoteChar}proguard-android.txt${quoteChar})", "proguard-rules.txt", "proguard-rules2.txt"),
         DERIVED,
         0
       )
@@ -2505,7 +2509,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       val proguardFiles = buildModel.android().defaultConfig().proguardFiles()
       verifyListProperty(
         proguardFiles,
-        listOf("z.txt", "getDefaultProguardFile('proguard-android.txt')", "proguard-rules.txt", "proguard-rules2.txt"),
+        listOf("z.txt", "getDefaultProguardFile(${quoteChar}proguard-android.txt${quoteChar})", "proguard-rules.txt", "proguard-rules2.txt"),
         DERIVED,
         0
       )
@@ -2563,7 +2567,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       val propertyModel = buildModel.ext().findProperty("prop1")
       verifyListProperty(propertyModel, listOf(1, 4), REGULAR, 0)
 
-      propertyModel.addListValueAt(1).setValue(ReferenceTo("var"))
+      propertyModel.addListValueAt(1).setValue(ReferenceTo("var1"))
       propertyModel.addListValueAt(2).setValue(3)
 
       verifyListProperty(propertyModel, listOf(1, "2", 3, 4), REGULAR, 1)
@@ -2587,7 +2591,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       val propertyModel = buildModel.ext().findProperty("prop1")
       verifyListProperty(propertyModel, listOf(1, 2, "2", 4), REGULAR, 1)
 
-      propertyModel.getValue(LIST_TYPE)!![1].setValue(ReferenceTo("var"))
+      propertyModel.getValue(LIST_TYPE)!![1].setValue(ReferenceTo("var1"))
       propertyModel.getValue(LIST_TYPE)!![2].setValue(3)
 
       verifyListProperty(propertyModel, listOf(1, "2", 3, 4), REGULAR, 1)
@@ -2815,7 +2819,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
   @Test
   fun testInScopeElement() {
     val childProperties = "prop3 = chickadee"
-    val parentProperties = "prop4 = ferret"
+    val parentProperties = "prop4 = ferret\nnested.prop5 = narwhal"
     writeToBuildFile(GRADLE_PROPERTY_MODEL_IN_SCOPE_ELEMENT)
     writeToSubModuleBuildFile(GRADLE_PROPERTY_MODEL_IN_SCOPE_ELEMENT_SUB)
     writeToSettingsFile(subModuleSettingsText)
@@ -2827,7 +2831,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     run {
       val defaultConfig = buildModel.android().defaultConfig()
       val properties = defaultConfig.inScopeProperties
-      assertEquals(5, properties.entries.size)
+      assertEquals(7, properties.entries.size)
 
       // Check all the properties that we expect are present.
       verifyPropertyModel(properties["var3"], STRING_TYPE, "goldeneye", STRING, VARIABLE, 0)
@@ -2835,19 +2839,17 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       verifyPropertyModel(properties["var5"], STRING_TYPE, "curlew", STRING, VARIABLE, 0)
       verifyPropertyModel(properties["prop1"], STRING_TYPE, "baboon", STRING, REGULAR, 0)
       verifyPropertyModel(properties["prop2"], STRING_TYPE, "kite", STRING, REGULAR, 0)
-      // TODO: Uncomment when inScopeProperties from properties files is fixed
-      //verifyPropertyModel(properties["prop3"], STRING_TYPE, "chickadee", STRING, PROPERTIES_FILE, 0)
-      //verifyPropertyModel(properties["prop4"], STRING_TYPE, "ferret", STRING, PROPERTIES_FILE, 0)
+      verifyPropertyModel(properties["prop3"], STRING_TYPE, "chickadee", STRING, PROPERTIES_FILE, 0)
+      verifyPropertyModel(properties["prop4"], STRING_TYPE, "ferret", STRING, PROPERTIES_FILE, 0)
     }
 
     run {
       val properties = buildModel.ext().inScopeProperties
-      assertEquals(4, properties.entries.size)
+      assertEquals(6, properties.entries.size)
       verifyPropertyModel(properties["prop1"], STRING_TYPE, "baboon", STRING, REGULAR, 0)
       verifyPropertyModel(properties["prop2"], STRING_TYPE, "kite", STRING, REGULAR, 0)
-      // TODO: Uncomment when inScopeProperties from properties files is fixed
-      //verifyPropertyModel(properties["prop3"], STRING_TYPE, "chickadee", STRING, PROPERTIES_FILE, 0)
-      //verifyPropertyModel(properties["prop4"], STRING_TYPE, "ferret", STRING, PROPERTIES_FILE, 0)
+      verifyPropertyModel(properties["prop3"], STRING_TYPE, "chickadee", STRING, PROPERTIES_FILE, 0)
+      verifyPropertyModel(properties["prop4"], STRING_TYPE, "ferret", STRING, PROPERTIES_FILE, 0)
       verifyPropertyModel(properties["var6"], STRING_TYPE, "swan", STRING, VARIABLE, 0)
       // TODO: Should not be visible, this needs line number support to correctly hide itself.
       verifyPropertyModel(properties["var3"], STRING_TYPE, "goldeneye", STRING, VARIABLE, 0)
@@ -2856,8 +2858,8 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
 
   @Test
   fun testVariablesFromNestedApply() {
-    writeToNewProjectFile("b.gradle", GRADLE_PROPERTY_MODEL_VARIABLES_FROM_NESTED_APPLY_APPLIED_FILE_ONE)
-    writeToNewProjectFile("a.gradle", GRADLE_PROPERTY_MODEL_VARIABLES_FROM_NESTED_APPLY_APPLIED_FILE_TWO)
+    val b = writeToNewProjectFile("b", GRADLE_PROPERTY_MODEL_VARIABLES_FROM_NESTED_APPLY_APPLIED_FILE_ONE)
+    val a = writeToNewProjectFile("a", GRADLE_PROPERTY_MODEL_VARIABLES_FROM_NESTED_APPLY_APPLIED_FILE_TWO)
     writeToBuildFile(GRADLE_PROPERTY_MODEL_VARIABLES_FROM_NESTED_APPLY)
 
     val buildModel = gradleBuildModel
@@ -2866,14 +2868,14 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       val properties = buildModel.ext().inScopeProperties
       assertSize(5, properties.values)
       verifyPropertyModel(properties["prop2"], BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 0, "prop2", "ext.prop2")
-      verifyFilePathsAreEqual(myProjectBasePath.findChild("b.gradle")!!, properties["prop2"]!!.gradleFile)
+      verifyFilePathsAreEqual(myProjectBasePath.findChild(b)!!, properties["prop2"]!!.gradleFile)
       verifyListProperty(properties["prop1"], listOf("var1", "var2", "var3"), false)
       verifyListProperty(properties["prop1"], listOf("1", true, 1), REGULAR, 3)
-      verifyFilePathsAreEqual(myProjectBasePath.findChild("b.gradle")!!, properties["prop1"]!!.gradleFile)
+      verifyFilePathsAreEqual(myProjectBasePath.findChild(b)!!, properties["prop1"]!!.gradleFile)
       verifyPropertyModel(properties["prop4"], STRING_TYPE, "prop1[0]", REFERENCE, REGULAR, 1, "prop4", "ext.prop4")
-      verifyFilePathsAreEqual(myProjectBasePath.findChild("build.gradle")!!, properties["prop4"]!!.gradleFile)
+      verifyFilePathsAreEqual(myProjectBasePath.findChild(myBuildFile.name)!!, properties["prop4"]!!.gradleFile)
       verifyPropertyModel(properties["prop3"], STRING_TYPE, "hello", STRING, REGULAR, 0, "prop3", "ext.prop3")
-      verifyFilePathsAreEqual(myProjectBasePath.findChild("a.gradle")!!, properties["prop3"]!!.gradleFile)
+      verifyFilePathsAreEqual(myProjectBasePath.findChild(a)!!, properties["prop3"]!!.gradleFile)
       verifyPropertyModel(properties["prop5"], INTEGER_TYPE, 5, INTEGER, REGULAR, 0, "prop5", "ext.prop5")
 
       // Check we can actually make changes to all the files.
@@ -2883,10 +2885,10 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       properties["prop2"]!!.setValue("true")
 
       verifyPropertyModel(properties["prop2"], STRING_TYPE, "true", STRING, REGULAR, 0, "prop2", "ext.prop2")
-      verifyFilePathsAreEqual(myProjectBasePath.findChild("b.gradle")!!, properties["prop2"]!!.gradleFile)
+      verifyFilePathsAreEqual(myProjectBasePath.findChild(b)!!, properties["prop2"]!!.gradleFile)
       verifyListProperty(properties["prop1"], listOf(2, "var2", "var3"), false)
       verifyListProperty(properties["prop1"], listOf(2, false, 1), REGULAR, 2)
-      verifyFilePathsAreEqual(myProjectBasePath.findChild("b.gradle")!!, properties["prop1"]!!.gradleFile)
+      verifyFilePathsAreEqual(myProjectBasePath.findChild(b)!!, properties["prop1"]!!.gradleFile)
     }
 
     applyChangesAndReparse(buildModel)
@@ -2894,21 +2896,21 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     run {
       val properties = buildModel.ext().inScopeProperties
       verifyPropertyModel(properties["prop2"], STRING_TYPE, "true", STRING, REGULAR, 0, "prop2", "ext.prop2")
-      verifyFilePathsAreEqual(myProjectBasePath.findChild("b.gradle")!!, properties["prop2"]!!.gradleFile)
+      verifyFilePathsAreEqual(myProjectBasePath.findChild(b)!!, properties["prop2"]!!.gradleFile)
       verifyListProperty(properties["prop1"], listOf(2, "var2", "var3"), false)
       verifyListProperty(properties["prop1"], listOf(2, false, 1), REGULAR, 2)
-      verifyFilePathsAreEqual(myProjectBasePath.findChild("b.gradle")!!, properties["prop1"]!!.gradleFile)
+      verifyFilePathsAreEqual(myProjectBasePath.findChild(b)!!, properties["prop1"]!!.gradleFile)
       verifyPropertyModel(properties["prop4"], STRING_TYPE, "prop1[0]", REFERENCE, REGULAR, 1, "prop4", "ext.prop4")
-      verifyFilePathsAreEqual(myProjectBasePath.findChild("build.gradle")!!, properties["prop4"]!!.gradleFile)
+      verifyFilePathsAreEqual(myProjectBasePath.findChild(myBuildFile.name)!!, properties["prop4"]!!.gradleFile)
       verifyPropertyModel(properties["prop3"], STRING_TYPE, "hello", STRING, REGULAR, 0, "prop3", "ext.prop3")
-      verifyFilePathsAreEqual(myProjectBasePath.findChild("a.gradle")!!, properties["prop3"]!!.gradleFile)
+      verifyFilePathsAreEqual(myProjectBasePath.findChild(a)!!, properties["prop3"]!!.gradleFile)
     }
   }
 
   @Ignore
   @Test
   fun testApplicationCycle() {
-    writeToNewProjectFile("a.gradle", GRADLE_PROPERTY_MODEL_APPLICATION_CYCLE_APPLIED)
+    writeToNewProjectFile("a", GRADLE_PROPERTY_MODEL_APPLICATION_CYCLE_APPLIED)
     writeToBuildFile(GRADLE_PROPERTY_MODEL_APPLICATION_CYCLE)
 
     // Make sure we don't blow up.
@@ -2922,7 +2924,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
 
   @Test
   fun testVariablesFromApply() {
-    writeToNewProjectFile("vars.gradle", GRADLE_PROPERTY_MODEL_VARIABLES_FROM_APPLY_APPLIED)
+    writeToNewProjectFile("vars", GRADLE_PROPERTY_MODEL_VARIABLES_FROM_APPLY_APPLIED)
     writeToBuildFile(GRADLE_PROPERTY_MODEL_VARIABLES_FROM_APPLY)
 
     val buildModel = gradleBuildModel
@@ -3278,6 +3280,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
 
   @Test
   fun testAddVariableCycle() {
+    assumeTrue(isGroovy())
     writeToBuildFile("")
 
     val buildModel = gradleBuildModel
@@ -3303,8 +3306,8 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     assertThat(refValue, instanceOf(ReferenceTo::class.java))
     val referenceTo = value as ReferenceTo
     val refReferenceTo = refValue as ReferenceTo
-    assertThat(referenceTo.text, equalTo("hello"))
-    assertThat(refReferenceTo.text, equalTo("hello"))
+    assertThat(referenceTo.text, equalTo(extraName("hello")))
+    assertThat(refReferenceTo.text, equalTo(extraName("hello")))
   }
 
   @Test

@@ -25,6 +25,7 @@ import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.TestGrpcService;
 import com.android.tools.datastore.service.NetworkService;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Network;
 import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import io.grpc.stub.StreamObserver;
@@ -61,7 +62,7 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
     .newBuilder().setConnectionNumber(CONNECTION_COUNT).build();
   private static final NetworkProfiler.ConnectivityData NETWORK_CONNECTIVITY_DATA = NetworkProfiler.ConnectivityData
     .newBuilder()
-    .setNetworkType(NetworkProfiler.ConnectivityData.NetworkType.WIFI)
+    .setNetworkType(Network.NetworkTypeData.NetworkType.WIFI)
     .build();
   private static final NetworkProfiler.NetworkDataResponse NETWORK_DATA_RESPONSE = NetworkProfiler.NetworkDataResponse
     .newBuilder()

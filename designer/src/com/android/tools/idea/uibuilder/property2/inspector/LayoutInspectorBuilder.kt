@@ -36,8 +36,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
 import javax.swing.JPanel
 
-private const val LAYOUT_TITLE = "Layout"
-
 /**
  * An [InspectorBuilder] for all procured layout attributes.
  *
@@ -59,7 +57,7 @@ class LayoutInspectorBuilder(project: Project,
     val custom = setupCustomPanel(properties)
     if (!isApplicable(attributes, custom, properties)) return
 
-    val titleModel = inspector.addExpandableTitle(LAYOUT_TITLE)
+    val titleModel = inspector.addExpandableTitle(InspectorSection.LAYOUT.title)
 
     if (custom != null) {
       inspector.addComponent(custom, titleModel)
@@ -77,6 +75,7 @@ class LayoutInspectorBuilder(project: Project,
   }
 
   private fun isApplicable(attributes: List<String>, custom: JPanel?, properties: PropertiesTable<NelePropertyItem>): Boolean {
+    if (!InspectorSection.LAYOUT.visible) return false
     if (custom != null) return true
     return attributes.any { properties.getOrNull(ANDROID_URI, it) != null }
   }

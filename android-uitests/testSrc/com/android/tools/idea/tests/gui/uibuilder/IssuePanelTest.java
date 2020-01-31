@@ -46,6 +46,7 @@ import org.junit.runner.RunWith;
 public class IssuePanelTest {
 
   @Rule public final GuiTestRule myGuiTest = new GuiTestRule();
+  @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   @Before
   public void setUp() {

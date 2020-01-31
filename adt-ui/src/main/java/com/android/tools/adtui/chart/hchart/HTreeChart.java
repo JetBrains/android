@@ -16,13 +16,23 @@
 
 package com.android.tools.adtui.chart.hchart;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.ui.UISettings;
 import com.intellij.util.ui.ImageUtil;
+import com.intellij.util.ui.UIUtil;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
 import com.intellij.util.ui.StartupUiUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,6 +46,10 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import javax.swing.AbstractAction;
+import javax.swing.KeyStroke;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A chart which renders nodes using a horizontal flow. That is, while normal trees are vertical,
@@ -151,6 +165,8 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
   private void changed() {
     myDataUpdated = true;
     myCachedMaxHeight = calculateMaximumHeight();
+    // Update preferred size using calculated height to make sure containers of this chart account for the height change during layout.
+    setPreferredSize(new Dimension(getPreferredSize().width, myCachedMaxHeight));
     opaqueRepaint();
   }
 
@@ -179,7 +195,7 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
     if (myCanvas == null || ImageUtil.getUserHeight(myCanvas) != dim.height || ImageUtil.getUserWidth(myCanvas) != dim.width) {
       redrawToCanvas(dim);
     }
-    StartupUiUtil.drawImage(g, myCanvas, 0, 0, null);
+    UIUtil.drawImage(g, myCanvas, 0, 0, null);
     addDebugInfo("Draw time %.2fms", (System.nanoTime() - startTime) / 1e6);
     addDebugInfo("# of nodes %d", myNodes.size());
     addDebugInfo("# of reduced nodes %d", myDrawnNodes.size());

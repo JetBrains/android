@@ -60,28 +60,31 @@ class TargetModulesTreeStructure(var uiSettings: PsUISettings) : AbstractBaseTre
       val moduleResolvedLibraryModels = resolvedLibraryModels[module]
         ?.groupBy { it.artifact }
         .orEmpty()
-      val moduleDeclaredLibraryModels = declaredLibraryModels[module]
-        ?.flatMap { dependency -> dependency.containers.mapNotNull { it.findArtifact(dependency.parent)?.let { it to dependency } } }
-        ?.groupBy({ it.first }, { it.second })
-        .orEmpty()
+      val moduleDeclaredLibraryConfigurationNames = declaredLibraryModels[module]?.map { it.configurationName }?.toSet() ?: emptySet()
 
-      val artifacts = (moduleResolvedLibraryModels.keys + moduleDeclaredLibraryModels.keys).sortedWith(comparator)
+      val artifacts =
+        (moduleResolvedLibraryModels.keys +
+         (module.resolvedVariants.flatMap { it.artifacts }.filter { artifact ->
+           moduleDeclaredLibraryConfigurationNames.any {
+             artifact.containsConfigurationName(it)
+           }
+         })
+        ).sortedWith(comparator)
 
-      fun createArtifactNode(artifact: PsAndroidArtifact) =
-        TargetAndroidArtifactNode(artifact, null, uiSettings)
-          .also {
-            it.setChildren(
-              moduleDeclaredLibraryModels[artifact]?.map {
-                TargetConfigurationNode(Configuration(it.configurationName, artifact.icon), uiSettings)
-              }.orEmpty() +
-              moduleResolvedLibraryModels[artifact]?.flatMap {
-                val transitiveDependencies = it.getReverseDependencies().filterIsInstance<ReverseDependency.Transitive>()
-                transitiveDependencies.map {
-                  TargetTransitiveDependencyNode(listOf(it), it.requestingResolvedDependency.spec, uiSettings)
-                }
-              }.orEmpty()
-            )
-          }
+      fun createArtifactNode(artifact: PsAndroidArtifact): TargetAndroidArtifactNode {
+        val declaredDependencies = declaredLibraryModels[artifact.parent.parent]
+          ?.filter { artifact.containsConfigurationName(it.configurationName) }
+          .orEmpty()
+        val transitiveDependencies = moduleResolvedLibraryModels[artifact]
+          ?.flatMap { it.getReverseDependencies().filterIsInstance<ReverseDependency.Transitive>() }
+          .orEmpty()
+        return TargetAndroidArtifactNode(artifact, null, uiSettings).apply {
+          setChildren(
+            declaredDependencies.map { TargetConfigurationNode(Configuration(it.configurationName, artifact.icon), uiSettings) } +
+            transitiveDependencies.map { TargetTransitiveDependencyNode(listOf(it), it.requestingResolvedDependency.spec, uiSettings) }
+          )
+        }
+      }
 
       return TargetAndroidModuleNode(rootNode, module, null, artifacts.map { artifact -> createArtifactNode(artifact) })
     }

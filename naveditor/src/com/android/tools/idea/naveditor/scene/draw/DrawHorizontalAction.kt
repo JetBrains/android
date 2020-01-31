@@ -16,11 +16,10 @@
 package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.idea.common.scene.draw.ArrowDirection
 import com.android.tools.idea.common.scene.draw.CompositeDrawCommand
-import com.android.tools.idea.common.scene.draw.DrawArrow
 import com.android.tools.idea.common.scene.draw.DrawCommand
-import com.android.tools.idea.common.scene.draw.DrawLine
+import com.android.tools.idea.common.scene.draw.DrawCommand.COMPONENT_LEVEL
+import com.android.tools.idea.common.scene.draw.DrawShape
 import com.android.tools.idea.common.scene.draw.buildString
 import com.android.tools.idea.common.scene.draw.colorToString
 import com.android.tools.idea.common.scene.draw.parse
@@ -28,37 +27,38 @@ import com.android.tools.idea.common.scene.draw.rect2DToString
 import com.android.tools.idea.common.scene.draw.stringToColor
 import com.android.tools.idea.common.scene.draw.stringToRect2D
 import com.android.tools.idea.naveditor.scene.ACTION_STROKE
+import com.android.tools.idea.naveditor.scene.ArrowDirection
 import com.android.tools.idea.naveditor.scene.NavSceneManager.ACTION_ARROW_PARALLEL
-import com.android.tools.idea.naveditor.scene.NavSceneManager.ACTION_ARROW_PERPENDICULAR
 import com.android.tools.idea.naveditor.scene.getHorizontalActionIconRect
+import com.android.tools.idea.naveditor.scene.makeDrawArrowCommand
 import java.awt.Color
-import java.awt.geom.Point2D
+import java.awt.geom.Line2D
 import java.awt.geom.Rectangle2D
 
-data class DrawHorizontalAction(private val level: Int,
-                                @SwingCoordinate private val rectangle: Rectangle2D.Float,
+data class DrawHorizontalAction(@SwingCoordinate private val rectangle: Rectangle2D.Float,
+                                private val scale: Float,
                                 private val color: Color,
-                                private val isPopAction: Boolean) : CompositeDrawCommand() {
-  private constructor(sp: Array<String>)
-    : this(sp[0].toInt(), stringToRect2D(sp[1]), stringToColor(sp[2]), sp[3].toBoolean())
+                                private val isPopAction: Boolean) : CompositeDrawCommand(COMPONENT_LEVEL) {
+  private constructor(tokens: Array<String>)
+    : this(stringToRect2D(tokens[0]), tokens[1].toFloat(), stringToColor(tokens[2]), tokens[3].toBoolean())
 
-  constructor(s: String) : this(parse(s, 4))
+  constructor(serialized: String) : this(parse(serialized, 4))
 
-  override fun getLevel(): Int = level
-
-  override fun serialize(): String = buildString(javaClass.simpleName, level, rect2DToString(rectangle), colorToString(color), isPopAction)
+  override fun serialize(): String = buildString(javaClass.simpleName, rect2DToString(rectangle),
+                                                 scale, colorToString(color), isPopAction)
 
   override fun buildCommands(): List<DrawCommand> {
-    val scale = rectangle.height / ACTION_ARROW_PERPENDICULAR
     val arrowWidth = ACTION_ARROW_PARALLEL * scale
     val lineLength = Math.max(0f, rectangle.width - arrowWidth)
 
-    val p1 = Point2D.Float(rectangle.x, rectangle.centerY.toFloat())
-    val p2 = Point2D.Float(p1.x + lineLength, p1.y)
-    val drawLine = DrawLine(0, p1, p2, color, ACTION_STROKE)
+    val x1 = rectangle.x
+    val x2 = x1 + lineLength
+    val y = rectangle.centerY.toFloat()
 
-    val arrowRect = Rectangle2D.Float(p2.x, rectangle.y, arrowWidth, rectangle.height)
-    val drawArrow = DrawArrow(1, ArrowDirection.RIGHT, arrowRect, color)
+    val drawLine = DrawShape(Line2D.Float(x1, y, x2, y), color, ACTION_STROKE)
+
+    val arrowRect = Rectangle2D.Float(x2, rectangle.y, arrowWidth, rectangle.height)
+    val drawArrow = makeDrawArrowCommand(arrowRect, ArrowDirection.RIGHT, color)
 
     val list = mutableListOf(drawLine, drawArrow)
 

@@ -25,7 +25,7 @@ class CpuProfilerConfigConverterTest {
 
   @Test
   fun fromProtoSampledJava() {
-    val proto = CpuProfiler.CpuProfilerConfiguration
+    val proto = Cpu.CpuTraceConfiguration.UserOptions
       .newBuilder()
       .setName("MySampledJava")
       .setTraceType(Cpu.CpuTraceType.ART)
@@ -45,7 +45,7 @@ class CpuProfilerConfigConverterTest {
 
   @Test
   fun fromProtoSampledNative() {
-    val proto = CpuProfiler.CpuProfilerConfiguration
+    val proto = Cpu.CpuTraceConfiguration.UserOptions
       .newBuilder()
       .setTraceType(Cpu.CpuTraceType.SIMPLEPERF)
       .setTraceMode(Cpu.CpuTraceMode.SAMPLED)
@@ -56,7 +56,7 @@ class CpuProfilerConfigConverterTest {
 
   @Test
   fun fromProtoInstrumentedJava() {
-    val proto = CpuProfiler.CpuProfilerConfiguration
+    val proto = Cpu.CpuTraceConfiguration.UserOptions
       .newBuilder()
       .setTraceType(Cpu.CpuTraceType.ART)
       .setTraceMode(Cpu.CpuTraceMode.INSTRUMENTED)
@@ -67,7 +67,7 @@ class CpuProfilerConfigConverterTest {
 
   @Test
   fun fromProtoAtrace() {
-    val proto = CpuProfiler.CpuProfilerConfiguration
+    val proto = Cpu.CpuTraceConfiguration.UserOptions
       .newBuilder()
       .setTraceType(Cpu.CpuTraceType.ATRACE)
       .setTraceMode(Cpu.CpuTraceMode.SAMPLED)

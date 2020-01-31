@@ -15,31 +15,23 @@
  */
 package com.android.tools.idea.whatsnew.assistant;
 
-import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.flags.StudioFlags;
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import com.google.wireless.android.sdk.stats.WhatsNewAssistantEvent;
-import com.intellij.ide.GeneralSettings;
-import com.intellij.openapi.actionSystem.ActionPlaces;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.startup.StartupActivity;
-
-
-import com.android.annotations.VisibleForTesting;
 import com.android.repository.Revision;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.assistant.AssistantBundleCreator;
 import com.android.tools.idea.ui.GuiTestingService;
+import com.google.common.annotations.VisibleForTesting;
+import com.intellij.ide.GeneralSettings;
+import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.application.ApplicationInfo;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.util.xmlb.annotations.Tag;
 import org.apache.http.concurrent.FutureCallback;
 import org.jetbrains.annotations.NotNull;
@@ -53,7 +45,8 @@ import java.lang.reflect.Field;
 public class WhatsNewStartupActivity implements StartupActivity.DumbAware {
   @Override
   public void runActivity(@NotNull Project project) {
-    if (!(WhatsNewAssistantBundleCreator.shouldShowWhatsNew() && StudioFlags.WHATS_NEW_ASSISTANT_AUTO_SHOW.get())) {
+    WhatsNewBundleCreator bundleCreator = AssistantBundleCreator.EP_NAME.findExtension(WhatsNewBundleCreator.class);
+    if (bundleCreator == null || !bundleCreator.shouldShowWhatsNew()) {
       return;
     }
 
@@ -72,7 +65,7 @@ public class WhatsNewStartupActivity implements StartupActivity.DumbAware {
       return;
     }
 
-    Revision applicationRevision = Revision.parseRevision(ApplicationInfo.getInstance().getStrictVersion());
+    Revision applicationRevision = Revision.safeParseRevision(ApplicationInfo.getInstance().getStrictVersion());
 
     // If the Android Studio version is new, then always show on startup
     if (isNewStudioVersion(data, applicationRevision)) {
@@ -81,14 +74,14 @@ public class WhatsNewStartupActivity implements StartupActivity.DumbAware {
     else {
       // But also show if the config version is newer than current, even if AS version is not higher
       // This needs to be done asynchronously because the WNABundleCreator needs to download config to check version
-      WhatsNewAssistantCheckVersionTask task =
-        new WhatsNewAssistantCheckVersionTask(project, new VersionCheckCallback(project));
+      WhatsNewCheckVersionTask task =
+        new WhatsNewCheckVersionTask(project, new VersionCheckCallback(project));
       task.queue();
     }
   }
 
   private static void hideTipsAndOpenWhatsNewAssistant(@NotNull Project project) {
-    hideTipsAndOpenWhatsNewAssistant(project, null);
+    hideTipsAndOpenWhatsNewAssistant(project, GeneralSettings.getInstance(), null);
   }
 
   /**
@@ -97,16 +90,18 @@ public class WhatsNewStartupActivity implements StartupActivity.DumbAware {
    * @param project
    */
   @VisibleForTesting
-  static void hideTipsAndOpenWhatsNewAssistant(@NotNull Project project, @Nullable FutureCallback<Boolean> callback) {
-    boolean showTipsOnStartup = GeneralSettings.getInstance().isShowTipsOnStartup();
+  static void hideTipsAndOpenWhatsNewAssistant(@NotNull Project project,
+                                               @NotNull GeneralSettings generalSettings,
+                                               @Nullable FutureCallback<? super Boolean> callback) {
+    boolean showTipsOnStartup = generalSettings.isShowTipsOnStartup();
     if (showTipsOnStartup)
-      GeneralSettings.getInstance().setShowTipsOnStartup(false);
+      generalSettings.setShowTipsOnStartup(false);
 
     // Restore to the setting that user had before, if applicable
     openWhatsNewAssistant(project);
     if (showTipsOnStartup) {
       ApplicationManager.getApplication().invokeLater(() -> {
-        GeneralSettings.getInstance().setShowTipsOnStartup(true);
+        generalSettings.setShowTipsOnStartup(true);
         if (callback != null)
           callback.completed(true);
       });
@@ -118,21 +113,8 @@ public class WhatsNewStartupActivity implements StartupActivity.DumbAware {
   }
 
   private static void openWhatsNewAssistant(@NotNull Project project) {
-    UsageTracker.log(AndroidStudioEvent.newBuilder()
-                                                     .setKind(AndroidStudioEvent.EventKind.WHATS_NEW_ASSISTANT_EVENT)
-                                                     .setWhatsNewAssistantEvent(WhatsNewAssistantEvent.newBuilder().setType(
-                                                       WhatsNewAssistantEvent.WhatsNewAssistantEventType.AUTO_OPEN)));
-    new WhatsNewAssistantSidePanelAction()
-      .actionPerformed(AnActionEvent.createFromDataContext(ActionPlaces.UNKNOWN, null, new DataContext() {
-        @Nullable
-        @Override
-        public Object getData(@NotNull String dataId) {
-          if (dataId.equalsIgnoreCase(CommonDataKeys.PROJECT.getName())) {
-            return project;
-          }
-          return null;
-        }
-      }));
+    ((WhatsNewSidePanelAction)ActionManager.getInstance().getAction("WhatsNewAction"))
+      .openWhatsNewSidePanel(project, true);
   }
 
   @VisibleForTesting
@@ -140,15 +122,13 @@ public class WhatsNewStartupActivity implements StartupActivity.DumbAware {
     String seenRevisionStr = data.myRevision;
     Revision seenRevision = null;
     if (seenRevisionStr != null) {
-      try {
-        seenRevision = Revision.parseRevision(seenRevisionStr);
-      }
-      catch (NumberFormatException exception) {
-        // Bad previous revision, treat as null.
-      }
+      seenRevision = Revision.safeParseRevision(seenRevisionStr);
     }
 
-    if (seenRevision == null || applicationRevision.compareTo(seenRevision, Revision.PreviewComparison.ASCENDING) > 0) {
+    if (seenRevision == null
+        || seenRevision.equals(Revision.NOT_SPECIFIED)
+        || applicationRevision.equals(Revision.NOT_SPECIFIED)
+        || applicationRevision.compareTo(seenRevision, Revision.PreviewComparison.ASCENDING) > 0) {
       data.myRevision = applicationRevision.toString();
       return true;
     }
@@ -181,7 +161,7 @@ public class WhatsNewStartupActivity implements StartupActivity.DumbAware {
   }
 
   /**
-   * Callback for when WhatsNewAssistantBundleCreator has determined whether
+   * Callback for when WhatsNewBundleCreator has determined whether
    * there has been an update to the config. If yes, WNA is automatically opened.
    */
   private static class VersionCheckCallback implements FutureCallback<Boolean> {

@@ -38,6 +38,8 @@ public final class AdtUiCursors {
     return Toolkit.getDefaultToolkit().createCustomCursor(image, new Point(image.getWidth() / 2, image.getHeight() / 2), name);
   }
 
-  public static final Cursor GRAB = makeCursor("GRAB", StudioIcons.Cursors.GRAB);
-  public static final Cursor GRABBING = makeCursor("GRABBING", StudioIcons.Cursors.GRABBING);
+  // The cursor are cached by the names in Toolkit. Use unique names to avoid conflicting.
+  public static final Cursor GRAB = makeCursor("com.android.tools.adtui.AdtUiCursors.Grab", StudioIcons.Cursors.GRAB);
+  public static final Cursor MOVE = makeCursor("com.android.tools.adtui.AdtUiCursors.Move", StudioIcons.Cursors.MOVE);
+  public static final Cursor GRABBING = makeCursor("com.android.tools.adtui.AdtUiCursors.Grabbing", StudioIcons.Cursors.GRABBING);
 }

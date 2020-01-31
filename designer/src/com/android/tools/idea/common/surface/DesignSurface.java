@@ -15,65 +15,84 @@
  */
 package com.android.tools.idea.common.surface;
 
+import static com.android.tools.adtui.PannableKt.PANNABLE_KEY;
+import static com.android.tools.adtui.ZoomableKt.ZOOMABLE_KEY;
+
+import com.android.tools.adtui.Pannable;
 import com.android.tools.adtui.Zoomable;
 import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.common.analytics.DesignerAnalyticsManager;
 import com.android.tools.idea.common.editor.ActionManager;
+import com.android.tools.idea.common.editor.DesignToolsSplitEditor;
 import com.android.tools.idea.common.error.IssueModel;
 import com.android.tools.idea.common.error.IssuePanel;
 import com.android.tools.idea.common.error.LintIssueProvider;
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
-import com.android.tools.idea.common.model.*;
+import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.model.ItemTransferable;
+import com.android.tools.idea.common.model.ModelListener;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponentBackend;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.SelectionListener;
+import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.type.DefaultDesignerFileType;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
-import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
-import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
-import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
-import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.utils.ImmutableCollectors;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
+import com.intellij.ide.util.PsiNavigationSupport;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.IdeGlassPane;
+import com.intellij.pom.Navigatable;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollBar;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.Magnificator;
 import com.intellij.util.Alarm;
+import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
-import org.intellij.lang.annotations.JdkConstants;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.plaf.ScrollBarUI;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.AWTEvent;
+import java.awt.Adjustable;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.event.AdjustmentEvent;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -81,13 +100,35 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
-
-import static com.android.tools.adtui.ZoomableKt.ZOOMABLE_KEY;
+import java.util.function.Function;
+import javax.swing.JComponent;
+import javax.swing.JLayeredPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollBar;
+import javax.swing.JScrollPane;
+import javax.swing.JViewport;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.Timer;
+import javax.swing.plaf.ScrollBarUI;
+import org.intellij.lang.annotations.JdkConstants;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A generic design surface for use in a graphical editor.
  */
-public abstract class DesignSurface extends EditorDesignSurface implements Disposable, DataProvider, Zoomable {
+public abstract class DesignSurface extends EditorDesignSurface implements Disposable, DataProvider, Zoomable, Pannable {
+
+  public enum State {
+    /** Surface is taking the total space of the design editor. */
+    FULL,
+    /** Surface is sharing the design editor horizontal space with a text editor. */
+    SPLIT,
+    /** Surface is deactivated and not being displayed. */
+    DEACTIVATED
+  }
   private static final Integer LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 100;
 
   private final Project myProject;
@@ -105,8 +146,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private final ActionManager myActionManager;
   @NotNull private WeakReference<FileEditor> myFileEditorDelegate = new WeakReference<>(null);
   protected final LinkedHashMap<NlModel, SceneManager> myModelToSceneManagers = new LinkedHashMap<>();
+  protected final JPanel myVisibleSurfaceLayerPanel;
 
-  private final SelectionModel mySelectionModel;
+  private final SelectionModel mySelectionModel = new SelectionModel();
   private final ModelListener myModelListener = new ModelListener() {
     @Override
     public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
@@ -120,6 +162,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private MergingUpdateQueue myErrorQueue;
   private boolean myIsActive = false;
   private LintIssueProvider myLintIssueProvider;
+  /**
+   * Indicate if the content is editable. Note that this only works for editable content (e.g. xml layout file). The non-editable
+   * content (e.g. the image drawable file) can't be edited as well.
+   */
+  private final boolean myIsEditable;
 
   /**
    * Flag to indicate if the surface should resize its content when
@@ -142,16 +189,48 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   };
   private ZoomType myCurrentZoomType;
 
-  public DesignSurface(@NotNull Project project, @NotNull SelectionModel selectionModel, @NotNull Disposable parentDisposable) {
+  /**
+   * Responsible for converting this surface state and send it for tracking (if logging is enabled).
+   */
+  @NotNull
+  private final DesignerAnalyticsManager myAnalyticsManager;
+
+  @NotNull
+  private State myState = State.FULL;
+  @Nullable
+  private StateChangeListener myStateChangeListener;
+
+  private final Timer myRepaintTimer = new Timer(15, (actionEvent) -> {
+    repaint();
+  });
+
+  public DesignSurface(
+    @NotNull Project project,
+    @NotNull Disposable parentDisposable,
+    @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider,
+    boolean isEditable) {
     super(new BorderLayout());
     Disposer.register(parentDisposable, this);
     myProject = project;
+    myIsEditable = isEditable;
 
     setOpaque(true);
     setFocusable(false);
 
-    mySelectionModel = selectionModel;
-    mySelectionModel.addListener(mySelectionListener);
+    myAnalyticsManager = new DesignerAnalyticsManager(this);
+
+    // TODO: handle the case when selection are from different NlModels.
+    // Manager can be null if the selected component is not part of NlModel. For example, a temporarily NlMode.
+    // In that case we don't change focused SceneView.
+    SelectionListener selectionListener = (model, selection) -> {
+      if (getFocusedSceneView() != null) {
+        notifySelectionListeners(selection);
+      }
+      else {
+        notifySelectionListeners(Collections.emptyList());
+      }
+    };
+    mySelectionModel.addListener(selectionListener);
     myInteractionManager = new InteractionManager(this);
 
     myLayeredPane = new MyLayeredPane();
@@ -162,6 +241,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myProgressPanel = new MyProgressPanel();
     myProgressPanel.setName("Layout Editor Progress Panel");
     myLayeredPane.add(myProgressPanel, LAYER_PROGRESS);
+
+    myVisibleSurfaceLayerPanel = new MyVisibleSurfaceLayerPane();
+    myVisibleSurfaceLayerPanel.setLayout(new BorderLayout());
+    myVisibleSurfaceLayerPanel.setBounds(0, 0, 100, 100);
+    myLayeredPane.add(myVisibleSurfaceLayerPanel, JLayeredPane.POPUP_LAYER);
 
     myScrollPane = new MyScrollPane();
     myScrollPane.setViewportView(myLayeredPane);
@@ -200,18 +284,21 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
           layoutContent();
           updateScrolledAreaSize();
         }
+        myModelToSceneManagers.values().forEach(it -> it.getScene().needsRebuildList());
       }
     });
 
     myInteractionManager.startListening();
     //noinspection AbstractMethodCallInConstructor
-    myActionManager = createActionManager();
+    myActionManager = actionManagerProvider.apply(this);
     myActionManager.registerActionsShortcuts(myLayeredPane, this);
+
+    myVisibleSurfaceLayerPanel.add(myActionManager.createDesignSurfaceToolbar(), BorderLayout.EAST);
   }
 
   /**
    * @return The scaling factor between Scene coordinates and un-zoomed, un-offset Swing coordinates.
-   *
+   * <p>
    * TODO: reconsider where this value is stored/who's responsible for providing it. It might make more sense for it to be stored in
    * the Scene or provided by the SceneManager.
    */
@@ -221,10 +308,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   public float getScreenScalingFactor() {
     return 1f;
   }
-
-  // TODO: add self-type parameter DesignSurface?
-  @NotNull
-  protected abstract ActionManager<? extends DesignSurface> createActionManager();
 
   @NotNull
   protected abstract SceneManager createSceneManager(@NotNull NlModel model);
@@ -259,25 +342,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   @NotNull
-  public ItemTransferable getSelectionAsTransferable() {
-    NlModel model = getModel();
-
-    ImmutableList<DnDTransferComponent> components =
-      getSelectionModel().getSelection().stream()
-                         .map(component -> {
-                           // TODO: improve this
-                           int w = 0;
-                           int h = 0;
-                           if (this instanceof NlDesignSurface) {
-                             w = NlComponentHelperKt.getW(component);
-                             h = NlComponentHelperKt.getW(component);
-                           }
-                           return new DnDTransferComponent(component.getTagName(), component.getTagDeprecated().getText(), w, h);
-                         })
-                         .collect(
-        ImmutableCollectors.toImmutableList());
-    return new ItemTransferable(new DnDTransferItem(model != null ? model.getId() : 0, components));
-  }
+  public abstract ItemTransferable getSelectionAsTransferable();
 
   /**
    * @return the primary (first) {@link NlModel} if exist. null otherwise.
@@ -300,6 +365,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   /**
    * Add an {@link NlModel} to DesignSurface and return the associated SceneManager.
    * If it is added before then nothing happens.
+   *
    * @param model the added {@link NlModel}
    */
   @NotNull
@@ -314,31 +380,56 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     model.getConfiguration().addListener(myConfigurationListener);
     manager = createSceneManager(model);
     myModelToSceneManagers.put(model, manager);
+
+    if (myIsActive) {
+      model.activate(this);
+    }
     return manager;
   }
 
   /**
-   * Add an {@link NlModel} to DesignSurface. If it is added before then nothing happens.
+   * Add an {@link NlModel} to DesignSurface and refreshes the rendering of the model. If the model was already part of the surface, only
+   * the refresh will be triggered.
+   * The method returns a {@link CompletableFuture} that will complete when the render of the new model has finished.
+   *
    * @param model the added {@link NlModel}
+   * @see #addModel(NlModel, boolean)
    */
-  public void addModel(@NotNull NlModel model) {
-    addModelImpl(model);
+  @NotNull
+  public CompletableFuture<Void> addModel(@NotNull NlModel model) {
+    return addModel(model, true);
+  }
+
+  /**
+   * Add an {@link NlModel} to DesignSurface and refreshes the rendering of the model. If the model was already part of the surface, only
+   * the refresh will be triggered.
+   * The method returns a {@link CompletableFuture} that will complete when the render of the new model has finished.
+   *
+   * @param model the added {@link NlModel}
+   * @param zoomToFitAfterAdding indicate if surface should zoom to fit the content after rendering.
+   */
+  @NotNull
+  public CompletableFuture<Void> addModel(@NotNull NlModel model, boolean zoomToFitAfterAdding) {
+    SceneManager modelSceneManager = addModelImpl(model);
 
     // We probably do not need to request a render for all models but it is currently the
     // only point subclasses can override to disable the layoutlib render behaviour.
-    requestRender()
+    return modelSceneManager.requestRender()
       .whenCompleteAsync((result, ex) -> {
         reactivateInteractionManager();
-        zoomToFit();
+        if (zoomToFitAfterAdding) {
+          zoomToFit();
+        }
 
         for (DesignSurfaceListener listener : ImmutableList.copyOf(myListeners)) {
           listener.modelChanged(this, model);
         }
-      }, EdtExecutor.INSTANCE);
+      }, EdtExecutorService.getInstance());
   }
 
   /**
    * Remove an {@link NlModel} from DesignSurface. If it had not been added before then nothing happens.
+   *
    * @param model the {@link NlModel} to remove
    * @returns true if the model existed and was removed
    */
@@ -362,6 +453,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   /**
    * Remove an {@link NlModel} from DesignSurface. If it isn't added before then nothing happens.
+   *
    * @param model the {@link NlModel} to remove
    */
   public void removeModel(@NotNull NlModel model) {
@@ -371,11 +463,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     reactivateInteractionManager();
     zoomToFit();
-    requestRender();
   }
 
   /**
    * Sets the current {@link NlModel} to DesignSurface.
+   *
    * @see #addModel(NlModel)
    * @see #removeModel(NlModel)
    */
@@ -398,7 +490,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     addModelImpl(model);
 
-    CompletableFuture<Void> future = requestRender()
+    return requestRender()
       .whenCompleteAsync((result, ex) -> {
         reactivateInteractionManager();
         zoomToFit();
@@ -408,20 +500,14 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
         for (DesignSurfaceListener listener : ImmutableList.copyOf(myListeners)) {
           listener.modelChanged(this, model);
         }
-      }, EdtExecutor.INSTANCE);
-
-    if (myIsActive) {
-      model.activate(this);
-    }
-
-    return future;
+      }, EdtExecutorService.getInstance());
   }
 
   /**
    * Update the status of {@link InteractionManager}. It will start or stop listening depending on the current layout type.
    */
   private void reactivateInteractionManager() {
-    if (getLayoutType().isEditable()) {
+    if (isEditable()) {
       myInteractionManager.startListening();
     }
     else {
@@ -453,7 +539,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myLayeredPane.setPreferredSize(dimension);
     myScrollPane.revalidate();
 
-    SceneView view = getCurrentSceneView();
+    SceneView view = getFocusedSceneView();
     if (view != null) {
       myProgressPanel.setBounds(getContentOriginX(), getContentOriginY(), view.getSize().width, view.getSize().height);
     }
@@ -475,22 +561,103 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return myGlassPane;
   }
 
-  private Timer myRepaintTimer = new Timer(15, (actionEvent) -> { repaint(); });
+  public final void setState(@NotNull State state) {
+    myState = state;
+    if (myStateChangeListener != null) {
+      myStateChangeListener.onStateChange(state);
+    }
+  }
+
+  @NotNull
+  public final State getState() {
+    return myState;
+  }
+
+  public void setStateChangeListener(@Nullable StateChangeListener stateChangeListener) {
+    myStateChangeListener = stateChangeListener;
+  }
+
+  public interface StateChangeListener {
+    void onStateChange(@NotNull State newState);
+  }
+
+  public void onSingleClick(@SwingCoordinate int x, @SwingCoordinate int y) {
+    if (StudioFlags.NELE_SPLIT_EDITOR.get()) {
+      FileEditor selectedEditor = FileEditorManager.getInstance(getProject()).getSelectedEditor();
+      if (selectedEditor instanceof DesignToolsSplitEditor) {
+        DesignToolsSplitEditor splitEditor = (DesignToolsSplitEditor)selectedEditor;
+        if (splitEditor.isSplitMode()) {
+          // If we're in split mode, we want to select the component in the text editor.
+          SceneView sceneView = getSceneView(x, y);
+          if (sceneView == null) {
+            return;
+          }
+          NlComponent component = Coordinates.findComponent(sceneView, x, y);
+          if (component != null) {
+           navigateToComponent(component, false);
+          }
+        }
+      }
+    }
+  }
+
+  protected static void navigateToComponent(@NotNull NlComponent component, boolean needsFocusEditor) {
+    NlComponentBackend componentBackend = component.getBackend();
+    PsiElement element = componentBackend.getTag() == null ? null : componentBackend.getTag().getNavigationElement();
+    if (element == null) {
+      return;
+    }
+    if (PsiNavigationSupport.getInstance().canNavigate(element) && element instanceof Navigatable) {
+      ((Navigatable)element).navigate(needsFocusEditor);
+    }
+  }
+
+  public void onDoubleClick(@SwingCoordinate int x, @SwingCoordinate int y) {
+    SceneView sceneView = getSceneView(x, y);
+    if (sceneView == null) {
+      return;
+    }
+
+    NlComponent component = Coordinates.findComponent(sceneView, x, y);
+    if (component != null) {
+      // Notify that the user is interested in a component.
+      // A properties manager may move the focus to the most important attribute of the component.
+      // Such as the text attribute of a TextView
+      notifyComponentActivate(component, Coordinates.getAndroidX(sceneView, x), Coordinates.getAndroidY(sceneView, y));
+    }
+  }
 
   /**
    * Call this to generate repaints
    */
   public void needsRepaint() {
-     if (!myRepaintTimer.isRunning()) {
+    if (!myRepaintTimer.isRunning()) {
       myRepaintTimer.setRepeats(false);
       myRepaintTimer.start();
     }
   }
 
+  /**
+   * Returns the current focused {@link SceneView} that is responsible of responding to mouse and keyboard events, or null <br>
+   * if there is no focused {@link SceneView}.
+   */
   @Nullable
-  public SceneView getCurrentSceneView() {
-    SceneManager sceneManager = getSceneManager();
-    return sceneManager != null ? sceneManager.getSceneView() : null;
+  public SceneView getFocusedSceneView() {
+    if (myModelToSceneManagers.size() == 1) {
+      // Always return primary SceneView In single-model mode,
+      SceneManager manager = getSceneManager();
+      assert manager != null;
+      return manager.getSceneView();
+    }
+    List<NlComponent> selection = mySelectionModel.getSelection();
+    if (!selection.isEmpty()) {
+      NlComponent primary = selection.get(0);
+      SceneManager manager = myModelToSceneManagers.get(primary.getModel());
+      if (manager != null) {
+        return manager.getSceneView();
+      }
+    }
+    return null;
   }
 
   /**
@@ -544,24 +711,13 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @Override
   public boolean zoom(@NotNull ZoomType type) {
     // track user triggered change
-    switch (type) {
-      case ACTUAL:
-        NlUsageTracker.getInstance(this).logAction(LayoutEditorEvent.LayoutEditorEventType.ZOOM_ACTUAL);
-        break;
-      case IN:
-        NlUsageTracker.getInstance(this).logAction(LayoutEditorEvent.LayoutEditorEventType.ZOOM_IN);
-        break;
-      case OUT:
-        NlUsageTracker.getInstance(this).logAction(LayoutEditorEvent.LayoutEditorEventType.ZOOM_OUT);
-        break;
-      case FIT_INTO:
-      case FIT:
-        NlUsageTracker.getInstance(this).logAction(LayoutEditorEvent.LayoutEditorEventType.ZOOM_FIT);
-        break;
-      default:
-    }
-
+    myAnalyticsManager.trackZoom(type);
     return zoom(type, -1, -1);
+  }
+
+  @Override
+  public void setPanning(boolean isPanning) {
+    myInteractionManager.setPanning(isPanning);
   }
 
   /**
@@ -570,17 +726,17 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * </p><p>
    * If type is {@link ZoomType#IN}, zoom toward the given
    * coordinates (relative to {@link #getLayeredPane()})
-   *
+   * <p>
    * If x or y are negative, zoom toward the center of the viewport.
    * </p>
    *
    * @param type Type of zoom to execute
    * @param x    Coordinate where the zoom will be centered
    * @param y    Coordinate where the zoom will be centered
-   * @return     True if the scaling was changed, false if this was a noop.
+   * @return True if the scaling was changed, false if this was a noop.
    */
   public boolean zoom(@NotNull ZoomType type, @SwingCoordinate int x, @SwingCoordinate int y) {
-    SceneView view = getCurrentSceneView();
+    SceneView view = getFocusedSceneView();
     if (type == ZoomType.IN && (x < 0 || y < 0)
         && view != null && !getSelectionModel().isEmpty()) {
       Scene scene = getScene();
@@ -614,10 +770,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
         break;
       case FIT:
       case FIT_INTO:
-        if (getCurrentSceneView() == null) {
-          return false;
-        }
-
         scaled = setScale(getFitScale(type == ZoomType.FIT_INTO));
         myCurrentZoomType = type;
         break;
@@ -632,6 +784,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   /**
+   * @see #getFitScale(Dimension, boolean)
    */
   protected double getFitScale(boolean fitInto) {
     int availableWidth = myScrollPane.getWidth() - myScrollPane.getVerticalScrollBar().getWidth();
@@ -640,11 +793,12 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   /**
-   * @param size dimension to fit into the view
+   * @param size    dimension to fit into the view
    * @param fitInto {@link ZoomType#FIT_INTO}
    * @return The scale to make the content fit the design surface
    */
-  protected double getFitScale(@AndroidCoordinate Dimension size, boolean fitInto) {
+  @VisibleForTesting
+  public double getFitScale(@AndroidCoordinate Dimension size, boolean fitInto) {
     // Fit to zoom
     int availableWidth = myScrollPane.getWidth() - myScrollPane.getVerticalScrollBar().getWidth();
     int availableHeight = myScrollPane.getHeight() - myScrollPane.getHorizontalScrollBar().getHeight();
@@ -679,6 +833,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   @Override
+  public boolean isPanning() {
+    return myInteractionManager.isPanning();
+  }
+
+  @Override
   public boolean canZoomIn() {
     return getScale() < getMaxScale();
   }
@@ -693,8 +852,20 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return true;
   }
 
-  /** Scroll to the center of a list of given components. Usually the center of the area containing these elements. */
+  @Override
+  public boolean canZoomToActual() {
+    return (myScale > 1 && canZoomOut()) || (myScale < 1 && canZoomIn());
+  }
+
+  /**
+   * Scroll to the center of a list of given components. Usually the center of the area containing these elements.
+   */
   public abstract void scrollToCenter(@NotNull List<NlComponent> list);
+
+  /**
+   * Return true if the designed content is resizable, false otherwise
+   */
+  public abstract boolean isResizeAvailable();
 
   public void setScrollPosition(@SwingCoordinate int x, @SwingCoordinate int y) {
     setScrollPosition(new Point(x, y));
@@ -727,9 +898,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    *
    * @param scale The scale factor. Can be any value but it will be capped between -1 and 10
    *              (value below 0 means zoom to fit)
-   * @return      True if the scaling was changed, false if this was a noop.
+   * @return True if the scaling was changed, false if this was a noop.
    */
-  private boolean setScale(double scale) {
+  public boolean setScale(double scale) {
     return setScale(scale, -1, -1);
   }
 
@@ -747,7 +918,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    *              (value below 0 means zoom to fit)
    * @param x     The X coordinate to center the scale to (in the Viewport's view coordinate system)
    * @param y     The Y coordinate to center the scale to (in the Viewport's view coordinate system)
-   * @return      True if the scaling was changed, false if this was a noop.
+   * @return True if the scaling was changed, false if this was a noop.
    */
   @VisibleForTesting
   public boolean setScale(double scale, @SwingCoordinate int x, @SwingCoordinate int y) {
@@ -764,7 +935,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       y = oldViewPosition.y + myScrollPane.getHeight() / 2;
     }
 
-    SceneView view = getCurrentSceneView();
+    SceneView view = getFocusedSceneView();
 
     @AndroidDpCoordinate int androidX = 0;
     @AndroidDpCoordinate int androidY = 0;
@@ -822,6 +993,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return myLayeredPane;
   }
 
+  @NotNull
+  public DesignerAnalyticsManager getAnalyticsManager() {
+    return myAnalyticsManager;
+  }
+
   protected void notifySelectionListeners(@NotNull List<NlComponent> newSelection) {
     List<DesignSurfaceListener> listeners = Lists.newArrayList(myListeners);
     for (DesignSurfaceListener listener : listeners) {
@@ -864,15 +1040,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myListeners.remove(listener);
   }
 
-  private final SelectionListener mySelectionListener = (model, selection) -> {
-    if (getCurrentSceneView() != null) {
-      notifySelectionListeners(selection);
-    }
-    else {
-      notifySelectionListeners(Collections.emptyList());
-    }
-  };
-
   public void addPanZoomListener(PanZoomListener listener) {
     if (myZoomListeners == null) {
       myZoomListeners = Lists.newArrayList();
@@ -893,6 +1060,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * The editor has been activated
    */
   public void activate() {
+    if (Disposer.isDisposed(this)) {
+      // Prevent activating a disposed surface.
+      return;
+    }
+
     if (!myIsActive) {
       for (NlModel model : myModelToSceneManagers.keySet()) {
         model.activate(this);
@@ -914,7 +1086,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   /**
    * Sets the file editor to which actions like undo/redo will be delegated. This is only needed if this DesignSurface is not a child
-   * of a {@link FileEditor} like in the case of {@link NlPreviewForm}.
+   * of a {@link FileEditor}.
    * <p>
    * The surface will only keep a {@link WeakReference} to the editor.
    */
@@ -924,16 +1096,20 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   @Nullable
   public SceneView getSceneView(@SwingCoordinate int x, @SwingCoordinate int y) {
-    return getCurrentSceneView();
+    return getFocusedSceneView();
   }
 
   /**
-   * Return the bounds which SceneView can draw on.
+   * Return the bounds which SceneView can draw invisible components.<br>
+   * The bounds is bigger than the size of SceneView and not overlaps to other SceneViews.
+   * <p>
+   * component in this bounds, which may be outside the SceneView.
+   *
    * @param rectangle The rectangle to receive the dimension. If this is null, a new instance will be created.
    * @see JComponent#getBounds(Rectangle)
    */
   @NotNull
-  public abstract Rectangle getRenderableBoundsOfSceneView(@NotNull SceneView sceneView, @Nullable Rectangle rectangle);
+  public abstract Rectangle getRenderableBoundsForInvisibleComponents(@NotNull SceneView sceneView, @Nullable Rectangle rectangle);
 
   /**
    * Return the SceneView under the given position
@@ -942,7 +1118,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   @Nullable
   public SceneView getHoverSceneView(@SwingCoordinate int x, @SwingCoordinate int y) {
-    return getCurrentSceneView();
+    return getFocusedSceneView();
   }
 
   /**
@@ -1022,6 +1198,13 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   protected boolean getSupportPinchAndZoom() {
     return true;
+  }
+
+  /**
+   * @return true if the content is editable (e.g. move position or drag-and-drop), false otherwise.
+   */
+  public boolean isEditable() {
+    return getLayoutType().isEditable() && myIsEditable;
   }
 
   private static class MyScrollPane extends JBScrollPane {
@@ -1104,10 +1287,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
       paintBackground(g2d, tlx, tly);
 
-      if (getCurrentSceneView() == null) {
-        return;
-      }
-
       Rectangle bounds = myScrollPane.getViewport().getViewRect();
       for (Layer layer : myLayers) {
         if (!layer.isHidden()) {
@@ -1116,7 +1295,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
         }
       }
 
-      if (!getLayoutType().isEditable()) {
+      if (!isEditable()) {
         return;
       }
 
@@ -1142,8 +1321,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     @Override
     public Object getData(@NotNull @NonNls String dataId) {
       if (CommonDataKeys.PSI_ELEMENT.is(dataId)) {
-        if (getCurrentSceneView() != null) {
-          SelectionModel selectionModel = getCurrentSceneView().getSelectionModel();
+        if (getFocusedSceneView() != null) {
+          SelectionModel selectionModel = getFocusedSceneView().getSelectionModel();
           NlComponent primary = selectionModel.getPrimary();
           if (primary != null) {
             return primary.getTagDeprecated();
@@ -1151,8 +1330,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
         }
       }
       if (LangDataKeys.PSI_ELEMENT_ARRAY.is(dataId)) {
-        if (getCurrentSceneView() != null) {
-          SelectionModel selectionModel = getCurrentSceneView().getSelectionModel();
+        if (getFocusedSceneView() != null) {
+          SelectionModel selectionModel = getFocusedSceneView().getSelectionModel();
           List<NlComponent> selection = selectionModel.getSelection();
           List<XmlTag> list = Lists.newArrayListWithCapacity(selection.size());
           for (NlComponent component : selection) {
@@ -1167,6 +1346,35 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       }
 
       return null;
+    }
+  }
+
+  /**
+   * Creates a panel which bounds are always limited to the DesignSurface's visible area.
+   */
+  private class MyVisibleSurfaceLayerPane extends JBPanel {
+
+    MyVisibleSurfaceLayerPane() {
+      setOpaque(false);
+    }
+
+    @Override
+    public Rectangle getBounds(@Nullable Rectangle rv) {
+      if (myScrollPane != null && myScrollPane.getViewport() != null) {
+        if (rv == null) {
+          rv = new Rectangle();
+        }
+        // Force the bounds of this panel to the visible area in the design surface.
+        Rectangle viewportBorderBounds = myScrollPane.getViewportBorderBounds();
+        rv.height = viewportBorderBounds.height;
+        rv.width = viewportBorderBounds.width;
+        Point point = myScrollPane.getViewport().getViewPosition();
+        rv.x = point.x;
+        rv.y = point.y;
+        setBounds(rv);
+        return rv;
+      }
+      return super.getBounds(rv);
     }
   }
 
@@ -1363,8 +1571,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
 
     return CompletableFuture.allOf(myModelToSceneManagers.values().stream()
-                                                         .map(manager -> manager.requestRender())
-                                                         .toArray(CompletableFuture[]::new));
+                                     .map(manager -> manager.requestRender())
+                                     .toArray(CompletableFuture[]::new));
   }
 
   @NotNull
@@ -1381,7 +1589,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   @Override
   public Object getData(@NotNull @NonNls String dataId) {
-    if (ZOOMABLE_KEY.is(dataId)) {
+    if (ZOOMABLE_KEY.is(dataId) || PANNABLE_KEY.is(dataId)) {
       return this;
     }
     if (PlatformDataKeys.FILE_EDITOR.is(dataId)) {
@@ -1394,7 +1602,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       return createActionHandler();
     }
     else if (PlatformDataKeys.CONTEXT_MENU_POINT.is(dataId)) {
-      SceneView view = getCurrentSceneView();
+      SceneView view = getFocusedSceneView();
       NlComponent selection = getSelectionModel().getPrimary();
       Scene scene = getScene();
       if (view == null || scene == null || selection == null) {
@@ -1418,10 +1626,12 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   public abstract boolean isLayoutDisabled();
 
-  @Nullable
+  @NotNull
   @Override
-  public Configuration getConfiguration() {
-    return getModel() != null ? getModel().getConfiguration() : null;
+  public ImmutableCollection<Configuration> getConfigurations() {
+    return getModels().stream()
+      .map(NlModel::getConfiguration)
+      .collect(ImmutableList.toImmutableList());
   }
 
   @NotNull
@@ -1509,6 +1719,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   /**
    * Returns all the selectable components in the design surface
+   *
    * @return the list of components
    */
   @NotNull

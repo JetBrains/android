@@ -22,10 +22,10 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.components.panels.NonOpaquePanel;
-import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -121,16 +121,15 @@ public class ListBoxChooserDialog<T> extends DialogWrapper {
    * to {@link AnAction} elements.
    */
   private class OptionsSelectorComboBox extends ComboBoxAction {
-    NonOpaquePanel myPanel = new NonOpaquePanel(new BorderLayout()); //FIXME: shared component between toolbars!
+    NonOpaquePanel myPanel = new NonOpaquePanel(new BorderLayout());
 
-    @NotNull
     @Override
     public JComponent createCustomComponent(@NotNull Presentation presentation, @NotNull String place) {
       ComboBoxButton button = new ComboBoxButton(presentation) {
         @Override
         public Dimension getPreferredSize() {
           Dimension d = super.getPreferredSize();
-          d.width = Math.max(d.width, JBUIScale.scale(75));
+          d.width = Math.max(d.width, JBUI.scale(75));
           return d;
         }
       };

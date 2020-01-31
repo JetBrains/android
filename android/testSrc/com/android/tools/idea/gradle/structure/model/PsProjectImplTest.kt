@@ -45,9 +45,10 @@ class PsProjectImplTest : DependencyTestCase() {
       ":", ":app", ":lib", ":jav", ":nested1", ":nested2", ":nested1:deep", ":nested2:deep", ":nested2:trans:deep2", ":dyn_feature")))
 
     // Lexicographically ordered by gradlePath.
+    // Includes not declared module ":nested2:trans".
     val modulesBeforeGradleModelsResolved = project.modules.map { it.gradlePath }
     assertThat<List<String?>>(modulesBeforeGradleModelsResolved, equalTo(listOf(
-      ":app", ":dyn_feature", ":jav", ":lib", ":nested1", ":nested1:deep", ":nested2", ":nested2:deep", ":nested2:trans:deep2")))
+      ":app", ":dyn_feature", ":jav", ":lib", ":nested1", ":nested1:deep", ":nested2", ":nested2:deep", ":nested2:trans", ":nested2:trans:deep2")))
 
     project.testResolve()
 
@@ -124,9 +125,10 @@ class PsProjectImplTest : DependencyTestCase() {
     assertThat(project.findModuleByGradlePath(":nested2")?.isDeclared, nullValue())
 
     project.applyChanges()  // applyChanges() discards resolved models.
-    assertThat(project.findModuleByGradlePath(":nested2")?.isDeclared, nullValue())
+    // A removed module should reappear because it is in the middle of the hierarchy.
+    assertThat(project.findModuleByGradlePath(":nested2")?.isDeclared, equalTo(false))
 
-    project.testResolve()  // A removed module should reappear because it is in the middle of the hierarchy.
+    project.testResolve()  // A removed module should still exist because it is in the middle of the hierarchy.
     assertThat(project.findModuleByGradlePath(":nested2")?.isDeclared, equalTo(false))
   }
 

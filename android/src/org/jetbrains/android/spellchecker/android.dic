@@ -19,6 +19,7 @@ apis
 appbar
 app's
 appcompat
+appinvite
 appwidget
 appwidgets
 argb
@@ -114,10 +115,12 @@ endian
 endianness
 errno
 executables
+exoplayer
 fallbacks
 filenames
 filepath
 fillrate
+firebase
 focusability
 focusable
 fqcn
@@ -239,6 +242,7 @@ mipmapped
 mipmapping
 mipmaps
 mkdirs
+mobilesdk
 modeless
 monad
 monoalphabetic
@@ -285,6 +289,7 @@ parameterization
 parameterize
 parcelable
 parcelables
+parcelize
 parsable
 passphrase
 persistable
@@ -310,6 +315,7 @@ raytraced
 realloc
 recurse
 recycler
+recyclerview
 reentrant
 reflow
 reformats
@@ -327,8 +333,10 @@ respawn
 revalidate
 rgba
 ringtone
+robolectric
 roboto
 rrggbb
+safeargs
 scenegraph
 screensaver
 screenshot
@@ -348,6 +356,7 @@ spammy
 spannable
 sparsearray
 spherize
+splashscreen
 sqrt
 stacktrace
 stderr

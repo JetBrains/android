@@ -37,6 +37,7 @@ import com.intellij.ide.externalComponents.UpdatableExternalComponent;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.openapi.util.Pair;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -139,7 +140,7 @@ public class SdkComponentSource implements ExternalComponentSource {
     List<UpdatableExternalComponent> result = Lists.newArrayList();
     initIfNecessary(indicator);
 
-    Set<String> ignored = settings != null ? Sets.newHashSet(settings.getIgnoredBuildNumbers()) : ImmutableSet.of();
+    Set<String> ignored = settings != null ? Sets.newHashSet(settings.getIgnoredBuildNumbers()) : ImmutableSet.<String>of();
 
     for (com.android.repository.api.UpdatablePackage p : myPackages.getConsolidatedPkgs().values()) {
       if (remote) {
@@ -173,10 +174,10 @@ public class SdkComponentSource implements ExternalComponentSource {
   @NotNull
   @Override
   public Collection<? extends Pair<String, String>> getStatuses() {
-    Revision toolsRevision = null;
-    LocalPackage toolsPackage = getRepoManager().getPackages().getLocalPackages().get(SdkConstants.FD_TOOLS);
-    if (toolsPackage != null) {
-      toolsRevision = toolsPackage.getVersion();
+    Revision platformToolsRevision = null;
+    LocalPackage platformTools = getRepoManager().getPackages().getLocalPackages().get(SdkConstants.FD_PLATFORM_TOOLS);
+    if (platformTools != null) {
+      platformToolsRevision = platformTools.getVersion();
     }
 
     Revision platformRevision = null;
@@ -192,8 +193,8 @@ public class SdkComponentSource implements ExternalComponentSource {
       }
     }
     List<Pair<String, String>> result = Lists.newArrayList();
-    if (toolsRevision != null) {
-      result.add(Pair.create("Android SDK Tools:", toolsRevision.toString()));
+    if (platformToolsRevision != null) {
+      result.add(Pair.create("Android Platform Tools:", platformToolsRevision.toString()));
     }
     if (platformVersion != null) {
       result.add(Pair.create("Android Platform Version:",

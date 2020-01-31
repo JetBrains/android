@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.testing
 
+import com.android.testutils.TestUtils
+import com.android.tools.idea.io.FilePaths.toSystemDependentPath
 import com.intellij.application.options.CodeStyle
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetConfiguration
 import com.intellij.facet.FacetManager
 import com.intellij.facet.FacetType
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.extensions.Extensions
 import com.intellij.openapi.module.Module
@@ -29,8 +32,8 @@ import com.intellij.psi.codeStyle.CodeStyleSettingsManager
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.*
 import com.intellij.testFramework.fixtures.impl.LightTempDirTestFixtureImpl
+import com.intellij.testFramework.fixtures.impl.TempDirTestFixtureImpl
 import com.intellij.testFramework.registerExtension
-import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.AndroidTestCase
@@ -38,6 +41,8 @@ import org.jetbrains.android.AndroidTestCase.applyAndroidCodeStyleSettings
 import org.jetbrains.android.AndroidTestCase.initializeModuleFixtureBuilderWithSrcAndGen
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.runner.Description
+import java.io.File
+import java.nio.file.Path
 
 /**
  * Rule that provides access to a [Project] containing one module configured
@@ -70,6 +75,13 @@ class AndroidProjectRule private constructor(
     private var withAndroidSdk: Boolean = false,
 
     /**
+     * Not null if the project should be initialized from an instance of [AndroidModel].
+     *
+     * See also: [withAndroidModel].
+     */
+    private val androidProjectBuilder: AndroidProjectBuilder? = null,
+
+    /**
      * Name of the fixture used to create the project directory when not
      * using a light fixture.
      *
@@ -79,10 +91,11 @@ class AndroidProjectRule private constructor(
   : NamedExternalResource() {
 
   lateinit var fixture: CodeInsightTestFixture
-  lateinit var module: Module
+  val module: Module get() = fixture.module
 
   val project: Project get() = fixture.project
 
+  private lateinit var mocks: IdeComponents
   private val facets = ArrayList<Facet<*>>()
 
   /**
@@ -116,6 +129,13 @@ class AndroidProjectRule private constructor(
     fun withSdk() = AndroidProjectRule(
       lightFixture = false,
       withAndroidSdk = true)
+
+    /**
+     * Returns an [AndroidProjectRule] that initializes the project from an instances of [AndroidProject] obtained from
+     * [androidProjectBuilder]. Such a project will have a module from which an instance of [AndroidModel] can be retrieved.
+     */
+    fun withAndroidModel(androidProjectBuilder: AndroidProjectBuilder = createAndroidProjectBuilder()) =
+      AndroidProjectRule(initAndroid = false, lightFixture = false, withAndroidSdk = false, androidProjectBuilder = androidProjectBuilder)
   }
 
   fun initAndroid(shouldInit: Boolean): AndroidProjectRule {
@@ -123,16 +143,18 @@ class AndroidProjectRule private constructor(
     return this
   }
 
-  fun <T : Any> replaceService(serviceType: Class<T>, newServiceInstance: T) {
-    ApplicationManager.getApplication().replaceService(serviceType, newServiceInstance, fixture.projectDisposable)
-  }
+  fun <T> replaceProjectService(serviceType: Class<T>, newServiceInstance: T) =
+      mocks.replaceProjectService(serviceType, newServiceInstance)
 
-  fun <T> mockProjectService(serviceType: Class<T>): T {
-    return IdeComponents.mockProjectService(fixture.project, serviceType, fixture.projectDisposable)
-  }
+  fun <T> replaceService(serviceType: Class<T>, newServiceInstance: T) =
+      mocks.replaceApplicationService(serviceType, newServiceInstance)
 
-  fun <T: Any> registerExtension(epName: ExtensionPointName<T>, extension: T) =
-          project.registerExtension(epName, extension, fixture.projectDisposable)
+  fun <T> mockService(serviceType: Class<T>): T = mocks.mockApplicationService(serviceType)
+
+  fun <T> mockProjectService(serviceType: Class<T>): T = mocks.mockProjectService(serviceType)
+
+  fun <T : Any> registerExtension(epName: ExtensionPointName<T>, extension: T) =
+    project.registerExtension(epName, extension, fixture.projectDisposable)
 
   fun <T: CodeInsightTestFixture> getFixture(type: Class<T>): T? {
     return if (type.isInstance(fixture)) fixture as T else null
@@ -146,11 +168,21 @@ class AndroidProjectRule private constructor(
       createJavaCodeInsightTestFixture(description)
     }
     fixture.setUp()
-    module = fixture.module
     // Initialize an Android manifest
     if (initAndroid) {
       addFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME)
     }
+    if (androidProjectBuilder != null) {
+      invokeAndWaitIfNeeded {
+        // Similarly to AndroidGradleTestCase, sync (fake sync here) requires SDKs to be set up and cleaned after the test to behave
+        // properly.
+        AndroidGradleTests.setUpSdks(fixture, TestUtils.getSdk())
+        setupTestProjectFromAndroidModel(project) { projectName, _ ->
+          androidProjectBuilder.invoke(projectName, File(fixture.tempDirPath))
+        }
+      }
+    }
+    mocks = IdeComponents(fixture)
 
     // Apply Android Studio code style settings (tests running as the Android plugin in IDEA should behave the same)
     val settings = CodeStyle.getSettings(project).clone()
@@ -178,12 +210,29 @@ class AndroidProjectRule private constructor(
         .getFixtureFactory()
         .createFixtureBuilder(fixtureName ?: description.testClass.simpleName)
 
+    val tempDirFixture =
+        if (androidProjectBuilder == null) {
+            // Use a default temp dir fixture for simple tests which do not require an AndroidModel.
+            TempDirTestFixtureImpl()
+        }
+        else {
+            // Projects set up to match the provided AndroidModel require content files to be located under the project directory.
+            // Otherwise adding a new directory may require re-(fake)syncing to make it visible to the project.
+            object : TempDirTestFixtureImpl() {
+                override fun getTempHome(): Path? = toSystemDependentPath(projectBuilder.fixture.project.basePath)?.toPath()
+            }
+        }
+
     val javaCodeInsightTestFixture = JavaTestFixtureFactory
         .getFixtureFactory()
-        .createCodeInsightFixture(projectBuilder.fixture)
+        .createCodeInsightFixture(projectBuilder.fixture, tempDirFixture)
 
-    val moduleFixtureBuilder = projectBuilder.addModule(AndroidTestCase.AndroidModuleFixtureBuilder::class.java)
-    initializeModuleFixtureBuilderWithSrcAndGen(moduleFixtureBuilder, javaCodeInsightTestFixture.tempDirPath)
+    if (androidProjectBuilder == null) {
+        val moduleFixtureBuilder = projectBuilder.addModule(AndroidTestCase.AndroidModuleFixtureBuilder::class.java)
+        initializeModuleFixtureBuilderWithSrcAndGen(moduleFixtureBuilder, javaCodeInsightTestFixture.tempDirPath)
+    } else {
+        // Do nothing. There is no need to setup a module manually. It will be created by sync from the AndroidProject model.
+    }
 
     return javaCodeInsightTestFixture
   }

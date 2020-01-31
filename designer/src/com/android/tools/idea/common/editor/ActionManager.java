@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.common.editor;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.intellij.openapi.Disposable;
@@ -81,6 +81,11 @@ public abstract class ActionManager<S extends DesignSurface> {
   @NotNull
   public JComponent createToolbar() {
     return new ActionsToolbar(mySurface, mySurface).getToolbarComponent();
+  }
+
+  @NotNull
+  public JComponent createDesignSurfaceToolbar() {
+    return new DesignSurfaceActionsToolbar(mySurface, mySurface, mySurface).getDesignSurfaceToolbar();
   }
 
   public final void showPopup(@NotNull MouseEvent event, @Nullable NlComponent leafComponent) {

@@ -20,17 +20,20 @@ import com.android.tools.idea.gradle.structure.model.PsIssue
 import com.android.tools.idea.gradle.structure.model.PsPath
 
 open class DependencyViewIssuesRenderer(context: PsContext) {
-  private val issueRenderer = DependencyViewIssueRenderer(context, renderDescription = false)
+  protected open val issueRenderer = DependencyViewIssueRenderer(context, renderDescription = false)
 
   open fun render(issues: Collection<PsIssue>, scope: PsPath?): String = buildString {
-    append("<html><body><ol>")
-
-    for (issue in issues) {
-      append("<li>")
-      issueRenderer.renderIssue(this, issue, scope)
-      append("</li>")
+    if (issues.size == 1) {
+      issueRenderer.renderIssue(this, issues.first(), scope)
     }
-
-    append("</ul></body></html>")
+    else {
+      append("<ol>")
+      for (issue in issues) {
+        append("<li>")
+        issueRenderer.renderIssue(this, issue, scope)
+        append("</li>")
+      }
+      append("</ol>")
+    }
   }
 }

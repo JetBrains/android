@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="5" by="lint 26.6.0-dev">
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/layoutinspector/ui/DeviceViewContentPanel.kt"
+            line="177"/>
+    </issue>
+
+</issues>

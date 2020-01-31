@@ -32,7 +32,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
-import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -43,7 +43,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
-public class GradleSettingsFileTest extends JavaProjectTestCase {
+public class GradleSettingsFileTest extends PlatformTestCase {
   private Document myDocument;
 
   @Override

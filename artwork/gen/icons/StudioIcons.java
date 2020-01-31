@@ -50,21 +50,27 @@ public class StudioIcons {
     public static final Icon ERROR = load("/studio/icons/common/error.svg"); // 16x16
     public static final Icon EXPORT = load("/studio/icons/common/export.svg"); // 16x16
     public static final Icon FILTER = load("/studio/icons/common/filter.svg"); // 16x16
+    public static final Icon GRID_VIEW = load("/studio/icons/common/grid-view.svg"); // 17x16
     public static final Icon HELP = load("/studio/icons/common/help.svg"); // 16x16
     public static final Icon IMPORT_DATA = load("/studio/icons/common/import-data.svg"); // 16x16
     public static final Icon INFO_INLINE_SELECTED = load("/studio/icons/common/info-inline-selected.svg"); // 16x16
     public static final Icon INFO_INLINE = load("/studio/icons/common/info-inline.svg"); // 16x16
     public static final Icon INFO = load("/studio/icons/common/info.svg"); // 16x16
     public static final Icon LINK = load("/studio/icons/common/link.svg"); // 16x16
+    public static final Icon LIST_VIEW = load("/studio/icons/common/list-view.svg"); // 17x16
     public static final Icon LOCKED_INLINE_SELECTED = load("/studio/icons/common/locked-inline-selected.svg"); // 16x16
     public static final Icon LOCKED_INLINE = load("/studio/icons/common/locked-inline.svg"); // 16x16
     public static final Icon MISSING = load("/studio/icons/common/missing.svg"); // 16x16
     public static final Icon MOVE_DOWN_SELECTED = load("/studio/icons/common/move-down-selected.svg"); // 14x14
     public static final Icon OVERFLOW = load("/studio/icons/common/overflow.svg"); // 16x16
-    public static final Icon PROPERTY_BOUND_FOCUS = load("/studio/icons/common/property-bound-focus.svg"); // 15x20
-    public static final Icon PROPERTY_BOUND = load("/studio/icons/common/property-bound.svg"); // 15x20
-    public static final Icon PROPERTY_UNBOUND_FOCUS = load("/studio/icons/common/property-unbound-focus.svg"); // 15x20
-    public static final Icon PROPERTY_UNBOUND = load("/studio/icons/common/property-unbound.svg"); // 15x20
+    public static final Icon PROPERTY_BOUND_FOCUS_LARGE = load("/studio/icons/common/property-bound-focus-large.svg"); // 14x24
+    public static final Icon PROPERTY_BOUND_FOCUS = load("/studio/icons/common/property-bound-focus.svg"); // 14x20
+    public static final Icon PROPERTY_BOUND_LARGE = load("/studio/icons/common/property-bound-large.svg"); // 14x24
+    public static final Icon PROPERTY_BOUND = load("/studio/icons/common/property-bound.svg"); // 14x20
+    public static final Icon PROPERTY_UNBOUND_FOCUS_LARGE = load("/studio/icons/common/property-unbound-focus-large.svg"); // 14x24
+    public static final Icon PROPERTY_UNBOUND_FOCUS = load("/studio/icons/common/property-unbound-focus.svg"); // 14x20
+    public static final Icon PROPERTY_UNBOUND_LARGE = load("/studio/icons/common/property-unbound-large.svg"); // 14x24
+    public static final Icon PROPERTY_UNBOUND = load("/studio/icons/common/property-unbound.svg"); // 14x20
     public static final Icon REMOVE = load("/studio/icons/common/remove.svg"); // 16x16
     public static final Icon REORDER = load("/studio/icons/common/reorder.svg"); // 16x16
     public static final Icon RESET_ZOOM = load("/studio/icons/common/reset-zoom.svg"); // 16x16
@@ -87,6 +93,7 @@ public class StudioIcons {
     public static final Icon EW_RESIZE = load("/studio/icons/cursors/ew-resize.svg"); // 32x32
     public static final Icon GRAB = load("/studio/icons/cursors/grab.svg"); // 32x32
     public static final Icon GRABBING = load("/studio/icons/cursors/grabbing.svg"); // 32x32
+    public static final Icon MOVE = load("/studio/icons/cursors/move.svg"); // 32x32
     public static final Icon NESW_RESIZE = load("/studio/icons/cursors/nesw-resize.svg"); // 32x32
     public static final Icon NS_RESIZE = load("/studio/icons/cursors/ns-resize.svg"); // 32x32
     public static final Icon NWSE_RESIZE = load("/studio/icons/cursors/nwse-resize.svg"); // 32x32
@@ -152,8 +159,15 @@ public class StudioIcons {
     }
 
     public static class Motion {
+      public static final Icon ADD_CONSTRAINT_SET = load("/studio/icons/layout-editor/motion/add-constraint-set.svg"); // 16x16
+      public static final Icon ADD_GESTURE = load("/studio/icons/layout-editor/motion/add-gesture.svg"); // 16x16
+      public static final Icon ADD_KEYFRAME = load("/studio/icons/layout-editor/motion/add-keyframe.svg"); // 16x16
+      public static final Icon ADD_TRANSITION = load("/studio/icons/layout-editor/motion/add-transition.svg"); // 16x16
+      public static final Icon BASE_LAYOUT = load("/studio/icons/layout-editor/motion/base-layout.svg"); // 16x16
+      public static final Icon CONSTRAINT_SET = load("/studio/icons/layout-editor/motion/constraint-set.svg"); // 16x16
       public static final Icon END_CONSTRAINT_SELECTED = load("/studio/icons/layout-editor/motion/end-constraint-selected.svg"); // 16x16
       public static final Icon END_CONSTRAINT = load("/studio/icons/layout-editor/motion/end-constraint.svg"); // 16x16
+      public static final Icon GESTURE = load("/studio/icons/layout-editor/motion/gesture.svg"); // 16x16
       public static final Icon GO_TO_END = load("/studio/icons/layout-editor/motion/go-to-end.svg"); // 16x16
       public static final Icon GO_TO_START = load("/studio/icons/layout-editor/motion/go-to-start.svg"); // 16x16
       public static final Icon KEYFRAME = load("/studio/icons/layout-editor/motion/keyframe.svg"); // 16x16
@@ -162,16 +176,21 @@ public class StudioIcons {
       public static final Icon MIN_SCALE = load("/studio/icons/layout-editor/motion/min-scale.svg"); // 16x16
       public static final Icon NEXT_TICK = load("/studio/icons/layout-editor/motion/next-tick.svg"); // 16x16
       public static final Icon PAUSE = load("/studio/icons/layout-editor/motion/pause.svg"); // 16x16
+      public static final Icon PLAY_BACKWARD = load("/studio/icons/layout-editor/motion/play-backward.svg"); // 16x16
+      public static final Icon PLAY_FORWARD = load("/studio/icons/layout-editor/motion/play-forward.svg"); // 16x16
+      public static final Icon PLAY_YOYO = load("/studio/icons/layout-editor/motion/play-yoyo.svg"); // 16x16
       public static final Icon PLAY = load("/studio/icons/layout-editor/motion/play.svg"); // 16x16
       public static final Icon PREVIOUS_TICK = load("/studio/icons/layout-editor/motion/previous-tick.svg"); // 16x16
       public static final Icon SLOW_MOTION = load("/studio/icons/layout-editor/motion/slow-motion.svg"); // 16x16
       public static final Icon START_CONSTRAINT = load("/studio/icons/layout-editor/motion/start-constraint.svg"); // 16x16
       public static final Icon TIMELINE_ADD = load("/studio/icons/layout-editor/motion/timeline-add.svg"); // 16x16
       public static final Icon TIMELINE_END_CONSTRAINT = load("/studio/icons/layout-editor/motion/timeline-end-constraint.svg"); // 16x16
+      public static final Icon TIMELINE_KEYFRAME_HEADER = load("/studio/icons/layout-editor/motion/timeline-keyframe-header.svg"); // 16x16
       public static final Icon TIMELINE_KEYFRAME_SELECTED = load("/studio/icons/layout-editor/motion/timeline-keyframe-selected.svg"); // 16x16
       public static final Icon TIMELINE_KEYFRAME = load("/studio/icons/layout-editor/motion/timeline-keyframe.svg"); // 16x16
       public static final Icon TIMELINE_START_CONSTRAINT_SELECTED = load("/studio/icons/layout-editor/motion/timeline-start-constraint-selected.svg"); // 16x16
       public static final Icon TIMELINE_START_CONSTRAINT = load("/studio/icons/layout-editor/motion/timeline-start-constraint.svg"); // 16x16
+      public static final Icon TRANSITION = load("/studio/icons/layout-editor/motion/transition.svg"); // 16x16
     }
 
     public static class Palette {
@@ -352,6 +371,7 @@ public class StudioIcons {
       public static final Icon CYCLE_CHAIN_PACKED = load("/studio/icons/layout-editor/toolbar/cycle-chain-packed.svg"); // 16x16
       public static final Icon CYCLE_CHAIN_SPREAD_INLINE = load("/studio/icons/layout-editor/toolbar/cycle-chain-spread-inline.svg"); // 16x16
       public static final Icon CYCLE_CHAIN_SPREAD = load("/studio/icons/layout-editor/toolbar/cycle-chain-spread.svg"); // 16x16
+      public static final Icon DEVICE_AUTOMOTIVE = load("/studio/icons/layout-editor/toolbar/device-automotive.svg"); // 16x16
       public static final Icon DEVICE_PHONE = load("/studio/icons/layout-editor/toolbar/device-phone.svg"); // 16x16
       public static final Icon DEVICE_SCREEN = load("/studio/icons/layout-editor/toolbar/device-screen.svg"); // 16x16
       public static final Icon DEVICE_TABLET = load("/studio/icons/layout-editor/toolbar/device-tablet.svg"); // 16x16
@@ -561,7 +581,6 @@ public class StudioIcons {
     }
 
     public static class Menu {
-      public static final Icon ANDROID_PREVIEW = load("/studio/icons/shell/menu/android-preview.svg"); // 16x16
       public static final Icon AVD_MANAGER = load("/studio/icons/shell/menu/avd-manager.svg"); // 16x16
       public static final Icon LAYOUT_INSPECTOR = load("/studio/icons/shell/menu/layout-inspector.svg"); // 16x16
       public static final Icon PROFILER = load("/studio/icons/shell/menu/profiler.svg"); // 16x16
@@ -597,6 +616,7 @@ public class StudioIcons {
       public static final Icon LINT = load("/studio/icons/shell/tool-windows/lint.svg"); // 13x13
       public static final Icon LOCK = load("/studio/icons/shell/tool-windows/lock.svg"); // 16x16
       public static final Icon LOGCAT = load("/studio/icons/shell/tool-windows/logcat.svg"); // 13x13
+      public static final Icon MULTI_PREVIEW = load("/studio/icons/shell/tool-windows/multi-preview.svg"); // 13x13
       public static final Icon PALETTE = load("/studio/icons/shell/tool-windows/palette.svg"); // 13x13
       public static final Icon PROJECT = load("/studio/icons/shell/tool-windows/project.svg"); // 13x13
       public static final Icon RUN = load("/studio/icons/shell/tool-windows/run.svg"); // 13x13

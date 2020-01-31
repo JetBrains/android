@@ -42,13 +42,13 @@ import com.intellij.openapi.util.Key
  *
  * @see UsageTrackerTestRunListener for how we track instrumentation test runs
  */
-class AnalyticsTestRunnerEventsListener(val project: Project) : SMTRunnerEventsAdapter(), ExecutionListener {
+class AnalyticsTestRunnerEventsListener(val project: Project) : SMTRunnerEventsAdapter(), ExecutionListener, ProjectComponent {
   companion object {
     /** [Key] used to store the [TestRun.Builder] in a [ProcessHandler]. */
     private val TEST_RUN_KEY = Key.create<TestRun.Builder>(AnalyticsTestRunnerEventsListener::class.qualifiedName!!)
   }
 
-  init {
+  override fun projectOpened() {
     val connection = project.messageBus.connect()
     connection.subscribe(SMTRunnerEventsListener.TEST_STATUS, this)
     connection.subscribe(ExecutionManager.EXECUTION_TOPIC, this)

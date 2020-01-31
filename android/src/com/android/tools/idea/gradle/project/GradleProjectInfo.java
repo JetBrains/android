@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
-import static com.android.tools.idea.gradle.util.GradleProjects.findModuleRootFolderPath;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
@@ -50,6 +49,18 @@ import javax.swing.JComponent;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.settings.GradleSettings;
+
+import javax.swing.*;
+import java.io.File;
+import java.util.List;
+
+import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
+import static org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath;
+import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
+import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
+import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 
 public final class GradleProjectInfo {
   @NotNull private final Project myProject;
@@ -129,9 +140,14 @@ public final class GradleProjectInfo {
       }
       // See https://code.google.com/p/android/issues/detail?id=203384
       // This could be a project without modules. Check that at least it synced with Gradle.
-      if (GradleSyncState.getInstance(myProject).getSummary().getSyncTimestamp() != -1L) {
+      if (GradleSyncState.getInstance(myProject).getLastSyncFinishedTimeStamp() != -1L) {
         return true;
       }
+
+      if (!GradleSettings.getInstance(myProject).getLinkedProjectsSettings().isEmpty()){
+        return true;
+      }
+
       return hasTopLevelGradleBuildFile();
     });
   }

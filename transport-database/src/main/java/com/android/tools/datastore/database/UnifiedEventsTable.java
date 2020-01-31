@@ -15,13 +15,14 @@
  */
 package com.android.tools.datastore.database;
 
-import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.protobuf.InvalidProtocolBufferException;
 import com.android.tools.profiler.proto.Common.Event;
 import com.android.tools.profiler.proto.Transport.BytesRequest;
 import com.android.tools.profiler.proto.Transport.BytesResponse;
 import com.android.tools.profiler.proto.Transport.EventGroup;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest;
-import com.android.tools.profiler.protobuf3jarjar.InvalidProtocolBufferException;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Predicates;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -29,6 +30,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,8 +38,11 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
   public enum Statements {
     // Since no data should be updated after it has been inserted we drop any duplicated request from the poller.
     INSERT_EVENT(
-      "INSERT OR IGNORE INTO [UnifiedEventsTable] (StreamId, ProcessId, GroupId, Kind, CommandId, Timestamp, Data) " +
-      "VALUES (?, ?, ?, ?, ?, ?, ?)"),
+      "INSERT OR IGNORE INTO [UnifiedEventsTable] (StreamId, ProcessId, GroupId, Kind, CommandId, Timestamp, IsEnded, Data) " +
+      "VALUES (?, ?, ?, ?, ?, ?, ?, ?)"),
+    DELETE_EVENTS(
+      "DELETE FROM [UnifiedEventsTable] " +
+      "WHERE StreamId = ? AND ProcessId = ? And GroupId = ? And Kind = ? AND Timestamp >= ? AND Timestamp <= ?"),
     // Only used for test.
     QUERY_EVENTS("SELECT Data FROM [UnifiedEventsTable]"),
     INSERT_BYTES("INSERT OR IGNORE INTO [BytesTable] (StreamId, Id, Data) VALUES (?, ?, ?)"),
@@ -78,11 +83,10 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
                   "Kind INTEGER NOT NULL", // Required filter, required for all data.
                   "CommandId INTEGER NOT NULL", // Optional filter, not required for data.
                   "Timestamp INTEGER NOT NULL", // Optional filter, required for all data.
+                  "IsEnded INTEGER NOT NULL", // Optional filter, required for all data.
                   "Data BLOB");
-      createTable(  "BytesTable", "StreamId INTEGER NOT NULL", "Id STRING NOT NULL", "Data BLOB");
-      createUniqueIndex("UnifiedEventsTable", "StreamId", "ProcessId", "GroupId", "Kind", "Timestamp");
-      createIndex("UnifiedEventsTable", 1, "StreamId", "Kind", "Timestamp");
-      createIndex("UnifiedEventsTable", 2, "StreamId", "Kind", "CommandId", "Timestamp");
+      createTable("BytesTable", "StreamId INTEGER NOT NULL", "Id STRING NOT NULL", "Data BLOB");
+      createUniqueIndex("UnifiedEventsTable", "Kind", "StreamId", "ProcessId", "GroupId", "Timestamp", "IsEnded");
       createUniqueIndex("BytesTable", "StreamId", "Id");
     }
     catch (SQLException ex) {
@@ -98,7 +102,12 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
             event.getKind().getNumber(),
             event.getCommandId(),
             event.getTimestamp(),
+            event.getIsEnded() ? 1 : 0,
             event.toByteArray());
+  }
+
+  public void deleteEvents(long streamId, int pid, long groupId, Event.Kind kind, long fromTimestamp, long toTimestamp) {
+    execute(Statements.DELETE_EVENTS, streamId, pid, groupId, kind.getNumber(), fromTimestamp, toTimestamp);
   }
 
   @VisibleForTesting
@@ -109,8 +118,7 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
   /**
    * Queries for set of events then groups them by {@link Event#getGroupId()}
    * <p>
-   * The query filters data on {@link Event#getKind()}, {@link Event#getSessionId()}, {@link Event#getGroupId()},
-   * and {@link Event#getTimestamp()}.
+   * The query filters data on {@link Event#getKind()}, {@link Event#getPid()}, {@link Event#getGroupId()} and {@link Event#getTimestamp()}.
    * <p>
    * The timestamp is filtered by the optional parameters of {@link GetEventGroupsRequest#getFromTimestamp()} and
    * {@link GetEventGroupsRequest#getToTimestamp()}.
@@ -152,7 +160,7 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
 
     HashMap<Long, EventGroup.Builder> builderGroups = new HashMap<>();
     // The string format allows for altering the group by results for +1 and -1 queries.
-    String sql = "SELECT [Data]%s From [UnifiedEventsTable] WHERE Kind = ? %s";
+    String sql = "SELECT Data, GroupId%s From [UnifiedEventsTable] WHERE Kind = ? %s";
     StringBuilder filter = new StringBuilder();
     baseParams.add(request.getKind().getNumber());
 
@@ -176,18 +184,17 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
       baseParams.add(request.getCommandId());
     }
 
-    String sqlBefore = String.format(sql, ", MAX(Timestamp), MAX(ROWID)", filter.toString() + " AND Timestamp < ? GROUP BY GroupId");
+    String sqlBefore = String.format(sql, ", IsEnded, MAX(Timestamp), MAX(ROWID)", filter.toString() + " AND Timestamp < ? GROUP BY GroupId");
     String sqlAfter = String.format(sql, ", MIN(Timestamp), MIN(ROWID)", filter.toString() + " AND Timestamp > ? GROUP BY GroupId");
     ArrayList<Object> inRangeQueryParams = new ArrayList<>(baseParams);
-
-    if (request.getFromTimestamp() != 0) {
+    if (request.getFromTimestamp() > 0) {
       beforeRangeParams = new ArrayList<>(baseParams);
       beforeRangeParams.add(request.getFromTimestamp());
       filter.append(" AND Timestamp >= ?");
       inRangeQueryParams.add(request.getFromTimestamp());
     }
 
-    if (request.getToTimestamp() != 0) {
+    if (request.getToTimestamp() > 0 && request.getToTimestamp() != Long.MAX_VALUE) {
       afterRangeParams = new ArrayList<>(baseParams);
       afterRangeParams.add(request.getToTimestamp());
       filter.append(" AND Timestamp <= ?");
@@ -196,31 +203,44 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
 
     // Gather before range events if needed.
     // Query before example:
-    // SELECT [Data], MAX(Timestamp), MAX(ROWID) From [UnifiedEventsTable] WHERE Kind = ? AND Timestamp < ? GROUP BY GroupId;
+    // SELECT [Data], [GroupId], [IsEnded], MAX(Timestamp), MAX(ROWID) From [UnifiedEventsTable] WHERE Kind = ? AND Timestamp < ?
+    // GROUP BY GroupId;
     if (beforeRangeParams != null) {
-      gatherEvents(sqlBefore, beforeRangeParams, builderGroups, (event) -> !event.getIsEnded());
+      gatherEvents(sqlBefore, beforeRangeParams, builderGroups, resultSet -> {
+        try {
+          return !resultSet.getBoolean("IsEnded");
+        }
+        catch (SQLException e) {
+          onError(e);
+        }
+        return false;
+      });
     }
 
     // Query example:
-    // SELECT [Data] From [UnifiedEventsTable] WHERE Kind = ? AND Timestamp >= ? AND Timestamp <= ?;
+    // SELECT [Data], [GroupId] From [UnifiedEventsTable] WHERE Kind = ? AND Timestamp >= ? AND Timestamp <= ?;
     String query = String.format(sql, "", filter.toString());
-    gatherEvents(query, inRangeQueryParams, builderGroups, (unused) -> true);
+    gatherEvents(query, inRangeQueryParams, builderGroups, Predicates.alwaysTrue());
 
     // Gather after range events if needed.
     // Query after example:
-    // SELECT [Data], MIN(Timestamp), MIN(ROWID) From [UnifiedEventsTable] WHERE Kind = ? AND Timestamp > ? GROUP BY GroupId;
+    // SELECT [Data], [GroupId], MIN(Timestamp), MIN(ROWID) From [UnifiedEventsTable] WHERE Kind = ? AND Timestamp > ? GROUP BY GroupId;
     if (afterRangeParams != null) {
-      gatherEvents(sqlAfter, afterRangeParams, builderGroups, (event) -> builderGroups.containsKey(event.getGroupId()));
+      gatherEvents(sqlAfter, afterRangeParams, builderGroups, resultSet -> {
+        try {
+          return builderGroups.containsKey(resultSet.getLong("GroupId"));
+        }
+        catch (SQLException e) {
+          onError(e);
+        }
+        return false;
+      });
     }
 
-    List<EventGroup> groups = new ArrayList<>();
-    builderGroups.values().forEach((builder) -> {
-      groups.add(builder.build());
-    });
-    return groups;
+    return builderGroups.values().stream().map(EventGroup.Builder::build).collect(Collectors.toList());
   }
 
-  public void insertBytes(@NotNull long streamId, @NotNull String id, @NotNull BytesResponse response) {
+  public void insertBytes(long streamId, @NotNull String id, @NotNull BytesResponse response) {
     execute(Statements.INSERT_BYTES, streamId, id, response.toByteArray());
   }
 
@@ -248,20 +268,19 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
    * @param builderGroups map of event group ids to event groups used to collect events into respective groups.
    * @param filter        predicate to determine which events are included in the event group.
    */
-  private void gatherEvents(String sql,
-                            List<Object> params,
-                            HashMap<Long, EventGroup.Builder> builderGroups,
-                            Predicate<Event> filter) {
+  private <T> void gatherEvents(String sql,
+                                List<Object> params,
+                                HashMap<Long, EventGroup.Builder> builderGroups,
+                                Predicate<ResultSet> filter) {
     try {
       ResultSet results = executeOneTimeQuery(sql, params.toArray());
       while (results.next()) {
-        Event event = Event.parser().parseFrom(results.getBytes(1));
-        if (!filter.test(event)) {
-          continue;
+        Long groupId = results.getLong("GroupId");
+        if (filter.test(results)) {
+          EventGroup.Builder group =
+            builderGroups.computeIfAbsent(groupId, EventGroup.newBuilder()::setGroupId);
+          group.addEvents(Event.parser().parseFrom(results.getBytes("Data")));
         }
-        EventGroup.Builder group =
-          builderGroups.computeIfAbsent(event.getGroupId(), key -> EventGroup.newBuilder().setGroupId(key));
-        group.addEvents(event);
       }
     }
     catch (SQLException | InvalidProtocolBufferException ex) {

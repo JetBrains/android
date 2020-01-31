@@ -1,0 +1,119 @@
+/*
+ * Copyright (C) 2019 The Android Open Source Project
+ *
+ * Licensed under the Apache License|Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing|software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND|either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+{
+  parserClass="com.android.tools.idea.lang.proguardR8.parser.ProguardR8Parser"
+  extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
+  psiClassPrefix="ProguardR8"
+  psiImplClassSuffix="Impl"
+  psiPackage="com.android.tools.idea.lang.proguardR8.psi"
+  psiImplPackage="com.android.tools.idea.lang.proguardR8.psi.impl"
+  psiImplUtilClass="com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiImplUtil"
+  elementTypeHolderClass="com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes"
+  elementTypeClass="com.android.tools.idea.lang.proguardR8.psi.ProguardR8AstNodeType"
+  tokenTypeClass="com.android.tools.idea.lang.proguardR8.psi.ProguardR8TokenType"
+
+  classHeader='generatedFilesHeader.txt'
+
+  // Use only for life preview. Actual lexer contains more than one state and can't be generated from bnf file.
+  tokens=[
+    WS='regexp:\s+'  // White spaces for live preview
+    EM = "!" // exclamation mark
+    OPEN_BRACE = "{"
+    CLOSE_BRACE = "}"
+    LPAREN='('
+    RPAREN=')'
+    SEMICOLON=';'
+    COLON = ':'
+    COMMA=','
+    DOT='.'
+    ASTERISK='*'
+    AT='@'
+    ANY_TYPE='***'
+    ANY_TYPE_AND_NUM_OF_ARGS='...'
+    ANY_PRIMITIVE_TYPE='%'
+    ARRAY = '[]'
+    DOLLAR = '$'
+
+    FLAG = 'regexp:-[a-z]+' // Anything that starts with @ or -
+    FILE_NAME = 'regexp:[\w\-./<>*?]+'
+    FILE_NAME_SINGLE_QUOTED = "regexp:'([\w\-./<>*?\s()])*'"
+    FILE_NAME_DOUBLE_QUOTED = 'regexp:"([\w\-./<>*?\s()])*"'
+    UNTERMINATED_FILE_NAME_SINGLE_QUOTED = "regexp:'([\w\-./<>*?\s()])*"
+    UNTERMINATED_FILE_NAME_DOUBLE_QUOTED = 'regexp:"([\w\-./<>*?\s()])*'
+    LINE_CMT = 'regexp:#[^\n\r]*'     // Line comment, anything that starts with "#".
+    JAVA_IDENTIFIER = 'regexp:[a-zA-Z_][a-zA-Z\d_]*'
+    JAVA_IDENTIFIER_WITH_WILDCARDS = 'regexp:(((\?|\*{1,2})?\w+)+(\?|\*{1,2})?)|(\?|\*{1,2})' // Any string from letters and digits
+                                              // that can contain "?" symbol (no more than one in row) and "*" (no more than two in row).
+  ]
+
+  generate=[names='long' java='8']
+}
+
+root ::= (rule_with_class_specification | rule )*
+
+rule ::= FLAG (flag_argument ("," flag_argument)*)?
+rule_with_class_specification ::= FLAG  ("," keep_option_modifier)* class_specification_header class_specification_body?
+
+private file_ ::= "!"?(FILE_NAME|FILE_NAME_SINGLE_QUOTED|FILE_NAME_DOUBLE_QUOTED|UNTERMINATED_FILE_NAME_SINGLE_QUOTED|UNTERMINATED_FILE_NAME_DOUBLE_QUOTED)
+private file_list ::= file_ ((':'|';') file_)*
+file_filter ::= file_list (',' file_list)*
+flag_argument ::= file_list ('(' file_filter ')')?
+
+keep_option_modifier ::= includedescriptorclasses|includecode|allowshrinking|allowoptimization|allowobfuscation
+
+private java_identifier_ ::= JAVA_IDENTIFIER|JAVA_IDENTIFIER_WITH_WILDCARDS|ASTERISK
+
+qualifiedName ::= java_identifier_ ("." java_identifier_)* ("$" java_identifier_)? {
+  methods=[getReferences]
+  extraRoot=true
+}
+
+annotation_name ::= AT qualifiedName
+class_name ::= qualifiedName
+field_name ::= java_identifier_
+method_name ::= java_identifier_
+java_primitive ::= boolean|byte|char|short|int|long|float|double|void
+type ::= ANY_TYPE|ANY_PRIMITIVE_TYPE|((qualifiedName|java_primitive) "[]"?)
+type_list ::= type ("," type)* {pin=1 recoverWhile=not_right_paren}
+
+private java ::= (java_rule SEMICOLON)* {pin(".*")=1 recoverWhile=not_close_brace}
+java_rule ::= !(<<eof>>|CLOSE_BRACE|WHITE_SPACE) (method_specification|fields_specification) {pin=1 recoverWhile=not_semicolon}
+class_specification_body ::= OPEN_BRACE java CLOSE_BRACE {pin=1}
+
+class_modifier ::= ("!"?(public|final|abstract))
+class_type ::= "!"?(interface|class|enum)
+
+class_specification_header ::= annotation_name? class_modifier* class_type class_name ((extends|implements) annotation_name? class_name)?
+{pin=class_type recoverWhile=not_open_brace_or_new_flag}
+
+fields_specification ::= annotation_name? fields_modifier* (<fields>|(type field_name)|any_field_or_method)
+fields_modifier ::= ("!"?(public|private|protected|static|volatile|transient|final))
+
+any_field_or_method ::= ASTERISK
+private type_list_ ::= LPAREN (ANY_TYPE_AND_NUM_OF_ARGS|type_list)? RPAREN {pin=1}
+private init_description ::= (<init>|<clinit>) type_list_
+private class_description ::= class_name type_list_
+private method_description ::= type method_name type_list_ (return values)?
+method_modifier ::= ("!"?(public|private|protected|static|synchronized|native|abstract|strictfp|final))
+
+method_specification ::= annotation_name? method_modifier* (<methods> | init_description | method_description| class_description |any_field_or_method)
+
+//recover rules
+private not_semicolon ::= !SEMICOLON
+private not_open_brace_or_new_flag ::= !(OPEN_BRACE|FLAG)
+private not_close_brace ::= !CLOSE_BRACE
+private not_flag ::= !FLAG
+private not_right_paren ::= !RPAREN

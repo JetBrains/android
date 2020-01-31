@@ -20,8 +20,10 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.google.common.collect.ImmutableList;
+import com.intellij.execution.testframework.sm.runner.ui.TestsPresentationUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.JavaProjectTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.testFramework.TestActionEvent;
@@ -33,7 +35,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link MakeGradleProjectAction}.
  */
-public class MakeGradleProjectActionTest extends JavaProjectTestCase {
+public class MakeGradleProjectActionTest extends PlatformTestCase {
   @Mock private GradleBuildInvoker myBuildInvoker;
   @Mock private ProjectStructure myProjectStructure;
 
@@ -75,5 +77,14 @@ public class MakeGradleProjectActionTest extends JavaProjectTestCase {
     myAction.doPerform(new TestActionEvent(), getProject());
 
     verify(myBuildInvoker).assemble(eq(Module.EMPTY_ARRAY), eq(TestCompileType.ALL));
+  }
+
+  public void testActionNotEnabledOnFailedSync() {
+    when(myProjectStructure.getLeafModules()).thenReturn(ImmutableList.of());
+
+    TestActionEvent testAction = new TestActionEvent();
+    myAction.doUpdate(testAction, getProject());
+
+    assertFalse(testAction.getPresentation().isEnabled());
   }
 }

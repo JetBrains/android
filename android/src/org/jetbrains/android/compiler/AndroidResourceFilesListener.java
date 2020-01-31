@@ -169,7 +169,7 @@ public class AndroidResourceFilesListener implements Disposable, BulkFileListene
       List<AndroidAutogeneratorMode> modes = new ArrayList<>();
 
       if (Comparing.equal(manifestFile, file)) {
-        Manifest manifest = facet.getManifest();
+        Manifest manifest = Manifest.getMainManifest(facet);
         String aPackage = manifest != null ? manifest.getPackage().getValue() : null;
         String cachedPackage = facet.getUserData(CACHED_PACKAGE_KEY);
 

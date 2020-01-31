@@ -1,109 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 26.6.0-alpha01">
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `toUpperCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
-        <location
-            file="src/org/jetbrains/android/dom/AndroidDomElementDescriptorProvider.java"
-            line="165"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
-        <location
-            file="src/org/jetbrains/android/maven/AndroidFacetImporterBase.java"
-            line="1279"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
-        <location
-            file="src/org/jetbrains/android/maven/AndroidFacetImporterBase.java"
-            line="1279"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
-        <location
-            file="src/org/jetbrains/android/compiler/tools/AndroidMavenExecutor.java"
-            line="91"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
-        <location
-            file="src/org/jetbrains/android/actions/AndroidProcessChooserDialog.java"
-            line="388"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
-        <location
-            file="src/org/jetbrains/android/actions/AndroidProcessChooserDialog.java"
-            line="407"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
-        <location
-            file="src/org/jetbrains/android/actions/AndroidProcessChooserDialog.java"
-            line="435"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
-        <location
-            file="src/com/android/tools/idea/npw/importing/ArchiveToGradleModuleStep.java"
-            line="86"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `toUpperCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
-        <location
-            file="src/com/android/tools/idea/npw/assetstudio/wizard/ConfirmGenerateImagesStep.java"
-            line="213"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
-        <location
-            file="src/com/android/tools/idea/run/DeviceChooser.java"
-            line="411"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `toUpperCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
-        <location
-            file="src/org/jetbrains/android/exportSignedPackage/ExportSignedPackageWizard.java"
-            line="260"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
-        <location
-            file="src/org/jetbrains/android/exportSignedPackage/NewKeyForm.java"
-            line="101"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
-        <location
-            file="src/com/android/tools/idea/run/tasks/RunInstantAppTask.java"
-            line="180"/>
-    </issue>
+<issues format="5" by="lint 3.6.0-dev">
 
     <issue
         id="SimpleDateFormat"
@@ -118,7 +14,7 @@
         message="To get local formatting use `getDateInstance()`, `getDateTimeInstance()`, or `getTimeInstance()`, or use `new SimpleDateFormat(String template, Locale locale)` with for example `Locale.US` for ASCII dates.">
         <location
             file="src/com/android/tools/idea/run/LaunchTaskRunner.java"
-            line="120"/>
+            line="124"/>
     </issue>
 
     <issue
@@ -134,7 +30,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/gradle/project/build/invoker/GradleTasksExecutorImpl.java"
-            line="352"/>
+            line="378"/>
     </issue>
 
     <issue
@@ -189,14 +85,6 @@
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope">
         <location
-            file="src/com/android/tools/idea/sdk/StudioDownloader.java"
-            line="115"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
             file="src/com/android/tools/idea/gradle/project/sync/compatibility/VersionCompatibilityChecker.java"
             line="92"/>
     </issue>
@@ -222,7 +110,7 @@
         message="Use `Integer.valueOf(0)` instead">
         <location
             file="src/com/android/tools/idea/flags/ExperimentalSettingsConfigurable.java"
-            line="69"/>
+            line="63"/>
     </issue>
 
     <issue
@@ -230,7 +118,23 @@
         message="Use `Integer.valueOf(100)` instead">
         <location
             file="src/com/android/tools/idea/flags/ExperimentalSettingsConfigurable.java"
-            line="70"/>
+            line="64"/>
+    </issue>
+
+    <issue
+        id="FileComparisons"
+        message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
+        <location
+            file="src/com/android/tools/idea/npw/assetstudio/wizard/ConfirmGenerateImagesStep.java"
+            line="423"/>
+    </issue>
+
+    <issue
+        id="FileComparisons"
+        message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
+        <location
+            file="src/com/android/tools/idea/fonts/DownloadableFontCacheServiceImpl.java"
+            line="270"/>
     </issue>
 
     <issue
@@ -245,8 +149,16 @@
         id="FileComparisons"
         message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
         <location
+            file="src/com/android/tools/idea/gradle/project/build/invoker/GradleBuildInvoker.java"
+            line="748"/>
+    </issue>
+
+    <issue
+        id="FileComparisons"
+        message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
+        <location
             file="src/com/android/tools/idea/gradle/eclipse/ImportSummary.java"
-            line="206"/>
+            line="207"/>
     </issue>
 
     <issue
@@ -261,8 +173,16 @@
         id="FileComparisons"
         message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
         <location
+            file="src/com/android/tools/idea/gradle/project/sync/setup/module/dependency/LibraryDependency.java"
+            line="112"/>
+    </issue>
+
+    <issue
+        id="FileComparisons"
+        message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
+        <location
             file="src/com/android/tools/idea/editors/manifest/ManifestPanel.java"
-            line="944"/>
+            line="992"/>
     </issue>
 
     <issue
@@ -270,7 +190,23 @@
         message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
         <location
             file="src/com/android/tools/idea/model/MergedManifestInfo.java"
-            line="383"/>
+            line="414"/>
+    </issue>
+
+    <issue
+        id="FileComparisons"
+        message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
+        <location
+            file="src/com/android/tools/idea/gradle/project/model/NdkModuleModel.java"
+            line="380"/>
+    </issue>
+
+    <issue
+        id="FileComparisons"
+        message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
+        <location
+            file="src/com/android/tools/idea/navigator/nodes/apk/ndk/NdkSourceNode.java"
+            line="99"/>
     </issue>
 
     <issue
@@ -282,11 +218,11 @@
     </issue>
 
     <issue
-        id="CommonForkJoinPool"
-        message="Avoid using common ForkJoinPool, directly or indirectly (for example via CompletableFuture). It has a limited set of threads on some machines which leads to hangs. See `go/do-not-freeze`.">
+        id="FileComparisons"
+        message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
         <location
-            file="src/com/android/tools/swing/layoutlib/AndroidPreviewPanel.java"
-            line="228"/>
+            file="src/com/android/tools/idea/gradle/project/sync/VariantOnlySyncOptions.java"
+            line="59"/>
     </issue>
 
     <issue
@@ -294,31 +230,135 @@
         message="Avoid using common ForkJoinPool, directly or indirectly (for example via CompletableFuture). It has a limited set of threads on some machines which leads to hangs. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/fonts/MoreFontsDialog.java"
-            line="423"/>
+            line="428"/>
     </issue>
 
     <issue
-        id="CommonForkJoinPool"
-        message="Avoid using common ForkJoinPool, directly or indirectly (for example via CompletableFuture). It has a limited set of threads on some machines which leads to hangs. See `go/do-not-freeze`.">
+        id="ImplicitExecutor"
+        message="Use `runAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
         <location
-            file="src/com/android/tools/idea/rendering/RenderTask.java"
-            line="667"/>
+            file="src/com/android/tools/idea/diagnostics/hprof/action/AnalysisRunnable.kt"
+            line="93"/>
     </issue>
 
     <issue
-        id="SwingWorker"
-        message="Do not use `javax.swing.SwingWorker`, use `com.intellij.util.concurrency.SwingWorker` instead. See `go/do-not-freeze`.">
+        id="ImplicitExecutor"
+        message="Use `addCallback` overload with an explicit Executor instead. See `go/do-not-freeze`.">
         <location
-            file="src/com/android/tools/swing/layoutlib/AndroidPreviewPanel.java"
+            file="src/com/android/tools/idea/actions/AndroidInferNullityAnnotationAction.java"
+            line="244"/>
+    </issue>
+
+    <issue
+        id="ImplicitExecutor"
+        message="Use `addCallback` overload with an explicit Executor instead. See `go/do-not-freeze`.">
+        <location
+            file="src/com/android/tools/idea/lint/AndroidLintExifInterfaceInspection.java"
+            line="127"/>
+    </issue>
+
+    <issue
+        id="ImplicitExecutor"
+        message="Use `supplyAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
+        <location
+            file="src/com/android/tools/idea/ddms/actions/CachedFeatures.java"
+            line="68"/>
+    </issue>
+
+    <issue
+        id="ImplicitExecutor"
+        message="Use `addCallback` overload with an explicit Executor instead. See `go/do-not-freeze`.">
+        <location
+            file="src/com/android/tools/idea/run/editor/DeployTargetPickerDialog.java"
+            line="207"/>
+    </issue>
+
+    <issue
+        id="ImplicitExecutor"
+        message="Use `call` overload with an explicit Executor instead. See `go/do-not-freeze`.">
+        <location
+            file="src/com/android/tools/idea/ddms/DeviceNamePropertiesFetcher.kt"
+            line="72"/>
+    </issue>
+
+    <issue
+        id="ImplicitExecutor"
+        message="Use `thenApplyAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
+        <location
+            file="src/com/android/tools/idea/ui/resourcemanager/rendering/DrawableIconProvider.kt"
+            line="181"/>
+    </issue>
+
+    <issue
+        id="ImplicitExecutor"
+        message="Use `catching` overload with an explicit Executor instead. See `go/do-not-freeze`.">
+        <location
+            file="src/com/android/tools/idea/gradle/structure/configurables/ui/FutureUtils.kt"
+            line="41"/>
+    </issue>
+
+    <issue
+        id="ImplicitExecutor"
+        message="Use `addCallback` overload with an explicit Executor instead. See `go/do-not-freeze`.">
+        <location
+            file="src/com/android/tools/idea/ddms/actions/GetAdbAction.java"
+            line="56"/>
+    </issue>
+
+    <issue
+        id="ImplicitExecutor"
+        message="Use `addCallback` overload with an explicit Executor instead. See `go/do-not-freeze`.">
+        <location
+            file="src/com/android/tools/idea/actions/annotations/InferSupportAnnotationsAction.java"
+            line="338"/>
+    </issue>
+
+    <issue
+        id="ImplicitExecutor"
+        message="Use `supplyAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
+        <location
+            file="src/com/android/tools/idea/actions/license/LicenseTextCollector.java"
+            line="39"/>
+    </issue>
+
+    <issue
+        id="ImplicitExecutor"
+        message="Use `transform` overload with an explicit Executor instead. See `go/do-not-freeze`.">
+        <location
+            file="src/com/android/tools/idea/gradle/structure/model/helpers/PropertyKnownValues.kt"
+            line="133"/>
+    </issue>
+
+    <issue
+        id="ImplicitExecutor"
+        message="Use `transform` overload with an explicit Executor instead. See `go/do-not-freeze`.">
+        <location
+            file="src/com/android/tools/idea/gradle/structure/model/helpers/PropertyKnownValues.kt"
             line="142"/>
     </issue>
 
     <issue
-        id="WrongInvokeLater"
-        message="Do not use `SwingUtilities.invokeLater`; use `Application.invokeLater` instead. See `go/do-not-freeze`.">
+        id="ImplicitExecutor"
+        message="Use `supplyAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
         <location
-            file="src/com/android/tools/idea/gradle/structure/editors/MavenDependencyLookupDialog.java"
-            line="451"/>
+            file="src/com/android/tools/idea/ui/resourcemanager/plugin/RasterAssetRenderer.kt"
+            line="33"/>
+    </issue>
+
+    <issue
+        id="ImplicitExecutor"
+        message="Use `whenCompleteAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
+        <location
+            file="src/com/android/tools/idea/rendering/RenderTask.java"
+            line="673"/>
+    </issue>
+
+    <issue
+        id="ImplicitExecutor"
+        message="Use `supplyAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
+        <location
+            file="src/com/android/tools/idea/ui/resourcemanager/plugin/SVGAssetRenderer.kt"
+            line="43"/>
     </issue>
 
     <issue
@@ -334,7 +374,7 @@
         message="Do not use `SwingUtilities.invokeLater`; use `Application.invokeLater` instead. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/gradle/structure/configurables/variables/VariablesTable.kt"
-            line="363"/>
+            line="374"/>
     </issue>
 
     <issue
@@ -342,7 +382,7 @@
         message="Do not use `SwingUtilities.invokeLater`; use `Application.invokeLater` instead. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/gradle/structure/configurables/variables/VariablesTable.kt"
-            line="447"/>
+            line="458"/>
     </issue>
 
     <issue
@@ -350,7 +390,7 @@
         message="Do not use `SwingUtilities.invokeLater`; use `Application.invokeLater` instead. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/gradle/structure/configurables/variables/VariablesTable.kt"
-            line="485"/>
+            line="496"/>
     </issue>
 
     <issue
@@ -358,7 +398,38 @@
         message="Do not use `SwingUtilities.invokeLater`; use `Application.invokeLater` instead. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/gradle/structure/configurables/variables/VariablesTable.kt"
-            line="514"/>
+            line="525"/>
     </issue>
 
+    <issue
+        id="FileComparisons"
+        message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
+        <location
+            file="src/com/android/tools/idea/gradle/model/java/JavaModuleContentRoot.java"
+            line="179"/>
+    </issue>
+
+    <issue
+        id="FileComparisons"
+        message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
+        <location
+            file="src/com/android/tools/idea/gradle/model/java/JarLibraryDependency.java"
+            line="148"/>
+    </issue>
+
+    <issue
+        id="FileComparisons"
+        message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
+        <location
+            file="src/com/android/tools/idea/gradle/model/java/JarLibraryDependency.java"
+            line="149"/>
+    </issue>
+
+    <issue
+        id="FileComparisons"
+        message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
+        <location
+            file="src/com/android/tools/idea/gradle/model/java/JarLibraryDependency.java"
+            line="150"/>
+    </issue>
 </issues>

@@ -15,6 +15,48 @@
  */
 package com.android.tools.idea.rendering.parsers;
 
+import static com.android.SdkConstants.ANDROID_NS_NAME;
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_BACKGROUND;
+import static com.android.SdkConstants.ATTR_CLASS;
+import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.ATTR_LAYOUT;
+import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN;
+import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
+import static com.android.SdkConstants.ATTR_MIN_HEIGHT;
+import static com.android.SdkConstants.ATTR_MIN_WIDTH;
+import static com.android.SdkConstants.ATTR_NAME;
+import static com.android.SdkConstants.ATTR_NAV_GRAPH;
+import static com.android.SdkConstants.ATTR_PADDING;
+import static com.android.SdkConstants.ATTR_PARENT_TAG;
+import static com.android.SdkConstants.ATTR_SRC;
+import static com.android.SdkConstants.ATTR_SRC_COMPAT;
+import static com.android.SdkConstants.ATTR_USE_HANDLER;
+import static com.android.SdkConstants.ATTR_VISIBILITY;
+import static com.android.SdkConstants.AUTO_URI;
+import static com.android.SdkConstants.EXPANDABLE_LIST_VIEW;
+import static com.android.SdkConstants.FRAME_LAYOUT;
+import static com.android.SdkConstants.GRID_VIEW;
+import static com.android.SdkConstants.IMAGE_BUTTON;
+import static com.android.SdkConstants.IMAGE_VIEW;
+import static com.android.SdkConstants.LIST_VIEW;
+import static com.android.SdkConstants.SAMPLE_PREFIX;
+import static com.android.SdkConstants.SPINNER;
+import static com.android.SdkConstants.TAG_DATA;
+import static com.android.SdkConstants.TAG_LAYOUT;
+import static com.android.SdkConstants.TOOLS_PREFIX;
+import static com.android.SdkConstants.TOOLS_SAMPLE_PREFIX;
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.SdkConstants.VALUE_FILL_PARENT;
+import static com.android.SdkConstants.VALUE_MATCH_PARENT;
+import static com.android.SdkConstants.VIEW_FRAGMENT;
+import static com.android.SdkConstants.VIEW_INCLUDE;
+import static com.android.SdkConstants.VIEW_MERGE;
+import static com.android.SdkConstants.XMLNS_PREFIX;
+import static com.android.ide.common.resources.sampledata.SampleDataManager.SUBARRAY_SEPARATOR;
+import static com.android.tools.idea.rendering.RenderTask.AttributeFilter;
+
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.ILayoutLog;
@@ -32,7 +74,11 @@ import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.base.Splitter;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.util.Computable;
@@ -41,17 +87,17 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import org.jetbrains.android.dom.navigation.NavXmlHelperKt;
 import org.jetbrains.annotations.NotNull;
 import org.xmlpull.v1.XmlPullParserException;
-
-import java.util.*;
-import java.util.function.Consumer;
-
-import static com.android.SdkConstants.*;
-import static com.android.ide.common.resources.sampledata.SampleDataManager.SUBARRAY_SEPARATOR;
-import static com.android.tools.idea.rendering.RenderTask.AttributeFilter;
 
 /**
  * {@link ILayoutPullParser} implementation on top of the PSI {@link XmlTag}.
@@ -153,27 +199,18 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
    * @param file         The {@link XmlTag} for the root node.
    * @param logger       The logger to emit warnings too, such as missing fragment associations
    * @param honorMergeParentTag if true, this method will look into the {@code tools:parentTag} to replace the root {@code <merge>} tag.
-   */
-  @NotNull
-  public static LayoutPsiPullParser create(@NotNull XmlFile file, @NotNull IRenderLogger logger, boolean honorMergeParentTag) {
-    return create(file, logger, honorMergeParentTag, 0);
-  }
-
-  /**
-   * Constructs a new {@link LayoutPsiPullParser}, a parser dedicated to the special case of
-   * parsing a layout resource files.
-   *
-   * @param file         The {@link XmlTag} for the root node.
-   * @param logger       The logger to emit warnings too, such as missing fragment associations
-   * @param honorMergeParentTag if true, this method will look into the {@code tools:parentTag} to replace the root {@code <merge>} tag.
    * @param sampleDataCounter start index for displaying sample data
    */
   @NotNull
-  public static LayoutPsiPullParser create(@NotNull XmlFile file, @NotNull IRenderLogger logger, boolean honorMergeParentTag, int sampleDataCounter) {
+  public static LayoutPsiPullParser create(@NotNull XmlFile file,
+                                           @NotNull IRenderLogger logger,
+                                           boolean honorMergeParentTag,
+                                           @Nullable ResourceResolver resolver,
+                                           int sampleDataCounter) {
     if (ResourceHelper.getFolderType(file) == ResourceFolderType.MENU) {
       return new MenuPsiPullParser(file, logger);
     }
-    return new LayoutPsiPullParser(file, logger, honorMergeParentTag, sampleDataCounter);
+    return new LayoutPsiPullParser(file, logger, honorMergeParentTag, resolver, sampleDataCounter);
   }
 
   /**
@@ -185,7 +222,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
    */
   @NotNull
   public static LayoutPsiPullParser create(@NotNull XmlFile file, @NotNull IRenderLogger logger) {
-    return create(file, logger, true);
+    return create(file, logger, true, null, 0);
   }
 
   /**
@@ -199,6 +236,8 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
    *                     padding ({@link PaddingLayoutPsiPullParser#FIXED_PADDING_VALUE}).
    *                     This is intended for use with nodes that (without padding) would be
    *                     invisible.
+   * @param resourceResolver Optional {@link ResourceResolver} that will be used by the parser to
+   *                         resolve any resources.
    * @param density      the density factor for the screen.
    */
   @NotNull
@@ -230,21 +269,42 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
 
   /**
    * Use one of the {@link #create} factory methods instead
+   *
+   * @param file         The {@link XmlTag} for the root node.
+   * @param logger       The logger to emit warnings too, such as missing fragment associations
    * @param honorMergeParentTag if true, this method will look into the {@code tools:parentTag} to replace the root {@code <merge>} tag.
    */
   protected LayoutPsiPullParser(@NotNull XmlFile file, @NotNull ILayoutLog logger, boolean honorMergeParentTag) {
-    this(file, logger, honorMergeParentTag, 0);
+    this(file, logger, honorMergeParentTag, null, 0);
   }
 
   /**
    * Use one of the {@link #create} factory methods instead
+   *
+   * @param file         The {@link XmlTag} for the root node.
+   * @param logger       The logger to emit warnings too, such as missing fragment associations
    * @param honorMergeParentTag if true, this method will look into the {@code tools:parentTag} to replace the root {@code <merge>} tag.
+   * @param resolver Optional {@link ResourceResolver} that will be used by the parser to
+   *                         resolve any resources.
    * @param sampleDataCounter start index for displaying sample data
    */
-  protected LayoutPsiPullParser(@NotNull XmlFile file, @NotNull ILayoutLog logger, boolean honorMergeParentTag, int sampleDataCounter) {
-    this(AndroidPsiUtils.getRootTagSafely(file), logger, honorMergeParentTag, null, sampleDataCounter);
+  protected LayoutPsiPullParser(@NotNull XmlFile file,
+                                @NotNull ILayoutLog logger,
+                                boolean honorMergeParentTag,
+                                @Nullable ResourceResolver resolver,
+                                int sampleDataCounter) {
+    this(AndroidPsiUtils.getRootTagSafely(file), logger, honorMergeParentTag, resolver, sampleDataCounter);
   }
 
+  /**
+   * Use one of the {@link #create} factory methods instead
+   *
+   * @param file         The {@link XmlTag} for the root node.
+   * @param logger       The logger to emit warnings too, such as missing fragment associations
+   * @param honorMergeParentTag if true, this method will look into the {@code tools:parentTag} to replace the root {@code <merge>} tag.
+   * @param resourceResolver Optional {@link ResourceResolver} that will be used by the parser to
+   *                         resolve any resources.
+   */
   protected LayoutPsiPullParser(@NotNull XmlFile file,
                                 @NotNull ILayoutLog logger,
                                 boolean honorMergeParentTag,

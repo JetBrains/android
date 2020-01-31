@@ -16,13 +16,14 @@
 package com.android.tools.idea.gradle.structure.configurables.dependencies.treeview;
 
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseTreeBuilder;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeModel;
 import org.jetbrains.annotations.NotNull;
 
-public class ResolvedDependenciesTreeBuilder extends AbstractPsNodeTreeBuilder {
+public class ResolvedDependenciesTreeBuilder extends AbstractBaseTreeBuilder {
   public ResolvedDependenciesTreeBuilder(@NotNull PsModule module,
                                          @NotNull JTree tree,
                                          @NotNull DefaultTreeModel treeModel,

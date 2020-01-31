@@ -1,4 +1,4 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.refactoring;
 
 
@@ -28,7 +28,7 @@ import org.jetbrains.android.actions.CreateResourceFileAction;
 import org.jetbrains.android.dom.layout.Include;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -186,7 +186,7 @@ public class AndroidExtractAsIncludeAction extends AndroidBaseLayoutRefactoringA
                      (wrapWithMerge ? "<merge>\n" + textToExtract + "\n</merge>" : textToExtract));
     documentManager.commitDocument(document);
 
-    final Set<String> unknownPrefixes = new HashSet<>();
+    final Set<String> unknownPrefixes = new HashSet<String>();
 
     newFile.accept(new XmlRecursiveElementVisitor() {
       @Override
@@ -234,7 +234,7 @@ public class AndroidExtractAsIncludeAction extends AndroidBaseLayoutRefactoringA
     String includingLayout = SdkConstants.LAYOUT_RESOURCE_PREFIX + ResourceHelper.getResourceName(file);
     IncludeReference.setIncludingLayout(project, newFile, includingLayout);
 
-    final String resourceName = AndroidCommonUtils.getResourceName(ResourceType.LAYOUT.getName(), newFile.getName());
+    final String resourceName = AndroidBuildCommonUtils.getResourceName(ResourceType.LAYOUT.getName(), newFile.getName());
     final XmlTag includeTag = elementFactory.createTagFromText("<include layout=\"@layout/" + resourceName + "\"/>");
     parentTag.addAfter(includeTag, to);
     parentTag.deleteChildRange(from, to);
@@ -245,7 +245,7 @@ public class AndroidExtractAsIncludeAction extends AndroidBaseLayoutRefactoringA
 
   @NotNull
   private static List<XmlTag> collectAllTags(PsiElement from, PsiElement to) {
-    final List<XmlTag> result = new ArrayList<>();
+    final List<XmlTag> result = new ArrayList<XmlTag>();
     PsiElement e = from;
 
     while (e != null) {

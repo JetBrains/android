@@ -17,13 +17,14 @@ package com.android.tools.idea.res;
 
 import com.android.annotations.concurrency.UiThread;
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.tools.idea.concurrency.AndroidIoManager;
 import com.android.utils.SdkUtils;
 import com.android.utils.concurrency.CacheUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.RemovalListener;
 import com.google.common.collect.ImmutableList;
+import com.intellij.AppTopics;
 import com.intellij.ProjectTopics;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.Disposable;
@@ -31,33 +32,43 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.editor.EditorFactory;
+import com.intellij.openapi.editor.event.DocumentEvent;
+import com.intellij.openapi.editor.event.DocumentListener;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.fileEditor.FileDocumentManagerListener;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.DumbModeTask;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ModuleRootListener;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
-import com.intellij.openapi.vfs.newvfs.events.*;
-import com.intellij.util.concurrency.AppExecutorUtil;
+import com.intellij.openapi.vfs.newvfs.events.VFileContentChangeEvent;
+import com.intellij.openapi.vfs.newvfs.events.VFileCopyEvent;
+import com.intellij.openapi.vfs.newvfs.events.VFileCreateEvent;
+import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent;
+import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
+import com.intellij.openapi.vfs.newvfs.events.VFileMoveEvent;
+import com.intellij.openapi.vfs.newvfs.events.VFilePropertyChangeEvent;
+import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiFile;
 import com.intellij.util.messages.MessageBusConnection;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.ResourceFolderManager;
-import org.jetbrains.android.util.AndroidResourceUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.function.BiConsumer;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.ResourceFolderManager;
+import org.jetbrains.android.util.AndroidResourceUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A project service that manages {@link ResourceFolderRepository} instances, creating them an necessary and reusing repositories for the
@@ -80,13 +91,14 @@ public class ResourceFolderRegistry implements Disposable {
         removeStaleEntries();
       }
     });
-    connection.subscribe(VirtualFileManager.VFS_CHANGES, new VfsListener());
+    connection.subscribe(VirtualFileManager.VFS_CHANGES, new MyVfsListener());
+    connection.subscribe(AppTopics.FILE_DOCUMENT_SYNC, new MyFileDocumentManagerListener());
+    EditorFactory.getInstance().getEventMulticaster().addDocumentListener(new MyDocumentListener(), this);
   }
 
   @NotNull
   private static Cache<VirtualFile, ResourceFolderRepository> buildCache() {
-    RemovalListener<VirtualFile, ResourceFolderRepository> removalListener = notification -> Disposer.dispose(notification.getValue());
-    return CacheBuilder.newBuilder().removalListener(removalListener).build();
+    return CacheBuilder.newBuilder().build();
   }
 
   @NotNull
@@ -95,7 +107,7 @@ public class ResourceFolderRegistry implements Disposable {
   }
 
   @NotNull
-  public ResourceFolderRepository get(@NotNull final AndroidFacet facet, @NotNull final VirtualFile dir) {
+  public ResourceFolderRepository get(@NotNull AndroidFacet facet, @NotNull VirtualFile dir) {
     // ResourceFolderRepository.create may require the IDE read lock. To avoid deadlocks it is always obtained first, before the caches
     // locks.
     return ReadAction.compute(() -> get(facet, dir, ResourceRepositoryManager.getInstance(facet).getNamespace()));
@@ -103,23 +115,27 @@ public class ResourceFolderRegistry implements Disposable {
 
   @VisibleForTesting
   @NotNull
-  ResourceFolderRepository get(@NotNull final AndroidFacet facet, @NotNull final VirtualFile dir, @NotNull ResourceNamespace namespace) {
+  ResourceFolderRepository get(@NotNull AndroidFacet facet, @NotNull VirtualFile dir, @NotNull ResourceNamespace namespace) {
     Cache<VirtualFile, ResourceFolderRepository> cache =
         namespace == ResourceNamespace.RES_AUTO ? myNonNamespacedCache : myNamespacedCache;
 
-    ResourceFolderRepository repository = CacheUtils.getAndUnwrap(cache, dir, () -> {
-      ResourceFolderRepository newRepository = ResourceFolderRepository.create(facet, dir, namespace);
-      Disposer.register(this, newRepository);
-      return newRepository;
-    });
+    ResourceFolderRepository repository = CacheUtils.getAndUnwrap(cache, dir, () -> createRepository(facet, dir, namespace));
 
     assert repository.getNamespace().equals(namespace);
-    assert !Disposer.isDisposed(repository);
 
     // TODO(b/80179120): figure out why this is not always true.
     // assert repository.getFacet().equals(facet);
 
     return repository;
+  }
+
+  @NotNull
+  private static ResourceFolderRepository createRepository(@NotNull AndroidFacet facet,
+                                                           @NotNull VirtualFile dir,
+                                                           @NotNull ResourceNamespace namespace) {
+    ResourceFolderRepositoryCachingData cachingData = ResourceFolderRepositoryFileCacheService.get()
+        .getCachingData(facet.getModule().getProject(), dir, AndroidIoManager.getInstance().getBackgroundDiskIoExecutor());
+    return ResourceFolderRepository.create(facet, dir, namespace, cachingData);
   }
 
   @Nullable
@@ -155,6 +171,18 @@ public class ResourceFolderRegistry implements Disposable {
     reset();
   }
 
+  private void dispatchToRepositories(@NotNull VirtualFile file,
+                                      @NotNull BiConsumer<ResourceFolderRepository, VirtualFile> handler) {
+    for (VirtualFile dir = file.isDirectory() ? file : file.getParent(); dir != null; dir = dir.getParent()) {
+      for (Cache<VirtualFile, ResourceFolderRepository> cache : myCaches) {
+        ResourceFolderRepository repository = cache.getIfPresent(dir);
+        if (repository != null) {
+          handler.accept(repository, file);
+        }
+      }
+    }
+  }
+
   /**
    * Populate the registry's in-memory ResourceFolderRepository caches (if not already cached).
    */
@@ -179,17 +207,15 @@ public class ResourceFolderRegistry implements Disposable {
       if (resDirectories.isEmpty()) {
         return;
       }
+
       // Make sure the cache root is created before parallel execution to avoid racing to create the root.
-      Path projectCacheRoot = ResourceFolderRepositoryFileCacheService.get().getProjectDir(myProject);
-      if (projectCacheRoot == null) {
-        return;
-      }
       try {
-        FileUtil.ensureExists(projectCacheRoot.toFile());
+        ResourceFolderRepositoryFileCacheService.get().createDirForProject(myProject);
       }
       catch (IOException e) {
         return;
       }
+
       Application application = ApplicationManager.getApplication();
       // Beware if the current thread is holding the write lock. The current thread will
       // end up waiting for helper threads to finish, and the helper threads will be
@@ -198,9 +224,7 @@ public class ResourceFolderRegistry implements Disposable {
 
       int numDone = 0;
 
-      // Cap the threads to 4 for now. Scaling is okay from 1 to 2, but not necessarily much better as we go higher.
-      int maxThreads = Math.min(4, Runtime.getRuntime().availableProcessors());
-      ExecutorService parallelExecutor = AppExecutorUtil.createBoundedApplicationPoolExecutor("ResourceFolderRegistry", maxThreads);
+      ExecutorService parallelExecutor = AndroidIoManager.getInstance().getBackgroundDiskIoExecutor();
       List<Future<ResourceFolderRepository>> repositoryJobs = new ArrayList<>();
       for (Map.Entry<VirtualFile, AndroidFacet> entry : resDirectories.entrySet()) {
         AndroidFacet facet = entry.getValue();
@@ -242,11 +266,11 @@ public class ResourceFolderRegistry implements Disposable {
   }
 
   /**
-   * This VfsListener handles {@link VFileEvent}s for resource folder.
+   * {@link BulkFileListener} which handles {@link VFileEvent}s for resource folder.
    * When an event happens on a file within a folder with a corresponding
    * {@link ResourceFolderRepository}, the event is delegated to it.
    */
-  private class VfsListener implements BulkFileListener {
+  private class MyVfsListener implements BulkFileListener {
     @UiThread
     @Override
     public void before(@NotNull List<? extends VFileEvent> events) {
@@ -294,64 +318,82 @@ public class ResourceFolderRegistry implements Disposable {
     }
 
     private void onFileOrDirectoryCreated(@NotNull VirtualFile parent, @NotNull String childName) {
-      VirtualFile file = null;
-      for (VirtualFile dir = parent.isDirectory() ? parent : parent.getParent(); dir != null; dir = dir.getParent()) {
-        for (Cache<VirtualFile, ResourceFolderRepository> cache : myCaches) {
-          ResourceFolderRepository repository = cache.getIfPresent(dir);
-          if (repository != null) {
-            if (file == null) {
-              file = parent.findChild(childName);
-              if (file == null) {
-                // The file is not found, there is no need to continue iterating over
-                // the repositories.
-                return;
-              }
-            }
+      VirtualFile created = parent.findChild(childName);
+      if (created == null) {
+        return;
+      }
 
-            if (file.isDirectory()) {
-              // ResourceFolderRepository doesn't handle event on a whole folder
-              // so we pass all the children
-              for (VirtualFile child : file.getChildren()) {
-                if (!child.isDirectory()) {
-                  // There is no need to visit subdirectories because Android does not support them.
-                  // If a base resource directory is created (e.g res/), a whole
-                  // ResourceFolderRepository will be created separately so we don't need to handle
-                  // this case here.
-                  repository.onFileCreated(child);
-                }
-              }
-            }
-            else {
-              repository.onFileCreated(file);
-            }
+      CachedRepositories cachedRepositories;
+      if (created.isDirectory()) {
+        cachedRepositories = getCached(parent);
+      }
+      else {
+        VirtualFile grandParent = parent.getParent();
+        cachedRepositories = grandParent == null ? null : getCached(grandParent);
+      }
+
+      if (cachedRepositories != null) {
+        onFileOrDirectoryCreated(created, cachedRepositories.namespaced);
+        onFileOrDirectoryCreated(created, cachedRepositories.nonNamespaced);
+      }
+    }
+
+    private void onFileOrDirectoryCreated(@NotNull VirtualFile created, @Nullable ResourceFolderRepository repository) {
+      if (repository == null) {
+        return;
+      }
+
+      if (!created.isDirectory()) {
+        repository.onFileCreated(created);
+      }
+      else {
+        // ResourceFolderRepository doesn't handle event on a whole folder so we pass all the children.
+        for (VirtualFile child : created.getChildren()) {
+          if (!child.isDirectory()) {
+            // There is no need to visit subdirectories because Android does not support them.
+            // If a base resource directory is created (e.g res/), a whole
+            // ResourceFolderRepository will be created separately so we don't need to handle
+            // this case here.
+            repository.onFileCreated(child);
           }
         }
       }
     }
 
     private void onFileOrDirectoryRemoved(@NotNull VirtualFile file) {
-      for (VirtualFile dir = file.isDirectory() ? file : file.getParent(); dir != null; dir = dir.getParent()) {
-        for (Cache<VirtualFile, ResourceFolderRepository> cache : myCaches) {
-          ResourceFolderRepository repository = cache.getIfPresent(dir);
-          if (repository != null) {
-            repository.onFileOrDirectoryRemoved(file);
-          }
-        }
-      }
+      dispatchToRepositories(file, ResourceFolderRepository::onFileOrDirectoryRemoved);
     }
 
     private void onFileContentChanged(@NotNull VirtualFile file) {
       if (file.isDirectory()) {
         return;
       }
+
       if (SdkUtils.hasImageExtension(file.getName())) {
-        for (VirtualFile dir = file.isDirectory() ? file : file.getParent(); dir != null; dir = dir.getParent()) {
-          for (Cache<VirtualFile, ResourceFolderRepository> cache : myCaches) {
-            ResourceFolderRepository repository = cache.getIfPresent(dir);
-            if (repository != null) {
-              repository.onBitmapFileUpdated(file);
-            }
-          }
+        dispatchToRepositories(file, ResourceFolderRepository::onBitmapFileUpdated);
+      }
+    }
+  }
+
+  private class MyFileDocumentManagerListener implements FileDocumentManagerListener {
+    @Override
+    public void fileWithNoDocumentChanged(@NotNull VirtualFile file) {
+      dispatchToRepositories(file, ResourceFolderRepository::scheduleScan);
+    }
+  }
+
+  private class MyDocumentListener implements DocumentListener {
+    private final FileDocumentManager myFileDocumentManager = FileDocumentManager.getInstance();
+    private final PsiDocumentManager myPsiDocumentManager = PsiDocumentManager.getInstance(myProject);
+
+    @Override
+    public void documentChanged(@NotNull DocumentEvent event) {
+      Document document = event.getDocument();
+      PsiFile psiFile = myPsiDocumentManager.getCachedPsiFile(document);
+      if (psiFile == null) {
+        VirtualFile virtualFile = myFileDocumentManager.getFile(document);
+        if (virtualFile != null) {
+          dispatchToRepositories(virtualFile, ResourceFolderRepository::scheduleScan);
         }
       }
     }

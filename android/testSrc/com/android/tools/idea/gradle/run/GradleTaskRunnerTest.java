@@ -71,8 +71,7 @@ public class GradleTaskRunnerTest extends AndroidGradleTestCase {
     countDownLatch.await(5, TimeUnit.SECONDS);
   }
 
-  // b/72262273
-  public void ignore_testBuildActionRunner() throws Exception {
+  public void testBuildActionRunner() throws Exception {
     loadSimpleApplication();
 
     GradleTaskRunner.DefaultGradleTaskRunner runner = new GradleTaskRunner.DefaultGradleTaskRunner(getProject(), new TestBuildAction());
@@ -83,6 +82,9 @@ public class GradleTaskRunnerTest extends AndroidGradleTestCase {
       runner.run(tasks, BuildMode.ASSEMBLE, Collections.emptyList());
       return null;
     });
+
+    // We need to ensure that the event from the runner has been queue before we call UIUtil.dispatchAllInvocationEvents
+    TimeoutUtil.sleep(1000);
     UIUtil.dispatchAllInvocationEvents();
 
     task.get(2, TimeUnit.MINUTES);

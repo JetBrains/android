@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.npw.assetstudio;
 
+import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
+
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.util.AssetUtil;
 import com.android.resources.ResourceFolderType;
@@ -25,15 +27,13 @@ import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.Iterables;
-import com.intellij.openapi.util.io.FileUtilRt;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import com.intellij.openapi.util.io.FileUtil;
+import java.awt.Dimension;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.File;
-
-import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Utility methods helpful for working with and generating Android assets.
@@ -185,7 +185,7 @@ public final class AssetStudioUtils {
         File[] files = resTypeDir.listFiles();
         if (files != null) {
           for (File f : files) {
-            if (FileUtilRt.getNameWithoutExtension(f.getName()).equalsIgnoreCase(name)) {
+            if (FileUtil.getNameWithoutExtension(f).equalsIgnoreCase(name)) {
               return true;
             }
           }

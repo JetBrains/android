@@ -15,8 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.property2
 
-import com.android.SdkConstants
-import com.android.ide.common.rendering.api.ResourceValue
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_LAYOUT
+import com.android.SdkConstants.ATTR_NAME
+import com.android.SdkConstants.ATTR_PARENT_TAG
+import com.android.SdkConstants.TOOLS_URI
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.resources.ResourceFolderType
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
@@ -41,11 +46,15 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.TransactionGuard
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.io.FileUtil
+import com.intellij.psi.xml.XmlFile
 import com.intellij.util.Alarm
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.resourceManagers.LocalResourceManager
+import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.annotations.TestOnly
 import java.util.Collections
 import java.util.concurrent.Future
@@ -73,7 +82,7 @@ open class NelePropertiesModel(parentDisposable: Disposable,
   private var activeSurface: DesignSurface? = null
   private var activeSceneView: SceneView? = null
   private var activePanel: AccessoryPanelInterface? = null
-  private var defaultValueProvider: NeleDefaultPropertyProvider? = null
+  protected var defaultValueProvider: DefaultPropertyValueProvider? = null
   private val liveComponents = mutableListOf<NlComponent>()
   private val liveChangeListener: ChangeListener = ChangeListener { firePropertyValueChangeIfNeeded() }
 
@@ -102,7 +111,7 @@ open class NelePropertiesModel(parentDisposable: Disposable,
 
   @VisibleForTesting
   var lastUpdateCompleted: Boolean = true
-    private set
+    protected set
 
   init {
     @Suppress("LeakingThis")
@@ -138,7 +147,7 @@ open class NelePropertiesModel(parentDisposable: Disposable,
     NlUsageTracker.getInstance(activeSurface).logPropertyChange(property, -1)
   }
 
-  fun provideDefaultValue(property: NelePropertyItem): ResourceValue? {
+  fun provideDefaultValue(property: NelePropertyItem): String? {
     return defaultValueProvider?.provideDefaultValue(property)
   }
 
@@ -164,7 +173,7 @@ open class NelePropertiesModel(parentDisposable: Disposable,
       NlWriteCommandActionUtil.run(property.components, "Set $componentName.${property.name} to $newValue") {
         property.components.forEach { it.setAttribute(property.namespace, property.name, newValue) }
         logPropertyValueChanged(property)
-        if (property.namespace == SdkConstants.TOOLS_URI) {
+        if (property.namespace == TOOLS_URI) {
           if (newValue != null) {
             // A tools property may not be in the current set of possible properties. So add it now:
             if (properties.isEmpty) {
@@ -173,15 +182,35 @@ open class NelePropertiesModel(parentDisposable: Disposable,
             properties.put(property)
           }
 
-          if (property.name == SdkConstants.ATTR_PARENT_TAG) {
+          if (property.name == ATTR_PARENT_TAG) {
             // When the "parentTag" attribute is set on a <merge> tag,
             // we may have a different set of available properties available,
             // since the attributes of the "parentTag" are included if set.
             firePropertiesGenerated()
           }
         }
+        else if (property.namespace == ANDROID_URI && property.name == ATTR_NAME) {
+          val component = property.components[0]
+          val layout = newValue?.let { findLayoutForClass(component, it) }
+          component.setAttribute(TOOLS_URI, ATTR_LAYOUT, layout)
+        }
       }
     })
+  }
+
+  private fun findLayoutForClass(component: NlComponent, className: String): String? {
+    val module = component.model.module
+    val resourceManager = LocalResourceManager.getInstance(module) ?: return null
+
+    for (resourceFile in resourceManager.findResourceFiles(ResourceNamespace.TODO(), ResourceFolderType.LAYOUT)
+      .filterIsInstance<XmlFile>()) {
+      val contextClass = AndroidUtils.getContextClass(module, resourceFile) ?: continue
+      if (contextClass.qualifiedName == className) {
+        return "@layout/" + FileUtil.getNameWithoutExtension(resourceFile.name)
+      }
+    }
+
+    return null
   }
 
   private fun createMergingUpdateQueue(): MergingUpdateQueue {
@@ -193,7 +222,7 @@ open class NelePropertiesModel(parentDisposable: Disposable,
       updateDesignSurface(activeSurface, surface)
       activeSurface = surface
       (activeSceneView as? ScreenView)?.sceneManager?.removeRenderListener(renderListener)
-      activeSceneView = surface?.currentSceneView
+      activeSceneView = surface?.focusedSceneView
       (activeSceneView as? ScreenView)?.sceneManager?.addRenderListener(renderListener)
     }
     if (surface != null && wantComponentSelectionUpdate(surface, activeSurface, activePanel)) {
@@ -249,7 +278,7 @@ open class NelePropertiesModel(parentDisposable: Disposable,
     // can take close to a second, so we do it on a separate thread..
     val application = ApplicationManager.getApplication()
     val wantUpdate = { wantComponentSelectionUpdate(surface, activeSurface, activePanel) }
-    val future = application.executeOnPooledThread<Boolean> { handleUpdate(null, components, wantUpdate) }
+    val future = application.executeOnPooledThread<Boolean> { loadProperties(null, components, wantUpdate) }
 
     // Enable our testing code to wait for the above pooled thread execution.
     if (application.isUnitTestMode) {
@@ -257,7 +286,7 @@ open class NelePropertiesModel(parentDisposable: Disposable,
     }
   }
 
-  private fun updateLiveListeners(components: List<NlComponent>) {
+  protected fun updateLiveListeners(components: List<NlComponent>) {
     liveComponents.forEach { it.removeLiveChangeListener(liveChangeListener) }
     liveComponents.clear()
     liveComponents.addAll(components)
@@ -273,7 +302,7 @@ open class NelePropertiesModel(parentDisposable: Disposable,
     // can take close to a second, so we do it on a separate thread..
     val application = ApplicationManager.getApplication()
     val wantUpdate = { wantPanelSelectionUpdate(panel, activePanel) }
-    val future = application.executeOnPooledThread<Boolean> { handleUpdate(panel.selectedAccessory, components, wantUpdate) }
+    val future = application.executeOnPooledThread<Boolean> { loadProperties(panel.selectedAccessory, components, wantUpdate) }
 
     // Enable our testing code to wait for the above pooled thread execution.
     if (application.isUnitTestMode) {
@@ -281,20 +310,20 @@ open class NelePropertiesModel(parentDisposable: Disposable,
     }
   }
 
-  private fun handleUpdate(accessory: Any?, components: List<NlComponent>, wantUpdate: () -> Boolean): Boolean {
+  protected open fun loadProperties(accessory: Any?, components: List<NlComponent>, wantUpdate: () -> Boolean): Boolean {
     if (!wantUpdate()) {
       return false
     }
     val newProperties = provider.getProperties(this, accessory, components)
     lastUpdateCompleted = false
-    defaultValueProvider?.clearLookups()
+    defaultValueProvider?.clearCache()
 
     UIUtil.invokeLaterIfNeeded {
       try {
         if (wantUpdate()) {
           updateLiveListeners(components)
           properties = newProperties
-          defaultValueProvider = createNeleDefaultPropertyProvider()
+          defaultValueProvider = createDefaultPropertyValueProvider()
           firePropertiesGenerated()
         }
       }
@@ -311,12 +340,10 @@ open class NelePropertiesModel(parentDisposable: Disposable,
     }
   }
 
-  @VisibleForTesting
   fun firePropertiesGenerated() {
     listeners.toTypedArray().forEach { it.propertiesGenerated(this) }
   }
 
-  @VisibleForTesting
   fun firePropertyValueChangeIfNeeded() {
     val components = activeSurface?.selectionModel?.selection ?: return
     if (components.isEmpty() || components != liveComponents) {
@@ -328,9 +355,9 @@ open class NelePropertiesModel(parentDisposable: Disposable,
     listeners.toTypedArray().forEach { it.propertyValuesChanged(this) }
   }
 
-  private fun createNeleDefaultPropertyProvider(): NeleDefaultPropertyProvider? {
+  private fun createDefaultPropertyValueProvider(): DefaultPropertyValueProvider? {
     val view = activeSceneView ?: return null
-    return NeleDefaultPropertyProvider(view.sceneManager)
+    return NeleDefaultPropertyValueProvider(view.sceneManager)
   }
 
   private inner class PropertiesDesignSurfaceListener : DesignSurfaceListener {

@@ -37,7 +37,7 @@ public class LifecycleTooltip extends ProfilerMonitorTooltip<EventMonitor> {
   @Nullable
   public LifecycleAction getActivityAt(double time) {
     List<SeriesData<EventAction<LifecycleEvent>>> activitySeries =
-      getMonitor().getActivityEvents().getRangedSeries().getSeries();
+      getMonitor().getLifecycleEvents().getActivitySeries().getSeries();
     for (SeriesData<EventAction<LifecycleEvent>> series : activitySeries) {
       if (series.value.getStartUs() <= time && (series.value.getEndUs() > time || series.value.getEndUs() == 0)) {
         return (LifecycleAction)series.value;
@@ -49,7 +49,7 @@ public class LifecycleTooltip extends ProfilerMonitorTooltip<EventMonitor> {
   @NotNull
   public List<LifecycleAction> getFragmentsAt(@NotNull Range range) {
     List<SeriesData<EventAction<LifecycleEvent>>> fragmentSeries =
-      getMonitor().getFragmentEvents().getRangedSeries().getSeries();
+      getMonitor().getLifecycleEvents().getFragmentSeries().getSeries();
     ArrayList<LifecycleAction> fragments = new ArrayList<>();
     for (SeriesData<EventAction<LifecycleEvent>> series : fragmentSeries) {
       if (series.value.getStartUs() <= range.getMax() && (series.value.getEndUs() > range.getMin() || series.value.getEndUs() == 0)) {

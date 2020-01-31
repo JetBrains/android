@@ -18,7 +18,7 @@ package com.android.tools.adtui.swing;
 import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
+import javax.swing.SwingUtilities;
 import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;

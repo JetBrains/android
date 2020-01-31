@@ -21,7 +21,6 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
 import com.android.tools.profiler.proto.Cpu
-import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
@@ -100,10 +99,17 @@ class CpuProfilingConfigurationViewTest {
     assertThat(configurationView.profilingConfigurations.size).isGreaterThan(1)
 
     // API-initiated tracing starts.
-    val apiTracingconfig = CpuProfiler.CpuProfilerConfiguration.newBuilder().setTraceType(Cpu.CpuTraceType.ART).build()
-    val startTimestamp: Long = 100
-    cpuService.setOngoingCaptureConfiguration(apiTracingconfig, startTimestamp, Cpu.TraceInitiationType.INITIATED_BY_API)
-    stage.updateProfilingState(true)
+    val apiTracingConfig = Cpu.CpuTraceConfiguration.newBuilder()
+      .setInitiationType(Cpu.TraceInitiationType.INITIATED_BY_API)
+      .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder().setTraceType(Cpu.CpuTraceType.ART))
+      .build()
+    val traceInfo = Cpu.CpuTraceInfo.newBuilder()
+      .setTraceId(1)
+      .setToTimestamp(-1)
+      .setConfiguration(apiTracingConfig)
+      .build()
+    cpuService.addTraceInfo(traceInfo)
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
     // Verify the configuration is set to the special config properly.
     assertThat(configurationView.profilingConfiguration.name).isEqualTo("Debug API (Java)")
@@ -112,8 +118,8 @@ class CpuProfilingConfigurationViewTest {
     assertThat(stage.captureState).isEqualTo(CpuProfilerStage.CaptureState.CAPTURING)
 
     // API-initiated tracing ends.
-    cpuService.setAppBeingProfiled(false)
-    stage.updateProfilingState(true)
+    cpuService.addTraceInfo(traceInfo.toBuilder().setToTimestamp(1).build())
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
     // Verify the configuration is set back to the config before API-initiated tracing.
     assertThat(configurationView.profilingConfiguration).isEqualTo(config)

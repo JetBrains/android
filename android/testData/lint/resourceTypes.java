@@ -8,7 +8,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.res.Resources;
 import android.os.Build;
-import android.support.annotation.<error descr="Cannot resolve symbol 'DrawableRes'">DrawableRes</error>;
+import android.support.annotation.DrawableRes;
 import android.view.View;
 
 import static android.content.Context.CONNECTIVITY_SERVICE;
@@ -37,7 +37,7 @@ public class ResourceTypes {
         boolean error4 = resources.getBoolean(<error descr="Expected resource of type bool">flow2</error>);
     }
 
-    @android.support.annotation.<error descr="Cannot resolve symbol 'DrawableRes'">DrawableRes</error>
+    @android.support.annotation.DrawableRes
     public int testResourceTypeReturnValues(Context context, boolean useString) {
         if (useString) {
             return <error descr="Expected resource of type drawable">R.string.app_name</error>; // error

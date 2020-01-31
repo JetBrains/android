@@ -122,7 +122,7 @@ public class EnergyMonitor extends ProfilerMonitor {
 
     public Legends(@NotNull EnergyUsage usage, @NotNull Range range) {
       super(range);
-      myUsageLegend = new SeriesLegend(usage.getUsageDataSeries(), EnergyAxisFormatter.LEGEND_FORMATTER, range);
+      myUsageLegend = new SeriesLegend(usage.getTotalUsageDataSeries(), EnergyAxisFormatter.LEGEND_FORMATTER, range);
       add(myUsageLegend);
     }
 

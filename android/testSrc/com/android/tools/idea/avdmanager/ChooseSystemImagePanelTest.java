@@ -211,7 +211,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     mySmallTablet = devMgr.getDevice("Nexus 7", "Google");
 
     // Get an Automotive device
-    myAutomotiveDevice = devMgr.getDevice("automotive_1024p_landscape", "Generic");
+    myAutomotiveDevice = devMgr.getDevice("automotive_1024p_landscape", "Google");
   }
 
   public void testClassificationFromParts() {
@@ -226,7 +226,6 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     assertEquals(RECOMMENDED, getClassificationFromParts(Abi.X86, 25, WEAR_TAG));
     assertEquals(X86, getClassificationFromParts(Abi.X86, 24, WEAR_TAG));
     assertEquals(OTHER, getClassificationFromParts(Abi.ARMEABI, 25, WEAR_TAG));
-    assertEquals(X86, getClassificationFromParts(Abi.X86, 25, GLASS_TAG));
     assertEquals(RECOMMENDED, getClassificationFromParts(Abi.X86, 25, TV_TAG));
     assertEquals(OTHER, getClassificationFromParts(Abi.ARMEABI_V7A, 25, TV_TAG));
     assertEquals(X86, getClassificationFromParts(Abi.X86, 25, DEFAULT_TAG));

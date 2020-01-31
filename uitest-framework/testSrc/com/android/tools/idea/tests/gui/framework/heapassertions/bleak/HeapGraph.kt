@@ -15,6 +15,15 @@
  */
 package com.android.tools.idea.tests.gui.framework.heapassertions.bleak
 
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.ArrayObjectIdentityExpander
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.BootstrapClassloaderPlaceholder
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.ClassLoaderExpander
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.ClassStaticsExpander
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.DefaultObjectExpander
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.Expander
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.ExpanderChooser
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.Node
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.RootExpander
 import java.lang.ref.Reference
 import java.lang.ref.SoftReference
 import java.lang.ref.WeakReference
@@ -28,6 +37,8 @@ import kotlin.system.measureTimeMillis
 // to memory consumption exponential in the iteration count, for no useful purpose)
 interface DoNotTrace
 
+typealias Node = HeapGraph.Node
+
 /** [HeapGraph] represents a slightly-abstracted snapshot of the Java object reference graph.
  * Each node corresponds to a single object, and edges represent references, either real, or
  * abstracted. [Expander]s are responsible for defining the nature of this abstraction.
@@ -35,23 +46,28 @@ interface DoNotTrace
 class HeapGraph(val isInitiallyGrowing: Node.() -> Boolean = { false }): DoNotTrace {
 
   private val expanderChooser: ExpanderChooser = ExpanderChooser(listOf(
+    RootExpander(this),
     ArrayObjectIdentityExpander(this),
+    ClassLoaderExpander(this, jniHelper),
     ClassStaticsExpander(this),
     DefaultObjectExpander(this)))
 
   private val objToNode: MutableMap<Any, Node> = IdentityHashMap()
-  private val rootNodes: List<Node> = traversalRoots.map{Node(it, true)}
+  private val rootNodes: List<Node> = mutableListOf(Node(jniHelper, true)) //traversalRoots.map{Node(it, true)}
   private val nodes: MutableCollection<Node>
     get() = objToNode.values
   val leakRoots: MutableList<Node> = mutableListOf()
+  lateinit var disposerInfo: DisposerInfo
 
-  inner class Node(val obj: Any, isRootNode: Boolean = false): DoNotTrace {
+  inner class Node(val obj: Any, val isRootNode: Boolean = false): DoNotTrace {
     private val expander = expanderChooser.expanderFor(obj)
     val edges = mutableListOf<Edge>()
     val type: Class<*> = obj.javaClass
     var incomingEdge: Edge? = if (isRootNode) Edge(this, this, expander.RootLoopbackLabel()) else null
     val children: List<Node>
       get() = edges.map { it.end }
+    val childObjects: List<Any>
+      get() = edges.map { it.end.obj }
     val degree: Int
       get() = edges.size
     var mark = 0
@@ -149,10 +165,11 @@ class HeapGraph(val isInitiallyGrowing: Node.() -> Boolean = { false }): DoNotTr
 
   fun getOrCreateNode(obj: Any): Node = objToNode[obj] ?: Node(obj)
 
-  fun expandWholeGraph(): HeapGraph {
+  fun expandWholeGraph(initialRun: Boolean = false): HeapGraph {
     withThreadsPaused {
         time("Expanding graph") {
           bfs { expand(); if (isInitiallyGrowing()) markAsGrowing() }
+          if (initialRun) disposerInfo = DisposerInfo.createBaseline()
         }
     }
     println("Graph has ${nodes.size} nodes")
@@ -213,24 +230,27 @@ class HeapGraph(val isInitiallyGrowing: Node.() -> Boolean = { false }): DoNotTr
 
   fun propagateGrowing(newGraph: HeapGraph) {
     time("Propagate growing") {
-      newGraph.markAll(0)
-      val q = ArrayDeque<Pair<Node, Node>>()
-      with(q) {
-        addAll(rootNodes.zip(newGraph.rootNodes))
-        newGraph.rootNodes.forEach { it.mark = 1 }
-        while (isNotEmpty()) {
-          val (old, new) = pop()
-          if (old.growing && old.degree < new.degree) {
-            new.markAsGrowing()
-          }
-          for (e in old.edges) {
-            val correspondingNewNode = new[e]
-            if (correspondingNewNode != null && correspondingNewNode.mark == 0) {
-              correspondingNewNode.mark = 1
-              add(e.end to correspondingNewNode)
+      withThreadsPaused {
+        newGraph.markAll(0)
+        val q = ArrayDeque<Pair<Node, Node>>()
+        with(q) {
+          addAll(rootNodes.zip(newGraph.rootNodes))
+          newGraph.rootNodes.forEach { it.mark = 1 }
+          while (isNotEmpty()) {
+            val (old, new) = pop()
+            if (old.growing && old.degree < new.degree) {
+              new.markAsGrowing()
+            }
+            for (e in old.edges) {
+              val correspondingNewNode = new[e]
+              if (correspondingNewNode != null && correspondingNewNode.mark == 0) {
+                correspondingNewNode.mark = 1
+                add(e.end to correspondingNewNode)
+              }
             }
           }
         }
+        newGraph.disposerInfo = DisposerInfo.propagateFrom(this.disposerInfo)
       }
     }
     println("New graph has ${newGraph.leakRoots.size} potential leak roots")
@@ -248,76 +268,18 @@ class HeapGraph(val isInitiallyGrowing: Node.() -> Boolean = { false }): DoNotTr
             }
           }
         }
+        newGraph.disposerInfo = DisposerInfo.propagateFrom(this.disposerInfo)
       }
     }
     println("New graph has ${newGraph.leakRoots.size} potential leak roots")
   }
 
-  private fun removeTroublesomeRoots() {
-    leakRoots.filter { it.getPath().signature().isTroublesome() }.map { it.unmarkGrowing() }
-    leakRoots.retainAll { it.growing }
-  }
-
-  // ObjectNodes in the Disposer tree have references back to the tree, which maintains a map from Disposable
-  // objects to their nodes. If there is more than one leak root inside the disposer (which is common), the
-  // reported leakShare or retained size will be misleadingly small, as the entire disposer tree will be
-  // reachable from the other leak root. The "troublesome roots" mechanism is insufficient here, since that
-  // whitelists the roots. To get around this, we sever the edge for ObjectTree.myObject2NodeMap before
-  // ranking the leaks.
-  private fun removeDisposerObject2NodeMapEdge() {
-    val disposerTree = instancesOf("com.intellij.openapi.util.objectTree.ObjectTree")[0]
-    disposerTree.edges.find { "myObject2NodeMap" in it.label.signature() }?.delete()
-  }
-
-  enum class LeakRankingStrategy {
-    LEAK_SHARE, RETAINED_SIZE;
-  }
-
-  fun rankLeakRoots(): List<Pair<Node, Double>> = when (LEAK_RANKING_STRATEGY) {
-    LeakRankingStrategy.LEAK_SHARE -> rankLeakRootsByLeakShare()
-    LeakRankingStrategy.RETAINED_SIZE -> rankLeakRootsByRetainedSize()
-  }
-
-  private fun rankLeakRootsByLeakShare(): List<Pair<Node, Double>> {
-    val roots = mutableListOf<Pair<Node, Double>>()
-    removeTroublesomeRoots()
-    removeDisposerObject2NodeMapEdge()
-    time("Computing leakShare") {
-      // mark all nodes reachable from non-growing nodes with 0, others with -1
-      bfs(markValue = 0, followWeakSoftRefs = false, childFilter = { !it.growing }) {}
-      var visitId = 0
-      for (leakRoot in leakRoots) {
-        visitId++
-        bfs(roots = listOf(leakRoot), markValue = visitId, clearMarks = false, followWeakSoftRefs = false, childFilter = { it.mark != 0 }) { leakShareDivisor++ }
+  fun getLeaks(prevGraph: HeapGraph): List<LeakInfo> {
+    return leakRoots.map { root ->
+      (prevGraph.getNodeForPath(root.getPath()) ?: prevGraph.leakRoots.find { it.obj === root.obj })?.let { prevRoot ->
+        LeakInfo(this, root, prevRoot)
       }
-      for (leakRoot in leakRoots) {
-        visitId++
-        var leakShare = 0.0
-        bfs(roots = listOf(leakRoot), markValue = visitId, clearMarks = false, followWeakSoftRefs = false,
-            childFilter = { it.leakShareDivisor != 0 }) { leakShare += getApproximateSize() / leakShareDivisor }
-        roots.add(leakRoot to leakShare)
-      }
-    }
-    return roots.sortedByDescending { it.second }
-  }
-
-  private fun rankLeakRootsByRetainedSize(): List<Pair<Node, Double>> {
-    val roots = mutableListOf<Pair<Node, Double>>()
-    removeTroublesomeRoots()
-    removeDisposerObject2NodeMapEdge()
-    time("Computing retained sizes of leak roots") {
-      bfs(markValue = 0, followWeakSoftRefs = false, childFilter = { !it.growing }) {}
-      var visitId = 0
-      for (leakRoot in leakRoots) {
-        var retainedSize = 0.0
-        visitId++
-        bfs(roots = leakRoots.minus(leakRoot), markValue = visitId, clearMarks = false, followWeakSoftRefs = false, childFilter = { it.mark != 0 }) {}
-        visitId++
-        bfs(roots = listOf(leakRoot), markValue = visitId, clearMarks = false, followWeakSoftRefs = false, childFilter = { it.mark != 0 && it.mark != visitId-1 }) { retainedSize += getApproximateSize() }
-        roots.add(leakRoot to retainedSize)
-      }
-    }
-    return roots.sortedByDescending { it.second }
+    }.filterNotNull()
   }
 
   fun List<Node>.anyReachableFrom(roots: List<Node>): Boolean {
@@ -353,8 +315,6 @@ class HeapGraph(val isInitiallyGrowing: Node.() -> Boolean = { false }): DoNotTr
 
   companion object {
     val jniHelper: BleakHelper = if (System.getProperty("bleak.jvmti.enabled") == "true") JniBleakHelper() else JavaBleakHelper()
-    val traversalRoots = jniHelper.traversalRoots()
-    val LEAK_RANKING_STRATEGY = LeakRankingStrategy.valueOf(System.getProperty("bleak.leak.ranking.strategy") ?: "LEAK_SHARE")
 
     private val objSizeMethod: Method? = try {
       Class.forName(
@@ -382,7 +342,9 @@ class Edge(val start: Node, val end: Node, val label: Expander.Label): DoNotTrac
   }
   // the signature is only used for whitelisting
   fun signature(): String =
-    if (label is DefaultObjectExpander.FieldLabel && (label.field.modifiers and Modifier.STATIC) != 0) {
+    if (start.isRootNode) {
+      "ROOT#" + if (end.obj === BootstrapClassloaderPlaceholder) "BootstrapClassLoader" else end.type.simpleName
+    } else if (label is DefaultObjectExpander.FieldLabel && (label.field.modifiers and Modifier.STATIC) != 0) {
       label.field.declaringClass.name + "#" + label.signature()
     } else {
       start.type.name + "#" + label.signature()
@@ -404,8 +366,8 @@ typealias Signature = List<String>
 typealias Path = List<Edge>
 fun Path.root() = first().start
 fun Path.tip() = last().end
-fun Path.signature() = map{it.signature()}.plus(tip().type.name)
-fun Path.verboseSignature() = map{"${it.signature()}: ${try {it.end.obj.toString().take(90)} catch (e: Exception) {"[EXCEPTION]"}}"}.plus(tip().type.name)
+fun Path.signature() = if (isEmpty()) listOf("ROOT") else map{it.signature()}.plus(tip().type.name)
+fun Path.verboseSignature() = if (isEmpty()) listOf("ROOT") else map{"${it.signature()}: ${try {it.end.obj.toString().take(90)} catch (e: Exception) {"[EXCEPTION]"}}"}.plus(tip().type.name)
 
 private fun String.typePart(): String = substringBefore('#')
 private fun String.labelPart(): String = substringAfter('#')

@@ -1,5 +1,11 @@
 package org.jetbrains.android.dom.resources;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.resources.ResourceFolderType;
+import com.android.resources.ResourceType;
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
 import com.intellij.codeInsight.completion.JavaLookupElementBuilder;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.*;
@@ -52,6 +58,16 @@ public class DeclareStyleableNameConverter extends Converter<String> implements 
       super(DomUtil.getValueElement(value), true);
       myFacet = facet;
       myValue = value;
+    }
+
+    @Override
+    public boolean isReferenceTo(@NotNull PsiElement element) {
+      if (StudioFlags.RESOLVE_USING_REPOS.get() && element instanceof ResourceReferencePsiElement) {
+        if (((ResourceReferencePsiElement)element).getResourceReference().getResourceType().equals(ResourceType.STYLEABLE)) {
+          return ((ResourceReferencePsiElement)element).getResourceReference().getName().equals(myValue.getValue());
+        }
+      }
+      return super.isReferenceTo(element);
     }
 
     @NotNull

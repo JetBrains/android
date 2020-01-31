@@ -27,6 +27,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import java.io.File
 import java.nio.channels.FileChannel
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -122,14 +123,18 @@ class HProfEventBasedParserTest {
     }
     progress.isIndeterminate = false
     val generatedReport = analysis.analyze(progress)
-    val baselineReport = getBaselineContents("sample-report.txt")
+    val baselinePath = getBaselinePath("sample-report.txt")
+    val baselineReport = getBaselineContents(baselinePath)
 
-    assertEquals(baselineReport, generatedReport)
+    assertEquals("Report doesn't match the baseline from file:\n$baselinePath",
+                        baselineReport, generatedReport)
   }
 
-  private fun getBaselineContents(fileName: String): String {
-    return String(Files.readAllBytes(
-      AndroidTestPaths.adtSources().resolve("android/testData/profiling/$fileName")), StandardCharsets.UTF_8)
+  private fun getBaselineContents(path: Path): String {
+    return String(Files.readAllBytes(path), StandardCharsets.UTF_8)
   }
+
+  private fun getBaselinePath(fileName: String) =
+    AndroidTestPaths.adtSources().resolve("android/testData/profiling/$fileName")
 
 }

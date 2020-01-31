@@ -102,7 +102,7 @@ public class ScrollInteraction extends Interaction {
   }
 
   @Override
-  public void end(@SwingCoordinate int x, @SwingCoordinate int y, int modifiers, boolean canceled) {
+  public void end(@SwingCoordinate int x, @SwingCoordinate int y, int modifiersEx, boolean canceled) {
     if (canceled) {
       // Make sure we reset the scroll to where it was
       myHandler.update(0);

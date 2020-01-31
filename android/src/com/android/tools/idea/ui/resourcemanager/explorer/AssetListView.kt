@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcemanager.explorer
 
-import com.android.tools.idea.ui.resourcemanager.model.DesignAssetSet
+import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.widget.AssetView
 import com.android.tools.idea.ui.resourcemanager.widget.RowAssetView
 import com.android.tools.idea.ui.resourcemanager.widget.SingleAssetCard
@@ -35,13 +35,13 @@ private val DEFAULT_PREVIEW_SIZE = JBUI.scale(50)
 private const val DEFAULT_GRID_MODE = false
 
 /**
- * [JList] to display [DesignAssetSet] and handle switching
+ * [JList] to display [ResourceAssetSet] and handle switching
  * between grid and list mode.
  */
 class AssetListView(
-  assets: List<DesignAssetSet>,
+  assets: List<ResourceAssetSet>,
   speedSearch: SpeedSearch? = null
-) : JBList<DesignAssetSet>() {
+) : JBList<ResourceAssetSet>() {
 
   var isGridMode: Boolean by Delegates.observable(DEFAULT_GRID_MODE) { _, _, isGridMode ->
     if (isGridMode) {
@@ -70,7 +70,7 @@ class AssetListView(
     }
   }
 
-  private val filteringListModel: FilteringListModel<DesignAssetSet>?
+  private val filteringListModel: FilteringListModel<ResourceAssetSet>?
 
   init {
     isOpaque = false
@@ -88,8 +88,8 @@ class AssetListView(
   }
 
   private fun createFilteringListModel(speedSearch: SpeedSearch,
-                                       collectionListModel: CollectionListModel<DesignAssetSet>
-  ): NameFilteringListModel<DesignAssetSet> {
+                                       collectionListModel: CollectionListModel<ResourceAssetSet>
+  ): NameFilteringListModel<ResourceAssetSet> {
     speedSearch.setEnabled(true)
     return NameFilteringListModel(collectionListModel, { it.name }, speedSearch::shouldBeShowing,
                                   { StringUtil.notNullize(speedSearch.filter) })

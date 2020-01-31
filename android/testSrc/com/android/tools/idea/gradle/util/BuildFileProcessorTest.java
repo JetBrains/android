@@ -15,7 +15,13 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.android.tools.idea.gradle.project.sync.GradleSyncIntegrationTest;
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.util.BuildFileProcessor.getCompositeBuildFolderPaths;
+import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.MockitoAnnotations.initMocks;
+
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ThrowableComputable;
@@ -23,21 +29,14 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.io.File;
+import java.util.Collections;
+import java.util.List;
 import org.jetbrains.plugins.gradle.model.data.BuildParticipant;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
-import java.io.File;
-import java.util.Collections;
-import java.util.List;
-
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.util.BuildFileProcessor.getCompositeBuildFolderPaths;
-import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.MockitoAnnotations.initMocks;
-
-public class BuildFileProcessorTest extends GradleSyncIntegrationTest {
+public class BuildFileProcessorTest extends AndroidGradleTestCase {
   private GradleProjectSettings myProjectSettings;
 
   @Override

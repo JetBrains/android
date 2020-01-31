@@ -18,9 +18,13 @@ package com.android.tools.idea.lang.databinding.reference
 import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.ModuleDataBinding
 import com.android.tools.idea.lang.databinding.getTestDataPath
+import com.android.tools.idea.lang.databinding.model.ModelClassResolvable
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.facet.FacetManager
+import com.intellij.psi.PsiMethod
+import com.intellij.psi.impl.source.resolve.reference.impl.PsiMultiReference
+import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlTag
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -67,8 +71,90 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
       </manifest>
     """.trimIndent())
 
+    // Add a fake "BindingAdapter" to this project so the tests resolve the dependency; this is
+    // easier than finding a way to add a real dependency on the data binding library, which
+    // usually requires Gradle plugin support.
+    val databindingPackage = mode.packageName.removeSuffix(".") // Without trailing '.'
+    val databindingSrcPath = "src/${databindingPackage.replace('.', '/')}"
+
+    with(fixture.addFileToProject(
+      "$databindingSrcPath/BindingAdapter.java",
+      // language=java
+      """
+        package $databindingPackage;
+
+        import java.lang.annotation.ElementType;
+        import java.lang.annotation.Target;
+
+        @Target(ElementType.METHOD)
+        public @interface BindingAdapter {
+          String[] value();
+        }
+      """.trimIndent())) {
+      // The following line is needed or else we get an error for referencing a file out of bounds
+      fixture.allowTreeAccessForFile(this.virtualFile)
+    }
+
+    with(fixture.addFileToProject(
+      "$databindingSrcPath/InverseBindingAdapter.java",
+      // language=java
+      """
+        package $databindingPackage;
+
+        import java.lang.annotation.ElementType;
+        import java.lang.annotation.Target;
+
+        @Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
+        public @interface InverseBindingAdapter {
+            String attribute();
+            String event() default "";
+        }
+      """.trimIndent())) {
+      // The following line is needed or else we get an error for referencing a file out of bounds
+      fixture.allowTreeAccessForFile(this.virtualFile)
+    }
+
+    with(fixture.addFileToProject(
+      "$databindingSrcPath/InverseBindingMethods.java",
+      // language=java
+      """
+        package $databindingPackage;
+
+        import java.lang.annotation.ElementType;
+        import java.lang.annotation.Target;
+
+        @Target(ElementType.TYPE)
+        public @interface InverseBindingMethods {
+            InverseBindingMethod[] value();
+        }
+      """.trimIndent())) {
+      // The following line is needed or else we get an error for referencing a file out of bounds
+      fixture.allowTreeAccessForFile(this.virtualFile)
+    }
+
+    with(fixture.addFileToProject(
+      "src/${databindingPackage.replace('.', '/')}/InverseBindingMethod.java",
+      // language=java
+      """
+        package $databindingPackage;
+
+        import java.lang.annotation.ElementType;
+        import java.lang.annotation.Target;
+
+        @Target(ElementType.ANNOTATION_TYPE)
+        public @interface InverseBindingMethod {
+            Class type();
+            String attribute();
+            String event() default "";
+            String method() default "";
+        }
+      """.trimIndent())) {
+      // The following line is needed or else we get an error for referencing a file out of bounds
+      fixture.allowTreeAccessForFile(this.virtualFile)
+    }
+
     val androidFacet = FacetManager.getInstance(projectRule.module).getFacetByType(AndroidFacet.ID)
-    ModuleDataBinding.getInstance(androidFacet!!).setMode(mode)
+    ModuleDataBinding.getInstance(androidFacet!!).dataBindingMode = mode
   }
 
   @Test
@@ -91,6 +177,40 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val element = fixture.elementAtCaret as XmlTag
+    assertThat(element.name).isEqualTo("variable")
+    assertThat(element.attributes.find { attr -> attr.name == "name" && attr.value == "model" }).isNotNull()
+  }
+
+  @Test
+  fun dbIdReferencesXmlVariableFromOtherLayoutFiles() {
+    fixture.addClass(
+      // language=java
+      """
+      package test.langdb;
+      public class Model {
+        String getStrValue() {}
+      }
+    """.trimIndent())
+
+    fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name="model" type="test.langdb.Model" />
+        </data>
+        <TextView android:text="text"/>
+      </layout>
+    """.trimIndent())
+
+    val landFile = fixture.addFileToProject("res/layout-land/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <TextView android:text="@{mo<caret>del.strValue}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(landFile.virtualFile)
 
     val element = fixture.elementAtCaret as XmlTag
     assertThat(element.name).isEqualTo("variable")
@@ -129,6 +249,81 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
   }
 
   @Test
+  fun dbFieldReferencesMapValue() {
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name="map" type="java.util.Map<Integer, String>" />
+        </data>
+        <TextView android:text="@{map.str<caret>Value}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val methodInSourceCode = fixture.findClass("java.util.Map").findMethodsByName("get", false)[0]
+    val referencedMethod = fixture.getReferenceAtCaretPosition()!!
+
+    // Generic types in "java.util.Map" should be resolved correctly.
+    assertThat((referencedMethod as ModelClassResolvable).resolvedType!!.type.canonicalText).isEqualTo("java.lang.String")
+    // If both of these are true, it means XML can reach Java and Java can reach XML
+    assertThat(referencedMethod.isReferenceTo(methodInSourceCode)).isTrue()
+    assertThat(referencedMethod.resolve()).isEqualTo(methodInSourceCode)
+  }
+
+  @Test
+  fun dbFieldReferencesHashMapValue() {
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name="map" type="java.util.HashMap<Integer, String>" />
+        </data>
+        <TextView android:text="@{map.str<caret>Value}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val methodInSourceCode = fixture.findClass("java.util.HashMap").findMethodsByName("get", false)[0]
+    val referencedMethod = fixture.getReferenceAtCaretPosition()!!
+
+    // Generic types in "java.util.HashMap" should be resolved correctly.
+    assertThat((referencedMethod as ModelClassResolvable).resolvedType!!.type.canonicalText).isEqualTo("java.lang.String")
+    // If both of these are true, it means XML can reach Java and Java can reach XML
+    assertThat(referencedMethod.isReferenceTo(methodInSourceCode)).isTrue()
+    assertThat(referencedMethod.resolve()).isEqualTo(methodInSourceCode)
+  }
+
+  @Test
+  fun dbFieldReferencesMapField() {
+    fixture.addClass("""
+      package test.langdb;
+
+      public class MyMap extends HashMap<String, String>{
+        public String myField
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name="map" type="test.langdb.MyMap" />
+        </data>
+        <TextView android:text="@{map.myFiel<caret>d"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val methodInSourceCode = fixture.findClass("test.langdb.MyMap").findFieldByName("myField", false)!!
+    val referencedMethod = fixture.getReferenceAtCaretPosition()!!
+
+    // If both of these are true, it means XML can reach Java and Java can reach XML
+    assertThat(referencedMethod.isReferenceTo(methodInSourceCode)).isTrue()
+    assertThat(referencedMethod.resolve()).isEqualTo(methodInSourceCode)
+  }
+
+  @Test
   fun dbMethodReferencesClassMethod() {
     fixture.addClass("""
       package test.langdb;
@@ -145,6 +340,35 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
           <variable name="model" type="test.langdb.Model" />
         </data>
         <TextView android:text="@{model.do<caret>Something()}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val javaDoSomething = fixture.findClass("test.langdb.Model").findMethodsByName("doSomething")[0].sourceElement!!
+    val xmlDoSomething = fixture.getReferenceAtCaretPosition()!!
+
+    // If both of these are true, it means XML can reach Java and Java can reach XML
+    assertThat(xmlDoSomething.isReferenceTo(javaDoSomething)).isTrue()
+    assertThat(xmlDoSomething.resolve()).isEqualTo(javaDoSomething)
+  }
+
+  @Test
+  fun dbMethodReferencesClassMethodWithVarArgs() {
+    fixture.addClass("""
+      package test.langdb;
+
+      public class Model {
+        public void doSomething(Object... args) {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name="model" type="test.langdb.Model" />
+        </data>
+        <TextView android:text="@{model.do<caret>Something(model, model, model)}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -271,6 +495,70 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
     val javaHandleClick = fixture.findClass("test.langdb.ClickHandler").findMethodsByName("handleClick")[0].sourceElement!!
     val xmlHandleClick = fixture.getReferenceAtCaretPosition()!!
 
+    // If both of these are true, it means XML can reach Java and Java can reach XML
+    assertThat(xmlHandleClick.isReferenceTo(javaHandleClick)).isTrue()
+    assertThat(xmlHandleClick.resolve()).isEqualTo(javaHandleClick)
+  }
+
+  @Test
+  fun dbMethodDotReferenceReferencesClassMethod() {
+    fixture.addClass("""
+      package test.langdb;
+
+      import android.view.View;
+
+      public class ClickHandler {
+        public void handleClick(View v) {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name="clickHandler" type="test.langdb.ClickHandler" />
+        </data>
+        <TextView android:onClick="@{clickHandler.handle<caret>Click}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val javaHandleClick = fixture.findClass("test.langdb.ClickHandler").findMethodsByName("handleClick")[0].sourceElement!!
+    val xmlHandleClick = fixture.getReferenceAtCaretPosition()!!
+
+    // If both of these are true, it means XML can reach Java and Java can reach XML
+    assertThat(xmlHandleClick.isReferenceTo(javaHandleClick)).isTrue()
+    assertThat(xmlHandleClick.resolve()).isEqualTo(javaHandleClick)
+  }
+
+  @Test
+  fun dbMethodDotReferenceReferencesClassMethodWithoutArgument() {
+    fixture.addClass("""
+      package test.langdb;
+
+      import android.view.View;
+
+      public class ClickHandler {
+        public void handleClick() {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name="clickHandler" type="test.langdb.ClickHandler" />
+        </data>
+        <TextView android:onClick="@{clickHandler.handle<caret>Click}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val javaHandleClick = fixture.findClass("test.langdb.ClickHandler").findMethodsByName("handleClick")[0].sourceElement!!
+    val xmlHandleClick = fixture.getReferenceAtCaretPosition()!!
+
+    // Make sure xmlHandleClick references a method reference instead of a method call.
+    assertThat((xmlHandleClick as ModelClassResolvable).resolvedType).isNull()
     // If both of these are true, it means XML can reach Java and Java can reach XML
     assertThat(xmlHandleClick.isReferenceTo(javaHandleClick)).isTrue()
     assertThat(xmlHandleClick.resolve()).isEqualTo(javaHandleClick)
@@ -445,5 +733,497 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
     // If both of these are true, it means XML can reach Java and Java can reach XML
     assertThat(xmlDoSomething.isReferenceTo(javaDoSomething)).isTrue()
     assertThat(xmlDoSomething.resolve()).isEqualTo(javaDoSomething)
+  }
+
+  @Test
+  fun dbLiteralReferencesPrimitiveType() {
+    fixture.addClass("""
+      package test.langdb;
+
+      public class Model {
+        public String calculate(String value) {}
+        public int calculate(int value) {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name="model" type="test.langdb.Model" />
+        </data>
+        <TextView android:text="@{model.calcula<caret>te(15)}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val reference = fixture.getReferenceAtCaretPosition()!!
+    assertThat((reference as ModelClassResolvable).resolvedType!!.type.canonicalText).isEqualTo("int")
+  }
+
+  @Test
+  fun dbLiteralReferencesStringType() {
+    fixture.addClass("""
+      package test.langdb;
+
+      public class Model {
+        public String calculate(String value) {}
+        public int calculate(int value) {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name="model" type="test.langdb.Model" />
+        </data>
+        <TextView android:text="@{model.calcula<caret>te(`15`)}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val reference = fixture.getReferenceAtCaretPosition()!!
+    assertThat((reference as ModelClassResolvable).resolvedType!!.type.canonicalText).isEqualTo("java.lang.String")
+  }
+
+  @Test
+  fun dbMethodReferencesFromStringLiteral() {
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <TextView android:text="@{`string`.subst<caret>ring(5)"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val reference = fixture.getReferenceAtCaretPosition()!!
+    assertThat((reference as ModelClassResolvable).resolvedType!!.type.canonicalText).isEqualTo("java.lang.String")
+  }
+
+  @Test
+  fun dbLambdaParametersReferencesFunctionalInterface() {
+    fixture.addClass(
+      // language=java
+      """
+      package test.langdb;
+
+      import android.view.View;
+      import ${mode.bindingAdapter};
+
+      public class Model {
+        @BindingAdapter("android:onClick2")
+        public void bindDummyValue(View view, View.OnClickListener s) {}
+        public String getString() {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick2="@{(<caret>) -> model.getString()}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val reference = fixture.getReferenceAtCaretPosition()!!
+    assertThat((reference.resolve() as PsiMethod).name).isEqualTo("onClick")
+  }
+
+  @Test
+  fun dbLambdaExprShouldNotReferenceFunctionalInterface() {
+    fixture.addClass(
+      // language=java
+      """
+      package test.langdb;
+
+      import android.view.View;
+      import ${mode.bindingAdapter};
+
+      public class Model {
+        @BindingAdapter("android:onClick2")
+        public void bindDummyValue(View view, View.OnClickListener s) {}
+        public String getString() {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick2="@{() -> unresolvable_<caret>_code}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    assertThat(fixture.getReferenceAtCaretPosition()).isNull()
+  }
+
+  @Test
+  fun dbAttributeReferencesInverseBindingAdapter() {
+    fixture.addClass(
+      // language=java
+      """
+      package test.langdb;
+
+      import android.view.View;
+      import ${mode.bindingAdapter};
+      import ${mode.inverseBindingAdapter};
+
+      public class Model {
+        @BindingAdapter("text2")
+        public void bindDummyValue(View view, String s) {}
+        @InverseBindingAdapter(attribute = "text2")
+        public static String getDummyValue(View view) {}
+        public String getString()
+        public void setString(String s)
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            app:t<caret>ext2="@={model.string}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val reference = fixture.getReferenceAtCaretPosition()!!
+    assertThat((reference as PsiMultiReference).references.any { (it.resolve() as? PsiMethod)?.name == "getDummyValue" }).isTrue()
+  }
+
+  @Test
+  fun dbAttributeReferencesInverseBindingMethodWithDefaultGetter() {
+    fixture.addClass(
+      // language=java
+      """
+      package test.langdb;
+
+      import android.view.View;
+      import android.widget.TextView;
+      import ${mode.bindingAdapter};
+      import ${mode.inverseBindingMethod};
+      import ${mode.inverseBindingMethods};
+
+      @InverseBindingMethods({@InverseBindingMethod(
+        type = android.widget.TextView.class,
+        attribute = "android:text")})
+      public class Model {
+        @BindingAdapter("android:text")
+        public void bindDummyValue(TextView view, String s) {}
+        public String setString(String s) {}
+        public String getString() {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:tex<caret>t="@={model.string}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val reference = fixture.getReferenceAtCaretPosition()!!
+    assertThat((reference as PsiMultiReference).references.any { (it.resolve() as? PsiMethod)?.name == "getText" }).isTrue()
+  }
+
+  @Test
+  fun dbAttributeReferencesInverseBindingMethodWithDefaultBooleanGetter() {
+    fixture.addClass(
+      // language=java
+      """
+      package test.langdb;
+
+      import android.view.View;
+      import android.widget.ToggleButton;
+      import ${mode.bindingAdapter};
+      import ${mode.inverseBindingMethod};
+      import ${mode.inverseBindingMethods};
+
+      @InverseBindingMethods({
+              @InverseBindingMethod(type = ToggleButton.class, attribute = "android:checked"),
+      })
+      public class Model {
+        @BindingAdapter("android:checked")
+        public void bindDummyValue(View view, boolean s) {}
+        public String setBoolean(String s) {}
+        public String getBoolean() {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
+        </data>
+        <ToggleButton
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:checke<caret>d="@={model.boolean}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val reference = fixture.getReferenceAtCaretPosition()!!
+    assertThat((reference as PsiMultiReference).references.any { (it.resolve() as? PsiMethod)?.name == "isChecked" }).isTrue()
+  }
+
+  @Test
+  fun dbAttributeReferencesInverseBindingMethodWithCustomGetter() {
+    fixture.addClass(
+      // language=java
+      """
+      package test.langdb;
+
+      import android.view.View;
+      import android.widget.TextView;
+      import ${mode.bindingAdapter};
+      import ${mode.inverseBindingMethod};
+      import ${mode.inverseBindingMethods};
+
+      @InverseBindingMethods({@InverseBindingMethod(
+        type = android.widget.TextView.class,
+        attribute = "android:text2",
+        method = "getText")})
+      public class Model {
+        @BindingAdapter("android:text2")
+        public void bindDummyValue(TextView view, String s) {}
+        public String setString(String s) {}
+        public String getString() {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:tex<caret>t2="@={model.string}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val reference = fixture.getReferenceAtCaretPosition()!!
+    assertThat((reference as PsiMultiReference).references.any { (it.resolve() as? PsiMethod)?.name == "getText" }).isTrue()
+  }
+
+  @Test
+  fun dbSimpleNameReferencesViewId() {
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <TextView
+            android:id="@+id/view_id"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick2="@{vie<caret>wId.getText()}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    val reference = fixture.getReferenceAtCaretPosition()!!
+    val xmlAttribute = reference.resolve() as XmlAttribute
+    assertThat(xmlAttribute.name).isEqualTo("android:id")
+    assertThat(xmlAttribute.value).isEqualTo("@+id/view_id")
+  }
+
+  @Test
+  fun dbResolveMethodsFromInterfaceReturnType() {
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <EditText
+            android:id="@+id/view_id"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick="@{viewId.getText().le<caret>ngth()}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    val reference = fixture.getReferenceAtCaretPosition()!!
+    // view_id.getText() should return interface Editable that extends CharSequence and inherits its method length().
+    assertThat((reference.resolve() as PsiMethod).name).isEqualTo("length")
+  }
+
+  @Test
+  fun dbResolveContextSimpleNameToContextInstance() {
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <EditText
+            android:id="@+id/view_id"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick="@{con<caret>text.getText()}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    val reference = fixture.getReferenceAtCaretPosition()!!
+    assertThat((reference as ModelClassResolvable).resolvedType!!.type.canonicalText).isEqualTo("android.content.Context")
+  }
+
+  @Test
+  fun dbResolveContextSimpleNameToVariable() {
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <data>
+          <variable name="context" type="String" />
+        </data>
+        <EditText
+            android:id="@+id/view_id"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick="@{con<caret>text}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    val reference = fixture.getReferenceAtCaretPosition()!!
+    assertThat((reference as ModelClassResolvable).resolvedType!!.type.canonicalText).isEqualTo("java.lang.String")
+  }
+
+  @Test
+  fun dbStaticFieldReferencesInstanceMethod() {
+    fixture.addClass("""
+      package test.langdb;
+
+      public class Model {
+        public static Model staticModel;
+        public Model model;
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name="model" type="test.langdb.Model" />
+        </data>
+        <TextView android:text="@{model.staticModel.mod<caret>el}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val javaStrValue = fixture.findClass("test.langdb.Model").findFieldByName("model", false)!!
+    val xmlStrValue = fixture.getReferenceAtCaretPosition()!!
+
+    // If both of these are true, it means XML can reach Java and Java can reach XML
+    assertThat(xmlStrValue.isReferenceTo(javaStrValue)).isTrue()
+    assertThat(xmlStrValue.resolve()).isEqualTo(javaStrValue)
+  }
+
+  @Test
+  fun dbFieldReferencesCustomMapValue() {
+    fixture.addClass("""
+      package test.langdb;
+      import java.util.Map;
+
+      public class MyMap<K, V> extends Map<K, V> {
+      }
+    """.trimIndent())
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name="map" type="test.langdb.MyMap<Integer, String>" />
+        </data>
+        <TextView android:text="@{map.str<caret>Value}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val methodInSourceCode = fixture.findClass("java.util.Map").findMethodsByName("get", false)[0]
+    val referencedMethod = fixture.getReferenceAtCaretPosition()!!
+
+    // Generic types in "java.util.MyMap" should be resolved correctly.
+    assertThat((referencedMethod as ModelClassResolvable).resolvedType!!.type.canonicalText).isEqualTo("java.lang.String")
+    // If both of these are true, it means XML can reach Java and Java can reach XML
+    assertThat(referencedMethod.isReferenceTo(methodInSourceCode)).isTrue()
+    assertThat(referencedMethod.resolve()).isEqualTo(methodInSourceCode)
+  }
+
+  @Test
+  fun dbReferencesMethodBestMatchedWithArguments() {
+    fixture.addClass("""
+      package test.langdb;
+
+      public class Model {
+        public Object confusingFunction(Object object) {}
+        public String confusingFunction(String str) {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name="model" type="test.langdb.Model" />
+        </data>
+        <TextView android:text="@{model.confu<caret>singFunction(`string`)}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val reference = fixture.getReferenceAtCaretPosition()!!
+    assertThat((reference as ModelClassResolvable).resolvedType!!.type.canonicalText).isEqualTo("java.lang.String")
   }
 }

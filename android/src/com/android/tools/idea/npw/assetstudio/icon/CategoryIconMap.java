@@ -18,6 +18,7 @@ package com.android.tools.idea.npw.assetstudio.icon;
 import static com.android.tools.idea.npw.assetstudio.IconGenerator.pathToDensity;
 
 import com.android.resources.Density;
+import com.android.tools.idea.npw.assetstudio.AnnotatedImage;
 import com.android.tools.idea.npw.assetstudio.IconGenerator;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -47,9 +48,9 @@ import org.jetbrains.annotations.NotNull;
 public final class CategoryIconMap {
   public static final Filter ACCEPT_ALL = category -> true;
 
-  @NotNull private final Map<String, Map<String, BufferedImage>> myCategoryMap;
+  @NotNull private final Map<String, Map<String, AnnotatedImage>> myCategoryMap;
 
-  public CategoryIconMap(@NotNull Map<String, Map<String, BufferedImage>> categoryMap) {
+  public CategoryIconMap(@NotNull Map<String, Map<String, AnnotatedImage>> categoryMap) {
     myCategoryMap = categoryMap;
   }
 
@@ -58,7 +59,7 @@ public final class CategoryIconMap {
    * that don't map neatly to any {@link Density}.
    */
   @NotNull
-  public Map<Density, BufferedImage> toDensityMap() {
+  public Map<Density, AnnotatedImage> toDensityMap() {
     return toDensityMap(ACCEPT_ALL);
   }
 
@@ -67,15 +68,15 @@ public final class CategoryIconMap {
    * useful for icon sets organized by API.
    */
   @NotNull
-  public Map<Density, BufferedImage> toDensityMap(@NotNull Filter filter) {
-    Map<Density, BufferedImage> densityImageMap = new HashMap<>();
+  public Map<Density, AnnotatedImage> toDensityMap(@NotNull Filter filter) {
+    Map<Density, AnnotatedImage> densityImageMap = new HashMap<>();
     for (String category : myCategoryMap.keySet()) {
       if (filter.accept(category)) {
-        Map<String, BufferedImage> pathImageMap = myCategoryMap.get(category);
+        Map<String, AnnotatedImage> pathImageMap = myCategoryMap.get(category);
         for (String path : pathImageMap.keySet()) {
           Density density = pathToDensity(path);
           if (density != null) {
-            BufferedImage image = pathImageMap.get(path);
+            AnnotatedImage image = pathImageMap.get(path);
             densityImageMap.put(density, image);
           }
         }
@@ -92,9 +93,9 @@ public final class CategoryIconMap {
   @NotNull
   public Map<File, BufferedImage> toFileMap(@NotNull File rootDir) {
     Map<File, BufferedImage> outputMap = new HashMap<>();
-    for (Map<String, BufferedImage> pathImageMap : myCategoryMap.values()) {
-      for (Map.Entry<String, BufferedImage> pathImageEntry : pathImageMap.entrySet()) {
-        outputMap.put(new File(rootDir, pathImageEntry.getKey()), pathImageEntry.getValue());
+    for (Map<String, AnnotatedImage> pathImageMap : myCategoryMap.values()) {
+      for (Map.Entry<String, AnnotatedImage> pathImageEntry : pathImageMap.entrySet()) {
+        outputMap.put(new File(rootDir, pathImageEntry.getKey()), pathImageEntry.getValue().getImage());
       }
     }
     return outputMap;

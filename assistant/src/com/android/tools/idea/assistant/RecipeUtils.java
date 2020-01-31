@@ -28,6 +28,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
+import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -70,7 +71,8 @@ public class RecipeUtils {
     RenderingContext context = null;
 
     try {
-      File moduleRoot = new File(module.getModuleFilePath()).getParentFile();
+      File moduleRoot = AndroidRootUtil.findModuleRootFolderPath(module);
+      assert moduleRoot != null;
       // TODO: do we care about this path?
       File RootPath = new File(FileUtil.generateRandomTemporaryPath(), "unused");
       RootPath.deleteOnExit();
@@ -133,7 +135,8 @@ public class RecipeUtils {
 
   public static void execute(@NotNull Recipe recipe, @NotNull Module module) {
     List<File> filesToOpen = Lists.newArrayList();
-    File moduleRoot = new File(module.getModuleFilePath()).getParentFile();
+    File moduleRoot = AndroidRootUtil.findModuleRootFolderPath(module);
+    assert moduleRoot != null;
     File RootPath = null;
     try {
       RootPath = new File(FileUtil.generateRandomTemporaryPath(), "unused");

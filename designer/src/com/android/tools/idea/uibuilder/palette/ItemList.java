@@ -23,6 +23,7 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
+import java.awt.event.MouseEvent;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -42,7 +43,7 @@ import java.awt.*;
  * The item names each have an icon to the left that represent the item.
  * An item may also have a download icon to the right of the name indicating
  * that this item requires a project dependency to be added.
- * If an item name is wider than the alotted width, it will be truncated and
+ * If an item name is wider than the allotted width, it will be truncated and
  * shown with ellipsis.
  */
 public class ItemList extends ListWithMargin<Palette.Item> {
@@ -69,12 +70,12 @@ public class ItemList extends ListWithMargin<Palette.Item> {
   }
 
   private static class ItemCellRenderer implements ListCellRenderer<Palette.Item> {
-    private final JPanel myPanel;
+    private final ItemPanelRenderer myPanel;
     private final JBLabel myDownloadIcon;
     private final TextCellRenderer myTextRenderer;
 
     private ItemCellRenderer() {
-      myPanel = new JPanel(new BorderLayout());
+      myPanel = new ItemPanelRenderer();
       myDownloadIcon = new JBLabel();
       myTextRenderer = new TextCellRenderer();
       myPanel.add(myTextRenderer, BorderLayout.CENTER);
@@ -92,11 +93,13 @@ public class ItemList extends ListWithMargin<Palette.Item> {
       myPanel.setBackground(selected ? UIUtil.getTreeSelectionBackground(hasFocus) : null);
       myPanel.setForeground(UIUtil.getTreeForeground(selected, hasFocus));
       myPanel.setBorder(JBUI.Borders.empty(0, 3));
+      myPanel.setListSize(list.getWidth(), list.getHeight());
 
       ItemList itemList = (ItemList)list;
       myDownloadIcon.setVisible(itemList.displayDownloadIcon(item, index));
       myDownloadIcon.setIcon(selected && hasFocus ? StudioIcons.LayoutEditor.Extras.PALETTE_DOWNLOAD_SELECTED
                                                   : StudioIcons.LayoutEditor.Extras.PALETTE_DOWNLOAD);
+      myDownloadIcon.setToolTipText("Add Project Dependency");
       return myPanel;
     }
   }
@@ -124,6 +127,35 @@ public class ItemList extends ListWithMargin<Palette.Item> {
       mySelectionForeground = UIUtil.getTreeForeground(selected, hasFocus);
       setIcon(selected && hasFocus ? ColoredIconGenerator.INSTANCE.generateWhiteIcon(icon) : icon);
       append(text);
+    }
+  }
+
+  private static class ItemPanelRenderer extends JPanel {
+    private int myWidth;
+    private int myHeight;
+
+    private ItemPanelRenderer() {
+      super(new BorderLayout());
+    }
+
+    private void setListSize(int width, int height) {
+      myWidth = width;
+      myHeight = height;
+    }
+
+    @Override
+    public String getToolTipText(MouseEvent event) {
+      setSize(myWidth, myHeight);
+      doLayout();
+      Rectangle bounds = new Rectangle();
+      for (int index=0; index < getComponentCount(); index++) {
+        JComponent component = (JComponent)getComponent(index);
+        component.getBounds(bounds);
+        if (bounds.contains(event.getX(), event.getY())) {
+          return component.getToolTipText();
+        }
+      }
+      return getToolTipText();
     }
   }
 }

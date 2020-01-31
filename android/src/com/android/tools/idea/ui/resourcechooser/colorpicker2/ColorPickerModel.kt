@@ -28,7 +28,7 @@ class ColorPickerModel(originalColor: Color = DEFAULT_PICKER_COLOR) {
 
   fun setColor(newColor: Color, source: Any? = null) {
     color = newColor
-    Color.RGBtoHSB(color.red, color.green, color.blue, hsb)
+    Color.RGBtoHSB(color.red, color.green, color.blue, _hsb)
 
     listeners.forEach { it.colorChanged(color, source) }
   }
@@ -37,7 +37,7 @@ class ColorPickerModel(originalColor: Color = DEFAULT_PICKER_COLOR) {
     listeners.forEach { it.pickingColorChanged(newPickingColor, source) }
   }
 
-  private val hsb: FloatArray = Color.RGBtoHSB(color.red, color.green, color.blue, null)
+  private val _hsb: FloatArray = Color.RGBtoHSB(color.red, color.green, color.blue, null)
 
   val red get() = color.red
 
@@ -49,11 +49,16 @@ class ColorPickerModel(originalColor: Color = DEFAULT_PICKER_COLOR) {
 
   val hex: String get() = Integer.toHexString(color.rgb)
 
-  val hue get() = hsb[0]
+  /**
+   * Get a copy of HSB color array.
+   */
+  val hsb get() = _hsb.copyOf()
 
-  val saturation get() = hsb[1]
+  val hue get() = _hsb[0]
 
-  val brightness get() = hsb[2]
+  val saturation get() = _hsb[1]
+
+  val brightness get() = _hsb[2]
 
   fun addListener(listener: ColorPickerListener) = listeners.add(listener)
 

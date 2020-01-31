@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.repository.io.FileOp;
 import com.google.common.base.Charsets;
 import com.google.common.base.Splitter;
@@ -160,7 +160,7 @@ public class SkinLayoutDefinition {
   }
 
   private static List<String> sort(Set<String> set) {
-    ArrayList<String> list = new ArrayList<>(set);
+    ArrayList<String> list = new ArrayList<String>(set);
     Collections.sort(list);
     return list;
   }

@@ -45,8 +45,7 @@ public class ManifestDomFileDescription extends DomFileDescription<Manifest> {
     }
 
     VirtualFile virtualFile = file.getVirtualFile();
-    // happens while indexing
-    if (virtualFile == null) {
+    if (virtualFile == null) {  // happens while indexing
       return false;
     }
 

@@ -70,8 +70,6 @@ public class ActivityLocatorUtils {
 
   @Nullable
   public static String getQualifiedName(@NotNull Element component) {
-    ApplicationManager.getApplication().assertReadAccessAllowed();
-
     Attr nameNode = component.getAttributeNodeNS(ANDROID_URI, ATTR_NAME);
     if (nameNode == null) {
       return null;

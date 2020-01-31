@@ -19,11 +19,13 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyMode
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import org.hamcrest.CoreMatchers.hasItems
 import org.junit.Assert.assertThat
+import org.junit.Assume
 import org.junit.Test
 
 class PsParsedDependenciesTest : GradleFileModelTestCase() {
   @Test
   fun testParsedDependencies() {
+    Assume.assumeTrue(isGroovy())
     writeToBuildFile(
       """
         dependencies {
@@ -51,6 +53,7 @@ class PsParsedDependenciesTest : GradleFileModelTestCase() {
 
   @Test
   fun testFindLibraries() {
+    Assume.assumeTrue(isGroovy())
     writeToBuildFile(
       """
         dependencies {

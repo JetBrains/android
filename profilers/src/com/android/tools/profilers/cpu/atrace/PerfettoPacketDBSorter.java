@@ -96,6 +96,35 @@ public class PerfettoPacketDBSorter implements Iterator<String> {
     }
   }
 
+  /**
+   * Close the underlying connection to the local DB and free resources.
+   */
+  public void close() {
+    // We need to close in the reverse order we opened them: rs -> stmt -> conn
+    try {
+      myQueryResults.close();
+    }
+    catch (SQLException ignored) { }
+    finally { myQueryResults = null; }
+
+    try {
+      myInsertStmt.close();
+    }
+    catch (SQLException ignored) { }
+    finally { myInsertStmt = null; }
+
+    try {
+      myConnection.close();
+    }
+    catch (SQLException ignored) { }
+    finally { myConnection = null; }
+
+    // Reset to the initial state.
+    myLastResult = false;
+    myReturnedCurrentResults = true;
+
+  }
+
   @Override
   public boolean hasNext() {
     try {

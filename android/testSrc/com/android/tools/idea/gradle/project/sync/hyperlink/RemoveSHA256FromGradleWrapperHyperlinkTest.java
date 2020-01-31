@@ -32,7 +32,7 @@ import java.util.Properties;
  */
 public class RemoveSHA256FromGradleWrapperHyperlinkTest extends AndroidGradleTestCase {
 
-  public void testRemoveMinSdkVersion() throws Exception {
+  public void testRemoveSHA256() throws Exception {
     loadSimpleApplication();
     Project project = getProject();
 

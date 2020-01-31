@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.importing;
 
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.projectImport.ProjectImportProvider;
-import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 
 import java.util.Arrays;
 import java.util.List;
@@ -27,13 +27,13 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-public class AndroidGradleProjectImportProviderTest extends JavaProjectTestCase {
+public class AndroidGradleProjectImportProviderTest extends PlatformTestCase {
   private GradleProjectImporter mockGradleProjectImporter;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    mockGradleProjectImporter = IdeComponents.mockApplicationService(GradleProjectImporter.class, getTestRootDisposable());
+    mockGradleProjectImporter = new IdeComponents(getProject(), getTestRootDisposable()).mockApplicationService(GradleProjectImporter.class);
   }
 
   public void testDelegatesToGradleProjectImporter() {
@@ -43,6 +43,6 @@ public class AndroidGradleProjectImportProviderTest extends JavaProjectTestCase 
                                                          .collect(Collectors.toList());
     assertSize(1, androidProviders);
     androidProviders.get(0).getBuilder().commit(getProject());
-    verify(mockGradleProjectImporter, times(1)).importProject(eq(getProject().getBaseDir()));
+    verify(mockGradleProjectImporter, times(1)).importProjectCore(eq(getProject().getBaseDir()));
   }
 }

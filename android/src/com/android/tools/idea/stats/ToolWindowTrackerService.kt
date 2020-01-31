@@ -18,6 +18,7 @@ package com.android.tools.idea.stats
 import com.android.tools.analytics.UsageTracker
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.StudioToolWindowActionStats
+import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project

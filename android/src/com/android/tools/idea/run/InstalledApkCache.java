@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.ddmlib.*;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Sets;
@@ -41,7 +41,7 @@ public class InstalledApkCache implements Disposable {
   private String myDiagnosticOutput;
 
   public InstalledApkCache() {
-    myCache = new DeviceStateCache<>(this);
+    myCache = new DeviceStateCache<CacheData>(this);
   }
 
   @Override

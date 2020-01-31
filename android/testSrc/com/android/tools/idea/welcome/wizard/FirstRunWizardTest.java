@@ -31,12 +31,12 @@ import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import java.io.File;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.io.File;
 
 public final class FirstRunWizardTest extends AndroidTestBase {
   public static final Key<Boolean> KEY_TRUE = ScopedStateStore.createKey("true", ScopedStateStore.Scope.WIZARD, Boolean.class);
@@ -55,7 +55,7 @@ public final class FirstRunWizardTest extends AndroidTestBase {
       data, isComponentsStepVisible);
 
     if (data != null) {
-      assertEquals(String.valueOf(data.toString()), hasAndroidSdkPath, data.hasValidSdkLocation());
+      assertEquals(data.toString(), hasAndroidSdkPath, data.hasValidSdkLocation());
     }
   }
 
@@ -124,7 +124,7 @@ public final class FirstRunWizardTest extends AndroidTestBase {
   private static final class SingleStepWizard extends DynamicWizard {
     @NotNull private final DynamicWizardStep myStep;
 
-    public SingleStepWizard(@NotNull DynamicWizardStep step) {
+    SingleStepWizard(@NotNull DynamicWizardStep step) {
       super(null, null, "Single Step Wizard");
       myStep = step;
     }

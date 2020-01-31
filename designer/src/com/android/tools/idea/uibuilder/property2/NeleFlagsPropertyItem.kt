@@ -45,9 +45,10 @@ class NeleFlagsPropertyItem(
   componentName: String,
   libraryName: String,
   model: NelePropertiesModel,
-  optionalValue: Any?,
-  components: List<NlComponent>
-) : NelePropertyItem(namespace, name, type, attrDefinition, componentName, libraryName, model, optionalValue, components),
+  components: List<NlComponent>,
+  optionalValue1: Any? = null,
+  optionalValue2: Any? = null
+) : NelePropertyItem(namespace, name, type, attrDefinition, componentName, libraryName, model, components, optionalValue1, optionalValue2),
     FlagsPropertyItem<NeleFlagPropertyItem> {
   private val _flags = mutableListOf<NeleFlagPropertyItem>()
   private val _lastValues = mutableSetOf<String>()
@@ -196,7 +197,7 @@ class NeleFlagsPropertyItem(
  */
 class NeleFlagPropertyItem(override val flags: NeleFlagsPropertyItem, name: String, override val maskValue: Int) :
   NelePropertyItem(flags.namespace, name, NelePropertyType.BOOLEAN, null, flags.componentName, "", flags.model,
-                   flags.optionalValue, flags.components),
+                   flags.components, flags.optionalValue1, flags.optionalValue2),
   FlagPropertyItem {
 
   override val isReference: Boolean

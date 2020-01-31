@@ -36,7 +36,7 @@ public class NewCppProjectTest {
    * The test then proceeds to make a couple of edits and checks that these do not generate additional warnings either.
    */
   @Test
-  public void noWarningsInNewProjectWithCpp() {
+  public void noWarningsInNewProjectWithCpp() throws Exception {
     NewCppProjectTestUtil.createCppProject(CppStandardType.DEFAULT, guiTest);
 
     String inspectionResults = guiTest.ideFrame()

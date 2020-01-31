@@ -17,18 +17,18 @@ package com.android.tools.idea.ui.resourcemanager.widget
 
 import com.google.common.collect.HashBiMap
 import com.intellij.openapi.ui.VerticalFlowLayout
-import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.ScrollingUtil
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
 import java.awt.Color
+import java.awt.Container
+import java.awt.Dimension
 import java.awt.Rectangle
 import java.awt.event.AdjustmentEvent
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
-import java.awt.event.FocusListener
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.Box
@@ -69,12 +69,14 @@ class SectionList(private val model: SectionListModel) : JBScrollPane() {
   /**
    * Gap between lists
    */
-  private val listsGap = JBUI.scale(50)
+  private val listsGap = JBUI.scale(16)
 
   /**
    * Returns the list of [Section] name
    */
   val sectionsComponent = sectionList
+
+  private val multiLisLayoutManager = VerticalFlowLayout(true, false)
 
   private val focusListener = object : FocusAdapter() {
 
@@ -103,7 +105,7 @@ class SectionList(private val model: SectionListModel) : JBScrollPane() {
     })
     sectionList.selectionMode = ListSelectionModel.SINGLE_SELECTION
     sectionList.selectedIndex = 0
-    sectionList.cellRenderer = SimpleListCellRenderer.create("") { it.name }
+    sectionList.cellRenderer = createSectionCellRenderer()
     sectionList.addListSelectionListener {
       val selectedValue = sectionList.selectedValue
       if (selectedValue != null) {
@@ -120,14 +122,11 @@ class SectionList(private val model: SectionListModel) : JBScrollPane() {
     })
   }
 
+  /**
+   * Focuses the first list with a selected item, or just the first list if there's no selection.
+   */
   private fun focusInnerList() {
-    getFocusableList().requestFocusInWindow()
-  }
-
-  private fun getFocusableList(): JList<*> {
-    return allInnerLists
-             .firstOrNull { it.selectedIndex != -1 }
-           ?: allInnerLists.first()
+    (allInnerLists.firstOrNull { it.selectedIndex != -1 } ?: allInnerLists.firstOrNull())?.requestFocusInWindow()
   }
 
   /**
@@ -170,12 +169,30 @@ class SectionList(private val model: SectionListModel) : JBScrollPane() {
     sectionList.cellRenderer = renderer
   }
 
+  /**
+   * Creates the default [ListCellRenderer] for the section list which just displays the name
+   * of the section in a JLabel
+   */
+  private fun createSectionCellRenderer(): ColoredListCellRenderer<Section<*>> {
+    return object : ColoredListCellRenderer<Section<*>>() {
+      override fun customizeCellRenderer(
+        list: JList<out Section<*>>,
+        value: Section<*>?,
+        index: Int,
+        selected: Boolean,
+        hasFocus: Boolean
+      ) {
+        append(value?.name ?: "")
+      }
+    }
+  }
+
   private fun createMultiListPanel(
     sectionToComponent: HashBiMap<Section<*>, JComponent>,
     allInnerLists: MutableList<JList<*>>,
     selectionListener: ListSelectionListener
   ): JComponent {
-    return JPanel(VerticalFlowLayout()).apply {
+    return JPanel(multiLisLayoutManager).apply{
       background = this@SectionList.background
       for (section in model.sections) {
         sectionToComponent[section] = section.header
@@ -245,6 +262,22 @@ class SectionList(private val model: SectionListModel) : JBScrollPane() {
   fun scrollToSelection() {
     val (listIndex, itemIndex) = selectedIndex ?: return
     ScrollingUtil.ensureIndexIsVisible(allInnerLists[listIndex], itemIndex, 1)
+  }
+
+  override fun doLayout() {
+    viewport.view?.takeIf { it is Container }?.let { content ->
+      val contentHeight = multiLisLayoutManager.preferredLayoutSize(content as Container).height
+      val scrollPrefSize = preferredSize
+      if (scrollPrefSize == null || contentHeight != scrollPrefSize.height || contentHeight != maximumSize.height) {
+        // Have scroll pane fit to the height of its contents.
+        preferredSize = Dimension(scrollPrefSize.width, contentHeight)
+        maximumSize = Dimension(Int.MAX_VALUE, contentHeight)
+        // Trigger a layout in the parent for the new dimensions.
+        parent?.revalidate()
+        return
+      }
+    }
+    super.doLayout()
   }
 }
 

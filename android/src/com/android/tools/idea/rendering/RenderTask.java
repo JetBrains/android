@@ -74,6 +74,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import java.awt.image.BufferedImage;
+import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -92,6 +93,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -138,6 +140,7 @@ public class RenderTask {
                                                                                                         "RenderTask dispose thread");
                                                                                     }
                                                                                   });
+  public static final String GAP_WORKER_CLASS_NAME = "androidx.recyclerview.widget.GapWorker";
 
   @NotNull private final ImagePool myImagePool;
   @NotNull private final RenderTaskContext myContext;
@@ -183,7 +186,8 @@ public class RenderTask {
              @NotNull ImagePool imagePool,
              @Nullable ILayoutPullParserFactory parserFactory,
              boolean isSecurityManagerEnabled,
-             float quality) {
+             float quality,
+             @NotNull AllocationStackTrace allocationStackTraceElement) {
     this.isSecurityManagerEnabled = isSecurityManagerEnabled;
 
     if (!isSecurityManagerEnabled) {
@@ -219,6 +223,8 @@ public class RenderTask {
                                       renderService.getPlatform(facet));
     myDefaultQuality = quality;
     restoreDefaultQuality();
+
+    allocationStackTraceElement.bind(this);
   }
 
   public void setQuality(float quality) {
@@ -273,6 +279,34 @@ public class RenderTask {
 
   public boolean isDisposed() {
     return isDisposed.get();
+  }
+
+  private void clearGapWorkerCache() {
+    if (!myLayoutlibCallback.hasLoadedClass(SdkConstants.RECYCLER_VIEW.newName()) &&
+        !myLayoutlibCallback.hasLoadedClass(SdkConstants.RECYCLER_VIEW.oldName())) {
+      // If RecyclerView has not been loaded, we do not need to care about the GapWorker cache
+      return;
+    }
+
+    try {
+      Class<?> gapWorkerClass = myLayoutlibCallback.findClass(GAP_WORKER_CLASS_NAME);
+      Field gapWorkerField = gapWorkerClass.getDeclaredField("sGapWorker");
+      gapWorkerField.setAccessible(true);
+
+      // Because we are clearing-up a ThreadLocal, the code must run on the Layoutlib Thread
+      RenderService.runAsyncRenderAction(() -> {
+        try {
+          ThreadLocal<?> gapWorkerFieldValue = (ThreadLocal<?>)gapWorkerField.get(null);
+          gapWorkerFieldValue.set(null);
+          LOG.debug("GapWorker was cleared");
+        }
+        catch (IllegalAccessException e) {
+          LOG.debug(e);
+        }
+      });
+    } catch(Throwable t) {
+      LOG.debug(t);
+    }
   }
 
   /**
@@ -483,7 +517,7 @@ public class RenderTask {
                           myLogger, simulatedPlatform);
     params.setAssetRepository(myAssetRepository);
 
-    params.setFlag(RenderParamsFlags.FLAG_KEY_ROOT_TAG, AndroidPsiUtils.getRootTagName(psiFile));
+    params.setFlag(RenderParamsFlags.FLAG_KEY_ROOT_TAG, AndroidUtils.getRootTagName(psiFile));
     params.setFlag(RenderParamsFlags.FLAG_KEY_RECYCLER_VIEW_SUPPORT, true);
     params.setFlag(RenderParamsFlags.FLAG_KEY_DISABLE_BITMAP_CACHING, true);
     params.setFlag(RenderParamsFlags.FLAG_DO_NOT_RENDER_ON_CREATE, true);
@@ -558,6 +592,8 @@ public class RenderTask {
     if (myTimeout > 0) {
       params.setTimeout(myTimeout);
     }
+
+    params.setFontScale(configuration.getFontScale());
 
     try {
       myLayoutlibCallback.setLogger(myLogger);
@@ -789,6 +825,12 @@ public class RenderTask {
             myLogger.error(null, renderResult.getErrorMessage(), renderResult.getException(), null, null);
           }
           return result;
+        }).whenComplete((result, ex) -> {
+          // After render clean-up. Dispose the GapWorker cache and the Choreographer queued tasks.
+          clearGapWorkerCache();
+          RenderService.runAsyncRenderAction(() -> {
+            android.view.Choreographer.releaseInstance();
+          });
         });
       }
       catch (Exception e) {
@@ -887,6 +929,11 @@ public class RenderTask {
             return CompletableFuture.completedFuture((BufferedImage)data);
           }
           else {
+            if (result.getStatus() == Result.Status.ERROR_NOT_A_DRAWABLE) {
+              LOG.debug("renderDrawable called with a non-drawable resource" + drawableResourceValue);
+              return CompletableFuture.completedFuture(null);
+            }
+
             Throwable exception = result == null ? new RuntimeException("Rendering failed - null result") : result.getException();
             if (exception == null) {
               String message = result.getErrorMessage();

@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.annotations.VisibleForTesting;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEEP_LINK;
+
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.deploy.DeploymentConfiguration;
@@ -26,11 +28,21 @@ import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerContext;
 import com.android.tools.idea.run.editor.AndroidDebuggerState;
 import com.android.tools.idea.run.editor.DeepLinkLaunch;
-import com.android.tools.idea.run.tasks.*;
-import com.android.tools.idea.run.ui.ApplyChangesAction;
-import com.android.tools.idea.run.ui.CodeSwapAction;
+import com.android.tools.idea.run.tasks.ApplyChangesTask;
+import com.android.tools.idea.run.tasks.ApplyCodeChangesTask;
+import com.android.tools.idea.run.tasks.ClearLogcatTask;
+import com.android.tools.idea.run.tasks.DebugConnectorTask;
+import com.android.tools.idea.run.tasks.DeployTask;
+import com.android.tools.idea.run.tasks.DismissKeyguardTask;
+import com.android.tools.idea.run.tasks.LaunchTask;
+import com.android.tools.idea.run.tasks.LaunchTasksProvider;
+import com.android.tools.idea.run.tasks.RunInstantAppTask;
+import com.android.tools.idea.run.tasks.ShowLogcatTask;
+import com.android.tools.idea.run.tasks.UninstallIotLauncherAppsTask;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.android.tools.idea.run.util.SwapInfo;
 import com.android.tools.idea.stats.RunStats;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -39,17 +51,15 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
-import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEEP_LINK;
 
 public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   private final AndroidRunConfigurationBase myRunConfig;
@@ -208,35 +218,6 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     }
   }
 
-  /**
-   * Returns a list of launch tasks, both single apk or split apk, required to deploy the given list of apks.
-   * Note: Since single apk launch task can handle more than one apk, single apk tasks are merged in batches.
-   */
-  @NotNull
-  private static List<LaunchTask> createDeployTasks(@NotNull Collection<ApkInfo> apks,
-                                                    @NotNull Function<List<ApkInfo>, LaunchTask> singleApkTaskFactory,
-                                                    @NotNull Function<ApkInfo, LaunchTask> splitApkTaskFactory) {
-    List<LaunchTask> result = new ArrayList<>();
-    List<ApkInfo> singleApkTasks = new ArrayList<>();
-    for (ApkInfo apkInfo : apks) {
-      if (apkInfo.getFiles().size() > 1) {
-        if (!singleApkTasks.isEmpty()) {
-          result.add(singleApkTaskFactory.apply(ImmutableList.copyOf(singleApkTasks)));
-          singleApkTasks.clear();
-        }
-        result.add(splitApkTaskFactory.apply(apkInfo));
-      }
-      else {
-        singleApkTasks.add(apkInfo);
-      }
-    }
-
-    if (!singleApkTasks.isEmpty()) {
-      result.add(singleApkTaskFactory.apply(singleApkTasks));
-    }
-    return result;
-  }
-
   @Nullable
   @Override
   public DebugConnectorTask getConnectDebuggerTask(@NotNull LaunchStatus launchStatus, @Nullable AndroidVersion version) {
@@ -282,16 +263,10 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
                                              packageIds,
                                              myFacet,
                                              androidDebuggerState,
-                                             myRunConfig.getType().getId(),
-                                             monitorRemoteProcess());
+                                             myRunConfig.getType().getId());
     }
 
     return null;
-  }
-
-  @Override
-  public boolean monitorRemoteProcess() {
-    return myRunConfig.monitorRemoteProcess();
   }
 
   private boolean shouldDeployAsInstant() {
@@ -300,10 +275,12 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   }
 
   private boolean shouldApplyChanges() {
-    return Boolean.TRUE.equals(myEnv.getCopyableUserData(ApplyChangesAction.KEY));
+    SwapInfo swapInfo = myEnv.getUserData(SwapInfo.SWAP_INFO_KEY);
+    return swapInfo != null && swapInfo.getType() == SwapInfo.SwapType.APPLY_CHANGES;
   }
 
   private boolean shouldApplyCodeChanges() {
-    return Boolean.TRUE.equals(myEnv.getCopyableUserData(CodeSwapAction.KEY));
+    SwapInfo swapInfo = myEnv.getUserData(SwapInfo.SWAP_INFO_KEY);
+    return swapInfo != null && swapInfo.getType() == SwapInfo.SwapType.APPLY_CODE_CHANGES;
   }
 }

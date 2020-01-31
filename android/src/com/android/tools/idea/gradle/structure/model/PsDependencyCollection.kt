@@ -16,11 +16,14 @@
 package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.FileDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.FileTreeDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel
+import com.android.tools.idea.gradle.structure.model.meta.asString
 import com.google.common.collect.LinkedListMultimap
 import java.io.File
+import java.lang.IllegalStateException
 
 interface PsDependencyCollection<out ModuleT, out LibraryDependencyT, out JarDependencyT, out ModuleDependencyT>
   where ModuleT : PsModule,
@@ -78,6 +81,9 @@ abstract class PsDependencyCollectionBase<out ModuleT, LibraryDependencyT, JarDe
       .toList()
   }
 
+  open fun onDependencyAdded(dependency: PsBaseDependency) = Unit
+  open fun onCleared() = Unit
+
   override fun findLibraryDependencies(group: String?, name: String): List<LibraryDependencyT> =
     libraryDependenciesBySpec[PsLibraryKey(group.orEmpty(), name)].toList()
 
@@ -86,14 +92,24 @@ abstract class PsDependencyCollectionBase<out ModuleT, LibraryDependencyT, JarDe
 
   protected fun addLibraryDependency(dependency: LibraryDependencyT) {
     libraryDependenciesBySpec.put(dependency.spec.toLibraryKey(), dependency)
+    onDependencyAdded(dependency)
   }
 
   protected fun addJarDependency(dependency: JarDependencyT) {
     jarDependenciesByPath.put(dependency.filePath, dependency)
+    onDependencyAdded(dependency)
   }
 
   protected fun addModuleDependency(dependency: ModuleDependencyT) {
     moduleDependenciesByGradlePath.put(dependency.gradlePath, dependency)
+    onDependencyAdded(dependency)
+  }
+
+  protected fun clear() {
+    libraryDependenciesBySpec.clear()
+    moduleDependenciesByGradlePath.clear()
+    jarDependenciesByPath.clear()
+    onCleared()
   }
 
   fun reindex() {
@@ -112,6 +128,15 @@ abstract class PsDependencyCollectionBase<out ModuleT, LibraryDependencyT, JarDe
   }
 }
 
+fun ArtifactDependencyModel.toKey(): String =
+  PsArtifactDependencySpec.create(group().toString(), name().forceString(), version().toString()).toString()
+
+fun FileDependencyModel.toKey(): String = file().asString().orEmpty()
+
+fun FileTreeDependencyModel.toKey(): String = dir().asString().orEmpty()
+
+fun ModuleDependencyModel.toKey(): String = path().asString().orEmpty()
+
 abstract class PsDeclaredDependencyCollection<out ModuleT, LibraryDependencyT, JarDependencyT, ModuleDependencyT>(parent: ModuleT)
   : PsDependencyCollectionBase<ModuleT, LibraryDependencyT, JarDependencyT, ModuleDependencyT>(parent)
   where ModuleT : PsModule,
@@ -122,34 +147,74 @@ abstract class PsDeclaredDependencyCollection<out ModuleT, LibraryDependencyT, J
         ModuleDependencyT : PsDeclaredDependency,
         ModuleDependencyT : PsModuleDependency
 {
-  open fun initParsedDependencyCollection() {}
-  abstract fun createLibraryDependency(artifactDependencyModel: ArtifactDependencyModel): LibraryDependencyT
-  abstract fun createJarFileDependency(fileDependencyModel: FileDependencyModel): JarDependencyT
-  abstract fun createJarFileTreeDependency(fileTreeDependencyModel: FileTreeDependencyModel): JarDependencyT
-  abstract fun createModuleDependency(moduleDependencyModel: ModuleDependencyModel): ModuleDependencyT
+  private val parsedModelToDependency = mutableMapOf<DependencyModel, PsBaseDependency>()
+
+  abstract fun createOrUpdateLibraryDependency(
+    existing: LibraryDependencyT?,
+    artifactDependencyModel: ArtifactDependencyModel
+  ): LibraryDependencyT
+
+  abstract fun createOrUpdateJarFileDependency(existing: JarDependencyT?, fileDependencyModel: FileDependencyModel): JarDependencyT
+
+  abstract fun createOrUpdateJarFileTreeDependency(
+    existing: JarDependencyT?,
+    fileTreeDependencyModel: FileTreeDependencyModel
+  ): JarDependencyT
+
+  abstract fun createOrUpdateModuleDependency(existing: ModuleDependencyT?, moduleDependencyModel: ModuleDependencyModel): ModuleDependencyT
 
   init {
-    collectParsedDependencies()
+    refresh()
   }
 
-  private fun collectParsedDependencies() {
-    initParsedDependencyCollection()
-    collectParsedDependencies(parent.parsedDependencies)
+  fun refresh() {
+    refreshParsedDependencies(parent.parsedDependencies)
   }
 
-  private fun collectParsedDependencies(parsedDependencies: PsParsedDependencies) {
-    parsedDependencies.forEachLibraryDependency { libraryDependency ->
-      addLibraryDependency(createLibraryDependency(libraryDependency))
+  @Suppress("UNCHECKED_CAST")
+  private fun refreshParsedDependencies(parsedDependencies: PsParsedDependencies) {
+    val existingItems = parsedModelToDependency.values.map { it as PsDeclaredDependency }.groupBy { it.toKey() to it.configurationName }
+    val newNextIndexes = mutableMapOf<Pair<String, String>, Int>()
+    clear()
+    parsedDependencies.forEachLibraryDependency { dependency ->
+      val key = dependency.toKey() to dependency.configurationName()
+      val index = newNextIndexes.getOrDefault(key, 0)
+      newNextIndexes[key] = index + 1
+      val existing = existingItems[key]?.getOrNull(index) as? LibraryDependencyT
+      addLibraryDependency(createOrUpdateLibraryDependency(existing, dependency))
     }
-    parsedDependencies.forEachFileDependency { fileDependency ->
-      addJarDependency(createJarFileDependency(fileDependency))
+    parsedDependencies.forEachFileDependency { dependency ->
+      val key = dependency.toKey() to dependency.configurationName()
+      val index = newNextIndexes.getOrDefault(key, 0)
+      newNextIndexes[key] = index + 1
+      val existing = existingItems[key]?.getOrNull(index) as? JarDependencyT
+      addJarDependency(createOrUpdateJarFileDependency(existing, dependency))
     }
-    parsedDependencies.forEachFileTreeDependency { fileTreeDependency ->
-      addJarDependency(createJarFileTreeDependency(fileTreeDependency))
+    parsedDependencies.forEachFileTreeDependency { dependency ->
+      val key = dependency.toKey() to dependency.configurationName()
+      val index = newNextIndexes.getOrDefault(key, 0)
+      newNextIndexes[key] = index + 1
+      val existing = existingItems[key]?.getOrNull(index) as? JarDependencyT
+      addJarDependency(createOrUpdateJarFileTreeDependency(existing, dependency))
     }
-    parsedDependencies.forEachModuleDependency { moduleDependency ->
-      addModuleDependency(createModuleDependency(moduleDependency))
+    parsedDependencies.forEachModuleDependency { dependency ->
+      val key = dependency.toKey() to dependency.configurationName()
+      val index = newNextIndexes.getOrDefault(key, 0)
+      newNextIndexes[key] = index + 1
+      val existing = existingItems[key]?.getOrNull(index) as? ModuleDependencyT
+      addModuleDependency(createOrUpdateModuleDependency(existing, dependency))
     }
+  }
+
+  override fun onDependencyAdded(dependency: PsBaseDependency) {
+    val parsedModel = (dependency as PsDeclaredDependency).parsedModel
+    if (parsedModelToDependency.put(parsedModel, dependency) != null) {
+      throw IllegalStateException("Duplicate dependency for model: $parsedModel")
+    }
+  }
+
+  override fun onCleared() {
+    parsedModelToDependency.clear()
   }
 }
 
@@ -182,5 +247,5 @@ fun <T : PsDeclaredJarDependency> PsResolvedDependencyCollection<*, *, *, *, *>.
     val probleFile = File(probe.filePath)
     val resolvedProbe = parent.resolveFile(probleFile)
     val caninicalResolvedProbe = resolvedProbe.canonicalFile
-    caninicalResolvedProbe?.let { artifactCanonicalFile.startsWith(it) } == true
+    caninicalResolvedProbe.let { artifactCanonicalFile.startsWith(it) }
   }

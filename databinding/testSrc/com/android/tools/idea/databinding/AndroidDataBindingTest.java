@@ -21,6 +21,7 @@ import static org.junit.Assert.assertTrue;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.testing.AndroidProjectRule;
+import com.android.tools.idea.testing.AndroidTestUtils;
 import com.google.common.collect.Lists;
 import com.intellij.facet.FacetManager;
 import com.intellij.psi.PsiClass;
@@ -74,8 +75,9 @@ public class AndroidDataBindingTest {
 
     fixture.setTestDataPath(TestDataPaths.TEST_DATA_ROOT + "/databinding");
     fixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML);
-    AndroidFacet androidFacet = FacetManager.getInstance(myProjectRule.module).getFacetByType(AndroidFacet.ID);
-    ModuleDataBinding.getInstance(androidFacet).setMode(myDataBindingMode);
+
+    AndroidFacet androidFacet = FacetManager.getInstance(myProjectRule.getModule()).getFacetByType(AndroidFacet.ID);
+    ModuleDataBinding.getInstance(androidFacet).setDataBindingMode(myDataBindingMode);
   }
 
   /**
@@ -126,7 +128,8 @@ public class AndroidDataBindingTest {
     copyLayout("basic_binding");
     copyClass(DUMMY_CLASS_QNAME);
 
-    PsiClass aClass = getFixture().findClass("p1.p2.databinding.BasicBindingBinding");
+    PsiClass context = getFixture().findClass(DUMMY_CLASS_QNAME);
+    PsiClass aClass = AndroidTestUtils.findClass(getFixture(), "p1.p2.databinding.BasicBindingBinding", context);
     assertNotNull(aClass);
 
     assertNotNull(aClass.findFieldByName("view1", false));
@@ -158,7 +161,8 @@ public class AndroidDataBindingTest {
     copyLayout("import_variable");
     copyClass(DUMMY_CLASS_QNAME);
 
-    PsiClass aClass = getFixture().findClass("p1.p2.databinding.ImportVariableBinding");
+    PsiClass context = getFixture().findClass(DUMMY_CLASS_QNAME);
+    PsiClass aClass = AndroidTestUtils.findClass(getFixture(), "p1.p2.databinding.ImportVariableBinding", context);
     assertNotNull(aClass);
 
     assertMethod(aClass, "setDummy", "void", DUMMY_CLASS_QNAME);
@@ -183,7 +187,8 @@ public class AndroidDataBindingTest {
     copyLayout("import_via_alias");
     copyClass(DUMMY_CLASS_QNAME);
 
-    PsiClass aClass = getFixture().findClass("p1.p2.databinding.ImportViaAliasBinding");
+    PsiClass context = getFixture().findClass(DUMMY_CLASS_QNAME);
+    PsiClass aClass = AndroidTestUtils.findClass(getFixture(), "p1.p2.databinding.ImportViaAliasBinding", context);
     assertNotNull(aClass);
 
     assertMethod(aClass, "setDummy", "void", DUMMY_CLASS_QNAME);
@@ -208,14 +213,13 @@ public class AndroidDataBindingTest {
   @Test
   @RunsInEdt
   public void testDataBindingComponentContainingFileIsNotNull() {
-    PsiClass aClass;
-    if (myDataBindingMode == DataBindingMode.SUPPORT) {
-      aClass = getFixture().findClass("android.databinding.DataBindingComponent");
-    }
-    else {
-      aClass = getFixture().findClass("androidx.databinding.DataBindingComponent");
-    }
-    assertNotNull(aClass);
-    assertNotNull(aClass.getContainingFile());
+    copyClass(DUMMY_CLASS_QNAME);
+
+    PsiClass context = getFixture().findClass(DUMMY_CLASS_QNAME);
+
+    String dataBindingPrefix = (myDataBindingMode == DataBindingMode.SUPPORT) ? "android.databinding." : "androidx.databinding.";
+    PsiClass foundClass = AndroidTestUtils.findClass(getFixture(), dataBindingPrefix + "DataBindingComponent", context);
+    assertNotNull(foundClass);
+    assertNotNull(foundClass.getContainingFile());
   }
 }

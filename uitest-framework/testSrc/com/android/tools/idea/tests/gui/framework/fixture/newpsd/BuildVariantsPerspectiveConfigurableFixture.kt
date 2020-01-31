@@ -16,24 +16,24 @@
 package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
 import com.android.tools.idea.gradle.structure.configurables.BUILD_VARIANTS_VIEW
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
+import org.fest.swing.core.Robot
 import java.awt.Container
 
 class BuildVariantsPerspectiveConfigurableFixture(
-  ideFrameFixture: IdeFrameFixture,
+  robot: Robot,
   container: Container
-) : BasePerspectiveConfigurableFixture(ideFrameFixture, container) {
+) : BasePerspectiveConfigurableFixture(robot, container) {
 
   fun selectBuildTypesTab(): BuildTypesFixture =
-    selectTab("Build Types") { BuildTypesFixture(ideFrameFixture, it) }
+    selectTab("Build Types") { BuildTypesFixture(robot, it) }
 
   fun selectProductFlavorsTab(): ProductFlavorsFixture =
-    selectTab("Flavors") { ProductFlavorsFixture(ideFrameFixture, it) }
+    selectTab("Flavors") { ProductFlavorsFixture(robot, it) }
 }
 
 fun ProjectStructureDialogFixture.selectBuildVariantsConfigurable(): BuildVariantsPerspectiveConfigurableFixture {
   selectConfigurable("Build Variants")
   return BuildVariantsPerspectiveConfigurableFixture(
-      ideFrameFixture,
+      robot(),
       findConfigurable(BUILD_VARIANTS_VIEW))
 }

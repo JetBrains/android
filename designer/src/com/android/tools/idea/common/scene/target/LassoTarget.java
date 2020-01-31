@@ -135,7 +135,7 @@ public class LassoTarget extends BaseTarget {
     myLastX = x;
     myLastY = y;
     myIntersectingComponents.clear();
-    myHasChanged = false;
+    myHasChanged = true;
     myHasDragged = false;
   }
 

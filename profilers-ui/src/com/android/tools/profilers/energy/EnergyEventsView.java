@@ -15,6 +15,9 @@
  */
 package com.android.tools.profilers.energy;
 
+import static com.android.tools.profilers.ProfilerFonts.H2_FONT;
+import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
+
 import com.android.tools.adtui.TooltipComponent;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.DefaultDataSeries;
@@ -22,17 +25,16 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.event.EventModel;
-import com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent;
-import com.android.tools.profilers.*;
+import com.android.tools.profiler.proto.Common;
+import com.android.tools.profilers.BorderlessTableCellRenderer;
+import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerTimeline;
+import com.android.tools.profilers.StageView;
+import com.android.tools.profilers.TimelineTable;
 import com.intellij.ui.table.JBTable;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
-import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableColumnModel;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.KeyboardFocusManager;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
@@ -41,9 +43,14 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import static com.android.tools.profilers.ProfilerFonts.H2_FONT;
-import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
+import javax.swing.JComponent;
+import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableColumnModel;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Energy events table view including wake lock, alarms, etc.
@@ -69,7 +76,7 @@ public final class EnergyEventsView {
     CALLED_BY(0.16, String.class, "Called By") {
       @Override
       Object getValueFrom(@NotNull EnergyDuration data) {
-        return data.getCalledByTraceId();
+        return data.getCalledBy();
       }
     },
     TIMELINE(0.5, Long.class, "Timeline") {
@@ -127,7 +134,7 @@ public final class EnergyEventsView {
     myEventsTable.setAutoCreateRowSorter(true);
     myEventsTable.getColumnModel().getColumn(Column.EVENT.ordinal()).setCellRenderer(new BorderlessTableCellRenderer());
     myEventsTable.getColumnModel().getColumn(Column.DESCRIPTION.ordinal()).setCellRenderer(new BorderlessTableCellRenderer());
-    myEventsTable.getColumnModel().getColumn(Column.CALLED_BY.ordinal()).setCellRenderer(new CalledByRenderer(myStage));
+    myEventsTable.getColumnModel().getColumn(Column.CALLED_BY.ordinal()).setCellRenderer(new CalledByRenderer());
     myEventsTable.getColumnModel().getColumn(Column.TIMELINE.ordinal()).setCellRenderer(
       new TimelineRenderer(myEventsTable, myStage.getStudioProfilers().getTimeline()));
 
@@ -173,9 +180,9 @@ public final class EnergyEventsView {
   private void updateTableSelection() {
     EnergyDuration duration = myStage.getSelectedDuration();
     if (duration != null) {
-      int id = duration.getEventList().get(0).getEventId();
+      long id = duration.getEventList().get(0).getGroupId();
       for (int i = 0; i < myTableModel.getRowCount(); ++i) {
-        if (id == myTableModel.getValue(i).getEventList().get(0).getEventId()) {
+        if (id == myTableModel.getValue(i).getEventList().get(0).getGroupId()) {
           int row = myEventsTable.convertRowIndexToView(i);
           myEventsTable.setRowSelectionInterval(row, row);
           return;
@@ -290,17 +297,11 @@ public final class EnergyEventsView {
   }
 
   private static final class CalledByRenderer extends BorderlessTableCellRenderer {
-    @NotNull private final EnergyProfilerStage myStage;
-
-    CalledByRenderer(@NotNull EnergyProfilerStage stage) {
-      myStage = stage;
-    }
-
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
       String calledByValue = "";
       if (value instanceof String) {
-        calledByValue = myStage.getEventsTraceCache().getTraceData((String)value);
+        calledByValue = (String)value;
         // LastDotIndex in the line is the method name start index, the second last index is the class name start index.
         int lastDotIndex = calledByValue.lastIndexOf('.');
         if (lastDotIndex > 0) {
@@ -343,19 +344,20 @@ public final class EnergyEventsView {
         EnergyDuration duration = model.getValue(i);
 
         // An event duration starts from its timestamp and ends at the next event's timestamp.
-        DefaultDataSeries<EventAction<EnergyEvent>> series = new DefaultDataSeries<>();
-        Iterator<EnergyEvent> iterator = duration.getEventList().iterator();
-        EnergyEvent event = iterator.hasNext() ? iterator.next() : null;
+        DefaultDataSeries<EventAction<Common.Event>> series = new DefaultDataSeries<>();
+        Iterator<Common.Event> iterator = duration.getEventList().iterator();
+        Common.Event event = iterator.hasNext() ? iterator.next() : null;
         long startTimeUs = event != null ? TimeUnit.NANOSECONDS.toMicros(event.getTimestamp()) : -1;
         while (event != null) {
-          EnergyEvent nextEvent = iterator.hasNext() ? iterator.next() : null;
+          Common.Event nextEvent = iterator.hasNext() ? iterator.next() : null;
           long endTimeUs = nextEvent != null ? TimeUnit.NANOSECONDS.toMicros(nextEvent.getTimestamp()) : Long.MAX_VALUE;
           series.add(startTimeUs, new EventAction<>(startTimeUs, endTimeUs, event));
           startTimeUs = endTimeUs;
           event = nextEvent;
         }
 
-        EventModel<EnergyEvent> eventModel = new EventModel<>(new RangedSeries<>(getTimeline().getSelectionRange(), series));
+        // TODO(b/122964201) Pass data range as 3rd param to RangedSeries to only show data from current session
+        EventModel<Common.Event> eventModel = new EventModel<>(new RangedSeries<>(getTimeline().getSelectionRange(), series));
         Color highlightColor = EnergyEventStateChart.DURATION_STATE_ENUM_COLORS.getColor(duration.getKind());
         EnergyEventComponent component = new EnergyEventComponent(eventModel, highlightColor);
         myEventComponents.add(component);

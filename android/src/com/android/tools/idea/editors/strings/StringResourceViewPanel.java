@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.editors.strings;
 
-import com.android.tools.adtui.font.FontUtil;
 import com.android.tools.idea.actions.BrowserHelpAction;
-import com.android.tools.idea.editors.strings.table.*;
+import com.android.tools.idea.editors.strings.table.FrozenColumnTableEvent;
+import com.android.tools.idea.editors.strings.table.FrozenColumnTableListener;
+import com.android.tools.idea.editors.strings.table.StringResourceTable;
+import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.android.tools.idea.rendering.Locale;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
@@ -31,16 +33,18 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.uiDesigner.core.GridConstraints;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.event.DocumentListener;
-import javax.swing.text.JTextComponent;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.FocusListener;
+import javax.swing.JComponent;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JTextField;
+import javax.swing.text.JTextComponent;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
 
 public final class StringResourceViewPanel implements Disposable {
   private final AndroidFacet myFacet;
@@ -87,26 +91,6 @@ public final class StringResourceViewPanel implements Disposable {
 
   public void removeSelectedKeys() {
     myRemoveKeysAction.perform();
-  }
-
-  void addDocumentListener(@NotNull DocumentListener listener) {
-    StringTableCellEditor editor = (StringTableCellEditor)myTable.getDefaultEditor(String.class);
-    assert editor != null;
-
-    editor.getComponent().getDocument().addDocumentListener(listener);
-
-    myDefaultValueTextField.getTextField().getDocument().addDocumentListener(listener);
-    myTranslationTextField.getTextField().getDocument().addDocumentListener(listener);
-  }
-
-  void addFocusListener(@NotNull FocusListener listener) {
-    DefaultCellEditor editor = (DefaultCellEditor)myTable.getDefaultEditor(String.class);
-    assert editor != null;
-
-    editor.getComponent().addFocusListener(listener);
-
-    myDefaultValueTextField.getTextField().addFocusListener(listener);
-    myTranslationTextField.getTextField().addFocusListener(listener);
   }
 
   private void createUIComponents() {
@@ -281,7 +265,7 @@ public final class StringResourceViewPanel implements Disposable {
     // the caret does not appear, so we need to set the caret visibility manually
     component.getCaret().setVisible(editable && component.hasFocus());
 
-    component.setFont(FontUtil.getFontAbleToDisplay(text, component.getFont()));
+    component.setFont(StringResourceEditor.getFont(text, component.getFont()));
   }
 
   private class ShowMultilineActionListener implements ActionListener {

@@ -20,6 +20,7 @@ import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.scene.Placeholder;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.model.*;
@@ -105,8 +106,8 @@ public class DelegatingViewGroupHandler extends ViewGroupHandler {
   }
 
   @Override
-  public void clearAttributes(@NotNull NlComponent component) {
-    myHandler.clearAttributes(component);
+  public void clearAttributes(@NotNull List<NlComponent> components) {
+    myHandler.clearAttributes(components);
   }
 
   @Override
@@ -249,8 +250,13 @@ public class DelegatingViewGroupHandler extends ViewGroupHandler {
     return myHandler.createChildTargets(parentComponent, childComponent);
   }
 
+  @Override
+  public List<Placeholder> getPlaceholders(@NotNull SceneComponent component) {
+    return myHandler.getPlaceholders(component);
+  }
+
   @NotNull
-  public ViewHandler getDelegateHandler() {
+  public ViewGroupHandler getDelegateHandler() {
     return myHandler;
   }
 }

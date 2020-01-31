@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.builder.model.NativeArtifact;
 import com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludeLayout;
 import com.android.tools.tests.LeakCheckerRule;
@@ -25,20 +27,17 @@ import com.intellij.ide.projectView.impl.nodes.PsiFileNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.JavaProjectTestCase;
-import org.jetbrains.annotations.NotNull;
-import org.junit.ClassRule;
-import org.mockito.Mockito;
-
+import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.junit.ClassRule;
+import org.mockito.Mockito;
 
-import static com.google.common.truth.Truth.assertThat;
-
-public class TestNdkLibraryEnhancedHeadersNode extends JavaProjectTestCase {
+public class TestNdkLibraryEnhancedHeadersNode extends PlatformTestCase {
   @ClassRule
   public static LeakCheckerRule checker = new LeakCheckerRule();
 

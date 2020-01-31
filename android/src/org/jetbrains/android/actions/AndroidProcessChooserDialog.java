@@ -1,4 +1,18 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+/*
+ * Copyright 2000-2011 JetBrains s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.jetbrains.android.actions;
 
 import com.android.ddmlib.AndroidDebugBridge;
@@ -52,7 +66,10 @@ import javax.swing.tree.TreePath;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 public class AndroidProcessChooserDialog extends DialogWrapper {
   @NonNls private static final String DEBUGGABLE_PROCESS_PROPERTY = "DEBUGGABLE_PROCESS";
@@ -201,6 +218,9 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
     AndroidDebugger defaultDebugger = null;
     List<AndroidDebugger> androidDebuggers = Lists.newLinkedList();
     for (AndroidDebugger androidDebugger : AndroidDebugger.EP_NAME.getExtensions()) {
+      if (!androidDebugger.supportsProject(myProject)) {
+        continue;
+      }
       androidDebuggers.add(androidDebugger);
       if (selectedDebugger == null &&
           lastSelectedDebuggerId != null &&
@@ -216,8 +236,8 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
       selectedDebugger = defaultDebugger;
     }
 
-    androidDebuggers.sort(Comparator.comparing(AndroidDebugger::getId));
-    myDebuggerTypeCombo.setModel(new CollectionComboBoxModel<>(androidDebuggers));
+    androidDebuggers.sort((left, right) -> left.getId().compareTo(right.getId()));
+    myDebuggerTypeCombo.setModel(new CollectionComboBoxModel(androidDebuggers));
     myDebuggerTypeCombo.setRenderer(SimpleListCellRenderer.create("", AndroidDebugger::getDisplayName));
     if (selectedDebugger != null) {
       myDebuggerTypeCombo.setSelectedItem(selectedDebugger);
@@ -381,7 +401,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
   @NotNull
   private static Set<String> collectAllProcessNames(Project project) {
     final List<AndroidFacet> facets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID);
-    final Set<String> result = new HashSet<>();
+    final Set<String> result = new HashSet<String>();
 
     for (AndroidFacet facet : facets) {
       final String packageName = AndroidCompileUtil.getAaptManifestPackage(facet);
@@ -389,7 +409,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
       if (packageName != null) {
         result.add(StringUtil.toLowerCase(packageName));
       }
-      final Manifest manifest = facet.getManifest();
+      final Manifest manifest = Manifest.getMainManifest(facet);
 
       if (manifest != null) {
         final XmlElement xmlElement = manifest.getXmlElement();

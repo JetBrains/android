@@ -31,4 +31,5 @@ data class TransportEventListener @JvmOverloads constructor(
   val groupId: (() -> Long)? = null,
   val startTime: (() -> Long)? = null,
   val endTime: () -> Long = { Long.MAX_VALUE },
-  val callback: (Common.Event) -> Unit)
+  // Upon completing the callback, whether the listener should be removed.
+  val callback: (Common.Event) -> Boolean)

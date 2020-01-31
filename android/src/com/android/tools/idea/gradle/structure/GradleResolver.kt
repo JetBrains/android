@@ -24,7 +24,6 @@ import com.android.tools.idea.gradle.structure.model.PsResolvedModuleModel
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import org.jetbrains.ide.PooledThreadExecutor
@@ -37,7 +36,7 @@ class GradleResolver {
     MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE).submit<List<PsResolvedModuleModel>> {
       GradleSyncInvoker
         .getInstance()
-        .fetchGradleModels(project, EmptyProgressIndicator())
+        .fetchGradleModels(project)
         .mapNotNull { findModel(it) }
     }.also {
       Disposer.register(disposable, Disposable { it.cancel(true) })

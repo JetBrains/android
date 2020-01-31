@@ -122,10 +122,10 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
       assertThat(testInstrumentationRunner.resolved.asTestValue(), nullValue())
       assertThat(testInstrumentationRunner.parsedValue.asTestValue(), nullValue())
 
-      // TODO(b/111630584): assertThat(testFunctionalTest.resolved.asTestValue(), equalTo(true))
+      assertThat(testFunctionalTest.resolved.asTestValue(), equalTo(true))
       assertThat(testFunctionalTest.parsedValue.asTestValue(), equalTo(true))
 
-      // TODO(b/111630584): assertThat(testHandleProfiling.resolved.asTestValue(), equalTo(true))
+      assertThat(testHandleProfiling.resolved.asTestValue(), equalTo(true))
       assertThat(testHandleProfiling.parsedValue.asTestValue(), equalTo(true))
 
       assertThat(versionCode.resolved.asTestValue(), equalTo(2))
@@ -364,8 +364,8 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
           testInstrumentationRunnerArguments.parsedValue.asTestValue(),
           equalTo(testInstrumentationRunnerArguments.resolved.asTestValue())
         )
-      // TODO(b/111630584): assertThat(testFunctionalTest.parsedValue.asTestValue(), equalTo(testFunctionalTest.resolved.asTestValue()))
-      // TODO(b/111630584): assertThat(testHandleProfiling.parsedValue.asTestValue(), equalTo(testHandleProfiling.resolved.asTestValue()))
+        assertThat(testFunctionalTest.parsedValue.asTestValue(), equalTo(testFunctionalTest.resolved.asTestValue()))
+        assertThat(testHandleProfiling.parsedValue.asTestValue(), equalTo(testHandleProfiling.resolved.asTestValue()))
         assertThat(resConfigs.parsedValue.asTestValue()?.toSet(), equalTo(resConfigs.resolved.asTestValue()?.toSet()))
       }
     }

@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync.idea.data.service;
 import com.android.tools.idea.gradle.project.model.ModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.intellij.openapi.application.RunResult;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -55,9 +54,8 @@ public abstract class ModuleModelDataService<T extends ModuleModel> extends Abst
       importData(toImport, project, modelsProvider);
     }
     catch (Throwable e) {
-      getLog().info(String.format("Failed to set up modules in project '%1$s'", project.getName()), e);
       String msg = e.getMessage();
-      GradleSyncState.getInstance(project).syncFailed(isNotEmpty(msg) ? msg : e.getClass().getCanonicalName());
+      GradleSyncState.getInstance(project).syncFailed(isNotEmpty(msg) ? msg : e.getClass().getCanonicalName(), e, null);
     }
   }
 
@@ -72,21 +70,14 @@ public abstract class ModuleModelDataService<T extends ModuleModel> extends Abst
 
   private void importData(@NotNull Collection<DataNode<T>> toImport,
                           @NotNull Project project,
-                          @NotNull IdeModifiableModelsProvider modelsProvider) throws Throwable {
-    RunResult result = new WriteCommandAction.Simple(project) {
-      @Override
-      protected void run() {
+                          @NotNull IdeModifiableModelsProvider modelsProvider) {
+    WriteCommandAction.runWriteCommandAction(project, ()->  {
         if (project.isDisposed()) {
           return;
         }
         Map<String, T> modelsByModuleName = indexByModuleName(toImport, modelsProvider);
         importData(toImport, project, modelsProvider, modelsByModuleName);
-      }
-    }.execute();
-    Throwable error = result.getThrowable();
-    if (error != null) {
-      throw error;
-    }
+    });
   }
 
   protected abstract void importData(@NotNull Collection<DataNode<T>> toImport,

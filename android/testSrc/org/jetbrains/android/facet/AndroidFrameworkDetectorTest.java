@@ -18,6 +18,7 @@ package org.jetbrains.android.facet;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.intellij.framework.detection.DetectedFrameworkDescription;
 import com.intellij.framework.detection.FrameworkDetectionContext;
+import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.JavaProjectTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
 import org.mockito.Mock;
@@ -32,7 +33,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link AndroidFrameworkDetector}.
  */
-public class AndroidFrameworkDetectorTest extends JavaProjectTestCase {
+public class AndroidFrameworkDetectorTest extends PlatformTestCase {
   @Mock private FrameworkDetectionContext myContext;
   @Mock GradleProjectInfo myProjectInfo;
 

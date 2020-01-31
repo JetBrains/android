@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.ddms.DeviceNameProperties;
 import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher;
@@ -22,7 +23,6 @@ import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.DeviceFutures;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.project.Project;
-import java.util.Collection;
 import java.util.Objects;
 import java.util.concurrent.Future;
 import javax.swing.Icon;
@@ -31,10 +31,8 @@ import org.jetbrains.annotations.Nullable;
 
 class ConnectedDevice extends Device {
   static class Builder extends Device.Builder {
-    @NotNull
-    Builder setName(@NotNull String name) {
-      myName = name;
-      return this;
+    Builder() {
+      myName = "Connected Device";
     }
 
     @NotNull
@@ -50,7 +48,7 @@ class ConnectedDevice extends Device {
     }
 
     @NotNull
-    Builder setKey(@NotNull String key) {
+    Builder setKey(@NotNull Key key) {
       myKey = key;
       return this;
     }
@@ -74,8 +72,18 @@ class ConnectedDevice extends Device {
   }
 
   @Nullable
-  String getVirtualDeviceKey() {
-    return Objects.requireNonNull(getDdmlibDevice()).getAvdName();
+  Key getVirtualDeviceKey() {
+    IDevice device = getDdmlibDevice();
+    assert device != null;
+
+    String avd = device.getAvdName();
+
+    if (avd == null) {
+      return null;
+    }
+
+    // TODO Get the snapshot from the virtual device
+    return new Key(avd);
   }
 
   @NotNull
@@ -115,9 +123,9 @@ class ConnectedDevice extends Device {
     throw new UnsupportedOperationException();
   }
 
-  @NotNull
+  @Nullable
   @Override
-  final Collection<String> getSnapshots() {
+  final Snapshot getSnapshot() {
     throw new UnsupportedOperationException();
   }
 
@@ -128,7 +136,7 @@ class ConnectedDevice extends Device {
   }
 
   @Override
-  final void addTo(@NotNull DeviceFutures futures, @NotNull Project project, @Nullable String snapshot) {
+  final void addTo(@NotNull DeviceFutures futures, @NotNull Project project, @Nullable Snapshot snapshot) {
     throw new UnsupportedOperationException();
   }
 }

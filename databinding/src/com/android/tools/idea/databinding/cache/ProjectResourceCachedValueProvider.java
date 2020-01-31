@@ -15,18 +15,19 @@
  */
 package com.android.tools.idea.databinding.cache;
 
-import com.android.tools.idea.databinding.DataBindingProjectComponent;
+import com.android.tools.idea.databinding.LayoutBindingProjectComponent;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
 
 /**
  * A utility cache that can be used if results from multiple resource repositories are being merged into one.
@@ -37,7 +38,7 @@ abstract public class ProjectResourceCachedValueProvider<T, V> implements Cached
   private Map<AndroidFacet, CachedValue<V>> myCachedValues = Maps.newHashMap();
   private final ModificationTracker[] myAdditionalTrackers;
   private List<ModificationTracker> myDependencies = Lists.newArrayList();
-  private DataBindingProjectComponent myComponent;
+  private LayoutBindingProjectComponent myComponent;
   private long myDependencyModificationCountOnCompute;
   private long myModificationCount = 0;
 
@@ -50,7 +51,7 @@ abstract public class ProjectResourceCachedValueProvider<T, V> implements Cached
     return myModificationCount;
   }
 
-  public ProjectResourceCachedValueProvider(DataBindingProjectComponent component, ModificationTracker... additionalTrackers) {
+  public ProjectResourceCachedValueProvider(LayoutBindingProjectComponent component, ModificationTracker... additionalTrackers) {
     myComponent = component;
     myAdditionalTrackers = additionalTrackers;
   }
@@ -58,7 +59,7 @@ abstract public class ProjectResourceCachedValueProvider<T, V> implements Cached
   @Nullable
   @Override
   public final Result<T> compute() {
-    AndroidFacet[] facets = myComponent.getDataBindingEnabledFacets();
+    List<AndroidFacet> facets = getFacets();
     List<V> values = Lists.newArrayList();
 
     List<ModificationTracker> newDependencies = Lists.newArrayList();
@@ -78,6 +79,15 @@ abstract public class ProjectResourceCachedValueProvider<T, V> implements Cached
     myDependencies = Collections.unmodifiableList(newDependencies);
     myDependencyModificationCountOnCompute = calculateModificationCountFrom(myDependencies);
     return Result.create(merge(values), this);
+  }
+
+  @NotNull
+  private List<AndroidFacet> getFacets() {
+    List<AndroidFacet> viewBindingEnabledFacets = myComponent.getViewBindingEnabledFacets();
+    if (viewBindingEnabledFacets.isEmpty()) {
+      return myComponent.getDataBindingEnabledFacets();
+    }
+    return viewBindingEnabledFacets;
   }
 
   private static long calculateModificationCountFrom(List<ModificationTracker> dependencies) {
@@ -105,7 +115,7 @@ abstract public class ProjectResourceCachedValueProvider<T, V> implements Cached
 
   abstract public static class MergedMapValueProvider<A, B> extends ProjectResourceCachedValueProvider<Map<A, List<B>>, Map<A, List<B>>> {
 
-    public MergedMapValueProvider(DataBindingProjectComponent component, ModificationTracker... additionalTrackers) {
+    public MergedMapValueProvider(LayoutBindingProjectComponent component, ModificationTracker... additionalTrackers) {
       super(component, additionalTrackers);
     }
 

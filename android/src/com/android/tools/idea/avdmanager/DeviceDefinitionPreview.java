@@ -15,31 +15,38 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import static com.android.tools.idea.avdmanager.AvdWizardUtils.FIGURE_FONT;
+import static com.android.tools.idea.avdmanager.AvdWizardUtils.STANDARD_FONT;
+import static com.android.tools.idea.avdmanager.AvdWizardUtils.TITLE_FONT;
+
 import com.android.resources.Density;
 import com.android.resources.ScreenOrientation;
 import com.android.resources.ScreenRatio;
 import com.android.resources.ScreenSize;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.observable.InvalidationListener;
-import com.android.tools.idea.observable.ObservableValue;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.GraphicsUtil;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.Dimension;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.Stroke;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.RoundRectangle2D;
 import java.text.DecimalFormat;
 import java.util.List;
-
-import static com.android.tools.idea.avdmanager.AvdWizardUtils.*;
+import javax.swing.Icon;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A preview component for displaying information about
@@ -53,16 +60,14 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
    * Constant string used to signal the panel not to preview a null device
    */
   public static final String DO_NOT_DISPLAY = "DO_NOT_DISPLAY";
-  private static final int FIGURE_PADDING = JBUIScale.scale(3);
+  private static final int FIGURE_PADDING = JBUI.scale(3);
   private static final DecimalFormat FORMAT = new DecimalFormat(".##\"");
-  public static final int DIMENSION_LINE_WIDTH = JBUIScale.scale(1); // px
-
-  public static final int OUTLINE_LINE_WIDTH = JBUIScale.scale(5);   // px
-
+  public static final int DIMENSION_LINE_WIDTH = JBUI.scale(1); // px
+  public static final int OUTLINE_LINE_WIDTH = JBUI.scale(5);   // px
   private static final String NO_DEVICE_SELECTED = "No Device Selected";
   double myMaxOutlineWidth;
   double myMinOutlineWidthIn;
-  private static final int PADDING = JBUIScale.scale(20);
+  private static final int PADDING = JBUI.scale(20);
 
   private final AvdDeviceData myDeviceData;
 
@@ -138,8 +143,8 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
     // Paint the device name
     g2d.setFont(TITLE_FONT);
     FontMetrics metrics = g.getFontMetrics(TITLE_FONT);
-    g2d.drawString(myDeviceData.name().get(), JBUIScale.scale(50), PADDING + metrics.getHeight() / 2);
-    g2d.drawLine(0, JBUIScale.scale(50), getWidth(), JBUIScale.scale(50));
+    g2d.drawString(myDeviceData.name().get(), JBUI.scale(50), PADDING + metrics.getHeight() / 2);
+    g2d.drawLine(0, JBUI.scale(50), getWidth(), JBUI.scale(50));
 
     // Paint the device outline with dimensions labelled
     Dimension screenSize = getScaledDimension();
@@ -200,7 +205,7 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
 
       // Paint the width dimension
       String widthString = Integer.toString(pixelScreenSize.width) + "px";
-      int widthLineY = JBUIScale.scale(95) - (metrics.getHeight() - metrics.getDescent()) / 2;
+      int widthLineY = JBUI.scale(95) - (metrics.getHeight() - metrics.getDescent()) / 2;
       g2d.drawLine(PADDING, widthLineY, round(PADDING + screenSize.width), widthLineY);
 
       // Erase the part of the line that the text overlays
@@ -212,33 +217,32 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
 
       // Paint the width text
       g2d.setColor(JBColor.foreground());
-      g2d.drawString(widthString, widthTextX, JBUIScale.scale(95));
+      g2d.drawString(widthString, widthTextX, JBUI.scale(95));
 
       // Paint the height dimension
       g2d.setColor(OUR_GRAY);
       String heightString = Integer.toString(pixelScreenSize.height) + "px";
-      int heightLineX = round(PADDING + screenSize.width + JBUIScale.scale(15));
-      g2d.drawLine(heightLineX, JBUIScale.scale(100), heightLineX, round(JBUIScale.scale(100) + screenSize.height));
+      int heightLineX = round(PADDING + screenSize.width + JBUI.scale(15));
+      g2d.drawLine(heightLineX, JBUI.scale(100), heightLineX, round(JBUI.scale(100) + screenSize.height));
 
       // Erase the part of the line that the text overlays
       g2d.setColor(JBColor.background());
-      int heightTextY = round(JBUIScale.scale(100) + (screenSize.height + stringHeight) / 2.0);
+      int heightTextY = round(JBUI.scale(100) + (screenSize.height + stringHeight) / 2.0);
       g2d.drawLine(heightLineX, heightTextY + FIGURE_PADDING, heightLineX, heightTextY - stringHeight - FIGURE_PADDING);
 
       // Paint the height text
       g2d.setColor(JBColor.foreground());
-      g2d.drawString(heightString, heightLineX - JBUIScale.scale(10), heightTextY);
+      g2d.drawString(heightString, heightLineX - JBUI.scale(10), heightTextY);
 
       // Paint the diagonal dimension
       g2d.setColor(OUR_GRAY);
       String diagString = FORMAT.format(myDeviceData.diagonalScreenSize().get());
       int diagTextX = round(PADDING + (screenSize.width - metrics.stringWidth(diagString)) / 2.0);
-      int diagTextY = round(JBUIScale.scale(100) + (screenSize.height + stringHeight) / 2.0);
+      int diagTextY = round(JBUI.scale(100) + (screenSize.height + stringHeight) / 2.0);
 
       double chin = (double)myDeviceData.screenChinSize().get();
       chin *= screenSize.getWidth() / myDeviceData.getDeviceScreenDimension().getWidth();
-      Line2D diagLine = new Line2D.Double(PADDING, JBUIScale.scale(100) + screenSize.height + chin, PADDING + screenSize.width,
-                                          JBUIScale.scale(100));
+      Line2D diagLine = new Line2D.Double(PADDING, JBUI.scale(100) + screenSize.height + chin, PADDING + screenSize.width, JBUI.scale(100));
       if (isCircular) {
         // Move the endpoints of the line to within the circle. Each endpoint must move towards the center axis of the circle by
         // 0.5 * (l - l/sqrt(2)) where l is the diameter of the circle.
@@ -290,11 +294,11 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
       int infoSegmentY;
       if (myDeviceData.getDefaultDeviceOrientation().equals(ScreenOrientation.PORTRAIT)) {
         infoSegmentX = round(PADDING + screenSize.width + metrics.stringWidth(heightString) + PADDING);
-        infoSegmentY = JBUIScale.scale(100);
+        infoSegmentY = JBUI.scale(100);
       }
       else {
         infoSegmentX = PADDING;
-        infoSegmentY = round(JBUIScale.scale(100) + screenSize.height + PADDING);
+        infoSegmentY = round(JBUI.scale(100) + screenSize.height + PADDING);
       }
       infoSegmentY += stringHeight;
       ScreenSize size = ScreenSize.getScreenSize(myDeviceData.diagonalScreenSize().get());

@@ -1,8 +1,14 @@
 package org.jetbrains.android.dom.wrappers;
 
 import com.android.tools.idea.res.psi.ResourceNavigationItem;
+import com.google.common.base.Stopwatch;
+import com.intellij.lang.Language;
 import com.intellij.navigation.ItemPresentation;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiTarget;
 import com.intellij.psi.impl.RenameableFakePsiElement;
 import com.intellij.psi.xml.XmlAttributeValue;
@@ -18,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
 */
 public class LazyValueResourceElementWrapper extends RenameableFakePsiElement
     implements PsiTarget, Comparable<LazyValueResourceElementWrapper> {
+  private static final Logger LOG = Logger.getInstance(LazyValueResourceElementWrapper.class);
   private final ValueResourceInfo myResourceInfo;
   private final PsiElement myParent;
 
@@ -52,7 +59,32 @@ public class LazyValueResourceElementWrapper extends RenameableFakePsiElement
 
   @Nullable
   public XmlAttributeValue computeElement() {
-    return myResourceInfo.computeXmlElement();
+    if (LOG.isDebugEnabled()) {
+      Stopwatch stopwatch = Stopwatch.createStarted();
+      XmlAttributeValue value = myResourceInfo.computeXmlElement();
+      LOG.debug("Computing XML element for lazy resource: " + this.myResourceInfo + ", time: " + stopwatch);
+      return value;
+    }
+    else {
+      return myResourceInfo.computeXmlElement();
+    }
+  }
+
+  @NotNull
+  @Override
+  public Language getLanguage() {
+    return myParent.getLanguage();
+  }
+
+  @Override
+  public PsiFile getContainingFile() {
+    return PsiManager.getInstance(myParent.getProject()).findFile(myResourceInfo.getContainingFile());
+  }
+
+  @Nullable
+  @Override
+  public TextRange getTextRange() {
+    return getNavigationElement().getTextRange();
   }
 
   @Override
@@ -87,16 +119,17 @@ public class LazyValueResourceElementWrapper extends RenameableFakePsiElement
     return element;
   }
 
+  @Override
+  public boolean isEquivalentTo(PsiElement another) {
+    if (another instanceof LazyValueResourceElementWrapper) {
+      return myResourceInfo.equals(((LazyValueResourceElementWrapper)another).getResourceInfo());
+    }
+    return super.isEquivalentTo(another);
+  }
+
   // Comparator useful for comparing one wrapper for priority sorting without having to actually compute the XML elements
   @Override
   public int compareTo(@NotNull LazyValueResourceElementWrapper other) {
     return myResourceInfo.compareTo(other.myResourceInfo);
-  }
-
-  @Override
-  public boolean isEquivalentTo(PsiElement another) {
-    return another instanceof LazyValueResourceElementWrapper &&
-           ((LazyValueResourceElementWrapper)another).myParent.isEquivalentTo(myParent) &&
-           compareTo((LazyValueResourceElementWrapper)another) == 0;
   }
 }

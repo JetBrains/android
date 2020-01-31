@@ -15,23 +15,23 @@
  */
 package com.android.tools.idea.gradle.project.sync.validation.android;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModelFeatures;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.messages.SyncMessage;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
+import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
-
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * Tests for {@link LayoutRenderingIssueValidationStrategy}.
  */
-public class LayoutRenderingIssueValidationStrategyTest extends AndroidGradleTestCase {
+public class LayoutRenderingIssueValidationStrategyTest extends AndroidTestCase {
   private LayoutRenderingIssueValidationStrategy myStrategy;
 
   @Override

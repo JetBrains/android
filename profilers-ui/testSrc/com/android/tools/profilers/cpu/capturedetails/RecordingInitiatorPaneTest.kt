@@ -40,9 +40,21 @@ import com.intellij.ui.HyperlinkLabel
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 import javax.swing.JButton
 
-class RecordingInitiatorPaneTest {
+@RunWith(Parameterized::class)
+class RecordingInitiatorPaneTest(newPipeline: Boolean) {
+
+  companion object {
+    @JvmStatic
+    @Parameterized.Parameters
+    fun data(): Collection<Boolean> {
+      return listOf(false, true)
+    }
+  }
+
   @JvmField
   @Rule
   val grpcChannel: FakeGrpcChannel
@@ -55,11 +67,13 @@ class RecordingInitiatorPaneTest {
 
   init {
     val cpuService = FakeCpuService()
+    val transportService = FakeTransportService(timer)
     grpcChannel = FakeGrpcChannel("CpuCaptureViewTestChannel", cpuService,
-                                  FakeTransportService(timer), FakeProfilerService(timer),
+                                  transportService, FakeProfilerService(timer),
                                   FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build())
 
-    cpuProfiler = FakeCpuProfiler(grpcChannel = grpcChannel, cpuService = cpuService)
+    cpuProfiler = FakeCpuProfiler(grpcChannel = grpcChannel, transportService = transportService, cpuService = cpuService, timer = timer,
+                                  newPipeline = newPipeline)
   }
 
   private lateinit var stageView: CpuProfilerStageView

@@ -28,9 +28,8 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleFiles;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
+import com.android.tools.idea.gradle.structure.AndroidProjectSettingsService;
 import com.android.tools.idea.gradle.util.GradleProjects;
-import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.build.BuildContentManager;
 import com.intellij.ide.actions.RevealFileAction;
@@ -41,6 +40,7 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.editor.colors.EditorColors;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.DumbAware;
@@ -81,8 +81,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
   @NotNull private final GradleSyncState mySyncState;
 
   public ProjectSyncStatusNotificationProvider(@NotNull Project project) {
-    myProjectInfo = GradleProjectInfo.getInstance(project);
-    mySyncState = GradleSyncState.getInstance(project);
+    this(GradleProjectInfo.getInstance(project), GradleSyncState.getInstance(project));
   }
 
   @NonInjectable
@@ -162,8 +161,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
         @Nullable
         NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull GradleProjectInfo projectInfo) {
           if (!IdeInfo.getInstance().isAndroidStudio()) return null;
-          if (ProjectStructureConfigurable.isNewPsdEnabled() &&
-              (System.currentTimeMillis() -
+          if ((System.currentTimeMillis() -
                Long.parseLong(
                  PropertiesComponent.getInstance().getValue("PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP", "0")) >
                PROJECT_STRUCTURE_NOTIFICATION_RESHOW_TIMEOUT_MS)) {
@@ -185,7 +183,8 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
                 return null;
               }
             }
-            return new ProjectStructureNotificationPanel(project, this, "Configure project in Project Structure dialog.",
+            return new ProjectStructureNotificationPanel(project, this,
+                                                         "You can use the Project Structure dialog to view and edit your project configuration",
                                                          module);
           }
           return null;
@@ -277,7 +276,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
         project.putUserData(REFRESH_EXTERNAL_NATIVE_MODELS_KEY, true);
       }
       createActionLabel("Sync Now",
-                        () -> GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_USER_STALE_CHANGES));
+                        () -> GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_USER_STALE_CHANGES));
     }
   }
 
@@ -286,7 +285,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
       super(project, type, text);
 
       createActionLabel("Try Again",
-                        () -> GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_USER_TRY_AGAIN));
+                        () -> GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_USER_TRY_AGAIN));
 
       createActionLabel("Open 'Build' View", () -> {
         ToolWindow toolWindow = BuildContentManager.getInstance(project).getOrCreateToolWindow();
@@ -307,7 +306,12 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     ProjectStructureNotificationPanel(@NotNull Project project, @NotNull Type type, @NotNull String text, @NotNull Module module) {
       super(type, text);
 
-      createActionLabel("Open Project Structure", () -> {
+      String shortcutText = KeymapUtil.getFirstKeyboardShortcutText("ShowProjectStructureSettings");
+      String label = "Open";
+      if (shortcutText != "") {
+        label += " (" + shortcutText + ")";
+      }
+      createActionLabel(label, () -> {
         ProjectSettingsService projectSettingsService = ProjectSettingsService.getInstance(project);
         if (projectSettingsService instanceof AndroidProjectSettingsService) {
           projectSettingsService.openModuleSettings(module);

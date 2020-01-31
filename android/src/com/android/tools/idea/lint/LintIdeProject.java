@@ -16,7 +16,11 @@
 package com.android.tools.idea.lint;
 
 import com.android.annotations.NonNull;
-import com.android.builder.model.*;
+import com.android.builder.model.AndroidLibrary;
+import com.android.builder.model.JavaLibrary;
+import com.android.builder.model.ProductFlavor;
+import com.android.builder.model.SourceProvider;
+import com.android.builder.model.Variant;
 import com.android.ide.common.gradle.model.GradleModelConverterUtil;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.repository.GradleCoordinate;
@@ -27,7 +31,6 @@ import com.android.sdklib.AndroidVersion;
 import com.android.support.AndroidxNameUtils;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.util.GradleProjects;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
@@ -54,10 +57,12 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.facet.ResourceFolderManager;
+import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.SystemIndependent;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 import java.io.File;
@@ -343,11 +348,7 @@ public class LintIdeProject extends Project {
       }
       dir = VfsUtilCore.virtualToIoFile(mainContentRoot);
     } else {
-      String moduleDirPath = AndroidRootUtil.getModuleDirPath(module);
-      if (moduleDirPath == null) {
-        return null;
-      }
-      dir = new File(FileUtil.toSystemDependentName(moduleDirPath));
+      dir = AndroidRootUtil.findModuleRootFolderPath(module);
     }
     return dir;
   }
@@ -632,7 +633,7 @@ public class LintIdeProject extends Project {
             proguardFiles = new ArrayList<>();
 
             for (String osPath : AndroidUtils.urlsToOsPaths(urls, null)) {
-              if (!osPath.contains(AndroidCommonUtils.SDK_HOME_MACRO)) {
+              if (!osPath.contains(AndroidBuildCommonUtils.SDK_HOME_MACRO)) {
                 proguardFiles.add(new File(osPath));
               }
             }
@@ -759,7 +760,7 @@ public class LintIdeProject extends Project {
     @Override
     protected boolean includeTests() {
       if (isGradleProject()) {
-        AndroidProject model = getGradleProjectModel();
+        IdeAndroidProject model = getGradleProjectModel();
         if (model != null) {
           GradleVersion version = getGradleModelVersion();
           if (version != null && version.isAtLeast(2, 4, 0, "alpha", 4, true)) {
@@ -779,7 +780,7 @@ public class LintIdeProject extends Project {
     public List<File> getManifestFiles() {
       if (manifestFiles == null) {
         manifestFiles = Lists.newArrayList();
-        File mainManifest = myFacet.getMainSourceProvider().getManifestFile();
+        File mainManifest = SourceProviderManager.getInstance(myFacet).getMainSourceProvider().getManifestFile();
         if (mainManifest.exists()) {
           manifestFiles.add(mainManifest);
         }
@@ -997,7 +998,7 @@ public class LintIdeProject extends Project {
 
     @Nullable
     @Override
-    public AndroidProject getGradleProjectModel() {
+    public IdeAndroidProject getGradleProjectModel() {
       // TODO: b/22928250
       AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
       if (androidModel != null) {
@@ -1233,7 +1234,7 @@ public class LintIdeProject extends Project {
 
     @Nullable
     @Override
-    public AndroidProject getGradleProjectModel() {
+    public IdeAndroidProject getGradleProjectModel() {
       return null;
     }
 

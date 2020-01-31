@@ -76,6 +76,7 @@ import com.android.tools.idea.gradle.dsl.model.android.productFlavors.NdkOptions
 import com.android.tools.idea.gradle.dsl.model.android.productFlavors.externalNativeBuild.CMakeOptionsModelImpl
 import com.android.tools.idea.gradle.dsl.model.android.productFlavors.externalNativeBuild.NdkBuildOptionsModelImpl
 import com.google.common.truth.Truth.assertThat
+import org.junit.Assume.assumeTrue
 import org.junit.Test
 
 /**
@@ -279,6 +280,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testDefaultConfigMapStatements() {
+    assumeTrue(isGroovy())
     val text = "android.defaultConfig.manifestPlaceholders.activityLabel1 \"defaultName1\"\n" +
                "android.defaultConfig.manifestPlaceholders.activityLabel2 = \"defaultName2\"\n" +
                "android.defaultConfig.testInstrumentationRunnerArguments.key1 \"value1\"\n" +
@@ -1842,6 +1844,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testEnsureSdkVersionUsesApplicationSyntax() {
+    assumeTrue(isGroovy())
     val text = ""
     writeToBuildFile(text)
     val buildModel = gradleBuildModel
@@ -1867,6 +1870,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testWriteMatchingFallbacks() {
+    assumeTrue(isGroovy())
     val text = ""
     writeToBuildFile(text)
     val buildModel = gradleBuildModel

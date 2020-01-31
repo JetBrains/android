@@ -16,8 +16,8 @@
 
 package com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator;
 
-import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ViewTransform;
 import com.android.tools.idea.uibuilder.handlers.constraint.model.ConstraintWidget;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ViewTransform;
 import com.intellij.openapi.util.text.StringUtil;
 
 import javax.swing.*;

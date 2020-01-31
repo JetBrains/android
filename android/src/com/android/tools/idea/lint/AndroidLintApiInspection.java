@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.lint;
 
+import static com.android.tools.lint.checks.ApiDetector.REQUIRES_API_ANNOTATION;
+
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.resources.ResourceFolderType;
-import com.intellij.psi.PsiModifierListOwner;
-import org.jetbrains.android.intentions.OverrideResourceAction;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.LintFix;
@@ -29,16 +29,15 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiModifierListOwner;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlFile;
+import java.util.List;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
+import org.jetbrains.android.intentions.OverrideResourceAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-
-import static com.android.tools.lint.checks.ApiDetector.REQUIRES_API_ANNOTATION;
 
 public abstract class AndroidLintApiInspection extends AndroidLintInspectionBase {
   public AndroidLintApiInspection(String displayName, Issue issue) {
@@ -80,10 +79,7 @@ public abstract class AndroidLintApiInspection extends AndroidLintInspectionBase
 
       ApplicationManager.getApplication().assertReadAccessAllowed();
       Project project = startElement.getProject();
-      if (!isXml && (JavaPsiFacade.getInstance(project).findClass(REQUIRES_API_ANNOTATION.oldName(),
-                                                                  GlobalSearchScope.allScope(project)) != null ||
-                     JavaPsiFacade.getInstance(project).findClass(REQUIRES_API_ANNOTATION.newName(),
-                                                                  GlobalSearchScope.allScope(project)) != null)) {
+      if (!isXml && requiresApiAvailable(project)) {
         list.add(new AddTargetApiQuickFix(api, true, startElement, filter));
       } else {
         // Discourage use of @TargetApi if @RequiresApi is available; see for example
@@ -95,5 +91,12 @@ public abstract class AndroidLintApiInspection extends AndroidLintInspectionBase
     }
 
     return super.getQuickFixes(startElement, endElement, message, fixData);
+  }
+
+  public static boolean requiresApiAvailable(Project project) {
+    JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
+    GlobalSearchScope scope = GlobalSearchScope.allScope(project);
+    return facade.findClass(REQUIRES_API_ANNOTATION.oldName(),scope) != null ||
+           facade.findClass(REQUIRES_API_ANNOTATION.newName(), scope) != null;
   }
 }

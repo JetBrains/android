@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.project.sync.setup.module.common.CompilerSe
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.plugins.gradle.model.ExtIdeaCompilerOutput;
 import org.mockito.Mock;
 
@@ -39,7 +39,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link CompilerOutputModuleSetupStep}.
  */
-public class CompilerOutputModuleSetupStepTest extends JavaProjectTestCase {
+public class CompilerOutputModuleSetupStepTest extends PlatformTestCase {
   @Mock private IdeModifiableModelsProvider myModelsProvider;
   @Mock private ModifiableRootModel myRootModel;
   @Mock private ExtIdeaCompilerOutput myCompilerOutput;
@@ -111,9 +111,5 @@ public class CompilerOutputModuleSetupStepTest extends JavaProjectTestCase {
     mySetupStep.doSetUpModule(context, myJavaModel);
 
     verify(myCompilerSettingsSetup, never()).setOutputPaths(any(), any(), any());
-  }
-
-  public void testIsInvokedOnSkippedSync() {
-    assertTrue(mySetupStep.invokeOnSkippedSync());
   }
 }

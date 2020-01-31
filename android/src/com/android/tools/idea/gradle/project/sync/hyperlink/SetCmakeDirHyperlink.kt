@@ -31,7 +31,7 @@ class SetCmakeDirHyperlink(private val path : File, text : String) : Notificatio
     val localProperties = LocalProperties(project)
     localProperties.androidCmakePath = path
     localProperties.save()
-    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(
+    GradleSyncInvoker.getInstance().requestProjectSync(
       project,
       TRIGGER_QF_CMAKE_INSTALLED)
   }

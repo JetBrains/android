@@ -22,8 +22,6 @@ import android.view.View;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
@@ -47,6 +45,7 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRemoteRunner.class)
 public class NlEditorTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   @Test
   public void testSelectComponent() throws Exception {
@@ -75,7 +74,7 @@ public class NlEditorTest {
       .open("app/src/main/res/layout/empty_absolute.xml", EditorFixture.Tab.DESIGN);
     NlEditorFixture layout = editor.getLayoutEditor(true);
     DesignSurface surface = (DesignSurface)layout.getSurface().target();
-    Dimension screenViewSize = surface.getCurrentSceneView().getSize();
+    Dimension screenViewSize = surface.getFocusedSceneView().getSize();
     // Drag components to [0, 0] and [width, height] to prevent them from overlapping each other and interfering with clicking.
     layout
       .dragComponentToSurface("Buttons", "CheckBox", 0, 0)
@@ -349,7 +348,6 @@ public class NlEditorTest {
     assertThat(editor.getSelectedTab()).isEqualTo("Text");
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/124109589
   @Test
   public void scrollWhileZoomed() throws Exception {
     NlEditorFixture layoutEditor = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest")

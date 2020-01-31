@@ -41,8 +41,13 @@ public class Gradle4AndPlugin2Dot2ErrorHandlerTest extends AndroidGradleTestCase
 
   @Override
   protected void patchPreparedProject(@NotNull File projectRoot) throws IOException {
+    // Override settings just for tests (e.g. sdk.dir)
+    AndroidGradleTests.updateLocalProperties(projectRoot, findSdkPath());
+    // Update plugin to 2.2 and expect sync to fail, and the new error handler to provide a better error description than the original
+    // exception message.
+    AndroidGradleTests.updateGradleVersions(getBaseDirPath(getProject()), "2.2.0");
     // Force test to use Gradle 4.10.1.
-    createGradleWrapper(projectRoot, "4.10.1");
+    AndroidGradleTests.createGradleWrapper(projectRoot, "4.10.1");
   }
 
   @Override
@@ -54,10 +59,6 @@ public class Gradle4AndPlugin2Dot2ErrorHandlerTest extends AndroidGradleTestCase
 
   public void testHandleError() throws Exception {
     loadSimpleApplication_pre3dot0();
-
-    // Update plugin to 2.2 and expect sync to fail, and the new error handler to provide a better error description than the original
-    // exception message.
-    AndroidGradleTests.updateGradleVersions(getBaseDirPath(getProject()), "2.2.0");
 
     requestSyncAndGetExpectedFailure();
 

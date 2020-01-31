@@ -65,13 +65,13 @@ public class BuildFileProcessor {
         return;
       }
 
-      GradleSettingsModel settings = projectBuildModel.getProjectSettingsModel();
+      GradleSettingsModel settings = GradleBuildModel.tryOrLog(() -> projectBuildModel.getProjectSettingsModel());
       if (settings == null) {
         return;
       }
 
       for (String path : settings.modulePaths()) {
-        GradleBuildModel buildModel = settings.moduleModel(path);
+        GradleBuildModel buildModel = GradleBuildModel.tryOrLog(() -> settings.moduleModel(path));
         if (buildModel == null) {
           continue;
         }

@@ -20,6 +20,7 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
+import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.JavaProjectTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
 import org.mockito.Mock;
@@ -30,7 +31,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link ProjectCleanup}.
  */
-public class ProjectCleanupTest extends JavaProjectTestCase {
+public class ProjectCleanupTest extends PlatformTestCase {
   @Mock private GradleSyncState mySyncState;
   @Mock private IdeModifiableModelsProvider myModelsProvider;
   @Mock private ProjectCleanupStep myStep1;
@@ -54,7 +55,7 @@ public class ProjectCleanupTest extends JavaProjectTestCase {
 
   public void testCleanUpProjectWithFailedSync() {
     // last sync failed.
-    when(mySyncState.lastSyncFailedOrHasIssues()).thenReturn(true);
+    when(mySyncState.lastSyncFailed()).thenReturn(true);
 
     Project project = getProject();
     myProjectCleanup.cleanUpProject(project, myModelsProvider, myIndicator);
@@ -64,28 +65,9 @@ public class ProjectCleanupTest extends JavaProjectTestCase {
     verify(myStep2, never()).cleanUpProject(project, myModelsProvider, myIndicator);
   }
 
-  public void testCleanUpProjectWithSyncSkipped() {
-    // Only step2 can run when sync is skipped.
-    when(myStep2.invokeOnSkippedSync()).thenReturn(true);
-
-    // sync successful.
-    when(mySyncState.lastSyncFailedOrHasIssues()).thenReturn(false);
-    // sync skipped.
-    when(mySyncState.isSyncSkipped()).thenReturn(true);
-
-    Project project = getProject();
-    myProjectCleanup.cleanUpProject(project, myModelsProvider, myIndicator);
-
-    // Only step2 should have called.
-    verify(myStep1, never()).cleanUpProject(project, myModelsProvider, myIndicator);
-    verify(myStep2, times(1)).cleanUpProject(project, myModelsProvider, myIndicator);
-  }
-
   public void testCleanUpProject() {
     // sync successful.
-    when(mySyncState.lastSyncFailedOrHasIssues()).thenReturn(false);
-    // sync not skipped.
-    when(mySyncState.isSyncSkipped()).thenReturn(false);
+    when(mySyncState.lastSyncFailed()).thenReturn(false);
 
     Project project = getProject();
     myProjectCleanup.cleanUpProject(project, myModelsProvider, myIndicator);

@@ -1,4 +1,18 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+/*
+ * Copyright 2000-2010 JetBrains s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.jetbrains.android.dom.converters;
 
 import com.android.SdkConstants;
@@ -6,7 +20,7 @@ import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.intellij.psi.PsiElement;
-import com.intellij.util.ArrayUtilRt;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.Converter;
@@ -23,7 +37,7 @@ import java.util.ArrayList;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -47,7 +61,7 @@ public class AndroidResourceReference extends AndroidResourceReferenceBase {
   public Object[] getVariants() {
     final Converter converter = getConverter();
     if (converter instanceof EnumConverter || converter == AndroidDomUtil.BOOLEAN_CONVERTER) {
-      if (DomCompletionContributor.isSchemaEnumerated(getElement())) return ArrayUtilRt.EMPTY_OBJECT_ARRAY;
+      if (DomCompletionContributor.isSchemaEnumerated(getElement())) return ArrayUtil.EMPTY_OBJECT_ARRAY;
     }
     if (converter instanceof ResolvingConverter) {
       final ResolvingConverter resolvingConverter = (ResolvingConverter)converter;
@@ -61,7 +75,7 @@ public class AndroidResourceReference extends AndroidResourceReferenceBase {
       }
       return result.toArray();
     }
-    return ArrayUtilRt.EMPTY_OBJECT_ARRAY;
+    return ArrayUtil.EMPTY_OBJECT_ARRAY;
   }
 
   @Override
@@ -80,7 +94,7 @@ public class AndroidResourceReference extends AndroidResourceReferenceBase {
       ResourceFolderType folderType = FolderTypeRelationship.getNonValuesRelatedFolder(resType);
       if (folderType != null && newElementName.contains(".")) {
         // If it does, we need to chop off its extension when inserting the new value.
-        newResName = AndroidCommonUtils.getResourceName(resType.getName(), newElementName);
+        newResName = AndroidBuildCommonUtils.getResourceName(resType.getName(), newElementName);
       }
       else {
         newResName = newElementName;

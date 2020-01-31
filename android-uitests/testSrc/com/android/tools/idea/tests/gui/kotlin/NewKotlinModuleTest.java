@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.kotlin;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.io.IOException;
 import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
@@ -35,7 +34,7 @@ public class NewKotlinModuleTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   private static final String APP_NAME = "app";
-  private static final String NEW_KOTLIN_MDULE_NAME = "KotlinModule";
+  private static final String NEW_KOTLIN_MODULE_NAME = "KotlinModule";
 
   @Test
   public void addNewKotlinModuleToNonKotlinProject() throws Exception {
@@ -49,7 +48,7 @@ public class NewKotlinModuleTest {
     addNewKotlinModule();
   }
 
-  private void createNewBasicProject(boolean hasKotlinSupport) {
+  private void createNewBasicProject(boolean hasKotlinSupport) throws IOException {
     guiTest
       .welcomeFrame()
       .createNewProject()
@@ -71,37 +70,27 @@ public class NewKotlinModuleTest {
     }
   }
 
-  private void addNewKotlinModule() {
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
-
-    ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
-      .chooseModuleType("Phone & Tablet Module")
-      .clickNext() // Selected App
-      .getConfigureAndroidModuleStep()
-      .enterModuleName(NEW_KOTLIN_MDULE_NAME)
+  private void addNewKotlinModule() throws IOException {
+    guiTest.ideFrame().openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
+      .clickNextPhoneAndTabletModule()
+      .enterModuleName(NEW_KOTLIN_MODULE_NAME)
       .setSourceLanguage("Kotlin")
       .wizard()
       .clickNext() // Default options
       .clickNext() // Default Activity
-      .clickFinish();
-
-    ideFrame
+      .clickFinish()
       .waitForGradleProjectSyncToFinish(Wait.seconds(30)); // Kotlin projects take longer to sync
 
-    assertModuleSupportsKotlin(NEW_KOTLIN_MDULE_NAME);
+    assertModuleSupportsKotlin(NEW_KOTLIN_MODULE_NAME);
   }
 
-  private void assertModuleSupportsKotlin(String moduleName) {
-    String gradleAppFileContent = guiTest.ideFrame().getEditor()
-      .open(moduleName.toLowerCase(Locale.US) + "/build.gradle")
-      .getCurrentFileContents();
-    assertThat(gradleAppFileContent).contains("apply plugin: 'kotlin-android");
+  private void assertModuleSupportsKotlin(String moduleName) throws IOException {
+    assertThat(guiTest.getProjectFileText(moduleName.toLowerCase(Locale.US) + "/build.gradle"))
+      .contains("apply plugin: 'kotlin-android");
   }
 
-  private void assertModuleDoesNotSupportKotlin(String moduleName) {
-    String gradleAppFileContent = guiTest.ideFrame().getEditor()
-      .open(moduleName.toLowerCase(Locale.US) + "/build.gradle")
-      .getCurrentFileContents();
-    assertThat(gradleAppFileContent).doesNotContain("kotlin");
+  private void assertModuleDoesNotSupportKotlin(String moduleName) throws IOException {
+    assertThat(guiTest.getProjectFileText(moduleName.toLowerCase(Locale.US) + "/build.gradle"))
+      .doesNotContain("kotlin");
   }
 }

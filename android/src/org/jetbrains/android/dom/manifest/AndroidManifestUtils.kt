@@ -1,0 +1,158 @@
+/*
+ * Copyright (C) 2019 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@file:JvmName("AndroidManifestUtils")
+
+package org.jetbrains.android.dom.manifest
+
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_NAME
+import com.android.SdkConstants.ATTR_PACKAGE
+import com.android.SdkConstants.TAG_PERMISSION
+import com.android.SdkConstants.TAG_PERMISSION_GROUP
+import com.android.annotations.concurrency.AnyThread
+import com.android.tools.idea.AndroidPsiUtils
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.projectsystem.getModuleSystem
+import com.intellij.openapi.util.Key
+import com.intellij.openapi.util.ModificationTracker
+import com.intellij.psi.XmlRecursiveElementVisitor
+import com.intellij.psi.util.CachedValue
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
+import com.intellij.psi.xml.XmlFile
+import com.intellij.psi.xml.XmlTag
+import com.intellij.util.xml.DomElement
+import com.intellij.util.xml.XmlName
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.SourceProviderManager
+
+/**
+ * Returns the module's resource package name, or null if it could not be determined.
+ *
+ * The resource package name is equivalent to the "package" attribute of the module's
+ * merged manifest once it has been built. Depending on the build system, however,
+ * this method may be optimized to avoid the costs of merged manifest computation.
+ */
+@AnyThread
+fun getPackageName(facet: AndroidFacet) = facet.module.getModuleSystem().getPackageName()
+
+/**
+ * Returns the package name for resources from the module under test corresponding to the given [facet].
+ * See [https://developer.android.com/studio/build/application-id#change_the_application_id_for_testing].
+ * TODO: Make this build-system independent.
+ */
+fun getTestPackageName(facet: AndroidFacet): String? {
+  val flavor = AndroidModuleModel.get(facet)?.selectedVariant?.mergedFlavor ?: return null
+  return flavor.testApplicationId ?: run {
+    // That's how AGP works today: in apps the applicationId from the model is used with the ".test" suffix (ignoring the manifest), in libs
+    // there is no applicationId and the package name from the manifest is used with the suffix.
+    val applicationId = if (facet.configuration.isLibraryProject) getPackageName(facet) else flavor.applicationId
+    if (applicationId.isNullOrEmpty()) null else "$applicationId.test"
+  }
+}
+
+/**
+ * Returns whether the given manifest [element] requires an attribute named [attrName].
+ */
+fun isRequiredAttribute(attrName: XmlName, element: DomElement): Boolean {
+  return if (element is CompatibleScreensScreen && attrName.namespaceKey == ANDROID_URI) {
+    when (attrName.localName) {
+      "screenSize", "screenDensity" -> true
+      else -> false
+    }
+  }
+  else {
+    false
+  }
+}
+
+private val CUSTOM_PERMISSIONS = Key.create<CachedValue<Collection<String>?>>("merged.manifest.custom.permissions")
+
+/**
+ * Returns the names of the custom permissions listed in the primary manifest of the module
+ * corresponding to the given [facet], or null if the primary manifest couldn't be found.
+ */
+fun getCustomPermissions(facet: AndroidFacet): Collection<String>? {
+  val cachedValue = facet.cachedValueFromPrimaryManifest { customPermissions }
+  return facet.putUserDataIfAbsent(CUSTOM_PERMISSIONS, cachedValue).value
+}
+
+private val CUSTOM_PERMISSION_GROUPS = Key.create<CachedValue<Collection<String>?>>("merged.manifest.custom.permission.groups")
+
+/**
+ * Returns the names of the custom permission groups listed in the primary manifest of the module
+ * corresponding to the given [facet], or null if the primary manifest couldn't be found.
+ */
+fun getCustomPermissionGroups(facet: AndroidFacet): Collection<String>? {
+  val cachedValue = facet.cachedValueFromPrimaryManifest { customPermissionGroups }
+  return facet.putUserDataIfAbsent(CUSTOM_PERMISSION_GROUPS, cachedValue).value
+}
+
+/**
+ * Creates a [CachedValue] that runs the given [valueSelector] on the facet's primary manifest.  If the manifest is missing,
+ * the returned [CachedValue] returns null and will check for the manifest again next time it's evaluated.
+ *
+ * Note that the primary manifest is a subset of the effective merged manifest and relying on is most likely incorrect. It's
+ * up to the [AndroidModuleSystem] to determine which values can be safely read from just the primary manifest.
+ *
+ * @see com.android.tools.idea.model.MergedManifestManager
+ * @see com.android.tools.idea.projectsystem.AndroidModuleSystem
+ */
+fun <T> AndroidFacet.cachedValueFromPrimaryManifest(valueSelector: AndroidManifestXmlFile.() -> T): CachedValue<T?> {
+  return CachedValuesManager.getManager(module.project).createCachedValue<T?> {
+    val primaryManifest = getPrimaryManifestXml()
+    if (primaryManifest == null) {
+      CachedValueProvider.Result.create(null, ModificationTracker.EVER_CHANGED)
+    }
+    else {
+      CachedValueProvider.Result.create(primaryManifest.valueSelector(), primaryManifest)
+    }
+  }
+}
+
+/**
+ * Returns the PSI representation of the facet's primary manifest, if available.
+ */
+private fun AndroidFacet.getPrimaryManifestXml(): AndroidManifestXmlFile? {
+  val psiFile = SourceProviderManager.getInstance(this).mainManifestFile?.let { AndroidPsiUtils.getPsiFileSafely(module.project, it) }
+  return psiFile as? AndroidManifestXmlFile
+}
+
+/**
+ * The PSI representation of an Android manifest file.
+ */
+typealias AndroidManifestXmlFile = XmlFile
+
+val AndroidManifestXmlFile.packageName get() = rootTag?.getAttributeValue(ATTR_PACKAGE, null)
+
+val AndroidManifestXmlFile.customPermissions get() = findAndroidNamesForTags(TAG_PERMISSION)
+
+val AndroidManifestXmlFile.customPermissionGroups get() = findAndroidNamesForTags(TAG_PERMISSION_GROUP)
+
+/**
+ * Returns the android:name attribute of each [XmlTag] of the given type in the [XmlFile].
+ */
+private fun AndroidManifestXmlFile.findAndroidNamesForTags(tagName: String): Collection<String> {
+  val androidNames = mutableListOf<String>()
+  accept(object : XmlRecursiveElementVisitor() {
+    override fun visitXmlTag(tag: XmlTag?) {
+      super.visitXmlTag(tag)
+      if (tagName != tag?.name) return
+      tag.getAttributeValue(ATTR_NAME, ANDROID_URI)?.let(androidNames::add)
+    }
+  })
+  return androidNames
+}

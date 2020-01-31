@@ -27,6 +27,7 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.ProcessRunningDialogFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.File;
 import java.util.Arrays;
@@ -131,6 +132,9 @@ public class AbiSplitApksTest extends DebuggerTestBase {
     File expectedPathOfApk = new File(projectRoot, "app/build/outputs/apk/debug/" + expectedApkName);
 
     assertThat(expectedPathOfApk).exists();
+
+    ideFrame.closeProjectWithPrompt();
+    ProcessRunningDialogFixture.find(ideFrame).clickTerminate();
   }
 
   @After

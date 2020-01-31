@@ -19,23 +19,32 @@ import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.roots.ui.configuration.actions.IconWithTextAction
 import com.intellij.openapi.ui.popup.Balloon
+import com.intellij.openapi.ui.popup.JBPopupAdapter
 import com.intellij.openapi.ui.popup.JBPopupFactory
+import com.intellij.openapi.ui.popup.LightweightWindowEvent
 import com.intellij.ui.awt.RelativePoint
+import com.intellij.util.ui.UIUtil
+import java.awt.Color
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-abstract class NavToolbarMenu(protected val surface: NavDesignSurface, description: String, icon: Icon) :
-    IconWithTextAction("", description, icon) {
+abstract class NavToolbarMenu(protected val surface: NavDesignSurface, description: String, icon: Icon, protected var buttonPresentation: Presentation? = null) :
+    IconWithTextAction("", description, icon), Toggleable {
+  protected val BACKGROUND_COLOR: Color = UIUtil.getListBackground()
   var balloon: Balloon? = null
 
   override fun actionPerformed(e: AnActionEvent) {
     if (isBalloonVisible()) {
+      e.presentation.putClientProperty(Toggleable.SELECTED_PROPERTY, false)
       balloon?.hide()
     }
     else {
+      e.presentation.putClientProperty(Toggleable.SELECTED_PROPERTY, true)
       show(e.inputEvent.source as JComponent)
     }
   }
@@ -52,8 +61,16 @@ abstract class NavToolbarMenu(protected val surface: NavDesignSurface, descripti
       .setAnimationCycle(200)
       .setRequestFocus(true)  // Note that this seems non-functional, since it requests focus before the balloon is shown
     balloonBuilder.setBorderColor(secondaryPanelBackground)
-    balloonBuilder.setFillColor(secondaryPanelBackground)
+    balloonBuilder.setFillColor(BACKGROUND_COLOR)
     balloon = balloonBuilder.createBalloon().also {
+      it.addListener(object : JBPopupAdapter() {
+        override fun onClosed(event: LightweightWindowEvent) {
+          val presentation = buttonPresentation
+          if (presentation != null) {
+            presentation.putClientProperty(Toggleable.SELECTED_PROPERTY, false)
+          }
+        }
+      })
       it.show(RelativePoint.getSouthOf(component), Balloon.Position.below)
     }
   }

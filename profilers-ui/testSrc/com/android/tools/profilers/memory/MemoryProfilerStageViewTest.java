@@ -28,21 +28,20 @@ import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
+import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRate;
+import com.android.tools.profiler.proto.Memory;
+import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
+import com.android.tools.profiler.proto.Memory.MemoryAllocSamplingData;
+import com.android.tools.profiler.proto.Memory.TrackStatus;
+import com.android.tools.profiler.proto.Memory.TrackStatus.Status;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRateEvent;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
-import com.android.tools.profiler.proto.MemoryProfiler.DumpDataRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.DumpDataResponse;
-import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
-import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
-import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpResponse;
-import com.android.tools.profiler.protobuf3jarjar.ByteString;
+import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeProfilerService;
-import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.ReferenceWalker;
@@ -90,7 +89,7 @@ import org.junit.Test;
 
 public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
   @NotNull private final FakeTransportService myTransportService = new FakeTransportService(myTimer);
-  @NotNull private final FakeMemoryService myService = new FakeMemoryService();
+  @NotNull private final FakeMemoryService myService = new FakeMemoryService(myTransportService);
   @Rule
   public FakeGrpcChannel myGrpcChannel =
     new FakeGrpcChannel("MemoryProfilerStageViewTestChannel", myTransportService, myService, new FakeProfilerService(myTimer),
@@ -119,20 +118,20 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     FakeCaptureObject fakeCapture1 =
       new FakeCaptureObject.Builder().setCaptureName("DUMMY_CAPTURE1").setHeapIdToNameMap(heapIdMap).setStartTime(5).setEndTime(10).build();
     InstanceObject fakeInstance1 =
-      new FakeInstanceObject.Builder(fakeCapture1, dummyClassName1).setName("DUMMY_INSTANCE1").setHeapId(0).setDepth(4).setShallowSize(5)
-        .setRetainedSize(6).build();
+      new FakeInstanceObject.Builder(fakeCapture1, 1, dummyClassName1).setName("DUMMY_INSTANCE1").setHeapId(0).setDepth(4)
+        .setShallowSize(5).setRetainedSize(6).build();
     InstanceObject fakeInstance2 =
-      new FakeInstanceObject.Builder(fakeCapture1, dummyClassName2).setName("DUMMY_INSTANCE2").setDepth(1).setShallowSize(2)
+      new FakeInstanceObject.Builder(fakeCapture1, 2, dummyClassName2).setName("DUMMY_INSTANCE2").setDepth(1).setShallowSize(2)
         .setRetainedSize(3).build();
     fakeCapture1.addInstanceObjects(ImmutableSet.of(fakeInstance1, fakeInstance2));
 
     FakeCaptureObject fakeCapture2 =
       new FakeCaptureObject.Builder().setCaptureName("DUMMY_CAPTURE2").setHeapIdToNameMap(heapIdMap).setStartTime(5).setEndTime(10).build();
     InstanceObject fakeInstance3 =
-      new FakeInstanceObject.Builder(fakeCapture2, dummyClassName1).setName("DUMMY_INSTANCE1").setHeapId(0).setDepth(4).setShallowSize(5)
-        .setRetainedSize(6).build();
+      new FakeInstanceObject.Builder(fakeCapture2, 1, dummyClassName1).setName("DUMMY_INSTANCE1").setHeapId(0).setDepth(4)
+        .setShallowSize(5).setRetainedSize(6).build();
     InstanceObject fakeInstance4 =
-      new FakeInstanceObject.Builder(fakeCapture2, dummyClassName2).setName("DUMMY_INSTANCE2").setDepth(1).setShallowSize(2)
+      new FakeInstanceObject.Builder(fakeCapture2, 2, dummyClassName2).setName("DUMMY_INSTANCE2").setDepth(1).setShallowSize(2)
         .setRetainedSize(3).build();
     fakeCapture2.addInstanceObjects(ImmutableSet.of(fakeInstance3, fakeInstance4));
 
@@ -171,7 +170,7 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     assertView(fakeCapture2, selectedHeap, null, null, false);
     myAspectObserver.assertAndResetCounts(0, 1, 1, 0, 2, 0, 0, 0);
 
-    stageView.getHeapView().getComponent().setSelectedItem(fakeCapture2.getHeapSet(0));
+    stageView.getHeapView().getHeapComboBox().setSelectedItem(fakeCapture2.getHeapSet(0));
     assertSelection(fakeCapture2, fakeCapture2.getHeapSet(0), null, null);
     myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 0, 0, 0);
 
@@ -206,6 +205,8 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     final int startTime = 1;
     final int endTime = 5;
     long deltaUs = TimeUnit.SECONDS.toMicros(endTime - startTime);
+    long startTimeNs = TimeUnit.SECONDS.toNanos(startTime);
+    long endTimeNs = TimeUnit.SECONDS.toNanos(endTime);
 
     assertThat(myStage.isTrackingAllocations()).isFalse();
 
@@ -213,9 +214,8 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     myTimer.setCurrentTimeNs(TimeUnit.SECONDS.toNanos(startTime));
     assertThat(stageView.getCaptureElapsedTimeLabel().getText()).isEmpty();
 
-    myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.SUCCESS);
-    myService.setExplicitAllocationsInfo(AllocationsInfo.Status.IN_PROGRESS, TimeUnit.SECONDS.toNanos(startTime),
-                                         TimeUnit.SECONDS.toNanos(Long.MAX_VALUE), true);
+    myService.setExplicitAllocationsStatus(TrackStatus.newBuilder().setStartTime(startTimeNs).setStatus(Status.SUCCESS).build());
+    myService.setExplicitAllocationsInfo(startTimeNs, TimeUnit.SECONDS.toNanos(Long.MAX_VALUE), true);
 
     myStage.trackAllocations(true);
     assertThat(stageView.getCaptureElapsedTimeLabel().getText())
@@ -227,16 +227,14 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
       .isEqualTo(TimeFormatter.getSemiSimplifiedClockString(deltaUs));
 
     // Triggering a heap dump should not affect the allocation recording duration
-    myService.setExplicitHeapDumpStatus(TriggerHeapDumpResponse.Status.SUCCESS);
+    myService.setExplicitHeapDumpStatus(Memory.HeapDumpStatus.Status.SUCCESS);
     myService.setExplicitHeapDumpInfo(TimeUnit.SECONDS.toNanos(invalidTime), TimeUnit.SECONDS.toNanos(Long.MAX_VALUE));
     myStage.requestHeapDump();
     myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_CAPTURE_ELAPSED_TIME);
     assertThat(stageView.getCaptureElapsedTimeLabel().getText())
       .isEqualTo(TimeFormatter.getSemiSimplifiedClockString(deltaUs));
 
-    myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.SUCCESS);
-    myService.setExplicitAllocationsInfo(AllocationsInfo.Status.IN_PROGRESS, TimeUnit.SECONDS.toNanos(startTime),
-                                         TimeUnit.SECONDS.toNanos(endTime), true);
+    myService.setExplicitAllocationsInfo(startTimeNs, endTimeNs, true);
     myStage.trackAllocations(false);
     assertThat(stageView.getCaptureElapsedTimeLabel().getText()).isEmpty();
   }
@@ -259,7 +257,7 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
       new FakeCaptureObject.Builder().setCaptureName("DUMMY_CAPTURE2").setHeapIdToNameMap(heapIdMap).setStartTime(10).setEndTime(15)
         .build();
     InstanceObject fakeInstance1 =
-      new FakeInstanceObject.Builder(fakeCapture2, "DUMMY_CLASS").setName("DUMMY_INSTANCE1").setDepth(4).setShallowSize(5)
+      new FakeInstanceObject.Builder(fakeCapture2, 1, "DUMMY_CLASS").setName("DUMMY_INSTANCE1").setDepth(4).setShallowSize(5)
         .setRetainedSize(6).build();
     fakeCapture2.addInstanceObjects(ImmutableSet.of(fakeInstance1));
 
@@ -305,19 +303,19 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     assertThat(sessionsManager.importSessionFromFile(file)).isTrue();
     Common.Session session = sessionsManager.getSelectedSession();
     long dumpTime = session.getStartTimestamp();
-    DumpDataRequest request = DumpDataRequest.newBuilder()
-      .setDumpTime(dumpTime)
-      .setSession(session)
+    Transport.BytesRequest request = Transport.BytesRequest.newBuilder()
+      .setStreamId(session.getStreamId())
+      .setId(Long.toString(dumpTime))
       .build();
     assertThat(myProfilers.getStage()).isInstanceOf(MemoryProfilerStage.class);
-    DumpDataResponse response = myProfilers.getClient().getMemoryClient().getHeapDump(request);
+    Transport.BytesResponse response = myProfilers.getClient().getTransportClient().getBytes(request);
 
-    assertThat(response.getData()).isEqualTo(ByteString.copyFrom(data, Charset.defaultCharset()));
+    assertThat(response.getContents()).isEqualTo(ByteString.copyFrom(data, Charset.defaultCharset()));
   }
 
   /**
-   * The following is a regression test against implementation where 'mySelectionComponent' in MemoryProfilerStageView is a null pointer
-   * when profiler is importing a heap dump file. (Regression bug: b/117796712)
+   * The following is a regression test against implementation where 'myRangeSelectionComponent' in MemoryProfilerStageView is a null
+   * pointer when profiler is importing a heap dump file. (Regression bug: b/117796712)
    */
   @Test
   public void testLoadHeapDumpFromFileFinishLoading() throws Exception {
@@ -339,7 +337,7 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     // Because isDoneLoading() returns true by default in the FakeCaptureObject, captureObjectChanged() will call captureObjectFinishedLoading()
     // which would execute the logic that had a null pointer exception as reported by b/117796712.
     FakeCaptureObject captureObj = new FakeCaptureObject.Builder().setHeapIdToNameMap(ImmutableMap.of(0, "default", 1, "app")).build();
-    FakeInstanceObject instanceObject = new FakeInstanceObject.Builder(captureObj, "DUMMY_CLASS1").setHeapId(0).build();
+    FakeInstanceObject instanceObject = new FakeInstanceObject.Builder(captureObj, 1, "DUMMY_CLASS1").setHeapId(0).build();
     captureObj.addInstanceObjects(ImmutableSet.of(instanceObject));
     stage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObj)),
                                 null);
@@ -429,30 +427,32 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
   public void testGcDurationAttachment() {
     // Set up test data from range 0us-10us. Note that the proto timestamps are in nanoseconds.
     MemoryData data = MemoryData.newBuilder()
-      .addAllocStatsSamples(MemoryData.AllocStatsSample.newBuilder().setTimestamp(0).setJavaAllocationCount(0))
-      .addAllocStatsSamples(MemoryData.AllocStatsSample.newBuilder().setTimestamp(10000).setJavaAllocationCount(100))
+      .addAllocStatsSamples(MemoryData.AllocStatsSample.newBuilder().setTimestamp(0)
+                              .setAllocStats(Memory.MemoryAllocStatsData.newBuilder().setJavaAllocationCount(0)))
+      .addAllocStatsSamples(MemoryData.AllocStatsSample.newBuilder().setTimestamp(10000)
+                              .setAllocStats(Memory.MemoryAllocStatsData.newBuilder().setJavaAllocationCount(100)))
       .addGcStatsSamples(MemoryData.GcStatsSample.newBuilder().setStartTime(1000).setEndTime(2000))
       .addGcStatsSamples(MemoryData.GcStatsSample.newBuilder().setStartTime(6000).setEndTime(7000))
       .addGcStatsSamples(MemoryData.GcStatsSample.newBuilder().setStartTime(8000).setEndTime(9000))
       .addGcStatsSamples(MemoryData.GcStatsSample.newBuilder().setStartTime(10000).setEndTime(11000))
       .addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()
                                     .setTimestamp(1000)
-                                    .setSamplingRate(AllocationSamplingRate.newBuilder()
+                                    .setSamplingRate(MemoryAllocSamplingData.newBuilder()
                                                        .setSamplingNumInterval(
                                                          MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue())))
       .addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()
                                     .setTimestamp(5000)
-                                    .setSamplingRate(AllocationSamplingRate.newBuilder()
+                                    .setSamplingRate(MemoryAllocSamplingData.newBuilder()
                                                        .setSamplingNumInterval(
                                                          MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.getValue())))
       .addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()
                                     .setTimestamp(8000)
-                                    .setSamplingRate(AllocationSamplingRate.newBuilder()
+                                    .setSamplingRate(MemoryAllocSamplingData.newBuilder()
                                                        .setSamplingNumInterval(
                                                          MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue())))
       .addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()
                                     .setTimestamp(10000)
-                                    .setSamplingRate(AllocationSamplingRate.newBuilder()
+                                    .setSamplingRate(MemoryAllocSamplingData.newBuilder()
                                                        .setSamplingNumInterval(
                                                          MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue())))
       .build();
@@ -494,26 +494,28 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
   public void testAllocationSamplingRateAttachment() {
     // Set up test data from range 0us-10us. Note that the proto timestamps are in nanoseconds.
     MemoryData data = MemoryData.newBuilder()
-      .addAllocStatsSamples(MemoryData.AllocStatsSample.newBuilder().setTimestamp(0).setJavaAllocationCount(0))
-      .addAllocStatsSamples(MemoryData.AllocStatsSample.newBuilder().setTimestamp(10000).setJavaAllocationCount(100))
+      .addAllocStatsSamples(MemoryData.AllocStatsSample.newBuilder().setTimestamp(0)
+                              .setAllocStats(Memory.MemoryAllocStatsData.newBuilder().setJavaAllocationCount(0)))
+      .addAllocStatsSamples(MemoryData.AllocStatsSample.newBuilder().setTimestamp(10000)
+                              .setAllocStats(Memory.MemoryAllocStatsData.newBuilder().setJavaAllocationCount(100)))
       .addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()
                                     .setTimestamp(1000)
-                                    .setSamplingRate(AllocationSamplingRate.newBuilder()
+                                    .setSamplingRate(MemoryAllocSamplingData.newBuilder()
                                                        .setSamplingNumInterval(
                                                          MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue())))
       .addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()
                                     .setTimestamp(5000)
-                                    .setSamplingRate(AllocationSamplingRate.newBuilder()
+                                    .setSamplingRate(MemoryAllocSamplingData.newBuilder()
                                                        .setSamplingNumInterval(
                                                          MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.getValue())))
       .addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()
                                     .setTimestamp(8000)
-                                    .setSamplingRate(AllocationSamplingRate.newBuilder()
+                                    .setSamplingRate(MemoryAllocSamplingData.newBuilder()
                                                        .setSamplingNumInterval(
                                                          MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue())))
       .addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()
                                     .setTimestamp(10000)
-                                    .setSamplingRate(AllocationSamplingRate.newBuilder()
+                                    .setSamplingRate(MemoryAllocSamplingData.newBuilder()
                                                        .setSamplingNumInterval(
                                                          MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue())))
       .build();
@@ -570,11 +572,9 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     HeapDumpInfo heapDumpInfo = HeapDumpInfo.newBuilder()
       .setStartTime(TimeUnit.MICROSECONDS.toNanos(3))
       .setEndTime(TimeUnit.MICROSECONDS.toNanos(4))
-      .setSuccess(true)
       .build();
     myService.addExplicitHeapDumpInfo(heapDumpInfo);
-    myService.setExplicitDumpDataStatus(DumpDataResponse.Status.SUCCESS);
-    HeapDumpCaptureObject heapDumpCapture = new HeapDumpCaptureObject(new ProfilerClient(getGrpcChannel().getName()).getMemoryClient(),
+    HeapDumpCaptureObject heapDumpCapture = new HeapDumpCaptureObject(new ProfilerClient(getGrpcChannel().getName()),
                                                                       ProfilersTestData.SESSION_DATA,
                                                                       heapDumpInfo,
                                                                       null,
@@ -610,7 +610,7 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
                           boolean isCaptureLoading) {
     MemoryProfilerStageView stageView = (MemoryProfilerStageView)myProfilersView.getStageView();
 
-    ComboBoxModel<HeapSet> heapObjectComboBoxModel = stageView.getHeapView().getComponent().getModel();
+    ComboBoxModel<HeapSet> heapObjectComboBoxModel = stageView.getHeapView().getHeapComboBox().getModel();
 
     if (expectedCaptureObject == null) {
       assertThat(stageView.getChartCaptureSplitter().getSecondComponent()).isNull();

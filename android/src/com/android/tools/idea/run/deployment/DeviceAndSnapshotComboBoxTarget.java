@@ -17,23 +17,35 @@ package com.android.tools.idea.run.deployment;
 
 import com.android.tools.idea.run.DeviceCount;
 import com.android.tools.idea.run.DeviceFutures;
+import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider.State;
 import com.android.tools.idea.run.editor.DeployTarget;
-import com.android.tools.idea.run.editor.DeployTargetState;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.project.Project;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-final class DeviceAndSnapshotComboBoxTarget implements DeployTarget<DeployTargetState> {
+final class DeviceAndSnapshotComboBoxTarget implements DeployTarget<State> {
   @NotNull
   private final Collection<Device> myDevices;
 
+  // TODO Delete this
+  @Nullable
+  private final Snapshot mySnapshot;
+
+  DeviceAndSnapshotComboBoxTarget(@Nullable Device device, @Nullable Snapshot snapshot) {
+    myDevices = device == null ? Collections.emptyList() : Collections.singletonList(device);
+    mySnapshot = snapshot;
+  }
+
   DeviceAndSnapshotComboBoxTarget(@NotNull Collection<Device> devices) {
     myDevices = devices;
+    mySnapshot = null;
   }
 
   @Override
@@ -43,22 +55,16 @@ final class DeviceAndSnapshotComboBoxTarget implements DeployTarget<DeployTarget
 
   @NotNull
   @Override
-  public RunProfileState getRunProfileState(@NotNull Executor executor,
-                                            @NotNull ExecutionEnvironment environment,
-                                            @NotNull DeployTargetState state) {
+  public RunProfileState getRunProfileState(@NotNull Executor executor, @NotNull ExecutionEnvironment environment, @NotNull State state) {
     throw new UnsupportedOperationException();
   }
 
   @NotNull
   @Override
-  public DeviceFutures getDevices(@NotNull DeployTargetState state,
-                                  @NotNull AndroidFacet facet,
-                                  @NotNull DeviceCount count,
-                                  boolean debug,
-                                  int id) {
+  public DeviceFutures getDevices(@NotNull State state, @NotNull AndroidFacet facet, @NotNull DeviceCount count, boolean debug, int id) {
     DeviceFutures futures = new DeviceFutures(new ArrayList<>(myDevices.size()));
     Project project = facet.getModule().getProject();
-    myDevices.forEach(device -> device.addTo(futures, project, null));
+    myDevices.forEach(device -> device.addTo(futures, project, mySnapshot));
 
     return futures;
   }

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.instantapp;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.instantapp.sdk.InstantAppSdkException;
 import com.android.instantapp.sdk.Metadata;
 import com.android.repository.api.LocalPackage;

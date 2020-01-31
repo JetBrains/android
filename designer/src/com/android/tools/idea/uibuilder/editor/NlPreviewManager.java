@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
+import com.android.tools.idea.common.editor.DesignToolsSplitEditor;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.visual.VisualizationManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -302,7 +304,9 @@ public class NlPreviewManager implements ProjectComponent {
         }
 
         myToolWindow.setAvailable(true, null);
-        final boolean visible = AndroidEditorSettings.getInstance().getGlobalState().isVisible();
+        // If user is using Visualization Tool, don't force switch to Preview.
+        final boolean visible = AndroidEditorSettings.getInstance().getGlobalState().isVisible()
+                                && !VisualizationManager.getInstance(myProject).isWindowVisible();
         if (visible && !myToolWindow.isVisible()) {
           Runnable restoreFocus = null;
           if (myToolWindow.getType() == ToolWindowType.WINDOWED) {
@@ -344,6 +348,11 @@ public class NlPreviewManager implements ProjectComponent {
 
   @SuppressWarnings("WeakerAccess") // This method needs to be public as it's used by the Anko DSL preview
   public boolean isApplicableEditor(@NotNull TextEditor textEditor, @Nullable PsiFile file) {
+    if (textEditor instanceof DesignToolsSplitEditor) {
+      // Split-editor is not applicable for the preview panel.
+      return false;
+    }
+
     final Document document = textEditor.getEditor().getDocument();
     final PsiFile psiFile = PsiDocumentManager.getInstance(myProject).getPsiFile(document);
 

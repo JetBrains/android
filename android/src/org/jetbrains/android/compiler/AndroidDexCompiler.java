@@ -1,4 +1,18 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+/*
+ * Copyright 2000-2010 JetBrains s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.jetbrains.android.compiler;
 
 import com.android.SdkConstants;
@@ -11,7 +25,6 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.HashSet;
@@ -23,7 +36,7 @@ import org.jetbrains.android.maven.AndroidMavenProvider;
 import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,7 +65,7 @@ public class AndroidDexCompiler implements ClassPostProcessingCompiler {
     }
 
     if (items != null && items.length > 0) {
-      context.getProgressIndicator().setText("Generating " + AndroidCommonUtils.CLASSES_FILE_NAME + "...");
+      context.getProgressIndicator().setText("Generating " + AndroidBuildCommonUtils.CLASSES_FILE_NAME + "...");
       return new ProcessAction(context, items).compute();
     }
     return ProcessingItem.EMPTY_ARRAY;
@@ -61,7 +74,7 @@ public class AndroidDexCompiler implements ClassPostProcessingCompiler {
   @Override
   @NotNull
   public String getDescription() {
-    return FileUtilRt.getNameWithoutExtension(SdkConstants.FN_DX);
+    return FileUtil.getNameWithoutExtension(SdkConstants.FN_DX);
   }
 
   @Override
@@ -112,7 +125,7 @@ public class AndroidDexCompiler implements ClassPostProcessingCompiler {
         AndroidDexCompilerConfiguration.getInstance(myContext.getProject());
 
       Module[] modules = ModuleManager.getInstance(myContext.getProject()).getModules();
-      List<ProcessingItem> items = new ArrayList<>();
+      List<ProcessingItem> items = new ArrayList<ProcessingItem>();
       for (Module module : modules) {
         AndroidFacet facet = FacetManager.getInstance(module).getFacetByType(AndroidFacet.ID);
         if (facet != null && facet.getConfiguration().isAppProject()) {
@@ -124,12 +137,12 @@ public class AndroidDexCompiler implements ClassPostProcessingCompiler {
           final boolean shouldRunProguard = AndroidCompileUtil.getProguardConfigFilePathIfShouldRun(facet, myContext) != null;
 
           if (shouldRunProguard) {
-            final VirtualFile obfuscatedSourcesJar = dexOutputDir.findChild(AndroidCommonUtils.PROGUARD_OUTPUT_JAR_NAME);
+            final VirtualFile obfuscatedSourcesJar = dexOutputDir.findChild(AndroidBuildCommonUtils.PROGUARD_OUTPUT_JAR_NAME);
             if (obfuscatedSourcesJar == null) {
               myContext.addMessage(CompilerMessageCategory.INFORMATION, "Dex won't be launched for module " +
                                                                         module.getName() +
                                                                         " because file " +
-                                                                        AndroidCommonUtils.PROGUARD_OUTPUT_JAR_NAME +
+                                                                        AndroidBuildCommonUtils.PROGUARD_OUTPUT_JAR_NAME +
                                                                         " doesn't exist", null, -1, -1);
               continue;
             }
@@ -147,7 +160,7 @@ public class AndroidDexCompiler implements ClassPostProcessingCompiler {
               continue;
             }
 
-            files = new HashSet<>();
+            files = new HashSet<VirtualFile>();
             addModuleOutputDir(files, outputDir);
             files.addAll(AndroidRootUtil.getExternalLibraries(module));
 
@@ -210,7 +223,7 @@ public class AndroidDexCompiler implements ClassPostProcessingCompiler {
 
     @Override
     public ProcessingItem[] compute() {
-      List<ProcessingItem> results = new ArrayList<>(myItems.length);
+      List<ProcessingItem> results = new ArrayList<ProcessingItem>(myItems.length);
       for (ProcessingItem item : myItems) {
         if (item instanceof DexItem) {
           DexItem dexItem = (DexItem)item;

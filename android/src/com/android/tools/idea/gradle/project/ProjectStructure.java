@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder.EMPTY;
+
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
@@ -23,6 +27,7 @@ import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.concurrency.JobLauncher;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -30,17 +35,17 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Ref;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-
-import javax.annotation.concurrent.GuardedBy;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
-
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
-import static com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder.EMPTY;
+import javax.annotation.concurrent.GuardedBy;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
 
 public class ProjectStructure {
   @NotNull private final Project myProject;
@@ -72,7 +77,7 @@ public class ProjectStructure {
     myProject = project;
   }
 
-  public void analyzeProjectStructure(@NotNull ProgressIndicator progressIndicator) {
+  public void analyzeProjectStructure() {
     AndroidPluginVersionsInProject pluginVersionsInProject = new AndroidPluginVersionsInProject();
 
     Queue<Module> appModules = new ConcurrentLinkedQueue<>();

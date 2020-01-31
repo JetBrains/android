@@ -28,18 +28,18 @@ public final class DevicesTest {
     // Arrange
     Device device1 = new PhysicalDevice.Builder()
       .setName("Google Pixel 3")
-      .setKey("86UX00F4R")
+      .setKey(new Key("86UX00F4R"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
     Device device2 = new PhysicalDevice.Builder()
       .setName("Google Pixel 3")
-      .setKey("86UX00F4R")
+      .setKey(new Key("86UX00F4R"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
     // Act
-    Object actualName = Devices.getName(device1, Collections.singletonList(device2));
+    Object actualName = Devices.getText(device1, Collections.singletonList(device2));
 
     // Assert
     assertEquals("Google Pixel 3", actualName);

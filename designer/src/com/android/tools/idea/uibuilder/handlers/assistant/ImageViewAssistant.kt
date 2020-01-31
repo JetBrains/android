@@ -25,20 +25,20 @@ import com.android.tools.idea.res.SampleDataResourceItem
 import com.android.tools.idea.res.SampleDataResourceItem.ContentType.IMAGE
 import com.android.tools.idea.res.getDrawableResources
 import com.android.tools.idea.res.getSampleDataOfType
-import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog
 import com.android.tools.idea.ui.resourcechooser.DrawableGrid
+import com.android.tools.idea.ui.resourcechooser.util.createResourcePickerDialog
 import com.android.tools.idea.uibuilder.handlers.ImageViewHandler
 import com.android.tools.idea.uibuilder.property.assistant.AssistantPopupPanel
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory
 import com.intellij.openapi.util.text.StringUtil
+import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBCheckBox
-import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.JBUI.Borders
 import com.intellij.util.ui.JBUI.scale
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.BorderLayout
 import java.awt.Dimension
-import java.util.*
+import java.util.EnumSet
 import javax.swing.Box
 import javax.swing.DefaultListModel
 import javax.swing.JComboBox
@@ -112,7 +112,7 @@ class ImageViewAssistant(
     add(ClickableLabel("Browse").apply {
       border = null
       isOpaque = false
-      foreground = JBUI.CurrentTheme.Link.linkColor()
+      foreground = JBColor.link()
       addActionListener { pickFromResourceDialog() }
     })
   }
@@ -208,12 +208,20 @@ class ImageViewAssistant(
 
   private fun pickFromResourceDialog() {
     val model = nlComponent.model
-    val dialog = ChooseResourceDialog.builder()
-      .setModule(model.module)
-      .setTypes(EnumSet.of(ResourceType.DRAWABLE))
-      .setConfiguration(model.configuration)
-      .setShowSampleDataPicker(true)
-      .build()
+    val tag = nlComponent.backend.tag
+    val virtualFile = tag?.containingFile?.virtualFile
+    val dialog = createResourcePickerDialog(
+      dialogTitle = "Pick a Drawable",
+      currentValue = null,
+      facet = model.facet,
+      resourceTypes = EnumSet.of(ResourceType.DRAWABLE, ResourceType.MIPMAP),
+      defaultResourceType = null,
+      showColorStateLists = true,
+      showSampleData = true,
+      file = virtualFile,
+      xmlFile = null,
+      tag = tag
+    )
 
     if (dialog.showAndGet()) {
       imageHandler.setToolsSrc(nlComponent, dialog.resourceName)

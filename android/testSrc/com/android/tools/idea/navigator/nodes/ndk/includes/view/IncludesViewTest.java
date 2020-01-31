@@ -23,7 +23,7 @@ import com.android.tools.tests.LeakCheckerRule;
 import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
-import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.junit.ClassRule;
 
 import java.io.File;
@@ -36,7 +36,7 @@ import static com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludeVi
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.when;
 
-public class IncludesViewTest extends JavaProjectTestCase {
+public class IncludesViewTest extends PlatformTestCase {
   @ClassRule
   public static LeakCheckerRule checker = new LeakCheckerRule();
 
@@ -140,7 +140,8 @@ public class IncludesViewTest extends JavaProjectTestCase {
       .addRemoteArtifactIncludePaths("my-artifact", "ndk-build/sources/android/ndk_helper")
       .addLocalHeaders("baz.h")
       .addArtifact("my-artifact", "bar.cpp");
-    IdeSdks mockIdeSdks = IdeComponents.mockApplicationService(IdeSdks.class, getTestRootDisposable());
+    IdeComponents ideComponents = new IdeComponents(getProject());
+    IdeSdks mockIdeSdks = ideComponents.mockApplicationService(IdeSdks.class);
     assertSame(mockIdeSdks, IdeSdks.getInstance());
     File ndkRootFolder = new File(layout.getRemoteRoot(), "ndk-build");
     when(mockIdeSdks.getAndroidNdkPath()).thenReturn(ndkRootFolder);

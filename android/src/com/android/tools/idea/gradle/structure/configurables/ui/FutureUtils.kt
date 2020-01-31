@@ -27,14 +27,15 @@ import org.jetbrains.ide.PooledThreadExecutor
 
 internal fun <I, O> ListenableFuture<I>.continueOnEdt(function: (I) -> O) =
   Futures.transform(
-    this, { function(it!!) },
+    this,
+    { function(it!!) },
     {
       val application = ApplicationManager.getApplication()
       if (application.isDispatchThread) {
         it.run()
       }
       else {
-        application.invokeLater(it, ModalityState.any())
+        application.invokeLater({ if (!isCancelled) it.run() }, ModalityState.any())
       }
     })
 

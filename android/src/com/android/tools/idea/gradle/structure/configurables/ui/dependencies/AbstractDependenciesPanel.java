@@ -143,21 +143,25 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
     assert myIssuesViewer != null;
     myIssuesViewer.display(issues, scope);
     myInfoPanel.revalidateAndRepaintPanel();
-    ApplicationManager.getApplication().invokeLater(() -> myInfoScrollPane.getVerticalScrollBar().setValue(0));
   }
 
   protected void updateDetails(@Nullable PsBaseDependency selected) {
     if (selected != null) {
-      myCurrentDependencyDetails = findDetails(selected);
-      if (myCurrentDependencyDetails != null) {
-        myInfoPanel.setDependencyDetails(myCurrentDependencyDetails);
-        myInfoScrollPane.setViewportView(myInfoPanel.getPanel());
-        myCurrentDependencyDetails.display(selected);
-        return;
+      DependencyDetails newDetails = findDetails(selected);
+      if (myCurrentDependencyDetails != newDetails) {
+        myCurrentDependencyDetails = newDetails;
+        if (myCurrentDependencyDetails != null) {
+          myInfoPanel.setDependencyDetails(myCurrentDependencyDetails);
+        }
+        myInfoScrollPane.setViewportView(myCurrentDependencyDetails == null ? myEmptyDetailsPanel : myInfoPanel.getPanel());
       }
+      if (myCurrentDependencyDetails != null) {
+        myCurrentDependencyDetails.display(selected);
+      }
+    } else {
+      myCurrentDependencyDetails = null;
+      myInfoScrollPane.setViewportView(myEmptyDetailsPanel);
     }
-    myCurrentDependencyDetails = null;
-    myInfoScrollPane.setViewportView(myEmptyDetailsPanel);
   }
 
   @Nullable

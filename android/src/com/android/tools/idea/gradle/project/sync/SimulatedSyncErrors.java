@@ -31,6 +31,12 @@ public class SimulatedSyncErrors {
   private SimulatedSyncErrors() {
   }
 
+  public static void registerNullMessageSyncErrorToSimulate() {
+    verifyIsTestMode();
+    ExternalSystemException exception = new ExternalSystemException((String)null);
+    store(exception);
+  }
+
   public static void registerSyncErrorToSimulate(@NotNull String errorMessage) {
     verifyIsTestMode();
     ExternalSystemException exception = new ExternalSystemException(errorMessage);

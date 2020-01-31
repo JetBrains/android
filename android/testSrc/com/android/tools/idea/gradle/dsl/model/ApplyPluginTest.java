@@ -19,16 +19,24 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_ADD_AN
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_ADD_AND_APPLY_PLUGIN;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_ADD_AND_RESET_ALREADY_EXISTING_PLUGIN;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_ADD_AND_RESET_PLUGIN;
+import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_ADD_EXISTING_PLUGIN_TO_PLUGINS_AND_APPLY_BLOCKS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_ADD_PLUGIN_TO_PLUGINS_BLOCK;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_APPLIED_PLUGINS_BLOCK;
+import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_APPLIED_KOTLIN_PLUGIN;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_APPLIED_PLUGINS_BLOCK_WITH_REPEATED_PLUGINS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_APPLIED_PLUGIN_COMPATIBILITY;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_APPLY_PLUGIN_AT_START;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_APPLY_PLUGIN_AT_START_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_APPLY_PLUGIN_STATEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_APPLY_PLUGIN_STATEMENTS_WITH_REPEATED_PLUGINS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_APPLY_PLUGINS_FROM_PLUGINS_BLOCK;
+import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_APPLY_REPEATED_PLUGINS_FROM_APPLY_AND_PLUGINS_BLOCK;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_DELETE_PLUGIN_NAME;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_INSERT_PLUGIN_ORDER;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_INSERT_PLUGIN_ORDER_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_PLUGINS_BLOCK_WITH_REPEATED_PLUGINS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_PLUGINS_FROM_APPLY_AND_PLUGINS_BLOCK;
+import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_PLUGINS_UNSUPPORTED_SYNTAX;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_BLOCK;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_BLOCK_WITH_DUPLICATED_PLUGIN;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_STATEMENTS;
@@ -307,15 +315,15 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     buildModel.applyPlugin("kotlin-plugin-extensions");
     buildModel.applyPlugin("some-other-plugin");
 
-    verifyPropertyModel(buildModel.plugins().get(0).name(), STRING_TYPE, "kotlin-android", STRING, DERIVED, 0);
-    verifyPropertyModel(buildModel.plugins().get(1).name(), STRING_TYPE, "kotlin-plugin-extensions", STRING, DERIVED, 0);
-    verifyPropertyModel(buildModel.plugins().get(2).name(), STRING_TYPE, "some-other-plugin", STRING, DERIVED, 0);
+    verifyPropertyModel(buildModel.plugins().get(0).name(), STRING_TYPE, "kotlin-android", STRING, REGULAR, 0);
+    verifyPropertyModel(buildModel.plugins().get(1).name(), STRING_TYPE, "kotlin-plugin-extensions", STRING, REGULAR, 0);
+    verifyPropertyModel(buildModel.plugins().get(2).name(), STRING_TYPE, "some-other-plugin", STRING, REGULAR, 0);
 
     applyChangesAndReparse(buildModel);
 
-    verifyPropertyModel(buildModel.plugins().get(0).name(), STRING_TYPE, "kotlin-android", STRING, DERIVED, 0);
-    verifyPropertyModel(buildModel.plugins().get(1).name(), STRING_TYPE, "kotlin-plugin-extensions", STRING, DERIVED, 0);
-    verifyPropertyModel(buildModel.plugins().get(2).name(), STRING_TYPE, "some-other-plugin", STRING, DERIVED, 0);
+    verifyPropertyModel(buildModel.plugins().get(0).name(), STRING_TYPE, "kotlin-android", STRING, REGULAR, 0);
+    verifyPropertyModel(buildModel.plugins().get(1).name(), STRING_TYPE, "kotlin-plugin-extensions", STRING, REGULAR, 0);
+    verifyPropertyModel(buildModel.plugins().get(2).name(), STRING_TYPE, "some-other-plugin", STRING, REGULAR, 0);
 
     verifyFileContents(myBuildFile, APPLY_PLUGIN_INSERT_PLUGIN_ORDER_EXPECTED);
   }
@@ -328,17 +336,84 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     buildModel.applyPlugin("kotlin-plugin-extensions");
     buildModel.applyPlugin("some-other-plugin");
 
-    verifyPropertyModel(buildModel.plugins().get(0).name(), STRING_TYPE, "kotlin-android", STRING, DERIVED, 0);
-    verifyPropertyModel(buildModel.plugins().get(1).name(), STRING_TYPE, "kotlin-plugin-extensions", STRING, DERIVED, 0);
-    verifyPropertyModel(buildModel.plugins().get(2).name(), STRING_TYPE, "some-other-plugin", STRING, DERIVED, 0);
+    verifyPropertyModel(buildModel.plugins().get(0).name(), STRING_TYPE, "kotlin-android", STRING, REGULAR, 0);
+    verifyPropertyModel(buildModel.plugins().get(1).name(), STRING_TYPE, "kotlin-plugin-extensions", STRING, REGULAR, 0);
+    verifyPropertyModel(buildModel.plugins().get(2).name(), STRING_TYPE, "some-other-plugin", STRING, REGULAR, 0);
 
     applyChangesAndReparse(buildModel);
 
-    verifyPropertyModel(buildModel.plugins().get(0).name(), STRING_TYPE, "kotlin-android", STRING, DERIVED, 0);
-    verifyPropertyModel(buildModel.plugins().get(1).name(), STRING_TYPE, "kotlin-plugin-extensions", STRING, DERIVED, 0);
-    verifyPropertyModel(buildModel.plugins().get(2).name(), STRING_TYPE, "some-other-plugin", STRING, DERIVED, 0);
+    verifyPropertyModel(buildModel.plugins().get(0).name(), STRING_TYPE, "kotlin-android", STRING, REGULAR, 0);
+    verifyPropertyModel(buildModel.plugins().get(1).name(), STRING_TYPE, "kotlin-plugin-extensions", STRING, REGULAR, 0);
+    verifyPropertyModel(buildModel.plugins().get(2).name(), STRING_TYPE, "some-other-plugin", STRING, REGULAR, 0);
 
     verifyFileContents(myBuildFile, APPLY_PLUGIN_APPLY_PLUGIN_AT_START_EXPECTED);
+  }
+
+  @Test
+  public void testAppliedKotlinPlugin() throws Exception {
+    writeToBuildFile(APPLY_PLUGIN_APPLIED_KOTLIN_PLUGIN);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    verifyPlugins(ImmutableList.of("kotlin-android", "kotlin-plugin-extensions"), buildModel.plugins());
+  }
+
+  @Test
+  public void testApplyPluginsFromPluginsBlock() throws Exception {
+    writeToBuildFile(APPLY_PLUGIN_APPLY_PLUGINS_FROM_PLUGINS_BLOCK);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    verifyPlugins(ImmutableList.of("maven-publish", "jacoco"), buildModel.plugins());
+  }
+
+  @Test
+  public void testPluginsBlockWithRepeatedPlugins() throws Exception {
+    writeToBuildFile(APPLY_PLUGIN_PLUGINS_BLOCK_WITH_REPEATED_PLUGINS);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.plugins());
+  }
+
+  @Test
+  public void testPluginsFromApplyAndPluginsBlock() throws Exception {
+    writeToBuildFile(APPLY_PLUGIN_PLUGINS_FROM_APPLY_AND_PLUGINS_BLOCK);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.plugins());
+  }
+
+  @Test
+  public void testApplyRepeatedPluginsFromApplyAndPluginsBlocks() throws Exception {
+    writeToBuildFile(APPLY_PLUGIN_APPLY_REPEATED_PLUGINS_FROM_APPLY_AND_PLUGINS_BLOCK);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    List<PluginModel> plugins = buildModel.plugins();
+    assertSize(3, plugins);
+    verifyPlugins(ImmutableList.of("maven-publish", "com.android.application", "com.android.library"), plugins);
+  }
+
+  @Test
+  public void testAddPluginToPluginsBlock() throws Exception {
+    writeToBuildFile(APPLY_PLUGIN_ADD_PLUGIN_TO_PLUGINS_BLOCK);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    verifyPlugins(ImmutableList.of("com.android.application"), buildModel.plugins());
+
+    buildModel.applyPlugin("kotlin-android");
+    List<PluginModel> plugins = buildModel.plugins();
+    verifyPlugins(ImmutableList.of("com.android.application", "kotlin-android"), plugins);
+  }
+
+  @Test
+  public void testAddExistingPluginToPluginsAndApplyBlock() throws Exception {
+    writeToBuildFile(APPLY_PLUGIN_ADD_EXISTING_PLUGIN_TO_PLUGINS_AND_APPLY_BLOCKS);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    verifyPlugins(ImmutableList.of("kotlin-android", "com.android.application"), buildModel.plugins());
+
+    buildModel.applyPlugin("kotlin-android");
+    List<PluginModel> plugins = buildModel.plugins();
+    assertSize(2, plugins);
+    verifyPlugins(ImmutableList.of("com.android.application", "kotlin-android"), plugins);
+  }
+
+  @Test
+  public void testOnlyParsePluginsWithCorrectSyntax() throws Exception {
+    writeToBuildFile(APPLY_PLUGIN_PLUGINS_UNSUPPORTED_SYNTAX);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    verifyPlugins(ImmutableList.of("com.android.library"), buildModel.plugins());
   }
 
   @SuppressWarnings("deprecation")

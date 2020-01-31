@@ -55,7 +55,7 @@ public class CpuFrameTooltip extends AspectModel<CpuFrameTooltip.Aspect> impleme
     }
 
     Range tooltipRange = myStage.getStudioProfilers().getTimeline().getTooltipRange();
-    List<SeriesData<AtraceFrame>> series = mySeries.getDataForXRange(tooltipRange);
+    List<SeriesData<AtraceFrame>> series = mySeries.getDataForRange(tooltipRange);
     myFrame = series.isEmpty() ? null : series.get(0).value;
     changed(Aspect.FRAME_CHANGED);
   }

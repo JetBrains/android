@@ -1,0 +1,130 @@
+PROJECT             : testWithCentralBuildDirectoryInRootModuleDeleted
+    MODULE              : app
+        - ModuleGroupPath   : testWithCentralBuildDirectoryInRootModuleDeleted
+        - ModuleGroupPath   : app
+        LinkedProjectId     : :app
+        LinkedProjectPath   : <PROJECT>/app
+        RootProjectPath     : <PROJECT>
+        ModuleFile          : <PROJECT>/app/app.iml
+        ModuleTypeName      : JAVA_MODULE
+        FACET               : Android
+            TypeId              : android
+            SelectedBuildVariant          : debug
+            AssembleTaskName    : assembleDebug
+            CompileJavaTaskName : compileDebugSources
+            - AfterSyncTask     : generateDebugSources
+            AllowUserConfiguration        : false
+            GenFolderRelativePathApt      : /gen
+            GenFolderRelativePathAidl     : /gen
+            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
+            ResFolderRelativePath         : /src/main/res
+            ResFoldersRelativePath        : file://<PROJECT>/app/src/main/res
+            TestResFoldersRelativePath    :  [-]
+            AssetsFolderRelativePath      : /src/main/assets
+            LibsFolderRelativePath        : /libs
+            UseCustomApkResourceFolder    : false
+            UseCustomCompilerManifest     : false
+            ProjectType         : 0
+            RunProcessResourcesMavenTask  : true
+            PackTestCode        : false
+            RunProguard         : false
+            ProguardLogsFolderRelativePath          : /proguard_logs
+            UseCustomManifestPackage      : false
+            EnableManifestMerging         : false
+            EnablePreDexing     : true
+            CompileCustomGeneratedSources : true
+            EnableSourcesAutogeneration   : true
+            EnableMultiDex      : false
+            MinimalMainDex      : false
+            IncludeAssetsFromLibraries    : false
+            - ProGuardCfgFiles  : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            GradlePath          : :app
+        CONENT_ENTRY        : file://<PROJECT>/app
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTest/aidl [-]
+            JavaResource (test) : file://<PROJECT>/app/src/androidTest/assets [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTest/java
+            JavaResource (test) : file://<PROJECT>/app/src/androidTest/res [-]
+            JavaResource (test) : file://<PROJECT>/app/src/androidTest/resources [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTest/rs [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTest/shaders [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/aidl [-]
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/assets [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/java [-]
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/res [-]
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/resources [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/rs [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/shaders [-]
+            JavaSource          : file://<PROJECT>/app/src/debug/aidl [-]
+            JavaResource        : file://<PROJECT>/app/src/debug/assets [-]
+            JavaSource          : file://<PROJECT>/app/src/debug/java [-]
+            JavaResource        : file://<PROJECT>/app/src/debug/res [-]
+            JavaResource        : file://<PROJECT>/app/src/debug/resources [-]
+            JavaSource          : file://<PROJECT>/app/src/debug/rs [-]
+            JavaSource          : file://<PROJECT>/app/src/debug/shaders [-]
+            JavaSource          : file://<PROJECT>/app/src/main/aidl [-]
+            JavaResource        : file://<PROJECT>/app/src/main/assets [-]
+            JavaSource          : file://<PROJECT>/app/src/main/java
+            JavaResource        : file://<PROJECT>/app/src/main/res
+            JavaResource        : file://<PROJECT>/app/src/main/resources [-]
+            JavaSource          : file://<PROJECT>/app/src/main/rs [-]
+            JavaSource          : file://<PROJECT>/app/src/main/shaders [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/test/aidl [-]
+            JavaResource (test) : file://<PROJECT>/app/src/test/assets [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/test/java [-]
+            JavaResource (test) : file://<PROJECT>/app/src/test/res [-]
+            JavaResource (test) : file://<PROJECT>/app/src/test/resources [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/test/rs [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/test/shaders [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/testDebug/aidl [-]
+            JavaResource (test) : file://<PROJECT>/app/src/testDebug/assets [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/testDebug/java [-]
+            JavaResource (test) : file://<PROJECT>/app/src/testDebug/res [-]
+            JavaResource (test) : file://<PROJECT>/app/src/testDebug/resources [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/testDebug/rs [-]
+            JavaSource (test)   : file://<PROJECT>/app/src/testDebug/shaders [-]
+        CONENT_ENTRY        : file://<PROJECT>/central/build/generated/aidl_source_output_dir/debug/out [-]
+            JavaSource          : file://<PROJECT>/central/build/generated/aidl_source_output_dir/debug/out [-]
+        CONENT_ENTRY        : file://<PROJECT>/central/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+            JavaSource (test)   : file://<PROJECT>/central/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+        CONENT_ENTRY        : file://<PROJECT>/central/build/generated/ap_generated_sources/debug/out [-]
+            JavaSource          : file://<PROJECT>/central/build/generated/ap_generated_sources/debug/out [-]
+        CONENT_ENTRY        : file://<PROJECT>/central/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+            JavaSource (test)   : file://<PROJECT>/central/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+        CONENT_ENTRY        : file://<PROJECT>/central/build/generated/ap_generated_sources/debugUnitTest/out [-]
+            JavaSource (test)   : file://<PROJECT>/central/build/generated/ap_generated_sources/debugUnitTest/out [-]
+        CONENT_ENTRY        : file://<PROJECT>/central/build/generated/renderscript_source_output_dir/debug/out [-]
+            JavaSource          : file://<PROJECT>/central/build/generated/renderscript_source_output_dir/debug/out [-]
+        CONENT_ENTRY        : file://<PROJECT>/central/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
+            JavaSource (test)   : file://<PROJECT>/central/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
+        CONENT_ENTRY        : file://<PROJECT>/central/build/generated/res/rs/androidTest/debug [-]
+            JavaResource (test) : file://<PROJECT>/central/build/generated/res/rs/androidTest/debug [-]
+        CONENT_ENTRY        : file://<PROJECT>/central/build/generated/res/rs/debug [-]
+            JavaResource        : file://<PROJECT>/central/build/generated/res/rs/debug [-]
+        CONENT_ENTRY        : file://<PROJECT>/central/build/generated/source/buildConfig/androidTest/debug [-]
+            JavaSource (test)   : file://<PROJECT>/central/build/generated/source/buildConfig/androidTest/debug [-]
+        CONENT_ENTRY        : file://<PROJECT>/central/build/generated/source/buildConfig/debug [-]
+            JavaSource          : file://<PROJECT>/central/build/generated/source/buildConfig/debug [-]
+        JDK                 : <NAME_CUT> Android SDK
+        *isInherited        : false
+            SdkType             : Android SDK
+            HomePath            : <ANDROID_SDK>
+            VersionString       : java version "<JDK_VERSION>"
+        ORDER_ENTRY         : <Module source>
+    MODULE              : testWithCentralBuildDirectoryInRootModuleDeleted
+        - ModuleGroupPath   : testWithCentralBuildDirectoryInRootModuleDeleted
+        LinkedProjectId     : testWithCentralBuildDirectoryInRootModuleDeleted
+        LinkedProjectPath   : <PROJECT>
+        RootProjectPath     : <PROJECT>
+        ModuleFile          : <PROJECT>/testWithCentralBuildDirectoryInRootModuleDeleted.iml
+        ModuleTypeName      : JAVA_MODULE
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            Buildable           : false
+            BuildFolderPath     : <PROJECT>/build [-]
+        CONENT_ENTRY        : file://<PROJECT>
+            EXCLUDE_FOLDER      : file://<PROJECT>/.gradle
+        JDK                 : <NAME_CUT> JavaSDK
+        *isInherited        : true
+        ORDER_ENTRY         : <Module source>

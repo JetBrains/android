@@ -332,7 +332,7 @@ public class MockupEditor extends JPanel implements ToolContent<DesignSurface>, 
 
   /**
    * Set the current model associated with the editor. Typically, this is the model
-   * retrieve from the Design surface screen view{@link NlDesignSurface#getCurrentSceneView()}
+   * retrieve from the Design surface screen view{@link NlDesignSurface#getFocusedSceneView()}
    * or from the {@link NlComponent} of the {@link Mockup#getComponent()}
    *
    * @param model The model to set on this instance
@@ -386,7 +386,7 @@ public class MockupEditor extends JPanel implements ToolContent<DesignSurface>, 
       mySurface = null;
       myExtractWidgetTool.setDesignSurface(null);
     }
-    SceneView sceneView = newDesignSurface != null ? newDesignSurface.getCurrentSceneView() : null;
+    SceneView sceneView = newDesignSurface != null ? newDesignSurface.getFocusedSceneView() : null;
     if (sceneView != null) {
       mySurface = (NlDesignSurface)newDesignSurface;
       LayoutlibSceneManager manager = mySurface.getSceneManager();

@@ -15,43 +15,34 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
+import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.scene.draw.CompositeDrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand
-import com.android.tools.idea.common.scene.draw.DrawFilledRectangle
-import com.android.tools.idea.common.scene.draw.DrawLine
-import com.android.tools.idea.common.scene.draw.buildString
-import com.android.tools.idea.common.scene.draw.parse
-import com.android.tools.idea.common.scene.draw.rect2DToString
-import com.android.tools.idea.common.scene.draw.stringToRect2D
+import com.android.tools.idea.common.scene.draw.DrawShape
+import com.android.tools.idea.common.scene.draw.FillShape
 import com.android.tools.idea.naveditor.scene.NavColors.PLACEHOLDER_BACKGROUND
 import com.android.tools.idea.naveditor.scene.NavColors.PLACEHOLDER_BORDER
 import com.android.tools.idea.naveditor.scene.decorator.REGULAR_FRAME_THICKNESS
+import com.google.common.annotations.VisibleForTesting
 import java.awt.BasicStroke
-import java.awt.geom.Point2D
+import java.awt.geom.Line2D
 import java.awt.geom.Rectangle2D
 
-data class DrawPlaceholder(private val level: Int, private val rectangle: Rectangle2D.Float) : CompositeDrawCommand() {
-  private constructor(sp: Array<String>)
-    : this(sp[0].toInt(), stringToRect2D(sp[1]))
+private val STROKE = BasicStroke(REGULAR_FRAME_THICKNESS)
 
-  constructor(s: String) : this(parse(s, 2))
-
-  override fun getLevel(): Int = level
-
-  override fun serialize(): String = buildString(javaClass.simpleName, level, rect2DToString(rectangle))
+class DrawPlaceholder(@VisibleForTesting @SwingCoordinate val rectangle: Rectangle2D.Float) : CompositeDrawCommand() {
+  override fun serialize(): String = ""
 
   override fun buildCommands(): List<DrawCommand> {
-    val rect = DrawFilledRectangle(0, rectangle, PLACEHOLDER_BACKGROUND)
+    val rect = FillShape(rectangle, PLACEHOLDER_BACKGROUND)
 
-    val color = PLACEHOLDER_BORDER
-    val stroke = BasicStroke(REGULAR_FRAME_THICKNESS)
-    val p1 = Point2D.Float(rectangle.x, rectangle.y)
-    val p2 = Point2D.Float(p1.x, p1.y + rectangle.height)
-    val p3 = Point2D.Float(p1.x + rectangle.width, p1.y)
-    val p4 = Point2D.Float(p3.x, p2.y)
+    val x1 = rectangle.x
+    val x2 = x1 + rectangle.width
+    val y1 = rectangle.y
+    val y2 = y1 + rectangle.height
 
-    val line1 = DrawLine(1, p1, p4, color, stroke)
-    val line2 = DrawLine(2, p2, p3, color, stroke)
+    val line1 = DrawShape(Line2D.Float(x1, y1, x2, y2), PLACEHOLDER_BORDER, STROKE)
+    val line2 = DrawShape(Line2D.Float(x1, y2, x2, y1), PLACEHOLDER_BORDER, STROKE)
 
     return listOf(rect, line1, line2)
   }

@@ -45,7 +45,7 @@ public class MotionSceneTest extends AndroidDomTestCase {
   }
 
   public void testKeyFrameSetSubTags() throws Throwable {
-    doTestCompletionVariants(getTestName(true) + ".xml", "KeyAttribute", "KeyCycle", "KeyPosition", "KeyTimeCycle");
+    doTestCompletionVariants(getTestName(true) + ".xml", "KeyAttribute", "KeyCycle", "KeyPosition", "KeyTimeCycle", "KeyTrigger");
   }
 
   public void testKeyAttributeSubTags() throws Throwable {

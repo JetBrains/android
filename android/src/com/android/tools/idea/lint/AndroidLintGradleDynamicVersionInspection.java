@@ -44,7 +44,7 @@ public class AndroidLintGradleDynamicVersionInspection extends AndroidLintInspec
           @Nullable
           @Override
           protected String getNewValue() {
-            return RepositoryUrlManager.get().resolveDynamicCoordinateVersion(plus, startElement.getProject());
+            return RepositoryUrlManager.get().resolveDynamicCoordinateVersion(plus, startElement.getProject(), null);
           }
         }};
     }

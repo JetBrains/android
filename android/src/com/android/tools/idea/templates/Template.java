@@ -21,20 +21,18 @@ import static com.android.tools.idea.templates.Parameter.Constraint;
 import static com.android.tools.idea.templates.TemplateManager.getTemplateRootFolder;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_DYNAMIC_IS_INSTANT_MODULE;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_HAS_INSTANT_APP_WRAPPER;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_DYNAMIC_INSTANT_APP;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_SUPPORT;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_VERSION;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_LANGUAGE;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API_LEVEL;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TARGET_API;
 import static com.android.tools.idea.templates.TemplateMetadata.TAG_FORMFACTOR;
 import static com.android.tools.idea.templates.TemplateUtils.hasExtension;
 import static com.android.tools.idea.templates.parse.SaxUtils.getPath;
 
-import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.npw.platform.Language;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateUserVisibleException;
@@ -66,6 +64,7 @@ import java.io.StringReader;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
@@ -92,7 +91,6 @@ public class Template {
   public static final String TAG_PARAMETER = "parameter";
   public static final String TAG_THUMB = "thumb";
   public static final String TAG_THUMBS = "thumbs";
-  public static final String TAG_DEPENDENCY = "dependency";
   public static final String TAG_ICONS = "icons";
   public static final String ATTR_FORMAT = "format";
   public static final String ATTR_VALUE = "value";
@@ -138,7 +136,6 @@ public class Template {
   static final int RELATIVE_FILES_FORMAT = 5;
 
   private static final int MAX_WARNINGS = 10;
-  private static final String GOOGLE_GLASS_PATH_19 = "/addon-google_gdk-google-19/";
 
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.templates.Template");
 
@@ -220,7 +217,7 @@ public class Template {
   private static void convertToInt(@NotNull String key, @NotNull Map<String, Object> args) {
     Object value = args.get(key);
     if (value instanceof String) {
-      Integer result;
+      int result;
       try {
         result = Integer.parseInt((String)value);
       }
@@ -246,7 +243,7 @@ public class Template {
     String title = myMetadata.getTitle();
     if (!dryRun && title != null) {
       Map<String, Object> paramMap = context.getParamMap();
-      Object kotlinSupport = paramMap.get(ATTR_KOTLIN_SUPPORT);
+      boolean kotlinSupport = Language.KOTLIN.toString().equals(paramMap.get(ATTR_LANGUAGE));
       Object kotlinVersion = paramMap.get(ATTR_KOTLIN_VERSION);
       AndroidStudioEvent.Builder aseBuilder =
         AndroidStudioEvent.newBuilder()
@@ -255,18 +252,9 @@ public class Template {
                           .setTemplateRenderer(titleToTemplateRenderer(title))
                           .setKotlinSupport(
                             KotlinSupport.newBuilder()
-                                         .setIncludeKotlinSupport(kotlinSupport instanceof Boolean ? (Boolean)kotlinSupport : false)
+                                         .setIncludeKotlinSupport(kotlinSupport)
                                          .setKotlinSupportVersion(kotlinVersion instanceof String ? (String)kotlinVersion : "unknown"));
       UsageTracker.log(UsageTrackerUtils.withProjectId(aseBuilder, project));
-      if (Boolean.TRUE.equals(paramMap.get(ATTR_HAS_INSTANT_APP_WRAPPER))) {
-        aseBuilder.setTemplateRenderer(TemplateRenderer.ANDROID_INSTANT_APP_PROJECT);
-        UsageTracker.log(UsageTrackerUtils.withProjectId(aseBuilder, project));
-      }
-
-      if (title.equals("Android Project") && Boolean.TRUE.equals(paramMap.get(ATTR_IS_DYNAMIC_INSTANT_APP))) {
-        aseBuilder.setTemplateRenderer(TemplateRenderer.ANDROID_INSTANT_APP_BUNDLE_PROJECT);
-        UsageTracker.log(UsageTrackerUtils.withProjectId(aseBuilder, project));
-      }
 
       if (Boolean.TRUE.equals(paramMap.get(ATTR_DYNAMIC_IS_INSTANT_MODULE))) {
         aseBuilder.setTemplateRenderer(TemplateRenderer.ANDROID_INSTANT_APP_DYNAMIC_MODULE);
@@ -396,7 +384,6 @@ public class Template {
     TemplateMetadata metadata = getMetadata();
     assert metadata != null;
 
-    context.getParamMap().put(TemplateMetadata.ATTR_USE_NAV_CONTROLLER, StudioFlags.NPW_USE_NAV_CONTROLLER.get());
     enforceParameterTypes(metadata, context.getParamMap());
 
     try {
@@ -412,29 +399,23 @@ public class Template {
         LOG.warn("WARNING: " + context.getWarnings());
         return true;
       }
-      if (!context.getProject().isInitialized() && myTemplateRoot.getPath().contains(GOOGLE_GLASS_PATH_19)) {
-        // TODO: Fix the Google Glass templates to NOT issue warnings here.
-        // For now: Ignore project creations for Google glass templates since
-        // there are files that are overwritten during project creation by the Glass activity templates.
-        return true;
-      }
-      // @formatter:off
-      int result = Messages.showOkCancelDialog(
-        context.getProject(),
-        formatWarningMessage(context),
-        String.format("%1$s %2$s", context.getCommandName(), StringUtil.pluralize("Warning")),
-        "Proceed Anyway", "Cancel", Messages.getWarningIcon());
-      // @formatter:on
-      return result == Messages.OK;
+      AtomicBoolean result = new AtomicBoolean();
+      ApplicationManager.getApplication().invokeAndWait(() -> {
+        int userReply = Messages.showOkCancelDialog(
+          context.getProject(),
+          formatWarningMessage(context),
+          String.format("%1$s %2$s", context.getCommandName(), StringUtil.pluralize("Warning")),
+          "Proceed Anyway", "Cancel", Messages.getWarningIcon());
+        result.set(userReply == Messages.OK);
+      });
+      return result.get();
     }
     catch (TemplateUserVisibleException e) {
       if (context.showErrors()) {
-        // @formatter:off
-        Messages.showErrorDialog(
+        ApplicationManager.getApplication().invokeAndWait(() -> Messages.showErrorDialog(
           context.getProject(),
           formatErrorMessage(context, e),
-          String.format("%1$s Failed", context.getCommandName()));
-        // @formatter:on
+          String.format("%1$s Failed", context.getCommandName())));
       }
       else {
         throw new RuntimeException(e);
@@ -561,7 +542,6 @@ public class Template {
                      !name.equals(TAG_THUMBS) &&
                      !name.equals(TAG_THUMB) &&
                      !name.equals(TAG_ICONS) &&
-                     !name.equals(TAG_DEPENDENCY) &&
                      !name.equals(TAG_FORMFACTOR)) {
               LOG.error("WARNING: Unknown template directive " + name);
             }

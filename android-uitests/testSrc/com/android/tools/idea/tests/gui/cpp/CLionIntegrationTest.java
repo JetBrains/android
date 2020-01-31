@@ -77,7 +77,7 @@ public class CLionIntegrationTest {
     String inspectionResults = ideFrame.openFromMenu(InspectCodeDialogFixture::find, "Analyze", "Inspect Code...")
       .clickOk()
       .getResults();
-    assertThat(inspectionResults).contains("Unused macro");
+    assertThat(inspectionResults).contains("Unused");
 
     EditorFixture editor = ideFrame.getEditor().open(NATIVE_C_FILE_PATH, EditorFixture.Tab.EDITOR);
     assertThat(editor.getHighlights(HighlightSeverity.ERROR)).isEmpty();

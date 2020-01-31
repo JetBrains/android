@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <item name="my_image" type="drawable">@drawable/old_image</item>
+  <item name="old_image" type="drawable">@drawable/dsl1</item>
+</resources>

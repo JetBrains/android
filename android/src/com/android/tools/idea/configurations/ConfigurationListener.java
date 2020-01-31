@@ -48,6 +48,9 @@ public interface ConfigurationListener {
   /** The display name has changed */
   int CFG_NAME = 1 << 9;
 
+  /** The font scale has changed */
+  int CFG_FONT_SCALE = 1 << 10;
+
   /** References all attributes */
   int MASK_ALL = 0xFFFF;
 
@@ -61,7 +64,7 @@ public interface ConfigurationListener {
   int MASK_RESOLVE_RESOURCES = MASK_FOLDERCONFIG | CFG_FOLDER | CFG_THEME;
 
   /** Attributes which affect rendering appearance */
-  int MASK_RENDERING = MASK_FILE_ATTRS | CFG_THEME;
+  int MASK_RENDERING = MASK_FILE_ATTRS | CFG_THEME | CFG_FONT_SCALE;
 
   /** Attributes which are edited project-wide */
   int MASK_PROJECT_STATE = CFG_LOCALE|CFG_TARGET|CFG_DEVICE;

@@ -16,7 +16,6 @@
 package org.jetbrains.android.refactoring
 
 import com.android.builder.model.AndroidProject
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.codeInsight.daemon.impl.analysis.XmlUnusedNamespaceInspection
 import com.intellij.openapi.application.runUndoTransparentWriteAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -24,10 +23,11 @@ import com.intellij.psi.PsiFile
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import org.jetbrains.android.AndroidTestCase
-import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.dom.inspections.AndroidDomInspection
 import org.jetbrains.android.dom.inspections.AndroidElementNotAllowedInspection
 import org.jetbrains.android.dom.inspections.AndroidUnknownAttributeInspection
+import org.jetbrains.android.dom.manifest.Manifest
+import org.jetbrains.android.facet.AndroidFacet
 
 class MigrateToResourceNamespacesProcessorTest : AndroidTestCase() {
 
@@ -73,8 +73,8 @@ class MigrateToResourceNamespacesProcessorTest : AndroidTestCase() {
 
     // This may trigger creation of resource repositories, so let's do last to make local runs less flaky.
     runUndoTransparentWriteAction {
-      myFacet.manifest!!.`package`.value = "com.example.app"
-      AndroidFacet.getInstance(getAdditionalModuleByName("lib")!!)!!.manifest!!.`package`.value = "com.example.lib"
+      Manifest.getMainManifest(myFacet)!!.`package`.value = "com.example.app"
+      Manifest.getMainManifest(AndroidFacet.getInstance(getAdditionalModuleByName("lib")!!)!!)!!.`package`.value = "com.example.lib"
     }
   }
 
@@ -226,7 +226,7 @@ class MigrateToResourceNamespacesProcessorTest : AndroidTestCase() {
 
   fun testManifest() {
     runUndoTransparentWriteAction {
-      myFacet.manifest!!.application.label.stringValue = "@string/libString"
+      Manifest.getMainManifest(myFacet)!!.application.label.stringValue = "@string/libString"
     }
 
     refactorAndSync()
@@ -313,7 +313,7 @@ class MigrateToResourceNamespacesProcessorTest : AndroidTestCase() {
   fun testGradleFiles() {
     // Make sure there's at least on reference to rewrite.
     runUndoTransparentWriteAction {
-      myFacet.manifest!!.application.label.stringValue = "@string/libString"
+      Manifest.getMainManifest(myFacet)!!.application.label.stringValue = "@string/libString"
     }
 
     myFixture.addFileToProject(

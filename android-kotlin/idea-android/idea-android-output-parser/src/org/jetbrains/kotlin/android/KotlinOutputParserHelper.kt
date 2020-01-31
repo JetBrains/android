@@ -25,7 +25,7 @@ import com.google.common.collect.ImmutableList
 import com.intellij.openapi.util.text.StringUtil
 import org.jetbrains.kotlin.kapt3.diagnostic.KaptError
 import java.io.File
-import java.lang.IllegalStateException
+import java.util.Locale
 import java.util.regex.Pattern
 
 fun parse(lineText: String, reader: OutputLineReader, messages: MutableList<Message>): Boolean {
@@ -39,7 +39,7 @@ fun parse(lineText: String, reader: OutputLineReader, messages: MutableList<Mess
         val path = lineWoSeverity.substringBeforeAndTrim(colonIndex2)
         val file = File(path)
 
-        val fileExtension = file.extension.toLowerCase()
+        val fileExtension = file.extension.toLowerCase(Locale.US)
         if (!file.isFile || (fileExtension != "kt" && fileExtension != "java")) {
             return addMessage(createMessage(getMessageKind(severity), lineWoSeverity.amendNextLinesIfNeeded(reader)), messages)
         }

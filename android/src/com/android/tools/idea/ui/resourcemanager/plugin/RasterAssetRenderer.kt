@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,13 +32,10 @@ class RasterAssetRenderer : DesignAssetRenderer {
   override fun getImage(file: VirtualFile, module: Module?, dimension: Dimension): CompletableFuture<out Image?> =
     CompletableFuture.supplyAsync {
       try {
-        val image = ImageIO.read(file.inputStream)
-        val width = image.getWidth(null).toDouble()
-        val height = image.getHeight(null).toDouble()
-        val scale = if (width > height) dimension.width / width else dimension.height / height
-        ImageUtils.scale(image, scale, scale, null)
+        ImageUtils.readImageAtScale(file.inputStream, dimension)
       }
-      catch (e: NullPointerException) { // b/115303829
+      catch (e: NullPointerException) {
+        // b/115303829
         null
       }
     }

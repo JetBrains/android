@@ -24,7 +24,6 @@ import static com.android.SdkConstants.TOOLS_URI;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.tools.idea.common.property.NlProperty;
-import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidAttribute;
 import com.google.wireless.android.sdk.stats.AndroidView;
@@ -61,17 +60,6 @@ public class UsageTrackerUtil {
   }
 
   @NotNull
-  public static AndroidAttribute convertAttribute(@NotNull NelePropertyItem property) {
-    AndroidFacet facet = property.getModel().getFacet();
-    AndroidAttribute.AttributeNamespace namespace = convertNamespace(property.getNamespace());
-
-    return AndroidAttribute.newBuilder()
-      .setAttributeName(convertAttributeName(property.getName(), namespace, property.getLibraryName(), facet))
-      .setAttributeNamespace(namespace)
-      .build();
-  }
-
-  @NotNull
   public static AndroidAttribute convertAttribute(@NotNull String attributeName, @NotNull AndroidFacet facet) {
     AndroidAttribute.AttributeNamespace namespace = null;
     if (attributeName.startsWith(TOOLS_NS_NAME_PREFIX)) {
@@ -89,8 +77,7 @@ public class UsageTrackerUtil {
   }
 
   @NotNull
-  @VisibleForTesting
-  static AndroidAttribute.AttributeNamespace convertNamespace(@Nullable String namespace) {
+  public static AndroidAttribute.AttributeNamespace convertNamespace(@Nullable String namespace) {
     if (StringUtil.isEmpty(namespace)) {
       return AndroidAttribute.AttributeNamespace.ANDROID;
     }
@@ -105,8 +92,7 @@ public class UsageTrackerUtil {
   }
 
   @NotNull
-  @VisibleForTesting
-  static String convertAttributeName(@NotNull String attributeName,
+  public static String convertAttributeName(@NotNull String attributeName,
                                      @NotNull AndroidAttribute.AttributeNamespace namespace,
                                      @Nullable String libraryName,
                                      @NotNull AndroidFacet facet) {

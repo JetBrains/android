@@ -39,7 +39,7 @@ public class DeviceMenuAction extends DropDownAction {
   private final ConfigurationHolder myRenderContext;
 
   public DeviceMenuAction(@NotNull ConfigurationHolder renderContext) {
-    super("", "Device for Preview", StudioIcons.LayoutEditor.Toolbar.VIRTUAL_DEVICES);
+    super(null, "Device for Preview", StudioIcons.LayoutEditor.Toolbar.VIRTUAL_DEVICES);
     myRenderContext = renderContext;
     Presentation presentation = getTemplatePresentation();
     updatePresentation(presentation);
@@ -49,6 +49,11 @@ public class DeviceMenuAction extends DropDownAction {
   public void update(@NotNull AnActionEvent e) {
     super.update(e);
     updatePresentation(e.getPresentation());
+  }
+
+  @Override
+  public boolean displayTextInToolbar() {
+    return true;
   }
 
   private void updatePresentation(Presentation presentation) {
@@ -131,7 +136,7 @@ public class DeviceMenuAction extends DropDownAction {
   }
 
   /**
-   * Similar to {@link FormFactor#getFormFactor(Device)}
+   * Similar to {@link FormFactor#get(Device)}
    * but (a) distinguishes between tablets and phones, and (b) uses the new Nele icons
    */
   private static Icon getDeviceClassIcon(@Nullable Device device) {
@@ -142,8 +147,11 @@ public class DeviceMenuAction extends DropDownAction {
       else if (isTv(device)) {
         return StudioIcons.LayoutEditor.Toolbar.DEVICE_TV;
       }
+      else if (isAutomotive(device)) {
+        return StudioIcons.LayoutEditor.Toolbar.DEVICE_AUTOMOTIVE;
+      }
 
-      // Glass, Car not yet in the device list
+      // Glass not yet in the device list
 
       if (DeviceArtPainter.isTablet(device)) {
         return StudioIcons.LayoutEditor.Toolbar.DEVICE_TABLET;
@@ -151,14 +159,6 @@ public class DeviceMenuAction extends DropDownAction {
     }
 
     return StudioIcons.LayoutEditor.Toolbar.DEVICE_PHONE;
-  }
-
-  @Override
-  protected boolean hasDropDownArrow() {
-    // Calculating the entries can be expensive and we know that we always have more than one. The method #updateActions always adds at
-    // least the default devices and "Add Device Definition...". The only case where the arrow is not displayed at all is when we do not have
-    // a configuration.
-    return myRenderContext.getConfiguration() != null;
   }
 
   @Override
@@ -190,6 +190,7 @@ public class DeviceMenuAction extends DropDownAction {
     addDeviceSection(groupedDevices, DeviceGroup.NEXUS_TABLET, current);
     addDeviceSection(groupedDevices, DeviceGroup.WEAR, current);
     addDeviceSection(groupedDevices, DeviceGroup.TV, current);
+    addDeviceSection(groupedDevices, DeviceGroup.AUTOMOTIVE, current);
     addCustomDeviceSection(current);
     addAvdDeviceSection(DeviceUtils.getAvdDevices(configuration), current);
     addGenericDeviceSection(groupedDevices.getOrDefault(DeviceGroup.GENERIC, Collections.emptyList()), current);
@@ -224,6 +225,8 @@ public class DeviceMenuAction extends DropDownAction {
         return "Wear";
       case TV:
         return "TV";
+      case AUTOMOTIVE:
+        return "Automotive";
       case GENERIC:
         return "Generic";
       case OTHER:

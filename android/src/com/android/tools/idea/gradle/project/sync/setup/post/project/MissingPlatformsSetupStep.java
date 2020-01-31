@@ -30,7 +30,7 @@ import static com.android.tools.idea.project.messages.MessageType.INFO;
 
 public class MissingPlatformsSetupStep extends ProjectSetupStep {
   @Override
-  public void setUpProject(@NotNull Project project, @Nullable ProgressIndicator indicator) {
+  public void setUpProject(@NotNull Project project) {
     GradleSyncMessages syncMessages = GradleSyncMessages.getInstance(project);
     int sdkErrorCount = syncMessages.getMessageCount(SDK_SETUP_ISSUES);
     if (sdkErrorCount > 0) {

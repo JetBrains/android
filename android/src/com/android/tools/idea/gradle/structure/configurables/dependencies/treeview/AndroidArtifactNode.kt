@@ -25,9 +25,11 @@ import com.intellij.ui.treeStructure.SimpleNode
 
 class AndroidArtifactNode : AbstractPsModelNode<PsChildModel> {
   private val myChildren: List<AbstractPsModelNode<*>>
+  override val models: List<PsChildModel>
 
-  constructor(parent: AbstractPsNode, artifact: PsAndroidArtifact) : super(parent, artifact, parent.uiSettings) {
+  constructor(parent: AbstractPsNode, artifact: PsAndroidArtifact) : super(parent, parent.uiSettings) {
     autoExpandNode = false
+    models = listOf(artifact)
     val additionalChildren =
       artifact
         .takeUnless { it.resolvedName == AndroidProject.ARTIFACT_MAIN }
@@ -35,11 +37,14 @@ class AndroidArtifactNode : AbstractPsModelNode<PsChildModel> {
         ?.findArtifact(AndroidProject.ARTIFACT_MAIN)
         ?.let { AndroidArtifactNode(parent, it) }
     myChildren = listOfNotNull(additionalChildren) + createNodesForResolvedDependencies(this, artifact.dependencies)
+    updateNameAndIcon()
   }
 
-  constructor(parent: AbstractPsNode, javaModule: PsJavaModule) : super(parent, javaModule, parent.uiSettings) {
+  constructor(parent: AbstractPsNode, javaModule: PsJavaModule) : super(parent, parent.uiSettings) {
     autoExpandNode = false
+    models = listOf(javaModule)
     myChildren = createNodesForResolvedDependencies(this, javaModule.resolvedDependencies)
+    updateNameAndIcon()
   }
 
   override fun nameOf(artifact: PsChildModel): String {

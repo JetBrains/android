@@ -57,7 +57,7 @@ class BitmapsProjectTest {
     fixture.testDataPath = "${getTestDataPath()}/projects/bitmaps"
     fixture.copyDirectoryToProject("", "")
     val androidFacet = FacetManager.getInstance(projectRule.module).getFacetByType(AndroidFacet.ID)
-    ModuleDataBinding.getInstance(androidFacet!!).setMode(DataBindingMode.ANDROIDX)
+    ModuleDataBinding.getInstance(androidFacet!!).dataBindingMode = DataBindingMode.ANDROIDX
   }
 
   @Test

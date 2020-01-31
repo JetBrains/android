@@ -15,10 +15,15 @@
  */
 package com.android.tools.idea.tests.gui.debugger;
 
+import static com.google.common.truth.Truth.assertThat;
+
+import com.android.testutils.TestUtils;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.emulator.AvdSpec;
+import com.android.tools.idea.tests.gui.framework.emulator.AvdTestRule;
 import com.android.tools.idea.tests.gui.framework.emulator.EmulatorGenerator;
 import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditConfigurationsDialogFixture;
@@ -27,7 +32,12 @@ import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFix
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.io.FileUtil;
+import java.io.File;
+import java.io.IOException;
 import java.util.regex.Pattern;
+import org.fest.swing.edt.GuiTask;
 import org.fest.swing.exception.LocationUnavailableException;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
@@ -35,10 +45,11 @@ import org.jetbrains.annotations.NotNull;
 
 public class DebuggerTestUtil {
 
-  public static final String AUTO = "Auto";
-  public static final String DUAL = "Dual";
-  public static final String NATIVE = "Native";
-  public static final String JAVA = "Java";
+  public static final String AUTO = "Detect Automatically";
+  public static final String DUAL = "Dual (Java + Native)";
+  public static final String NATIVE = "Native Only";
+  public static final String JAVA = "Java Only";
+  public static final String DEBUG_CONFIG_NAME = "app";
   public static final String JAVA_DEBUGGER_CONF_NAME = "app-java";
 
   public final static String ABI_TYPE_X86 = "x86";
@@ -144,6 +155,110 @@ public class DebuggerTestUtil {
         return false;
       }
     });
+  }
+
+  /**
+   * GuiTestRule sets the SDK. There is currently no way to override or prevent that behavior.
+   * This workaround is to set the customized SDK that includes the emulator and system images
+   * necessary for this test.
+   */
+  public static void setupSpecialSdk(@NotNull AvdTestRule avdRule) {
+    GuiTask.execute(() -> {
+      ApplicationManager.getApplication().runWriteAction(() -> {
+        IdeSdks.getInstance().setAndroidSdkPath(avdRule.getGeneratedSdkLocation(), null);
+      });
+    });
+  }
+
+  public static void symlinkLldb() throws IOException {
+    if (TestUtils.runningFromBazel()) {
+      // tools/idea/bin is already symlinked to a directory that is outside the writable directory.
+      // We need to write underneath tools/idea/bin, so we remove the symlink and create a copy of
+      // the real tools/idea/bin.
+      File tmpDir = new File(System.getenv("TEST_TMPDIR"));
+      File toolsIdeaBin = new File(tmpDir, "tools/idea/bin");
+      File realToolsIdeaBin = toolsIdeaBin.getCanonicalFile();
+      toolsIdeaBin.delete();
+      toolsIdeaBin.mkdirs();
+      FileUtil.copyDir(realToolsIdeaBin, toolsIdeaBin);
+
+      String srcDir = System.getenv("TEST_SRCDIR");
+      String workspaceName = System.getenv("TEST_WORKSPACE");
+      File lldbParent = new File(srcDir, workspaceName);
+
+      File commonLldbSrc = new File(lldbParent, "prebuilts/tools/common/lldb");
+      // Also create a copy of LLDB, since we will need to modify the contents of
+      // tools/idea/bin/lldb.
+      File commonLldbDest = new File(toolsIdeaBin, "lldb");
+      FileUtil.copyDir(commonLldbSrc, commonLldbDest);
+
+      File lldbLibSrc = new File(lldbParent, "prebuilts/tools/linux-x86_64/lldb");
+      File lldbLibDest = new File(toolsIdeaBin, "lldb");
+      FileUtil.copyDir(lldbLibSrc, lldbLibDest);
+
+      File pythonSrc = new File(lldbParent, "prebuilts/python/linux-x86/lib/python2.7");
+      File pythonDest = new File(toolsIdeaBin, "lldb/lib/python2.7");
+      FileUtil.copyDir(pythonSrc, pythonDest);
+    }
+  }
+
+  public static void processToTest(@NotNull GuiTestRule guiTest,
+                                   @NotNull AvdTestRule avdRule,
+                                   @NotNull String debuggerType) throws Exception {
+    IdeFrameFixture ideFrame =
+      guiTest.importProjectAndWaitForProjectSyncToFinish("debugger/NdkHelloJni");
+    DebuggerTestUtil.setDebuggerType(ideFrame, debuggerType);
+
+    // Setup C++ and Java breakpoints.
+    if (debuggerType.equals(DebuggerTestUtil.AUTO)) {
+      // Don't set Java breakpoint.
+    } else if (debuggerType.equals(DebuggerTestUtil.DUAL) || debuggerType.equals(DebuggerTestUtil.NATIVE)) {
+      openAndToggleBreakPoints(ideFrame,
+                               "app/src/main/java/com/example/hellojni/HelloJni.java",
+                               "setContentView(tv);");
+    } else {
+      throw new RuntimeException("Not supported debugger type provide: " + debuggerType);
+    }
+    openAndToggleBreakPoints(ideFrame,
+                             "app/src/main/cpp/hello-jni.c",
+                             "return (*env)->NewStringUTF(env, \"ABI \" ABI \".\");");
+
+    DebugToolWindowFixture debugToolWindowFixture =
+      DebuggerTestUtil.debugAppAndWaitForSessionToStart(ideFrame, guiTest, DEBUG_CONFIG_NAME, avdRule.getMyAvd().getName());
+
+    // Setup the expected patterns to match the variable values displayed in Debug windows's
+    // 'Variables' tab.
+    String[] expectedPatterns = new String[]{
+      DebuggerTestBase.variableToSearchPattern("kid_age", "int", "3"),
+    };
+    DebuggerTestBase.checkAppIsPaused(ideFrame, expectedPatterns);
+
+    if (debuggerType.equals(DebuggerTestUtil.DUAL)) {
+      DebuggerTestBase.resume(DEBUG_CONFIG_NAME, ideFrame);
+
+      expectedPatterns = new String[]{
+        DebuggerTestBase.variableToSearchPattern("s", "\"ABI x86.\""),
+      };
+      DebuggerTestBase.checkAppIsPaused(ideFrame, expectedPatterns, DebuggerTestUtil.JAVA_DEBUGGER_CONF_NAME);
+    }
+
+    if (debuggerType.equals(DebuggerTestUtil.AUTO)) {
+      // Don't check Java debugger window for auto debugger here.
+    } else if (debuggerType.equals(DebuggerTestUtil.DUAL)) {
+      assertThat(debugToolWindowFixture.getDebuggerContent(DebuggerTestUtil.JAVA_DEBUGGER_CONF_NAME)).isNotNull();
+    } else if (debuggerType.equals(DebuggerTestUtil.NATIVE)) {
+      assertThat(debugToolWindowFixture.getDebuggerContent(DebuggerTestUtil.JAVA_DEBUGGER_CONF_NAME)).isNull();
+    } else {
+      throw new RuntimeException("Not supported debugger type provide: " + debuggerType);
+    }
+
+    if (debuggerType.equals(DebuggerTestUtil.AUTO) || debuggerType.equals(DebuggerTestUtil.NATIVE)) {
+      DebuggerTestBase.stopDebugSession(debugToolWindowFixture);
+    } else if (debuggerType.equals(DebuggerTestUtil.DUAL)) {
+      ideFrame.stopAll();
+    } else {
+      throw new RuntimeException("Not supported debugger type provide: " + debuggerType);
+    }
   }
 
   private static void openAndToggleBreakPoints(IdeFrameFixture ideFrame, String fileName, String... lines) {

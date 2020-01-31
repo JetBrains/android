@@ -27,6 +27,8 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater.TextSearch;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.google.wireless.android.sdk.stats.GradleSyncStats;
+import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.JavaProjectTestCase;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import org.jetbrains.annotations.NotNull;
@@ -36,7 +38,7 @@ import org.mockito.verification.VerificationMode;
 /**
  * Tests for {@link AndroidPluginVersionUpdater}.
  */
-public class AndroidPluginVersionUpdaterTest extends JavaProjectTestCase {
+public class AndroidPluginVersionUpdaterTest extends PlatformTestCase {
   @Mock private GradleSyncState mySyncState;
   @Mock private GradleSyncInvoker mySyncInvoker;
   @Mock private TextSearch myTextSearch;
@@ -64,20 +66,20 @@ public class AndroidPluginVersionUpdaterTest extends JavaProjectTestCase {
 
   public void testHandleUpdateResultWithPreviousSyncFailed() {
     // http://b/38487637
-    when(mySyncState.lastSyncFailedOrHasIssues()).thenReturn(true);
+    when(mySyncState.lastSyncFailed()).thenReturn(true);
     AndroidPluginVersionUpdater.UpdateResult result = new AndroidPluginVersionUpdater.UpdateResult();
     result.pluginVersionUpdated();
-    myVersionUpdater.handleUpdateResult(result, false);
-    verify(mySyncState, never()).syncEnded();
+    myVersionUpdater.handleUpdateResult(result);
+    verify(mySyncState, never()).syncSucceeded();
   }
 
   public void testHandleUpdateResultWithPluginUpdateErrorAndInvalidatingSync() {
     AndroidPluginVersionUpdater.UpdateResult result = new AndroidPluginVersionUpdater.UpdateResult();
     result.setPluginVersionUpdateError(new Throwable());
 
-    myVersionUpdater.handleUpdateResult(result, true);
+    myVersionUpdater.handleUpdateResult(result);
 
-    verifyLastSyncInvalidated(times(1));
+    verifyLastSyncFailed(times(1));
     verifyProjectSyncRequested(never(), TRIGGER_TEST_REQUESTED);
     verifyTextSearch(times(1));
   }
@@ -86,9 +88,9 @@ public class AndroidPluginVersionUpdaterTest extends JavaProjectTestCase {
     AndroidPluginVersionUpdater.UpdateResult result = new AndroidPluginVersionUpdater.UpdateResult();
     result.setGradleVersionUpdateError(new Throwable());
 
-    myVersionUpdater.handleUpdateResult(result, true);
+    myVersionUpdater.handleUpdateResult(result);
 
-    verifyLastSyncInvalidated(times(1));
+    verifyLastSyncFailed(times(1));
     verifyProjectSyncRequested(never(), TRIGGER_TEST_REQUESTED);
     verifyTextSearch(never());
   }
@@ -97,9 +99,9 @@ public class AndroidPluginVersionUpdaterTest extends JavaProjectTestCase {
     AndroidPluginVersionUpdater.UpdateResult result = new AndroidPluginVersionUpdater.UpdateResult();
     result.pluginVersionUpdated();
 
-    myVersionUpdater.handleUpdateResult(result, true);
+    myVersionUpdater.handleUpdateResult(result);
 
-    verifyLastSyncInvalidated(never());
+    verifyLastSyncFailed(never());
     verifyProjectSyncRequested(times(1), TRIGGER_AGP_VERSION_UPDATED);
     verifyTextSearch(never());
   }
@@ -108,31 +110,31 @@ public class AndroidPluginVersionUpdaterTest extends JavaProjectTestCase {
     AndroidPluginVersionUpdater.UpdateResult result = new AndroidPluginVersionUpdater.UpdateResult();
     result.gradleVersionUpdated();
 
-    myVersionUpdater.handleUpdateResult(result, true);
+    myVersionUpdater.handleUpdateResult(result);
 
-    verifyLastSyncInvalidated(never());
+    verifyLastSyncFailed(never());
     verifyProjectSyncRequested(times(1), TRIGGER_AGP_VERSION_UPDATED);
     verifyTextSearch(never());
   }
 
   public void testHandleUpdateResultWithNoVersionsUpdatedAndNoErrors() {
     AndroidPluginVersionUpdater.UpdateResult result = new AndroidPluginVersionUpdater.UpdateResult();
-    myVersionUpdater.handleUpdateResult(result, true);
+    myVersionUpdater.handleUpdateResult(result);
 
-    verifyLastSyncInvalidated(never());
+    verifyLastSyncFailed(never());
     verifyProjectSyncRequested(never(), TRIGGER_TEST_REQUESTED);
     verifyTextSearch(never());
   }
 
-  private void verifyLastSyncInvalidated(@NotNull VerificationMode verificationMode) {
-    verify(mySyncState, verificationMode).invalidateLastSync(any());
+  private void verifyLastSyncFailed(@NotNull VerificationMode verificationMode) {
+    verify(mySyncState, verificationMode).syncFailed(any(), any(), any());
   }
 
   private void verifyProjectSyncRequested(@NotNull VerificationMode verificationMode, @NotNull GradleSyncStats.Trigger trigger) {
     GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(trigger);
     request.cleanProject = true;
 
-    verify(mySyncState, verificationMode).syncEnded();
+    verify(mySyncState, verificationMode).syncSucceeded();
     verify(mySyncInvoker, verificationMode).requestProjectSync(myProject, request);
   }
 

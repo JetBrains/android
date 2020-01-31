@@ -24,14 +24,14 @@ import java.util.List;
 
 /**
  * Implementers of this class should implement {@link #inMemoryDataList}, which should return all the {@link DataSeries} that would be
- * returned if {@link #getDataForXRange(Range)} receives a range with maximum length.
+ * returned if {@link #getDataForRange(Range)} receives a range with maximum length.
  */
 abstract class InMemoryDataSeries<T> implements DataSeries<T> {
 
   @Override
-  public List<SeriesData<T>> getDataForXRange(Range xRange) {
-    long min = (long)xRange.getMin();
-    long max = (long)xRange.getMax();
+  public List<SeriesData<T>> getDataForRange(Range range) {
+    long min = (long)range.getMin();
+    long max = (long)range.getMax();
     List<SeriesData<T>> series = new ArrayList<>();
     List<SeriesData<T>> seriesDataList = inMemoryDataList();
     if (seriesDataList.isEmpty()) {
@@ -61,7 +61,7 @@ abstract class InMemoryDataSeries<T> implements DataSeries<T> {
   }
 
   /**
-   * Returns all the {@link SeriesData} stored in memory, to be filtered by range in {@link #getDataForXRange(Range)}
+   * Returns all the {@link SeriesData} stored in memory, to be filtered by range in {@link #getDataForRange(Range)}
    */
   protected abstract List<SeriesData<T>> inMemoryDataList();
 }

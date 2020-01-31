@@ -47,18 +47,17 @@ public class SceneInteraction extends Interaction {
    *
    * @param x         The most recent mouse x coordinate applicable to this interaction
    * @param y         The most recent mouse y coordinate applicable to this interaction
-   * @param startMask The initial AWT mask for the interaction
+   * @param modifiersEx The initial AWT mask for the interaction
    */
   @Override
-  public void begin(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int startMask) {
-    super.begin(x, y, startMask);
+  public void begin(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
+    super.begin(x, y, modifiersEx);
     int androidX = Coordinates.getAndroidX(mySceneView, myStartX);
     int androidY = Coordinates.getAndroidY(mySceneView, myStartY);
     int dpX = Coordinates.pxToDp(mySceneView, androidX);
     int dpY = Coordinates.pxToDp(mySceneView, androidY);
     Scene scene = mySceneView.getScene();
-    scene.updateModifiers(startMask);
-    scene.mouseDown(SceneContext.get(mySceneView), dpX, dpY);
+    scene.mouseDown(SceneContext.get(mySceneView), dpX, dpY, modifiersEx);
   }
 
   /**
@@ -66,18 +65,17 @@ public class SceneInteraction extends Interaction {
    *
    * @param x         The most recent mouse x coordinate applicable to this interaction
    * @param y         The most recent mouse y coordinate applicable to this interaction
-   * @param modifiers current modifier key mask
+   * @param modifiersEx current modifier key mask
    */
   @Override
-  public void update(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiers) {
-    super.update(x, y, modifiers);
+  public void update(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
+    super.update(x, y, modifiersEx);
     int androidX = Coordinates.getAndroidX(mySceneView, x);
     int androidY = Coordinates.getAndroidY(mySceneView, y);
     int dpX = Coordinates.pxToDp(mySceneView, androidX);
     int dpY = Coordinates.pxToDp(mySceneView, androidY);
     Scene scene = mySceneView.getScene();
-    scene.updateModifiers(modifiers);
-    scene.mouseDrag(SceneContext.get(mySceneView), dpX, dpY);
+    scene.mouseDrag(SceneContext.get(mySceneView), dpX, dpY, modifiersEx);
     mySceneView.getSurface().repaint();
   }
 
@@ -86,23 +84,22 @@ public class SceneInteraction extends Interaction {
    *
    * @param x         The most recent mouse x coordinate applicable to this interaction
    * @param y         The most recent mouse y coordinate applicable to this interaction
-   * @param modifiers current modifier key mask
+   * @param modifiersEx current modifier key mask
    * @param canceled  True if the interaction was canceled, and false otherwise.
    */
   @Override
-  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiers, boolean canceled) {
-    super.end(x, y, modifiers, canceled);
+  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx, boolean canceled) {
+    super.end(x, y, modifiersEx, canceled);
     final int androidX = Coordinates.getAndroidX(mySceneView, x);
     final int androidY = Coordinates.getAndroidY(mySceneView, y);
     int dpX = Coordinates.pxToDp(mySceneView, androidX);
     int dpY = Coordinates.pxToDp(mySceneView, androidY);
     Scene scene = mySceneView.getScene();
-    scene.updateModifiers(modifiers);
     if (canceled) {
       scene.mouseCancel();
     }
     else {
-      scene.mouseRelease(SceneContext.get(mySceneView), dpX, dpY);
+      scene.mouseRelease(SceneContext.get(mySceneView), dpX, dpY, modifiersEx);
     }
     mySceneView.getSurface().repaint();
   }

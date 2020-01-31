@@ -1,4 +1,4 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.adtui.workbench;
 
 import static com.intellij.openapi.actionSystem.ActionToolbar.NAVBAR_MINIMUM_BUTTON_SIZE;
@@ -21,6 +21,7 @@ import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.impl.AnchoredButton;
@@ -32,7 +33,6 @@ import com.intellij.ui.SearchTextField;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.UIBundle;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBImageIcon;
 import com.intellij.util.ui.JBUI;
@@ -82,7 +82,7 @@ final class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
 
   enum PropertyType {AUTO_HIDE, MINIMIZED, LEFT, SPLIT, DETACHED, FLOATING}
 
-  private final String myWorkBenchName;
+  private final WorkBench<T> myWorkBench;
   private final ToolWindowDefinition<T> myDefinition;
   private final PropertiesComponent myPropertiesComponent;
   private final SideModel<T> myModel;
@@ -100,9 +100,10 @@ final class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
 
   AttachedToolWindow(@NotNull ToolWindowDefinition<T> definition,
                      @NotNull ButtonDragListener<T> dragListener,
-                     @NotNull String workBenchName,
-                     @NotNull SideModel<T> model) {
-    myWorkBenchName = workBenchName;
+                     @NotNull WorkBench<T> workBench,
+                     @NotNull SideModel<T> model,
+                     boolean minimizedByDefault) {
+    myWorkBench = workBench;
     myDefinition = definition;
     myDragListener = dragListener;
     myPropertiesComponent = PropertiesComponent.getInstance();
@@ -114,11 +115,12 @@ final class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     myPanel.setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
     myActionButtons = new ArrayList<>(4);
     myMinimizedButton = new MinimizedButton(definition.getTitle(), definition.getIcon(), this);
-    mySearchField = new MySearchField(TOOL_WINDOW_PROPERTY_PREFIX + workBenchName + ".TEXT_SEARCH_HISTORY");
+    mySearchField = new MySearchField(TOOL_WINDOW_PROPERTY_PREFIX + workBench.getName() + ".TEXT_SEARCH_HISTORY");
     mySearchActionButton = createActionButton(new SearchAction(), myDefinition.getButtonSize());
     setDefaultProperty(PropertyType.LEFT, definition.getSide().isLeft());
     setDefaultProperty(PropertyType.SPLIT, definition.getSplit().isBottom());
     setDefaultProperty(PropertyType.AUTO_HIDE, definition.getAutoHide().isAutoHide());
+    setDefaultProperty(PropertyType.MINIMIZED, minimizedByDefault);
     updateContent();
     DumbService.getInstance(model.getProject()).smartInvokeLater(this::updateActions);
     AnAction globalFindAction = ActionManager.getInstance().getAction(ACTION_FIND);
@@ -252,7 +254,9 @@ final class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
   }
 
   private String getPropertyName(@NotNull Layout layout, @NotNull PropertyType property) {
-    return TOOL_WINDOW_PROPERTY_PREFIX + layout.getPrefix() + myWorkBenchName + "." + myDefinition.getName() + "." + property.name();
+    String context = myWorkBench.getContext();
+    return String.format("%s%s%s.%s.%s%s%s", TOOL_WINDOW_PROPERTY_PREFIX, layout.getPrefix(), myWorkBench.getName(), myDefinition.getName(),
+                         context, StringUtil.isEmpty(context) ? "" : ".", property.name());
   }
 
   public void setPropertyAndUpdate(@NotNull PropertyType property, boolean value) {
@@ -313,6 +317,7 @@ final class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
       myPanel.add(createHeader(myContent.supportsFiltering(), myContent.getAdditionalActions()), BorderLayout.NORTH);
       myPanel.add(myContent.getComponent(), BorderLayout.CENTER);
     }
+    myPanel.putClientProperty(ToolContent.TOOL_CONTENT_KEY, myContent);
   }
 
   @Override
@@ -561,7 +566,7 @@ final class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
       }
       Graphics graphics2 = graphics.create();
       try {
-        graphics2.translate(JBUIScale.scale(1), 0);
+        graphics2.translate(JBUI.scale(1), 0);
         super.paint(graphics2);
       }
       finally {

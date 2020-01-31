@@ -16,12 +16,10 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.BaseSetup;
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class AndroidVariantChangeModuleSetup extends BaseSetup<AndroidModuleSetupStep, AndroidModuleModel> {
   public AndroidVariantChangeModuleSetup() {
@@ -34,11 +32,7 @@ public class AndroidVariantChangeModuleSetup extends BaseSetup<AndroidModuleSetu
   }
 
   @Override
-  protected boolean shouldRunSyncStep(@NotNull AndroidModuleSetupStep step, boolean syncSkipped) {
+  protected boolean shouldRunSyncStep(@NotNull AndroidModuleSetupStep step) {
     return step.invokeOnBuildVariantChange();
-  }
-
-  public void setUpModule(@NotNull ModuleSetupContext context, @Nullable AndroidModuleModel model) {
-    super.setUpModule(context, model, false);
   }
 }

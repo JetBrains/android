@@ -28,12 +28,12 @@ class KotlinAndroidTestSuite : IdeaTestSuiteBase() {
       IdeaTestSuiteBase.symlinkToIdeaHome(
         "prebuilts/studio/layoutlib",
         "tools/adt/idea/android/annotations",
-        "tools/adt/idea/android/lib",
-        "tools/adt/idea/resources-aar/framework_res.jar")
+        "tools/adt/idea/android/lib")
 
       IdeaTestSuiteBase.symlinkToIdeaHome(
         "tools/adt/idea/android-kotlin/android-extensions-idea/testData",
-        "tools/adt/idea/android-kotlin/idea-android/testData")
+        "tools/adt/idea/android-kotlin/idea-android/testData",
+        "tools/idea/java")
     }
   }
 }

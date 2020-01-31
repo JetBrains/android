@@ -31,10 +31,88 @@ object AndroidAttributeFact {
   fun lookup(name: String): NelePropertyType {
     when (name) {
       // Material Design additions
+      "checkedChip" -> return NelePropertyType.ID
+      "checkedIcon" -> return NelePropertyType.DRAWABLE
+      "checkedIconEnabled" -> return NelePropertyType.THREE_STATE_BOOLEAN
+      "checkedIconVisible" -> return NelePropertyType.THREE_STATE_BOOLEAN
+      "chipBackgroundColor" -> return NelePropertyType.COLOR_STATE_LIST
+      "chipCornerRadius" -> return NelePropertyType.DIMENSION
+      "chipEndPadding" -> return NelePropertyType.DIMENSION
+      "chipIcon" -> return NelePropertyType.DRAWABLE
+      "chipIconEnabled" -> return NelePropertyType.THREE_STATE_BOOLEAN
+      "chipIconSize" -> return NelePropertyType.DIMENSION
+      "chipIconTint" -> return NelePropertyType.COLOR_STATE_LIST
+      "chipIconVisible" -> return NelePropertyType.THREE_STATE_BOOLEAN
+      "chipMinHeight" -> return NelePropertyType.DIMENSION
+      "chipMinTouchTargetSize" -> return NelePropertyType.DIMENSION
+      "chipSpacing" -> return NelePropertyType.DIMENSION
+      "chipSpacingHorizontal" -> return NelePropertyType.DIMENSION
+      "chipSpacingVertical" -> return NelePropertyType.DIMENSION
+      "chipStartPadding" -> return NelePropertyType.DIMENSION
+      "chipStrokeColor" -> return NelePropertyType.COLOR_STATE_LIST
+      "chipStrokeWidth" -> return NelePropertyType.DIMENSION
+      "chipSurfaceColor" -> return NelePropertyType.COLOR_STATE_LIST
+      "closeIconEnabled" -> return NelePropertyType.THREE_STATE_BOOLEAN
+      "closeIconEndPadding" -> return NelePropertyType.DIMENSION
+      "closeIconSize" -> return NelePropertyType.DIMENSION
+      "closeIconStartPadding" -> return NelePropertyType.DIMENSION
+      "closeIconTint" -> return NelePropertyType.COLOR_STATE_LIST
+      "closeIconVisible" -> return NelePropertyType.THREE_STATE_BOOLEAN
+      "cornerRadius" -> return NelePropertyType.DIMENSION
+      "counterOverflowTextColor" -> return NelePropertyType.COLOR_STATE_LIST
+      "counterTextColor" -> return NelePropertyType.COLOR_STATE_LIST
+      "endIconContentDescription" -> return NelePropertyType.STRING
+      "endIconDrawable" -> return NelePropertyType.DRAWABLE
+      "endIconMode" -> return NelePropertyType.ENUM
+      "endIconTint" -> return NelePropertyType.COLOR_STATE_LIST
+      "endIconTintMode" -> return NelePropertyType.ENUM
+      "ensureMinTouchTargetSize" -> return NelePropertyType.THREE_STATE_BOOLEAN
+      "errorTextColor" -> return NelePropertyType.COLOR_STATE_LIST
+      "extendMotionSpec" -> return NelePropertyType.ANIMATOR
+      "fabAlignmentMode" -> return NelePropertyType.ENUM
+      "fabAnimationMode" -> return NelePropertyType.ENUM
+      "fabCradleMargin" -> return NelePropertyType.DIMENSION
+      "fabCradleRoundedCornerRadius" -> return NelePropertyType.DIMENSION
+      "fabCradleVerticalOffset" -> return NelePropertyType.DIMENSION
+      "helperTextTextColor" -> return NelePropertyType.COLOR_STATE_LIST
+      "hideOnScroll" -> return NelePropertyType.THREE_STATE_BOOLEAN
+      "hintTextColor" -> return NelePropertyType.COLOR_STATE_LIST
+      "iconEndPadding" -> return NelePropertyType.DIMENSION
+      "iconStartPadding" -> return NelePropertyType.DIMENSION
+      "iconGravity" -> return NelePropertyType.FLAGS
+      "iconPadding" -> return NelePropertyType.DIMENSION
+      "iconSize" -> return NelePropertyType.DIMENSION
+      "insetBottom" -> return NelePropertyType.DIMENSION
+      "insetLeft" -> return NelePropertyType.DIMENSION
+      "insetRight" -> return NelePropertyType.DIMENSION
+      "insetTop" -> return NelePropertyType.DIMENSION
+      "itemMaxLines" -> return NelePropertyType.INTEGER
+      "itemRippleColor" -> return NelePropertyType.COLOR_STATE_LIST
+      "itemShapeAppearance" -> return NelePropertyType.STYLE
+      "itemShapeAppearanceOverlay" -> return NelePropertyType.STYLE
+      "itemShapeFillColor" -> return NelePropertyType.COLOR_STATE_LIST
+      "itemShapeInsetBottom" -> return NelePropertyType.DIMENSION
+      "itemShapeInsetEnd" -> return NelePropertyType.DIMENSION
+      "itemShapeInsetStart" -> return NelePropertyType.DIMENSION
+      "itemShapeInsetTop" -> return NelePropertyType.DIMENSION
+      "itemSpacing" -> return NelePropertyType.DIMENSION
       "layout_collapseMode" -> return NelePropertyType.ENUM
       "layout_collapseParallaxMultiplier" -> return NelePropertyType.FLOAT
       "layout_scrollFlags" -> return NelePropertyType.FLAGS
       "layout_scrollInterpolator" -> return NelePropertyType.INTERPOLATOR
+      "liftOnScrollTargetViewId" -> return NelePropertyType.ID
+      "lineSpacing" -> return NelePropertyType.DIMENSION
+      "shapeAppearance" -> return NelePropertyType.STYLE
+      "shapeAppearanceOverlay" -> return NelePropertyType.STYLE
+      "shrinkMotionSpec" -> return NelePropertyType.ANIMATOR
+      "singleSelection" -> return NelePropertyType.THREE_STATE_BOOLEAN
+      "startIconContentDescription" -> return NelePropertyType.STRING
+      "startIconDrawable" -> return NelePropertyType.DRAWABLE
+      "startIconTint" -> return NelePropertyType.COLOR_STATE_LIST
+      "startIconTintMode" -> return NelePropertyType.ENUM
+      "statusBarForeground" -> return NelePropertyType.DRAWABLE
+      "strokeColor" -> return NelePropertyType.COLOR_STATE_LIST
+      "strokeWidth" -> return NelePropertyType.DIMENSION
       "tabBackground" -> return NelePropertyType.DRAWABLE
       "tabContentStart" -> return NelePropertyType.DIMENSION
       "tabGravity" -> return NelePropertyType.ENUM
@@ -60,6 +138,9 @@ object AndroidAttributeFact {
       "tabTextAppearance" -> return NelePropertyType.TEXT_APPEARANCE
       "tabTextColor" -> return NelePropertyType.COLOR_STATE_LIST
       "tabUnboundedRipple" -> return NelePropertyType.THREE_STATE_BOOLEAN
+      "textEndPadding" -> return NelePropertyType.DIMENSION
+      "textStartPadding" -> return NelePropertyType.DIMENSION
+      "useMaterialThemeColors" -> return NelePropertyType.THREE_STATE_BOOLEAN
       "expanded" -> return NelePropertyType.THREE_STATE_BOOLEAN
       "liftOnScroll" -> return NelePropertyType.THREE_STATE_BOOLEAN
       "insetForeground" -> return NelePropertyType.DRAWABLE
@@ -207,6 +288,7 @@ object AndroidAttributeFact {
       "listheader" -> return NelePropertyType.LAYOUT
       "showIn" -> return NelePropertyType.LAYOUT
       "targetApi" -> return NelePropertyType.STRING
+      "viewBindingIgnore" -> return NelePropertyType.STRING
 
       // Hand edited overrides for framework attributes:
       "alignmentMode" -> return NelePropertyType.ENUM
@@ -289,7 +371,7 @@ object AndroidAttributeFact {
       "scrollIndicators" -> return NelePropertyType.FLAGS
       "showDividers" -> return NelePropertyType.FLAGS
       "spinnerMode" -> return NelePropertyType.ENUM
-      "stateListAnimator" -> return NelePropertyType.ANIM
+      "stateListAnimator" -> return NelePropertyType.ANIMATOR
       "stretchMode" -> return NelePropertyType.ENUM
       "subtitleTextAppearance" -> return NelePropertyType.TEXT_APPEARANCE
       "suggestionRowLayout" -> return NelePropertyType.LAYOUT

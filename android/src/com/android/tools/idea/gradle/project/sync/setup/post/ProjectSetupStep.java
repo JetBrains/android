@@ -16,10 +16,8 @@
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
 import com.intellij.openapi.extensions.ExtensionPointName;
-import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public abstract class ProjectSetupStep {
   private static final ExtensionPointName<ProjectSetupStep>
@@ -30,7 +28,7 @@ public abstract class ProjectSetupStep {
     return EXTENSION_POINT_NAME.getExtensions();
   }
 
-  public abstract void setUpProject(@NotNull Project project, @Nullable ProgressIndicator indicator);
+  public abstract void setUpProject(@NotNull Project project);
 
   public boolean invokeOnFailedSync() {
     return false;

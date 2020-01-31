@@ -33,7 +33,7 @@ public class RangedSimpleSeries<T> {
 
   public RangedSimpleSeries(Range range) {
     myRange = range;
-    mSeries = new ArrayList<>();
+    mSeries = new ArrayList<T>();
   }
 
   @NotNull

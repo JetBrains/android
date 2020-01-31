@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.cpu.simpleperf;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.SimpleperfReport;
@@ -26,6 +25,7 @@ import com.android.tools.profilers.cpu.TraceParser;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.NoSymbolModel;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import java.io.File;
@@ -35,7 +35,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -282,7 +281,7 @@ public class SimpleperfTraceParser implements TraceParser {
   private static void verifyMagicNumber(ByteBuffer buffer) {
     byte[] magic = new byte[MAGIC.length()];
     buffer.get(magic);
-    if (!(new String(magic, StandardCharsets.UTF_8)).equals(MAGIC)) {
+    if (!(new String(magic)).equals(MAGIC)) {
       throw new IllegalStateException("Simpleperf trace could not be parsed due to magic number mismatch.");
     }
   }

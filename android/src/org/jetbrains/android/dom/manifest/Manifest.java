@@ -15,6 +15,9 @@
  */
 package org.jetbrains.android.dom.manifest;
 
+import static org.jetbrains.android.util.AndroidUtils.loadDomElement;
+
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.xml.Convert;
 import com.intellij.util.xml.DefinesXml;
 import com.intellij.util.xml.GenericAttributeValue;
@@ -22,10 +25,28 @@ import com.intellij.util.xml.SubTagList;
 import java.util.List;
 import org.jetbrains.android.dom.Styleable;
 import org.jetbrains.android.dom.converters.AndroidPackageConverter;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.SourceProviderManager;
+import org.jetbrains.annotations.Nullable;
 
 @DefinesXml
 @Styleable("AndroidManifest")
 public interface Manifest extends ManifestElement {
+
+  /**
+   * Creates and returns a DOM representation of the main manifest. Note that most manifest information can be spread between multiple
+   * manifest files that get merged at build time. Callers should consider using {@link com.android.tools.idea.model.MergedManifestManager}
+   * or specialized methods in {@link AndroidManifestUtils}.
+   *
+   * <p>Calling this method may come with significant overhead, as the DOM layer needs to be initialized. In performance-critical
+   * situations, callers may want to consider getting the manifest as a {@link VirtualFile} from {@link SourceProviderManager}.
+   */
+  @Nullable
+  static Manifest getMainManifest(AndroidFacet facet) {
+    VirtualFile manifestFile = SourceProviderManager.getInstance(facet).getMainManifestFile();
+    return manifestFile != null ? loadDomElement(facet.getModule(), manifestFile, Manifest.class) : null;
+  }
+
   Application getApplication();
 
   CompatibleScreens getCompatibleScreens();

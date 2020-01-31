@@ -81,13 +81,13 @@ public class ManifestConflictTest extends AndroidGradleTestCase {
     return result;
   }
 
-  private String[] getErrorHtml() {
-    MergedManifestSnapshot manifest = MergedManifestManager.getSnapshot(myAndroidFacet, true);
+  private String[] getErrorHtml() throws Exception {
+    MergedManifestSnapshot manifest = MergedManifestManager.getMergedManifest(myAndroidFacet.getModule()).get();
     ImmutableList<MergingReport.Record> records = manifest.getLoggingRecords();
     String[] errors = new String[records.size()];
     for (int c = 0; c < records.size(); c++) {
       MergingReport.Record record = records.get(c);
-      errors[c] = ManifestPanel.getErrorHtml(myAndroidFacet, record.getMessage(), record.getSourceLocation(), myHtmlLinkManager, null);
+      errors[c] = ManifestPanel.getErrorHtml(myAndroidFacet, record.getMessage(), record.getSourceLocation(), myHtmlLinkManager, null, true);
     }
     return errors;
   }

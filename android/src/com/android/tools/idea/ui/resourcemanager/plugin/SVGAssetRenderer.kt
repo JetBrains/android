@@ -18,12 +18,15 @@ package com.android.tools.idea.ui.resourcemanager.plugin
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.util.ui.UIUtil
+import org.apache.batik.anim.dom.SAXSVGDocumentFactory
 import com.intellij.ui.svg.SaxSvgDocumentFactory
 import com.intellij.util.ui.ImageUtil
 import org.apache.batik.transcoder.TranscoderException
 import org.apache.batik.transcoder.TranscoderInput
 import org.apache.batik.transcoder.TranscoderOutput
 import org.apache.batik.transcoder.image.ImageTranscoder
+import org.apache.batik.util.XMLResourceDescriptor
 import org.xml.sax.SAXParseException
 import java.awt.Dimension
 import java.awt.Image
@@ -64,9 +67,13 @@ class SVGAssetRenderer : DesignAssetRenderer {
   ) {
 
     private var img: BufferedImage? = null
-    private val transcoderInput = TranscoderInput(SaxSvgDocumentFactory().createDocument(null, inputStream))
+    private val transcoderInput = TranscoderInput(
+      SAXSVGDocumentFactory(
+        XMLResourceDescriptor.getXMLParserClassName()
+      ).createDocument(null, inputStream)
+    )
 
-    private inner class MyTranscoder : org.apache.batik.transcoder.image.ImageTranscoder() {
+    private inner class MyTranscoder : ImageTranscoder() {
       override fun createImage(w: Int, h: Int): BufferedImage {
         return ImageUtil.createImage(w, h, BufferedImage.TYPE_INT_ARGB)
       }

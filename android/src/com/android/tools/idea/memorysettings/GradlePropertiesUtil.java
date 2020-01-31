@@ -36,7 +36,6 @@ public class GradlePropertiesUtil {
   static boolean hasJvmArgs(GradleProperties properties) {
     return properties != null && properties.getJvmArgs() != null;
   }
-
   static int getGradleDaemonXmx(GradleProperties properties) {
     return properties == null ? -1 : getXmxFromVmArgs(properties.getJvmArgs(), TOP_SPLIT_REGEX);
   }

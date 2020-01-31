@@ -15,16 +15,17 @@
  */
 package com.android.tools.idea.ui.resourcechooser.colorpicker2
 
-import com.intellij.testFramework.JavaProjectTestCase
+import com.intellij.testFramework.PlatformTestCase
 import org.mockito.Mockito
 import java.awt.Color
 import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
 import javax.swing.AbstractAction
 import javax.swing.JComponent
+import javax.swing.JPanel
 import javax.swing.KeyStroke
 
-class ColorPickerBuilderTest : JavaProjectTestCase() {
+class ColorPickerBuilderTest : PlatformTestCase() {
 
   fun testCreateEmptyPickerShouldThrowTheException() {
     assertThrows<IllegalStateException>(IllegalStateException::class.java) { ColorPickerBuilder().build() }
@@ -33,7 +34,8 @@ class ColorPickerBuilderTest : JavaProjectTestCase() {
   fun testCreatePickerWithSaturationBrightnessComponent() {
     val picker = ColorPickerBuilder().addSaturationBrightnessComponent().build()
     assertEquals(1, picker.components.size)
-    assertTrue(picker.getComponent(0) is SaturationBrightnessComponent)
+    // Picker wrappers the SaturationBrightnessComponent for supporting Contrast mode.
+    assertTrue((picker.getComponent(0) as JPanel).getComponent(0) is SaturationBrightnessComponent)
   }
 
   fun testCreatePickerWithColorAdjustPanel() {

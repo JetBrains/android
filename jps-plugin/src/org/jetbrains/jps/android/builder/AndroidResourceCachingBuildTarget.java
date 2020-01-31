@@ -1,8 +1,13 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android.builder;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import java.util.List;
+import java.util.Set;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.android.AndroidJpsUtil;
 import org.jetbrains.jps.android.model.JpsAndroidModuleExtension;
@@ -14,9 +19,6 @@ import org.jetbrains.jps.indices.IgnoredFileIndex;
 import org.jetbrains.jps.indices.ModuleExcludeIndex;
 import org.jetbrains.jps.model.JpsModel;
 import org.jetbrains.jps.model.module.JpsModule;
-
-import java.io.File;
-import java.util.*;
 
 /**
  * @author Eugene.Kudelevsky
@@ -35,7 +37,7 @@ public class AndroidResourceCachingBuildTarget extends AndroidBuildTarget {
     final JpsAndroidModuleExtension extension = AndroidJpsUtil.getExtension(myModule);
 
     if (extension != null) {
-      final List<BuildRootDescriptor> result = new ArrayList<>();
+      final List<BuildRootDescriptor> result = new ArrayList<BuildRootDescriptor>();
 
       for (File resOverlayDir : extension.getResourceOverlayDirs()) {
         result.add(new BuildRootDescriptorImpl(this, resOverlayDir));
@@ -46,7 +48,7 @@ public class AndroidResourceCachingBuildTarget extends AndroidBuildTarget {
         result.add(new BuildRootDescriptorImpl(this, resourceDir));
       }
       if (!extension.isLibrary()) {
-        final Set<String> aarResDirPaths = new HashSet<>();
+        final Set<String> aarResDirPaths = new HashSet<String>();
         AndroidJpsUtil.collectResDirectoriesFromAarDeps(myModule, aarResDirPaths);
 
         for (JpsAndroidModuleExtension depExtension : AndroidJpsUtil.getAllAndroidDependencies(myModule, true)) {
@@ -76,7 +78,7 @@ public class AndroidResourceCachingBuildTarget extends AndroidBuildTarget {
     public static final MyTargetType INSTANCE = new MyTargetType();
 
     private MyTargetType() {
-      super(AndroidCommonUtils.RESOURCE_CACHING_BUILD_TARGET_ID, "Resource Caching");
+      super(AndroidBuildCommonUtils.RESOURCE_CACHING_BUILD_TARGET_ID, "Resource Caching");
     }
 
     @Override

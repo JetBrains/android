@@ -60,7 +60,7 @@ public abstract class AndroidClassWithOnlyInnerClassesBase extends AndroidLightC
           LOG.debug("Recomputing inner classes of " + this.getClass());
         }
         PsiClass[] innerClasses = doGetInnerClasses();
-        return CachedValueProvider.Result.create(innerClasses, ArrayUtil.mergeArrays(getInnerClassesDependencies(), innerClasses));
+        return CachedValueProvider.Result.create(innerClasses, getInnerClassesDependencies());
       });
 
     PsiFileFactory factory = PsiFileFactory.getInstance(project);
@@ -94,7 +94,7 @@ public abstract class AndroidClassWithOnlyInnerClassesBase extends AndroidLightC
 
   @NotNull
   @Override
-  public final PsiClass[] getInnerClasses() {
+  public PsiClass[] getInnerClasses() {
     return myClassCache.getValue();
   }
 

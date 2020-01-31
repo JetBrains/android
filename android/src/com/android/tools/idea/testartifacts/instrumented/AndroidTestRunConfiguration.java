@@ -18,34 +18,31 @@ package com.android.tools.idea.testartifacts.instrumented;
 
 import static com.intellij.codeInsight.AnnotationUtil.CHECK_HIERARCHY;
 import static com.intellij.openapi.util.text.StringUtil.getPackageName;
+import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
 
 import com.android.builder.model.AndroidArtifact;
-import com.android.builder.model.TestOptions.Execution;
-import com.android.builder.model.Variant;
-import com.android.ddmlib.IDevice;
-import com.android.ddmlib.testrunner.AndroidTestOrchestratorRemoteAndroidTestRunner;
-import com.android.ddmlib.testrunner.RemoteAndroidTestRunner;
+import com.android.builder.model.TestOptions;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeVariant;
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ApkProvider;
 import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.ApplicationIdProvider;
-import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.ConsoleProvider;
 import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.NonGradleApkProvider;
 import com.android.tools.idea.run.ValidationError;
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
+import com.android.tools.idea.run.editor.AndroidTestExtraParam;
+import com.android.tools.idea.run.editor.AndroidTestExtraParamKt;
 import com.android.tools.idea.run.editor.TestRunParameters;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.ui.BaseAction;
 import com.android.tools.idea.run.util.LaunchStatus;
-import com.android.tools.idea.stats.UsageTrackerTestRunListener;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.AnnotationUtil;
@@ -60,8 +57,6 @@ import com.intellij.execution.configurations.RuntimeConfigurationException;
 import com.intellij.execution.junit.JUnitUtil;
 import com.intellij.execution.testframework.sm.SMTestRunnerConnectionUtil;
 import com.intellij.execution.ui.ConsoleView;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.DumbService;
@@ -79,11 +74,12 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiPackage;
 import com.intellij.refactoring.listeners.RefactoringElementAdapter;
 import com.intellij.refactoring.listeners.RefactoringElementListener;
-import java.util.Collections;
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import kotlin.sequences.SequencesKt;
 import org.jetbrains.android.dom.manifest.Instrumentation;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -96,20 +92,41 @@ import org.jetbrains.annotations.Nullable;
  * Run Configuration for "Android Instrumented Tests"
  */
 public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase implements RefactoringListenerProvider {
-  private static final Logger LOG = Logger.getInstance(AndroidTestRunConfiguration.class);
-
   public static final int TEST_ALL_IN_MODULE = 0;
   public static final int TEST_ALL_IN_PACKAGE = 1;
   public static final int TEST_CLASS = 2;
   public static final int TEST_METHOD = 3;
 
-  public int TESTING_TYPE = TEST_ALL_IN_MODULE;
-  public String INSTRUMENTATION_RUNNER_CLASS = "";
+  /**
+   * A default value for instrumentation runner class used in Android Gradle Plugin.
+   */
+  public static final String DEFAULT_ANDROID_INSTRUMENTATION_RUNNER_CLASS = "android.test.InstrumentationTestRunner";
 
-  public String METHOD_NAME = "";
-  public String CLASS_NAME = "";
-  public String PACKAGE_NAME = "";
-  public String EXTRA_OPTIONS = "";
+  public int TESTING_TYPE = TEST_ALL_IN_MODULE;
+  @NotNull public String METHOD_NAME = "";
+  @NotNull public String CLASS_NAME = "";
+  @NotNull public String PACKAGE_NAME = "";
+
+  /**
+   * A fully qualified name of an instrumentation runner class to use. If this is an empty string, the value is inferred from the project:
+   * 1) If this is gradle project, values in gradle.build file will be used.
+   * 2) If this is non-gradle project, the first instrumentation in AndroidManifest of the instrumentation APK (not the application APK)
+   * will be used.
+   */
+  @NotNull public String INSTRUMENTATION_RUNNER_CLASS = "";
+
+  /**
+   * An extra instrumentation runner options. If this is an empty string, the value is inferred from the project:
+   * 1) If this is gradle project, values in gradle.build file will be used.
+   * 2) If this is non-gradle project, no extra options will be set.
+   */
+  @NotNull public String EXTRA_OPTIONS = "";
+
+  /**
+   * If this is set to true, extra options defined in gradle build file will be merged into {@link #EXTRA_OPTIONS} and passed to
+   * instrumentation.
+   */
+  public boolean INCLUDE_GRADLE_EXTRA_OPTIONS = true;
 
   public AndroidTestRunConfiguration(final Project project, final ConfigurationFactory factory) {
     super(project, factory, true);
@@ -140,17 +157,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
 
   @Override
   public boolean isGeneratedName() {
-    final String name = getName();
-
-    if ((TESTING_TYPE == TEST_CLASS || TESTING_TYPE == TEST_METHOD) &&
-        (CLASS_NAME == null || CLASS_NAME.isEmpty())) {
-      return JavaExecutionUtil.isNewName(name);
-    }
-    if (TESTING_TYPE == TEST_METHOD &&
-        (METHOD_NAME == null || METHOD_NAME.isEmpty())) {
-      return JavaExecutionUtil.isNewName(name);
-    }
-    return Comparing.equal(name, suggestedName());
+    return Comparing.equal(getName(), suggestedName());
   }
 
   @Override
@@ -203,11 +210,6 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       case TEST_METHOD:
         errors.addAll(checkTestMethod());
         break;
-    }
-    if (GradleProjectInfo.getInstance(getProject()).isBuildWithGradle() && !INSTRUMENTATION_RUNNER_CLASS.isEmpty()) {
-      if (facade.findClass(INSTRUMENTATION_RUNNER_CLASS, module.getModuleWithDependenciesAndLibrariesScope(true)) == null) {
-        errors.add(ValidationError.fatal(AndroidBundle.message("instrumentation.runner.class.not.specified.error")));
-      }
     }
 
     final AndroidFacetConfiguration configuration = facet.getConfiguration();
@@ -270,7 +272,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     if (!JUnitUtil.isTestClass(testClass)) {
       errors.add(ValidationError.warning(ExecutionBundle.message("class.isnt.test.class.error.message", CLASS_NAME)));
     }
-    if (METHOD_NAME == null || METHOD_NAME.trim().isEmpty()) {
+    if (isEmptyOrSpaces(METHOD_NAME)) {
       errors.add(ValidationError.fatal(ExecutionBundle.message("method.name.not.specified.error.message")));
     }
     final JUnitUtil.TestMethodFilter filter = new JUnitUtil.TestMethodFilter(testClass);
@@ -301,11 +303,12 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   @NotNull
   @Override
   public SettingsEditor<? extends RunConfiguration> getConfigurationEditor() {
-    Project project = getProject();
-    AndroidRunConfigurationEditor<AndroidTestRunConfiguration> editor =
-      new AndroidRunConfigurationEditor<>(project, facet -> facet != null && supportsRunningLibraryProjects(facet).getFirst(), this);
-    editor.setConfigurationSpecificEditor(new TestRunParameters(project, editor.getModuleSelector()));
-    return editor;
+    return new AndroidRunConfigurationEditor<>(
+      getProject(),
+      facet -> facet != null && supportsRunningLibraryProjects(facet).getFirst(),
+      this,
+      false,
+      moduleSelector -> new TestRunParameters(getProject(), moduleSelector));
   }
 
   @NotNull
@@ -324,18 +327,6 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     return false;
   }
 
-  @Override
-  public boolean monitorRemoteProcess() {
-    // Tests are run using the "am instrument" command. The output from the shell command is processed by AndroidTestListener,
-    // which sends events over to the test UI via GeneralToSMTRunnerEventsConvertor.
-    // If the process handler detects that the test process has terminated before all of the output from that shell process
-    // makes its way through the AndroidTestListener, the test UI marks the test run as having "Terminated" instead of terminating
-    // gracefully once all the test results have been parsed.
-    // As a result, we don't want the process handler monitoring the test process at all in this case..
-    // See https://code.google.com/p/android/issues/detail?id=201968
-    return false;
-  }
-
   @Nullable
   @Override
   protected LaunchTask getApplicationLaunchTask(@NotNull ApplicationIdProvider applicationIdProvider,
@@ -343,18 +334,21 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
                                                 @NotNull String contributorsAmStartOptions,
                                                 boolean waitForDebugger,
                                                 @NotNull LaunchStatus launchStatus) {
-    String runner;
-    if (StringUtil.isEmpty(INSTRUMENTATION_RUNNER_CLASS) || GradleProjectInfo.getInstance(getProject()).isBuildWithGradle()) {
-      runner = findInstrumentationRunner(facet);
+    String runner = INSTRUMENTATION_RUNNER_CLASS;
+    if (isEmptyOrSpaces(runner)) {
+      runner = getDefaultInstrumentationRunner(facet);
     }
-    else {
-      runner = INSTRUMENTATION_RUNNER_CLASS;
+    if (isEmptyOrSpaces(runner)) {
+      launchStatus.terminateLaunch("Unable to determine instrumentation runner", true);
+      return null;
     }
-    Map<String, String> runnerArguments = getRunnerArguments(facet);
-    String testPackage;
+
+    String instrumentationOptions = Joiner.on(" ").join(getExtraInstrumentationOptions(facet), getInstrumentationOptions(facet));
+
+    String testAppId;
     try {
-      testPackage = applicationIdProvider.getTestPackageName();
-      if (testPackage == null) {
+      testAppId = applicationIdProvider.getTestPackageName();
+      if (testAppId == null) {
         launchStatus.terminateLaunch("Unable to determine test package name", true);
         return null;
       }
@@ -369,40 +363,73 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     if (moduleModel != null) {
       testArtifact = moduleModel.getArtifactForAndroidTest();
     }
-    return new MyApplicationLaunchTask(runner, testPackage, waitForDebugger, runnerArguments, testArtifact);
-  }
 
-  @Nullable
-  public static String findInstrumentationRunner(@NotNull AndroidFacet facet) {
-    String runner = getRunnerFromManifest(facet);
+    switch (TESTING_TYPE) {
+      case TEST_ALL_IN_MODULE:
+        return AndroidTestApplicationLaunchTask.allInModuleTest(runner,
+                                                                testAppId,
+                                                                waitForDebugger,
+                                                                instrumentationOptions,
+                                                                testArtifact);
+      case TEST_ALL_IN_PACKAGE:
+        return AndroidTestApplicationLaunchTask.allInPackageTest(runner,
+                                                                 testAppId,
+                                                                 waitForDebugger,
+                                                                 instrumentationOptions,
+                                                                 testArtifact,
+                                                                 PACKAGE_NAME);
 
-    // TODO: Resolve direct AndroidGradleModel dep (b/22596984)
-    AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
-    if (runner == null && androidModel != null) {
-      Variant selectedVariant = androidModel.getSelectedVariant();
-      String testRunner = selectedVariant.getMergedFlavor().getTestInstrumentationRunner();
-      if (testRunner != null) {
-        runner = testRunner;
-      }
+      case TEST_CLASS:
+        return AndroidTestApplicationLaunchTask.classTest(runner,
+                                                          testAppId,
+                                                          waitForDebugger,
+                                                          instrumentationOptions,
+                                                          testArtifact,
+                                                          CLASS_NAME);
+
+      case TEST_METHOD:
+        return AndroidTestApplicationLaunchTask.methodTest(runner,
+                                                           testAppId,
+                                                           waitForDebugger,
+                                                           instrumentationOptions,
+                                                           testArtifact,
+                                                           CLASS_NAME,
+                                                           METHOD_NAME);
+
+      default:
+        launchStatus.terminateLaunch("Unknown testing type is selected", true);
+        return null;
     }
-
-    return runner;
   }
 
+  /**
+   * Returns the qualified class name of the default instrumentation runner class of the given facet.
+   */
   @NotNull
-  public static Map<String, String> getRunnerArguments(@NotNull AndroidFacet facet) {
+  public static String getDefaultInstrumentationRunner(@Nullable AndroidFacet facet) {
+    if (facet == null) {
+      return DEFAULT_ANDROID_INSTRUMENTATION_RUNNER_CLASS;
+    }
     AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
     if (androidModel != null) {
-      return new HashMap<>(androidModel.getSelectedVariant().getMergedFlavor().getTestInstrumentationRunnerArguments());
+      // When a project is a gradle based project, instrumentation runner is always specified
+      // by AGP DSL (even if you have androidTest/AndroidManifest.xml with instrumentation tag,
+      // these values are always overwritten by AGP).
+      String runner = androidModel.getSelectedVariant().getMergedFlavor().getTestInstrumentationRunner();
+      if (isEmptyOrSpaces(runner)) {
+        return DEFAULT_ANDROID_INSTRUMENTATION_RUNNER_CLASS;
+      }
+      else {
+        return runner;
+      }
     }
-    return Collections.emptyMap();
-  }
-
-  @Nullable
-  private static String getRunnerFromManifest(@NotNull final AndroidFacet facet) {
-    return DumbService.getInstance(facet.getModule().getProject()).runReadActionInSmartMode(() -> {
-      Manifest manifest = facet.getManifest();
-      if (manifest != null) {
+    else {
+      // In non-Gradle project, instrumentation runner must be defined in AndroidManifest.
+      return DumbService.getInstance(facet.getModule().getProject()).runReadActionInSmartMode(() -> {
+        Manifest manifest = Manifest.getMainManifest(facet);
+        if (manifest == null) {
+          return DEFAULT_ANDROID_INSTRUMENTATION_RUNNER_CLASS;
+        }
         for (Instrumentation instrumentation : manifest.getInstrumentations()) {
           if (instrumentation != null) {
             PsiClass instrumentationClass = instrumentation.getInstrumentationClass().getValue();
@@ -411,9 +438,52 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
             }
           }
         }
-      }
-      return null;
-    });
+        return DEFAULT_ANDROID_INSTRUMENTATION_RUNNER_CLASS;
+      });
+    }
+  }
+
+  /**
+   * Returns the extra options string to be passed to the instrumentation runner.
+   *
+   * @see #EXTRA_OPTIONS
+   */
+  @NotNull
+  public String getExtraInstrumentationOptions(@Nullable AndroidFacet facet) {
+    Collection<AndroidTestExtraParam> extraParams;
+
+    if (INCLUDE_GRADLE_EXTRA_OPTIONS) {
+      extraParams = AndroidTestExtraParamKt.merge(AndroidTestExtraParam.parseFromString(EXTRA_OPTIONS),
+                                                  AndroidTestExtraParamKt.getAndroidTestExtraParams(facet));
+    }
+    else {
+      extraParams = SequencesKt.toList(AndroidTestExtraParam.parseFromString(EXTRA_OPTIONS));
+    }
+
+    return extraParams.stream()
+      .map(param -> "-e " + param.getNAME() + " " + param.getVALUE())
+      .collect(Collectors.joining(" "));
+  }
+
+  /**
+   * Retrieves instrumentation options from the given facet. Extra instrumentation options are not included.
+   *
+   * @param facet a facet to retrieve instrumentation options
+   * @return instrumentation options string. All instrumentation options specified by the facet are concatenated by a single space.
+   */
+  @NotNull
+  public String getInstrumentationOptions(@Nullable AndroidFacet facet) {
+    ImmutableList.Builder<String> builder = new ImmutableList.Builder<>();
+    boolean isAnimationDisabled = Optional.ofNullable(facet)
+      .map(AndroidModuleModel::get)
+      .map(AndroidModuleModel::getArtifactForAndroidTest)
+      .map(IdeAndroidArtifact::getTestOptions)
+      .map(TestOptions::getAnimationsDisabled)
+      .orElse(false);
+    if (isAnimationDisabled) {
+      builder.add("--no-window-animation");
+    }
+    return Joiner.on(" ").join(builder.build());
   }
 
   /**
@@ -522,99 +592,5 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   protected LaunchOptions.Builder getLaunchOptions() {
     // `am instrument` force stops the target package anyway, so there's no need for an explicit `am force-stop` for every APK involved.
     return super.getLaunchOptions().setForceStopRunningApp(false);
-  }
-
-  @VisibleForTesting
-  class MyApplicationLaunchTask implements LaunchTask {
-    private static final String ID = "INSTRUMENTATION_RUNNER";
-
-    @Nullable private final String myInstrumentationTestRunner;
-    @NotNull private final String myTestApplicationId;
-    private final boolean myWaitForDebugger;
-    @NotNull private final Map<String, String> myInstrumentationTestRunnerArguments;
-    @Nullable private final IdeAndroidArtifact myArtifact;
-
-    public MyApplicationLaunchTask(@Nullable String runner,
-                                   @NotNull String testPackage,
-                                   boolean waitForDebugger,
-                                   @NotNull Map<String, String> arguments,
-                                   @Nullable IdeAndroidArtifact artifact) {
-      myInstrumentationTestRunner = runner;
-      myWaitForDebugger = waitForDebugger;
-      myTestApplicationId = testPackage;
-      myInstrumentationTestRunnerArguments = arguments;
-      myArtifact = artifact;
-    }
-
-    @NotNull
-    @Override
-    public String getDescription() {
-      return "Launching instrumentation runner";
-    }
-
-    @Override
-    public int getDuration() {
-      return 2;
-    }
-
-    @NotNull
-    public RemoteAndroidTestRunner getRemoteAndroidTestRunner(@Nullable IdeAndroidArtifact artifact, @NotNull IDevice device) {
-      if (artifact != null && artifact.getTestOptions() != null) {
-        final Execution execution = artifact.getTestOptions().getExecution();
-        if (execution == Execution.ANDROID_TEST_ORCHESTRATOR) {
-          return new AndroidTestOrchestratorRemoteAndroidTestRunner(myTestApplicationId, myInstrumentationTestRunner, device, false);
-        }
-        else if (execution == Execution.ANDROIDX_TEST_ORCHESTRATOR) {
-          return new AndroidTestOrchestratorRemoteAndroidTestRunner(myTestApplicationId, myInstrumentationTestRunner, device, true);
-        }
-      }
-
-      return new RemoteAndroidTestRunner(myTestApplicationId, myInstrumentationTestRunner, device);
-    }
-
-    @Override
-    public boolean perform(@NotNull IDevice device, @NotNull final LaunchStatus launchStatus, @NotNull final ConsolePrinter printer) {
-      printer.stdout("Running tests\n");
-      final RemoteAndroidTestRunner runner = getRemoteAndroidTestRunner(myArtifact, device);
-
-      switch (TESTING_TYPE) {
-        case TEST_ALL_IN_PACKAGE:
-          runner.setTestPackageName(PACKAGE_NAME);
-          break;
-        case TEST_CLASS:
-          runner.setClassName(CLASS_NAME);
-          break;
-        case TEST_METHOD:
-          runner.setMethodName(CLASS_NAME, METHOD_NAME);
-          break;
-      }
-      runner.setDebug(myWaitForDebugger);
-      runner.setRunOptions(EXTRA_OPTIONS);
-
-      for (Map.Entry<String, String> entry : myInstrumentationTestRunnerArguments.entrySet()) {
-        runner.addInstrumentationArg(entry.getKey(), entry.getValue());
-      }
-
-      printer.stdout("$ adb shell " + runner.getAmInstrumentCommand());
-
-      // run in a separate thread as this will block until the tests complete
-      ApplicationManager.getApplication().executeOnPooledThread(() -> {
-        try {
-          runner.run(new AndroidTestListener(launchStatus, printer), new UsageTrackerTestRunListener(myArtifact, device));
-        }
-        catch (Exception e) {
-          LOG.info(e);
-          printer.stderr("Error: Unexpected exception while running tests: " + e);
-        }
-      });
-
-      return true;
-    }
-
-    @NotNull
-    @Override
-    public String getId() {
-      return ID;
-    }
   }
 }

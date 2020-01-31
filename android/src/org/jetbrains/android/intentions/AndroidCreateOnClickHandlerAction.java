@@ -53,6 +53,7 @@ import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.PsiNavigateUtil;
 import com.intellij.util.xml.DomManager;
 import com.intellij.util.xml.GenericAttributeValue;
+import java.util.Locale;
 import org.jetbrains.android.dom.converters.OnClickConverter;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
@@ -101,7 +102,7 @@ public class AndroidCreateOnClickHandlerAction extends AbstractIntentionAction i
       return false;
     }
     final String methodName = attrValue.getValue();
-    return StringUtil.isJavaIdentifier(methodName);
+    return methodName != null && StringUtil.isJavaIdentifier(methodName);
   }
 
   @Nullable
@@ -119,6 +120,7 @@ public class AndroidCreateOnClickHandlerAction extends AbstractIntentionAction i
     final XmlAttributeValue attrValue = getXmlAttributeValue(file, editor);
     assert attrValue != null;
     final String methodName = attrValue.getValue();
+    assert methodName != null;
     final GenericAttributeValue domValue = DomManager.getDomManager(project).getDomElement((XmlAttribute)attrValue.getParent());
     assert domValue != null;
     final OnClickConverter converter = (OnClickConverter)domValue.getConverter();
@@ -162,7 +164,7 @@ public class AndroidCreateOnClickHandlerAction extends AbstractIntentionAction i
       final char c = type.charAt(i);
 
       if (Character.isUpperCase(c)) {
-        return StringUtil.toLowerCase(type.substring(i));
+        return type.substring(i).toLowerCase(Locale.US);
       }
     }
     return "o";

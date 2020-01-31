@@ -232,7 +232,7 @@ class NavLogEventTest : NavTestCase() {
     val model = model("nav.xml") {
       navigation {
         custom("mycustomactivity", id = "customactivity") {
-          deeplink("http://example.com")
+          deeplink("deepLink", "http://example.com")
         }
         custom("mycustomdestination", id = "customdestination")
         fragment("f1") {
@@ -324,6 +324,8 @@ class NavLogEventTest : NavTestCase() {
                                                         "        <attr format=\"integer\" name=\"myInteger2\"/>\n" +
                                                         "    </declare-styleable>\n" +
                                                         "</resources>\n")
+
+    ResourceRepositoryManager.getInstance(myFacet).resetAllCaches()
     ResourceRepositoryManager.getAppResources(myFacet).sync()
 
     val model = model("nav.xml") {

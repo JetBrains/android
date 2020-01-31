@@ -49,7 +49,7 @@ public class InstallPlatformHyperlink extends NotificationHyperlink {
     }
     ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(project, requested);
     if (dialog != null && dialog.showAndGet()) {
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_QF_PLATFORM_INSTALLED);
+      GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_QF_PLATFORM_INSTALLED);
     }
   }
 }

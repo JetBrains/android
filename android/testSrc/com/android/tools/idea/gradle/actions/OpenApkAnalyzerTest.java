@@ -31,6 +31,7 @@ import com.intellij.openapi.fileChooser.impl.FileChooserFactoryImpl;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
 import java.awt.Component;
@@ -44,7 +45,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Tests for {@link GoToApkLocationTask}.
  */
-public class OpenApkAnalyzerTest extends IdeaTestCase {
+public class OpenApkAnalyzerTest extends PlatformTestCase {
   private File myTmpDir;
   private File myApk;
 

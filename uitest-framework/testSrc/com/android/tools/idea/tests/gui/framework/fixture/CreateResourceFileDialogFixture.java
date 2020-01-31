@@ -18,29 +18,26 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import static org.junit.Assert.assertEquals;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
-import com.android.tools.idea.tests.gui.framework.fixture.theme.EditorTextFieldFixture;
 import com.intellij.ide.actions.TemplateKindCombo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import javax.swing.JTextField;
-import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.jetbrains.android.actions.CreateResourceFileDialogBase;
 import org.jetbrains.annotations.NotNull;
 
 public class CreateResourceFileDialogFixture extends IdeaDialogFixture<CreateResourceFileDialogBase> {
-  @NotNull
-  public static CreateResourceFileDialogFixture find(@NotNull Robot robot) {
-    return new CreateResourceFileDialogFixture(robot, find(robot, CreateResourceFileDialogBase.class));
-  }
+
+  private final IdeFrameFixture myIdeFrameFixture;
 
   @NotNull
-  public static CreateResourceFileDialogFixture find(@NotNull IdeFrameFixture frame) {
-    return find(frame.robot());
+  public static CreateResourceFileDialogFixture find(@NotNull IdeFrameFixture ideFrameFixture) {
+    return new CreateResourceFileDialogFixture(find(ideFrameFixture.robot(), CreateResourceFileDialogBase.class), ideFrameFixture);
   }
 
-  private CreateResourceFileDialogFixture(@NotNull Robot robot, @NotNull DialogAndWrapper<CreateResourceFileDialogBase> dialogAndWrapper) {
-    super(robot, dialogAndWrapper);
+  private CreateResourceFileDialogFixture(@NotNull DialogAndWrapper<CreateResourceFileDialogBase> dialogAndWrapper, IdeFrameFixture ideFrameFixture) {
+    super(ideFrameFixture.robot(), dialogAndWrapper);
+    this.myIdeFrameFixture = ideFrameFixture;
   }
 
   @NotNull
@@ -64,9 +61,15 @@ public class CreateResourceFileDialogFixture extends IdeaDialogFixture<CreateRes
   }
 
   @NotNull
-  public CreateResourceFileDialogFixture clickOk() {
+  public IdeFrameFixture clickOk() {
     GuiTests.findAndClickOkButton(this);
-    return this;
+    return myIdeFrameFixture;
+  }
+
+  @NotNull
+  public AddProjectDependencyDialogFixture clickOkAndWaitForDependencyDialog() {
+    clickOk();
+    return AddProjectDependencyDialogFixture.find(myIdeFrameFixture);
   }
 
   @NotNull

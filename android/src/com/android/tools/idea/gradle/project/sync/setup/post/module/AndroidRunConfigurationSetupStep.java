@@ -24,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AndroidRunConfigurationSetupStep extends ModuleSetupStep {
+
   @Override
   public void setUpModule(@NotNull Module module, @Nullable ProgressIndicator indicator) {
     AndroidFacet facet = AndroidFacet.getInstance(module);

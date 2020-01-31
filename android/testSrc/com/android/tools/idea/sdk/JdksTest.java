@@ -26,28 +26,28 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.UseEmbeddedJdkHyperl
 import com.android.tools.idea.gradle.project.sync.hyperlink.UseJavaHomeAsJdkHyperlink;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
-import com.intellij.openapi.application.ApplicationManager;
+import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.pom.java.LanguageLevel;
-import com.intellij.testFramework.JavaProjectTestCase;
-import com.intellij.testFramework.ServiceContainerUtil;
+import com.intellij.testFramework.PlatformTestCase;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Tests for {@link Jdks}.
  */
-public class JdksTest extends JavaProjectTestCase {
+public class JdksTest extends PlatformTestCase {
   private IdeSdks mySpyIdeSdks;
   private EmbeddedDistributionPaths mySpyEmbeddedDistributionPaths;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+    IdeComponents ideComponents = new IdeComponents(myProject);
     mySpyIdeSdks = spy(IdeSdks.getInstance());
     mySpyEmbeddedDistributionPaths = spy(EmbeddedDistributionPaths.getInstance());
-    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), IdeSdks.class, mySpyIdeSdks, getTestRootDisposable());
-    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), EmbeddedDistributionPaths.class, mySpyEmbeddedDistributionPaths, getTestRootDisposable());
+    ideComponents.replaceApplicationService(IdeSdks.class, mySpyIdeSdks);
+    ideComponents.replaceApplicationService(EmbeddedDistributionPaths.class, mySpyEmbeddedDistributionPaths);
   }
 
   // These tests verify that LanguageLevel#isAtLeast does what we think it does (this is IntelliJ code.) Leaving these tests here as a way

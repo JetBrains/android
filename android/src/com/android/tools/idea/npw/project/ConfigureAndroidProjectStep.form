@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="com.android.tools.idea.npw.project.ConfigureAndroidProjectStep">
-  <grid id="27dc6" binding="myPanel" layout-manager="GridLayoutManager" row-count="20" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-    <margin top="0" left="5" bottom="0" right="0"/>
+  <grid id="27dc6" binding="myPanel" layout-manager="GridLayoutManager" row-count="18" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+    <margin top="0" left="0" bottom="0" right="0"/>
     <constraints>
       <xy x="20" y="20" width="445" height="641"/>
     </constraints>
     <properties/>
     <border type="none"/>
     <children>
-      <component id="b07f9" class="javax.swing.JLabel">
+      <component id="b07f9" class="com.intellij.ui.components.JBLabel">
         <constraints>
-          <grid row="0" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
+          <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
             <preferred-size width="-1" height="24"/>
           </grid>
         </constraints>
@@ -21,9 +21,9 @@
           <verticalAlignment value="0"/>
         </properties>
       </component>
-      <component id="df734" class="javax.swing.JLabel">
+      <component id="df734" class="com.intellij.ui.components.JBLabel">
         <constraints>
-          <grid row="3" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <font style="0"/>
@@ -32,7 +32,7 @@
           <verticalAlignment value="0"/>
         </properties>
       </component>
-      <component id="ef020" class="javax.swing.JLabel">
+      <component id="ef020" class="com.intellij.ui.components.JBLabel">
         <constraints>
           <grid row="9" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
@@ -45,7 +45,7 @@
       </component>
       <component id="9116" class="javax.swing.JTextField" binding="myAppName">
         <constraints>
-          <grid row="1" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+          <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
             <preferred-size width="150" height="-1"/>
           </grid>
         </constraints>
@@ -55,15 +55,15 @@
       </component>
       <component id="21da5" class="javax.swing.JTextField" binding="myPackageName">
         <constraints>
-          <grid row="4" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+          <grid row="4" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
             <preferred-size width="150" height="-1"/>
           </grid>
         </constraints>
         <properties/>
       </component>
-      <component id="c6a43" class="javax.swing.JLabel">
+      <component id="c6a43" class="com.intellij.ui.components.JBLabel">
         <constraints>
-          <grid row="6" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="6" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <font style="0"/>
@@ -74,7 +74,7 @@
       </component>
       <component id="4f4fc" class="com.intellij.openapi.ui.TextFieldWithBrowseButton" binding="myProjectLocation">
         <constraints>
-          <grid row="7" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+          <grid row="7" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
             <preferred-size width="150" height="-1"/>
           </grid>
         </constraints>
@@ -86,41 +86,31 @@
         </constraints>
         <properties/>
       </component>
-      <component id="13798" class="javax.swing.JSeparator">
-        <constraints>
-          <grid row="11" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false">
-            <minimum-size width="-1" height="1"/>
-            <preferred-size width="-1" height="24"/>
-            <maximum-size width="-1" height="1"/>
-          </grid>
-        </constraints>
-        <properties/>
-      </component>
       <vspacer id="19261">
         <constraints>
           <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false">
-            <preferred-size width="-1" height="16"/>
+            <preferred-size width="-1" height="14"/>
           </grid>
         </constraints>
       </vspacer>
       <vspacer id="57d0">
         <constraints>
           <grid row="5" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false">
-            <preferred-size width="-1" height="16"/>
+            <preferred-size width="-1" height="14"/>
           </grid>
         </constraints>
       </vspacer>
       <vspacer id="7ded3">
         <constraints>
           <grid row="8" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false">
-            <preferred-size width="-1" height="16"/>
+            <preferred-size width="-1" height="14"/>
           </grid>
         </constraints>
       </vspacer>
       <grid id="e0f3a" layout-manager="GridLayoutManager" row-count="2" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
         <margin top="0" left="0" bottom="0" right="0"/>
         <constraints>
-          <grid row="1" column="0" row-span="19" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
+          <grid row="1" column="0" row-span="17" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
             <preferred-size width="250" height="-1"/>
             <maximum-size width="250" height="-1"/>
           </grid>
@@ -128,23 +118,28 @@
         <properties/>
         <border type="none"/>
         <children>
-          <component id="ff026" class="javax.swing.JLabel" binding="myTemplateIconTitle">
+          <component id="ff026" class="com.intellij.ui.components.JBLabel" binding="myTemplateIconTitle">
             <constraints>
               <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
+              <font size="14"/>
               <horizontalAlignment value="0"/>
               <horizontalTextPosition value="0"/>
               <text value="Template Label"/>
               <verticalTextPosition value="3"/>
             </properties>
           </component>
-          <component id="bedde" class="javax.swing.JLabel" binding="myTemplateIconDetail">
+          <component id="bedde" class="com.intellij.ui.components.JBLabel" binding="myTemplateIconDetail">
             <constraints>
-              <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="7" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+              <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="7" anchor="1" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
+              <componentStyle value="REGULAR"/>
+              <font size="11"/>
+              <fontColor value="BRIGHTER"/>
               <horizontalAlignment value="0"/>
+              <horizontalTextPosition value="0"/>
               <text value="Detail"/>
             </properties>
           </component>
@@ -159,24 +154,46 @@
         <border type="none"/>
         <children/>
       </grid>
-      <vspacer id="45f83">
+      <vspacer id="1960a">
         <constraints>
-          <grid row="18" column="1" row-span="2" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+          <grid row="13" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false">
+            <preferred-size width="-1" height="14"/>
+          </grid>
         </constraints>
       </vspacer>
-      <component id="39004" class="javax.swing.JCheckBox" binding="myInstantAppCheck">
+      <grid id="e2759" layout-manager="FlowLayout" hgap="0" vgap="0" flow-align="0">
         <constraints>
-          <grid row="13" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="14" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="2" indent="0" use-parent-layout="false"/>
         </constraints>
-        <properties>
-          <font style="0"/>
-          <label value="This project will support instant apps"/>
-          <text value="This project will support instant apps"/>
-        </properties>
-      </component>
-      <component id="25f85" class="javax.swing.JCheckBox" binding="myWearCheck">
+        <properties/>
+        <border type="none"/>
+        <children>
+          <component id="f7d6d" class="com.intellij.ui.components.JBCheckBox" binding="myAppCompatCheck">
+            <constraints/>
+            <properties>
+              <margin top="2" left="2" bottom="2" right="2"/>
+              <text value="Use legacy android.support libraries"/>
+            </properties>
+          </component>
+          <component id="bfae4" class="com.intellij.ui.components.JBLabel" binding="myAppCompatHelp">
+            <constraints/>
+            <properties>
+              <horizontalTextPosition value="2"/>
+              <labelFor value="f7d6d"/>
+              <text value=" "/>
+              <toolTipText value=" "/>
+            </properties>
+          </component>
+        </children>
+      </grid>
+      <vspacer id="45f83">
         <constraints>
-          <grid row="14" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="17" column="1" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+        </constraints>
+      </vspacer>
+      <component id="25f85" class="com.intellij.ui.components.JBCheckBox" binding="myWearCheck">
+        <constraints>
+          <grid row="15" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <font style="0"/>
@@ -184,9 +201,9 @@
           <text value="Pair with Empty Phone app"/>
         </properties>
       </component>
-      <component id="b05d3" class="javax.swing.JCheckBox" binding="myTvCheck">
+      <component id="b05d3" class="com.intellij.ui.components.JBCheckBox" binding="myTvCheck">
         <constraints>
-          <grid row="15" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="16" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <font style="0"/>
@@ -194,27 +211,13 @@
           <text value="Pair with companion Phone app"/>
         </properties>
       </component>
-      <component id="9af35" class="javax.swing.JCheckBox" binding="myOfflineRepoCheck">
+      <component id="98a17" class="javax.swing.JSeparator">
         <constraints>
-          <grid row="16" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="11" column="1" row-span="1" col-span="1" vsize-policy="1" hsize-policy="0" anchor="1" fill="1" indent="0" use-parent-layout="false">
+            <preferred-size width="-1" height="15"/>
+          </grid>
         </constraints>
-        <properties>
-          <font style="0"/>
-          <label value="Use offline repo"/>
-          <selected value="true"/>
-          <text value="Use offline repo"/>
-        </properties>
-      </component>
-      <component id="9863d" class="javax.swing.JCheckBox" binding="myUseAndroidxCheck">
-        <constraints>
-          <grid row="17" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <font style="0"/>
-          <label value="Use androidx.* artifacts"/>
-          <selected value="true"/>
-          <text value="Use androidx.* artifacts"/>
-        </properties>
+        <properties/>
       </component>
     </children>
   </grid>

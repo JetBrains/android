@@ -22,6 +22,8 @@ import com.android.tools.profilers.cpu.CpuProfilerStage;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import trebuchet.model.ProcessModel;
 
 public class AtraceCpuCapture extends CpuCapture {
 
@@ -87,5 +89,14 @@ public class AtraceCpuCapture extends CpuCapture {
    */
   public int getRenderThreadId() {
     return myParser.getRenderThreadId();
+  }
+
+  /**
+   * @return Trebuchet ProcessModel for the Surfaceflinger process or null if there is no
+   * such process for this capture
+   */
+  @Nullable
+  public ProcessModel getSurfaceflingerProcessModel() {
+    return myParser.getSurfaceflingerProcessModel();
   }
 }

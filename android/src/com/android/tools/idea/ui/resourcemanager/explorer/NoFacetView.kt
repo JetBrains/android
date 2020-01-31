@@ -104,7 +104,7 @@ class NoFacetView(val project: Project)
     val reason = if (project.isInitialized) PROJECT_MODIFIED else PROJECT_LOADED
     val syncManager = project.getProjectSystem().getSyncManager()
     if (!syncManager.isSyncInProgress()) {
-      syncManager.syncProject(reason, false)
+      syncManager.syncProject(reason)
     }
   }
 }

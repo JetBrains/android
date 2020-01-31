@@ -16,6 +16,13 @@
 package com.android.tools.idea.gradle.model.java;
 
 import com.google.common.collect.Sets;
+import com.intellij.serialization.PropertyMapping;
+import java.io.File;
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Objects;
+import java.util.Set;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.idea.IdeaContentRoot;
@@ -23,18 +30,12 @@ import org.gradle.tooling.model.idea.IdeaSourceDirectory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Set;
-
 /**
  * Content root of a Java module.
  */
 public class JavaModuleContentRoot implements Serializable {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 3L;
 
   @NotNull private final File myRootDirPath;
   @NotNull private final Collection<File> mySourceDirPaths;
@@ -87,6 +88,15 @@ public class JavaModuleContentRoot implements Serializable {
     return paths;
   }
 
+  @PropertyMapping({
+    "myRootDirPath",
+    "mySourceDirPaths",
+    "myGenSourceDirPaths",
+    "myResourceDirPaths",
+    "myTestDirPaths",
+    "myGenTestDirPaths",
+    "myTestResourceDirPaths",
+    "myExcludeDirPaths"})
   public JavaModuleContentRoot(@NotNull File rootDirPath,
                                @NotNull Collection<File> sourceDirPaths,
                                @NotNull Collection<File> genSourceDirPaths,
@@ -156,5 +166,36 @@ public class JavaModuleContentRoot implements Serializable {
   @NotNull
   public Collection<File> getExcludeDirPaths() {
     return myExcludeDirPaths;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(
+      myRootDirPath,
+      mySourceDirPaths,
+      myGenSourceDirPaths,
+      myTestDirPaths,
+      myGenTestDirPaths,
+      myTestResourceDirPaths,
+      myExcludeDirPaths
+    );
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof JavaModuleContentRoot)) {
+      return false;
+    }
+    JavaModuleContentRoot root = (JavaModuleContentRoot) obj;
+    return Objects.equals(myRootDirPath, root.myRootDirPath)
+           && Objects.equals(mySourceDirPaths, root.mySourceDirPaths)
+           && Objects.equals(myGenSourceDirPaths, root.myGenSourceDirPaths)
+           && Objects.equals(myTestDirPaths, root.myTestDirPaths)
+           && Objects.equals(myGenTestDirPaths, root.myGenTestDirPaths)
+           && Objects.equals(myTestResourceDirPaths, root.myTestResourceDirPaths)
+           && Objects.equals(myExcludeDirPaths, root.myExcludeDirPaths);
   }
 }

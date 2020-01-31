@@ -33,19 +33,29 @@ import com.android.tools.idea.projectsystem.DependencyType
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.projectsystem.SampleDataDirectoryProvider
+import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
 import com.android.tools.idea.util.toPathString
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.roots.LibraryOrderEntry
 import com.intellij.openapi.roots.ModuleOrderEntry
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.OrderRootType
+import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.util.CachedValue
+import com.intellij.util.text.nullize
+import org.jetbrains.android.dom.manifest.cachedValueFromPrimaryManifest
+import org.jetbrains.android.dom.manifest.packageName
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
 
-class DefaultModuleSystem(val module: Module) :
+private val PACKAGE_NAME = Key.create<CachedValue<String?>>("merged.manifest.package.name")
+
+class DefaultModuleSystem(override val module: Module) :
   AndroidModuleSystem,
   ClassFileFinder by ModuleBasedClassFileFinder(module),
   SampleDataDirectoryProvider by MainContentRootSampleDataDirectoryProvider(module) {
@@ -109,6 +119,8 @@ class DefaultModuleSystem(val module: Module) :
 
   override fun getResourceModuleDependencies() = AndroidUtils.getAllAndroidDependencies(module, true).map(AndroidFacet::getModule)
 
+  override fun getDirectResourceModuleDependents(): List<Module> = ModuleManager.getInstance(module.project).getModuleDependentModules(module)
+
   override fun getResolvedDependentLibraries(): Collection<Library> {
     val libraries = mutableListOf<Library>()
 
@@ -159,5 +171,22 @@ class DefaultModuleSystem(val module: Module) :
 
   override fun canGeneratePngFromVectorGraphics(): CapabilityStatus {
     return CapabilityNotSupported()
+  }
+
+  override fun getPackageName(): String? {
+    val facet = AndroidFacet.getInstance(module)!!
+    val cachedValue = facet.cachedValueFromPrimaryManifest {
+      packageName.nullize(true)
+    }
+    return facet.putUserDataIfAbsent(PACKAGE_NAME, cachedValue).value
+  }
+
+  override fun getResolveScope(scopeType: ScopeType): GlobalSearchScope {
+    val includeTests = when (scopeType) {
+      ScopeType.MAIN -> false
+      ScopeType.ANDROID_TEST, ScopeType.UNIT_TEST -> true
+      else -> error("unknown scope type")
+    }
+    return module.getModuleWithDependenciesAndLibrariesScope(includeTests)
   }
 }

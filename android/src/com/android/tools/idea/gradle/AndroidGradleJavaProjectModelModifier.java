@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.ANDROID_TEST_COMPILE;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.TEST_COMPILE;
-import static com.android.tools.idea.gradle.util.GradleProjects.getAndroidModel;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_REDONE;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_UNDONE;
@@ -53,7 +52,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.templates.RepositoryUrlManager;
-import com.android.tools.idea.testartifacts.scopes.TestArtifactSearchScopes;
+import com.android.tools.idea.projectsystem.TestArtifactSearchScopes;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
@@ -73,7 +72,6 @@ import com.intellij.openapi.roots.ExternalLibraryDescriptor;
 import com.intellij.openapi.roots.JavaProjectModelModifier;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.libraries.Library;
-import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import java.io.File;
@@ -167,10 +165,8 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
         return null;
       }
       String configurationName = getConfigurationName(module, scope, openedFile);
-      String updatedConfigName =
-        GradleUtil.mapConfigurationName(configurationName, GradleUtil.getAndroidGradleModelVersionInUse(module), false);
       DependenciesModel dependencies = buildModel.dependencies();
-      dependencies.addArtifact(updatedConfigName, dependencySpec);
+      dependencies.addArtifact(configurationName, dependencySpec);
       buildModelsToUpdate.add(buildModel);
     }
 
@@ -200,7 +196,8 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
       return null;
     }
 
-    if (getAndroidModel(module) != null) {
+    // TODO(b/139177813): Do not rely on synced model to choose the way to update the build file.
+    if (com.android.tools.idea.model.AndroidModel.get(module) != null) {
       AndroidModel android = buildModel.android();
       CompileOptionsModel compileOptions = android.compileOptions();
       compileOptions.sourceCompatibility().setLanguageLevel(level);
@@ -229,8 +226,16 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
 
   @NotNull
   private static String getConfigurationName(@NotNull Module module, @NotNull DependencyScope scope, @Nullable VirtualFile openedFile) {
+    return GradleUtil.mapConfigurationName(
+      getLegacyConfigurationName(module, scope, openedFile), GradleUtil.getAndroidGradleModelVersionInUse(module), false);
+  }
+
+  @NotNull
+  private static String getLegacyConfigurationName(@NotNull Module module,
+                                                   @NotNull DependencyScope scope,
+                                                   @Nullable VirtualFile openedFile) {
     if (!scope.isForProductionCompile()) {
-      TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.get(module);
+      TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.getInstance(module);
 
       if (testScopes != null && openedFile != null) {
         return testScopes.isAndroidTestSource(openedFile) ? ANDROID_TEST_COMPILE : TEST_COMPILE;
@@ -270,7 +275,6 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
   private static Promise<Void> requestProjectSync(@NotNull Project project, @NotNull GradleSyncStats.Trigger trigger) {
     AsyncPromise<Void> promise = new AsyncPromise<>();
     GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(trigger);
-    request.generateSourcesOnSuccess = false;
 
     GradleSyncInvoker.getInstance().requestProjectSync(project, request, new GradleSyncListener() {
       @Override
@@ -352,7 +356,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
   private static JavaLibrary findMatchedLibrary(@NotNull Library library, @NotNull BaseArtifact artifact) {
     Dependencies dependencies = artifact.getDependencies();
     for (JavaLibrary gradleLibrary : dependencies.getJavaLibraries()) {
-      String libraryName = FileUtilRt.getNameWithoutExtension(gradleLibrary.getJarFile().getName());
+      String libraryName = getNameWithoutExtension(gradleLibrary.getJarFile());
       if (libraryName.equals(library.getName())) {
         return gradleLibrary;
       }

@@ -66,7 +66,7 @@ public class DeviceSelectionUtils {
     }
     else {
       // Ask the user to pick one (or more) of the matching devices.
-      final AtomicReference<IDevice[]> devicesRef = new AtomicReference<>();
+      final AtomicReference<IDevice[]> devicesRef = new AtomicReference<IDevice[]>();
       ApplicationManager.getApplication().invokeAndWait(new Runnable() {
         @Override
         public void run() {
@@ -80,7 +80,7 @@ public class DeviceSelectionUtils {
 
   @NotNull
   public static List<IDevice> getAllCompatibleDevices(Predicate<IDevice> deviceFilter) {
-    final List<IDevice> compatibleDevices = new ArrayList<>();
+    final List<IDevice> compatibleDevices = new ArrayList<IDevice>();
     final AndroidDebugBridge bridge = AndroidDebugBridge.getBridge();
 
     if (bridge != null) {

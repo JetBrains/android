@@ -67,7 +67,7 @@ public class ArrayMapRendererBase extends NodeRendererImpl {
   @Override
   public void buildChildren(Value value, ChildrenBuilder builder, EvaluationContext evaluationContext) {
     DebuggerManagerThreadImpl.assertIsManagerThread();
-    List<DebuggerTreeNode> children = new ArrayList<>();
+    List<DebuggerTreeNode> children = new ArrayList<DebuggerTreeNode>();
     NodeManagerImpl nodeManager = (NodeManagerImpl)builder.getNodeManager();
     NodeDescriptorFactory descriptorFactory = builder.getDescriptorManager();
 

@@ -59,11 +59,10 @@ import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableSet
-import com.intellij.ide.util.PsiNavigationSupport
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.pom.Navigatable
-import com.intellij.util.PsiNavigateUtil
+import icons.StudioIcons
+import javax.swing.Icon
 
 /*
  * Layout editor-specific helper methods and data for NlComponent
@@ -283,6 +282,9 @@ fun NlComponent.isGroup(): Boolean {
  * @param className A fully qualified class name
  */
 fun NlComponent.isOrHasSuperclass(className: String): Boolean {
+  if (!NlComponentHelper.hasNlComponentInfo(this)) {
+    return false;
+  }
   val viewInfo = viewInfo
   if (viewInfo != null) {
     val viewObject = viewInfo.viewObject ?: return ApplicationManager.getApplication().isUnitTestMode && tagName == className
@@ -405,31 +407,6 @@ fun NlComponent.createChild(tagName: String,
   val tag = backend.tag ?: return null
   val childTag = tag.createChildTag(tagName, namespace, bodyText, enforceNamespacesDeep)
   return model.createComponent(surface, childTag, this, before, insertType)
-}
-
-fun NlComponent.navigateTo(): Boolean {
-  val element = backend.tag ?: return false
-  PsiNavigateUtil.navigate(element)
-  return true
-}
-
-fun NlComponent.clearAttributes() {
-  viewGroupHandler?.clearAttributes(this)
-}
-
-/**
- * Temporary API to help remoe XmlTag dependencies. One navigate functionality to support both needs later.
- * Warp to the text editor and show the corresponding XML for the clicked widget.
- *
- * @param needsFocusEditor true for focusing the editor after navigation. false otherwise.
- */
-fun NlComponent.tryNavigateTo(needsFocusEditor: Boolean): Boolean {
-  val element = backend.tag?.navigationElement ?: return false
-  if (PsiNavigationSupport.getInstance().canNavigate(element) && element is Navigatable) {
-    (element as Navigatable).navigate(needsFocusEditor)
-    return true
-  }
-  return false
 }
 
 val NlComponent.hasNlComponentInfo: Boolean
@@ -612,6 +589,12 @@ class NlComponentMixin(component: NlComponent)
   override fun postCreateFromTransferrable(dndComponent: DnDTransferComponent) {
     component.w = dndComponent.width
     component.h = dndComponent.height
+  }
+
+  override fun getIcon(): Icon {
+    val manager = ViewHandlerManager.get(component.model.project)
+    val handler = manager.getHandler(component) ?: return StudioIcons.LayoutEditor.Palette.VIEW
+    return handler.getIcon(component)
   }
 }
 

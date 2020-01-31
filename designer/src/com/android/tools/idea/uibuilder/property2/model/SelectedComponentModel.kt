@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property2.model
 
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
+import com.android.tools.idea.uibuilder.model.hasNlComponentInfo
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.intellij.util.text.nullize
 import icons.StudioIcons
@@ -52,9 +53,7 @@ class SelectedComponentModel(
       // TODO: Get another icon for multiple components
       return StudioIcons.LayoutEditor.Palette.VIEW_SWITCHER
     }
-    val component = components[0]
-    val manager = ViewHandlerManager.get(component.model.project)
-    val handler = manager.getHandler(component) ?: return StudioIcons.LayoutEditor.Palette.VIEW
-    return handler.getIcon(component)
+
+    return components[0].mixin?.icon ?: StudioIcons.LayoutEditor.Palette.VIEW
   }
 }

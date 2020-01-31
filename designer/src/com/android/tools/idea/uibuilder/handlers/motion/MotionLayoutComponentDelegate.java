@@ -28,6 +28,7 @@ import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionDesignSurfaceEdits;
 import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.utils.Pair;
@@ -48,7 +49,7 @@ import static com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSc
 public class MotionLayoutComponentDelegate implements NlComponentDelegate {
   private static final boolean USE_CACHE = false;
 
-  private final MotionLayoutTimelinePanel myPanel;
+  private final MotionDesignSurfaceEdits myPanel;
 
   private static List<String> ourDefaultAttributes = Arrays.asList(
     SdkConstants.ATTR_LAYOUT_WIDTH,
@@ -98,7 +99,7 @@ public class MotionLayoutComponentDelegate implements NlComponentDelegate {
 
   private MotionLayoutTimelinePanel.State myLastReadState;
 
-  public MotionLayoutComponentDelegate(@NotNull MotionLayoutTimelinePanel panel) {
+  public MotionLayoutComponentDelegate(@NotNull MotionDesignSurfaceEdits panel) {
     myPanel = panel;
   }
 
@@ -252,11 +253,11 @@ public class MotionLayoutComponentDelegate implements NlComponentDelegate {
   public List<AttributeSnapshot> getAttributes(NlComponent component) {
     List<AttributeSnapshot> attributes = null;
     if (USE_CACHE) {
-      if (myPanel.getCurrentState() == myLastReadState) {
-        attributes = mCachedAttributes.get(component);
-      } else {
-        mCachedAttributes.clear();
-      }
+      //if (myPanel.getCurrentState() == myLastReadState) {
+      //  attributes = mCachedAttributes.get(component);
+      //} else {
+      //  mCachedAttributes.clear();
+      //}
     }
     if (attributes == null) {
       XmlTag constrainedView = getConstrainedView(component);
@@ -273,8 +274,8 @@ public class MotionLayoutComponentDelegate implements NlComponentDelegate {
         }
       }
       if (USE_CACHE && attributes != null) {
-        mCachedAttributes.put(component, attributes);
-        myLastReadState = myPanel.getCurrentState();
+        //mCachedAttributes.put(component, attributes);
+        //myLastReadState = myPanel.getCurrentState();
       }
     }
     return attributes;
@@ -375,16 +376,16 @@ public class MotionLayoutComponentDelegate implements NlComponentDelegate {
   public void commit(ComponentModification modification) {
     NlComponent component = modification.getComponent();
     Project project = component.getModel().getProject();
-    String constraintSetId = null;
+    String constraintSetId = myPanel.getSelectedConstraintSet();
 
-    SmartPsiElementPointer<XmlTag> constraint = myPanel.getSelectedConstraint();
-    if (constraint != null) {
-      XmlTag tag = constraint.getElement().getParentTag();
-      String id = stripID(tag.getAttributeValue("id", SdkConstants.ANDROID_URI));
-      constraintSetId = "@+id/" + id;
-    } else {
-      return;
-    }
+    //SmartPsiElementPointer<XmlTag> constraint = myPanel.getSelectedConstraint();
+    //if (constraint != null) {
+    //  XmlTag tag = constraint.getElement().getParentTag();
+    //  String id = stripID(tag.getAttributeValue("id", SdkConstants.ANDROID_URI));
+    //  constraintSetId = "@+id/" + id;
+    //} else {
+    //  return;
+    //}
 
     XmlFile file = myPanel.getTransitionFile(component);
     if (file == null) {
@@ -426,7 +427,7 @@ public class MotionLayoutComponentDelegate implements NlComponentDelegate {
   public void setAttribute(NlComponent component, String namespace, String attribute, String value) {
     ComponentModification modification = new ComponentModification(component, "Set Attribute " + attribute);
     modification.setAttribute(namespace, attribute, value);
-    modification.commit();
+    commit(modification);
   }
 
 }

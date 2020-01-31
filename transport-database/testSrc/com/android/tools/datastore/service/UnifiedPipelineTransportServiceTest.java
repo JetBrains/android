@@ -16,7 +16,6 @@
 package com.android.tools.datastore.service;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -25,6 +24,7 @@ import static org.mockito.Mockito.when;
 import com.android.tools.datastore.DataStorePollerTest;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.TestGrpcService;
+import com.android.tools.datastore.database.UnifiedEventsTable;
 import com.android.tools.profiler.proto.Commands.Command;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.Event;
@@ -59,7 +59,7 @@ import org.mockito.Mockito;
 public class UnifiedPipelineTransportServiceTest extends DataStorePollerTest {
   private DataStoreService myDataStore = mock(DataStoreService.class);
 
-  private TransportService myTransportService = new TransportService(myDataStore, getPollTicker()::run);
+  private TransportService myTransportService = new TransportService(myDataStore, new UnifiedEventsTable(), getPollTicker()::run, false);
 
   private FakeTransportService myFakeService = new FakeTransportService();
   private Channel myChannel;

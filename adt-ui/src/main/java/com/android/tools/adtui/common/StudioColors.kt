@@ -16,6 +16,7 @@
 package com.android.tools.adtui.common
 
 import com.intellij.ui.JBColor
+import javax.swing.UIManager
 
 /**
  * Colors defined in the UX prototype
@@ -63,3 +64,17 @@ val canvasTooltipBackground = JBColor.namedColor("Canvas.Tooltip.background", JB
  * Example: Background for charts, editors
  */
 val primaryContentBackground = JBColor.namedColor("Content.background", JBColor(0xffffff, 0x2b2b2b))
+
+/**
+ * Color of the underline when a intellij style tab is focused.
+ *
+ * Example: Analysis tab of a cpu profiling capture.
+ */
+val tabbedPaneFocus = UIManager.getColor("TabbedPane.focus")
+
+/**
+ * Color of the background when user mouse overs an intellij style tab.
+ *
+ * Example: Analysis tab of a cpu profiling capture.
+ */
+val tabbedPaneHoverHighlight = UIManager.getColor("TabbedPane.shadow")

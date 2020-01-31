@@ -44,6 +44,7 @@ import static com.android.tools.idea.gradle.dsl.parser.android.TestOptionsDslEle
 import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.COMPILE_OPTIONS_BLOCK_NAME;
 
 public final class AndroidModelImpl extends GradleDslBlockModel implements AndroidModel {
+  @NonNls private static final String NDK_VERSION = "ndkVersion";
   @NonNls private static final String BUILD_TOOLS_VERSION = "buildToolsVersion";
   @NonNls private static final String COMPILE_SDK_VERSION = "compileSdkVersion";
   @NonNls public static final String DEFAULT_CONFIG = "defaultConfig";
@@ -89,6 +90,12 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   }
 
   @NotNull
+  @Override
+  public ResolvedPropertyModel ndkVersion() {
+    return getModelForProperty(NDK_VERSION);
+  }
+
+    @NotNull
   @Override
   public List<BuildTypeModel> buildTypes() {
     BuildTypesDslElement buildTypes = myDslElement.getPropertyElement(BUILD_TYPES_BLOCK_NAME, BuildTypesDslElement.class);

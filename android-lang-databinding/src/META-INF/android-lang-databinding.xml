@@ -23,7 +23,9 @@
     <lang.syntaxHighlighterFactory language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.highlight.DbSyntaxHighlighterFactory" />
     <languageInjector implementation="com.android.tools.idea.lang.databinding.config.DbLanguageInjector"/>
     <psi.referenceContributor implementation="com.android.tools.idea.lang.databinding.reference.DataBindingExprReferenceContributor"/>
+    <psi.referenceContributor language="XML" implementation="com.android.tools.idea.lang.databinding.reference.DataBindingXmlAttributeReferenceContributor"/>
     <lang.foldingBuilder language="XML" implementationClass="com.android.tools.idea.lang.databinding.folding.DataBindingFoldingBuilder"/>
+    <annotator language="AndroidDataBinding" implementationClass="com.android.tools.idea.lang.databinding.validation.DataBindingExpressionAnnotator"/>
   </extensions>
   <extensions defaultExtensionNs="com.android.tools.idea.lang.databinding">
     <dataBindingCompletionSupport implementation="com.android.tools.idea.lang.databinding.completion.DataBindingCompletionSupportImpl"/>

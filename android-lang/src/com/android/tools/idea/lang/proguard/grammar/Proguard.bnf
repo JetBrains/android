@@ -21,6 +21,7 @@
     psiImplClassSuffix="Impl"
     psiPackage="com.android.tools.idea.lang.proguard.psi"
     psiImplPackage="com.android.tools.idea.lang.proguard.psi.impl"
+    psiImplUtilClass="com.android.tools.idea.lang.proguard.psi.impl.ProguardPsiImplUtil"
 
     elementTypeHolderClass="com.android.tools.idea.lang.proguard.psi.ProguardTypes"
     elementTypeClass="com.android.tools.idea.lang.proguard.psi.ProguardElementType"
@@ -40,9 +41,19 @@ proguardFile ::= (comment CRLF | flag CRLF | WS? CRLF)*
 comment ::= LINE_CMT
 
 // A flag can be either single line or multiline (in case it includes a Java spec).
-flag ::= (multiLineFlag | singleLineFlag comment?)
+private flag ::= (filenameFlag comment? | otherFlag)
+
+private otherFlag ::= (multiLineFlag | singleLineFlag comment?)
 
 multiLineFlag ::= FLAG_NAME FLAG_ARG* javaSection
+
+private mandatoryFilenameFlagName ::= '@' | '-include' | '-applymapping' | '-obfuscationdictionary' | '-classobfuscationdictionary' | '-packageobfuscationdictionary'
+
+private optionalFilenameFlagName ::= '-printseeds' | '-printusage' | '-printmapping' | '-printconfiguration' | '-dump'
+
+filenameFlag ::= (mandatoryFilenameFlagName filenameArg | optionalFilenameFlagName filenameArg?) {pin(".*")=1}
+
+filenameArg ::= (SINGLE_QUOTED_STRING | DOUBLE_QUOTED_STRING | FLAG_ARG) { methods=[getReferences] }
 
 singleLineFlag ::= FLAG_NAME FLAG_ARG*
 

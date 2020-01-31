@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -75,7 +76,7 @@ public class Device {
 
     List<Client> clients = new ArrayList<>();
     for (Process process : myPidToProcess.values()) {
-      if (applicationId.equals(process.getApplicationId())) {
+      if (process.containsApplicationId(applicationId)) {
         clients.add(process.getClient());
       }
     }
@@ -154,7 +155,7 @@ public class Device {
    */
   private void resolveApplicationId(@NotNull Process process) {
     myResolverExecutor.submit(() -> {
-      String command = String.format("stat -c %%u /proc/%d | xargs -n 1 pm list packages --uid", process.getPid());
+      String command = String.format(Locale.US, "stat -c %%u /proc/%d | xargs -n 1 pm list packages --uid", process.getPid());
 
       CollectingOutputReceiver receiver = new CollectingOutputReceiver();
       myIDevice.executeShellCommand(command, receiver);
@@ -166,8 +167,8 @@ public class Device {
       }
 
       Matcher m = PACKAGE_NAME_PATTERN.matcher(output);
-      if (m.find()) {
-        process.setApplicationId(m.group(1));
+      while (m.find()) {
+        process.addApplicationId(m.group(1));
       }
       return null;
     });
@@ -211,9 +212,9 @@ public class Device {
         // We only handle the first return value for now.
         try {
           for (String line : lines) {
-            int pid = Integer.parseInt(line);
+            int pid = Integer.parseInt(line.trim());
             myPidToProcess.computeIfPresent(pid, (ignored, process) -> {
-              process.setApplicationId(applicationId);
+              process.addApplicationId(applicationId);
               return process;
             });
           }

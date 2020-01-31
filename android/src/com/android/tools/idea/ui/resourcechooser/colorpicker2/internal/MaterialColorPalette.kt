@@ -23,49 +23,20 @@ import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerCompone
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerModel
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.HORIZONTAL_MARGIN_TO_PICKER_BORDER
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.PICKER_BACKGROUND_COLOR
-import com.android.tools.idea.ui.resourcechooser.colorpicker2.PICKER_PREFERRED_WIDTH
+import com.android.tools.idea.ui.resourcechooser.colorpicker2.COLOR_PICKER_WIDTH
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil
 import org.jetbrains.annotations.TestOnly
-import java.awt.Color
-import java.awt.Graphics
-import java.awt.Graphics2D
 import java.awt.GridLayout
-import java.awt.RenderingHints
-import java.awt.event.MouseAdapter
-import java.awt.event.MouseEvent
-import javax.swing.KeyStroke
-import java.awt.event.KeyEvent
 import javax.swing.BoxLayout
 import javax.swing.DefaultComboBoxModel
-import javax.swing.JButton
-import javax.swing.JComponent
 import javax.swing.JPanel
 
 private const val COLOR_BUTTON_ROW = 2
 private const val COLOR_BUTTON_COLUMN = 8
 
-private val PALETTE_PREFERRED_SIZE = JBUI.size(PICKER_PREFERRED_WIDTH, 120)
-private val PALETTE_BORDER = JBUI.Borders.empty(5, HORIZONTAL_MARGIN_TO_PICKER_BORDER, 10, HORIZONTAL_MARGIN_TO_PICKER_BORDER)
-
-private val COMBO_BOX_PREFERRED_SIZE = JBUI.size(PICKER_PREFERRED_WIDTH, 35)
-private val COMBO_BOX_BORDER = JBUI.Borders.empty(0, 2, 8, 2)
-
-private val COLOR_BUTTON_PREFERRED_SIZE = JBUI.size(34)
-private val COLOR_BUTTON_BORDER = JBUI.Borders.empty(6)
-/**
- * This value is not adjusted by component size.
- */
-private const val COLOR_BUTTON_FOCUS_BORDER_WIDTH = 3
-
-/**
- * The border of color block which provides the constraint to background color.
- */
-private val COLOR_BUTTON_INNER_BORDER = JBColor(Color(0, 0, 0, 26), Color(255, 255, 255, 26))
-private const val COLOR_BUTTON_ROUND_CORNER_ARC = 5
+private const val PANEL_HEIGHT = 120
 
 class MaterialColorPalette(private val pickerModel: ColorPickerModel) : JPanel() {
 
@@ -79,13 +50,13 @@ class MaterialColorPalette(private val pickerModel: ColorPickerModel) : JPanel()
 
   init {
     layout = BoxLayout(this, BoxLayout.Y_AXIS)
-    border = PALETTE_BORDER
-    preferredSize = PALETTE_PREFERRED_SIZE
+    border = JBUI.Borders.empty(5, HORIZONTAL_MARGIN_TO_PICKER_BORDER, 10, HORIZONTAL_MARGIN_TO_PICKER_BORDER)
+    preferredSize = JBUI.size(COLOR_PICKER_WIDTH, PANEL_HEIGHT)
     background = PICKER_BACKGROUND_COLOR
 
     val comboBoxPanel = JPanel(GridLayout(1, 1)).apply {
-      preferredSize = COMBO_BOX_PREFERRED_SIZE
-      border = COMBO_BOX_BORDER
+      preferredSize = JBUI.size(COLOR_PICKER_WIDTH, 35)
+      border = JBUI.Borders.empty(0, 2, 8, 2)
       background = PICKER_BACKGROUND_COLOR
     }
     val boxModel = MyComboBoxModel(MaterialColors.Category.values())
@@ -134,96 +105,6 @@ private class MyComboBoxModel(colorCategories: Array<MaterialColors.Category>)
   override fun addListener(listener: ValueChangedListener) = Unit
 
   override fun removeListener(listener: ValueChangedListener) = Unit
-}
-
-class ColorButton(var color: Color = Color.WHITE): JButton() {
-
-  enum class Status { NORMAL, HOVER, PRESSED }
-
-  var status = Status.NORMAL
-
-  init {
-    preferredSize = COLOR_BUTTON_PREFERRED_SIZE
-    border = COLOR_BUTTON_BORDER
-    isRolloverEnabled = true
-    hideActionText = true
-    background = PICKER_BACKGROUND_COLOR
-
-    addMouseListener(object : MouseAdapter() {
-      override fun mouseEntered(e: MouseEvent) {
-        status = Status.HOVER
-        repaint()
-      }
-
-      override fun mouseExited(e: MouseEvent) {
-        status = Status.NORMAL
-        repaint()
-      }
-
-      override fun mousePressed(e: MouseEvent) {
-        status = Status.PRESSED
-        repaint()
-      }
-
-      override fun mouseReleased(e: MouseEvent) {
-        status = when (status) {
-          Status.PRESSED -> Status.HOVER
-          else -> Status.NORMAL
-        }
-        repaint()
-      }
-    })
-
-    with (getInputMap(JComponent.WHEN_FOCUSED)) {
-      put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, false), "pressed")
-      put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, true), "released")
-    }
-  }
-
-  override fun paintComponent(g: Graphics) {
-    val g2d = g as Graphics2D
-    val originalAntialiasing = g.getRenderingHint(RenderingHints.KEY_ANTIALIASING)
-    val originalColor = g.color
-
-    g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
-
-    // Cleanup background
-    g.color = background
-    g.fillRect(0, 0, width, height)
-
-
-    if (status == Status.HOVER || status == Status.PRESSED) {
-      val l = insets.left / 2
-      val t = insets.top / 2
-      val w = width - l - insets.right / 2
-      val h = height - t - insets.bottom / 2
-
-      val focusColor = UIUtil.getFocusedBoundsColor() ?: Color.LIGHT_GRAY
-      g.color = if (status == Status.HOVER) focusColor else focusColor.darker()
-      g2d.fillRoundRect(l, t, w, h, 7, 7)
-    }
-    else if (isFocusOwner) {
-      val l = insets.left - COLOR_BUTTON_FOCUS_BORDER_WIDTH
-      val t = insets.top - COLOR_BUTTON_FOCUS_BORDER_WIDTH
-      val w = width - l - insets.right + COLOR_BUTTON_FOCUS_BORDER_WIDTH
-      val h = height - t - insets.bottom + COLOR_BUTTON_FOCUS_BORDER_WIDTH
-
-      g.color = UIUtil.getFocusedFillColor() ?: Color.BLUE.brighter()
-      g2d.fillRoundRect(l, t, w, h, 7, 7)
-    }
-
-    val left = insets.left
-    val top = insets.top
-    val brickWidth = width - insets.left - insets.right
-    val brickHeight = height - insets.top - insets.bottom
-    g.color = color
-    g2d.fillRoundRect(left, top, brickWidth, brickHeight, COLOR_BUTTON_ROUND_CORNER_ARC, COLOR_BUTTON_ROUND_CORNER_ARC)
-    g.color = COLOR_BUTTON_INNER_BORDER
-    g2d.drawRoundRect(left, top, brickWidth, brickHeight, COLOR_BUTTON_ROUND_CORNER_ARC, COLOR_BUTTON_ROUND_CORNER_ARC)
-
-    g.color = originalColor
-    g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, originalAntialiasing)
-  }
 }
 
 private const val COLOR_PICKER_CATEGORY_PROPERTY = "colorPickerCategoryProperty"

@@ -31,9 +31,10 @@ import static org.mockito.Mockito.mock;
 public class AndroidViewNodeEqualityTest extends AndroidTestCase {
   public void testModuleNodeEquality() {
     ViewSettings viewSettings = mock(ViewSettings.class);
-    ProjectViewNode<?> androidModuleNode = new AndroidModuleNode(getProject(), myModule, viewSettings, mock(AndroidProjectViewPane.class));
-    ProjectViewNode<?> nonAndroidModuleNode = new NonAndroidModuleNode(getProject(), myModule, viewSettings);
-    ProjectViewNode<?> ndkModuleNode = new NdkModuleNode(getProject(), myModule, viewSettings);
+    AndroidProjectViewPane projectViewPane = mock(AndroidProjectViewPane.class);
+    ProjectViewNode<?> androidModuleNode = new AndroidModuleNode(getProject(), myModule, projectViewPane, viewSettings);
+    ProjectViewNode<?> nonAndroidModuleNode = new NonAndroidModuleNode(getProject(), myModule, projectViewPane, viewSettings);
+    ProjectViewNode<?> ndkModuleNode = new NdkModuleNode(getProject(), myModule, projectViewPane, viewSettings);
     // Check equality related to https://issuetracker.google.com/70635980.
     assertTrue(androidModuleNode.equals(nonAndroidModuleNode));
     assertTrue(nonAndroidModuleNode.equals(androidModuleNode));

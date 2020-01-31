@@ -16,14 +16,29 @@
 package com.android.tools.profilers;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This stage gets set when the profilers first open and no session has been selected.
  */
 public class NullMonitorStage extends Stage {
+  @Nullable private String myUnsupportedReason;
 
   public NullMonitorStage(@NotNull StudioProfilers profiler) {
-    super(profiler);
+    this(profiler, null);
+  }
+
+  public NullMonitorStage(@NotNull StudioProfilers profilers, @Nullable String unsupportedReason) {
+    super(profilers);
+    myUnsupportedReason = unsupportedReason;
+  }
+
+  /**
+   * @return string representing the reason if device is unsupported, null otherwise.
+   */
+  @Nullable
+  public String getUnsupportedReason() {
+    return myUnsupportedReason;
   }
 
   @Override

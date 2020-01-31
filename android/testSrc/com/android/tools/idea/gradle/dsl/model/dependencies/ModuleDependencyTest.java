@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
+import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_ADD_CLOSURE_TO_DEPENDENCY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_INSERT_PSI_ELEMENT_AFTER_FILE_BLOCK_COMMENT;
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_MULTI_TYPE_APPLICATION_STATEMENT_DOES_NOT_THROW_EXCEPTION;
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_PARSING_WITH_COMPACT_NOTATION;
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_PARSING_WITH_DEPENDENCY_ON_ROOT;
@@ -29,13 +31,23 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_S
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_SET_NAME_ON_MAP_NOTATION_WITH_CONFIGURATION;
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_SET_NAME_WITH_PATH_HAVING_SAME_SEGMENT_NAMES;
 import static com.google.common.truth.Truth.assertThat;
+import static org.jetbrains.kotlin.lexer.KtTokens.BLOCK_COMMENT;
+import static org.jetbrains.plugins.groovy.lang.psi.GroovyElementTypes.ML_COMMENT;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel;
+import com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.intellij.psi.PsiElement;
 import java.io.IOException;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.kotlin.psi.KtFile;
 import org.junit.Test;
 
 /**
@@ -446,6 +458,64 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
     // Note: this is not correct behaviour, this tests that no exception occurs.
     // TODO(b/69115152): fix the implementation of this
     assertThat(dependencies).hasSize(0);
+  }
+
+  @Test
+  public void testInsertPsiElementAfterFileBlockComment() throws Exception {
+    writeToBuildFile(MODULE_DEPENDENCY_INSERT_PSI_ELEMENT_AFTER_FILE_BLOCK_COMMENT);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    DependencyModel dependency = buildModel.dependencies().all().get(0);
+    buildModel.dependencies().remove(dependency);
+
+    assertTrue(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
+
+    buildModel.dependencies().addModule("compile", ":module1");
+    assertTrue(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
+
+    PsiElement psiFile = ((GradleBuildModelImpl)buildModel).getDslFile().getPsiElement();
+    if (myLanguageName.equals("Groovy")) {
+      assertTrue(psiFile.getFirstChild().getNode().getElementType() == ML_COMMENT);
+    }
+    else if(myLanguageName.equals("Kotlin")){
+      assertTrue(((KtFile)psiFile).getScript().getBlockExpression().getFirstChild().getNode().getElementType() == BLOCK_COMMENT);
+    }
+  }
+
+  @Test
+  public void testAddClosureBlockToDependency() throws IOException {
+    writeToBuildFile(MODULE_DEPENDENCY_ADD_CLOSURE_TO_DEPENDENCY);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<DependencyModel> dependencies = buildModel.dependencies().all();
+    List<ModuleDependencyModel> modules = buildModel.dependencies().modules();
+
+    assertEquals(modules.size(), 1);
+    assertThat(modules.get(0).configurationName()).isEqualTo("testImplementation");
+    assertThat(modules.get(0).path().toString()).isEqualTo(":");
+
+    DependencyModelImpl testDependency = ((DependencyModelImpl)dependencies.get(0));
+
+    GradleDslClosure excludeBlock = new GradleDslClosure(testDependency.getDslElement(), null, testDependency.getDslElement().getNameElement());
+    GradleDslMethodCall exclude = new GradleDslMethodCall(excludeBlock, GradleNameElement.fake("exclude"), "exclude");
+    GradleDslLiteral moduleValue = new GradleDslLiteral(exclude, GradleNameElement.fake("module"));
+    moduleValue.setValue("module1");
+    exclude.addNewArgument(moduleValue);
+    excludeBlock.addNewElementAt(0, exclude);
+    testDependency.getDslElement().setNewClosureElement(excludeBlock);
+
+
+    assertTrue(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
+
+    modules = buildModel.dependencies().modules();
+    assertEquals(modules.size(), 1);
+    assertThat(modules.get(0).configurationName()).isEqualTo("testImplementation");
+    assertNotNull(((ModuleDependencyModelImpl)modules.get(0)).getDslElement().getClosureElement());
   }
 
   private static void assertMatches(@NotNull ExpectedModuleDependency expected, @NotNull ModuleDependencyModel actual) {

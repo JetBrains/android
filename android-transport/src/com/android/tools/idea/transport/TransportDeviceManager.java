@@ -32,12 +32,14 @@ import com.android.tools.datastore.DataStoreService;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.profiler.proto.Agent;
+import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Transport;
 import com.google.common.base.Charsets;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.PerfdCrashInfo;
+import com.google.wireless.android.sdk.stats.TransportDaemonStartedInfo;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.messages.MessageBus;
@@ -47,7 +49,12 @@ import io.grpc.ManagedChannel;
 import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.netty.NettyChannelBuilder;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -152,20 +159,36 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
   private Runnable getDisconnectRunnable(@NotNull String serialNumber) {
     return () -> mySerialToDeviceContextMap.compute(serialNumber, (unused, context) -> {
       assert context != null;
-      // Disconnect both the proxy -> device and datastore -> proxy connections.
-      TransportProxy proxy = context.myLastKnownTransportProxy;
-      if (proxy != null) {
-        proxy.disconnect();
-      }
-      context.myLastKnownTransportProxy = null;
-
-      if (context.myDevice != null) {
-        myDataStoreService.disconnect(context.myDevice.getDeviceId());
-      }
-      context.myDevice = null;
-
+      disconnect(context, myDataStoreService);
       return context;
     });
+  }
+
+  /**
+   * Disconnect both the proxy -> device and datastore -> proxy connections.
+   *
+   * This method doesn't clear myConnectedAgents and myPidToAbiMap because they should be preserved
+   * when the daemon is killed while the device remains connected. These records will be used to
+   * reconnect to the agents that are last known connected when the daemon restarts.
+   *
+   * When this method is called when the device is disconnected, there's no need to clean up these
+   * records either because when the device is connected again, a new instance of DeviceContext
+   * will be created.
+   */
+  @NotNull
+  private static void disconnect(@NotNull DeviceContext context,
+                                 @NotNull DataStoreService dataStoreService) {
+    // Disconnect both the proxy -> device and datastore -> proxy connections.
+    TransportProxy proxy = context.myLastKnownTransportProxy;
+    if (proxy != null) {
+      proxy.disconnect();
+    }
+    context.myLastKnownTransportProxy = null;
+
+    if (context.myDevice != null) {
+      dataStoreService.disconnect(context.myDevice.getDeviceId());
+    }
+    context.myDevice = null;
   }
 
   private void disconnectProxy(@NonNull IDevice device) {
@@ -205,7 +228,7 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
     @NotNull private final IDevice myDevice;
     @NotNull private final MessageBus myMessageBus;
     private volatile TransportProxy myTransportProxy;
-    private final Map<String, DeviceContext> mySerialToDeviceContextMap;
+    @NotNull private final Map<String, DeviceContext> mySerialToDeviceContextMap;
 
     private TransportThread(@NotNull IDevice device, @NotNull DataStoreService datastore, @NotNull MessageBus messageBus,
                             @NotNull Map<String, DeviceContext> serialToDeviceContextMap) {
@@ -228,8 +251,19 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
         myMessageBus.syncPublisher(TOPIC).onPreTransportDaemonStart(transportDevice);
         TransportFileManager fileManager = new TransportFileManager(myDevice, myMessageBus);
         fileManager.copyFilesToDevice();
-        startTransportDaemon(transportDevice);
-        getLogger().info("Terminating Transport thread");
+        // Keep starting the daemon in case it's killed, as long as this thread is running (which should be the case
+        // as long as the device is connected). The execution may exit this loop only via exceptions.
+        long previousTimeMs = System.currentTimeMillis();
+        for (boolean reconnectAgents = false; ; reconnectAgents = true) {
+          long currentTimeMs = System.currentTimeMillis();
+          reportTransportDaemonStarted(reconnectAgents, currentTimeMs - previousTimeMs);
+          // Start transport daemon and block until it is terminated or an exception is thrown.
+          startTransportDaemon(transportDevice, reconnectAgents);
+          getLogger().info("Daemon stopped running; will try to restart it");
+          // Disconnect the proxy and datastore before attempting to reconnect to agents.
+          disconnect(mySerialToDeviceContextMap.get(myDevice.getSerialNumber()), myDataStore);
+          previousTimeMs = currentTimeMs;
+        }
       }
       catch (ShellCommandUnresponsiveException | SyncException e) {
         myMessageBus.syncPublisher(TOPIC).onStartTransportDaemonFail(transportDevice, e);
@@ -250,12 +284,15 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
     /**
      * Executes shell command on device to start the Transport daemon
      *
+     * @param transportDevice The device on which the daemon is going to be running.
+     * @param reconnectAgents True if attempting to reconnect to the agents that are last known connected (assuming the device stays
+     *                        connected).
      * @throws TimeoutException
      * @throws AdbCommandRejectedException
      * @throws ShellCommandUnresponsiveException
      * @throws IOException
      */
-    private void startTransportDaemon(@NotNull Common.Device transportDevice)
+    private void startTransportDaemon(@NotNull Common.Device transportDevice, boolean reconnectAgents)
       throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
       String command = TransportFileManager.getTransportExecutablePath() + " -config_file=" + TransportFileManager.getDaemonConfigPath();
       getLogger().info("[Transport]: Executing " + command);
@@ -292,11 +329,35 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
 
           try {
             createTransportProxy(transportDevice);
+            if (reconnectAgents) {
+              reconnectAgents();
+            }
             getLogger().info(String.format("TransportProxy successfully created for device: %s", myDevice));
           }
           catch (AdbCommandRejectedException | IOException | TimeoutException e) {
             myMessageBus.syncPublisher(TOPIC).onTransportProxyCreationFail(transportDevice, e);
             getLogger().error(String.format("TransportProxy failed for device: %s", myDevice), e);
+          }
+        }
+
+        /**
+         * Reconnect to the agents that were last known connected.
+         */
+        private void reconnectAgents() {
+          TransportClient client = new TransportClient(TransportService.getInstance().getChannelName());
+          DeviceContext context = mySerialToDeviceContextMap.get(transportDevice.getSerial());
+          assert context != null;
+          for (Long pid : context.myConnectedAgents) {
+            Commands.Command attachCommand = Commands.Command.newBuilder()
+              .setStreamId(transportDevice.getDeviceId())
+              .setPid(pid.intValue())
+              .setType(Commands.Command.CommandType.ATTACH_AGENT)
+              .setAttachAgent(
+                Commands.AttachAgent.newBuilder()
+                  .setAgentLibFileName(String.format("libjvmtiagent_%s.so", context.myPidToAbiMap.get(pid)))
+                  .setAgentConfigPath(TransportFileManager.getAgentConfigFile()))
+              .build();
+            client.getTransportStub().execute(Transport.ExecuteRequest.newBuilder().setCommand(attachCommand).build());
           }
         }
 
@@ -336,7 +397,7 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
       else {
         myDevice.createForward(localPort, DEVICE_PORT);
       }
-      getLogger().info(String.format("Port forwarding created for port: %d", localPort));
+      getLogger().info(String.format(Locale.US, "Port forwarding created for port: %d", localPort));
 
       /*
         Creates the channel that is used to connect to the device transport daemon.
@@ -371,6 +432,7 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
         assert context != null;
         context.myLastKnownTransportProxy = myTransportProxy;
         context.myDevice = transportDevice;
+        myTransportProxy.registerEventPreprocessor(new ConnectedAgentPreprossor(context));
         return context;
       });
 
@@ -417,7 +479,13 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
       String[] stack = crashString.split("[:,]+");
       // The first value is the detection string.
       for (int i = 1; i < stack.length; i++) {
-        crashInfo.addBackstackAddressList(Long.parseLong(stack[i].trim()));
+        // The string may be "\n" and will be empty after trimming.
+        try {
+          crashInfo.addBackstackAddressList(Long.parseLong(stack[i].trim()));
+        }
+        catch (NumberFormatException e) {
+          // Ignore the string that's not a number.
+        }
       }
 
       // Create metrics event to report callstack.
@@ -429,6 +497,19 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
                                    .setPerfdCrashInfo(crashInfo));
       UsageTracker.log(event);
     }
+
+    private void reportTransportDaemonStarted(boolean isRestart, long millisecSinceLastStart) {
+      TransportDaemonStartedInfo.Builder info = TransportDaemonStartedInfo.newBuilder().setIsRestart(isRestart);
+      if (isRestart) {
+        info.setMillisecSinceLastStart(millisecSinceLastStart);
+      }
+      AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.ANDROID_PROFILER)
+        .setAndroidProfilerEvent(AndroidProfilerEvent.newBuilder()
+                                   .setType(AndroidProfilerEvent.Type.TRANSPORT_DAEMON_STARTED)
+                                   .setTransportDaemonStartedInfo(info));
+      UsageTracker.log(event);
+    }
   }
 
   private static class DeviceContext {
@@ -437,6 +518,59 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
     @Nullable public TransportProxy myLastKnownTransportProxy;
     @Nullable public Future<?> myLastKnownTransportThreadFuture;
     @Nullable public Common.Device myDevice;
+    /**
+     * The processes (PIDs) with a connected agent. Useful to recover the state of the pipeline's daemon
+     * when it's killed unexpectedly, for example, by Live-LocK Daemon in Android OS.
+     */
+    @NotNull public final Set<Long> myConnectedAgents = new TreeSet<>();
+    @NotNull public final Map<Long, String> myPidToAbiMap = new HashMap<>();
+  }
+
+  private static class ConnectedAgentPreprossor implements TransportEventPreprocessor {
+    @NotNull private final DeviceContext myContext;
+
+    public ConnectedAgentPreprossor(@NotNull DeviceContext context) {
+      myContext = context;
+    }
+
+    @Override
+    public boolean shouldPreprocess(Common.Event event) {
+      switch (event.getKind()) {
+        case AGENT:
+        case PROCESS:
+          return true;
+        default:
+          return false;
+      }
+    }
+
+    @Override
+    public Iterable<Common.Event> preprocessEvent(Common.Event event) {
+      switch (event.getKind()) {
+        case AGENT:
+          if (event.getAgentData().getStatus().equals(Common.AgentData.Status.ATTACHED)) {
+            long pid = event.getPid();
+            myContext.myConnectedAgents.add(pid);
+          }
+          break;
+        case PROCESS:
+          long pid = event.getGroupId();
+          if (event.getProcess().hasProcessStarted()) {
+            myContext.myPidToAbiMap.put(pid, event.getProcess().getProcessStarted().getProcess().getAbiCpuArch());
+          }
+          else {
+            // Note that the "end event" of remaining open groups generated by TransportServiceProxy.getEvents() when the
+            // connection between the proxy and the device is lost do not go through event preprocessors. Therefore, those
+            // "generated" PROCESS stopped event should not confuse |myConnectedAgents| here.
+            myContext.myPidToAbiMap.remove(pid);
+            myContext.myConnectedAgents.remove(pid);
+          }
+          break;
+        default:
+          break;
+      }
+      return Collections.emptyList();
+    }
   }
 
   public interface TransportDeviceManagerListener {

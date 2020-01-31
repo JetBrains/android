@@ -90,10 +90,6 @@ public class CodeConversionFromJavaToKotlinTest {
       .withTimeout(SECONDS.toMillis(30)).using(guiTest.robot());
     convertCodeFromJavaDialog.button(withText("Yes")).click();
 
-    DialogFixture inlineVariableDialog = findDialog(withTitle("Inline Variable"))
-      .withTimeout(SECONDS.toMillis(30)).using(guiTest.robot());
-    inlineVariableDialog.button(withText("Cancel")).click();
-
     kotlinEditor.getCurrentFileContents().contains(KOTLIN_FUN);
   }
 }

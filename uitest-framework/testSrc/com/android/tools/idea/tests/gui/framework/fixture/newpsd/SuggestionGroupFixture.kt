@@ -16,22 +16,25 @@
 package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
 import com.android.tools.idea.gradle.structure.configurables.suggestions.SuggestionViewerUi.SUGGESTION_VIEWER_NAME
-import com.android.tools.idea.tests.gui.framework.IdeFrameContainerFixture
 import com.android.tools.idea.tests.gui.framework.finder
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.matcher
+import org.fest.swing.core.Robot
 import org.fest.swing.edt.GuiQuery
-import org.fest.swing.timing.Wait
+import org.fest.swing.fixture.ContainerFixture
 import org.junit.Assert.fail
 import java.util.regex.Pattern
 import javax.swing.JDialog
 import javax.swing.JPanel
 import javax.swing.border.TitledBorder
 
-open class SuggestionGroupFixture(val dialog: JDialog,
-                                  override val ideFrameFixture: IdeFrameFixture,
-                                  override val container: JPanel
-) : IdeFrameContainerFixture {
+open class SuggestionGroupFixture(
+  val dialog: JDialog,
+  val robot: Robot,
+  val container: JPanel
+) : ContainerFixture<JPanel> {
+
+  override fun target(): JPanel = container
+  override fun robot(): Robot = robot
 
   fun title(): String? = GuiQuery.get<String> { (container.border as? TitledBorder)?.title }
 
@@ -51,7 +54,7 @@ open class SuggestionGroupFixture(val dialog: JDialog,
   fun suggestions() =
       finder()
           .findAll(container, matcher<JPanel> { it.name == SUGGESTION_VIEWER_NAME })
-          .map { SuggestionFixture(ideFrameFixture, it) }
+          .map { SuggestionFixture(robot(), it) }
 
   private fun findMatchingMessages(compiledPattern: Pattern) =
       suggestions().filter { compiledPattern.matcher(it.plainTextMessage()).find() }

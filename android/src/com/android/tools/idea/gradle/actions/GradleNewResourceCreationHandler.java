@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.actions;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.gradle.util.GradleProjects;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.module.Module;
@@ -39,7 +39,7 @@ import java.util.function.Function;
 public class GradleNewResourceCreationHandler implements NewResourceCreationHandler {
   @Override
   public boolean isApplicable(@NotNull Project project) {
-    return GradleProjects.isBuildWithGradle(project);
+    return GradleProjectInfo.getInstance(project).isBuildWithGradle();
   }
 
   @NotNull

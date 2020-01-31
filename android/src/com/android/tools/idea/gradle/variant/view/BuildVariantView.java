@@ -23,7 +23,6 @@ import static com.intellij.util.ui.UIUtil.getToolTipBackground;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ModuleTypeComparator;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
@@ -165,16 +164,6 @@ public class BuildVariantView {
   }
 
   public void updateContents() {
-    GradleSyncState gradleSyncState = GradleSyncState.getInstance(myProject);
-    // When sync is 'skipped' (i.e. Gradle models are retrieved from the disk cache, instead of Gradle,) the contents of the "Build
-    // Variants" view are already displayed. Invoking 'projectImportStarted' will show the "Loading..." message, and, depending on
-    // timing, the message may never disappear.
-    // See https://code.google.com/p/android/issues/detail?id=232529
-    if (gradleSyncState.isSyncInProgress() && !gradleSyncState.isSyncSkipped()) {
-      projectImportStarted();
-      return;
-    }
-
     List<Object[]> rows = new ArrayList<>();
 
     // Maps the row number to the corresponding array of build variants and abis.

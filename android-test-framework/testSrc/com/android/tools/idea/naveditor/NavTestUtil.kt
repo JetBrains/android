@@ -14,40 +14,43 @@
  * limitations under the License.
  */
 @file:JvmName("NavTestUtil")
+
 package com.android.tools.idea.naveditor
 
 import com.android.tools.idea.templates.IdeGoogleMavenRepository
+import com.android.tools.idea.util.AndroidTestPaths
+import com.intellij.openapi.application.PathManager
+import java.nio.file.Paths
 
-val navEditorAarPaths: Map<String, String> by lazy {
-  val supportFragmentVersion = IdeGoogleMavenRepository.findVersion("com.android.support", "support-fragment")
+private const val NAVIGATION_ID = "android.arch.navigation"
+private const val SUPPORT_ID = "com.android.support"
 
-  val navigationFragmentVersion = IdeGoogleMavenRepository.findVersion(
-    "android.arch.navigation",
-    "navigation-fragment",
-    allowPreview = true
-  )
-  val runtimeVersion = IdeGoogleMavenRepository.findVersion(
-    "android.arch.navigation",
-    "navigation-runtime",
-    allowPreview = true
-  )
-  val commonVersion = IdeGoogleMavenRepository.findVersion(
-    "android.arch.navigation",
-    "navigation-common",
-    allowPreview = true
-  )
+private val REPO = Paths.get(PathManager.getHomePath()).relativize(AndroidTestPaths.prebuiltsRepo()).toString() // TODO-ank: use Path instead of String
+private val NAVIGATION_PATH = "$REPO/android/arch/navigation"
+private val SUPPORT_PATH = "$REPO/com/android/support"
 
-  val repo = "../../prebuilts/tools/common/m2/repository"
+private val RUNTIME_VERSION = IdeGoogleMavenRepository.findVersion(NAVIGATION_ID, "navigation-runtime", allowPreview = true)
 
-  mapOf(
-    "$repo/android/arch/navigation/navigation-runtime/$runtimeVersion/navigation-runtime-$runtimeVersion.aar" to
-      "android.arch.navigation:navigation-runtime:$runtimeVersion",
-    "$repo/android/arch/navigation/navigation-common/$commonVersion/navigation-common-$commonVersion.aar" to
-      "android.arch.navigation:navigation-common:$runtimeVersion",
-    "$repo/android/arch/navigation/navigation-fragment/$navigationFragmentVersion/navigation-fragment-$navigationFragmentVersion.aar" to
-      "android.arch.navigation:navigation-fragment:$runtimeVersion",
-    "$repo/com/android/support/support-fragment/$supportFragmentVersion/support-fragment-$supportFragmentVersion.aar" to
-      "com.android.support:support-fragment:$runtimeVersion"
-  )
-}
+val navEditorRuntimePaths: Map<String, String>
+  get() {
+    val commonVersion = IdeGoogleMavenRepository.findVersion(NAVIGATION_ID, "navigation-common", allowPreview = true)
+
+    return mapOf("$NAVIGATION_PATH/navigation-runtime/$RUNTIME_VERSION/navigation-runtime-$RUNTIME_VERSION.aar" to
+                   "$NAVIGATION_ID:navigation-runtime:$RUNTIME_VERSION",
+                 "$NAVIGATION_PATH/navigation-common/$commonVersion/navigation-common-$commonVersion.aar" to
+                   "$NAVIGATION_ID:navigation-common:$RUNTIME_VERSION")
+  }
+
+val navEditorFragmentPaths: Map<String, String>
+  get() {
+    val navigationFragmentVersion = IdeGoogleMavenRepository.findVersion(NAVIGATION_ID, "navigation-fragment", allowPreview = true)
+    val supportFragmentVersion = IdeGoogleMavenRepository.findVersion(SUPPORT_ID, "support-fragment")
+
+    return mapOf("$NAVIGATION_PATH/navigation-fragment/$navigationFragmentVersion/navigation-fragment-$navigationFragmentVersion.aar" to
+                   "$NAVIGATION_ID:navigation-fragment:$RUNTIME_VERSION",
+                 "$SUPPORT_PATH/support-fragment/$supportFragmentVersion/support-fragment-$supportFragmentVersion.aar" to
+                   "$SUPPORT_ID:support-fragment:$RUNTIME_VERSION")
+  }
+
+val navEditorAarPaths: Map<String, String> = navEditorRuntimePaths.plus(navEditorFragmentPaths)
 

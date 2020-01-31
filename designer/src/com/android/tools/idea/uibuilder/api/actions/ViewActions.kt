@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.api.actions
 
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.actions.ToggleShowDecorationsAction
+import com.android.tools.idea.uibuilder.actions.ToggleShowTooltipsAction
 import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.api.ViewHandler
 import com.google.common.collect.ImmutableList
@@ -51,7 +52,7 @@ constructor(protected val myIcon: Icon?,
                                   handler: ViewHandler,
                                   component: NlComponent,
                                   selectedChildren: MutableList<NlComponent>,
-                                  modifiers: Int) {
+                                  modifiersEx: Int) {
     presentation.setIcon(icon)
     presentation.setLabel(label)
     presentation.setVisible(true)
@@ -93,6 +94,7 @@ object ViewActionUtils {
                          listOf(ImmutableList.builder<ViewAction>()
                                   .addAll(additionalActions)
                                   .add(ToggleShowDecorationsAction())
+                                  .add(ToggleShowTooltipsAction())
                                   .build()))
 
 }

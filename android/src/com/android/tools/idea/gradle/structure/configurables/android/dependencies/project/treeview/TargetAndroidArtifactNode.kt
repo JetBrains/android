@@ -32,11 +32,14 @@ class TargetAndroidArtifactNode internal constructor(
   val artifact: PsAndroidArtifact,
   private val myVersion: String?,
   uiSettings: PsUISettings
-) : AbstractPsModelNode<PsAndroidArtifact>(artifact, uiSettings), CellAppearanceEx {
+) : AbstractPsModelNode<PsAndroidArtifact>(uiSettings), CellAppearanceEx {
   private var myChildren = emptyList<AbstractPsNode>()
+
+  override val models: List<PsAndroidArtifact> = listOf(artifact)
 
   init {
     autoExpandNode = false
+    updateNameAndIcon()
   }
 
   override fun getChildren(): Array<SimpleNode> {

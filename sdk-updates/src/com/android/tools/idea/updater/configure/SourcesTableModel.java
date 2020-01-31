@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.updater.configure;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.repository.api.RepoManager;
 import com.android.repository.api.RepositorySource;
 import com.android.repository.api.RepositorySourceProvider;

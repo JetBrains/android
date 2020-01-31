@@ -15,7 +15,18 @@
  */
 package com.android.tools.idea.diagnostics.hprof
 
-import com.android.tools.idea.diagnostics.hprof.analysis.HProfAnalysis
+import com.android.testutils.TestUtils
+import com.android.tools.idea.diagnostics.hprof.analysis.AnalysisConfig
+import com.android.tools.idea.diagnostics.hprof.analysis.AnalysisContext
+import com.android.tools.idea.diagnostics.hprof.analysis.AnalyzeGraph
+import com.android.tools.idea.diagnostics.hprof.analysis.ClassNomination
+import com.android.tools.idea.diagnostics.hprof.classstore.HProfMetadata
+import com.android.tools.idea.diagnostics.hprof.histogram.Histogram
+import com.android.tools.idea.diagnostics.hprof.navigator.ObjectNavigator
+import com.android.tools.idea.diagnostics.hprof.parser.HProfEventBasedParser
+import com.android.tools.idea.diagnostics.hprof.util.IntList
+import com.android.tools.idea.diagnostics.hprof.util.UByteList
+import com.android.tools.idea.diagnostics.hprof.visitors.RemapIDsVisitor
 import com.android.tools.idea.util.AndroidTestPaths
 import com.intellij.openapi.progress.util.AbstractProgressIndicatorBase
 import org.junit.After
@@ -47,45 +58,127 @@ class HeapAnalysisTest {
     tmpFolder.delete()
   }
 
-  private fun getBaselineContents(fileName: String): String {
-    return String(Files.readAllBytes(
-      AndroidTestPaths.adtSources().resolve("android/testData/profiling/analysis-baseline/$fileName")), StandardCharsets.UTF_8)
+  private fun getBaselineContents(path: Path): String {
+    return String(Files.readAllBytes(path), StandardCharsets.UTF_8)
   }
 
-  private fun compareReportToBaseline(hprofFile: File, baselineReport: String) {
-    FileChannel.open(hprofFile.toPath(), StandardOpenOption.READ).use { hprofChannel ->
-      val analysis = HProfAnalysis(hprofChannel, object : HProfAnalysis.TempFilenameSupplier {
-        override fun getTempFilePath(type: String): Path {
-          return tmpFolder.newFile().toPath()
-        }
-      })
-      analysis.setIncludeMetaInfo(false)
-      val progress = object : AbstractProgressIndicatorBase() {
-      }
-      progress.isIndeterminate = false
-      val generatedReport = analysis.analyze(progress)
+  private fun getBaselinePath(fileName: String) =
+    AndroidTestPaths.adtSources().resolve("android/testData/profiling/analysis-baseline/$fileName")
 
-      Assert.assertEquals(baselineReport, generatedReport)
+  class MemoryBackedIntList(size: Int) : IntList {
+    private val array = IntArray(size)
+
+    override fun get(index: Int): Int = array[index]
+    override fun set(index: Int, value: Int) {
+      array[index] = value
     }
   }
 
-  private fun runHProfScenario(scenario: HProfBuilder.() -> Unit, baselineFileName: String) {
+  class MemoryBackedUByteList(size: Int) : UByteList {
+    private val array = ShortArray(size)
+
+    override fun get(index: Int): Int = array[index].toInt()
+    override fun set(index: Int, value: Int) {
+      array[index] = value.toShort()
+    }
+  }
+
+  private fun compareReportToBaseline(hprofFile: File, baselineFileName: String, nominatedClassNames: List<String>? = null) {
+    FileChannel.open(hprofFile.toPath(), StandardOpenOption.READ).use { hprofChannel ->
+
+      val progress = object : AbstractProgressIndicatorBase() {
+      }
+      progress.isIndeterminate = false
+
+      val parser = HProfEventBasedParser(hprofChannel)
+      val hprofMetadata = HProfMetadata.create(parser)
+      val histogram = Histogram.create(parser, hprofMetadata.classStore)
+      val nominatedClasses = ClassNomination(histogram, 5).nominateClasses()
+
+      val remapIDsVisitor = RemapIDsVisitor.createMemoryBased()
+      parser.accept(remapIDsVisitor, "id mapping")
+      parser.setIdRemappingFunction(remapIDsVisitor.getRemappingFunction())
+      hprofMetadata.remapIds(remapIDsVisitor.getRemappingFunction())
+
+      val navigator = ObjectNavigator.createOnAuxiliaryFiles(
+        parser,
+        openTempEmptyFileChannel(),
+        openTempEmptyFileChannel(),
+        hprofMetadata,
+        histogram.instanceCount
+      )
+
+      val parentList = MemoryBackedIntList(navigator.instanceCount.toInt() + 1)
+      val sizesList = MemoryBackedIntList(navigator.instanceCount.toInt() + 1)
+      val visitedList = MemoryBackedIntList(navigator.instanceCount.toInt() + 1)
+      val refIndexList = MemoryBackedUByteList(navigator.instanceCount.toInt() + 1)
+
+      val nominatedClassNamesLocal = nominatedClassNames ?: nominatedClasses.map { it.classDefinition.name }
+      val analysisConfig = AnalysisConfig(
+        perClassOptions = AnalysisConfig.PerClassOptions(
+          classNames = nominatedClassNamesLocal,
+          treeDisplayOptions = AnalysisConfig.TreeDisplayOptions.all()
+        ),
+        histogramOptions = AnalysisConfig.HistogramOptions(
+          includeByCount = true,
+          includeBySize = false,
+          classByCountLimit = Int.MAX_VALUE
+        ),
+        disposerOptions = AnalysisConfig.DisposerOptions(
+          includeDisposerTree = false,
+          includeDisposedObjectsDetails = false,
+          includeDisposedObjectsSummary = false
+        ),
+        metaInfoOptions = AnalysisConfig.MetaInfoOptions(
+          include = false
+        )
+      )
+      val analysisContext = AnalysisContext(
+        navigator,
+        analysisConfig,
+        parentList,
+        sizesList,
+        visitedList,
+        refIndexList,
+        histogram
+      )
+
+      val analysisReport = AnalyzeGraph(analysisContext).analyze(progress)
+
+      val baselinePath = getBaselinePath(baselineFileName)
+      val baseline = getBaselineContents(baselinePath)
+      Assert.assertEquals("Report doesn't match the baseline from file:\n$baselinePath",
+                          baseline,
+                          analysisReport)
+    }
+  }
+
+  private fun openTempEmptyFileChannel(): FileChannel {
+    return FileChannel.open(tmpFolder.newFile().toPath(),
+                            StandardOpenOption.READ,
+                            StandardOpenOption.WRITE,
+                            StandardOpenOption.CREATE,
+                            StandardOpenOption.TRUNCATE_EXISTING,
+                            StandardOpenOption.DELETE_ON_CLOSE)
+  }
+
+  private fun runHProfScenario(scenario: HProfBuilder.() -> Unit, baselineFileName: String, nominatedClassNames: List<String>? = null) {
     val hprofFile = tmpFolder.newFile()
     FileOutputStream(hprofFile).use { fos ->
 
       // Simplify inner class names
-      val regex = Regex("HeapAnalysisTest\\\$.*\\\$")
+      val regex = Regex(".*HeapAnalysisTest\\\$.*\\\$")
       val classNameMapping: (Class<*>) -> String = { c ->
         c.name.replace(regex, "")
       }
       HProfBuilder(DataOutputStream(fos), classNameMapping).apply(scenario).create()
     }
-    val baseline = getBaselineContents(baselineFileName)
-    compareReportToBaseline(hprofFile, baseline)
+    compareReportToBaseline(hprofFile, baselineFileName, nominatedClassNames)
   }
 
   @Test
   fun testPathsThroughDifferentFields() {
+    class MyRef(val referent: Any)
     class TestString(val s: String)
     class TestClassB(private val b1string: TestString, private val b2string: TestString)
     class TestClassA {
@@ -93,13 +186,15 @@ class HeapAnalysisTest {
       private val a2b = TestClassB(a1string, TestString("TestString2"))
       private val a3b = TestClassB(a1string, TestString("TestString3"))
     }
-    class Root(val o: Any)
 
     val scenario: HProfBuilder.() -> Unit = {
       val a = TestClassA()
-      addRootGlobalJNI(listOf(a, TestClassA(), WeakReference(TestClassA()), WeakReference(a)))
+      addRootGlobalJNI(listOf(MyRef(MyRef(MyRef(a))), TestClassA(), WeakReference(TestClassA()), WeakReference(a)))
       addRootUnknown(TestClassA())
     }
-    runHProfScenario(scenario, "testPathsThroughDifferentFields.txt")
+    runHProfScenario(scenario, "testPathsThroughDifferentFields.txt",
+                     listOf("TestClassB",
+                            "TestClassA",
+                            "TestString"))
   }
 }

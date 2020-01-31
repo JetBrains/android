@@ -17,8 +17,10 @@ package com.android.tools.idea.templates;
 
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 
+import com.android.tools.idea.testing.AndroidGradleTests;
 import java.io.File;
 
+import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.assertAbout;
@@ -27,7 +29,7 @@ import static com.intellij.openapi.util.io.FileUtil.join;
 public class CreateGradleWrapperTest extends AndroidGradleTestCase {
   public void testCreateGradleWrapper() throws Exception {
     File projectFolderPath = getBaseDirPath(getProject());
-    createGradleWrapper(projectFolderPath);
+    AndroidGradleTests.createGradleWrapper(projectFolderPath, GRADLE_LATEST_VERSION);
 
     assertAbout(file()).that(new File(projectFolderPath, "gradlew")).isFile();
     assertAbout(file()).that(new File(projectFolderPath, "gradlew.bat")).isFile();

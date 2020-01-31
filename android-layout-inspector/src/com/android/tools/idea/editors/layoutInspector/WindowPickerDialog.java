@@ -35,7 +35,7 @@ public class WindowPickerDialog extends DialogWrapper {
   @NonNls private static final String WINDOW_PICKER_DIMENSIONS_KEY = "LayoutInspector.WindowPicker.Options.Dimensions";
 
   private final JPanel myPanel;
-  private final JComboBox<ClientWindow> myWindowsCombo;
+  private final JComboBox myWindowsCombo;
 
   @Nullable ClientWindow mySelectedWindow;
 
@@ -45,7 +45,7 @@ public class WindowPickerDialog extends DialogWrapper {
 
     myPanel = new JPanel(new BorderLayout());
 
-    myWindowsCombo = new ComboBox<>(new CollectionComboBoxModel<>(windows));
+    myWindowsCombo = new ComboBox(new CollectionComboBoxModel<ClientWindow>(windows));
     myWindowsCombo.setRenderer(SimpleListCellRenderer.create("", ClientWindow::getDisplayName));
     myWindowsCombo.setSelectedIndex(0);
     myPanel.add(myWindowsCombo, BorderLayout.CENTER);

@@ -18,9 +18,12 @@ package com.android.tools.idea.uibuilder.handlers.constraint
 import com.android.SdkConstants
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.fixtures.ModelBuilder
+import com.android.tools.idea.common.scene.SnappingInfo
+import com.android.tools.idea.common.scene.TemporarySceneComponent
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.applyPlaceholderToSceneComponent
 import com.android.tools.idea.uibuilder.scene.SceneTest
+import com.android.tools.idea.uibuilder.scout.Scout
 import java.awt.Point
 
 class ConstraintPlaceholderTest : SceneTest() {
@@ -55,7 +58,7 @@ class ConstraintPlaceholderTest : SceneTest() {
     val top = constraint.drawY - 30
 
     val p = Point(-1, -1)
-    val snappedResult = placeholder.snap(left, top, left + 10, top + 10, p)
+    val snappedResult = placeholder.snap(SnappingInfo(left, top, left + 10, top + 10), p)
     assertFalse(snappedResult)
     assertEquals(-1, p.x)
     assertEquals(-1, p.y)
@@ -70,7 +73,7 @@ class ConstraintPlaceholderTest : SceneTest() {
     val top = constraint.drawY + 10
 
     val p = Point(-1, -1)
-    val snappedResult = placeholder.snap(left, top, left + 10, top + 10, p)
+    val snappedResult = placeholder.snap(SnappingInfo(left, top, left + 10, top + 10), p)
     assertTrue(snappedResult)
     assertEquals(left, p.x)
     assertEquals(top, p.y)
@@ -173,6 +176,64 @@ class ConstraintPlaceholderTest : SceneTest() {
     }
   }
 
+  fun testDraggingMatchParentComponentFromPalette() {
+    val model = model("linear.xml",
+                      component(SdkConstants.LINEAR_LAYOUT)
+                        .withBounds(0, 0, 100, 100)
+                        .id("@id/match_parent_linear")
+                        .matchParentWidth()
+                        .matchParentHeight()).build()
+
+    // To simulate dragging from Palette, we add a Layout from another model.
+    val root = myScreen.get("@id/constraint").sceneComponent!!
+    val nlComponent = model.find("match_parent_linear")!!
+    val placeholder = ConstraintPlaceholder(root)
+
+    val tempSceneComponent = TemporarySceneComponent(myScene, nlComponent)
+    Scout.setMargin(16)
+
+    // Dragging it into layout
+    val transaction = nlComponent.startAttributeTransaction()
+    placeholder.updateLiveAttribute(tempSceneComponent, transaction, root.drawX + 30, root.drawY + 250)
+    NlWriteCommandActionUtil.run(nlComponent, "") { transaction.commit() }
+
+    assertEquals("16dp", nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X))
+    assertEquals("116dp", nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y))
+    assertEquals("68dp", nlComponent.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH))
+    assertEquals("368dp", nlComponent.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT))
+
+    Scout.setMargin(Scout.DEFAULT_MARGIN)
+  }
+
+  fun testDraggingMatchParentComponentFromPalette2() {
+    val model = model("linear.xml",
+                      component(SdkConstants.LINEAR_LAYOUT)
+                        .withBounds(0, 0, 100, 100)
+                        .id("@id/match_parent_linear")
+                        .matchParentWidth()
+                        .matchParentHeight()).build()
+
+    // To simulate dragging from Palette, we add a Layout from another model.
+    val root = myScreen.get("@id/constraint").sceneComponent!!
+    val nlComponent = model.find("match_parent_linear")!!
+    val placeholder = ConstraintPlaceholder(root)
+
+    val tempSceneComponent = TemporarySceneComponent(myScene, nlComponent)
+    Scout.setMargin(16)
+
+    // Dragging it into layout
+    val transaction = nlComponent.startAttributeTransaction()
+    placeholder.updateLiveAttribute(tempSceneComponent, transaction, root.drawX + 480, root.drawY + 50)
+    NlWriteCommandActionUtil.run(nlComponent, "") { transaction.commit() }
+
+    assertEquals("417dp", nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X))
+    assertEquals("16dp", nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y))
+    assertEquals("67dp", nlComponent.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH))
+    assertEquals("68dp", nlComponent.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT))
+
+    Scout.setMargin(Scout.DEFAULT_MARGIN)
+  }
+
   override fun createModel(): ModelBuilder {
     return model("constraint.xml",
                  component(SdkConstants.CONSTRAINT_LAYOUT.newName())
@@ -203,7 +264,7 @@ class ConstraintPlaceholderTest : SceneTest() {
                        .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, "100dp")
                        .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, "100dp"),
                      component(SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE.newName())
-                       .withBounds(100, 0, 100, 1000)
+                       .withBounds(800, 0, 1, 1000)
                        .id("@id/guideline")
                        .wrapContentHeight()
                        .wrapContentWidth()

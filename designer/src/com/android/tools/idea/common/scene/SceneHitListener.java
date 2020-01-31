@@ -19,7 +19,11 @@ import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.common.scene.target.TargetHelper;
+import com.google.common.collect.ImmutableList;
+import java.awt.event.InputEvent;
 import java.util.function.Predicate;
+import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
@@ -90,19 +94,37 @@ class SceneHitListener {
 
   /**
    * Return the "best" target among the list of targets found by the hit detector.
-   * If more than one target have been found, we pick the top-level target preferably,
-   * unless there's a component selected (in that case, we pick the best top-level target belonging
-   * to a component in the selection)
+   *
+   * If the ALT key is pressed and the cursor is within the bounds of the selected component, the selected component is returned.
+   * Otherwise the top-level component below the cursor is returned.
    *
    * @return preferred target
    */
-  public Target getClosestTarget() {
+  public Target getClosestTarget(@JdkConstants.InputEventMask int modifiersEx) {
     int count = myHitTargets.size();
     if (count == 0) {
       return null;
     }
     List<NlComponent> selection = mySelectionModel.getSelection();
 
+    if ((modifiersEx & InputEvent.ALT_DOWN_MASK) != 0) {
+      // b/132195092: When ALT is pressed, the selected component is hit first. This is a temporary workaround.
+      Target candidate = null;
+      for (int i = count - 1; i >= 0; i--) {
+        Target target = myHitTargets.get(i);
+        if (!selection.contains(target.getComponent().getNlComponent())) {
+          continue;
+        }
+        if (candidate == null || TargetHelper.isAbove(target, candidate)) {
+          candidate = target;
+        }
+      }
+      if (candidate != null) {
+        return candidate;
+      }
+    }
+
+    // Doesn't hit any selected component, check non-selected components.
     Target candidate = myHitTargets.get(count - 1);
     boolean inSelection = parentInSelection(candidate.getComponent(), selection);
     for (int i = count - 2; i >= 0; i--) {
@@ -111,10 +133,7 @@ class SceneHitListener {
       if (inSelection && !targetParentInSelection) {
         continue;
       }
-      if ((!inSelection && targetParentInSelection)
-          || (target.getPreferenceLevel() > candidate.getPreferenceLevel())
-          || (target.getPreferenceLevel() == candidate.getPreferenceLevel()
-              && target.getComponent().getDepth() > candidate.getComponent().getDepth())) {
+      if ((!inSelection && targetParentInSelection) || TargetHelper.isAbove(target, candidate)) {
         candidate = target;
         inSelection = targetParentInSelection;
       }
@@ -147,6 +166,11 @@ class SceneHitListener {
       hit = filteredTarget;
     }
     return hit;
+  }
+
+  @NotNull
+  public ImmutableList<Target> getHitTargets() {
+    return ImmutableList.copyOf(myHitTargets);
   }
 
   /**

@@ -36,7 +36,7 @@ import java.awt.event.KeyEvent
 class StudioRobot(val robot: Robot) : Robot by robot {
 
   companion object {
-    private const val MAX_CHARS_TO_TYPE = 8
+    const val MAX_CHARS_TO_TYPE = 8
   }
 
   @Volatile

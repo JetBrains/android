@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.analytics
 
+import com.android.tools.idea.common.analytics.setApplicationId
 import com.android.tools.idea.common.model.NlModel
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.NavEditorEvent
@@ -34,6 +35,8 @@ class NavUsageTrackerImpl(
         val studioEvent = AndroidStudioEvent.newBuilder()
           .setKind(AndroidStudioEvent.EventKind.NAV_EDITOR_EVENT)
           .setNavEditorEvent(event)
+
+        model?.let { studioEvent.setApplicationId(model.facet) }
 
         eventLogger.accept(studioEvent)
       }

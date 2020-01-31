@@ -20,6 +20,7 @@ import com.android.tools.idea.ui.resourcemanager.createFakeResDirectory
 import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.ui.resourcemanager.model.designAssets
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
@@ -49,10 +50,10 @@ class ResourceImportDialogViewModelTest {
     val fileChooser = createStubFileChooser()
     fileChooser.files = getTestFiles("entertainment/icon_category_entertainment.png")
     viewModel.importMoreAssets { designAssetSet, _ ->
-      assertThat(designAssetSet.designAssets[0].name).isEqualTo("icon_category_entertainment")
+      assertThat(designAssetSet.assets[0].name).isEqualTo("icon_category_entertainment")
     }
     assertThat(viewModel.assetSets).hasSize(1)
-    assertThat(viewModel.assetSets.elementAt(0).designAssets).hasSize(1)
+    assertThat(viewModel.assetSets.elementAt(0).assets).hasSize(1)
 
     fileChooser.files = getTestFiles("entertainment/icon_category_entertainment.svg")
     viewModel.importMoreAssets { designAssetSet, newDesignAssets ->
@@ -62,7 +63,7 @@ class ResourceImportDialogViewModelTest {
                          "icon_category_entertainment.xml")
     }
     assertThat(viewModel.assetSets).hasSize(1)
-    assertThat(viewModel.assetSets.elementAt(0).designAssets).hasSize(2)
+    assertThat(viewModel.assetSets.elementAt(0).assets).hasSize(2)
 
     fileChooser.files = getTestFiles("entertainment/icon_category_entertainment.svg")
     viewModel.importMoreAssets { designAssetSet, newDesignAssets ->
@@ -72,7 +73,7 @@ class ResourceImportDialogViewModelTest {
                          "icon_category_entertainment.xml")
     }
     assertThat(viewModel.assetSets).hasSize(1)
-    assertThat(viewModel.assetSets.elementAt(0).designAssets).hasSize(2)
+    assertThat(viewModel.assetSets.elementAt(0).assets).hasSize(2)
   }
 
   @Test
@@ -87,7 +88,8 @@ class ResourceImportDialogViewModelTest {
       assertThat(newAsset).isNotSameAs(designAssetSet)
       assertThat(newAsset.name).isEqualTo("newName")
     }
-    viewModel.doImport()
+    viewModel.commit()
+    viewModel.summaryScreenViewModel.doImport()
     assertThat(File(first, "drawable/newName.png").exists()).isTrue()
   }
 

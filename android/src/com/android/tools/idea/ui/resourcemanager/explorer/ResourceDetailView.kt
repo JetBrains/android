@@ -18,8 +18,10 @@ package com.android.tools.idea.ui.resourcemanager.explorer
 import com.android.tools.idea.npw.assetstudio.wizard.WrappedFlowLayout
 import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
-import com.android.tools.idea.ui.resourcemanager.model.DesignAssetSet
+import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
+import com.android.tools.idea.ui.resourcemanager.model.designAssets
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetIcon
+import com.android.tools.idea.ui.resourcemanager.rendering.DefaultIconProvider
 import com.android.tools.idea.ui.resourcemanager.widget.AssetView
 import com.android.tools.idea.ui.resourcemanager.widget.Separator
 import com.android.tools.idea.ui.resourcemanager.widget.SingleAssetCard
@@ -55,37 +57,37 @@ import javax.swing.JPanel
 import javax.swing.KeyStroke
 import javax.swing.SwingConstants
 
-private val ASSET_CARD_WIDTH = JBUI.scale(150)
+private val ASSET_CARD_WIDTH get() = JBUI.scale(150)
 
-private val SEPARATOR_BORDER = JBUI.Borders.empty(2, 4)
+private val SEPARATOR_BORDER get() = JBUI.Borders.empty(2, 4)
 
-private val HEADER_PANEL_BORDER = BorderFactory.createCompoundBorder(
+private val HEADER_PANEL_BORDER get() = BorderFactory.createCompoundBorder(
   JBUI.Borders.customLine(JBColor.border(), 0, 0, 1, 0),
   JBUI.Borders.empty(6, 5))
 
-private val BACK_BUTTON_SIZE = JBUI.size(20)
+private val BACK_BUTTON_SIZE get() = JBUI.size(20)
 
 /**
  * A [JPanel] displaying the [DesignAsset]s composing the provided [designAssetSet].
  * When double clicking on the the [DesignAsset], it opens the corresponding file.
  *
- * @param viewModel an existing instance of [ResourceExplorerViewModel]
+ * @param viewModel an existing instance of [ResourceExplorerListViewModel]
  * @param backCallback a callback that will be called to remove this view and show the previous one.
  *                     The callback receives this view as a parameter to allow the parent view to remove it.
  */
 class ResourceDetailView(
-  private val designAssetSet: DesignAssetSet,
-  private val viewModel: ResourceExplorerViewModel,
+  private val designAssetSet: ResourceAssetSet,
+  private val viewModel: ResourceExplorerListViewModel,
   private val backCallback: (ResourceDetailView) -> Unit)
   : JPanel(BorderLayout()), DataProvider {
 
-  private val viewToAsset = WeakHashMap<AssetView, DesignAsset>(designAssetSet.designAssets.size)
+  private val viewToAsset = WeakHashMap<AssetView, DesignAsset>(designAssetSet.assets.size)
   private var lastFocusedAsset: AssetView? = null
 
   private val backAction = object : AnAction(AllIcons.Actions.Back) {
     init {
       templatePresentation.isEnabledAndVisible = true
-      ResourceManagerTracking.logDetailViewOpened(designAssetSet.designAssets.firstOrNull()?.type)
+      ResourceManagerTracking.logDetailViewOpened(designAssetSet.assets.firstOrNull()?.type)
     }
 
     override fun actionPerformed(e: AnActionEvent) = navigateBack()
@@ -110,7 +112,9 @@ class ResourceDetailView(
       (e?.source as? SingleAssetCard)?.let { assetCard ->
         if (lastFocusedAsset != assetCard) {
           lastFocusedAsset?.selected = false
+          lastFocusedAsset?.focused = false
           assetCard.selected = true
+          assetCard.focused = true
           lastFocusedAsset = assetCard
         }
       }
@@ -182,15 +186,20 @@ class ResourceDetailView(
    * The thumbnail is populated asynchronously.
    */
   private fun createAssetCard(asset: DesignAsset) = SingleAssetCard().apply {
-    withChessboard = true
     viewWidth = ASSET_CARD_WIDTH
-    title = asset.qualifiers.joinToString("-") { it.folderSegment }.takeIf { it.isNotBlank() } ?: "default"
-    subtitle = asset.file.name
-    metadata = asset.getDisplayableFileSize()
-    val assetIcon = AssetIcon(viewModel.assetPreviewManager, asset, thumbnailSize.width,
+    viewModel.assetPreviewManager.getDataProvider(asset.type).getAssetData(asset).let { assetData ->
+      title = assetData.title
+      subtitle = assetData.subtitle
+      metadata = assetData.metadata
+    }
+    val previewManager = viewModel.assetPreviewManager
+    val previewProvider = previewManager.getPreviewProvider(asset.type)
+    withChessboard = previewProvider.supportsTransparency
+    val assetIcon = AssetIcon(previewManager, asset, thumbnailSize.width,
                               thumbnailSize.height)
-    thumbnail = JBLabel(assetIcon).apply { verticalAlignment = SwingConstants.CENTER }
-
+    val iconLabel = JBLabel(assetIcon).apply { verticalAlignment = SwingConstants.CENTER }
+    // DefaultIconProvider provides an empty icon, to avoid comparison, we just set the thumbnail to null.
+    thumbnail = if (previewProvider is DefaultIconProvider) null else iconLabel
     // Mouse listener to open the file on double click
     addFocusListener(cardFocusListener)
     addMouseListener(object : MouseAdapter() {
@@ -218,7 +227,7 @@ class ResourceDetailView(
 
   private fun openFile(asset: DesignAsset) {
     ResourceManagerTracking.logAssetOpened(asset.type)
-    viewModel.openFile(asset)
+    viewModel.doSelectAssetAction(asset)
   }
 
   override fun getData(dataId: String): Any? {

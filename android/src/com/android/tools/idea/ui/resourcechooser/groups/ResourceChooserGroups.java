@@ -27,6 +27,7 @@ import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.res.SampleDataResourceItem;
 import com.android.tools.idea.ui.resourcechooser.ResourceChooserItem;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -34,6 +35,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Predicate;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -65,6 +67,9 @@ public class ResourceChooserGroups {
   private static final Predicate<SampleDataResourceItem> ONLY_IMAGES_FILTER =
     (item) -> item.getContentType() == SampleDataResourceItem.ContentType.IMAGE;
   private static final Predicate<SampleDataResourceItem> NOT_IMAGES_FILTER = ONLY_IMAGES_FILTER.negate();
+
+  private static final String SAMPLE_DATA_LABEL = "Sample data";
+  private static final String THEME_ATTRIBUTES_LABEL = "Theme attributes";
 
   private ResourceChooserGroups() {
   }
@@ -130,9 +135,16 @@ public class ResourceChooserGroups {
     assert type != ResourceType.MIPMAP; // We fold these into the drawable category instead
 
     ImmutableList.Builder<ResourceChooserItem> items = ImmutableList.builder();
+    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(facet);
     if (framework) {
-      ResourceRepository frameworkResources =
-        ResourceRepositoryManager.getInstance(facet).getFrameworkResources(type == ResourceType.STRING);
+      Set<String> languages;
+      if (type == ResourceType.STRING) {
+        languages = repositoryManager.getLanguagesInProject();
+      }
+      else {
+        languages = ImmutableSet.of();
+      }
+      ResourceRepository frameworkResources = repositoryManager.getFrameworkResources(languages);
       if (frameworkResources != null) {
         items.addAll(getFrameworkItems(type, includeFileResources, frameworkResources, type));
         if (type == ResourceType.DRAWABLE) {
@@ -142,11 +154,10 @@ public class ResourceChooserGroups {
       }
     }
     else {
-      ResourceRepositoryManager repoManager = ResourceRepositoryManager.getInstance(facet);
-      LocalResourceRepository appResources = repoManager.getAppResources();
+      LocalResourceRepository appResources = repositoryManager.getAppResources();
 
       //noinspection ConstantConditions
-      ResourceVisibilityLookup lookup = FILTER_OUT_PRIVATE_ITEMS ? repoManager.getResourceVisibility() : null;
+      ResourceVisibilityLookup lookup = FILTER_OUT_PRIVATE_ITEMS ? repositoryManager.getResourceVisibility() : null;
       items.addAll(getProjectItems(type, includeFileResources, appResources, lookup));
       if (type == ResourceType.DRAWABLE) {
         // Include mipmaps too
@@ -154,7 +165,9 @@ public class ResourceChooserGroups {
       }
     }
 
-    return new ResourceChooserGroup(label, type, ImmutableList.sortedCopyOf(ITEM_COMPARATOR, items.build()));
+    ImmutableList<ResourceChooserItem> itemList = ImmutableList.sortedCopyOf(ITEM_COMPARATOR, items.build());
+    String fullLabel = label + " (" + itemList.size() + ")";
+    return new ResourceChooserGroup(fullLabel, type, itemList);
   }
 
   @NotNull
@@ -176,8 +189,9 @@ public class ResourceChooserGroups {
       }
       items.add(new ResourceChooserItem.AttrItem(type, framework, simpleName));
     }
-
-    return new ResourceChooserGroup("Theme attributes", type, ImmutableList.sortedCopyOf(ITEM_COMPARATOR, items));
+    ImmutableList<ResourceChooserItem> itemList = ImmutableList.sortedCopyOf(ITEM_COMPARATOR, items);
+    String fullLabel = THEME_ATTRIBUTES_LABEL + " (" + itemList.size() + ")";
+    return new ResourceChooserGroup(fullLabel, type, itemList);
   }
 
   @NotNull
@@ -192,6 +206,8 @@ public class ResourceChooserGroups {
                     .filter(filter)
                     .map(item -> new ResourceChooserItem.SampleDataItem(item))
                     .collect(ImmutableList.toImmutableList());
-    return new ResourceChooserGroup("Sample data", ResourceType.SAMPLE_DATA, ImmutableList.sortedCopyOf(ITEM_COMPARATOR, items));
+    ImmutableList<ResourceChooserItem> itemList = ImmutableList.sortedCopyOf(ITEM_COMPARATOR, items);
+    String fullLabel = SAMPLE_DATA_LABEL + " (" + itemList.size() + ")";
+    return new ResourceChooserGroup(fullLabel, type, itemList);
   }
 }

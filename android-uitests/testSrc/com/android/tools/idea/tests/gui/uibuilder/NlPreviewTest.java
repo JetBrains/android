@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -28,6 +29,8 @@ import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,6 +49,17 @@ import static org.junit.Assert.*;
 public class NlPreviewTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
+
+  @Before
+  public void setUp() {
+    StudioFlags.NELE_SPLIT_EDITOR.override(false);
+  }
+
+  @After
+  public void tearDown() {
+    StudioFlags.NELE_SPLIT_EDITOR.clearOverride();
+  }
 
   @Test
   public void testConfigurationMatching() throws Exception {

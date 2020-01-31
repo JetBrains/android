@@ -15,27 +15,44 @@
  */
 package com.android.tools.idea.tests.gui.editing;
 
+import static com.google.common.truth.Truth.assertThat;
+
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.newpsd.AddLibraryDependencyDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.newpsd.DependenciesPerspectiveConfigurableFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.newpsd.DependenciesPerspectiveConfigurableFixtureKt;
+import com.android.tools.idea.tests.gui.framework.fixture.newpsd.ProjectStructureDialogFixture;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.awt.event.KeyEvent;
+import java.util.Collection;
+import java.util.concurrent.TimeUnit;
+import org.fest.swing.core.KeyPressInfo;
 import org.fest.swing.timing.Wait;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.Collection;
-import java.util.concurrent.TimeUnit;
-
-import static com.google.common.truth.Truth.assertThat;
-
 @RunWith(GuiTestRemoteRunner.class)
 public class PrivateResourceTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+
+  @Before
+  public void setUp() {
+    StudioFlags.NEW_PSD_ENABLED.override(true);
+  }
+
+  @After
+  public void tearDown() {
+    StudioFlags.NEW_PSD_ENABLED.clearOverride();
+  }
 
   /**
    * Verifies that private resources from libraries are not suggested to the
@@ -69,12 +86,17 @@ public class PrivateResourceTest {
     IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("PrivateResource");
 
     ideFrame.invokeMenuPath("File", "Project Structure...");
-    ProjectStructureDialogFixture projectStructure = ProjectStructureDialogFixture.find(ideFrame);
 
-    projectStructure.selectConfigurable("app")
-      .selectDependenciesTab()
-      .addLibraryDependency("com.android.support:design")
-      .clickOk();
+    ProjectStructureDialogFixture dialogFixture = ProjectStructureDialogFixture.Companion.find(ideFrame);
+    DependenciesPerspectiveConfigurableFixture dependenciesFixture =
+      DependenciesPerspectiveConfigurableFixtureKt.selectDependenciesConfigurable(dialogFixture);
+    dependenciesFixture.findModuleSelector().selectModule("app");
+    AddLibraryDependencyDialogFixture addLibraryDependencyFixture = dependenciesFixture.findDependenciesPanel().clickAddLibraryDependency();
+    addLibraryDependencyFixture.findSearchQueryTextBox().enterText("com.android.support:design");
+    addLibraryDependencyFixture.findSearchButton().click();
+    addLibraryDependencyFixture.findVersionsView(true); // Wait for search to complete.
+    addLibraryDependencyFixture.clickOk();
+    dialogFixture.clickOk();
 
     EditorFixture editor = ideFrame.getEditor();
     editor.open("app/src/main/res/layout/activity_main.xml", EditorFixture.Tab.EDITOR, Wait.seconds(30));
@@ -82,17 +104,18 @@ public class PrivateResourceTest {
     guiTest.waitForBackgroundTasks();
 
     String[] autoCompleteSuggestions = editor.waitUntilErrorAnalysisFinishes()
-      .select("(\"@string/app_name\")")
-      .enterText("\"\"")
-      .moveBetween("\"", "\"")
+      // I think the collapsing of string references messes with the select. Hence this moveBetween.
+      .moveBetween("android:text=\"", "@string/app_name\"")
+      .select("(@string/app_name)")
+      .pressAndReleaseKey(KeyPressInfo.keyCode(KeyEvent.VK_BACK_SPACE))
       .enterText("@string/")
       .getAutoCompleteWindow()
       .contents();
 
     // Since the IDE shouldn't show private resource identifiers, the number of
     // suggested string resources should be small. At the time of writing, this
-    // PrivateResource project has 3 suggestions in the autocomplete list
-    assertThat(autoCompleteSuggestions).hasLength(3);
+    // PrivateResource project has 6 suggestions in the autocomplete list
+    assertThat(autoCompleteSuggestions).hasLength(6);
     assertThat(autoCompleteSuggestions).asList().contains("LookupElementBuilder: string=@string/app_name; handler=null");
 
     editor.enterText("abc_action_bar_home_description");

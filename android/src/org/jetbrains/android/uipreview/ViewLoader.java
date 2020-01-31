@@ -15,8 +15,17 @@
  */
 package org.jetbrains.android.uipreview;
 
+import static com.android.SdkConstants.ANDROID_PKG_PREFIX;
+import static com.android.SdkConstants.CLASS_ATTRIBUTE_SET;
+import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_ADAPTER;
+import static com.android.SdkConstants.R_CLASS;
+import static com.android.SdkConstants.VIEW_FRAGMENT;
+import static com.android.SdkConstants.VIEW_INCLUDE;
+import static com.android.tools.idea.LogAnonymizerUtil.anonymize;
+import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
+import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
+
 import android.view.Gravity;
-import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.layoutlib.bridge.MockView;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
@@ -26,6 +35,7 @@ import com.android.tools.idea.rendering.RenderProblem;
 import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.utils.HtmlBuilder;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
@@ -40,22 +50,19 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Ref;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
-import com.intellij.util.ArrayUtil;
 import com.intellij.util.ArrayUtilRt;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.*;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.LogAnonymizerUtil.anonymize;
-import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
-import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 /**
  * Handler for loading views for the layout editor on demand, and reporting issues with class
@@ -105,7 +112,7 @@ public class ViewLoader {
         return null;
       }
 
-      final Manifest manifest = facet.getManifest();
+      final Manifest manifest = Manifest.getMainManifest(facet);
       if (manifest == null) {
         return null;
       }
@@ -124,7 +131,7 @@ public class ViewLoader {
     // its instance, we define a new class which extends the Adapter class.
     if (CLASS_RECYCLER_VIEW_ADAPTER.isEquals(className)) {
       className = RecyclerViewHelper.CN_CUSTOM_ADAPTER;
-      constructorSignature = ArrayUtil.EMPTY_CLASS_ARRAY;
+      constructorSignature = ArrayUtilRt.EMPTY_CLASS_ARRAY;
       constructorArgs = ArrayUtilRt.EMPTY_OBJECT_ARRAY;
     }
     return loadClass(className, constructorSignature, constructorArgs, false);
@@ -567,5 +574,12 @@ public class ViewLoader {
     if (LOG.isDebugEnabled()) {
       LOG.debug(String.format("END loadAndParseRClass(%s)", anonymizeClassName(className)));
     }
+  }
+
+  /**
+   * Returns true if this ViewLoaded has loaded the given class.
+   */
+  public boolean hasLoadedClass(@NotNull String classFqn) {
+    return myLoadedClasses.containsKey(classFqn);
   }
 }

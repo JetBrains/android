@@ -35,7 +35,6 @@ import com.android.resources.ResourceType.STRING
 import com.android.resources.ResourceType.STYLE
 import com.android.resources.ResourceType.STYLEABLE
 import com.android.tools.idea.experimental.codeanalysis.datastructs.Modifier
-import com.android.tools.idea.resources.aar.AarSourceResourceRepository
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleServiceManager
 import gnu.trove.TIntObjectHashMap
@@ -130,23 +129,6 @@ class ResourceIdManager private constructor(val module: Module) : ResourceClassG
       return facet.configuration.isAppProject
              && ResourceRepositoryManager.getInstance(facet).namespacing == AaptOptions.Namespacing.DISABLED
     }
-
-  /**
-   * Looks for resources of type [ResourceType.ID] in R.txt files of all libraries.
-   *
-   * Because currently we don't parse layouts inside AARs, this is used by [com.android.ide.common.resources.ResourceResolver] as a fallback
-   * when it sees reference to an unknown [ResourceType.ID] resource. If this provider knows about the resource in question, the resolver
-   * creates a new [com.android.ide.common.rendering.api.ResourceValue] on the fly.
-   */
-  fun isIdDefinedInRTxt(resource: ResourceReference): Boolean {
-    assert(resource.resourceType == ResourceType.ID)
-
-    return ResourceRepositoryManager.getInstance(facet)
-        .libraryResources
-        .asSequence()
-        .filterIsInstance(AarSourceResourceRepository::class.java)
-        .any { resource.name in it.idsFromRTxt.orEmpty() }
-  }
 
   @Synchronized
   fun findById(id: Int): ResourceReference? = compiledIds?.findById(id) ?: dynamicFromIdMap[id]

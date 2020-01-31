@@ -15,7 +15,14 @@
  */
 package com.android.tools.idea.assistant;
 
-import com.android.tools.idea.assistant.datamodel.*;
+import com.android.tools.idea.assistant.datamodel.ActionData;
+import com.android.tools.idea.assistant.datamodel.FeatureData;
+import com.android.tools.idea.assistant.datamodel.StepData;
+import com.android.tools.idea.assistant.datamodel.StepElementData;
+import com.android.tools.idea.assistant.datamodel.StepElementType;
+import com.android.tools.idea.assistant.datamodel.TutorialBundleData;
+import com.android.tools.idea.assistant.datamodel.TutorialData;
+import com.android.tools.idea.assistant.view.UIUtils;
 import com.android.tools.idea.templates.recipe.Recipe;
 import com.android.utils.FileUtils;
 import com.google.common.collect.ImmutableList;
@@ -26,19 +33,24 @@ import com.intellij.openapi.fileTypes.FileTypes;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.GroovyFileType;
-
-import javax.swing.*;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.bind.annotation.*;
-import javax.xml.transform.stream.StreamSource;
 import java.io.File;
 import java.io.InputStream;
 import java.util.List;
+import javax.swing.BorderFactory;
+import javax.swing.Icon;
+import javax.swing.border.Border;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElements;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlValue;
+import javax.xml.transform.stream.StreamSource;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.groovy.GroovyFileType;
 
 /**
  * JAXB enabled POJO representing "assistant" content organized into features and tutorials.
@@ -90,6 +102,9 @@ public class DefaultTutorialBundle implements TutorialBundleData {
 
   private Class myResourceClass;
 
+  @NotNull
+  private String myBundleCreatorId;
+
   @XmlElements({
     @XmlElement(name = "feature", type = Feature.class)
   })
@@ -97,26 +112,30 @@ public class DefaultTutorialBundle implements TutorialBundleData {
 
 
   public DefaultTutorialBundle() {
+    myBundleCreatorId = "Default";
   }
 
   /**
    * Parse a bundle XML.
    */
-  public static TutorialBundleData parse(@NotNull InputStream stream) throws JAXBException {
-    return parse(stream, DefaultTutorialBundle.class);
+  public static TutorialBundleData parse(@NotNull InputStream stream, @NotNull String bundleCreatorId) throws JAXBException {
+    return parse(stream, DefaultTutorialBundle.class, bundleCreatorId);
   }
 
   /**
    * Parse a bundle XML with a custom class. Used when extending this class.
    */
-  public static <T> T parse(@NotNull InputStream stream, Class<T> clazz) throws JAXBException {
+  public static <T extends TutorialBundleData> T parse(@NotNull InputStream stream,
+                                                       Class<T> clazz, @NotNull String bundleCreatorId) throws JAXBException {
     Unmarshaller unmarshaller = JAXBContext.newInstance(clazz).createUnmarshaller();
     unmarshaller.setEventHandler(event -> {
       getLog().info("Found unhandled xml", event.getLinkedException());
       return true;
     });
 
-    return unmarshaller.unmarshal(new StreamSource(stream), clazz).getValue();
+    T bundleData = unmarshaller.unmarshal(new StreamSource(stream), clazz).getValue();
+    bundleData.setBundleCreatorId(bundleCreatorId);
+    return bundleData;
   }
 
   private static Logger getLog() {
@@ -202,6 +221,17 @@ public class DefaultTutorialBundle implements TutorialBundleData {
   @Override
   public String getWelcome() {
     return myWelcome;
+  }
+
+  @NotNull
+  @Override
+  public String getBundleCreatorId() {
+    return myBundleCreatorId;
+  }
+
+  @Override
+  public void setBundleCreatorId(@NotNull String bundleCreatorId) {
+    myBundleCreatorId = bundleCreatorId;
   }
 
   @SuppressWarnings("unused")
@@ -346,7 +376,9 @@ public class DefaultTutorialBundle implements TutorialBundleData {
     protected String myResourceRoot;
 
     @XmlElements({
-      @XmlElement(name = "step", type = Step.class)
+      @XmlElement(name = "step", type = Step.class),
+      @XmlElement(name = "headerStep", type = HeaderStep.class),
+      @XmlElement(name = "footerStep", type = FooterStep.class)
     })
     private List<Step> mySteps = Lists.newArrayList();
 
@@ -421,14 +453,14 @@ public class DefaultTutorialBundle implements TutorialBundleData {
     }
   }
 
-  public static final class Step implements StepData {
+  public static class Step implements StepData {
     @XmlElements({
       @XmlElement(name = "stepElement", type = StepElement.class)
     })
     private List<StepElement> myStepElements = Lists.newArrayList();
 
     @XmlAttribute(name = "label")
-    private String myLabel;
+    String myLabel;
 
     @Override
     @NotNull
@@ -443,10 +475,43 @@ public class DefaultTutorialBundle implements TutorialBundleData {
     }
 
     @Override
+    @NotNull
+    public Border getBorder() {
+      return BorderFactory.createMatteBorder(0, 0, 0, 0, UIUtils.getSeparatorColor());
+    }
+
+    @Override
+    @NotNull
     public String toString() {
-      return "Step{" +
-             "myLabel='" + myLabel + "'" +
-             '}';
+      return "Step{myLabel='" + myLabel + "'}";
+    }
+  }
+
+  public static final class HeaderStep extends Step {
+    @Override
+    @NotNull
+    public Border getBorder() {
+      return BorderFactory.createMatteBorder(0, 0, 1, 0, UIUtils.getSeparatorColor());
+    }
+
+    @Override
+    @NotNull
+    public String toString() {
+      return "HeaderStep{myLabel='" + myLabel + "'}";
+    }
+  }
+
+  public static final class FooterStep extends Step {
+    @Override
+    @NotNull
+    public Border getBorder() {
+      return BorderFactory.createMatteBorder(1, 0, 0, 0, UIUtils.getSeparatorColor());
+    }
+
+    @Override
+    @NotNull
+    public String toString() {
+      return "FooterStep{myLabel='" + myLabel + "'}";
     }
   }
 
@@ -474,6 +539,9 @@ public class DefaultTutorialBundle implements TutorialBundleData {
     @XmlElement(name = "image", type = Image.class)
     private Image myImage;
 
+    @XmlElement(name = "panel", type = Panel.class)
+    private Panel myPanel;
+
     @Override
     @NotNull
     public StepElementType getType() {
@@ -493,6 +561,9 @@ public class DefaultTutorialBundle implements TutorialBundleData {
       }
       else if (myImage != null) {
         myType = StepElementType.IMAGE;
+      }
+      else if (myPanel != null) {
+        myType = StepElementType.PANEL;
       }
       if (myType == null) {
         throw new RuntimeException("Unsupported StepElement.");
@@ -524,6 +595,12 @@ public class DefaultTutorialBundle implements TutorialBundleData {
     @Override
     public Image getImage() {
       return myImage;
+    }
+
+    @Nullable
+    @Override
+    public Panel getPanel() {
+      return myPanel;
     }
 
     @Override
@@ -612,6 +689,8 @@ public class DefaultTutorialBundle implements TutorialBundleData {
 
     @XmlAttribute(name = "editAction") private String myEditAction;
 
+    @XmlAttribute(name = "highlighted") private boolean myHighlighted;
+
     @XmlElement(name = "recipe", type = Recipe.class)
     private Recipe myRecipe;
 
@@ -638,6 +717,11 @@ public class DefaultTutorialBundle implements TutorialBundleData {
     }
 
     @Override
+    public boolean isHighlighted() {
+      return myHighlighted;
+    }
+
+    @Override
     public Recipe getRecipe() {
       return myRecipe;
     }
@@ -650,6 +734,7 @@ public class DefaultTutorialBundle implements TutorialBundleData {
              ", myActionArgument='" + myActionArgument + "'" +
              ", mySuccessMessage='" + mySuccessMessage + "'" +
              ", myEditAction='" + myEditAction + "'" +
+             ", myHighlighted='" + myHighlighted + "'" +
              ", myRecipe='" + myRecipe + "'" +
              '}';
     }
@@ -673,6 +758,21 @@ public class DefaultTutorialBundle implements TutorialBundleData {
       return toString().equals(otherAction.toString());
     }
 
+  }
+
+  public static final class Panel {
+    @XmlAttribute(name = "factoryId") private String myFactoryId;
+
+    @NotNull
+    public String getFactoryId() {
+      return myFactoryId;
+    }
+
+    @Override
+    @NotNull
+    public String toString() {
+      return "Panel{myFactoryId='" + myFactoryId + "'}";
+    }
   }
 }
 

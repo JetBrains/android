@@ -32,6 +32,6 @@ public class UseEmbeddedJdkHyperlink extends NotificationHyperlink {
   @Override
   protected void execute(@NotNull Project project) {
     ApplicationManager.getApplication().runWriteAction(() -> IdeSdks.getInstance().setUseEmbeddedJdk());
-    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_QF_JDK_CHANGED_TO_EMBEDDED);
+    GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_QF_JDK_CHANGED_TO_EMBEDDED);
   }
 }

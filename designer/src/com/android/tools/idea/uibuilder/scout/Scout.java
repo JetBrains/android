@@ -124,7 +124,7 @@ public class Scout {
     ConnectToParentEnd;
 
     /** Returns the equivalent {@link AnchorTarget.Type} for the source of this connection. */
-    public AnchorTarget.Type getSrcAnchorType() {
+    public AnchorTarget.Type getSrcAnchorType(boolean isRtl) {
       switch (this) {
         case ConnectTopToTop:
         case ConnectTopToBottom:
@@ -137,11 +137,11 @@ public class Scout {
         case ConnectStartToStart:
         case ConnectStartToEnd:
         case ConnectToParentStart:
-          return AnchorTarget.Type.LEFT;
+          return isRtl? AnchorTarget.Type.RIGHT : AnchorTarget.Type.LEFT;
         case ConnectEndToStart:
         case ConnectEndToEnd:
         case ConnectToParentEnd:
-          return AnchorTarget.Type.RIGHT;
+          return isRtl ? AnchorTarget.Type.LEFT : AnchorTarget.Type.RIGHT;
         case ConnectBaseLineToBaseLine:
           return AnchorTarget.Type.BASELINE;
       }
@@ -149,7 +149,7 @@ public class Scout {
     }
 
     /** Returns the equivalent {@link AnchorTarget.Type} for the destination of this connection. */
-    public AnchorTarget.Type getDstAnchorType() {
+    public AnchorTarget.Type getDstAnchorType(boolean isRtl) {
       switch (this) {
         case ConnectTopToTop:
         case ConnectBottomToTop:
@@ -162,11 +162,11 @@ public class Scout {
         case ConnectStartToStart:
         case ConnectEndToStart:
         case ConnectToParentStart:
-          return AnchorTarget.Type.LEFT;
+          return isRtl? AnchorTarget.Type.RIGHT : AnchorTarget.Type.LEFT;
         case ConnectStartToEnd:
         case ConnectEndToEnd:
         case ConnectToParentEnd:
-          return AnchorTarget.Type.RIGHT;
+          return isRtl? AnchorTarget.Type.LEFT : AnchorTarget.Type.RIGHT;
         case ConnectBaseLineToBaseLine:
           return AnchorTarget.Type.BASELINE;
       }

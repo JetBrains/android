@@ -19,14 +19,16 @@ import com.android.tools.adtui.LabelWithEditButton;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.intellij.ui.EditorComboBox;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
+import com.intellij.ui.EditorTextField;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import javax.swing.AbstractButton;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.JTextComponent;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * {@link AbstractProperty} that wraps a Swing component and exposes its text value.
@@ -58,6 +60,11 @@ public final class TextProperty extends StringProperty implements DocumentListen
   public TextProperty(@NotNull EditorComboBox editorComboBox) {
     myComponent = editorComboBox;
     editorComboBox.getDocument().addDocumentListener(this);
+  }
+
+  public TextProperty(@NotNull EditorTextField editorTextField) {
+    myComponent = editorTextField;
+    editorTextField.getDocument().addDocumentListener(this);
   }
 
   @Override
@@ -108,6 +115,9 @@ public final class TextProperty extends StringProperty implements DocumentListen
     else if (myComponent instanceof EditorComboBox) {
       return ((EditorComboBox)myComponent).getText();
     }
+    else if (myComponent instanceof EditorTextField) {
+      return ((EditorTextField)myComponent).getText();
+    }
     else {
       throw new IllegalStateException("Unexpected text component type: " + myComponent.getClass().getSimpleName());
     }
@@ -129,6 +139,9 @@ public final class TextProperty extends StringProperty implements DocumentListen
     }
     else if (myComponent instanceof EditorComboBox) {
       ((EditorComboBox)myComponent).setText(value);
+    }
+    else if (myComponent instanceof EditorTextField) {
+      ((EditorTextField)myComponent).setText(value);
     }
     else {
       throw new IllegalStateException("Unexpected text component type: " + myComponent.getClass().getSimpleName());

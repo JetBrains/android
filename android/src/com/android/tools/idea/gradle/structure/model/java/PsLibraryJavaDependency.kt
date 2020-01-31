@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.model.java
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
 import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency
@@ -37,22 +38,25 @@ import com.android.tools.idea.gradle.structure.model.meta.asString
 import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.gradle.structure.model.meta.property
 import com.android.tools.idea.gradle.structure.model.toLibraryKey
+import com.google.common.base.CaseFormat
 import kotlin.reflect.KProperty
 
 class PsDeclaredLibraryJavaDependency(
-  parent: PsJavaModule,
-  override val parsedModel: ArtifactDependencyModel
+  parent: PsJavaModule
 ) : PsJavaDependency(parent),
     PsLibraryDependency, PsDeclaredDependency, PsDeclaredLibraryDependency {
+  override lateinit var parsedModel: ArtifactDependencyModel ; private set
+
+  fun init(parsedModel: ArtifactDependencyModel) {
+    this.parsedModel = parsedModel
+  }
+
   override val descriptor by Descriptor
-  private val nameResolvedProperty = parsedModel.name()
-  private val groupResolvedProperty = parsedModel.group()
-  private val versionResolvedProperty = parsedModel.version()
   override val spec: PsArtifactDependencySpec
     get() = PsArtifactDependencySpec.create(
-      groupResolvedProperty.toString(),
-      nameResolvedProperty.forceString(),
-      versionResolvedProperty.toString()
+      parsedModel.group().toString(),
+      parsedModel.name().forceString(),
+      parsedModel.version().toString()
     )
 
   override val configurationName: String get() = parsedModel.configurationName()
@@ -94,9 +98,14 @@ class PsDeclaredLibraryJavaDependency(
       })
     }
 
-    private const val MAX_ARTIFACTS_TO_REQUEST = 50  // Note: we do not expect more than one result per repository.
+    private fun preferredVariableName (model: ArtifactDependencyModel): String {
+      val name = model.name().getValue(GradlePropertyModel.STRING_TYPE) ?: return "var"
+      return CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, "$name-version")
+    }
+
     val version: ModelSimpleProperty<PsDeclaredLibraryJavaDependency, String> = property(
       "Version",
+      preferredVariableName = { preferredVariableName(this.parsedModel) },
       resolvedValueGetter = { null },
       parsedPropertyGetter = { this.version() },
       getter = { asString() },

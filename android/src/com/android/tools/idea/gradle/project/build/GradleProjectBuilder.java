@@ -15,23 +15,22 @@
  */
 package com.android.tools.idea.gradle.project.build;
 
+import static com.android.tools.idea.gradle.util.BuildMode.CLEAN;
+import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
+import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
+
 import com.android.tools.idea.gradle.project.BuildSettings;
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.project.AndroidProjectInfo;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-
-import static com.android.tools.idea.gradle.util.BuildMode.*;
 
 /**
  * Builds a project, regardless of the compiler strategy being used (JPS or "direct Gradle invocation.")
@@ -78,9 +77,6 @@ public final class GradleProjectBuilder {
   }
 
   private void doGenerateSources(boolean cleanProject) {
-    if (!isSourceGenerationEnabled()) {
-      return;
-    }
     if (AndroidProjectInfo.getInstance(myProject).requiresAndroidModel()) {
       if (GradleProjectInfo.getInstance(myProject).isDirectGradleBuildEnabled()) {
         if (cleanProject) {
@@ -92,21 +88,6 @@ public final class GradleProjectBuilder {
       }
       buildProjectWithJps(SOURCE_GEN);
     }
-  }
-
-  public boolean isSourceGenerationEnabled() {
-    if (AndroidProjectInfo.getInstance(myProject).requiresAndroidModel()) {
-      int moduleCount = ModuleManager.getInstance(myProject).getModules().length;
-      GradleExperimentalSettings settings = GradleExperimentalSettings.getInstance();
-      return isSourceGenerationEnabled(settings, moduleCount);
-    }
-    return false;
-  }
-
-  @VisibleForTesting
-  @Contract(pure = true)
-  static boolean isSourceGenerationEnabled(@NotNull GradleExperimentalSettings settings, int moduleCount) {
-    return !settings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC || moduleCount <= settings.MAX_MODULE_COUNT_FOR_SOURCE_GEN;
   }
 
   private void buildProjectWithJps(@NotNull BuildMode buildMode) {

@@ -25,7 +25,7 @@ import com.android.tools.profiler.proto.Transport.EventGroup;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsResponse;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
-import com.android.tools.profiler.protobuf3jarjar.ByteString;
+import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.intellij.openapi.util.text.StringUtil;
 import java.util.ArrayList;
@@ -151,7 +151,7 @@ public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
     }
 
     BytesRequest request = BytesRequest.newBuilder()
-      .setStreamId(mySession.getStartTimestamp())
+      .setStreamId(mySession.getStreamId())
       .setId(id)
       .build();
 

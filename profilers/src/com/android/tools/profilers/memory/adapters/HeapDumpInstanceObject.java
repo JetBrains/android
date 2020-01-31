@@ -15,10 +15,10 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.perflib.heap.*;
 import com.android.tools.perflib.heap.ClassInstance.FieldValue;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
+import com.android.tools.profiler.proto.Memory.AllocationStack;
 import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -50,19 +50,15 @@ class HeapDumpInstanceObject implements InstanceObject {
   @NotNull protected ValueType myValueType;
 
   @NotNull private final HeapDumpCaptureObject myCaptureObject;
-  @Nullable private final InstanceObject myClassInstanceObject;
   @NotNull private final Instance myInstance;
   @NotNull private final ClassDb.ClassEntry myClassEntry;
   @NotNull private final String myMemoizedLabel;
 
-  @VisibleForTesting(visibility = VisibleForTesting.Visibility.PACKAGE)
-  public HeapDumpInstanceObject(@NotNull HeapDumpCaptureObject captureObject,
-                                @Nullable InstanceObject classInstanceObject,
-                                @NotNull Instance instance,
-                                @NotNull ClassDb.ClassEntry classEntry,
-                                @Nullable ValueType precomputedValueType) {
+  HeapDumpInstanceObject(@NotNull HeapDumpCaptureObject captureObject,
+                         @NotNull Instance instance,
+                         @NotNull ClassDb.ClassEntry classEntry,
+                         @Nullable ValueType precomputedValueType) {
     myCaptureObject = captureObject;
-    myClassInstanceObject = classInstanceObject;
     myInstance = instance;
     myClassEntry = classEntry;
 
@@ -150,12 +146,6 @@ class HeapDumpInstanceObject implements InstanceObject {
   @Override
   public ClassDb.ClassEntry getClassEntry() {
     return myClassEntry;
-  }
-
-  @Nullable
-  @Override
-  public InstanceObject getClassObject() {
-    return myClassInstanceObject;
   }
 
   @Override
@@ -309,7 +299,7 @@ class HeapDumpInstanceObject implements InstanceObject {
     return getIsRoot() ? Collections.EMPTY_LIST : extractReferences();
   }
 
-  @VisibleForTesting(visibility = VisibleForTesting.Visibility.PRIVATE)
+  @VisibleForTesting
   @NotNull
   public List<ReferenceObject> extractReferences() {
     // Sort hard referrers to appear first.

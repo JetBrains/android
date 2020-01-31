@@ -15,21 +15,15 @@
  */
 package com.android.tools.idea.lint;
 
+import static com.android.tools.lint.checks.CheckResultDetector.CHECK_RESULT;
+
 import com.android.tools.lint.detector.api.LintFix;
-import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.util.TextRange;
-import com.intellij.psi.*;
-import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
-import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.android.tools.lint.checks.CheckResultDetector.CHECK_RESULT;
 
 public class AndroidLintCheckResultInspection extends AndroidLintInspectionBase {
   public AndroidLintCheckResultInspection() {
@@ -42,77 +36,11 @@ public class AndroidLintCheckResultInspection extends AndroidLintInspectionBase 
                                              @NotNull PsiElement endElement,
                                              @NotNull String message,
                                              @Nullable LintFix fixData) {
-    String suggest = LintFix.getData(fixData, String.class);
-    if (suggest != null) {
-      return new AndroidLintQuickFix[]{ new ReplaceCallFix(suggest) };
+    String suggested = LintFix.getData(fixData, String.class);
+    if (suggested != null) {
+      return new AndroidLintQuickFix[]{ new ReplaceCallFix(suggested) };
     }
 
     return super.getQuickFixes(startElement, endElement, message, fixData);
-  }
-
-  static class ReplaceCallFix extends DefaultLintQuickFix {
-    private final String mySuggest;
-
-    public ReplaceCallFix(@NotNull String suggest) {
-      super(null);
-      mySuggest = suggest;
-    }
-
-    @Nls
-    @NotNull
-    @Override
-    public String getName() {
-      return String.format("Call %1$s instead", getMethodName());
-    }
-
-    private String getMethodName() {
-      assert mySuggest.startsWith("#");
-      int start = 1;
-      int parameters = mySuggest.indexOf('(', start);
-      if (parameters == -1) {
-        parameters = mySuggest.length();
-      }
-      return mySuggest.substring(start, parameters).trim();
-    }
-
-    @Override
-    public void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull AndroidQuickfixContexts.Context context) {
-      if (!startElement.isValid()) {
-        return;
-      }
-      PsiMethodCallExpression methodCall = PsiTreeUtil.getParentOfType(startElement, PsiMethodCallExpression.class, false);
-      if (methodCall == null) {
-        return;
-      }
-      final PsiFile file = methodCall.getContainingFile();
-      if (file == null) {
-        return;
-      }
-
-      Document document = FileDocumentManager.getInstance().getDocument(file.getVirtualFile());
-      if (document != null) {
-        PsiReferenceExpression methodExpression = methodCall.getMethodExpression();
-        PsiElement referenceNameElement = methodExpression.getReferenceNameElement();
-        if (referenceNameElement != null) {
-          TextRange range = referenceNameElement.getTextRange();
-          if (range != null) {
-            // Also need to insert a message parameter
-            // Currently hardcoded for the check*Permission to enforce*Permission code path. It's
-            // tricky to figure out in general how to map existing parameters to new
-            // parameters. Consider using MethodSignatureInsertHandler.
-            String name = getMethodName();
-            if (name.startsWith("enforce") && methodExpression.getReferenceName() != null
-                && methodExpression.getReferenceName().startsWith("check")) {
-              PsiExpressionList argumentList = methodCall.getArgumentList();
-              int offset = argumentList.getTextOffset() + argumentList.getTextLength() - 1;
-              document.insertString(offset, ", \"TODO: message if thrown\"");
-            }
-
-            // Replace method call
-            document.replaceString(range.getStartOffset(), range.getEndOffset(), name);
-          }
-        }
-      }
-    }
   }
 }

@@ -168,7 +168,7 @@ class ResourceFolderManager(val module: Module) : ModificationTracker, Disposabl
 
   private fun computeFolders(facet: AndroidFacet): Folders {
     return if (!facet.requiresAndroidModel()) {
-      Folders(main = facet.mainIdeaSourceProvider.resDirectories.toList(), test = emptyList())
+      Folders(main = SourceProviderManager.getInstance(facet).mainIdeaSourceProvider.resDirectories.toList(), test = emptyList())
     }
     else {
       // Listen to root change events. Be notified when project is initialized so we can update the
@@ -183,14 +183,14 @@ class ResourceFolderManager(val module: Module) : ModificationTracker, Disposabl
     val mainResDirectories = readFromModel(
       facet,
       moduleModel,
-      IdeaSourceProvider::getCurrentSourceProviders,
+      IdeaSourceProvider.Companion::getCurrentSourceProviders,
       AndroidModuleModel::getMainArtifact
     )
 
     val testResDirectories = readFromModel(
       facet,
       moduleModel,
-      IdeaSourceProvider::getCurrentTestSourceProviders,
+      IdeaSourceProvider.Companion::getCurrentTestSourceProviders,
       AndroidModuleModel::getArtifactForAndroidTest
     )
 

@@ -118,7 +118,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     });
   }
 
-  public void refreshProjectFiles() {
+  public static void refreshProjectFiles() {
     ApplicationManager.getApplication().invokeAndWait(() -> {
       // With IJ14 code base, we run tests with NO_FS_ROOTS_ACCESS_CHECK turned on. I'm not sure if that
       // is the cause of the issue, but not all files inside a project are seen while running unit tests.
@@ -154,12 +154,16 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     return myFixture.getProject();
   }
 
-  protected void ensureSdkManagerAvailable() {
+  public void ensureSdkManagerAvailable() {
+    ensureSdkManagerAvailable(getTestRootDisposable());
+  }
+
+  public static void ensureSdkManagerAvailable(@NotNull Disposable testRootDisposable) {
     ApplicationManager.getApplication().invokeAndWait(() -> {
       AndroidSdks androidSdks = AndroidSdks.getInstance();
       AndroidSdkData sdkData = androidSdks.tryToChooseAndroidSdk();
       if (sdkData == null) {
-        sdkData = createTestSdkManager();
+        sdkData = AndroidTestBase.createTestSdkManager(testRootDisposable);
         if (sdkData != null) {
           androidSdks.setSdkData(sdkData);
         }
@@ -169,8 +173,8 @@ public abstract class AndroidTestBase extends UsefulTestCase {
   }
 
   @Nullable
-  protected AndroidSdkData createTestSdkManager() {
-    VfsRootAccess.allowRootAccess(getTestRootDisposable(), TestUtils.getSdk().toString());
+  public static AndroidSdkData createTestSdkManager(@NotNull Disposable testRootDisposable) {
+    VfsRootAccess.allowRootAccess(testRootDisposable, TestUtils.getSdk().toString());
     Sdk androidSdk = Sdks.createLatestAndroidSdk();
     AndroidSdkAdditionalData data = AndroidSdks.getInstance().getAndroidSdkAdditionalData(androidSdk);
     if (data != null) {

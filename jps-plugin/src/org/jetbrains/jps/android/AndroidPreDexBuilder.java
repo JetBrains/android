@@ -1,4 +1,3 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android;
 
 import com.android.tools.idea.jps.AndroidTargetBuilder;
@@ -50,7 +49,7 @@ public class AndroidPreDexBuilder extends AndroidTargetBuilder<AndroidPreDexBuil
       return srcFile.getName();
     }
     final int hashCode = canonicalPath.hashCode();
-    return FileUtilRt.getNameWithoutExtension(srcFile.getName()) + "-" +
+    return FileUtil.getNameWithoutExtension(srcFile) + "-" +
            Integer.toHexString(hashCode) + ".jar";
   }
 
@@ -68,7 +67,7 @@ public class AndroidPreDexBuilder extends AndroidTargetBuilder<AndroidPreDexBuil
                                  @NotNull DirtyFilesHolder<AndroidPreDexBuildTarget.MyRootDescriptor, AndroidPreDexBuildTarget> holder,
                                  @NotNull BuildOutputConsumer outputConsumer,
                                  @NotNull CompileContext context) throws IOException, ProjectBuildException {
-    final List<Pair<File, String>> filesToPreDex = new ArrayList<>();
+    final List<Pair<File, String>> filesToPreDex = new ArrayList<Pair<File, String>>();
 
     holder.processDirtyFiles(new FileProcessor<AndroidPreDexBuildTarget.MyRootDescriptor, AndroidPreDexBuildTarget>() {
       @Override

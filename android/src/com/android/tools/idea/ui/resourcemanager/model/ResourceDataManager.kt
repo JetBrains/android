@@ -20,7 +20,6 @@ import com.android.ide.common.resources.ResourceItem
 import com.android.resources.FolderTypeRelationship
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceUrl
-import com.android.tools.idea.res.LocalResourceRepository
 import com.intellij.find.findUsages.PsiElement2UsageTargetAdapter
 import com.intellij.ide.CopyProvider
 import com.intellij.openapi.actionSystem.DataContext
@@ -36,7 +35,6 @@ import org.jetbrains.android.util.AndroidResourceUtil
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
 
-
 /**
  * [DataFlavor] for [ResourceUrl]
  */
@@ -50,9 +48,9 @@ private val SUPPORTED_DATA_FLAVORS = arrayOf(RESOURCE_URL_FLAVOR, DataFlavor.str
  */
 class ResourceDataManager(var facet: AndroidFacet) : CopyProvider {
 
-  private var selectedItems: List<DesignAsset>? = null
+  private var selectedItems: List<Asset>? = null
 
-  fun getData(dataId: String?, selectedAssets: List<DesignAsset>): Any? {
+  fun getData(dataId: String?, selectedAssets: List<Asset>): Any? {
     this.selectedItems = selectedAssets
     return when (dataId) {
       LangDataKeys.PSI_ELEMENT.name -> assetsToSingleElement()
@@ -78,7 +76,7 @@ class ResourceDataManager(var facet: AndroidFacet) : CopyProvider {
 
   private fun assetsToArrayPsiElements(): Array<out PsiElement> =
     selectedItems
-      ?.mapNotNull(DesignAsset::resourceItem)
+      ?.mapNotNull(Asset::resourceItem)
       ?.mapNotNull(this::findPsiElement)
       ?.filter { it.manager.isInProject(it) }
       ?.toTypedArray() ?: emptyArray()
@@ -90,8 +88,7 @@ class ResourceDataManager(var facet: AndroidFacet) : CopyProvider {
     var psiElement: PsiElement? = null
     if (!resourceItem.isFileBased
         && ResourceFolderType.VALUES in FolderTypeRelationship.getRelatedFolders(resourceItem.type)) {
-      psiElement = LocalResourceRepository
-        .getItemTag(facet.module.project, resourceItem)
+      psiElement = AndroidResourceUtil.getItemTag(facet.module.project, resourceItem)
         ?.getAttribute(SdkConstants.ATTR_NAME)?.valueElement
     }
 
@@ -118,12 +115,16 @@ class ResourceDataManager(var facet: AndroidFacet) : CopyProvider {
   }
 }
 
-fun createTransferable(assetSet: DesignAsset): Transferable {
+fun createTransferable(assetSet: Asset): Transferable {
+  val resourceUrl = assetSet.resourceItem.referenceToSelf.resourceUrl
+
   return object : Transferable {
-    override fun getTransferData(flavor: DataFlavor?): Any? = when (flavor) {
-      RESOURCE_URL_FLAVOR -> getResourceUrl(assetSet)
-      DataFlavor.stringFlavor -> getResourceUrl(assetSet).toString()
-      else -> null
+    override fun getTransferData(flavor: DataFlavor?): Any? {
+      return when (flavor) {
+        RESOURCE_URL_FLAVOR -> resourceUrl
+        DataFlavor.stringFlavor -> resourceUrl.toString()
+        else -> null
+      }
     }
 
     override fun isDataFlavorSupported(flavor: DataFlavor?): Boolean = flavor in SUPPORTED_DATA_FLAVORS
@@ -132,6 +133,3 @@ fun createTransferable(assetSet: DesignAsset): Transferable {
 
   }
 }
-
-private fun getResourceUrl(asset: DesignAsset) =
-  asset.resourceItem.referenceToSelf.resourceUrl

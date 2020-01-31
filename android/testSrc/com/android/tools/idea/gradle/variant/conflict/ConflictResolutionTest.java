@@ -25,7 +25,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
@@ -39,7 +39,7 @@ import static com.android.tools.idea.Projects.getBaseDirPath;
 
 
 
-public class ConflictResolutionTest extends IdeaTestCase {
+public class ConflictResolutionTest extends PlatformTestCase {
   private AndroidProjectStub myAppModel;
 
   // All possible variants for the :app module.
@@ -160,7 +160,7 @@ public class ConflictResolutionTest extends IdeaTestCase {
 
       File rootDirPath = getBaseDirPath(myProject);
       AndroidModuleModel model =
-        new AndroidModuleModel(myModule.getName(), rootDirPath, myAppModel, appVariant.getName(), myDependenciesFactory);
+        AndroidModuleModel.create(myModule.getName(), rootDirPath, myAppModel, appVariant.getName(), myDependenciesFactory);
       facet.setModel(model);
       facetModel.addFacet(facet);
     }
@@ -176,9 +176,8 @@ public class ConflictResolutionTest extends IdeaTestCase {
       AndroidFacet androidFacet = createFacet(facetManager, PROJECT_TYPE_LIBRARY);
 
       File moduleFilePath = new File(myLibModule.getModuleFilePath());
-      AndroidModuleModel model =
-        new AndroidModuleModel(myModule.getName(), moduleFilePath.getParentFile(), myLibModel, libVariant.getName(),
-                               myDependenciesFactory);
+      AndroidModuleModel model = AndroidModuleModel
+        .create(myModule.getName(), moduleFilePath.getParentFile(), myLibModel, libVariant.getName(), myDependenciesFactory);
       androidFacet.setModel(model);
 
       facetModel.addFacet(androidFacet);

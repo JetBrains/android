@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.npw.importing;
 
-import com.android.annotations.VisibleForTesting;
-import com.android.tools.adtui.validation.Validator;
-import com.android.tools.adtui.validation.ValidatorPanel;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
@@ -25,6 +23,8 @@ import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.observable.ui.VisibleProperty;
+import com.android.tools.adtui.validation.Validator;
+import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
 import com.google.common.base.Strings;
@@ -70,15 +70,15 @@ public final class ArchiveToGradleModuleStep extends SkippableWizardStep<Archive
                                           new FileChooserDescriptor(true, false, true, true, false, false)
                                             .withFileFilter(ArchiveToGradleModuleStep::isValidExtension));
 
-    myBindings.bindTwoWay(new TextProperty(myArchivePath.getTextField()), model.archive());
-    myBindings.bindTwoWay(new TextProperty(myGradlePath), model.gradlePath());
+    myBindings.bindTwoWay(new TextProperty(myArchivePath.getTextField()), model.archive);
+    myBindings.bindTwoWay(new TextProperty(myGradlePath), model.gradlePath);
 
     // Note: model.inModule() depends on the value of model.archive(), so lets setup model.archive() first
-    myListeners.listenAndFire(model.archive(), archivePath -> model.gradlePath().set(Files.getNameWithoutExtension(archivePath)));
+    myListeners.listenAndFire(model.archive, archivePath -> model.gradlePath.set(Files.getNameWithoutExtension(archivePath)));
 
     SelectedProperty removeOriginal = new SelectedProperty(myRemoveOriginalFileCheckBox);
-    myBindings.bind(model.moveArchive(), removeOriginal.and(model.inModule()));
-    myBindings.bind(removeOriginal, model.moveArchive());
+    myBindings.bind(model.moveArchive, removeOriginal.and(model.inModule()));
+    myBindings.bind(removeOriginal, model.moveArchive);
     myBindings.bind(new VisibleProperty(myRemoveOriginalFileCheckBox), model.inModule());
   }
 
@@ -90,8 +90,8 @@ public final class ArchiveToGradleModuleStep extends SkippableWizardStep<Archive
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
     ArchiveToGradleModuleModel model = getModel();
-    myValidatorPanel.registerValidator(model.archive(), new ArchiveValidator());
-    myValidatorPanel.registerValidator(model.gradlePath(), new GradleValidator(model.getProject()));
+    myValidatorPanel.registerValidator(model.archive, new ArchiveValidator());
+    myValidatorPanel.registerValidator(model.gradlePath, new GradleValidator(model.getProject()));
   }
 
   @Override

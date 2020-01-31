@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.structure.model.helpers.parseInt
 import com.android.tools.idea.gradle.structure.model.helpers.parseString
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Assume.assumeTrue
 import org.junit.Test
 
 class ModelListPropertyImplTest : GradleFileModelTestCase() {
@@ -52,6 +53,7 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
 
   @Test
   fun testPropertyValues() {
+    assumeTrue(isGroovy())
     val text = """
                ext {
                  propB = "2"
@@ -98,6 +100,7 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
 
   @Test
   fun testWritePropertyValues() {
+    assumeTrue(isGroovy())
     val text = """
                ext {
                  propB = "2"
@@ -150,6 +153,7 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddRemoveValues() {
+    assumeTrue(isGroovy())
     val text = """
                ext {
                  propB = "2"
@@ -203,6 +207,7 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
 
   @Test
   fun testInsertRemoveValues() {
+    assumeTrue(isGroovy())
     val text = """
                ext {
                  propB = "2"
@@ -252,6 +257,7 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
 
   @Test
   fun testRebindResolvedProperty() {
+    assumeTrue(isGroovy())
     val text = """
                ext {
                  propList = [1]

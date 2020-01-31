@@ -32,10 +32,10 @@ import java.util.List;
 
 public class ResourceTablePanel {
   private JPanel myContainer;
-  private ComboBox<PackageChunk> myPackageCombo;
+  private ComboBox myPackageCombo;
 
   private Splitter mySplitter;
-  private JBList<TypeSpecChunk> myTypesList;
+  private JBList myTypesList;
   private JBTable myResourceTypeTable;
   private SimpleColoredComponent myResourceTableHeader;
 
@@ -60,9 +60,12 @@ public class ResourceTablePanel {
     myTypesList.setModel(new CollectionListModel<>(packageChunk.getTypeSpecChunks()));
     myTypesList.setCellRenderer(SimpleListCellRenderer.create("", TypeSpecChunk::getTypeName));
     myTypesList.addListSelectionListener(e -> {
-      TypeSpecChunk typeSpecChunk = myTypesList.getSelectedValue();
-      if (typeSpecChunk == null) return;
+      Object selectedValue = myTypesList.getSelectedValue();
+      if (!(selectedValue instanceof TypeSpecChunk)) {
+        return;
+      }
 
+      TypeSpecChunk typeSpecChunk = (TypeSpecChunk)selectedValue;
       myResourceTypeTable
         .setModel(new ResourceTypeTableModel(resourceTableChunk.getStringPool(), packageChunk, typeSpecChunk));
 
@@ -84,7 +87,7 @@ public class ResourceTablePanel {
 
   private void createUIComponents() {
     JBLabel label = new JBLabel("Resource Types");
-    myTypesList = new JBList<>();
+    myTypesList = new JBList();
 
     JPanel resourceTypesPanel = new JPanel(new BorderLayout());
     resourceTypesPanel.setBorder(IdeBorderFactory.createBorder(SideBorder.TOP));

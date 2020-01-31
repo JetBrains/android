@@ -139,7 +139,7 @@ public class SimpleGradleEntityUi implements GradleEditorEntityUi<AbstractSimple
     }
 
     public void bind(@NotNull AbstractSimpleGradleEditorEntity entity, @NotNull Project project, @NotNull JTable table, boolean editing) {
-      myTableRef = new WeakReference<>(table);
+      myTableRef = new WeakReference<JTable>(table);
       myName.setText(entity.getName() + ":");
       String currentValue = entity.getCurrentValue();
       mySimpleValue.setText(currentValue);

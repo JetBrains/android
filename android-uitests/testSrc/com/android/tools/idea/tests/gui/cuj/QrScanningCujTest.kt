@@ -21,10 +21,10 @@ import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.ScreenshotsDuringTest
 import com.android.tools.idea.tests.gui.framework.TestGroup
-import com.android.tools.idea.tests.gui.framework.fixture.ChooseResourceDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceFileDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.MoveFilesOrDirectoriesDialogFixture
+import com.android.tools.idea.tests.gui.framework.fixture.ResourceExplorerDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.ResourceExplorerFixture
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.AssetStudioWizardFixture
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.openPsd
@@ -32,11 +32,11 @@ import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectDependenc
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.core.MouseButton
 import org.intellij.lang.annotations.Language
-import java.io.IOException
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.awt.event.KeyEvent
+import java.io.IOException
+import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 
 /**
@@ -63,7 +63,8 @@ class QrScanningCujTest {
       .waitForBuildToFinish(BuildMode.ASSEMBLE)
 
     // Add constraint layout dependency from the PSD
-    ide.openPsd()
+    ide.run {
+      openPsd()
       .run {
         selectDependenciesConfigurable().run {
           findModuleSelector().selectModule("app")
@@ -78,14 +79,15 @@ class QrScanningCujTest {
         }
         clickOk()
       }
-      .waitForGradleProjectSyncToFinish()
+      waitForGradleProjectSyncToFinish()
+    }
 
     // Create new layout file
     ide.run {
       projectView
         .selectAndroidPane()
         .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "layout")
-        .openFromContextualMenu({ CreateResourceFileDialogFixture.find(it) }, arrayOf("New", "Layout resource file"))
+        .openFromContextualMenu({ CreateResourceFileDialogFixture.find(it) }, arrayOf("New", "Layout Resource File"))
         .setFilename("activity_main_qr_scan")
         .setRootElement("android.support.constraint.ConstraintLayout")
         .clickOk()
@@ -128,10 +130,10 @@ class QrScanningCujTest {
     ide.editor
       .getLayoutEditor(false).run {
         dragComponentToSurface("Common", "ImageView")
-        ChooseResourceDialogFixture.find(robot()).run {
-          searchField.setText("ic_qr")
-            .pressAndReleaseKeys(KeyEvent.VK_DOWN)
-          clickOK()
+        ResourceExplorerDialogFixture.find(robot()).run {
+          resourceExplorer.searchField.setText("ic_qr")
+          resourceExplorer.selectResource("ic_qr_code")
+          clickOk()
         }
         waitForRenderToFinish()
         findView("ImageView", 0)
@@ -161,6 +163,9 @@ class QrScanningCujTest {
       .open("app/build.gradle")
       .moveBetween("dependencies {\n", "")
       .typeText("    implementation 'com.google.android.gms:play-services-vision:+'\n")
+      // play-services-vision uses AndroidX, so we need to add the following property (see bug 130286699). Eventually, all the dependencies
+      // used in this test project should be upgraded to AndroidX.
+      .newFile(Paths.get("gradle.properties"), "android.useAndroidX=true")
       .ideFrame
       .requestProjectSync()
       .waitForGradleProjectSyncToFinish()
@@ -174,25 +179,29 @@ class QrScanningCujTest {
       .clickOk()
 
     // Create a new vector drawable from an icon available in the Vector Asset Wizard
-    ide.openFromMenu({ AssetStudioWizardFixture.find(it) }, arrayOf("File", "New", "Vector Asset")).run {
-      switchToClipArt()
-      chooseIcon()
-        .filterByNameAndSelect("flash on")
-        .clickOk()
-      setName("ic_flash_on_white_24dp")
-      setColor("FFFFFF")
-      clickNext()
-      clickFinish()
-    }
+    ide.openResourceManager()
+      .run {
+        ResourceExplorerFixture.find(robot())
+          .clickAddButton()
+        openFromContextualMenu({ AssetStudioWizardFixture.find(it) }, arrayOf("Vector Asset"))
+          .switchToClipArt()
+          .chooseIcon()
+          .filterByNameAndSelect("flash on")
+          .clickOk()
+          .setName("ic_flash_on_white_24dp")
+          .setColor("FFFFFF")
+          .clickNext()
+          .clickFinish()
+      }.closeResourceManager()
 
     // Add an ImageView by dragging it from the palette in the preview, and select ic_flash_on_white_24dp as the source
     ide.editor
-      .getLayoutPreview(false).run {
+      .getLayoutEditor(false).run {
         dragComponentToSurface("Common", "ImageView")
-        ChooseResourceDialogFixture.find(robot()).run {
-          searchField.setText("ic_flash_on_white")
-            .pressAndReleaseKeys(KeyEvent.VK_DOWN)
-          clickOK()
+        ResourceExplorerDialogFixture.find(robot()).run {
+          resourceExplorer.searchField.setText("ic_flash_on_white")
+          resourceExplorer.selectResource("ic_flash_on_white_24dp")
+          clickOk()
         }
       }
 
@@ -210,7 +219,7 @@ class QrScanningCujTest {
     ide.projectView
       .selectAndroidPane()
       .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "layout")
-      .openFromContextualMenu({ CreateResourceFileDialogFixture.find(it) }, arrayOf("New", "Layout resource file"))
+      .openFromContextualMenu({ CreateResourceFileDialogFixture.find(it) }, arrayOf("New", "Layout Resource File"))
       .setFilename("barcode_capture")
       .setRootElement("FrameLayout")
       .clickOk()

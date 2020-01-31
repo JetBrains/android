@@ -23,8 +23,8 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.BrowserHyperlinkListener;
 import com.intellij.ui.awt.RelativePoint;
-import com.intellij.ui.scale.JBUIScale;
-import com.intellij.util.ui.StartupUiUtil;
+import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,9 +49,9 @@ public class GotItMessage {
     myTitle = title;
     myMessage =
       "<html><body><div style='font-family: " +
-      StartupUiUtil.getLabelFont().getFontName() +
+      UIUtil.getLabelFont().getFontName() +
       "; font-size: " +
-      JBUIScale.scale(12) +
+      JBUI.scale(12) +
       "pt; color: " +
       GotItPanel.TEXT_COLOR +
       ";'>" +

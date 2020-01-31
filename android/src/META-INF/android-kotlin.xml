@@ -11,7 +11,6 @@
     </extensionPoints>
 
     <extensions defaultExtensionNs="com.intellij">
-        <gotoDeclarationHandler implementation="org.jetbrains.kotlin.android.navigation.KotlinAndroidGotoDeclarationHandler"/>
 
         <moduleService serviceInterface="org.jetbrains.kotlin.android.synthetic.res.AndroidLayoutXmlFileManager"
                        serviceImplementation="org.jetbrains.kotlin.android.synthetic.idea.res.IDEAndroidLayoutXmlFileManager"/>
@@ -40,8 +39,6 @@
                          enabledByDefault="true"
                          level="ERROR"
                          language="kotlin" />
-
-        <codeInsight.lineMarkerProvider language="kotlin" implementationClass="org.jetbrains.kotlin.android.KotlinAndroidLineMarkerProvider"/>
 
         <intentionAction>
             <className>org.jetbrains.kotlin.android.intention.KotlinAndroidAddStringResource</className>
@@ -84,13 +81,17 @@
 
         <lang.foldingBuilder language="kotlin" implementationClass="org.jetbrains.kotlin.android.folding.ResourceFoldingBuilder" />
 
-        <annotator language="kotlin" implementationClass="org.jetbrains.kotlin.android.AndroidResourceReferenceAnnotator" />
         <externalAnnotator language="kotlin" implementationClass="org.jetbrains.kotlin.android.AndroidKotlinResourceExternalAnnotator" />
 
         <referencesSearch implementation="org.jetbrains.kotlin.AndroidExtensionsReferenceSearchExecutor"/>
 
         <externalProjectDataService implementation="org.jetbrains.kotlin.android.configure.KotlinAndroidGradleLibraryDataService"/>
         <externalProjectDataService implementation="org.jetbrains.kotlin.android.configure.KotlinAndroidGradleMPPModuleDataService"/>
+
+        <registryKey key="kotlin.android.import.mpp.all.transitive"
+                     description="Add all transitive dependencies on MPP modules when Android project is imported"
+                     defaultValue="true"
+                     restartRequired="false"/>
     </extensions>
 
     <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
@@ -122,10 +123,6 @@
         <highlighterExtension implementation="org.jetbrains.kotlin.android.AndroidHighlighterExtension"/>
         <quickFixContributor implementation="com.android.tools.idea.imports.AndroidMavenImportKotlinResolver"/>
         <resolveScopeEnlarger implementation="org.jetbrains.kotlin.android.AndroidKotlinResolveScopeEnlarger"/>
-    </extensions>
-
-    <extensions defaultExtensionNs="com.android.tools.idea">
-        <npw.template.convertJavaToKotlinProvider implementation="org.jetbrains.kotlin.android.ConvertJavaToKotlinProviderImpl"/>
     </extensions>
 
     <extensions defaultExtensionNs="org.jetbrains.android">

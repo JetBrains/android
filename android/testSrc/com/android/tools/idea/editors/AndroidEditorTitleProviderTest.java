@@ -24,8 +24,6 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.nio.charset.StandardCharsets;
-
 public class AndroidEditorTitleProviderTest extends AndroidTestCase {
   public void testTitle() throws Exception {
 
@@ -55,7 +53,7 @@ public class AndroidEditorTitleProviderTest extends AndroidTestCase {
   private void checkTitle(@NotNull String path, @Nullable String expected) throws Exception {
     AndroidEditorTitleProvider provider = new AndroidEditorTitleProvider();
     VirtualFile file = myFixture.getTempDirFixture().createFile(path);
-    WriteAction.run(() -> file.setBinaryContent("content does not matter".getBytes(StandardCharsets.UTF_8)));
+    WriteAction.run(() -> file.setBinaryContent("content does not matter".getBytes()));
     Project project = getProject();
     String title = provider.getEditorTabTitle(project, file);
     if (expected == null) {

@@ -16,8 +16,10 @@
 package org.jetbrains.android.resourceManagers;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
+import com.android.ide.common.resources.ResourcesUtil;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
@@ -121,13 +123,15 @@ public class LocalResourceManager extends ResourceManager {
     List<Resources> rootElements = loadPsiForFilesContainingResource(namespace, ResourceType.ATTR, name);
     for (Resources root : rootElements) {
       for (Attr attr : root.getAttrs()) {
-        if (name.equals(attr.getName().getValue())) {
+        ResourceReference resourceReference = attr.getName().getValue();
+        if (resourceReference!= null && name.equals(resourceReference.getName())) {
           list.add(attr);
         }
       }
       for (DeclareStyleable styleable : root.getDeclareStyleables()) {
         for (Attr attr : styleable.getAttrs()) {
-          if (name.equals(attr.getName().getValue())) {
+          ResourceReference resourceReference = attr.getName().getValue();
+          if (resourceReference!= null && name.equals(resourceReference.getName())) {
             list.add(attr);
           }
         }
@@ -179,8 +183,12 @@ public class LocalResourceManager extends ResourceManager {
       for (DeclareStyleable styleable : root.getDeclareStyleables()) {
         if (styleableName.equals(styleable.getName().getValue())) {
           for (Attr attr : styleable.getAttrs()) {
-            if (AndroidUtils.equal(attr.getName().getValue(), attrName, false)) {
-              list.add(attr);
+            ResourceReference resourceReference = attr.getName().getValue();
+            if (resourceReference != null) {
+              if (ResourcesUtil.flattenResourceName(resourceReference.getQualifiedName()).equals(attrName) ||
+                  resourceReference.getName().equals(attrName)) {
+                list.add(attr);
+              }
             }
           }
         }

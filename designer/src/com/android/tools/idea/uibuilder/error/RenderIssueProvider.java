@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.error;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.common.error.Issue;
 import com.android.tools.idea.common.error.IssueProvider;
 import com.android.tools.idea.common.model.NlComponent;

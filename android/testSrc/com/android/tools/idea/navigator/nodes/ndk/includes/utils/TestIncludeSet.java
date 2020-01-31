@@ -56,6 +56,16 @@ public class TestIncludeSet {
     }
   }
 
+  // b/132348328
+  @Test
+  public void nreCausedByNullFlag() {
+    ArrayList<String> array = new ArrayList<>();
+    array.add("-I");
+    array.add(null);
+    IncludeSet includeSet = new IncludeSet();
+    includeSet.addIncludesFromCompilerFlags(array, new File("."));
+  }
+
   @Test
   public void testOrderPreserved1() {
     ArrayList<String> example = new ArrayList<>();

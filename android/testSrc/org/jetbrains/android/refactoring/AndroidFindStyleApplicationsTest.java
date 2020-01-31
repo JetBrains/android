@@ -28,7 +28,7 @@ public class AndroidFindStyleApplicationsTest extends AndroidTestCase {
     myFixture.copyFileToProject(BASE_PATH + "1_layout.xml", "res/layout/layout.xml");
     final VirtualFile f = myFixture.copyFileToProject(BASE_PATH + "1.xml", "res/values/styles.xml");
     myFixture.configureFromExistingVirtualFile(f);
-    XmlTag tag = PsiTreeUtil.getParentOfType(myFixture.getElementAtCaret(), XmlTag.class);
+    XmlTag tag = PsiTreeUtil.getParentOfType(myFixture.getFile().findElementAt(myFixture.getCaretOffset()), XmlTag.class);
     AndroidFindStyleApplicationsAction.MyStyleData styleData = AndroidFindStyleApplicationsAction.getStyleData(tag);
     assertNotNull(styleData);
     AndroidFindStyleApplicationsProcessor processor =

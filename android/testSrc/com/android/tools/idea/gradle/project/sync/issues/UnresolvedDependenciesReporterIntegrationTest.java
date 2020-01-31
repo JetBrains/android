@@ -15,6 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
+import static com.android.builder.model.SyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+import static org.mockito.Mockito.*;
+
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.builder.model.SyncIssue;
@@ -38,22 +45,15 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.android.builder.model.SyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
-import static org.mockito.Mockito.*;
 
 /**
  * Tests for {@link UnresolvedDependenciesReporter}.
  */
 public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradleTestCase {
+  private IdeComponents myIdeComponents;
   private SyncIssue mySyncIssue;
   private GradleSyncMessagesStub mySyncMessagesStub;
   private UnresolvedDependenciesReporter myReporter;
@@ -65,10 +65,14 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
     mySyncIssue = mock(SyncIssue.class);
     // getMessage() is NotNull but message is unused for dependencies.
     when(mySyncIssue.getMessage()).thenReturn("");
+    myIdeComponents = new IdeComponents(getProject(), getTestRootDisposable());
     mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
     myReporter = new UnresolvedDependenciesReporter();
     myUsageReporter = new TestSyncIssueUsageReporter();
-    IdeInfo ideInfo = IdeComponents.mockApplicationService(IdeInfo.class, getTestRootDisposable());
+    when(mySyncIssue.getType()).thenReturn(TYPE_UNRESOLVED_DEPENDENCY);
+
+    // FIXME-ank: check if we still need this
+    IdeInfo ideInfo = myIdeComponents.mockApplicationService(IdeInfo.class);
     when(ideInfo.isAndroidStudio()).thenReturn(true);
   }
 
@@ -88,7 +92,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
 
   public void testReportWithRegularJavaLibrary() throws Exception {
     loadSimpleApplication();
-    mySyncMessagesStub.clearReportedMessages();
+    mySyncMessagesStub.removeAllMessages();
 
     when(mySyncIssue.getData()).thenReturn("com.google.guava:guava:19.0");
 
@@ -122,7 +126,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
 
   public void testReportWithConstraintLayout() throws Exception {
     loadSimpleApplication();
-    mySyncMessagesStub.clearReportedMessages();
+    mySyncMessagesStub.removeAllMessages();
 
     Module appModule = myModules.getAppModule();
 
@@ -153,7 +157,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
 
   public void testReportWithAppCompat() throws Exception {
     loadSimpleApplication();
-    mySyncMessagesStub.clearReportedMessages();
+    mySyncMessagesStub.removeAllMessages();
 
     Module appModule = myModules.getAppModule();
 
@@ -196,7 +200,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
 
   public void testReportWithAppCompatAndGoogle() throws Exception {
     loadSimpleApplication();
-    mySyncMessagesStub.clearReportedMessages();
+    mySyncMessagesStub.removeAllMessages();
 
     Module appModule = myModules.getAppModule();
     // Add Google repository
@@ -244,7 +248,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
    */
   public void testReportNotInitialized() throws Exception {
     loadSimpleApplication();
-    mySyncMessagesStub.clearReportedMessages();
+    mySyncMessagesStub.removeAllMessages();
 
     Module appModule = myModules.getAppModule();
     Module spyAppModule = spy(appModule);
@@ -292,7 +296,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
 
   public void testReportWithPlayServices() throws Exception {
     loadSimpleApplication();
-    mySyncMessagesStub.clearReportedMessages();
+    mySyncMessagesStub.removeAllMessages();
 
     Module appModule = myModules.getAppModule();
 
@@ -332,7 +336,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
 
   public void testDeduplicateAcrossModules() throws Exception {
     loadProject(DEPENDENT_MODULES);
-    mySyncMessagesStub.clearReportedMessages();
+    mySyncMessagesStub.removeAllMessages();
 
     Module appModule = myModules.getAppModule();
     Module libModule = myModules.getModule("lib");

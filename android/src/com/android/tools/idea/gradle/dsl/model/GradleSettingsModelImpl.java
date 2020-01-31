@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
-import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement.BUILD_FILE_NAME;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFilePath;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleSettingsFile;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -38,7 +38,6 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileManager;
 import java.io.File;
 import java.util.List;
 import java.util.Objects;
@@ -250,8 +249,9 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
       buildFileName =  projectProperties.getLiteral(BUILD_FILE_NAME, String.class);
     }
 
+    // If the BUILD_FILE_NAME property doesn't exist, look for the default build file in the module.
     if (buildFileName == null) {
-      buildFileName = FN_BUILD_GRADLE;
+      return getGradleBuildFilePath(moduleDirectory);
     }
 
     return new File(moduleDirectory, buildFileName);

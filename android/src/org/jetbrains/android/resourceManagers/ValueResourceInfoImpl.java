@@ -1,8 +1,9 @@
 package org.jetbrains.android.resourceManagers;
 
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.utils.HashCodes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -12,6 +13,7 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
+import org.jetbrains.android.dom.resources.Attr;
 import org.jetbrains.android.dom.resources.Item;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.util.AndroidResourceUtil;
@@ -47,8 +49,38 @@ public final class ValueResourceInfoImpl implements ValueResourceInfo {
   @Override
   @Nullable
   public XmlAttributeValue computeXmlElement() {
-    ResourceElement resDomElement = computeDomElement();
-    return resDomElement != null ? resDomElement.getName().getXmlAttributeValue() : null;
+    if (myResource.getType().equals(ResourceType.ATTR)) {
+      Attr attrElement = computeAttrElement();
+      return attrElement != null ? attrElement.getName().getXmlAttributeValue() : null;
+    }
+    else {
+      ResourceElement resDomElement = computeDomElement();
+      return resDomElement != null ? resDomElement.getName().getXmlAttributeValue() : null;
+    }
+  }
+
+  @Nullable
+  private Attr computeAttrElement() {
+    PsiFile file = PsiManager.getInstance(myProject).findFile(myFile);
+    if (!(file instanceof XmlFile)) {
+      return null;
+    }
+
+    XmlTag tag = AndroidResourceUtil.getItemTag(myProject, myResource);
+    if (tag == null) {
+      return null;
+    }
+
+    DomElement domElement = DomManager.getDomManager(myProject).getDomElement(tag);
+    if (!(domElement instanceof Attr)) {
+      return null;
+    }
+    ResourceReference resourceReference = ((Attr)domElement).getName().getValue();
+    if (resourceReference == null) {
+      return null;
+    }
+    String resName = resourceReference.getName();
+    return getName().equals(resName) ? (Attr)domElement : null;
   }
 
   @Nullable
@@ -58,7 +90,7 @@ public final class ValueResourceInfoImpl implements ValueResourceInfo {
       return null;
     }
 
-    XmlTag tag = LocalResourceRepository.getItemTag(myProject, myResource);
+    XmlTag tag = AndroidResourceUtil.getItemTag(myProject, myResource);
     if (tag == null) {
       return null;
     }
@@ -93,6 +125,22 @@ public final class ValueResourceInfoImpl implements ValueResourceInfo {
     }
 
     return getName().compareTo(other.getName());
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj instanceof ValueResourceInfo) {
+      ValueResourceInfo other = (ValueResourceInfo) obj;
+      return myFile.equals(other.getContainingFile()) &&
+             getType().equals(other.getType()) &&
+             getName().equals(other.getName());
+    }
+    return super.equals(obj);
+  }
+
+  @Override
+  public int hashCode() {
+    return HashCodes.mix(myFile.hashCode(), getType().hashCode(), getName().hashCode());
   }
 
   @Override

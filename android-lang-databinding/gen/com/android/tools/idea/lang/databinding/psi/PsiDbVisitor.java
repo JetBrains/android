@@ -28,6 +28,10 @@ public class PsiDbVisitor extends PsiElementVisitor {
     visitExpr(o);
   }
 
+  public void visitArrayExpr(@NotNull PsiDbArrayExpr o) {
+    visitExpr(o);
+  }
+
   public void visitBinaryAndExpr(@NotNull PsiDbBinaryAndExpr o) {
     visitExpr(o);
   }
@@ -44,8 +48,8 @@ public class PsiDbVisitor extends PsiElementVisitor {
     visitExpr(o);
   }
 
-  public void visitBracketExpr(@NotNull PsiDbBracketExpr o) {
-    visitExpr(o);
+  public void visitBracketArgument(@NotNull PsiDbBracketArgument o) {
+    visitPsiElement(o);
   }
 
   public void visitCallExpr(@NotNull PsiDbCallExpr o) {
@@ -94,6 +98,10 @@ public class PsiDbVisitor extends PsiElementVisitor {
 
   public void visitIneqComparisonExpr(@NotNull PsiDbIneqComparisonExpr o) {
     visitExpr(o);
+  }
+
+  public void visitInferredFormalParameter(@NotNull PsiDbInferredFormalParameter o) {
+    visitPsiElement(o);
   }
 
   public void visitInferredFormalParameterList(@NotNull PsiDbInferredFormalParameterList o) {

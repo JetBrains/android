@@ -24,7 +24,6 @@ import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.naveditor.model.className
-import com.android.tools.idea.naveditor.scene.DRAW_NAV_SCREEN_LEVEL
 import com.android.tools.idea.naveditor.scene.RefinableImage
 import com.android.tools.idea.naveditor.scene.ThumbnailManager
 import com.android.tools.idea.naveditor.scene.draw.DrawNavScreen
@@ -52,34 +51,22 @@ abstract class NavScreenDecorator : NavBaseDecorator() {
     }
   }
 
-  protected fun drawScreen(list: DisplayList,
-                           sceneContext: SceneContext,
+  protected fun buildImage(sceneContext: SceneContext,
                            component: SceneComponent,
-                           @SwingCoordinate rectangle: Rectangle2D.Float) {
+                           @SwingCoordinate rectangle: Rectangle2D.Float): RefinableImage? {
     val layout = component.nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT)
     val className = component.nlComponent.className
 
-    list.add(
-      if (layout == null && className == null) {
-        DrawPlaceholder(DRAW_NAV_SCREEN_LEVEL, rectangle)
-      }
-      else {
-        val image = buildImage(sceneContext, component, layout, Dimension(rectangle.width.toInt(), rectangle.height.toInt()))
-        DrawNavScreen(rectangle, image)
-      }
-    )
-  }
+    if (layout == null && className == null) {
+      return null
+    }
 
-  private fun buildImage(sceneContext: SceneContext,
-                         component: SceneComponent,
-                         layout: String?,
-                         dimensions: Dimension): RefinableImage {
     val empty = RefinableImage()
     if (layout == null) {
       return empty
     }
     val surface = sceneContext.surface ?: return empty
-    val configuration = surface.configuration ?: return empty
+    val configuration = if (surface.configurations.isNotEmpty()) surface.configurations.single() else return empty
     val facet = surface.model?.facet ?: return empty
 
     val resourceUrl = ResourceUrl.parse(layout) ?: return empty
@@ -99,6 +86,6 @@ abstract class NavScreenDecorator : NavBaseDecorator() {
 
     val psiFile = AndroidPsiUtils.getPsiFileSafely(surface.project, virtualFile) as? XmlFile ?: return empty
     val manager = ThumbnailManager.getInstance(facet)
-    return manager.getThumbnail(psiFile, configuration, dimensions)
+    return manager.getThumbnail(psiFile, configuration, Dimension(rectangle.width.toInt(), rectangle.height.toInt()))
   }
 }

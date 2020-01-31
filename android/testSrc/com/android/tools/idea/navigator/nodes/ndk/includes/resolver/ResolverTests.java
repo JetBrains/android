@@ -52,7 +52,6 @@ public class ResolverTests {
     return resolutions;
   }
 
-
   /**
    * Utility method that  resolves all distinct include path examples from RealWorldExamples and returns the resolved
    * SimpleIncludeValue for them.

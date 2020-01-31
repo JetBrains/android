@@ -15,41 +15,80 @@
  */
 package com.android.tools.idea.res
 
-import com.android.builder.model.AaptOptions
+import com.android.resources.ResourceType
+import com.android.tools.idea.projectsystem.ScopeType
+import com.android.tools.idea.res.ModuleRClass.SourceSet.MAIN
+import com.android.tools.idea.res.ModuleRClass.SourceSet.TEST
+import com.android.tools.idea.res.ModuleRClass.Transitivity.NON_TRANSITIVE
+import com.android.tools.idea.res.ModuleRClass.Transitivity.TRANSITIVE
 import com.intellij.psi.PsiManager
-import org.jetbrains.android.dom.manifest.AndroidManifestUtils
+import org.jetbrains.android.augment.AndroidLightField
+import org.jetbrains.android.dom.manifest.getTestPackageName
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers
+import org.jetbrains.android.dom.manifest.getPackageName as getPackageNameFromManifest
 
 class ModuleRClass(
+  val facet: AndroidFacet,
   psiManager: PsiManager,
-  facet: AndroidFacet,
-  namespacing: AaptOptions.Namespacing
+  private val sourceSet: SourceSet,
+  transitivity: Transitivity,
+  fieldModifier: AndroidLightField.FieldModifier
 ) : ResourceRepositoryRClass(
   psiManager,
-  facet.module,
-  MainResources(facet, namespacing)
+  ModuleResourcesSource(facet, sourceSet, transitivity, fieldModifier)
 ) {
-  class MainResources(val facet: AndroidFacet, val namespacing: AaptOptions.Namespacing) : ResourcesSource {
-    override fun getPackageName(): String? = AndroidManifestUtils.getPackageName(facet)
-    override fun getResourceRepository() = ResourceRepositoryManager.getAppResources(facet)
-    override fun getResourceNamespace() = ResourceRepositoryManager.getInstance(facet).namespace
-  }
-}
 
-class ModuleTestRClass(
-  psiManager: PsiManager,
-  facet: AndroidFacet,
-  namespacing: AaptOptions.Namespacing
-) : ResourceRepositoryRClass(
-  psiManager,
-  facet.module,
-  TestResources(facet, namespacing)
-) {
-  class TestResources(val facet: AndroidFacet, val namespacing: AaptOptions.Namespacing) : ResourcesSource {
-    override fun getPackageName() = AndroidManifestUtils.getTestPackageName(facet)
-    override fun getResourceRepository() = ResourceRepositoryManager.getInstance(facet).testAppResources
+  enum class SourceSet { MAIN, TEST }
+  enum class Transitivity { TRANSITIVE, NON_TRANSITIVE }
+
+  init {
+    setModuleInfo(
+      facet.module,
+      when (sourceSet) {
+        MAIN -> false
+        TEST -> true
+      }
+    )
+  }
+
+  override fun getScopeType() = when (sourceSet) {
+    MAIN -> ScopeType.MAIN
+    TEST -> ScopeType.ANDROID_TEST
+  }
+
+  private class ModuleResourcesSource(
+    val facet: AndroidFacet,
+    val sourceSet: SourceSet,
+    val transitivity: Transitivity,
+    val _fieldModifier: AndroidLightField.FieldModifier
+  ) : ResourcesSource {
     override fun getResourceNamespace() = ResourceRepositoryManager.getInstance(facet).namespace
-    override fun isForTest() = true
+
+    override fun getFieldModifier() = _fieldModifier
+
+    override fun getPackageName() = when (sourceSet) {
+      MAIN -> getPackageNameFromManifest(facet)
+      TEST -> getTestPackageName(facet)
+    }
+
+    override fun getResourceRepository(): LocalResourceRepository {
+      val repoManager = ResourceRepositoryManager.getInstance(facet)
+      return when (sourceSet) {
+        MAIN -> when (transitivity) {
+          TRANSITIVE -> repoManager.appResources
+          NON_TRANSITIVE -> repoManager.moduleResources
+        }
+        TEST -> when (transitivity) {
+          TRANSITIVE -> repoManager.testAppResources
+          NON_TRANSITIVE -> repoManager.testModuleResources
+        }
+      }
+    }
+
+    override fun isPublic(resourceType: ResourceType, resourceName: String): Boolean {
+      return ModuleResourceManagers.getInstance(facet).localResourceManager.isResourcePublic(resourceType.name, resourceName)
+    }
   }
 }
 

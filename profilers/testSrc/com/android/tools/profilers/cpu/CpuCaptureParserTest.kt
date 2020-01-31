@@ -17,8 +17,7 @@ package com.android.tools.profilers.cpu
 
 import com.android.testutils.TestUtils
 import com.android.tools.profiler.proto.Cpu
-import com.android.tools.profiler.proto.CpuProfiler
-import com.android.tools.profiler.protobuf3jarjar.ByteString
+import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilersTestData
 import com.google.common.truth.Truth.assertThat
@@ -243,6 +242,23 @@ class CpuCaptureParserTest {
     capture = futureCapture.get()
     assertThat(capture).isNotNull()
     assertThat(capture.threads).hasSize(17)
+  }
+
+  @Test
+  fun parsingPerfettoWithProcessNameHintAutoSelectsProcess() {
+    val services = FakeIdeProfilerServices()
+    val parser = CpuCaptureParser(services)
+    parser.setProcessNameHint("surfaceflinger")
+    val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
+    // Now enable the flag and try to parse it again, assume the user canceled the dialog. If the dialog is shown.
+    services.setListBoxOptionsIndex(-1)
+    services.enableAtrace(true)
+    services.enablePerfetto(true)
+    val futureCapture = parser.parse(traceFile)!!
+    assertThat(futureCapture.isCompletedExceptionally).isFalse()
+    val capture = futureCapture.get()
+    assertThat(capture).isNotNull()
+    assertThat(capture.threads).hasSize(7)
   }
 
   @Test

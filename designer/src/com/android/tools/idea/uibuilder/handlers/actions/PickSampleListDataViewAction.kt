@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.actions
 import com.android.resources.ResourceType
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog
+import com.android.tools.idea.ui.resourcechooser.util.createResourcePickerDialog
 import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.api.ViewHandler
 import com.android.tools.idea.uibuilder.api.actions.DirectViewAction
@@ -37,15 +37,19 @@ class PickSampleListDataViewAction(private val namespace: String?, private val a
     val types = HashSet<ResourceType>()
     types.add(ResourceType.SAMPLE_DATA)
 
-    val dialog = ChooseResourceDialog.builder()
-      .setModule(component.model.module)
-      .setTypes(types)
-      .setTag(tag)
-      .setDefaultType(ResourceType.SAMPLE_DATA)
-      .setShowSampleDataPicker(true)
-      .build()
+    val dialog = createResourcePickerDialog(
+      dialogTitle = "Pick Sample Data",
+      currentValue = null,
+      facet = component.model.facet,
+      resourceTypes = types,
+      defaultResourceType = null,
+      showColorStateLists = true,
+      showSampleData = true,
+      file = tag.containingFile.virtualFile,
+      xmlFile = null,
+      tag = tag
+    )
 
-    dialog.title = "Pickup Sample Data"
     if (dialog.showAndGet()) {
       if (dialog.resourceName != null) {
         val attr = component.startAttributeTransaction()

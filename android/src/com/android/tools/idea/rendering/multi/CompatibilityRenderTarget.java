@@ -83,11 +83,6 @@ public class CompatibilityRenderTarget implements IAndroidTarget {
   }
 
   @Override
-  public String getDescription() {
-    return myDelegate.getDescription();
-  }
-
-  @Override
   @NotNull
   public AndroidVersion getVersion() {
     return myVersion;

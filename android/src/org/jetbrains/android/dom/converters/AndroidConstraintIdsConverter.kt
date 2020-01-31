@@ -35,7 +35,7 @@ import org.jetbrains.android.dom.resources.ResourceValue
 /**
  * Converter that supports the id reference syntax that is unique to the {@link SdkConstants.CONSTRAINT_REFERENCED_IDS} attribute.
  */
-class AndroidConstraintIdsConverter : DelimitedListConverter<ResourceValue>(",") {
+class AndroidConstraintIdsConverter : DelimitedListConverter<ResourceValue>(", ") {
   override fun convertString(string: String?, context: ConvertContext?): ResourceValue? {
     val value = ResourceValue.reference(string, false) ?: return null
     value.setResourceType(ResourceType.ID.getName())
@@ -57,7 +57,7 @@ class AndroidConstraintIdsConverter : DelimitedListConverter<ResourceValue>(",")
     }
     val module = context.module ?: return null
     val facet = module.androidFacet ?: return null
-    val resolveResultList = AndroidResourceToPsiResolver.getInstance().resolveToPsi(value, context.referenceXmlElement!!, facet)
+    val resolveResultList = AndroidResourceToPsiResolver.getInstance().resolveReference(value, context.referenceXmlElement!!, facet)
     return pickMostRelevantId(resolveResultList, context)?.element
   }
 

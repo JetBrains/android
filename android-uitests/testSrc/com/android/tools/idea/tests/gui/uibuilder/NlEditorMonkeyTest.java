@@ -192,6 +192,7 @@ public class NlEditorMonkeyTest {
   private static List<MonkeyAction> ACTIONS = getProbabilityArray(ACTIONS_BY_LIKEHOOD);
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(2, TimeUnit.HOURS);
+  @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   /**
    * Takes as an input a 2D array of T and returns a 1D array with the items replicated depending on their position

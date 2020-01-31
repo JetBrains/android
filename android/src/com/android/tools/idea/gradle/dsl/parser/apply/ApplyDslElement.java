@@ -53,7 +53,14 @@ public class ApplyDslElement extends GradlePropertiesDslElement {
         if (realFile.exists() && realFile.isAbsolute()) {
           file = LocalFileSystem.getInstance().findFileByIoFile(realFile);
         } else {
-          file = VirtualFileManager.getInstance().findFileByUrl(getDslFile().getFile().getParent() + "/" + fileName);
+          VirtualFile parsingRoot = getDslFile().getContext().getCurrentParsingRoot();
+          if (parsingRoot == null) {
+            parsingRoot = getDslFile().getFile().getParent();
+          } else {
+              parsingRoot = parsingRoot.getParent();
+          }
+          file =
+            VirtualFileManager.getInstance().findFileByUrl(parsingRoot + "/" + fileName);
         }
         if (file != null) {
           // Parse the file
@@ -102,6 +109,9 @@ public class ApplyDslElement extends GradlePropertiesDslElement {
   private static GradleDslSimpleExpression extractFrom(@NotNull GradleDslElement element) {
     if (element instanceof GradleDslExpressionMap) {
       return ((GradleDslExpressionMap)element).getPropertyElement(FROM, GradleDslSimpleExpression.class);
+    }
+    if (element instanceof GradleDslMethodCall) {
+      return ((GradleDslMethodCall) element).getArgumentsElement().getPropertyElement(FROM, GradleDslSimpleExpression.class);
     }
     return null;
   }

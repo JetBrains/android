@@ -17,13 +17,16 @@
 
 package com.android.tools.idea.gradle.structure.model.helpers
 
-import com.android.annotations.VisibleForTesting
+import com.android.tools.idea.concurrent.transform
+import com.google.common.annotations.VisibleForTesting
 import com.android.tools.idea.gradle.structure.configurables.ui.readOnPooledThread
 import com.android.tools.idea.gradle.structure.model.PsChildModel
 import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
+import com.android.tools.idea.gradle.structure.model.meta.Annotated
 import com.android.tools.idea.gradle.structure.model.meta.DslText
+import com.android.tools.idea.gradle.structure.model.meta.KnownValues
 import com.android.tools.idea.gradle.structure.model.meta.ListProperty
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
@@ -33,6 +36,7 @@ import com.android.tools.idea.gradle.structure.model.meta.withFileSelectionRoot
 import com.android.tools.idea.gradle.structure.model.repositories.search.SearchQuery
 import com.android.tools.idea.gradle.structure.model.repositories.search.SearchRequest
 import com.android.tools.idea.gradle.structure.model.repositories.search.SearchResult
+import com.android.tools.idea.gradle.util.GradleVersionsRepository
 import com.google.common.base.Function
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.Futures.immediateFuture
@@ -42,6 +46,7 @@ import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.search.FilenameIndex
 import com.intellij.util.concurrency.SameThreadExecutor
 import java.io.File
+import kotlin.streams.toList
 
 fun booleanValues(model: Any?): ListenableFuture<List<ValueDescriptor<Boolean>>> =
   immediateFuture(listOf(ValueDescriptor(value = false), ValueDescriptor(value = true)))
@@ -141,6 +146,14 @@ fun androidGradlePluginVersionValues(model: PsProject): ListenableFuture<List<Va
       .search(SearchRequest(SearchQuery("com.android.tools.build", "gradle"), MAX_ARTIFACTS_TO_REQUEST, 0)), Function {
     it!!.toVersionValueDescriptors()
   }, SameThreadExecutor.INSTANCE)
+
+fun gradleVersionValues(): ListenableFuture<KnownValues<String>> =
+  GradleVersionsRepository.getKnownVersionsFuture().transform {
+    object : KnownValues<String> {
+      override val literals: List<ValueDescriptor<String>> = it.stream().map { ValueDescriptor<String>(it) }.toList()
+      override fun isSuitableVariable(variable: Annotated<ParsedValue.Set.Parsed<String>>): Boolean = false
+    }
+  }
 
 @VisibleForTesting
 fun SearchResult.toVersionValueDescriptors(): List<ValueDescriptor<String>> =

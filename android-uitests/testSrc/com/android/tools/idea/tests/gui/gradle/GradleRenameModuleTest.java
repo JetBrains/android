@@ -15,33 +15,23 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.gradle.dsl.model.dependencies.ExpectedModuleDependency;
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
-import com.android.tools.idea.tests.gui.framework.*;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.RenameModuleDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.SelectRefactoringDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
-import org.junit.Before;
-import org.junit.Ignore;
+import java.io.IOException;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.IOException;
-
-import static com.google.common.truth.Truth.assertThat;
-
-@RunIn(TestGroup.UNRELIABLE) // b/77269009
 @RunWith(GuiTestRemoteRunner.class)
 public class GradleRenameModuleTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-
-  @Before
-  public void skipSourceGenerationOnSync() {
-    GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
-  }
 
   @Test
   public void testRenameModule() throws IOException {

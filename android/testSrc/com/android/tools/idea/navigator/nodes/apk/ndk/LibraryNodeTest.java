@@ -22,7 +22,7 @@ import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -42,13 +42,13 @@ import static org.mockito.Mockito.when;
 /**
  * Tests for {@link LibraryNode}.
  */
-public class LibraryNodeTest extends JavaProjectTestCase {
+public class LibraryNodeTest extends PlatformTestCase {
   private IdeSdks myIdeSdks;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myIdeSdks = IdeComponents.mockApplicationService(IdeSdks.class, getTestRootDisposable());
+    myIdeSdks = new IdeComponents(getProject()).mockApplicationService(IdeSdks.class);
   }
 
   public void testGetChildren() throws IOException {
@@ -123,7 +123,7 @@ public class LibraryNodeTest extends JavaProjectTestCase {
     VirtualFile ndkBaseFolder = createFolderInProjectRoot(getProject(), "ndk");
     when(myIdeSdks.getAndroidNdkPath()).thenReturn(null); // No singleton NDK only SxS
 
-    VirtualFile ndkVersionFolder = createFolder(ndkBaseFolder, "19.0.5232133");
+    VirtualFile ndkVersionFolder = createFolder(ndkBaseFolder, "20.0.5594570");
     VirtualFile sysrootFolder = createFolder(ndkVersionFolder, "sysroot");
 
     List<String> sourceFolderPaths = new ArrayList<>(createSourceFolders("a", "b", "c"));

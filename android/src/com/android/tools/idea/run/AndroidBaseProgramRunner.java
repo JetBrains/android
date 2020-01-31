@@ -15,16 +15,14 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.tools.idea.run.ui.ApplyChangesAction;
-import com.android.tools.idea.run.ui.CodeSwapAction;
+import com.android.tools.idea.run.util.SwapInfo;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.MoreObjects;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.ExecutionResult;
 import com.intellij.execution.RunnerAndConfigurationSettings;
-import com.intellij.execution.configurations.RunConfigurationBase;
+import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunProfile;
 import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.configurations.RunnerSettings;
@@ -62,18 +60,17 @@ public abstract class AndroidBaseProgramRunner implements ProgramRunner<RunnerSe
     boolean showRunContent = env.getRunProfile() instanceof AndroidTestRunConfiguration;
     RunnerAndConfigurationSettings runnerAndConfigurationSettings = env.getRunnerAndConfigurationSettings();
 
-    boolean isSwap = MoreObjects.firstNonNull(env.getCopyableUserData(CodeSwapAction.KEY), Boolean.FALSE) ||
-                     MoreObjects.firstNonNull(env.getCopyableUserData(ApplyChangesAction.KEY), Boolean.FALSE);
+    SwapInfo swapInfo = env.getUserData(SwapInfo.SWAP_INFO_KEY);
 
-    if (runnerAndConfigurationSettings != null) {
-      runnerAndConfigurationSettings.setActivateToolWindowBeforeRun(!isSwap && showRunContent);
+    if (runnerAndConfigurationSettings != null && swapInfo == null) {
+      runnerAndConfigurationSettings.setActivateToolWindowBeforeRun(showRunContent);
     }
 
     FileDocumentManager.getInstance().saveAllDocuments();
     ExecutionResult result = state.execute(env.getExecutor(), this);
 
     RunContentDescriptor descriptor = null;
-    if (isSwap && result != null) {
+    if (swapInfo != null && result != null) {
       // If we're hot-swapping, we want to use the currently-running ContentDescriptor,
       // instead of making a new one (which "show"RunContent actually does).
       RunContentManager manager = RunContentManager.getInstance(env.getProject());
@@ -94,7 +91,7 @@ public abstract class AndroidBaseProgramRunner implements ProgramRunner<RunnerSe
     }
 
     if (descriptor != null) {
-      if (isSwap) {
+      if (swapInfo != null) {
         // Don't show the tool window when we're applying (code) changes.
         descriptor.setActivateToolWindowWhenAdded(false);
       }
@@ -103,11 +100,10 @@ public abstract class AndroidBaseProgramRunner implements ProgramRunner<RunnerSe
       assert processHandler != null;
 
       RunProfile runProfile = env.getRunProfile();
-      int uniqueId = runProfile instanceof RunConfigurationBase ? ((RunConfigurationBase<?>)runProfile).getUniqueID() : -1;
-      AndroidSessionInfo sessionInfo = new AndroidSessionInfo(processHandler, descriptor, uniqueId, env.getExecutor().getId(),
-                                                              env.getExecutor().getActionName(), env.getExecutionTarget()
+      RunConfiguration runConfiguration = runProfile instanceof RunConfiguration ? (RunConfiguration)runProfile : null;
+      AndroidSessionInfo.create(processHandler, descriptor, runConfiguration, env.getExecutor().getId(), env.getExecutor().getActionName(),
+                                env.getExecutionTarget()
       );
-      processHandler.putUserData(AndroidSessionInfo.KEY, sessionInfo);
     }
 
     return descriptor;

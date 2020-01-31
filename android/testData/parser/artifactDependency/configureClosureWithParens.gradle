@@ -10,5 +10,5 @@ dependencies {
 
     //disabling all transitive dependencies of this dependency
     transitive = false
-  }
+  })
 }

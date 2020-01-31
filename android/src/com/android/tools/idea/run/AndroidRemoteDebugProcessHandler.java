@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.run;
 
+import com.android.ddmlib.Client;
 import com.android.tools.idea.run.deployable.SwappableProcessHandler;
+import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
 import com.intellij.debugger.DebuggerManager;
 import com.intellij.debugger.engine.DebugProcess;
 import com.intellij.debugger.engine.DebugProcessListener;
@@ -40,17 +42,14 @@ import org.jetbrains.annotations.Nullable;
 public class AndroidRemoteDebugProcessHandler extends ProcessHandler implements SwappableProcessHandler {
 
   private final Project myProject;
-  private final boolean myDetachWhenDoneMonitoring;
 
-  public AndroidRemoteDebugProcessHandler(Project project, boolean detachWhenDoneMonitoring) {
+  public AndroidRemoteDebugProcessHandler(Project project) {
     myProject = project;
-    myDetachWhenDoneMonitoring = detachWhenDoneMonitoring;
 
     putCopyableUserData(SwappableProcessHandler.EXTENSION_KEY, this);
   }
 
-  // This is copied from com.intellij.debugger.engine.RemoteDebugProcessHandler#startNotify
-  // and modified to only terminate on debug detach if myDetachWhenDoneMonitoring is true.
+  // This is copied from com.intellij.debugger.engine.RemoteDebugProcessHandler#startNotify.
   @Override
   public void startNotify() {
     final DebugProcess debugProcess = DebuggerManager.getInstance(myProject).getDebugProcess(this);
@@ -58,9 +57,7 @@ public class AndroidRemoteDebugProcessHandler extends ProcessHandler implements 
       @Override
       public void processDetached(@NotNull DebugProcess process, boolean closedByUser) {
         debugProcess.removeDebugProcessListener(this);
-        if (myDetachWhenDoneMonitoring) {
-          notifyProcessDetached();
-        }
+        notifyProcessDetached();
       }
     };
     debugProcess.addDebugProcessListener(listener);
@@ -70,9 +67,7 @@ public class AndroidRemoteDebugProcessHandler extends ProcessHandler implements 
     finally {
       if (debugProcess.isDetached()) {
         debugProcess.removeDebugProcessListener(listener);
-        if (myDetachWhenDoneMonitoring) {
-          notifyProcessDetached();
-        }
+        notifyProcessDetached();
       }
     }
   }
@@ -122,13 +117,24 @@ public class AndroidRemoteDebugProcessHandler extends ProcessHandler implements 
   }
 
   @Override
-  public boolean isExecutedWith(@NotNull RunConfiguration runConfiguration, @NotNull ExecutionTarget executionTarget) {
+  public boolean isRunningWith(@NotNull RunConfiguration runConfiguration, @NotNull ExecutionTarget executionTarget) {
     AndroidSessionInfo sessionInfo = getUserData(AndroidSessionInfo.KEY);
     if (sessionInfo == null) {
       return false;
     }
 
-    return sessionInfo.getExecutionTarget().getId().equals(executionTarget.getId()) &&
-           sessionInfo.getRunConfigurationId() == runConfiguration.getUniqueID();
+    if (sessionInfo.getRunConfiguration() != runConfiguration) {
+      return false;
+    }
+
+    if (executionTarget instanceof AndroidExecutionTarget) {
+      Client client = getUserData(AndroidSessionInfo.ANDROID_DEBUG_CLIENT);
+      if (client == null || !client.isValid()) {
+        return false;
+      }
+      return ((AndroidExecutionTarget)executionTarget).getIDevice() == client.getDevice();
+    }
+
+    return sessionInfo.getExecutionTarget().getId().equals(executionTarget.getId());
   }
 }

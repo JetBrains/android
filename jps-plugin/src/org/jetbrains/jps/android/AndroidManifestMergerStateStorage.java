@@ -1,4 +1,3 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android;
 
 import com.intellij.openapi.diagnostic.Logger;
@@ -96,7 +95,7 @@ public class AndroidManifestMergerStateStorage implements StorageOwner {
 
     public MyState(@NotNull File manifestFile, @NotNull Collection<File> libManifestFiles, boolean toMerge) {
       myManifestFileTimestamp = FSOperations.lastModified(manifestFile);
-      myLibManifestsTimestamps = new TObjectLongHashMap<>(libManifestFiles.size());
+      myLibManifestsTimestamps = new TObjectLongHashMap<String>(libManifestFiles.size());
 
       for (File libManifestFile : libManifestFiles) {
         myLibManifestsTimestamps.put(FileUtil.toCanonicalPath(libManifestFile.getPath()),
@@ -108,7 +107,7 @@ public class AndroidManifestMergerStateStorage implements StorageOwner {
     private MyState(DataInput input) throws IOException {
       myManifestFileTimestamp = input.readLong();
       final int libManifestsCount = input.readInt();
-      myLibManifestsTimestamps = new TObjectLongHashMap<>(libManifestsCount);
+      myLibManifestsTimestamps = new TObjectLongHashMap<String>(libManifestsCount);
 
       for (int i = 0; i < libManifestsCount; i++) {
         final String path = input.readUTF();

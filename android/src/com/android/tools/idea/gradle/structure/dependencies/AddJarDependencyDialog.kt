@@ -73,13 +73,13 @@ class AddJarDependencyDialog(module: PsModule) : AbstractAddDependenciesDialog(m
     DependencyScopePanel(module, PsModule.ImportantFor.LIBRARY)
 }
 
-fun PsModule.addJarDependency(filePath: String, scopeName: String) {
+fun PsModule.addJarDependency(filePath: String, configurationName: String) {
   val file = File(filePath)
   val resolvedFile = rootDir?.resolve(file) ?: file
   val isDirectory = resolvedFile.exists() && resolvedFile.isDirectory ||
                     filePath.endsWith(Platform.current().fileSeparator)
   if (isDirectory)
     addJarFileTreeDependency(
-      filePath, includes = listOf("*.aar", "*.jar"), excludes = listOf(), scopeName = scopeName)
-  else addJarFileDependency(filePath, scopeName)
+      filePath, includes = listOf("*.aar", "*.jar"), excludes = listOf(), configurationName = configurationName)
+  else addJarFileDependency(filePath, configurationName)
 }

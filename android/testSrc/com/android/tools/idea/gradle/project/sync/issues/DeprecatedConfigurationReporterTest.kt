@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.issues
 import com.android.builder.model.SyncIssue
 import com.android.builder.model.SyncIssue.SEVERITY_ERROR
 import com.android.builder.model.SyncIssue.SEVERITY_WARNING
+import com.android.builder.model.SyncIssue.TYPE_DEPRECATED_CONFIGURATION
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -43,7 +44,7 @@ class DeprecatedConfigurationReporterTest : AndroidGradleTestCase() {
   override fun setUp() {
     super.setUp()
     messageStub = GradleSyncMessagesStub.replaceSyncMessagesService(project, testRootDisposable)
-    messageStub.clearReportedMessages()
+    messageStub.removeAllMessages()
     reporter = DeprecatedConfigurationReporter()
     reporter = DeprecatedConfigurationReporter()
     syncIssue1 = mock(SyncIssue::class.java)
@@ -56,6 +57,8 @@ class DeprecatedConfigurationReporterTest : AndroidGradleTestCase() {
     `when`(module1.project).thenReturn(project)
     `when`(module2.name).thenReturn("lib")
     `when`(module2.project).thenReturn(project)
+    `when`(syncIssue1.type).thenReturn(TYPE_DEPRECATED_CONFIGURATION)
+    `when`(syncIssue2.type).thenReturn(TYPE_DEPRECATED_CONFIGURATION)
   }
 
   @Test

@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.editors.manifest;
 
+import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor.getDependencyDisplayName;
+
 import com.android.SdkConstants;
 import com.android.builder.model.level2.Library;
 import com.android.ide.common.blame.SourceFile;
@@ -24,14 +27,17 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.manifmerger.Actions;
 import com.android.manifmerger.MergingReport;
 import com.android.manifmerger.XmlNode;
+import com.android.tools.adtui.workbench.WorkBenchLoadingPanel;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.parser.NamedObject;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.GradleVersions;
-import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.model.MergedManifestManager;
+import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -40,6 +46,8 @@ import com.android.utils.FileUtils;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.PositionXmlParser;
 import com.google.common.collect.Sets;
+import com.intellij.icons.AllIcons;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -68,38 +76,56 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.ui.*;
+import com.intellij.ui.ColorUtil;
+import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.ui.JBColor;
+import com.intellij.ui.JBSplitter;
+import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.IdeaSourceProvider;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.lang.psi.api.util.GrStatementOwner;
-import org.w3c.dom.*;
-
-import javax.swing.*;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
-import javax.swing.tree.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor.getDependencyDisplayName;
+import javax.swing.JEditorPane;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JTree;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.MutableTreeNode;
+import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.IdeaSourceProvider;
+import org.jetbrains.android.facet.SourceProviderManager;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Attr;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 // TODO for permission if not from main file
 // TODO then have option to tools:node="remove" tools:selector="com.example.lib1"
@@ -127,17 +153,20 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   private final Font myDefaultFont;
   private final Tree myTree;
   private final JEditorPane myDetails;
+  private final WorkBenchLoadingPanel myLoadingPanel;
+  private final JBSplitter mySplitter;
   private JPopupMenu myPopup;
   private JMenuItem myRemoveItem;
 
   private MergedManifestSnapshot myManifest;
+  private boolean myManifestEditable;
   private final List<File> myFiles = new ArrayList<>();
   private final List<File> myOtherFiles = new ArrayList<>();
   private final HtmlLinkManager myHtmlLinkManager = new HtmlLinkManager();
   private VirtualFile myFile;
   private final Color myBackgroundColor;
 
-  public ManifestPanel(final @NotNull AndroidFacet facet) {
+  public ManifestPanel(final @NotNull AndroidFacet facet, final @NotNull Disposable parent) {
     myFacet = facet;
     setLayout(new BorderLayout());
 
@@ -159,11 +188,23 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     createPopupMenu();
     registerGotoAction();
 
-    JBSplitter splitter = new JBSplitter(0.5f);
-    splitter.setFirstComponent(new JBScrollPane(myTree));
-    splitter.setSecondComponent(new JBScrollPane(myDetails));
+    mySplitter = new JBSplitter(0.5f);
+    mySplitter.setFirstComponent(new JBScrollPane(myTree));
+    mySplitter.setSecondComponent(new JBScrollPane(myDetails));
 
-    add(splitter);
+    myLoadingPanel = new WorkBenchLoadingPanel(new BorderLayout(), parent, 0);
+    myLoadingPanel.add(mySplitter);
+    add(myLoadingPanel);
+  }
+
+  @NotNull
+  public JEditorPane getDetailsPane() {
+    return myDetails;
+  }
+
+  @NotNull
+  public Tree getTree() {
+    return myTree;
   }
 
   private JEditorPane createDetailsPane(@NotNull final AndroidFacet facet) {
@@ -275,7 +316,24 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   }
 
 
-  public void setManifestSnapshot(@NotNull MergedManifestSnapshot manifest, @NotNull VirtualFile selectedManifest) {
+  public void startLoading() {
+    mySplitter.setVisible(false);
+    myLoadingPanel.setLoadingText("Computing merged manifest...");
+    myLoadingPanel.startLoading();
+  }
+
+  public void showLoadingError() {
+    myLoadingPanel.abortLoading("Unable to compute merged manifest.", AllIcons.General.Warning);
+  }
+
+  public void showManifest(MergedManifestSnapshot manifest, @NotNull VirtualFile selectedManifest, boolean isEditable) {
+    this.myManifestEditable = isEditable;
+    setManifestSnapshot(manifest, selectedManifest);
+    myLoadingPanel.stopLoading();
+    mySplitter.setVisible(true);
+  }
+
+  private void setManifestSnapshot(@NotNull MergedManifestSnapshot manifest, @NotNull VirtualFile selectedManifest) {
     myFile = selectedManifest;
     myManifest = manifest;
     Document document = myManifest.getDocument();
@@ -383,7 +441,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
   public void updateDetails(@Nullable ManifestTreeNode node) {
     HtmlBuilder sb = new HtmlBuilder();
-    Font font = StartupUiUtil.getLabelFont();
+    Font font = UIUtil.getLabelFont();
     sb.addHtml("<html><body style=\"font-family: " + font.getFamily() + "; " + "font-size: " + font.getSize() + "pt;\">");
     sb.beginUnderline().beginBold();
     sb.add("Manifest Sources");
@@ -480,7 +538,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
         sb.add(" ");
         try {
           sb.addHtml(getErrorHtml(myFacet, record.getMessage(), record.getSourceLocation(), myHtmlLinkManager,
-                                  LocalFileSystem.getInstance().findFileByIoFile(myFiles.get(0))));
+                                  LocalFileSystem.getInstance().findFileByIoFile(myFiles.get(0)), myManifestEditable));
         }
         catch (Exception ex) {
           Logger.getInstance(ManifestPanel.class).error("error getting error html", ex);
@@ -529,6 +587,9 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   }
 
   private boolean canRemove(@NotNull Node node) {
+    if (!myManifestEditable) {
+      return false;
+    }
     List<? extends Actions.Record> records = ManifestUtils.getRecords(myManifest, node);
     if (records.isEmpty()) {
       // if we don't know where we are coming from, we are prob displaying the main manifest with a merge error.
@@ -575,10 +636,11 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
                              @NotNull String message,
                              @NotNull final SourceFilePosition position,
                              @NotNull HtmlLinkManager htmlLinkManager,
-                             final @Nullable VirtualFile currentlyOpenFile) {
+                             final @Nullable VirtualFile currentlyOpenFile,
+                             final boolean manifestEditable) {
     HtmlBuilder sb = new HtmlBuilder();
     int index = message.indexOf(SUGGESTION_MARKER);
-    if (index >= 0) {
+    if (manifestEditable && index >= 0) {
       index += SUGGESTION_MARKER.length();
       String action = message.substring(index, message.indexOf(' ', index));
       sb.add(message.substring(0, index));
@@ -674,38 +736,62 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     HtmlBuilder sb = new HtmlBuilder();
 
     GradleVersion gradleVersion = GradleVersions.getInstance().getGradleVersion(facet.getModule().getProject());
-    if (gradleVersion.isAtLeast(3, 0, 0)) {
-      final GradleBuildFile buildFile = GradleBuildFile.get(facet.getModule());
-      if (buildFile != null) {
-        int start = message.indexOf("to at least ");
-        if (start < 0) {
-          throw new IllegalArgumentException("unexpected use suggestion format " + message);
-        }
-        int end = message.indexOf(',', start);
-        if (end < 0) {
-          throw new IllegalArgumentException("unexpected use suggestion format " + message);
-        }
-        final String minSdkVersion = message.substring(start + 1, end - 1);
-        Runnable link =
-          () -> new WriteCommandAction.Simple(facet.getModule().getProject(), "Apply manifest suggestion", buildFile.getPsiFile()) {
-            @Override
-            protected void run() throws Throwable {
-              GrStatementOwner defaultConfig = buildFile.getClosure(BuildFileKey.DEFAULT_CONFIG.getPath());
-              if (defaultConfig == null) {
-                buildFile.setValue(BuildFileKey.DEFAULT_CONFIG, "{}");
-                defaultConfig = buildFile.getClosure(BuildFileKey.DEFAULT_CONFIG.getPath());
-              }
-              assert defaultConfig != null;
-              buildFile.setValue(defaultConfig, BuildFileKey.MIN_SDK_VERSION, minSdkVersion);
-              requestSync(facet.getModule().getProject());
-            }
-          }.execute();
-        sb.addLink(message.substring(0, end + 1), htmlLinkManager.createRunnableLink(link));
-        sb.add(message.substring(end + 1));
+    if (gradleVersion != null && gradleVersion.isAtLeast(3, 0, 0)) {
+      String versionPrefix = "to at least ";
+      int start = message.indexOf(versionPrefix) + versionPrefix.length();
+      if (start < 0) {
+        throw new IllegalArgumentException("unexpected use suggestion format " + message);
       }
-      else {
+      int end = message.indexOf(',', start);
+      if (end < 0) {
+        throw new IllegalArgumentException("unexpected use suggestion format " + message);
+      }
+      final String minSdkVersionString = message.substring(start, end);
+      int minSdkVersion;
+      try {
+        minSdkVersion = Integer.parseInt(minSdkVersionString);
+      } catch (NumberFormatException e) {
+        // Ignore this and just add the message, we don't want to add a link
         sb.add(message);
+        return sb.getHtml();
       }
+
+      final int finalMinSdk = minSdkVersion;
+
+      Runnable link =
+        () -> {
+          Runnable linkAction = () -> {
+            // We reparse the buildModel as it is possible that it has change since this link was created.
+            ProjectBuildModel pbm = ProjectBuildModel.get(facet.getModule().getProject());
+            GradleBuildModel gbm = pbm.getModuleBuildModel(facet.getModule());
+
+            if (gbm == null) {
+              return;
+            }
+
+            gbm.android().defaultConfig().minSdkVersion().setValue(finalMinSdk);
+            ApplicationManager.getApplication().invokeAndWait(() -> WriteCommandAction
+              .runWriteCommandAction(facet.getModule().getProject(), "Update build file minSdkVersion", null, () -> pbm.applyChanges(),
+                                     gbm.getPsiFile()));
+            // We must make sure that the files have been updated before we sync, we block above but not here.
+            Runnable syncRunnable = () -> requestSync(facet.getModule().getProject());
+            if (ApplicationManager.getApplication().isUnitTestMode()) {
+              syncRunnable.run();
+            }
+            else {
+              ApplicationManager.getApplication().invokeLater(syncRunnable);
+            }
+          };
+
+          if (ApplicationManager.getApplication().isUnitTestMode()) {
+            linkAction.run();
+          }
+          else {
+            ApplicationManager.getApplication().executeOnPooledThread(linkAction);
+          }
+        };
+      sb.addLink(message.substring(0, end), htmlLinkManager.createRunnableLink(link));
+      sb.add(message.substring(end));
     } else {
       // use tools override suggestion.
       int eq = message.indexOf('=');
@@ -848,7 +934,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
   private static void requestSync(Project project) {
     assert ApplicationManager.getApplication().isDispatchThread();
-    ProjectSystemUtil.getProjectSystem(project).getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, true);
+    ProjectSystemUtil.getProjectSystem(project).getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED);
   }
 
   private static void removePackageAttribute(XmlFile manifestFile) {
@@ -1019,7 +1105,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       if (libraryModule != null) {
         AndroidFacet libraryFacet = AndroidFacet.getInstance(libraryModule);
         if (libraryFacet != null) {
-          File manifestFile = libraryFacet.getMainSourceProvider().getManifestFile();
+          File manifestFile = SourceProviderManager.getInstance(libraryFacet).getMainSourceProvider().getManifestFile();
           if (manifestFile.exists()) {
             sb.add(manifestFile.toURI().toString());
             redirected = true;
@@ -1276,7 +1362,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     @Nullable
     @Override
     public Color getFileColorFor(Object object) {
-      return getNodeColor((Node)object);
+      return object == null? null : getNodeColor((Node)object);
     }
   }
 }

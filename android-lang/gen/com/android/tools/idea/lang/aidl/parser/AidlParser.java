@@ -23,6 +23,7 @@ import com.intellij.lang.PsiBuilder.Marker;
 import static com.android.tools.idea.lang.aidl.lexer.AidlTokenTypes.*;
 import static com.intellij.lang.parser.GeneratedParserUtilBase.*;
 import com.intellij.psi.tree.IElementType;
+import com.intellij.psi.tree.IFileElementType;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.tree.TokenSet;
 import com.intellij.lang.PsiParser;
@@ -40,56 +41,11 @@ public class AidlParser implements PsiParser, LightPsiParser {
     boolean r;
     b = adapt_builder_(t, b, this, EXTENDS_SETS_);
     Marker m = enter_section_(b, 0, _COLLAPSE_, null);
-    if (t == BODY) {
-      r = body(b, 0);
-    }
-    else if (t == CLASS_OR_INTERFACE_TYPE) {
-      r = classOrInterfaceType(b, 0);
-    }
-    else if (t == DECLARATION_NAME) {
-      r = declarationName(b, 0);
-    }
-    else if (t == DIRECTION) {
-      r = direction(b, 0);
-    }
-    else if (t == HEADERS) {
-      r = headers(b, 0);
-    }
-    else if (t == IMPORT_STATEMENT) {
-      r = importStatement(b, 0);
-    }
-    else if (t == INTERFACE_DECLARATION) {
-      r = interfaceDeclaration(b, 0);
-    }
-    else if (t == METHOD_DECLARATION) {
-      r = methodDeclaration(b, 0);
-    }
-    else if (t == NAME_COMPONENT) {
-      r = nameComponent(b, 0);
-    }
-    else if (t == PACKAGE_STATEMENT) {
-      r = packageStatement(b, 0);
-    }
-    else if (t == PARAMETER) {
-      r = parameter(b, 0);
-    }
-    else if (t == PARCELABLE_DECLARATION) {
-      r = parcelableDeclaration(b, 0);
-    }
-    else if (t == PRIMITIVE_TYPE) {
-      r = primitiveType(b, 0);
-    }
-    else if (t == QUALIFIED_NAME) {
-      r = qualifiedName(b, 0);
-    }
-    else if (t == TYPE) {
-      r = type(b, 0);
-    }
-    else if (t == TYPE_ARGUMENTS) {
-      r = typeArguments(b, 0);
+    if (t instanceof IFileElementType) {
+      r = parse_root_(t, b, 0);
     }
     else {
-      r = parse_root_(t, b, 0);
+      r = false;
     }
     exit_section_(b, 0, m, t, r, true, TRUE_CONDITION);
   }
@@ -708,27 +664,27 @@ public class AidlParser implements PsiParser, LightPsiParser {
     return r;
   }
 
-  final static Parser declarationRecover_parser_ = new Parser() {
+  static final Parser declarationRecover_parser_ = new Parser() {
     public boolean parse(PsiBuilder b, int l) {
       return declarationRecover(b, l + 1);
     }
   };
-  final static Parser interfaceDeclarationRecover_parser_ = new Parser() {
+  static final Parser interfaceDeclarationRecover_parser_ = new Parser() {
     public boolean parse(PsiBuilder b, int l) {
       return interfaceDeclarationRecover(b, l + 1);
     }
   };
-  final static Parser methodDeclarationRecover_parser_ = new Parser() {
+  static final Parser methodDeclarationRecover_parser_ = new Parser() {
     public boolean parse(PsiBuilder b, int l) {
       return methodDeclarationRecover(b, l + 1);
     }
   };
-  final static Parser parameterListRecover_parser_ = new Parser() {
+  static final Parser parameterListRecover_parser_ = new Parser() {
     public boolean parse(PsiBuilder b, int l) {
       return parameterListRecover(b, l + 1);
     }
   };
-  final static Parser type_recover_parser_ = new Parser() {
+  static final Parser type_recover_parser_ = new Parser() {
     public boolean parse(PsiBuilder b, int l) {
       return type_recover(b, l + 1);
     }

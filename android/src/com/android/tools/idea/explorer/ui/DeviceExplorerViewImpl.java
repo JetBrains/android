@@ -15,9 +15,19 @@
  */
 package com.android.tools.idea.explorer.ui;
 
+import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
+import static java.awt.event.InputEvent.SHIFT_DOWN_MASK;
+
 import com.android.tools.idea.ddms.DeviceNameProperties;
 import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher;
-import com.android.tools.idea.explorer.*;
+import com.android.tools.idea.explorer.DeviceExplorerModel;
+import com.android.tools.idea.explorer.DeviceExplorerModelListener;
+import com.android.tools.idea.explorer.DeviceExplorerToolWindowFactory;
+import com.android.tools.idea.explorer.DeviceExplorerView;
+import com.android.tools.idea.explorer.DeviceExplorerViewListener;
+import com.android.tools.idea.explorer.DeviceExplorerViewProgressListener;
+import com.android.tools.idea.explorer.DeviceFileEntryNode;
+import com.android.tools.idea.explorer.DeviceFileSystemRendererFactory;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import com.android.tools.idea.explorer.fs.DeviceFileSystemRenderer;
 import com.android.tools.idea.explorer.fs.DeviceFileSystemService;
@@ -32,55 +42,50 @@ import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBLoadingPanel;
-import com.intellij.ui.content.Content;
-import com.intellij.ui.content.ContentManager;
 import com.intellij.ui.treeStructure.Tree;
 import icons.AndroidIcons;
-import icons.StudioIcons;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
-
-import javax.swing.*;
+import java.awt.BorderLayout;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.CancellationException;
+import java.util.stream.Collectors;
+import javax.swing.Icon;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JTree;
+import javax.swing.KeyStroke;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeWillExpandListener;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.DefaultTreeSelectionModel;
 import javax.swing.tree.ExpandVetoException;
 import javax.swing.tree.TreePath;
-import java.awt.*;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.util.*;
-import java.util.List;
-import java.util.concurrent.CancellationException;
-import java.util.stream.Collectors;
-
-import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
-import static java.awt.event.InputEvent.SHIFT_DOWN_MASK;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 public class DeviceExplorerViewImpl implements DeviceExplorerView {
   @NotNull private final List<DeviceExplorerViewListener> myListeners = new ArrayList<>();
   @NotNull private final List<DeviceExplorerViewProgressListener> myProgressListeners = new ArrayList<>();
-  @NotNull private final ToolWindow myToolWindow;
   @NotNull private final DeviceFileSystemRenderer myDeviceRenderer;
   @NotNull private final DeviceExplorerPanel myPanel;
-  @NotNull private JBLoadingPanel myLoadingPanel;
+  @NotNull private final JBLoadingPanel myLoadingPanel;
   @Nullable private ComponentPopupMenu myTreePopupMenu;
   private int myTreeLoadingCount;
 
   public DeviceExplorerViewImpl(@NotNull Project project,
-                                @NotNull ToolWindow toolWindow,
                                 @NotNull DeviceFileSystemRendererFactory rendererFactory,
                                 @NotNull DeviceExplorerModel model) {
-    myToolWindow = toolWindow;
     model.addListener(new ModelListener());
     myDeviceRenderer = rendererFactory.create(new DeviceNamePropertiesFetcher(new FutureCallback<DeviceNameProperties>() {
       @Override
@@ -96,6 +101,11 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
     myPanel = new DeviceExplorerPanel();
     myPanel.setCancelActionListener(e -> myProgressListeners.forEach(DeviceExplorerViewProgressListener::cancellationRequested));
     myLoadingPanel = new JBLoadingPanel(new BorderLayout(), project);
+  }
+
+  @NotNull
+  public JComponent getComponent() {
+    return myLoadingPanel;
   }
 
   @TestOnly
@@ -150,11 +160,6 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
 
   @Override
   public void setup() {
-    myToolWindow.setIcon(StudioIcons.Shell.ToolWindows.DEVICE_EXPLORER);
-    myToolWindow.setAvailable(true, null);
-    myToolWindow.setToHideOnEmptyContent(true);
-    myToolWindow.setTitle(DeviceExplorerToolWindowFactory.TOOL_WINDOW_ID);
-
     setupPanel();
   }
 
@@ -223,10 +228,6 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
   }
 
   private void setupPanel() {
-    final ContentManager contentManager = myToolWindow.getContentManager();
-    Content c = contentManager.getFactory().createContent(myLoadingPanel, "", true);
-    contentManager.addContent(c);
-
     myPanel.getComponent().setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
     myLoadingPanel.add(myPanel.getComponent(), BorderLayout.CENTER);
 

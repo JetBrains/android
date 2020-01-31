@@ -43,8 +43,6 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
 
   private static final String C_FILE_NAME = "app/src/main/jni/native-lib.c";
   private static final String C_BP_LINE = "return (*env)->NewStringUTF(env, message);";
-  private static final String JAVA_FILE_NAME = "app/src/main/java/com/example/basiccmakeapp/MainActivity.java";
-  private static final String JAVA_BP_LINE = "setContentView(tv);";
 
   @Before
   public void setUp() throws Exception {
@@ -52,69 +50,6 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
     guiTest.ideFrame().waitForGradleProjectSyncToFinish(Wait.seconds(60));
 
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
-  }
-
-  /**
-   * <p>TT ID: TODO this test case needs a TT ID.
-   *
-   */
-  @Test
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/72699808
-  public void testSessionRestart() throws Exception{
-    final IdeFrameFixture projectFrame = guiTest.ideFrame();
-    DebuggerTestUtil.setDebuggerType(projectFrame, DebuggerTestUtil.AUTO);
-    openAndToggleBreakPoints(projectFrame, C_FILE_NAME, C_BP_LINE);
-
-    DebugToolWindowFixture debugToolWindowFixture =
-      DebuggerTestUtil.debugAppAndWaitForSessionToStart(projectFrame, guiTest, DEBUG_CONFIG_NAME, emulator.getDefaultAvdName());
-
-    projectFrame.debugApp(DEBUG_CONFIG_NAME, emulator.getDefaultAvdName());
-
-    waitUntilDebugConsoleCleared(debugToolWindowFixture);
-    waitForSessionStart(debugToolWindowFixture);
-    stopDebugSession(debugToolWindowFixture);
-  }
-
-  /**
-   * Verify native debugger is attached to a running process.
-   * <p>
-   * This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>
-   * TT ID: 45e4c839-5c55-40f7-8264-4fe75ee02624
-   * <p>
-   *   <pre>
-   *   Test Steps:
-   *   1. Import BasicCmakeAppForUI.
-   *   2. Select Native debugger on Edit Configurations dialog.
-   *   3. Set breakpoints both in Java and C++ code.
-   *   4. Debug on a device running M or earlier.
-   *   5. Verify that only native debugger is attached and running.
-   *   6. Stop debugging.
-   *   </pre>
-   */
-  @Test
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/114304149, fast
-  public void testNativeDebuggerBreakpoints() throws Exception {
-    final IdeFrameFixture projectFrame = guiTest.ideFrame();
-
-    DebuggerTestUtil.setDebuggerType(projectFrame, DebuggerTestUtil.NATIVE);
-
-    // Set breakpoint in java code, but it wouldn't be hit when it is native debugger type.
-    openAndToggleBreakPoints(projectFrame, JAVA_FILE_NAME, JAVA_BP_LINE);
-
-    openAndToggleBreakPoints(projectFrame, C_FILE_NAME, C_BP_LINE);
-
-    DebugToolWindowFixture debugToolWindowFixture =
-      DebuggerTestUtil.debugAppAndWaitForSessionToStart(projectFrame, guiTest, DEBUG_CONFIG_NAME, emulator.getDefaultAvdName());
-
-    String[] expectedPatterns = new String[]{
-      variableToSearchPattern("sum_of_10_ints", "int", "55"),
-      variableToSearchPattern("product_of_10_ints", "int", "3628800"),
-      variableToSearchPattern("quotient", "int", "512")
-    };
-    checkAppIsPaused(projectFrame, expectedPatterns);
-    assertThat(debugToolWindowFixture.getDebuggerContent(DebuggerTestUtil.JAVA_DEBUGGER_CONF_NAME)).isNull();
-    stopDebugSession(debugToolWindowFixture);
   }
 
   @Test
@@ -155,8 +90,10 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
     // Add a new Android Library.  Note that this needs the path to Kotlin defined in the test's
     // JVM arguments.  See go/studio-testing-pitfalls for information.
     projectFrame.invokeMenuPath("File", "New", "New Module...");
-    NewModuleWizardFixture newModuleWizardFixture = NewModuleWizardFixture.find(guiTest.ideFrame());
-    newModuleWizardFixture.chooseModuleType("Android Library").clickNext().clickFinish();
+    NewModuleWizardFixture.find(guiTest.ideFrame())
+      .clickNextToAndroidLibrary()
+      .wizard()
+      .clickFinish();
 
     MessagesFixture messagesFixture = MessagesFixture.findByTitle(guiTest.robot(), "Terminate debugging");
     // Cancel and check that the debugging session is still happening.
@@ -169,8 +106,10 @@ public class BasicNativeDebuggerTest extends DebuggerTestBase {
     waitForSessionStart(debugToolWindowFixture);
 
     projectFrame.invokeMenuPath("File", "New", "New Module...");
-    newModuleWizardFixture = NewModuleWizardFixture.find(guiTest.ideFrame());
-    newModuleWizardFixture.chooseModuleType("Android Library").clickNext().clickFinish();
+    NewModuleWizardFixture.find(guiTest.ideFrame())
+      .clickNextToAndroidLibrary()
+      .wizard()
+      .clickFinish();
 
     messagesFixture = MessagesFixture.findByTitle(guiTest.robot(), "Terminate debugging");
     // Click okay and check that the debugger has been killed.

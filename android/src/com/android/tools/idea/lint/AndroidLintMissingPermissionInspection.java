@@ -15,6 +15,14 @@
  */
 package com.android.tools.idea.lint;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_NAME;
+import static com.android.SdkConstants.TAG_APPLICATION;
+import static com.android.SdkConstants.TAG_USES_PERMISSION;
+import static com.android.SdkConstants.TAG_USES_PERMISSION_SDK_23;
+import static com.android.SdkConstants.TAG_USES_PERMISSION_SDK_M;
+import static com.android.tools.lint.checks.PermissionDetector.MISSING_PERMISSION;
+
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.lint.checks.PermissionRequirement;
 import com.android.tools.lint.detector.api.LintFix;
@@ -25,13 +33,30 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.ReadonlyStatusHandler;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.JavaTokenType;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiElementFactory;
+import com.intellij.psi.PsiExpression;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiLiteralExpression;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiStatement;
+import com.intellij.psi.PsiType;
+import com.intellij.psi.SmartPointerManager;
+import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlTag;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
@@ -41,14 +66,12 @@ import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.lint.checks.PermissionDetector.MISSING_PERMISSION;
+import org.jetbrains.kotlin.idea.core.ShortenReferences;
+import org.jetbrains.kotlin.psi.KtBlockExpression;
+import org.jetbrains.kotlin.psi.KtElement;
+import org.jetbrains.kotlin.psi.KtIfExpression;
+import org.jetbrains.kotlin.psi.KtPsiFactory;
+import org.jetbrains.kotlin.psi.KtStatementExpression;
 
 public class AndroidLintMissingPermissionInspection extends AndroidLintInspectionBase {
   public AndroidLintMissingPermissionInspection() {
@@ -100,7 +123,7 @@ public class AndroidLintMissingPermissionInspection extends AndroidLintInspectio
     private final String myPermissionName;
     private final int myMaxVersion;
 
-    public AddPermissionFix(@NotNull AndroidFacet facet, @NotNull String permissionName, int maxVersion) {
+    private AddPermissionFix(@NotNull AndroidFacet facet, @NotNull String permissionName, int maxVersion) {
       super(null);
       myFacet = facet;
       myPermissionName = permissionName;
@@ -121,7 +144,7 @@ public class AndroidLintMissingPermissionInspection extends AndroidLintInspectio
         return;
       }
 
-      final Manifest manifest = myFacet.getManifest();
+      final Manifest manifest = Manifest.getMainManifest(myFacet);
       if (manifest == null) {
         return;
       }
@@ -202,8 +225,8 @@ public class AndroidLintMissingPermissionInspection extends AndroidLintInspectio
     private final Set<String> myRevocablePermissions;
     private final SmartPsiElementPointer<PsiElement> myCall;
 
-    public AddCheckPermissionFix(@NotNull AndroidFacet facet, @NotNull PermissionRequirement requirement, @NotNull PsiElement call,
-                                 @NotNull Set<String> revocablePermissions) {
+    private AddCheckPermissionFix(@NotNull AndroidFacet facet, @NotNull PermissionRequirement requirement, @NotNull PsiElement call,
+                                  @NotNull Set<String> revocablePermissions) {
       super("Add permission check");
       myFacet = facet;
       myRequirement = requirement;
@@ -220,9 +243,24 @@ public class AndroidLintMissingPermissionInspection extends AndroidLintInspectio
       }
 
       // Find the statement containing the method call;
-      PsiStatement statement = PsiTreeUtil.getParentOfType(call, PsiStatement.class, true);
+      boolean isKotlin = false;
+      PsiElement statement = PsiTreeUtil.getParentOfType(call, PsiStatement.class, true);
       if (statement == null) {
-        return;
+        // Kotlin?
+        PsiElement curr = call;
+        while (curr != null) {
+          PsiElement parent = curr.getParent();
+          if (curr instanceof KtStatementExpression) {
+            break;
+          }
+          statement = curr;
+          isKotlin = true;
+          curr = parent;
+        }
+
+        if (statement == null) {
+          return;
+        }
       }
       PsiElement parent = statement.getParent();
       if (parent == null) {
@@ -246,7 +284,8 @@ public class AndroidLintMissingPermissionInspection extends AndroidLintInspectio
             }
           }
         }
-      } else {
+      }
+      else {
         permissionNames = Collections.emptyMap();
       }
 
@@ -258,16 +297,19 @@ public class AndroidLintMissingPermissionInspection extends AndroidLintInspectio
       IElementType operator = myRequirement.getOperator();
       if (operator == null || operator == JavaTokenType.ANDAND) {
         operator = JavaTokenType.OROR;
-      } else if (operator == JavaTokenType.OROR) {
+      }
+      else if (operator == JavaTokenType.OROR) {
         operator = JavaTokenType.ANDAND;
       }
 
-      PsiElementFactory factory = facade.getElementFactory();
       StringBuilder sb = new StringBuilder(200);
       sb.append("if (");
       boolean first = true;
 
-      PsiClass activityCompat = facade.findClass("android.support.v4.app.ActivityCompat", moduleScope);
+      PsiClass activityCompat = facade.findClass("androidx.core.app.ActivityCompat", moduleScope);
+      if (activityCompat == null) {
+        activityCompat = facade.findClass("android.support.v4.app.ActivityCompat", moduleScope);
+      }
       boolean usingAppCompat = activityCompat != null;
       if (usingAppCompat && (activityCompat.findMethodsByName("requestPermissions", false).length == 0)) {
         // Using an older version of appcompat than 23.0.1. Later we should prompt the user to
@@ -278,7 +320,8 @@ public class AndroidLintMissingPermissionInspection extends AndroidLintInspectio
       for (String permission : myRevocablePermissions) {
         if (first) {
           first = false;
-        } else {
+        }
+        else {
           sb.append(' ');
           if (operator == JavaTokenType.ANDAND) {
             sb.append("&&");
@@ -292,7 +335,8 @@ public class AndroidLintMissingPermissionInspection extends AndroidLintInspectio
           sb.append(' ');
         }
         if (usingAppCompat) {
-          sb.append("android.support.v4.app.ActivityCompat.");
+          sb.append(activityCompat.getQualifiedName());
+          sb.append(".");
         }
         sb.append("checkSelfPermission(");
         if (usingAppCompat) {
@@ -303,7 +347,8 @@ public class AndroidLintMissingPermissionInspection extends AndroidLintInspectio
         PsiField field = permissionNames.get(permission);
         if (field != null && field.getContainingClass() != null) {
           sb.append(field.getContainingClass().getQualifiedName()).append('.').append(field.getName());
-        } else {
+        }
+        else {
           sb.append('"').append(permission).append('"');
         }
         sb.append(") != android.content.pm.PackageManager.PERMISSION_GRANTED");
@@ -317,27 +362,49 @@ public class AndroidLintMissingPermissionInspection extends AndroidLintInspectio
         " //                                          int[] grantResults)\n" +
         " // to handle the case where the user grants the permission. See the documentation\n" +
         " // for Activity").append(usingAppCompat ? "Compat" : "").append("#requestPermissions for more details.\n");
-      PsiMethod method = PsiTreeUtil.getParentOfType(call, PsiMethod.class, true);
 
       // TODO: Add additional information here, perhaps pointing to
       //    http://android-developers.blogspot.com/2015/09/google-play-services-81-and-android-60.html
       // or adding more of a skeleton from that article.
 
+      PsiMethod method = isKotlin ? null : PsiTreeUtil.getParentOfType(call, PsiMethod.class, true);
       if (method != null && !PsiType.VOID.equals(method.getReturnType())) {
-        sb.append("return TODO;\n");
-      } else {
-        sb.append("return;\n");
+        sb.append("return TODO");
       }
-      sb.append("}\n");
+      else {
+        sb.append("return");
+
+      }
+      if (!isKotlin) {
+        sb.append(';');
+      }
+      sb.append("\n}\n");
       String code = sb.toString();
 
-      PsiStatement check = factory.createStatementFromText(code, call);
-      JavaCodeStyleManager.getInstance(project).shortenClassReferences(check);
-      parent.addBefore(check, statement);
+      if (isKotlin) {
+        KtPsiFactory factory = new KtPsiFactory(project);
+        KtBlockExpression check = factory.createBlock(code);
+        for (PsiElement child : check.getChildren()) {
+          if (child instanceof KtIfExpression) {
+            PsiElement added = parent.addBefore(child, statement);
+            parent.addBefore(factory.createNewLine(), statement);
+            if (added instanceof KtElement) {
+              ShortenReferences.DEFAULT.process((KtElement)added);
+            }
+            break;
+          }
+        }
+      }
+      else {
+        PsiElementFactory factory = facade.getElementFactory();
+        PsiStatement check = factory.createStatementFromText(code, call);
+        JavaCodeStyleManager.getInstance(project).shortenClassReferences(check);
+        parent.addBefore(check, statement);
 
-      // Reformat from start of newly added element to end of statement following it
-      CodeStyleManager.getInstance(project).reformatRange(parent, check.getTextOffset(),
-                                                          statement.getTextOffset() + statement.getTextLength());
+        // Reformat from start of newly added element to end of statement following it
+        CodeStyleManager.getInstance(project).reformatRange(parent, check.getTextOffset(),
+                                                            statement.getTextOffset() + statement.getTextLength());
+      }
     }
   }
 }

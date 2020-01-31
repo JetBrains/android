@@ -1,4 +1,18 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+/*
+ * Copyright 2000-2012 JetBrains s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.jetbrains.android.compiler.tools;
 
 import com.android.SdkConstants;
@@ -11,20 +25,25 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.util.ArrayUtilRt;
-import java.util.HashSet;
 import com.intellij.util.containers.MultiMap;
 import com.intellij.util.execution.ParametersListUtil;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.AndroidCompilerMessageKind;
 import org.jetbrains.android.util.AndroidExecutionUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.io.FileFilter;
-import java.io.IOException;
-import java.util.*;
 
 /**
  * AndroidApt decorator.
@@ -40,7 +59,7 @@ public final class AndroidApt {
   private static final FileFilter PNG_FILES_FILTER = new FileFilter() {
     @Override
     public boolean accept(File file) {
-      return file.isDirectory() || FileUtilRt.extensionEquals(file.getName(), AndroidCommonUtils.PNG_EXTENSION);
+      return file.isDirectory() || FileUtilRt.extensionEquals(file.getName(), AndroidBuildCommonUtils.PNG_EXTENSION);
     }
   };
 
@@ -56,7 +75,7 @@ public final class AndroidApt {
                                                                       @NotNull String[] extraPackages,
                                                                       boolean nonConstantFields,
                                                                       @Nullable String proguardCfgOutputFileOsPath) throws IOException {
-    final List<Pair<String, String>> libRTxtFilesAndPackages = new ArrayList<>();
+    final List<Pair<String, String>> libRTxtFilesAndPackages = new ArrayList<Pair<String, String>>();
 
     for (String extraPackage : extraPackages) {
       libRTxtFilesAndPackages.add(Pair.create((String)null, extraPackage));
@@ -76,9 +95,9 @@ public final class AndroidApt {
                                                                       @Nullable String proguardCfgOutputFileOsPath,
                                                                       @Nullable String rTxtOutDirOsPath,
                                                                       boolean optimizeRFile) throws IOException {
-    final Map<AndroidCompilerMessageKind, List<String>> messages = new HashMap<>();
-    messages.put(AndroidCompilerMessageKind.ERROR, new ArrayList<>());
-    messages.put(AndroidCompilerMessageKind.INFORMATION, new ArrayList<>());
+    final Map<AndroidCompilerMessageKind, List<String>> messages = new HashMap<AndroidCompilerMessageKind, List<String>>();
+    messages.put(AndroidCompilerMessageKind.ERROR, new ArrayList<String>());
+    messages.put(AndroidCompilerMessageKind.INFORMATION, new ArrayList<String>());
 
     final File outOsDir = new File(outDirOsPath);
     if (!outOsDir.exists()) {
@@ -92,14 +111,14 @@ public final class AndroidApt {
     /* We actually need to delete the manifest.java as it may become empty and
     in this case aapt doesn't generate an empty one, but instead doesn't
     touch it */
-    final File manifestJavaFile = new File(packageFolderOsPath + File.separatorChar + AndroidCommonUtils.MANIFEST_JAVA_FILE_NAME);
+    final File manifestJavaFile = new File(packageFolderOsPath + File.separatorChar + AndroidBuildCommonUtils.MANIFEST_JAVA_FILE_NAME);
     if (manifestJavaFile.exists()) {
       if (!FileUtil.delete(manifestJavaFile)) {
         messages.get(AndroidCompilerMessageKind.ERROR).add("Unable to delete " + manifestJavaFile.getPath());
       }
     }
 
-    final File rJavaFile = new File(packageFolderOsPath + File.separatorChar + AndroidCommonUtils.R_JAVA_FILENAME);
+    final File rJavaFile = new File(packageFolderOsPath + File.separatorChar + AndroidBuildCommonUtils.R_JAVA_FILENAME);
     if (rJavaFile.exists()) {
       if (!FileUtil.delete(rJavaFile)) {
         messages.get(AndroidCompilerMessageKind.ERROR).add("Unable to delete " + rJavaFile.getPath());
@@ -111,7 +130,7 @@ public final class AndroidApt {
     for (int i = 0, n = libRTxtFilesAndPackages.size(); i < n; i++) {
       final String libPackage = libRTxtFilesAndPackages.get(i).getSecond();
       final String libPackageFolderOsPath = FileUtil.toSystemDependentName(outDirOsPath + '/' + libPackage.replace('.', '/'));
-      extraRJavaFiles[i] = new File(libPackageFolderOsPath + File.separatorChar + AndroidCommonUtils.R_JAVA_FILENAME);
+      extraRJavaFiles[i] = new File(libPackageFolderOsPath + File.separatorChar + AndroidBuildCommonUtils.R_JAVA_FILENAME);
     }
 
     for (File extraRJavaFile : extraRJavaFiles) {
@@ -144,7 +163,7 @@ public final class AndroidApt {
   private static void makeFieldsNotFinal(@NotNull File[] libRJavaFiles) throws IOException {
     for (File file : libRJavaFiles) {
       if (file.isFile()) {
-        final String fileContent = AndroidCommonUtils.readFile(file);
+        final String fileContent = AndroidBuildCommonUtils.readFile(file);
         FileUtil.writeToFile(file, fileContent.replace("public static final int ", "public static int "));
       }
     }
@@ -161,7 +180,7 @@ public final class AndroidApt {
                                                                          @Nullable String rTxtOutDirOsPath,
                                                                          boolean optimizeRFile)
     throws IOException {
-    final List<String> args = new ArrayList<>();
+    final List<String> args = new ArrayList<String>();
 
     BuildToolInfo buildToolInfo = target.getBuildToolInfo();
     if (buildToolInfo == null) {
@@ -179,7 +198,7 @@ public final class AndroidApt {
     if (resourceDirsOsPaths.length > 1) {
       args.add("--auto-add-overlay");
     }
-    final Set<String> extraPackages = new HashSet<>();
+    final Set<String> extraPackages = new HashSet<String>();
 
     for (Pair<String, String> pair : libRTxtFilesAndPackages) {
       extraPackages.add(pair.getSecond());
@@ -216,7 +235,7 @@ public final class AndroidApt {
       args.add(proguardCfgOutputFileOsPath);
     }
     final Map<AndroidCompilerMessageKind, List<String>> messages = AndroidExecutionUtil.doExecute(ArrayUtilRt.toStringArray(args));
-    LOG.info(AndroidCommonUtils.command2string(args));
+    LOG.info(AndroidBuildCommonUtils.command2string(args));
 
     if (!messages.get(AndroidCompilerMessageKind.ERROR).isEmpty()) {
       return messages;
@@ -228,7 +247,7 @@ public final class AndroidApt {
       if (rFile.isFile()) {
         final SymbolLoader fullSymbolValues = new SymbolLoader(rFile);
         fullSymbolValues.load();
-        final MultiMap<String, SymbolLoader> libMap = new MultiMap<>();
+        final MultiMap<String, SymbolLoader> libMap = new MultiMap<String, SymbolLoader>();
 
         for (Pair<String, String> pair : libRTxtFilesAndPackages) {
           final File rTextFile = new File(pair.getFirst());
@@ -276,7 +295,7 @@ public final class AndroidApt {
       return Collections.singletonMap(AndroidCompilerMessageKind.ERROR, Collections.singletonList("No Build Tools in the Android SDK."));
     }
 
-    final ArrayList<String> args = new ArrayList<>();
+    final ArrayList<String> args = new ArrayList<String>();
 
     args.add(buildToolInfo.getPath(BuildToolInfo.PathId.AAPT));
 
@@ -307,7 +326,7 @@ public final class AndroidApt {
       args.add("-C");
       args.add(outputPath);
 
-      LOG.info(AndroidCommonUtils.command2string(args));
+      LOG.info(AndroidBuildCommonUtils.command2string(args));
       return AndroidExecutionUtil.doExecute(ArrayUtilRt.toStringArray(args));
     }
     finally {
@@ -352,7 +371,7 @@ public final class AndroidApt {
       return Collections.singletonMap(AndroidCompilerMessageKind.ERROR, Collections.singletonList("No Build Tools in the Android SDK."));
     }
 
-    final ArrayList<String> args = new ArrayList<>();
+    final ArrayList<String> args = new ArrayList<String>();
 
     args.add(buildToolInfo.getPath(BuildToolInfo.PathId.AAPT));
 
@@ -423,7 +442,7 @@ public final class AndroidApt {
       }
       args.add("-F");
       args.add(outputPath);
-      LOG.info(AndroidCommonUtils.command2string(args));
+      LOG.info(AndroidBuildCommonUtils.command2string(args));
       return AndroidExecutionUtil.doExecute(ArrayUtilRt.toStringArray(args));
     }
     finally {
@@ -435,7 +454,7 @@ public final class AndroidApt {
 
   @NotNull
   private static String[] getNonEmptyExistingDirs(@NotNull String[] dirs) {
-    final List<String> result = new ArrayList<>();
+    final List<String> result = new ArrayList<String>();
     for (String dirPath : dirs) {
       final File dir = new File(dirPath);
 

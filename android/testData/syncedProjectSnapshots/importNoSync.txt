@@ -1,0 +1,14 @@
+PROJECT             : testImportNoSync
+    MODULE              : testImportNoSync
+        LinkedProjectId     : :
+        LinkedProjectPath   : <PROJECT>
+        RootProjectPath     : <PROJECT>
+        ModuleFile          : <PROJECT>/testImportNoSync.iml
+        ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            GradlePath          : :
+        CONENT_ENTRY        : file://<PROJECT>
+        JDK                 : <NAME_CUT> JavaSDK
+        *isInherited        : true
+        ORDER_ENTRY         : <Module source>

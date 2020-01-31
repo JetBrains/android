@@ -18,22 +18,20 @@ package com.android.tools.profilers.memory;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler;
-import com.android.tools.profiler.proto.MemoryServiceGrpc;
+import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
+import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 class HeapDumpSampleDataSeries extends CaptureDataSeries<CaptureObject> {
   @NotNull private final MemoryProfilerStage myStage;
 
-  public HeapDumpSampleDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client,
+  public HeapDumpSampleDataSeries(@NotNull ProfilerClient client,
                                   @Nullable Common.Session session,
                                   @NotNull FeatureTracker featureTracker,
                                   @NotNull MemoryProfilerStage stage) {
@@ -42,14 +40,12 @@ class HeapDumpSampleDataSeries extends CaptureDataSeries<CaptureObject> {
   }
 
   @Override
-  public List<SeriesData<CaptureDurationData<CaptureObject>>> getDataForXRange(Range xRange) {
-    long rangeMin = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMin());
-    long rangeMax = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMax());
-    MemoryProfiler.ListHeapDumpInfosResponse response = myClient.listHeapDumpInfos(
-      MemoryProfiler.ListDumpInfosRequest.newBuilder().setSession(mySession).setStartTime(rangeMin).setEndTime(rangeMax).build());
+  public List<SeriesData<CaptureDurationData<CaptureObject>>> getDataForRange(Range range) {
+    List<HeapDumpInfo> infos =
+      MemoryProfiler.getHeapDumpsForSession(myClient, mySession, range, myStage.getStudioProfilers().getIdeServices());
 
     List<SeriesData<CaptureDurationData<CaptureObject>>> seriesData = new ArrayList<>();
-    for (MemoryProfiler.HeapDumpInfo info : response.getInfosList()) {
+    for (HeapDumpInfo info : infos) {
       seriesData.add(new SeriesData<>(
         getHostTime(info.getStartTime()),
         new CaptureDurationData<>(

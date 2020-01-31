@@ -43,12 +43,6 @@ public class AndroidGutterIconTestGenerated extends AbstractAndroidGutterIconTes
         doTest(fileName);
     }
 
-    @TestMetadata("relatedFiles.kt")
-    public void testRelatedFiles() throws Exception {
-        String fileName = KotlinTestUtils.navigationMetadata("idea-android/testData/android/gutterIcon/relatedFiles.kt");
-        doTest(fileName);
-    }
-
     @TestMetadata("systemColor.kt")
     public void testSystemColor() throws Exception {
         String fileName = KotlinTestUtils.navigationMetadata("idea-android/testData/android/gutterIcon/systemColor.kt");
@@ -58,6 +52,11 @@ public class AndroidGutterIconTestGenerated extends AbstractAndroidGutterIconTes
     @TestMetadata("systemDrawable.kt")
     public void testSystemDrawable() throws Exception {
         String fileName = KotlinTestUtils.navigationMetadata("idea-android/testData/android/gutterIcon/systemDrawable.kt");
+        doTest(fileName);
+    }
+
+    public void testKotlinKeyword() throws Exception {
+        String fileName = KotlinTestUtils.navigationMetadata("idea-android/testData/android/gutterIcon/kotlinKeyword.kt");
         doTest(fileName);
     }
 

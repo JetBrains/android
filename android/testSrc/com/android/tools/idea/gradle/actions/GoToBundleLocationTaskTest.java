@@ -27,6 +27,7 @@ import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.module.Module;
+import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.JavaProjectTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
 import java.io.File;
@@ -42,7 +43,7 @@ import org.mockito.MockitoAnnotations;
 /**
  * Tests for {@link GoToBundleLocationTask}.
  */
-public class GoToBundleLocationTaskTest extends JavaProjectTestCase {
+public class GoToBundleLocationTaskTest extends PlatformTestCase {
   private static final String NOTIFICATION_TITLE = "Build Bundle(s)";
   boolean isRevealFileActionSupported;
   @Mock private AndroidNotification myMockNotification;
@@ -58,7 +59,8 @@ public class GoToBundleLocationTaskTest extends JavaProjectTestCase {
     // Simulate the path of the bundle file for the project's module.
     File myBundleFilePath = createTempDir("bundleFileLocation");
     modulesToPaths = Collections.singletonMap(getModule().getName(), myBundleFilePath);
-    BuildsToPathsMapper mockGenerator = IdeComponents.mockProjectService(myProject, BuildsToPathsMapper.class, getTestRootDisposable());
+    IdeComponents ideComponents = new IdeComponents(getProject());
+    BuildsToPathsMapper mockGenerator = ideComponents.mockProjectService(BuildsToPathsMapper.class);
     when(mockGenerator.getBuildsToPaths(any(), any(), any(), anyBoolean(), any())).thenReturn(modulesToPaths);
     myTask = new GoToBundleLocationTask(getProject(), modules, NOTIFICATION_TITLE) {
       @Override

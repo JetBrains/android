@@ -31,6 +31,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.SdkSync;
 import com.intellij.openapi.project.Project;
 import com.intellij.pom.java.LanguageLevel;
+import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.JavaProjectTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
 import java.io.File;
@@ -43,7 +44,7 @@ import org.mockito.verification.VerificationMode;
 /**
  * Tests for {@link GradleProjectImporter}.
  */
-public class GradleProjectImporterTest extends JavaProjectTestCase {
+public class GradleProjectImporterTest extends PlatformTestCase {
   @Mock private GradleSyncInvoker mySyncInvoker;
   @Mock private NewProjectSetup myProjectSetup;
   @Mock private ProjectFolder myProjectFolder;
@@ -78,55 +79,14 @@ public class GradleProjectImporterTest extends JavaProjectTestCase {
 
     ServiceContainerUtil.registerServiceInstance(project, GradleProjectInfo.class, myGradleProjectInfo);
 
-    myProjectImporter = new GradleProjectImporter(sdkSync, mySyncInvoker, myProjectSetup, projectFolderFactory);
-  }
-
-  public void testImportProjectWithDefaultSettings() throws Exception {
-    Project expectedNewProject = getProject();
-    when(myProjectSetup.createProject(myProjectName, myProjectFolderPath.getPath())).thenReturn(expectedNewProject);
-
-    Project newProject = myProjectImporter.importProjectNoSync(myProjectName, myProjectFolderPath, new GradleProjectImporter.Request());
-    assertSame(expectedNewProject, newProject);
-
-    // Verify project setup before syncing.
-    verifyProjectFilesCreation();
-    verifyProjectCreation(times(1));
-    verifyProjectPreparation(null);
-    verifyGradleVmOptionsCleanup(times(1));
-
-    // Verify sync.
-    GradleSyncListener syncListener = mock(GradleSyncListener.class);
-    mySyncInvoker.requestProjectSyncAndSourceGeneration(newProject, TRIGGER_PROJECT_NEW, syncListener);
-    verifyGradleSyncInvocation(syncListener);
-  }
-
-  public void testImportProjectWithNullProject() throws Exception {
-    GradleProjectImporter.Request importSettings = new GradleProjectImporter.Request();
-    importSettings.javaLanguageLevel = JDK_1_8;
-
-    Project expectedNewProject = getProject();
-    when(myProjectSetup.createProject(myProjectName, myProjectFolderPath.getPath())).thenReturn(expectedNewProject);
-
-    Project newProject = myProjectImporter.importProjectNoSync(myProjectName, myProjectFolderPath, importSettings);
-    assertSame(expectedNewProject, newProject);
-
-    // Verify project setup before syncing.
-    verifyProjectFilesCreation();
-    verifyProjectCreation(times(1));
-    verifyProjectPreparation(JDK_1_8);
-    verifyGradleVmOptionsCleanup(times(1));
-
-    // Verify sync.
-    GradleSyncListener syncListener = mock(GradleSyncListener.class);
-    mySyncInvoker.requestProjectSyncAndSourceGeneration(newProject, TRIGGER_PROJECT_NEW, syncListener);
-    verifyGradleSyncInvocation(syncListener);
+    myProjectImporter = new GradleProjectImporter(sdkSync, myProjectSetup, projectFolderFactory);
   }
 
   public void testImportProjectWithNonNullProject() throws Exception {
     GradleProjectImporter.Request importSettings = new GradleProjectImporter.Request(getProject());
     importSettings.javaLanguageLevel = JDK_1_8;
 
-    Project newProject = myProjectImporter.importProjectNoSync(myProjectName, myProjectFolderPath, importSettings);
+    myProjectImporter.importProjectNoSync(importSettings);
 
     // Verify project setup before syncing.
     verifyProjectFilesCreation();
@@ -136,7 +96,7 @@ public class GradleProjectImporterTest extends JavaProjectTestCase {
 
     // Verify sync.
     GradleSyncListener syncListener = mock(GradleSyncListener.class);
-    mySyncInvoker.requestProjectSyncAndSourceGeneration(newProject, TRIGGER_PROJECT_NEW, syncListener);
+    mySyncInvoker.requestProjectSync(getProject(), TRIGGER_PROJECT_NEW, syncListener);
     verifyGradleSyncInvocation(syncListener);
   }
 
@@ -158,7 +118,7 @@ public class GradleProjectImporterTest extends JavaProjectTestCase {
   }
 
   private void verifyGradleSyncInvocation(@Nullable GradleSyncListener syncListener) {
-    verify(mySyncInvoker, times(1)).requestProjectSyncAndSourceGeneration(getProject(), TRIGGER_PROJECT_NEW, syncListener);
+    verify(mySyncInvoker, times(1)).requestProjectSync(getProject(), TRIGGER_PROJECT_NEW, syncListener);
     verifyProjectWasMarkedAsImported();
   }
 

@@ -1,11 +1,15 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android;
 
 import com.android.tools.idea.jps.AndroidTargetBuilder;
 import com.intellij.util.ArrayUtilRt;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.AndroidBuildTestingManager;
-import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.ProjectPaths;
@@ -19,12 +23,6 @@ import org.jetbrains.jps.incremental.ProjectBuildException;
 import org.jetbrains.jps.incremental.StopBuildException;
 import org.jetbrains.jps.incremental.messages.ProgressMessage;
 import org.jetbrains.jps.model.module.JpsModule;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
 
 /**
  * @author Eugene.Kudelevsky
@@ -67,16 +65,17 @@ public class AndroidLibraryPackagingBuilder extends AndroidTargetBuilder<BuildRo
     if (classesDir == null || !classesDir.isDirectory()) {
       return true;
     }
-    final Set<String> subdirs = new HashSet<>();
+    final Set<String> subdirs = new HashSet<String>();
     AndroidJpsUtil.addSubdirectories(classesDir, subdirs);
 
     if (!subdirs.isEmpty()) {
       context.processMessage(new ProgressMessage(AndroidJpsBundle.message("android.jps.progress.library.packaging", module.getName())));
-      final File outputJarFile = new File(outputDir, AndroidCommonUtils.CLASSES_JAR_FILE_NAME);
+      final File outputJarFile = new File(outputDir, AndroidBuildCommonUtils.CLASSES_JAR_FILE_NAME);
       final List<String> srcFiles;
 
       try {
-        srcFiles = AndroidCommonUtils.packClassFilesIntoJar(ArrayUtilRt.EMPTY_STRING_ARRAY, ArrayUtilRt.toStringArray(subdirs), outputJarFile);
+        srcFiles = AndroidBuildCommonUtils
+          .packClassFilesIntoJar(ArrayUtilRt.EMPTY_STRING_ARRAY, ArrayUtilRt.toStringArray(subdirs), outputJarFile);
       }
       catch (IOException e) {
         AndroidJpsUtil.reportExceptionError(context, null, e, BUILDER_NAME);

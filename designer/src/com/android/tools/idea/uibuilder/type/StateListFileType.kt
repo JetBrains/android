@@ -16,19 +16,9 @@
 package com.android.tools.idea.uibuilder.type
 
 import com.android.SdkConstants
-import com.android.resources.ResourceFolderType
-import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.common.type.DesignerEditorFileType
-import com.intellij.psi.PsiFile
-import com.intellij.psi.xml.XmlFile
-import org.jetbrains.android.dom.FileDescriptionUtils
+import com.android.tools.idea.uibuilder.statelist.StateListActionGroups
 
-object StateListFileType : DesignerEditorFileType {
-  override fun isResourceTypeOf(file: PsiFile) =
-    file is XmlFile && FileDescriptionUtils.isResourceOfTypeContainingTag(file,
-                                                                          ResourceFolderType.DRAWABLE,
-                                                                          setOf(SdkConstants.TAG_SELECTOR))
-
-  override fun getToolbarActionGroups(surface: DesignSurface) = ToolbarActionGroups(surface)
+object StateListFileType : DrawableFileType(setOf(SdkConstants.TAG_ANIMATED_SELECTOR, SdkConstants.TAG_SELECTOR)) {
+  override fun getToolbarActionGroups(surface: DesignSurface) = StateListActionGroups(surface)
 }

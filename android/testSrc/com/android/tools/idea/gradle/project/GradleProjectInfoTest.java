@@ -15,36 +15,42 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
-import com.android.tools.idea.project.AndroidProjectInfo;
-import com.intellij.facet.FacetManager;
-import com.intellij.facet.ModifiableFacetModel;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ProjectFileIndex;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.JavaProjectTestCase;
-import com.intellij.testFramework.ServiceContainerUtil;
-import org.jetbrains.android.facet.AndroidFacet;
-
-import java.io.File;
-import java.io.IOException;
-
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.android.tools.idea.testing.ProjectFiles.createFileInProjectRoot;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.*;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.testing.IdeComponents;
+import com.intellij.facet.FacetManager;
+import com.intellij.facet.ModifiableFacetModel;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ProjectFileIndex;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.PlatformTestCase;
+import java.io.File;
+import java.io.IOException;
+import org.easymock.EasyMock;
+import org.jetbrains.android.facet.AndroidFacet;
 
 /**
  * Tests for {@link GradleProjectInfo}.
  */
-public class GradleProjectInfoTest extends JavaProjectTestCase {
+public class GradleProjectInfoTest extends PlatformTestCase {
   private GradleProjectInfo myProjectInfo;
 
   @Override
@@ -155,12 +161,9 @@ public class GradleProjectInfoTest extends JavaProjectTestCase {
   }
 
   private void registerLastSyncTimestamp(long timestamp) {
-    GradleSyncSummary summary = mock(GradleSyncSummary.class);
-    when(summary.getSyncTimestamp()).thenReturn(timestamp);
-
     GradleSyncState syncState = mock(GradleSyncState.class);
-    ServiceContainerUtil.replaceService(getProject(), GradleSyncState.class, syncState, getTestRootDisposable());
-    when(syncState.getSummary()).thenReturn(summary);
+    new IdeComponents(getProject()).replaceProjectService(GradleSyncState.class, syncState);
+    when(syncState.getLastSyncFinishedTimeStamp()).thenReturn(timestamp);
   }
 
   public void testInvokesIndexHonoringExclusion() throws IOException {
@@ -186,5 +189,35 @@ public class GradleProjectInfoTest extends JavaProjectTestCase {
     found = myProjectInfo.findAndroidModelInModule(excludedFile, false);
     assertSame(androidModel, found);
     verify(projectFileIndex).getModuleForFile(excludedFile, false);
+  }
+
+  public void testGetSelectedModules() {
+    createAndAddGradleFacet(myModule);
+
+    DataContext dataContext = createMock(DataContext.class);
+    Module[] data = {myModule};
+    expect(dataContext.getData(LangDataKeys.MODULE_CONTEXT_ARRAY.getName())).andReturn(data);
+
+    replay(dataContext);
+
+    Module[] selectedModules = GradleProjectInfo.getInstance(myProject).getModulesToBuildFromSelection(dataContext);
+    assertSame(data, selectedModules);
+
+    EasyMock.verify(dataContext);
+  }
+
+  public void testGetSelectedModulesWithModuleWithoutAndroidGradleFacet() {
+    DataContext dataContext = createMock(DataContext.class);
+    Module[] data = {myModule};
+    expect(dataContext.getData(LangDataKeys.MODULE_CONTEXT_ARRAY.getName())).andReturn(data);
+
+    replay(dataContext);
+
+    Module[] selectedModules = GradleProjectInfo.getInstance(myProject).getModulesToBuildFromSelection(dataContext);
+    assertNotSame(data, selectedModules);
+    assertEquals(1, selectedModules.length);
+    assertSame(myModule, selectedModules[0]);
+
+    EasyMock.verify(dataContext);
   }
 }

@@ -18,7 +18,7 @@ package com.android.tools.idea.fonts;
 import static com.android.ide.common.fonts.FontFamilyKt.FILE_PROTOCOL_START;
 import static com.android.ide.common.fonts.FontFamilyKt.HTTPS_PROTOCOL_START;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.fonts.FontDetail;
 import com.android.ide.common.fonts.FontFamily;

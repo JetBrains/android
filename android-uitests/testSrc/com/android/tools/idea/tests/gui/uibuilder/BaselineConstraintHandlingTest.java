@@ -33,6 +33,7 @@ import static com.google.common.truth.Truth.assertThat;
 @RunWith(GuiTestRemoteRunner.class)
 public class BaselineConstraintHandlingTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   /**
    * Verifies the UI for adding baseline constraints for a ConstraintLayout in the layout editor.
@@ -67,7 +68,6 @@ public class BaselineConstraintHandlingTest {
       .showOnlyDesignView()
       .findView("TextView", 0)
       .rightClick();
-    layoutEditor.invokeContextMenuAction("Show Baseline");
 
     layoutEditor
       .waitForRenderToFinish(Wait.seconds(120))

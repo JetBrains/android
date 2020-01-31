@@ -26,18 +26,20 @@ import com.intellij.ui.table.JBTable;
 import java.awt.datatransfer.Transferable;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
+import javax.swing.table.TableModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class SubTable extends JBTable implements DataProvider, PasteProvider {
-  private final FrozenColumnTable myFrozenColumnTable;
+final class SubTable<M extends TableModel> extends JBTable implements DataProvider, PasteProvider {
+  private final FrozenColumnTable<M> myFrozenColumnTable;
 
-  SubTable(@NotNull SubTableModel model, @NotNull FrozenColumnTable frozenColumnTable) {
+  SubTable(@NotNull SubTableModel model, @NotNull FrozenColumnTable<M> frozenColumnTable) {
     super(model);
 
     getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -51,7 +53,7 @@ final class SubTable extends JBTable implements DataProvider, PasteProvider {
   }
 
   @NotNull
-  FrozenColumnTable getFrozenColumnTable() {
+  FrozenColumnTable<M> getFrozenColumnTable() {
     return myFrozenColumnTable;
   }
 
@@ -71,8 +73,8 @@ final class SubTable extends JBTable implements DataProvider, PasteProvider {
   @NotNull
   int[] getSelectedModelRowIndices() {
     return Arrays.stream(getSelectedRows())
-                 .map(this::convertRowIndexToModel)
-                 .toArray();
+      .map(this::convertRowIndexToModel)
+      .toArray();
   }
 
   @NotNull
@@ -80,9 +82,16 @@ final class SubTable extends JBTable implements DataProvider, PasteProvider {
     SubTableModel model = (SubTableModel)getModel();
 
     return Arrays.stream(getSelectedColumns())
-                 .map(this::convertColumnIndexToModel)
-                 .map(model::convertColumnIndexToDelegate)
-                 .toArray();
+      .map(this::convertColumnIndexToModel)
+      .map(model::convertColumnIndexToDelegate)
+      .toArray();
+  }
+
+  @NotNull
+  Object getColumnAt(int viewColumnIndex) {
+    return IntStream.range(0, getRowCount())
+      .mapToObj(viewRowIndex -> getValueAt(viewRowIndex, viewColumnIndex))
+      .collect(Collectors.toList());
   }
 
   @NotNull
@@ -120,11 +129,11 @@ final class SubTable extends JBTable implements DataProvider, PasteProvider {
     SubTableModel model = (SubTableModel)getModel();
 
     IntStream.range(0, dataModel.getColumnCount())
-             .map(model::convertColumnIndexToDelegate)
-             .filter(myFrozenColumnTable::includeColumn)
-             .map(model::convertColumnIndexToModel)
-             .mapToObj(modelColumnIndex -> getOrCreateColumn(map, modelColumnIndex, model))
-             .forEach(this::addColumn);
+      .map(model::convertColumnIndexToDelegate)
+      .filter(myFrozenColumnTable::includeColumn)
+      .map(model::convertColumnIndexToModel)
+      .mapToObj(modelColumnIndex -> getOrCreateColumn(map, modelColumnIndex, model))
+      .forEach(this::addColumn);
   }
 
   @NotNull

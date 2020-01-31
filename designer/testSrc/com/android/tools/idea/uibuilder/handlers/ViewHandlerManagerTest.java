@@ -19,6 +19,8 @@ import static com.android.SdkConstants.ATTR_GRAVITY;
 import static com.android.SdkConstants.ATTR_ORIENTATION;
 import static com.android.SdkConstants.ATTR_PARENT_TAG;
 import static com.android.SdkConstants.ATTR_SHOW_IN;
+import static com.android.SdkConstants.BOTTOM_APP_BAR;
+import static com.android.SdkConstants.RECYCLER_VIEW;
 import static com.android.SdkConstants.TOOLS_NS_NAME_PREFIX;
 import static com.google.common.truth.Truth.assertThat;
 
@@ -30,7 +32,13 @@ import com.android.tools.idea.uibuilder.handlers.flexbox.FlexboxLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.relative.RelativeLayoutHandler;
 import com.android.tools.idea.uibuilder.property.MockNlComponent;
+import com.intellij.openapi.extensions.Extensions;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.testFramework.PlatformTestUtil;
+import java.util.function.Function;
+import com.intellij.testFramework.ServiceContainerUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ViewHandlerManagerTest extends LayoutTestCase {
 
@@ -49,6 +57,11 @@ public class ViewHandlerManagerTest extends LayoutTestCase {
     if (FlexboxLayoutHandler.FLEXBOX_ENABLE_FLAG) {
       assertTrue(viewManager.getHandler(SdkConstants.FLEXBOX_LAYOUT) instanceof FlexboxLayoutHandler);
     }
+  }
+
+  public void testAndroidxHandler() {
+    ViewHandlerManager viewManager = getProject().getComponent(ViewHandlerManager.class);
+    assertTrue(viewManager.getHandler(RECYCLER_VIEW.newName()) instanceof RecyclerViewHandler);
   }
 
   public void testMergeHandler() {
@@ -77,5 +90,42 @@ public class ViewHandlerManagerTest extends LayoutTestCase {
     // This handler should have inspector properties from <merge> and <LinearLayout>
     assertThat(handler.getInspectorProperties()).containsExactly(
       TOOLS_NS_NAME_PREFIX + ATTR_SHOW_IN, TOOLS_NS_NAME_PREFIX + ATTR_PARENT_TAG, ATTR_ORIENTATION, ATTR_GRAVITY);
+  }
+
+  public void testViewHandlerProvider() {
+    ViewHandlerProvider provider = new TestHandler((tag) -> {
+      if (BOTTOM_APP_BAR.equals(tag)) {
+        fail("Built-in component should not call the ViewHandlerProvider");
+      }
+      else if ("TestTag".equals(tag)) {
+        return new ViewStubHandler();
+      }
+
+      return null;
+    });
+
+    ViewHandlerManager viewManager = getProject().getComponent(ViewHandlerManager.class);
+    assertNull(viewManager.getHandler("TestTag"));
+    viewManager.clearCache();
+    ServiceContainerUtil.registerExtension(getProject(),
+                                           ViewHandlerManager.EP_NAME,
+                                           provider,
+                                           getTestRootDisposable());
+    assertTrue(viewManager.getHandler("TestTag") instanceof ViewStubHandler);
+    assertNotNull(viewManager.getHandler(BOTTOM_APP_BAR));
+  }
+
+  private static class TestHandler implements ViewHandlerProvider {
+    private final Function<String, ViewHandler> myProvider;
+
+    private TestHandler(Function<String, ViewHandler> provider) {
+      myProvider = provider;
+    }
+
+    @Nullable
+    @Override
+    public ViewHandler findHandler(@NotNull String viewTag) {
+      return myProvider.apply(viewTag);
+    }
   }
 }

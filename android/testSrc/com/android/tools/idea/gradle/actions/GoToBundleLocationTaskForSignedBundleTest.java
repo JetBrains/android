@@ -28,8 +28,7 @@ import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.JavaProjectTestCase;
-import com.intellij.testFramework.ServiceContainerUtil;
+import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,7 +44,7 @@ import org.mockito.MockitoAnnotations;
 /**
  * Tests for {@link GoToBundleLocationTask}.
  */
-public class GoToBundleLocationTaskForSignedBundleTest extends JavaProjectTestCase {
+public class GoToBundleLocationTaskForSignedBundleTest extends PlatformTestCase {
   private static final String NOTIFICATION_TITLE = "Build Bundle(s)";
   private static final String buildVariant1 = "FreeDebug";
   private static final String buildVariant2 = "PaidDebug";
@@ -69,7 +68,8 @@ public class GoToBundleLocationTaskForSignedBundleTest extends JavaProjectTestCa
     buildsToPaths = new TreeMap<>();
     buildsToPaths.put(buildVariant1, myBundleFilePath1);
     buildsToPaths.put(buildVariant2, myBundleFilePath2);
-    BuildsToPathsMapper mockGenerator = IdeComponents.mockProjectService(getProject(), BuildsToPathsMapper.class, getTestRootDisposable());
+    IdeComponents ideComponents = new IdeComponents(getProject());
+    BuildsToPathsMapper mockGenerator = ideComponents.mockProjectService(BuildsToPathsMapper.class);
     when(mockGenerator.getBuildsToPaths(any(), any(), any(), anyBoolean(), anyString())).thenReturn(buildsToPaths);
     myTask = new GoToBundleLocationTask(getProject(), modules, NOTIFICATION_TITLE, buildVariants, null, "") {
       @Override
@@ -77,7 +77,7 @@ public class GoToBundleLocationTaskForSignedBundleTest extends JavaProjectTestCa
         return isRevealFileActionSupported;  // Inject ability to simulate both behaviors.
       }
     };
-    ServiceContainerUtil.replaceService(getProject(), AndroidNotification.class, myMockNotification, getTestRootDisposable());
+    ideComponents.replaceProjectService(AndroidNotification.class, myMockNotification);
   }
 
   public void testExecuteWithCancelledBuild() {

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.layoutInspector.ui;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.editors.layoutInspector.LayoutInspectorContext;
 import com.android.tools.idea.editors.layoutInspector.actions.LoadOverlayAction;
 import com.android.tools.idea.editors.layoutInspector.actions.SetOverlayAlphaAction;

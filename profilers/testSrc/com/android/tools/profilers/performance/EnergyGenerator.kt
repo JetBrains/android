@@ -16,6 +16,8 @@
 package com.android.tools.profilers.performance
 
 import com.android.tools.datastore.database.EnergyTable
+import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.Energy
 import com.android.tools.profiler.proto.EnergyProfiler
 
 import java.sql.Connection
@@ -37,23 +39,28 @@ class EnergyGenerator(connection: Connection) : DataGenerator(connection) {
   }
 
   private fun generateEnergyEvent(timestamp: Long, properties: GeneratorProperties) {
-    val event = EnergyProfiler.EnergyEvent.newBuilder()
-      .setEventId(random.nextInt())
+    val event = Common.Event.newBuilder()
+      .setGroupId(random.nextInt().toLong())
       .setPid(properties.pid)
-      .setJobStarted(EnergyProfiler.JobStarted.newBuilder()
-                       .setParams(EnergyProfiler.JobParameters.newBuilder()
-                                    .setExtras("Test")))
-      .setJobFinished(EnergyProfiler.JobFinished.getDefaultInstance())
-      .setIsTerminal(true)
+      .setEnergyEvent(
+        Energy.EnergyEventData.newBuilder()
+          .setJobStarted(
+            Energy.JobStarted.newBuilder()
+              .setParams(Energy.JobParameters.newBuilder().setExtras("Test")))
+          .setJobFinished(Energy.JobFinished.getDefaultInstance()))
+      .setIsEnded(true)
+      .setTimestamp(timestamp)
       .build()
     myTable.insertOrReplace(properties.session, event)
   }
 
   private fun generateEnergySample(timestamp: Long, properties: GeneratorProperties) {
     val sample = EnergyProfiler.EnergySample.newBuilder()
-      .setCpuUsage(random.nextInt() % 100)
-      .setLocationUsage(random.nextInt() % 100)
-      .setNetworkUsage(random.nextInt() % 100)
+      .setEnergyUsage(
+        Energy.EnergyUsageData.newBuilder()
+          .setCpuUsage(random.nextInt() % 100)
+          .setLocationUsage(random.nextInt() % 100)
+          .setNetworkUsage(random.nextInt() % 100))
       .setTimestamp(timestamp)
       .build()
     myTable.insertOrReplace(properties.session, sample)

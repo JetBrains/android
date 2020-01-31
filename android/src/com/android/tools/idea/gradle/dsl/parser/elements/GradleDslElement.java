@@ -207,4 +207,6 @@ public interface GradleDslElement extends AnchorProvider {
   void updateDependenciesOnRemoveElement(@NotNull GradleDslElement oldElement);
 
   void resolve();
+
+  boolean isNewEmptyBlockElement();
 }

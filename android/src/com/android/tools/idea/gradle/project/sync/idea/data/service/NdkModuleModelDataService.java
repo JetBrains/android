@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL;
+
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.ndk.NdkModuleCleanupStep;
@@ -26,12 +27,9 @@ import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Collection;
 import java.util.Map;
-
-import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL;
+import org.jetbrains.annotations.NotNull;
 
 public class NdkModuleModelDataService extends ModuleModelDataService<NdkModuleModel> {
   @NotNull private final ModuleSetupContext.Factory myModuleSetupContextFactory;
@@ -63,13 +61,11 @@ public class NdkModuleModelDataService extends ModuleModelDataService<NdkModuleM
                             @NotNull Project project,
                             @NotNull IdeModifiableModelsProvider modelsProvider,
                             @NotNull Map<String, NdkModuleModel> modelsByModuleName) {
-    boolean syncSkipped = GradleSyncState.getInstance(project).isSyncSkipped();
-
     for (Module module : modelsProvider.getModules()) {
       NdkModuleModel ndkModuleModel = modelsByModuleName.get(module.getName());
       if (ndkModuleModel != null) {
         ModuleSetupContext context = myModuleSetupContextFactory.create(module, modelsProvider);
-        myModuleSetup.setUpModule(context, ndkModuleModel, syncSkipped);
+        myModuleSetup.setUpModule(context, ndkModuleModel);
       }
       else {
         onModelNotFound(module, modelsProvider);

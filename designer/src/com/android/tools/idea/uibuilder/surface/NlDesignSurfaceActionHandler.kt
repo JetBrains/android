@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.surface
 
-import com.android.annotations.VisibleForTesting
+import com.google.common.annotations.VisibleForTesting
 import com.android.tools.idea.common.model.ItemTransferable
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler
@@ -42,7 +42,7 @@ class NlDesignSurfaceActionHandler @JvmOverloads constructor(
   override fun getFlavor(): DataFlavor = ItemTransferable.DESIGNER_FLAVOR
 
   override fun getPasteTarget(): NlComponent? {
-    val sceneView = mySurface.currentSceneView ?: return null
+    val sceneView = mySurface.focusedSceneView ?: return null
 
     val selection = mySurface.selectionModel.selection
     if (selection.size > 1) {

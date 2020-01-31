@@ -1,6 +1,6 @@
 package org.jetbrains.android;
 
-import static org.jetbrains.android.util.AndroidCommonUtils.getResourceName;
+import static org.jetbrains.android.util.AndroidBuildCommonUtils.getResourceName;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceFolderType;

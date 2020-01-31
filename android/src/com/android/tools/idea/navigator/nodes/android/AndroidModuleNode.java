@@ -15,6 +15,13 @@
  */
 package com.android.tools.idea.navigator.nodes.android;
 
+import static com.android.tools.idea.flags.StudioFlags.ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT;
+import static com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon;
+import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static org.jetbrains.android.facet.AndroidSourceType.GENERATED_JAVA;
+import static org.jetbrains.android.facet.AndroidSourceType.GENERATED_RES;
+
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeJavaArtifact;
 import com.android.ide.common.util.PathString;
@@ -38,21 +45,17 @@ import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiManager;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidSourceType;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.util.*;
-
-import static com.android.tools.idea.flags.StudioFlags.ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT;
-import static com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon;
-import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static org.jetbrains.android.facet.AndroidSourceType.GENERATED_JAVA;
-import static org.jetbrains.android.facet.AndroidSourceType.GENERATED_RES;
 
 /**
  * {@link com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode} does not classify source types, and just assumes that all source
@@ -60,14 +63,12 @@ import static org.jetbrains.android.facet.AndroidSourceType.GENERATED_RES;
  * a module.
  */
 public class AndroidModuleNode extends AndroidViewModuleNode {
-  private final AndroidProjectViewPane myProjectViewPane;
 
   public AndroidModuleNode(@NotNull Project project,
                            @NotNull Module module,
-                           @NotNull ViewSettings settings,
-                           @NotNull AndroidProjectViewPane projectViewPane) {
-    super(project, module, settings);
-    myProjectViewPane = projectViewPane;
+                           @NotNull AndroidProjectViewPane projectViewPane,
+                           @NotNull ViewSettings settings) {
+    super(project, module, projectViewPane, settings);
   }
 
   @NotNull
@@ -79,10 +80,10 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
 
   @Override
   @NotNull
-  public Collection<AbstractTreeNode<?>> getChildren() {
+  protected Collection<AbstractTreeNode<?>> getModuleChildren() {
     AndroidFacet facet = AndroidFacet.getInstance(getModule());
     if (facet == null || facet.getModel() == null) {
-      return super.getChildren();
+      return platformGetChildren();
     }
     return getChildren(facet, getSettings(), myProjectViewPane, AndroidProjectViewPane.getSourceProviders(facet));
   }
@@ -91,7 +92,7 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
   static Collection<AbstractTreeNode<?>> getChildren(@NotNull AndroidFacet facet,
                                                   @NotNull ViewSettings settings,
                                                   @NotNull AndroidProjectViewPane projectViewPane,
-                                                  @NotNull List<IdeaSourceProvider> providers) {
+                                                  @NotNull Iterable<IdeaSourceProvider> providers) {
     Project project = facet.getModule().getProject();
     List<AbstractTreeNode<?>> result = new ArrayList<>();
 
@@ -141,7 +142,7 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
   }
 
   @NotNull
-  private static HashMultimap<AndroidSourceType, VirtualFile> getSourcesBySourceType(@NotNull List<IdeaSourceProvider> providers,
+  private static HashMultimap<AndroidSourceType, VirtualFile> getSourcesBySourceType(@NotNull Iterable<IdeaSourceProvider> providers,
                                                                                      @Nullable AndroidModuleModel androidModel) {
     HashMultimap<AndroidSourceType, VirtualFile> sourcesByType = HashMultimap.create();
 

@@ -15,22 +15,23 @@
  */
 package com.android.tools.idea.observable.ui;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.adtui.LabelWithEditButton;
 import com.android.tools.idea.observable.CountListener;
 import com.intellij.ui.EditorComboBox;
+import com.intellij.ui.EditorTextField;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
 import org.junit.Test;
 
-import javax.swing.*;
-
-import static com.google.common.truth.Truth.assertThat;
-
 /**
- * Note: This class skips testing {@link EditorComboBox}.
+ * Unit tests for {@link TextProperty}.
  *
- * EditorComboBox is *gnarly* for unit testing. It's an IntelliJ Swing Component which makes
- * WAY too many assumptions about IntelliJ being up and running in the background. If you don't
- * set up the code *just* right or know way too much about implementation details, you're going
- * to run into NPE after NPE after NPE...
+ * Note: This class skips testing {@link EditorComboBox} and {@link EditorTextField}. Those
+ * components are IntelliJ Swing Components with too many assumptions about IntelliJ being up
+ * and running in the background.
  *
  * There is a TextProperty that wraps one of these in our new project creation flow, so it's
  * common enough that we can rely on the regular product to catch an issue if one ever arises

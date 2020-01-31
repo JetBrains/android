@@ -53,7 +53,7 @@ class SelectActionsTest : LayoutTestCase() {
                             .id("@+id/textView2")
                         )).build()
 
-    val surface = NlDesignSurface(project, false, project)
+    val surface = NlDesignSurface.build(project, project)
     surface.model = model
     surface.selectionModel.setSelection(ImmutableList.of())
 
@@ -89,7 +89,7 @@ class SelectActionsTest : LayoutTestCase() {
                             .id("@+id/textView2")
                         )).build()
 
-    val surface = NlDesignSurface(project, false, project)
+    val surface = NlDesignSurface.build(project, project)
     surface.model = model
     surface.selectionModel.setSelection(ImmutableList.of())
 
@@ -125,7 +125,7 @@ class SelectActionsTest : LayoutTestCase() {
                             .id("@+id/textView2")
                         )).build()
 
-    val surface = NlDesignSurface(project, false, project)
+    val surface = NlDesignSurface.build(project, project)
     surface.model = model
     surface.selectionModel.setSelection(ImmutableList.of())
 

@@ -22,8 +22,12 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.adtui.stdui.CommonToggleButton;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profilers.cpu.CpuCaptureStage;
+import com.android.tools.profilers.cpu.CpuCaptureStageView;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.CpuProfilerStageView;
+import com.android.tools.profilers.customevent.CustomEventProfilerStage;
+import com.android.tools.profilers.customevent.CustomEventProfilerStageView;
 import com.android.tools.profilers.energy.EnergyProfilerStage;
 import com.android.tools.profilers.energy.EnergyProfilerStageView;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
@@ -45,11 +49,16 @@ import com.intellij.openapi.wm.IdeGlassPane;
 import com.intellij.openapi.wm.IdeGlassPaneUtil;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
-import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBEmptyBorder;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.update.Activatable;
 import com.intellij.util.ui.update.UiNotifyConnector;
 import icons.StudioIcons;
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.KeyboardFocusManager;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -58,6 +67,18 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.function.BiFunction;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JLayeredPane;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JToggleButton;
+import javax.swing.KeyStroke;
+import javax.swing.LayoutFocusTraversalPolicy;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_BOTTOM_BORDER;
 import static com.android.tools.profilers.ProfilerFonts.H4_FONT;
@@ -134,10 +155,12 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myBinder = new ViewBinder<>();
     myBinder.bind(StudioMonitorStage.class, StudioMonitorStageView::new);
     myBinder.bind(CpuProfilerStage.class, CpuProfilerStageView::new);
+    myBinder.bind(CpuCaptureStage.class, CpuCaptureStageView::new);
     myBinder.bind(MemoryProfilerStage.class, MemoryProfilerStageView::new);
     myBinder.bind(NetworkProfilerStage.class, NetworkProfilerStageView::new);
     myBinder.bind(NullMonitorStage.class, NullMonitorStageView::new);
     myBinder.bind(EnergyProfilerStage.class, EnergyProfilerStageView::new);
+    myBinder.bind(CustomEventProfilerStage.class, CustomEventProfilerStageView::new);
 
     myProfiler.addDependency(this)
       .onChange(ProfilerAspect.STAGE, this::updateStageView)
@@ -438,7 +461,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
       mySplitter.setFirstSize(0);
     }
     else {
-      mySplitter.setDividerMouseZoneSize(JBUIScale.scale(10));
+      mySplitter.setDividerMouseZoneSize(JBUI.scale(10));
       mySessionsView.getComponent().setMinimumSize(mySessionsView.getComponentMinimizeSize(true));
       mySplitter
         .setFirstSize(myProfiler.getIdeServices().getPersistentProfilerPreferences().getInt(SESSION_EXPANDED_WIDTH, 0));
@@ -486,6 +509,10 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
                       !myProfiler.getSessionsManager().isSessionAlive();
     Common.AgentData agentData = myProfiler.getAgentData();
     loading |= (agentData.getStatus() == Common.AgentData.Status.UNSPECIFIED && myProfiler.getSessionsManager().isSessionAlive());
+
+    // Show the loading screen only if the device is supported.
+    loading &= (myProfiler.getDevice() != null && myProfiler.getDevice().getUnsupportedReason().isEmpty());
+
     if (loading) {
       myStageLoadingPanel.startLoading();
       myStageCenterCardLayout.show(myStageCenterComponent, LOADING_VIEW_CARD);
@@ -534,7 +561,8 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
       CpuProfilerStage.class, "CPU",
       MemoryProfilerStage.class, "MEMORY",
       NetworkProfilerStage.class, "NETWORK",
-      EnergyProfilerStage.class, "ENERGY");
+      EnergyProfilerStage.class, "ENERGY",
+      CustomEventProfilerStage.class, "CUSTOM EVENTS");
 
     @Override
     protected void customizeCellRenderer(@NotNull JList list, Class value, int index, boolean selected, boolean hasFocus) {

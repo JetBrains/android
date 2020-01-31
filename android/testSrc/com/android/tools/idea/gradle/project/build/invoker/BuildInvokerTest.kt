@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.project.build.GradleBuildListener
 import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.truth.Truth.assertThat
@@ -30,7 +31,6 @@ import com.intellij.build.events.FinishBuildEvent
 import com.intellij.build.events.StartBuildEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.progress.ProgressIndicatorProvider
-import com.intellij.testFramework.replaceService
 import java.io.File
 import java.nio.file.Path
 
@@ -49,32 +49,32 @@ class BuildInvokerTest : AndroidGradleTestCase() {
     var gradleBuildStateBuildFinishedNotificationReceived = false
 
     // Replace BuildViewManager service before loading a project, but leave it inactive until later moment.
-    project.replaceService(
-        BuildViewManager::class.java,
-        object : BuildViewManager(project) {
-          override fun onEvent(buildId: Any, event: BuildEvent) {
-            if (!enabled) return // Skip events until activated.
-            when (event) {
-              is StartBuildEvent -> {
-                val gradleProgressIndicator = ProgressIndicatorProvider.getGlobalProgressIndicator()!!
-                ApplicationManager.getApplication().invokeLater {
-                  // Cancel the build after running for 100ms.
-                  Thread.sleep(100)
-                  gradleProgressIndicator.cancel()
-                }
-              }
-              is FinishBuildEvent -> {
-                buildFinishedEventReceived = true
+    IdeComponents(project).replaceProjectService(
+      BuildViewManager::class.java,
+      object : BuildViewManager(project) {
+        override fun onEvent(buildId: Any, event: BuildEvent) {
+          if (!enabled) return // Skip events until activated.
+          when (event) {
+            is StartBuildEvent -> {
+              val gradleProgressIndicator = ProgressIndicatorProvider.getGlobalProgressIndicator()!!
+              ApplicationManager.getApplication().invokeLater {
+                // Cancel the build after running for 100ms.
+                Thread.sleep(100)
+                gradleProgressIndicator.cancel()
               }
             }
+            is FinishBuildEvent -> {
+              buildFinishedEventReceived = true
+            }
           }
-        }, testRootDisposable)
+        }
+      })
 
     loadProject(SIMPLE_APPLICATION)
     enabled = true
 
     // Subscribe to GradleBuildState notifications.
-    GradleBuildState.subscribe(project, object: GradleBuildListener {
+    GradleBuildState.subscribe(project, object : GradleBuildListener {
       override fun buildExecutorCreated(request: GradleBuildInvoker.Request) = Unit
 
       override fun buildStarted(context: BuildContext) {

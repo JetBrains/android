@@ -1,4 +1,18 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+/*
+ * Copyright 2000-2012 JetBrains s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.jetbrains.jps.android.model.impl;
 
 import com.intellij.openapi.util.io.FileUtil;
@@ -6,7 +20,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.Function;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.xmlb.XmlSerializerUtil;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.AndroidNativeLibData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -61,7 +75,7 @@ public class JpsAndroidModuleExtensionImpl extends JpsElementBase<JpsAndroidModu
 
   @Override
   public List<AndroidNativeLibData> getAdditionalNativeLibs() {
-    final List<AndroidNativeLibData> libDatas = new ArrayList<>();
+    final List<AndroidNativeLibData> libDatas = new ArrayList<AndroidNativeLibData>();
     for (JpsAndroidModuleProperties.AndroidNativeLibDataEntry nativeLib : myProperties.myNativeLibs) {
       if (nativeLib.myArchitecture != null && nativeLib.myUrl != null && nativeLib.myTargetFileName != null) {
         libDatas.add(new AndroidNativeLibData(nativeLib.myArchitecture, JpsPathUtil.urlToPath(nativeLib.myUrl), nativeLib.myTargetFileName));
@@ -169,11 +183,11 @@ public class JpsAndroidModuleExtensionImpl extends JpsElementBase<JpsAndroidModu
     if (urls.isEmpty()) {
       return Collections.emptyList();
     }
-    final List<File> result = new ArrayList<>();
+    final List<File> result = new ArrayList<File>();
 
     for (String url : urls) {
       if (sdkHomePath != null) {
-        url = StringUtil.replace(url, AndroidCommonUtils.SDK_HOME_MACRO, sdkHomePath);
+        url = StringUtil.replace(url, AndroidBuildCommonUtils.SDK_HOME_MACRO, sdkHomePath);
       }
       result.add(JpsPathUtil.urlToFile(url));
     }

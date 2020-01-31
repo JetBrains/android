@@ -296,10 +296,10 @@ public class ConfigurationMatcher {
   }
 
 
-  /** Like {@link ConfigurationManager#getLocales()}, but ensures that the currently selected locale is first in the list */
+  /** Like {@link ConfigurationManager#getLocalesInProject()}, but ensures that the currently selected locale is first in the list */
   @NotNull
   public List<Locale> getPrioritizedLocales() {
-    ImmutableList<Locale> projectLocales = myManager.getLocales();
+    ImmutableList<Locale> projectLocales = myManager.getLocalesInProject();
     List<Locale> locales = new ArrayList<>(projectLocales.size() + 1); // Locale.ANY is not in getLocales() list
     Locale current = myManager.getLocale();
     locales.add(current);
@@ -584,7 +584,7 @@ public class ConfigurationMatcher {
       String currentLanguage = defaultLocale.getLanguage();
       String currentRegion = defaultLocale.getCountry();
 
-      ImmutableList<Locale> localeList = myManager.getLocales();
+      ImmutableList<Locale> localeList = myManager.getLocalesInProject();
       final int count = localeList.size();
       for (int l = 0; l < count; l++) {
         Locale locale = localeList.get(l);

@@ -62,6 +62,7 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
 
   val applicationId: SimpleProperty<PsAndroidModuleDefaultConfig, String> = property(
     "Application ID",
+    preferredVariableName = { "defaultApplicationId" },
     resolvedValueGetter = { applicationId },
     parsedPropertyGetter = { applicationId() },
     getter = { asString() },
@@ -70,7 +71,8 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
   )
 
   val applicationIdSuffix: SimpleProperty<PsAndroidModuleDefaultConfig, String> = property(
-    "Application Id Suffix",
+    "Application ID Suffix",
+    preferredVariableName = { "defaultApplicationIdSuffix" },
     resolvedValueGetter = { applicationIdSuffix },
     parsedPropertyGetter = { applicationIdSuffix() },
     getter = { asString() },
@@ -80,6 +82,7 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
 
   val maxSdkVersion: SimpleProperty<PsAndroidModuleDefaultConfig, Int> = property(
     "Max SDK Version",
+    preferredVariableName = { "defaultMaxSdkVersion" },
     resolvedValueGetter = { maxSdkVersion },
     parsedPropertyGetter = { maxSdkVersion() },
     getter = { asInt() },
@@ -90,6 +93,7 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
 
   val minSdkVersion: SimpleProperty<PsAndroidModuleDefaultConfig, String> = property(
     "Min SDK Version",
+    preferredVariableName = { "defaultMinSdkVersion" },
     resolvedValueGetter = { minSdkVersion?.apiLevel?.toString() },
     parsedPropertyGetter = { minSdkVersion() },
     getter = { asString() },
@@ -100,6 +104,7 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
 
   val multiDexEnabled: SimpleProperty<PsAndroidModuleDefaultConfig, Boolean> = property(
     "Multi Dex Enabled",
+    preferredVariableName = { "defaultMultiDexEnabled" },
     resolvedValueGetter = { multiDexEnabled },
     parsedPropertyGetter = { multiDexEnabled() },
     getter = { asBoolean() },
@@ -121,6 +126,7 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
 
   val targetSdkVersion: SimpleProperty<PsAndroidModuleDefaultConfig, String> = property(
     "Target SDK Version",
+    preferredVariableName = { "defaultTargetSdkVersion" },
     resolvedValueGetter = { targetSdkVersion?.apiLevel?.toString() },
     parsedPropertyGetter = { targetSdkVersion() },
     getter = { asString() },
@@ -132,6 +138,7 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
 
   val testApplicationId: SimpleProperty<PsAndroidModuleDefaultConfig, String> = property(
     "Test Application ID",
+    preferredVariableName = { "defaultTestApplicationId" },
     resolvedValueGetter = { testApplicationId },
     parsedPropertyGetter = { testApplicationId() },
     getter = { asString() },
@@ -141,8 +148,8 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
 
   val testFunctionalTest: SimpleProperty<PsAndroidModuleDefaultConfig, Boolean> = property(
     "Test Functional Test",
-    // TODO(b/111630584): Replace with the resolved value.
-    resolvedValueGetter = { null },
+    preferredVariableName = { "defaultTestFunctionalTest" },
+    resolvedValueGetter = { testFunctionalTest },
     parsedPropertyGetter = { testFunctionalTest() },
     getter = { asBoolean() },
     setter = { setValue(it) },
@@ -152,8 +159,8 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
 
   val testHandleProfiling: SimpleProperty<PsAndroidModuleDefaultConfig, Boolean> = property(
     "Test Handle Profiling",
-    // TODO(b/111630584): Replace with the resolved value.
-    resolvedValueGetter = { null },
+    preferredVariableName = { "defaultTestHandleProfiling" },
+    resolvedValueGetter = { testHandleProfiling },
     parsedPropertyGetter = { testHandleProfiling() },
     getter = { asBoolean() },
     setter = { setValue(it) },
@@ -163,6 +170,7 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
 
   val testInstrumentationRunner: SimpleProperty<PsAndroidModuleDefaultConfig, String> = property(
     "Test instrumentation runner class name",
+    preferredVariableName = { "defaultTestInstrumentationRunner" },
     resolvedValueGetter = { testInstrumentationRunner },
     parsedPropertyGetter = { testInstrumentationRunner() },
     getter = { asString() },
@@ -172,6 +180,7 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
 
   val versionCode: SimpleProperty<PsAndroidModuleDefaultConfig, Int> = property(
     "Version Code",
+    preferredVariableName = { "defaultVersionCode" },
     resolvedValueGetter = { versionCode },
     parsedPropertyGetter = { versionCode() },
     getter = { asInt() },
@@ -181,6 +190,7 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
 
   val versionName: SimpleProperty<PsAndroidModuleDefaultConfig, String> = property(
     "Version Name",
+    preferredVariableName = { "defaultVersionName" },
     resolvedValueGetter = { versionName },
     parsedPropertyGetter = { versionName() },
     getter = { asString() },
@@ -190,6 +200,7 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
 
   val versionNameSuffix: SimpleProperty<PsAndroidModuleDefaultConfig, String> = property(
     "Version Name Suffix",
+    preferredVariableName = { "defaultVersionNameSuffix" },
     resolvedValueGetter = { versionNameSuffix },
     parsedPropertyGetter = { versionNameSuffix() },
     getter = { asString() },

@@ -21,6 +21,7 @@ import static com.android.tools.idea.sdk.IdeSdks.isJdkSameVersion;
 import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
 
 import com.android.annotations.Nullable;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.project.messages.MessageType;
@@ -72,7 +73,7 @@ class JdkPreSyncCheck extends AndroidStudioSyncCheck {
 
     // Check if the version of selected Jdk is the same with the Jdk IDE uses.
     JavaSdkVersion runningJdkVersion = IdeSdks.getInstance().getRunningVersionOrDefault();
-    if (!isJdkSameVersion(new File(jdkHomePath), runningJdkVersion)) {
+    if (!StudioFlags.ALLOW_DIFFERENT_JDK_VERSION.get() && !isJdkSameVersion(new File(jdkHomePath), runningJdkVersion)) {
       return "The version of selected Jdk doesn't match the Jdk used by Studio. Please choose a valid Jdk " +
              runningJdkVersion.getDescription() + " directory.\n" + selectedJdkMsg;
     }

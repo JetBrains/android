@@ -16,12 +16,12 @@
 package com.android.tools.idea.ui.resourcechooser
 
 import com.android.ide.common.rendering.api.ResourceValue
-import com.android.tools.idea.concurrent.EdtExecutor
 import com.android.tools.idea.ui.resourcemanager.plugin.DesignAssetRendererManager
 import com.google.common.cache.CacheBuilder
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.ui.JBColor
+import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.ColorIcon
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -150,7 +150,7 @@ internal class DrawableCellRenderer(private val module: Module,
             list.repaint()
           }
         }
-      }, EdtExecutor.INSTANCE)
+      }, EdtExecutorService.getInstance())
 
     return label
   }

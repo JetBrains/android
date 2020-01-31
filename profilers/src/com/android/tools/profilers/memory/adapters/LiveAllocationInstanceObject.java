@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
+import com.android.tools.profiler.proto.Memory.AllocationStack;
 import com.android.tools.profiler.proto.MemoryProfiler.StackFrameInfoRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.StackFrameInfoResponse;
 import com.android.tools.profilers.stacktrace.CodeLocation;
@@ -30,7 +30,6 @@ import java.util.List;
 public class LiveAllocationInstanceObject implements InstanceObject {
   @NotNull private final LiveAllocationCaptureObject myCaptureObject;
   @NotNull private final ClassDb.ClassEntry myClassEntry;
-  @Nullable private final LiveAllocationInstanceObject myClassObject;
   @NotNull private final ValueType myValueType;
   private long myAllocTime = Long.MIN_VALUE;
   private long myDeallocTime = Long.MAX_VALUE;
@@ -42,14 +41,12 @@ public class LiveAllocationInstanceObject implements InstanceObject {
 
   public LiveAllocationInstanceObject(@NotNull LiveAllocationCaptureObject captureObject,
                                       @NotNull ClassDb.ClassEntry classEntry,
-                                      @Nullable LiveAllocationInstanceObject classObject,
                                       @Nullable ThreadId threadId,
                                       @Nullable AllocationStack callstack,
                                       long size,
                                       int heapId) {
     myCaptureObject = captureObject;
     myClassEntry = classEntry;
-    myClassObject = classObject;
     mySize = size;
     myHeapId = heapId;
     myThreadId = threadId == null ? ThreadId.INVALID_THREAD_ID : threadId;
@@ -127,15 +124,12 @@ public class LiveAllocationInstanceObject implements InstanceObject {
   @Override
   public List<CodeLocation> getAllocationCodeLocations() {
     List<CodeLocation> codeLocations = new ArrayList<>();
-    if (myCallstack != null && myCallstack.getFrameCase() == AllocationStack.FrameCase.SMALL_STACK) {
-      AllocationStack.SmallFrameWrapper smallFrames = myCallstack.getSmallStack();
-      for (AllocationStack.SmallFrame frame : smallFrames.getFramesList()) {
-        StackFrameInfoResponse frameInfo =
-          myCaptureObject.getClient().getStackFrameInfo(StackFrameInfoRequest.newBuilder()
-                                                          .setSession(myCaptureObject.getSession())
-                                                          .setMethodId(frame.getMethodId()).build());
-        CodeLocation.Builder builder = new CodeLocation.Builder(frameInfo.getClassName())
-          .setMethodName(frameInfo.getMethodName())
+    if (myCallstack != null && myCallstack.getFrameCase() == AllocationStack.FrameCase.ENCODED_STACK) {
+      AllocationStack.EncodedFrameWrapper encodedFrames = myCallstack.getEncodedStack();
+      for (AllocationStack.EncodedFrame frame : encodedFrames.getFramesList()) {
+        AllocationStack.StackFrame resolvedFrame = myCaptureObject.getStackFrame(frame.getMethodId());
+        CodeLocation.Builder builder = new CodeLocation.Builder(resolvedFrame.getClassName())
+          .setMethodName(resolvedFrame.getMethodName())
           .setLineNumber(frame.getLineNumber() - 1);
         codeLocations.add(builder.build());
       }
@@ -154,12 +148,6 @@ public class LiveAllocationInstanceObject implements InstanceObject {
   @Override
   public ClassDb.ClassEntry getClassEntry() {
     return myClassEntry;
-  }
-
-  @Nullable
-  @Override
-  public InstanceObject getClassObject() {
-    return myClassObject;
   }
 
   @NotNull
@@ -185,5 +173,13 @@ public class LiveAllocationInstanceObject implements InstanceObject {
       myJniRefs = new TLongObjectHashMap<>();
     }
     myJniRefs.put(ref.getRefValue(), ref);
+  }
+
+  public void removeJniRef(@NotNull JniReferenceInstanceObject ref) {
+    if (myJniRefs == null) {
+      return;
+    }
+
+    myJniRefs.remove(ref.getRefValue());
   }
 }

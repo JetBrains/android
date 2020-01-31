@@ -48,7 +48,6 @@ public class NavScreenTargetProvider implements TargetProvider {
       result.add(new ActionHandleTarget(sceneComponent));
     }
 
-    result.add(new ScreenHeaderTarget(sceneComponent));
     return result;
   }
 }

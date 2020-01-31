@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.actions;
 
+import static com.android.sdklib.internal.project.ProjectProperties.PROPERTY_CMAKE;
+import static com.android.sdklib.internal.project.ProjectProperties.PROPERTY_NDK;
+import static java.nio.file.Files.readAllBytes;
+
 import com.android.SdkConstants;
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.repository.GradleVersion;
@@ -35,16 +39,16 @@ import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler;
 import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.ide.FeedbackDescriptionProvider;
+import com.intellij.ide.plugins.IdeaPluginDescriptor;
+import com.intellij.ide.plugins.PluginManager;
 import com.intellij.openapi.application.ex.ApplicationInfoEx;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.EnvironmentUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -54,16 +58,18 @@ import java.util.Properties;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import static com.android.sdklib.internal.project.ProjectProperties.PROPERTY_CMAKE;
-import static com.android.sdklib.internal.project.ProjectProperties.PROPERTY_NDK;
-import static java.nio.file.Files.readAllBytes;
-
+// FIXME-ank2: register service
 public class AndroidFeedbackDescriptionProvider implements FeedbackDescriptionProvider {
   private static final Logger LOG = Logger.getInstance(AndroidFeedbackDescriptionProvider.class);
   private static final Pattern CMAKE_VERSION_PATTERN = Pattern.compile("cmake version\\s+(.*)");
 
-  @Nullable
+  /*
+   FIXME-ank2: Idea's feedback is in foreground
+   Move SendFeedbackAction to the background  getGradlePluginDetails calls into AndroidPluginInfo.find which might block the UI. Move the reporting to the background.  Bug: 128607319 Test: N/A Change-Id: If500ce8f6165564706b00432255828852a01e5a6
+   */
   @Override
   public String getDescription(@Nullable Project project) {
     // Use safe call wrapper extensively to make sure that as much as possible version context is collected and
@@ -76,6 +82,7 @@ public class AndroidFeedbackDescriptionProvider implements FeedbackDescriptionPr
       // Add Android Studio custom information we want to see prepopulated in the bug reports
       sb.append("\n\n");
       sb.append(String.format("AS: %1$s; ", ApplicationInfoEx.getInstanceEx().getFullVersion()));
+      sb.append(String.format("Kotlin plugin: %1$s; ", safeCall(() -> getKotlinPluginDetails())));
       if (project != null) {
         sb.append(String.format("Android Gradle Plugin: %1$s; ", safeCall(() -> getGradlePluginDetails(project))));
         sb.append(String.format("Gradle: %1$s; ", safeCall(() -> getGradleDetails(project))));
@@ -115,6 +122,15 @@ public class AndroidFeedbackDescriptionProvider implements FeedbackDescriptionPr
       return gradleVersion.toString();
     }
     return "(gradle version information not found)";
+  }
+
+  private static String getKotlinPluginDetails() {
+    PluginId kotlinPluginId = PluginId.findId("org.jetbrains.kotlin");
+    IdeaPluginDescriptor kotlinPlugin = PluginManager.getPlugin(kotlinPluginId);
+    if (kotlinPlugin != null) {
+      return kotlinPlugin.getVersion();
+    }
+    return "(kotlin plugin not found)";
   }
 
   private static String getNdkDetails(@Nullable Project project,

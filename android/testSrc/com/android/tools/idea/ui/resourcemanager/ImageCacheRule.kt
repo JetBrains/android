@@ -33,7 +33,8 @@ class ImageCacheRule : NamedExternalResource() {
   @Before
   override fun before(description: Description) {
     disposable = Disposer.newDisposable()
-    imageCache = ImageCache(
+    imageCache = ImageCache.createLargeImageCache(
+      disposable,
       mergingUpdateQueue = MergingUpdateQueue("queue", 0, true, MergingUpdateQueue.ANY_COMPONENT, disposable, null,
                                               false).apply { isPassThrough = true })
   }

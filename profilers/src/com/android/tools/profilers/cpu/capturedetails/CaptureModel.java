@@ -50,7 +50,9 @@ public class CaptureModel {
     CaptureDetails.Type.TOP_DOWN, FeatureTracker::trackSelectCaptureTopDown,
     CaptureDetails.Type.BOTTOM_UP, FeatureTracker::trackSelectCaptureBottomUp,
     CaptureDetails.Type.CALL_CHART, FeatureTracker::trackSelectCaptureCallChart,
-    CaptureDetails.Type.FLAME_CHART, FeatureTracker::trackSelectCaptureFlameChart
+    CaptureDetails.Type.FLAME_CHART, FeatureTracker::trackSelectCaptureFlameChart,
+    // We don't track usage for experimental features
+    CaptureDetails.Type.RENDER_AUDIT, tracker -> {}
   );
 
   @NotNull
@@ -204,7 +206,7 @@ public class CaptureModel {
       if (node != null) {
         applyFilter(node, false);
       }
-      myDetails = type.build(myCaptureConvertedRange, node);
+      myDetails = type.build(myCaptureConvertedRange, node, myCapture);
     }
     else {
       myFilter = Filter.EMPTY_FILTER;
@@ -303,7 +305,7 @@ public class CaptureModel {
 
   /**
    * Converted range updates selection range and vice-versa.
-   *
+   * <p>
    * If it's almost identical to the selection range, don't update it.
    * This prevents from updating each other in a loop.
    */
@@ -316,7 +318,7 @@ public class CaptureModel {
 
   /**
    * Converted range updates selection range and vice-versa.
-   *
+   * <p>
    * If it's almost identical to the range, don't update it.
    * This prevents from updating each other in a loop.
    */

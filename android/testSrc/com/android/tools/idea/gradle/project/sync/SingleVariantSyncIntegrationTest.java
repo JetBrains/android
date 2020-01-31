@@ -15,37 +15,28 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
-import static com.android.testutils.TestUtils.getKotlinVersionForTests;
-import static com.android.tools.idea.gradle.project.sync.ng.NewGradleSync.NOT_ELIGIBLE_FOR_SINGLE_VARIANT_SYNC;
 import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
 import static com.android.tools.idea.testing.TestProjectPaths.HELLO_JNI;
 import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.externalSystem.service.notification.NotificationCategory.ERROR;
 import static com.intellij.openapi.util.io.FileUtil.appendToFile;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
+import static java.util.stream.Collectors.toList;
 
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
-import com.android.tools.idea.gradle.project.sync.ng.NewGradleSync;
-import com.android.tools.idea.testing.AndroidGradleTests;
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import java.io.File;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 
-public class SingleVariantSyncIntegrationTest extends NewGradleSyncIntegrationTest {
+public class SingleVariantSyncIntegrationTest extends GradleSyncIntegrationTest {
 
   @Override
   protected boolean useSingleVariantSyncInfrastructure() {
@@ -79,13 +70,13 @@ public class SingleVariantSyncIntegrationTest extends NewGradleSyncIntegrationTe
 
     // Verify sync issues are reported properly.
     List<NotificationData> messages = syncMessages.getNotifications();
-    assertThat(messages).hasSize(2);
-    NotificationData message = messages.get(0);
-
-    assertEquals(ERROR, message.getNotificationCategory());
-    assertEquals("Unresolved dependencies", message.getTitle());
-    assertThat(message.getMessage()).contains(
-      "Unable to resolve dependency for ':app@paidQa/compileClasspath': Could not resolve project :lib.\nAffected Modules:");
+    List<NotificationData> relevantMessages = messages.stream()
+      .filter(m -> m.getNotificationCategory().equals(ERROR) &&
+                   m.getTitle().equals("Unresolved dependencies") &&
+                   m.getMessage().contains(
+                     "Unable to resolve dependency for ':app@paidQa/compileClasspath': Could not resolve project :lib.\nAffected Modules:"))
+      .collect(toList());
+    assertThat(relevantMessages).isNotEmpty();
   }
 
   public void testSingleVariantSyncAfterFailedIdeaSync() throws Exception {
@@ -110,50 +101,5 @@ public class SingleVariantSyncIntegrationTest extends NewGradleSyncIntegrationTe
     // Verify Single-variant sync is able to retrieve variant names with empty CMakeList.
     assertThat(ndkModuleModel.getNdkVariantNames().size()).isGreaterThan(1);
     assertThat(ndkModuleModel.getNdkVariantNames()).doesNotContain(NdkModuleModel.DummyNdkVariant.variantNameWithAbi);
-  }
-
-  public void testAddKotlinPluginToNonKotlinProject() throws Exception {
-    loadSimpleApplication();
-    // Verify that project is eligible for single-variant.
-    assertFalse(PropertiesComponent.getInstance(getProject()).getBoolean((NOT_ELIGIBLE_FOR_SINGLE_VARIANT_SYNC)));
-    assertTrue(NewGradleSync.isSingleVariantSync(getProject()));
-
-    // Add kotlin-android plugin to top-level build file, and app module.
-    ProjectBuildModel buildModel = ProjectBuildModel.get(getProject());
-    buildModel.getProjectBuildModel().buildscript().dependencies()
-      .addArtifact("classpath", "org.jetbrains.kotlin:kotlin-gradle-plugin:" + AndroidGradleTests.getKotlinVersionForTests());
-    buildModel.getModuleBuildModel(getModule("app")).applyPlugin("kotlin-android");
-    runWriteCommandAction(getProject(), buildModel::applyChanges);
-
-    // Request Gradle sync.
-    requestSyncAndWait();
-
-    // Verify that project is not eligible for single-variant.
-    assertTrue(PropertiesComponent.getInstance(getProject()).getBoolean((NOT_ELIGIBLE_FOR_SINGLE_VARIANT_SYNC)));
-    assertFalse(NewGradleSync.isSingleVariantSync(getProject()));
-  }
-
-  public void testSyncProjectWithBuildSrcModule() throws Exception {
-    loadSimpleApplication();
-    // Verify that project is eligible for single-variant.
-    assertFalse(PropertiesComponent.getInstance(getProject()).getBoolean((NOT_ELIGIBLE_FOR_SINGLE_VARIANT_SYNC)));
-    assertTrue(NewGradleSync.isSingleVariantSync(getProject()));
-
-    // Create buildSrc folder under root project.
-    File buildSrcDir = new File(getProject().getBasePath(), "buildSrc");
-    File buildFile = new File(buildSrcDir, "build.gradle");
-    writeToFile(buildFile, "repositories {}");
-
-    // Request Gradle sync.
-    requestSyncAndWait();
-
-    // Verify that project is set as not eligible for single-variant.
-    assertTrue(PropertiesComponent.getInstance(getProject()).getBoolean((NOT_ELIGIBLE_FOR_SINGLE_VARIANT_SYNC)));
-    assertFalse(NewGradleSync.isSingleVariantSync(getProject()));
-
-    // Verify that buildSrc module exists.
-    List<String> moduleNames =
-      Arrays.stream(ModuleManager.getInstance(getProject()).getModules()).map(module -> module.getName()).collect(Collectors.toList());
-    assertThat(moduleNames).contains("buildSrc");
   }
 }

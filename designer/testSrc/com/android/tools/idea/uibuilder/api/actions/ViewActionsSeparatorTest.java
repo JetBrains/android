@@ -84,7 +84,7 @@ public class ViewActionsSeparatorTest {
                                      @NotNull ViewHandler handler,
                                      @NotNull NlComponent component,
                                      @NotNull List<NlComponent> selectedChildren,
-                                     int modifiers) {
+                                     int modifiersEx) {
         presentation.setVisible(visible);
       }
 

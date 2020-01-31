@@ -22,6 +22,7 @@ import static org.mockito.Mockito.when;
 import com.android.tools.datastore.DataStorePollerTest;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.TestGrpcService;
+import com.android.tools.datastore.database.UnifiedEventsTable;
 import com.android.tools.datastore.service.TransportService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.AgentData;
@@ -37,7 +38,7 @@ import com.android.tools.profiler.proto.Transport.TimeResponse;
 import com.android.tools.profiler.proto.Transport.VersionRequest;
 import com.android.tools.profiler.proto.Transport.VersionResponse;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
-import com.android.tools.profiler.protobuf3jarjar.ByteString;
+import com.android.tools.idea.protobuf.ByteString;
 import com.google.common.collect.ImmutableMap;
 import io.grpc.stub.StreamObserver;
 import java.util.Map;
@@ -56,7 +57,7 @@ public class TransportServiceTest extends DataStorePollerTest {
 
   private DataStoreService myDataStore = mock(DataStoreService.class);
 
-  private TransportService myTransportService = new TransportService(myDataStore, getPollTicker()::run);
+  private TransportService myTransportService = new TransportService(myDataStore, new UnifiedEventsTable(), getPollTicker()::run, true);
 
   private static final String BYTES_ID_1 = "0123456789";
   private static final String BYTES_ID_2 = "9876543210";

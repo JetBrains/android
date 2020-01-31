@@ -250,4 +250,35 @@ public class GradleUtilTest {
     // Verify the result. Repeated dependency1 object should be added only once.
     assertThat(dependencies).containsExactlyElementsIn(Arrays.asList(dependency1, dependency2));
   }
+
+  @Test
+  public void isDirectChild() {
+    assertTrue(GradleUtil.isDirectChild(":app", ":"));
+    assertTrue(GradleUtil.isDirectChild(":libs:lib1", ":libs"));
+    assertTrue(GradleUtil.isDirectChild(":libs:java:lib2", ":libs:java"));
+
+    assertFalse(GradleUtil.isDirectChild(":", ":"));
+    assertFalse(GradleUtil.isDirectChild(":libs:lib1", ":"));
+    assertFalse(GradleUtil.isDirectChild(":libs", ":app"));
+    assertFalse(GradleUtil.isDirectChild(":libs:lib1", ":app"));
+    assertFalse(GradleUtil.isDirectChild(":libs:java:lib2", ":libs"));
+    assertFalse(GradleUtil.isDirectChild(":libs:android:lib3", ":libs:java"));
+    assertFalse(GradleUtil.isDirectChild(":app", ":app"));
+  }
+
+  @Test
+  public void getAllParentModulesPaths() {
+    assertThat(GradleUtil.getAllParentModulesPaths(":foo:buz")).containsExactly(":foo");
+    assertThat(GradleUtil.getAllParentModulesPaths(":foo")).isEmpty();
+    assertThat(GradleUtil.getAllParentModulesPaths(":")).isEmpty();
+    assertThat(GradleUtil.getAllParentModulesPaths(":foo:bar:buz:lib")).containsExactly(":foo", ":foo:bar", ":foo:bar:buz");
+  }
+
+  @Test
+  public void getParentModulePath() {
+    assertEquals(":foo", GradleUtil.getParentModulePath(":foo:buz"));
+    assertEquals(":foo:bar", GradleUtil.getParentModulePath(":foo:bar:buz"));
+    assertEquals("", GradleUtil.getParentModulePath(":"));
+
+  }
 }

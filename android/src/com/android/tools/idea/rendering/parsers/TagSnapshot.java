@@ -15,21 +15,25 @@
  */
 package com.android.tools.idea.rendering.parsers;
 
+import static com.android.SdkConstants.AAPT_URI;
+import static com.android.SdkConstants.ATTR_ATTR;
+import static com.android.SdkConstants.ATTR_NAME;
+import static com.android.SdkConstants.ATTR_USE_TAG;
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.google.common.base.Charsets.UTF_8;
+
 import com.google.common.collect.Lists;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
+import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-
-import static com.android.SdkConstants.*;
-import static com.google.common.base.Charsets.UTF_8;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A snapshot of the state of an {@link XmlTag}.
@@ -123,8 +127,12 @@ public class TagSnapshot {
       children = Collections.emptyList();
     }
 
+
+    XmlAttribute useTagAttribute = tag.getAttribute(ATTR_USE_TAG, TOOLS_URI);
+    String tagName = useTagAttribute == null ? tag.getName() : useTagAttribute.getValue();
     TagSnapshot newSnapshot =
-      new TagSnapshot(tag, tag.getName(), tag.getNamespacePrefix(), tag.getNamespace(), attributes, children, hasDeclaredAaptAttrs);
+      new TagSnapshot(tag, tagName, tag.getNamespacePrefix(),
+                      tag.getNamespace(), attributes, children, hasDeclaredAaptAttrs);
     if (afterCreate != null) {
       afterCreate.accept(newSnapshot);
     }

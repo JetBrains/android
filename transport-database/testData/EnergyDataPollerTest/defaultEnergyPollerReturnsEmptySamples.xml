@@ -46,16 +46,20 @@
 </message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.CpuService/GetCpuCoreConfig" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuCoreConfigResponse">
-        <Message>configs {
-  min_frequency_in_khz: 300000
-  max_frequency_in_khz: 2457600
+        <Message>cpu_core_config {
+  core_configs {
+    min_frequency_in_khz: 300000
+    max_frequency_in_khz: 2457600
+  }
 }
 </Message>
         <clazz>class com.android.tools.profiler.proto.CpuProfiler$CpuCoreConfigResponse</clazz>
         <functionCalled>profiler.proto.CpuService/GetCpuCoreConfig</functionCalled>
-        <message>configs {
-  min_frequency_in_khz: 300000
-  max_frequency_in_khz: 2457600
+        <message>cpu_core_config {
+  core_configs {
+    min_frequency_in_khz: 300000
+    max_frequency_in_khz: 2457600
+  }
 }
 </message>
     </GrpcCall>

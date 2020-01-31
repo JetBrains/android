@@ -1,9 +1,13 @@
 // Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android;
 
+import static com.android.SdkConstants.ATTR_NAME;
+import static com.android.SdkConstants.TAG_ITEM;
+
 import com.android.ide.common.resources.ValueResourceNameValidator;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceUrl;
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.ide.TitledHandler;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -19,6 +23,7 @@ import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.impl.source.xml.SchemaPrefix;
+import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
@@ -42,7 +47,7 @@ import org.jetbrains.android.dom.wrappers.ValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -51,6 +56,7 @@ import org.jetbrains.annotations.Nullable;
 public class AndroidRenameHandler implements RenameHandler, TitledHandler {
   @Override
   public boolean isAvailableOnDataContext(@NotNull DataContext dataContext) {
+    if (StudioFlags.RESOLVE_USING_REPOS.get()) return false;
     Editor editor = CommonDataKeys.EDITOR.getData(dataContext);
     if (editor == null) {
       return false;
@@ -197,11 +203,22 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
     if (element == null) {
       return null;
     }
-
-    if (element instanceof XmlToken && ((XmlToken)element).getTokenType() == XmlTokenType.XML_DATA_CHARACTERS) {
-      XmlText text = PsiTreeUtil.getParentOfType(element, XmlText.class);
-      if (text != null) {
-        return ResourceUrl.parse(text.getText().trim());
+    if (element instanceof XmlToken) {
+      IElementType tokenType = ((XmlToken)element).getTokenType();
+      if (tokenType == XmlTokenType.XML_DATA_CHARACTERS) {
+        XmlText text = PsiTreeUtil.getParentOfType(element, XmlText.class);
+        if (text != null) {
+          return ResourceUrl.parse(text.getText().trim());
+        }
+      }
+      else if (tokenType == XmlTokenType.XML_ATTRIBUTE_VALUE_TOKEN) {
+        XmlTag tag = PsiTreeUtil.getParentOfType(element, XmlTag.class);
+        if (tag != null && tag.getLocalName().equals(TAG_ITEM)) {
+          XmlAttribute attribute = PsiTreeUtil.getParentOfType(element, XmlAttribute.class);
+          if (attribute != null && attribute.getLocalName().equals(ATTR_NAME)) {
+            return ResourceUrl.parseAttrReference(element.getText());
+          }
+        }
       }
     }
     return null;
@@ -293,7 +310,7 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
         if (!AndroidUtils.isValidAndroidPackageName(name)) {
           throw new ConfigurationException(AndroidBundle.message("not.valid.package.name.error", name));
         }
-        if (!AndroidCommonUtils.contains2Identifiers(name)) {
+        if (!AndroidBuildCommonUtils.contains2Identifiers(name)) {
           throw new ConfigurationException(AndroidBundle.message("package.name.must.contain.2.ids.error"));
         }
         super.canRun();

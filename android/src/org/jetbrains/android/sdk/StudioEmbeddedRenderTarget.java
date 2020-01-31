@@ -33,9 +33,6 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
@@ -47,6 +44,7 @@ import org.jetbrains.annotations.Nullable;
 public class StudioEmbeddedRenderTarget implements IAndroidTarget {
   private static final Logger LOG = Logger.getInstance(StudioEmbeddedRenderTarget.class);
   private static final String ONLY_FOR_RENDERING_ERROR = "This target is only for rendering";
+  private static final String FRAMEWORK_RES_JAR = "framework_res.jar";
 
   // Possible paths of the embedded "layoutlib" directory.
   private static final String[] EMBEDDED_LAYOUTLIB_PATHS = {
@@ -57,20 +55,10 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
     // IDEA path.
     "/community/build/dependencies/build/android-sdk/prebuilts/studio/layoutlib/",
     // IDEA community path.
-    "/android/tools-base/layoutlib/"
+    "/build/dependencies/build/android-sdk/prebuilts/studio/layoutlib/"
   };
-  // Possible paths of framework_res.jar relative to the "layoutlib" directory.
-  private static final String[] EMBEDDED_FRAMEWORK_RES_JAR_PATHS = {
-    // Bundled path.
-    "data/framework_res.jar",
-    // Path when running in IntelliJ.
-    "../../../bazel-genfiles/tools/adt/idea/resources-aar/framework_res.jar",
-  };
-  // Path of framework_res.jar relative to the runfiles directory when running in Bazel.
-  private static final String EMBEDDED_FRAMEWORK_RES_JAR_BAZEL_PATH = "tools/adt/idea/resources-aar/framework_res.jar";
 
   @Nullable private final String myBasePath;
-  @Nullable private final String myFrameworkResPath;
 
   private static StudioEmbeddedRenderTarget ourStudioEmbeddedTarget;
   private static boolean ourDisableEmbeddedTargetForTesting = false;
@@ -105,7 +93,8 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
     return new CompatibilityRenderTarget(getInstance(), api, target);
   }
 
-  private static StudioEmbeddedRenderTarget getInstance() {
+  @VisibleForTesting
+  public static StudioEmbeddedRenderTarget getInstance() {
     if (ourStudioEmbeddedTarget == null) {
       ourStudioEmbeddedTarget = new StudioEmbeddedRenderTarget();
     }
@@ -114,7 +103,6 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
 
   private StudioEmbeddedRenderTarget() {
     myBasePath = getEmbeddedLayoutLibPath();
-    myFrameworkResPath = getEmbeddedFrameworkResPath(myBasePath);
   }
 
   /**
@@ -142,29 +130,6 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
     }
 
     LOG.error("Unable to find embedded layoutlib in paths:\n" + notFoundPaths.toString());
-    return null;
-  }
-
-  /**
-   * Returns the URL for the embedded layoutlib distribution.
-   * @param basePath
-   */
-  @Nullable
-  private static String getEmbeddedFrameworkResPath(@Nullable String basePath) {
-    if (basePath == null) {
-      return null;
-    }
-
-    for (String relativePath : EMBEDDED_FRAMEWORK_RES_JAR_PATHS) {
-      Path path = Paths.get(basePath, relativePath).normalize();
-      if (Files.exists(path)) {
-        return path.toString();
-      }
-    }
-    Path path = Paths.get(EMBEDDED_FRAMEWORK_RES_JAR_BAZEL_PATH).toAbsolutePath().normalize();
-    if (Files.exists(path)) {
-      return path.toString();
-    }
     return null;
   }
 
@@ -216,8 +181,7 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
       case DATA:
         return getLocation() + SdkConstants.OS_PLATFORM_DATA_FOLDER;
       case RESOURCES:
-        Preconditions.checkState(myFrameworkResPath != null, "Embedded framework_res.jar not found");
-        return myFrameworkResPath;
+        return getLocation() + SdkConstants.OS_PLATFORM_DATA_FOLDER + FRAMEWORK_RES_JAR;
       case FONTS:
         return getLocation() + SdkConstants.OS_PLATFORM_FONTS_FOLDER;
       default:
@@ -264,11 +228,6 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
 
   @Override
   public String getShortClasspathName() {
-    return getName();
-  }
-
-  @Override
-  public String getDescription() {
     return getName();
   }
 

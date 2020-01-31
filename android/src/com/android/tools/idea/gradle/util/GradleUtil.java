@@ -37,7 +37,6 @@ import static com.android.builder.model.AndroidProject.PROJECT_TYPE_TEST;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE_TRANSLATE;
 import static com.android.tools.idea.gradle.util.GradleBuilds.ENABLE_TRANSLATION_JVM_ARG;
-import static com.android.tools.idea.gradle.util.GradleProjects.isGradleProjectModule;
 import static com.google.common.base.Splitter.on;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.intellij.notification.NotificationType.ERROR;
@@ -50,6 +49,7 @@ import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.util.ArrayUtilRt.toStringArray;
 import static com.intellij.util.SystemProperties.getUserHome;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
@@ -68,7 +68,6 @@ import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.AndroidLibrary;
-import com.android.builder.model.AndroidProject;
 import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.MavenCoordinates;
 import com.android.builder.model.NativeAndroidProject;
@@ -96,6 +95,7 @@ import com.android.utils.FileUtils;
 import com.android.utils.SdkUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.facet.ProjectFacetManager;
@@ -112,7 +112,6 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.ArrayUtilRt;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -128,6 +127,7 @@ import java.util.stream.Collectors;
 import javax.swing.Icon;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -297,7 +297,7 @@ public final class GradleUtil {
     if (ModuleRootManager.getInstance(module).getSourceRoots().length == 0) {
       String gradlePath = getGradlePath(module);
       if (gradlePath == null || gradlePath.equals(":")) {
-        return true;
+        return ModuleManager.getInstance(module.getProject()).getModuleGrouper(null).getGroupPath(module).size() <= 1;
       }
     }
     return false;
@@ -356,17 +356,8 @@ public final class GradleUtil {
       return moduleModel.getBuildFile();
     }
 
-    if (isGradleProjectModule(module)) {
-      VirtualFile buildFile = getGradleBuildFileFromProjectModule(module);
-      if (buildFile != null) {
-        return buildFile;
-      }
-    }
-
-    // At the time we're called, module.getModuleFile() may be null, but getModuleFilePath returns the path where it will be created.
-    File moduleFilePath = new File(module.getModuleFilePath());
-    File parentFile = moduleFilePath.getParentFile();
-    return parentFile != null ? getGradleBuildFile(parentFile) : null;
+    File moduleRoot = AndroidRootUtil.findModuleRootFolderPath(module);
+    return moduleRoot != null ? getGradleBuildFile(moduleRoot) : null;
   }
 
   @Nullable
@@ -376,15 +367,6 @@ public final class GradleUtil {
       return null;
     }
     return gradleFacet.getGradleModuleModel();
-  }
-
-  @Nullable
-  private static VirtualFile getGradleBuildFileFromProjectModule(@NotNull Module module) {
-    String basePath = module.getProject().getBasePath();
-    if (isEmptyOrSpaces(basePath)) {
-      return null;
-    }
-    return getGradleBuildFile(new File(basePath));
   }
 
   /**
@@ -535,7 +517,48 @@ public final class GradleUtil {
   @NotNull
   public static String getDefaultPhysicalPathFromGradlePath(@NotNull String gradlePath) {
     List<String> segments = getPathSegments(gradlePath);
-    return join(ArrayUtilRt.toStringArray(segments));
+    return join(toStringArray(segments));
+  }
+
+  /**
+   * Checks if module with childPath is a direct child of module with parentPath,
+   * meaning that childPath should have exactly one extra path segment in the end.
+   */
+  public static boolean isDirectChild(String childPath, String parentPath) {
+    List<String> childSegments = getPathSegments(childPath);
+    return !childSegments.isEmpty() && childSegments.subList(0, childSegments.size() - 1).equals(getPathSegments(parentPath));
+  }
+
+
+  /**
+   * Returns gradle paths for parent modules of the given path.<br/>
+   * For example:
+   * <ul>
+   * <li>":foo:bar:buz:lib" -> [":foo", ":foo:bar", ":foo:bar:buz"]</li>
+   * </ul>
+   */
+  @NotNull
+  public static Set<String> getAllParentModulesPaths(@NotNull String gradlePath) {
+    ImmutableSet.Builder<String> result = ImmutableSet.builder();
+    for (String parentPath = getParentModulePath(gradlePath); !parentPath.isEmpty(); parentPath = getParentModulePath(parentPath)) {
+      result.add(parentPath);
+    }
+    return result.build();
+  }
+
+  /**
+   * Returns gradle path of a parent of provided path.
+   * Empty string is returned for the root module.
+   */
+  @NotNull
+  public static String getParentModulePath(@NotNull String gradlePath) {
+    int parentPathEnd = gradlePath.lastIndexOf(GRADLE_PATH_SEPARATOR);
+    if (parentPathEnd <= 0) {
+      return "";
+    }
+    else {
+      return gradlePath.substring(0, parentPathEnd);
+    }
   }
 
   /**
@@ -589,7 +612,7 @@ public final class GradleUtil {
 
       AndroidModuleModel androidModel = AndroidModuleModel.get(module);
       if (androidModel != null) {
-        AndroidProject androidProject = androidModel.getAndroidProject();
+        IdeAndroidProject androidProject = androidModel.getAndroidProject();
         String modelVersion = androidProject.getModelVersion();
         if (androidModel.getAndroidProject().getProjectType() == PROJECT_TYPE_APP) {
           foundInApps.add(modelVersion);
@@ -617,7 +640,7 @@ public final class GradleUtil {
   public static GradleVersion getAndroidGradleModelVersionInUse(@NotNull Module module) {
     AndroidModuleModel androidModel = AndroidModuleModel.get(module);
     if (androidModel != null) {
-      AndroidProject androidProject = androidModel.getAndroidProject();
+      IdeAndroidProject androidProject = androidModel.getAndroidProject();
       return GradleVersion.tryParse(androidProject.getModelVersion());
     }
 

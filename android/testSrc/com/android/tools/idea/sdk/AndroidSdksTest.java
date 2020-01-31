@@ -28,6 +28,7 @@ import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
@@ -57,7 +58,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link AndroidSdks}.
  */
-public class AndroidSdksTest extends JavaProjectTestCase {
+public class AndroidSdksTest extends PlatformTestCase {
   @Mock IdeInfo myIdeInfo;
 
   private Sdk myJdk;
@@ -355,15 +356,6 @@ public class AndroidSdksTest extends JavaProjectTestCase {
     Sdk sdk = setUpSdkWithDocsRoots(target, ImmutableList.of("https://www.google.com", DEFAULT_EXTERNAL_DOCUMENTATION_URL), false);
 
     // random dir (no docs) - docs root points to random website + web docs - valid
-    assertTrue(myAndroidSdks.hasValidDocs(sdk, target));
-  }
-
-  public void testRefreshDocsIn() throws Exception {
-    IAndroidTarget target = findLatestAndroidTarget(mySdkPath);
-    Sdk sdk = setUpSdkWithDocsRoots(target, ImmutableList.of("https://www.google.com"), true);
-    assertFalse(myAndroidSdks.hasValidDocs(sdk, target));
-
-    myAndroidSdks.refreshDocsIn(sdk);
     assertTrue(myAndroidSdks.hasValidDocs(sdk, target));
   }
 

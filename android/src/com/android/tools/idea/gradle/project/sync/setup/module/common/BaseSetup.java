@@ -27,22 +27,22 @@ public abstract class BaseSetup<T extends ModuleSetupStep<M>, M> {
     mySetupSteps = steps;
   }
 
-  protected boolean shouldRunSyncStep(@NotNull T step, boolean syncSkipped) {
-    return !syncSkipped || step.invokeOnSkippedSync();
-  }
+  protected void beforeSetup(@NotNull ModuleSetupContext context, @Nullable M model) { }
 
-  protected void beforeSetup(@NotNull ModuleSetupContext context, @Nullable M model, boolean syncSkipped) { }
-
-  public void setUpModule(@NotNull ModuleSetupContext context, @Nullable M model, boolean syncSkipped) {
-    beforeSetup(context, model, syncSkipped);
+  public void setUpModule(@NotNull ModuleSetupContext context, @Nullable M model) {
+    beforeSetup(context, model);
 
     for (T step : mySetupSteps) {
-      if (shouldRunSyncStep(step, syncSkipped)) {
+      if (shouldRunSyncStep(step)) {
         step.setUpModule(context, model);
         if (step.shouldTerminateSetup()) {
           return;
         }
       }
     }
+  }
+
+  protected boolean shouldRunSyncStep(T step) {
+    return true;
   }
 }

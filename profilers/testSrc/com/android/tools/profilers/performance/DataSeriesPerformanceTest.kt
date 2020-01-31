@@ -24,7 +24,6 @@ import com.android.tools.datastore.DataStoreDatabase
 import com.android.tools.datastore.DataStoreService
 import com.android.tools.datastore.FakeLogService
 import com.android.tools.datastore.poller.PollRunner
-import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
 import com.android.tools.perflogger.Benchmark
@@ -34,30 +33,25 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.cpu.CpuUsage
-import com.android.tools.profilers.cpu.CpuUsageDataSeries
-import com.android.tools.profilers.cpu.FakeCpuService
 import com.android.tools.profilers.cpu.LegacyCpuThreadCountDataSeries
 import com.android.tools.profilers.cpu.LegacyCpuThreadStateDataSeries
+import com.android.tools.profilers.cpu.LegacyCpuUsageDataSeries
 import com.android.tools.profilers.energy.EnergyDuration
-import com.android.tools.profilers.energy.EnergyEventsDataSeries
 import com.android.tools.profilers.energy.EnergyUsageDataSeries
-import com.android.tools.profilers.energy.MergedEnergyEventsDataSeries
+import com.android.tools.profilers.energy.LegacyEnergyEventsDataSeries
+import com.android.tools.profilers.energy.LegacyMergedEnergyEventsDataSeries
 import com.android.tools.profilers.event.LifecycleEventDataSeries
 import com.android.tools.profilers.event.UserEventDataSeries
 import com.android.tools.profilers.memory.AllocStatsDataSeries
-import com.android.tools.profilers.memory.FakeMemoryService
-import com.android.tools.profilers.memory.GcStatsDataSeries
+import com.android.tools.profilers.memory.LegacyGcStatsDataSeries
 import com.android.tools.profilers.memory.MemoryDataSeries
 import com.android.tools.profilers.memory.MemoryProfilerStage
 import com.android.tools.profilers.memory.adapters.LiveAllocationCaptureObject
 import com.android.tools.profilers.network.NetworkOpenConnectionsDataSeries
 import com.android.tools.profilers.network.NetworkTrafficDataSeries
 import com.google.common.util.concurrent.MoreExecutors
-import io.grpc.inprocess.InProcessChannelBuilder
 import org.junit.After
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 import java.time.Instant
 import java.util.concurrent.TimeUnit
@@ -112,21 +106,23 @@ class DataSeriesPerformanceTest {
                                  Pair("Event-Interactions", UserEventDataSeries(studioProfilers)),
                                  Pair("Energy-Usage", EnergyUsageDataSeries(client, session)),
                                  Pair("Energy-Events",
-                                      MergedEnergyEventsDataSeries(EnergyEventsDataSeries(client, session), EnergyDuration.Kind.WAKE_LOCK,
-                                                                   EnergyDuration.Kind.JOB)),
+                                      LegacyMergedEnergyEventsDataSeries(
+                                        LegacyEnergyEventsDataSeries(client, session), EnergyDuration.Kind.WAKE_LOCK,
+                                        EnergyDuration.Kind.JOB)),
                                  Pair("Cpu-Usage",
-                                      CpuUsageDataSeries(client.cpuClient, session) { dataList -> CpuUsage.extractData(dataList, false) }),
+                                      LegacyCpuUsageDataSeries(client.cpuClient, session, false)),
                                  Pair("Cpu-Thread-Count",
                                       LegacyCpuThreadCountDataSeries(client.cpuClient, session)),
                                  Pair("Cpu-Thread-State",
-                                      LegacyCpuThreadStateDataSeries(client.cpuClient, session, 1)),
+                                      LegacyCpuThreadStateDataSeries(client.cpuClient, session, 1, null)),
                                  Pair("Network-Open-Connections", NetworkOpenConnectionsDataSeries(client.networkClient, session)),
                                  Pair("Network-Traffic", NetworkTrafficDataSeries(client.networkClient, session,
                                                                                   NetworkTrafficDataSeries.Type.BYTES_RECEIVED)),
-                                 Pair("Memory-GC-Stats", GcStatsDataSeries(client.memoryClient, session)),
+                                 Pair("Memory-GC-Stats",
+                                      LegacyGcStatsDataSeries(client.memoryClient, session)),
                                  Pair("Memory-Series", MemoryDataSeries(client.memoryClient, session) { sample -> sample.timestamp }),
                                  Pair("Memory-Allocation",
-                                      AllocStatsDataSeries(studioProfilers, client.memoryClient) { sample -> sample.timestamp }),
+                                      AllocStatsDataSeries(studioProfilers) { sample -> sample.javaAllocationCount.toLong() }),
                                  Pair("Memory-LiveAllocation", TestLiveAllocationSeries(studioProfilers, session))
     )
     val nameToMetrics = mutableMapOf<String, Metric>()
@@ -152,14 +148,15 @@ class DataSeriesPerformanceTest {
 
   private fun logMemoryUsed(metricName: String) {
     val rt = Runtime.getRuntime()
-    System.gc()
+
+    for (x in 0..10) System.gc()
     val usedKB = (rt.totalMemory() - rt.freeMemory()) / 1024
     memoryBenchmark.log(metricName, usedKB)
   }
 
   private fun <T> collectAndReportAverageTimes(offset: Long, metric: Metric, series: DataSeries<T>, recordMetric: Boolean) {
     val startTime = System.nanoTime()
-    series.getDataForXRange(Range(offset.toDouble(), (offset + QUERY_INTERVAL).toDouble()))
+    series.getDataForRange(Range(offset.toDouble(), (offset + QUERY_INTERVAL).toDouble()))
     if (recordMetric) {
       metric.addSamples(cpuBenchmark, Metric.MetricSample(Instant.now().toEpochMilli(), (System.nanoTime() - startTime)))
     }
@@ -170,8 +167,8 @@ class DataSeriesPerformanceTest {
       val LOAD_JOINER = MoreExecutors.directExecutor()
     }
 
-    override fun getDataForXRange(xRange: Range?): MutableList<SeriesData<Long>> {
-      liveAllocation.load(xRange, LOAD_JOINER)
+    override fun getDataForRange(range: Range?): MutableList<SeriesData<Long>> {
+      liveAllocation.load(range, LOAD_JOINER)
       return mutableListOf()
     }
 
@@ -179,8 +176,7 @@ class DataSeriesPerformanceTest {
 
     init {
       val stage = MemoryProfilerStage(profilers)
-      liveAllocation = LiveAllocationCaptureObject(profilers.client.memoryClient, session, 0, MoreExecutors.newDirectExecutorService(),
-                                                   stage)
+      liveAllocation = LiveAllocationCaptureObject(profilers.client, session, 0, MoreExecutors.newDirectExecutorService(), stage)
     }
   }
 

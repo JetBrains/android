@@ -28,8 +28,8 @@ import static com.android.tools.profilers.ProfilerLayout.createToolbarLayout;
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
+import com.android.tools.adtui.RangeSelectionComponent;
 import com.android.tools.adtui.RangeTooltipComponent;
-import com.android.tools.adtui.SelectionComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
@@ -38,8 +38,8 @@ import com.android.tools.adtui.instructions.NewRowInstruction;
 import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.instructions.UrlInstruction;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangeSelectionListener;
 import com.android.tools.adtui.model.RangedContinuousSeries;
-import com.android.tools.adtui.model.SelectionListener;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.stdui.CommonTabbedPane;
 import com.android.tools.profilers.ProfilerColors;
@@ -61,7 +61,6 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtilities;
 import java.awt.BorderLayout;
@@ -100,7 +99,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     getTooltipBinder().bind(UserEventTooltip.class, UserEventTooltipView::new);
 
     myConnectionDetails = new ConnectionDetailsView(this);
-    myConnectionDetails.setMinimumSize(new Dimension(JBUIScale.scale(450), (int)myConnectionDetails.getMinimumSize().getHeight()));
+    myConnectionDetails.setMinimumSize(new Dimension(JBUI.scale(450), (int)myConnectionDetails.getMinimumSize().getHeight()));
     myConnectionsView = new ConnectionsView(this);
     ThreadsView threadsView = new ThreadsView(this);
 
@@ -185,7 +184,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
   private JPanel buildMonitorUi() {
     StudioProfilers profilers = getStage().getStudioProfilers();
     ProfilerTimeline timeline = profilers.getTimeline();
-    SelectionComponent selection = new SelectionComponent(getStage().getSelectionModel(), timeline.getViewRange());
+    RangeSelectionComponent selection = new RangeSelectionComponent(getStage().getRangeSelectionModel(), timeline.getViewRange());
     selection.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
     RangeTooltipComponent tooltip = new RangeTooltipComponent(timeline.getTooltipRange(), timeline.getViewRange(),
                                                               timeline.getDataRange(),
@@ -265,7 +264,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     legendPanel.add(label, BorderLayout.WEST);
     legendPanel.add(legend, BorderLayout.EAST);
 
-    getStage().getSelectionModel().addListener(new SelectionListener() {
+    getStage().getRangeSelectionModel().addListener(new RangeSelectionListener() {
       @Override
       public void selectionCreated() {
         myConnectionsPanel.setVisible(true);
@@ -334,7 +333,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
   }
 
   private static boolean hasTrafficUsage(RangedContinuousSeries series, Range range) {
-    List<SeriesData<Long>> list = series.getDataSeries().getDataForXRange(range);
+    List<SeriesData<Long>> list = series.getSeriesForRange(range);
     if (list.stream().anyMatch(data -> data.x >= range.getMin() && data.x <= range.getMax() && data.value > 0)) {
       return true;
     }

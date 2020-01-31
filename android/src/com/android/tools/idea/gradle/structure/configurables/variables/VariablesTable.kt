@@ -356,6 +356,17 @@ class VariablesTable private constructor(
     maybeScheduleNameRepaint(rowBeingEdited, columnBeingEdited)
   }
 
+  override fun editingStopped(e: ChangeEvent?) {
+    val rowBeingEdited = editingRow
+    val columnBeingEdited = editingColumn
+    super.editingStopped(e)
+    val nodeBeingEdited = tree.getPathForRow(rowBeingEdited)?.lastPathComponent
+    if (nodeBeingEdited is EmptyVariableNode) {
+      nodeBeingEdited.type = null
+    }
+    maybeScheduleNameRepaint(rowBeingEdited, columnBeingEdited)
+  }
+
   private fun maybeScheduleNameRepaint(row: Int, column: Int) {
     if (column == UNRESOLVED_VALUE) {
       tree.getPathForRow(row)?.lastPathComponent?.safeAs<TreeNode>()?.let { treeNode ->
@@ -756,7 +767,7 @@ internal data class ProjectShadowNode(val project: PsProject) : ShadowNode {
   override fun getChildrenModels(): Collection<ShadowNode> =
     listOf(RootModuleShadowNode(project.buildScriptVariables)) +
     listOf(RootModuleShadowNode(project.variables)) +
-    project.modules.sortedBy { it.name }.map { ModuleShadowNode(it) }
+    project.modules.filter { it.isDeclared }.sortedBy { it.name }.map { ModuleShadowNode(it) }
 
   override fun createNode(): VariablesBaseNode = VariablesBaseNode(this)
   override fun onChange(disposable: Disposable, listener: () -> Unit) = project.modules.onChange(disposable, listener)

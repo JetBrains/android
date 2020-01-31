@@ -20,14 +20,14 @@ import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 
 import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.rendering.api.MergeCookie;
+import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
-import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
+import com.android.tools.idea.gradle.structure.AndroidProjectSettingsService;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
@@ -53,7 +53,6 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.concurrency.AppExecutorUtil;
-import java.io.IOException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -71,6 +70,7 @@ import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -191,7 +191,7 @@ public class RenderService implements Disposable {
       try {
         return platform.getSdkData().getTargetData(target).getLayoutLibrary(project);
       }
-      catch (RenderingException | IOException e) {
+      catch (RenderingException e) {
         // Ignore.
       }
     }
@@ -209,7 +209,7 @@ public class RenderService implements Disposable {
           return library.supports(capability);
         }
       }
-      catch (RenderingException | IOException e) {
+      catch (RenderingException e) {
         // Ignore: if service can't be found, that capability isn't available
       }
     }
@@ -440,6 +440,8 @@ public class RenderService implements Disposable {
     private int myMaxRenderHeight = -1;
     private boolean isShadowEnabled = StudioFlags.NELE_ENABLE_SHADOW.get();
     private boolean useHighQualityShadows = StudioFlags.NELE_RENDER_HIGH_QUALITY_SHADOW.get();
+    private SessionParams.RenderingMode myRenderingMode = null;
+    private boolean useTransparentBackground = false;
 
     private RenderTaskBuilder(@NotNull RenderService service,
                               @NotNull AndroidFacet facet,
@@ -539,6 +541,24 @@ public class RenderService implements Disposable {
     }
 
     /**
+     * @see RenderTask#setRenderingMode(SessionParams.RenderingMode)
+     */
+    @NotNull
+    public RenderTaskBuilder withRenderingMode(@NotNull SessionParams.RenderingMode renderingMode) {
+      myRenderingMode = renderingMode;
+      return this;
+    }
+
+    /**
+     * @see RenderTask#setOverrideBgColor(Integer)
+     */
+    @NotNull
+    public RenderTaskBuilder useTransparentBackground() {
+      useTransparentBackground = true;
+      return this;
+    }
+
+    /**
      * Builds a new {@link RenderTask}. The returned future always completes successfully but the value might be null if the RenderTask
      * can not be created.
      */
@@ -547,6 +567,8 @@ public class RenderService implements Disposable {
       if (myLogger == null) {
         withLogger(myService.createLogger(myFacet));
       }
+
+      AllocationStackTrace stackTraceElement = RenderTaskAllocationTrackerKt.captureAllocationStackTrace();
 
       return CompletableFuture.supplyAsync(() -> {
         AndroidPlatform platform = getPlatform(myFacet, myLogger);
@@ -585,14 +607,9 @@ public class RenderService implements Disposable {
           myLogger.addMessage(RenderProblem.createPlain(ERROR, message, module.getProject(), myLogger.getLinkManager(), e));
           return null;
         }
-        catch (IOException e) {
-          final String message = e.getMessage();
-          myLogger.error(null, "I/O error: " + (message != null ? ": " + message : ""), e, null, null);
-          return null;
-        }
 
         if (myPsiFile != null &&
-            TAG_PREFERENCE_SCREEN.equals(AndroidPsiUtils.getRootTagName(myPsiFile)) &&
+            TAG_PREFERENCE_SCREEN.equals(AndroidUtils.getRootTagName(myPsiFile)) &&
             !layoutLib.supports(Features.PREFERENCES_RENDERING)) {
           // This means that user is using an outdated version of layoutlib. A warning to update has already been
           // presented in warnIfObsoleteLayoutLib(). Just log a plain message asking users to update.
@@ -613,7 +630,7 @@ public class RenderService implements Disposable {
           RenderTask task =
             new RenderTask(myFacet, myService, myConfiguration, myLogger, layoutLib,
                            device, myCredential, StudioCrashReporter.getInstance(), myImagePool,
-                           myParserFactory, isSecurityManagerEnabled, myDownscaleFactor);
+                           myParserFactory, isSecurityManagerEnabled, myDownscaleFactor, stackTraceElement);
           if (myPsiFile instanceof XmlFile) {
             task.setXmlFile((XmlFile)myPsiFile);
           }
@@ -626,6 +643,15 @@ public class RenderService implements Disposable {
           if (myMaxRenderWidth != -1 && myMaxRenderHeight != -1) {
             task.setMaxRenderSize(myMaxRenderWidth, myMaxRenderHeight);
           }
+
+          if (useTransparentBackground) {
+            task.setOverrideBgColor(0);
+          }
+
+          if (myRenderingMode != null) {
+            task.setRenderingMode(myRenderingMode);
+          }
+
           return task;
         } catch (IllegalStateException | IncorrectOperationException | AssertionError e) {
           // Ignore the exception if it was generated when the facet is being disposed (project is being closed)
@@ -642,6 +668,7 @@ public class RenderService implements Disposable {
      * Builds a new {@link RenderTask}.
      * @deprecated Use {@link RenderTaskBuilder#build}
      */
+    @Deprecated
     @Nullable
     public RenderTask buildSynchronously() {
       return Futures.getUnchecked(build());

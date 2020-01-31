@@ -17,7 +17,6 @@ package com.android.tools.idea.diagnostics.hprof.analysis
 
 import com.android.tools.idea.diagnostics.hprof.classstore.ClassDefinition
 import com.android.tools.idea.diagnostics.hprof.classstore.ClassStore
-import com.android.tools.idea.diagnostics.hprof.classstore.InstanceField
 import com.android.tools.idea.diagnostics.hprof.navigator.ObjectNavigator
 import com.android.tools.idea.diagnostics.hprof.util.HeapReportUtils.STRING_PADDING_FOR_COUNT
 import com.android.tools.idea.diagnostics.hprof.util.HeapReportUtils.STRING_PADDING_FOR_SIZE
@@ -31,15 +30,38 @@ import java.util.ArrayDeque
 import java.util.HashMap
 
 class GCRootPathsTree(
-  val analysisContext: AnalysisContext,
-  val treeDisplayOptions: AnalysisConfig.TreeDisplayOptions,
+  private val context: AnalysisContext,
+  private val treeDisplayOptions: AnalysisConfig.TreeDisplayOptions,
   allObjectsOfClass: ClassDefinition?
 ) {
-  private val topNode = RootNode(analysisContext.classStore)
+  private val topNode = RootNode(context.classStore)
   private var countOfIgnoredObjects = 0
 
-  // If all objects are of the same class and not arrays then instance size can be computed only once.
   private val objectSizeStrategy = ObjectSizeCalculationStrategy.getBestStrategyForClass(allObjectsOfClass)
+
+  private enum class Status {
+    None,
+    Warning,
+    LastInPath;
+
+    companion object {
+      fun getStatus(refIndex: Int, lastInPath: Boolean, disposed: Boolean): Status = when {
+        lastInPath -> LastInPath
+        disposed -> Warning
+        refIndex == RefIndexUtil.SOFT_REFERENCE -> Warning
+        refIndex == RefIndexUtil.WEAK_REFERENCE -> Warning
+        else -> None
+      }
+    }
+
+    override fun toString(): String = getStatusCharacter().toString()
+
+    fun getStatusCharacter(): Char = when (this) {
+      None -> ' '
+      Warning -> '!'
+      LastInPath -> '*'
+    }
+  }
 
   interface ObjectSizeCalculationStrategy {
     fun calculateObjectSize(nav: ObjectNavigator, id: Int): Int
@@ -54,16 +76,14 @@ class GCRootPathsTree(
           return DirectByteBufferNativeSizeStrategy(classDefinition)
         }
         else {
+          // If all objects are of the same class and not arrays then instance size can be computed only once.
           return AllObjectsSameSizeStrategy(classDefinition.instanceSize + ClassDefinition.OBJECT_PREAMBLE_SIZE)
         }
       }
     }
   }
 
-  private class AllObjectsSameSizeStrategy(size: Int) : ObjectSizeCalculationStrategy {
-
-    private val objectSize = size
-
+  private class AllObjectsSameSizeStrategy(private val objectSize: Int) : ObjectSizeCalculationStrategy {
     override fun calculateObjectSize(nav: ObjectNavigator, id: Int): Int = objectSize
   }
 
@@ -87,32 +107,31 @@ class GCRootPathsTree(
   }
 
   fun registerObject(objectId: Int) {
-    val nav = analysisContext.navigator
-    val parentMapping = analysisContext.parentList
-    val refIndexMapping = analysisContext.refIndexList
-    val sizesMapping = analysisContext.sizesList
-    val disposedObjectsIDsSet = analysisContext.disposedObjectsIDs
+    val nav = context.navigator
+    val parentMapping = context.parentList
+    val refIndexMapping = context.refIndexList
+    val sizesMapping = context.sizesList
+    val disposedObjectsIDsSet = context.disposedObjectsIDs
 
     val gcPath = TIntArrayList()
     val fieldsPath = TIntArrayList()
+    val sizesPath = TIntArrayList()
     var objectIterationId = objectId
     var parentId = parentMapping[objectIterationId]
     var count = 0
 
-    fieldsPath.add(0)
     val maxTreeDepth = treeDisplayOptions.maximumTreeDepth
     while (count < maxTreeDepth && parentId != objectIterationId) {
       gcPath.add(objectIterationId)
-      if (treeDisplayOptions.showFieldNames) {
-        fieldsPath.add(refIndexMapping[objectIterationId])
-      }
-      else {
-        fieldsPath.add(0)
-      }
+      fieldsPath.add(refIndexMapping[objectIterationId])
+      sizesPath.add(sizesMapping[objectIterationId])
       objectIterationId = parentId
       parentId = parentMapping[objectIterationId]
       count++
     }
+
+    // No field for a root node
+    fieldsPath.add(RefIndexUtil.ROOT)
 
     if (parentId != objectIterationId) {
       // Object ignored as its GC-root path is too long
@@ -121,33 +140,27 @@ class GCRootPathsTree(
     }
 
     gcPath.add(objectIterationId)
+    sizesPath.add(sizesMapping[objectIterationId])
 
     assert(gcPath.size() == fieldsPath.size())
 
     val size = objectSizeStrategy.calculateObjectSize(nav, objectId)
-
     var currentNode: Node = topNode
     for (i in gcPath.size() - 1 downTo 0) {
       val id = gcPath[i]
       val classDefinition = nav.getClassForObjectId(id.toLong())
-      var field: InstanceField? = null
-      if (fieldsPath[i] != 0) {
-        field = classDefinition.getRefField(nav.classStore, fieldsPath[i] - 1)
-      }
-      currentNode = currentNode.addEdge(id, size, sizesMapping[id], classDefinition, field, disposedObjectsIDsSet.contains(id))
+      currentNode = currentNode.addEdge(id, size, sizesPath[i], classDefinition, fieldsPath[i].toByte(), disposedObjectsIDsSet.contains(id))
     }
   }
 
-  fun printTree(): String {
-    val result = StringBuilder()
+  fun printTree(): String = buildString {
     if (countOfIgnoredObjects > 0) {
-      result.append("Ignored ${countOfIgnoredObjects} too-deep objects\n")
+      append("Ignored ${countOfIgnoredObjects} too-deep objects\n")
     }
     val rootReasonGetter = { id: Int ->
-      (analysisContext.navigator.getRootReasonForObjectId(id.toLong())?.description ?: "<Couldn't find root description>")
+      (context.navigator.getRootReasonForObjectId(id.toLong())?.description ?: "<Couldn't find root description>")
     }
-    result.append(topNode.createHotPathReport(treeDisplayOptions, rootReasonGetter))
-    return result.toString()
+    append(topNode.createHotPathReport(treeDisplayOptions, rootReasonGetter))
   }
 
   fun getDisposedDominatorNodes(): Map<ClassDefinition, List<RegularNode>> {
@@ -161,11 +174,11 @@ class GCRootPathsTree(
                 objectSize: Int,
                 subgraphSizeInDwords: Int,
                 classDefinition: ClassDefinition,
-                field: InstanceField?,
+                refIndex: Byte,
                 disposed: Boolean): Node
   }
 
-  data class Edge(val classDefinition: ClassDefinition, val field: InstanceField?, val disposed: Boolean)
+  data class Edge(val classDefinition: ClassDefinition, val refIndex: Byte, val disposed: Boolean)
 
   class RegularNode : Node {
 
@@ -180,14 +193,14 @@ class GCRootPathsTree(
                          objectSize: Int,
                          subgraphSizeInDwords: Int,
                          classDefinition: ClassDefinition,
-                         field: InstanceField?,
+                         refIndex: Byte,
                          disposed: Boolean): Node {
       var localEdges = edges
       if (localEdges == null) {
         localEdges = HashMap(1)
         edges = localEdges
       }
-      val node = localEdges.getOrPut(Edge(classDefinition, field, disposed)) { RegularNode() }
+      val node = localEdges.getOrPut(Edge(classDefinition, refIndex, disposed)) { RegularNode() }
       node.pathsCount++
       if (node.pathsSize + objectSize.toLong() > Int.MAX_VALUE) {
         node.pathsSize = Int.MAX_VALUE
@@ -208,7 +221,7 @@ class GCRootPathsTree(
       return node
     }
 
-    fun collectDisposedDominatorNodes(result: MutableMap<ClassDefinition, MutableList<GCRootPathsTree.RegularNode>>) {
+    fun collectDisposedDominatorNodes(result: MutableMap<ClassDefinition, MutableList<RegularNode>>) {
       val stack = ArrayDeque<RegularNode>()
       stack.push(this)
       while (stack.isNotEmpty()) {
@@ -234,7 +247,7 @@ class GCRootPathsTree(
                          objectSize: Int,
                          subgraphSizeInDwords: Int,
                          classDefinition: ClassDefinition,
-                         field: InstanceField?,
+                         refIndex: Byte,
                          disposed: Boolean): Node {
       val nullableNode = edges.get(objectId)?.first
       val node: RegularNode
@@ -244,7 +257,7 @@ class GCRootPathsTree(
       }
       else {
         val newNode = RegularNode()
-        val pair = Pair(newNode, Edge(classDefinition, field, disposed))
+        val pair = Pair(newNode, Edge(classDefinition, refIndex, disposed))
         newNode.instances.add(objectId)
         edges.put(objectId, pair)
         node = newNode
@@ -271,52 +284,16 @@ class GCRootPathsTree(
     }
 
     data class StackEntry(
+      val parentClass: ClassDefinition?,
       val edge: Edge,
       val node: RegularNode,
       val indent: String,
       val nextIndent: String
     )
 
-    private class SoftWeakClassCache(private val classStore: ClassStore) {
-      val softClasses = mutableSetOf<ClassDefinition>()
-      val weakClasses = mutableSetOf<ClassDefinition>()
-      val nonSoftWeakClasses = mutableSetOf<ClassDefinition>()
-
-      fun getSoftWeakDescriptor(classDefinition: ClassDefinition): String? {
-        if (softClasses.contains(classDefinition))
-          return "soft"
-        if (weakClasses.contains(classDefinition))
-          return "weak"
-        if (nonSoftWeakClasses.contains(classDefinition))
-          return null
-
-        var definition = classDefinition
-        while (!classStore.isSoftOrWeakReferenceClass(definition)) {
-          val superclassDefinition = definition.getSuperClass(classStore)
-          if (superclassDefinition == null) {
-            nonSoftWeakClasses.add(classDefinition)
-            return null
-          }
-          definition = superclassDefinition
-        }
-        if (definition == classStore.weakReferenceClass) {
-          weakClasses.add(classDefinition)
-          return "weak"
-        }
-        else {
-          assert(definition == classStore.softReferenceClass)
-          softClasses.add(classDefinition)
-          return "soft"
-        }
-      }
-
-    }
-
-    fun createHotPathReport(treeDisplayOptions: AnalysisConfig.TreeDisplayOptions, rootReasonGetter: (Int) -> String): String {
+    fun createHotPathReport(treeDisplayOptions: AnalysisConfig.TreeDisplayOptions,
+                            rootReasonGetter: (Int) -> String): String = buildString {
       val rootList = mutableListOf<Triple<Int, RegularNode, Edge>>()
-      val result = StringBuilder()
-      val printFunc = { s: String -> result.appendln(s); Unit }
-
       edges.forEachEntry { objectId, (node, edge) ->
         rootList.add(Triple(objectId, node, edge))
       }
@@ -326,47 +303,42 @@ class GCRootPathsTree(
         treeDisplayOptions.minimumObjectCount,
         (Math.ceil(totalInstanceCount / 100.0) * treeDisplayOptions.minimumObjectCountPercent).toInt())
 
-      val softWeakClassCache = SoftWeakClassCache(classStore)
-
       // Show paths from roots that have at least minimumObjectCountPercent%, minimumObjectCount objects or size of all reported objects
       // in the subtree is more than minimumObjectSize.
       // Always show at least two paths.
       rootList
+        .sortedByDescending { it.second.pathsSize }
         .filterIndexed { index, (_, node, _) ->
           index < treeDisplayOptions.minimumPaths ||
           node.pathsCount >= minimumObjectsForReport ||
           node.pathsSize >= treeDisplayOptions.minimumObjectSize
         }
-        .sortedByDescending { it.second.pathsSize }
         .forEachIndexed { index, (rootObjectId, rootNode, rootEdge) ->
           val rootReasonString = rootReasonGetter(rootObjectId)
           val rootPercent = (100.0 * rootNode.pathsCount / totalInstanceCount).toInt()
 
-          result.appendln("Root ${index + 1}:")
-          printReportLine(printFunc,
+          appendln("Root ${index + 1}:")
+          printReportLine(this::appendln,
                           rootNode.pathsCount,
                           rootPercent,
                           rootNode.pathsSize,
                           rootNode.totalSizeInDwords.toLong() * 4,
                           1,
-                          false,
-                          null,
+                          Status.getStatus(RefIndexUtil.ROOT, false, false),
                           false,
                           null,
                           "",
                           "ROOT: $rootReasonString")
 
-          TruncatingPrintBuffer(treeDisplayOptions.headLimit, treeDisplayOptions.tailLimit, printFunc).use { buffer ->
+          TruncatingPrintBuffer(treeDisplayOptions.headLimit, treeDisplayOptions.tailLimit, this::appendln).use { buffer ->
             // Iterate over the hot path
             val stack = ArrayDeque<StackEntry>()
-            stack.push(StackEntry(rootEdge, rootNode, "", ""))
+            stack.push(StackEntry(null, rootEdge, rootNode, "", ""))
 
             while (!stack.isEmpty()) {
-              val (edge, node, indent, nextIndent) = stack.pop()
-              val (classDefinition, field, disposed) = edge
-
-              // Soft/weak referents don't have a parent field set to differentiate them from other (strong-referencing) fields.
-              val softWeakDescriptor = if (field == null) softWeakClassCache.getSoftWeakDescriptor(classDefinition) else null
+              val (parentClass, edge, node, indent, nextIndent) = stack.pop()
+              val (classDefinition, refIndexByte, disposed) = edge
+              val refIndex = java.lang.Byte.toUnsignedInt(refIndexByte)
 
               printReportLine(buffer::println,
                               node.pathsCount,
@@ -374,10 +346,9 @@ class GCRootPathsTree(
                               node.pathsSize,
                               node.totalSizeInDwords.toLong() * 4,
                               node.instances.size(),
-                              node.edges == null,
-                              softWeakDescriptor,
+                              Status.getStatus(refIndex, node.edges == null, disposed),
                               disposed,
-                              field?.name,
+                              RefIndexUtil.getFieldDescription(refIndex, parentClass, classStore),
                               indent,
                               classDefinition.prettyName)
 
@@ -396,27 +367,26 @@ class GCRootPathsTree(
 
               if (childrenToReport.size == 1 && treeDisplayOptions.smartIndent) {
                 // No indentation for a single child
-                stack.push(StackEntry(childrenToReport[0].key, childrenToReport[0].value, nextIndent, nextIndent))
+                stack.push(StackEntry(classDefinition, childrenToReport[0].key, childrenToReport[0].value, nextIndent, nextIndent))
               }
               else {
                 // Don't report too deep paths
                 if (nextIndent.length >= treeDisplayOptions.maximumIndent)
                   printReportLine(buffer::println,
                                   null, null, null, null,
-                                  null, true, null, null, null,
+                                  null, Status.LastInPath, null, null,
                                   nextIndent, "\\-[...]")
                 else {
                   // Add indentation only if there are 2+ children
                   childrenToReport.forEachIndexed { index, e ->
-                    if (index == 0) stack.push(StackEntry(e.key, e.value, "$nextIndent\\-", "$nextIndent  "))
-                    else stack.push(StackEntry(e.key, e.value, "$nextIndent+-", "$nextIndent| "))
+                    if (index == 0) stack.push(StackEntry(classDefinition, e.key, e.value, "$nextIndent\\-", "$nextIndent  "))
+                    else stack.push(StackEntry(classDefinition, e.key, e.value, "$nextIndent+-", "$nextIndent| "))
                   }
                 }
               }
             }
           }
         }
-      return result.toString()
     }
 
     private fun printReportLine(printFunc: (String) -> Any,
@@ -425,8 +395,7 @@ class GCRootPathsTree(
                                 instanceSize: Int?,
                                 subgraphSize: Long?,
                                 instanceCount: Int?,
-                                lastInPath: Boolean,
-                                softWeakDescriptor: String?,
+                                status: Status,
                                 disposed: Boolean?,
                                 fieldName: String?,
                                 indent: String,
@@ -435,14 +404,12 @@ class GCRootPathsTree(
       val percentString = (percent?.let { "$it%" } ?: "").padStart(4)
       val instanceSizeString = (instanceSize?.let { toShortStringAsSize(it.toLong()) } ?: "").padStart(STRING_PADDING_FOR_SIZE)
       val instanceCountString = (instanceCount ?: "").toString().padStart(10)
-      val status = if (lastInPath) "*" else if (softWeakDescriptor != null || disposed == true) "!" else " "
-      val fieldNameString = if (fieldName != null) ".$fieldName" else ""
+      val fieldNameString = if (fieldName != null) "$fieldName: " else ""
       val disposedString = if (disposed == true) " (disposed)" else ""
-      val softWeakString = if (softWeakDescriptor != null) " ($softWeakDescriptor)" else ""
       val subgraphSizeString = (subgraphSize?.let { toShortStringAsSize(it) } ?: "").padStart(STRING_PADDING_FOR_SIZE)
 
       printFunc(
-        "[$pathsCountString/$percentString/$instanceSizeString] $subgraphSizeString $instanceCountString $status $indent$text$fieldNameString$disposedString$softWeakString")
+        "[$pathsCountString/$percentString/$instanceSizeString] $subgraphSizeString $instanceCountString $status $indent$fieldNameString$text$disposedString")
     }
 
     fun collectDisposedDominatorNodes(result: MutableMap<ClassDefinition, MutableList<RegularNode>>) {

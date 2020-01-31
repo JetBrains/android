@@ -17,7 +17,10 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.tools.idea.project.AndroidNotification;
 import com.intellij.notification.NotificationType;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.project.Project;
+import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.JavaProjectTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
 import org.jetbrains.annotations.NotNull;
@@ -33,7 +36,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link SupportedModuleChecker}.
  */
-public class SupportedModuleCheckerTest extends JavaProjectTestCase {
+public class SupportedModuleCheckerTest extends PlatformTestCase {
   @Mock private GradleProjectInfo myGradleProjectInfo;
   private SupportedModuleChecker myModuleChecker;
 
@@ -67,10 +70,11 @@ public class SupportedModuleCheckerTest extends JavaProjectTestCase {
       .replaceService(project, AndroidNotification.class, androidNotification, getTestRootDisposable());
 
     // These will be the "unsupported" modules, since they are not marked as "Gradle" modules.
-    createModule("lib1");
-    createModule("lib2");
+    doCreateRealModuleIn("lib1", myProject, StdModuleTypes.JAVA);
+    doCreateRealModuleIn("lib2", myProject, StdModuleTypes.JAVA);
 
-    myModule.setOption(EXTERNAL_SYSTEM_ID_KEY, GRADLE_SYSTEM_ID.getId()); // This module is the only one supported.
+    doCreateRealModuleIn("gradleModule", myProject, StdModuleTypes.JAVA)
+      .setOption(EXTERNAL_SYSTEM_ID_KEY, GRADLE_SYSTEM_ID.getId());  // This module is the only one supported.
 
     myModuleChecker.checkForSupportedModules(project);
 

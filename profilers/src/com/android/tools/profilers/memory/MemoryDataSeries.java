@@ -44,7 +44,7 @@ public final class MemoryDataSeries implements DataSeries<Long> {
   }
 
   @Override
-  public List<SeriesData<Long>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
+  public List<SeriesData<Long>> getDataForRange(@NotNull Range timeCurrentRangeUs) {
     // TODO: Change the Memory API to allow specifying padding in the request as number of samples.
     long bufferNs = TimeUnit.SECONDS.toNanos(1);
     MemoryRequest.Builder dataRequestBuilder = MemoryRequest.newBuilder()

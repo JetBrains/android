@@ -36,7 +36,7 @@ class InspectorTableBuilder(
   private val uiProvider = TableUIProvider.create(InspectorPropertyItem::class.java, controlTypeProvider, editorProvider)
 
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<InspectorPropertyItem>) {
-    val tableModel = create(model, filter, alphabeticalSortOrder, emptyList(), true, false)
+    val tableModel = create(model, filter)
     if (tableModel.items.isEmpty()) {
       return
     }

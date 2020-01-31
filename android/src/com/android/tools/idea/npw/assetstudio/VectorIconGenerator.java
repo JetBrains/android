@@ -58,18 +58,17 @@ public class VectorIconGenerator extends IconGenerator {
 
   @Override
   @NotNull
-  public BufferedImage generateRasterImage(@NotNull GraphicGeneratorContext context, @NotNull Options options) {
+  public AnnotatedImage generateRasterImage(@NotNull GraphicGeneratorContext context, @NotNull Options options) {
     if (options.usePlaceholders) {
       return PLACEHOLDER_IMAGE;
     }
 
     BufferedImage image = getTrimmedAndPaddedImage(options);
     if (image == null) {
-      image = PLACEHOLDER_IMAGE;
+      return PLACEHOLDER_IMAGE;
     }
-    return image;
+    return new AnnotatedImage(image, null);
   }
-
 
   @Nullable
   private static BufferedImage getTrimmedAndPaddedImage(@NotNull Options options) {
@@ -102,6 +101,7 @@ public class VectorIconGenerator extends IconGenerator {
       return Collections.emptySet();
     }
     String xmlContent = result.getXmlContent();
+    assert xmlContent != null;
     GeneratedIcon icon = new GeneratedXmlResource(name, new PathString(getIconPath(options, name)), IconCategory.XML_RESOURCE, xmlContent);
     return Collections.singleton(icon);
   }

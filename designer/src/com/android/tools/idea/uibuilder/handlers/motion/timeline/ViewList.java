@@ -169,7 +169,7 @@ class ViewList extends JPanel implements Gantt.ChartElement {
         list = new String[]{"set End Constraint"};
       }
     }
-    final JList<String> displayedList = new JBList<>(list);
+    final JList<String> displayedList = new JBList<String>(list);
     JBPopupListener listener = new JBPopupListener() {
       @Override
       public void onClosed(@NotNull LightweightWindowEvent event) {

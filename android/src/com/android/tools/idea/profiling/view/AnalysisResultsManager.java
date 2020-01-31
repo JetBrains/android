@@ -58,7 +58,8 @@ public class AnalysisResultsManager extends CaptureEditorLightToolWindowManager 
     }
     else {
       DesignerEditorPanelFacade activeDesigner = getActiveDesigner();
-      if (activeDesigner instanceof CapturePanel &&
+      if (activeDesigner != null &&
+          activeDesigner instanceof CapturePanel &&
           activeDesigner.getClientProperty(getComponentName()) == null) {
         activeDesigner.putClientProperty(getComponentName(), myContent);
       }
@@ -186,7 +187,7 @@ public class AnalysisResultsManager extends CaptureEditorLightToolWindowManager 
   @Nullable
   private AnalysisResultsContent getContentFromDesigner() {
     DesignerEditorPanelFacade activeDesigner = getActiveDesigner();
-    if (activeDesigner instanceof CapturePanel) {
+    if (activeDesigner != null && activeDesigner instanceof CapturePanel) {
       Object property = activeDesigner.getClientProperty(getComponentName());
       if (property instanceof LightToolWindow) {
         LightToolWindow lightToolWindow = (LightToolWindow)property;

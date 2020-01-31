@@ -25,8 +25,8 @@ import static com.android.tools.profilers.ProfilerLayout.Y_AXIS_TOP_MARGIN;
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
+import com.android.tools.adtui.RangeSelectionComponent;
 import com.android.tools.adtui.RangeTooltipComponent;
-import com.android.tools.adtui.SelectionComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
 import com.android.tools.adtui.chart.linechart.LineChart;
@@ -36,7 +36,6 @@ import com.android.tools.adtui.event.DelegateMouseEventHandler;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.AspectObserver;
-import com.android.tools.adtui.model.DefaultDurationData;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profilers.ProfilerColors;
@@ -60,7 +59,7 @@ import org.jetbrains.annotations.NotNull;
 
 abstract class CpuUsageView extends JBPanel {
   @NotNull protected final CpuProfilerStage myStage;
-  @NotNull protected final SelectionComponent mySelectionComponent;
+  @NotNull protected final RangeSelectionComponent myRangeSelectionComponent;
   @NotNull protected final OverlayComponent myOverlayComponent;
 
   @SuppressWarnings("FieldCanBeLocal")
@@ -74,17 +73,17 @@ abstract class CpuUsageView extends JBPanel {
     // We only show the sparkline if we are over the cpu usage chart. The cpu usage
     // chart is under the overlay component so using the events captured from the overlay
     // component tell us if we are over the right area.
-    mySelectionComponent =
-      new SelectionComponent(myStage.getSelectionModel(), myStage.getStudioProfilers().getTimeline().getViewRange(), true);
-    mySelectionComponent.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
+    myRangeSelectionComponent =
+      new RangeSelectionComponent(myStage.getRangeSelectionModel(), myStage.getStudioProfilers().getTimeline().getViewRange(), true);
+    myRangeSelectionComponent.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
     // After a capture is set we update the selection to be the length of the capture. The selection we update is on the range
     // instead of the selection model, or selection component. So here we listen to a selection capture event and give focus
     // to the selection component.
     // Note: The selection range is set in CpuProfilerStage::setAndSelectCapture.
     stage.getAspect().addDependency(myObserver)
-         .onChange(CpuProfilerAspect.CAPTURE_SELECTION, mySelectionComponent::requestFocus);
+      .onChange(CpuProfilerAspect.CAPTURE_SELECTION, myRangeSelectionComponent::requestFocus);
 
-    myOverlayComponent = new OverlayComponent(mySelectionComponent);
+    myOverlayComponent = new OverlayComponent(myRangeSelectionComponent);
 
     // |CpuUsageView| does not receive any mouse events, because all mouse events are consumed by |OverlayComponent|
     // We're dispatching them manually, so that |CpuProfilerStageView| could register CPU context menus or other mouse events
@@ -103,7 +102,7 @@ abstract class CpuUsageView extends JBPanel {
    */
   @VisibleForTesting
   boolean shouldShowTooltipSeekComponent() {
-    return mySelectionComponent.shouldShowSeekComponent();
+    return myRangeSelectionComponent.shouldShowSeekComponent();
   }
 
   protected String formatCaptureLabel(@NotNull CpuTraceInfo info) {
@@ -122,7 +121,7 @@ abstract class CpuUsageView extends JBPanel {
       add(createAxisPanel(), new TabularLayout.Constraint(0, 0));
       add(createLegendPanel(), new TabularLayout.Constraint(0, 0));
       add(myOverlayComponent, new TabularLayout.Constraint(0, 0));
-      add(mySelectionComponent, new TabularLayout.Constraint(0, 0));
+      add(myRangeSelectionComponent, new TabularLayout.Constraint(0, 0));
       add(createLineChartPanel(), new TabularLayout.Constraint(0, 0));
     }
 
@@ -174,8 +173,14 @@ abstract class CpuUsageView extends JBPanel {
       DurationDataRenderer<CpuTraceInfo> traceRenderer =
         new DurationDataRenderer.Builder<>(myStage.getTraceDurations(), ProfilerColors.CPU_CAPTURE_EVENT)
           .setDurationBg(CPU_CAPTURE_BACKGROUND)
-          .setIcon(StudioIcons.Profiler.Toolbar.CAPTURE_CLOCK)
-          .setClickHander(traceInfo -> myStage.setAndSelectCapture(traceInfo.getTraceId()))
+          .setIconMapper(info -> info.getDurationUs() != Long.MAX_VALUE ? StudioIcons.Profiler.Toolbar.CAPTURE_CLOCK : null)
+          .setLabelProvider(info -> info.getDurationUs() == Long.MAX_VALUE ? "In progress" : "")
+          .setLabelColors(ProfilerColors.CPU_DURATION_LABEL_BACKGROUND, Color.BLACK, Color.lightGray, Color.WHITE)
+          .setClickHander(traceInfo -> {
+            if (traceInfo.getDurationUs() != Long.MAX_VALUE) {
+              myStage.setAndSelectCapture(traceInfo.getTraceId());
+            }
+          })
           .build();
 
       traceRenderer.addCustomLineConfig(cpuUsage.getCpuSeries(), new LineConfig(ProfilerColors.CPU_USAGE_CAPTURED)
@@ -187,23 +192,6 @@ abstract class CpuUsageView extends JBPanel {
 
       myOverlayComponent.addDurationDataRenderer(traceRenderer);
       lineChart.addCustomRenderer(traceRenderer);
-
-      @SuppressWarnings("UseJBColor")
-      DurationDataRenderer<DefaultDurationData> inProgressTraceRenderer =
-        new DurationDataRenderer.Builder<>(myStage.getInProgressTraceDuration(), ProfilerColors.CPU_CAPTURE_EVENT)
-          .setDurationBg(CPU_CAPTURE_BACKGROUND)
-          .setLabelColors(ProfilerColors.CPU_DURATION_LABEL_BACKGROUND, Color.BLACK, Color.lightGray, Color.WHITE)
-          .build();
-
-      inProgressTraceRenderer.addCustomLineConfig(cpuUsage.getCpuSeries(), new LineConfig(ProfilerColors.CPU_USAGE_CAPTURED)
-        .setFilled(true).setStacked(true).setLegendIconType(LegendConfig.IconType.BOX));
-      inProgressTraceRenderer.addCustomLineConfig(cpuUsage.getOtherCpuSeries(), new LineConfig(ProfilerColors.CPU_OTHER_USAGE_CAPTURED)
-        .setFilled(true).setStacked(true).setLegendIconType(LegendConfig.IconType.BOX));
-      inProgressTraceRenderer.addCustomLineConfig(cpuUsage.getThreadsCountSeries(), new LineConfig(ProfilerColors.THREADS_COUNT_CAPTURED)
-        .setStepped(true).setStroke(LineConfig.DEFAULT_DASH_STROKE).setLegendIconType(LegendConfig.IconType.DASHED_LINE));
-
-      myOverlayComponent.addDurationDataRenderer(inProgressTraceRenderer);
-      lineChart.addCustomRenderer(inProgressTraceRenderer);
 
       return lineChartPanel;
     }
@@ -240,7 +228,7 @@ abstract class CpuUsageView extends JBPanel {
       // Order is important
       add(createTimeAxisGuide(), new TabularLayout.Constraint(0, 0));
       add(myOverlayComponent, new TabularLayout.Constraint(0, 0));
-      add(mySelectionComponent, new TabularLayout.Constraint(0, 0));
+      add(myRangeSelectionComponent, new TabularLayout.Constraint(0, 0));
       add(createTipPanel(), new TabularLayout.Constraint(0, 0));
       add(createOverlayPanel(), new TabularLayout.Constraint(0, 0));
     }

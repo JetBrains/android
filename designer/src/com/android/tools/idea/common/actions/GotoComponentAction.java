@@ -16,35 +16,39 @@
 package com.android.tools.idea.common.actions;
 
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.idea.common.editor.DesignToolsSplitEditor;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.DumbAwareAction;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.PsiNavigateUtil;
+import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import org.jetbrains.annotations.NotNull;
-
-import java.awt.event.InputEvent;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Action which navigates to the primary selected XML element
  */
 public class GotoComponentAction extends DumbAwareAction {
-  private final DesignSurface mySurface;
+  @NotNull private final DesignSurface mySurface;
 
-  public GotoComponentAction(DesignSurface surface) {
+  public GotoComponentAction(@NotNull DesignSurface surface) {
     super("Go to XML");
     mySurface = surface;
   }
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
+    super.update(e);
     InputEvent inputEvent = e.getInputEvent();
     if (inputEvent instanceof MouseEvent) {
       if (mySurface.getInteractionManager().interceptPanInteraction((MouseEvent)inputEvent) || AdtUiUtils.isActionKeyDown(inputEvent)) {
@@ -52,6 +56,18 @@ public class GotoComponentAction extends DumbAwareAction {
         return;
       }
     }
+
+    if (StudioFlags.NELE_SPLIT_EDITOR.get()) {
+      FileEditor selectedEditor = FileEditorManager.getInstance(mySurface.getProject()).getSelectedEditor();
+      if (selectedEditor instanceof DesignToolsSplitEditor) {
+        DesignToolsSplitEditor splitEditor = (DesignToolsSplitEditor)selectedEditor;
+        if (splitEditor.isDesignMode()) {
+          // If we're in design mode, we want to change the split editor mode to XML-only before navigating to the element.
+          splitEditor.selectTextMode(false);
+        }
+      }
+    }
+
     SelectionModel selectionModel = mySurface.getSelectionModel();
     NlComponent primary = selectionModel.getPrimary();
     NlModel model = mySurface.getModel();
@@ -67,9 +83,21 @@ public class GotoComponentAction extends DumbAwareAction {
     }
 
     mySurface.deactivate();
-    if (componentToNavigate == null || !NlComponentHelperKt.navigateTo(componentToNavigate)) {
+    if (model != null && !navigateToXml(componentToNavigate)) {
       switchTab(model);
     }
+  }
+
+  private static boolean navigateToXml(@Nullable NlComponent component) {
+    if (component == null) {
+      return false;
+    }
+    XmlTag tag = component.getTag();
+    if (tag == null) {
+      return false;
+    }
+    PsiNavigateUtil.navigate(tag);
+    return true;
   }
 
   /**

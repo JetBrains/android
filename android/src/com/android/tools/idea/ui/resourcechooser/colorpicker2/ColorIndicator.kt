@@ -19,7 +19,7 @@ import com.intellij.ui.JBColor
 import java.awt.*
 import javax.swing.JComponent
 
-private val BORDER = JBColor(Color(0, 0, 0, 26), Color(255, 255, 255, 26))
+private val BORDER_COLOR = JBColor(Color(0, 0, 0, 26), Color(255, 255, 255, 26))
 private val BORDER_STROKE = BasicStroke(2f)
 
 class ColorIndicator(color: Color = DEFAULT_PICKER_COLOR) : JComponent() {
@@ -45,7 +45,7 @@ class ColorIndicator(color: Color = DEFAULT_PICKER_COLOR) : JComponent() {
     g.fillOval(left, top, circleWidth, circleHeight)
 
     g.stroke = BORDER_STROKE
-    g.color = BORDER
+    g.color = BORDER_COLOR
     g.drawOval(left, top, circleWidth, circleHeight)
 
     g.color = originalColor

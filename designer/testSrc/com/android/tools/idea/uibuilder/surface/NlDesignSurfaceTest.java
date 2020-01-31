@@ -36,6 +36,7 @@ import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.error.RenderIssueProvider;
+import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.IdeEventQueue;
 import com.intellij.ide.util.PropertiesComponent;
@@ -55,7 +56,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
   protected void setUp() throws Exception {
     super.setUp();
 
-    mySurface = new NlDesignSurface(getProject(), false, getTestRootDisposable());
+    mySurface = NlDesignSurface.build(getProject(), getTestRootDisposable());
   }
 
   @Override
@@ -207,14 +208,14 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     mySurface.setScreenMode(SceneMode.SCREEN_ONLY, false);
     mySurface.requestRender();
     assertTrue(mySurface.getSceneManager().getRenderResult().getRenderResult().isSuccess());
-    assertNotNull(mySurface.getCurrentSceneView());
+    assertNotNull(mySurface.getFocusedSceneView());
     assertNull(mySurface.getSceneManager().getSecondarySceneView());
 
     mySurface.setScreenMode(SceneMode.BOTH, false);
     mySurface.requestRender();
     assertTrue(mySurface.getSceneManager().getRenderResult().getRenderResult().isSuccess());
 
-    SceneView screenView = mySurface.getCurrentSceneView();
+    SceneView screenView = mySurface.getFocusedSceneView();
     SceneView blueprintView = mySurface.getSceneManager().getSecondarySceneView();
     assertNotNull(screenView);
     assertNotNull(blueprintView);
@@ -456,7 +457,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     double origScale = mySurface.getScale();
     assertEquals(origScale, mySurface.getMinScale());
 
-    SceneView view = mySurface.getCurrentSceneView();
+    SceneView view = mySurface.getFocusedSceneView();
     JViewport viewport = mySurface.getScrollPane().getViewport();
     assertEquals(new Point(-122, -122), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
 
@@ -510,7 +511,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     double origScale = mySurface.getScale();
     assertEquals(origScale, mySurface.getMinScale());
 
-    SceneView view = mySurface.getCurrentSceneView();
+    SceneView view = mySurface.getFocusedSceneView();
     JViewport viewport = mySurface.getScrollPane().getViewport();
     assertEquals(new Point(-122, -122), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
 
@@ -574,5 +575,31 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     assertFalse(mySurface.canZoomToFit());
     assertTrue(mySurface.canZoomIn());
     assertFalse(mySurface.canZoomOut());
+  }
+
+  /**
+   * Test that we don't have any negative scale in case the windows size becomes too small
+   */
+  public void testsMinScale() {
+    NlModel model = model("absolute.xml",
+                          component(ABSOLUTE_LAYOUT)
+                            .withBounds(0, 0, 1000, 1000)
+                            .matchParentWidth()
+                            .matchParentHeight()).build();
+    NlDesignSurface surface = mySurface;
+    surface.setModel(model);
+    surface.setBounds(0, 0, 1000, 1000);
+    surface.validate();
+    surface.getLayout().layoutContainer(surface);
+    surface.updateScrolledAreaSize();
+    surface.zoomToFit();
+    assertEquals(0.5, surface.getScale(), 0.1);
+
+    surface.setBounds(0, 0, 1, 1);
+    surface.updateScrolledAreaSize();
+    surface.validate();
+    surface.getLayout().layoutContainer(surface);
+    surface.zoomToFit();
+    assertEquals(0.01, surface.getScale());
   }
 }

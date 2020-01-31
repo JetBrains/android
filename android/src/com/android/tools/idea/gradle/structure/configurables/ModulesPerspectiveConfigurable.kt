@@ -35,12 +35,12 @@ class ModulesPerspectiveConfigurable(context: PsContext)
 
   override fun createConfigurableFor(module: PsModule): AbstractModuleConfigurable<out PsModule, *> =
       if (module is PsAndroidModule) createConfigurable(module)
-      else JavaModuleUnsupportedConfigurable(context, module)
+      else ModuleUnsupportedConfigurable(context, this, module)
 
   override fun getDisplayName() = MODULES_PERSPECTIVE_DISPLAY_NAME
 
   private fun createConfigurable(module: PsAndroidModule) =
-      AndroidModuleRootConfigurable(context, module).apply { history = myHistory }
+      AndroidModuleRootConfigurable(context, this, module).apply { history = myHistory }
 
   override fun createComponent(): JComponent = super.createComponent().also { it.name = MODULES_VIEW }
 }

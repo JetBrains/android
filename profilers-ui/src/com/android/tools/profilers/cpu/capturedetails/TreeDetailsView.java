@@ -28,8 +28,11 @@ import static com.android.tools.profilers.ProfilerLayout.TABLE_ROW_BORDER;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.profilers.IdeProfilerComponents;
+import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.cpu.CaptureNode;
+import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.CpuProfilerStageView;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.CppFunctionModel;
@@ -78,7 +81,10 @@ abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureDetailsV
   @Nullable protected final JTree myTree;
   @Nullable private final CpuTraceTreeSorter mySorter;
 
-  private TreeDetailsView(@NotNull CpuProfilerStageView stageView, @Nullable CpuTreeModel<T> model) {
+  private TreeDetailsView(@NotNull CpuCapture capture,
+                          @NotNull IdeProfilerServices ideServices,
+                          @NotNull IdeProfilerComponents components,
+                          @Nullable CpuTreeModel<T> model) {
     myObserver = new AspectObserver();
     if (model == null) {
       myPanel = getNoDataForThread();
@@ -101,11 +107,9 @@ abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureDetailsV
     myPanel.add(createTableTree(), CARD_CONTENT);
     myPanel.add(getNoDataForRange(), CARD_EMPTY_INFO);
 
-    CodeNavigator navigator = stageView.getStage().getStudioProfilers().getIdeServices().getCodeNavigator();
-    assert stageView.getStage().getCapture() != null;
-    if (stageView.getStage().getCapture().getType() != Cpu.CpuTraceType.ATRACE) {
-      stageView.getIdeComponents().createContextMenuInstaller().installNavigationContextMenu(myTree, navigator,
-                                                                                             () -> getCodeLocation(myTree));
+    CodeNavigator navigator = ideServices.getCodeNavigator();
+    if (capture.getType() != Cpu.CpuTraceType.ATRACE) {
+      components.createContextMenuInstaller().installNavigationContextMenu(myTree, navigator, () -> getCodeLocation(myTree));
     }
 
     switchCardLayout(myPanel, model.isEmpty());
@@ -407,7 +411,15 @@ abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureDetailsV
 
   static class TopDownDetailsView extends TreeDetailsView<TopDownNode> {
     TopDownDetailsView(@NotNull CpuProfilerStageView view, @NotNull CaptureDetails.TopDown topDown) {
-      super(view, topDown.getModel());
+      this(view.getStage().getCapture(), view.getStage().getStudioProfilers().getIdeServices(),
+           view.getProfilersView().getIdeProfilerComponents(), topDown);
+    }
+
+    TopDownDetailsView(@NotNull CpuCapture capture,
+                       @NotNull IdeProfilerServices ideServices,
+                       @NotNull IdeProfilerComponents components,
+                       @NotNull CaptureDetails.TopDown topDown) {
+      super(capture, ideServices, components, topDown.getModel());
       TopDownTreeModel model = topDown.getModel();
       if (model == null) {
         return;
@@ -438,7 +450,15 @@ abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureDetailsV
 
   static class BottomUpDetailsView extends TreeDetailsView<BottomUpNode> {
     BottomUpDetailsView(@NotNull CpuProfilerStageView view, @NotNull CaptureDetails.BottomUp bottomUp) {
-      super(view, bottomUp.getModel());
+      this(view.getStage().getCapture(), view.getStage().getStudioProfilers().getIdeServices(),
+           view.getProfilersView().getIdeProfilerComponents(), bottomUp);
+    }
+
+    BottomUpDetailsView(@NotNull CpuCapture capture,
+                        @NotNull IdeProfilerServices ideServices,
+                        @NotNull IdeProfilerComponents components,
+                        @NotNull CaptureDetails.BottomUp bottomUp) {
+      super(capture, ideServices, components, bottomUp.getModel());
       BottomUpTreeModel model = bottomUp.getModel();
       if (model == null) {
         return;

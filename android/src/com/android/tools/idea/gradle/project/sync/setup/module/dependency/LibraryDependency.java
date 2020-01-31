@@ -18,16 +18,17 @@ package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 import com.android.tools.idea.io.FilePaths;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.roots.DependencyScope;
-import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import java.util.LinkedHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
+import java.util.*;
 import java.util.Collection;
 import java.util.Objects;
 
+import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 import static com.intellij.util.ArrayUtilRt.EMPTY_FILE_ARRAY;
 
 /**
@@ -54,7 +55,7 @@ public class LibraryDependency extends Dependency {
    */
   @VisibleForTesting
   public LibraryDependency(@NotNull File artifactPath, @NotNull DependencyScope scope) {
-    this(artifactPath, FileUtilRt.getNameWithoutExtension(artifactPath.getName()), scope);
+    this(artifactPath, getNameWithoutExtension(artifactPath), scope);
     addBinaryPath(artifactPath);
   }
 

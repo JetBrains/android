@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
-public class SingleVariantSyncDependencySetupTest extends NewSyncDependencySetupTest {
+public class SingleVariantSyncDependencySetupTest extends DependencySetupTest {
   @Override
   protected boolean useSingleVariantSyncInfrastructure() {
     return true;

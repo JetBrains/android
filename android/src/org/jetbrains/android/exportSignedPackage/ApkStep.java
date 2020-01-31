@@ -1,4 +1,18 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+/*
+ * Copyright 2000-2012 JetBrains s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.jetbrains.android.exportSignedPackage;
 
@@ -13,25 +27,30 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.ui.scale.JBUIScale;
-import com.intellij.util.ArrayUtilRt;
+import com.intellij.util.ArrayUtil;
+import com.intellij.util.ui.JBUI;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.compiler.artifact.ProGuardConfigFilesPanel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.SaveFileListener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.File;
-import java.util.List;
-import java.util.*;
 
 /**
  * @author Eugene.Kudelevsky
@@ -50,6 +69,7 @@ class ApkStep extends ExportSignedPackageWizardStep {
 
   private final ExportSignedPackageWizard myWizard;
   private boolean myInited;
+  private boolean myIsBundle;
 
   @Nullable
   private static String getContentRootPath(Module module) {
@@ -63,6 +83,7 @@ class ApkStep extends ExportSignedPackageWizardStep {
 
   public ApkStep(ExportSignedPackageWizard wizard) {
     myWizard = wizard;
+    myIsBundle = myWizard.getTargetType().equals(ExportSignedPackageWizard.BUNDLE);
     myApkPathLabel.setLabelFor(myApkPathField);
 
     myApkPathField.getButton().addActionListener(
@@ -81,7 +102,7 @@ class ApkStep extends ExportSignedPackageWizardStep {
       }
     });
 
-    myContentPanel.setPreferredSize(new Dimension(myContentPanel.getPreferredSize().width, JBUIScale.scale(250)));
+    myContentPanel.setPreferredSize(new Dimension(myContentPanel.getPreferredSize().width, JBUI.scale(250)));
   }
 
   @Override
@@ -91,7 +112,7 @@ class ApkStep extends ExportSignedPackageWizardStep {
     Module module = facet.getModule();
 
     PropertiesComponent properties = PropertiesComponent.getInstance(module.getProject());
-    String lastModule = properties.getValue(KeystoreStep.MODULE_PROPERTY);
+    String lastModule = properties.getValue(KeystoreStep.getModuleProperty(myIsBundle));
     String lastApkPath = properties.getValue(getApkPathPropertyName());
     if (lastApkPath != null && module.getName().equals(lastModule)) {
       myApkPathField.setText(FileUtil.toSystemDependentName(lastApkPath));
@@ -129,8 +150,8 @@ class ApkStep extends ExportSignedPackageWizardStep {
         myProGuardConfigFilesPanel.setUrls(facet.getProperties().myProGuardCfgFiles);
       }
       else {
-        final List<String> urls = new ArrayList<>();
-        urls.add(AndroidCommonUtils.PROGUARD_SYSTEM_CFG_FILE_URL);
+        final List<String> urls = new ArrayList<String>();
+        urls.add(AndroidBuildCommonUtils.PROGUARD_SYSTEM_CFG_FILE_URL);
         final Pair<VirtualFile, Boolean> pair = AndroidCompileUtil.getDefaultProguardConfigFile(facet);
 
         if (pair != null) {
@@ -146,16 +167,16 @@ class ApkStep extends ExportSignedPackageWizardStep {
   @NotNull
   private static String[] parseAndCheckProguardCfgPaths(@NotNull String pathsStr) {
     if (pathsStr.isEmpty()) {
-      return ArrayUtilRt.EMPTY_STRING_ARRAY;
+      return ArrayUtil.EMPTY_STRING_ARRAY;
     }
     final String[] paths = pathsStr.split(File.pathSeparator);
 
     if (paths.length == 0) {
-      return ArrayUtilRt.EMPTY_STRING_ARRAY;
+      return ArrayUtil.EMPTY_STRING_ARRAY;
     }
     for (String path : paths) {
       if (LocalFileSystem.getInstance().refreshAndFindFileByPath(path) == null) {
-        return ArrayUtilRt.EMPTY_STRING_ARRAY;
+        return ArrayUtil.EMPTY_STRING_ARRAY;
       }
     }
     return paths;
@@ -203,7 +224,7 @@ class ApkStep extends ExportSignedPackageWizardStep {
 
     AndroidFacet facet = myWizard.getFacet();
     PropertiesComponent properties = PropertiesComponent.getInstance(myWizard.getProject());
-    properties.setValue(KeystoreStep.MODULE_PROPERTY, facet != null ? facet.getModule().getName() : "");
+    properties.setValue(KeystoreStep.getModuleProperty(myIsBundle), facet != null ? facet.getModule().getName() : "");
     properties.setValue(getApkPathPropertyName(), apkPath);
 
     File folder = new File(apkPath).getParentFile();

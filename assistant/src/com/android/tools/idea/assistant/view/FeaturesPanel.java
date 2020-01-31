@@ -81,7 +81,7 @@ public class FeaturesPanel extends JPanel implements ItemListener, ActionListene
     for (FeatureData feature : bundle.getFeatures()) {
       for (TutorialData tutorial : feature.getTutorials()) {
         addCard(
-          new TutorialCard(this, tutorial, feature, bundle.getName(), myProject, hideChooserAndNavigationalBar, bundle.isStepByStep(), bundle.hideStepIndex()),
+          new TutorialCard(this, tutorial, feature, hideChooserAndNavigationalBar, bundle),
           tutorial.getKey());
       }
     }
@@ -144,6 +144,11 @@ public class FeaturesPanel extends JPanel implements ItemListener, ActionListene
     else {
       throw new RuntimeException("Unhandled action, \"" + e.getActionCommand() + "\".");
     }
+  }
+
+  @NotNull
+  Project getProject() {
+    return myProject;
   }
 
   /**

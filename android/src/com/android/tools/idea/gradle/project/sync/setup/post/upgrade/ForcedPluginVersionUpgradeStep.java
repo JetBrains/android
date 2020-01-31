@@ -68,7 +68,7 @@ public class ForcedPluginVersionUpgradeStep implements PluginVersionUpgradeStep 
     GradleVersion recommended = GradleVersion.parse(latestKnownPluginVersionProvider.get());
 
     GradleSyncState syncState = GradleSyncState.getInstance(project);
-    syncState.syncEnded(); // Update the sync state before starting a new one.
+    syncState.syncSucceeded(); // Update the sync state before starting a new one.
 
     final Ref<Boolean> result = Ref.create();
 
@@ -79,7 +79,7 @@ public class ForcedPluginVersionUpgradeStep implements PluginVersionUpgradeStep 
 
     if (userAcceptsForcedUpgrade) {
       AndroidPluginVersionUpdater versionUpdater = AndroidPluginVersionUpdater.getInstance(project);
-      versionUpdater.updatePluginVersionAndSync(recommended, GradleVersion.parse(GRADLE_LATEST_VERSION), true);
+      versionUpdater.updatePluginVersionAndSync(recommended, GradleVersion.parse(GRADLE_LATEST_VERSION), pluginInfo.getPluginVersion());
     }
     else {
       String[] text = {
@@ -93,7 +93,7 @@ public class ForcedPluginVersionUpgradeStep implements PluginVersionUpgradeStep 
       msg.add(quickFix);
 
       GradleSyncMessages.getInstance(project).report(msg);
-      syncState.invalidateLastSync("Force plugin upgrade declined");
+      syncState.syncFailed("Force plugin upgrade declined", null, null);
     }
     return true;
   }

@@ -18,7 +18,6 @@ package com.android.tools.idea.run;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 
 import com.android.tools.idea.apk.ApkFacet;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.run.activity.DefaultStartActivityFlagsProvider;
@@ -37,7 +36,6 @@ import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.ui.BaseAction;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.stats.RunStats;
-import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.intellij.execution.ExecutionException;
@@ -196,11 +194,12 @@ public abstract class AndroidAppRunConfigurationBase extends AndroidRunConfigura
   @NotNull
   @Override
   public SettingsEditor<? extends RunConfiguration> getConfigurationEditor() {
-    Project project = getProject();
-    AndroidRunConfigurationEditor<AndroidAppRunConfigurationBase> editor =
-      new AndroidRunConfigurationEditor<>(project, Predicates.alwaysFalse(), this);
-    editor.setConfigurationSpecificEditor(new ApplicationRunParameters(project, editor.getModuleSelector()));
-    return editor;
+    return new AndroidRunConfigurationEditor<>(
+      getProject(),
+      facet -> false,
+      this,
+      true,
+      moduleSelector -> new ApplicationRunParameters<>(getProject(), moduleSelector));
   }
 
   @Override
@@ -352,13 +351,6 @@ public abstract class AndroidAppRunConfigurationBase extends AndroidRunConfigura
   @Nullable
   @Override
   public Icon getExecutorIcon(@NotNull RunConfiguration configuration, @NotNull Executor executor) {
-    if (!StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get()) {
-      if (executor instanceof ExecutorIconProvider) {
-        return ((ExecutorIconProvider)executor).getExecutorIcon(getProject(), executor);
-      }
-      return null;
-    }
-
     // Customize the executor icon for the DeviceAndSnapshotComboBoxAction such that it's tied to the device in addition to the
     // RunConfiguration.
     Project project = configuration.getProject();

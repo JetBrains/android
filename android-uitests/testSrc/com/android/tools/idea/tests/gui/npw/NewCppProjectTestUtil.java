@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.npw;
 
-import com.android.tools.idea.flags.StudioFlags;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.productFlavors.externalNativeBuild.CMakeOptionsModel;
@@ -27,7 +28,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import org.fest.swing.timing.Wait;
@@ -93,27 +93,34 @@ public class NewCppProjectTestUtil {
     runAppOnEmulator(ideFrame);
   }
 
-  protected static void createCppProject(CppStandardType toolChain, GuiTestRule guiTest) {
-    NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
-                                                      .createNewProject();
-    newProjectWizard
+  protected static void createCppProject(CppStandardType toolChain, GuiTestRule guiTest) throws IOException {
+    guiTest.welcomeFrame()
+      .createNewProject()
       .getChooseAndroidProjectStep()
       .chooseActivity("Native C++")
       .wizard()
       .clickNext()
       .getConfigureNewAndroidProjectStep()
+      .setSourceLanguage("Java")
       .enterPackageName("com.example.myapplication")
       .wizard()
-      .clickNext();
-
-    newProjectWizard.getConfigureCppStepFixture()
-                    .selectToolchain(toolChain);
-
-    // the QA tests don't care that much about timeouts occurring. Be generous with the timeouts
-    newProjectWizard.clickFinish(Wait.seconds(30), Wait.seconds(30), Wait.seconds(180));
+      .clickNext()
+      .getConfigureCppStepFixture()
+      .selectToolchain(toolChain)
+      .wizard()
+      // the QA tests don't care that much about timeouts occurring. Be generous with the timeouts
+      .clickFinish(Wait.seconds(30), Wait.seconds(30), Wait.seconds(180));
 
     guiTest.ideFrame().waitForGradleProjectSyncToFinish(Wait.seconds(60));
     guiTest.waitForBackgroundTasks();
+
+    // Sanity check we have create the right files
+    assertThat(guiTest.ideFrame().findFileByRelativePath("app/src/main/cpp/CMakeLists.txt")).isNotNull();
+    assertThat(guiTest.ideFrame().findFileByRelativePath("app/src/main/cpp/native-lib.cpp")).isNotNull();
+
+    String mainActivityText = guiTest.getProjectFileText("app/src/main/java/com/example/myapplication/MainActivity.java");
+    assertThat(mainActivityText).contains("System.loadLibrary(\"native-lib\")");
+    assertThat(mainActivityText).contains("public native String stringFromJNI()");
   }
 
   protected static void runAppOnEmulator(@NotNull IdeFrameFixture ideFrame) {

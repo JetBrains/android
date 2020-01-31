@@ -36,7 +36,6 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionListener;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
-import com.android.tools.idea.naveditor.scene.NavColors;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
@@ -54,6 +53,7 @@ import com.intellij.ui.speedSearch.FilteringListModel;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.UIUtil;
 import java.awt.BorderLayout;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -103,6 +103,7 @@ public class DestinationList extends JPanel implements DataProvider, Disposable 
   private NlModel myModel;
   private ListSelectionListener myListSelectionListener;
   private MouseListener myMouseListener;
+  private MouseListener myPanelMouseListener;
   private NavDesignSurface myDesignSurface;
 
   private ToolWindowCallback myToolWindow = null;
@@ -118,7 +119,19 @@ public class DestinationList extends JPanel implements DataProvider, Disposable 
     myDesignSurface = surface;
     Disposer.register(parentDisposable, this);
     setLayout(new BorderLayout());
-    myList = new JBList<>(myListModel);
+    setBackground(StudioColorsKt.getSecondaryPanelBackground());
+    myList = new JBList<NlComponent>(myListModel) {
+      @Override
+      public int locationToIndex(Point location) {
+        int index = super.locationToIndex(location);
+        if (index != -1 && !getCellBounds(index, index).contains(location)) {
+          return -1;
+        }
+        else {
+          return index;
+        }
+      }
+    };
     myList.getEmptyText().setText("");
     myList.setName("DestinationList");
     myList.setCellRenderer(new ColoredListCellRenderer<NlComponent>() {
@@ -136,19 +149,13 @@ public class DestinationList extends JPanel implements DataProvider, Disposable 
         if (NavComponentHelperKt.isStartDestination(component)) {
           append(" - Start", SimpleTextAttributes.GRAY_ATTRIBUTES);
         }
+
         Icon icon = FRAGMENT;
-        if (NavComponentHelperKt.isInclude(component)) {
-          icon = INCLUDE_GRAPH;
+        NlComponent.XmlModelComponentMixin mixin = component.getMixin();
+        if(mixin != null) {
+          icon = mixin.getIcon();
         }
-        else if (NavComponentHelperKt.isNavigation(component)) {
-          icon = NESTED_GRAPH;
-        }
-        else if (NavComponentHelperKt.getClassName(component) == null) {
-          icon = PLACEHOLDER;
-        }
-        else if (NavComponentHelperKt.isActivity(component)) {
-          icon = ACTIVITY;
-        }
+
         if (isSelected && list.hasFocus()) {
           icon = WHITE_ICONS.get(icon);
         }
@@ -175,16 +182,16 @@ public class DestinationList extends JPanel implements DataProvider, Disposable 
     getActionMap().put(deleteDestinationKey, new AbstractAction() {
       @Override
       public void actionPerformed(ActionEvent event) {
-          List<NlComponent> toDelete = myList.getSelectedValuesList();
-          if (!toDelete.isEmpty()) {
-            new WriteCommandAction(myDesignSurface.getProject(), "Delete Destination" + (toDelete.size() > 1 ? "s" : ""),
-                                   myDesignSurface.getModel().getFile()) {
-              @Override
-              protected void run(@NotNull Result result) {
-                myDesignSurface.getModel().delete(toDelete);
-              }
-            }.execute();
-          }
+        List<NlComponent> toDelete = myList.getSelectedValuesList();
+        if (!toDelete.isEmpty()) {
+          new WriteCommandAction(myDesignSurface.getProject(), "Delete Destination" + (toDelete.size() > 1 ? "s" : ""),
+                                 myDesignSurface.getModel().getFile()) {
+            @Override
+            protected void run(@NotNull Result result) {
+              myDesignSurface.getModel().delete(toDelete);
+            }
+          }.execute();
+        }
       }
     });
 
@@ -231,6 +238,16 @@ public class DestinationList extends JPanel implements DataProvider, Disposable 
     myList.addMouseListener(myMouseListener);
     myModel.addListener(myModelListener);
 
+    myPanelMouseListener = new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        myList.clearSelection();
+        myDesignSurface.needsRepaint();
+      }
+    };
+
+    addMouseListener(myPanelMouseListener);
+
     myList.setBackground(StudioColorsKt.getSecondaryPanelBackground());
     updateComponentList();
     myList.putClientProperty(CLIENT_PROPERTY_DATA_PROVIDER, (DataProvider)dataId -> {
@@ -247,6 +264,7 @@ public class DestinationList extends JPanel implements DataProvider, Disposable 
     myModel.removeListener(myModelListener);
     myList.removeListSelectionListener(myListSelectionListener);
     myList.removeMouseListener(myMouseListener);
+    removeMouseListener(myPanelMouseListener);
   }
 
   void updateComponentList() {
@@ -308,7 +326,11 @@ public class DestinationList extends JPanel implements DataProvider, Disposable 
   private class DestinationListMouseListener extends MouseAdapter {
     @Override
     public void mouseClicked(MouseEvent e) {
-      if (e.getClickCount() == 2) {
+      JList list = (JList) e.getSource();
+      if (list.locationToIndex(e.getPoint()) == -1) {
+        list.clearSelection();
+      }
+      else if (e.getClickCount() == 2) {
         handleDoubleClick(e);
       }
       else {
@@ -330,6 +352,9 @@ public class DestinationList extends JPanel implements DataProvider, Disposable 
       if (e.isPopupTrigger()) {
         int index = myList.locationToIndex(e.getPoint());
         if (index != -1) {
+          if (ArrayUtil.indexOf(myList.getSelectedIndices(), index) == -1) {
+            myList.setSelectedIndex(index);
+          }
           NlComponent component = myList.getModel().getElementAt(index);
           myDesignSurface.getActionManager().showPopup(e, component);
           e.consume();

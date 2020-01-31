@@ -21,8 +21,6 @@ import com.android.tools.idea.common.scene.target.AnchorTarget;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.api.actions.DirectViewAction;
-import com.android.tools.idea.uibuilder.api.actions.ToggleViewAction;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
@@ -31,6 +29,7 @@ import com.google.common.collect.ImmutableList;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,6 +45,7 @@ public class SceneMouseInteraction {
   private final Scene myScene;
   float myLastX;
   float myLastY;
+  @JdkConstants.InputEventMask private int myModifiersEx = 0;
   DisplayList myDisplayList = new DisplayList();
 
   public SceneMouseInteraction(Scene scene) {
@@ -55,6 +55,15 @@ public class SceneMouseInteraction {
 
   public float getLastX() { return myLastX; }
   public float getLastY() { return myLastY; }
+
+  /**
+   * Function to set modifiers to this interaction.
+   * All the following mouse and key events apply to the given modifiersEx.
+   */
+  public void setModifiersEx(@JdkConstants.InputEventMask int modifiersEx) {
+    myModifiersEx = modifiersEx;
+    myScene.getDesignSurface().getInteractionManager().setModifier(modifiersEx);
+  }
 
   @NotNull
   private Optional<Target> findTarget(@Nullable SceneComponent component, @NotNull Predicate<Target> selector) {
@@ -174,6 +183,7 @@ public class SceneMouseInteraction {
    * @param componentId the id of the component we want to click on
    * @param offsetX     x offset from the center of the component
    * @param offsetY     y offset from the center of the component
+   * @param modifier    modifier of input event
    */
   public void mouseDown(String componentId, float offsetX, float offsetY) {
     SceneComponent component = myScene.getSceneComponent(componentId);
@@ -183,10 +193,14 @@ public class SceneMouseInteraction {
   }
 
   public void mouseDown(float x, float y) {
+    mouseDown(x, y, myModifiersEx);
+  }
+
+  public void mouseDown(float x, float y, @JdkConstants.InputEventMask int modifier) {
     myLastX = x;
     myLastY = y;
     SceneContext transform = SceneContext.get();
-    myScene.mouseDown(transform, (int)myLastX, (int)myLastY);
+    myScene.mouseDown(transform, (int)myLastX, (int)myLastY, modifier);
     repaint();
   }
 
@@ -208,12 +222,12 @@ public class SceneMouseInteraction {
     SceneContext transform = SceneContext.get();
     if (deltaX != 0 || deltaY != 0) {
       for (int i = 0; i < steps; i++) {
-        myScene.mouseDrag(transform, (int)dx, (int)dy);
+        myScene.mouseDrag(transform, (int)dx, (int)dy, myModifiersEx);
         myScene.buildDisplayList(myDisplayList, System.currentTimeMillis());
         dx += deltaX;
         dy += deltaY;
       }
-      myScene.mouseDrag(transform, (int)x, (int)y);
+      myScene.mouseDrag(transform, (int)x, (int)y, myModifiersEx);
     }
     myLastX = x;
     myLastY = y;
@@ -300,7 +314,7 @@ public class SceneMouseInteraction {
    * @param componentId the id of the component we will release the mouse above
    */
   public void mouseRelease(String componentId) {
-    mouseRelease(componentId, 0, 0);
+    mouseRelease(componentId, 0, myModifiersEx);
   }
 
   /**
@@ -339,14 +353,14 @@ public class SceneMouseInteraction {
     SceneContext transform = SceneContext.get();
     if (deltaX != 0 || deltaY != 0) {
       for (int i = 0; i < steps; i++) {
-        myScene.mouseDrag(transform, (int)dx, (int)dy);
+        myScene.mouseDrag(transform, (int)dx, (int)dy, myModifiersEx);
         myScene.buildDisplayList(myDisplayList, System.currentTimeMillis());
         dx += deltaX;
         dy += deltaY;
       }
-      myScene.mouseDrag(transform, (int)x, (int)y);
+      myScene.mouseDrag(transform, (int)x, (int)y, myModifiersEx);
     }
-    myScene.mouseRelease(transform, (int)x, (int)y);
+    myScene.mouseRelease(transform, (int)x, (int)y, myModifiersEx);
     repaint();
   }
 
@@ -368,12 +382,12 @@ public class SceneMouseInteraction {
     SceneContext transform = SceneContext.get();
     if (deltaX != 0 || deltaY != 0) {
       for (int i = 0; i < steps; i++) {
-        myScene.mouseDrag(transform, (int)dx, (int)dy);
+        myScene.mouseDrag(transform, (int)dx, (int)dy, myModifiersEx);
         myScene.buildDisplayList(myDisplayList, System.currentTimeMillis());
         dx += deltaX;
         dy += deltaY;
       }
-      myScene.mouseDrag(transform, (int)x, (int)y);
+      myScene.mouseDrag(transform, (int)x, (int)y, myModifiersEx);
     }
     myScene.mouseCancel();
     repaint();
@@ -402,6 +416,17 @@ public class SceneMouseInteraction {
     repaint();
   }
 
+  private static List<ViewAction> getToolbarActions(@Nullable SceneComponent component) {
+    if (component == null) {
+      return ImmutableList.of();
+    }
+
+    NlComponent nlComponent = component.getNlComponent();
+    ViewHandlerManager handlerManager = ViewHandlerManager.get(nlComponent.getModel().getProject());
+    ViewHandler viewHandler = handlerManager.getHandler(nlComponent);
+    return handlerManager.getToolbarActions(viewHandler);
+  }
+
   private static List<ViewAction> getPopupActions(@Nullable SceneComponent component) {
     if (component == null) {
       return ImmutableList.of();
@@ -413,19 +438,35 @@ public class SceneMouseInteraction {
     return handlerManager.getPopupMenuActions(component, viewHandler);
   }
 
+  /**
+   * Helper function to perform the action in the toolbar of given component.
+   */
+  public void performToolbarAction(@NotNull SceneComponent component, @NotNull Predicate<ViewAction> selector) {
+    performAction(component, selector, getToolbarActions(component).stream());
+  }
+
+  /**
+   * Helper function to perform the action in the context menu of given component.
+   */
   public void performViewAction(@NotNull SceneComponent component, @NotNull Predicate<ViewAction> selector) {
+    performAction(component, selector, Stream.concat(getPopupActions(component).stream(), getPopupActions(component.getParent()).stream()));
+  }
+
+  private void performAction(@NotNull SceneComponent component,
+                             @NotNull Predicate<ViewAction> selector,
+                             @NotNull Stream<ViewAction> actionStream) {
     NlComponent nlComponent = component.getNlComponent();
 
-    ViewAction viewAction = Stream.concat(getPopupActions(component).stream(), getPopupActions(component.getParent()).stream())
-      .filter(selector)
-      .findFirst().orElseThrow(() -> new NullPointerException("No action matching predicate for " + component));
+    ViewAction viewAction = actionStream.filter(selector)
+      .findFirst()
+      .orElseThrow(() -> new NullPointerException("No action matching predicate for " + component));
 
     ViewEditor viewEditor = new ViewEditorImpl(nlComponent.getModel(), myScene);
 
     ViewHandlerManager handlerManager = ViewHandlerManager.get(nlComponent.getModel().getProject());
     ViewHandler viewHandler = handlerManager.getHandler(nlComponent);
 
-    viewAction.perform(viewEditor, viewHandler, nlComponent, ImmutableList.of(nlComponent), 0);
+    viewAction.perform(viewEditor, viewHandler, nlComponent, myScene.getSelection(), myModifiersEx);
   }
 
   public void performViewAction(@NotNull String componentId, @NotNull Predicate<ViewAction> selector) {
@@ -437,6 +478,11 @@ public class SceneMouseInteraction {
    */
   public void select(String componentId, boolean selected) {
     select(myScene.getSceneComponent(componentId), selected);
+  }
+
+  public void select(String... componentIds) {
+    SceneComponent[] components = Arrays.stream(componentIds).map(id -> myScene.getSceneComponent(id)).toArray(SceneComponent[]::new);
+    select(components);
   }
 
   /**

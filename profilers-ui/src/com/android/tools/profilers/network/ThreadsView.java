@@ -27,7 +27,6 @@ import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.TimelineTable;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.google.common.collect.ImmutableMap;
-import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,8 +43,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.font.TextAttribute;
 import java.awt.geom.Rectangle2D;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 
 import static com.android.tools.profilers.ProfilerLayout.TOOLTIP_BORDER;
 
@@ -53,9 +52,9 @@ import static com.android.tools.profilers.ProfilerLayout.TOOLTIP_BORDER;
  * Displays network connection information of all threads.
  */
 final class ThreadsView {
-  private static final int STATE_HEIGHT = JBUIScale.scale(15);
-  private static final int SELECTION_OUTLINE_PADDING = JBUIScale.scale(3);
-  private static final int SELECTION_OUTLINE_BORDER = JBUIScale.scale(2);
+  private static final int STATE_HEIGHT = JBUI.scale(15);
+  private static final int SELECTION_OUTLINE_PADDING = JBUI.scale(3);
+  private static final int SELECTION_OUTLINE_BORDER = JBUI.scale(2);
   private static final int ROW_HEIGHT = STATE_HEIGHT + 2 * (SELECTION_OUTLINE_BORDER + SELECTION_OUTLINE_PADDING);
 
   private enum Column {

@@ -55,6 +55,6 @@ public class RemoveSHA256FromGradleWrapperHyperlink extends NotificationHyperlin
       }
     }
     // Invoke Gradle Sync.
-    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_QF_DISTRIBUTIONSHA256SUM_REMOVED_FROM_WRAPPER);
+    GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_QF_DISTRIBUTIONSHA256SUM_REMOVED_FROM_WRAPPER);
   }
 }

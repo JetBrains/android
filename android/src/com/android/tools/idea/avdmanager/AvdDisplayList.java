@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.repository.io.FileUtilKt;
 import com.android.resources.Density;
 import com.android.sdklib.AndroidVersion;
@@ -26,6 +25,7 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.adtui.common.ColoredIconGenerator;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
@@ -37,25 +37,52 @@ import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.table.TableView;
-import com.intellij.util.ui.*;
+import com.intellij.util.ui.AbstractTableCellEditor;
+import com.intellij.util.ui.ColumnInfo;
+import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.ListTableModel;
+import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.accessibility.AccessibleContextUtil;
 import icons.StudioIcons;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.KeyboardFocusManager;
+import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
+import javax.swing.BoxLayout;
+import javax.swing.Icon;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JTable;
+import javax.swing.KeyStroke;
+import javax.swing.ListSelectionModel;
 import javax.swing.border.Border;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
-import java.awt.*;
-import java.awt.event.*;
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A UI component which lists the existing AVDs
@@ -73,10 +100,10 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
   private final AvdListDialog myDialog;
 
   private TableView<AvdInfo> myTable;
-  private ListTableModel<AvdInfo> myModel = new ListTableModel<>();
+  private ListTableModel<AvdInfo> myModel = new ListTableModel<AvdInfo>();
   private Set<AvdSelectionListener> myListeners = Sets.newHashSet();
   private final AvdActionsColumnInfo myActionsColumnRenderer = new AvdActionsColumnInfo("Actions", 2 /* Num Visible Actions */);
-  private static final HashMap<String, HighlightableIconPair> myDeviceClassIcons = new HashMap<>(8);
+  private static final HashMap<String, HighlightableIconPair> myDeviceClassIcons = new HashMap<String, HighlightableIconPair>(8);
 
   /**
    * Components which wish to receive a notification when the user has selected an AVD from this
@@ -107,7 +134,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     myProject = project;
     myModel.setColumnInfos(myColumnInfos);
     myModel.setSortable(true);
-    myTable = new TableView<>();
+    myTable = new TableView<AvdInfo>();
     myTable.setModelAndUpdateColumns(myModel);
     myTable.setDefaultRenderer(Object.class, new MyRenderer(myTable.getDefaultRenderer(Object.class)));
     setLayout(new BorderLayout());
@@ -409,7 +436,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
         return AvdManagerConnection.getAvdDisplayName(info);
       }
     },
-    new AvdIconColumnInfo("Play Store", JBUIScale.scale(75)) {
+    new AvdIconColumnInfo("Play Store", JBUI.scale(75)) {
       private final HighlightableIconPair emptyIconPair = new HighlightableIconPair(null);
       private final HighlightableIconPair playStoreIconPair = new HighlightableIconPair(StudioIcons.Avd.DEVICE_PLAY_STORE);
 
@@ -457,7 +484,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
         };
       }
     },
-    new AvdColumnInfo("API", JBUIScale.scale(50)) {
+    new AvdColumnInfo("API", JBUI.scale(50)) {
       @NotNull
       @Override
       public String valueOf(AvdInfo avdInfo) {
@@ -683,7 +710,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     public AvdActionsColumnInfo(@NotNull String name, int numVisibleActions) {
       super(name);
       myNumVisibleActions = numVisibleActions;
-      myWidth = numVisibleActions == -1 ? -1 : JBUIScale.scale(45) * numVisibleActions + JBUIScale.scale(75);
+      myWidth = numVisibleActions == -1 ? -1 : JBUI.scale(45) * numVisibleActions + JBUI.scale(75);
     }
 
     public AvdActionsColumnInfo(@NotNull String name) {

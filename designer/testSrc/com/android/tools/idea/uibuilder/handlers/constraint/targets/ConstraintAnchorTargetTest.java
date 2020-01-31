@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
 import com.android.SdkConstants;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.scene.SceneComponent;
@@ -28,7 +29,6 @@ import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.scene.SceneTest;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import java.awt.Point;
-import java.awt.event.InputEvent;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;
@@ -50,6 +50,30 @@ public class ConstraintAnchorTargetTest extends SceneTest {
                                           "        app:layout_constraintEnd_toEndOf=\"@+id/button1\"\n" +
                                           "        app:layout_constraintStart_toStartOf=\"@+id/button1\"\n" +
                                           "        tools:layout_editor_absoluteY=\"15dp\" />");
+  }
+
+  public void testConnectToParentWhenDraggingToExpandingArea() {
+    SceneComponent inner = myScene.getSceneComponent("inner");
+    SceneComponent textView = myScene.getSceneComponent("textView");
+
+    myInteraction.select("textView", true);
+
+    // Drag left anchor of textView to top-left sides of nested constraint layout. It shouldn't connect to any edge of parent.
+    myInteraction.mouseDown("textView", AnchorTarget.Type.LEFT);
+    myInteraction.mouseRelease(inner.getDrawX() - 50, inner.getDrawY() - 50);
+    assertNull(textView.getNlComponent().getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_START_TO_START_OF));
+
+    // Drag left anchor of textView to left side of nested constraint layout.
+    myInteraction.mouseDown("textView", AnchorTarget.Type.LEFT);
+    myInteraction.mouseRelease(inner.getDrawX() - 50, inner.getCenterY());
+    assertEquals(SdkConstants.ATTR_PARENT,
+                 textView.getNlComponent().getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_START_TO_START_OF));
+
+    // Drag top anchor of textView to bottom side of nested constraint layout.
+    myInteraction.mouseDown("textView", AnchorTarget.Type.TOP);
+    myInteraction.mouseRelease(inner.getDrawX(), inner.getCenterY() + 50);
+    assertEquals(SdkConstants.ATTR_PARENT,
+                 textView.getNlComponent().getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF));
   }
 
   public void testRenderDuringDragging() {
@@ -92,7 +116,6 @@ public class ConstraintAnchorTargetTest extends SceneTest {
     myScreen.get("@id/button2").expectXml("<Button\n" +
                                           "    android:id=\"@id/button2\"/>");
   }
-
 
   public void testBaselineTargetPosition() {
     SceneComponent button2 = myScene.getSceneComponent("button2");
@@ -218,11 +241,11 @@ public class ConstraintAnchorTargetTest extends SceneTest {
       .toArray(AnchorTarget[]::new)[0];
 
     // Try to hover on Anchor
-    myScene.mouseHover(SceneContext.get(mySceneManager.getSceneView()), (int) leftAnchor.getCenterX(), (int) leftAnchor.getCenterY());
+    myScene.mouseHover(SceneContext.get(mySceneManager.getSceneView()), (int) leftAnchor.getCenterX(), (int) leftAnchor.getCenterY(), 0);
     assertTrue(leftAnchor.isMouseHovered());
 
     // Move mouse out to SceneView. Should not have any hovered Target.
-    myScene.mouseHover(SceneContext.get(mySceneManager.getSceneView()), -1, -1);
+    myScene.mouseHover(SceneContext.get(mySceneManager.getSceneView()), -1, -1, 0);
     myScene.getSceneComponents().stream()
       .flatMap(component -> component.getTargets().stream())
       .forEach(target -> assertFalse(target.isMouseHovered()));
@@ -239,9 +262,9 @@ public class ConstraintAnchorTargetTest extends SceneTest {
       .toArray(AnchorTarget[]::new)[0];
 
     // Try to hover on edge
-    myScene.mouseHover(SceneContext.get(mySceneManager.getSceneView()), inner.getDrawX(), inner.getDrawY() + 5);
+    myScene.mouseHover(SceneContext.get(mySceneManager.getSceneView()), inner.getDrawX(), inner.getDrawY() + 5, 0);
     assertFalse(leftEdgeAnchor.isMouseHovered());
-    myScene.mouseHover(SceneContext.get(mySceneManager.getSceneView()), inner.getDrawX(), inner.getDrawY() + inner.getDrawHeight() - 5);
+    myScene.mouseHover(SceneContext.get(mySceneManager.getSceneView()), inner.getDrawX(), inner.getDrawY() + inner.getDrawHeight() - 5, 0);
     assertFalse(leftEdgeAnchor.isMouseHovered());
   }
 
@@ -323,7 +346,7 @@ public class ConstraintAnchorTargetTest extends SceneTest {
     myInteraction.mouseRelease("button3", AnchorTarget.Type.TOP);
     assertTrue(target.isConnected());
 
-    myScene.updateModifiers(InputEvent.CTRL_DOWN_MASK);
+    myInteraction.setModifiersEx(AdtUiUtils.getActionMask());
     myInteraction.mouseDown("button3", AnchorTarget.Type.TOP);
     myInteraction.mouseRelease("button3", AnchorTarget.Type.TOP);
     assertFalse(target.isConnected());

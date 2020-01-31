@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.RenderResources;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -36,8 +36,8 @@ public class GutterIconCache {
   private static final Logger LOG = Logger.getInstance(GutterIconCache.class);
   private static final Icon NONE = AndroidIcons.Android; // placeholder
 
-  @VisibleForTesting static final int MAX_WIDTH = JBUIScale.scale(16);
-  @VisibleForTesting static final int MAX_HEIGHT = JBUIScale.scale(16);
+  @VisibleForTesting static final int MAX_WIDTH = JBUI.scale(16);
+  @VisibleForTesting static final int MAX_HEIGHT = JBUI.scale(16);
 
   private static final GutterIconCache ourInstance = new GutterIconCache();
 

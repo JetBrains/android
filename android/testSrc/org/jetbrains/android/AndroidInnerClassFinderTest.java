@@ -2,6 +2,7 @@ package org.jetbrains.android;
 
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.PsiFile;
+import org.jetbrains.android.dom.manifest.Manifest;
 
 /**
  * Tests for {@link com.android.tools.idea.res.AndroidInnerClassFinder}.
@@ -19,7 +20,7 @@ public class AndroidInnerClassFinderTest extends AndroidTestCase {
 
   public void testManifestClasses() {
     WriteCommandAction.runWriteCommandAction(getProject(),
-                                             () -> myFacet.getManifest().addPermission().getName().setValue("com.example.SEND_MESSAGE"));
+                                             () -> Manifest.getMainManifest(myFacet).addPermission().getName().setValue("com.example.SEND_MESSAGE"));
     PsiFile javaFile =
       myFixture.addFileToProject("src/com/example/Foo.java", "package com.example; class Foo {}");
     assertNotNull(myFixture.getJavaFacade().findClass("p1.p2.Manifest.permission", javaFile.getResolveScope()));

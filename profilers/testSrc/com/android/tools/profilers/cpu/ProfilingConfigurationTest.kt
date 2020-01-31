@@ -16,7 +16,6 @@
 package com.android.tools.profilers.cpu
 
 import com.android.tools.profiler.proto.Cpu
-import com.android.tools.profiler.proto.CpuProfiler
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
@@ -29,7 +28,7 @@ class ProfilingConfigurationTest {
 
   @Test
   fun fromProto() {
-    val proto = CpuProfiler.CpuProfilerConfiguration.newBuilder()
+    val proto = Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
       .setName("MyConfiguration")
       .setTraceMode(Cpu.CpuTraceMode.INSTRUMENTED)
       .setTraceType(Cpu.CpuTraceType.ART)

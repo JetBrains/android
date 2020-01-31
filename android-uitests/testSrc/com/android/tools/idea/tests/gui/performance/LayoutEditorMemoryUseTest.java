@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.performance;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -95,6 +96,7 @@ public class LayoutEditorMemoryUseTest {
     LOG.warn(sb.toString());
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/140633211
   @Test
   public void navigateAndEdit() throws Exception {
     IdeFrameFixture fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
@@ -167,6 +169,7 @@ public class LayoutEditorMemoryUseTest {
    * The state after each run should be the same as just after the {@code warmUp()} method.
     */
   public void runScenario(IdeFrameFixture fixture) {
+    StudioFlags.NELE_SPLIT_EDITOR.override(false);
     String[] layoutFilePaths = {
       "app/src/main/res/layout/layout2.xml",
       "app/src/main/res/layout/widgets.xml",
@@ -183,6 +186,7 @@ public class LayoutEditorMemoryUseTest {
     // Third file on editor tab
     fixture.getEditor().open(layoutFilePaths[2], EditorFixture.Tab.EDITOR).
       getLayoutPreview(true).waitForRenderToFinish();
+    StudioFlags.NELE_SPLIT_EDITOR.clearOverride();
   }
 
   private static class LeakedInstancesTracker {

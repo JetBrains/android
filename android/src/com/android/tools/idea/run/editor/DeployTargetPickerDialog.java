@@ -23,8 +23,12 @@ import com.android.tools.idea.actions.DevicePickerHelpAction;
 import com.android.tools.idea.actions.DevicePickerHelpActionKt;
 import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
-import com.android.tools.idea.concurrent.EdtExecutor;
-import com.android.tools.idea.run.*;
+import com.android.tools.idea.run.AndroidDevice;
+import com.android.tools.idea.run.DeviceCount;
+import com.android.tools.idea.run.DeviceFutures;
+import com.android.tools.idea.run.LaunchCompatibilityChecker;
+import com.android.tools.idea.run.LaunchableAndroidDevice;
+import com.android.tools.idea.run.ValidationError;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
@@ -52,20 +56,25 @@ import com.intellij.ui.DoubleClickListener;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.util.Alarm;
+import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.concurrency.SameThreadExecutor;
+import java.awt.BorderLayout;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.swing.Action;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import java.awt.*;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.io.File;
-import java.util.List;
-import java.util.*;
 
 public class DeployTargetPickerDialog extends DialogWrapper implements HelpHandler {
   private static final int DEVICE_TAB_INDEX = 0;
@@ -141,9 +150,6 @@ public class DeployTargetPickerDialog extends DialogWrapper implements HelpHandl
       myRefreshAvdsFuture.set(null);
     });
 
-    DeployTargetState state = deployTargetStates.get(ShowChooserTargetProvider.ID);
-    setDoNotAskOption(new UseSameDevicesOption((ShowChooserTargetProvider.State)state));
-
     setTitle("Select Deployment Target");
     setModal(true);
     init();
@@ -191,7 +197,7 @@ public class DeployTargetPickerDialog extends DialogWrapper implements HelpHandl
                        "for IPv4 or IPv6, respectively.");
           setOKActionEnabled(false);
         }
-      }, EdtExecutor.INSTANCE);
+      }, EdtExecutorService.getInstance());
     }
 
     return loadingPanel;
@@ -445,40 +451,6 @@ public class DeployTargetPickerDialog extends DialogWrapper implements HelpHandl
 
     @Override
     public void removeModuleChangeListener(@NotNull ActionListener listener) {
-    }
-  }
-
-  private static class UseSameDevicesOption implements DoNotAskOption {
-    @NotNull private final ShowChooserTargetProvider.State myState;
-
-    public UseSameDevicesOption(@NotNull ShowChooserTargetProvider.State state) {
-      myState = state;
-    }
-
-    @Override
-    public boolean isToBeShown() {
-      return !myState.USE_LAST_SELECTED_DEVICE;
-    }
-
-    @Override
-    public void setToBeShown(boolean toBeShown, int exitCode) {
-      myState.USE_LAST_SELECTED_DEVICE = !toBeShown;
-    }
-
-    @Override
-    public boolean canBeHidden() {
-      return true;
-    }
-
-    @Override
-    public boolean shouldSaveOptionsOnCancel() {
-      return true;
-    }
-
-    @NotNull
-    @Override
-    public String getDoNotShowMessage() {
-      return "Use same selection for future launches";
     }
   }
 }

@@ -18,6 +18,7 @@ package com.android.tools.idea.profilers.perfd;
 import com.android.ddmlib.*;
 import com.android.tools.idea.profilers.LegacyCpuTraceProfiler;
 import com.android.tools.idea.transport.ServiceProxy;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.CpuProfiler.*;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import io.grpc.ManagedChannel;
@@ -26,6 +27,7 @@ import io.grpc.ServerCallHandler;
 import io.grpc.ServerServiceDefinition;
 import io.grpc.stub.ServerCalls;
 import io.grpc.stub.StreamObserver;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -89,17 +91,16 @@ public class CpuServiceProxy extends ServiceProxy {
     responseObserver.onCompleted();
   }
 
-  private void checkAppProfilingState(ProfilingStateRequest request,
-                                      StreamObserver<ProfilingStateResponse> responseObserver) {
-    ProfilingStateResponse response;
+  private void getTraceInfo(GetTraceInfoRequest request,
+                            StreamObserver<GetTraceInfoResponse> responseObserver) {
     if (myUseLegacyTracing) {
-      response = myLegacyProfiler.checkAppProfilingState(request);
+      List<Cpu.CpuTraceInfo> traceInfoList = myLegacyProfiler.getTraceInfo(request);
+      responseObserver.onNext(GetTraceInfoResponse.newBuilder().addAllTraceInfo(traceInfoList).build());
     }
     else {
-      // Post-O tracing - goes straight to perfd.
-      response = myServiceStub.checkAppProfilingState(request);
+      // Post-O tracing - goes straight to daemon.
+      responseObserver.onNext(myServiceStub.getTraceInfo(request));
     }
-    responseObserver.onNext(response);
     responseObserver.onCompleted();
   }
 
@@ -114,9 +115,9 @@ public class CpuServiceProxy extends ServiceProxy {
                   ServerCalls.asyncUnaryCall((request, observer) -> {
                     stopProfilingApp((CpuProfilingAppStopRequest)request, (StreamObserver)observer);
                   }));
-    overrides.put(CpuServiceGrpc.METHOD_CHECK_APP_PROFILING_STATE,
+    overrides.put(CpuServiceGrpc.METHOD_GET_TRACE_INFO,
                   ServerCalls.asyncUnaryCall((request, observer) -> {
-                    checkAppProfilingState((ProfilingStateRequest)request, (StreamObserver)observer);
+                    getTraceInfo((GetTraceInfoRequest)request, (StreamObserver)observer);
                   }));
 
     return generatePassThroughDefinitions(overrides, myServiceStub);

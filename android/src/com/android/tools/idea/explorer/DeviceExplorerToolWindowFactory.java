@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.explorer;
 
-import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemRendererFactory;
 import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemService;
 import com.android.tools.idea.explorer.ui.DeviceExplorerViewImpl;
@@ -23,6 +22,10 @@ import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
+import com.intellij.ui.content.Content;
+import com.intellij.ui.content.ContentManager;
+import com.intellij.util.concurrency.EdtExecutorService;
+import icons.StudioIcons;
 import java.util.concurrent.Executor;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -38,21 +41,31 @@ public final class DeviceExplorerToolWindowFactory implements DumbAware, ToolWin
 
   @Override
   public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
-    Executor edtExecutor = EdtExecutor.INSTANCE;
+    toolWindow.setIcon(StudioIcons.Shell.ToolWindows.DEVICE_EXPLORER);
+    toolWindow.setAvailable(true, null);
+    toolWindow.setToHideOnEmptyContent(true);
+    toolWindow.setTitle(TOOL_WINDOW_ID);
+
+    Executor edtExecutor = EdtExecutorService.getInstance();
     Executor taskExecutor = PooledThreadExecutor.INSTANCE;
 
     AdbDeviceFileSystemService service = new AdbDeviceFileSystemService(aVoid -> AndroidSdkUtils.getAdb(project),
                                                                         edtExecutor,
                                                                         taskExecutor,
                                                                         project);
+
     DeviceFileSystemRendererFactory deviceFileSystemRendererFactory = new AdbDeviceFileSystemRendererFactory(service);
     DeviceExplorerFileManager fileManager = new DeviceExplorerFileManagerImpl(project, edtExecutor);
 
     DeviceExplorerModel model = new DeviceExplorerModel();
-    DeviceExplorerView view = new DeviceExplorerViewImpl(project, toolWindow, deviceFileSystemRendererFactory, model);
+
+    DeviceExplorerViewImpl view = new DeviceExplorerViewImpl(project, deviceFileSystemRendererFactory, model);
     DeviceExplorerController controller =
       new DeviceExplorerController(project, model, view, service, fileManager, edtExecutor, taskExecutor);
-
     controller.setup();
+
+    ContentManager contentManager = toolWindow.getContentManager();
+    Content toolWindowContent = contentManager.getFactory().createContent(view.getComponent(), "", true);
+    contentManager.addContent(toolWindowContent);
   }
 }

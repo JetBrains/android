@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.model.java;
 
-import com.android.java.model.LibraryVersion;
+import com.intellij.serialization.PropertyMapping;
 import java.io.Serializable;
 import java.util.Objects;
 import org.gradle.tooling.model.GradleModuleVersion;
@@ -26,10 +26,15 @@ public class GradleModuleVersionImpl implements GradleModuleVersion, Serializabl
   @NotNull private final String myName;
   @NotNull private final String myVersion;
 
-  public GradleModuleVersionImpl(@NotNull LibraryVersion version) {
-    myGroup = version.getGroup();
-    myName = version.getName();
-    myVersion = version.getVersion();
+  @PropertyMapping({
+    "myGroup",
+    "myName",
+    "myVersion"
+  })
+  public GradleModuleVersionImpl(@NotNull String group, @NotNull String name, @NotNull String version) {
+    myGroup = group;
+    myName = name;
+    myVersion = version;
   }
 
   public GradleModuleVersionImpl(@NotNull GradleModuleVersion version) {

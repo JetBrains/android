@@ -16,8 +16,10 @@
 package com.android.tools.idea.gradle.dsl.model;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTEGER_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.LIST_TYPE;
@@ -46,6 +48,7 @@ import static org.junit.Assume.assumeTrue;
 import static org.junit.runners.Parameterized.Parameter;
 import static org.junit.runners.Parameterized.Parameters;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
@@ -56,19 +59,23 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
+import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
+import com.intellij.openapi.externalSystem.model.project.ModuleData;
+import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.HeavyPlatformTestCase;
-import org.apache.commons.io.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -78,6 +85,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import org.jetbrains.android.AndroidTestBase;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.After;
@@ -93,6 +101,7 @@ import org.junit.runners.Parameterized;
 public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
   protected static final String SUB_MODULE_NAME = "gradleModelTest";
   @NotNull private static final String GROOVY_LANGUAGE = "Groovy";
+  @NotNull private static final String KOTLIN_LANGUAGE = "Kotlin";
 
   @Rule public TestName myNameRule = new TestName();
   @Rule public RunInEDTRule myEDTRule = new RunInEDTRule();
@@ -115,9 +124,15 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
   protected VirtualFile myModuleDirPath;
   protected VirtualFile myProjectBasePath;
 
+  @NotNull
+  @Contract(pure = true)
   @Parameters(name = "{1}")
   public static Collection languageExtensions() {
-    return Arrays.asList(new Object[][]{{".gradle", GROOVY_LANGUAGE}});
+    return Arrays.asList(new Object[][]{
+      {".gradle", GROOVY_LANGUAGE}
+      ,
+      {".gradle.kts", KOTLIN_LANGUAGE}
+    });
   }
 
   /**
@@ -132,6 +147,21 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
 
   protected boolean isGroovy() {
     return myLanguageName.equals(GROOVY_LANGUAGE);
+  }
+
+  /**
+   * @param name the name of an extra property
+   *
+   * @return the String that corresponds to looking up the extra property {@code name} in the language of this test case
+   */
+  protected String extraName(String name) {
+    if (myLanguageName.equals(GROOVY_LANGUAGE)) {
+      return name;
+    }
+    else {
+      assumeTrue("Language is neither Groovy nor Kotlin", myLanguageName.equals(KOTLIN_LANGUAGE));
+      return "extra[\"" + name + "\"]";
+    }
   }
 
   protected static <R, E extends Exception> void runWriteAction(@NotNull ThrowableComputable<R, E> runnable) throws E {
@@ -151,37 +181,62 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
     super.setUp();
     IdeSdks.removeJdksOn(getTestRootDisposable());
 
+    StudioFlags.KOTLIN_DSL_PARSING.override(true);
+
     runWriteAction((ThrowableComputable<Void, Exception>)() -> {
       String basePath = myProject.getBasePath();
       assertNotNull(basePath);
       myProjectBasePath = VfsUtil.findFile(new File(basePath).toPath(), true);
       assertTrue(myProjectBasePath.isDirectory());
-      mySettingsFile = myProjectBasePath.createChildData(this, FN_SETTINGS_GRADLE);
+      mySettingsFile = myProjectBasePath.createChildData(this, getSettingsFileName());
       assertTrue(mySettingsFile.isWritable());
 
       myModuleDirPath = myModule.getModuleFile().getParent();
       assertTrue(myModuleDirPath.isDirectory());
-      myBuildFile = myModuleDirPath.createChildData(this, FN_BUILD_GRADLE);
+      myBuildFile = myModuleDirPath.createChildData(this, getBuildFileName());
       assertTrue(myBuildFile.isWritable());
       myPropertiesFile = myModuleDirPath.createChildData(this, FN_GRADLE_PROPERTIES);
       assertTrue(myPropertiesFile.isWritable());
 
       VirtualFile subModuleDirPath = VfsUtil.findFile(new File(mySubModule.getModuleFilePath()).getParentFile().toPath(), true);
       assertTrue(subModuleDirPath.isDirectory());
-      mySubModuleBuildFile = subModuleDirPath.createChildData(this, FN_BUILD_GRADLE);
+      mySubModuleBuildFile = subModuleDirPath.createChildData(this, getBuildFileName());
       assertTrue(mySubModuleBuildFile.isWritable());
       mySubModulePropertiesFile = subModuleDirPath.createChildData(this, FN_GRADLE_PROPERTIES);
       assertTrue(mySubModulePropertiesFile.isWritable());
+      // Setup the project and the module as a Gradle project system so that their build files could be found.
+      ExternalSystemModulePropertyManager
+        .getInstance(myModule)
+        .setExternalOptions(
+          GradleUtil.GRADLE_SYSTEM_ID,
+          new ModuleData(":", GradleUtil.GRADLE_SYSTEM_ID, StdModuleTypes.JAVA.getId(), myProjectBasePath.getName(),
+                         myProjectBasePath.getPath(), myProjectBasePath.getPath()),
+          new ProjectData(GradleUtil.GRADLE_SYSTEM_ID, myProject.getName(), myProject.getBasePath(), myProject.getBasePath()));
+
       return null;
     });
 
     myTestDataPath = AndroidTestBase.getTestDataPath() + "/parser";
   }
 
+  @NotNull
+  private String getSettingsFileName() {
+    return (isGroovy()) ? FN_SETTINGS_GRADLE : FN_SETTINGS_GRADLE_KTS;
+  }
+
+  @NotNull
+  private String getBuildFileName() {
+    return (isGroovy()) ? FN_BUILD_GRADLE : FN_BUILD_GRADLE_KTS;
+  }
+
   @After
   @Override
   public void tearDown() throws Exception {
-    super.tearDown();
+    try {
+      StudioFlags.KOTLIN_DSL_PARSING.clearOverride();
+    } finally {
+      super.tearDown();
+    }
   }
 
   @Override
@@ -240,8 +295,7 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
   }
 
   protected String getSubModuleSettingsText() {
-    if (!isGroovy()) throw new UnsupportedOperationException("TODO // IMPLEMENT");
-    return isGroovy() ? ("include ':" + SUB_MODULE_NAME + "'") : "TODO Implement";
+    return isGroovy() ? ("include ':" + SUB_MODULE_NAME + "'") : ("include(\":" + SUB_MODULE_NAME + "\")");
   }
 
   protected Module writeToNewSubModule(@NotNull String name, @NotNull TestFileName fileName, @NotNull String propertiesFileText)
@@ -281,20 +335,24 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
   }
 
 
-  protected void writeToNewProjectFile(@NotNull String newFileName, @NotNull TestFileName testFileName) throws IOException {
+  protected String writeToNewProjectFile(@NotNull String newFileBasename, @NotNull TestFileName testFileName) throws IOException {
+    String newFileName = newFileBasename + myTestDataExtension;
     runWriteAction(() -> {
       VirtualFile newFile = myProjectBasePath.createChildData(this, newFileName);
       prepareAndInjectInformationForTest(testFileName, newFile);
       return null;
     });
+    return newFileName;
   }
 
-  protected void writeToNewSubModuleFile(@NotNull String newFileName, @NotNull TestFileName testFileName) throws IOException {
+  protected String writeToNewSubModuleFile(@NotNull String newFileBasename, @NotNull TestFileName testFileName) throws IOException {
+    String newFileName = newFileBasename + myTestDataExtension;
     runWriteAction(() -> {
       VirtualFile newFile = mySubModuleBuildFile.getParent().createChildData(this, newFileName);
       prepareAndInjectInformationForTest(testFileName, newFile);
       return null;
     });
+    return newFileName;
   }
 
   @NotNull

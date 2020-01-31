@@ -57,7 +57,7 @@ public class NavDesignSurfaceFixture extends DesignSurfaceFixture<NavDesignSurfa
   public NlComponentFixture findDestination(@NotNull final String id) {
     waitForRenderToFinish();
 
-    SceneView view = target().getCurrentSceneView();
+    SceneView view = target().getFocusedSceneView();
 
     final NlModel model = view.getModel();
 
@@ -82,7 +82,7 @@ public class NavDesignSurfaceFixture extends DesignSurfaceFixture<NavDesignSurfa
         throw new IllegalStateException("Empty designer target not found");
       }
 
-      SceneView view = target().getCurrentSceneView();
+      SceneView view = target().getFocusedSceneView();
       @SwingCoordinate int x = Coordinates.getSwingXDip(view, (int)emptyTarget.getCenterX());
       @SwingCoordinate int y = Coordinates.getSwingYDip(view, (int)emptyTarget.getCenterY());
 

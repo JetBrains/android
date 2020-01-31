@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.navigator;
 
-import org.jetbrains.android.AndroidTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -28,7 +28,7 @@ import static com.google.common.truth.Truth.assertThat;
 /**
  * Tests for {@link AndroidProjectViewPane}.
  */
-public class AndroidProjectViewPaneTest extends AndroidTestCase {
+public class AndroidProjectViewPaneTest extends PlatformTestCase {
   private AndroidProjectViewPane myPane;
 
   @Override

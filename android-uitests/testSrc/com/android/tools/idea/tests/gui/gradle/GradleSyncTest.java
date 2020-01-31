@@ -15,23 +15,53 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.ANDROID_TEST_COMPILE;
+import static com.android.tools.idea.gradle.util.GradleProperties.getUserGradlePropertiesFile;
+import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
+import static com.android.tools.idea.testing.FileSubject.file;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.getFilePathPropertyOrSkipTest;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.getGradleHomePathOrSkipTest;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.getUnsupportedGradleHomeOrSkipTest;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.refreshFiles;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.skipTest;
+import static com.android.tools.idea.tests.gui.gradle.UserGradlePropertiesUtil.backupGlobalGradlePropertiesFile;
+import static com.android.tools.idea.tests.gui.gradle.UserGradlePropertiesUtil.restoreGlobalGradlePropertiesFile;
+import static com.android.tools.idea.util.PropertiesFiles.getProperties;
+import static com.google.common.truth.Truth.assertAbout;
+import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.TruthJUnit.assume;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+import static com.intellij.openapi.roots.OrderRootType.CLASSES;
+import static com.intellij.openapi.util.io.FileUtil.createIfNotExists;
+import static com.intellij.openapi.util.io.FileUtil.delete;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
+import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
+
 import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.projectsystem.ProjectSystemService;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.*;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.LibraryFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.LibraryPropertiesDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.ProxySettingsDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.ChooseGradleHomeDialogFixture;
 import com.android.tools.idea.ui.GuiTestingService;
 import com.intellij.lang.annotation.HighlightSeverity;
@@ -39,12 +69,17 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
-import com.intellij.openapi.roots.*;
+import com.intellij.openapi.roots.DependencyScope;
+import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
+import com.intellij.openapi.roots.LibraryOrderEntry;
+import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.roots.ModuleOrderEntry;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.OrderEntry;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
@@ -52,16 +87,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.util.net.HttpConfigurable;
-import org.fest.swing.timing.Wait;
-import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
-import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.settings.GradleSettings;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
-import org.junit.*;
-import org.junit.runner.RunWith;
-
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -70,25 +95,19 @@ import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-
-import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.ANDROID_TEST_COMPILE;
-import static com.android.tools.idea.gradle.util.GradleProperties.getUserGradlePropertiesFile;
-import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
-import static com.android.tools.idea.testing.FileSubject.file;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
-import static com.android.tools.idea.tests.gui.gradle.UserGradlePropertiesUtil.restoreGlobalGradlePropertiesFile;
-import static com.android.tools.idea.tests.gui.gradle.UserGradlePropertiesUtil.backupGlobalGradlePropertiesFile;
-import static com.android.tools.idea.util.PropertiesFiles.getProperties;
-import static com.google.common.truth.Truth.assertAbout;
-import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.TruthJUnit.assume;
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
-import static com.intellij.openapi.roots.OrderRootType.CLASSES;
-import static com.intellij.openapi.util.io.FileUtil.*;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
-import static junit.framework.Assert.assertTrue;
-import static org.junit.Assert.*;
+import org.fest.swing.timing.Wait;
+import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
+import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.settings.GradleSettings;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class GradleSyncTest {
@@ -99,11 +118,6 @@ public class GradleSyncTest {
   private static final String ANDROID_SDK_MANAGER_DIALOG_TITLE = "Android SDK Manager";
   private static final String GRADLE_SETTINGS_DIALOG_TITLE = "Gradle Settings";
   private static final String GRADLE_SYNC_DIALOG_TITLE = "Gradle Sync";
-
-  @Before
-  public void skipSourceGenerationOnSync() {
-    GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
-  }
 
   /**
    * Generate a backup copy of user gradle.properties since some tests in this class make changes to the proxy that could
@@ -431,7 +445,7 @@ public class GradleSyncTest {
     Project project = ideFrame.getProject();
 
     // Make sure the library was added.
-    LibraryTable libraryTable = com.intellij.openapi.roots.libraries.LibraryTablesRegistrar.getInstance().getLibraryTable(project);
+    LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(project);
     // Naming scheme follows "Gradle: " + name of the library. See LibraryDependency#setName method
     String libraryName = GradleConstants.SYSTEM_ID.getReadableName() + ": org.apache.http.legacy-" + TestUtils.getLatestAndroidPlatform();
     Library library = libraryTable.getLibraryByName(libraryName);
@@ -496,33 +510,20 @@ public class GradleSyncTest {
 
   @Test
   public void gradleModelCache() throws IOException {
-    guiTest.importSimpleApplication();
-    IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
+    File projectDir = guiTest.setUpProject("SimpleApplication");
 
-    File projectPath = ideFrameFixture.getProjectPath();
-    ideFrameFixture.closeProject();
+    // First time, open the project to sync.
+    IdeFrameFixture ideFrame = guiTest.openProject(projectDir);
+    ideFrame.waitForGradleProjectSyncToFinish();
+    ideFrame.closeProject();
+    // Second time, open the project expecting no sync.
+    ideFrame = guiTest.openProject(projectDir);
+    ideFrame.waitForGradleProjectSyncToFinish();
 
-    AtomicBoolean syncSkipped = new AtomicBoolean(false);
+    ProjectSystemSyncManager.SyncResult lastSyncResult =
+      ProjectSystemService.getInstance(ideFrame.getProject()).getProjectSystem().getSyncManager().getLastSyncResult();
+    ideFrame.closeProject();
 
-    // Reopen project and verify that sync was skipped (i.e. model loaded from cache)
-    ApplicationManager.getApplication().invokeAndWait(
-      () -> {
-        try {
-          ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
-          Project project = projectManager.convertAndLoadProject(projectPath.getPath());
-          GradleSyncState.subscribe(project, new GradleSyncListener() {
-            @Override
-            public void syncSkipped(@NotNull Project project) {
-              syncSkipped.set(true);
-            }
-          });
-          projectManager.openProject(project);
-        }
-        catch (IOException e) {
-          // Do nothing
-        }
-      });
-
-    Wait.seconds(5).expecting("sync to be skipped").until(syncSkipped::get);
+    assertThat(lastSyncResult).isEqualTo(ProjectSystemSyncManager.SyncResult.SKIPPED);
   }
 }

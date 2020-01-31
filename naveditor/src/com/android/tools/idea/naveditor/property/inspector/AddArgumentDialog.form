@@ -10,18 +10,10 @@
     <children>
       <component id="ad587" class="com.intellij.ui.components.JBLabel">
         <constraints>
-          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text value="Name:"/>
-        </properties>
-      </component>
-      <component id="16648" class="com.intellij.ui.components.JBLabel">
-        <constraints>
-          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value="Type:"/>
+          <text value="Name"/>
         </properties>
       </component>
       <component id="ad24a" class="com.intellij.ui.components.JBLabel">
@@ -29,15 +21,7 @@
           <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text value="Default Value:"/>
-        </properties>
-      </component>
-      <component id="c2844" class="com.intellij.ui.components.JBLabel" binding="myNullableLabel">
-        <constraints>
-          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value="Nullable:"/>
+          <text value="Default Value"/>
         </properties>
       </component>
       <component id="9234c" class="javax.swing.JCheckBox" binding="myNullableCheckBox">
@@ -85,20 +69,36 @@
           </component>
         </children>
       </grid>
-      <component id="c5319" class="javax.swing.JLabel" binding="myArrayLabel">
-        <constraints>
-          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value="Array:"/>
-        </properties>
-      </component>
       <component id="84fa3" class="javax.swing.JCheckBox" binding="myArrayCheckBox">
         <constraints>
           <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <text value=""/>
+        </properties>
+      </component>
+      <component id="c2844" class="com.intellij.ui.components.JBLabel" binding="myNullableLabel">
+        <constraints>
+          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value="Nullable"/>
+        </properties>
+      </component>
+      <component id="c5319" class="javax.swing.JLabel" binding="myArrayLabel">
+        <constraints>
+          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value="Array"/>
+        </properties>
+      </component>
+      <component id="16648" class="com.intellij.ui.components.JBLabel">
+        <constraints>
+          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value="Type"/>
         </properties>
       </component>
     </children>

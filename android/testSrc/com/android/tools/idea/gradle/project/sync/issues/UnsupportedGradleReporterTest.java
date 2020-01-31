@@ -60,7 +60,7 @@ public class UnsupportedGradleReporterTest extends AndroidGradleTestCase {
 
   public void testReport() throws Exception {
     loadSimpleApplication();
-    mySyncMessagesStub.clearReportedMessages();
+    mySyncMessagesStub.removeAllMessages();
 
     Module appModule = myModules.getAppModule();
 

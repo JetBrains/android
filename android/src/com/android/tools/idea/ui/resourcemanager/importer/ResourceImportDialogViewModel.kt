@@ -19,7 +19,8 @@ import com.android.resources.ResourceFolderType
 import com.android.tools.idea.res.IdeResourceNameValidator
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
-import com.android.tools.idea.ui.resourcemanager.model.DesignAssetSet
+import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
+import com.android.tools.idea.ui.resourcemanager.model.designAssets
 import com.android.tools.idea.ui.resourcemanager.plugin.DesignAssetRendererManager
 import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.util.text.StringUtil
@@ -40,16 +41,16 @@ const val MAX_IMPORT_FILES = 400
  */
 class ResourceImportDialogViewModel(val facet: AndroidFacet,
                                     assets: Sequence<DesignAsset>,
-                                    private val designAssetImporter: DesignAssetImporter = DesignAssetImporter(),
+                                    designAssetImporter: DesignAssetImporter = DesignAssetImporter(),
                                     private val importersProvider: ImportersProvider = ImportersProvider()
 ) {
 
   /**
-   *  The [DesignAssetSet]s to be imported.
+   *  The [ResourceAssetSet]s to be imported.
    *
    *  They are stored in an IdentitySet because there might
-   *  be conflicts when a [DesignAssetSet] is being renamed with a name similar
-   *  to another [DesignAssetSet] being imported.
+   *  be conflicts when a [ResourceAssetSet] is being renamed with a name similar
+   *  to another [ResourceAssetSet] being imported.
    */
   private val assetSetsToImport = assets
     .take(MAX_IMPORT_FILES)
@@ -59,7 +60,16 @@ class ResourceImportDialogViewModel(val facet: AndroidFacet,
   val assetSets get() = assetSetsToImport
 
   private val rendererManager = DesignAssetRendererManager.getInstance()
-  val fileCount: Int get() = assetSets.sumBy { it.designAssets.size }
+
+  /**
+   * The [SummaryScreenViewModel] that will be updated [DesignAsset] are added and [commit] is called.
+   *
+   * This is supposed to be passed to [SummaryStep].
+   */
+  val summaryScreenViewModel = SummaryScreenViewModel(designAssetImporter, rendererManager, facet, getSourceSetsResDirs(facet))
+
+  val fileCount: Int get() = assetSets.sumBy { it.assets.size }
+
   var updateCallback: () -> Unit = {}
 
   private val fileViewModels = mutableMapOf<DesignAsset, FileImportRowViewModel>()
@@ -78,27 +88,23 @@ class ResourceImportDialogViewModel(val facet: AndroidFacet,
    */
   private val resourceNameValidator = IdeResourceNameValidator.forFilename(ResourceFolderType.DRAWABLE, null)
 
-  fun doImport() {
-    designAssetImporter.importDesignAssets(assetSetsToImport, facet)
-  }
-
   fun getAssetPreview(asset: DesignAsset): CompletableFuture<out Image?> {
     return rendererManager
       .getViewer(asset.file)
       .getImage(asset.file, facet.module, JBUI.size(50))
   }
 
-  fun getItemNumberString(assetSet: DesignAssetSet) =
-    "(${assetSet.designAssets.size} ${StringUtil.pluralize("item", assetSet.designAssets.size)})"
+  fun getItemNumberString(assetSet: ResourceAssetSet) =
+    "(${assetSet.assets.size} ${StringUtil.pluralize("item", assetSet.assets.size)})"
 
   /**
    * Remove the [asset] from the list of [DesignAsset]s to import.
-   * @return the [DesignAssetSet] that was containing the [asset]
+   * @return the [ResourceAssetSet] that was containing the [asset]
    */
-  fun removeAsset(asset: DesignAsset): DesignAssetSet {
-    val designAssetSet = assetSetsToImport.first { it.designAssets.contains(asset) }
-    designAssetSet.designAssets -= asset
-    if (designAssetSet.designAssets.isEmpty()) {
+  fun removeAsset(asset: DesignAsset): ResourceAssetSet {
+    val designAssetSet = assetSetsToImport.first { it.assets.contains(asset) }
+    designAssetSet.assets -= asset
+    if (designAssetSet.assets.isEmpty()) {
       assetSetsToImport.remove(designAssetSet)
     }
     updateCallback()
@@ -108,14 +114,14 @@ class ResourceImportDialogViewModel(val facet: AndroidFacet,
   /**
    * Invoke a path chooser and add new files to the list of assets to import.
    * If a file is already present, it won't be added and new [DesignAsset] will be merged
-   * with [DesignAssetSet] of the same name.
+   * with [ResourceAssetSet] of the same name.
    *
-   * [assetAddedCallback] will be called with a new or existing [DesignAssetSet] and
-   * a list of newly added [DesignAsset]s, which means that it's a subset of [DesignAssetSet.designAssets].
-   * This allows the view to merge the new [DesignAsset] within a potential existing view of a [DesignAssetSet].
+   * [assetAddedCallback] will be called with a new or existing [ResourceAssetSet] and
+   * a list of newly added [DesignAsset]s, which means that it's a subset of [ResourceAssetSet.assets].
+   * This allows the view to merge the new [DesignAsset] within a potential existing view of a [ResourceAssetSet].
    * The callback won't be called if there is no new file.
    */
-  fun importMoreAssets(assetAddedCallback: (DesignAssetSet, List<DesignAsset>) -> Unit) {
+  fun importMoreAssets(assetAddedCallback: (ResourceAssetSet, List<DesignAsset>) -> Unit) {
     val assetByName = assetSetsToImport.associateBy { it.name }
     chooseDesignAssets(importersProvider) { newAssetSets ->
       newAssetSets
@@ -128,23 +134,32 @@ class ResourceImportDialogViewModel(val facet: AndroidFacet,
   }
 
   /**
-   * Add the [assetSet] to the list of asset to be imported.
-   * If [existingAssets] contains a [DesignAssetSet] with the same name as [assetSet],
-   * the [assetSet] will be added the existing [DesignAssetSet], otherwise a new one
-   * will be created.
-   * @param existingAssets A map from a [DesignAssetSet]'s name to the [DesignAssetSet].
-   * This is used to avoid iterating through the whole [assetSetsToImport] set to try find
-   * a [DesignAssetSet] with the same name.
+   * Same as [importMoreAssets] but only if the list of asset to be imported is currently empty.
    */
-  private fun addAssetSet(existingAssets: Map<String, DesignAssetSet>,
-                          assetSet: DesignAssetSet,
-                          assetAddedCallback: (DesignAssetSet, List<DesignAsset>) -> Unit) {
+  fun importMoreAssetIfEmpty(assetAddedCallback: (ResourceAssetSet, List<DesignAsset>) -> Unit) {
+    if (assetSets.isEmpty()) {
+      importMoreAssets(assetAddedCallback)
+    }
+  }
+
+  /**
+   * Add the [assetSet] to the list of asset to be imported.
+   * If [existingAssets] contains a [ResourceAssetSet] with the same name as [assetSet],
+   * the [assetSet] will be added the existing [ResourceAssetSet], otherwise a new one
+   * will be created.
+   * @param existingAssets A map from a [ResourceAssetSet]'s name to the [ResourceAssetSet].
+   * This is used to avoid iterating through the whole [assetSetsToImport] set to try find
+   * a [ResourceAssetSet] with the same name.
+   */
+  private fun addAssetSet(existingAssets: Map<String, ResourceAssetSet>,
+                          assetSet: ResourceAssetSet,
+                          assetAddedCallback: (ResourceAssetSet, List<DesignAsset>) -> Unit) {
     val existingAssetSet = existingAssets[assetSet.name]
     if (existingAssetSet != null) {
       val existingPaths = existingAssetSet.designAssets.map { designAsset -> designAsset.file.path }.toSet()
       val onlyNewFiles = assetSet.designAssets.filter { designAsset -> designAsset.file.path !in existingPaths }
       if (onlyNewFiles.isNotEmpty()) {
-        existingAssetSet.designAssets += onlyNewFiles
+        existingAssetSet.assets += onlyNewFiles
         assetAddedCallback(existingAssetSet, onlyNewFiles)
         updateCallback()
       }
@@ -158,19 +173,19 @@ class ResourceImportDialogViewModel(val facet: AndroidFacet,
 
 
   /**
-   * Creates a copy of [assetSet] with [newName] set as the [DesignAssetSet]'s name.
+   * Creates a copy of [assetSet] with [newName] set as the [ResourceAssetSet]'s name.
    * This method does not modify the underlying [DesignAsset], which is just passed to the newly
-   * created [DesignAssetSet].
+   * created [ResourceAssetSet].
    *
-   * [assetRenamedCallback] is a callback with the old [assetSet] name and the newly created [DesignAssetSet].
-   * This meant to be used by the view to update itself when it is holding a map from view to [DesignAssetSet].
+   * [assetRenamedCallback] is a callback with the old [assetSet] name and the newly created [ResourceAssetSet].
+   * This meant to be used by the view to update itself when it is holding a map from view to [ResourceAssetSet].
    */
-  fun rename(assetSet: DesignAssetSet,
+  fun rename(assetSet: ResourceAssetSet,
              newName: String,
-             assetRenamedCallback: (newAssetSet: DesignAssetSet) -> Unit
+             assetRenamedCallback: (newAssetSet: ResourceAssetSet) -> Unit
   ) {
     require(assetSetsToImport.contains(assetSet)) { "The assetSet \"${assetSet.name}\" should already exist" }
-    val renamedAssetSet = DesignAssetSet(newName, assetSet.designAssets)
+    val renamedAssetSet = ResourceAssetSet(newName, assetSet.assets)
     assetSetsToImport.remove(assetSet)
     assetSetsToImport.add(renamedAssetSet)
     assetRenamedCallback(renamedAssetSet)
@@ -236,4 +251,12 @@ class ResourceImportDialogViewModel(val facet: AndroidFacet,
       ValidationInfo("${asset.name}: ${error.message}")
     }
     .firstOrNull()
+
+  /**
+   * Passes the [assetSetsToImport] to the [SummaryScreenViewModel].
+   * @see summaryScreenViewModel
+   */
+  fun commit() {
+    summaryScreenViewModel.assetSetsToImport = assetSetsToImport
+  }
 }

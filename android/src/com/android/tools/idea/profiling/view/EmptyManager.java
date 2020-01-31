@@ -30,8 +30,7 @@ import javax.swing.*;
  * Dummy LightToolWindowManager because the framework requires two managers at the same time.
  */
 public class EmptyManager extends CaptureEditorLightToolWindowManager {
-  @NotNull
-  private final JPanel myEmptyPanel = new JPanel();
+  @NotNull private JPanel myEmptyPanel = new JPanel();
 
   @NotNull
   public static EmptyManager getInstance(@NotNull Project project) {

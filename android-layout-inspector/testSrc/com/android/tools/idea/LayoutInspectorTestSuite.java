@@ -32,6 +32,7 @@ public class LayoutInspectorTestSuite extends IdeaTestSuiteBase {
       "tools/adt/idea/android/annotations",
       "tools/adt/idea/android/testData",
       "tools/adt/idea/android-layout-inspector/testData",
-      "tools/base/templates");
+      "tools/base/templates",
+      "tools/idea/java");
   }
 }

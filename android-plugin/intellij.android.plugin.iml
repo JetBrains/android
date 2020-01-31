@@ -12,15 +12,20 @@
     <orderEntry type="module" module-name="intellij.android.sdkUpdates" />
     <orderEntry type="module" module-name="intellij.android.designer" />
     <orderEntry type="module" module-name="intellij.android.profilersAndroid" />
+    <orderEntry type="module" module-name="intellij.android.gameToolsStarter" />
     <orderEntry type="module" module-name="intellij.android.adb" />
     <orderEntry type="module" module-name="intellij.android.debuggers" />
     <orderEntry type="module" module-name="intellij.android.lang" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" />
     <orderEntry type="module" module-name="intellij.android.transport" />
-    <orderEntry type="module" module-name="intellij.android.androidLayoutInspector" />
+    <orderEntry type="module" module-name="intellij.android.android-layout-inspector" />
+    <orderEntry type="module" module-name="intellij.android.lang-databinding" />
     <orderEntry type="module" module-name="intellij.android.databinding" />
     <orderEntry type="module" module-name="intellij.android.naveditor" />
-    <orderEntry type="module" module-name="intellij.android.layoutInspector" />
+    <orderEntry type="module" module-name="intellij.android.layout-inspector" />
+    <orderEntry type="module" module-name="intellij.android.compose-designer" />
+    <orderEntry type="module" module-name="intellij.android.room" />
+    <orderEntry type="module" module-name="android.sdktools.wizardTemplate.impl" />
   </component>
 </module>

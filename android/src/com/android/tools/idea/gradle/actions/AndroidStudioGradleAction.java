@@ -39,7 +39,7 @@ public abstract class AndroidStudioGradleAction extends AnAction {
 
   @Override
   public final void update(@NotNull AnActionEvent e) {
-    if (!isAndroidGradleProject(e)) {
+    if (!isGradleProject(e)) {
       e.getPresentation().setEnabledAndVisible(false);
       return;
     }
@@ -56,7 +56,7 @@ public abstract class AndroidStudioGradleAction extends AnAction {
 
   @Override
   public final void actionPerformed(@NotNull AnActionEvent e) {
-    if (!isAndroidGradleProject(e)) {
+    if (!isGradleProject(e)) {
       return;
     }
     Project project = e.getProject();
@@ -66,7 +66,7 @@ public abstract class AndroidStudioGradleAction extends AnAction {
 
   protected abstract void doPerform(@NotNull AnActionEvent e, @NotNull Project project);
 
-  public static boolean isAndroidGradleProject(@NotNull AnActionEvent e) {
+  private static boolean isGradleProject(@NotNull AnActionEvent e) {
     Project project = e.getProject();
     if (project == null) {
       return false;

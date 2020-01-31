@@ -267,7 +267,7 @@ class AppCompatStyleMigration {
     // Find all the themes used by activities or the application attribute
     // from AndroidManifest.xml
 
-    Manifest manifest = facet.getManifest();
+    Manifest manifest = Manifest.getMainManifest(facet);
     if (manifest != null) {
       XmlTag applicationTag = manifest.getApplication().getXmlTag();
       if (applicationTag != null) {

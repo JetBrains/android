@@ -18,11 +18,12 @@ package com.android.tools.adtui.util;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.ComponentWithBrowseButton;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.scale.JBUIScale;
 import com.intellij.uiDesigner.core.AbstractLayout;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.util.containers.Stack;
+import com.intellij.util.ui.JBUI;
 
+import java.util.Locale;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
@@ -57,7 +58,7 @@ public class FormScalingUtil {
   /**
    * The stack of component/property names as we traverse the tree. Used for logging if <code>DEBUG</code> is <code>true</code>
    */
-  private final Stack<String> myStack = new Stack<>();
+  private final Stack<String> myStack = new Stack<String>();
   /**
    * The class associated to the .form file, used for logging only.
    */
@@ -79,7 +80,7 @@ public class FormScalingUtil {
    * @param clazz the class associated to the <code>.form</code> file
    */
   public FormScalingUtil(Class clazz) {
-    this(clazz, JBUIScale.scale(1.0f));
+    this(clazz, JBUI.scale(1.0f));
   }
 
   /**
@@ -120,7 +121,7 @@ public class FormScalingUtil {
 
     // Mark the component (implicitly the whole tree) as scaled so that it won't be scaled
     // again if re-appearing in a subtree in a later call.
-    root.putClientProperty(SCALE_FACTOR_KEY, new Float(myScaleFactor));
+    root.putClientProperty(SCALE_FACTOR_KEY, Float.valueOf(myScaleFactor));
   }
 
   /**
@@ -339,7 +340,7 @@ public class FormScalingUtil {
   }
 
   private void logScale(int value, int scaledValue) {
-    if (DEBUG) LOG.info(String.format("%1$s = %2$d (from %3$d)", buildStackString(), scaledValue, value));
+    if (DEBUG) LOG.info(String.format(Locale.US, "%1$s = %2$d (from %3$d)", buildStackString(), scaledValue, value));
   }
 
   private static String getComponentName(Component c) {

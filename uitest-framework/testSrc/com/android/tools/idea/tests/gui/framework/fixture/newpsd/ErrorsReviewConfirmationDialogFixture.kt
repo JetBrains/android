@@ -15,30 +15,29 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
+import com.android.tools.idea.tests.gui.framework.DialogContainerFixture
 import com.android.tools.idea.tests.gui.framework.GuiTests
-import com.android.tools.idea.tests.gui.framework.IdeFrameContainerFixture
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import org.fest.swing.core.Robot
-import org.fest.swing.fixture.ContainerFixture
 import javax.swing.JDialog
 
 class ErrorsReviewConfirmationDialogFixture(
-    override val container: JDialog,
-    override val ideFrameFixture: IdeFrameFixture
-) : IdeFrameContainerFixture, ContainerFixture<JDialog> {
+  val container: JDialog,
+  val robot: Robot
+) : DialogContainerFixture {
 
   override fun target(): JDialog = container
-  override fun robot(): Robot = ideFrameFixture.robot()
+  override fun robot(): Robot = robot
+  override fun maybeRestoreLostFocus() = Unit
 
   fun clickReview() = clickButtonAndWaitDialogDisappear("Review")
 
   fun clickIgnore() = clickButtonAndWaitDialogDisappear("Ignore and Apply")
 
   companion object {
-    fun find(ideFrameFixture: IdeFrameFixture, title: String): ErrorsReviewConfirmationDialogFixture {
-      val dialog = GuiTests.waitUntilShowing(ideFrameFixture.robot(), Matchers.byTitle(JDialog::class.java, title))
-      return ErrorsReviewConfirmationDialogFixture(dialog, ideFrameFixture)
+    fun find(robot: Robot, title: String): ErrorsReviewConfirmationDialogFixture {
+      val dialog = GuiTests.waitUntilShowing(robot, Matchers.byTitle(JDialog::class.java, title))
+      return ErrorsReviewConfirmationDialogFixture(dialog, robot)
     }
   }
 }

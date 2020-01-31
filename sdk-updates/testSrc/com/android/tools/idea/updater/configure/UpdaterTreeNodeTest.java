@@ -17,13 +17,17 @@ package com.android.tools.idea.updater.configure;
 
 import com.android.repository.Revision;
 import com.android.repository.api.UpdatablePackage;
+import com.android.repository.impl.meta.TypeDetails;
 import com.android.repository.testframework.FakePackage;
 import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.sdklib.repository.meta.DetailsTypes;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,6 +43,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import static com.android.SdkConstants.FD_NDK;
 import static com.android.tools.idea.updater.configure.PackageNodeModel.SelectedState.*;
 import static org.junit.Assert.*;
 
@@ -91,6 +96,13 @@ public class UpdaterTreeNodeTest {
     local.setObsolete(true);
     node = new DetailsTreeNode(new PackageNodeModel(updatablePackage), null, myConfigurable);
     validateText(node, "my package (Obsolete)", SimpleTextAttributes.REGULAR_ATTRIBUTES);
+
+    // bug 133519160
+    local = new FakePackage.FakeLocalPackage(FD_NDK);
+    local.setDisplayName("legacy ndk");
+    updatablePackage = new UpdatablePackage(local);
+    node = new DetailsTreeNode(new PackageNodeModel(updatablePackage), null, myConfigurable);
+    validateText(node, "legacy ndk (Obsolete)", SimpleTextAttributes.REGULAR_ATTRIBUTES);
   }
 
   @Test
@@ -311,6 +323,42 @@ public class UpdaterTreeNodeTest {
     validateState(node, NOT_INSTALLED, MIXED, ImmutableList.of(NOT_INSTALLED, NOT_INSTALLED, NOT_INSTALLED));
     node.cycleState();
     validateState(node, MIXED, MIXED, ImmutableList.of(INSTALLED, MIXED, NOT_INSTALLED));
+  }
+
+  @Test
+  public void testSummaryTreeNodeWithAndWithoutSources() throws Exception {
+    DetailsTypes.PlatformDetailsType platformDetailsType = AndroidSdkHandler.getRepositoryModule().createLatestFactory()
+      .createPlatformDetailsType();
+    FakePackage.FakeRemotePackage platformPackage = new FakePackage.FakeRemotePackage("platform");
+    FakePackage.FakeLocalPackage localPlatfromPackage = new FakePackage.FakeLocalPackage("platform");
+    platformPackage.setTypeDetails((TypeDetails)platformDetailsType);
+    localPlatfromPackage.setTypeDetails((TypeDetails)platformDetailsType);
+    UpdatablePackage updatablePlatformPackage = new UpdatablePackage(localPlatfromPackage, platformPackage);
+    DetailsTreeNode platformNode = new DetailsTreeNode(new PackageNodeModel(updatablePlatformPackage), null,
+                                                       myConfigurable);
+    Set<UpdaterTreeNode> nodes = ImmutableSet.of(platformNode);
+    SummaryTreeNode node = SummaryTreeNode.createNode(new AndroidVersion(17, null), nodes);
+    assertEquals("Installed", node.getStatusString());
+
+    // Now create the sources node and add it without a local package - should imply partial installation status.
+    DetailsTypes.SourceDetailsType sourceDetailsType = AndroidSdkHandler.getRepositoryModule().createLatestFactory()
+      .createSourceDetailsType();
+    FakePackage.FakeRemotePackage sourcesPackage = new FakePackage.FakeRemotePackage("sources");
+    sourcesPackage.setTypeDetails((TypeDetails)sourceDetailsType);
+    UpdatablePackage updatableSourcesPackage = new UpdatablePackage(sourcesPackage);
+    DetailsTreeNode sourcesNode = new DetailsTreeNode(new PackageNodeModel(updatableSourcesPackage), null, myConfigurable);
+    nodes = ImmutableSet.of(platformNode, sourcesNode);
+    node = SummaryTreeNode.createNode(new AndroidVersion(17, null), nodes);
+    assertEquals("Partially installed", node.getStatusString());
+
+    // Now test that both platform and sources installed imply the full installation status.
+    FakePackage.FakeLocalPackage localSourcesPackage = new FakePackage.FakeLocalPackage("sources");
+    localSourcesPackage.setTypeDetails((TypeDetails)sourceDetailsType);
+    updatableSourcesPackage = new UpdatablePackage(localSourcesPackage, sourcesPackage);
+    sourcesNode = new DetailsTreeNode(new PackageNodeModel(updatableSourcesPackage), null, myConfigurable);
+    nodes = ImmutableSet.of(platformNode, sourcesNode);
+    node = SummaryTreeNode.createNode(new AndroidVersion(17, null), nodes);
+    assertEquals("Installed", node.getStatusString());
   }
 
   private static void validateText(@NotNull UpdaterTreeNode node, @NotNull String text, @NotNull SimpleTextAttributes attributes) {

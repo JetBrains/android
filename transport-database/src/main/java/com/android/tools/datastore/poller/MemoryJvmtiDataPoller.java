@@ -17,8 +17,10 @@ package com.android.tools.datastore.poller;
 
 import com.android.tools.datastore.database.MemoryLiveAllocationTable;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Memory;
+import com.android.tools.profiler.proto.Memory.BatchAllocationContexts;
+import com.android.tools.profiler.proto.Memory.BatchAllocationEvents;
 import com.android.tools.profiler.proto.MemoryProfiler;
-import com.android.tools.profiler.proto.MemoryProfiler.BatchAllocationSample;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryRequest;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
@@ -45,14 +47,13 @@ public class MemoryJvmtiDataPoller extends PollRunner {
       .newBuilder().setSession(mySession).setStartTime(myDataRequestStartTimestampNs).setEndTime(Long.MAX_VALUE);
     MemoryData response = myPollingService.getJvmtiData(dataRequestBuilder.build());
 
-    for (BatchAllocationSample sample : response.getAllocationSamplesList()) {
-      myLiveAllocationTable.insertMethodInfo(mySession, sample.getMethodsList());
-      myLiveAllocationTable.insertStackInfo(mySession, sample.getStacksList());
-      myLiveAllocationTable.insertThreadInfo(mySession, sample.getThreadInfosList());
-      myLiveAllocationTable.insertAllocationData(mySession, sample);
+    for (BatchAllocationContexts sample : response.getBatchAllocationContextsList()) {
+      myLiveAllocationTable.insertAllocationContexts(mySession, sample);
     }
-    for (MemoryProfiler.BatchJNIGlobalRefEvent batchJniEvent : response.getJniReferenceEventBatchesList()) {
-      myLiveAllocationTable.insertThreadInfo(mySession, batchJniEvent.getThreadInfosList());
+    for (BatchAllocationEvents sample : response.getBatchAllocationEventsList()) {
+      myLiveAllocationTable.insertAllocationEvents(mySession, sample);
+    }
+    for (Memory.BatchJNIGlobalRefEvent batchJniEvent : response.getJniReferenceEventBatchesList()) {
       myLiveAllocationTable.insertJniReferenceData(mySession, batchJniEvent);
     }
     for (MemoryProfiler.AllocationSamplingRateEvent event : response.getAllocSamplingRateEventsList()) {

@@ -64,10 +64,10 @@ class TextViewInspectorBuilderTest {
   fun testAvailableWithRequiredPropertiesPresent() {
     val util = InspectorTestUtil(projectRule, TEXT_VIEW)
     val builder = TextViewInspectorBuilder(util.editorProvider)
-    val generator = BasicAttributesInspectorBuilder.TitleGenerator(util.inspector)
+    val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)
     addRequiredProperties(util)
     builder.attachToInspector(util.inspector, util.properties) { generator.title }
-    util.checkTitle(0, "Common Attributes")
+    util.checkTitle(0, InspectorSection.COMMON.title)
     util.checkEditor(1, ANDROID_URI, ATTR_TEXT)
     util.checkEditor(2, TOOLS_URI, ATTR_TEXT)
     util.checkEditor(3, ANDROID_URI, ATTR_CONTENT_DESCRIPTION)
@@ -84,12 +84,12 @@ class TextViewInspectorBuilderTest {
   fun testOptionalPropertiesPresent() {
     val util = InspectorTestUtil(projectRule, TEXT_VIEW)
     val builder = TextViewInspectorBuilder(util.editorProvider)
-    val generator = BasicAttributesInspectorBuilder.TitleGenerator(util.inspector)
+    val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)
     addRequiredProperties(util)
     util.addProperty(ANDROID_URI, ATTR_FONT_FAMILY, NelePropertyType.STRING)
     addOptionalProperties(util)
     builder.attachToInspector(util.inspector, util.properties) { generator.title }
-    util.checkTitle(0, "Common Attributes")
+    util.checkTitle(0, InspectorSection.COMMON.title)
     util.checkEditor(1, ANDROID_URI, ATTR_TEXT)
     util.checkEditor(2, TOOLS_URI, ATTR_TEXT)
     util.checkEditor(3, ANDROID_URI, ATTR_CONTENT_DESCRIPTION)
@@ -108,11 +108,11 @@ class TextViewInspectorBuilderTest {
   fun testTextStyleModel() {
     val util = InspectorTestUtil(projectRule, TEXT_VIEW)
     val builder = TextViewInspectorBuilder(util.editorProvider)
-    val generator = BasicAttributesInspectorBuilder.TitleGenerator(util.inspector)
+    val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)
     addRequiredProperties(util)
     addOptionalProperties(util)
     builder.attachToInspector(util.inspector, util.properties) { generator.title }
-    util.checkTitle(0, "Common Attributes")
+    util.checkTitle(0, InspectorSection.COMMON.title)
     util.checkEditor(1, ANDROID_URI, ATTR_TEXT)
     util.checkEditor(2, TOOLS_URI, ATTR_TEXT)
     util.checkEditor(3, ANDROID_URI, ATTR_CONTENT_DESCRIPTION)
@@ -136,11 +136,11 @@ class TextViewInspectorBuilderTest {
   fun testTextAlignmentModel() {
     val util = InspectorTestUtil(projectRule, TEXT_VIEW)
     val builder = TextViewInspectorBuilder(util.editorProvider)
-    val generator = BasicAttributesInspectorBuilder.TitleGenerator(util.inspector)
+    val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)
     addRequiredProperties(util)
     addOptionalProperties(util)
     builder.attachToInspector(util.inspector, util.properties) { generator.title }
-    util.checkTitle(0, "Common Attributes")
+    util.checkTitle(0, InspectorSection.COMMON.title)
     util.checkEditor(1, ANDROID_URI, ATTR_TEXT)
     util.checkEditor(2, TOOLS_URI, ATTR_TEXT)
     util.checkEditor(3, ANDROID_URI, ATTR_CONTENT_DESCRIPTION)
@@ -175,7 +175,7 @@ class TextViewInspectorBuilderTest {
   fun testNotAvailableWhenMissingRequiredProperty() {
     val util = InspectorTestUtil(projectRule, TEXT_VIEW)
     val builder = TextViewInspectorBuilder(util.editorProvider)
-    val generator = BasicAttributesInspectorBuilder.TitleGenerator(util.inspector)
+    val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)
     for (missing in TextViewInspectorBuilder.REQUIRED_PROPERTIES) {
       addRequiredProperties(util)
       util.removeProperty(ANDROID_URI, missing)
@@ -188,7 +188,7 @@ class TextViewInspectorBuilderTest {
   fun testExpandableSections() {
     val util = InspectorTestUtil(projectRule, TEXT_VIEW)
     val builder = TextViewInspectorBuilder(util.editorProvider)
-    val generator = BasicAttributesInspectorBuilder.TitleGenerator(util.inspector)
+    val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)
     addRequiredProperties(util)
     util.addProperty(ANDROID_URI, ATTR_FONT_FAMILY, NelePropertyType.STRING)
     builder.attachToInspector(util.inspector, util.properties) { generator.title }

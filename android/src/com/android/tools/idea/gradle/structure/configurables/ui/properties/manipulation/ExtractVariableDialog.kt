@@ -79,4 +79,8 @@ class ExtractVariableDialog<PropertyT : Any, ModelPropertyCoreT : ModelPropertyC
     super.doOKAction()
     worker.commit(name)
   }
+
+  override fun getPreferredFocusedComponent(): JComponent? {
+    return form?.myNameField
+  }
 }

@@ -24,6 +24,7 @@ import com.android.tools.profilers.analytics.energy.EnergyRangeMetadata;
 import com.android.tools.profilers.cpu.CpuCaptureMetadata;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.capturedetails.CaptureDetails;
+import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
 import com.android.tools.profilers.sessions.SessionArtifact;
 import com.android.tools.profilers.sessions.SessionsManager;
 import org.jetbrains.annotations.NotNull;
@@ -50,11 +51,6 @@ public final class FakeFeatureTracker implements FeatureTracker {
    * Stores the last {@link FilterMetadata} passed to the tracker.
    */
   private FilterMetadata myLastFilterMetadata;
-
-  /**
-   * Stores the last {@link ProfilingConfiguration} passed to track the startup CPU profiling.
-   */
-  private ProfilingConfiguration myLastCpuStartupProfilingConfig;
 
   /**
    * Stores the last {@link Cpu.CpuTraceType} passed to the tracker.
@@ -240,13 +236,7 @@ public final class FakeFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackCpuStartupProfiling(@NotNull ProfilingConfiguration configuration) {
-    myLastCpuStartupProfilingConfig = configuration;
-  }
-
-  @Nullable
-  public ProfilingConfiguration getLastCpuStartupProfilingConfig() {
-    return myLastCpuStartupProfilingConfig;
+  public void trackCpuStartupProfiling(@NotNull Common.Device device, @NotNull ProfilingConfiguration configuration) {
   }
 
   @Override
@@ -423,6 +413,10 @@ public final class FakeFeatureTracker implements FeatureTracker {
   @Override
   public void trackSelectEnergyRange(@NotNull EnergyRangeMetadata rangeMetadata) {
     myLastEnergyRangeMetadata = rangeMetadata;
+  }
+
+  @Override
+  public void trackMemoryProfilerInstanceFilter(@NotNull CaptureObjectInstanceFilter filter) {
   }
 
   public EnergyRangeMetadata getLastEnergyRangeMetadata() {

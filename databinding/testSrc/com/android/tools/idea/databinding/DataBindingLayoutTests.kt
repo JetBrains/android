@@ -26,7 +26,6 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.idea.search.projectScope
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -80,7 +79,7 @@ class DataBindingLayoutTests(private val mode: DataBindingMode) {
       </manifest>
     """.trimIndent())
 
-    ModuleDataBinding.getInstance(androidFacet).setMode(mode)
+    ModuleDataBinding.getInstance(androidFacet).dataBindingMode = mode
   }
 
   @Test
@@ -103,31 +102,33 @@ class DataBindingLayoutTests(private val mode: DataBindingMode) {
       </layout>
     """.trimIndent())
 
+    val context = fixture.addClass("public class FirstLayout {}")
+
     // This has to be called to explicitly fetch resources as a side-effect, which are used by the
     // DataBindingShortNamesCache class.
     ResourceRepositoryManager.getInstance(androidFacet).moduleResources
 
-    val projectScope = projectRule.project.projectScope()
+    val contextScope = context.resolveScope
     val invalidScope = GlobalSearchScope.EMPTY_SCOPE
     val cache = PsiShortNamesCache.getInstance(projectRule.project) // Powered behind the scenes by DataBindingShortNamesCache
 
     assertThat(cache.allClassNames.asIterable()).containsAllIn(listOf("FirstLayoutBinding", "SecondLayoutBinding"))
-    assertThat(cache.getClassesByName("FirstLayoutBinding", projectScope).toList().map { it.name }).contains("FirstLayoutBinding")
+    assertThat(cache.getClassesByName("FirstLayoutBinding", contextScope).toList().map { it.name }).contains("FirstLayoutBinding")
     assertThat(cache.getClassesByName("FirstLayoutBinding", invalidScope).toList()).isEmpty()
 
     assertThat(cache.allMethodNames.asIterable()).containsAllIn(listOf("inflate", "bind"))
-    assertThat(cache.getMethodsByName("inflate", projectScope).toList().map { it.name }).contains("inflate")
-    assertThat(cache.getMethodsByNameIfNotMoreThan("inflate", projectScope, 0).toList()).isEmpty()
+    assertThat(cache.getMethodsByName("inflate", contextScope).toList().map { it.name }).contains("inflate")
+    assertThat(cache.getMethodsByNameIfNotMoreThan("inflate", contextScope, 0).toList()).isEmpty()
     assertThat(cache.getMethodsByName("inflate", invalidScope).toList()).isEmpty()
     run {
       var inflateCount = 0
-      cache.processMethodsWithName("inflate", projectScope) { ++inflateCount; false }
+      cache.processMethodsWithName("inflate", contextScope) { ++inflateCount; false }
       assertThat(inflateCount).isEqualTo(1)
     }
 
     assertThat(cache.allFieldNames.asIterable()).containsAllIn(listOf("firstValue", "secondValue"))
-    assertThat(cache.getFieldsByName("firstValue", projectScope).toList().map { it.name }).contains("firstValue")
-    assertThat(cache.getFieldsByNameIfNotMoreThan("firstValue", projectScope, 0).toList()).isEmpty()
+    assertThat(cache.getFieldsByName("firstValue", contextScope).toList().map { it.name }).contains("firstValue")
+    assertThat(cache.getFieldsByNameIfNotMoreThan("firstValue", contextScope, 0).toList()).isEmpty()
     assertThat(cache.getFieldsByName("firstValue", invalidScope).toList()).isEmpty()
   }
 
@@ -151,15 +152,17 @@ class DataBindingLayoutTests(private val mode: DataBindingMode) {
       </layout>
     """.trimIndent())
 
+    val context = fixture.addClass("public class FirstLayout {}")
+
     // This has to be called to explicitly fetch resources as a side-effect, which are used by the
     // DataBindingShortNamesCache class.
     ResourceRepositoryManager.getInstance(androidFacet).moduleResources
 
-    val projectScope = projectRule.project.projectScope()
+    val contextScope = context.resolveScope
     val invalidScope = GlobalSearchScope.EMPTY_SCOPE
 
     val psiPackage = JavaPsiFacade.getInstance(projectRule.project).findPackage("test.db.databinding")!!
-    psiPackage.getClasses(projectScope).let { classes ->
+    psiPackage.getClasses(contextScope).let { classes ->
       assertThat(classes.map { it.name }).containsExactly("FirstLayoutBinding", "SecondLayoutBinding")
     }
     psiPackage.getClasses(invalidScope).let { classes -> assertThat(classes).isEmpty() }
@@ -180,5 +183,45 @@ class DataBindingLayoutTests(private val mode: DataBindingMode) {
 
     val cache = PsiShortNamesCache.getInstance(projectRule.project) // Powered behind the scenes by DataBindingShortNamesCache
     assertThat(cache.allClassNames.asIterable()).containsAllIn(listOf("CustomBinding"))
+  }
+
+  @Test
+  fun nestedFieldsForIncludedLayoutsAreGenerated() {
+    fixture.addFileToProject("res/layout/included_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent">
+          <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/innerTextView" />
+        </LinearLayout>
+      </layout>
+    """.trimIndent())
+
+    fixture.addFileToProject("res/layout/main_layout.xml", """
+        <?xml version="1.0" encoding="utf-8"?>
+        <layout xmlns:android="http://schemas.android.com/apk/res/android">
+          <FrameLayout android:layout_width="match_parent" android:layout_height="match_parent">
+            <include layout="@layout/included_layout" android:id="@+id/includedLayout"/>
+          </FrameLayout>
+        </layout>
+    """.trimIndent())
+
+    // This has to be called to explicitly initialize the resource repository as a side-effect.
+    ResourceRepositoryManager.getInstance(androidFacet).appResources
+
+    val modelFile = fixture.addFileToProject("src/java/test/db/Model.java", """
+      package test.db;
+
+      import test.db.databinding.MainLayoutBinding;
+
+      class Model {
+        public static void doSomething(MainLayoutBinding binding) {
+          binding.includedLayout.<caret>
+        }
+      }
+    """.trimIndent())
+
+    fixture.configureFromExistingVirtualFile(modelFile.virtualFile)
+    fixture.completeBasic()
+    assertThat(fixture.lookupElementStrings!!).containsExactly("innerTextView")
   }
 }

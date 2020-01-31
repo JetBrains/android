@@ -1,4 +1,3 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android;
 
 import com.intellij.facet.ProjectFacetManager;
@@ -47,7 +46,7 @@ public class AndroidApplicationPackageRenameProcessor extends RenamePsiElementPr
   public void renameElement(@NotNull PsiElement element, @NotNull String newName, @NotNull UsageInfo[] usages, @Nullable RefactoringElementListener listener)
     throws IncorrectOperationException {
     if (element instanceof PsiPackage) {
-      final Map<GenericAttributeValue, String> newAttrValues = new HashMap<>();
+      final Map<GenericAttributeValue, String> newAttrValues = new HashMap<GenericAttributeValue, String>();
 
       final Project project = element.getProject();
       final String oldPackageQName = ((PsiPackage)element).getQualifiedName();
@@ -55,7 +54,7 @@ public class AndroidApplicationPackageRenameProcessor extends RenamePsiElementPr
 
       for (Module module : ModuleManager.getInstance(project).getModules()) {
         final AndroidFacet facet = AndroidFacet.getInstance(module);
-        final Manifest manifest = facet != null ? facet.getManifest() : null;
+        final Manifest manifest = facet != null ? Manifest.getMainManifest(facet) : null;
 
         if (manifest != null) {
           final XmlElement manifestElement = manifest.getXmlElement();
@@ -116,7 +115,7 @@ public class AndroidApplicationPackageRenameProcessor extends RenamePsiElementPr
 
   @NotNull
   private static Map<GenericAttributeValue, PsiClass> buildAttr2ClassMap(@NotNull XmlFile file) {
-    final Map<GenericAttributeValue, PsiClass> map = new HashMap<>();
+    final Map<GenericAttributeValue, PsiClass> map = new HashMap<GenericAttributeValue, PsiClass>();
 
     processAllClassAttrValues(file, new Processor<Pair<GenericAttributeValue, PsiClass>>() {
       @Override

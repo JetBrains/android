@@ -116,13 +116,13 @@ public final class ModuleWizardStepAdapterTest {
   @Test
   public void onWizardFinishedLogsExceptions() throws CommitStepException{
     Logger testLogger = mock(Logger.class);
-    ModuleWizardStepAdapter.setLog(testLogger);
+    ModuleWizardStepAdapterKt.setLogForTesting(testLogger);
 
     ModuleWizardStepAdapter.AdapterModel model = new ModuleWizardStepAdapter.AdapterModel(myToWrap);
     doThrow(new CommitStepException("Test Message")).when(myToWrap).onWizardFinished();
     model.handleFinished();
     verify(testLogger).error("Test Message");
 
-    ModuleWizardStepAdapter.setLog(null);
+    ModuleWizardStepAdapterKt.setLogForTesting(null);
   }
 }

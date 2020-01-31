@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitForPopup;
+
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.BrowseSamplesWizardFixture;
@@ -92,6 +94,17 @@ public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrameFixture, F
     }
 
     return guiTestRule.ideFrame();
+  }
+
+  @NotNull
+  public JListFixture clickConfigure() {
+    ActionLinkFixture.findByActionText("Configure", robot(), target()).click();
+    return new JListFixture(robot(), waitForPopup(robot()));
+  }
+
+  @NotNull
+  public void openSdkManager(@NotNull JListFixture listFixture) {
+    listFixture.clickItem("SDK Manager");
   }
 
   @NotNull

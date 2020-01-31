@@ -43,6 +43,9 @@ import org.jetbrains.android.dom.attrs.AttributeDefinition
 
 class NeleEnumSupportProviderTest: AndroidTestCase() {
 
+  private val MATCH_CONSTRAINT = "0dp (match constraint)"
+  private val WRAP_CONTENT = "wrap_content"
+
   fun testAttributeWithNoEnumSupport() {
     val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW, parentTag = CONSTRAINT_LAYOUT.defaultName())
     val property = util.makeProperty(ANDROID_URI, ATTR_TEXT, NelePropertyType.STRING)
@@ -56,8 +59,8 @@ class NeleEnumSupportProviderTest: AndroidTestCase() {
     val property = util.makeProperty(ANDROID_URI, ATTR_LAYOUT_HEIGHT, NelePropertyType.DIMENSION)
     val provider = NeleEnumSupportProvider(util.model)
     val enumSupport = provider(property) ?: error("No EnumSupport Found")
-    assertThat(enumSupport.values.map{ it.value }).containsExactly("0dp", "wrap_content")
-    assertThat(enumSupport.values.map{ it.display }).containsExactly("match_constraint", "wrap_content").inOrder()
+    assertThat(enumSupport.values.map{ it.value }).containsExactly("0dp", WRAP_CONTENT)
+    assertThat(enumSupport.values.map{ it.display }).containsExactly(MATCH_CONSTRAINT, WRAP_CONTENT).inOrder()
   }
 
   fun testTextAppearance() {
@@ -141,7 +144,7 @@ class NeleEnumSupportProviderTest: AndroidTestCase() {
     val property = util.makeProperty(ANDROID_URI, attributeName, NelePropertyType.DIMENSION)
     val provider = NeleEnumSupportProvider(util.model)
     val enumSupport = provider(property) ?: error("No EnumSupport Found")
-    assertThat(enumSupport.values.map{ it.value }).containsExactly("match_parent", "wrap_content").inOrder()
+    assertThat(enumSupport.values.map{ it.value }).containsExactly("match_parent", WRAP_CONTENT).inOrder()
   }
 
   fun testOnClick() {

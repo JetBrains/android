@@ -51,6 +51,11 @@ interface ModelPropertyCore<PropertyT : Any> :
   val description: String
 
   /**
+   * A function returning a suitable default variable name for this property
+   */
+  fun getPreferredVariableName(): String = "var"
+
+  /**
    * The function to get the default value of the property for a given model, or null if the default value of the property cannot be
    * determined.
    */
@@ -227,6 +232,7 @@ inline fun <T : Any> ModelPropertyCore<T>.annotateParsedResolvedMismatchBy(
 
 class SimplePropertyStub<ValueT : Any> : ModelPropertyCore<ValueT> {
   override val description: String = ""
+  override fun getPreferredVariableName(): String = "var"
   override fun getParsedValue(): Annotated<ParsedValue<ValueT>> = ParsedValue.NotSet.annotated()
   override fun setParsedValue(value: ParsedValue<ValueT>) = Unit
   override fun getResolvedValue(): ResolvedValue<ValueT> = ResolvedValue.NotResolved()

@@ -20,11 +20,11 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.RangedSeries
 import com.android.tools.adtui.model.event.EventAction
 import com.android.tools.adtui.model.event.EventModel
-import com.android.tools.profiler.proto.EnergyProfiler
-import com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent
+import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.Energy
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-import org.mockito.Mockito.*
+import org.mockito.Mockito.mock
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Graphics2D
@@ -33,25 +33,25 @@ class EnergyEventComponentTest {
 
   @Test
   fun rangeChanged() {
-    val locationRequested = EnergyProfiler.EnergyEvent.newBuilder()
-      .setEventId(1)
+    val locationRequested = Common.Event.newBuilder()
+      .setGroupId(1)
       .setTimestamp(1L)
-      .setLocationUpdateRequested(EnergyProfiler.LocationUpdateRequested.getDefaultInstance())
+      .setEnergyEvent(Energy.EnergyEventData.newBuilder().setLocationUpdateRequested(Energy.LocationUpdateRequested.getDefaultInstance()))
       .build()
-    val locationChanged = EnergyProfiler.EnergyEvent.newBuilder()
-      .setEventId(1)
+    val locationChanged = Common.Event.newBuilder()
+      .setGroupId(1)
       .setTimestamp(10L)
-      .setLocationChanged(EnergyProfiler.LocationChanged.getDefaultInstance())
+      .setEnergyEvent(Energy.EnergyEventData.newBuilder().setLocationChanged(Energy.LocationChanged.getDefaultInstance()))
       .build()
-    val locationRequestRemoved = EnergyProfiler.EnergyEvent.newBuilder()
-      .setEventId(1)
+    val locationRequestRemoved = Common.Event.newBuilder()
+      .setGroupId(1)
       .setTimestamp(20L)
-      .setLocationUpdateRemoved(EnergyProfiler.LocationUpdateRemoved.getDefaultInstance())
-      .setIsTerminal(true)
+      .setEnergyEvent(Energy.EnergyEventData.newBuilder().setLocationUpdateRemoved(Energy.LocationUpdateRemoved.getDefaultInstance()))
+      .setIsEnded(true)
       .build()
 
     val range = Range(0.0, 100.0)
-    val dataSeries = DefaultDataSeries<EventAction<EnergyEvent>>()
+    val dataSeries = DefaultDataSeries<EventAction<Common.Event>>()
     dataSeries.add(1, EventAction(1, 10, locationRequested))
     dataSeries.add(10, EventAction(10, 20, locationChanged))
     dataSeries.add(20, EventAction(20, 30, locationRequestRemoved))

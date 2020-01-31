@@ -15,74 +15,81 @@
  */
 package com.android.tools.idea.lang.databinding.reference
 
-import com.android.tools.idea.databinding.DataBindingMode
-import com.android.tools.idea.lang.databinding.model.PsiModelClass
+import com.android.tools.idea.databinding.util.DataBindingUtil.stripPrefixFromMethod
+import com.android.tools.idea.lang.databinding.model.PsiModelMethod
 import com.android.tools.idea.lang.databinding.psi.PsiDbCallExpr
 import com.android.tools.idea.lang.databinding.psi.PsiDbFunctionRefExpr
+import com.android.tools.idea.lang.databinding.psi.PsiDbLambdaParameters
 import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
-import com.intellij.psi.PsiType
+import com.intellij.psi.impl.light.LightMethodBuilder
 import com.intellij.psi.impl.source.tree.LeafPsiElement
+import com.intellij.psi.xml.XmlAttribute
 
 /**
  * Reference that refers to a [PsiMethod]
  */
-internal class PsiMethodReference(element: PsiElement, resolveTo: PsiElement, textRange: TextRange)
-  : DbExprReference(element, resolveTo, textRange) {
+internal class PsiMethodReference private constructor(element: PsiElement,
+                                                      method: PsiModelMethod,
+                                                      textRange: TextRange,
+                                                      val kind: Kind)
+  : DbExprReference(element, method.psiMethod, textRange) {
 
-  constructor(expr: PsiDbCallExpr, method: PsiMethod) :
-    this(expr, method, expr.refExpr.id.textRange.shiftLeft(expr.textOffset))
+  enum class Kind {
+    /**
+     * This reference points to a method being called, e.g. `model.doSomething(...)`.
+     *
+     * Such a method expression can be chained further.
+     */
+    METHOD_CALL,
 
-  constructor(expr: PsiDbRefExpr, method: PsiMethod)
-    : this(expr, method, expr.id.textRange.shiftLeft(expr.textOffset))
-
-  constructor(expr: PsiDbFunctionRefExpr, method: PsiMethod)
-    : this(expr, method, expr.id.textRange.shiftLeft(expr.textOffset))
-
-  override val resolvedType: PsiModelClass?
-    get() = (resolve() as? PsiMethod)?.returnType?.let {
-      PsiModelClass(it, DataBindingMode.fromPsiElement(element))
-    }
-
-  override val isStatic: Boolean
-    get() = false
-
-  override fun handleElementRename(newElementName: String): PsiElement? {
-    val identifier = element.findElementAt(rangeInElement.startOffset) as LeafPsiElement?
-    val stripped = (resolve() as? PsiMethod)?.let { stripPrefixFromMethod(it, newElementName) } ?: newElementName
-    identifier?.rawReplaceWithText(stripped)
-    return identifier
+    /**
+     * This reference points to a method reference, e.g. `model::doSomething`, `model.doSomething`
+     *
+     * Such a method expression should not be chained any further.
+     */
+    METHOD_REFERENCE,
   }
 
-  companion object {
-    /**
-     * Given a method and its new name, return the method name with the prefix stripped,
-     * or {@code null} otherwise.
-     * TODO(131227177): Refactor this logic to a location shared with BrUtil
-     */
-    fun stripPrefixFromMethod(method: PsiMethod, newName: String) = when {
-      isGetter(method, newName) -> newName.substring("get".length).decapitalize()
-      isBooleanGetter(method, newName) -> newName.substring("is".length).decapitalize()
-      else -> null
-    }
+  constructor(expr: PsiDbCallExpr, method: PsiModelMethod)
+    : this(expr, method, expr.refExpr.id.textRange.shiftLeft(expr.textOffset), Kind.METHOD_CALL)
 
-    private fun isGetter(psiMethod: PsiMethod, name: String) =
-      matchesMethodPattern(psiMethod, name, "get", 0) { type -> PsiType.VOID != type }
+  constructor(expr: PsiDbRefExpr, method: PsiModelMethod, kind: Kind)
+    : this(expr, method, expr.id.textRange.shiftLeft(expr.textOffset), kind)
 
-    private fun isBooleanGetter(psiMethod: PsiMethod, name: String) =
-      matchesMethodPattern(psiMethod, name, "is", 0) { type -> PsiType.BOOLEAN == type }
+  constructor(expr: PsiDbFunctionRefExpr, method: PsiModelMethod)
+    : this(expr, method, expr.id.textRange.shiftLeft(expr.textOffset), Kind.METHOD_REFERENCE)
 
-    private fun matchesMethodPattern(psiMethod: PsiMethod,
-                                     name: String,
-                                     prefix: String,
-                                     parameterCount: Int,
-                                     returnTypePredicate: (PsiType) -> Boolean): Boolean {
-      return name.startsWith(prefix) &&
-             Character.isJavaIdentifierStart(name[prefix.length]) &&
-             psiMethod.parameterList.parametersCount == parameterCount &&
-             psiMethod.returnType?.let { returnTypePredicate.invoke(it) } == true
-    }
+  constructor(attr: XmlAttribute, method: PsiModelMethod)
+    : this(attr, method, attr.textRange.shiftLeft(attr.textOffset), Kind.METHOD_REFERENCE)
+
+  constructor(parameters: PsiDbLambdaParameters, method: PsiModelMethod)
+    : this(parameters, method, parameters.textRange.shiftLeft(parameters.textOffset), Kind.METHOD_REFERENCE)
+
+  /**
+   * Note: Returning null for the resolvedType prevents this expression from participating in auto completions
+   * e.g. `user.getName().toUpperCase()` is valid while `user::getName.toUpperCase()` is not
+   */
+  override val resolvedType = if (kind == Kind.METHOD_REFERENCE) null else method.returnType
+
+  override val isStatic = false
+
+  override fun handleElementRename(newElementName: String): PsiElement? {
+    val identifier = element.findElementAt(rangeInElement.startOffset) as? LeafPsiElement ?: return null
+    val resolved = resolve() as? PsiMethod ?: return null
+
+    // Create a light clone of our method so we can call the `stripPrefix` method on it
+    val lightMethod = LightMethodBuilder(resolved.manager, resolved.language, newElementName, resolved.parameterList, resolved.modifierList)
+      .setMethodReturnType(resolved.returnType)
+
+    // Say the user tries to rename a method as if it were a getter, e.g. "getName". We normally
+    // transform those sorts of methods to make them look like a field in data binding expressions,
+    // so we apply that same logic here as well, for consistency.
+    val stripped = stripPrefixFromMethod(lightMethod)
+
+    identifier.rawReplaceWithText(stripped)
+    return identifier
   }
 }

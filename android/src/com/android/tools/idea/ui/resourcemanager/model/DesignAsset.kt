@@ -31,33 +31,53 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 
 val externalResourceNamespace = ResourceNamespace.fromPackageName("external.design.resource")
-private val LOG = Logger.getInstance(DesignAsset::class.java)
+private val LOG = Logger.getInstance(Asset::class.java)
 
-/**
- * A Design asset on disk.
- *
- * This class helps to interface a project's resource with a external file
- */
-data class DesignAsset(
-  val file: VirtualFile,
-  var qualifiers: List<ResourceQualifier>,
-  val type: ResourceType,
-  val name: String = file.nameWithoutExtension,
-  val resourceItem: ResourceItem = ResourceMergerItem(name, externalResourceNamespace, type, null, "external")
-
-) {
+/** The base interface for displaying resources in the Resource Explorer. */
+interface Asset {
+  val type: ResourceType
+  val name: String
+  val resourceItem: ResourceItem
 
   companion object {
-    fun fromResourceItem(resourceItem: ResourceItem): DesignAsset? {
-      val file = resourceItem.getSourceAsVirtualFile() ?: return null
+
+    fun fromResourceItem(resourceItem: ResourceItem): Asset? = fromResourceItem(resourceItem, resourceItem.type)
+
+    fun fromResourceItem(resourceItem: ResourceItem, resourceType: ResourceType): Asset? {
+      val file = resourceItem.getSourceAsVirtualFile() ?: return BaseAsset(resourceType, resourceItem.name, resourceItem)
       return DesignAsset(
         file = file,
         qualifiers = resourceItem.configuration.qualifiers.toList(),
-        type = resourceItem.type,
+        type = resourceType,
         name = resourceItem.name,
         resourceItem = resourceItem)
     }
   }
+}
+
+/**
+ * An [Asset] with the basic information to display a resource in the explorer. Unlike [DesignAsset], it can't point to a source file.
+ *
+ * E.g: [ResourceType.SAMPLE_DATA]. It contains resource information and can be displayed, but it does not reference a file.
+ */
+data class BaseAsset (
+  override val type: ResourceType,
+  override val name: String = "resource_name",
+  override val resourceItem: ResourceItem = ResourceMergerItem(name, externalResourceNamespace, type, null, null, "external")
+) : Asset
+
+/**
+ * A Design [Asset] on disk.
+ *
+ * This class helps to interface a project's resource with an external file.
+ */
+data class DesignAsset(
+  val file: VirtualFile,
+  var qualifiers: List<ResourceQualifier>,
+  override val type: ResourceType,
+  override val name: String = file.nameWithoutExtension,
+  override val resourceItem: ResourceItem = ResourceMergerItem(name, externalResourceNamespace, type, null, null, "external")
+): Asset {
 
   /**
    * Returns the human readable (KB, MB) file size if the [DesignAsset] is a file (e.g layout, drawables)
@@ -72,31 +92,31 @@ data class DesignAsset(
 }
 
 /**
- * Represents a set of design assets on disk grouped by base name.
+ * Represents a set of resource assets grouped by base name.
  *
  * For example, fr/icon@2x.png, fr/icon.jpg  and en/icon.png will be
  * gathered in the same DesignAssetSet under the name "icon"
  */
-data class DesignAssetSet(
+data class ResourceAssetSet(
   val name: String,
-  var designAssets: List<DesignAsset>
+  var assets: List<Asset>
 ) {
 
   /**
    * Return the asset in this set with the highest density
    */
-  fun getHighestDensityAsset(): DesignAsset {
+  fun getHighestDensityAsset(): Asset {
     return designAssets.maxBy { asset ->
       asset.qualifiers
         .filterIsInstance<DensityQualifier>()
         .map { densityQualifier -> densityQualifier.value.dpiValue }
         .singleOrNull() ?: 0
-    } ?: designAssets[0]
+    } ?: assets[0]
   }
 }
 
 /**
- * Find all the [DesignAssetSet] in the given directory
+ * Find all the [ResourceAssetSet] in the given directory
  *
  * @param supportedTypes The file types supported for importation
  */
@@ -104,10 +124,10 @@ fun getAssetSets(
   directory: VirtualFile,
   supportedTypes: Set<String>,
   qualifierMatcher: QualifierMatcher
-): List<DesignAssetSet> {
+): List<ResourceAssetSet> {
   return getDesignAssets(directory, supportedTypes, directory, qualifierMatcher)
     .groupBy { designAsset -> designAsset.name }
-    .map { (drawableName, designAssets) -> DesignAssetSet(drawableName, designAssets) }
+    .map { (drawableName, designAssets) -> ResourceAssetSet(drawableName, designAssets) }
     .toList()
 }
 
@@ -131,10 +151,19 @@ private fun createAsset(child: VirtualFile, root: VirtualFile, matcher: Qualifie
   return DesignAsset(child, qualifiers1.toList(), ResourceType.DRAWABLE, resourceName)
 }
 
-fun ResourceResolver.resolveValue(designAsset: DesignAsset): ResourceValue? {
-  val resolvedValue = resolveResValue(designAsset.resourceItem.resourceValue)
+fun ResourceResolver.resolveValue(designAsset: Asset): ResourceValue? {
+  val resolvedValue = resolveResValue(if (designAsset.resourceItem.type == ResourceType.ATTR) {
+    findItemInTheme(designAsset.resourceItem.referenceToSelf)
+  } else {
+    designAsset.resourceItem.resourceValue
+  })
   if (resolvedValue == null) {
     LOG.warn("${designAsset.resourceItem.name} couldn't be resolved")
   }
   return resolvedValue
+}
+
+/** Get the [Asset]s of type [DesignAsset] within a [ResourceAssetSet]. */
+val ResourceAssetSet.designAssets: List<DesignAsset> get() {
+  return this.assets.filterIsInstance<DesignAsset>()
 }

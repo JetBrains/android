@@ -45,7 +45,7 @@ class PsJavaModule(
     super.init(name, parentModule, parsedModel)
     this.resolvedModel = resolvedModel
     rootDir = resolvedModel?.contentRoots?.firstOrNull()?.rootDirPath
-    myDependencyCollection = null
+    myDependencyCollection?.let { it.refresh(); fireDependenciesReloadedEvent() }
   }
 
   override val dependencies: PsDeclaredJavaDependencyCollection
@@ -90,9 +90,12 @@ class PsJavaModule(
     dependencies.findLibraryDependencies(group, name)
 
   override fun resetDependencies() {
-    myDependencyCollection = null
+    myDependencyCollection?.refresh()
     myResolvedDependencyCollection = null
   }
+
+  override fun maybeAddConfiguration(configurationName: String) = Unit
+  override fun maybeRemoveConfiguration(configurationName: String) = Unit
 
   object JavaModuleDescriptors: ModelDescriptor<PsJavaModule, Nothing, Nothing> {
     override fun getResolved(model: PsJavaModule): Nothing? = null

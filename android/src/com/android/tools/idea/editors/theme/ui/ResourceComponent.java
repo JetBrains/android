@@ -23,14 +23,21 @@ import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.text.StringUtil;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.util.List;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.List;
 
 /**
  * Component for displaying a color or a drawable resource with attribute name, type and value text.
@@ -41,8 +48,6 @@ public class ResourceComponent extends JPanel {
   private final ResourceSwatchComponent myResourceSwatchComponent;
   private final JLabel myNameLabel = new JLabel();
   protected final JLabel myWarningLabel = new JLabel();
-
-  private final VariantsComboBox myVariantCombo = new VariantsComboBox();
 
   public ResourceComponent(@NotNull Project project, boolean isEditor) {
     super(new BorderLayout(0, ThemeEditorConstants.ATTRIBUTE_ROW_GAP));
@@ -58,10 +63,7 @@ public class ResourceComponent extends JPanel {
     topRowPanel.add(myNameLabel);
     topRowPanel.add(myWarningLabel);
 
-    myVariantCombo.setVisible(false);
-
     topRowPanel.add(Box.createHorizontalGlue());
-    topRowPanel.add(myVariantCombo);
     add(topRowPanel, BorderLayout.CENTER);
 
     myResourceSwatchComponent = new ResourceSwatchComponent(project, isEditor);
@@ -73,7 +75,7 @@ public class ResourceComponent extends JPanel {
   @Override
   public Dimension getPreferredSize() {
     if (!isPreferredSizeSet()) {
-      int firstRowHeight = Math.max(getFontMetrics(getFont()).getHeight(), myVariantCombo.getPreferredSize().height);
+      int firstRowHeight = getFontMetrics(getFont()).getHeight();
       int secondRowHeight = myResourceSwatchComponent.getPreferredSize().height;
 
       return new Dimension(0, ThemeEditorConstants.ATTRIBUTE_MARGIN +
@@ -111,19 +113,6 @@ public class ResourceComponent extends JPanel {
     }
   }
 
-  public void setVariantsModel(@NotNull ComboBoxModel comboBoxModel) {
-    myVariantCombo.setModel(comboBoxModel);
-    myVariantCombo.setVisible(comboBoxModel.getSize() > 0);
-  }
-
-  public void addVariantItemListener(@NotNull ItemListener itemListener) {
-    myVariantCombo.addItemListener(itemListener);
-  }
-
-  public void addVariantPopupClosingListener(@NotNull VariantsComboBox.PopupClosingListener listener) {
-    myVariantCombo.addPopupClosingListener(listener);
-  }
-
   public void setValueText(@NotNull String value) {
     myResourceSwatchComponent.setText(value);
   }
@@ -149,16 +138,8 @@ public class ResourceComponent extends JPanel {
     myResourceSwatchComponent.addSwatchListener(listener);
   }
 
-  public void addTextListener(@NotNull final ActionListener listener) {
-    myResourceSwatchComponent.addTextListener(listener);
-  }
-
   public void addTextDocumentListener(@NotNull final DocumentListener listener) {
     myResourceSwatchComponent.addTextDocumentListener(listener);
-  }
-
-  public void addTextFocusListener(@NotNull final FocusListener listener) {
-    myResourceSwatchComponent.addTextFocusListener(listener);
   }
 
   public void setCompletionStrings(@NotNull List<String> completions) {
@@ -175,14 +156,6 @@ public class ResourceComponent extends JPanel {
       }
     }
     return super.getToolTipText(event);
-  }
-
-  /**
-   * Returns the current swatch icon size in pixels.
-   */
-  public Dimension getSwatchIconSize() {
-    // Since the icons are square we just use the height of the component.
-    return new Dimension(myResourceSwatchComponent.getHeight(), myResourceSwatchComponent.getHeight());
   }
 
   @Nullable/*if there is no error*/

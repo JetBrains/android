@@ -22,7 +22,6 @@ import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
@@ -54,6 +53,7 @@ import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.xml.*;
 import com.intellij.refactoring.rename.RenameProcessor;
 import com.intellij.usageView.UsageInfo;
+import com.intellij.util.concurrency.EdtExecutorService;
 import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -93,7 +93,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
   @Override
   public void update(@NotNull AnActionEvent e) {
     Presentation presentation = e.getPresentation();
-    SceneView screenView = mySurface.getCurrentSceneView();
+    SceneView screenView = mySurface.getFocusedSceneView();
     NlComponent target = findTarget(screenView);
     if (target != null) {
       String tagName = target.getTagName();
@@ -137,7 +137,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
-    SceneView sceneView = mySurface.getCurrentSceneView();
+    SceneView sceneView = mySurface.getFocusedSceneView();
     if (sceneView == null) {
       return;
     }
@@ -331,7 +331,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
                   }
 
                   inferConstraints(layout);
-                }), EdtExecutor.INSTANCE);
+                }), EdtExecutorService.getInstance());
             }
           }
         });

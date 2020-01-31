@@ -16,7 +16,6 @@
 package com.android.tools.idea.res;
 
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
-import static java.io.File.separatorChar;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
@@ -31,9 +30,10 @@ import com.android.tools.idea.resources.aar.AarSourceResourceRepository;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.vfs.VirtualFile;
-import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -202,27 +202,24 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
 
   public void testStyleableMerge() throws Exception {
     TestResourceRepository repositoryA = resourceFixture.createTestResources(RES_AUTO, new Object[] {
-      "values/styles.xml", "" +
-                           "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                           "<resources>\n" +
-                           "    <attr name=\"app_declared_attr\" />\n" +
-                           "    <declare-styleable name=\"Styleable1\">\n" +
-                           "    </declare-styleable>\n" +
-                           "    <declare-styleable name=\"Styleable.with.dots\">\n" +
-                           "        <attr name=\"app_declared_attr\" />\n" +
-                           "        <attr name=\"some_attr\" />\n" + // Duplicate attr
-                           "        <attr name=\"android:layout_height\" />\n" +
-                           "    </declare-styleable>\n" +
-                           "    <declare-styleable name=\"AppStyleable\">\n" +
-                           "    </declare-styleable>" +
-                           "</resources>\n"});
+        "values/styles.xml",
+        // language="XML"
+        "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+        "<resources>\n" +
+        "    <attr name=\"app_declared_attr\" />\n" +
+        "    <declare-styleable name=\"Styleable1\">\n" +
+        "    </declare-styleable>\n" +
+        "    <declare-styleable name=\"Styleable.with.dots\">\n" +
+        "        <attr name=\"app_declared_attr\" />\n" +
+        "        <attr name=\"some_attr\" />\n" + // Duplicate attr
+        "        <attr name=\"android:layout_height\" />\n" +
+        "    </declare-styleable>\n" +
+        "    <declare-styleable name=\"AppStyleable\">\n" +
+        "    </declare-styleable>" +
+        "</resources>\n"});
     LocalResourceRepository resourcesA = new LocalResourceRepositoryDelegate("A", repositoryA);
-    String aarPath = AndroidTestBase.getTestDataPath() + separatorChar +
-                     "rendering" + separatorChar +
-                     FilenameConstants.EXPLODED_AAR + separatorChar +
-                     "my_aar_lib" + separatorChar +
-                     "res";
-    AarSourceResourceRepository libraryRepository = AarSourceResourceRepository.create(new File(aarPath), LIBRARY_NAME);
+    Path aarPath = Paths.get(AndroidTestBase.getTestDataPath(), "rendering", FilenameConstants.EXPLODED_AAR, "my_aar_lib", "res");
+    AarSourceResourceRepository libraryRepository = AarSourceResourceRepository.create(aarPath, LIBRARY_NAME);
     AppResourceRepository appResources =
         new AppResourceRepository(myFacet, ImmutableList.of(resourcesA), ImmutableList.of(libraryRepository));
 

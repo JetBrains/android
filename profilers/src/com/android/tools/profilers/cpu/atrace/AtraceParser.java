@@ -17,20 +17,36 @@ package com.android.tools.profilers.cpu.atrace;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.profilers.cpu.*;
+import com.android.tools.profilers.cpu.CaptureNode;
+import com.android.tools.profilers.cpu.CpuCapture;
+import com.android.tools.profilers.cpu.CpuProfilerStage;
+import com.android.tools.profilers.cpu.CpuThreadInfo;
+import com.android.tools.profilers.cpu.TraceParser;
 import com.android.tools.profilers.cpu.nodemodel.AtraceNodeModel;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
-import trebuchet.io.BufferProducer;
-import trebuchet.model.*;
+import org.jetbrains.annotations.Nullable;
+import trebuchet.model.CpuModel;
+import trebuchet.model.CpuProcessSlice;
+import trebuchet.model.Model;
+import trebuchet.model.ProcessModel;
+import trebuchet.model.SchedSlice;
+import trebuchet.model.ThreadModel;
 import trebuchet.model.base.SliceGroup;
 import trebuchet.task.ImportTask;
 import trebuchet.util.PrintlnImportFeedback;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * AtraceParser is a minimal implementation parsing the atrace file.
@@ -49,6 +65,12 @@ public class AtraceParser implements TraceParser {
    * The platform RenderThread is hard coded to have this name.
    */
   public static final String RENDER_THREAD_NAME = "RenderThread";
+
+  /**
+   * SurfaceFlinger is responsible for compositing all the application and system surfaces into a single buffer
+   */
+  private static final String SURFACE_FLINGER_PROCESS_NAME = "surfaceflinger";
+
   /**
    * Map of CpuThreadInfo to capture nodes. The thread info in this map does not contain process information.
    */
@@ -133,7 +155,8 @@ public class AtraceParser implements TraceParser {
       TrebuchetBufferProducer producer;
       if (AtraceProducer.verifyFileHasAtraceHeader(file)) {
         producer = new AtraceProducer();
-      } else {
+      }
+      else {
         producer = new PerfettoProducer();
       }
       if (!producer.parseFile(file)) {
@@ -144,9 +167,10 @@ public class AtraceParser implements TraceParser {
       myModel = task.importBuffer(producer);
       // We check if we have a parent timestamp. If not this could be from an imported trace.
       // In the case it is 0, we use the first timestamp of our capture as a reference point.
-      if (Double.compare(myModel.getParentTimestamp(),0.0) == 0) {
+      if (Double.compare(myModel.getParentTimestamp(), 0.0) == 0) {
         myMonoTimeAtBeginningSeconds = myModel.getBeginTimestamp();
-      } else {
+      }
+      else {
         myMonoTimeAtBeginningSeconds = myModel.getParentTimestamp() - (myModel.getParentTimestampBootTime() - myModel.getBeginTimestamp());
       }
     }
@@ -306,6 +330,7 @@ public class AtraceParser implements TraceParser {
     }
     return framesSeries;
   }
+
   /**
    * @return Returns a map of {@link CpuThreadInfo} to {@link CaptureNode}. The capture nodes are built from {@link SliceGroup} maintaining
    * the order and hierarchy.
@@ -543,5 +568,11 @@ public class AtraceParser implements TraceParser {
     Optional<ThreadModel> renderThread =
       process.getThreads().stream().filter((thread) -> thread.getName().equalsIgnoreCase(RENDER_THREAD_NAME)).findFirst();
     return renderThread.map(ThreadModel::getId).orElse(INVALID_PROCESS);
+  }
+
+  @Nullable
+  public ProcessModel getSurfaceflingerProcessModel() {
+    return Arrays.stream(getProcessList(SURFACE_FLINGER_PROCESS_NAME)).findFirst()
+      .map(threadInfo -> myModel.getProcesses().get(threadInfo.getProcessId())).orElse(null);
   }
 }

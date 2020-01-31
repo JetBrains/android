@@ -10,7 +10,7 @@ import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -141,7 +141,7 @@ public class AndroidAppPropertiesEditor {
     if (!AndroidUtils.isValidAndroidPackageName(candidate)) {
       return candidate;
     }
-    if (!AndroidCommonUtils.contains2Identifiers(candidate)) {
+    if (!AndroidBuildCommonUtils.contains2Identifiers(candidate)) {
       return AndroidBundle.message("package.name.must.contain.2.ids.error");
     }
 
@@ -149,7 +149,7 @@ public class AndroidAppPropertiesEditor {
       for (Module module : modulesProvider.getModules()) {
         final AndroidFacet facet = AndroidFacet.getInstance(module);
         if (facet != null && !facet.getConfiguration().isLibraryProject()) {
-          final Manifest manifest = facet.getManifest();
+          final Manifest manifest = Manifest.getMainManifest(facet);
           if (manifest != null) {
             final String packageName = manifest.getPackage().getValue();
             if (candidate.equals(packageName)) {

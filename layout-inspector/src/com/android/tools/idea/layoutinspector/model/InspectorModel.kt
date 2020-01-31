@@ -15,64 +15,80 @@
  */
 package com.android.tools.idea.layoutinspector.model
 
+import com.android.tools.idea.layoutinspector.resource.ResourceLookup
+import com.intellij.openapi.project.Project
 import kotlin.properties.Delegates
 
-class InspectorModel(initialRoot: InspectorView) {
-  val selectionListeners = mutableListOf<(InspectorView?, InspectorView?) -> Unit>()
-  val modificationListeners = mutableListOf<(InspectorView?, InspectorView?) -> Unit>()
+class InspectorModel(val project: Project, initialRoot: ViewNode) {
+  val selectionListeners = mutableListOf<(ViewNode?, ViewNode?) -> Unit>()
+  val modificationListeners = mutableListOf<(ViewNode?, ViewNode?, Boolean) -> Unit>()
+  val resourceLookup = ResourceLookup(project)
 
-  var selection: InspectorView? by Delegates.observable(null as InspectorView?) { _, old, new ->
-    selectionListeners.forEach { it(old, new) }
+  var selection: ViewNode? by Delegates.observable(null as ViewNode?) { _, old, new ->
+    if (new != old) {
+      selectionListeners.forEach { it(old, new) }
+    }
   }
 
-  var root: InspectorView by Delegates.observable(initialRoot) { _, old, new ->
-    modificationListeners.forEach { it(old, new) }
+  var root: ViewNode by Delegates.observable(initialRoot) { _, old, new ->
+    modificationListeners.forEach { it(old, new, true) }
   }
 
   /**
    * Replaces all subtrees with differing root IDs. Existing views are updated.
    */
-  fun update(newRoot: InspectorView) {
+  fun update(newRoot: ViewNode) {
     val oldRoot = root
-    val modified: Boolean
-    if (newRoot.id != root.id || newRoot.type != root.type) {
+    val structuralChange: Boolean
+    if (newRoot.drawId != root.drawId || newRoot.qualifiedName != root.qualifiedName) {
       root = newRoot
-      modified = true
+      structuralChange = true
     }
     else {
-      modified = updateInternal(root, newRoot)
+      val updater = Updater(root, newRoot)
+      structuralChange = updater.update()
     }
-    if (modified) {
-      modificationListeners.forEach { it(oldRoot, newRoot) }
-    }
+    modificationListeners.forEach { it(oldRoot, newRoot, structuralChange) }
   }
 
-  private fun updateInternal(oldNode: InspectorView, newNode: InspectorView): Boolean {
-    // TODO: should changes below cause modified to be set to true?
-    // Maybe each view should have its own modification listener that can listen for such changes?
-    oldNode.image = newNode.image
-    oldNode.imageGenerationTime = newNode.imageGenerationTime
-    oldNode.width = newNode.width
-    oldNode.height = newNode.height
-    oldNode.x = newNode.x
-    oldNode.y = newNode.y
+  private class Updater(private val oldRoot: ViewNode, private val newRoot: ViewNode) {
+    private val oldNodes = oldRoot.flatten().associateBy { it.drawId }
 
-    var modified = false
-    for ((id, child) in oldNode.children.toMap()) {
-      val correspondingNew = newNode.children[id]
-      if (correspondingNew == null || correspondingNew.type != child.type) {
-        oldNode.children.remove(id)
-        modified = true
-      }
-      else {
-        newNode.children.remove(id)
-        modified = updateInternal(child, correspondingNew) || modified
-      }
+    fun update(): Boolean {
+      return update(oldRoot, null, newRoot)
     }
-    if (newNode.children.isNotEmpty()) {
-      oldNode.children.putAll(newNode.children)
-      modified = true
+
+    private fun update(oldNode: ViewNode, parent: ViewNode?, newNode: ViewNode): Boolean {
+      var modified = (parent != oldNode.parent) || !sameChildren(oldNode, newNode)
+      // TODO: should changes below cause modified to be set to true?
+      // Maybe each view should have its own modification listener that can listen for such changes?
+      oldNode.imageBottom = newNode.imageBottom
+      oldNode.imageTop = newNode.imageTop
+      oldNode.width = newNode.width
+      oldNode.height = newNode.height
+      oldNode.x = newNode.x
+      oldNode.y = newNode.y
+      oldNode.parent = parent
+
+      oldNode.children.clear()
+      for (newChild in newNode.children) {
+        val oldChild = oldNodes[newChild.drawId]
+        if (oldChild != null) {
+          modified = update(oldChild, oldNode, newChild) || modified
+          oldNode.children.add(oldChild)
+        } else {
+          oldNode.children.add(newChild)
+          newChild.parent = oldNode
+        }
+      }
+      return modified
     }
-    return modified
+
+    private fun sameChildren(oldNode: ViewNode, newNode: ViewNode): Boolean {
+      if (oldNode.children.size != newNode.children.size) {
+        return false
+      }
+      return oldNode.children.indices.all { oldNode.children[it].drawId == newNode.children[it].drawId }
+    }
   }
 }

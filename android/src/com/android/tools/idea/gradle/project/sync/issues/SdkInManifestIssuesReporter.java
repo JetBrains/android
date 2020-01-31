@@ -102,7 +102,7 @@ public abstract class SdkInManifestIssuesReporter extends SimpleDeduplicatingSyn
                                                @NotNull VirtualFile buildFile) {
     AndroidFacet androidFacet = AndroidFacet.getInstance(module);
     if (androidFacet != null) {
-      Manifest manifest = androidFacet.getManifest();
+      Manifest manifest = Manifest.getMainManifest(androidFacet);
       PsiElement element = null;
       if (manifest != null) {
         element = ApplicationManager.getApplication().runReadAction((Computable<PsiElement>)() -> {

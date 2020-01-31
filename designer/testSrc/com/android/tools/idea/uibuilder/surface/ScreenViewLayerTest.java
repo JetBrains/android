@@ -26,6 +26,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Ref;
 import com.intellij.ui.scale.ScaleContext;
+import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.StartupUiUtil;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
@@ -156,7 +157,7 @@ public class ScreenViewLayerTest {
     BufferedImage imageHQScaled = ScreenViewLayer.scaleOriginalImage(imageHQ.getCopy(), xScale, yScale, ScaleContext.create(g));
 
     BufferedImage scaledHQ = new BufferedImage(imageHQScaled.getWidth(), imageHQScaled.getHeight(), BufferedImage.TYPE_INT_ARGB);
-    StartupUiUtil.drawImage(scaledHQ.createGraphics(), imageHQScaled, 0, 0, null);
+    UIUtil.drawImage(scaledHQ.createGraphics(), imageHQScaled, 0, 0, null);
 
     // We wait more than the debounce delay to ensure that the next call to paint will draw an scaled image.
     timeScheduler.advanceBy(600, TimeUnit.MILLISECONDS);

@@ -15,13 +15,21 @@
  */
 package com.android.tools.idea.res
 
+import com.android.SdkConstants.DOT_JAR
+import com.android.tools.idea.concurrency.AndroidIoManager
+import com.android.tools.idea.layoutlib.LayoutLibrary
+import com.android.tools.idea.resources.aar.CachingData
 import com.android.tools.idea.resources.aar.FrameworkResourceRepository
-import com.google.common.cache.CacheBuilder
-import com.google.common.cache.CacheLoader
-import com.google.common.cache.LoadingCache
+import com.android.tools.idea.resources.aar.RESOURCE_CACHE_DIRECTORY
+import com.google.common.hash.Hashing
+import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.components.ServiceManager
-import org.jetbrains.ide.PooledThreadExecutor
+import org.jetbrains.annotations.TestOnly
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Application service for caching and reusing instances of [FrameworkResourceRepository].
@@ -31,24 +39,55 @@ class FrameworkResourceRepositoryManager {
     @JvmStatic fun getInstance() = ServiceManager.getService(FrameworkResourceRepositoryManager::class.java)!!
   }
 
-  private data class Key(val resFolderOrJar: File, val needLocales: Boolean)
-
-  private val cache: LoadingCache<Key, FrameworkResourceRepository> = CacheBuilder.newBuilder()
-    .softValues()
-    .build(CacheLoader.from { key ->
-      FrameworkResourceRepository.create(key!!.resFolderOrJar.toPath(), key.needLocales, true, PooledThreadExecutor.INSTANCE)
-    })
+  private val cache = ConcurrentHashMap<Path, FrameworkResourceRepository>()
 
   /**
-   * Returns a [FrameworkResourceRepository] for the given `resFolder`. The `needLocales` argument is used to indicate if locale-specific
-   * information is needed, which makes computing the repository much slower. Even if `needLocales` is false, a repository with locale
-   * information may be returned if it has been computed earlier and is available.
+   * Returns a [FrameworkResourceRepository] for the given "res" directory or a jar file. The `languages` parameter
+   * determines a subset of framework resources to be loaded. The returned repository is guaranteed to contain
+   * resources for the given set of languages plus the language-neutral ones, but may contain resources for more
+   * languages than was requested. The repository loads faster if the set of languages is smaller.
+   *
+   * @param resourceDirectoryOrFile the res directory or a jar file containing resources of the Android framework
+   * @param languages the set of ISO 639 language codes
    */
-  fun getFrameworkResources(resFolderOrJar: File, needLocales: Boolean): FrameworkResourceRepository {
-    return if (needLocales) {
-      cache.get(Key(resFolderOrJar, true)).also { cache.invalidate(Key(resFolderOrJar, false)) }
-    } else {
-      cache.getIfPresent(Key(resFolderOrJar, true)) ?: cache.get(Key(resFolderOrJar, false))
+  fun getFrameworkResources(resourceDirectoryOrFile: File, languages: Set<String>): FrameworkResourceRepository {
+    val path = resourceDirectoryOrFile.toPath()
+    val cachingData = createCachingData(path)
+    val cached = cache.computeIfAbsent(path) {
+       FrameworkResourceRepository.create(it, languages, cachingData, LayoutLibrary.isNative())
     }
+    if (languages.isEmpty()) {
+      return cached
+    }
+
+    val repository = cached.loadMissingLanguages(languages, cachingData)
+    if (repository !== cached) {
+      cache[path] = repository
+    }
+    return repository
+  }
+
+  private fun createCachingData(resFolderOrJar: Path): CachingData? {
+    if (resFolderOrJar.fileName.toString().endsWith(DOT_JAR, ignoreCase = true)) {
+      return null // Caching data is not used when loading framework resources from a JAR.
+    }
+    val codeVersion = getAndroidPluginVersion() ?: return null
+    val contentVersion = try {
+      Files.getLastModifiedTime(resFolderOrJar.resolve("../../package.xml")).toString()
+    }
+    catch (e: NoSuchFileException) {
+      ""
+    }
+
+    val pathHash = Hashing.farmHashFingerprint64().hashUnencodedChars(resFolderOrJar.toString()).toString()
+    val prefix = resFolderOrJar.parent?.parent?.fileName.toString() ?: "framework"
+    val filename = String.format("%s_%s.dat", prefix, pathHash)
+    val cacheFile = Paths.get(PathManager.getSystemPath(), RESOURCE_CACHE_DIRECTORY, filename)
+    return CachingData(cacheFile, contentVersion, codeVersion, AndroidIoManager.getInstance().getBackgroundDiskIoExecutor())
+  }
+
+  @TestOnly
+  fun clearCache() {
+    cache.clear()
   }
 }

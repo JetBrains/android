@@ -28,16 +28,22 @@ class DestinationListFixture(robot: Robot, private val list: DestinationList) :
   JListFixture(robot, list.myList) {
 
   val selectedComponents: List<NlComponent>
-    get() = list.myList.selectedValuesList
+    get() = runReadAction(Computable {
+      list.myList.selectedValuesList
+    })
 
   val components: List<NlComponent>
-    get() = ApplicationManager.getApplication().runReadAction(Computable {
+    get() = runReadAction(Computable {
       (0 until list.myList.model.size).map { list.myList.model.getElementAt(it) }
     })
 
+  private fun <T> runReadAction(block: Computable<T>): T = ApplicationManager.getApplication().runReadAction(block)
+
   companion object {
+
+    @JvmStatic
     fun create(robot: Robot): DestinationListFixture {
-      val result = GuiTests.waitUntilFound(robot, Matchers.byType(DestinationList::class.java))
+    val result = GuiTests.waitUntilShowing(robot, Matchers.byName(DestinationList::class.java, "DestinationList"))
       return DestinationListFixture(robot, result)
     }
   }

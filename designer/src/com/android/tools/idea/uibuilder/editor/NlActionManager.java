@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.editor;
 
 import static com.android.tools.idea.uibuilder.api.actions.ViewActionsKt.withRank;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.actions.MockupDeleteAction;
 import com.android.tools.idea.actions.MockupEditAction;
@@ -26,7 +26,6 @@ import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.common.surface.InteractionManager;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.actions.ConvertToConstraintLayoutAction;
@@ -182,7 +181,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
   public DefaultActionGroup getPopupMenuActions(@Nullable NlComponent leafComponent) {
     DefaultActionGroup group = new DefaultActionGroup();
 
-    SceneView screenView = mySurface.getCurrentSceneView();
+    SceneView screenView = mySurface.getFocusedSceneView();
     if (screenView != null) {
       if (leafComponent != null) {
         addViewHandlerActions(group, leafComponent, screenView.getSelectionModel().getSelection());
@@ -271,7 +270,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       parent = component.getParent();
     }
 
-    SceneView screenView = mySurface.getCurrentSceneView();
+    SceneView screenView = mySurface.getFocusedSceneView();
     if (screenView == null) {
       return;
     }
@@ -499,11 +498,11 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       //
       // (Longer term we consider having a singleton Toolkit listener which listens
       // for AWT events globally and tracks the most recent global modifier key state.)
-      int modifiers = InteractionManager.getLastModifiers();
+      int modifiersEx = mySurface.getInteractionManager().getLastModifiersEx();
 
       myCurrentPresentation = e.getPresentation();
       try {
-        myAction.updatePresentation(this, myEditor, myHandler, myComponent, mySelectedChildren, modifiers);
+        myAction.updatePresentation(this, myEditor, myHandler, myComponent, mySelectedChildren, modifiersEx);
       }
       finally {
         myCurrentPresentation = null;
@@ -713,7 +712,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
                                         @NotNull ViewHandler handler,
                                         @NotNull NlComponent component,
                                         @NotNull List<NlComponent> selectedChildren) {
-      super("", action.getLabel(), action.getIcon());
+      super(null, action.getLabel(), action.getIcon());
       myAction = action;
       myEditor = editor;
       myHandler = handler;

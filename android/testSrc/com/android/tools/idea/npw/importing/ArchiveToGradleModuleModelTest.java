@@ -62,9 +62,9 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleTestCase {
 
   public void testImportStandaloneArchive() throws Exception {
     ArchiveToGradleModuleModel model = new ArchiveToGradleModuleModel(getProject(), new ProjectSyncInvoker.DefaultProjectSyncInvoker());
-    model.archive().set(myJarOutsideProject.getAbsolutePath());
+    model.archive.set(myJarOutsideProject.getAbsolutePath());
 
-    model.gradlePath().set(":library");
+    model.gradlePath.set(":library");
     model.handleFinished();
 
     assertArchiveImportedCorrectly(":library", myJarOutsideProject);
@@ -73,10 +73,10 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleTestCase {
 
   public void testImportStandaloneArchiveWithCustomPath() throws Exception {
     ArchiveToGradleModuleModel model = new ArchiveToGradleModuleModel(getProject(), new ProjectSyncInvoker.DefaultProjectSyncInvoker());
-    model.archive().set(myJarOutsideProject.getAbsolutePath());
+    model.archive.set(myJarOutsideProject.getAbsolutePath());
 
     String gradlePath = ":amodulename";
-    model.gradlePath().set(gradlePath);
+    model.gradlePath.set(gradlePath);
     model.handleFinished();
 
     assertArchiveImportedCorrectly(gradlePath, myJarOutsideProject);
@@ -85,10 +85,10 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleTestCase {
 
   public void testImportStandaloneArchiveWithNestedPath() throws Exception {
     ArchiveToGradleModuleModel model = new ArchiveToGradleModuleModel(getProject(), new ProjectSyncInvoker.DefaultProjectSyncInvoker());
-    model.archive().set(myJarOutsideProject.getAbsolutePath());
+    model.archive.set(myJarOutsideProject.getAbsolutePath());
 
     String gradlePath = ":category:module";
-    model.gradlePath().set(gradlePath);
+    model.gradlePath.set(gradlePath);
     model.handleFinished();
 
     assertArchiveImportedCorrectly(gradlePath, myJarOutsideProject);
@@ -101,10 +101,10 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleTestCase {
     copyFileOrDir(myJarOutsideProject, archiveToImport);
 
     ArchiveToGradleModuleModel model = new ArchiveToGradleModuleModel(getProject(), new ProjectSyncInvoker.DefaultProjectSyncInvoker());
-    model.archive().set(archiveToImport.getAbsolutePath());
+    model.archive.set(archiveToImport.getAbsolutePath());
 
-    model.gradlePath().set(":library");
-    model.moveArchive().set(true);
+    model.gradlePath.set(":library");
+    model.moveArchive.set(true);
     model.handleFinished();
 
     assertArchiveImportedCorrectly(":library", archiveToImport);
@@ -192,11 +192,11 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleTestCase {
     String testString = "some Test String";
     ArchiveToGradleModuleModel model = new ArchiveToGradleModuleModel(getProject(), new ProjectSyncInvoker.DefaultProjectSyncInvoker());
 
-    model.archive().set(" " + testString + " ");
-    assertEquals(testString, model.archive().get());
+    model.archive.set(" " + testString + " ");
+    assertEquals(testString, model.archive.get());
 
-    model.gradlePath().set(" " + testString + " ");
-    assertEquals(testString, model.gradlePath().get());
+    model.gradlePath.set(" " + testString + " ");
+    assertEquals(testString, model.gradlePath.get());
   }
 
   private void assertArchiveImportedCorrectly(@NotNull String newModuleGradlePath,
@@ -211,7 +211,7 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleTestCase {
     assertAbout(file()).that(buildGradle).isFile();
     VirtualFile vFile = findFileByIoFile(buildGradle, true);
     assertNotNull(vFile);
-    assertEquals(loadText(vFile), CreateModuleFromArchiveAction.getBuildGradleText(archiveToImport));
+    assertEquals(loadText(vFile), CreateModuleFromArchiveActionKt.getBuildGradleText(archiveToImport));
 
     GradleSettingsModel settingsModel = GradleSettingsModel.get(project);
     assertNotNull(settingsModel);
@@ -267,9 +267,9 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleTestCase {
     File archiveToImport = new File(getProject().getBasePath(), archivePath);
 
     ArchiveToGradleModuleModel model = new ArchiveToGradleModuleModel(getProject(), new ProjectSyncInvoker.DefaultProjectSyncInvoker());
-    model.archive().set(archiveToImport.getAbsolutePath());
-    model.gradlePath().set(":library");
-    model.moveArchive().set(move);
+    model.archive.set(archiveToImport.getAbsolutePath());
+    model.gradlePath.set(":library");
+    model.moveArchive.set(move);
     model.handleFinished();
 
     return archiveToImport;

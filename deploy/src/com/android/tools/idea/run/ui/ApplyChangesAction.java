@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.ui;
 
+import com.android.tools.idea.run.util.SwapInfo;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ConfigurationType;
@@ -23,11 +24,9 @@ import com.intellij.execution.update.RunningApplicationUpdater;
 import com.intellij.execution.update.RunningApplicationUpdaterProvider;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Key;
 import icons.StudioIcons;
 import javax.swing.Icon;
-
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,14 +34,12 @@ public class ApplyChangesAction extends BaseAction {
 
   public static final String ID = "android.deploy.ApplyChanges";
 
-  public static final Key<Boolean> KEY = Key.create(ID);
-
   public static final String NAME = "Apply Changes and Restart Activity";
 
   private static final String DESC = "Attempt to apply resource and code changes and restart activity.";
 
   public ApplyChangesAction() {
-    super(NAME, KEY, StudioIcons.Shell.Toolbar.APPLY_ALL_CHANGES, DESC);
+    super(NAME, SwapInfo.SwapType.APPLY_CHANGES, StudioIcons.Shell.Toolbar.APPLY_ALL_CHANGES, DESC);
   }
 
   @Override
@@ -64,7 +61,7 @@ public class ApplyChangesAction extends BaseAction {
     if (runConfig != null) {
       ConfigurationType type = runConfig.getType();
       String id = type.getId();
-      if (AndroidCommonUtils.isTestConfiguration(id) || AndroidCommonUtils.isInstrumentationTestConfiguration(id)) {
+      if (AndroidBuildCommonUtils.isTestConfiguration(id) || AndroidBuildCommonUtils.isInstrumentationTestConfiguration(id)) {
         return new DisableMessage(DisableMessage.DisableMode.DISABLED, "test project",
                                                               "the selected configuration is a test configuration");
       }

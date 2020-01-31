@@ -21,7 +21,6 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
-import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.UnifiedEventDataSeries;
 import org.jetbrains.annotations.NotNull;
@@ -33,8 +32,8 @@ public class NetworkUsage extends LineChartModel {
   @NotNull private final Range myTrafficRange;
 
   public NetworkUsage(@NotNull StudioProfilers profilers) {
-
     Range viewRange = profilers.getTimeline().getViewRange();
+    Range dataRange = profilers.getTimeline().getDataRange();
 
     // We use 4 as a reasonable initial default for number of connections.
     myTrafficRange = new Range(0, 4);
@@ -42,11 +41,13 @@ public class NetworkUsage extends LineChartModel {
     myRxSeries = new RangedContinuousSeries(NetworkTrafficDataSeries.Type.BYTES_RECEIVED.getLabel(false),
                                             viewRange,
                                             myTrafficRange,
-                                            createSeries(profilers, NetworkTrafficDataSeries.Type.BYTES_RECEIVED));
+                                            createSeries(profilers, NetworkTrafficDataSeries.Type.BYTES_RECEIVED),
+                                            dataRange);
     myTxSeries = new RangedContinuousSeries(NetworkTrafficDataSeries.Type.BYTES_SENT.getLabel(false),
                                             viewRange,
                                             myTrafficRange,
-                                            createSeries(profilers, NetworkTrafficDataSeries.Type.BYTES_SENT));
+                                            createSeries(profilers, NetworkTrafficDataSeries.Type.BYTES_SENT),
+                                            dataRange);
 
     add(myRxSeries);
     add(myTxSeries);
@@ -55,14 +56,15 @@ public class NetworkUsage extends LineChartModel {
   @NotNull
   public DataSeries<Long> createSeries(@NotNull StudioProfilers profilers, @NotNull NetworkTrafficDataSeries.Type trafficType) {
     if (profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
-      return new UnifiedEventDataSeries(profilers.getClient().getTransportClient(),
-                                        profilers.getSession().getStreamId(),
-                                        profilers.getSession().getPid(),
-                                        Common.Event.Kind.NETWORK_SPEED,
-                                        trafficType == NetworkTrafficDataSeries.Type.BYTES_SENT
-                                        ? Common.Event.EventGroupIds.NETWORK_TX_VALUE
-                                        : Common.Event.EventGroupIds.NETWORK_RX_VALUE,
-                                        UnifiedEventDataSeries.fromFieldToDataExtractor(event -> event.getNetworkSpeed().getThroughput()));
+      return new UnifiedEventDataSeries<>(profilers.getClient().getTransportClient(),
+                                          profilers.getSession().getStreamId(),
+                                          profilers.getSession().getPid(),
+                                          Common.Event.Kind.NETWORK_SPEED,
+                                          trafficType == NetworkTrafficDataSeries.Type.BYTES_SENT
+                                          ? Common.Event.EventGroupIds.NETWORK_TX_VALUE
+                                          : Common.Event.EventGroupIds.NETWORK_RX_VALUE,
+                                          UnifiedEventDataSeries
+                                            .fromFieldToDataExtractor(event -> event.getNetworkSpeed().getThroughput()));
     }
     else {
       NetworkServiceGrpc.NetworkServiceBlockingStub client = profilers.getClient().getNetworkClient();

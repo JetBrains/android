@@ -17,21 +17,22 @@ package com.android.tools.idea.transport;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
-import com.android.ddmlib.*;
+import com.android.ddmlib.AdbCommandRejectedException;
+import com.android.ddmlib.IDevice;
+import com.android.ddmlib.MultiLineReceiver;
+import com.android.ddmlib.NullOutputReceiver;
+import com.android.ddmlib.ShellCommandUnresponsiveException;
+import com.android.ddmlib.SyncException;
+import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.profiler.proto.Agent;
 import com.android.tools.profiler.proto.Common.CommonConfig;
 import com.android.tools.profiler.proto.Transport;
-import com.google.common.base.Charsets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.messages.MessageBus;
-import org.jetbrains.android.download.AndroidProfilerDownloader;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -41,6 +42,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.jetbrains.android.download.AndroidProfilerDownloader;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class TransportFileManager {
   private static class HostFiles {
@@ -266,11 +270,8 @@ public final class TransportFileManager {
          * In older devices, chmod letter usage isn't fully supported but CTS tests have been added for it since.
          * Hence we first try the letter scheme which is guaranteed in newer devices, and fall back to the octal scheme only if necessary.
          */
-        ChmodOutputListener chmodListener = new ChmodOutputListener();
-        myDevice.executeShellCommand("chmod +x " + deviceFilePath, chmodListener);
-        if (chmodListener.hasErrors()) {
-          myDevice.executeShellCommand("chmod 777 " + deviceFilePath, new NullOutputReceiver());
-        }
+        String cmd = "chmod +x " + deviceFilePath + " || chmod 777 " + deviceFilePath;
+        myDevice.executeShellCommand(cmd, new NullOutputReceiver());
       }
       getLogger().info(String.format("Successfully pushed %s to %s.", fileName, DEVICE_DIR));
     }
@@ -380,35 +381,5 @@ public final class TransportFileManager {
       }
     }
     return bestAbis;
-  }
-
-  private static class ChmodOutputListener implements IShellOutputReceiver {
-    /**
-     * When chmod fails to modify permissions, the following "Bad mode" error string is output.
-     * This listener checks if the string is present to validate if chmod was successful.
-     */
-    private static final String BAD_MODE = "Bad mode";
-
-    private boolean myHasErrors;
-
-    @Override
-    public void addOutput(byte[] data, int offset, int length) {
-      String s = new String(data, Charsets.UTF_8);
-      myHasErrors = s.contains(BAD_MODE);
-    }
-
-    @Override
-    public void flush() {
-
-    }
-
-    @Override
-    public boolean isCancelled() {
-      return false;
-    }
-
-    private boolean hasErrors() {
-      return myHasErrors;
-    }
   }
 }

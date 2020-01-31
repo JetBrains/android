@@ -49,10 +49,11 @@ public class ObjectStreamErrorHandlerTest extends AndroidGradleTestCase {
     loadProjectAndExpectSyncError(SIMPLE_APPLICATION);
 
     GradleSyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
+/* b/137231583
     assertNotNull(notificationUpdate);
     assertThat(notificationUpdate.getText()).contains(
       "An unexpected I/O error occurred.\n" +
-      "The error, \"Cause: unexpected end of block data\" usually happens on Linux when Build-tools or an Android platform being used in a project is not installed.\n");
+      "The error, \"unexpected end of block data\" usually happens on Linux when Build-tools or an Android platform being used in a project is not installed.\n");
 
     // Verify hyperlinks are correct.
     List<NotificationHyperlink> quickFixes = notificationUpdate.getFixes();
@@ -61,6 +62,7 @@ public class ObjectStreamErrorHandlerTest extends AndroidGradleTestCase {
     assertThat(quickFixes.get(1)).isInstanceOf(OpenAndroidSdkManagerHyperlink.class);
 
     assertEquals(OBJECT_STREAM_ERROR, myUsageReporter.getCollectedFailure());
+b/137231583 */
     assertEquals(ImmutableList.of(), myUsageReporter.getCollectedQuickFixes());
   }
 }

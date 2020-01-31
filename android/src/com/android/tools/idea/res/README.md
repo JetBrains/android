@@ -5,37 +5,6 @@ and the `ResourceResolver`.
 
 [TOC]
 
-## The Old Resource Repository (`com.android.ide.common.resources.ResourceRepository`)
-
-A ResourceRepository is, as the name suggests, a class which holds a set of resources.
-
-The ResourceRepository is actually defined in tools/base, not Android Studio, and is quite old: it’s tied to the first versions of layoutlib
-and the layout rendering in Eclipse. There were two repositories: one for framework resources (`android.R`), and one for the
-user’s resources (`R`).
-
-The new build system (Gradle) added a lot of new features around resource merging: you can provide multiple source sets, and these get
-merged in a predefined way at build time. The old resource repository model was not up to the task for this, so a new version of
-ResourceRepository was created, in the res2 package. However, the old one stays around because it’s still used to handle framework
-resources (and for that specific purpose, it’s faster, which matters given that in a typical project, there are a lot of framework
-resources (the list grows for every SDK release.)
-
-The way the old system is still used is through `org.jetbrains.android.sdk.FrameworkResourceLoader.IdeFrameworkResources`. These objects are
-created and cached through `ResourceResolverCache` (see below), keeping track of the API level. Usually the `FrameworkResourceLoader` is run
-on a special `IAndroidTarget` that uses layoutlib resources bundled with the IDE, not the ones in `$ANDROID_HOME/platforms`. See
-`StudioEmbeddedRenderTarget`.
-
-## The New Resource Repository
-
-The new resource repository system is based on  `com.android.ide.common.res2.AbstractResourceRepository` and
-`com.android.ide.common.res2.ResourceItem`. Currently there are two use cases for it:
-
-- `com.android.ide.common.res2.ResourceRepository` which is used by Lint,
-- the whole hierarchy of different repositories used by the IDE.
-
-These classes are closely related to `com.android.ide.common.res2.ResourceMerger` which is used by Gradle for merging resources between
-source sets. `ResourceMerger` knows how to create `ResourceItems`. Some of the repositories used by the IDE are initialized by running
-the merger on one or more directories to get the initial set of items.
-
 ## Resource Repositories
 
 Whereas in non-Gradle projects, there is just a single resource repository modeling all non-framework resources, in a Studio Gradle project,
@@ -54,7 +23,8 @@ The common superclass of all of them is [MultiResourceRepository](MultiResourceR
 
 All the values come from leaves in the tree, which are:
 - [ResourceFolderRepository](ResourceFolderRepository.java): resources from a single folder inside the project.
-- [FileResourceRepository](FileResourceRepository.java): resources from a single folder outside of the project (e.g. unzipped AAR).
+- [AarResourceRepository](../../../../../../../resources-base/src/com/android/tools/idea/resources/aar/AarResourceRepository.java): resources
+  from a single AAR.
 - [DynamicResourceValueRepository](DynamicResourceValueRepository.java): values defined in `build.gradle` and passed through the model.
 
 Another feature of the repository hierarchy is that children can invalidate caches in the parents. Currently we end up caching values
@@ -63,13 +33,15 @@ at multiple levels, because every `MultiResourceRepository` does caching of the 
 See also the [`LocalResourceRepository` JavaDoc](LocalResourceRepository.java) for an additional description of how the system works.
 
 ## Lifecycle
-Repositories from the first list above are singletons in the scope of a given module. The class responsible for this is `ResourceRepositories`
-which is stored as user data on the `AndroidFacet` and has fields for all three kinds of module repositories.
+Repositories from the first list above are singletons in the scope of a given module. The class responsible for this is
+`ResourceRepositories`, which is stored as user data on the `AndroidFacet` and has fields for all three kinds of module repositories.
 
-`ResourceFolderRepositories` are unique per directory, managed by `ResourceFolderRegistry`. The registry uses 
-`ResourceFolderRepositoryFileCacheService` to quickly save and load state (see section about blob files below).
+Instances of `ResourceFolderRepository` are unique per directory, managed by `ResourceFolderRegistry`. The registry uses 
+`ResourceFolderRepositoryFileCacheService` to manage cache files used to quickly load state of `ResourceFolderRepository`.
+Format of the cache files is described in
+[ResourceSerializationUtil](../../../../../../../resources-base/src/com/android/tools/idea/resources/base/ResourceSerializationUtil.java).
 
-`FileResourceRepositories` are unique per directory, managed by a soft references cache in the class itself.
+Instances of `AarResourceRepository` are unique per directory, managed by `AarResourceRepositoryCache`.
 
 ## ResourceManager
 
@@ -141,55 +113,7 @@ we rescan it and replace the file-based resource items ([ResourceItem](ResourceI
 necessary, meaning the initial initialization of the repository is much faster. The plain file-based XML data structures are also more
 memory efficient than the PSI-based ones.
 
-Thus it is important that a ResourceItem can be used in place of a PsiResourceItem. Data Binding files are one case that are
-not handled by the file-based parsers at all, and are handled by the PSI-based parser.
-
-### Caching with Blob Files
-
-Still, there remains a problem that the parser is opening many tiny files. To address this, Gradle has a fast persistence mechanism
-for resources, which merges all of the data into a single "blob" XML file (see `ResourceMerger#writeBlobTo` and
-`ResourceMerger#loadFromBlob`). This is used by Gradle for incremental builds. We reuse that mechanism to quickly persist resource
-repositories. There is one cache file per ResourceFolderRepository.
-
-The blob file format is currently XML, but in the future it would be nice to have a compressed binary format which may be smaller
-and quicker to parse.
-
-The XML blob has file nodes of the form:
-
-```
-  <merger ... xmlns:ns1="...xliff..."><dataSet ...><source path="/path/to/original/res">
-    ...
-    <file path="/path/to/original/res/values/some_values.xml" timestamp="12345">
-      <string name="...">some\n  string<ns1:g ...>%1$s</ns1:g></string>
-      <declare-styleable ...>
-        <attr ...><enum .../>...</attr>
-      </declare-styleable>
-    </file>
-
-    <file path="/path/to/original/res/layout-land/activity_foo.xml" timestamp="12345">
-      <item name="activity_foo" type="layout"> ...</item>
-      <item name="someId" type="id"/>
-    </file>
-    ...
-  </source></dataSet></merger>
-```
-
-On reload, the blob loader checks that the `some_values.xml` has not been modified since the cached timestamp. Thus, init still involves
-checking the last-modified times of many files. If enough files are stale, then the repository writes out a fresh blob file.
-Filename-derived resources like drawable PNGs are not cached in the blob file. Instead, we simply get a directory listing and derive the
-ResourceItem from the filename, to avoid checking timestamps and keep the size of the blob file small. A directory listing is also
-required for XML-based resources to discover new files.
-
-The [ResourceFolderRepositoryFileCache](ResourceFolderRepositoryFileCache.java) manages the storage for these blob files.  It maintains
-an LRU list of projects and evicts the oldest project's files once there are "too many" projects. This class also handles invalidation:
-if the version of the cache is different from expected, or if the user invokes the "Invalidate Caches" IDE action.
-
-A developer must bump the expected version to invalidate the cache as needed. For example, if the ResourceFolderRepository is expected to
-track more information (e.g., a new type of ResourceValue, or source XML line numbers for each item) and an old cache would be incomplete.
-
-We may be able to extend this caching to FileResourceRepository as well, but that is currently not done. There are some differences
-between the repositories. For example, FileResourceRepository stores ID items in a simple R.txt file instead of scanning layout, drawable,
-etc. XML files for `android:id=@+id/foo` attributes.
+Thus it is important that a ResourceItem can be used in place of a PsiResourceItem.
 
 ### Parallel Initialization
 

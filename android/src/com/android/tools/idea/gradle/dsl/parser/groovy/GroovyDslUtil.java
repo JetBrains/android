@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.groovy;
 
+import static com.android.tools.idea.gradle.dsl.parser.SharedParserUtilsKt.findLastPsiElementIn;
+import static com.android.tools.idea.gradle.dsl.parser.SharedParserUtilsKt.getNextValidParent;
+import static com.android.tools.idea.gradle.dsl.parser.SharedParserUtilsKt.removePsiIfInvalid;
 import static com.intellij.openapi.util.text.StringUtil.isQuotedString;
 import static com.intellij.openapi.util.text.StringUtil.unquoteString;
 import static com.intellij.psi.util.PsiTreeUtil.getChildOfType;
@@ -32,8 +35,6 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSettableExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
-import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -51,8 +52,6 @@ import com.intellij.psi.impl.source.tree.ChangeUtil;
 import com.intellij.psi.impl.source.tree.TreeElement;
 import com.intellij.util.IncorrectOperationException;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -88,7 +87,7 @@ public final class GroovyDslUtil {
     if (element instanceof GroovyPsiElement) {
       return (GroovyPsiElement)element;
     }
-    throw new IllegalArgumentException("Wrong PsiElement type for writer! Must be of type GoovyPsiElement");
+    throw new IllegalArgumentException("Wrong PsiElement type for writer! Must be of type GroovyPsiElement");
   }
 
   static void addConfigBlock(@NotNull GradleDslSettableExpression expression) {
@@ -143,30 +142,7 @@ public final class GroovyDslUtil {
     return GroovyPsiElementFactory.getInstance(project);
   }
 
-  static boolean isNewEmptyBlockElement(@NotNull GradleDslElement element) {
-    if (element.getPsiElement() != null) {
-      return false;
-    }
-
-    if (!element.isBlockElement() || !element.isInsignificantIfEmpty()) {
-      return false;
-    }
-
-    Collection<GradleDslElement> children = element.getChildren();
-    if (children.isEmpty()) {
-      return true;
-    }
-
-    for (GradleDslElement child : children) {
-      if (!isNewEmptyBlockElement(child)) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  static void maybeDeleteIfEmpty(@Nullable PsiElement element, @NotNull GradleDslElement dslElement) {
+  static void  maybeDeleteIfEmpty(@Nullable PsiElement element, @NotNull GradleDslElement dslElement) {
     GradleDslElement parentDslElement = dslElement.getParent();
     if ((parentDslElement instanceof GradleDslExpressionList && !((GradleDslExpressionList)parentDslElement).shouldBeDeleted()) ||
         (parentDslElement instanceof GradleDslExpressionMap && !((GradleDslExpressionMap)parentDslElement).shouldBeDeleted()) &&
@@ -285,33 +261,6 @@ public final class GroovyDslUtil {
       if (dslParent != null && dslParent.isInsignificantIfEmpty()) {
         maybeDeleteIfEmpty(parent, element == dslParent.getPsiElement() ? dslParent : containingDslElement);
       }
-    }
-  }
-
-  @Nullable
-  static GradleDslElement getNextValidParent(@NotNull GradleDslElement element) {
-    PsiElement psi = element.getPsiElement();
-    while (element != null && (psi == null || !psi.isValid())) {
-      element = element.getParent();
-      if (element != null) {
-        psi = element.getPsiElement();
-      }
-    }
-
-    return element;
-  }
-
-  static void removePsiIfInvalid(@Nullable GradleDslElement element) {
-    if (element == null) {
-      return;
-    }
-
-    if (element.getPsiElement() != null && !element.getPsiElement().isValid()) {
-      element.setPsiElement(null);
-    }
-
-    if (element.getParent() != null) {
-      removePsiIfInvalid(element.getParent());
     }
   }
 
@@ -654,26 +603,6 @@ public final class GroovyDslUtil {
     return parentPsiElement;
   }
 
-  static String maybeTrimForParent(@NotNull GradleNameElement name, @Nullable GradleDslElement parent) {
-    if (parent == null) {
-      return name.fullName();
-    }
-
-    List<String> parts = new ArrayList<>(name.fullNameParts());
-    if (parts.isEmpty()) {
-      return name.fullName();
-    }
-    String lastNamePart = parts.remove(parts.size() - 1);
-    List<String> parentParts = Splitter.on(".").splitToList(parent.getQualifiedName());
-    int i = 0;
-    while (i < parentParts.size() && !parts.isEmpty() && parentParts.get(i).equals(parts.get(0))) {
-      parts.remove(0);
-      i++;
-    }
-    parts.add(lastNamePart);
-    return GradleNameElement.createNameFromParts(parts);
-  }
-
   /**
    * This method is required to work out whether a GradleDslReference or GradleDslLiteral is an internal value in a map.
    * This allows us to add the PsiElement into the correct position, note: due to the PsiElements Api we have to add the
@@ -786,7 +715,7 @@ public final class GroovyDslUtil {
 
   static void maybeUpdateName(@NotNull GradleDslElement element) {
     PsiElement oldName = element.getNameElement().getNamedPsiElement();
-    String newName = element.getNameElement().getUnsavedName();
+    String newName = element.getNameElement().getLocalName();
     PsiElement newElement;
     if (newName == null || oldName == null) {
       return;
@@ -804,28 +733,6 @@ public final class GroovyDslUtil {
       newElement = oldName.replace(psiElement);
     }
     element.getNameElement().commitNameChange(newElement);
-  }
-
-  /**
-   * @param startElement starting element
-   * @return the last none null psi element in the tree starting at node startElement.
-   */
-  @Nullable
-  static PsiElement findLastPsiElementIn(@NotNull GradleDslElement startElement) {
-    PsiElement psiElement = startElement.getPsiElement();
-    if (psiElement != null) {
-      return psiElement;
-    }
-
-    for (GradleDslElement element : Lists.reverse(new ArrayList<>(startElement.getChildren()))) {
-      if (element != null) {
-        PsiElement psi = findLastPsiElementIn(element);
-        if (psi != null) {
-          return psi;
-        }
-      }
-    }
-    return null;
   }
 
   @Nullable

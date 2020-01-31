@@ -48,11 +48,9 @@ import org.jetbrains.annotations.Nullable;
  */
 @SuppressWarnings("UseJBColor") // We are generating colors in our icons, no need for JBColor here.
 public class LauncherLegacyIconGenerator extends IconGenerator {
-  public static final Color DEFAULT_FOREGROUND_COLOR = Color.BLACK;
   public static final Color DEFAULT_BACKGROUND_COLOR = Color.WHITE;
   public static final Shape DEFAULT_ICON_SHAPE = Shape.SQUARE;
 
-  private static final Rectangle IMAGE_SIZE_WEB = new Rectangle(0, 0, 512, 512);
   private static final Rectangle IMAGE_SIZE_MDPI = new Rectangle(0, 0, 48, 48);
 
   private static final Map<Pair<Shape, Density>, Rectangle> TARGET_RECTS = buildTargetRectangles();
@@ -125,7 +123,6 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
     options.crop = myCropped.get();
     options.style = Style.SIMPLE;
     options.backgroundColor = myBackgroundColor.get().getRGB();
-    options.generateWebIcon = true;
     options.isDogEar = myDogEared.get();
 
     return options;
@@ -151,56 +148,9 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
   }
 
   /**
-   * Loads a pref-defined image file given a {@link Shape}, {@link Density} and fileName.
-   *
-   * <p>Pass a {@link Density#NODPI} to get the {@link Rectangle} corresponding to the "Web" image size.
-   */
-  @Nullable
-  private static BufferedImage loadImage(@NotNull GraphicGeneratorContext context, @NotNull Shape shape, @NotNull Density density,
-                                         @NotNull String fileName) {
-    String densityValue = density == Density.NODPI ? "web" : density.getResourceValue();
-    String name = String.format("/images/launcher_stencil/%s/%s/%s.png", shape.id, densityValue, fileName);
-    return context.loadImageResource(name);
-  }
-
-  /**
-   * Loads a pref-defined mask image file given a {@link Shape}, {@link Density} and fileName.
-   *
-   * <p>Pass a <code>null</code> {@link Density} to get the {@link Rectangle} corresponding to the
-   * "Web" image size.
-   */
-  @Nullable
-  public static BufferedImage loadMaskImage(@NotNull GraphicGeneratorContext context, @NotNull Shape shape, @NotNull Density density) {
-    return loadImage(context, shape, density, "mask");
-  }
-
-  /**
-   * Loads a pref-defined background image file given a {@link Shape}, {@link Density} and fileName.
-   *
-   * <p>Pass a {@link Density#NODPI} to get the {@link Rectangle} corresponding to the "Web" image size.
-   */
-  @Nullable
-  public static BufferedImage loadBackImage(@NotNull GraphicGeneratorContext context, @NotNull Shape shape, @NotNull Density density) {
-    return loadImage(context, shape, density, "back");
-  }
-
-  /**
-   * Loads a pref-defined style image file given a {@link Shape}, {@link Density} and fileName.
-   *
-   * <p>Pass a {@link Density#NODPI} to get the {@link Rectangle} corresponding to the "Web" image size.
-   */
-  @Nullable
-  public static BufferedImage loadStyleImage(@NotNull GraphicGeneratorContext context, @NotNull Shape shape, @NotNull Density density,
-                                             @NotNull Style style) {
-    return loadImage(context, shape, density, style.id);
-  }
-
-  /**
    * Returns the {@link Rectangle} (in pixels) where the foreground image of a legacy icon should
    * be rendered. The {@link Rectangle} value depends on the {@link Shape} of the background, as
    * different shapes have different sizes.
-   *
-   * <p>Pass a {@link Density#NODPI} to get the {@link Rectangle} corresponding to the "Web" image size.
    */
   @NotNull
   public static Rectangle getTargetRect(@Nullable Shape shape, @NotNull Density density) {
@@ -214,14 +164,13 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
 
   @Override
   @NotNull
-  public BufferedImage generateRasterImage(@NotNull GraphicGeneratorContext context, @NotNull Options options) {
+  public AnnotatedImage generateRasterImage(@NotNull GraphicGeneratorContext context, @NotNull Options options) {
     if (options.usePlaceholders) {
       return PLACEHOLDER_IMAGE;
     }
 
     LauncherLegacyOptions launcherOptions = (LauncherLegacyOptions)options;
-    Rectangle imageRect =
-        launcherOptions.generateWebIcon ? IMAGE_SIZE_WEB : scaleRectangle(IMAGE_SIZE_MDPI, getMdpiScaleFactor(launcherOptions.density));
+    Rectangle imageRect = scaleRectangle(IMAGE_SIZE_MDPI, getMdpiScaleFactor(launcherOptions.density));
 
     if (launcherOptions.isDogEar) {
       launcherOptions.shape = applyDog(launcherOptions.shape);
@@ -231,10 +180,9 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
     BufferedImage shapeImageFore = null;
     BufferedImage shapeImageMask = null;
     if (launcherOptions.shape != Shape.NONE && launcherOptions.shape != null && launcherOptions.renderShape) {
-      Density loadImageDensity = launcherOptions.generateWebIcon ? Density.NODPI : launcherOptions.density;
-      shapeImageBack = loadBackImage(context, launcherOptions.shape, loadImageDensity);
-      shapeImageFore = loadStyleImage(context, launcherOptions.shape, loadImageDensity, launcherOptions.style);
-      shapeImageMask = loadMaskImage(context, launcherOptions.shape, loadImageDensity);
+      shapeImageBack = loadBackImage(context, launcherOptions.shape, launcherOptions.density);
+      shapeImageFore = loadStyleImage(context, launcherOptions.shape, launcherOptions.density, launcherOptions.style);
+      shapeImageMask = loadMaskImage(context, launcherOptions.shape, launcherOptions.density);
     }
 
     Rectangle targetRect = getTargetRect(launcherOptions.shape, launcherOptions.density);
@@ -245,15 +193,15 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
     gTemp.setPaint(new Color(launcherOptions.backgroundColor));
     gTemp.fillRect(0, 0, imageRect.width, imageRect.height);
 
-    BufferedImage sourceImage = generateRasterImage(targetRect.getSize(), options);
+    AnnotatedImage sourceImage = generateRasterImage(targetRect.getSize(), options);
 
     // Render the foreground icon onto an intermediate image. This lets us override the color of the icon.
     BufferedImage iconImage = AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);
     Graphics2D gIcon = (Graphics2D) iconImage.getGraphics();
     if (launcherOptions.crop) {
-      AssetUtil.drawCenterCrop(gIcon, sourceImage, targetRect);
+      AssetUtil.drawCenterCrop(gIcon, sourceImage.getImage(), targetRect);
     } else {
-      AssetUtil.drawCenterInside(gIcon, sourceImage, targetRect);
+      AssetUtil.drawCenterInside(gIcon, sourceImage.getImage(), targetRect);
     }
 
     // Apply the foreground color if requested.
@@ -291,7 +239,7 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
     gTemp.dispose();
     gIcon.dispose();
 
-    return outImage;
+    return new AnnotatedImage(outImage, sourceImage.getErrorMessage());
   }
 
   @Override
@@ -301,27 +249,9 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
   }
 
   @Override
-  public void generateRasterImage(@Nullable String category, @NotNull Map<String, Map<String, BufferedImage>> categoryMap,
-                                  @NotNull GraphicGeneratorContext context, @NotNull Options options, @NotNull String name) {
-    LauncherLegacyOptions launcherOptions = (LauncherLegacyOptions)options;
-    boolean generateWebImage = launcherOptions.generateWebIcon;
-    launcherOptions.generateWebIcon = false;
-    super.generateRasterImage(category, categoryMap, context, options, name);
-
-    if (generateWebImage) {
-      launcherOptions.generateWebIcon = true;
-      launcherOptions.density = Density.NODPI;
-      BufferedImage image = generateRasterImage(context, options);
-      Map<String, BufferedImage> imageMap = new HashMap<>();
-      categoryMap.put("Web", imageMap);
-      imageMap.put(getIconPath(options, name), image);
-    }
-  }
-
-  @Override
   @NotNull
   public Collection<GeneratedIcon> generateIcons(@NotNull GraphicGeneratorContext context, @NotNull Options options, @NotNull String name) {
-    Map<String, Map<String, BufferedImage>> categoryMap = new HashMap<>();
+    Map<String, Map<String, AnnotatedImage>> categoryMap = new HashMap<>();
     generateRasterImage(null, categoryMap, context, options, name);
 
     // Category map is a map from category name to a map from relative path to image.
@@ -332,10 +262,10 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
           (path, image) -> {
             IconCategory iconCategory = IconCategory.REGULAR;
             Density density = pathToDensity(path);
-            // Could be a "Web" image
+            // Could be a Play Store image
             if (density == null) {
               density = Density.NODPI;
-              iconCategory = IconCategory.WEB;
+              iconCategory = IconCategory.PLAY_STORE;
             }
             GeneratedImageIcon icon = new GeneratedImageIcon(path, new PathString(path), iconCategory, density, image);
             icons.add(icon);
@@ -343,69 +273,43 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
     return icons;
   }
 
-  @Override
-  @NotNull
-  protected String getIconPath(@NotNull Options options, @NotNull String iconName) {
-    if (((LauncherLegacyOptions)options).generateWebIcon) {
-      return iconName + "-web.png"; // Store at the root of the project.
-    }
-
-    return super.getIconPath(options, iconName);
-  }
-
   private static Map<Pair<Shape, Density>, Rectangle> buildTargetRectangles() {
     ImmutableMap.Builder<Pair<Shape, Density>, Rectangle> targetRects = new ImmutableMap.Builder<>();
-    // None, Web
-    targetRects.put(Pair.of(Shape.NONE, Density.NODPI), new Rectangle(32, 32, 448, 448));
     // None, HDPI
     targetRects.put(Pair.of(Shape.NONE, Density.HIGH), new Rectangle(4, 4, 64, 64));
     // None, MDPI
     targetRects.put(Pair.of(Shape.NONE, Density.MEDIUM), new Rectangle(3, 3, 42, 42));
 
-    // Circle, Web
-    targetRects.put(Pair.of(Shape.CIRCLE, Density.NODPI), new Rectangle(21, 21, 470, 470));
     // Circle, HDPI
     targetRects.put(Pair.of(Shape.CIRCLE, Density.HIGH), new Rectangle(3, 3, 66, 66));
     // Circle, MDPI
     targetRects.put(Pair.of(Shape.CIRCLE, Density.MEDIUM), new Rectangle(2, 2, 44, 44));
 
-    // Square, Web
-    targetRects.put(Pair.of(Shape.SQUARE, Density.NODPI), new Rectangle(53, 53, 406, 406));
     // Square, HDPI
     targetRects.put(Pair.of(Shape.SQUARE, Density.HIGH), new Rectangle(7, 7, 57, 57));
     // Square, MDPI
     targetRects.put(Pair.of(Shape.SQUARE, Density.MEDIUM), new Rectangle(5, 5, 38, 38));
 
-    // Vertical Rectangle, Web
-    targetRects.put(Pair.of(Shape.VRECT, Density.NODPI), new Rectangle(85, 21, 342, 470));
     // Vertical Rectangle, HDPI
     targetRects.put(Pair.of(Shape.VRECT, Density.HIGH), new Rectangle(12, 3, 48, 66));
     // Vertical Rectangle, MDPI
     targetRects.put(Pair.of(Shape.VRECT, Density.MEDIUM), new Rectangle(8, 2, 32, 44));
 
-    // Horizontal Rectangle, Web
-    targetRects.put(Pair.of(Shape.HRECT, Density.NODPI), new Rectangle(21, 85, 470, 342));
     // Horizontal Rectangle, HDPI
     targetRects.put(Pair.of(Shape.HRECT, Density.HIGH), new Rectangle(3, 12, 66, 48));
     // Horizontal Rectangle, MDPI
     targetRects.put(Pair.of(Shape.HRECT, Density.MEDIUM), new Rectangle(2, 8, 44, 32));
 
-    // Square Dog-ear, Web
-    targetRects.put(Pair.of(Shape.SQUARE_DOG, Density.NODPI), new Rectangle(53, 149, 406, 312));
     // Square Dog-ear, HDPI
     targetRects.put(Pair.of(Shape.SQUARE_DOG, Density.HIGH), new Rectangle(7, 21, 57, 43));
     // Square Dog-ear, MDPI
     targetRects.put(Pair.of(Shape.SQUARE_DOG, Density.MEDIUM), new Rectangle(5, 14, 38, 29));
 
-    // Vertical Rectangle Dog-ear, Web
-    targetRects.put(Pair.of(Shape.VRECT_DOG, Density.NODPI), new Rectangle(85, 117, 342, 374));
     // Vertical Rectangle Dog-ear, HDPI
     targetRects.put(Pair.of(Shape.VRECT_DOG, Density.HIGH), new Rectangle(12, 17, 48, 52));
     // Vertical Rectangle Dog-ear, MDPI
     targetRects.put(Pair.of(Shape.VRECT_DOG, Density.MEDIUM), new Rectangle(8, 11, 32, 35));
 
-    // Horizontal Rectangle Dog-ear, Web
-    targetRects.put(Pair.of(Shape.HRECT_DOG, Density.NODPI), new Rectangle(21, 85, 374, 342));
     // Horizontal Rectangle Dog-ear, HDPI
     targetRects.put(Pair.of(Shape.HRECT_DOG, Density.HIGH), new Rectangle(3, 12, 52, 48));
     // Horizontal Rectangle Dog-ear, MDPI
@@ -444,15 +348,6 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
      * scale the image to the target rectangle associated to the shape.
      */
     public boolean renderShape = true;
-
-    /**
-     * Whether a web graphic should be generated (will ignore normal density setting).
-     * The {@link #generateRasterImage(GraphicGeneratorContext, Options)} method will use this to
-     * decide whether to generate a normal density icon or a high res web image.
-     * The {@link #generateRasterImage(String, Map, GraphicGeneratorContext, Options, String)} method
-     * will use this flag to determine whether it should include a web graphic in its iteration.
-     */
-    public boolean generateWebIcon;
 
     public LauncherLegacyOptions(boolean forPreview) {
       super(forPreview);

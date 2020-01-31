@@ -15,23 +15,33 @@
  */
 package com.android.tools.idea.naveditor.scene.decorator
 
+import com.android.SdkConstants
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.decorator.SceneDecorator
 import com.android.tools.idea.common.scene.draw.DisplayList
+import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.naveditor.model.isStartDestination
+import com.android.tools.idea.naveditor.model.uiName
 import com.android.tools.idea.naveditor.scene.NavColors.FRAME
 import com.android.tools.idea.naveditor.scene.NavColors.HIGHLIGHTED_FRAME
 import com.android.tools.idea.naveditor.scene.NavColors.SELECTED
 import com.android.tools.idea.naveditor.scene.NavColors.TEXT
-import com.android.tools.idea.naveditor.scene.targets.ActionHandleTarget
-import com.intellij.ui.scale.JBUIScale
+import com.android.tools.idea.naveditor.scene.draw.DrawHeader
+import com.android.tools.idea.naveditor.scene.getHeaderRect
+import com.android.tools.idea.naveditor.scene.targets.isDragCreateInProgress
+import com.intellij.util.ui.JBUI
+import java.awt.BasicStroke
 import java.awt.Color
+import java.awt.geom.Rectangle2D
 
 @SwingCoordinate
-val REGULAR_FRAME_THICKNESS = JBUIScale.scale(1f)
+val REGULAR_FRAME_THICKNESS = JBUI.scale(1f)
+val REGULAR_FRAME_STROKE = BasicStroke(REGULAR_FRAME_THICKNESS)
 @SwingCoordinate
-val HIGHLIGHTED_FRAME_THICKNESS = JBUIScale.scale(2f)
+val HIGHLIGHTED_FRAME_THICKNESS = JBUI.scale(2f)
+val HIGHLIGHTED_FRAME_STROKE = BasicStroke(HIGHLIGHTED_FRAME_THICKNESS)
 
 
 abstract class NavBaseDecorator : SceneDecorator() {
@@ -41,11 +51,21 @@ abstract class NavBaseDecorator : SceneDecorator() {
   override fun addBackground(list: DisplayList, sceneContext: SceneContext, component: SceneComponent) {
   }
 
+  protected fun addHeader(list: DisplayList, sceneView: SceneView, rectangle: Rectangle2D.Float, component: SceneComponent) {
+    val headerRect = getHeaderRect(sceneView, rectangle)
+    val scale = sceneView.scale.toFloat()
+    val text = component.nlComponent.uiName
+    val isStart = component.nlComponent.isStartDestination
+    val hasDeepLink = component.nlComponent.children.any { it.tagName == SdkConstants.TAG_DEEP_LINK }
+
+    list.add(DrawHeader(headerRect, scale, text, isStart, hasDeepLink))
+  }
+
   fun frameColor(component: SceneComponent): Color =
     when (component.drawState) {
       SceneComponent.DrawState.SELECTED -> SELECTED
       SceneComponent.DrawState.HOVER ->
-        if (ActionHandleTarget.isDragCreateInProgress(component.nlComponent) && !component.id.isNullOrEmpty()) SELECTED
+        if (isDragCreateInProgress(component.nlComponent) && !component.id.isNullOrEmpty()) SELECTED
         else HIGHLIGHTED_FRAME
       SceneComponent.DrawState.DRAG -> HIGHLIGHTED_FRAME
       else -> FRAME

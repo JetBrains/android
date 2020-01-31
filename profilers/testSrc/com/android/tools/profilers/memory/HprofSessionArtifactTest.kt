@@ -19,7 +19,7 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profiler.proto.MemoryProfiler
+import com.android.tools.profiler.proto.Memory.HeapDumpInfo
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
@@ -62,14 +62,14 @@ class HprofSessionArtifactTest {
 
   @Test
   fun testOngoingCapture() {
-    val ongoingInfo = MemoryProfiler.HeapDumpInfo.newBuilder().setStartTime(1).setEndTime(Long.MAX_VALUE).build()
+    val ongoingInfo = HeapDumpInfo.newBuilder().setStartTime(1).setEndTime(Long.MAX_VALUE).build()
     val ongoingArtifact = HprofSessionArtifact(myProfilers,
                                                Common.Session.getDefaultInstance(),
                                                Common.SessionMetaData.getDefaultInstance(),
                                                ongoingInfo)
     assertThat(ongoingArtifact.isOngoing).isTrue()
 
-    val finishedInfo = MemoryProfiler.HeapDumpInfo.newBuilder().setStartTime(1).setEndTime(2).build()
+    val finishedInfo = HeapDumpInfo.newBuilder().setStartTime(1).setEndTime(2).build()
     val finishedArtifact = HprofSessionArtifact(myProfilers,
                                                 Common.Session.getDefaultInstance(),
                                                 Common.SessionMetaData.getDefaultInstance(),
@@ -79,8 +79,8 @@ class HprofSessionArtifactTest {
 
   @Test
   fun testSubtitle() {
-    val ongoingInfo = MemoryProfiler.HeapDumpInfo.newBuilder().setStartTime(1).setEndTime(Long.MAX_VALUE).build()
-    val finishedInfo = MemoryProfiler.HeapDumpInfo.newBuilder()
+    val ongoingInfo = HeapDumpInfo.newBuilder().setStartTime(1).setEndTime(Long.MAX_VALUE).build()
+    val finishedInfo = HeapDumpInfo.newBuilder()
       .setStartTime(TimeUnit.SECONDS.toNanos(5)).setEndTime(TimeUnit.SECONDS.toNanos(10)).build()
 
     val ongoingCaptureArtifact = HprofSessionArtifact(myProfilers,

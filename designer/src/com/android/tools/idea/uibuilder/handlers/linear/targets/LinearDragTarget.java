@@ -126,11 +126,11 @@ public class LinearDragTarget extends DragBaseTarget {
     if (myClosest != null) {
       myClosest.setHighlight(false);
       if (!LinearLayoutHandler.insertComponentAtTarget(myComponent, myClosest)) {
-        myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
+        myComponent.getScene().markNeedsLayout(Scene.ANIMATED_LAYOUT);
       }
     }
     else {
-      myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
+      myComponent.getScene().markNeedsLayout(Scene.ANIMATED_LAYOUT);
     }
   }
 

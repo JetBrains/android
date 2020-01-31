@@ -3,7 +3,7 @@
     android:height="108dp"
     android:viewportWidth="41.37931"
     android:viewportHeight="41.37931"
-    android:tint="#A4C639">
+    android:tint="#00FF00">
   <group android:translateX="8.689655"
       android:translateY="8.689655">
       <path

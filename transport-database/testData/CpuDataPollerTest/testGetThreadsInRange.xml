@@ -143,30 +143,6 @@ threads {
 }
 </message>
     </GrpcCall>
-    <GrpcCall FunctionCalled="profiler.proto.CpuService/CheckAppProfilingState" Class="class com.android.tools.profiler.proto.CpuProfiler$ProfilingStateRequest">
-        <Message>session {
-  session_id: 4321
-  stream_id: 1234
-  pid: 5678
-}
-</Message>
-        <clazz>class com.android.tools.profiler.proto.CpuProfiler$ProfilingStateRequest</clazz>
-        <functionCalled>profiler.proto.CpuService/CheckAppProfilingState</functionCalled>
-        <message>session {
-  session_id: 4321
-  stream_id: 1234
-  pid: 5678
-}
-</message>
-    </GrpcCall>
-    <GrpcCall FunctionCalled="profiler.proto.CpuService/CheckAppProfilingState" Class="class com.android.tools.profiler.proto.CpuProfiler$ProfilingStateResponse">
-        <Message>check_timestamp: 1
-</Message>
-        <clazz>class com.android.tools.profiler.proto.CpuProfiler$ProfilingStateResponse</clazz>
-        <functionCalled>profiler.proto.CpuService/CheckAppProfilingState</functionCalled>
-        <message>check_timestamp: 1
-</message>
-    </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.CpuService/GetTraceInfo" Class="class com.android.tools.profiler.proto.CpuProfiler$GetTraceInfoRequest">
         <Message>session {
   session_id: 4321

@@ -1,4 +1,18 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+/*
+ * Copyright 2000-2012 JetBrains s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.jetbrains.jps.android;
 
 import com.android.sdklib.BuildToolInfo;
@@ -8,13 +22,13 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.util.ArrayUtilRt;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.Processor;
 import java.util.HashSet;
 import com.intellij.util.execution.ParametersListUtil;
 import org.jetbrains.android.compiler.tools.AndroidDxRunner;
 import org.jetbrains.android.util.AndroidBuildTestingManager;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.AndroidCompilerMessageKind;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -115,7 +129,7 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
         return false;
       }
     }
-    final File proguardCfgOutputFile = new File(dexOutputDir, AndroidCommonUtils.PROGUARD_CFG_OUTPUT_FILE_NAME);
+    final File proguardCfgOutputFile = new File(dexOutputDir, AndroidBuildCommonUtils.PROGUARD_CFG_OUTPUT_FILE_NAME);
 
     final AndroidProGuardStateStorage proGuardOptionsStorage =
       context.getProjectDescriptor().dataManager.getStorage(target, AndroidProGuardOptionsStorageProvider.INSTANCE);
@@ -127,15 +141,15 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
 
     try {
       if (proGuardOptions != null) {
-        final List<String> proguardCfgFilePathsList = new ArrayList<>();
+        final List<String> proguardCfgFilePathsList = new ArrayList<String>();
 
         for (File file : proGuardOptions.getCfgFiles()) {
           proguardCfgFilePathsList.add(file.getAbsolutePath());
         }
         proguardCfgFilePathsList.add(proguardCfgOutputFile.getPath());
-        final String[] proguardCfgFilePaths = ArrayUtilRt.toStringArray(proguardCfgFilePathsList);
+        final String[] proguardCfgFilePaths = ArrayUtil.toStringArray(proguardCfgFilePathsList);
         final String outputJarPath =
-          FileUtil.toSystemDependentName(dexOutputDir.getPath() + '/' + AndroidCommonUtils.PROGUARD_OUTPUT_JAR_NAME);
+          FileUtil.toSystemDependentName(dexOutputDir.getPath() + '/' + AndroidBuildCommonUtils.PROGUARD_OUTPUT_JAR_NAME);
 
         final Pair<Boolean, AndroidProGuardStateStorage.MyState> pair = runProguardIfNecessary(
           extension, target, platform, context, outputJarPath, proguardCfgFilePaths,
@@ -159,7 +173,7 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
           return true;
         }
         final List<BuildRootDescriptor> roots = context.getProjectDescriptor().getBuildRootIndex().getTargetRoots(target, context);
-        fileSet = new HashSet<>();
+        fileSet = new HashSet<String>();
         final boolean predexingEnabled = extension.isPreDexingEnabled() && isPredexingInScope(context);
 
         for (BuildRootDescriptor root : roots) {
@@ -227,7 +241,7 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
                                @NotNull CompileContext context,
                                @NotNull JpsModule module,
                                @NotNull BuildOutputConsumer outputConsumer) throws IOException {
-    final String outFilePath = outputDir + File.separatorChar + AndroidCommonUtils.CLASSES_FILE_NAME;
+    final String outFilePath = outputDir + File.separatorChar + AndroidBuildCommonUtils.CLASSES_FILE_NAME;
     return runDex(platform, outFilePath, compileTargets, context, module.getProject(), outputConsumer,
                   DEX_BUILDER_NAME, module.getName(), module);
   }
@@ -264,7 +278,7 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
       }
     }
 
-    final List<String> programParamList = new ArrayList<>();
+    final List<String> programParamList = new ArrayList<String>();
     programParamList.add(dxJarPath);
     programParamList.add(outFilePath);
 
@@ -273,10 +287,10 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
     final List<String> vmOptions;
 
     if (configuration != null) {
-      vmOptions = new ArrayList<>();
+      vmOptions = new ArrayList<String>();
       vmOptions.addAll(ParametersListUtil.parse(configuration.getVmOptions()));
 
-      if (!AndroidCommonUtils.hasXmxParam(vmOptions)) {
+      if (!AndroidBuildCommonUtils.hasXmxParam(vmOptions)) {
         vmOptions.add("-Xmx" + configuration.getMaxHeapSize() + "M");
       }
       programParamList.addAll(Arrays.asList("--optimize", Boolean.toString(configuration.isOptimize())));
@@ -308,7 +322,7 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
     programParamList.addAll(Arrays.asList(compileTargets));
     programParamList.add("--exclude");
 
-    final List<String> classPath = new ArrayList<>();
+    final List<String> classPath = new ArrayList<String>();
     classPath.add(ClasspathBootstrap.getResourcePath(AndroidDxRunner.class));
     classPath.add(ClasspathBootstrap.getResourcePath(FileUtilRt.class));
 
@@ -324,32 +338,32 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
     }
     final List<String> commandLine = ExternalProcessUtil
       .buildJavaCommandLine(javaExecutable, AndroidDxRunner.class.getName(),
-                            Collections.emptyList(), classPath, vmOptions, programParamList);
+                            Collections.<String>emptyList(), classPath, vmOptions, programParamList);
 
-    LOG.info(AndroidCommonUtils.command2string(commandLine));
+    LOG.info(AndroidBuildCommonUtils.command2string(commandLine));
 
-    final String[] commands = ArrayUtilRt.toStringArray(commandLine);
+    final String[] commands = ArrayUtil.toStringArray(commandLine);
     final Process process;
 
     if (testingManager != null) {
       process = testingManager.getCommandExecutor().createProcess(
-        commands, Collections.emptyMap());
+        commands, Collections.<String, String>emptyMap());
     }
     else {
       process = Runtime.getRuntime().exec(commands);
     }
-    final HashMap<AndroidCompilerMessageKind, List<String>> messages = new HashMap<>(3);
-    messages.put(AndroidCompilerMessageKind.ERROR, new ArrayList<>());
-    messages.put(AndroidCompilerMessageKind.WARNING, new ArrayList<>());
-    messages.put(AndroidCompilerMessageKind.INFORMATION, new ArrayList<>());
+    final HashMap<AndroidCompilerMessageKind, List<String>> messages = new HashMap<AndroidCompilerMessageKind, List<String>>(3);
+    messages.put(AndroidCompilerMessageKind.ERROR, new ArrayList<String>());
+    messages.put(AndroidCompilerMessageKind.WARNING, new ArrayList<String>());
+    messages.put(AndroidCompilerMessageKind.INFORMATION, new ArrayList<String>());
 
-    AndroidCommonUtils.handleDexCompilationResult(process, StringUtil.join(commandLine, " "), outFilePath, messages, multiDex);
+    AndroidBuildCommonUtils.handleDexCompilationResult(process, StringUtil.join(commandLine, " "), outFilePath, messages, multiDex);
 
     AndroidJpsUtil.addMessages(context, messages, builderName, srcTargetName);
     final boolean success = messages.get(AndroidCompilerMessageKind.ERROR).isEmpty();
 
     if (success) {
-      final List<String> srcFiles = new ArrayList<>();
+      final List<String> srcFiles = new ArrayList<String>();
 
       for (String compileTargetPath : compileTargets) {
         final File compileTarget = new File(compileTargetPath);
@@ -429,7 +443,7 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
       logsDir = proguardLogsDir;
     }
     else {
-      logsDir = new File(mainContentRoot.getPath() + '/' + AndroidCommonUtils.DIRECTORY_FOR_LOGS_NAME);
+      logsDir = new File(mainContentRoot.getPath() + '/' + AndroidBuildCommonUtils.DIRECTORY_FOR_LOGS_NAME);
     }
     final AndroidProGuardStateStorage.MyState newState = new AndroidProGuardStateStorage.MyState(
       proguardCfgFiles);
@@ -437,10 +451,10 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
     if (!hasDirtyFiles && newState.equals(oldState)) {
       return Pair.create(false, null);
     }
-    final List<String> classesDirs = new ArrayList<>();
-    final List<String> libClassesDirs = new ArrayList<>();
-    final List<String> externalJars = new ArrayList<>();
-    final List<String> providedJars = new ArrayList<>();
+    final List<String> classesDirs = new ArrayList<String>();
+    final List<String> libClassesDirs = new ArrayList<String>();
+    final List<String> externalJars = new ArrayList<String>();
+    final List<String> providedJars = new ArrayList<String>();
 
     final List<BuildRootDescriptor> roots = context.getProjectDescriptor().getBuildRootIndex().getTargetRoots(target, context);
 
@@ -474,11 +488,11 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
         providedJars.add(rootFile.getPath());
       }
     }
-    final String[] classFilesDirOsPaths = ArrayUtilRt.toStringArray(classesDirs);
-    final String[] libClassFilesDirOsPaths = ArrayUtilRt.toStringArray(libClassesDirs);
-    final String[] externalJarOsPaths = ArrayUtilRt.toStringArray(externalJars);
-    final String[] providedJarOsPaths = ArrayUtilRt.toStringArray(providedJars);
-    final String inputJarOsPath = AndroidCommonUtils.buildTempInputJar(classFilesDirOsPaths, libClassFilesDirOsPaths);
+    final String[] classFilesDirOsPaths = ArrayUtil.toStringArray(classesDirs);
+    final String[] libClassFilesDirOsPaths = ArrayUtil.toStringArray(libClassesDirs);
+    final String[] externalJarOsPaths = ArrayUtil.toStringArray(externalJars);
+    final String[] providedJarOsPaths = ArrayUtil.toStringArray(providedJars);
+    final String inputJarOsPath = AndroidBuildCommonUtils.buildTempInputJar(classFilesDirOsPaths, libClassFilesDirOsPaths);
 
     final AndroidBuildTestingManager testingManager = AndroidBuildTestingManager.getTestingManager();
 
@@ -502,9 +516,9 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
     context.processMessage(new ProgressMessage(AndroidJpsBundle.message("android.jps.progress.proguard", module.getName())));
 
     final Map<AndroidCompilerMessageKind, List<String>> messages =
-      AndroidCommonUtils.launchProguard(platform.getTarget(), platform.getSdkToolsRevision(), platform.getSdk().getHomePath(),
-                                        javaExecutable, proguardVmOptions, proguardCfgPaths, inputJarOsPath, externalJarOsPaths,
-                                        providedJarOsPaths, outputJarPath, logsDir.getPath());
+      AndroidBuildCommonUtils.launchProguard(platform.getTarget(), platform.getSdkToolsRevision(), platform.getSdk().getHomePath(),
+                                             javaExecutable, proguardVmOptions, proguardCfgPaths, inputJarOsPath, externalJarOsPaths,
+                                             providedJarOsPaths, outputJarPath, logsDir.getPath());
     AndroidJpsUtil.addMessages(context, messages, PRO_GUARD_BUILDER_NAME, module.getName());
     return messages.get(AndroidCompilerMessageKind.ERROR).isEmpty()
            ? Pair.create(true, newState) : null;

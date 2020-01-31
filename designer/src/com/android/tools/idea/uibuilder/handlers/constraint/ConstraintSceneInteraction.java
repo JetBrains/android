@@ -41,8 +41,8 @@ public class ConstraintSceneInteraction extends SceneInteraction {
   }
 
   @Override
-  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiers, boolean canceled) {
-    super.end(x, y, modifiers, canceled);
+  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx, boolean canceled) {
+    super.end(x, y, modifiersEx, canceled);
     if (!canceled && myPrimary != null) {
       ConstraintReferenceManagement.updateConstraints(myPrimary, mySceneView.getScene());
     }

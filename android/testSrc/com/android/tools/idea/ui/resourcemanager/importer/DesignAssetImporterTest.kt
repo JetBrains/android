@@ -24,7 +24,7 @@ import com.android.resources.ResourceType
 import com.android.resources.ScreenOrientation
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
-import com.android.tools.idea.ui.resourcemanager.model.DesignAssetSet
+import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
 import com.intellij.openapi.Disposable
@@ -51,7 +51,7 @@ class DesignAssetImporterTest {
   @Test
   fun importSingleDesignAsset() {
     val file = rule.fixture.tempDirFixture.createFile("file1.png", "/n")
-    val designAssetSet = DesignAssetSet("set1", listOf(
+    val designAssetSet = ResourceAssetSet("set1", listOf(
       DesignAsset(file, listOf(DensityQualifier(Density.XHIGH)), ResourceType.DRAWABLE)
     ))
 
@@ -76,7 +76,7 @@ class DesignAssetImporterTest {
         DesignAsset(file, listOf(qualifier), ResourceType.DRAWABLE, "resource")
       }
 
-    val designAssetSet = DesignAssetSet("resource", designAssets)
+    val designAssetSet = ResourceAssetSet("resource", designAssets)
     val facet = AndroidFacet.getInstance(rule.module)!!
 
     val designAssetImporter = DesignAssetImporter()
@@ -103,7 +103,7 @@ class DesignAssetImporterTest {
     val lightVirtualFile = LightVirtualFile("vector.xml")
     val asset = DesignAsset(lightVirtualFile, listOf(), ResourceType.DRAWABLE, "resource")
 
-    val designAssetSet = DesignAssetSet("resource", listOf(asset))
+    val designAssetSet = ResourceAssetSet("resource", listOf(asset))
     val facet = AndroidFacet.getInstance(rule.module)!!
 
     val designAssetImporter = DesignAssetImporter()

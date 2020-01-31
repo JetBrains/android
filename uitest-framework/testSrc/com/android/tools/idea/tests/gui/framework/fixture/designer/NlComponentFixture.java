@@ -76,7 +76,7 @@ public class NlComponentFixture {
    */
   @NotNull
   public Point getMidPoint() {
-    SceneView sceneView = mySurface.getCurrentSceneView();
+    SceneView sceneView = mySurface.getFocusedSceneView();
     int midX = Coordinates.getSwingXDip(sceneView, mySceneComponent.getCenterX());
     int midY = Coordinates.getSwingYDip(sceneView, mySceneComponent.getCenterY());
     return convertToViewport(midX, midY);
@@ -87,7 +87,7 @@ public class NlComponentFixture {
    */
   @NotNull
   private Point getRightBottomPoint(@NotNull SceneComponent component) {
-    SceneView sceneView = mySurface.getCurrentSceneView();
+    SceneView sceneView = mySurface.getFocusedSceneView();
     int x = Coordinates.getSwingXDip(sceneView, component.getDrawX() + component.getDrawWidth());
     int y = Coordinates.getSwingYDip(sceneView, component.getDrawY() + component.getDrawHeight());
     return convertToViewport(x, y);
@@ -98,7 +98,7 @@ public class NlComponentFixture {
    */
   @NotNull
   private Point getBottomCenterPoint(@NotNull SceneComponent component) {
-    SceneView sceneView = mySurface.getCurrentSceneView();
+    SceneView sceneView = mySurface.getFocusedSceneView();
     int midX = Coordinates.getSwingXDip(sceneView, component.getCenterX());
     int bottomY = Coordinates.getSwingYDip(sceneView, component.getDrawY() + component.getDrawHeight());
     return convertToViewport(midX, bottomY);
@@ -117,7 +117,7 @@ public class NlComponentFixture {
    */
   @NotNull
   public Point getTopCenterPoint(@NotNull SceneComponent component) {
-    SceneView sceneView = mySurface.getCurrentSceneView();
+    SceneView sceneView = mySurface.getFocusedSceneView();
     int midX = Coordinates.getSwingXDip(sceneView, component.getCenterX());
     int topY = Coordinates.getSwingYDip(sceneView, component.getDrawY());
     return convertToViewport(midX, topY);
@@ -136,7 +136,7 @@ public class NlComponentFixture {
    */
   @NotNull
   private Point getLeftCenterPoint(@NotNull SceneComponent component) {
-    SceneView sceneView = mySurface.getCurrentSceneView();
+    SceneView sceneView = mySurface.getFocusedSceneView();
     int leftX = Coordinates.getSwingXDip(sceneView, component.getDrawX());
     int midY = Coordinates.getSwingYDip(sceneView, component.getCenterY());
     return convertToViewport(leftX, midY);
@@ -147,10 +147,14 @@ public class NlComponentFixture {
    */
   @NotNull
   private Point getRightCenterPoint(@NotNull SceneComponent component) {
-    SceneView sceneView = mySurface.getCurrentSceneView();
+    SceneView sceneView = mySurface.getFocusedSceneView();
     int rightX = Coordinates.getSwingXDip(sceneView, component.getDrawX() + component.getDrawWidth());
     int midY = Coordinates.getSwingYDip(sceneView, component.getCenterY());
     return convertToViewport(rightX, midY);
+  }
+
+  public SceneComponent getSceneComponent() {
+    return mySceneComponent;
   }
 
   @NotNull
@@ -211,7 +215,7 @@ public class NlComponentFixture {
     Point parentBottomCenterPoint = getBottomCenterPoint(parent);
     Point bottomCenterPoint = getBottomCenterPoint(mySceneComponent);
     myDragAndDrop.drag(mySurface, bottomCenterPoint);
-    SceneView sceneView = mySurface.getCurrentSceneView();
+    SceneView sceneView = mySurface.getFocusedSceneView();
     // Drop the constraint beyond the limit of the scene view to ensure it connects to the parent layout
     // and not a component that would be sitting right on the edge
     myDragAndDrop.drop(mySurface, parentBottomCenterPoint);
@@ -263,7 +267,7 @@ public class NlComponentFixture {
     Point parentRightCenterPoint = getRightCenterPoint(parent);
     Point rightCenterPoint = getRightCenterPoint(mySceneComponent);
     myDragAndDrop.drag(mySurface, rightCenterPoint);
-    SceneView sceneView = mySurface.getCurrentSceneView();
+    SceneView sceneView = mySurface.getFocusedSceneView();
     // Drop the constraint beyond the limit of the scene view to ensure it connects to the parent layout
     // and not a component that would be sitting right on the edge
     myDragAndDrop.drop(mySurface, parentRightCenterPoint);
@@ -274,7 +278,7 @@ public class NlComponentFixture {
 
   @NotNull
   public NlComponentFixture createBaselineConstraintWith(@NotNull NlComponentFixture destination) {
-    SceneView sceneView = mySurface.getCurrentSceneView();
+    SceneView sceneView = mySurface.getFocusedSceneView();
 
     // Find the position of the baseline target icon and click on it
     SceneComponent sceneComponent = sceneView.getScene().getSceneComponent(myComponent);

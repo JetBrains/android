@@ -15,28 +15,36 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
-import com.android.annotations.VisibleForTesting;
+import static com.android.tools.idea.gradle.project.model.JavaModuleModel.isBuildable;
+import static com.intellij.openapi.util.text.StringUtil.equalsIgnoreCase;
+import static org.jetbrains.plugins.gradle.service.project.CommonGradleProjectResolverExtension.getGradleOutputDir;
+
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.model.java.IdeaJarLibraryDependencyFactory;
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
 import com.android.tools.idea.gradle.model.java.JavaModuleContentRoot;
 import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType;
 import com.intellij.openapi.util.Pair;
-import org.gradle.tooling.model.idea.*;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import org.gradle.tooling.model.idea.IdeaContentRoot;
+import org.gradle.tooling.model.idea.IdeaDependency;
+import org.gradle.tooling.model.idea.IdeaModule;
+import org.gradle.tooling.model.idea.IdeaModuleDependency;
+import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.model.ExtIdeaCompilerOutput;
 import org.jetbrains.plugins.gradle.model.ExternalProject;
 import org.jetbrains.plugins.gradle.model.ExternalSourceSet;
 import org.jetbrains.plugins.gradle.tooling.internal.IdeaCompilerOutputImpl;
-
-import java.io.File;
-import java.util.*;
-
-import static com.android.tools.idea.gradle.project.model.JavaModuleModel.isBuildable;
-import static com.intellij.openapi.util.text.StringUtil.equalsIgnoreCase;
-import static org.jetbrains.plugins.gradle.service.project.CommonGradleProjectResolverExtension.getGradleOutputDir;
 
 /**
  * Factory class to create JavaModuleModel instance from IdeaModule.
@@ -59,10 +67,11 @@ public class IdeaJavaModuleModelFactory {
                                 @NotNull Collection<SyncIssue> syncIssues,
                                 boolean androidModuleWithoutVariants) {
     Pair<Collection<JavaModuleDependency>, Collection<JarLibraryDependency>> dependencies = getDependencies(ideaModule);
-    return new JavaModuleModel(ideaModule.getName(), getContentRoots(ideaModule), dependencies.first, dependencies.second,
-                               syncIssues, getArtifactsByConfiguration(externalProject), getCompilerOutput(externalProject),
-                               ideaModule.getGradleProject().getBuildDirectory(), getLanguageLevel(externalProject),
-                               !androidModuleWithoutVariants && isBuildable(ideaModule.getGradleProject()), androidModuleWithoutVariants);
+    return JavaModuleModel.create(ideaModule.getName(), getContentRoots(ideaModule), dependencies.first, dependencies.second,
+                                  getArtifactsByConfiguration(externalProject), syncIssues, getCompilerOutput(externalProject),
+                                  ideaModule.getGradleProject().getBuildDirectory(), getLanguageLevel(externalProject),
+                                  !androidModuleWithoutVariants && isBuildable(ideaModule.getGradleProject()),
+                                  androidModuleWithoutVariants);
   }
 
   @NotNull

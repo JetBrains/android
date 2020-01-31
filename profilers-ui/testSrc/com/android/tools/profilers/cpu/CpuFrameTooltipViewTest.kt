@@ -28,6 +28,7 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
+import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture
 import com.android.tools.profilers.cpu.atrace.AtraceFrame
 import com.android.tools.profilers.cpu.atrace.AtraceParser
 import com.android.tools.profilers.cpu.atrace.CpuFrameTooltip
@@ -46,6 +47,7 @@ class CpuFrameTooltipViewTest {
   private lateinit var stage: CpuProfilerStage
   private lateinit var tooltip: CpuFrameTooltip
   private lateinit var tooltipView: FakeCpuFrameTooltipView
+  private lateinit var capture: AtraceCpuCapture
   private val fakeTransportService = FakeTransportService(timer)
   @get:Rule
   val grpcChannel = FakeGrpcChannel("CpuFrameTooltipViewTest", FakeCpuService(), fakeTransportService, FakeProfilerService(timer))
@@ -57,7 +59,7 @@ class CpuFrameTooltipViewTest {
     fakeTransportService.addProcess(device, Common.Process.newBuilder().setDeviceId(1).setPid(1).build())
     val profilers = StudioProfilers(ProfilerClient(grpcChannel.name), FakeIdeProfilerServices(), timer)
     stage = CpuProfilerStage(profilers)
-    val capture = AtraceParser(1).parse(TestUtils.getWorkspaceFile(ATRACE_TRACE_PATH), 0)
+    capture = AtraceParser(1).parse(TestUtils.getWorkspaceFile(ATRACE_TRACE_PATH), 0) as AtraceCpuCapture
     stage.capture = capture
     timer.tick(TimeUnit.SECONDS.toNanos(1))
     profilers.stage = stage
@@ -81,7 +83,7 @@ class CpuFrameTooltipViewTest {
     renderFrame.associatedFrame = mainFrame
 
     val frames = mutableListOf(SeriesData(0, mainFrame), SeriesData(2, renderFrame))
-    val series = AtraceDataSeries<AtraceFrame>(stage) { _ -> frames }
+    val series = AtraceDataSeries<AtraceFrame>(capture) { _ -> frames }
     tooltip.setFrameSeries(series)
     val labels = TreeWalker(tooltipView.tooltipPanel).descendants().filterIsInstance<JLabel>()
     assertThat(labels).hasSize(8)
@@ -105,7 +107,7 @@ class CpuFrameTooltipViewTest {
   @Test
   fun renderFramePanelAndSeparatorShouldBeHidden() {
     val frames = mutableListOf(SeriesData(0, AtraceFrame(0, { _ -> 1L }, 0, AtraceFrame.FrameThread.MAIN)))
-    val series = AtraceDataSeries<AtraceFrame>(stage) { _ -> frames }
+    val series = AtraceDataSeries<AtraceFrame>(capture) { _ -> frames }
     tooltip.setFrameSeries(series)
     val panels = TreeWalker(tooltipView.tooltipPanel).descendants().filterIsInstance<JPanel>()
     assertThat(panels).hasSize(4)
@@ -118,7 +120,7 @@ class CpuFrameTooltipViewTest {
   @Test
   fun mainFramePanelAndSeparatorShouldBeHidden() {
     val frames = mutableListOf(SeriesData(0, AtraceFrame(0, { _ -> 1L }, 0, AtraceFrame.FrameThread.RENDER)))
-    val series = AtraceDataSeries<AtraceFrame>(stage) { _ -> frames }
+    val series = AtraceDataSeries<AtraceFrame>(capture) { _ -> frames }
     tooltip.setFrameSeries(series)
     val panels = TreeWalker(tooltipView.tooltipPanel).descendants().filterIsInstance<JPanel>()
     assertThat(panels).hasSize(4)
@@ -131,7 +133,7 @@ class CpuFrameTooltipViewTest {
   @Test
   fun allPanelsShouldBeHidden() {
     val frames = mutableListOf<SeriesData<AtraceFrame>>()
-    val series = AtraceDataSeries<AtraceFrame>(stage) { _ -> frames }
+    val series = AtraceDataSeries<AtraceFrame>(capture) { _ -> frames }
     tooltip.setFrameSeries(series)
     val panels = TreeWalker(tooltipView.tooltipPanel).descendants().filterIsInstance<JPanel>()
     assertThat(panels).hasSize(4)

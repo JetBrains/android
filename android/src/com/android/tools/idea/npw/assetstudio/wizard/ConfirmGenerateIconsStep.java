@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.npw.assetstudio.wizard;
 
+import static com.android.tools.idea.npw.assetstudio.IconGenerator.getResDirectory;
+import static com.android.tools.idea.npw.assetstudio.IconGenerator.pathToDensity;
+
 import com.android.resources.Density;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
@@ -39,18 +42,21 @@ import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.tree.DefaultTreeModel;
-import java.awt.*;
+import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
-
-import static com.android.tools.idea.npw.assetstudio.IconGenerator.getResDirectory;
-import static com.android.tools.idea.npw.assetstudio.IconGenerator.pathToDensity;
+import javax.swing.BorderFactory;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.tree.DefaultTreeModel;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This step allows the user to select a build variant and provides a preview of the assets that

@@ -1,4 +1,3 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android;
 
 import com.intellij.openapi.diagnostic.Logger;
@@ -48,7 +47,7 @@ public class AndroidProGuardStateStorage implements StorageOwner {
           return null;
         }
         final int n = input.readInt();
-        final Map<String, Long> cfgFiles = new HashMap<>();
+        final Map<String, Long> cfgFiles = new HashMap<String, Long>();
 
         for (int i = 0; i < n; i++) {
           final String path = input.readUTF();
@@ -100,7 +99,7 @@ public class AndroidProGuardStateStorage implements StorageOwner {
     private final Map<String, Long> myProGuardConfigFiles;
 
     public MyState(@NotNull File[] proGuardCfgFiles) {
-      myProGuardConfigFiles = new HashMap<>();
+      myProGuardConfigFiles = new HashMap<String, Long>();
 
       for (File file : proGuardCfgFiles) {
         myProGuardConfigFiles.put(file.getPath(), FSOperations.lastModified(file));

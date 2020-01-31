@@ -15,6 +15,15 @@
  */
 package com.android.tools.idea.fonts;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_NAME;
+import static com.android.SdkConstants.TAG_APPLICATION;
+import static com.android.SdkConstants.TAG_ARRAY;
+import static com.android.SdkConstants.TAG_ITEM;
+import static com.android.SdkConstants.TAG_META_DATA;
+import static com.android.SdkConstants.TAG_RESOURCE;
+import static com.android.ide.common.resources.ValueXmlHelper.escapeResourceString;
+
 import com.android.ide.common.fonts.FontDetail;
 import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.fonts.FontProvider;
@@ -34,24 +43,22 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiBundle;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.IncorrectOperationException;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.function.Function;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.function.Function;
-
-import static com.android.SdkConstants.*;
-import static com.android.ide.common.resources.ValueXmlHelper.escapeResourceString;
 
 /**
  * Create a font file for a new downloadable font.
@@ -260,7 +267,7 @@ public class FontFamilyCreator {
   }
 
   private void addPreloadedFontsToManifest() {
-    Manifest manifest = myFacet.getManifest();
+    Manifest manifest = Manifest.getMainManifest(myFacet);
     if (manifest == null) {
       return;
     }
@@ -272,8 +279,20 @@ public class FontFamilyCreator {
     if (applicationTag == null) {
       return;
     }
-    XmlTag newTag = updateFile(applicationTag, TAG_META_DATA, PRELOADED_FONTS, "@array/", PRELOADED_FONTS,
-                               tag -> tag.getAttributeValue(ATTR_NAME, ANDROID_URI), FontFamilyCreator::setMetaDataAttributes);
+    XmlTag newTag = null;
+    try {
+      newTag = updateFile(applicationTag, TAG_META_DATA, PRELOADED_FONTS, "@array/", PRELOADED_FONTS,
+                          tag -> tag.getAttributeValue(ATTR_NAME, ANDROID_URI), FontFamilyCreator::setMetaDataAttributes);
+    }
+    catch (IncorrectOperationException e) {
+      String readOnlyErrorMessage = PsiBundle.message("cannot.modify.a.read.only.file", "").split("\'")[0];
+      if (e.getMessage().startsWith(readOnlyErrorMessage)) {
+        throw new UpdateManifestFileException(
+          "Could not add preloaded fonts to read-only manifest file. Please reference the font file manually from Android manifest",
+          e);
+      }
+      throw e;
+    }
     if (newTag != null) {
       CodeStyleManager.getInstance(myProject).reformat(newTag);
     }
@@ -358,5 +377,12 @@ public class FontFamilyCreator {
   @NotNull
   private static String escapeXmlValue(@NotNull String value) {
     return XmlUtils.toXmlAttributeValue(value);
+  }
+
+  public class UpdateManifestFileException extends IncorrectOperationException {
+
+    public UpdateManifestFileException(@NotNull String message, Throwable t) {
+      super(message, t);
+    }
   }
 }

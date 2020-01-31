@@ -17,37 +17,35 @@ package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.adtui.common.primaryPanelBackground
-import com.android.tools.idea.common.scene.LerpFloat
 import com.android.tools.idea.common.scene.draw.CompositeDrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand
-import com.android.tools.idea.common.scene.draw.DrawFilledCircle
+import com.android.tools.idea.common.scene.draw.DrawCommand.TARGET_LEVEL
+import com.android.tools.idea.common.scene.draw.FillShape
 import com.android.tools.idea.common.scene.draw.buildString
 import com.android.tools.idea.common.scene.draw.parse
 import com.android.tools.idea.common.scene.draw.point2DToString
 import com.android.tools.idea.common.scene.draw.stringToPoint2D
 import com.android.tools.idea.naveditor.scene.NavColors.SELECTED
+import com.android.tools.idea.naveditor.scene.makeCircle
+import com.android.tools.idea.naveditor.scene.makeCircleLerp
 import java.awt.geom.Point2D
 
-data class DrawActionHandleDrag(private val level: Int,
-                                @SwingCoordinate private val center: Point2D.Float,
+data class DrawActionHandleDrag(@SwingCoordinate private val center: Point2D.Float,
                                 @SwingCoordinate private val initialOuterRadius: Float,
                                 @SwingCoordinate private val finalOuterRadius: Float,
                                 @SwingCoordinate private val innerRadius: Float,
-                                private val duration: Int) : CompositeDrawCommand() {
-  private constructor(sp: Array<String>) : this(sp[0].toInt(), stringToPoint2D(sp[1]), sp[2].toFloat(), sp[3].toFloat(), sp[4].toFloat(),
-                                                sp[5].toInt())
+                                private val duration: Int) : CompositeDrawCommand(TARGET_LEVEL) {
+  private constructor(tokens: Array<String>) : this(stringToPoint2D(tokens[0]), tokens[1].toFloat(), tokens[2].toFloat(),
+                                                    tokens[3].toFloat(), tokens[4].toInt())
 
-  constructor(s: String) : this(parse(s, 6))
+  constructor(s: String) : this(parse(s, 5))
 
-  override fun getLevel() = level
-
-  override fun serialize() = buildString(javaClass.simpleName, level, point2DToString(center), initialOuterRadius, finalOuterRadius,
+  override fun serialize() = buildString(javaClass.simpleName, point2DToString(center), initialOuterRadius, finalOuterRadius,
                                          innerRadius, duration)
 
   override fun buildCommands(): List<DrawCommand> {
-    val outerCircle = DrawFilledCircle(0, center, primaryPanelBackground, LerpFloat(initialOuterRadius, finalOuterRadius, duration))
-    val innerCircle = DrawFilledCircle(1, center, SELECTED, innerRadius)
-    val lineToMouse = DrawLineToMouse(2, center)
-    return listOf(outerCircle, innerCircle, lineToMouse)
+    val outerCircle = makeCircleLerp(center, initialOuterRadius, finalOuterRadius, duration)
+    val innerCircle = makeCircle(center, innerRadius)
+    return listOf(FillShape(outerCircle, primaryPanelBackground), FillShape(innerCircle, SELECTED), DrawLineToMouse(center))
   }
 }

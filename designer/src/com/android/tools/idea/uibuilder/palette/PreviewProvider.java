@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.palette;
 
 import static com.android.tools.idea.uibuilder.api.PaletteComponentHandler.NO_PREVIEW;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.resources.ResourceFolderType;
@@ -35,6 +34,7 @@ import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.Disposable;
@@ -239,7 +239,7 @@ public class PreviewProvider implements Disposable {
   @Nullable
   private SceneView getSceneView() {
     DesignSurface surface = myDesignSurfaceSupplier.get();
-    return surface != null ? surface.getCurrentSceneView() : null;
+    return surface != null ? surface.getFocusedSceneView() : null;
   }
 
   @Nullable

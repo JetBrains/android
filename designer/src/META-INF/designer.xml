@@ -15,19 +15,27 @@
   -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
-    <fileEditorProvider implementation="com.android.tools.idea.uibuilder.layeredimage.LayeredImageEditorProvider" />
+    <fileEditorProvider implementation="com.android.tools.idea.editors.layeredimage.LayeredImageEditorProvider" />
   </extensions>
 
   <project-components>
     <component>
-      <implementation-class>com.android.tools.idea.uibuilder.layeredimage.LayersManager</implementation-class>
+      <implementation-class>com.android.tools.idea.editors.layeredimage.LayersManager</implementation-class>
     </component>
   </project-components>
+
+  <!-- Extension points -->
+  <extensionPoints>
+    <extensionPoint qualifiedName="com.android.tools.idea.uibuilder.handlers.viewHandlerProvider"
+                    area="IDEA_PROJECT"
+                    interface="com.android.tools.idea.uibuilder.handlers.ViewHandlerProvider" />
+  </extensionPoints>
 
   <!-- New layout editor -->
 
   <extensions defaultExtensionNs="com.intellij">
     <fileEditorProvider implementation="com.android.tools.idea.uibuilder.editor.NlEditorProvider"/>
+    <fileEditorProvider implementation="com.android.tools.idea.uibuilder.editor.DesignFilesPreviewEditorProvider"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
@@ -38,12 +46,21 @@
     <applicationService serviceImplementation="com.android.tools.idea.common.model.NlDependencyManager"/>
   </extensions>
 
+  <extensions defaultExtensionNs="com.intellij">
+    <fileEditorProvider implementation="com.android.tools.idea.uibuilder.editor.CustomViewEditorProvider" />
+    <editorNotificationProvider implementation="com.android.tools.idea.uibuilder.editor.OutdatedCustomViewNotificationProvider" />
+  </extensions>
+
   <project-components>
     <component>
       <implementation-class>com.android.tools.idea.uibuilder.handlers.ViewHandlerManager</implementation-class>
     </component>
     <component>
       <implementation-class>com.android.tools.idea.uibuilder.editor.NlPreviewManager</implementation-class>
+      <headless-implementation-class/>
+    </component>
+    <component>
+      <implementation-class>com.android.tools.idea.uibuilder.visual.VisualizationManager</implementation-class>
       <headless-implementation-class/>
     </component>
     <component>
@@ -63,4 +80,18 @@
     </component>
   </module-components>
 
+  <!--FIXME-ank2: removed, because it has transitive deps on missing (in Idea) assistant module-->
+  <!--<actions>-->
+  <!--  <action-->
+  <!--      id="LayoutEditor.HelpAssistant"-->
+  <!--      class="com.android.tools.idea.uibuilder.actions.LayoutEditorHelpAssistantAction"-->
+  <!--      icon="StudioIcons.Common.HELP"-->
+  <!--      text="Show Help Panel"-->
+  <!--      description="Show Help Panel for Design Editor">-->
+  <!--  </action>-->
+  <!--</actions>-->
+
+  <extensions defaultExtensionNs="com.android.tools.idea.assistant">
+    <assistantBundleCreator implementation="com.android.tools.idea.uibuilder.actions.LayoutEditorHelpPanelAssistantBundleCreator"/>
+  </extensions>
 </idea-plugin>

@@ -15,14 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.draw;
 
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawRegion;
-import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
-
-import java.awt.*;
+import java.awt.Color;
+import java.awt.GradientPaint;
+import java.awt.Graphics2D;
+import java.awt.Paint;
+import java.awt.Stroke;
 
 /**
  * Vertical Guideline

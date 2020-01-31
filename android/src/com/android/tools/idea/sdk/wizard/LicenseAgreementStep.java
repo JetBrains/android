@@ -36,7 +36,7 @@ import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBRadioButton;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
-import com.intellij.util.ui.StartupUiUtil;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -103,7 +103,7 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
     myRootPanel.add(splitter, BorderLayout.CENTER);
     myRootPanel.add(optionsPanel, BorderLayout.SOUTH);
 
-    myLicenseTextField.setFont(StartupUiUtil.getLabelFont());
+    myLicenseTextField.setFont(UIUtil.getLabelFont());
   }
 
   private void initUI() {
@@ -278,7 +278,7 @@ public class LicenseAgreementStep extends ModelWizardStep<LicenseAgreementModel>
         License license = p.getLicense();
         if (license != null) {
           getModel().getLicenses().add(license);
-          if (!license.checkAccepted(getModel().sdkRoot().getValue(), FileOpUtils.create())) {
+          if (!license.checkAccepted(getModel().getSdkRoot().getValue(), FileOpUtils.create())) {
             toReturn.add(new Change(p, license));
           }
         }

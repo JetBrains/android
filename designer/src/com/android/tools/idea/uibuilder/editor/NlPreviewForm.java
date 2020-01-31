@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
+import static com.android.tools.idea.common.model.NlModel.DELAY_AFTER_TYPING_MS;
+
 import com.android.SdkConstants;
 import com.android.annotations.concurrency.UiThread;
 import com.android.resources.Density;
 import com.android.sdklib.devices.Device;
+import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.workbench.AutoHide;
 import com.android.tools.adtui.workbench.Side;
 import com.android.tools.adtui.workbench.Split;
@@ -31,7 +34,6 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
@@ -42,7 +44,7 @@ import com.android.tools.idea.uibuilder.palette.PaletteDefinition;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
-import com.android.tools.idea.uibuilder.type.AdaptativeIconFileType;
+import com.android.tools.idea.uibuilder.type.AdaptiveIconFileType;
 import com.android.tools.idea.util.SyncUtil;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
@@ -59,6 +61,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.Alarm;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import java.awt.BorderLayout;
@@ -75,7 +78,6 @@ import org.jetbrains.annotations.Nullable;
 public class NlPreviewForm implements Disposable, CaretListener {
 
   public static final String PREVIEW_DESIGN_SURFACE = "NlPreviewFormDesignSurface";
-  public static final int DELAY_AFTER_TYPING_MS = 250;
 
   private final NlPreviewManager myManager;
   private final Project myProject;
@@ -111,7 +113,9 @@ public class NlPreviewForm implements Disposable, CaretListener {
   public NlPreviewForm(NlPreviewManager manager) {
     myManager = manager;
     myProject = myManager.getProject();
-    mySurface = new NlDesignSurface(myProject, true, this);
+    mySurface = NlDesignSurface.builder(myProject, this)
+      .setIsPreview(true)
+      .build();
     Disposer.register(this, mySurface);
     mySurface.setCentered(true);
     mySurface.setScreenMode(SceneMode.SCREEN_ONLY, false);
@@ -122,11 +126,9 @@ public class NlPreviewForm implements Disposable, CaretListener {
                              this, null, Alarm.ThreadToUse.SWING_THREAD);
     myRenderingQueue.setRestartTimerOnAdd(true);
 
-    myWorkBench = new WorkBench<>(myProject, "Preview", null);
+    myWorkBench = new WorkBench<>(myProject, "Preview", null, this);
     myWorkBench.setLoadingText("Loading...");
     myRoot.add(new IssuePanelSplitter(mySurface, myWorkBench));
-
-    Disposer.register(this, myWorkBench);
   }
 
   private void createContentPanel() {
@@ -153,7 +155,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
 
   private void updateCaret() {
     if (myCaretModel != null && !myIgnoreListener && myUseInteractiveSelector) {
-      SceneView screenView = mySurface.getCurrentSceneView();
+      SceneView screenView = mySurface.getFocusedSceneView();
       if (screenView != null) {
         int offset = myCaretModel.getOffset();
         if (offset != -1) {
@@ -376,6 +378,8 @@ public class NlPreviewForm implements Disposable, CaretListener {
       }, 16, 500L);
     }
 
+    myAnimationToolbar.setBackground(StudioColorsKt.getPrimaryPanelBackground());
+    myAnimationToolbar.setOpaque(true);
     myContentPanel.add(myAnimationToolbar, BorderLayout.SOUTH);
   }
 
@@ -402,10 +406,10 @@ public class NlPreviewForm implements Disposable, CaretListener {
     AtomicBoolean isRequestCancelled = new AtomicBoolean(false);
     myCancelPendingModelLoad = isRequestCancelled;
     CompletableFuture
-      .supplyAsync(() -> NlModel.create(null, facet, xmlFile.getVirtualFile(), mySurface.getComponentRegistrar()))
+      .supplyAsync(() -> NlModel.create(null, null, facet, xmlFile.getVirtualFile(), mySurface.getComponentRegistrar()))
       .thenAcceptAsync(model -> {
         // Set the default density to XXXHDPI for adaptive icon preview
-        if (model.getType() == AdaptativeIconFileType.INSTANCE) {
+        if (model.getType() == AdaptiveIconFileType.INSTANCE) {
           Device device = model.getConfiguration().getDevice();
           if (device != null && !NlModelHelperKt.CUSTOM_DENSITY_ID.equals(device.getId())) {
             NlModelHelperKt.overrideConfigurationDensity(model, Density.XXXHIGH);
@@ -425,8 +429,8 @@ public class NlPreviewForm implements Disposable, CaretListener {
           else {
             Disposer.dispose(model);
           }
-        }, EdtExecutor.INSTANCE);
-      }, EdtExecutor.INSTANCE);
+        }, EdtExecutorService.getInstance());
+      }, EdtExecutorService.getInstance());
   }
 
   // A file editor was closed. If our editor no longer exists, cleanup our state.

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.importing;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.ModuleImporter;
 import com.android.tools.idea.gradle.project.ModuleToImport;
 import com.android.tools.idea.npw.AsyncValidator;
@@ -106,7 +106,7 @@ public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceTo
                                              getModel().getProject(),
                                              FileChooserDescriptorFactory.createSingleFileOrFolderDescriptor());
 
-    myBindings.bindTwoWay(new TextProperty(mySourceLocation.getTextField()), model.sourceLocation());
+    myBindings.bindTwoWay(new TextProperty(mySourceLocation.getTextField()), model.sourceLocation);
 
     myBindings.bind(new VisibleProperty(myValidationProgress), myPageValidationResult.transform(PathValidationResult::isValidating));
 
@@ -134,11 +134,11 @@ public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceTo
       @Override
       protected PathValidationResult validate() {
         myPageValidationResult.set(PathValidationResult.ofType(VALIDATING));
-        return checkPath(getModel().sourceLocation().get());
+        return checkPath(getModel().sourceLocation.get());
       }
     };
 
-    myListeners.listen(model.sourceLocation(), () -> validator.invalidate());
+    myListeners.listen(model.sourceLocation, () -> validator.invalidate());
   }
 
   @Override

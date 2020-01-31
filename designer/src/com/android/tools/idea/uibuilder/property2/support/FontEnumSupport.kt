@@ -65,7 +65,7 @@ class FontEnumSupport(private val facet: AndroidFacet, private val resolver: Res
     override fun actionPerformed(event: AnActionEvent) {
       val property = event.dataContext.getData("property") as NelePropertyItem
       // TODO: May need namespace resolver when fonts from libraries are supported
-      val dialog = MoreFontsDialog(facet, property.resolvedValue)
+      val dialog = MoreFontsDialog(facet, property.resolvedValue, true)
       dialog.show()
       val font = if (dialog.isOK) dialog.resultingFont else null
       if (font != null) {

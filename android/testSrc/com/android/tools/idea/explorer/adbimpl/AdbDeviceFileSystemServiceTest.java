@@ -16,7 +16,6 @@
 package com.android.tools.idea.explorer.adbimpl;
 
 import com.android.tools.idea.adb.AdbService;
-import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.testing.Sdks;
 import com.android.tools.idea.util.FutureUtils;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -24,6 +23,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.util.concurrency.EdtExecutorService;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.ide.PooledThreadExecutor;
@@ -60,7 +60,7 @@ public class AdbDeviceFileSystemServiceTest extends AndroidTestCase {
   public void testStartService() throws InterruptedException, ExecutionException, TimeoutException {
     // Prepare
     AdbDeviceFileSystemService service = new AdbDeviceFileSystemService(aVoid -> AndroidSdkUtils.getAdb(getProject()),
-                                                                        EdtExecutor.INSTANCE,
+                                                                        EdtExecutorService.getInstance(),
                                                                         PooledThreadExecutor.INSTANCE,
                                                                         getProject());
     disposeOnTearDown(service);
@@ -77,7 +77,7 @@ public class AdbDeviceFileSystemServiceTest extends AndroidTestCase {
   public void testRestartService() throws InterruptedException, ExecutionException, TimeoutException {
     // Prepare
     AdbDeviceFileSystemService service = new AdbDeviceFileSystemService(aVoid -> AndroidSdkUtils.getAdb(getProject()),
-                                                                        EdtExecutor.INSTANCE,
+                                                                        EdtExecutorService.getInstance(),
                                                                         PooledThreadExecutor.INSTANCE,
                                                                         getProject());
     disposeOnTearDown(service);
@@ -96,7 +96,7 @@ public class AdbDeviceFileSystemServiceTest extends AndroidTestCase {
 
     Disposable mockProject = Disposer.newDisposable();
     AdbDeviceFileSystemService service = new AdbDeviceFileSystemService(aVoid -> AndroidSdkUtils.getAdb(getProject()),
-                                                                        EdtExecutor.INSTANCE,
+                                                                        EdtExecutorService.getInstance(),
                                                                         PooledThreadExecutor.INSTANCE,
                                                                         mockProject);
     pumpEventsAndWaitForFuture(service.start());

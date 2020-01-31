@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 buildscript {
+    repositories {
+        // This will be populated by AndroidGradleTestCase
+    }
+
     dependencies {
         classpath 'com.android.tools.build:gradle:2.2.0'
     }
@@ -29,7 +33,7 @@ android {
         applicationId "google.testapplication"
         minSdkVersion 19
         targetSdkVersion 23
-        testInstrumentationRunner "com.android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 }
 

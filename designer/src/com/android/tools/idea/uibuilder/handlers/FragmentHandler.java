@@ -82,7 +82,7 @@ public final class FragmentHandler extends ViewHandler {
   @Override
   public String getTitleAttributes(@NotNull NlComponent component) {
     String name = component.getAttribute(ANDROID_URI, ATTR_NAME);
-    return StringUtil.isEmpty(name) ? "" : "- " + name;
+    return StringUtil.isEmpty(name) ? "" : name;
   }
 
   @Override

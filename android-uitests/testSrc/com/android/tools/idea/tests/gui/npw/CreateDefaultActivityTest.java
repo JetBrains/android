@@ -98,13 +98,13 @@ public class CreateDefaultActivityTest {
       "app/src/main/res/layout/activity_main.xml"
     );
 
-    String manifesText = myEditor.open(PROVIDED_MANIFEST).getCurrentFileContents();
-    assertEquals(getOccurrenceCount(manifesText, "android:name=\".MainActivity\""), 1);
-    assertEquals(getOccurrenceCount(manifesText, "@string/title_activity_main"), 1);
-    assertEquals(getOccurrenceCount(manifesText, "android.intent.category.LAUNCHER"), 1);
+    String manifesText = guiTest.getProjectFileText(PROVIDED_MANIFEST);
+    assertEquals(1, getOccurrenceCount(manifesText, "android:name=\".MainActivity\""));
+    assertEquals(1, getOccurrenceCount(manifesText, "@string/title_activity_main"));
+    assertEquals(1, getOccurrenceCount(manifesText, "android.intent.category.LAUNCHER"));
 
-    String gradleText = myEditor.open(APP_BUILD_GRADLE).getCurrentFileContents();
-    assertEquals(getOccurrenceCount(gradleText, "com.android.support.constraint:constraint-layout"), 1);
+    String gradleText = guiTest.getProjectFileText(APP_BUILD_GRADLE);
+    assertEquals(1, getOccurrenceCount(gradleText, "com.android.support.constraint:constraint-layout"));
   }
 
   // Note: This should be called only when the last open file was a Java/Kotlin file

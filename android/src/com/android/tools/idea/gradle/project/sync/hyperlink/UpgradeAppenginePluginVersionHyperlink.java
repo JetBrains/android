@@ -58,6 +58,6 @@ public class UpgradeAppenginePluginVersionHyperlink extends NotificationHyperlin
     myDependency.version().setValue(latest.toString());
     runWriteCommandAction(project, myBuildModel::applyChanges);
 
-    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_QF_APPENGINE_VERSION_UPGRADED);
+    GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_QF_APPENGINE_VERSION_UPGRADED);
   }
 }

@@ -20,11 +20,10 @@ import static com.android.SdkConstants.TAG_APPLICATION;
 import static com.android.SdkConstants.TAG_MANIFEST;
 import static com.android.SdkConstants.TAG_RESOURCES;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceFolderRegistry;
 import com.android.tools.idea.res.ResourceFolderRepository;
 import com.android.tools.idea.res.ResourceHelper;
@@ -73,6 +72,7 @@ import org.jetbrains.android.AndroidFileTemplateProvider;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.facet.ResourceFolderManager;
+import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -197,7 +197,7 @@ AndroidModularizeProcessor extends BaseRefactoringProcessor {
       PsiFile psiFile = AndroidResourceUtil.getItemPsiFile(myProject, resource);
       if (ResourceHelper.getFolderType(psiFile) == ResourceFolderType.VALUES) {
         // This is just a value, so we won't move the entire file, just its corresponding XmlTag
-        XmlTag xmlTag = LocalResourceRepository.getItemTag(myProject, resource);
+        XmlTag xmlTag = AndroidResourceUtil.getItemTag(myProject, resource);
         if (xmlTag != null) {
           result.add(new ResourceXmlUsageInfo(xmlTag, resource));
         }
@@ -384,13 +384,13 @@ AndroidModularizeProcessor extends BaseRefactoringProcessor {
   private PsiFile getOrCreateTargetManifestFile(AndroidFacet facet) {
     PsiManager manager = PsiManager.getInstance(myProject);
 
-    VirtualFile manifestFile = VfsUtil.findFileByIoFile(facet.getMainSourceProvider().getManifestFile(), false);
+    VirtualFile manifestFile = VfsUtil.findFileByIoFile(SourceProviderManager.getInstance(facet).getMainSourceProvider().getManifestFile(), false);
 
     if (manifestFile != null) {
       return manager.findFile(manifestFile);
     }
     else {
-      VirtualFile directory = VfsUtil.findFileByIoFile(facet.getMainSourceProvider().getManifestFile().getParentFile(), false);
+      VirtualFile directory = VfsUtil.findFileByIoFile(SourceProviderManager.getInstance(facet).getMainSourceProvider().getManifestFile().getParentFile(), false);
       if (directory != null) {
         PsiDirectory targetDirectory = manager.findDirectory(directory);
         if (targetDirectory != null) {

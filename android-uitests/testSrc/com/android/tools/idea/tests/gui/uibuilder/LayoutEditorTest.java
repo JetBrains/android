@@ -41,6 +41,7 @@ import static com.google.common.truth.Truth.assertThat;
 public class LayoutEditorTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   /**
    * Verifies that Image Asset feature works and appropriate resources are generated

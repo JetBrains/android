@@ -1,4 +1,3 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.importDependencies;
 
 import com.intellij.openapi.application.ApplicationManager;
@@ -9,7 +8,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jdom.JDOMException;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -83,7 +81,7 @@ class ImportModuleTask extends ModuleProvidingTask {
 
   @Override
   public String getModuleName() {
-    return FileUtilRt.getNameWithoutExtension(new File(myModuleFilePath).getName());
+    return FileUtil.getNameWithoutExtension(new File(myModuleFilePath).getName());
   }
 
   @NotNull

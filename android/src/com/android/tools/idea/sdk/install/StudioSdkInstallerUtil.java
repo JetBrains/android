@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.sdk.install;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.repository.api.InstallerFactory;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.api.SettingsController;

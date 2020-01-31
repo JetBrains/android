@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.structure
 
+import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
@@ -68,6 +69,22 @@ class BackPanel(private val surface: NavDesignSurface, private val updateCallbac
     })
     surface.model?.addListener(this)
     surface.selectionModel.addListener(this)
+    addMouseListener(object : MouseAdapter() {
+      override fun mouseEntered(e: MouseEvent?) {
+        if (e != null && contains(e.x, e.y)) {
+          background = primaryPanelBackground
+          revalidate()
+        }
+      }
+
+      override fun mouseExited(e: MouseEvent?) {
+        if (e != null && !contains(e.x, e.y)) {
+          background = secondaryPanelBackground
+          revalidate()
+        }
+      }
+    })
+
   }
 
   override fun dispose() {
@@ -91,6 +108,7 @@ class BackPanel(private val surface: NavDesignSurface, private val updateCallbac
   }
 
   private fun update() {
+    background = secondaryPanelBackground
     isVisible = false
     surface.currentNavigation.parent?.let {
       label.text = if (it.parent == null) ROOT_NAME else it.uiName

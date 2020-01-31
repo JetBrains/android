@@ -19,6 +19,7 @@ package org.jetbrains.kotlin.android.inspection
 import com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.util.androidFacet
 import com.intellij.codeInspection.LocalInspectionToolSession
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.ProblemsHolder
@@ -31,9 +32,7 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
-import com.intellij.psi.util.CachedValuesManager
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.android.getAndroidFacetForFile
 import org.jetbrains.kotlin.idea.inspections.AbstractKotlinInspection
 import org.jetbrains.kotlin.idea.quickfix.RenameIdentifierFix
 import org.jetbrains.kotlin.lexer.KtTokens
@@ -93,7 +92,7 @@ class IllegalIdentifierInspection : AbstractKotlinInspection() {
             }
 
             private fun checkAndroidFacet(element: PsiElement): Boolean {
-                return element.getAndroidFacetForFile() != null || ApplicationManager.getApplication().isUnitTestMode
+                return element.androidFacet != null || ApplicationManager.getApplication().isUnitTestMode
             }
         }
     }

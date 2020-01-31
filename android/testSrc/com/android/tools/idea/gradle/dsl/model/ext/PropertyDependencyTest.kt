@@ -99,7 +99,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
   private fun setupParentAndAppliedFiles() {
     writeToBuildFile(PROPERTY_DEPENDENCY_SETUP_PARENT_AND_APPLIED_FILES_PARENT)
     writeToSubModuleBuildFile(TestFileName.PROPERTY_DEPENDENCY_SETUP_PARENT_AND_APPLIED_FILES_CHILD)
-    writeToNewProjectFile("defaults.gradle", PROPERTY_DEPENDENCY_SETUP_PARENT_AND_APPLIED_FILES_DEFAULTS)
+    writeToNewProjectFile("defaults", PROPERTY_DEPENDENCY_SETUP_PARENT_AND_APPLIED_FILES_DEFAULTS)
     writeToSettingsFile(subModuleSettingsText)
   }
 
@@ -487,7 +487,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
 
   @Test
   fun testBuildScriptAppliedDependencies() {
-    writeToNewProjectFile("versions.gradle", PROPERTY_DEPENDENCY_BUILD_SCRIPT_APPLIED_DEPENDENCIES_APPLIED)
+    writeToNewProjectFile("versions", PROPERTY_DEPENDENCY_BUILD_SCRIPT_APPLIED_DEPENDENCIES_APPLIED)
     writeToBuildFile(PROPERTY_DEPENDENCY_BUILD_SCRIPT_APPLIED_DEPENDENCIES)
 
     val buildModel = gradleBuildModel
@@ -517,7 +517,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
 
   @Test
   fun testBuildScriptAppliedInParentModule() {
-    writeToNewProjectFile("versions.gradle", PROPERTY_DEPENDENCY_BUILD_SCRIPT_APPLIED_IN_PARENT_MODULE_APPLIED)
+    writeToNewProjectFile("versions", PROPERTY_DEPENDENCY_BUILD_SCRIPT_APPLIED_IN_PARENT_MODULE_APPLIED)
     writeToBuildFile(PROPERTY_DEPENDENCY_BUILD_SCRIPT_APPLIED_IN_PARENT_MODULE)
     writeToSubModuleBuildFile(PROPERTY_DEPENDENCY_BUILD_SCRIPT_APPLIED_IN_PARENT_MODULE_SUB)
     writeToSettingsFile(subModuleSettingsText)
@@ -546,7 +546,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
   }
 
   private fun runApplyFileToChildrenTest(fileName: TestFileName) {
-    writeToNewProjectFile("versions.gradle", PROPERTY_DEPENDENCY_PROJECTS_APPLIED_DEPENDENCIES_APPLIED)
+    writeToNewProjectFile("versions", PROPERTY_DEPENDENCY_PROJECTS_APPLIED_DEPENDENCIES_APPLIED)
     writeToBuildFile(fileName)
     writeToSubModuleBuildFile(PROPERTY_DEPENDENCY_PROJECTS_APPLIED_DEPENDENCIES_SUB)
     writeToSettingsFile(subModuleSettingsText)
@@ -559,7 +559,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
 
   @Test
   fun testApplyFileWithVariables() {
-    writeToNewProjectFile("superawesome.gradle", PROPERTY_DEPENDENCY_APPLY_FILE_WITH_VARIABLES_APPLIED)
+    writeToNewProjectFile("superawesome", PROPERTY_DEPENDENCY_APPLY_FILE_WITH_VARIABLES_APPLIED)
     writeToBuildFile(PROPERTY_DEPENDENCY_APPLY_FILE_WITH_VARIABLES)
 
     val buildModel = gradleBuildModel
@@ -570,19 +570,19 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
 
   @Test
   fun testApplyFileWithRootDirVariables() {
-    writeToNewProjectFile("deps.gradle", PROPERTY_DEPENDENCY_APPLY_FILE_WITH_ROOT_DIR_VARIABLES_APPLIED)
+    writeToNewProjectFile("deps", PROPERTY_DEPENDENCY_APPLY_FILE_WITH_ROOT_DIR_VARIABLES_APPLIED)
     writeToBuildFile(PROPERTY_DEPENDENCY_APPLY_FILE_WITH_ROOT_DIR_VARIABLES)
 
     val buildModel = gradleBuildModel
     val artModel = buildModel.dependencies().artifacts()[0]
 
-    verifyPropertyModel(artModel.completeModel(), STRING_TYPE, "super:powers:1.0.0", STRING, DERIVED, 3)
+    verifyPropertyModel(artModel.completeModel(), STRING_TYPE, "super:powers:1.0.0", STRING, REGULAR, 3)
   }
 
   @Test
   fun testMultipleAllProjectBlocks() {
-    writeToNewProjectFile("versions.gradle", PROPERTY_DEPENDENCY_MULTIPLE_ALL_PROJECT_BLOCKS_APPLIED_ONE)
-    writeToNewProjectFile("versions2.gradle", PROPERTY_DEPENDENCY_MULTIPLE_ALL_PROJECT_BLOCKS_APPLIED_TWO)
+    writeToNewProjectFile("versions", PROPERTY_DEPENDENCY_MULTIPLE_ALL_PROJECT_BLOCKS_APPLIED_ONE)
+    writeToNewProjectFile("versions2", PROPERTY_DEPENDENCY_MULTIPLE_ALL_PROJECT_BLOCKS_APPLIED_TWO)
     writeToBuildFile(PROPERTY_DEPENDENCY_MULTIPLE_ALL_PROJECT_BLOCKS)
     writeToSubModuleBuildFile(PROPERTY_DEPENDENCY_MULTIPLE_ALL_PROJECT_BLOCKS_SUB)
     writeToSettingsFile(subModuleSettingsText)
@@ -613,7 +613,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
   @Test
   fun testRootProjectInAppliedFiles() {
     writeToBuildFile(PROPERTY_DEPENDENCY_ROOT_PROJECT_IN_APPLIED_FILES)
-    writeToNewProjectFile("versions.gradle", PROPERTY_DEPENDENCY_ROOT_PROJECT_IN_APPLIED_FILES_APPLIED)
+    writeToNewProjectFile("versions", PROPERTY_DEPENDENCY_ROOT_PROJECT_IN_APPLIED_FILES_APPLIED)
     writeToSubModuleBuildFile(PROPERTY_DEPENDENCY_ROOT_PROJECT_IN_APPLIED_FILES_SUB)
     writeToSettingsFile(subModuleSettingsText)
 

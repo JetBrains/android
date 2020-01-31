@@ -42,7 +42,7 @@ public class DeleteFileAndSyncHyperlink extends NotificationHyperlink {
   protected void execute(@NotNull Project project) {
     if (showYesNoDialog(project, "Are you sure you want to delete this file?\n\n" + myFile.getPath(), "Delete File", null) == YES) {
       if (FileUtil.delete(myFile)) {
-        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, myTrigger);
+        GradleSyncInvoker.getInstance().requestProjectSync(project, myTrigger);
       }
       else {
         showErrorDialog(project, "Could not delete " + myFile.getPath(), "Delete File");

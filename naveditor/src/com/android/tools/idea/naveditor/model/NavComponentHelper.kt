@@ -29,7 +29,6 @@ import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.NAVIGATION_PREFIX
 import com.android.SdkConstants.TAG_DEEP_LINK
 import com.android.SdkConstants.TOOLS_URI
-import com.google.common.annotations.VisibleForTesting
 import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.BooleanAttributeDelegate
 import com.android.tools.idea.common.model.BooleanAutoAttributeDelegate
@@ -40,6 +39,7 @@ import com.android.tools.idea.naveditor.analytics.MetricsLoggingAttributeDelegat
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.uibuilder.model.createChild
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
 import com.google.wireless.android.sdk.stats.NavEditorEvent
@@ -55,7 +55,16 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiManager
 import com.intellij.psi.xml.XmlFile
+import icons.StudioIcons.NavEditor.Properties.ACTION
+import icons.StudioIcons.NavEditor.Tree.ACTIVITY
+import icons.StudioIcons.NavEditor.Tree.FRAGMENT
+import icons.StudioIcons.NavEditor.Tree.INCLUDE_GRAPH
+import icons.StudioIcons.NavEditor.Tree.NESTED_GRAPH
+import icons.StudioIcons.NavEditor.Tree.PLACEHOLDER
+import org.jetbrains.android.dom.AndroidDomElement
+import org.jetbrains.android.dom.navigation.DeeplinkElement
 import org.jetbrains.android.dom.navigation.NavActionElement
+import org.jetbrains.android.dom.navigation.NavArgumentElement
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DEFAULT_VALUE
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DESTINATION
@@ -71,8 +80,11 @@ import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ACTION
 import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ARGUMENT
 import org.jetbrains.android.dom.navigation.NavigationSchema.get
 import java.io.File
-import java.util.ArrayList
+import javax.swing.Icon
 import kotlin.streams.toList
+
+private const val ADD_NESTED_COMMAND_NAME = "Add to Nested Graph"
+private const val ADD_NESTED_GROUP_ID = "ADD_NESTED_GROUP_ID"
 
 /*
  * Extensions to NlComponent used by the navigation editor
@@ -425,7 +437,16 @@ fun NlComponent.createNestedGraph(): NlComponent? {
 }
 
 val NlComponent.supportsActions: Boolean
-  get() = model.schema.getDestinationSubtags(tagName).containsKey(NavActionElement::class.java)
+  get() = this.supportsElement(NavActionElement::class.java)
+
+val NlComponent.supportsArguments: Boolean
+  get() = this.supportsElement(NavArgumentElement::class.java)
+
+val NlComponent.supportsDeeplinks: Boolean
+  get() = this.supportsElement(DeeplinkElement::class.java)
+
+private fun NlComponent.supportsElement(element: Class<out AndroidDomElement>) =
+  model.schema.getDestinationSubtags(tagName).containsKey(element)
 
 /**
  * If the action has a destination attribute set, return it.
@@ -466,7 +487,7 @@ fun moveIntoNestedGraph(surface: NavDesignSurface, newParent: () -> NlComponent?
     return false
   }
 
-  WriteCommandAction.runWriteCommandAction(surface.project, "Add to Nested Graph", null, Runnable {
+  WriteCommandAction.runWriteCommandAction(surface.project, ADD_NESTED_COMMAND_NAME, ADD_NESTED_GROUP_ID, Runnable {
     val graph = newParent() ?: return@Runnable
     val ids = components.map { it.id }
     components.forEach { surface.sceneManager?.performUndoablePositionAction(it) }
@@ -486,7 +507,7 @@ fun moveIntoNestedGraph(surface: NavDesignSurface, newParent: () -> NlComponent?
         it.actionDestinationId = graph.id
       }
 
-    graph.model.addComponents(components, graph, null, InsertType.MOVE_WITHIN, surface)
+    graph.model.addComponents(components, graph, null, InsertType.MOVE_WITHIN, surface, null, ADD_NESTED_GROUP_ID)
     if (graph.startDestinationId == null) {
       graph.startDestinationId = candidate
     }
@@ -542,6 +563,17 @@ class NavComponentMixin(component: NlComponent)
   }
 
   override fun getTooltipText() = if (component.isAction) component.id else null
+
+  override fun getIcon(): Icon {
+    return when {
+      component.isInclude -> INCLUDE_GRAPH
+      component.isNavigation -> NESTED_GRAPH
+      component.isAction -> ACTION
+      component.className == null -> PLACEHOLDER
+      component.isActivity -> ACTIVITY
+      else -> FRAGMENT
+    }
+  }
 }
 
 object NavComponentHelper {

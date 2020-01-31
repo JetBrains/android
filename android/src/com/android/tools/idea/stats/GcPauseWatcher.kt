@@ -16,9 +16,9 @@
 package com.android.tools.idea.stats
 
 import com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor
+import com.intellij.concurrency.JobScheduler
 import java.lang.management.GarbageCollectorMXBean
 import java.lang.management.ManagementFactory
-import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 class GcPauseWatcher {
@@ -41,7 +41,7 @@ class GcPauseWatcher {
   }
 
   init {
-    Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(::checkForPauses, 0, SAMPLING_RATE_MS, TimeUnit.MILLISECONDS)
+    JobScheduler.getScheduler().scheduleWithFixedDelay(::checkForPauses, 0, SAMPLING_RATE_MS, TimeUnit.MILLISECONDS)
   }
 
   private fun checkForPauses() {

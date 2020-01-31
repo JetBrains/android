@@ -18,32 +18,36 @@ package com.android.tools.profilers.memory;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.idea.protobuf.ByteString;
+import com.android.tools.idea.transport.poller.TransportEventListener;
+import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsResponse;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
-import com.android.tools.profiler.proto.MemoryProfiler.DumpDataRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.DumpDataResponse;
-import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
+import com.android.tools.profiler.proto.Memory;
+import com.android.tools.profiler.proto.Memory.AllocationsInfo;
+import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportHeapDumpRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.ImportHeapDumpResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsResponse;
-import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.ListDumpInfosRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.ListHeapDumpInfosResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryStartRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryStopRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsRequest;
-import com.android.tools.profiler.proto.MemoryServiceGrpc;
+import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
 import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.Transport.TimeResponse;
-import com.android.tools.profiler.protobuf3jarjar.ByteString;
+import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.ProfilerAspect;
+import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.StudioProfiler;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.sessions.SessionsManager;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.diagnostic.Logger;
 import io.grpc.StatusRuntimeException;
 import java.io.File;
@@ -51,14 +55,14 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class MemoryProfiler extends StudioProfiler {
 
@@ -103,13 +107,8 @@ public class MemoryProfiler extends StudioProfiler {
   @Override
   public void stopProfiling(Common.Session session) {
     try {
-      Profiler.GetSessionMetaDataResponse response = myProfilers.getClient().getProfilerClient()
-        .getSessionMetaData(Profiler.GetSessionMetaDataRequest.newBuilder().setSessionId(session.getSessionId()).build());
-      // Only stops live tracking if one is available.
-      if (response.getData().getLiveAllocationEnabled() && isUsingLiveAllocation(myProfilers, session)) {
-        myProfilers.getClient().getMemoryClient()
-          .trackAllocations(TrackAllocationsRequest.newBuilder().setSession(session).setEnabled(false).build());
-      }
+      // Stop any ongoing allocation tracking sessions (either legacy or jvmti-based).
+      trackAllocations(myProfilers, session, false, null);
     }
     catch (StatusRuntimeException e) {
       getLogger().info(e);
@@ -128,15 +127,8 @@ public class MemoryProfiler extends StudioProfiler {
       return;
     }
 
-    Profiler.GetSessionMetaDataResponse response = myProfilers.getClient().getProfilerClient()
-      .getSessionMetaData(Profiler.GetSessionMetaDataRequest.newBuilder().setSessionId(session.getSessionId()).build());
-    if (!response.getData().getLiveAllocationEnabled()) {
+    if (!myProfilers.getSessionsManager().getSelectedSessionMetaData().getLiveAllocationEnabled()) {
       // Early return if live allocation is not enabled for the session.
-      return;
-    }
-
-    // Only starts live tracking if an existing one is not available.
-    if (isUsingLiveAllocation(myProfilers, session)) {
       return;
     }
 
@@ -145,16 +137,11 @@ public class MemoryProfiler extends StudioProfiler {
       return;
     }
 
-    TimeResponse timeResponse = myProfilers.getClient().getTransportClient()
-      .getCurrentTime(TimeRequest.newBuilder().setStreamId(session.getStreamId()).build());
-    long timeNs = timeResponse.getTimestampNs();
     try {
       // Attempts to stop an existing tracking session first.
       // This should only happen if we are restarting Studio and reconnecting to an app that already has an agent attached.
-      myProfilers.getClient().getMemoryClient().trackAllocations(TrackAllocationsRequest.newBuilder().setRequestTime(timeNs)
-                                                                   .setSession(session).setEnabled(false).build());
-      myProfilers.getClient().getMemoryClient().trackAllocations(TrackAllocationsRequest.newBuilder().setRequestTime(timeNs)
-                                                                   .setSession(session).setEnabled(true).build());
+      trackAllocations(myProfilers, session, false, null);
+      trackAllocations(myProfilers, session, true, null);
     }
     catch (StatusRuntimeException e) {
       getLogger().info(e);
@@ -164,47 +151,61 @@ public class MemoryProfiler extends StudioProfiler {
   private void importHprof(@NotNull File file) {
     SessionsManager sessionsManager = myProfilers.getSessionsManager();
     long startTimestampEpochMs = System.currentTimeMillis();
-    long fileCreationTime = TimeUnit.MILLISECONDS.toNanos(startTimestampEpochMs);
-    try {
-      BasicFileAttributes attributes = Files.readAttributes(Paths.get(file.getPath()), BasicFileAttributes.class);
-      fileCreationTime = TimeUnit.MILLISECONDS.toNanos(attributes.creationTime().toMillis());
-    }
-    catch (IOException e) {
-      getLogger().info("File creation time not provided, using system time instead...");
+    long sessionStartTimeNs = StudioProfilers.getFileCreationTimestampNs(file, startTimestampEpochMs);
+
+    // Select the session if the hprof has already been imported.
+    if (sessionsManager.setSessionById(sessionStartTimeNs)) {
+      return;
     }
 
+    // We don't really care about the session having a duration - arbitrarily create a 1-ns session.
+    long sessionEndTimeNs = sessionStartTimeNs + 1;
     byte[] bytes;
     try {
       bytes = Files.readAllBytes(Paths.get(file.getPath()));
     }
     catch (IOException e) {
-      getLogger().error("Importing Session Failed: cannot read from file location...");
+      getLogger().error(String.format("Importing Session Failed: cannot read from %s.", file.getPath()));
       return;
     }
 
-    // Heap dump and session share a time range of [dumpTimeStamp, dumpTimeStamp + 1) which contains dumpTimestamp as its only integer point.
-    Common.Session session = sessionsManager
-      .createImportedSession(file.getName(), Common.SessionMetaData.SessionType.MEMORY_CAPTURE, fileCreationTime, fileCreationTime + 1,
-                             startTimestampEpochMs);
     // Bind the imported session with heap dump data through MemoryClient.
     HeapDumpInfo heapDumpInfo = HeapDumpInfo.newBuilder()
-      .setFileName(file.getName())
-      .setStartTime(fileCreationTime)
-      .setEndTime(fileCreationTime + 1)
+      .setStartTime(sessionStartTimeNs)
+      .setEndTime(sessionEndTimeNs)
       .build();
-    ImportHeapDumpRequest heapDumpRequest = ImportHeapDumpRequest.newBuilder()
-      .setSession(session)
-      .setData(ByteString.copyFrom(bytes))
-      .setInfo(heapDumpInfo)
-      .build();
-    ImportHeapDumpResponse response = myProfilers.getClient().getMemoryClient().importHeapDump(heapDumpRequest);
-    // Select the new session
-    if (response.getStatus() == ImportHeapDumpResponse.Status.SUCCESS) {
-      sessionsManager.update();
-      sessionsManager.setSession(session);
+
+    if (myProfilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
+      Common.Event heapDumpEvent = Common.Event.newBuilder()
+        .setKind(Common.Event.Kind.MEMORY_HEAP_DUMP)
+        .setGroupId(heapDumpInfo.getStartTime())
+        .setTimestamp(heapDumpInfo.getStartTime())
+        .setIsEnded(true)
+        .setMemoryHeapdump(Memory.MemoryHeapDumpData.newBuilder().setInfo(heapDumpInfo))
+        .build();
+      sessionsManager.createImportedSession(file.getName(),
+                                            Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE, sessionStartTimeNs,
+                                            sessionEndTimeNs,
+                                            startTimestampEpochMs,
+                                            ImmutableMap.of(Long.toString(sessionStartTimeNs), ByteString.copyFrom(bytes)),
+                                            heapDumpEvent);
     }
     else {
-      Logger.getInstance(getClass()).error("Importing Session Failed: cannot import heap dump...");
+      // Heap dump and session share a time range of [dumpTimeStamp, dumpTimeStamp + 1) which contains dumpTimestamp as its only integer point.
+      Common.Session session = sessionsManager
+        .createImportedSessionLegacy(file.getName(), Common.SessionMetaData.SessionType.MEMORY_CAPTURE, sessionStartTimeNs,
+                                     sessionEndTimeNs,
+                                     startTimestampEpochMs);
+      ImportHeapDumpRequest heapDumpRequest = ImportHeapDumpRequest.newBuilder()
+        .setSession(session)
+        .setData(ByteString.copyFrom(bytes))
+        .setInfo(heapDumpInfo)
+        .build();
+      myProfilers.getClient().getMemoryClient().importHeapDump(heapDumpRequest);
+
+      // Select the new session
+      sessionsManager.update();
+      sessionsManager.setSession(session);
     }
 
     myProfilers.getIdeServices().getFeatureTracker().trackCreateSession(Common.SessionMetaData.SessionType.MEMORY_CAPTURE,
@@ -214,7 +215,12 @@ public class MemoryProfiler extends StudioProfiler {
   private void importLegacyAllocations(@NotNull File file) {
     SessionsManager sessionsManager = myProfilers.getSessionsManager();
     long startTimestampEpochMs = System.currentTimeMillis();
-    long sessionStartTimeNs = TimeUnit.MILLISECONDS.toNanos(startTimestampEpochMs);
+    long sessionStartTimeNs = StudioProfilers.getFileCreationTimestampNs(file, startTimestampEpochMs);
+    // Select the session if the hprof has already been imported.
+    if (sessionsManager.setSessionById(sessionStartTimeNs)) {
+      return;
+    }
+
     long sessionEndTimeNs = sessionStartTimeNs + 1;
     byte[] bytes;
     try {
@@ -225,57 +231,45 @@ public class MemoryProfiler extends StudioProfiler {
       return;
     }
 
-    Common.Session session = sessionsManager
-      .createImportedSession(file.getName(), Common.SessionMetaData.SessionType.MEMORY_CAPTURE, sessionStartTimeNs, sessionEndTimeNs,
-                             startTimestampEpochMs);
     AllocationsInfo info = AllocationsInfo.newBuilder()
       .setStartTime(sessionStartTimeNs)
       .setEndTime(sessionEndTimeNs)
       .setLegacy(true)
+      .setSuccess(true)
       .build();
-    ImportLegacyAllocationsRequest request = ImportLegacyAllocationsRequest.newBuilder()
-      .setSession(session)
-      .setInfo(info)
-      .setAllocations(LegacyAllocationEventsResponse.newBuilder().setStatus(LegacyAllocationEventsResponse.Status.NOT_READY))
-      .build();
-    ImportLegacyAllocationsResponse response = myProfilers.getClient().getMemoryClient().importLegacyAllocations(request);
-    // Select the new session
-    if (response.getStatus() == ImportLegacyAllocationsResponse.Status.SUCCESS) {
+    if (myProfilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
+      Common.Event heapDumpEvent = Common.Event.newBuilder()
+        .setKind(Common.Event.Kind.MEMORY_ALLOC_TRACKING)
+        .setGroupId(info.getStartTime())
+        .setTimestamp(info.getStartTime())
+        .setIsEnded(true)
+        .setMemoryAllocTracking(Memory.MemoryAllocTrackingData.newBuilder().setInfo(info))
+        .build();
+      sessionsManager.createImportedSession(file.getName(),
+                                            Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE, sessionStartTimeNs,
+                                            sessionEndTimeNs,
+                                            startTimestampEpochMs,
+                                            ImmutableMap.of(Long.toString(sessionStartTimeNs), ByteString.copyFrom(bytes)),
+                                            heapDumpEvent);
+    }
+    else {
+      Common.Session session = sessionsManager
+        .createImportedSessionLegacy(file.getName(), Common.SessionMetaData.SessionType.MEMORY_CAPTURE, sessionStartTimeNs,
+                                     sessionEndTimeNs,
+                                     startTimestampEpochMs);
+      ImportLegacyAllocationsRequest request = ImportLegacyAllocationsRequest.newBuilder()
+        .setSession(session)
+        .setInfo(info)
+        .setData(ByteString.copyFrom(bytes))
+        .build();
+      myProfilers.getClient().getMemoryClient().importLegacyAllocations(request);
+
+      // Select the new session
       sessionsManager.update();
       sessionsManager.setSession(session);
     }
-    else {
-      Logger.getInstance(getClass()).error("Importing Session Failed: cannot import allocation records...");
-    }
     myProfilers.getIdeServices().getFeatureTracker().trackCreateSession(Common.SessionMetaData.SessionType.MEMORY_CAPTURE,
                                                                         SessionsManager.SessionCreationSource.MANUAL);
-
-    ExecutorService executorService = Executors.newSingleThreadExecutor();
-    executorService.submit(() -> {
-      try {
-        LegacyAllocationConverter converter = new LegacyAllocationConverter();
-        converter.parseDump(bytes);
-        LegacyAllocationEventsResponse allocations = LegacyAllocationEventsResponse.newBuilder()
-          .setStatus(LegacyAllocationEventsResponse.Status.SUCCESS)
-          .addAllEvents(converter.getAllocationEvents(info.getStartTime(), info.getEndTime()))
-          .build();
-        AllocationContextsResponse contexts = AllocationContextsResponse.newBuilder()
-          .addAllAllocatedClasses(converter.getClassNames())
-          .addAllAllocationStacks(converter.getAllocationStacks())
-          .build();
-        ImportLegacyAllocationsRequest updateRequest = request.toBuilder().setAllocations(allocations).setContexts(contexts).build();
-        myProfilers.getClient().getMemoryClient().importLegacyAllocations(updateRequest);
-      }
-      catch (Exception e) {
-        Logger.getInstance(getClass()).error("Importing Session Failed: cannot import allocation records...");
-
-        LegacyAllocationEventsResponse failedResponse = LegacyAllocationEventsResponse
-          .newBuilder().setStatus(LegacyAllocationEventsResponse.Status.FAILURE_UNKNOWN).build();
-        ImportLegacyAllocationsRequest failedRequest = request.toBuilder().setAllocations(failedResponse).build();
-        myProfilers.getClient().getMemoryClient().importLegacyAllocations(failedRequest);
-      }
-    });
-    executorService.shutdown();
   }
 
   /**
@@ -284,37 +278,36 @@ public class MemoryProfiler extends StudioProfiler {
    */
   static boolean isUsingLiveAllocation(@NotNull StudioProfilers profilers, @NotNull Common.Session session) {
     AllocationSamplingRateDataSeries samplingSeries =
-      new AllocationSamplingRateDataSeries(profilers.getClient().getMemoryClient(), session);
-
-    Range dataRange = profilers.getTimeline().getDataRange();
-    long rangeMin = TimeUnit.MICROSECONDS.toNanos((long)dataRange.getMin());
-    long rangeMax = TimeUnit.MICROSECONDS.toNanos((long)dataRange.getMax());
-    List<SeriesData<AllocationSamplingRateDurationData>> series = samplingSeries.getDataForXRange(new Range(rangeMin, rangeMax));
-    return !series.isEmpty();
+      new AllocationSamplingRateDataSeries(profilers.getClient(),
+                                           session,
+                                           profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled());
+    return !samplingSeries.getDataForRange(profilers.getTimeline().getDataRange()).isEmpty();
   }
 
   /**
    * @return True if live allocation tracking is in FULL mode throughout the entire input time range, false otherwise.
    */
-  public static boolean hasOnlyFullAllocationTrackingWithinRegion(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client,
+  public static boolean hasOnlyFullAllocationTrackingWithinRegion(@NotNull StudioProfilers profilers,
                                                                   @NotNull Common.Session session, long startTimeUs, long endTimeUs) {
-    AllocationSamplingRateDataSeries series = new AllocationSamplingRateDataSeries(client, session);
-    List<SeriesData<AllocationSamplingRateDurationData>> samplingModes = series.getDataForXRange(new Range(startTimeUs, endTimeUs));
-    return samplingModes.size() == 1 && samplingModes.get(0).value.getCurrentRateEvent().getSamplingRate().getSamplingNumInterval() ==
+    AllocationSamplingRateDataSeries series =
+      new AllocationSamplingRateDataSeries(profilers.getClient(),
+                                           session,
+                                           profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled());
+    List<SeriesData<AllocationSamplingRateDurationData>> samplingModes = series.getDataForRange(new Range(startTimeUs, endTimeUs));
+    return samplingModes.size() == 1 && samplingModes.get(0).value.getCurrentRate().getSamplingNumInterval() ==
                                         MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue();
   }
 
-  public static void saveHeapDumpToFile(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client,
+  public static void saveHeapDumpToFile(@NotNull ProfilerClient client,
                                         @NotNull Common.Session session,
                                         @NotNull HeapDumpInfo info,
                                         @NotNull OutputStream outputStream,
                                         @NotNull FeatureTracker featureTracker) {
-
-    DumpDataResponse response = client.getHeapDump(
-      DumpDataRequest.newBuilder().setSession(session).setDumpTime(info.getStartTime()).build());
-    if (response.getStatus() == DumpDataResponse.Status.SUCCESS) {
+    Transport.BytesResponse response = client.getTransportClient()
+      .getBytes(Transport.BytesRequest.newBuilder().setStreamId(session.getStreamId()).setId(Long.toString(info.getStartTime())).build());
+    if (response.getContents() != ByteString.EMPTY) {
       try {
-        response.getData().writeTo(outputStream);
+        response.getContents().writeTo(outputStream);
         featureTracker.trackExportHeap();
       }
       catch (IOException exception) {
@@ -323,16 +316,16 @@ public class MemoryProfiler extends StudioProfiler {
     }
   }
 
-  public static void saveLegacyAllocationToFile(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client,
+  public static void saveLegacyAllocationToFile(@NotNull ProfilerClient client,
                                                 @NotNull Common.Session session,
                                                 @NotNull AllocationsInfo info,
                                                 @NotNull OutputStream outputStream,
                                                 @NotNull FeatureTracker featureTracker) {
-    DumpDataResponse response = client.getLegacyAllocationDump(
-      DumpDataRequest.newBuilder().setSession(session).setDumpTime(info.getStartTime()).build());
-    if (response.getStatus() == DumpDataResponse.Status.SUCCESS) {
+    Transport.BytesResponse response = client.getTransportClient()
+      .getBytes(Transport.BytesRequest.newBuilder().setStreamId(session.getStreamId()).setId(Long.toString(info.getStartTime())).build());
+    if (response.getContents() != ByteString.EMPTY) {
       try {
-        response.getData().writeTo(outputStream);
+        response.getContents().writeTo(outputStream);
         featureTracker.trackExportAllocation();
       }
       catch (IOException exception) {
@@ -350,5 +343,133 @@ public class MemoryProfiler extends StudioProfiler {
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss");
     builder.append(LocalDateTime.now().format(formatter));
     return builder.toString();
+  }
+
+  public static List<HeapDumpInfo> getHeapDumpsForSession(@NotNull ProfilerClient client,
+                                                          @NotNull Common.Session session,
+                                                          @NotNull Range rangeUs,
+                                                          @NotNull IdeProfilerServices profilerService) {
+
+    if (profilerService.getFeatureConfig().isUnifiedPipelineEnabled()) {
+      Transport.GetEventGroupsRequest request = Transport.GetEventGroupsRequest.newBuilder()
+        .setStreamId(session.getStreamId())
+        .setPid(session.getPid())
+        .setKind(Common.Event.Kind.MEMORY_HEAP_DUMP)
+        .setFromTimestamp(TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMin()))
+        .setToTimestamp(TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMax()))
+        .build();
+      Transport.GetEventGroupsResponse response = client.getTransportClient().getEventGroups(request);
+
+      List<HeapDumpInfo> infos = new ArrayList<>();
+      for (Transport.EventGroup group : response.getGroupsList()) {
+        // We only need the last event to get the most recent HeapDumpInfo
+        Common.Event lastEvent = group.getEvents(group.getEventsCount() - 1);
+        infos.add(lastEvent.getMemoryHeapdump().getInfo());
+      }
+      return infos;
+    }
+    else {
+      ListHeapDumpInfosResponse response = client.getMemoryClient().listHeapDumpInfos(
+        ListDumpInfosRequest.newBuilder()
+          .setSession(session)
+          .setStartTime(TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMin()))
+          .setEndTime(TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMax()))
+          .build());
+
+      return response.getInfosList();
+    }
+  }
+
+  public static List<AllocationsInfo> getAllocationInfosForSession(@NotNull ProfilerClient client,
+                                                                   @NotNull Common.Session session,
+                                                                   @NotNull Range rangeUs,
+                                                                   @NotNull IdeProfilerServices profilerService) {
+    long fromTimestamp = rangeUs.getMin() == Long.MIN_VALUE ? Long.MIN_VALUE : TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMin());
+    long toTimestamp = rangeUs.getMax() == Long.MAX_VALUE ? Long.MAX_VALUE : TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMax());
+    if (profilerService.getFeatureConfig().isUnifiedPipelineEnabled()) {
+      Transport.GetEventGroupsRequest request = Transport.GetEventGroupsRequest.newBuilder()
+        .setStreamId(session.getStreamId())
+        .setPid(session.getPid())
+        .setKind(Common.Event.Kind.MEMORY_ALLOC_TRACKING)
+        .setFromTimestamp(fromTimestamp)
+        .setToTimestamp(toTimestamp)
+        .build();
+      Transport.GetEventGroupsResponse response = client.getTransportClient().getEventGroups(request);
+
+      List<AllocationsInfo> infos = new ArrayList<>();
+      for (Transport.EventGroup group : response.getGroupsList()) {
+        // We only need the last event to get the most recent HeapDumpInfo
+        Common.Event lastEvent = group.getEvents(group.getEventsCount() - 1);
+        AllocationsInfo info = lastEvent.getMemoryAllocTracking().getInfo();
+        if (info.equals(AllocationsInfo.getDefaultInstance())) {
+          // A default instance means that we have a generically ended group due to device disconnect.
+          // In those case, we look for the start event and use its AllocationsInfo instead.
+          assert group.getEventsCount() > 1;
+          info = group.getEvents(0).getMemoryAllocTracking().getInfo();
+          if (info.getLegacy() && info.getEndTime() == Long.MAX_VALUE) {
+            info = info.toBuilder().setEndTime(session.getEndTimestamp()).setSuccess(false).build();
+          }
+        }
+
+        infos.add(info);
+      }
+      return infos;
+    }
+    else {
+      MemoryRequest dataRequest = MemoryRequest.newBuilder()
+        .setSession(session)
+        .setStartTime(fromTimestamp)
+        .setEndTime(toTimestamp)
+        .build();
+      return client.getMemoryClient().getData(dataRequest).getAllocationsInfoList();
+    }
+  }
+
+  public static void trackAllocations(@NotNull StudioProfilers profilers,
+                                      @NotNull Common.Session session,
+                                      boolean enable,
+                                      @Nullable Consumer<Memory.TrackStatus> responseHandler) {
+    TimeResponse timeResponse = profilers.getClient().getTransportClient()
+      .getCurrentTime(TimeRequest.newBuilder().setStreamId(session.getStreamId()).build());
+    long timeNs = timeResponse.getTimestampNs();
+
+    if (profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
+      Commands.Command.Builder trackCommand = Commands.Command.newBuilder()
+        .setStreamId(session.getStreamId())
+        .setPid(session.getPid());
+      if (enable) {
+        trackCommand
+          .setType(Commands.Command.CommandType.START_ALLOC_TRACKING)
+          .setStartAllocTracking(Memory.StartAllocTracking.newBuilder().setRequestTime(timeNs));
+      }
+      else {
+        trackCommand
+          .setType(Commands.Command.CommandType.STOP_ALLOC_TRACKING)
+          .setStopAllocTracking(Memory.StopAllocTracking.newBuilder().setRequestTime(timeNs));
+      }
+      Transport.ExecuteResponse response = profilers.getClient().getTransportClient().execute(
+        Transport.ExecuteRequest.newBuilder().setCommand(trackCommand).build());
+      if (responseHandler != null) {
+        TransportEventListener statusListener = new TransportEventListener(Common.Event.Kind.MEMORY_ALLOC_TRACKING_STATUS,
+                                                                           profilers.getIdeServices().getMainExecutor(),
+                                                                           event -> event.getCommandId() == response.getCommandId(),
+                                                                           () -> session.getStreamId(),
+                                                                           () -> session.getPid(),
+                                                                           event -> {
+                                                                             responseHandler.accept(
+                                                                               event.getMemoryAllocTrackingStatus().getStatus());
+                                                                             // unregisters the listener.
+                                                                             return true;
+                                                                           });
+        profilers.getTransportPoller().registerListener(statusListener);
+      }
+    }
+    else {
+      TrackAllocationsResponse response = profilers.getClient().getMemoryClient().trackAllocations(
+        TrackAllocationsRequest.newBuilder().setSession(session).setRequestTime(timeNs).setEnabled(enable).build());
+      if (responseHandler != null) {
+        responseHandler.accept(response.getStatus());
+      }
+    }
   }
 }

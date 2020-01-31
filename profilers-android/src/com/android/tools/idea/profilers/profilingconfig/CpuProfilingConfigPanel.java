@@ -15,27 +15,37 @@
  */
 package com.android.tools.idea.profilers.profilingconfig;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.profiler.proto.Cpu;
-import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.ProfilingTechnology;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.DocumentAdapter;
-import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBUI;
+import java.awt.event.ItemEvent;
+import java.util.Locale;
+import javax.swing.Box;
+import javax.swing.ButtonGroup;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JSeparator;
+import javax.swing.JSlider;
+import javax.swing.JSpinner;
+import javax.swing.JTextField;
+import javax.swing.SpinnerModel;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.event.DocumentEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import java.awt.event.ItemEvent;
 
 /**
  * The configuration panel for the Android profiler settings.
@@ -71,7 +81,8 @@ public class CpuProfilingConfigPanel {
 
   @VisibleForTesting
   static final String FILE_SIZE_LIMIT_DESCRIPTION =
-    "<html>Maximum recording output file size. On Android 8.0 (API level 26) and higher, this value is ignored.</html>";
+    "<html>Maximum recording output file size for Sample/Trace Java Methods." +
+    " On Android 8.0 (API level 26) and higher, this value is ignored.</html>";
 
   /**
    * Max size of the buffer file that contains the output of the recording.
@@ -178,9 +189,9 @@ public class CpuProfilingConfigPanel {
    */
   private static String getFileSizeLimitText(int fileSizeLimitInMB) {
     if (fileSizeLimitInMB < ONE_GB_IN_MB) {
-      return String.format("%d MB", fileSizeLimitInMB);
+      return String.format(Locale.US, "%d MB", fileSizeLimitInMB);
     }
-    return String.format("%.2f GB", fileSizeLimitInMB / 1024.0);
+    return String.format(Locale.US, "%.2f GB", fileSizeLimitInMB / 1024.0);
   }
 
   void setConfiguration(@Nullable ProfilingConfiguration configuration, boolean isDefaultConfiguration) {
@@ -202,7 +213,7 @@ public class CpuProfilingConfigPanel {
       myConfigName.selectAll();
       setEnabledTraceTechnologyPanel(true);
       setRadioButtons(myConfiguration);
-      setEnabledFileSizeLimit(!myIsDeviceAtLeastO);
+      setEnabledFileSizeLimit(!myIsDeviceAtLeastO && myConfiguration.getTraceType().equals(Cpu.CpuTraceType.ART));
       boolean isSamplingEnabled = myConfiguration.getMode() == Cpu.CpuTraceMode.SAMPLED;
       setEnabledSamplingIntervalPanel(isSamplingEnabled);
       myFileSize.setValue(myConfiguration.getProfilingBufferSizeInMb());
@@ -405,7 +416,7 @@ public class CpuProfilingConfigPanel {
     fileSizeLimitPanel.add(myFileSizeLimit, new TabularLayout.Constraint(0, 2));
     myConfigPanel.add(fileSizeLimitPanel);
 
-    myConfigPanel.add(Box.createVerticalStrut(JBUIScale.scale(6)));
+    myConfigPanel.add(Box.createVerticalStrut(JBUI.scale(6)));
 
     myFileSizeLimitDescriptionText.setBorder(JBUI.Borders.emptyTop(8));
     myFileSizeLimitDescriptionText.setForeground(ProfilerColors.CPU_RECORDING_CONFIGURATION_DESCRIPTION);

@@ -17,8 +17,6 @@ package com.android.tools.idea.tests.gui.newpsd
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
-import com.android.tools.idea.tests.gui.framework.RunIn
-import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.items
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.openPsd
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectDependenciesConfigurable
@@ -35,7 +33,6 @@ import org.junit.runner.RunWith
 import java.util.regex.Pattern
 import kotlin.test.assertNotNull
 
-@RunIn(TestGroup.UNRELIABLE)
 @RunWith(GuiTestRemoteRunner::class)
 class DependenciesTest {
 
@@ -284,7 +281,38 @@ class DependenciesTest {
           selectModule("app")
         }
         findDependenciesPanel().run {
-          assertThat(items()).contains("mylibrary")
+          assertThat(findDependenciesTable().contents().map { it[0] }).contains("mylibrary")
+        }
+      }
+      clickCancel()
+    }
+  }
+
+  @Test
+  fun testFocusAfterUpdateQuickfix() {
+    val ide = guiTest.importProjectAndWaitForProjectSyncToFinish("psdDependency")
+
+    ide.openPsd().run {
+      // ensure that analyses are complete, so that quickfix hyperlinks will be available in the dependencies view
+      selectSuggestionsConfigurable().run {
+        waitAnalysesCompleted(Wait.seconds(5))
+      }
+      selectDependenciesConfigurable().run {
+        findModuleSelector().run {
+          selectModule("<All Modules>")
+        }
+        findDependenciesPanel().run {
+          findDependenciesTree().run {
+            // TODO(b/137730929): we need to wait for resolved dependencies to appear, because the subsequent clickPath() below
+            //  is not atomic: the test infrastructure scrolls (atomically), then clicks (atomically), but if resolved dependencies
+            //  appear between the two actions, the click will land on the wrong dependency.
+            waitForTreeEntry("com.android.support:support-annotations:28.0.0")
+            clickPath("com.example.jlib:lib3")
+            requireSelection("com.example.jlib:lib3")
+            clickQuickFixHyperlink("[Update]")
+            // clicking the hyperlink should not have changed the dependency focus
+            requireSelection("com.example.jlib:lib3")
+          }
         }
       }
       clickCancel()

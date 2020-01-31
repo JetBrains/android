@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.gradle.plugin;
 
-import com.android.SdkConstants;
-import com.android.builder.model.Version;
+import com.android.Version;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.testing.IdeComponents;
-import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -33,13 +32,13 @@ import static org.mockito.Mockito.when;
 /**
  * Tests for {@link AndroidPluginGenerationIdea}.
  */
-public class AndroidPluginGenerationIdeaTest extends JavaProjectTestCase {
+public class AndroidPluginGenerationIdeaTest extends PlatformTestCase {
   private EmbeddedDistributionPaths myEmbeddedDistributionPaths;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myEmbeddedDistributionPaths = IdeComponents.mockApplicationService(EmbeddedDistributionPaths.class, getTestRootDisposable());
+    myEmbeddedDistributionPaths = new IdeComponents(myProject).mockApplicationService(EmbeddedDistributionPaths.class);
   }
 
   public void testGetLatestKnownVersion() throws IOException {

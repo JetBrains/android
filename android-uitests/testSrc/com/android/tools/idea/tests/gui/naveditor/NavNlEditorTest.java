@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.tests.gui.naveditor;
 
+import static com.android.tools.idea.tests.gui.framework.fixture.newpsd.UiTestUtilsKt.waitForIdle;
 import static com.google.common.truth.Truth.assertThat;
-import static java.awt.event.InputEvent.CTRL_MASK;
-import static java.awt.event.InputEvent.META_MASK;
+import static com.intellij.testFramework.PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -26,26 +26,22 @@ import static org.junit.Assert.assertNotEquals;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceFileDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.designer.DesignSurfaceFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.AddDestinationMenuFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.DestinationListFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.NavDesignSurfaceFixture;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.util.ui.UIUtil;
 import java.awt.event.KeyEvent;
 import java.util.List;
 import org.fest.swing.driver.BasicJListCellReader;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -60,23 +56,18 @@ public class NavNlEditorTest {
 
   @Test
   public void testSelectComponent() throws Exception {
-    IdeFrameFixture frame = guiTest.importProject("Navigation");
+    IdeFrameFixture frame = guiTest.importProject("Navigation").waitForGradleProjectSyncToFinish();
     // Open file as XML and switch to design tab, wait for successful render
-    EditorFixture editor = guiTest.ideFrame().getEditor();
+    EditorFixture editor = frame.getEditor();
     editor.open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN);
-    NlEditorFixture layout = editor.getLayoutEditor(true);
-
-    // This is separate to catch the case where we have a problem opening the file before sync is complete.
-    frame.waitForGradleProjectSyncToFinish();
-
-    layout.waitForRenderToFinish();
+    NlEditorFixture layout = editor.getLayoutEditor(true).waitForRenderToFinish();
 
     NlComponentFixture screen = ((NavDesignSurfaceFixture)layout.getSurface()).findDestination("first_screen");
     screen.click();
 
     assertThat(layout.getSelection()).containsExactly(screen.getComponent());
 
-    DestinationListFixture destinationListFixture = DestinationListFixture.Companion.create(guiTest.robot());
+    DestinationListFixture destinationListFixture = DestinationListFixture.create(guiTest.robot());
     List<NlComponent> selectedComponents = destinationListFixture.getSelectedComponents();
     assertEquals(1, selectedComponents.size());
     assertEquals("first_screen", selectedComponents.get(0).getId());
@@ -104,7 +95,7 @@ public class NavNlEditorTest {
 
     menuFixture.selectDestination("fragment_my");
 
-    DestinationListFixture fixture = DestinationListFixture.Companion.create(guiTest.robot());
+    DestinationListFixture fixture = DestinationListFixture.create(guiTest.robot());
     fixture.replaceCellReader(new BasicJListCellReader(c -> c.toString()));
     fixture.selectItem("main_activity - Start");
     assertEquals(1, layout.getSelection().size());
@@ -123,18 +114,15 @@ public class NavNlEditorTest {
   @Test
   public void testCreateAndDeleteWithSingleVariantSync() throws Exception {
     StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(true);
-    StudioFlags.NEW_SYNC_INFRA_ENABLED.override(true);
     try {
       IdeFrameFixture frame = guiTest.importProject("Navigation");
       // Open file as XML and switch to design tab, wait for successful render
+      final String file = "app/src/main/res/navigation/mobile_navigation.xml";
       NlEditorFixture layout = guiTest
         .ideFrame()
-        .getEditor()
-        .open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN)
-        .frame()
-        // This is separate to catch the case where we have a problem opening the file before sync is complete.
         .waitForGradleProjectSyncToFinish()
         .getEditor()
+        .open(file, EditorFixture.Tab.DESIGN)
         .getLayoutEditor(true);
 
       layout
@@ -143,6 +131,7 @@ public class NavNlEditorTest {
         .openAddDestinationMenu()
         .waitForContents()
         .clickCreateBlank()
+
         .getConfigureTemplateParametersStep()
         .enterTextFieldValue("Fragment Name:", "TestSingleVariantSync")
         .selectComboBoxItem("Source Language:", "Java")
@@ -156,6 +145,8 @@ public class NavNlEditorTest {
       frame
         .waitForGradleProjectSyncToFinish()
         .getEditor()
+        // Open the file again in case build.gradle is open after gradle sync
+        .open(file, EditorFixture.Tab.DESIGN)
         .getLayoutEditor(true)
         .waitForRenderToFinish()
         .getNavSurface()
@@ -166,22 +157,19 @@ public class NavNlEditorTest {
     }
     finally {
       StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.clearOverride();
-      StudioFlags.NEW_SYNC_INFRA_ENABLED.clearOverride();
     }
   }
 
   @Test
   public void testCreateAndCancel() throws Exception {
+    final String file = "app/src/main/res/navigation/mobile_navigation.xml";
     IdeFrameFixture frame = guiTest.importProject("Navigation");
     // Open file as XML and switch to design tab, wait for successful render
     NlEditorFixture layout = guiTest
       .ideFrame()
-      .getEditor()
-      .open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN)
-      .frame()
-      // This is separate to catch the case where we have a problem opening the file before sync is complete.
       .waitForGradleProjectSyncToFinish()
       .getEditor()
+      .open(file, EditorFixture.Tab.DESIGN)
       .getLayoutEditor(true);
 
     layout
@@ -201,6 +189,8 @@ public class NavNlEditorTest {
     long matchingComponents = frame
       .waitForGradleProjectSyncToFinish()
       .getEditor()
+      // Open the file again in case build.gradle is open after gradle sync
+      .open(file, EditorFixture.Tab.DESIGN)
       .getLayoutEditor(true)
       .waitForRenderToFinish()
       .getAllComponents().stream()
@@ -229,16 +219,15 @@ public class NavNlEditorTest {
 
   @Test
   public void testAddDependency() throws Exception {
-    IdeFrameFixture frame = guiTest.importSimpleApplication();
-    frame.getProjectView().selectAndroidPane().clickPath("app");
-    frame.invokeMenuPath("File", "New", "Android Resource File");
-    CreateResourceFileDialogFixture.find(guiTest.robot())
-                                   .setFilename("nav")
-                                   .setType("navigation")
-                                   .clickOk();
-    GuiTests.findAndClickOkButton(frame.waitForDialog("Add Project Dependency"));
-    guiTest
-      .ideFrame()
+    guiTest.importSimpleApplication()
+      .getProjectView()
+      .selectAndroidPane()
+      .clickPath("app")
+      .openFromMenu(CreateResourceFileDialogFixture::find, "File", "New", "Android Resource File")
+      .setFilename("nav")
+      .setType("navigation")
+      .clickOkAndWaitForDependencyDialog()
+      .clickOk()
       .waitForGradleProjectSyncToFinish()
       .getEditor()
       .getLayoutEditor(false)
@@ -257,22 +246,23 @@ public class NavNlEditorTest {
 
   @Test
   public void testCancelAddDependency() throws Exception {
-    IdeFrameFixture frame = guiTest.importSimpleApplication();
-    frame.getProjectView().selectAndroidPane().clickPath("app");
-    frame.invokeMenuPath("File", "New", "Android Resource File");
-    CreateResourceFileDialogFixture.find(guiTest.robot())
-                                   .setFilename("nav")
-                                   .setType("navigation")
-                                   .clickOk();
-    GuiTests.findAndClickCancelButton(frame.waitForDialog("Add Project Dependency"));
-    GuiTests.findAndClickOkButton(frame.waitForDialog("Failed to Add Dependency"));
+    guiTest.importSimpleApplication()
+      .getProjectView()
+      .selectAndroidPane()
+      .clickPath("app")
+      .openFromMenu(CreateResourceFileDialogFixture::find, "File", "New", "Android Resource File")
+      .setFilename("nav")
+      .setType("navigation")
+      .clickOkAndWaitForDependencyDialog()
+      .clickCancel()
+      .clickOk();
     assertFalse(guiTest
                   .ideFrame()
                   .getEditor()
                   .getLayoutEditor(false, false)
                   .canInteractWithSurface());
 
-    frame
+    guiTest.ideFrame()
       .getEditor()
       .open("app/build.gradle")
       .moveBetween("", "testImplementation")
@@ -285,40 +275,6 @@ public class NavNlEditorTest {
       .getLayoutEditor(true)
       .waitForRenderToFinish()
       .assertCanInteractWithSurface();
-  }
-
-  @Ignore("b/123521236")
-  @Test
-  public void testKeyMappings() throws Exception {
-    IdeFrameFixture frame = guiTest.importProject("Navigation");
-    // Open file as XML and switch to design tab, wait for successful render
-    EditorFixture editor = guiTest.ideFrame().getEditor();
-    editor.open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN);
-    NlEditorFixture layout = editor.getLayoutEditor(true);
-
-    // This is separate to catch the case where we have a problem opening the file before sync is complete.
-    frame.waitForGradleProjectSyncToFinish();
-    layout.waitForRenderToFinish();
-
-    DesignSurfaceFixture fixture = layout.getSurface();
-    NlComponentFixture screen = ((NavDesignSurfaceFixture)fixture).findDestination("first_screen");
-    screen.click();
-
-    double scale = fixture.getScale();
-    int actionMask = SystemInfo.isMac ? META_MASK : CTRL_MASK;
-
-    guiTest.robot().pressAndReleaseKey(KeyEvent.VK_MINUS, actionMask);
-    double zoomOutScale = fixture.getScale();
-    assertTrue(zoomOutScale < scale);
-
-    guiTest.robot().pressAndReleaseKey(KeyEvent.VK_PLUS, actionMask);
-    double zoomInScale = fixture.getScale();
-    assertTrue(zoomInScale > zoomOutScale);
-
-    guiTest.robot().pressAndReleaseKey(KeyEvent.VK_0, actionMask);
-    double fitScale = fixture.getScale();
-
-    assertTrue(Math.abs(fitScale - scale) < 0.001);
   }
 
   @Test

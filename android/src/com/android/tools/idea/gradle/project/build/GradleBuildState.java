@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.build;
 
+import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
+
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
-import com.android.tools.idea.project.IndexingSuspender;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.ServiceManager;
@@ -25,13 +26,10 @@ import com.intellij.util.Consumer;
 import com.intellij.util.messages.MessageBus;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.messages.Topic;
+import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
-
-import javax.annotation.concurrent.GuardedBy;
-
-import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
 
 public class GradleBuildState {
   @VisibleForTesting
@@ -72,9 +70,6 @@ public class GradleBuildState {
   public GradleBuildState(@NotNull Project project, @NotNull MessageBus messageBus) {
     myProject = project;
     myMessageBus = messageBus;
-
-    // Call in to make sure IndexingSuspender instance is constructed.
-    IndexingSuspender.ensureInitialised(myProject);
   }
 
   public void buildExecutorCreated(@NotNull GradleBuildInvoker.Request request) {

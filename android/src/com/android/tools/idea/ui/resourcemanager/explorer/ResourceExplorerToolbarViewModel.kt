@@ -15,15 +15,19 @@
  */
 package com.android.tools.idea.ui.resourcemanager.explorer
 
+import com.android.resources.FolderTypeRelationship
+import com.android.resources.ResourceFolderType
+import com.android.resources.ResourceType
 import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
+import com.android.tools.idea.ui.resourcemanager.actions.AddFontAction
+import com.android.tools.idea.ui.resourcemanager.actions.NewResourceFileAction
+import com.android.tools.idea.ui.resourcemanager.actions.NewResourceValueAction
 import com.android.tools.idea.ui.resourcemanager.importer.ImportersProvider
 import com.android.tools.idea.ui.resourcemanager.importer.ResourceImportDialog
 import com.android.tools.idea.ui.resourcemanager.importer.ResourceImportDialogViewModel
-import com.android.tools.idea.ui.resourcemanager.importer.chooseDesignAssets
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
 import com.android.tools.idea.ui.resourcemanager.plugin.ResourceImporter
 import com.android.tools.idea.util.androidFacet
-import com.android.tools.idea.util.toVirtualFile
 import com.intellij.icons.AllIcons
 import com.intellij.ide.IdeView
 import com.intellij.ide.util.DirectoryChooserUtil
@@ -45,10 +49,13 @@ import com.intellij.openapi.util.Comparing
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiManager
 import org.jetbrains.android.actions.CreateResourceFileAction
+import org.jetbrains.android.actions.CreateResourceFileActionGroup
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.ResourceFolderManager
+import org.jetbrains.android.facet.SourceProviderManager
+import org.jetbrains.android.util.AndroidResourceUtil
 import kotlin.properties.Delegates
 
 /**
@@ -57,9 +64,9 @@ import kotlin.properties.Delegates
  */
 class ResourceExplorerToolbarViewModel(
   facet: AndroidFacet,
+  initialResourceType: ResourceType,
   private val importersProvider: ImportersProvider,
-  private val filterOptions: FilterOptions,
-  private val facetUpdaterCallback: (AndroidFacet) -> Unit)
+  private val filterOptions: FilterOptions)
   : DataProvider, IdeView {
 
   /**
@@ -67,6 +74,17 @@ class ResourceExplorerToolbarViewModel(
    * view model changes.
    */
   var updateUICallback = {}
+
+  var facetUpdaterCallback: (AndroidFacet) -> Unit = {}
+
+  /** Callback for when a new resource is created from a toolbar action. */
+  var resourceUpdaterCallback: ((String, ResourceType) -> Unit)? = null
+
+  var resourceType: ResourceType by Delegates.observable(initialResourceType) { _, oldValue, newValue ->
+    if (newValue != oldValue) {
+      updateUICallback()
+    }
+  }
 
   var facet: AndroidFacet = facet
     set(newFacet) {
@@ -85,11 +103,24 @@ class ResourceExplorerToolbarViewModel(
   val addActions
     get() = DefaultActionGroup().apply {
       val actionManager = ActionManager.getInstance()
-      add(actionManager.getAction("NewAndroidImageAsset"))
-      add(actionManager.getAction("NewAndroidVectorAsset"))
-      add(CreateResourceFileAction.getInstance())
-      add(Separator())
-      add(ImportResourceAction())
+
+      actionManager.createNewResourceFileAction()?.let { add(it) }
+
+      when (resourceType) {
+        ResourceType.MIPMAP,
+        ResourceType.DRAWABLE -> {
+          add(actionManager.getAction("NewAndroidImageAsset"))
+          add(actionManager.getAction("NewAndroidVectorAsset"))
+          add(Separator())
+          add(ImportResourceAction())
+        }
+        ResourceType.BOOL,
+        ResourceType.COLOR,
+        ResourceType.DIMEN,
+        ResourceType.INTEGER,
+        ResourceType.STRING -> add(NewResourceValueAction(resourceType, facet, this@ResourceExplorerToolbarViewModel::onCreatedResource))
+        ResourceType.FONT -> add(AddFontAction(facet, this@ResourceExplorerToolbarViewModel::onCreatedResource))
+      }
     }
 
   /**
@@ -131,10 +162,28 @@ class ResourceExplorerToolbarViewModel(
 
   private val customImporters get() = importersProvider.importers.filter { it.hasCustomImport }
 
-  var isShowDependencies: Boolean
+  var isShowModuleDependencies: Boolean
+    get() = filterOptions.isShowModuleDependencies
+    set(value) {
+      filterOptions.isShowModuleDependencies = value
+    }
+
+  var isShowLibraryDependencies: Boolean
     get() = filterOptions.isShowLibraries
     set(value) {
       filterOptions.isShowLibraries = value
+    }
+
+  var isShowFrameworkResources: Boolean
+    get() = filterOptions.isShowFramework
+    set(value) {
+      filterOptions.isShowFramework = value
+    }
+
+  var isShowThemeAttributes: Boolean
+    get() = filterOptions.isShowThemeAttributes
+    set(value) {
+      filterOptions.isShowThemeAttributes = value
     }
 
   var searchString: String by Delegates.observable("") { _, old, new ->
@@ -144,13 +193,16 @@ class ResourceExplorerToolbarViewModel(
   }
 
   /**
-   * Implementation of [IdeView.getDirectories] that returns the resource directories of
-   * the selected facet.
-   * This is needed to run [CreateResourceFileAction]
+   * Implementation of [IdeView.getDirectories] that returns the main resource directories of the current facet.
+   *
+   * Needed for AssetStudio.
    */
-  override fun getDirectories() = ResourceFolderManager.getInstance(facet).folders
-    .mapNotNull { runReadAction { PsiManager.getInstance(facet.module.project).findDirectory(it) } }
-    .toTypedArray()
+  override fun getDirectories(): Array<PsiDirectory> =
+    SourceProviderManager.getInstance(facet).mainIdeaSourceProvider.resDirectories.mapNotNull {
+      runReadAction<PsiDirectory?> {
+        PsiManager.getInstance(facet.module.project).findDirectory(it)
+      }
+    }.toTypedArray()
 
   override fun getOrChooseDirectory() = DirectoryChooserUtil.getOrChooseDirectory(this)
 
@@ -158,10 +210,28 @@ class ResourceExplorerToolbarViewModel(
    * Implementation of [DataProvider] needed for [CreateResourceFileAction]
    */
   override fun getData(dataId: String): Any? = when (dataId) {
+    CommonDataKeys.PROJECT.name -> facet.module.project
     LangDataKeys.MODULE.name -> facet.module
     LangDataKeys.IDE_VIEW.name -> this
-    CommonDataKeys.VIRTUAL_FILE.name -> facet.mainSourceProvider.resDirectories.firstOrNull()?.toVirtualFile()
+    CommonDataKeys.PSI_ELEMENT.name -> getPsiDirForResourceType()
     else -> null
+  }
+
+  /**
+   * Returns one of the existing directories used for the current [ResourceType], or the default 'res' directory.
+   *
+   * Needed for AssetStudio.
+   */
+  private fun getPsiDirForResourceType(): PsiDirectory? {
+    val resDirs = SourceProviderManager.getInstance(facet).mainIdeaSourceProvider.resDirectories
+    val subDir = FolderTypeRelationship.getRelatedFolders(resourceType).firstOrNull()?.let { resourceFolderType ->
+      AndroidResourceUtil.getResourceSubdirs(resourceFolderType, resDirs).firstOrNull()
+    }
+    return (subDir ?: resDirs.firstOrNull())?.let { PsiManager.getInstance(facet.module.project).findDirectory(it) }
+  }
+
+  private fun onCreatedResource(name: String, type: ResourceType) {
+    resourceUpdaterCallback?.invoke(name, type)
   }
 
   /**
@@ -184,11 +254,42 @@ class ResourceExplorerToolbarViewModel(
 
   inner class ImportResourceAction : AnAction("Import Drawables", "Import drawable files from disk", AllIcons.Actions.Upload), DumbAware {
     override fun actionPerformed(e: AnActionEvent) {
-      chooseDesignAssets(importersProvider) {
         ResourceManagerTracking.logAssetAddedViaButton()
         ResourceImportDialog(
-          ResourceImportDialogViewModel(facet, it, importersProvider = importersProvider)).show()
-      }
+          ResourceImportDialogViewModel(facet, emptySequence(), importersProvider = importersProvider)).show()
     }
   }
+
+  /** Returns a [NewResourceFileAction] for the current resource type as long as there's a [CreateResourceFileAction] that supports it. */
+  private fun ActionManager.createNewResourceFileAction(): NewResourceFileAction? {
+    val resourceFolderType = resourceType.getPreferredResourceFolderType() ?: return null
+    val resourceFileActionGroup = (getAction("Android.CreateResourcesActionGroup") as? CreateResourceFileActionGroup) ?: return null
+
+    return if (resourceFileActionGroup.createResourceFileAction.subactions.any { it.resourceFolderType == resourceFolderType }) {
+      NewResourceFileAction(resourceType, resourceFolderType, facet)
+    }
+    else {
+      null
+    }
+  }
+}
+
+/**
+ * Will return the preferred [ResourceFolderType], this means, that if available, it'll try to return any other folder other than
+ * [ResourceFolderType.VALUES]. E.g: It'll return [ResourceFolderType.COLOR] for [ResourceType.COLOR].
+ *
+ * However, for [ResourceType.ID] it will always return [ResourceFolderType.VALUES].
+ */
+private fun ResourceType.getPreferredResourceFolderType(): ResourceFolderType? {
+  if (this == ResourceType.ID) {
+    return ResourceFolderType.VALUES
+  }
+  var resourceTypeFolder: ResourceFolderType? = null
+  FolderTypeRelationship.getRelatedFolders(this).forEach {
+    if (it != ResourceFolderType.VALUES) {
+      return it
+    }
+    resourceTypeFolder = it
+  }
+  return resourceTypeFolder
 }

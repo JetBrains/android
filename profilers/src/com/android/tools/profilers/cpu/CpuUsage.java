@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
 public class CpuUsage extends LineChartModel {
@@ -36,23 +35,32 @@ public class CpuUsage extends LineChartModel {
   @NotNull private final Range myCpuRange;
   @NotNull private final RangedContinuousSeries myCpuSeries;
 
+  /**
+   * Instantiates CPU usage model using profiler timeline ranges.
+   */
   public CpuUsage(@NotNull StudioProfilers profilers) {
+    this(profilers, profilers.getTimeline().getViewRange(), profilers.getTimeline().getDataRange());
+  }
+
+  /**
+   * Instantiates CPU usage model using the provided view and data ranges.
+   */
+  public CpuUsage(@NotNull StudioProfilers profilers, @NotNull Range viewRange, @NotNull Range dataRange) {
     myCpuRange = new Range(0, 100);
     DataSeries<Long> series;
     if (profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
-      series = new UnifiedEventDataSeries(
+      series = new UnifiedEventDataSeries<>(
         profilers.getClient().getTransportClient(),
         profilers.getSession().getStreamId(),
         profilers.getSession().getPid(),
         Common.Event.Kind.CPU_USAGE,
         profilers.getSession().getPid(),
-        events -> extractData(events.stream().map(event -> event.getCpuUsage()).collect(Collectors.toList()), false));
+        events -> extractData(events, false));
     }
     else {
-      series =
-        new CpuUsageDataSeries(profilers.getClient().getCpuClient(), profilers.getSession(), dataList -> extractData(dataList, false));
+      series = new LegacyCpuUsageDataSeries(profilers.getClient().getCpuClient(), profilers.getSession(), false);
     }
-    myCpuSeries = new RangedContinuousSeries(getCpuSeriesLabel(), profilers.getTimeline().getViewRange(), myCpuRange, series);
+    myCpuSeries = new RangedContinuousSeries(getCpuSeriesLabel(), viewRange, myCpuRange, series, dataRange);
     add(myCpuSeries);
   }
 
@@ -71,23 +79,24 @@ public class CpuUsage extends LineChartModel {
   }
 
   /**
-   * Extracts CPU usage percentage data from a list of {@link Cpu.CpuUsageData}.
+   * Extracts CPU usage percentage data from a list of {@link Common.Event}.
+   *
+   * @return a list of SeriesData containing CPU usage percentage.
    */
-  public static Stream<SeriesData<Long>> extractData(List<Cpu.CpuUsageData> dataList, boolean isOtherProcess) {
-    return IntStream.range(0, dataList.size())
-      // Start from the second CPU usage data so we can compute the difference between two adjacent ones.
-      .filter(index -> index > 0)
-      .mapToObj(index -> getCpuUsageData(dataList, index, isOtherProcess));
+  protected static List<SeriesData<Long>> extractData(List<Common.Event> dataList, boolean isOtherProcess) {
+    return IntStream.range(0, dataList.size() - 1)
+      // Calculate CPU usage percentage from two adjacent CPU usage data.
+      .mapToObj(index -> getCpuUsageData(dataList.get(index).getCpuUsage(), dataList.get(index + 1).getCpuUsage(), isOtherProcess))
+      .collect(Collectors.toList());
   }
 
-  private static SeriesData<Long> getCpuUsageData(List<Cpu.CpuUsageData> dataList, int index, boolean isOtherProcess) {
-    Cpu.CpuUsageData data = dataList.get(index);
-    Cpu.CpuUsageData lastData = dataList.get(index - 1);
+  // TODO: make private after LegacyCpuUsageDataSeries is deprecated.
+  protected static SeriesData<Long> getCpuUsageData(Cpu.CpuUsageData prevData, Cpu.CpuUsageData data, boolean isOtherProcess) {
     long dataTimestamp = TimeUnit.NANOSECONDS.toMicros(data.getEndTimestamp());
-    long elapsed = (data.getElapsedTimeInMillisec() - lastData.getElapsedTimeInMillisec());
+    long elapsed = (data.getElapsedTimeInMillisec() - prevData.getElapsedTimeInMillisec());
     // TODO: consider using raw data instead of percentage to improve efficiency.
-    double app = 100.0 * (data.getAppCpuTimeInMillisec() - lastData.getAppCpuTimeInMillisec()) / elapsed;
-    double system = 100.0 * (data.getSystemCpuTimeInMillisec() - lastData.getSystemCpuTimeInMillisec()) / elapsed;
+    double app = 100.0 * (data.getAppCpuTimeInMillisec() - prevData.getAppCpuTimeInMillisec()) / elapsed;
+    double system = 100.0 * (data.getSystemCpuTimeInMillisec() - prevData.getSystemCpuTimeInMillisec()) / elapsed;
 
     // System and app usages are read from them device in slightly different times. That can cause app usage to be slightly higher than
     // system usage and we need to adjust our values to cover these scenarios. Also, we use iowait (time waiting for I/O to complete) when

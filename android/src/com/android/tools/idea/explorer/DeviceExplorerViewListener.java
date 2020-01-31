@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.explorer;
 
+import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
+@UiThread
 public interface DeviceExplorerViewListener {
   void noDeviceSelected();
   void deviceSelected(@NotNull DeviceFileSystem device);

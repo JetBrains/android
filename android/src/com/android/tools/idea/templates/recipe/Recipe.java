@@ -42,12 +42,10 @@ import static com.android.SdkConstants.DOT_FTL;
  */
 @XmlRootElement(name = "recipe")
 public class Recipe implements RecipeInstruction {
-  // @formatter:off
   @XmlElements({
     @XmlElement(name = "copy", type = CopyInstruction.class),
     @XmlElement(name = "instantiate", type = InstantiateInstruction.class),
     @XmlElement(name = "merge", type = MergeInstruction.class),
-    @XmlElement(name = "append", type = AppendInstruction.class),
     @XmlElement(name = "mkdir", type = MkDirInstruction.class),
     @XmlElement(name = "open", type = OpenInstruction.class),
     @XmlElement(name = "recipe", type = Recipe.class),
@@ -56,9 +54,10 @@ public class Recipe implements RecipeInstruction {
     @XmlElement(name = "apply", type = ApplyInstruction.class),
     @XmlElement(name = "classpath", type = ClasspathInstruction.class),
     @XmlElement(name = "dependency", type = DependencyInstruction.class),
+    @XmlElement(name = "sourceSet", type =  SourceSetInstruction.class),
+    @XmlElement(name = "setExtVar", type = SetExtVarInstruction.class),
   })
   private List<RecipeInstruction> instructions = Lists.newArrayList();
-  // @formatter:on
 
   /**
    * A "folder" attribute can be specified on a recipe tag to handle loading of relative files
@@ -183,24 +182,6 @@ public class Recipe implements RecipeInstruction {
   }
 
   @SuppressWarnings({"NullableProblems", "unused"})
-  private static final class AppendInstruction implements RecipeInstruction {
-    @XmlJavaTypeAdapter(StringFileAdapter.class)
-    @XmlAttribute(required = true)
-    @NotNull
-    private File from;
-
-    @XmlJavaTypeAdapter(StringFileAdapter.class)
-    @XmlAttribute
-    @NotNull
-    private File to;
-
-    @Override
-    public void execute(@NotNull RecipeExecutor executor) throws TemplateProcessingException {
-      executor.append(from, to);
-    }
-  }
-
-  @SuppressWarnings({"NullableProblems", "unused"})
   private static final class MergeInstruction implements RecipeInstruction {
     @XmlJavaTypeAdapter(StringFileAdapter.class)
     @XmlAttribute(required = true)
@@ -262,6 +243,41 @@ public class Recipe implements RecipeInstruction {
       executor.applyPlugin(plugin);
     }
   }
+
+  @SuppressWarnings({"NullableProblems", "unused"})
+  private static final class SourceSetInstruction implements RecipeInstruction {
+    @XmlAttribute(required = true)
+    @NotNull
+    private String type;
+    @XmlAttribute(required = true)
+    @NotNull
+    private String name;
+    @XmlAttribute(required = true)
+    @NotNull
+    private String dir;
+
+    @Override
+    public void execute(@NotNull RecipeExecutor executor) {
+      executor.addSourceSet(type, name, dir);
+    }
+  }
+
+  @SuppressWarnings({"NullableProblems", "unused"})
+  private static final class SetExtVarInstruction implements RecipeInstruction {
+    @XmlAttribute(required = true)
+    @NotNull
+    private String name;
+
+    @XmlAttribute(required = true)
+    @NotNull
+    private String value;
+
+    @Override
+    public void execute(@NotNull RecipeExecutor executor) {
+      executor.setExtVar(name, value);
+    }
+  }
+
 
   @SuppressWarnings({"NullableProblems", "unused"})
   private static final class ClasspathInstruction implements RecipeInstruction {

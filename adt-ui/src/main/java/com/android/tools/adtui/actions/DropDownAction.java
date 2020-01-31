@@ -16,18 +16,19 @@
 package com.android.tools.adtui.actions;
 
 import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction;
+import com.intellij.openapi.actionSystem.impl.ActionButton;
+import com.intellij.openapi.actionSystem.impl.ActionButtonWithText;
 import com.intellij.openapi.actionSystem.impl.ActionManagerImpl;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
-import com.intellij.openapi.ui.popup.JBPopupListener;
-import com.intellij.openapi.ui.popup.LightweightWindowEvent;
-import com.intellij.ui.PopupMenuListenerAdapter;
 import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Point;
@@ -35,7 +36,6 @@ import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import javax.swing.event.PopupMenuEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,9 +47,11 @@ import org.jetbrains.annotations.Nullable;
  * method. This method will be called before opening the popup menu
  */
 public class DropDownAction extends DefaultActionGroup implements CustomComponentAction {
+
   private static final Icon BLANK_ICON = new Icon() {
     @Override
     public void paintIcon(Component c, Graphics g, int x, int y) {
+
     }
 
     @Override
@@ -63,17 +65,9 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
     }
   };
 
-  @Nullable private JBPopup myCurrentPopup = null;
-  /**
-   * True if the actions have been initialized so {@link #hasDropDownArrow()} does not need to call it again before deciding its return
-   * value.
-   */
-  private boolean myActionsInitialized = false;
-
   public DropDownAction(@Nullable String title, @Nullable String description, @Nullable Icon icon) {
     super(title, true);
     Presentation presentation = getTemplatePresentation();
-    presentation.setText(title);
     presentation.setDescription(description);
     if (icon != null) {
       presentation.setIcon(icon);
@@ -84,23 +78,13 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
     }
   }
 
-  private void updateActionsInternal() {
-    myActionsInitialized = true;
-    updateActions();
-  }
-
-  @Override
-  public boolean displayTextInToolbar() {
-    return true;
-  }
-
   @Override
   public void actionPerformed(@NotNull AnActionEvent eve) {
-    DropDownActionButton button = getActionButton(eve);
+    ActionButton button = getActionButton(eve);
     if (button == null) {
       return;
     }
-    updateActionsInternal();
+    updateActions();
     JPanel componentPopup = createCustomComponentPopup();
     if (componentPopup == null) {
       showPopupMenu(eve, button);
@@ -110,63 +94,39 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
     }
   }
 
-  private void showPopupMenu(@NotNull AnActionEvent eve, @NotNull DropDownActionButton button) {
+  private void showPopupMenu(@NotNull AnActionEvent eve, @NotNull ActionButton button) {
     ActionManagerImpl am = (ActionManagerImpl)ActionManager.getInstance();
     JPopupMenu component = am.createActionPopupMenu(eve.getPlace(), this).getComponent();
-    component.addPopupMenuListener(new PopupMenuListenerAdapter() {
-      @Override
-      public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
-        button.setSelected(true);
-      }
-
-      @Override
-      public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
-        button.setSelected(false);
-      }
-    });
     component.show(button, 0, button.getHeight());
   }
 
-  private void showJBPopup(@NotNull AnActionEvent eve, @NotNull DropDownActionButton button, @NotNull JPanel componentPopup) {
+  private static void showJBPopup(@NotNull AnActionEvent eve, @NotNull ActionButton button, @NotNull JPanel componentPopup) {
     JBPopup popup = createJBPopup(componentPopup);
     Component owner = eve.getInputEvent().getComponent();
     Point location = owner.getLocationOnScreen();
     location.translate(0, owner.getHeight());
     popup.showInScreenCoordinates(owner, location);
-    ((DropDownAction)button.getAction()).myCurrentPopup = popup;
   }
 
-  private static DropDownActionButton getActionButton(@NotNull AnActionEvent eve) {
-    return (DropDownActionButton)eve.getPresentation().getClientProperty(CustomComponentAction.COMPONENT_KEY);
+  private static ActionButton getActionButton(@NotNull AnActionEvent eve) {
+    return (ActionButton)eve.getPresentation().getClientProperty(CustomComponentAction.COMPONENT_KEY);
   }
 
   @Override
   @NotNull
   public JComponent createCustomComponent(@NotNull Presentation presentation, @NotNull String place) {
-    return new DropDownActionButton(this, presentation, place);
+    if (displayTextInToolbar()) {
+      return new ActionButtonWithText(this, presentation, ActionPlaces.TOOLBAR, ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE);
+    }
+    else {
+      return new ActionButton(this, presentation, ActionPlaces.TOOLBAR, ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE);
+    }
   }
 
   @NotNull
-  private JBPopup createJBPopup(@NotNull JPanel content) {
-    JBPopup popupMenu;
+  private static JBPopup createJBPopup(@NotNull JPanel content) {
     JBPopupFactory popupFactory = JBPopupFactory.getInstance();
-    popupMenu = popupFactory.createComponentPopupBuilder(content, content).createPopup();
-    popupMenu.addListener(new JBPopupListener() {
-      @Override
-      public void beforeShown(@NotNull LightweightWindowEvent event) {
-        DropDownActionButton button = (DropDownActionButton)event.asPopup().getOwner();
-        button.setSelected(true);
-      }
-
-      @Override
-      public void onClosed(@NotNull LightweightWindowEvent event) {
-        DropDownActionButton button = (DropDownActionButton)event.asPopup().getOwner();
-        button.setSelected(false);
-        event.asPopup().removeListener(this);
-        ((DropDownAction)button.getAction()).myCurrentPopup = null;
-      }
-    });
-    return popupMenu;
+    return popupFactory.createComponentPopupBuilder(content, content).createPopup();
   }
 
   /**
@@ -194,24 +154,5 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
   @Override
   public boolean canBePerformed(@NotNull DataContext context) {
     return true;
-  }
-
-  /**
-   * This is used by the {@link DropDownActionButton} to decide when to show the drop down arrow. This is usually decided by looking if the
-   * number of actions in this group is more than 1. If calculating the actions is expensive, overriding this method can avoid running
-   * updateActions just to decide the drop down arrow state.
-   */
-  protected boolean hasDropDownArrow() {
-    if (!myActionsInitialized) {
-      updateActionsInternal();
-    }
-    return getChildrenCount() > 1;
-  }
-
-  public void closePopup() {
-    if (myCurrentPopup != null) {
-      myCurrentPopup.closeOk(null);
-      myCurrentPopup = null;
-    }
   }
 }

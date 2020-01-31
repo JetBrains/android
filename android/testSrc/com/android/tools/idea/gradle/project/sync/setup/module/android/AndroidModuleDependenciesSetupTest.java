@@ -28,6 +28,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.idea.gradle.LibraryFilePaths;
+import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -39,11 +40,11 @@ import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.LibraryOrderEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderEntry;
-import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTableImpl;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
+import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.JavaProjectTestCase;
 import java.io.File;
 import java.io.IOException;
@@ -56,7 +57,7 @@ import org.mockito.Mock;
 /**
  * Tests for {@link AndroidModuleDependenciesSetup}.
  */
-public class AndroidModuleDependenciesSetupTest extends JavaProjectTestCase {
+public class AndroidModuleDependenciesSetupTest extends PlatformTestCase {
   @Mock private LibraryFilePaths myLibraryFilePaths;
 
   private AndroidModuleDependenciesSetup myDependenciesSetup;
@@ -65,8 +66,8 @@ public class AndroidModuleDependenciesSetupTest extends JavaProjectTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-
-    myDependenciesSetup = new AndroidModuleDependenciesSetup(myLibraryFilePaths);
+    new IdeComponents(myProject).replaceProjectService(LibraryFilePaths.class, myLibraryFilePaths);
+    myDependenciesSetup = new AndroidModuleDependenciesSetup();
   }
 
   public void testSetUpLibraryWithExistingLibrary() throws IOException {
@@ -89,8 +90,8 @@ public class AndroidModuleDependenciesSetupTest extends JavaProjectTestCase {
     assertSame(newLibrary, libraryOrderEntry.getLibrary()); // The existing library should not have been changed.
 
     // Should not attempt to look up sources and documentation for existing libraries.
-    verify(myLibraryFilePaths, never()).findSourceJarPath(binaryPath);
-    verify(myLibraryFilePaths, never()).findJavadocJarPath(javadocPath);
+    verify(myLibraryFilePaths, never()).findSourceJarPath(libraryName, binaryPath);
+    verify(myLibraryFilePaths, never()).findJavadocJarPath(libraryName, javadocPath);
   }
 
   public void testSetUpLibraryTwiceWithSameLibraryInDifferentScopes() throws IOException {
@@ -143,11 +144,11 @@ public class AndroidModuleDependenciesSetupTest extends JavaProjectTestCase {
     File binaryPath = createTempFile("fakeLibrary.jar", "");
     File sourcePath = createTempFile("fakeLibrary-sources.jar", "");
     File javadocPath = createTempFile("fakeLibrary-javadoc.jar", "");
-    when(myLibraryFilePaths.findSourceJarPath(binaryPath)).thenReturn(sourcePath);
-    when(myLibraryFilePaths.findJavadocJarPath(binaryPath)).thenReturn(javadocPath);
 
     String libraryName = "Gradle: " + binaryPath.getName();
     Module module = getModule();
+    when(myLibraryFilePaths.findSourceJarPath(libraryName, binaryPath)).thenReturn(sourcePath);
+    when(myLibraryFilePaths.findJavadocJarPath(libraryName, binaryPath)).thenReturn(javadocPath);
 
     IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
     File[] binaryPaths = {binaryPath};
@@ -177,9 +178,9 @@ public class AndroidModuleDependenciesSetupTest extends JavaProjectTestCase {
     assertThat(javadocUrls).hasLength(1);
     assertEquals(pathToIdeaUrl(javadocPath), javadocUrls[0]);
 
-    verify(myLibraryFilePaths).findSourceJarPath(binaryPath);
+    verify(myLibraryFilePaths).findSourceJarPath(libraryName, binaryPath);
     // Documentation paths are populated at the LibraryDependency level - no look-up to be done during setup itself
-    verify(myLibraryFilePaths, never()).findJavadocJarPath(javadocPath);
+    verify(myLibraryFilePaths, never()).findJavadocJarPath(libraryName, javadocPath);
   }
 
   public void testSetupWithChangedPaths() throws IOException {
@@ -212,7 +213,7 @@ public class AndroidModuleDependenciesSetupTest extends JavaProjectTestCase {
    * @return the current modification count of the {@link ProjectLibraryTable} for the current project.
    */
   public static long getLibraryTableModeCount(@NotNull Project project) {
-    LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
+    LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(project);
     assertInstanceOf(libraryTable, ProjectLibraryTableImpl.class);
     ProjectLibraryTableImpl libraryTableImpl = (ProjectLibraryTableImpl)libraryTable;
     return libraryTableImpl.getStateModificationCount();
@@ -240,11 +241,12 @@ public class AndroidModuleDependenciesSetupTest extends JavaProjectTestCase {
     File updatedBinaryPath = createTempFile("updatedFakeLibrary.jar", "");
     File updatedSourcePath = createTempFile("updatedFakeLibrary-sources.jar", "");
     File updatedJavadocPath = createTempFile("updatedFakeLibrary-javadoc.jar", "");
-    when(myLibraryFilePaths.findSourceJarPath(updatedBinaryPath)).thenReturn(updatedSourcePath);
-    when(myLibraryFilePaths.findJavadocJarPath(updatedBinaryPath)).thenReturn(updatedJavadocPath);
 
     String libraryName = "Gradle: " + cachedBinaryPath.getName();
     Module module = getModule();
+
+    when(myLibraryFilePaths.findSourceJarPath(libraryName, updatedBinaryPath)).thenReturn(updatedSourcePath);
+    when(myLibraryFilePaths.findJavadocJarPath(libraryName, updatedBinaryPath)).thenReturn(updatedJavadocPath);
 
     IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
     File[] binaryPaths = {updatedBinaryPath};
@@ -257,8 +259,8 @@ public class AndroidModuleDependenciesSetupTest extends JavaProjectTestCase {
 
     // Verify that a new library is created.
     assertNotSame(cachedLibrary, libraryOrderEntry.getLibrary()); // The existing library should have been changed.
-    verify(myLibraryFilePaths).findSourceJarPath(updatedBinaryPath);
-    verify(myLibraryFilePaths).findJavadocJarPath(updatedBinaryPath);
+    verify(myLibraryFilePaths).findSourceJarPath(libraryName, updatedBinaryPath);
+    verify(myLibraryFilePaths).findJavadocJarPath(libraryName, updatedBinaryPath);
   }
 
   public void testSetUpMultipleLibrariesWithSameName() throws IOException {

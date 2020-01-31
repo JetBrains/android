@@ -48,7 +48,7 @@ public class LifecycleEventDataSeries implements DataSeries<EventAction<Lifecycl
   }
 
   @Override
-  public List<SeriesData<EventAction<LifecycleEvent>>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
+  public List<SeriesData<EventAction<LifecycleEvent>>> getDataForRange(@NotNull Range timeCurrentRangeUs) {
     if (myProfilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
       return getTransportData(timeCurrentRangeUs);
     }

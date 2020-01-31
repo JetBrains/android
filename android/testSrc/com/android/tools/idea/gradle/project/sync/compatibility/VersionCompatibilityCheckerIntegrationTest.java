@@ -15,18 +15,17 @@
  */
 package com.android.tools.idea.gradle.project.sync.compatibility;
 
+import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
+import static com.android.tools.idea.project.messages.MessageType.ERROR;
+import static com.google.common.truth.Truth.assertAbout;
+
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.project.Project;
-
-import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
-import static com.android.tools.idea.project.messages.MessageType.ERROR;
-import static com.google.common.truth.Truth.assertAbout;
 
 /**
  * Tests for {@link VersionCompatibilityChecker}.
@@ -51,7 +50,7 @@ public class VersionCompatibilityCheckerIntegrationTest extends AndroidGradleTes
 
     Project project = getProject();
     AndroidPluginVersionUpdater.UpdateResult updateResult =
-      AndroidPluginVersionUpdater.getInstance(project).updatePluginVersion(GradleVersion.parse("2.1.2"), null);
+      AndroidPluginVersionUpdater.getInstance(project).updatePluginVersion(GradleVersion.parse("2.1.2"), null, null);
 
     assertTrue(updateResult.isPluginVersionUpdated());
     assertTrue(updateResult.versionUpdateSuccess());
@@ -65,8 +64,6 @@ public class VersionCompatibilityCheckerIntegrationTest extends AndroidGradleTes
     assertAbout(syncMessage()).that(message).hasType(ERROR)
                                             .hasMessageLine(expectedError, 0);
     // @formatter:on
-
-    GradleSyncSummary summary = GradleSyncState.getInstance(project).getSummary();
-    assertTrue(summary.hasSyncErrors());
+    assertTrue(GradleSyncState.getInstance(project).lastSyncFailed());
   }
 }

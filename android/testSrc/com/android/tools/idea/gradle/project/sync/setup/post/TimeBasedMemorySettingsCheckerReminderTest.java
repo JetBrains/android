@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
-import org.jetbrains.android.AndroidTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
-public class TimeBasedMemorySettingsCheckerReminderTest extends AndroidTestCase {
+public class TimeBasedMemorySettingsCheckerReminderTest extends PlatformTestCase {
   private Calendar myCalendar;
   private TimeBasedMemorySettingsCheckerReminder myReminder;
 

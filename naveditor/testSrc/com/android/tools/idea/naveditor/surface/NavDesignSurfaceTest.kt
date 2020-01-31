@@ -29,6 +29,7 @@ import com.android.tools.idea.common.surface.InteractionManager
 import com.android.tools.idea.common.surface.Layer
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.analytics.NavLogEvent
@@ -90,29 +91,6 @@ import kotlin.test.assertNotEquals
  * Tests for [NavDesignSurface]
  */
 class NavDesignSurfaceTest : NavTestCase() {
-
-  fun testSwitchTabMetrics() {
-    val model = model("nav.xml") { navigation() }
-    val file = model.virtualFile
-    val fileEditorManager = FileEditorManagerImpl(project)
-    (project as ComponentManagerImpl).registerComponentInstance(FileEditorManager::class.java, fileEditorManager)
-
-    val editors = fileEditorManager.openFile(file, true)
-    val surface = editors.firstIsInstance<NavEditor>().component.surface
-    // When the file is opened we create the surface synchronously but initialize the model asynchronously. We have to wait until it's set
-    // to continue, since metrics logging depends on it.
-    // If there's some problem, stop after three seconds.
-    val startTime = System.currentTimeMillis()
-    while (surface.model == null && System.currentTimeMillis() < startTime + TimeUnit.SECONDS.toMillis(3)) {
-      UIUtil.dispatchAllInvocationEvents()
-    }
-    TestNavUsageTracker.create(surface.model!!).use { tracker ->
-      fileEditorManager.setSelectedEditor(file, TextEditorProvider.getInstance().editorTypeId)
-      verify(tracker).logEvent(NavEditorEvent.newBuilder().setType(NavEditorEvent.NavEditorEventType.SELECT_XML_TAB).build())
-      fileEditorManager.setSelectedEditor(file, NAV_EDITOR_ID)
-      verify(tracker).logEvent(NavEditorEvent.newBuilder().setType(NavEditorEvent.NavEditorEventType.SELECT_DESIGN_TAB).build())
-    }
-  }
 
   fun testOpenFileMetrics() {
     val surface = NavDesignSurface(project, project)
@@ -283,7 +261,8 @@ class NavDesignSurfaceTest : NavTestCase() {
 
     val surface = model.surface as NavDesignSurface
     `when`(surface.layeredPane).thenReturn(mock(JComponent::class.java))
-    val interactionManager = InteractionManager(surface)
+    `when`(surface.onDoubleClick(anyInt(), anyInt())).thenCallRealMethod()
+    val interactionManager = surface.interactionManager
     interactionManager.startListening()
 
     val view = NavView(surface, surface.sceneManager!!)
@@ -313,7 +292,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     `when`(scrollPane.viewport).thenReturn(viewport)
     `when`(viewport.extentSize).thenReturn(Dimension(1000, 1000))
     val view = NavView(surface, surface.sceneManager!!)
-    `when`<SceneView>(surface.currentSceneView).thenReturn(view)
+    `when`<SceneView>(surface.focusedSceneView).thenReturn(view)
     `when`(surface.scrollDurationMs).thenReturn(1)
     val scheduleRef = AtomicReference<Future<*>>()
     `when`(surface.scheduleRef).thenReturn(scheduleRef)
@@ -367,7 +346,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     val scene = surface.scene!!
     scene.layout(0, SceneContext.get())
     val sceneView = NavView(surface, surface.sceneManager!!)
-    `when`<SceneView>(surface.currentSceneView).thenReturn(sceneView)
+    `when`<SceneView>(surface.focusedSceneView).thenReturn(sceneView)
     `when`<SceneView>(surface.getSceneView(anyInt(), anyInt())).thenReturn(sceneView)
 
     model.surface.selectionModel.setSelection(ImmutableList.of(model.find("fragment1")!!))
@@ -641,6 +620,44 @@ class NavDesignSurfaceTest : NavTestCase() {
       assertEquals(groupId, dependencies[i].groupId)
       assertEquals(artifactIds[i], dependencies[i].artifactId)
     }
+  }
+
+  fun testSelection() {
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("fragment1")
+        navigation("nested1") {
+          fragment("fragment2")
+          navigation("nested2") {
+            fragment("fragment3")
+          }
+        }
+      }
+    }
+
+    val surface = NavDesignSurface(project, project)
+    surface.model = model
+
+    val root = model.find("root")!!
+    val fragment1 = model.find("fragment1")!!
+    val nested1 = model.find("nested1")!!
+    val fragment2 = model.find("fragment2")!!
+    val nested2 = model.find("nested2")!!
+    val fragment3 = model.find("fragment3")!!
+
+    testCurrentNavigation(surface, root, root)
+    testCurrentNavigation(surface, fragment1, root)
+    testCurrentNavigation(surface, nested1, root)
+    testCurrentNavigation(surface, fragment2, nested1)
+    testCurrentNavigation(surface, nested1, nested1)
+    testCurrentNavigation(surface, nested2, nested1)
+    testCurrentNavigation(surface, fragment3, nested2)
+    testCurrentNavigation(surface, root, root)
+  }
+
+  private fun testCurrentNavigation(surface: NavDesignSurface, select: NlComponent, expected: NlComponent) {
+    surface.selectionModel.setSelection(listOf(select))
+    assertEquals(expected.id, surface.currentNavigation.id)
   }
 
   private fun dragSelect(manager: InteractionManager, sceneView: SceneView, @NavCoordinate rect: Rectangle) {

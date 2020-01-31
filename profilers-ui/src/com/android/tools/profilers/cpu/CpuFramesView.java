@@ -138,7 +138,7 @@ public class CpuFramesView {
   private void frameHighlighted(@NotNull CpuFramesModel.FrameState model) {
     Range tooltipRange = myStage.getStudioProfilers().getTimeline().getTooltipRange();
     List<SeriesData<AtraceFrame>> modelList =
-      model.getModel().getSeries().get(0).getDataSeries().getDataForXRange(tooltipRange);
+      model.getModel().getSeries().get(0).getSeriesForRange(tooltipRange);
     if (modelList.isEmpty()) {
       myRenderer.setHighlightedFrame(AtraceFrame.EMPTY);
       return;
@@ -182,7 +182,7 @@ public class CpuFramesView {
     }
     CpuFramesModel.FrameState state = myFrames.getModel().getElementAt(selectedIndex);
     Range tooltipRange = myStage.getStudioProfilers().getTimeline().getTooltipRange();
-    List<SeriesData<AtraceFrame>> process = state.getModel().getSeries().get(0).getDataSeries().getDataForXRange(tooltipRange);
+    List<SeriesData<AtraceFrame>> process = state.getModel().getSeries().get(0).getSeriesForRange(tooltipRange);
     if (process.isEmpty() || process.get(0).value == AtraceFrame.EMPTY) {
       return;
     }

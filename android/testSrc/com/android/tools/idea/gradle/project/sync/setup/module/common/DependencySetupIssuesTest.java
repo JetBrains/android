@@ -20,28 +20,18 @@ import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.android.tools.idea.project.messages.MessageType.WARNING;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import java.util.List;
-import org.mockito.Mock;
 
 /**
  * Tests for {@link DependencySetupIssues}.
  */
-public class DependencySetupIssuesTest extends JavaProjectTestCase {
-  @Mock private GradleSyncState mySyncState;
-  @Mock private GradleSyncSummary mySyncSummary;
-
+public class DependencySetupIssuesTest extends PlatformTestCase {
   private GradleSyncMessagesStub mySyncMessages;
   private DependencySetupIssues myIssues;
 
@@ -49,11 +39,10 @@ public class DependencySetupIssuesTest extends JavaProjectTestCase {
   public void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    when(mySyncState.getSummary()).thenReturn(mySyncSummary);
 
     Project project = getProject();
     mySyncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project, getTestRootDisposable());
-    myIssues = new DependencySetupIssues(mySyncState, mySyncMessages);
+    myIssues = new DependencySetupIssues(mySyncMessages);
   }
 
   public void testAddMissingModule() {
@@ -79,18 +68,14 @@ public class DependencySetupIssuesTest extends JavaProjectTestCase {
     missingModule = missingModules.get(1);
     assertThat(missingModule.dependencyPath).isEqualTo(":lib3");
     assertThat(missingModule.dependentNames).containsExactly("app1");
-
-    verify(mySyncSummary, times(1)).setSyncErrorsFound(true);
   }
 
   public void testAddMissingModuleWithBackupLibrary() {
     myIssues.addMissingModule(":lib2", "app2", "library2.jar");
-    verify(mySyncSummary, never()).setSyncErrorsFound(true);
   }
 
   public void testAddMissingModuleWithoutBackupLibrary() {
     myIssues.addMissingModule(":lib2", "app2", null);
-    verify(mySyncSummary, times(1)).setSyncErrorsFound(true);
   }
 
   public void testAddDependentOnLibraryWithoutBinaryPath() {
@@ -98,8 +83,6 @@ public class DependencySetupIssuesTest extends JavaProjectTestCase {
     myIssues.addMissingBinaryPath("app2");
     myIssues.addMissingBinaryPath("app1");
     assertThat(myIssues.getDependentsOnLibrariesWithoutBinaryPath()).containsExactly("app1", "app2").inOrder();
-
-    verify(mySyncSummary, times(3)).setSyncErrorsFound(true);
   }
 
   public void testReportIssues() {

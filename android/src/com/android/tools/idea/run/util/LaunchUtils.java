@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.run.util;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.VALUE_TRUE;
+
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.NullOutputReceiver;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.model.MergedManifestManager;
+import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.run.activity.ActivityLocatorUtils;
 import com.android.utils.XmlUtils;
 import com.intellij.execution.Executor;
@@ -36,6 +39,11 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.android.dom.manifest.UsesFeature;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
@@ -44,35 +52,22 @@ import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
 
-import javax.swing.event.HyperlinkEvent;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.VALUE_TRUE;
-
 public class LaunchUtils {
-  /** Returns whether the given application can be debugged on the given device. */
+  /**
+   * Returns whether the given application can be debugged on the given device.
+   */
   public static boolean canDebugAppOnDevice(@NotNull AndroidFacet facet, @NotNull IDevice device) {
-    if (device.isEmulator()) {
-      return true;
-    }
-
-    if (canDebugApp(facet)) return true;
-
-    String buildType = device.getProperty(IDevice.PROP_BUILD_TYPE);
-    if ("userdebug".equals(buildType) || "eng".equals(buildType)) {
-      return true;
-    }
-
-    return false;
+    return (canDebugApp(facet) || isDebuggableDevice(device));
   }
 
   public static boolean canDebugApp(@NotNull AndroidFacet facet) {
     Boolean isDebuggable = AndroidModuleInfo.getInstance(facet).isDebuggable();
     return (isDebuggable == null || isDebuggable);
+  }
+
+  public static boolean isDebuggableDevice(@NotNull IDevice device) {
+    String buildType = device.getProperty(IDevice.PROP_BUILD_TYPE);
+    return ("userdebug".equals(buildType) || "eng".equals(buildType));
   }
 
   /**
@@ -104,7 +99,9 @@ public class LaunchUtils {
            ActivityLocatorUtils.containsCategory(first, AndroidUtils.WATCHFACE_CATEGORY_NAME);
   }
 
-  /** Returns whether the watch hardware feature is required for the given facet. */
+  /**
+   * Returns whether the watch hardware feature is required for the given facet.
+   */
   public static boolean isWatchFeatureRequired(@NotNull AndroidFacet facet) {
     MergedManifestSnapshot mergedManifest = MergedManifestManager.getSnapshot(facet);
     Element feature = mergedManifest.findUsedFeature(UsesFeature.HARDWARE_TYPE_WATCH);

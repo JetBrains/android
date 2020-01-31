@@ -2,9 +2,6 @@
 <module type="JAVA_MODULE" version="4">
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
-    <content url="file://$MODULE_DIR$/analyzer-res">
-      <sourceFolder url="file://$MODULE_DIR$/analyzer-res" type="java-test-resource" />
-    </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="jetbrains-annotations-java5" level="project" />
@@ -23,14 +20,12 @@
     <orderEntry type="module" module-name="android.sdktools.sdk-common" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-analyzer" type="repository">
-        <properties include-transitive-deps="false" maven-id="com.android.tools.apkparser:apkanalyzer:26.5.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:analyzer:26.6.0.1" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/apkparser/apkanalyzer/26.5.0/apkanalyzer-26.5.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/analyzer/26.6.0.1/analyzer-26.6.0.1.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/apkparser/apkanalyzer/26.5.0/apkanalyzer-26.5.0-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
   </component>

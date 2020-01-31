@@ -25,7 +25,7 @@ import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigura
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
 import com.android.tools.idea.testartifacts.junit.AndroidTestPackage;
-import com.android.tools.idea.testartifacts.scopes.TestArtifactSearchScopes;
+import com.android.tools.idea.projectsystem.TestArtifactSearchScopes;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestProjectPaths;
 import com.intellij.execution.ConfigurationUtil;
@@ -132,7 +132,7 @@ public class AndroidTestAndJUnitConfigurationConflictsTest extends AndroidGradle
     Set<PsiClass> myClasses = getClassesToTest(type, packageName, module);
 
     assertSize(1, myClasses);
-    TestArtifactSearchScopes scopes = TestArtifactSearchScopes.get(module);
+    TestArtifactSearchScopes scopes = TestArtifactSearchScopes.getInstance(module);
     assertNotNull(scopes);
     assertTrue(scopes.isUnitTestSource(myClasses.iterator().next().getContainingFile().getVirtualFile()));
   }

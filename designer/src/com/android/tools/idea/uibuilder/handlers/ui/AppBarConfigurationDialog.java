@@ -249,7 +249,7 @@ public class AppBarConfigurationDialog extends JDialog {
     }
 
     ListenableFuture<SyncResult> syncResult = ProjectSystemUtil.getSyncManager(module.getProject())
-      .syncProject(SyncReason.PROJECT_MODIFIED, true);
+      .syncProject(SyncReason.PROJECT_MODIFIED);
 
     Futures.addCallback(syncResult, new FutureCallback<SyncResult>() {
       @Override

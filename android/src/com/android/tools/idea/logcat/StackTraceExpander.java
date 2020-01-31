@@ -16,7 +16,7 @@
 
 package com.android.tools.idea.logcat;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -59,9 +59,9 @@ class StackTraceExpander {
   @NotNull private final String myStackTracePrefix;
   @NotNull private final String myCauseLinePrefix;
 
-  private List<String> myProcessedLines = new ArrayList<>();
-  private List<String> myCurrentStack = new ArrayList<>();
-  private List<String> myPreviousStack = new ArrayList<>();
+  private List<String> myProcessedLines = new ArrayList<String>();
+  private List<String> myCurrentStack = new ArrayList<String>();
+  private List<String> myPreviousStack = new ArrayList<String>();
 
   /**
    * True if we've started parsing lines that match the {@link #EXCEPTION_LINE_PATTERN} and
@@ -135,14 +135,14 @@ class StackTraceExpander {
     return myProcessedLines;
   }
 
-  @VisibleForTesting(visibility = VisibleForTesting.Visibility.PRIVATE)
+  @VisibleForTesting
   @Nullable
   static String getStackLine(@NotNull String line) {
     Matcher matcher = EXCEPTION_LINE_PATTERN.matcher(line);
     return matcher.matches() ? matcher.group(1) : null;
   }
 
-  @VisibleForTesting(visibility = VisibleForTesting.Visibility.PRIVATE)
+  @VisibleForTesting
   @Nullable
   static String getCauseLine(@NotNull String line) {
     Matcher matcher = CAUSED_BY_LINE_PATTERN.matcher(line);
@@ -153,7 +153,7 @@ class StackTraceExpander {
    * Returns the number of stack trace lines that were collapsed, or a value < 0 if this line
    * doesn't match the elided pattern.
    */
-  @VisibleForTesting(visibility = VisibleForTesting.Visibility.PRIVATE)
+  @VisibleForTesting
   static int getElidedFrameCount(@NotNull String line) {
     Matcher matcher = ELIDED_LINE_PATTERN.matcher(line);
     return matcher.matches() ? StringUtil.parseInt(matcher.group(1), -1) : -1;

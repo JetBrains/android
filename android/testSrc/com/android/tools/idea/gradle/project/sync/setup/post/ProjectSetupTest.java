@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.sync.setup.post;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.mockito.Mock;
 
 import static org.mockito.Mockito.*;
@@ -27,7 +27,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link ProjectSetup}.
  */
-public class ProjectSetupTest extends JavaProjectTestCase {
+public class ProjectSetupTest extends PlatformTestCase {
   @Mock ProjectSetupStep mySetupStep1;
   @Mock ProjectSetupStep mySetupStep2;
   @Mock ProgressIndicator myProgressIndicator;
@@ -46,32 +46,32 @@ public class ProjectSetupTest extends JavaProjectTestCase {
     when(mySetupStep1.invokeOnFailedSync()).thenReturn(true);
     when(mySetupStep2.invokeOnFailedSync()).thenReturn(false);
 
-    mySetup.setUpProject(myProgressIndicator, true /* sync failed */);
+    mySetup.setUpProject(true /* sync failed */);
 
     Project project = getProject();
-    verify(mySetupStep1, times(1)).setUpProject(project, myProgressIndicator);
-    verify(mySetupStep2, never()).setUpProject(project, myProgressIndicator);
+    verify(mySetupStep1, times(1)).setUpProject(project);
+    verify(mySetupStep2, never()).setUpProject(project);
   }
 
   public void testSetUpProjectWithSuccessfulSync() {
     when(mySetupStep1.invokeOnFailedSync()).thenReturn(true);
     when(mySetupStep2.invokeOnFailedSync()).thenReturn(false);
 
-    mySetup.setUpProject(myProgressIndicator, false /* sync successful */);
+    mySetup.setUpProject(false /* sync successful */);
 
     Project project = getProject();
-    verify(mySetupStep1, times(1)).setUpProject(project, myProgressIndicator);
-    verify(mySetupStep2, times(1)).setUpProject(project, myProgressIndicator);
+    verify(mySetupStep1, times(1)).setUpProject(project);
+    verify(mySetupStep2, times(1)).setUpProject(project);
   }
 
   public void testSetUpProjectWithWriteAccess() {
     when(mySetupStep1.invokeOnFailedSync()).thenReturn(true);
     when(mySetupStep2.invokeOnFailedSync()).thenReturn(false);
 
-    ApplicationManager.getApplication().runWriteAction(() -> mySetup.setUpProject(myProgressIndicator, false /* sync successful */));
+    ApplicationManager.getApplication().runWriteAction(() -> mySetup.setUpProject(false /* sync successful */));
 
     Project project = getProject();
-    verify(mySetupStep1, times(1)).setUpProject(project, myProgressIndicator);
-    verify(mySetupStep2, times(1)).setUpProject(project, myProgressIndicator);
+    verify(mySetupStep1, times(1)).setUpProject(project);
+    verify(mySetupStep2, times(1)).setUpProject(project);
   }
 }

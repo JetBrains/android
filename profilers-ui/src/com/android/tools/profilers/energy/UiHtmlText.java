@@ -15,13 +15,12 @@
  */
 package com.android.tools.profilers.energy;
 
-import com.android.tools.profiler.proto.EnergyProfiler;
+import com.android.tools.profiler.proto.Energy;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Helper of the energy details' html text building.
@@ -60,7 +59,7 @@ final class UiHtmlText {
     return myStringBuilder.append("</html>").toString();
   }
 
-  public void renderAlarmSet(@NotNull EnergyProfiler.AlarmSet alarmSet) {
+  public void renderAlarmSet(@NotNull Energy.AlarmSet alarmSet) {
     appendTitleAndValue("Type", EnergyDuration.getAlarmTypeName(alarmSet.getType()));
     // triggerTimeMs depends on alarm type, see https://developer.android.com/reference/android/app/AlarmManager.html#constants.
     switch (alarmSet.getType()) {
@@ -94,19 +93,19 @@ final class UiHtmlText {
     }
   }
 
-  private void renderPendingIntent(@NotNull EnergyProfiler.PendingIntent operation) {
+  private void renderPendingIntent(@NotNull Energy.PendingIntent operation) {
     if (!operation.getCreatorPackage().isEmpty()) {
       String value = String.format("%s&nbsp;(UID:&nbsp;%d)", operation.getCreatorPackage(), operation.getCreatorUid());
       appendTitleAndValue("Creator", value);
     }
   }
 
-  public void renderWakeLockAcquired(@NotNull EnergyProfiler.WakeLockAcquired wakeLockAcquired) {
+  public void renderWakeLockAcquired(@NotNull Energy.WakeLockAcquired wakeLockAcquired) {
     appendTitleAndValue("Tag", wakeLockAcquired.getTag());
     appendTitleAndValue("Level", EnergyDuration.getWakeLockLevelName(wakeLockAcquired.getLevel()));
   }
 
-  public void renderJobScheduled(@NotNull EnergyProfiler.JobScheduled jobScheduled) {
+  public void renderJobScheduled(@NotNull Energy.JobScheduled jobScheduled) {
     appendTitleAndValue("Result", getJobResult(jobScheduled.getResult()));
     if (jobScheduled.hasJob()) {
       renderJobInfo(jobScheduled.getJob());
@@ -114,7 +113,7 @@ final class UiHtmlText {
   }
 
   @NotNull
-  private static String getJobResult(@NotNull EnergyProfiler.JobScheduled.Result result) {
+  private static String getJobResult(@NotNull Energy.JobScheduled.Result result) {
     switch (result) {
       case RESULT_SUCCESS:
         return "SUCCESS";
@@ -126,7 +125,7 @@ final class UiHtmlText {
     }
   }
 
-  private void renderJobInfo(@NotNull EnergyProfiler.JobInfo job) {
+  private void renderJobInfo(@NotNull Energy.JobInfo job) {
     appendTitleAndValue("Job ID", String.valueOf(job.getJobId()));
     appendTitleAndValue("Service", job.getServiceName());
 
@@ -190,7 +189,7 @@ final class UiHtmlText {
   }
 
   @NotNull
-  private static String getBackoffPolicyName(EnergyProfiler.JobInfo.BackoffPolicy policy) {
+  private static String getBackoffPolicyName(Energy.JobInfo.BackoffPolicy policy) {
     switch (policy) {
       case BACKOFF_POLICY_LINEAR:
         return "Linear";
@@ -202,7 +201,7 @@ final class UiHtmlText {
   }
 
   @NotNull
-  private static String getRequiredNetworkType(EnergyProfiler.JobInfo.NetworkType networkType) {
+  private static String getRequiredNetworkType(Energy.JobInfo.NetworkType networkType) {
     switch (networkType) {
       case NETWORK_TYPE_ANY:
         return "Any";
@@ -217,12 +216,12 @@ final class UiHtmlText {
     }
   }
 
-  public void renderJobFinished(@NotNull EnergyProfiler.JobFinished jobFinished) {
+  public void renderJobFinished(@NotNull Energy.JobFinished jobFinished) {
     appendTitleAndValue("Needs Reschedule", String.valueOf(jobFinished.getNeedsReschedule()));
     renderJobParams(jobFinished.getParams());
   }
 
-  private void renderJobParams(@NotNull EnergyProfiler.JobParameters jobParams) {
+  private void renderJobParams(@NotNull Energy.JobParameters jobParams) {
     // Job Id is redundant from JobInfo, so does not show it.
     if (jobParams.getTriggeredContentAuthoritiesCount() != 0) {
       appendTitleAndValues("Triggered Content Authorities", jobParams.getTriggeredContentAuthoritiesList());
@@ -235,8 +234,8 @@ final class UiHtmlText {
     }
   }
 
-  public void renderLocationUpdateRequested(@NotNull EnergyProfiler.LocationUpdateRequested locationRequested) {
-    EnergyProfiler.LocationRequest request = locationRequested.getRequest();
+  public void renderLocationUpdateRequested(@NotNull Energy.LocationUpdateRequested locationRequested) {
+    Energy.LocationRequest request = locationRequested.getRequest();
     appendTitleAndValue("Priority", getLocationPriority(request.getPriority()));
     if (request.getIntervalMs() > 0) {
       appendTitleAndValue("Min Interval Time", StringUtil.formatDuration(request.getIntervalMs()));
@@ -256,7 +255,7 @@ final class UiHtmlText {
   }
 
   @NotNull
-  private static String getLocationPriority(@NotNull EnergyProfiler.LocationRequest.Priority priority) {
+  private static String getLocationPriority(@NotNull Energy.LocationRequest.Priority priority) {
     switch (priority) {
       case NO_POWER:
         return "No Power";

@@ -34,10 +34,12 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.StudioIcons;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
 
 public class LocaleMenuAction extends DropDownAction {
 
@@ -49,16 +51,14 @@ public class LocaleMenuAction extends DropDownAction {
   private final ConfigurationHolder myRenderContext;
 
   public LocaleMenuAction(@NotNull ConfigurationHolder renderContext) {
-    super("", "Locale for Preview", null);
+    super(null, "Locale for Preview", null);
     myRenderContext = renderContext;
     Presentation presentation = getTemplatePresentation();
     updatePresentation(presentation);
   }
 
   @Override
-  protected boolean hasDropDownArrow() {
-    // This menu always has most of the time at least two options so no need to calculate the actions to show the arrow. In most cases
-    // the actions to Edit translations and switch to RTL locale are always present.
+  public boolean displayTextInToolbar() {
     return true;
   }
 
@@ -133,8 +133,8 @@ public class LocaleMenuAction extends DropDownAction {
   }
 
   /**
-   * Like {@link ConfigurationManager#getLocales} but filters out locales not compatible
-   * with language and region qualifiers in the current configuration's folder config
+   * Like {@link ResourceRepositoryManager#getLocalesInProject} but filters out locales not compatible
+   * with language and region qualifiers in the current configuration's folder config.
    *
    * @return the list of relevant locales in the project
    */

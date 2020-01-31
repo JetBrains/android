@@ -82,6 +82,7 @@ public final class AvdOptionsModel extends WizardModel {
   private static final Storage minGeneralSdSize = new Storage(10, Storage.Unit.MiB);
   private static final Storage minPlayStoreSdSize = new Storage(100, Storage.Unit.MiB);
   private static final Storage defaultSdSize = new Storage(512, Storage.Unit.MiB);
+  private static final Storage zeroSdSize = new Storage(0, Storage.Unit.MiB);
 
   private final AvdInfo myAvdInfo;
 
@@ -182,6 +183,13 @@ public final class AvdOptionsModel extends WizardModel {
                                                          myAvdDeviceData.screenResolutionHeight().get());
         Storage vmHeapSize = EmulatedProperties.calculateDefaultVmHeapSize(size, density, myAvdDeviceData.isTv().get());
         myVmHeapStorage.set(vmHeapSize);
+        if (myAvdDeviceData.getHasSdCard().get()) {
+          // has sdcard in device, go with default setting
+          myUseBuiltInSdCard.set(true);
+        } else {
+          myUseBuiltInSdCard.set(false);
+        }
+        myUseExternalSdCard.set(false);
       }
     });
     mySystemImage.addListener(() -> {
@@ -200,6 +208,9 @@ public final class AvdOptionsModel extends WizardModel {
   }
 
   public Storage minSdCardSize() {
+    if (!myUseBuiltInSdCard.get() && !myUseExternalSdCard.get()) {
+      return zeroSdSize;
+    }
     return isPlayStoreCompatible() ? minPlayStoreSdSize : minGeneralSdSize;
   }
 
@@ -500,36 +511,42 @@ public final class AvdOptionsModel extends WizardModel {
       myInternalStorage.set(storage);
     }
 
-    String sdCardLocation = null;
-    if (properties.get(AvdWizardUtils.EXISTING_SD_LOCATION) != null) {
-      sdCardLocation = properties.get(AvdWizardUtils.EXISTING_SD_LOCATION);
-    }
-    else if (properties.get(AvdWizardUtils.SD_CARD_STORAGE_KEY) != null) {
-      sdCardLocation = FileUtil.join(avdInfo.getDataFolderPath(), "sdcard.img");
-    }
-    existingSdLocation = new StringValueProperty(nullToEmpty(sdCardLocation));
+    // check if avd has sdcard first, then decided the kind of sdcard
+    if (properties.getOrDefault(HardwareProperties.HW_SDCARD, toIniString(true)).equals(toIniString(true))) {
+      String sdCardLocation = null;
+      if (properties.get(AvdWizardUtils.EXISTING_SD_LOCATION) != null) {
+        sdCardLocation = properties.get(AvdWizardUtils.EXISTING_SD_LOCATION);
+      }
+      else if (properties.get(AvdWizardUtils.SD_CARD_STORAGE_KEY) != null) {
+        sdCardLocation = FileUtil.join(avdInfo.getDataFolderPath(), "sdcard.img");
+      }
+      existingSdLocation = new StringValueProperty(nullToEmpty(sdCardLocation));
 
-    String dataFolderPath = avdInfo.getDataFolderPath();
-    File sdLocationFile = null;
-    if (sdCardLocation != null) {
-      sdLocationFile = new File(sdCardLocation);
-    }
-    if (sdLocationFile != null) {
-      if (Objects.equal(sdLocationFile.getParent(), dataFolderPath)) {
-        // the image is in the AVD folder, consider it to be internal
-        File sdFile = new File(sdCardLocation);
-        Storage sdCardSize = new Storage(sdFile.length());
-        myUseExternalSdCard.set(false);
-        myUseBuiltInSdCard.set(true);
-        myOriginalSdCard = new ObjectValueProperty<>(sdCardSize);
-        mySdCardStorage.setValue(sdCardSize);
+      String dataFolderPath = avdInfo.getDataFolderPath();
+      File sdLocationFile = null;
+      if (sdCardLocation != null) {
+        sdLocationFile = new File(sdCardLocation);
       }
-      else {
-        // the image is external
-        myUseExternalSdCard.set(true);
-        myUseBuiltInSdCard.set(false);
-        externalSdCardLocation().set(sdCardLocation);
+      if (sdLocationFile != null) {
+        if (Objects.equal(sdLocationFile.getParent(), dataFolderPath)) {
+          // the image is in the AVD folder, consider it to be internal
+          File sdFile = new File(sdCardLocation);
+          Storage sdCardSize = new Storage(sdFile.length());
+          myUseExternalSdCard.set(false);
+          myUseBuiltInSdCard.set(true);
+          myOriginalSdCard = new ObjectValueProperty<>(sdCardSize);
+          mySdCardStorage.setValue(sdCardSize);
+        }
+        else {
+          // the image is external
+          myUseExternalSdCard.set(true);
+          myUseBuiltInSdCard.set(false);
+          externalSdCardLocation().set(sdCardLocation);
+        }
       }
+    } else {//if avd doesn't have sdcard set it to no sdcard
+      myUseExternalSdCard.set(false);
+      myUseBuiltInSdCard.set(false);
     }
 
     myUseHostGpu.set(fromIniString(properties.get(AvdWizardUtils.USE_HOST_GPU_KEY)));
@@ -644,8 +661,10 @@ public final class AvdOptionsModel extends WizardModel {
     map.put(AvdWizardUtils.INTERNAL_STORAGE_KEY, myInternalStorage.get());
     map.put(AvdWizardUtils.NETWORK_SPEED_KEY, mySelectedNetworkSpeed.get().getAsParameter());
     map.put(AvdWizardUtils.NETWORK_LATENCY_KEY, mySelectedNetworkLatency.get().getAsParameter());
-    map.put(AvdWizardUtils.FRONT_CAMERA_KEY, mySelectedAvdFrontCamera.get().getAsParameter());
-    map.put(AvdWizardUtils.BACK_CAMERA_KEY, mySelectedAvdBackCamera.get().getAsParameter());
+    map.put(AvdWizardUtils.FRONT_CAMERA_KEY, myAvdDeviceData.hasFrontCamera().get() ? mySelectedAvdFrontCamera.get().getAsParameter()
+                                                                                    : AvdCamera.NONE);
+    map.put(AvdWizardUtils.BACK_CAMERA_KEY, myAvdDeviceData.hasBackCamera().get() ? mySelectedAvdBackCamera.get().getAsParameter()
+                                                                                   : AvdCamera.NONE);
 
     if(myAvdDeviceData.customSkinFile().get().isPresent()){
       map.put(AvdWizardUtils.CUSTOM_SKIN_FILE_KEY, myAvdDeviceData.customSkinFile().getValue());
@@ -677,7 +696,7 @@ public final class AvdOptionsModel extends WizardModel {
       // Remove SD card storage size because it will use external file
       userEditedProperties.remove(AvdWizardUtils.SD_CARD_STORAGE_KEY);
       hasSdCard = true;
-    } else {
+    } else if (myUseBuiltInSdCard.get()){
       if (sdCardStorage().get().isPresent() && myOriginalSdCard != null && sdCardStorage().getValue().equals(myOriginalSdCard.get())) {
         // unchanged, use existing card
         sdCard = existingSdLocation.get();
@@ -693,6 +712,10 @@ public final class AvdOptionsModel extends WizardModel {
         }
         hasSdCard = storage != null && storage.getSize() > 0;
       }
+    } else {
+      hasSdCard = false;
+      // Remove existing sd card, since device doesn't have sdcard
+      userEditedProperties.remove(AvdWizardUtils.EXISTING_SD_LOCATION);
     }
 
     hardwareProperties.put(HardwareProperties.HW_SDCARD, toIniString(hasSdCard));
@@ -795,7 +818,7 @@ public final class AvdOptionsModel extends WizardModel {
       () -> {
         myCreatedAvd = connection.createOrUpdateAvd(
           myAvdInfo, avdName, device, systemImage, mySelectedAvdOrientation.get(),
-          isCircular, sdCardFinal, skinFile, hardwareProperties, false, myRemovePreviousAvd.get());
+          isCircular, sdCardFinal, skinFile, hardwareProperties, myRemovePreviousAvd.get());
       },
       "Creating Android Virtual Device", false, null
     );

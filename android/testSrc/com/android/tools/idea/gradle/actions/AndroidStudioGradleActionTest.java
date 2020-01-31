@@ -21,6 +21,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.JavaProjectTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
 import org.jetbrains.annotations.NotNull;
@@ -33,7 +34,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link AndroidStudioGradleAction}.
  */
-public class AndroidStudioGradleActionTest extends JavaProjectTestCase {
+public class AndroidStudioGradleActionTest extends PlatformTestCase {
   @Mock private AnActionEvent myEvent;
   @Mock private GradleProjectInfo myProjectInfo;
   @Mock private IdeInfo myIdeInfo;

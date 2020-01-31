@@ -799,7 +799,7 @@
           <grid id="5fc490" layout-manager="GridLayoutManager" row-count="2" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
             <margin top="0" left="0" bottom="0" right="0"/>
             <constraints>
-              <tabbedpane title="Legacy"/>
+              <tabbedpane title="Options"/>
             </constraints>
             <properties/>
             <border type="none"/>
@@ -1004,7 +1004,7 @@
                           <text value="Google Play Store Icon"/>
                         </properties>
                       </component>
-                      <grid id="4c112" binding="myGenerateWebIconRowPanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                      <grid id="4c112" binding="myGeneratePlayStoreIconRowPanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                         <margin top="0" left="0" bottom="0" right="0"/>
                         <constraints>
                           <grid row="6" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
@@ -1014,7 +1014,7 @@
                         </properties>
                         <border type="none"/>
                         <children>
-                          <component id="cb40" class="com.intellij.ui.components.JBLabel" binding="myGenerateWebIconLabel">
+                          <component id="cb40" class="com.intellij.ui.components.JBLabel" binding="myGeneratePlayStoreIconLabel">
                             <constraints>
                               <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
                                 <minimum-size width="70" height="-1"/>
@@ -1024,7 +1024,7 @@
                               <text value="Generate:"/>
                             </properties>
                           </component>
-                          <grid id="ba504" binding="myGenerateWebIconRadioButtonsPanel" layout-manager="GridLayoutManager" row-count="1" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                          <grid id="ba504" binding="myGeneratePlayStoreIconRadioButtonsPanel" layout-manager="GridLayoutManager" row-count="1" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                             <margin top="0" left="0" bottom="0" right="0"/>
                             <constraints>
                               <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
@@ -1032,7 +1032,7 @@
                             <properties/>
                             <border type="none"/>
                             <children>
-                              <component id="cc274" class="javax.swing.JRadioButton" binding="myGenerateWebIconYesRadioButton">
+                              <component id="cc274" class="javax.swing.JRadioButton" binding="myGeneratePlayStoreIconYesRadioButton">
                                 <constraints>
                                   <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                                 </constraints>
@@ -1066,49 +1066,6 @@
                           <grid row="8" column="0" row-span="1" col-span="2" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
                         </constraints>
                       </vspacer>
-                      <grid id="d32f7" binding="myWebIconShapePanelRow" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-                        <margin top="0" left="0" bottom="0" right="0"/>
-                        <constraints>
-                          <grid row="7" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
-                        </constraints>
-                        <properties/>
-                        <border type="none"/>
-                        <children>
-                          <component id="d6683" class="com.intellij.ui.components.JBLabel" binding="myWebIconShapeLabel">
-                            <constraints>
-                              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
-                                <minimum-size width="70" height="-1"/>
-                              </grid>
-                            </constraints>
-                            <properties>
-                              <text value="Shape:"/>
-                            </properties>
-                          </component>
-                          <grid id="45630" binding="myWebIconShapePanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-                            <margin top="0" left="0" bottom="0" right="0"/>
-                            <constraints>
-                              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-                            </constraints>
-                            <properties/>
-                            <border type="none"/>
-                            <children>
-                              <component id="82ef0" class="javax.swing.JComboBox" binding="myWebIconShapeComboBox">
-                                <constraints>
-                                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
-                                </constraints>
-                                <properties>
-                                  <toolTipText value="The shape of the launcher icon's backdrop."/>
-                                </properties>
-                              </component>
-                              <hspacer id="9be91">
-                                <constraints>
-                                  <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-                                </constraints>
-                              </hspacer>
-                            </children>
-                          </grid>
-                        </children>
-                      </grid>
                     </children>
                   </grid>
                 </children>
@@ -1153,7 +1110,7 @@
       <member id="b862f5"/>
       <member id="b29f87"/>
     </group>
-    <group name="myGenerateWebIconGroup">
+    <group name="myGeneratePlayStoreIconGroup">
       <member id="cc274"/>
       <member id="dcd52"/>
     </group>

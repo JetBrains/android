@@ -17,7 +17,7 @@ package com.android.tools.idea.ui.resourcemanager.importer
 
 import com.android.ide.common.resources.ValueResourceNameValidator
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
-import com.android.tools.idea.ui.resourcemanager.model.DesignAssetSet
+import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.util.toIoFile
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
@@ -28,8 +28,13 @@ import java.io.File
 import java.nio.file.FileVisitOption
 import java.nio.file.Files
 import java.nio.file.InvalidPathException
+import javax.swing.JComponent
 import kotlin.streams.asSequence
 
+/**
+ * Constant used in the file chooser to save the last used location and re-open
+ * it the next time the chooser is used.
+ */
 private const val PREFERENCE_LAST_SELECTED_DIRECTORY = "resourceExplorer.lastChosenDirectory"
 
 /**
@@ -68,18 +73,20 @@ fun Sequence<File>.findAllDesignAssets(importersProvider: ImportersProvider): Se
     .toDesignAsset(importersProvider)
 
 /**
- * Group [DesignAsset]s by their name into [DesignAssetSet].
+ * Group [DesignAsset]s by their name into [ResourceAssetSet].
  */
-fun Sequence<DesignAsset>.groupIntoDesignAssetSet(): List<DesignAssetSet> =
+fun Sequence<DesignAsset>.groupIntoDesignAssetSet(): List<ResourceAssetSet> =
   groupBy { it.name }
-    .map { (name, assets) -> DesignAssetSet(ValueResourceNameValidator.normalizeName(name), assets) }
+    .map { (name, assets) -> ResourceAssetSet(ValueResourceNameValidator.normalizeName(name), assets) }
 
 /**
  * Displays a file picker which filters files depending on the files supported by the [DesignAssetImporter]
  * provided by the [importersProvider]. When files have been chosen, the [fileChosenCallback] is invoked with
  * the files converted into DesignAssetSet.
  */
-fun chooseDesignAssets(importersProvider: ImportersProvider, fileChosenCallback: (Sequence<DesignAsset>) -> Unit) {
+fun chooseDesignAssets(importersProvider: ImportersProvider,
+                       parent: JComponent? = null,
+                       fileChosenCallback: (Sequence<DesignAsset>) -> Unit) {
   val lastChosenDirFile: VirtualFile? = PropertiesComponent.getInstance().getValue(PREFERENCE_LAST_SELECTED_DIRECTORY)?.let {
     try {
       VfsUtil.findFile(File(it).toPath(), true)
@@ -89,7 +96,7 @@ fun chooseDesignAssets(importersProvider: ImportersProvider, fileChosenCallback:
     }
   }
   val fileChooserDescriptor = createFileDescriptor(importersProvider)
-  FileChooserFactory.getInstance().createPathChooser(fileChooserDescriptor, null, null).choose(lastChosenDirFile) { selectedFiles ->
+  FileChooserFactory.getInstance().createPathChooser(fileChooserDescriptor, null, parent).choose(lastChosenDirFile) { selectedFiles ->
     val allDesignAssets = selectedFiles.asSequence().map { it.toIoFile() }.findAllDesignAssets(importersProvider)
     fileChosenCallback(allDesignAssets)
     PropertiesComponent.getInstance().setValue(PREFERENCE_LAST_SELECTED_DIRECTORY, selectedFiles.firstOrNull()?.path)

@@ -20,13 +20,12 @@ import com.android.repository.api.RepoPackage;
 import com.android.repository.api.UpdatablePackage;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.swing.JTree;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * TreeNode that displays summary information for packages with multiple versions available. It will show as installed if the latest version
@@ -39,13 +38,17 @@ class MultiVersionTreeNode extends UpdaterTreeNode {
 
   public MultiVersionTreeNode(@NotNull Collection<DetailsTreeNode> versionNodes) {
     myVersionNodes = versionNodes;
-    RepoPackage greatestPackage = AndroidSdkHandler.getLatestPackageFromPrefixCollection(
-      myVersionNodes.stream().map(DetailsTreeNode::getPackage).collect(Collectors.toList()),
-      null,
-      true,
-      GradleVersion::tryParse,
-      Comparator.nullsFirst(Comparator.naturalOrder()));
-    myMaxVersionNode = myVersionNodes.stream().filter(node -> node.getPackage() == greatestPackage).findFirst().orElse(null);
+    DetailsTreeNode max = myVersionNodes.stream().filter(node -> node.getPackage().getPath().endsWith("latest")).findFirst().orElse(null);
+    if (max == null) {
+      RepoPackage greatestPackage = AndroidSdkHandler.getLatestPackageFromPrefixCollection(
+        myVersionNodes.stream().map(DetailsTreeNode::getPackage).collect(Collectors.toList()),
+        null,
+        true,
+        GradleVersion::tryParse,
+        Comparator.nullsFirst(Comparator.naturalOrder()));
+      max = myVersionNodes.stream().filter(node -> node.getPackage() == greatestPackage).findFirst().orElse(null);
+    }
+    myMaxVersionNode = max;
   }
 
   @NotNull

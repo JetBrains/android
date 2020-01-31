@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,25 @@
  */
 package com.android.tools.idea.uibuilder.surface
 
-import com.android.annotations.VisibleForTesting
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.idea.uibuilder.visual.VisualizationView
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.diagnostic.Logger
 
 enum class SceneMode(val displayName: String,
                      val primary: (NlDesignSurface, LayoutlibSceneManager) -> ScreenView,
-                     val secondary: ((NlDesignSurface, LayoutlibSceneManager) -> ScreenView)? = null) {
+                     val secondary: ((NlDesignSurface, LayoutlibSceneManager) -> ScreenView)? = null,
+                     val visibleToUser: Boolean = true) {
   SCREEN_ONLY("Design", ::ScreenView),
   BLUEPRINT_ONLY("Blueprint", ::BlueprintView),
-  BOTH("Design + Blueprint", ::ScreenView, ::BlueprintView);
+  BOTH("Design + Blueprint", ::ScreenView, ::BlueprintView),
+  SCREEN_COMPOSE_ONLY("Compose", { surface, manager -> ScreenView(surface, manager, true, false) }, visibleToUser = false),
+  RESIZABLE_PREVIEW("Preview", ::ScreenView, visibleToUser = false),
+  VISUALIZATION("Visualization", ::VisualizationView, visibleToUser = false);
 
   operator fun next(): SceneMode {
-    val values = values()
+    val values = values().filter { it.visibleToUser }
     return values[(ordinal + 1) % values.size]
   }
 

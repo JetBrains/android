@@ -91,7 +91,7 @@ public class EnergyMonitorView extends ProfilerMonitorView<EnergyMonitor> {
       .setFilled(true)
       .setLegendIconType(LegendConfig.IconType.NONE)
       .setDataBucketInterval(CHART_INTERVAL_US);
-    lineChart.configure(getMonitor().getUsage().getUsageDataSeries(), config);
+    lineChart.configure(getMonitor().getUsage().getTotalUsageDataSeries(), config);
     lineChart.setRenderOffset(0, (int)LineConfig.DEFAULT_DASH_STROKE.getLineWidth() / 2);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
     getMonitor().addDependency(this).onChange(ProfilerMonitor.Aspect.FOCUS, () -> lineChart.setShowMaxLine(getMonitor().isFocused()));

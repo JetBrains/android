@@ -107,7 +107,7 @@ public class GradleDependencyManager {
         continue;
       }
 
-      GradleCoordinate resolvedCoordinate = manager.resolveDynamicCoordinate(coordinate, project);
+      GradleCoordinate resolvedCoordinate = manager.resolveDynamicCoordinate(coordinate, project, null);
 
       // If we're adding a support library with a dynamic version (+), and we already have a resolved
       // support library version, use that specific version for the new support library too to keep them
@@ -279,7 +279,6 @@ public class GradleDependencyManager {
       GradleBuildInvoker.getInstance(project).add(new GradleCompletionTask(project, callback));
     }
     GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(trigger);
-    request.generateSourcesOnSuccess = true;
     GradleSyncInvoker.getInstance().requestProjectSync(project, request);
   }
 

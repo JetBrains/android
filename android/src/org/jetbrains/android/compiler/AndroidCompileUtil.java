@@ -1,4 +1,18 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+/*
+ * Copyright 2000-2010 JetBrains s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.jetbrains.android.compiler;
 
 import com.android.tools.idea.lang.aidl.AidlFileType;
@@ -27,10 +41,19 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.*;
+import com.intellij.openapi.roots.CompilerModuleExtension;
+import com.intellij.openapi.roots.CompilerProjectExtension;
+import com.intellij.openapi.roots.ContentEntry;
+import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.roots.ModuleOrderEntry;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.OrderEntry;
+import com.intellij.openapi.roots.ProjectFileIndex;
+import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.roots.SourceFolder;
 import com.intellij.openapi.roots.impl.ModifiableModelCommitter;
 import com.intellij.openapi.roots.ui.configuration.ProjectStructureConfigurable;
 import com.intellij.openapi.ui.Messages;
@@ -39,8 +62,8 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -52,16 +75,34 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.FileTypeIndex;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.util.ArrayUtil;
 import com.intellij.util.ArrayUtilRt;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
-import org.jetbrains.android.compiler.artifact.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import javax.swing.event.HyperlinkEvent;
+import org.jetbrains.android.compiler.artifact.AndroidApplicationArtifactProperties;
+import org.jetbrains.android.compiler.artifact.AndroidApplicationArtifactType;
+import org.jetbrains.android.compiler.artifact.AndroidArtifactPropertiesProvider;
+import org.jetbrains.android.compiler.artifact.AndroidArtifactSigningMode;
+import org.jetbrains.android.compiler.artifact.AndroidArtifactUtil;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.util.*;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.android.util.AndroidCompilerMessageKind;
+import org.jetbrains.android.util.AndroidExecutionUtil;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -71,32 +112,26 @@ import org.jetbrains.jps.model.java.JavaSourceRootProperties;
 import org.jetbrains.jps.model.java.JavaSourceRootType;
 import org.jetbrains.jps.model.java.JpsJavaExtensionService;
 
-import javax.swing.event.HyperlinkEvent;
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-import java.util.regex.Matcher;
-
 /**
  * @author yole
  */
 public class AndroidCompileUtil {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.compiler.AndroidCompileUtil");
 
-  private static final Key<Boolean> RELEASE_BUILD_KEY = new Key<>(AndroidCommonUtils.RELEASE_BUILD_OPTION);
+  private static final Key<Boolean> RELEASE_BUILD_KEY = new Key<Boolean>(AndroidBuildCommonUtils.RELEASE_BUILD_OPTION);
   @NonNls private static final String RESOURCES_CACHE_DIR_NAME = "res-cache";
   @NonNls private static final String GEN_MODULE_PREFIX = "~generated_";
 
   @NonNls public static final String OLD_PROGUARD_CFG_FILE_NAME = "proguard.cfg";
   public static final String UNSIGNED_SUFFIX = ".unsigned";
-  public static Key<String> PROGUARD_CFG_PATHS_KEY = Key.create(AndroidCommonUtils.PROGUARD_CFG_PATHS_OPTION);
+  public static Key<String> PROGUARD_CFG_PATHS_KEY = Key.create(AndroidBuildCommonUtils.PROGUARD_CFG_PATHS_OPTION);
 
   private AndroidCompileUtil() {
   }
 
   @NotNull
   public static <T> Map<CompilerMessageCategory, T> toCompilerMessageCategoryKeys(@NotNull Map<AndroidCompilerMessageKind, T> map) {
-    final Map<CompilerMessageCategory, T> result = new HashMap<>();
+    final Map<CompilerMessageCategory, T> result = new HashMap<CompilerMessageCategory, T>();
 
     for (Map.Entry<AndroidCompilerMessageKind, T> entry : map.entrySet()) {
       final AndroidCompilerMessageKind key = entry.getKey();
@@ -123,14 +158,14 @@ public class AndroidCompileUtil {
     if (root == null) {
       return null;
     }
-    final VirtualFile proguardCfg = root.findChild(AndroidCommonUtils.PROGUARD_CFG_FILE_NAME);
+    final VirtualFile proguardCfg = root.findChild(AndroidBuildCommonUtils.PROGUARD_CFG_FILE_NAME);
     if (proguardCfg != null) {
-      return new Pair<>(proguardCfg, true);
+      return new Pair<VirtualFile, Boolean>(proguardCfg, true);
     }
 
     final VirtualFile oldProguardCfg = root.findChild(OLD_PROGUARD_CFG_FILE_NAME);
     if (oldProguardCfg != null) {
-      return new Pair<>(oldProguardCfg, false);
+      return new Pair<VirtualFile, Boolean>(oldProguardCfg, false);
     }
     return null;
   }
@@ -152,7 +187,7 @@ public class AndroidCompileUtil {
           for (String message : messageList) {
             String url = null;
             int line = -1;
-            Matcher matcher = AndroidCommonUtils.COMPILER_MESSAGE_PATTERN.matcher(message);
+            Matcher matcher = AndroidBuildCommonUtils.COMPILER_MESSAGE_PATTERN.matcher(message);
             if (matcher.matches()) {
               String fileName = matcher.group(1);
               if (new File(fileName).exists()) {
@@ -210,7 +245,7 @@ public class AndroidCompileUtil {
   private static void unexcludeRootIfNecessary(@NotNull VirtualFile root,
                                                @NotNull ModifiableRootModel model,
                                                @NotNull Ref<Boolean> modelChangedFlag) {
-    Set<VirtualFile> excludedRoots = new HashSet<>(Arrays.asList(model.getExcludeRoots()));
+    Set<VirtualFile> excludedRoots = new HashSet<VirtualFile>(Arrays.asList(model.getExcludeRoots()));
     VirtualFile excludedRoot = root;
     while (excludedRoot != null && !excludedRoots.contains(excludedRoot)) {
       excludedRoot = excludedRoot.getParent();
@@ -218,7 +253,7 @@ public class AndroidCompileUtil {
     if (excludedRoot == null) {
       return;
     }
-    Set<VirtualFile> rootsToExclude = new HashSet<>();
+    Set<VirtualFile> rootsToExclude = new HashSet<VirtualFile>();
     collectChildrenRecursively(excludedRoot, root, rootsToExclude);
     ContentEntry contentEntry = findContentEntryForRoot(model, excludedRoot);
     if (contentEntry != null) {
@@ -455,7 +490,7 @@ public class AndroidCompileUtil {
   }
 
   public static boolean isModuleAffected(CompileContext context, Module module) {
-    return ArrayUtil.find(context.getCompileScope().getAffectedModules(), module) >= 0;
+    return ArrayUtilRt.find(context.getCompileScope().getAffectedModules(), module) >= 0;
   }
 
   public static void generate(AndroidFacet facet,
@@ -486,7 +521,7 @@ public class AndroidCompileUtil {
     final ProjectFileIndex projectFileIndex = ProjectRootManager.getInstance(project).getFileIndex();
     for (PsiClass c : classes) {
       PsiFile psiFile = c.getContainingFile();
-      if (className.equals(FileUtilRt.getNameWithoutExtension(psiFile.getName()))) {
+      if (className.equals(FileUtil.getNameWithoutExtension(psiFile.getName()))) {
         VirtualFile virtualFile = psiFile.getVirtualFile();
         if (virtualFile != null && Comparing.equal(projectFileIndex.getSourceRootForFile(virtualFile), sourceRoot)) {
           final String path = virtualFile.getPath();
@@ -530,7 +565,7 @@ public class AndroidCompileUtil {
       return null;
     }
 
-    final String pngCacheDirPath = VfsUtilCore.urlToPath(projectOutputDirUrl) + '/' + RESOURCES_CACHE_DIR_NAME + '/' + module.getName();
+    final String pngCacheDirPath = VfsUtil.urlToPath(projectOutputDirUrl) + '/' + RESOURCES_CACHE_DIR_NAME + '/' + module.getName();
     final String pngCacheDirOsPath = FileUtil.toSystemDependentName(pngCacheDirPath);
 
     final File pngCacheDir = new File(pngCacheDirOsPath);
@@ -567,7 +602,7 @@ public class AndroidCompileUtil {
 
   public static boolean isFullBuild(@NotNull CompileScope scope) {
     final RunConfiguration c = CompileStepBeforeRun.getRunConfiguration(scope);
-    return c == null || !AndroidCommonUtils.isTestConfiguration(c.getType().getId());
+    return c == null || !AndroidBuildCommonUtils.isTestConfiguration(c.getType().getId());
   }
 
   public static boolean isReleaseBuild(@NotNull CompileContext context) {
@@ -608,8 +643,8 @@ public class AndroidCompileUtil {
     if (facet.getConfiguration().isLibraryProject()) {
       removeGenModule(model, modelChangedFlag);
     }
-    final Set<String> genRootsToCreate = new HashSet<>();
-    final Set<String> genRootsToInit = new HashSet<>();
+    final Set<String> genRootsToCreate = new HashSet<String>();
+    final Set<String> genRootsToInit = new HashSet<String>();
 
     final String buildConfigGenRootPath = AndroidRootUtil.getBuildconfigGenSourceRootPath(facet);
 
@@ -645,9 +680,9 @@ public class AndroidCompileUtil {
   private static void excludeAllBuildConfigsFromCompilation(AndroidFacet facet, VirtualFile sourceRoot) {
     final Module module = facet.getModule();
     final Project project = module.getProject();
-    final Set<String> packages = new HashSet<>();
+    final Set<String> packages = new HashSet<String>();
 
-    final Manifest manifest = facet.getManifest();
+    final Manifest manifest = Manifest.getMainManifest(facet);
     final String aPackage = manifest != null ? manifest.getPackage().getStringValue() : null;
 
     if (aPackage != null) {
@@ -748,7 +783,7 @@ public class AndroidCompileUtil {
       return false;
     }
 
-    final Module module = ModuleUtilCore.findModuleForFile(child, project);
+    final Module module = ModuleUtil.findModuleForFile(child, project);
     if (module == null) {
       return true;
     }
@@ -814,14 +849,14 @@ public class AndroidCompileUtil {
 
   @Nullable
   public static Module findCircularDependencyOnLibraryWithSamePackage(@NotNull AndroidFacet facet) {
-    final Manifest manifest = facet.getManifest();
+    final Manifest manifest = Manifest.getMainManifest(facet);
     final String aPackage = manifest != null ? manifest.getPackage().getValue() : null;
     if (aPackage == null) {
       return null;
     }
 
     for (AndroidFacet depFacet : AndroidUtils.getAllAndroidDependencies(facet.getModule(), true)) {
-      final Manifest depManifest = depFacet.getManifest();
+      final Manifest depManifest = Manifest.getMainManifest(depFacet);
       final String depPackage = depManifest != null ? depManifest.getPackage().getValue() : null;
       if (aPackage.equals(depPackage)) {
         final List<AndroidFacet> depDependencies = AndroidUtils.getAllAndroidDependencies(depFacet.getModule(), false);
@@ -837,10 +872,10 @@ public class AndroidCompileUtil {
 
   @NotNull
   public static String[] getLibPackages(@NotNull Module module, @NotNull String packageName) {
-    final Set<String> packageSet = new HashSet<>();
+    final Set<String> packageSet = new HashSet<String>();
     packageSet.add(packageName);
 
-    final List<String> result = new ArrayList<>();
+    final List<String> result = new ArrayList<String>();
 
     for (String libPackage : AndroidUtils.getDepLibsPackages(module)) {
       if (packageSet.add(libPackage)) {
@@ -860,7 +895,7 @@ public class AndroidCompileUtil {
 
     final List<AndroidFacet> dependencies = AndroidUtils.getAllAndroidDependencies(facet.getModule(), false);
 
-    final Manifest manifest = facet.getManifest();
+    final Manifest manifest = Manifest.getMainManifest(facet);
     if (manifest == null) {
       return false;
     }
@@ -897,7 +932,7 @@ public class AndroidCompileUtil {
     if (facet.getProperties().USE_CUSTOM_MANIFEST_PACKAGE) {
       return facet.getProperties().CUSTOM_MANIFEST_PACKAGE;
     }
-    final Manifest manifest = facet.getManifest();
+    final Manifest manifest = Manifest.getMainManifest(facet);
 
     return manifest != null
            ? manifest.getPackage().getStringValue()
@@ -913,7 +948,7 @@ public class AndroidCompileUtil {
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
-        final List<ModifiableRootModel> modelsToCommit = new ArrayList<>();
+        final List<ModifiableRootModel> modelsToCommit = new ArrayList<ModifiableRootModel>();
 
         for (final AndroidFacet facet : facets) {
           if (facet.requiresAndroidModel()) {

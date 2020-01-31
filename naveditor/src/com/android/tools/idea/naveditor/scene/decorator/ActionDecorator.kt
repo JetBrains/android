@@ -25,7 +25,6 @@ import com.android.tools.idea.naveditor.model.effectiveDestination
 import com.android.tools.idea.naveditor.model.getActionType
 import com.android.tools.idea.naveditor.model.getEffectiveSource
 import com.android.tools.idea.naveditor.model.popUpTo
-import com.android.tools.idea.naveditor.scene.DRAW_ACTION_LEVEL
 import com.android.tools.idea.naveditor.scene.NavColors.ACTION
 import com.android.tools.idea.naveditor.scene.NavColors.HIGHLIGHTED_ACTION
 import com.android.tools.idea.naveditor.scene.NavColors.SELECTED
@@ -42,15 +41,16 @@ const val HIGHLIGHTED_CLIENT_PROPERTY = "actionHighlighted"
 object ActionDecorator : NavBaseDecorator() {
   override fun addContent(list: DisplayList, time: Long, sceneContext: SceneContext, component: SceneComponent) {
     val nlComponent = component.nlComponent
-    val color = actionColor(sceneContext, component)
-    val view = component.scene.designSurface.currentSceneView ?: return
+    val color = actionColor(component)
+    val view = component.scene.designSurface.focusedSceneView ?: return
     val actionType = nlComponent.getActionType(component.scene.root?.nlComponent)
     val isPopAction = nlComponent.popUpTo != null
+    val scale = sceneContext.scale.toFloat()
     when (actionType) {
       ActionType.NONE -> return
       ActionType.GLOBAL, ActionType.EXIT -> {
         @SwingCoordinate val drawRect = Coordinates.getSwingRectDip(view, component.fillDrawRect2D(0, null))
-        list.add(DrawHorizontalAction(DRAW_ACTION_LEVEL, drawRect, color, isPopAction))
+        list.add(DrawHorizontalAction(drawRect, scale, color, isPopAction))
       }
       else -> {
         val scene = component.scene
@@ -60,20 +60,20 @@ object ActionDecorator : NavBaseDecorator() {
         val sourceRect = Coordinates.getSwingRectDip(view, sourceSceneComponent.fillDrawRect2D(0, null))
 
         if (actionType == ActionType.SELF) {
-          DrawSelfAction.buildDisplayList(list, view, sourceRect, color, isPopAction)
+          list.add(DrawSelfAction(sourceRect, scale, color, isPopAction))
         }
         else {
           val targetNlComponent = nlComponent.effectiveDestination ?: return
           val destinationSceneComponent = scene.getSceneComponent(targetNlComponent) ?: return
           val destRect = Coordinates.getSwingRectDip(view, destinationSceneComponent.fillDrawRect2D(0, null))
 
-          DrawAction.buildDisplayList(list, view, actionType, isPopAction, sourceRect, destRect, color)
+          list.add(DrawAction(sourceRect, destRect, scale, color, isPopAction))
         }
       }
     }
   }
 
-  private fun actionColor(context: SceneContext, component: SceneComponent): Color {
+  private fun actionColor(component: SceneComponent): Color {
     return when {
       component.isSelected || component.nlComponent.getClientProperty(HIGHLIGHTED_CLIENT_PROPERTY) == true -> SELECTED
       component.drawState == SceneComponent.DrawState.HOVER || component.targets.any { it.isMouseHovered } -> HIGHLIGHTED_ACTION

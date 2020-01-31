@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.validation.android;
 
-import com.android.builder.model.AndroidProject;
+import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
@@ -77,7 +77,7 @@ class BuildTools23Rc1ValidationStrategy extends AndroidProjectValidationStrategy
     }
   }
 
-  private static boolean isOneDotThreeOrNewer(@NotNull AndroidProject project) {
+  private static boolean isOneDotThreeOrNewer(@NotNull IdeAndroidProject project) {
     String modelVersion = project.getModelVersion();
     // getApiVersion doesn't work prior to 1.2, and API level must be at least 3
     return !(modelVersion.startsWith("1.0") || modelVersion.startsWith("1.1")) && project.getApiVersion() >= 3;
@@ -102,8 +102,6 @@ class BuildTools23Rc1ValidationStrategy extends AndroidProjectValidationStrategy
       Project project = getProject();
       SyncMessage message = new SyncMessage(DEFAULT_GROUP, ERROR, msg.toString());
       GradleSyncMessages.getInstance(project).report(message);
-
-      GradleSyncState.getInstance(project).getSummary().setSyncErrorsFound(true);
     }
   }
 

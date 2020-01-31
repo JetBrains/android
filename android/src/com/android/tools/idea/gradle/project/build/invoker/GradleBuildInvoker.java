@@ -35,7 +35,6 @@ import static com.intellij.openapi.ui.Messages.YesNoCancelResult;
 
 import com.android.tools.idea.gradle.filters.AndroidReRunBuildFilter;
 import com.android.tools.idea.gradle.project.BuildSettings;
-import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -96,6 +95,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.gradle.tooling.BuildAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -150,37 +150,32 @@ public class GradleBuildInvoker {
       return;
     }
     setProjectBuildMode(CLEAN);
-    ListMultimap<Path, String> tasks = ArrayListMultimap.create();
-    File projectPath = getBaseDirPath(myProject);
-    List<String> commandLineArgs = new ArrayList<>();
-    // Add source generation tasks only if source gen is enabled.
-    if (GradleProjectBuilder.getInstance(myProject).isSourceGenerationEnabled()) {
-      Module[] modules = ModuleManager.getInstance(myProject).getModules();
-      tasks.putAll(GradleTaskFinder.getInstance().findTasksToExecute(modules, SOURCE_GEN, TestCompileType.NONE));
-      tasks.keys().elementSet().forEach(key -> tasks.get(key).add(0, CLEAN_TASK_NAME));
-      commandLineArgs.add(createGenerateSourcesOnlyProperty());
-    }
-    else {
-      tasks.put(projectPath.toPath(), CLEAN_TASK_NAME);
-    }
-    for (Path rootPath : tasks.keySet()) {
-      executeTasks(rootPath.toFile(), tasks.get(rootPath), commandLineArgs);
+    // Collect the root project path for all modules, there is one root project path per included project.
+    GradleRootPathFinder pathFinder = new GradleRootPathFinder();
+    Set<File> projectRootPaths = Arrays.stream(ModuleManager.getInstance(getProject()).getModules())
+      .map(module -> pathFinder.getProjectRootPath(module).toFile())
+      .collect(Collectors.toSet());
+    for (File projectRootPath : projectRootPaths) {
+      executeTasks(projectRootPath, Collections.singletonList(CLEAN_TASK_NAME));
     }
   }
 
   public void cleanAndGenerateSources() {
-    generateSources(true /* clean project */);
+    generateSources(true /* clean project */, ModuleManager.getInstance(myProject).getModules());
   }
 
   public void generateSources() {
-    generateSources(false /* do not clean project */);
+    generateSources(false /* do not clean project */, ModuleManager.getInstance(myProject).getModules());
   }
 
-  private void generateSources(boolean cleanProject) {
+  public void generateSourcesForModules(@NotNull Module[] modules) {
+    generateSources(false, modules);
+  }
+
+  private void generateSources(boolean cleanProject, @NotNull Module[] modules) {
     BuildMode buildMode = SOURCE_GEN;
     setProjectBuildMode(buildMode);
 
-    Module[] modules = ModuleManager.getInstance(myProject).getModules();
     GradleTaskFinder gradleTaskFinder = GradleTaskFinder.getInstance();
     ListMultimap<Path, String> tasks = gradleTaskFinder.findTasksToExecute(modules, buildMode, TestCompileType.NONE);
     if (cleanProject) {
@@ -455,11 +450,11 @@ public class GradleBuildInvoker {
         public void onStatusChange(@NotNull ExternalSystemTaskNotificationEvent event) {
           if (event instanceof ExternalSystemBuildEvent) {
             BuildEvent buildEvent = ((ExternalSystemBuildEvent)event).getBuildEvent();
-            myBuildEventDispatcher.onEvent(event.getId(), buildEvent);
+            buildViewManager.onEvent(event.getId(), buildEvent);
           }
           else if (event instanceof ExternalSystemTaskExecutionEvent) {
             BuildEvent buildEvent = convert(((ExternalSystemTaskExecutionEvent)event));
-            myBuildEventDispatcher.onEvent(event.getId(), buildEvent);
+            buildViewManager.onEvent(event.getId(), buildEvent);
           }
         }
 
@@ -472,6 +467,7 @@ public class GradleBuildInvoker {
         @Override
         public void onEnd(@NotNull ExternalSystemTaskId id) {
           myBuildEventDispatcher.close();
+          // FIXME-ank2: sendBuildFailureMetrics are not sent anymore
         }
 
         @Override

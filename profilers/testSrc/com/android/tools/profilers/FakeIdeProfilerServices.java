@@ -27,7 +27,10 @@ import com.google.common.collect.ImmutableList;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -44,23 +47,25 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public static final String FAKE_ATRACE_NAME = "Atrace";
 
+  public static final String FAKE_SYMBOL_DIR = "/fake/sym/dir/";
+
+  public static final ProfilingConfiguration ART_SAMPLED_CONFIG = new ProfilingConfiguration(FAKE_ART_SAMPLED_NAME,
+                                                                                             Cpu.CpuTraceType.ART,
+                                                                                             Cpu.CpuTraceMode.SAMPLED);
+  public static final ProfilingConfiguration ART_INSTRUMENTED_CONFIG = new ProfilingConfiguration(FAKE_ART_INSTRUMENTED_NAME,
+                                                                                                  Cpu.CpuTraceType.ART,
+                                                                                                  Cpu.CpuTraceMode.INSTRUMENTED);
+  public static final ProfilingConfiguration SIMPLEPERF_CONFIG = new ProfilingConfiguration(FAKE_SIMPLEPERF_NAME,
+                                                                                            Cpu.CpuTraceType.SIMPLEPERF,
+                                                                                            Cpu.CpuTraceMode.SAMPLED);
+  public static final ProfilingConfiguration ATRACE_CONFIG = new ProfilingConfiguration(FAKE_ATRACE_NAME,
+                                                                                        Cpu.CpuTraceType.ATRACE,
+                                                                                        Cpu.CpuTraceMode.SAMPLED);
+
   private final FeatureTracker myFakeFeatureTracker = new FakeFeatureTracker();
-  private final NativeFrameSymbolizer myFakeSymbolizer = (abi, nativeFrame) -> nativeFrame;
+  private NativeFrameSymbolizer myFakeSymbolizer = (abi, nativeFrame) -> nativeFrame;
   private final CodeNavigator myFakeNavigationService = new FakeCodeNavigator(myFakeFeatureTracker);
   private final TracePreProcessor myFakeTracePreProcessor = new FakeTracePreProcessor();
-
-  /**
-   * Callback to be run after the executor calls its execute() method.
-   */
-  @Nullable
-  Runnable myOnExecute;
-
-  /**
-   * The pool executor runs code in a separate thread. Sometimes is useful to check the state of the profilers
-   * just before calling pool executor's execute method (e.g. verifying Stage's transient status before making a gRPC call).
-   */
-  @Nullable
-  Runnable myPrePoolExecute;
 
   /**
    * Can toggle for tests via {@link #enableAtrace(boolean)}, but each test starts with this defaulted to false.
@@ -154,6 +159,21 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myLiveAllocationsSamplingEnabled = true;
 
   /**
+   * Toggle for cpu capture stage switching vs cpu profiler stage when handling captures.
+   */
+  private boolean myIsCaptureStageEnabled = false;
+
+  /**
+   * Whether profiler audits should be generated
+   */
+  private boolean isAuditsEnabled = true;
+
+  /**
+   * Whether custom event visualization should be visible
+   */
+  private boolean myCustomEventVisualizationEnabled = false;
+
+  /**
    * List of custom CPU profiling configurations.
    */
   private final List<ProfilingConfiguration> myCustomProfilingConfigurations = new ArrayList<>();
@@ -173,6 +193,8 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   @Nullable private Notification myNotification;
 
+  @NotNull private final Set<String> myProjectClasses = new HashSet<>();
+
   public FakeIdeProfilerServices() {
     myPersistentPreferences = new FakeProfilerPreferences();
     myTemporaryPreferences = new FakeProfilerPreferences();
@@ -181,23 +203,13 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   @NotNull
   @Override
   public Executor getMainExecutor() {
-    return (runnable) -> {
-      runnable.run();
-      if (myOnExecute != null) {
-        myOnExecute.run();
-      }
-    };
+    return (runnable) -> runnable.run();
   }
 
   @NotNull
   @Override
   public Executor getPoolExecutor() {
-    return (runnable) -> {
-      if (myPrePoolExecute != null) {
-        myPrePoolExecute.run();
-      }
-      runnable.run();
-    };
+    return (runnable) -> runnable.run();
   }
 
   @Override
@@ -208,6 +220,21 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   @Override
   public NativeFrameSymbolizer getNativeFrameSymbolizer() {
     return myFakeSymbolizer;
+  }
+
+  public void setNativeFrameSymbolizer(@NotNull NativeFrameSymbolizer symbolizer) {
+    myFakeSymbolizer = symbolizer;
+  }
+
+  @Override
+  public Set<String> getAllProjectClasses() {
+    return myProjectClasses;
+  }
+
+  public void addProjectClasses(String... classNames) {
+    for (int i = 0; i < classNames.length; i++) {
+      myProjectClasses.add(classNames[i]);
+    }
   }
 
   @NotNull
@@ -250,6 +277,9 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       public boolean isCpuApiTracingEnabled() {
         return myIsCpuApiTracingEnabled;
       }
+
+      @Override
+      public boolean isCpuCaptureStageEnabled() { return myIsCaptureStageEnabled; }
 
       @Override
       public boolean isCpuNewRecordingWorkflowEnabled() {
@@ -308,6 +338,14 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
+      public boolean isAuditsEnabled() { return isAuditsEnabled; }
+
+      @Override
+      public boolean isCustomEventVisualizationEnabled() {
+        return myCustomEventVisualizationEnabled;
+      }
+
+      @Override
       public boolean isSessionImportEnabled() {
         return mySessionsImportEnabled;
       }
@@ -363,8 +401,7 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   }
 
   @NotNull
-  @Override
-  public TracePreProcessor getSimpleperfTracePreProcessor() {
+  public TracePreProcessor getTracePreProcessor() {
     return myFakeTracePreProcessor;
   }
 
@@ -392,19 +429,7 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   @Override
   public List<ProfilingConfiguration> getDefaultCpuProfilerConfigs() {
-    ProfilingConfiguration artSampled = new ProfilingConfiguration(FAKE_ART_SAMPLED_NAME,
-                                                                   Cpu.CpuTraceType.ART,
-                                                                   Cpu.CpuTraceMode.SAMPLED);
-    ProfilingConfiguration artInstrumented = new ProfilingConfiguration(FAKE_ART_INSTRUMENTED_NAME,
-                                                                        Cpu.CpuTraceType.ART,
-                                                                        Cpu.CpuTraceMode.INSTRUMENTED);
-    ProfilingConfiguration simpleperf = new ProfilingConfiguration(FAKE_SIMPLEPERF_NAME,
-                                                                   Cpu.CpuTraceType.SIMPLEPERF,
-                                                                   Cpu.CpuTraceMode.SAMPLED);
-    ProfilingConfiguration atrace = new ProfilingConfiguration(FAKE_ATRACE_NAME,
-                                                               Cpu.CpuTraceType.ATRACE,
-                                                               Cpu.CpuTraceMode.SAMPLED);
-    return ImmutableList.of(artSampled, artInstrumented, simpleperf, atrace);
+    return ImmutableList.of(ART_SAMPLED_CONFIG, ART_INSTRUMENTED_CONFIG, SIMPLEPERF_CONFIG, ATRACE_CONFIG);
   }
 
   @Override
@@ -417,9 +442,10 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
     myNotification = notification;
   }
 
+  @NotNull
   @Override
-  public void reportNoPiiException(@NotNull Throwable t) {
-    t.printStackTrace();
+  public List<String> getNativeSymbolsDirectories() {
+    return Collections.singletonList(FAKE_SYMBOL_DIR);
   }
 
   @Nullable
@@ -429,14 +455,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void setNativeProfilingConfigurationPreferred(boolean nativeProfilingConfigurationPreferred) {
     myNativeProfilingConfigurationPreferred = nativeProfilingConfigurationPreferred;
-  }
-
-  public void setOnExecute(@Nullable Runnable onExecute) {
-    myOnExecute = onExecute;
-  }
-
-  public void setPrePoolExecutor(@Nullable Runnable prePoolExecute) {
-    myPrePoolExecute = prePoolExecute;
   }
 
   public void enableAtrace(boolean enabled) {
@@ -492,4 +510,8 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   public void enableLiveAllocationsSampling(boolean enabled) {
     myLiveAllocationsSamplingEnabled = enabled;
   }
+
+  public void enableCpuCaptureStage(boolean enabled) { myIsCaptureStageEnabled = enabled; }
+
+  public void enableCustomEventVisualization(boolean enabled) { myCustomEventVisualizationEnabled = enabled; }
 }

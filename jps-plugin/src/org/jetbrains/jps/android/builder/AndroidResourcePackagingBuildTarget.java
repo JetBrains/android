@@ -1,8 +1,7 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android.builder;
 
 import com.android.SdkConstants;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.android.AndroidJpsUtil;
 import org.jetbrains.jps.android.model.JpsAndroidModuleExtension;
@@ -54,11 +53,11 @@ public class AndroidResourcePackagingBuildTarget extends AndroidBuildTarget {
 
     final String[] resourceDirs = AndroidJpsUtil.collectResourceDirsForCompilation(extension, true, dataPaths, false);
 
-    final List<String> assertDirs = new ArrayList<>();
+    final List<String> assertDirs = new ArrayList<String>();
     collectAssetDirs(extension, assertDirs, false);
 
     final File manifestFile = AndroidJpsUtil.getPreprocessedManifestFile(extension, dataPaths);
-    final List<BuildRootDescriptor> result = new ArrayList<>();
+    final List<BuildRootDescriptor> result = new ArrayList<BuildRootDescriptor>();
 
     for (String resourceDir : resourceDirs) {
       result.add(new BuildRootDescriptorImpl(this, new File(resourceDir)));
@@ -111,7 +110,7 @@ public class AndroidResourcePackagingBuildTarget extends AndroidBuildTarget {
   }
 
   private static void collectAssetDirsFromAarDeps(@NotNull JpsModule module, @NotNull Collection<String> result) {
-    final List<String> resDirsFromAarDeps = new ArrayList<>();
+    final List<String> resDirsFromAarDeps = new ArrayList<String>();
     AndroidJpsUtil.collectResDirectoriesFromAarDeps(module, resDirsFromAarDeps);
 
     if (resDirsFromAarDeps.isEmpty()) {
@@ -140,7 +139,7 @@ public class AndroidResourcePackagingBuildTarget extends AndroidBuildTarget {
     public static final MyTargetType INSTANCE = new MyTargetType();
 
     private MyTargetType() {
-      super(AndroidCommonUtils.RESOURCE_PACKAGING_BUILD_TARGET_ID, "Resource Packaging");
+      super(AndroidBuildCommonUtils.RESOURCE_PACKAGING_BUILD_TARGET_ID, "Resource Packaging");
     }
 
     @Override

@@ -20,11 +20,12 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import com.android.tools.idea.tests.gui.framework.GuiTestFileUtils;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.fixture.ChooseResourceDialogFixture;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
+import com.android.tools.idea.tests.gui.framework.fixture.ResourceExplorerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.DesignSurfaceFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
@@ -45,23 +46,27 @@ import org.junit.runner.RunWith;
 public final class ComponentTreeTest {
   @Rule
   public final GuiTestRule myGuiTest = new GuiTestRule();
+  @Rule
+  public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/140560022
   @Test
-  public void testDropThatOpensDialog() throws IOException {
+  public void testDropThatOpensDialog() {
     WizardUtils.createNewProject(myGuiTest);
     Path activityMainXmlRelativePath = FileSystems.getDefault().getPath("app", "src", "main", "res", "layout", "activity_main.xml");
 
-    GuiTestFileUtils.writeAndReloadDocument(
-      myGuiTest.getProjectPath().toPath().resolve(activityMainXmlRelativePath),
-
-      "<android.support.constraint.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-      "    android:layout_width=\"match_parent\"\n" +
-      "    android:layout_height=\"match_parent\">\n" +
-      "\n" +
-      "</android.support.constraint.ConstraintLayout>\n");
-
-    EditorFixture editor = myGuiTest.ideFrame().getEditor();
-    editor.open(activityMainXmlRelativePath);
+    EditorFixture editor = myGuiTest.ideFrame().getEditor()
+      // When we create a project using the wizard, files are open with the default editor before sync. After sync, close file in case it
+      // before opening, to cover the case of HIDE_DEFAULT_EDITOR policy.
+      .closeFile(activityMainXmlRelativePath.toString())
+      .open(activityMainXmlRelativePath)
+      .replaceText(
+        "<android.support.constraint.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+        "    android:layout_width=\"match_parent\"\n" +
+        "    android:layout_height=\"match_parent\">\n" +
+        "\n" +
+        "</android.support.constraint.ConstraintLayout>\n")
+      .selectEditorTab(Tab.DESIGN);
 
     NlEditorFixture layoutEditor = editor.getLayoutEditor(false);
     layoutEditor.waitForRenderToFinish();
@@ -69,10 +74,11 @@ public final class ComponentTreeTest {
     // TODO This step takes around 10 s when this UI test does it (not when I do it manually). Make it faster.
     layoutEditor.getComponentTree().drop("android.support.constraint.ConstraintLayout");
 
-    ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(myGuiTest.robot());
+    ResourceExplorerDialogFixture dialog = ResourceExplorerDialogFixture.find(myGuiTest.robot());
     // TODO Same here
-    dialog.expandList("Project").getList("Project").selectItem("ic_launcher");
-    dialog.clickOK();
+    dialog.getResourceExplorer().selectTab("Mip Map");
+    dialog.getResourceExplorer().selectResource("ic_launcher");
+    dialog.clickOk();
 
     editor.open(activityMainXmlRelativePath, Tab.EDITOR);
 

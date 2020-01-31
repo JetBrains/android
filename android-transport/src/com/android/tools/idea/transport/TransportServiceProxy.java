@@ -28,11 +28,14 @@ import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.ddms.DevicePropertyUtil;
+import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.profiler.proto.Commands.Command;
 import com.android.tools.profiler.proto.Commands.Command.CommandType;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.Event;
 import com.android.tools.profiler.proto.Common.ProcessData;
+import com.android.tools.profiler.proto.Transport.BytesRequest;
+import com.android.tools.profiler.proto.Transport.BytesResponse;
 import com.android.tools.profiler.proto.Transport.ExecuteRequest;
 import com.android.tools.profiler.proto.Transport.ExecuteResponse;
 import com.android.tools.profiler.proto.Transport.GetDevicesRequest;
@@ -60,18 +63,19 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -96,9 +100,12 @@ public class TransportServiceProxy extends ServiceProxy
   @NotNull private final Common.Device myProfilerDevice;
   private final Map<Client, Common.Process> myCachedProcesses = Collections.synchronizedMap(new HashMap<>());
   private final boolean myIsDeviceApiSupported;
-  private final LinkedBlockingDeque<Common.Event> myEventQueue = new LinkedBlockingDeque<>();
+  private final BlockingDeque<Common.Event> myEventQueue;
   private Thread myEventsListenerThread;
-  private final Map<CommandType, Function<Command, ExecuteResponse>> myCommandHandlers = new HashMap<>();
+  private final Map<CommandType, TransportProxy.ProxyCommandHandler> myCommandHandlers = new HashMap<>();
+  private final List<TransportEventPreprocessor> myEventPreprocessors = new ArrayList<>();
+  private final List<TransportBytesPreprocessor> myDataPreprocessors = new ArrayList<>();
+  @NotNull private final Map<String, ByteString> myProxyBytesCache;
 
   // Cache the latest event timestamp we received from the daemon, which is used for closing all still-opened event groups when
   // the proxy lost connection with the device.
@@ -110,14 +117,20 @@ public class TransportServiceProxy extends ServiceProxy
    * @param transportDevice the {@link Common.Device} corresponding to the ddmlibDevice,
    *                        as generated via {@link #transportDeviceFromIDevice(IDevice)}
    * @param channel         the channel that is used for communicating with the device daemon.
+   * @param proxyEventQueue event queue shared by the proxy layer.
+   * @param proxyBytesCache byte cache shared by the proxy layer.
    */
-  public TransportServiceProxy(@NotNull IDevice ddmlibDevice, @NotNull Common.Device transportDevice, @NotNull ManagedChannel channel) {
+  public TransportServiceProxy(@NotNull IDevice ddmlibDevice, @NotNull Common.Device transportDevice, @NotNull ManagedChannel channel,
+                               @NotNull BlockingDeque<Common.Event> proxyEventQueue,
+                               @NotNull Map<String, ByteString> proxyBytesCache) {
     super(TransportServiceGrpc.getServiceDescriptor());
     myDevice = ddmlibDevice;
     myProfilerDevice = transportDevice;
     // Unsupported device are expected to have the unsupportedReason field set.
     myIsDeviceApiSupported = myProfilerDevice.getUnsupportedReason().isEmpty();
     myServiceStub = TransportServiceGrpc.newBlockingStub(channel);
+    myEventQueue = proxyEventQueue;
+    myProxyBytesCache = proxyBytesCache;
     getLog().info(String.format("ProfilerDevice created: %s", myProfilerDevice));
 
     updateProcesses();
@@ -126,8 +139,22 @@ public class TransportServiceProxy extends ServiceProxy
     AndroidDebugBridge.addClientChangeListener(this);
   }
 
-  public void registerCommandHandler(CommandType commandType, Function<Command, ExecuteResponse> handler) {
+  public void registerCommandHandler(CommandType commandType, TransportProxy.ProxyCommandHandler handler) {
     myCommandHandlers.put(commandType, handler);
+  }
+
+  /**
+   * Registers an event preprocessor that preprocesses events in {@link #getEvents(GetEventsRequest, StreamObserver)}.
+   */
+  public void registerEventPreprocessor(TransportEventPreprocessor eventPreprocessor) {
+    myEventPreprocessors.add(eventPreprocessor);
+  }
+
+  /**
+   * Registers an event preprocessor that preprocesses events in {@link #getEvents(GetEventsRequest, StreamObserver)}.
+   */
+  public void registerDataPreprocessor(TransportBytesPreprocessor dataPreprocessor) {
+    myDataPreprocessors.add(dataPreprocessor);
   }
 
   /**
@@ -280,6 +307,13 @@ public class TransportServiceProxy extends ServiceProxy
           Event event = myEventQueue.take();
           myLatestEventTimestampNs = Math.max(myLatestEventTimestampNs, event.getTimestamp());
 
+          // Run registered preprocessors.
+          for (TransportEventPreprocessor preprocessor : myEventPreprocessors) {
+            if (preprocessor.shouldPreprocess(event)) {
+              preprocessor.preprocessEvent(event).forEach(generatedEvent -> responseObserver.onNext(generatedEvent));
+            }
+          }
+
           // Update the event cache: remove an event group if it has ended, otherwise cache the latest opened event for that group.
           if (event.getIsEnded()) {
             ongoingEventGroups.computeIfPresent(event.getKind(), (kind, map) -> {
@@ -315,6 +349,28 @@ public class TransportServiceProxy extends ServiceProxy
       myEventStreamingLatch.countDown();
     });
     myEventsListenerThread.start();
+  }
+
+  public void getBytes(@NotNull BytesRequest request, StreamObserver<BytesResponse> responseObserver) {
+    BytesResponse.Builder response;
+    synchronized (myProxyBytesCache) {
+      if (myProxyBytesCache.containsKey(request.getId())) {
+        response = BytesResponse.newBuilder().setContents(myProxyBytesCache.get(request.getId()));
+        // Removes cache to save memory once it has been requested/cached by the datastore.
+        myProxyBytesCache.remove(request.getId());
+      }
+      else {
+        response = myServiceStub.getBytes(request).toBuilder();
+      }
+      // Run registered preprocessors.
+      for (TransportBytesPreprocessor preprocessor : myDataPreprocessors) {
+        if (preprocessor.shouldPreprocess(request)) {
+          response.setContents(preprocessor.preprocessBytes(request.getId(), response.getContents()));
+        }
+      }
+      responseObserver.onNext(response.build());
+      responseObserver.onCompleted();
+    }
   }
 
   @NotNull
@@ -357,8 +413,8 @@ public class TransportServiceProxy extends ServiceProxy
   public void execute(ExecuteRequest request, StreamObserver<ExecuteResponse> responseObserver) {
     Command command = request.getCommand();
     ExecuteResponse response;
-    if (myCommandHandlers.containsKey(command.getType())) {
-      response = myCommandHandlers.get(command.getType()).apply(command);
+    if (myCommandHandlers.containsKey(command.getType()) && myCommandHandlers.get(command.getType()).shouldHandle(command)) {
+      response = myCommandHandlers.get(command.getType()).execute(command);
     }
     else {
       response = myServiceStub.execute(request);
@@ -411,6 +467,10 @@ public class TransportServiceProxy extends ServiceProxy
     overrides.put(TransportServiceGrpc.METHOD_GET_EVENTS,
                   ServerCalls.asyncUnaryCall((request, observer) -> {
                     getEvents((GetEventsRequest)request, (StreamObserver)observer);
+                  }));
+    overrides.put(TransportServiceGrpc.METHOD_GET_BYTES,
+                  ServerCalls.asyncUnaryCall((request, observer) -> {
+                    getBytes((BytesRequest)request, (StreamObserver)observer);
                   }));
     overrides.put(TransportServiceGrpc.METHOD_EXECUTE,
                   ServerCalls.asyncUnaryCall((request, observer) -> {
@@ -504,12 +564,14 @@ public class TransportServiceProxy extends ServiceProxy
     for (Client client : removedClients) {
       Common.Process process = myCachedProcesses.remove(client);
       // New data pipeline event.
-      myEventQueue.offer(Common.Event.newBuilder()
-                           .setGroupId(process.getPid())
-                           .setKind(Event.Kind.PROCESS)
-                           .setIsEnded(true)
-                           .setTimestamp(timestampNs)
-                           .build());
+      if (process != null) {
+        myEventQueue.offer(Common.Event.newBuilder()
+                             .setGroupId(process.getPid())
+                             .setKind(Event.Kind.PROCESS)
+                             .setIsEnded(true)
+                             .setTimestamp(timestampNs)
+                             .build());
+      }
     }
   }
 

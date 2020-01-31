@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.actions;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.tools.idea.templates.TemplateManager.CATEGORY_AUTOMOTIVE;
+import static org.jetbrains.android.refactoring.MigrateToAndroidxUtil.isAndroidx;
+
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.npw.model.RenderTemplateModel;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
@@ -30,33 +32,34 @@ import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.ImmutableSet;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.DataKey;
+import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
 import icons.StudioIcons;
+import java.io.File;
+import java.util.List;
+import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
-import java.util.List;
-import java.util.Set;
 import org.jetbrains.annotations.Nullable;
-
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
-import static com.android.tools.idea.templates.TemplateManager.CATEGORY_ANDROID_AUTO;
-import static com.android.tools.idea.templates.TemplateManager.CATEGORY_AUTOMOTIVE;
-import static org.jetbrains.android.refactoring.MigrateToAndroidxUtil.isAndroidx;
 
 /**
  * An action to launch a wizard to create a component from a template.
  */
 public class NewAndroidComponentAction extends AnAction {
   // These categories will be using a new wizard
-  public static Set<String> NEW_WIZARD_CATEGORIES = ImmutableSet.of("Activity", "Google", CATEGORY_AUTOMOTIVE);
+  public static final Set<String> NEW_WIZARD_CATEGORIES = ImmutableSet.of("Activity", "Google", CATEGORY_AUTOMOTIVE);
+  public static final Set<String> FRAGMENT_CATEGORY = ImmutableSet.of("Fragment");
 
   public static final DataKey<List<File>> CREATED_FILES = DataKey.create("CreatedFiles");
 
@@ -116,14 +119,7 @@ public class NewAndroidComponentAction extends AnAction {
 
     Presentation presentation = e.getPresentation();
 
-    // Hide Automotive templates if automotive feature is not enabled, or Car templates if it is.
-    if ((myTemplateCategory.equals(CATEGORY_AUTOMOTIVE) && !StudioFlags.NPW_TEMPLATES_AUTOMOTIVE.get()) ||
-        (myTemplateCategory.equals(CATEGORY_ANDROID_AUTO) && StudioFlags.NPW_TEMPLATES_AUTOMOTIVE.get())) {
-      presentation.setVisible(false);
-      return;
-    } else {
-      presentation.setVisible(true);
-    }
+    presentation.setVisible(true);
 
     // See also com.android.tools.idea.npw.template.ChooseActivityTypeStep#validateTemplate
     AndroidVersion buildSdkVersion = moduleInfo.getBuildSdkVersion();
@@ -178,7 +174,7 @@ public class NewAndroidComponentAction extends AnAction {
                                       : AndroidPackageUtils.getPackageForPath(facet, moduleTemplates, targetDirectory);
     Project project = module.getProject();
 
-    RenderTemplateModel templateModel = new RenderTemplateModel(
+    RenderTemplateModel templateModel = RenderTemplateModel.fromFacet(
       facet, new TemplateHandle(file), initialPackageSuggestion, moduleTemplates.get(0), "New " + activityDescription,
       new ProjectSyncInvoker.DefaultProjectSyncInvoker(),
       myShouldOpenFiles);

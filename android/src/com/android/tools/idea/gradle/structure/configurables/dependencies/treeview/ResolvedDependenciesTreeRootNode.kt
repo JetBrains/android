@@ -17,26 +17,35 @@ package com.android.tools.idea.gradle.structure.configurables.dependencies.treev
 
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode
-import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsResettableNode
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsVariant
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
+import com.intellij.ui.treeStructure.SimpleNode
 
-class ResolvedDependenciesTreeRootNode(val module: PsModule, uiSettings: PsUISettings) :
-  AbstractPsResettableNode<PsModule>(module, uiSettings) {
+class ResolvedDependenciesTreeRootNode(val module: PsModule, uiSettings: PsUISettings) : AbstractPsModelNode<PsModule>(uiSettings) {
 
-  override fun createChildren(): List<AbstractPsModelNode<*>> =
+  override val models: List<PsModule> = listOf(module)
+  private var myChildren: Array<SimpleNode>? = null
+
+  init {
+    autoExpandNode = true
+    updateNameAndIcon()
+  }
+
+  override fun getChildren(): Array<SimpleNode> =
+    myChildren ?: createChildren().toTypedArray<SimpleNode>().also { myChildren = it }
+
+  fun reset() {
+    myChildren = null
+  }
+
+  private fun createChildren(): List<AbstractPsModelNode<*>> =
     when (module) {
-      is PsAndroidModule -> {
-        createChildren(module.variants.associateBy { it.name })
-      }
-      is PsJavaModule -> {
-        listOf(AndroidArtifactNode(this, module))
-      }
+      is PsAndroidModule -> createChildren(module.resolvedVariants.associateBy { it.name })
+      is PsJavaModule -> listOf(AndroidArtifactNode(this, module))
       else -> listOf()
     }
-
 
   private fun createChildren(variantsByName: Map<String, PsVariant>): List<AndroidArtifactNode> {
     val childrenNodes = mutableListOf<AndroidArtifactNode>()

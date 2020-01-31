@@ -75,7 +75,7 @@ public class InstallBuildToolsHyperlink extends NotificationHyperlink {
         processor.run();
       }
       else {
-        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_QF_BUILD_TOOLS_INSTALLED);
+        GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_QF_BUILD_TOOLS_INSTALLED);
       }
     }
   }

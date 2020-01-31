@@ -18,29 +18,59 @@ package com.android.tools.idea.tests.gui.debugger;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.emulator.AvdSpec;
+import com.android.tools.idea.tests.gui.framework.emulator.AvdTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
+import org.fest.swing.edt.GuiTask;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.RuleChain;
 import org.junit.runner.RunWith;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class JavaDebuggerTest extends DebuggerTestBase {
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES).settingNdkPath();
-  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
+  private final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES).settingNdkPath();
+  private final AvdTestRule avdRule = AvdTestRule.Companion.buildAvdTestRule(() ->
+    new AvdSpec.Builder()
+  );
+
+  @Rule public final RuleChain emulatorRules = RuleChain
+    .outerRule(avdRule)
+    .around(guiTest);
 
   private static final String DEBUG_CONFIG_NAME = "app";
+
+  /**
+   * The SDK used for this test requires the emulator and the system images to be
+   * available. The emulator and system images are not available in the prebuilts
+   * SDK. The AvdTestRule should generate such an SDK for us, but we need to set
+   * the generated SDK as the SDK to use for our test.
+   *
+   * Unfortunately, GuiTestRule can overwrite the SDK we set in AvdTestRule, so
+   * we need to set this in a place after GuiTestRule has been applied.
+   */
+  @Before
+  public void setupSpecialSdk() {
+    GuiTask.execute(() -> {
+      ApplicationManager.getApplication().runWriteAction(() -> {
+        IdeSdks.getInstance().setAndroidSdkPath(avdRule.getGeneratedSdkLocation(), null);
+      });
+    });
+  }
 
   /**
    * Verifies that Java Debugger works as expected.
@@ -61,10 +91,9 @@ public class JavaDebuggerTest extends DebuggerTestBase {
    *   </pre>
    */
   @Test
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/114304149, fast
+  @RunIn(TestGroup.FAST_BAZEL)
   public void testJavaDebugger() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("debugger/BasicCmakeAppForUI");
-    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
     DebuggerTestUtil.setDebuggerType(ideFrameFixture, DebuggerTestUtil.JAVA);
@@ -73,7 +102,7 @@ public class JavaDebuggerTest extends DebuggerTestBase {
     openAndToggleBreakPoints(ideFrameFixture, "app/src/main/jni/native-lib.c", "return (*env)->NewStringUTF(env, message);");
     openAndToggleBreakPoints(ideFrameFixture, "app/src/main/java/com/example/basiccmakeapp/MainActivity.java", "setContentView(tv);");
 
-    ideFrameFixture.debugApp(DEBUG_CONFIG_NAME, emulator.getDefaultAvdName());
+    ideFrameFixture.debugApp(DEBUG_CONFIG_NAME, avdRule.getMyAvd().getName());
 
     // Wait for background tasks to finish before requesting Debug Tool Window. Otherwise Debug Tool Window won't activate.
     guiTest.waitForBackgroundTasks();

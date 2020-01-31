@@ -15,28 +15,31 @@
   -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
-    <java.shortNamesCache implementation="com.android.tools.idea.databinding.BrShortNamesCache"/>
-    <java.shortNamesCache implementation="com.android.tools.idea.databinding.DataBindingShortNamesCache"/>
-    <java.shortNamesCache implementation="com.android.tools.idea.databinding.DataBindingComponentShortNamesCache"/>
+    <java.shortNamesCache implementation="com.android.tools.idea.databinding.cache.BrShortNamesCache"/>
+    <java.shortNamesCache implementation="com.android.tools.idea.databinding.cache.LayoutBindingShortNamesCache"/>
+    <java.shortNamesCache implementation="com.android.tools.idea.databinding.cache.DataBindingComponentShortNamesCache"/>
+    <resolveScopeEnlarger implementation="com.android.tools.idea.databinding.finders.BindingScopeEnlarger" />
     <java.elementFinder implementation="com.android.tools.idea.databinding.finders.BrClassFinder" id="dataBinding.BrClassFinder" order="first, before java"/>
-    <java.elementFinder implementation="com.android.tools.idea.databinding.finders.LayoutBindingClassFinder" id="dataBinding.BindingClassFinder" order="first, before java"/>
-    <java.elementFinder implementation="com.android.tools.idea.databinding.finders.BindingComponentClassFinder" id="dataBinding.ComponentClassFinder" order="first, before java"/>
-    <java.elementFinder implementation="com.android.tools.idea.databinding.finders.DataBindingPackageFinder" id="dataBinding.DataBindingPackageFinder" order="last, after java"/>
-    <applicationService serviceImplementation="com.android.tools.idea.databinding.config.DataBindingConfiguration"/>
+    <java.elementFinder implementation="com.android.tools.idea.databinding.finders.BindingClassFinder" id="dataBinding.BindingClassFinder" order="first, before java"/>
+    <java.elementFinder implementation="com.android.tools.idea.databinding.finders.DataBindingComponentClassFinder" id="dataBinding.ComponentClassFinder" order="first, before java"/>
+    <java.elementFinder implementation="com.android.tools.idea.databinding.finders.LayoutBindingPackageFinder" id="dataBinding.DataBindingPackageFinder" order="last, after java"/>
     <applicationService serviceImplementation="com.android.tools.idea.databinding.DataBindingModeTrackingService" />
     <automaticRenamerFactory implementation="com.android.tools.idea.databinding.renamer.DataBindingRenamerFactory"/>
     <moduleService serviceImplementation="com.android.tools.idea.databinding.ModuleDataBinding" />
     <xml.elementDescriptorProvider implementation="com.android.tools.idea.databinding.xml.DataBindingDomElementDescriptorProvider" order="first"/>
     <projectService serviceInterface="com.android.tools.idea.databinding.analytics.api.DataBindingTracker"
-                    serviceImplementation="com.android.tools.idea.databinding.analytics.DataBindingTracker"
+                    serviceImplementation="com.android.tools.idea.databinding.analytics.LayoutBindingTracker"
                     overrides="true"/>
 
+    <annotator language="kotlin" implementationClass="com.android.tools.idea.databinding.validation.DataBindingKotlinAnnotator" />
     <intentionAction>
       <className>com.android.tools.idea.actions.ConvertLayoutToDataBindingAction</className>
       <category>Android</category>
     </intentionAction>
+  </extensions>
 
-    <fileBasedIndex implementation="com.android.tools.idea.databinding.index.DataBindingXmlIndex"/>
+  <extensions defaultExtensionNs="org.jetbrains.kotlin">
+    <resolveScopeEnlarger implementation="com.android.tools.idea.databinding.finders.BindingKotlinScopeEnlarger" />
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea">

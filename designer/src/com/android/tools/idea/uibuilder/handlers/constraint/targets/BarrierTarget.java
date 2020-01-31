@@ -24,6 +24,7 @@ import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawBarrier;
 import com.google.common.collect.ImmutableList;
 import java.awt.Cursor;
+import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -131,7 +132,7 @@ public class BarrierTarget extends BaseTarget {
   }
 
   @Override
-  public Cursor getMouseCursor() {
+  public Cursor getMouseCursor(@JdkConstants.InputEventMask int modifiersEx) {
     return Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
   }
 

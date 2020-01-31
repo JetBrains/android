@@ -42,7 +42,7 @@ class ProjectPropertiesConfigPanel(project: PsProject, context: PsContext) :
     uiComponent.border = JBUI.Borders.empty(8, 12, 8, 12)
     (uiComponent.components[0] as? JBScrollPane)?.border = JBUI.Borders.empty()
     uiComponent.minimumSize = Dimension(500, 300)
-    uiComponent.preferredSize = Dimension(600, 400)
+    uiComponent.preferredSize = Dimension(1050, 440)
   }
 
   override val title = "Properties"

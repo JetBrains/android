@@ -17,9 +17,9 @@ package com.android.tools.profilers.memory;
 
 import com.android.ddmlib.AllocationInfo;
 import com.android.ddmlib.AllocationsParser;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocatedClass;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
-import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEvent;
+import com.android.tools.profiler.proto.Memory.AllocationEvent;
+import com.android.tools.profiler.proto.Memory.AllocatedClass;
+import com.android.tools.profiler.proto.Memory.AllocationStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
@@ -99,9 +99,9 @@ public class LegacyAllocationConverter {
     }
 
     @NotNull
-    public LegacyAllocationEvent bindAllocationEventInfos(long startTime, long endTime) {
-      return LegacyAllocationEvent.newBuilder().setClassId(myClassId).setSize(mySize).setThreadId(myThreadId)
-        .setCaptureTime(startTime).setTimestamp(endTime).setStackId(myCallStackId).build();
+    public AllocationEvent.Allocation bindAllocationEventInfos() {
+      return AllocationEvent.Allocation.newBuilder()
+        .setClassTag(myClassId).setSize(mySize).setThreadId(myThreadId).setStackId(myCallStackId).build();
     }
   }
 
@@ -151,8 +151,8 @@ public class LegacyAllocationConverter {
     myAllocations.add(allocationInfo);
   }
 
-  public List<LegacyAllocationEvent> getAllocationEvents(long startTime, long endTime) {
-    return myAllocations.stream().map(allocation -> allocation.bindAllocationEventInfos(startTime, endTime)).collect(Collectors.toList());
+  public List<AllocationEvent.Allocation> getAllocationEvents() {
+    return myAllocations.stream().map(allocation -> allocation.bindAllocationEventInfos()).collect(Collectors.toList());
   }
 
   /**

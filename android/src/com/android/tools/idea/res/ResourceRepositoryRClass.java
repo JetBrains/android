@@ -20,15 +20,14 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import org.jetbrains.android.augment.AndroidLightField;
 import org.jetbrains.android.augment.ResourceRepositoryInnerRClass;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,26 +42,16 @@ public abstract class ResourceRepositoryRClass extends AndroidRClassBase {
     @Nullable String getPackageName();
     @NotNull LocalResourceRepository getResourceRepository();
     @NotNull ResourceNamespace getResourceNamespace();
-
-    default boolean isForTest() {
-      return false;
-    }
+    @NotNull AndroidLightField.FieldModifier getFieldModifier();
+    boolean isPublic(@NotNull ResourceType resourceType, @NotNull String resourceName);
   }
 
-  @NotNull protected final Module myModule;
   @NotNull private final ResourcesSource mySource;
 
-  public ResourceRepositoryRClass(@NotNull PsiManager psiManager, @NotNull Module module, @NotNull ResourcesSource source) {
+  public ResourceRepositoryRClass(@NotNull PsiManager psiManager, @NotNull ResourcesSource source) {
     // TODO(b/110188226): Update the file package name when the module's package name changes.
     super(psiManager, source.getPackageName());
     mySource = source;
-    myModule = module;
-    setModuleInfo(module, mySource.isForTest());
-  }
-
-  @NotNull
-  public Module getModule() {
-    return myModule;
   }
 
   @NotNull
@@ -73,18 +62,12 @@ public abstract class ResourceRepositoryRClass extends AndroidRClassBase {
       return PsiClass.EMPTY_ARRAY;
     }
 
-    AndroidFacet facet = AndroidFacet.getInstance(myModule);
-    if (facet == null) {
-      LOG.debug("R_CLASS_AUGMENT: empty because no facet");
-      return PsiClass.EMPTY_ARRAY;
-    }
-
     Set<ResourceType> types = mySource.getResourceRepository().getResourceTypes(mySource.getResourceNamespace());
     List<PsiClass> result = new ArrayList<>();
 
     for (ResourceType type : types) {
       if (type.getHasInnerClass()) {
-        result.add(new ResourceRepositoryInnerRClass(facet, type, mySource, this));
+        result.add(new ResourceRepositoryInnerRClass(type, mySource, this));
       }
     }
     LOG.debug("R_CLASS_AUGMENT: " + result.size() + " classes added");

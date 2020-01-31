@@ -15,8 +15,7 @@ import org.jetbrains.annotations.NotNull;
 
 public final class AndroidRunConfigurationType extends ConfigurationTypeBase {
   public AndroidRunConfigurationType() {
-    super("AndroidRunConfigurationType", AndroidBundle.message("android.run.configuration.type.name"),
-          AndroidBundle.message("android.run.configuration.type.description"),
+    super("AndroidRunConfigurationType", AndroidBundle.message("android.run.configuration.type.name"), AndroidBundle.message("android.run.configuration.type.description"),
           NotNullLazyValue.createValue(() -> StudioIcons.Shell.Filetree.ANDROID_PROJECT));
 
     addFactory(new AndroidRunConfigurationFactory(this));

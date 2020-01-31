@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.welcome.wizard.deprecated;
 
-import com.android.SdkConstants;
 import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -68,7 +67,7 @@ public class FirstRunWizard extends DynamicWizard {
       if (initialSdkLocation.isDirectory()) {
         AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(initialSdkLocation);
         ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
-        sdkExists = sdkHandler.getLocalPackage(SdkConstants.FD_TOOLS, progress) != null;
+        sdkExists = !sdkHandler.getSdkManager(progress).getPackages().getLocalPackages().isEmpty();
       }
       addPath(new SingleStepPath(new FirstRunWelcomeStep(sdkExists)));
       if (initialSdkLocation.getPath().isEmpty()) {

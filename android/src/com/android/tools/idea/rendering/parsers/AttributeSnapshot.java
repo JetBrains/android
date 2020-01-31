@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.rendering.parsers;
 
-import com.android.tools.idea.databinding.DataBindingUtil;
+import com.android.tools.idea.databinding.util.DataBindingUtil;
 import com.google.common.collect.Lists;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
@@ -69,6 +69,11 @@ public class AttributeSnapshot {
     XmlAttribute[] psiAttributes = tag.getAttributes();
     List<AttributeSnapshot> attributes = Lists.newArrayListWithExpectedSize(psiAttributes.length);
     for (XmlAttribute psiAttribute : psiAttributes) {
+      if (psiAttribute.isNamespaceDeclaration()) {
+        // Do not snapshot namespace declaration
+        continue;
+      }
+
       AttributeSnapshot attribute = createAttributeSnapshot(psiAttribute);
       if (attribute != null) {
         attributes.add(attribute);

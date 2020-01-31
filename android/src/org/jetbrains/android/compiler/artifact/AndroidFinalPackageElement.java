@@ -1,4 +1,3 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.compiler.artifact;
 
 import com.intellij.facet.pointers.FacetPointer;
@@ -76,7 +75,7 @@ public class AndroidFinalPackageElement extends PackagingElement<AndroidFinalPac
   @Override
   public void loadState(@NotNull AndroidFinalPackageElementState state) {
     myFacetPointer = state.myFacetPointer != null
-                     ? FacetPointersManager.getInstance(myProject).create(state.myFacetPointer)
+                     ? FacetPointersManager.getInstance(myProject).<AndroidFacet>create(state.myFacetPointer)
                      : null;
   }
 

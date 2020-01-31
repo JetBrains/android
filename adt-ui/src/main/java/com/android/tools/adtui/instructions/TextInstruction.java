@@ -15,7 +15,7 @@
  */
 package com.android.tools.adtui.instructions;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.ui.UIUtilities;
 import org.jetbrains.annotations.NotNull;
 

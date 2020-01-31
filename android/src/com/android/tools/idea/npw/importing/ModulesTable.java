@@ -160,7 +160,7 @@ public final class ModulesTable extends JBPanel implements Scrollable {
 
   private void apply(ModuleImportSettings pane, ModuleToImport module) {
     pane.setModuleName(myListModel.getModuleName(module));
-    pane.setModuleSourcePath(ImportUIUtil.getRelativePath(myListModel.getCurrentPath(), module.location));
+    pane.setModuleSourcePath(ImportUIUtil.relativeTo(module.location, myListModel.getCurrentPath()));
     pane.setModuleSelected(myListModel.isSelected(module));
     pane.setCanToggleModuleSelection(myListModel.canToggleModuleSelection(module));
     pane.setCanRenameModule(myListModel.canRename(module));

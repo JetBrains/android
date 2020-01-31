@@ -80,7 +80,7 @@ public class AndroidModuleModelDataServiceTest extends AndroidGradleTestCase {
     when(myModuleSetupContextFactory.create(appModule, modelsProvider)).thenReturn(myModuleSetupContext);
     myService.importData(Collections.singletonList(dataNode), mock(ProjectData.class), project, modelsProvider);
 
-    verify(myModuleSetup).setUpModule(myModuleSetupContext, androidModel, false);
+    verify(myModuleSetup).setUpModule(myModuleSetupContext, androidModel);
     verify(myValidator).validate(appModule, androidModel);
     verify(myValidator).fixAndReportFoundIssues();
   }

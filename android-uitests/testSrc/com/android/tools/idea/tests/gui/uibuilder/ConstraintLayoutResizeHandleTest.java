@@ -35,6 +35,7 @@ import static com.google.common.truth.Truth.assertThat;
 public class ConstraintLayoutResizeHandleTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   /**
    * To verify that a widget in a constraint layout can be resized in the design view.
