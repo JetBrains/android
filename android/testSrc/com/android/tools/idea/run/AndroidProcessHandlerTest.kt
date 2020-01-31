@@ -66,6 +66,7 @@ class AndroidProcessHandlerTest {
     handler = AndroidProcessHandler(
       mockProject,
       TARGET_APP_NAME,
+      /*captureLogcat=*/true,
       mockDeploymentAppService
     ) { _, _, emitter, listener ->
       textEmitter = emitter
