@@ -1,4 +1,7 @@
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.idea.uibuilder.handlers.motion.timeline;
+
+import static com.android.tools.idea.uibuilder.handlers.motion.timeline.Chart.ourViewListWidth;
 
 import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.stdui.CommonButton;
@@ -9,16 +12,20 @@ import com.intellij.openapi.ui.popup.LightweightWindowEvent;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.plaf.ButtonUI;
-import javax.swing.plaf.basic.BasicButtonUI;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridLayout;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
-import static com.android.tools.idea.uibuilder.handlers.motion.timeline.Chart.ourViewListWidth;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.plaf.ButtonUI;
+import javax.swing.plaf.basic.BasicButtonUI;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The icons at the top left of the panel
@@ -112,9 +119,9 @@ public class TrackControls extends JPanel {
     String[] list = {"0.25 x", "0.5 x", "1 x", "2 x", "4 x"};
     final float[] speed = {0.25f, 0.5f, 1, 2, 4};
     final JList<String> displayedList = new JBList<String>(list);
-    JBPopupListener listener = new JBPopupListener.Adapter() {
+    JBPopupListener listener = new JBPopupListener() {
       @Override
-      public void onClosed(LightweightWindowEvent event) {
+      public void onClosed(@NotNull LightweightWindowEvent event) {
         JBPopup popup = event.asPopup();
         mChart.myPlayBackSpeed = speed[displayedList.getLeadSelectionIndex()];
         myGanttInterface.buttonPressed(e, action);
