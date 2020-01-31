@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPL
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_EMPTY_SOURCE_SET_BLOCK
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_LANGUAGE_KEYWORD_BUILD_TYPE_BLOCK_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_LIST_ELEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_LIST_ELEMENTS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_LITERAL_ELEMENTS
@@ -842,6 +843,11 @@ class AndroidModelTest : GradleFileModelTestCase() {
   @Test
   fun testAddAndApplyNonAsciiBuildTypeBlock() {
     doTestAddAndApplyOneBuildTypeBlock("ħƁǅẅΣЖא", ANDROID_MODEL_ADD_AND_APPLY_NON_ASCII_BUILD_TYPE_BLOCK_EXPECTED)
+  }
+
+  @Test
+  fun testAddAndApplyLanguageKeywordBuildTypeBlock() {
+    doTestAddAndApplyOneBuildTypeBlock("class", ANDROID_MODEL_ADD_AND_APPLY_LANGUAGE_KEYWORD_BUILD_TYPE_BLOCK_EXPECTED)
   }
 
   @Test
