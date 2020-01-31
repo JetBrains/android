@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.motion.property2
 
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs
 import com.android.tools.idea.uibuilder.handlers.motion.property2.testutil.MotionAttributeRule
 import com.android.tools.idea.uibuilder.model.viewInfo
 import com.android.tools.property.panel.api.TableLineModel
@@ -45,7 +46,7 @@ class NewCustomAttributePanelTest {
 
   @Before
   fun before() {
-    panelWrapper = createPanel()
+    panelWrapper = createPanel("start", "widget")
   }
 
   @After
@@ -56,16 +57,22 @@ class NewCustomAttributePanelTest {
 
   @Test
   fun testAddCustomField() {
+    panelWrapper?.close(0)
+    panelWrapper = createPanel("start", "button")
     panel.dataTypeComboBox.text = "String"
     panel.attributeNameEditor.text = "text"
     panel.initialValueEditor.text = "Hello"
     panel.doOKAction()
     assertThat(panel.errorLabel.isVisible).isFalse()
-    assertThat(motionRule.sceneFileLines(30..32)).isEqualTo("<CustomAttribute\n" +
+    assertThat(motionRule.sceneFileLines(36..38)).isEqualTo("<CustomAttribute\n" +
                                                             "     motion:attributeName=\"text\"\n" +
                                                             "     motion:customStringValue=\"Hello\" />")
     assertThat(motionRule.lastUndoDescription).isEqualTo("Undo Set CustomAttribute.text to Hello")
     assertThat(panel.isOK).isTrue()
+
+    // The new property must be added to the model properties by now:
+    assertThat(motionRule.properties).containsKey(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE)
+    assertThat(motionRule.properties[MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE]?.get("", "text")).isNotNull()
   }
 
   @Test
@@ -101,8 +108,9 @@ class NewCustomAttributePanelTest {
     assertThat(panel.isOKActionEnabled).isTrue()
   }
 
-  private fun createPanel(): NewCustomAttributeWrapper {
-    motionRule.selectConstraint("start", "widget")
+  @Suppress("SameParameterValue")
+  private fun createPanel(setId: String, id: String): NewCustomAttributeWrapper {
+    motionRule.selectConstraint(setId, id)
     val component = motionRule.selection.componentForCustomAttributeCompletions!!
     val textView = mock(android.widget.TextView::class.java)
     component.viewInfo = ViewInfo("TextView", null, 0, 0, 30, 20, textView, null)
