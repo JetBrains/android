@@ -25,10 +25,14 @@ import com.android.tools.adtui.model.stdui.ValueChangedListener;
 import com.android.tools.adtui.stdui.CommonTextField;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTag;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionAttributes;
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
 import com.android.tools.idea.uibuilder.property2.NelePropertyType;
+import com.android.tools.property.panel.api.PropertiesTable;
 import com.android.tools.property.panel.api.TableLineModel;
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Table;
 import com.intellij.concurrency.JobScheduler;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.text.StringUtil;
@@ -188,6 +192,15 @@ public class NewCustomAttributePanel extends DialogWrapper {
       NelePropertyItem newProperty = MotionLayoutPropertyProvider.createCustomProperty(
         attributeName, type.getTagName(), mySelection, myPropertiesModel);
       myLineModel.addItem(newProperty);
+
+      // Add to the property model since the model may treat this as a property update (not a new selection).
+      PropertiesTable<NelePropertyItem> customProperties = myPropertiesModel.getAllProperties().get(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE);
+      if (customProperties == null) {
+        Table<String, String, NelePropertyItem> customTable = HashBasedTable.create(3, 10);
+        customProperties = PropertiesTable.Companion.create(customTable);
+        myPropertiesModel.getAllProperties().put(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE, customProperties);
+      }
+      customProperties.put(newProperty);
     };
 
     myPropertiesModel.createCustomXmlTag(mySelection, attributeName, value, type, applyToModel);
