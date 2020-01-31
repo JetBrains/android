@@ -188,6 +188,14 @@ class LintIdeTest : UsefulTestCase() {
     doGlobalInspectionTest(AndroidLintUseValueOfInspection())
   }
 
+  fun testLintNonAndroid() {
+    // Make sure that we include the lint implementation checks themselves outside of Android contexts
+    val issues = LintIdeIssueRegistry()
+    val issue = issues.getIssue("LintImplDollarEscapes")!!
+    val support = object : LintIdeSupport() { }
+    assertEquals(support.getPlatforms(), issue.platforms)
+  }
+
   private fun doGlobalInspectionTest(inspection: AndroidLintInspectionBase) {
     myFixture.enableInspections(inspection)
     doGlobalInspectionTest(inspection, globalTestDir, AnalysisScope(myModule))

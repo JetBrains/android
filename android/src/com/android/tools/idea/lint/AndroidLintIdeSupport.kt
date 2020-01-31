@@ -35,6 +35,7 @@ import com.android.tools.idea.templates.RepositoryUrlManager
 import com.android.tools.lint.client.api.IssueRegistry
 import com.android.tools.lint.client.api.LintDriver
 import com.android.tools.lint.detector.api.Issue
+import com.android.tools.lint.detector.api.Platform
 import com.android.utils.SdkUtils
 import com.google.wireless.android.sdk.stats.LintSession
 import com.intellij.codeInsight.intention.IntentionAction
@@ -55,6 +56,7 @@ import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.plugins.groovy.GroovyFileType
 import java.io.File
+import java.util.EnumSet
 
 class AndroidLintIdeSupport : LintIdeSupport() {
   override fun getIssueRegistry(): IssueRegistry {
@@ -204,6 +206,8 @@ class AndroidLintIdeSupport : LintIdeSupport() {
     val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
     return RepositoryUrlManager.get().resolveDynamicCoordinateVersion(gc, project, sdkHandler)
   }
+
+  override fun getPlatforms(): EnumSet<Platform> = Platform.ANDROID_SET
 
   // Analytics
   override fun canRequestFeedback(): Boolean = ProvideLintFeedbackPanel.canRequestFeedback()
