@@ -287,7 +287,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       action.getRunOnMultipleDevicesAction(),
       ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID));
 
-    assertEquals(actualChildren, expectedChildren);
+    assertEquals(expectedChildren, actualChildren);
   }
 
   @Test
