@@ -128,6 +128,8 @@ class ComposeDocumentationProvider : DocumentationProviderEx() {
       displayName = "",
       groupName = null,
       composableMethodFqn = fqName,
+      showBackground = false,
+      showDecorations = false,
       previewElementDefinitionPsi = null,
       previewBodyPsi = null,
       configuration = nullConfiguration

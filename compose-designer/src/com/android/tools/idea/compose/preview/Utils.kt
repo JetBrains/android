@@ -221,6 +221,8 @@ private val nullConfiguration = PreviewConfiguration.cleanAndGet(null, null, nul
  * @param displayName display name of this preview element
  * @param groupName name that allows multiple previews in separate groups
  * @param composableMethodFqn Fully Qualified Name of the composable method
+ * @param showDecorations when true, the system decorations (navigation and status bars) should be displayed as part of the render
+ * @param showBackground when true, the preview will be rendered with the material background as background color by default
  * @param previewElementDefinitionPsi [SmartPsiElementPointer] to the preview element definition
  * @param previewBodyPsi [SmartPsiElementPointer] to the preview body. This is the code that will be ran during preview
  * @param configuration the preview element configuration
@@ -228,6 +230,8 @@ private val nullConfiguration = PreviewConfiguration.cleanAndGet(null, null, nul
 data class PreviewElement(val displayName: String,
                           val groupName: String?,
                           val composableMethodFqn: String,
+                          val showDecorations: Boolean,
+                          val showBackground: Boolean,
                           val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?,
                           val previewBodyPsi: SmartPsiElementPointer<PsiElement>?,
                           val configuration: PreviewConfiguration) {
@@ -236,8 +240,10 @@ data class PreviewElement(val displayName: String,
     @TestOnly
     fun forTesting(composableMethodFqn: String,
                    displayName: String = "", groupName: String? = null,
+                   showDecorations: Boolean = false,
+                   showBackground: Boolean = false,
                    configuration: PreviewConfiguration = nullConfiguration) =
-      PreviewElement(displayName, groupName, composableMethodFqn, null, null, configuration)
+      PreviewElement(displayName, groupName, composableMethodFqn, showDecorations, showBackground, null, null, configuration)
   }
 }
 

@@ -49,12 +49,12 @@ class AnnotationFilePreviewElementFinderTest : ComposeLightJavaCodeInsightFixtur
         }
 
         @Composable
-        @Preview(name = "preview2", apiLevel = 12, group = "groupA")
+        @Preview(name = "preview2", apiLevel = 12, group = "groupA", showBackground = true)
         fun Preview2() {
         }
 
         @Composable
-        @Preview(name = "preview3", widthDp = 1, heightDp = 2, fontScale = 0.2f)
+        @Preview(name = "preview3", widthDp = 1, heightDp = 2, fontScale = 0.2f, showDecorations = true)
         fun Preview3() {
         }
 
@@ -85,9 +85,12 @@ class AnnotationFilePreviewElementFinderTest : ComposeLightJavaCodeInsightFixtur
       assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
       assertEquals(1f, it.configuration.fontScale)
+      assertTrue(it.showBackground)
+      assertFalse(it.showDecorations)
 
       assertMethodTextRange(composeTest, "Preview2", it.previewBodyPsi?.psiRange?.range!!)
-      assertEquals("@Preview(name = \"preview2\", apiLevel = 12, group = \"groupA\")", it.previewElementDefinitionPsi?.element?.text)
+      assertEquals("@Preview(name = \"preview2\", apiLevel = 12, group = \"groupA\", showBackground = true)",
+                   it.previewElementDefinitionPsi?.element?.text)
     }
 
     elements[2].let {
@@ -96,9 +99,12 @@ class AnnotationFilePreviewElementFinderTest : ComposeLightJavaCodeInsightFixtur
       assertEquals(1, it.configuration.width)
       assertEquals(2, it.configuration.height)
       assertEquals(0.2f, it.configuration.fontScale)
+      assertFalse(it.showBackground)
+      assertTrue(it.showDecorations)
 
       assertMethodTextRange(composeTest, "Preview3", it.previewBodyPsi?.psiRange?.range!!)
-      assertEquals("@Preview(name = \"preview3\", widthDp = 1, heightDp = 2, fontScale = 0.2f)", it.previewElementDefinitionPsi?.element?.text)
+      assertEquals("@Preview(name = \"preview3\", widthDp = 1, heightDp = 2, fontScale = 0.2f, showDecorations = true)",
+                   it.previewElementDefinitionPsi?.element?.text)
     }
 
     elements[0].let {
@@ -106,6 +112,8 @@ class AnnotationFilePreviewElementFinderTest : ComposeLightJavaCodeInsightFixtur
       assertEquals(UNDEFINED_API_LEVEL, it.configuration.apiLevel)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
+      assertFalse(it.showBackground)
+      assertFalse(it.showDecorations)
 
       assertMethodTextRange(composeTest, "Preview1", it.previewBodyPsi?.psiRange?.range!!)
       assertEquals("@Preview", it.previewElementDefinitionPsi?.element?.text)

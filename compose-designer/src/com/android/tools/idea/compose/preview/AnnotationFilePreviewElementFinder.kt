@@ -80,6 +80,8 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
         val composableMethod = "${uClass.qualifiedName}.${annotatedMethod.name}"
         val previewName = previewAnnotation.findDeclaredAttributeValue("name")?.evaluateString() ?: annotatedMethod.name
         val groupName = previewAnnotation.findDeclaredAttributeValue("group")?.evaluateString()
+        val showDecorations = previewAnnotation.findDeclaredAttributeValue("showDecorations")?.evaluate() as? Boolean ?: false
+        val showBackground = previewAnnotation.findDeclaredAttributeValue("showBackground")?.evaluate() as? Boolean ?: false
 
         // If the same composable functions is found multiple times, only keep the first one. This usually will happen during
         // copy & paste and both the compiler and Studio will flag it as an error.
@@ -87,6 +89,8 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
           previewElements.add(PreviewElement(previewName,
                                              groupName,
                                              composableMethod,
+                                             showDecorations,
+                                             showBackground,
                                              previewAnnotation.toSmartPsiPointer(),
                                              annotatedMethod.uastBody.toSmartPsiPointer(),
                                              attributesToConfiguration(previewAnnotation)))
