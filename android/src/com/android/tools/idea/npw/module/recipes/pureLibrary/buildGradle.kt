@@ -34,7 +34,6 @@ apply plugin: 'java-library'
 ${renderIfKotlin("apply plugin: 'kotlin'")}
 
 dependencies {
-  $compileConfiguration fileTree(dir: 'libs', include: ['*.jar'])
   ${renderIfKotlin("$compileConfiguration \"org.jetbrains.kotlin:kotlin-stdlib-jdk7:\$kotlin_version\"")}
 }
 

@@ -97,7 +97,6 @@ fun buildGradle(
   val dependenciesBlock = """
   dependencies {
     $composeDependenciesBlock
-    ${getConfigurationName("compile", gradlePluginVersion)} fileTree (dir: "libs", include: ["*.jar"])
     $oldTestDependenciesBlock
     $dynamicFeatureBlock
   }
