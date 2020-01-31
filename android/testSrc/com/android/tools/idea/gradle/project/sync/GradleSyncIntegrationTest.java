@@ -881,13 +881,13 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
 
     ArgumentCaptor<BuildEvent> eventCaptor = ArgumentCaptor.forClass(BuildEvent.class);
     // FinishBuildEvents are not consumed immediately by AbstractOutputMessageDispatcher.onEvent(), thus we need to allow some timeout
-    verify(viewManager, timeout(1000).atLeast(2)).onEvent(any(), eventCaptor.capture());
+    verify(viewManager, timeout(1000).times(3)).onEvent(any(), eventCaptor.capture());
 
     List<BuildEvent> events = eventCaptor.getAllValues();
-    assertThat(events).hasSize(2);
+    assertThat(events).hasSize(3);
     assertThat(events.get(0)).isInstanceOf(StartBuildEvent.class);
-    assertThat(events.get(1)).isInstanceOf(FinishBuildEvent.class);
-    FinishBuildEvent event = (FinishBuildEvent)events.get(1);
+    assertThat(events.get(2)).isInstanceOf(FinishBuildEvent.class);
+    FinishBuildEvent event = (FinishBuildEvent)events.get(2);
     FailureResult failureResult = (FailureResult)event.getResult();
     assertThat(failureResult.getFailures()).isNotEmpty();
     assertThat(failureResult.getFailures().get(0).getMessage()).isEqualTo("Fake sync error");
