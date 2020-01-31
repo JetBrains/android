@@ -197,6 +197,8 @@ open class NelePropertyItem(
 
   override val editingSupport = object : EditingSupport {
     override val completion = { getCompletionValues() }
+    override val allowCustomValues: Boolean
+      get() = type.allowCustomValues
     override val validation = { text: String? -> validate(text) }
     override val execution = { runnable: Runnable -> ApplicationManager.getApplication().executeOnPooledThread(runnable) }
     override val uiExecution = { runnable: Runnable -> ApplicationManager.getApplication().invokeLater(runnable) }
