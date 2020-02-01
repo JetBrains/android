@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.layoutinspector.legacydevice
 
-import com.android.flags.junit.SetFlagRule
+import com.android.ddmlib.testing.FakeAdbRule
 import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.eq
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.layoutinspector.FakeAdbRule
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
