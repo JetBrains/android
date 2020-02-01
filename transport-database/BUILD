@@ -6,6 +6,7 @@ iml_module(
     srcs = ["src/main/java"],
     iml_files = ["intellij.android.transportDatabase.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    tags = ["no_test_windows"],  # b/148697994
     test_coverage = True,
     test_resources = ["testData"],
     # do not sort: must match IML order
