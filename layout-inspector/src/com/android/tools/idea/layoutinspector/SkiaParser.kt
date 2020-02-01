@@ -34,7 +34,6 @@ import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.SystemInfo.isWindows
 import com.intellij.util.net.NetUtils
-import com.intellij.util.ui.UIUtil
 import io.grpc.ManagedChannel
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
@@ -68,6 +67,8 @@ class InvalidPictureException : Exception()
 interface SkiaParserService {
   @Throws(InvalidPictureException::class)
   fun getViewTree(data: ByteArray): InspectorView?
+
+  fun shutdownAll()
 }
 
 object SkiaParser : SkiaParserService {
@@ -83,6 +84,10 @@ object SkiaParser : SkiaParserService {
     val server = runServer(data)
     val response = server.getViewTree(data)
     return response?.root?.let { buildTree(it) }
+  }
+
+  override fun shutdownAll() {
+    supportedVersionMap?.values?.forEach { it.shutdown() }
   }
 
   private fun buildTree(node: SkiaParser.InspectorView): InspectorView? {
@@ -274,6 +279,12 @@ private class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
     client = SkiaParserServiceGrpc.newBlockingStub(channel)
 
     handler = OSProcessHandler(GeneralCommandLine(realPath.absolutePath, localPort.toString()))
+    handler?.startNotify()
+  }
+
+  fun shutdown() {
+    handler?.destroyProcess()
+    handler = null
   }
 
   private fun tryDownload(): Boolean {
