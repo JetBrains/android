@@ -41,6 +41,7 @@ private val LOAD_TIMEOUT = TimeUnit.SECONDS.toMillis(20)
  * A [TreeLoader] that uses a [DefaultInspectorClient] to fetch a view tree from an API 29+ device, and parses it into [ViewNode]s
  */
 object ComponentTreeLoader : TreeLoader {
+
   override fun loadComponentTree(
     maybeEvent: Any?, resourceLookup: ResourceLookup, client: InspectorClient
   ): ViewNode? {
