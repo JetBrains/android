@@ -61,7 +61,6 @@ iml_module(
     name = "intellij.android.debuggers.tests",
     iml_files = ["intellij.android.debuggers.tests.iml"],
     test_class = "com.android.tools.idea.debuggers.AndroidDebuggersTestSuite",
-    test_coverage = True,
     test_data = [
         "//tools/idea:platform-build-info",
         "//tools/idea/java/jdkAnnotations",

@@ -64,7 +64,6 @@ iml_module(
     iml_files = ["intellij.android.nav.editor.tests.iml"],
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.naveditor.NavEditorTestSuite",
-    test_coverage = True,
     # keep sorted
     test_data = [
         "//prebuilts/studio/layoutlib:build.prop",

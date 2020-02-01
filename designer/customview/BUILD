@@ -60,7 +60,6 @@ iml_module(
     iml_files = ["intellij.android.designer.customview.tests.iml"],
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.customview.preview.CustomViewTestSuite",
-    test_coverage = True,
     test_data = [
         "//tools/idea:platform-build-info",
         "//tools/idea/java/jdkAnnotations",

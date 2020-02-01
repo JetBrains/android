@@ -53,7 +53,6 @@ iml_module(
         "no_test_windows",  # b/135665870
     ],
     test_class = "com.android.build.attribution.AndroidBuildAttributionTestSuite",
-    test_coverage = True,
     test_data = [
         "//prebuilts/studio/jdk",
         "//prebuilts/studio/sdk:build-tools/latest",

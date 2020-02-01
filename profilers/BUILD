@@ -11,7 +11,6 @@ iml_module(
     tags = [
         "no_test_windows",
     ],
-    test_coverage = True,
     test_data = glob(["testData/**"]) + ["//prebuilts/tools:simpleperf"],
     # do not sort: must match IML order
     test_runtime_deps = [

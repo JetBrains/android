@@ -6,7 +6,6 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.observable.ui.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
-    test_coverage = True,
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/xml/dom-openapi:intellij.xml.dom",

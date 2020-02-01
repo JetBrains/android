@@ -53,7 +53,6 @@ iml_module(
         "no_test_windows",  # b/135665870
     ],
     test_class = "com.android.tools.idea.mlkit.MlkitTestSuite",
-    test_coverage = True,
     test_data = glob(["testData/**"]) + [
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/annotations",

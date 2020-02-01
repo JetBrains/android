@@ -54,7 +54,6 @@ iml_module(
     name = "intellij.android.emulator.tests",
     iml_files = ["intellij.android.emulator.tests.iml"],
     test_class = "com.android.tools.idea.emulator.EmbeddedEmulatorTestSuite",
-    test_coverage = True,
     test_data = [
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/testData",

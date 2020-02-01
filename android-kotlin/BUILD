@@ -166,7 +166,6 @@ iml_module(
     iml_files = ["intellij.android.kotlin.tests.iml"],
     tags = ["no_test_windows"],
     test_class = "org.jetbrains.kotlin.android.KotlinAndroidTestSuite",
-    test_coverage = True,
     # keep sorted
     test_data = [
         ":testData",

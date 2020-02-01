@@ -58,7 +58,6 @@ iml_module(
     iml_files = ["intellij.android.projectSystem.gradle.tests.iml"],
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.projectsystem.GradleProjectSystemTestSuite",
-    test_coverage = True,
     test_data = [
         "//tools/base/build-system/previous-versions:2.2.0.zip",
         "//prebuilts/studio/jdk",

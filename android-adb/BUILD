@@ -24,7 +24,6 @@ iml_module(
     name = "intellij.android.adb.tests",
     iml_files = ["intellij.android.adb.tests.iml"],
     test_class = "com.android.tools.idea.adb.AndroidAdbTestSuite",
-    test_coverage = True,
     test_data = [
         "//prebuilts/studio/sdk:platform-tools",
         "//tools/idea:platform-build-info",

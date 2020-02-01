@@ -9,7 +9,6 @@ iml_module(
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     tags = ["no_test_windows"],
     test_class = "com.android.tools.nativeSymbolizer.NativeSymbolizerTestSuite",
-    test_coverage = True,
     test_data = glob(["testData/**"]) + [
         "//prebuilts/tools:lldb",
         "//tools/idea:platform-build-info",

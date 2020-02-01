@@ -53,7 +53,6 @@ iml_module(
     iml_files = ["assistant-test.iml"],
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.assistant.view.AssistantTestSuite",
-    test_coverage = True,
     # keep sorted
     test_data = [
         "//prebuilts/studio/sdk:platforms/latest",

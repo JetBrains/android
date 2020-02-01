@@ -5,7 +5,6 @@ iml_module(
     name = "intellij.android.old-agp-tests",
     iml_files = ["intellij.android.old-agp-tests.iml"],
     test_class = "com.android.tools.idea.OldAgpTestSuite",
-    test_coverage = True,
     # keep sorted
     test_data = [
         "//prebuilts/studio/jdk",
