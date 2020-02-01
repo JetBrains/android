@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.tree
 
-import com.android.tools.idea.layoutinspector.FakeAdbRule
+import com.android.ddmlib.testing.FakeAdbRule
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.InspectorModel
