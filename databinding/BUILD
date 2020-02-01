@@ -66,7 +66,6 @@ iml_module(
         "no_test_windows",
     ],
     test_class = "com.android.tools.idea.databinding.AndroidDataBindingTestSuite",
-    test_coverage = True,
     # keep sorted
     test_data = [
         ":testapp_deps.zip",

@@ -60,7 +60,6 @@ iml_module(
     iml_files = ["intellij.android.compose-designer.tests.iml"],
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.compose.preview.ComposePreviewTestSuite",
-    test_coverage = True,
     # keep sorted
     test_data = [
         "//prebuilts/studio/jdk",

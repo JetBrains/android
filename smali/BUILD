@@ -12,7 +12,6 @@ iml_module(
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     resources = ["resources"],
     test_class = "com.android.tools.idea.smali.SmaliTestSuite",
-    test_coverage = True,
     test_data = [
         "//tools/idea:platform-build-info",
     ],

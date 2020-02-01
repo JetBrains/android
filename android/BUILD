@@ -170,7 +170,6 @@ iml_module(
     exec_properties = LARGE_MACHINE,
     iml_files = ["intellij.android.core.tests.iml"],
     test_class = "com.android.tools.idea.IdeaTestSuite",
-    test_coverage = True,
     # keep sorted
     test_data = [
         ":test_deps.zip",

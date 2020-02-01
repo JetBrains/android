@@ -63,7 +63,6 @@ iml_module(
     iml_files = ["android-layout-inspector-test.iml"],
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.LayoutInspectorTestSuite",
-    test_coverage = True,
     # keep sorted
     test_data = [
         "//prebuilts/studio/sdk:platforms/latest",

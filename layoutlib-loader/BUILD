@@ -63,7 +63,6 @@ iml_module(
 iml_module(
     name = "intellij.android.layoutlib-loader.tests",
     iml_files = ["intellij.android.layoutlib-loader.tests.iml"],
-    test_coverage = True,
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/platform/lvcs-impl:intellij.platform.lvcs.impl",

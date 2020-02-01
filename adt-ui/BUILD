@@ -8,7 +8,6 @@ iml_module(
     lint_baseline = "lint_baseline.xml",
     resources = ["resources"],
     test_class = "com.android.tools.adtui.AdtUiTestSuite",
-    test_coverage = True,
     test_data = [
         "//tools/idea:platform-build-info",
     ],

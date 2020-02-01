@@ -69,7 +69,6 @@ iml_module(
     name = "intellij.android.layout-inspector.tests",
     iml_files = ["intellij.android.layout-inspector.tests.iml"],
     test_class = "com.android.tools.idea.layoutinspector.LayoutInspectorTestSuite",
-    test_coverage = True,
     test_data = [
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/layout-inspector/testData",
