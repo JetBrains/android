@@ -443,6 +443,7 @@ public final class StudioProfilersTest {
 
   @Test
   public void testRestartedPreferredProcessNotSelected() {
+    Assume.assumeTrue(myNewEventPipeline);
     StudioProfilers profilers = new StudioProfilers(myProfilerClient, myIdeProfilerServices, myTimer);
     //int nowInSeconds = 42;
     //myTransportService.setTimestampNs(TimeUnit.SECONDS.toNanos(nowInSeconds));
@@ -486,7 +487,20 @@ public final class StudioProfilersTest {
 
     // Re-enable auto-profiling should pick up the new process.
     profilers.setAutoProfilingEnabled(true);
-    assertThat(profilers.getProcess().getPid()).isEqualTo(21);
+    // We need a change in processes to trigger the pickup. In production, setAutoProfilingEnabled(true)
+    // is called only by StudioProfilers.setPreferredProcess() which is called when (1) the app is deployed,
+    // (2) profiler tool window is initialized, or (3) profiler window is reopened and the app was deployed
+    // but not profiled before. We simulate (1) here.
+    myTransportService.removeProcess(device, process); // for legacy pipeline
+    process = process.toBuilder().setState(Common.Process.State.DEAD).build();
+    myTransportService.addProcess(device, process); // for unified pipeline
+    process = process.toBuilder()
+      .setPid(22)
+      .setState(Common.Process.State.ALIVE)
+      .build();
+    myTransportService.addProcess(device, process);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(profilers.getProcess().getPid()).isEqualTo(22);
     assertThat(profilers.getProcess().getState()).isEqualTo(Common.Process.State.ALIVE);
   }
 
@@ -731,8 +745,19 @@ public final class StudioProfilersTest {
     assertThat(profilers.getDevice()).isEqualTo(preferredDevice);
     assertThat(profilers.getProcess()).isEqualTo(preferredProcess);
 
-    // Updating the preferred device should immediately switch over.
+    // Updating the preferred device should switch over.
     profilers.setPreferredProcess("Manufacturer2 Model2", "PreferredProcess", null);
+    // We need a change in processes to trigger the pickup. In production, setAutoProfilingEnabled(true)
+    // is called only by StudioProfilers.setPreferredProcess() which is called when (1) the app is deployed,
+    // (2) profiler tool window is initialized, or (3) profiler window is reopened and the app was deployed
+    // but not profiled before. We simulate (1) here.
+    process = preferredProcess2.toBuilder()
+      .setState(Common.Process.State.DEAD).build();
+    myTransportService.addProcess(preferredDevice2, process);
+    myTransportService.removeProcess(preferredDevice2, preferredProcess2);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    myTransportService.addProcess(preferredDevice2, preferredProcess2);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(profilers.getDevice()).isEqualTo(preferredDevice2);
     assertThat(profilers.getProcess()).isNull();
   }
@@ -966,8 +991,8 @@ public final class StudioProfilersTest {
       .setUnsupportedReason(unsupportedReason)
       .build();
     myTransportService.addDevice(device);
-    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     profilers.setPreferredProcess(deviceName, "FakeProcess", null);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(profilers.getDevice()).isEqualTo(device);
     assertThat(profilers.getProcess()).isNull();
     assertThat(profilers.getStageClass()).isEqualTo(NullMonitorStage.class);
