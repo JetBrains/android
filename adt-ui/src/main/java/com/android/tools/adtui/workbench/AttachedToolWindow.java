@@ -666,7 +666,7 @@ final class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
 
   private class HideAction extends AnAction {
    private HideAction() {
-      super(() -> UIBundle.message("tool.window.hide.action.name"), AllIcons.General.HideToolWindow);
+      super(UIBundle.lazyMessage("tool.window.hide.action.name"), AllIcons.General.HideToolWindow);
     }
 
     @Override
