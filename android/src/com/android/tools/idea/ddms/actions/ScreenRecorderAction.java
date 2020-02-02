@@ -78,7 +78,7 @@ public final class ScreenRecorderAction extends AbstractDeviceAction {
 
     if (!isEnabled()) {
       presentation.setEnabled(false);
-      presentation.setText(() -> AndroidBundle.message("android.ddms.actions.screenrecord"));
+      presentation.setText(AndroidBundle.lazyMessage("android.ddms.actions.screenrecord"));
 
       return;
     }
@@ -93,7 +93,7 @@ public final class ScreenRecorderAction extends AbstractDeviceAction {
     }
 
     presentation.setEnabled(myFeatures.screenRecord(device));
-    presentation.setText(() -> AndroidBundle.message("android.ddms.actions.screenrecord"));
+    presentation.setText(AndroidBundle.lazyMessage("android.ddms.actions.screenrecord"));
   }
 
   @Override

@@ -41,8 +41,8 @@ public class CreateSampleDataDirectory extends AnAction {
   private static final Logger LOG = Logger.getInstance(CreateSampleDataDirectory.class);
 
   public CreateSampleDataDirectory() {
-    super(() -> AndroidBundle.message("new.sampledata.dir.action.title"),
-          () -> AndroidBundle.message("new.sampledata.dir.action.description"), PlatformIcons.FOLDER_ICON);
+    super(AndroidBundle.lazyMessage("new.sampledata.dir.action.title"),
+          AndroidBundle.lazyMessage("new.sampledata.dir.action.description"), PlatformIcons.FOLDER_ICON);
   }
 
   @Nullable

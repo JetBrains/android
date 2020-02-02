@@ -82,7 +82,7 @@ public class UpdateSitesPanel {
       public boolean isEnabled(@NotNull AnActionEvent e) {
         return mySourcesTableModel.isEditable();
       }
-    }).addExtraAction(new AnActionButton(() -> AndroidBundle.message("action.AnActionButton.update.sites.text.select.all"), AllIcons.Actions.Selectall) {
+    }).addExtraAction(new AnActionButton(AndroidBundle.lazyMessage("action.AnActionButton.update.sites.text.select.all"), AllIcons.Actions.Selectall) {
       @Override
       public void actionPerformed(@NotNull AnActionEvent e) {
         mySourcesTableModel.setAllEnabled(true);
@@ -92,7 +92,7 @@ public class UpdateSitesPanel {
       public boolean isEnabled() {
         return mySourcesTableModel.hasEditableRows();
       }
-    }).addExtraAction(new AnActionButton(() -> AndroidBundle.message("action.AnActionButton.update.sites.text.deselect.all"), AllIcons.Actions.Unselectall) {
+    }).addExtraAction(new AnActionButton(AndroidBundle.lazyMessage("action.AnActionButton.update.sites.text.deselect.all"), AllIcons.Actions.Unselectall) {
       @Override
       public void actionPerformed(@NotNull AnActionEvent e) {
         mySourcesTableModel.setAllEnabled(false);
