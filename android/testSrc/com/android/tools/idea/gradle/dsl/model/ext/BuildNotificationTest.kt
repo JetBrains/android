@@ -16,7 +16,10 @@
 package com.android.tools.idea.gradle.dsl.model.ext
 
 import com.android.tools.idea.gradle.dsl.TestFileName.BUILD_NOTIFICATION_INCOMPLETE_PARSING_NOTIFICATION
+import com.android.tools.idea.gradle.dsl.TestFileName.BUILD_NOTIFICATION_INCOMPLETE_PARSING_NOTIFICATION_IN_SUBMODULE_BUILD
+import com.android.tools.idea.gradle.dsl.TestFileName.BUILD_NOTIFICATION_INCOMPLETE_PARSING_NOTIFICATION_IN_SUBMODULE_SUB
 import com.android.tools.idea.gradle.dsl.TestFileName.BUILD_NOTIFICATION_NO_PROPERTY_PLACEMENT_NOTIFICATION
+import com.android.tools.idea.gradle.dsl.TestFileName.BUILD_NOTIFICATION_NO_PROPERTY_PLACEMENT_NOTIFICATION_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.BUILD_NOTIFICATION_PROPERTY_PLACEMENT_NOTIFICATION
 import com.android.tools.idea.gradle.dsl.api.BuildModelNotification.NotificationType.INCOMPLETE_PARSE
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
@@ -40,25 +43,18 @@ class BuildNotificationTest : GradleFileModelTestCase() {
     assertFalse(firstNotification.isCorrectionAvailable)
     assertThat(INCOMPLETE_PARSE, equalTo(firstNotification.type))
 
-    val expected = "Found the following unknown element types while parsing: " +
-                   "GrAdditiveExpressionImpl, GrMultiplicativeExpressionImpl, GrPowerExpressionImpl"
+    val expected = "Found the following unknown element types while parsing: " + when {
+      isGroovy -> "GrAdditiveExpressionImpl, GrMultiplicativeExpressionImpl, GrPowerExpressionImpl"
+      else -> "KtBinaryExpression, KtBinaryExpression, KtBinaryExpression"
+    }
     assertThat(firstNotification.toString(), equalTo(expected))
   }
 
   @Test
   fun testIncompleteParsingNotificationFromAppliedAndParentFiles() {
-    assumeTrue(isGroovy())
-    val parentText = """
-                     def variable = 3 * 3 * 3 * 3
-                     """.trimIndent()
-    val childText = """
-                    android {
-                      def var = 1
-                      targetSdkVersion = 26 + var
-                    }""".trimIndent()
-    writeToBuildFile(parentText)
-    writeToSubModuleBuildFile(childText)
-    writeToSettingsFile("include ':${SUB_MODULE_NAME}'")
+    writeToBuildFile(BUILD_NOTIFICATION_INCOMPLETE_PARSING_NOTIFICATION_IN_SUBMODULE_BUILD)
+    writeToSubModuleBuildFile(BUILD_NOTIFICATION_INCOMPLETE_PARSING_NOTIFICATION_IN_SUBMODULE_SUB)
+    writeToSettingsFile(subModuleSettingsText)
 
     val buildModel = subModuleGradleBuildModel
     val notifications = buildModel.notifications
@@ -70,7 +66,10 @@ class BuildNotificationTest : GradleFileModelTestCase() {
       val firstNotification = parentNotifications[0]!!
       assertFalse(firstNotification.isCorrectionAvailable)
       assertThat(INCOMPLETE_PARSE, equalTo(firstNotification.type))
-      val expected = "Found the following unknown element types while parsing: GrMultiplicativeExpressionImpl"
+      val expected = "Found the following unknown element types while parsing: " + when {
+        isGroovy -> "GrMultiplicativeExpressionImpl"
+        else -> "KtBinaryExpression"
+      }
       assertThat(firstNotification.toString(), equalTo(expected))
     }
 
@@ -80,7 +79,10 @@ class BuildNotificationTest : GradleFileModelTestCase() {
       val firstNotification = subModuleNotifications[0]!!
       assertFalse(firstNotification.isCorrectionAvailable)
       assertThat(INCOMPLETE_PARSE, equalTo(firstNotification.type))
-      val expected = "Found the following unknown element types while parsing: GrAdditiveExpressionImpl"
+      val expected = "Found the following unknown element types while parsing: " + when {
+        isGroovy -> "GrAdditiveExpressionImpl"
+        else -> "KtBinaryExpression"
+      }
       assertThat(firstNotification.toString(), equalTo(expected))
     }
   }
@@ -109,6 +111,11 @@ class BuildNotificationTest : GradleFileModelTestCase() {
 
     val propertyModel = extModel.findProperty("greeting")
     propertyModel.setValue(ReferenceTo("hello"))
+
+    assertNull(buildModel.notifications[myBuildFile.path])
+
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, BUILD_NOTIFICATION_NO_PROPERTY_PLACEMENT_NOTIFICATION_EXPECTED)
 
     assertNull(buildModel.notifications[myBuildFile.path])
   }
