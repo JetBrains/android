@@ -40,8 +40,6 @@ import javax.swing.Icon
 class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
   override fun getName(): String = "Android Gradle"
 
-  override fun getIcon(): Icon? = null
-
   override fun canOpenProject(file: VirtualFile): Boolean =
       GradleProjects.canImportAsGradleProject(file)
 
