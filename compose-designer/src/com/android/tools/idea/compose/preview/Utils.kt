@@ -79,11 +79,17 @@ const val WIDTH_PARAMETER = "widthDp"
 const val HEIGHT_PARAMETER = "heightDp"
 
 /**
+ * Default background to be used by the rendered elements when showBackground is set to true.
+ */
+private const val DEFAULT_PREVIEW_BACKGROUND = "?android:attr/windowBackground"
+
+/**
  * Generates the XML string wrapper for one [PreviewElement].
  * @param matchParent when true, the component will take the maximum available space at the parent.
  * @param paintBounds when true, it instructs the `ComposeViewAdapter` to paint the `LayoutNode` into the Canvas. For debugging purposes.
  */
-internal fun PreviewElement.toPreviewXmlString(matchParent: Boolean = false, paintBounds: Boolean = false) =
+@VisibleForTesting
+fun PreviewElement.toPreviewXmlString(matchParent: Boolean = false, paintBounds: Boolean = false) =
   //language=XML
   """
     <$COMPOSE_VIEW_ADAPTER
@@ -93,6 +99,7 @@ internal fun PreviewElement.toPreviewXmlString(matchParent: Boolean = false, pai
                                                 if (matchParent) SdkConstants.VALUE_MATCH_PARENT else VALUE_WRAP_CONTENT)}"
       android:layout_height="${dimensionToString(configuration.height,
                                                  if (matchParent) SdkConstants.VALUE_MATCH_PARENT else VALUE_WRAP_CONTENT)}"
+      ${if (displaySettings.showBackground) "android:background=\"${displaySettings.backgroundColor ?: DEFAULT_PREVIEW_BACKGROUND}\"" else ""}
       tools:paintBounds="$paintBounds"
       $COMPOSABLE_NAME_ATTR="$composableMethodFqn" />
   """.trimIndent()
@@ -218,20 +225,32 @@ data class PreviewConfiguration internal constructor(val apiLevel: Int,
 private val nullConfiguration = PreviewConfiguration.cleanAndGet(null, null, null, null, null)
 
 /**
- * @param displayName display name of this preview element
- * @param groupName name that allows multiple previews in separate groups
- * @param composableMethodFqn Fully Qualified Name of the composable method
+ * Settings that modify how a [PreviewElement] is rendered
+ *
+ * @param name display name of this preview element
+ * @param group name that allows multiple previews in separate groups
  * @param showDecorations when true, the system decorations (navigation and status bars) should be displayed as part of the render
  * @param showBackground when true, the preview will be rendered with the material background as background color by default
+ * @param backgroundColor when [showBackground] is true, this is the background color to be used by the preview. If null, the default
+ * activity background specified in the system theme will be used.
+ */
+data class PreviewDisplaySettings(val name: String,
+                                  val group: String?,
+                                  val showDecorations: Boolean,
+                                  val showBackground: Boolean,
+                                  val backgroundColor: String?)
+
+/**
+ * Definition of a preview element
+ *
+ * @param composableMethodFqn Fully Qualified Name of the composable method
+ * @param displaySettings settings that affect how the [PreviewElement] is presented in the preview surface
  * @param previewElementDefinitionPsi [SmartPsiElementPointer] to the preview element definition
  * @param previewBodyPsi [SmartPsiElementPointer] to the preview body. This is the code that will be ran during preview
- * @param configuration the preview element configuration
+ * @param configuration the preview element configuration that affects how LayoutLib resolves the resources
  */
-data class PreviewElement(val displayName: String,
-                          val groupName: String?,
-                          val composableMethodFqn: String,
-                          val showDecorations: Boolean,
-                          val showBackground: Boolean,
+data class PreviewElement(val composableMethodFqn: String,
+                          val displaySettings: PreviewDisplaySettings,
                           val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?,
                           val previewBodyPsi: SmartPsiElementPointer<PsiElement>?,
                           val configuration: PreviewConfiguration) {
@@ -242,8 +261,17 @@ data class PreviewElement(val displayName: String,
                    displayName: String = "", groupName: String? = null,
                    showDecorations: Boolean = false,
                    showBackground: Boolean = false,
+                   backgroundColor: String? = null,
                    configuration: PreviewConfiguration = nullConfiguration) =
-      PreviewElement(displayName, groupName, composableMethodFqn, showDecorations, showBackground, null, null, configuration)
+      PreviewElement(composableMethodFqn,
+                     PreviewDisplaySettings(
+                       displayName,
+                       groupName,
+                       showDecorations,
+                       showBackground,
+                       backgroundColor),
+                     null, null,
+                     configuration)
   }
 }
 

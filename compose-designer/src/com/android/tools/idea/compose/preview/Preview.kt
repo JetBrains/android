@@ -443,7 +443,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
         if (LOG.isDebugEnabled) {
           LOG.debug("""Preview found at ${stopwatch?.duration?.toMillis()}ms
-              displayName=${previewElement.displayName}
+              displayName=${previewElement.displaySettings.name}
               methodName=${previewElement.composableMethodFqn}
 
               ${fileContents}
@@ -452,14 +452,14 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
         val model = if (existingModels.isNotEmpty()) {
           LOG.debug("Re-using model")
-          configureExistingModel(existingModels.pop(), previewElement.displayName, fileContents, surface)
+          configureExistingModel(existingModels.pop(), previewElement.displaySettings.name, fileContents, surface)
         }
         else {
           LOG.debug("No models to reuse were found. New model.")
           val file = ComposeAdapterLightVirtualFile("testFile.xml", fileContents)
           val configuration = Configuration.create(configurationManager, null, FolderConfiguration.createDefault())
           NlModel.create(this@ComposePreviewRepresentation,
-                         previewElement.displayName,
+                         previewElement.displaySettings.name,
                          facet,
                          file,
                          configuration,
