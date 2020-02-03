@@ -28,12 +28,11 @@ import com.intellij.openapi.vfs.VirtualFile
  * Step for the gallery for Fragment templates.
  */
 class ChooseFragmentTypeStep(
-  moduleModel: NewAndroidModuleModel,
   renderModel: RenderTemplateModel,
   formFactor: FormFactor,
   targetDirectory: VirtualFile
 ) : ChooseGalleryItemStep(
-  moduleModel, renderModel, formFactor, targetDirectory,
+  renderModel, formFactor, targetDirectory,
   messageKeys = fragmentGalleryStepMessageKeys,
   emptyItemLabel = "Blank Fragment"
 ) {

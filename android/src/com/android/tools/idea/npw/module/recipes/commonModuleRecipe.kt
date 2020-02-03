@@ -53,7 +53,6 @@ fun RecipeExecutor.generateCommonModule(
   val isLibraryProject = data.isLibrary
   val packageName = data.packageName
   val apis = data.apis
-  val buildApi = apis.buildApi!!
   val targetApi = apis.targetApi
   val minApi = apis.minApiLevel
 

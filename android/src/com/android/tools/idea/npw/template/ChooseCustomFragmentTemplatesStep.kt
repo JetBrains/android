@@ -29,12 +29,11 @@ import com.intellij.openapi.vfs.VirtualFile
  * [FormFactor.MOBILE].
  */
 class ChooseCustomFragmentTemplatesStep (
-  moduleModel: NewAndroidModuleModel,
   renderModel: RenderTemplateModel,
   targetDirectory: VirtualFile,
   templates: List<Template>
 ) : ChooseGalleryItemStep(
-  moduleModel, renderModel, FormFactor.MOBILE, targetDirectory,
+  renderModel, FormFactor.MOBILE, targetDirectory,
   messageKeys = customSetupWizardMessageKeys,
   emptyItemLabel = ""
 ) {
