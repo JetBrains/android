@@ -74,7 +74,7 @@ class ExistingNewModuleModelData(
   override val formFactor: ObjectValueProperty<FormFactor> get() = TODO("not implemented")
   override val isLibrary: Boolean = false
   override var templateFile: File? = null
-  override val androidSdkInfo: OptionalValueProperty<AndroidVersionsInfo.VersionItem> get() = TODO("not implemented")
+  override val androidSdkInfo: OptionalValueProperty<AndroidVersionsInfo.VersionItem> = OptionalValueProperty.absent()
 }
 
 /**
@@ -119,9 +119,6 @@ class RenderTemplateModel private constructor(
 
   val isNew: Boolean
     get() = templateHandle == null && newTemplate != Template2.NoActivity
-
-  val isOld: Boolean
-    get() = templateHandle != null && newTemplate == Template2.NoActivity
 
   public override fun handleFinished() {
     multiTemplateRenderer.requestRender(FreeMarkerTemplateRenderer())
@@ -197,8 +194,7 @@ class RenderTemplateModel private constructor(
     @WorkerThread
     override fun doDryRun(): Boolean {
       if (!hasActivity) {
-        log.error("RenderTemplateModel did not collect expected information and will not complete. Please report this error.")
-        return false
+        return true
       }
 
       return renderTemplate(true, project, template.get().paths, null, null)
