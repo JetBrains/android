@@ -26,6 +26,7 @@ import com.intellij.psi.search.ProjectScope
 import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.android.AndroidTestBase
 import org.junit.After
+import org.junit.Ignore
 import org.junit.Test
 import java.io.File
 
@@ -35,6 +36,7 @@ import java.io.File
  * The gradleRule is shared between tests to preserve the sync state for benchmarks between tests.
  * The subclass must provide an AndroidGradleProjectRule and call FullProjectBenchmark.loadProject in @BeforeClass function.
  */
+@Ignore
 abstract class FullProjectBenchmark {
   abstract val projectName: String
   abstract val fileTypes: List<FileType>
