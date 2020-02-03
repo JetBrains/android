@@ -548,12 +548,12 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
               configureLayoutlibSceneManager(it, fullDeviceSize = showingDecorations)
             }
           surface.requestRender().await()
-        }
+        }.join()
       }
       else {
         uniqueRefreshLauncher.launch {
           doRefreshSync(filePreviewElements)
-        }
+        }.join()
       }
 
       isContentBeingRendered = false
