@@ -23,7 +23,7 @@ import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
-import com.android.tools.idea.sqlite.databaseConnection.live.ImmediateSqliteResultSet
+import com.android.tools.idea.sqlite.databaseConnection.ImmediateSqliteResultSet
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorModel
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorView
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorViewsFactory
@@ -403,7 +403,8 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(schema))
     `when`(mockDatabaseConnection.execute(SqliteStatement("INSERT")))
-      .thenReturn(Futures.immediateFuture(ImmediateSqliteResultSet(emptyList())))
+      .thenReturn(Futures.immediateFuture(
+        ImmediateSqliteResultSet(emptyList())))
 
     runDispatching {
       sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
