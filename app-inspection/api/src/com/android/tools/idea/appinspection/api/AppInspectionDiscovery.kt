@@ -120,7 +120,7 @@ class AppInspectionDiscoveryHost(
   fun addLaunchedProcess(launchedProcessDescriptor: LaunchedProcessDescriptor, jarCopier: AppInspectionJarCopier) {
     synchronized(processData) {
       processData.launchedProcesses[launchedProcessDescriptor] = jarCopier
-      processData.processIdMap.values.find { it.matchesLaunchedAppDescriptor(launchedProcessDescriptor) }?.let { addInspectableProcess(it) }
+      processData.processIdMap.values.find { it.matchesLaunchedAppDescriptor(launchedProcessDescriptor) }?.let { addInspectableProcess(it, jarCopier) }
     }
   }
 
@@ -182,8 +182,8 @@ class AppInspectionDiscoveryHost(
     synchronized(processData) {
       processData.processIdMap.computeIfAbsent(process.pid.toLong()) {
         val descriptor = TransportProcessDescriptor(stream, process)
-        if (descriptor.hasLaunchedApp()) {
-          addInspectableProcess(descriptor)
+        descriptor.getLaunchedAppCopier()?.let {
+          addInspectableProcess(descriptor, it)
         }
         descriptor
       }
@@ -194,10 +194,12 @@ class AppInspectionDiscoveryHost(
    * Adds an inspectable process. Call listeners to notify them of this process.
    */
   @GuardedBy("processData")
-  private fun addInspectableProcess(descriptor: TransportProcessDescriptor) {
+  private fun addInspectableProcess(descriptor: TransportProcessDescriptor,
+                                    jarCopier: AppInspectionJarCopier) {
     if (!processData.inspectableProcesses.contains(descriptor)) {
       processData.inspectableProcesses.add(descriptor)
       processData.processListeners.forEach { (listener, executor) -> executor.execute { listener.onProcessConnected(descriptor) } }
+      attachToProcess(descriptor, jarCopier)
     }
   }
 
@@ -215,7 +217,7 @@ class AppInspectionDiscoveryHost(
     }
   }
 
-  private fun TransportProcessDescriptor.hasLaunchedApp() = processData.launchedProcesses.containsKey(toLaunchedAppDescriptor())
+  private fun TransportProcessDescriptor.getLaunchedAppCopier() = processData.launchedProcesses[toLaunchedAppDescriptor()]
 
   private fun TransportProcessDescriptor.matchesLaunchedAppDescriptor(launchedProcessDescriptor: LaunchedProcessDescriptor): Boolean {
     return launchedProcessDescriptor.manufacturer == stream.device.manufacturer
