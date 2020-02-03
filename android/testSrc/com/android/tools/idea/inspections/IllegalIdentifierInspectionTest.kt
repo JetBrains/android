@@ -37,4 +37,12 @@ class IllegalIdentifierInspectionTest : AndroidGradleTestCase() {
     assertThat(highlightInfo).isNotEmpty()
     assertThat(highlightInfo.any { it.description == "Identifier not allowed in Android projects" }).isTrue()
   }
+
+  fun testInspectionInBuildKtsFile() {
+    val file = project.guessProjectDir()!!
+      .findFileByRelativePath("app/build.gradle.kts")!!
+    myFixture.openFileInEditor(file)
+    val highlightInfo = myFixture.doHighlighting(HighlightSeverity.ERROR)
+    assertThat(highlightInfo).isEmpty()
+  }
 }
