@@ -60,6 +60,7 @@ iml_module(
         "//tools/adt/idea/android-transport:intellij.android.transport[module]",
         "//tools/idea/.idea/libraries:sqlite-inspector-proto",
         "//tools/idea/.idea/libraries:kotlinx-coroutines-guava",
+        "//tools/adt/idea/app-inspection/inspector/api:intellij.android.app-inspection.inspector.api[module]",
     ],
 )
 
@@ -124,5 +125,6 @@ iml_module(
         "//tools/adt/idea/app-inspection/api:intellij.android.app-inspection.api[module]",
         "//tools/adt/idea/android-transport:intellij.android.transport[module]",
         "//tools/idea/.idea/libraries:sqlite-inspector-proto",
+        "//tools/adt/idea/app-inspection/inspector/api:intellij.android.app-inspection.inspector.api[module]",
     ],
 )

@@ -6,5 +6,10 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.app-inspection.inspector.ide.iml"],
     visibility = ["//visibility:public"],
-    deps = ["//tools/idea/.idea/libraries:kotlin-stdlib-jdk8"],
+    # do not sort: must match IML order
+    deps = [
+        "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
+        "//tools/adt/idea/app-inspection/inspector/api:intellij.android.app-inspection.inspector.api[module]",
+        "//tools/idea/platform/extensions:intellij.platform.extensions[module]",
+    ],
 )
