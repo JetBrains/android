@@ -601,14 +601,13 @@ public class TemplateManager {
       facet, null, initialPackageSuggestion, moduleTemplates.get(0),
       commandName, projectSyncInvoker, true);
 
-    NewAndroidModuleModel moduleModel = new NewAndroidModuleModel(project, null, projectSyncInvoker, moduleTemplates.get(0), false, null);
     SkippableWizardStep chooseTypeStep;
     if (category.equals(CATEGORY_ACTIVITY)) {
       chooseTypeStep =
-        new ChooseActivityTypeStep(moduleModel, renderModel, FormFactor.MOBILE, targetDirectory);
+        new ChooseActivityTypeStep(renderModel, FormFactor.MOBILE, targetDirectory);
     } else if (category.equals(CATEGORY_FRAGMENT)) {
       chooseTypeStep =
-        new ChooseFragmentTypeStep(moduleModel, renderModel, FormFactor.MOBILE, targetDirectory);
+        new ChooseFragmentTypeStep(renderModel, FormFactor.MOBILE, targetDirectory);
     } else {
       throw new RuntimeException("Invalid category name: " + category);
     }

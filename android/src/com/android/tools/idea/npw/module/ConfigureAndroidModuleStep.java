@@ -71,7 +71,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
-
 public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewAndroidModuleModel> {
   private final AndroidVersionsInfo myAndroidVersionsInfo = new AndroidVersionsInfo();
   private final List<UpdatablePackage> myInstallRequests = new ArrayList<>();
@@ -177,7 +176,8 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewAndroidMo
   @Override
   protected Collection<? extends ModelWizardStep> createDependentSteps() {
     // Note: MultiTemplateRenderer needs that all Models constructed (ie myRenderModel) are inside a Step, so handleSkipped() is called
-    ChooseActivityTypeStep chooseActivityStep = new ChooseActivityTypeStep(getModel(), myRenderModel, myFormFactor, Lists.newArrayList());
+    ChooseActivityTypeStep chooseActivityStep =
+      new ChooseActivityTypeStep(myRenderModel, myFormFactor, Lists.newArrayList(), getModel().getAndroidSdkInfo());
     chooseActivityStep.setShouldShow(!getModel().isLibrary());
 
     LicenseAgreementStep licenseAgreementStep =
@@ -232,12 +232,6 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewAndroidMo
   @Override
   protected JComponent getPreferredFocusComponent() {
     return myAppName;
-  }
-
-  @TestOnly
-  @NotNull
-  RenderTemplateModel getRenderModel() {
-    return myRenderModel;
   }
 
   private void createUIComponents() {
