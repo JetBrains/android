@@ -169,79 +169,6 @@ iml_module(
     name = "intellij.android.core.tests",
     exec_properties = LARGE_MACHINE,
     iml_files = ["intellij.android.core.tests.iml"],
-    split_test_targets = {
-        "gradle": {
-            "shard_count": 10,
-            "data": ["//prebuilts/studio/sdk:ndk"],
-            "tags": ["no_windows"],  # WIP: many sync errors with dependencies, but some others related to paths, etc.
-            "test_filter": "com.android.tools.idea.gradle",
-        },
-        "gradle.structure": {
-            "shard_count": 6,
-            "tags": ["no_windows"],
-            "test_filter": "com.android.tools.idea.gradle.structure",
-        },
-        "gradle.structure.configurables.variables.VariablesTableTest": {
-            "tags": ["no_windows"],
-            "test_filter": "com.android.tools.idea.gradle.structure.configurables.variables.VariablesTableTest",
-        },
-        "inspections": {
-            "test_filter": "com.android.tools.idea.inspections",
-        },
-        "avd": {
-            "test_filter": "com.android.tools.idea.avdmanager",
-        },
-        "jetbrains": {
-            "shard_count": 6,
-            "tags": ["no_windows"],
-            "test_filter": "org.jetbrains.android",
-        },
-        "navigator": {
-            "shard_count": 2,
-            "data": ["//prebuilts/studio/sdk:ndk"],
-            "tags": ["no_windows"],  # testDependentNativeModules (ag/9872410)
-            "test_filter": "com.android.tools.idea.navigator",
-        },
-        "imports": {
-            "test_filter": "com.android.tools.idea.imports",
-        },
-        "run": {
-            "shard_count": 2,
-            "tags": ["no_windows"],  # some test directory paths are too long
-            "test_filter": "com.android.tools.idea.run",
-        },
-        "npw.assetstudio": {
-            "test_filter": "com.android.tools.idea.npw.assetstudio",
-            "tags": ["no_windows"],  # leaks, json exceptions (b/147453294), drawable generator tests
-        },
-        "templates": {
-            "shard_count": 3,
-            "test_filter": "com.android.tools.idea.templates",
-        },
-        "testartifacts": {
-            "shard_count": 3,
-            "test_filter": "com.android.tools.idea.testartifacts",
-        },
-        "AndroidKotlinCompletionContributorTest": {
-            "test_filter": "com.android.tools.idea.completion.AndroidKotlinCompletionContributorTest",
-        },
-        "editors.manifest": {
-            "test_filter": "com.android.tools.idea.editors.manifest",
-        },
-        "instantapp": {
-            "test_filter": "com.android.tools.idea.instantapp",
-        },
-        "rendering": {
-            "test_filter": "com.android.tools.idea.rendering",
-            "shard_count": 2,
-        },
-        "ArchiveToGradleModuleModelTest": {
-            "test_filter": "com.android.tools.idea.npw.importing.ArchiveToGradleModuleModelTest",
-        },
-        "other": {
-            "shard_count": 10,
-        },
-    },
     test_class = "com.android.tools.idea.IdeaTestSuite",
     test_coverage = True,
     # keep sorted
@@ -257,6 +184,7 @@ iml_module(
         "//prebuilts/studio/sdk:cmake",
         "//prebuilts/studio/sdk:docs",
         "//prebuilts/studio/sdk:licenses",
+        "//prebuilts/studio/sdk:ndk",
         "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/studio/sdk:platforms/latest-preview",
@@ -277,6 +205,19 @@ iml_module(
         "//tools/idea/java/jdkAnnotations",
         "//tools/idea/java/mockJDK-1.7",
     ],
+    # Note: test_excluded_packages is a dictionary that is converted to a "select()", so
+    #       we use a syntax that is very similar to what a "select()" would look like.
+    test_excluded_packages = {
+        "//tools/base/bazel:windows": [
+            "com.android.tools.idea.diagnostics",  # heap analysis line endings (ag/10016457)
+            "com.android.tools.idea.gradle",  # WIP: many sync errors with dependencies, but some others related to paths, etc.
+            "com.android.tools.idea.navigator",  # testDependentNativeModules (ag/9872410)
+            "com.android.tools.idea.npw.assetstudio",  # leaks, json exceptions (b/147453294), drawable generator tests
+            "com.android.tools.idea.run",  # some test directory paths are too long
+            "org.jetbrains.android",
+        ],
+        "//conditions:default": [],
+    },
     test_resources = ["testResources"],
     # do not sort: must match IML order
     test_runtime_deps = [
@@ -290,6 +231,7 @@ iml_module(
         "//tools/idea/java/plugin:intellij.java.plugin",
         "//tools/idea/plugins/ui-designer-core:intellij.uiDesigner",
     ],
+    test_shard_count = 40,
     test_srcs = ["testSrc"],
     test_tags = [
         "cpu:3",
