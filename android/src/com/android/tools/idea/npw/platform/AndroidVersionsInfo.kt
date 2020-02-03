@@ -50,7 +50,6 @@ import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.PackageResolutionExcep
 import com.android.tools.idea.templates.TemplateMetadata
 import com.android.tools.idea.templates.TemplateUtils.knownVersions
 import com.google.common.annotations.VisibleForTesting
-import org.jetbrains.android.sdk.AndroidSdkUtils
 import java.io.File
 import java.util.function.Consumer
 
@@ -73,31 +72,21 @@ class AndroidVersionsInfo {
    */
   fun loadLocalVersions() {
     // Load the local definitions of the android compilation targets.
+    val installedCompilationTargets = loadInstalledCompilationTargets()
+    val additionalInstalledTargets = installedCompilationTargets.filter { it.version.isPreview || it.additionalLibraries.isNotEmpty() }
     knownTargetVersions = sequence {
       knownVersions.forEachIndexed { i, version ->
         yield(VersionItem(version, i + 1))
       }
-      loadInstalledCompilationTargets()
-        .filter { it.version.isPreview || it.additionalLibraries.isNotEmpty() }
-        .forEach { yield(VersionItem(it)) }
+      additionalInstalledTargets.forEach { yield(VersionItem(it)) }
     }.toList()
 
     // Load the installed android versions from the installed SDK.
-    val installedCompilationTargets = loadInstalledCompilationTargets()
-    installedVersions = installedCompilationTargets.filter {
-      it.version.isPreview || it.additionalLibraries.isNotEmpty()
-    }.map { it.version }.toSet()
+    installedVersions = additionalInstalledTargets.map { it.version }.toSet()
 
-    var highestInstalledTarget: IAndroidTarget? = null
-
-    for (target in installedCompilationTargets
-      .filter { it.isPlatform && it.version.featureLevel >= LOWEST_COMPILE_SDK_VERSION }) {
-      if ((highestInstalledTarget == null ||
-           (target.version.featureLevel > highestInstalledTarget.version.featureLevel && !target.version.isPreview))) {
-        highestInstalledTarget = target
-      }
-    }
-    highestInstalledApiTarget = highestInstalledTarget
+    highestInstalledApiTarget = installedCompilationTargets
+      .filter { it.isPlatform && it.version.featureLevel >= LOWEST_COMPILE_SDK_VERSION && !it.version.isPreview }
+      .maxBy { it.version.featureLevel }
   }
 
   /**
