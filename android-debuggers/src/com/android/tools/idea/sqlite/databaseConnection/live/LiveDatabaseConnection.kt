@@ -18,7 +18,7 @@ package com.android.tools.idea.sqlite.databaseConnection.live
 import androidx.sqlite.inspection.SqliteInspectorProtocol
 import androidx.sqlite.inspection.SqliteInspectorProtocol.Command
 import androidx.sqlite.inspection.SqliteInspectorProtocol.GetSchemaCommand
-import com.android.tools.idea.appinspection.api.AppInspectorClient
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.ImmediateSqliteResultSet
@@ -74,7 +74,8 @@ class LiveDatabaseConnection(
 
       val resultSet = if (sqliteColumns != null) {
         LiveSqliteResultSet(sqliteColumns, sqliteStatement, messenger, id, taskExecutor)
-      } else {
+      }
+      else {
         ImmediateSqliteResultSet(emptyList())
       }
       Disposer.register(this, resultSet)

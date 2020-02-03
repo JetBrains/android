@@ -56,5 +56,6 @@ iml_module(
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/idea/.idea/libraries:jsr305",
+        "//tools/adt/idea/app-inspection/inspector/api:intellij.android.app-inspection.inspector.api[module]",
     ],
 )

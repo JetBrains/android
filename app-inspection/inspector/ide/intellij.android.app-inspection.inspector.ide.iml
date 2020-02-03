@@ -8,5 +8,7 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
+    <orderEntry type="module" module-name="intellij.android.app-inspection.inspector.api" />
+    <orderEntry type="module" module-name="intellij.platform.extensions" />
   </component>
 </module>

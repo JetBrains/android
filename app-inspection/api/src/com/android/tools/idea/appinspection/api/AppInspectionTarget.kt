@@ -16,6 +16,7 @@
 package com.android.tools.idea.appinspection.api
 
 import com.android.annotations.concurrency.WorkerThread
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.google.common.util.concurrent.ListenableFuture
 import java.util.concurrent.Executor
 
