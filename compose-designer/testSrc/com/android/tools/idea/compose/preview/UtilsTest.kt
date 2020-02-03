@@ -16,7 +16,11 @@
 package com.android.tools.idea.compose.preview
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.fail
 import org.junit.Test
+import org.xml.sax.InputSource
+import java.io.StringReader
+import javax.xml.parsers.DocumentBuilderFactory
 
 class UtilsTest {
   @Test
@@ -32,5 +36,51 @@ class UtilsTest {
     assertEquals(
       PreviewConfiguration.cleanAndGet(12, null, 120, MAX_HEIGHT, null),
       PreviewConfiguration.cleanAndGet(12, null, 120, 500000, 1f))
+  }
+
+  @Test
+  fun testValidXmlForPreview() {
+    val previewsToCheck = listOf(
+      PreviewElement("composableMethodName",
+                     PreviewDisplaySettings("A name", null, false, false, null),
+                     null, null,
+                     PreviewConfiguration.cleanAndGet(null, null, null, null, null)),
+      PreviewElement("composableMethodName",
+                     PreviewDisplaySettings("A name", "group1", true, true, null),
+                     null, null,
+                     PreviewConfiguration.cleanAndGet(null, null, null, null, null)),
+      PreviewElement("composableMethodName",
+                     PreviewDisplaySettings("A name", "group1", true, true, "#000"),
+                     null, null,
+                     PreviewConfiguration.cleanAndGet(null, null, null, null, null)),
+      PreviewElement("composableMethodName",
+                     PreviewDisplaySettings("A name", "group1", true, false, "#000"),
+                     null, null,
+                     PreviewConfiguration.cleanAndGet(null, null, null, null, null)))
+
+    val factory = DocumentBuilderFactory.newInstance()
+    val documentBuilder = factory.newDocumentBuilder()
+
+    previewsToCheck
+      .map { it.toPreviewXmlString() }
+      .forEach {
+        try {
+          documentBuilder.parse(InputSource(StringReader(it)))
+        } catch(t: Throwable) {
+          fail(
+"""
+Failed to parse Preview XML
+
+XML
+----------------
+$it
+
+Exception
+----------------
+$t
+""")
+        }
+
+      }
   }
 }

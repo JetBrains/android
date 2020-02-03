@@ -86,11 +86,14 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
         // If the same composable functions is found multiple times, only keep the first one. This usually will happen during
         // copy & paste and both the compiler and Studio will flag it as an error.
         if (previewMethodsFqName.add(composableMethod)) {
-          previewElements.add(PreviewElement(previewName,
-                                             groupName,
-                                             composableMethod,
-                                             showDecorations,
-                                             showBackground,
+          val displaySettings = PreviewDisplaySettings(previewName,
+                                                       groupName,
+                                                       showDecorations,
+                                                       showBackground,
+                                                       null)
+
+          previewElements.add(PreviewElement(composableMethod,
+                                             displaySettings,
                                              previewAnnotation.toSmartPsiPointer(),
                                              annotatedMethod.uastBody.toSmartPsiPointer(),
                                              attributesToConfiguration(previewAnnotation)))

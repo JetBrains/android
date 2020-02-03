@@ -78,15 +78,15 @@ class AnnotationFilePreviewElementFinderTest : ComposeLightJavaCodeInsightFixtur
     val elements = AnnotationFilePreviewElementFinder.findPreviewMethods(composeTest)
     assertEquals(4, elements.size)
     elements[1].let {
-      assertEquals("preview2", it.displayName)
-      assertEquals("groupA", it.groupName)
+      assertEquals("preview2", it.displaySettings.name)
+      assertEquals("groupA", it.displaySettings.group)
       assertEquals(12, it.configuration.apiLevel)
       assertNull(it.configuration.theme)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
       assertEquals(1f, it.configuration.fontScale)
-      assertTrue(it.showBackground)
-      assertFalse(it.showDecorations)
+      assertTrue(it.displaySettings.showBackground)
+      assertFalse(it.displaySettings.showDecorations)
 
       assertMethodTextRange(composeTest, "Preview2", it.previewBodyPsi?.psiRange?.range!!)
       assertEquals("@Preview(name = \"preview2\", apiLevel = 12, group = \"groupA\", showBackground = true)",
@@ -94,13 +94,13 @@ class AnnotationFilePreviewElementFinderTest : ComposeLightJavaCodeInsightFixtur
     }
 
     elements[2].let {
-      assertEquals("preview3", it.displayName)
-      assertNull(it.groupName)
+      assertEquals("preview3", it.displaySettings.name)
+      assertNull(it.displaySettings.group)
       assertEquals(1, it.configuration.width)
       assertEquals(2, it.configuration.height)
       assertEquals(0.2f, it.configuration.fontScale)
-      assertFalse(it.showBackground)
-      assertTrue(it.showDecorations)
+      assertFalse(it.displaySettings.showBackground)
+      assertTrue(it.displaySettings.showDecorations)
 
       assertMethodTextRange(composeTest, "Preview3", it.previewBodyPsi?.psiRange?.range!!)
       assertEquals("@Preview(name = \"preview3\", widthDp = 1, heightDp = 2, fontScale = 0.2f, showDecorations = true)",
@@ -108,19 +108,19 @@ class AnnotationFilePreviewElementFinderTest : ComposeLightJavaCodeInsightFixtur
     }
 
     elements[0].let {
-      assertEquals("Preview1", it.displayName)
+      assertEquals("Preview1", it.displaySettings.name)
       assertEquals(UNDEFINED_API_LEVEL, it.configuration.apiLevel)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
-      assertFalse(it.showBackground)
-      assertFalse(it.showDecorations)
+      assertFalse(it.displaySettings.showBackground)
+      assertFalse(it.displaySettings.showDecorations)
 
       assertMethodTextRange(composeTest, "Preview1", it.previewBodyPsi?.psiRange?.range!!)
       assertEquals("@Preview", it.previewElementDefinitionPsi?.element?.text)
     }
 
     elements[3].let {
-      assertEquals("Preview with parameters", it.displayName)
+      assertEquals("Preview with parameters", it.displaySettings.name)
     }
   }
 
@@ -146,14 +146,14 @@ class AnnotationFilePreviewElementFinderTest : ComposeLightJavaCodeInsightFixtur
     val elements = AnnotationFilePreviewElementFinder.findPreviewMethods(composeTest)
     assertEquals(1, elements.size)
     // Check that we keep the first element
-    assertEquals("Preview1", elements[0].displayName)
+    assertEquals("Preview1", elements[0].displaySettings.name)
   }
 
   fun testFindPreviewPackage() {
     myFixture.addFileToProject(
       "src/com/android/notpreview/Preview.kt",
       // language=kotlin
-      """ 
+      """
         package com.android.notpreview
 
         annotation class Preview(val name: String = "",
