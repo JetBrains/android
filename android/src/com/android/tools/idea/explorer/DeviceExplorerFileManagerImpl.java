@@ -195,34 +195,42 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
   private ListenableFuture<Void> openFileInEditorWorker(@NotNull DeviceFileEntry entry, @NotNull Path localPath, boolean focusEditor) {
     ListenableFuture<VirtualFile> futureFile = DeviceExplorerFilesUtils.findFile(localPath);
 
-    return myEdtExecutor.transform(futureFile, file -> {
+    return myEdtExecutor.transformAsync(futureFile, file -> {
       // Set the device/path information on the virtual file so custom editors
       // (e.g. database viewer) know which device this file is coming from.
       DeviceFileId fileInfo = new DeviceFileId(entry.getFileSystem().getName(), entry.getFullPath());
+      assert file != null;
       file.putUserData(DeviceFileId.KEY, fileInfo);
 
-      TransactionGuard.submitTransaction(myProject, () -> {
-        // This assertions prevent regressions for b/141649841.
-        // The underlying API expects to be called from a write-safe context.
-        // In a tests TestEditorManagerImpl is used instead of FileEditorManagerImpl, which doesn't assert for write action allowed.
-        // therefore we have to do it here.
-        ((TransactionGuardImpl)TransactionGuard.getInstance()).assertWriteActionAllowed();
-        FileType type = FileTypeChooser.getKnownFileTypeOrAssociate(file, myProject);
-        if (type == null) {
-          throw new CancellationException("Operation cancelled by user");
-        }
+      SettableFuture<Void> settableFuture = SettableFuture.create();
 
-        // This assertions prevent regressions for b/141649841.
-        // We need to add this assertion because in tests the deletion of a file doesn't trigger some PSI events that call the assertion.
-        ((TransactionGuardImpl)TransactionGuard.getInstance()).assertWriteActionAllowed();
-        FileEditor[] editors = FileEditorManager.getInstance(myProject).openFile(file, focusEditor);
-        if (editors.length == 0) {
-          throw new RuntimeException(String.format("Unable to open file \"%s\" in editor", localPath));
+      TransactionGuard.submitTransaction(myProject, () -> {
+        try {
+          // This assertions prevent regressions for b/141649841.
+          // The underlying API expects to be called from a write-safe context.
+          // In a tests TestEditorManagerImpl is used instead of FileEditorManagerImpl, which doesn't assert for write action allowed.
+          // therefore we have to do it here.
+          ((TransactionGuardImpl)TransactionGuard.getInstance()).assertWriteActionAllowed();
+          FileType type = FileTypeChooser.getKnownFileTypeOrAssociate(file, myProject);
+          if (type == null) {
+            throw new CancellationException("Operation cancelled by user");
+          }
+
+          // This assertions prevent regressions for b/141649841.
+          // We need to add this assertion because in tests the deletion of a file doesn't trigger some PSI events that call the assertion.
+          ((TransactionGuardImpl)TransactionGuard.getInstance()).assertWriteActionAllowed();
+          FileEditor[] editors = FileEditorManager.getInstance(myProject).openFile(file, focusEditor);
+          if (editors.length == 0) {
+            throw new RuntimeException(String.format("Unable to open file \"%s\" in editor", localPath));
+          }
+          myTemporaryEditorFiles.add(file);
+          settableFuture.set(null);
+        } catch (Exception e) {
+          settableFuture.setException(e);
         }
-        myTemporaryEditorFiles.add(file);
       });
 
-      return null;
+      return settableFuture;
     });
   }
 
