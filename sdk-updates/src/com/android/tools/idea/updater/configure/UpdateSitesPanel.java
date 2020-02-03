@@ -19,6 +19,7 @@ import com.android.repository.api.RepositorySource;
 import com.android.repository.api.SettingsController;
 import com.android.tools.idea.sdk.StudioSettingsController;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.IdeBundle;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.progress.ProgressManager;
@@ -28,10 +29,10 @@ import com.intellij.ui.AnActionButtonUpdater;
 import com.intellij.ui.ToolbarDecorator;
 import com.intellij.ui.table.TableView;
 import com.intellij.util.ui.AsyncProcessIcon;
+import javax.swing.JCheckBox;
+import javax.swing.JPanel;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 /**
  * Panel that shows the current {@link RepositorySource}s.
@@ -57,7 +58,7 @@ public class UpdateSitesPanel {
   }
 
   private void createUIComponents() {
-    mySourcesLoadingIcon = new AsyncProcessIcon("Loading...");
+    mySourcesLoadingIcon = new AsyncProcessIcon(IdeBundle.message("common.text.loading"));
     mySourcesTableModel = new SourcesTableModel(() -> mySourcesLoadingPanel.setVisible(true),
                                                 () -> mySourcesLoadingPanel.setVisible(false), ModalityState.current());
     myUpdateSitesTable = new TableView<>(mySourcesTableModel);

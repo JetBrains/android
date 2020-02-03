@@ -41,6 +41,7 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.android.tools.idea.util.SyncUtil;
 import com.google.common.collect.ImmutableList;
+import com.intellij.ide.IdeBundle;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -148,7 +149,7 @@ public class VisualizationForm implements Disposable {
     mySurface.setName(VISUALIZATION_DESIGN_SURFACE);
 
     myWorkBench = new WorkBench<>(myProject, "Visualization", null, this);
-    myWorkBench.setLoadingText("Loading...");
+    myWorkBench.setLoadingText(IdeBundle.message("common.text.loading"));
     myWorkBench.setToolContext(mySurface);
     myRoot.add(new IssuePanelSplitter(mySurface, myWorkBench));
   }
