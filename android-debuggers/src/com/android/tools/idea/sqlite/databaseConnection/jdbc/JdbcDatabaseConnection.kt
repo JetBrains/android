@@ -19,7 +19,7 @@ import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
-import com.android.tools.idea.sqlite.databaseConnection.live.ImmediateSqliteResultSet
+import com.android.tools.idea.sqlite.databaseConnection.ImmediateSqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteSchema

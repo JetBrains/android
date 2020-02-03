@@ -25,6 +25,7 @@ import androidx.sqlite.inspection.SqliteInspectorProtocol.Table
 import com.android.tools.idea.appinspection.api.AppInspectorClient
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
+import com.android.tools.idea.sqlite.databaseConnection.ImmediateSqliteResultSet
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumn
