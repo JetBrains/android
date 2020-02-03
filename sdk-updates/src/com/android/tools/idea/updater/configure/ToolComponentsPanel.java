@@ -237,7 +237,7 @@ public class ToolComponentsPanel {
   }
 
   private void createUIComponents() {
-    myToolsLoadingIcon = new AsyncProcessIcon("Loading...");
+    myToolsLoadingIcon = new AsyncProcessIcon(IdeBundle.message("common.text.loading"));
 
     myToolsSummaryRootNode = new RootNode();
     myToolsDetailsRootNode = new RootNode();
