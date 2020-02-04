@@ -1098,6 +1098,12 @@ enum class TestFileName(val path: String) {
   COMPOSITE_BUILD_MAIN_PROJECT_SUB_MODULE_BUILD("compositeBuild/mainProjectSubModuleBuild"),
   PS_PARSED_DEPENDENCIES_PARSED_DEPENDENCIES("psParsedDependencies/parsedDependencies"),
   PS_PARSED_DEPENDENCIES_FIND_LIBRARIES("psParsedDependencies/findLibraries"),
+  MODEL_SIMPLE_PROPERTY_IMPL_PROPERTY_VALUES("modelSimplePropertyImpl/propertyValues"),
+  MODEL_SIMPLE_PROPERTY_IMPL_RESOLVED_VALUE_MATCHING("modelSimplePropertyImpl/resolvedValueMatching"),
+  MODEL_SIMPLE_PROPERTY_IMPL_WRITE_PROPERTY_VALUES("modelSimplePropertyImpl/writePropertyValues"),
+  MODEL_SIMPLE_PROPERTY_IMPL_REBIND_RESOLVED_PROPERTY("modelSimplePropertyImpl/rebindResolvedProperty"),
+  MODEL_SIMPLE_PROPERTY_IMPL_REBIND_RESOLVED_PROPERTY_EXPECTED("modelSimplePropertyImpl/rebindResolvedPropertyExpected"),
+  MODEL_SIMPLE_PROPERTY_IMPL_PROPERTY_INITIALIZER("modelSimplePropertyImpl/propertyInitializer"),
 
   ;
 
