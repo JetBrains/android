@@ -41,7 +41,6 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
   )
 
   private abstract class AndroidModuleTemplateGalleryEntry(
-    override val templateFile: File?,
     override val name: String,
     override val description: String,
     override val icon: Icon,
@@ -52,13 +51,12 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
     override fun toString(): String = name
     override fun createStep(project: Project, projectSyncInvoker: ProjectSyncInvoker, moduleParent: String?): SkippableWizardStep<*> {
       val basePackage = getSuggestedProjectPackage()
-      val model = NewAndroidModuleModel(project, moduleParent, projectSyncInvoker, createDummyTemplate(), isLibrary, templateFile)
+      val model = NewAndroidModuleModel(project, moduleParent, projectSyncInvoker, createDummyTemplate(), isLibrary)
       return ConfigureAndroidModuleStep(model, formFactor, LOWEST_ACTIVE_API, basePackage, name)
     }
   }
 
   private class MobileModuleTemplateGalleryEntry : AndroidModuleTemplateGalleryEntry(
-    TemplateManager.getTemplate(Template.CATEGORY_APPLICATION, "Android Module"),
     message("android.wizard.module.new.mobile"),
     message("android.wizard.module.new.mobile.description"),
     AndroidIcons.Wizards.MobileModule,
@@ -66,7 +64,6 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
   )
 
   private class AutomotiveModuleTemplateGalleryEntry : AndroidModuleTemplateGalleryEntry(
-    TemplateManager.getTemplate(Template.CATEGORY_APPLICATION, "Automotive Module"),
     message("android.wizard.module.new.automotive"),
     message("android.wizard.module.new.automotive.description"),
     AndroidIcons.Wizards.AutomotiveModule,
@@ -74,7 +71,6 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
   )
 
   private class ThingsModuleTemplateGalleryEntry : AndroidModuleTemplateGalleryEntry(
-    TemplateManager.getTemplate(Template.CATEGORY_APPLICATION, "Android Module"),
     message("android.wizard.module.new.things"),
     message("android.wizard.module.new.things.description"),
     AndroidIcons.Wizards.ThingsModule,
@@ -82,7 +78,6 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
   )
 
   private class TvModuleTemplateGalleryEntry : AndroidModuleTemplateGalleryEntry(
-    TemplateManager.getTemplate(Template.CATEGORY_APPLICATION, "Android TV Module"),
     message("android.wizard.module.new.tv"),
     message("android.wizard.module.new.tv.description"),
     AndroidIcons.Wizards.TvModule,
@@ -90,7 +85,6 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
   )
 
   private class WearModuleTemplateGalleryEntry : AndroidModuleTemplateGalleryEntry(
-    TemplateManager.getTemplate(Template.CATEGORY_APPLICATION, "Wear OS Module"),
     message("android.wizard.module.new.wear"),
     message("android.wizard.module.new.wear.description"),
     AndroidIcons.Wizards.WearModule,
@@ -98,14 +92,13 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
   )
 
   private class AndroidLibraryModuleTemplateGalleryEntry: ModuleGalleryEntry {
-    override val templateFile = TemplateManager.getTemplate(Template.CATEGORY_APPLICATION, "Android Module")
     override val name: String = message("android.wizard.module.new.library")
     override val description: String = message("android.wizard.module.new.library.description")
     override val icon: Icon = AndroidIcons.Wizards.AndroidModule
 
     override fun createStep(project: Project, projectSyncInvoker: ProjectSyncInvoker, moduleParent: String?): SkippableWizardStep<*> {
       val basePackage = getSuggestedProjectPackage()
-      val model = NewAndroidModuleModel(project, moduleParent, projectSyncInvoker, createDummyTemplate(), true, templateFile)
+      val model = NewAndroidModuleModel(project, moduleParent, projectSyncInvoker, createDummyTemplate(), true)
       return ConfigureAndroidModuleStep(model, FormFactor.MOBILE, LOWEST_ACTIVE_API, basePackage, name)
     }
   }
