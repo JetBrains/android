@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.framework.fixture.inspector
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_TOOL_WINDOW_ID
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.ui.DEVICE_VIEW_ACTION_TOOLBAR_NAME
+import com.android.tools.idea.layoutinspector.ui.LayerSpacingSliderAction
 import com.android.tools.idea.layoutinspector.ui.SelectProcessAction
 import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture
@@ -27,14 +28,20 @@ import com.android.tools.idea.tests.gui.framework.fixture.properties.PropertiesP
 import com.android.tools.idea.tests.gui.framework.fixture.properties.SelectedViewPanelFixture
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import com.android.tools.idea.tests.gui.framework.waitUntilFound
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.project.Project
 import org.fest.swing.annotation.RunsInEDT
+import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.core.Robot
 import org.fest.swing.fixture.JMenuItemFixture
+import org.fest.swing.fixture.JSliderFixture
 import org.fest.swing.timing.Wait
 import javax.swing.JComponent
 import javax.swing.JMenuItem
+import javax.swing.JPanel
 import javax.swing.JPopupMenu
+import javax.swing.JSlider
 import javax.swing.JTree
 import javax.swing.MenuElement
 
@@ -58,6 +65,14 @@ class LayoutInspectorFixture(project: Project, robot: Robot) : ToolWindowFixture
   val properties: PropertiesPanelFixture<InspectorPropertyItem> by lazy(LazyThreadSafetyMode.NONE) {
     val content = getContent("")
     PropertiesPanelFixture.findPropertiesPanelInContainer<InspectorPropertyItem>(content!!.component, robot)
+  }
+
+  /**
+   * Lazily get the device view panel with the view content and view controls of the layout inspector.
+   */
+  val deviceView: DeviceViewPanelFixture by lazy(LazyThreadSafetyMode.NONE) {
+    val content = getContent("")
+    DeviceViewPanelFixture.findDeviceViewPanelInContainer(content!!.component, robot)
   }
 
   /**
@@ -135,6 +150,25 @@ class LayoutInspectorFixture(project: Project, robot: Robot) : ToolWindowFixture
 
   private val selectProcessActionButton: ActionButtonFixture by lazy(LazyThreadSafetyMode.NONE) {
     ActionButtonFixture.findByActionClass(SelectProcessAction::class.java, myRobot, toolbar)
+  }
+
+  val layerSpacingSlider: JSliderFixture by lazy(LazyThreadSafetyMode.NONE) {
+    findSliderByAction(LayerSpacingSliderAction)
+  }
+
+  fun waitUntilMode3dSliderEnabled(enabled: Boolean) {
+    Wait.seconds(10).expecting("slider to be enabled: $enabled").until { layerSpacingSlider.isEnabled == enabled }
+  }
+
+  private fun findSliderByAction(action: AnAction): JSliderFixture {
+    val actionMatcher = object : GenericTypeMatcher<JSlider>(JSlider::class.java) {
+      override fun isMatching(slider: JSlider): Boolean {
+        val panel = slider.parent as JPanel
+        return panel.getClientProperty(CustomComponentAction.ACTION_KEY) == action
+      }
+    }
+    val slider = GuiTests.waitUntilFound(myRobot, toolbar, Matchers.byType(JSlider::class.java).and(actionMatcher))
+    return JSliderFixture(robot(), slider)
   }
 
   private val toolbar: JComponent by lazy(LazyThreadSafetyMode.NONE) {
