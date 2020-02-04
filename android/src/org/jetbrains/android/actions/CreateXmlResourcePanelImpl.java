@@ -19,7 +19,6 @@ import com.android.ide.common.resources.ValueXmlHelper;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.font.FontUtil;
-import com.android.tools.idea.projectsystem.IdeaSourceProvider;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.android.tools.idea.ui.TextFieldWithBooleanBoxKt;
@@ -37,6 +36,8 @@ import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
 import java.awt.Color;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -119,7 +120,8 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
       Color defaultColor = IdeResourcesUtil.parseColor(resourceValue);
       myValueFieldContainer.removeAll();
       myValueFieldContainer.add(TextFieldWithColorPickerKt.wrapWithColorPickerIcon(myValueField, defaultColor));
-    } else if (resourceType == ResourceType.BOOL) {
+    }
+    else if (resourceType == ResourceType.BOOL) {
       myValueFieldContainer.removeAll();
       myValueFieldContainer.add(TextFieldWithBooleanBoxKt.wrapWithBooleanCheckBox(myValueField, Boolean.parseBoolean(resourceValue)));
     }
@@ -150,20 +152,26 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
     }
 
     assert !modulesSet.isEmpty();
-
+    myModuleCombo.setModules(modulesSet);
+    myModuleCombo.setSelectedModule(module);
     if (modulesSet.size() == 1) {
+      // Don't show the module ComboBox when there can only be one option.
       myModule = module;
       setChangeModuleVisible(false);
     }
     else {
+      // The module will have to be obtained form the ComboBox.
       myModule = null;
-      myModuleCombo.setModules(modulesSet);
-      myModuleCombo.setSelectedModule(module);
     }
+    myModuleCombo.addItemListener(new ItemListener() {
+      @Override
+      public void itemStateChanged(ItemEvent e) {
+        CreateResourceDialogUtils.updateSourceSetCombo(mySourceSetLabel, mySourceSetCombo, AndroidFacet.getInstance(getModule()), null);
+      }
+    });
 
     ApplicationManager.getApplication().assertReadAccessAllowed();
-    CreateResourceDialogUtils.updateSourceSetCombo(mySourceSetLabel, mySourceSetCombo,
-                                                   modulesSet.size() == 1 ? AndroidFacet.getInstance(modulesSet.iterator().next()) : null);
+    CreateResourceDialogUtils.updateSourceSetCombo(mySourceSetLabel, mySourceSetCombo, AndroidFacet.getInstance(getModule()), null);
 
     if (defaultFile == null) {
       final String defaultFileName = IdeResourcesUtil.getDefaultResourceFileName(myResourceType);
@@ -365,11 +373,6 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
     return (myResourceType == ResourceType.STRING) ? ValueXmlHelper.unescapeResourceString(value, false, false) : value;
   }
 
-  @Nullable
-  private IdeaSourceProvider getSourceProvider() {
-    return CreateResourceDialogUtils.getSourceProvider(mySourceSetCombo);
-  }
-
   @Override
   @Nullable
   public Module getModule() {
@@ -383,7 +386,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
     if (module == null) {
       return null;
     }
-    PsiDirectory resDirectory = CreateResourceDialogUtils.getResourceDirectory(getSourceProvider(), module);
+    PsiDirectory resDirectory = CreateResourceDialogUtils.getOrCreateResourceDirectory(mySourceSetCombo, module);
     return resDirectory != null ? resDirectory.getVirtualFile() : null;
   }
 
