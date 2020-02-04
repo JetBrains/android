@@ -56,6 +56,10 @@ public class MotionSceneTag implements MTag {
       return;
     }
     for (XmlTag subTag : tag.getSubTags()) {
+      if (DEBUG && getTagName().equals("ConstraintSet")) {
+        Debug.log("  >>>> "+        subTag.getName()
+        );
+      }
       myChildren.add(new MotionSceneTag(subTag, this));
     }
     for (XmlAttribute attribute : tag.getAttributes()) {
@@ -347,7 +351,7 @@ public class MotionSceneTag implements MTag {
                                      Project project,
                                      VirtualFile virtualFile,
                                      XmlFile file) {
-    NlModel model = motionLayout.getModel();
+    NlModel model = (motionLayout == null) ? null: motionLayout.getModel();
 
     return new Root(file.getRootTag(), project, virtualFile, file, model);
   }
