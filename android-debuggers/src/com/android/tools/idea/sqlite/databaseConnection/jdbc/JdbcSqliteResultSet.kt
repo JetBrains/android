@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite.databaseConnection.jdbc
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
+import com.android.tools.idea.sqlite.databaseConnection.checkOffsetAndSize
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteColumnValue
@@ -81,8 +82,7 @@ class JdbcSqliteResultSet(
   override val rowCount get() = service.sequentialTaskExecutor.executeAsync { _rowCount }
 
   override fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<List<SqliteRow>> {
-    require(rowOffset >= 0) { "Offset must be >= 0." }
-    require(rowBatchSize > 0) { "Row batch size must be > 0." }
+    checkOffsetAndSize(rowOffset, rowBatchSize)
 
     return service.sequentialTaskExecutor.executeAsync {
       check(!Disposer.isDisposed(this)) { "ResultSet has already been closed." }

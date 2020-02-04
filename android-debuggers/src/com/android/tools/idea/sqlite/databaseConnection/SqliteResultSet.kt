@@ -49,3 +49,11 @@ interface SqliteResultSet : Disposable {
    */
   fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<List<SqliteRow>>
 }
+
+/**
+ * Checks that [rowOffset] is >= 0 and [rowBatchSize] is > 0.
+ */
+internal fun checkOffsetAndSize(rowOffset: Int, rowBatchSize: Int) {
+  require(rowOffset >= 0) { "Offset must be >= 0." }
+  require(rowBatchSize > 0) { "Row batch size must be > 0." }
+}
