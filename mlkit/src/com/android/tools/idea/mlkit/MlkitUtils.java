@@ -16,12 +16,20 @@
 package com.android.tools.idea.mlkit;
 
 import com.android.SdkConstants;
+import com.android.ide.common.repository.GradleCoordinate;
+import com.android.tools.idea.projectsystem.AndroidModuleSystem;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.mlkit.MlkitNames;
 import com.google.common.base.CaseFormat;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.problems.WolfTheProblemSolver;
+import com.intellij.util.indexing.FileBasedIndex;
+import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -55,11 +63,63 @@ public class MlkitUtils {
     if (facet == null) {
       return null;
     }
-    String packageName = AndroidManifestUtils.getPackageName(AndroidFacet.getInstance(module));
+    String packageName = AndroidManifestUtils.getPackageName(facet);
     if (packageName == null) {
       return null;
     }
 
     return packageName + MlkitNames.PACKAGE_SUFFIX;
+  }
+
+  /**
+   * Returns the set of missing dependencies that are required by the auto-generated model classes.
+   */
+  public static List<GradleCoordinate> getMissingDependencies(@NotNull Module module, @NotNull VirtualFile modelFile) {
+    // TODO(148887002): calculate required deps based on the given model file and figure out how to handle versions.
+    ImmutableList<String> requiredDeps = ImmutableList.of(
+      "org.apache.commons:commons-compress:1.19",
+      "org.tensorflow:tensorflow-lite:1.13.1",
+      "org.tensorflow:tensorflow-lite-support:0.0.0-nightly"
+    );
+
+    AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(module);
+    List<GradleCoordinate> pendingDeps = new ArrayList<>();
+    for (String requiredDepString : requiredDeps) {
+      GradleCoordinate requiredDep = GradleCoordinate.parseCoordinateString(requiredDepString);
+      GradleCoordinate requiredDepInAnyVersion = new GradleCoordinate(requiredDep.getGroupId(), requiredDep.getArtifactId(), "+");
+      if (moduleSystem.getRegisteredDependency(requiredDepInAnyVersion) == null) {
+        pendingDeps.add(requiredDep);
+      }
+    }
+    return pendingDeps;
+  }
+
+  /**
+   * Checks if dependencies required by all auto-generated classes exist.
+   */
+  public static void verifyDependenciesForAllModelFiles(@NotNull Module module) {
+    FileBasedIndex index = FileBasedIndex.getInstance();
+    index.processAllKeys(MlModelFileIndex.INDEX_ID, key -> {
+      index.processValues(MlModelFileIndex.INDEX_ID, key, null, (file, value) -> {
+        verifyDependenciesForModelFile(module, file);
+        return true;
+      }, module.getModuleScope(false));
+
+      return true;
+    }, module.getModuleScope(false), null);
+  }
+
+  /**
+   * Checks if all dependencies required by the auto-generated class exist. If not, flags the model file with underlining its file name by a
+   * red squiggly line.
+   */
+  public static void verifyDependenciesForModelFile(@NotNull Module module, @NotNull VirtualFile modelFile) {
+    WolfTheProblemSolver problemSolver = WolfTheProblemSolver.getInstance(module.getProject());
+    if (getMissingDependencies(module, modelFile).isEmpty()) {
+      problemSolver.clearProblemsFromExternalSource(modelFile, module);
+    }
+    else {
+      problemSolver.reportProblemsFromExternalSource(modelFile, module);
+    }
   }
 }
