@@ -18,17 +18,18 @@ package com.android.tools.idea.sqlite.databaseConnection.live
 import androidx.sqlite.inspection.SqliteInspectorProtocol
 import androidx.sqlite.inspection.SqliteInspectorProtocol.Command
 import androidx.sqlite.inspection.SqliteInspectorProtocol.GetSchemaCommand
-import androidx.sqlite.inspection.SqliteInspectorProtocol.Row
 import com.android.tools.idea.appinspection.api.AppInspectorClient
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.ImmediateSqliteResultSet
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
-import com.android.tools.idea.sqlite.model.SqliteRow
+import com.android.tools.idea.sqlite.model.SqliteAffinity
+import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.openapi.util.Disposer
 import java.util.concurrent.Executor
 
 /**
@@ -64,15 +65,21 @@ class LiveDatabaseConnection(
 
     return taskExecutor.transform(responseFuture) {
       val queryResponse = SqliteInspectorProtocol.Response.parseFrom(it).query
-      getLiveSqliteResultSet(queryResponse.rowsList)
-    }
-  }
+      val sqliteColumns = queryResponse.rowsList.firstOrNull()?.valuesList?.map { cellValue ->
+        // TODO(blocked): add support for primary keys
+        // TODO(blocked): add support for NOT NULL
+        // TODO(blocked): we need to get affinity info from the on device inspector.
+        SqliteColumn(cellValue.columnName, SqliteAffinity.TEXT, false, false)
+      }
 
-  private fun getLiveSqliteResultSet(rows: List<Row>): ImmediateSqliteResultSet {
-    val sqliteRows = rows.map {
-      val sqliteColumnValues = it.valuesList.map { cellValue -> cellValue.toSqliteColumnValue() }
-      SqliteRow(sqliteColumnValues)
+      val resultSet = if (sqliteColumns != null) {
+        LiveSqliteResultSet(sqliteColumns, sqliteStatement, messenger, id, taskExecutor)
+      } else {
+        ImmediateSqliteResultSet(emptyList())
+      }
+      Disposer.register(this, resultSet)
+
+      return@transform resultSet
     }
-    return ImmediateSqliteResultSet(sqliteRows)
   }
 }
