@@ -20,8 +20,6 @@ import static com.android.SdkConstants.FD_EXTRAS;
 import static com.android.SdkConstants.FD_GRADLE_WRAPPER;
 import static com.android.SdkConstants.FD_TEMPLATES;
 import static com.android.SdkConstants.FN_GRADLE_WRAPPER_UNIX;
-import static com.android.tools.idea.actions.NewAndroidComponentActionKt.FRAGMENT_CATEGORY;
-import static com.android.tools.idea.actions.NewAndroidComponentActionKt.NEW_WIZARD_CATEGORIES;
 import static com.android.tools.idea.flags.StudioFlags.COMPOSE_WIZARD_TEMPLATES;
 import static com.android.tools.idea.npw.project.AndroidPackageUtils.getModuleTemplates;
 import static com.android.tools.idea.npw.project.AndroidPackageUtils.getPackageForPath;
@@ -42,7 +40,6 @@ import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.npw.model.RenderTemplateModel;
 import com.android.tools.idea.npw.template.ChooseActivityTypeStep;
 import com.android.tools.idea.npw.template.ChooseFragmentTypeStep;
-import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.templates.TemplateMetadata.TemplateConstraint;
@@ -71,7 +68,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -86,7 +82,6 @@ import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -99,7 +94,7 @@ import org.w3c.dom.Document;
  * Handles locating templates and providing template metadata
  */
 public class TemplateManager {
-  private static final Logger LOG = Logger.getInstance("#" + TemplateManager.class.getName());
+  private static final Logger LOG = Logger.getInstance(TemplateManager.class);
 
   /**
    * A directory relative to application home folder where we can find an extra template folder. This lets us ship more up-to-date
@@ -329,42 +324,6 @@ public class TemplateManager {
 
     return templates;
   }
-
-  /**
-   * Returns the list of currently available templates, for the specified FormFactor
-   */
-  @NotNull
-  public List<TemplateHandle> getTemplateList(@NotNull FormFactor formFactor) {
-    return getTemplateList(formFactor, NEW_WIZARD_CATEGORIES, EXCLUDED_TEMPLATES);
-  }
-
-  /**
-   * Returns the list of currently available templates, for the specified FormFactor
-   */
-  @NotNull
-  public List<TemplateHandle> getFragmentTemplateList(@NotNull FormFactor formFactor) {
-    return getTemplateList(formFactor, FRAGMENT_CATEGORY, EXCLUDED_TEMPLATES);
-  }
-
-  @NotNull
-  public static List<File> getTemplatesFromDirectory(@NotNull File externalDirectory, boolean recursive) {
-    List<File> templates = Lists.newArrayList();
-    if (new File(externalDirectory, TEMPLATE_XML_NAME).exists()) {
-      templates.add(externalDirectory);
-    }
-    if (recursive) {
-      File[] files = externalDirectory.listFiles();
-      if (files != null) {
-        for (File file : files) {
-          if (file.isDirectory()) {
-            templates.addAll(getTemplatesFromDirectory(file, true));
-          }
-        }
-      }
-    }
-    return templates;
-  }
-
   @NotNull
   public List<File> getTemplateDirectoriesFromAars(@Nullable Project project) {
     List<File> templateDirectories = Lists.newArrayList();
@@ -571,7 +530,7 @@ public class TemplateManager {
     }
   }
 
-  private void showWizardDialog(@NotNull AnActionEvent e, String category, String commandName, String dialogTitle) {
+  private static void showWizardDialog(@NotNull AnActionEvent e, String category, String commandName, String dialogTitle) {
     ProjectSyncInvoker projectSyncInvoker = new ProjectSyncInvoker.DefaultProjectSyncInvoker();
 
     DataContext dataContext = e.getDataContext();
@@ -597,7 +556,7 @@ public class TemplateManager {
     Project project = facet.getModule().getProject();
 
     RenderTemplateModel renderModel = RenderTemplateModel.fromFacet(
-      facet, null, initialPackageSuggestion, moduleTemplates.get(0),
+      facet, initialPackageSuggestion, moduleTemplates.get(0),
       commandName, projectSyncInvoker, true);
 
     SkippableWizardStep chooseTypeStep;
@@ -715,66 +674,11 @@ public class TemplateManager {
     }
   }
 
-  private List<TemplateHandle> getTemplateList(@NotNull FormFactor formFactor, @NotNull Set<String> categories, @NotNull Set<String> excluded) {
-    ArrayList<TemplateHandle> templates = Lists.newArrayList();
-    for (String category : categories) {
-      templates.addAll(getTemplateList(formFactor, category, excluded));
-    }
-
-    // Special case for Android Wear: These tend not to be activities; allow you to create a module with for example just a watch face
-    if (formFactor == FormFactor.WEAR) {
-      templates.addAll(getTemplateList(formFactor, "Wear", excluded));
-    }
-
-    Collections.sort(templates, (o1, o2) -> {
-      TemplateMetadata m1 = o1.getMetadata();
-      TemplateMetadata m2 = o2.getMetadata();
-      return StringUtil.naturalCompare(m1.getTitle(), m2.getTitle());
-    });
-
-    return templates;
-  }
-
-  /**
-   * Search the given folder for a list of templates and populate the display list.
-   */
-  private List<TemplateHandle> getTemplateList(@NotNull FormFactor formFactor, @NotNull String category, @Nullable Set<String> excluded) {
-    List<File> templates = getTemplatesInCategory(category);
-    List<TemplateHandle> metadataList = new ArrayList<>(templates.size());
-    for (File template : templates) {
-      TemplateHandle templateHandle = new TemplateHandle(template);
-      TemplateMetadata metadata = templateHandle.getMetadata();
-      if (!metadata.isSupported()) {
-        continue;
-      }
-      // Don't include this template if it's been excluded
-      if (excluded != null && excluded.contains(metadata.getTitle())) {
-        continue;
-      }
-      // If a form factor has been specified, ensure that requirement is met.
-      if (!formFactor.id.equalsIgnoreCase(metadata.getFormFactor())) {
-        continue;
-      }
-      metadataList.add(templateHandle);
-    }
-    return metadataList;
-  }
-
   @Nullable
   public File getTemplateFile(@Nullable String category, @Nullable String templateName) {
     synchronized (CATEGORY_TABLE_LOCK) {
       return getCategoryTable().get(category, templateName);
     }
-  }
-
-  /**
-   * Convenience method for calling {@link #getTemplateMetadata(File)} by category rather than by
-   * direct file path.
-   */
-  @Nullable
-  public TemplateMetadata getTemplateMetadata(@Nullable String category, @Nullable String templateName) {
-    File templateDir = getTemplateFile(category, templateName);
-    return templateDir != null ? getTemplateMetadata(templateDir) : null;
   }
 
   /**
@@ -821,24 +725,6 @@ public class TemplateManager {
     return null;
   }
 
-  /**
-   * Do a sanity check to see if we have templates that look compatible, otherwise we get really strange problems. The existence
-   * of a gradle wrapper in the templates directory is a good sign.
-   * @return whether the templates pass the check or not
-   */
-  public static boolean templatesAreValid() {
-    try {
-      File templateRootFolder = getTemplateRootFolder();
-      if (templateRootFolder == null) {
-        return false;
-      }
-      return templateRootIsValid(templateRootFolder);
-    }
-    catch (Exception e) {
-      return false;
-    }
-  }
-
   public static File getWrapperLocation(@NotNull File templateRootFolder) {
     return new File(templateRootFolder, FD_GRADLE_WRAPPER);
 
@@ -846,11 +732,6 @@ public class TemplateManager {
 
   public static boolean templateRootIsValid(@NotNull File templateRootFolder) {
     return new File(getWrapperLocation(templateRootFolder), FN_GRADLE_WRAPPER_UNIX).exists();
-  }
-
-  @NotNull
-  public static File getTemplate(@Nullable String category, @Nullable String templateName) {
-    return Objects.requireNonNull(getInstance().getTemplateFile(category, templateName));
   }
 
   private static File[] listFiles(@NotNull File root) {

@@ -184,13 +184,6 @@ object TemplateUtils {
                                    keepDocumentLocked: Boolean = false) {
     ApplicationManager.getApplication().assertWriteAccessAllowed()
 
-    // TODO(qumeric): remove when the flag will be removed
-    if (isGradleScript(virtualFile) && !StudioFlags.NPW_NEW_MODULE_TEMPLATES.get()) {
-      // Do not format Gradle files. Otherwise we get spurious "Gradle files have changed since last project sync" warnings that make UI
-      // tests flaky.
-      return
-    }
-
     val document = FileDocumentManager.getInstance().getDocument(virtualFile)
                    ?: return // The file could be a binary file with no editing support...
 

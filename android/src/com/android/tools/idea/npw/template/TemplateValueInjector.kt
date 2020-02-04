@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.npw.template
 
-import com.android.SdkConstants
 import com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE
+import com.android.SdkConstants
 import com.android.ide.common.repository.GradleVersion
 import com.android.repository.Revision
 import com.android.sdklib.AndroidVersion.VersionCodes.P
@@ -69,7 +69,6 @@ import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_DYNAMIC_FEATU
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_LIBRARY_MODULE
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_LOW_MEMORY
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_NEW_MODULE
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_JAVA_VERSION
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_KOTLIN_EAP_REPO
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_KOTLIN_VERSION
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_LANGUAGE
@@ -98,18 +97,16 @@ import com.google.common.collect.Iterables
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtilCore
-import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.android.sdk.AndroidPlatform
+import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.idea.versions.bundledRuntimeVersion
 import java.io.File
 import java.util.HashMap
@@ -117,6 +114,7 @@ import java.util.HashMap
 /**
  * Utility class that sets common Template values used by a project Module.
  */
+@Deprecated("Replace with ModuleTemplateData")
 class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any>) {
   private val log: Logger
     get() = Logger.getInstance(TemplateValueInjector::class.java)
@@ -180,6 +178,7 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
    * @param buildVersion Build version information for the new Module being created.
    * @param project      Used to find the Gradle Dependencies versions. If null, it will use the most recent values known.
    */
+  @TestOnly
   fun setBuildVersion(buildVersion: AndroidVersionsInfo.VersionItem, project: Project?, isNewProject: Boolean): TemplateValueInjector {
     addDebugKeyStore(myTemplateValues, null)
 
@@ -193,7 +192,7 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
     return this
   }
 
-  @VisibleForTesting
+  @TestOnly
   fun setBuildAttributes(buildVersion: AndroidVersionsInfo.VersionItem, project: Project?, isNewProject: Boolean) {
     myTemplateValues[ATTR_MIN_API_LEVEL] = buildVersion.minApiLevel
     myTemplateValues[ATTR_MIN_API] = buildVersion.minApiLevelStr
@@ -220,26 +219,6 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
     }
   }
 
-  // We can't JUST look at the overall project level language level, since  Gradle sync appears not to sync the overall project level;
-  // instead we  have to take the min of all the modules
-  fun setJavaVersion(project: Project): TemplateValueInjector {
-    val min = ApplicationManager.getApplication().runReadAction<LanguageLevel> {
-      ModuleManager.getInstance(project).modules
-        .mapNotNull { LanguageLevelModuleExtensionImpl.getInstance(it)?.languageLevel }
-        .min() ?: LanguageLevel.JDK_1_7
-    }
-
-    /** Returns the enumerated name of [org.gradle.api.JavaVersion] */
-    fun LanguageLevel.toGradleJavaVersionString() : String {
-      // See enum names in org.gradle.api.JavaVersion
-      val javaMajorVersion = toJavaVersion().feature
-      return if (javaMajorVersion <= 10) "1.$javaMajorVersion" else javaMajorVersion.toString()
-    }
-
-    myTemplateValues[ATTR_JAVA_VERSION] = min.toGradleJavaVersionString()
-    return this
-  }
-
   /**
    * Adds, to the specified `templateValues`, common Module roots template values like
    * [ATTR_PROJECT_OUT], [ATTR_SRC_DIR], [ATTR_SRC_OUT], etc.
@@ -247,6 +226,7 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
    * @param paths       Project paths
    * @param packageName Package Name for the module
    */
+  @TestOnly
   fun setModuleRoots(paths: AndroidModulePaths, projectPath: String, moduleName: String, packageName: String): TemplateValueInjector {
     val moduleRoot = paths.moduleRoot!!
 
@@ -294,6 +274,7 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
    * [com.android.tools.idea.templates.TemplateAttributes.ATTR_GRADLE_PLUGIN_VERSION],
    * [com.android.tools.idea.templates.TemplateAttributes.ATTR_GRADLE_VERSION], etc.
    */
+  @TestOnly
   fun setProjectDefaults(project: Project?, isNewProject: Boolean): TemplateValueInjector {
     // For now, our definition of low memory is running in a 32-bit JVM. In this case, we have to be careful about the amount of memory we
     // request for the Gradle build.
@@ -318,6 +299,7 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
     return this
   }
 
+  @TestOnly
   fun setLanguage(language: Language): TemplateValueInjector {
     myTemplateValues[ATTR_LANGUAGE] = language.toString()
     return this
@@ -332,7 +314,7 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
     return setBaseFeature(baseFeature)
   }
 
-  fun setBaseFeature(baseFeature: Module): TemplateValueInjector {
+  private fun setBaseFeature(baseFeature: Module): TemplateValueInjector {
 
     fun String.toPath() = VfsUtilCore.urlToPath(this)
 
@@ -348,6 +330,7 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
     return this
   }
 
+  @VisibleForTesting
   fun addGradleVersions(project: Project?, isNewProject: Boolean): TemplateValueInjector {
     myTemplateValues[ATTR_GRADLE_PLUGIN_VERSION] = determineGradlePluginVersion(project, isNewProject).toString()
     myTemplateValues[ATTR_GRADLE_VERSION] = SdkConstants.GRADLE_LATEST_VERSION

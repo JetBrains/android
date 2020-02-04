@@ -104,7 +104,7 @@ public class RecyclerViewHandler extends ViewGroupHandler {
     boolean cacheable = super.addPopupMenuActions(component, actions);
 
     actions.add(new ComponentAssistantViewAction(RecyclerViewHandler::getComponentAssistant));
-    if (StudioFlags.NPW_NEW_ACTIVITY_TEMPLATES.get() && StudioFlags.NELE_SHOW_RECYCLER_VIEW_SETUP_WIZARD.get()) {
+    if (StudioFlags.NELE_SHOW_RECYCLER_VIEW_SETUP_WIZARD.get()) {
       actions.add(new RecyclerViewAdapterCreatorAction());
     }
 

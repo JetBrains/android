@@ -39,7 +39,6 @@ class DynamicFeatureModel(
   @JvmField
   val templateDescription: String
 ) : ModuleModel(
-  null,
   "dynamicfeature",
   "New Dynamic Feature Module",
   false,

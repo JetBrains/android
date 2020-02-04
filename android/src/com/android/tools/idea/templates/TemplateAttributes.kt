@@ -41,7 +41,6 @@ object TemplateAttributes {
   const val ATTR_KOTLIN_EAP_REPO = "includeKotlinEapRepo"
 
   const val ATTR_MODULE_NAME = "projectName"
-  const val ATTR_MODULE_SIMPLE_NAME = "projectSimpleName" // Same as ATTR_MODULE_NAME but no spaces or other symbols
   const val ATTR_PACKAGE_NAME = "packageName"
   const val ATTR_APPLICATION_PACKAGE = "applicationPackage"
   const val ATTR_SOURCE_PROVIDER_NAME = "sourceProviderName"

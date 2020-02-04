@@ -16,7 +16,6 @@
 package com.android.tools.idea.actions
 
 import com.android.AndroidProjectTypes
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.npw.model.ProjectSyncInvoker.DefaultProjectSyncInvoker
@@ -24,9 +23,7 @@ import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.fromFacet
 import com.android.tools.idea.npw.project.getModuleTemplates
 import com.android.tools.idea.npw.project.getPackageForApplication
 import com.android.tools.idea.npw.project.getPackageForPath
-import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep
 import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep2
-import com.android.tools.idea.npw.template.TemplateHandle
 import com.android.tools.idea.npw.template.TemplateResolver
 import com.android.tools.idea.templates.TemplateManager
 import com.android.tools.idea.templates.TemplateMetadata.TemplateConstraint
@@ -129,19 +126,14 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
     val initialPackageSuggestion =
       if (targetDirectory == null) facet.getPackageForApplication() else facet.getPackageForPath(moduleTemplates, targetDirectory)
     val templateModel = fromFacet(
-      facet, TemplateHandle(templateFile!!), initialPackageSuggestion, moduleTemplates[0], "New $activityDescription",
-      DefaultProjectSyncInvoker(), shouldOpenFiles
+      facet, initialPackageSuggestion, moduleTemplates[0], "New $activityDescription", DefaultProjectSyncInvoker(),
+      shouldOpenFiles
     )
     val newActivity = TemplateResolver.getAllTemplates()
       .filter { WizardUiContext.MenuEntry in it.uiContexts }
       .find { it.name == templateName }
 
-    val useNewActivity = StudioFlags.NPW_NEW_ACTIVITY_TEMPLATES.get() && newActivity != null
-
-    if (useNewActivity) {
-      templateModel.templateHandle = null
-      templateModel.newTemplate = newActivity!!
-    }
+    templateModel.newTemplate = newActivity!!
 
     val dialogTitle = AndroidBundle.message(
       if (isActivityTemplate) "android.wizard.new.activity.title" else "android.wizard.new.component.title"
@@ -150,9 +142,7 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
       if (isActivityTemplate) "android.wizard.config.activity.title" else "android.wizard.config.component.title"
     )
     val wizardBuilder = ModelWizard.Builder().apply {
-      addStep(if (useNewActivity) ConfigureTemplateParametersStep2(templateModel, stepTitle, moduleTemplates)
-              else ConfigureTemplateParametersStep(templateModel, stepTitle, moduleTemplates)
-      )
+      addStep(ConfigureTemplateParametersStep2(templateModel, stepTitle, moduleTemplates))
     }
     StudioWizardDialogBuilder(wizardBuilder.build(), dialogTitle).setProject(module.project).build().show()
     e.dataContext.getData(CREATED_FILES)?.addAll(templateModel.createdFiles)

@@ -61,11 +61,6 @@ public final class StudioFlags {
   //region New Project Wizard
   private static final FlagGroup NPW = new FlagGroup(FLAGS, "npw", "New Project Wizard");
 
-  public static final Flag<Boolean> NPW_DUMP_TEMPLATE_VARS = Flag.create(
-    NPW, "dump.template.vars", "Dump template variables to a scratch file",
-    "Dump the variables used in creating a template to a scrach file that is opened after creating the project.",
-    false);
-
   public static final Flag<Boolean> NPW_FIRST_RUN_WIZARD = Flag.create(
     NPW, "first.run.wizard", "Show new Welcome Wizard",
     "Show new version of the Welcome Wizard when Studio starts",
@@ -79,16 +74,6 @@ public final class StudioFlags {
   public static final Flag<Boolean> NPW_SHOW_JDK_STEP = Flag.create(
     NPW, "first.run.jdk.step", "Show JDK setup step",
     "Show JDK Setup Step in Welcome Wizard",
-    true);
-
-  public static final Flag<Boolean> NPW_NEW_MODULE_TEMPLATES = Flag.create(
-    NPW, "new.module.templates", "Use new module templates",
-    "Use the new Kotlin-based template system for module templates over the old Freemarker system when it is available.",
-    true);
-
-  public static final Flag<Boolean> NPW_NEW_ACTIVITY_TEMPLATES = Flag.create(
-    NPW, "new.activity.templates", "Use new activity templates",
-    "Use the new Kotlin-based template system for activity templates over the old Freemarker system when it is available .",
     true);
 
   public static final Flag<Boolean> NPW_SHOW_FRAGMENT_GALLERY = Flag.create(

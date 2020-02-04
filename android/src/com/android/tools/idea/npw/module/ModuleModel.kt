@@ -16,7 +16,6 @@
 package com.android.tools.idea.npw.module
 
 import com.android.annotations.concurrency.WorkerThread
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt
 import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.model.ModuleModelData
@@ -24,14 +23,12 @@ import com.android.tools.idea.npw.model.MultiTemplateRenderer
 import com.android.tools.idea.npw.model.ProjectModelData
 import com.android.tools.idea.npw.model.render
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
-import com.android.tools.idea.npw.template.TemplateValueInjector
 import com.android.tools.idea.observable.core.ObjectProperty
 import com.android.tools.idea.observable.core.ObjectValueProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.templates.ModuleTemplateDataBuilder
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_LIBRARY_MODULE
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor2
 import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor2
 import com.android.tools.idea.templates.recipe.RenderingContext2
@@ -46,12 +43,13 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer
 private val log: Logger get() = logger<ModuleModel>()
 
 abstract class ModuleModel(
-  override var templateFile: File?,
   name: String,
   private val commandName: String = "New Module",
   override val isLibrary: Boolean,
   projectModelData: ProjectModelData,
-  _template: NamedModuleTemplate = with(projectModelData) { createDefaultTemplateAt(if (!isNewProject) project.basePath!! else "", name) }
+  _template: NamedModuleTemplate = with(projectModelData) {
+    createDefaultTemplateAt(if (!isNewProject) project.basePath!! else "", name)
+  }
 ) : WizardModel(), ProjectModelData by projectModelData, ModuleModelData {
   final override val template: ObjectProperty<NamedModuleTemplate> = ObjectValueProperty(_template)
   override val formFactor: ObjectProperty<FormFactor> = ObjectValueProperty(FormFactor.MOBILE)
@@ -81,27 +79,16 @@ abstract class ModuleModel(
 
     @WorkerThread
     override fun init() {
-      TemplateValueInjector(moduleTemplateValues)
-        .setProjectDefaults(project, false)
-        .setModuleRoots(template.get().paths, project.basePath!!, moduleName.get(), packageName.get())
-        .setLanguage(language.value)
-        .setJavaVersion(project)
-        .setBuildVersion(androidSdkInfo.value, project, false)
-
-      moduleTemplateValues[ATTR_IS_LIBRARY_MODULE] = isLibrary
-
-      if (StudioFlags.NPW_NEW_MODULE_TEMPLATES.get()) {
-        moduleTemplateDataBuilder.apply {
-          projectTemplateDataBuilder.apply {
-            setProjectDefaults(project)
-            language = this@ModuleModel.language.value
-          }
-          formFactor = this@ModuleModel.formFactor.get().toTemplateFormFactor()
-          isNew = true
-          setBuildVersion(androidSdkInfo.value, project)
-          setModuleRoots(template.get().paths, project.basePath!!, moduleName.get(), this@ModuleModel.packageName.get())
-          isLibrary = this@ModuleModel.isLibrary
+      moduleTemplateDataBuilder.apply {
+        projectTemplateDataBuilder.apply {
+          setProjectDefaults(project)
+          language = this@ModuleModel.language.value
         }
+        formFactor = this@ModuleModel.formFactor.get().toTemplateFormFactor()
+        isNew = true
+        setBuildVersion(androidSdkInfo.value, project)
+        setModuleRoots(template.get().paths, project.basePath!!, moduleName.get(), this@ModuleModel.packageName.get())
+        isLibrary = this@ModuleModel.isLibrary
       }
     }
 

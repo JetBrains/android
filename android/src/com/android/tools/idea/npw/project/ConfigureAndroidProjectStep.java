@@ -22,8 +22,6 @@ import static com.android.tools.adtui.validation.Validator.Severity.WARNING;
 import static com.android.tools.idea.npw.model.NewProjectModel.nameToJavaPackage;
 import static com.android.tools.idea.npw.platform.AndroidVersionsInfoKt.getSdkManagerLocalPath;
 import static com.android.tools.idea.npw.ui.ActivityGallery.getCppIcon;
-import static com.android.tools.idea.templates.TemplateMetadata.TemplateConstraint.ANDROIDX;
-import static com.android.tools.idea.templates.TemplateMetadata.TemplateConstraint.KOTLIN;
 import static com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll;
 import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFolderDescriptor;
 import static java.lang.String.format;
@@ -40,7 +38,6 @@ import com.android.tools.idea.npw.model.NewProjectModel;
 import com.android.tools.idea.npw.model.NewProjectModuleModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo.VersionItem;
 import com.android.tools.idea.npw.platform.Language;
-import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.npw.template.components.LanguageComboProvider;
 import com.android.tools.idea.npw.ui.ActivityGallery;
 import com.android.tools.idea.npw.ui.TemplateIcon;
@@ -209,23 +206,14 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   @Override
   protected void onEntering() {
     FormFactor formFactor = getModel().formFactor.get();
-    TemplateHandle templateHandle = getModel().renderTemplateHandle.getValueOrNull();
-    Template newTemplate = getModel().newRenderTemplate.getValueOrNull();
-    assert(templateHandle == null || newTemplate == null);
+    Template newTemplate = getModel().newRenderTemplate.getValue();
 
-    int minSdk = templateHandle == null
-      ? newTemplate == null ? formFactor.getMinOfflineApiLevel() : newTemplate.getMinSdk()
-      : templateHandle.getMetadata().getMinSdk();
+    int minSdk = newTemplate.getMinSdk();
 
     myFormFactorSdkControls.startDataLoading(formFactor, minSdk);
     boolean isKotlinOnly;
-    if (newTemplate != null) {
-      setTemplateThumbnail(newTemplate);
-      isKotlinOnly = newTemplate.getConstraints().contains(TemplateConstraint.Kotlin);
-    } else {
-      setTemplateThumbnail(templateHandle);
-      isKotlinOnly = templateHandle != null && templateHandle.getMetadata().getConstraints().contains(KOTLIN);
-    }
+    setTemplateThumbnail(newTemplate);
+    isKotlinOnly = newTemplate.getConstraints().contains(TemplateConstraint.Kotlin);
 
     myProjectLanguage.setEnabled(!isKotlinOnly);
     if (isKotlinOnly) {
@@ -288,14 +276,6 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     return projectDirectory.getPath();
   }
 
-  private void setTemplateThumbnail(@Nullable TemplateHandle templateHandle) {
-    setTemplateThumbnail(
-      ActivityGallery.getTemplateIcon(templateHandle),
-      ActivityGallery.getTemplateImageLabel(templateHandle),
-      ActivityGallery.getTemplateDescription(templateHandle)
-    );
-  }
-
   private void setTemplateThumbnail(@NotNull Template template) {
     setTemplateThumbnail(ActivityGallery.getTemplateIcon(template), template.getName(), template.getDescription());
   }
@@ -321,16 +301,14 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     VersionItem androidVersion = getModel().androidSdkInfo().getValueOrNull();
     boolean isAndroidxApi = androidVersion != null && androidVersion.getMinApiLevel() >= Q; // No more app-compat after Q
 
-    TemplateHandle templateHandle = getModel().renderTemplateHandle.getValueOrNull();
     Template newTemplate = getModel().newRenderTemplate.getValueOrNull();
-    assert(templateHandle == null || newTemplate == null);
 
-    boolean hasAndroidxConstraint;
-    if (newTemplate != null) {
-      hasAndroidxConstraint = newTemplate.getConstraints().contains(TemplateConstraint.AndroidX);
-    } else {
-      hasAndroidxConstraint = templateHandle != null && templateHandle.getMetadata().getConstraints().contains(ANDROIDX);
+    if (newTemplate == null) {
+      // TODO(qumeric): why newTemplate may be null?
+      return;
     }
+
+    boolean hasAndroidxConstraint = newTemplate.getConstraints().contains(TemplateConstraint.AndroidX);
 
     if (isAndroidxApi || hasAndroidxConstraint) {
       myAppCompatCheck.setSelected(false);

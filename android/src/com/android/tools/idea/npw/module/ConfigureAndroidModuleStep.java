@@ -152,7 +152,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewAndroidMo
                                        value -> Validator.Result.fromNullableMessage(WizardUtils.validatePackageName(value)));
 
     myRenderModel =
-      RenderTemplateModel.fromModuleModel(moduleModel, null, message("android.wizard.activity.add", myFormFactor.id));
+      RenderTemplateModel.fromModuleModel(moduleModel, message("android.wizard.activity.add", myFormFactor.id));
 
     myBindings.bind(model.getAndroidSdkInfo(), new SelectedItemProperty<>(myApiLevelCombo));
     myValidatorPanel.registerValidator(model.getAndroidSdkInfo(), value -> {
