@@ -37,4 +37,6 @@ open class ComposePreviewRunConfiguration(project: Project, factory: Configurati
   }
 
   override fun isProfilable() = false
+
+  override fun getConfigurationEditor() = ComposePreviewSettingsEditor(project, this)
 }
