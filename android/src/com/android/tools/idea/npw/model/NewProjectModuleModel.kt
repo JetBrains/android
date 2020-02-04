@@ -52,7 +52,7 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
   val formFactor = ObjectValueProperty(FormFactor.MOBILE)
   private val newModuleModel = NewAndroidModuleModel(
     projectModel,
-    File("").takeUnless { NPW_NEW_MODULE_TEMPLATES.get() },
+    null,
     createDummyTemplate(),
     formFactor
   )

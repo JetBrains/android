@@ -134,15 +134,13 @@ class NewAndroidModuleModel(
     moduleParent: String?,
     projectSyncInvoker: ProjectSyncInvoker,
     template: NamedModuleTemplate,
-    isLibrary: Boolean = false,
-    templateFile: File? = null
+    isLibrary: Boolean = false
   ) : this(
     projectModelData = ExistingProjectModelData(project, projectSyncInvoker),
     template = template,
     moduleParent = moduleParent,
     formFactor = ObjectValueProperty(FormFactor.MOBILE),
-    isLibrary = isLibrary,
-    templateFile = templateFile
+    isLibrary = isLibrary
   )
 
   constructor(

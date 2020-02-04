@@ -38,7 +38,6 @@ import com.android.tools.idea.actions.NewAndroidComponentAction;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.npw.FormFactor;
-import com.android.tools.idea.npw.model.NewAndroidModuleModel;
 import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.npw.model.RenderTemplateModel;
 import com.android.tools.idea.npw.template.ChooseActivityTypeStep;
