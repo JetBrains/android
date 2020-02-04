@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.run.editor;
 
-import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.google.common.collect.Maps;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.SimpleListCellRenderer;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Map;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AndroidDebuggerPanel {
   private final AndroidDebuggerContext myAndroidDebuggerContext;
