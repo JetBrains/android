@@ -24,7 +24,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.property.panel.api.HelpSupport
 import com.android.tools.idea.res.colorToString
 import com.android.tools.idea.res.resolveColor
-import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog
 import com.android.tools.idea.ui.resourcechooser.ColorResourcePicker
 import com.android.tools.idea.ui.resourcechooser.ColorResourcePickerListener
 import com.android.tools.idea.ui.resourcechooser.HorizontalTabbedPanelBuilder
@@ -115,7 +114,7 @@ object OpenResourceManagerAction : AnAction("Open Resource Manager", PICK_A_RESO
    * For some attributes, it make more sense the display a specific type by default.
    *
    * For example `textColor` has more chance to have a color value than a drawable value,
-   * so in the [ChooseResourceDialog], we need to select the Color tab by default.
+   * so in the [ResourcePickerDialog], we need to select the Color tab by default.
    *
    * @param propertyName The property name to get the associated default type from.
    * @return The [ResourceType] that should be selected by default for the provided property name.
