@@ -68,13 +68,6 @@ object TemplateAttributes {
   const val ATTR_CPP_SUPPORT = "includeCppSupport"
 
   const val ATTR_IS_DYNAMIC_FEATURE = "isDynamicFeature"
-  const val ATTR_DYNAMIC_FEATURE_INSTALL_TIME_DELIVERY = "dynamicFeatureInstallTimeDelivery"
-  const val ATTR_DYNAMIC_FEATURE_INSTALL_TIME_WITH_CONDITIONS_DELIVERY = "dynamicFeatureInstallTimeWithConditionsDelivery"
-  const val ATTR_DYNAMIC_FEATURE_ON_DEMAND_DELIVERY = "dynamicFeatureOnDemandDelivery"
-  const val ATTR_DYNAMIC_FEATURE_DEVICE_FEATURE_LIST = "dynamicFeatureDeviceFeatureList"
-  const val ATTR_DYNAMIC_FEATURE_TITLE = "dynamicFeatureTitle"
-  const val ATTR_DYNAMIC_FEATURE_ON_DEMAND = "dynamicFeatureOnDemand"
-  const val ATTR_DYNAMIC_FEATURE_FUSING = "dynamicFeatureFusing"
   const val ATTR_DYNAMIC_IS_INSTANT_MODULE = "isInstantModule"
 
   const val ATTR_BASE_FEATURE_NAME = "baseFeatureName"
