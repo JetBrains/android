@@ -56,7 +56,7 @@ class ComposePreviewRunConfigurationTest : AndroidTestCase() {
   }
 
   fun testConfigurationIsNotProfilable() {
-    assertFalse(runConfiguration.isProfilable())
+    assertFalse(runConfiguration.isProfilable)
   }
 
   private class FakeApplicationIdProvider : ApplicationIdProvider {
