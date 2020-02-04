@@ -186,25 +186,8 @@ class NewProjectModel : WizardModel(), ProjectModelData {
   }
 
   private inner class ProjectTemplateRenderer : MultiTemplateRenderer.TemplateRenderer {
-    lateinit var projectTemplate: Template
     @WorkerThread
     override fun init() {
-      projectTemplate = Template.createFromName(Template.CATEGORY_PROJECTS, WizardConstants.PROJECT_TEMPLATE_NAME)
-      // Cpp Apps attributes are needed to generate the Module and to generate the Render Template files (activity and layout)
-      projectTemplateValues[ATTR_CPP_SUPPORT] = enableCppSupport.get()
-      projectTemplateValues[ATTR_CPP_FLAGS] = cppFlags.get()
-      projectTemplateValues[ATTR_TOP_OUT] = project.basePath ?: ""
-      projectTemplateValues[ATTR_IS_NEW_PROJECT] = true
-      projectTemplateValues[ATTR_APP_TITLE] = applicationName.get()
-
-      if (useAppCompat.get()) {
-        projectTemplateValues[ATTR_ANDROIDX_SUPPORT] = false
-      }
-
-      TemplateValueInjector(projectTemplateValues)
-        .setProjectDefaults(project, isNewProject)
-        .setLanguage(language.value)
-
       projectTemplateDataBuilder.apply {
         topOut = File(project.basePath ?: "")
         androidXSupport = !useAppCompat.get()

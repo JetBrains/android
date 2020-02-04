@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.npw.template
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.model.NewAndroidModuleModel
 import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.wizard.template.Template
-import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.vfs.VirtualFile
 
 /**
@@ -38,16 +36,7 @@ class ChooseCustomFragmentTemplatesStep (
   emptyItemLabel = ""
 ) {
 
-  override val templateRenderers: List<TemplateRenderer>
-  init {
-    val newTemplateRenderers = sequence {
-      if (StudioFlags.NPW_NEW_ACTIVITY_TEMPLATES.get()) {
-        yieldAll(templates.map(::NewTemplateRenderer))
-      }
-    }
-
-    templateRenderers = newTemplateRenderers.toList()
-  }
+  override val templateRenderers: List<TemplateRenderer> = templates.map(::NewTemplateRenderer)
 }
 
 internal val customSetupWizardMessageKeys = WizardGalleryItemsStepMessageKeys(

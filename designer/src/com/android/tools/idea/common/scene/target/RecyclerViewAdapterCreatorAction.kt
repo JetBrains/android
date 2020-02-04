@@ -64,8 +64,8 @@ class RecyclerViewAdapterCreatorAction @JvmOverloads constructor(
     assert(moduleTemplates.isNotEmpty())
 
     val renderModel = fromFacet(
-      facet, null, initialPackageSuggestion, moduleTemplates[0],
-      commandName, projectSyncInvoker, true)
+      facet, initialPackageSuggestion, moduleTemplates[0], commandName,
+      projectSyncInvoker, true)
 
     // Remove ".xml" from the name.
     currentRecyclerViewLayout = component.model.file.name

@@ -25,7 +25,6 @@ import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.project.getModuleTemplates
 import com.android.tools.idea.npw.ui.WizardGallery
 import com.android.tools.idea.npw.ui.getTemplateIcon
-import com.android.tools.idea.npw.ui.getTemplateImageLabel
 import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.core.ObservableBool
 import com.android.tools.idea.observable.core.OptionalProperty
@@ -35,8 +34,6 @@ import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.templates.TemplateMetadata
 import com.android.tools.idea.templates.TemplateMetadata.TemplateConstraint.ANDROIDX
 import com.android.tools.idea.templates.TemplateMetadata.TemplateConstraint.KOTLIN
-import com.android.tools.idea.ui.wizard.WizardUtils.COMPOSE_MIN_AGP_VERSION
-import com.android.tools.idea.ui.wizard.WizardUtils.hasComposeMinAgpVersion
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.model.SkippableWizardStep
@@ -49,6 +46,7 @@ import com.intellij.ui.components.JBScrollPane
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.android.util.AndroidBundle.message
+import org.jetbrains.annotations.TestOnly
 import java.awt.event.ActionEvent
 import javax.swing.AbstractAction
 import javax.swing.Icon
@@ -70,7 +68,7 @@ abstract class ChooseGalleryItemStep(
 ) : SkippableWizardStep<RenderTemplateModel>(model, message(messageKeys.addMessage, formFactor.id), formFactor.icon) {
 
   abstract val templateRenderers: List<TemplateRenderer>
-  private val itemGallery = WizardGallery(title, { t: TemplateRenderer? -> t!!.icon }, { t: TemplateRenderer? -> t!!.label })
+  private val itemGallery = WizardGallery(title, { t: NewTemplateRenderer? -> t!!.icon }, { t: NewTemplateRenderer? -> t!!.label })
   private val validatorPanel = ValidatorPanel(this, JBScrollPane(itemGallery)).also {
     FormScalingUtil.scaleComponentTree(this.javaClass, it)
   }
@@ -94,8 +92,7 @@ abstract class ChooseGalleryItemStep(
   override fun getPreferredFocusComponent(): JComponent? = itemGallery
 
   public override fun createDependentSteps(): Collection<ModelWizardStep<*>> =
-    listOf(ConfigureTemplateParametersStep(model, message(messageKeys.stepTitle), moduleTemplates),
-           ConfigureTemplateParametersStep2(model, message(messageKeys.stepTitle), moduleTemplates))
+    listOf(ConfigureTemplateParametersStep2(model, message(messageKeys.stepTitle), moduleTemplates))
 
   override fun dispose() = listeners.releaseAll()
 
@@ -110,16 +107,7 @@ abstract class ChooseGalleryItemStep(
 
     itemGallery.addListSelectionListener {
       itemGallery.selectedElement?.run {
-        when (this) {
-          is OldTemplateRenderer -> {
-            model.templateHandle = this.template
-            model.newTemplate = Template.NoActivity
-          }
-          is NewTemplateRenderer -> {
-            model.templateHandle = null
-            model.newTemplate = this.template
-          }
-        }
+        model.newTemplate = this.template
         wizard.updateNavigationProperties()
       }
       validateTemplate()
@@ -139,8 +127,6 @@ abstract class ChooseGalleryItemStep(
    * See also [com.android.tools.idea.actions.NewAndroidComponentAction.update]
    */
   private fun validateTemplate() {
-    val template = model.templateHandle
-    val templateData = template?.metadata
     val sdkInfo = androidSdkInfo.valueOrNull
     val facet = model.androidFacet
 
@@ -153,17 +139,14 @@ abstract class ChooseGalleryItemStep(
     val isAndroidxProject = project.isAndroidx()
 
     invalidParameterMessage.set(
-      if (model.newTemplate != Template.NoActivity)
-        // TODO(qumeric): pass language?
-        model.newTemplate.validate(moduleApiLevel, moduleBuildApiLevel, isNewModule, isAndroidxProject, model.language.value, messageKeys)
-      else
-        validateTemplate(templateData, moduleApiLevel, moduleBuildApiLevel, isNewModule, isAndroidxProject, model.language.value, messageKeys)
+      model.newTemplate.validate(moduleApiLevel, moduleBuildApiLevel, isNewModule, isAndroidxProject, model.language.value, messageKeys)
     )
 
+    // FIXME(qumeric)
     // Special case for Compose
-    if (invalidParameterMessage.get() == "" && !hasComposeMinAgpVersion(project, templateData?.category)) {
+    /*if (invalidParameterMessage.get() == "" && !hasComposeMinAgpVersion(project, templateData?.category)) {
       invalidParameterMessage.set(message("android.wizard.validate.module.needs.new.agp", COMPOSE_MIN_AGP_VERSION))
-    }
+    }*/
   }
 
   interface TemplateRenderer {
@@ -171,18 +154,6 @@ abstract class ChooseGalleryItemStep(
     /** Return the image associated with the current template, if it specifies one, or null otherwise. */
     val icon: Icon?
     val exists: Boolean
-  }
-
-  open class OldTemplateRenderer(val template: TemplateHandle?) : TemplateRenderer {
-    override val label: String
-      get() = getTemplateImageLabel(template)
-
-    override val icon: Icon?
-      get() = getTemplateIcon(template)
-
-    override val exists: Boolean = template != null
-
-    override fun toString(): String = label
   }
 
   open class NewTemplateRenderer(internal val template: Template) : TemplateRenderer {
@@ -208,7 +179,8 @@ fun getDefaultSelectedTemplateIndex(
   defaultTemplateIndex ?: firstValidTemplateIndex ?: throw IllegalArgumentException("No valid Template found")
 }
 
-@VisibleForTesting
+@Deprecated("Belongs to the old system")
+@TestOnly
 fun validateTemplate(template: TemplateMetadata?,
                      moduleApiLevel: Int,
                      moduleBuildApiLevel: Int,

@@ -24,8 +24,8 @@ import com.android.tools.idea.npw.invokeLater
 import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.project.getSourceProvider
-import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep.RowEntry
 import com.android.tools.idea.npw.template.components.CheckboxProvider2
+import com.android.tools.idea.npw.template.components.ComponentProvider
 import com.android.tools.idea.npw.template.components.EnumComboProvider2
 import com.android.tools.idea.npw.template.components.LabelWithEditButtonProvider2
 import com.android.tools.idea.npw.template.components.LanguageComboProvider
@@ -81,6 +81,7 @@ import com.google.common.cache.CacheBuilder
 import com.google.common.io.Files
 import com.intellij.openapi.module.Module
 import com.intellij.ui.RecentsManager
+import com.intellij.ui.components.JBLabel
 import com.intellij.uiDesigner.core.GridConstraints
 import com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER
 import com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH
@@ -91,8 +92,11 @@ import com.intellij.util.ui.JBUI
 import org.jetbrains.android.util.AndroidBundle.message
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 import java.awt.Dimension
+import java.awt.FlowLayout
 import java.awt.Font
 import java.util.EnumSet
+import javax.swing.Box
+import javax.swing.BoxLayout
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -429,6 +433,72 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
     EVALUATING
   }
 
+  /**
+   * A template is broken down into separate fields, each which is given a row with optional header.
+   * This class wraps all UI elements in the row, providing methods for managing them.
+   */
+  private class RowEntry<T : JComponent> {
+    val component: T
+    val property: AbstractProperty<*>?
+
+    private val header: JPanel?
+    private val componentProvider: ComponentProvider<T>
+    private val container: JPanel = JPanel().apply {
+      layout = BoxLayout(this, BoxLayout.Y_AXIS)
+    }
+
+    constructor(headerText: String, componentProvider: ComponentProvider<T>) {
+      val headerLabel = JBLabel(headerText)
+      header = JPanel(FlowLayout(FlowLayout.LEFT)).apply {
+        add(headerLabel)
+        add(Box.createHorizontalStrut(20))
+      }
+      this.componentProvider = componentProvider
+      component = componentProvider.createComponent()
+      property = componentProvider.createProperty(component)
+
+      headerLabel.labelFor = component
+      container.apply {
+        add(header)
+        add(component)
+      }
+    }
+
+    constructor(componentProvider: ComponentProvider<T>) {
+      header = null
+      this.componentProvider = componentProvider
+      component = componentProvider.createComponent()
+      property = componentProvider.createProperty(component)
+      container.add(component)
+    }
+
+    fun addToPanel(panel: JPanel) {
+      require(panel.layout is TabularLayout)
+      val row = panel.componentCount
+      panel.add(container, TabularLayout.Constraint(row, 1, 1))
+    }
+
+    fun setEnabled(enabled: Boolean) {
+      header?.isEnabled = enabled
+      component.isEnabled = enabled
+    }
+
+    fun setVisible(visible: Boolean) {
+      header?.isVisible = visible
+      component.isVisible = visible
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    fun <V> setValue(value: V) {
+      checkNotNull(property)
+      (property as AbstractProperty<V>).set(value)
+    }
+
+    fun accept() {
+      componentProvider.accept(component)
+    }
+  }
+
   private fun deduplicate(parameter: StringParameter): String {
     val value = parameter.suggest() ?: parameter.value
     if (value.isEmpty() || !parameter.constraints.contains(Constraint.UNIQUE)) {
@@ -458,3 +528,4 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
     return suggested
   }
 }
+

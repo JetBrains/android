@@ -72,8 +72,8 @@ class NewAndroidFragmentAction
 
     val projectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker()
     val renderModel = RenderTemplateModel.fromFacet(
-      facet, null, initialPackageSuggestion, moduleTemplates[0],
-      AndroidBundle.message("android.wizard.fragment.add", FormFactor.MOBILE.id), projectSyncInvoker, shouldOpenFiles)
+      facet, initialPackageSuggestion, moduleTemplates[0], AndroidBundle.message("android.wizard.fragment.add", FormFactor.MOBILE.id),
+      projectSyncInvoker, shouldOpenFiles)
 
     val fragmentTypeStep = ChooseFragmentTypeStep(renderModel, FormFactor.MOBILE, directory)
     val wizard = ModelWizard.Builder().addStep(fragmentTypeStep).build()

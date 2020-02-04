@@ -18,26 +18,19 @@ package com.android.tools.idea.npw.project
 import com.android.tools.adtui.ASGallery
 import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.adtui.util.FormScalingUtil
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.FormFactor
-import com.android.tools.idea.npw.FormFactor.Companion.get
 import com.android.tools.idea.npw.cpp.ConfigureCppSupportStep
 import com.android.tools.idea.npw.model.NewProjectModel
 import com.android.tools.idea.npw.model.NewProjectModuleModel
 import com.android.tools.idea.npw.template.ChooseGalleryItemStep
-import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep
-import com.android.tools.idea.npw.template.TemplateHandle
+import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep2
 import com.android.tools.idea.npw.template.TemplateResolver
 import com.android.tools.idea.npw.template.getDefaultSelectedTemplateIndex
-import com.android.tools.idea.npw.ui.getTemplateDescription
-import com.android.tools.idea.npw.ui.getTemplateIcon
-import com.android.tools.idea.npw.ui.getTemplateImageLabel
 import com.android.tools.idea.npw.ui.WizardGallery
 import com.android.tools.idea.npw.ui.cppIcon
+import com.android.tools.idea.npw.ui.getTemplateIcon
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
-import com.android.tools.idea.templates.Template.CATEGORY_APPLICATION
-import com.android.tools.idea.templates.TemplateManager
 import com.android.tools.idea.wizard.model.ModelWizard.Facade
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.template.Template
@@ -60,7 +53,6 @@ import org.jetbrains.android.util.AndroidBundle.message
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.event.ActionEvent
-import java.io.File
 import java.util.function.Supplier
 import javax.swing.AbstractAction
 import javax.swing.Icon
@@ -97,7 +89,8 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
     return listOf(
       ConfigureAndroidProjectStep(newProjectModuleModel!!, model),
       ConfigureCppSupportStep(model),
-      ConfigureTemplateParametersStep(renderModel, message("android.wizard.config.activity.title"), listOf()))
+      // TODO(qumeric): check if it's correct
+      ConfigureTemplateParametersStep2(renderModel, message("android.wizard.config.activity.title"), listOf()))
   }
 
   private fun createUIComponents() {
@@ -164,17 +157,8 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
     model.enableCppSupport.set(selectedTemplate is CppTemplateRendererWithDescription)
     with(newProjectModuleModel!!) {
       formFactor.set(formFactorInfo.formFactor)
-      if (formFactorInfo is OldFormFactorInfo) {
-        setModuleTemplateFile(formFactorInfo.templateFile)
-      }
       when (selectedTemplate) {
-        is OldTemplateRendererWithDescription -> {
-          newRenderTemplate.clear()
-          renderTemplateHandle.setNullableValue(selectedTemplate.template)
-          extraRenderTemplateModel.templateHandle = selectedTemplate.template.takeIf { formFactorInfo.formFactor === FormFactor.THINGS }
-        }
         is NewTemplateRendererWithDescription -> {
-          renderTemplateHandle.clear()
           newRenderTemplate.setNullableValue(selectedTemplate.template)
           // TODO(qumeric): add support for Android Things
         }
@@ -197,12 +181,6 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
     val tabPanel: ChooseAndroidProjectPanel<TemplateRendererWithDescription>
   }
 
-  private class OldFormFactorInfo(
-    var templateFile: File,
-    override val formFactor: FormFactor,
-    override val tabPanel: ChooseAndroidProjectPanel<TemplateRendererWithDescription>
-  ): FormFactorInfo
-
   private class NewFormFactorInfo(
     override val formFactor: FormFactor,
     override val tabPanel: ChooseAndroidProjectPanel<TemplateRendererWithDescription>
@@ -221,14 +199,6 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
     override fun toString() = label
   }
 
-  private class OldTemplateRendererWithDescription(
-    template: TemplateHandle?
-  ) : ChooseGalleryItemStep.OldTemplateRenderer(template), TemplateRendererWithDescription {
-    override val label: String get() = getTemplateImageLabel(template)
-    override val icon: Icon? get() = getTemplateIcon(template)
-    override val description: String get() = getTemplateDescription(template)
-  }
-
   private class NewTemplateRendererWithDescription(
     template: Template
   ) : TemplateRendererWithDescription, ChooseGalleryItemStep.NewTemplateRenderer(template) {
@@ -238,58 +208,16 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
   }
 
   companion object {
-    // To have the sequence specified by design, we hardcode the sequence.
-    private val ORDERED_ACTIVITY_NAMES = arrayOf(
-      "Basic Activity", "Empty Activity", "Empty Compose Activity", "Bottom Navigation Activity", "Fragment + ViewModel",
-      "Fullscreen Activity", "Master/Detail Flow", "Navigation Drawer Activity", "Google Maps Activity", "Login Activity",
-      "Scrolling Activity", "Tabbed Activity"
-    )
-
-    private fun createFormFactors(wizardTitle: String): List<FormFactorInfo> = with(TemplateManager.getInstance()!!) {
-      if (useNewTemplates) {
-        return FormFactor.values().map { NewFormFactorInfo(it, ChooseAndroidProjectPanel(createGallery(wizardTitle, it))) }
-      }
-      getTemplatesInCategory(CATEGORY_APPLICATION).mapNotNull { templateFile ->
-        val ffString = getTemplateMetadata(templateFile)?.formFactor
-        if (ffString != null) {
-          val formFactor = get(ffString)
-          OldFormFactorInfo(templateFile, formFactor, ChooseAndroidProjectPanel(createGallery(wizardTitle, formFactor)))
-        } else {
-          null
-        }
-      }.sortedBy(FormFactorInfo::formFactor)
-    }
-
-    private fun getFilteredTemplateHandles(formFactor: FormFactor): List<TemplateHandle?> {
-      val templateHandles = TemplateManager.getInstance().getTemplateList(formFactor)
-      if (formFactor === FormFactor.MOBILE) {
-        val entryMap = templateHandles.associateBy { it!!.metadata.title!! }
-        return ORDERED_ACTIVITY_NAMES.mapNotNull { entryMap[it] }
-      }
-      return templateHandles
-    }
+    private fun createFormFactors(wizardTitle: String): List<FormFactorInfo> =
+        FormFactor.values().map { NewFormFactorInfo(it, ChooseAndroidProjectPanel(createGallery(wizardTitle, it))) }
 
     private fun createGallery(title: String, formFactor: FormFactor): ASGallery<TemplateRendererWithDescription> {
-      val templateHandles = getFilteredTemplateHandles(formFactor)
       val listItems = sequence {
-        if (useNewTemplates) {
-          yield(NewTemplateRendererWithDescription(Template.NoActivity))
-        } else {
-          yield(OldTemplateRendererWithDescription(null))
-        }
+        yield(NewTemplateRendererWithDescription(Template.NoActivity))
 
-        val oldTemplateRenderers = templateHandles.map { OldTemplateRendererWithDescription(it) }
-
-        val newTemplateRenderers =
-          if (useNewTemplates)
-            TemplateResolver.getAllTemplates()
-              .filter { WizardUiContext.NewProject in it.uiContexts && it.formFactor == formFactor.toTemplateFormFactor()}
-              .map(::NewTemplateRendererWithDescription)
-          else
-            listOf()
-
-        val newTemplateNames = newTemplateRenderers.map { it.template.name }
-        yieldAll(oldTemplateRenderers.filter { it.template?.metadata?.title !in newTemplateNames } + newTemplateRenderers)
+        TemplateResolver.getAllTemplates()
+            .filter { WizardUiContext.NewProject in it.uiContexts && it.formFactor == formFactor.toTemplateFormFactor()}
+            .forEach { yield(NewTemplateRendererWithDescription(it)) }
 
         if (formFactor === FormFactor.MOBILE) {
           yield(CppTemplateRendererWithDescription())
@@ -304,4 +232,3 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
   }
 }
 
-private val useNewTemplates: Boolean get() = StudioFlags.NPW_NEW_ACTIVITY_TEMPLATES.get()

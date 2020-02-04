@@ -17,7 +17,6 @@ package com.android.tools.idea.npw.model
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.sdklib.AndroidVersion.VersionCodes.P
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.getInitialSourceLanguage
 import com.android.tools.idea.npw.module.ModuleModel
@@ -28,7 +27,6 @@ import com.android.tools.idea.npw.module.recipes.tvModule.generateTvModule
 import com.android.tools.idea.npw.module.recipes.wearModule.generateWearModule
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.platform.Language
-import com.android.tools.idea.npw.template.TemplateValueInjector
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObjectProperty
 import com.android.tools.idea.observable.core.ObjectValueProperty
@@ -38,7 +36,6 @@ import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.templates.ModuleTemplateDataBuilder
 import com.android.tools.idea.templates.ProjectTemplateDataBuilder
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_APP_TITLE
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_API
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_INCLUDE_FORM_FACTOR
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_MODULE_NAME
@@ -50,7 +47,6 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.util.AndroidBundle.message
-import java.io.File
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer as RenderLoggingEvent
 
 class ExistingProjectModelData(
@@ -92,10 +88,6 @@ interface ModuleModelData : ProjectModelData {
    * A template that's associated with a user's request to create a new module. This may be null if the user skips creating a
    * module, or instead modifies an existing module (for example just adding a new Activity)
    */
-  var templateFile: File?
-  /**
-   * Used in place of [templateFile] if [StudioFlags.NPW_NEW_MODULE_TEMPLATES] is enabled.
-   */
   val androidSdkInfo: OptionalProperty<AndroidVersionsInfo.VersionItem>
   val moduleTemplateDataBuilder: ModuleTemplateDataBuilder
 }
@@ -106,10 +98,8 @@ class NewAndroidModuleModel(
   val moduleParent: String?,
   override val formFactor: ObjectProperty<FormFactor>,
   commandName: String = "New Module",
-  override val isLibrary: Boolean = false,
-  templateFile: File? = null
+  override val isLibrary: Boolean = false
 ) : ModuleModel(
-  templateFile,
   "",
   commandName,
   isLibrary,
@@ -144,14 +134,13 @@ class NewAndroidModuleModel(
   )
 
   constructor(
-    projectModel: NewProjectModel, templateFile: File?, template: NamedModuleTemplate,
+    projectModel: NewProjectModel, template: NamedModuleTemplate,
     formFactor: ObjectValueProperty<FormFactor> = ObjectValueProperty(FormFactor.MOBILE)
   ) : this(
     projectModelData = projectModel,
     template = template,
     moduleParent = null,
-    formFactor = formFactor,
-    templateFile = templateFile
+    formFactor = formFactor
   ) {
     multiTemplateRenderer.incrementRenders()
   }
@@ -181,26 +170,18 @@ class NewAndroidModuleModel(
     @WorkerThread
     override fun init() {
       super.init()
-      if (StudioFlags.NPW_NEW_MODULE_TEMPLATES.get()) {
-        moduleTemplateDataBuilder.apply {
-          setModuleRoots(template.get().paths, project.basePath!!, moduleName.get(), this@NewAndroidModuleModel.packageName.get())
-        }
-        val tff = formFactor.get().toTemplateFormFactor()
-        projectTemplateDataBuilder.includedFormFactorNames.putIfAbsent(tff, mutableListOf(moduleName.get()))?.add(moduleName.get())
-      }
 
+      moduleTemplateDataBuilder.apply {
+        setModuleRoots(template.get().paths, project.basePath!!, moduleName.get(), this@NewAndroidModuleModel.packageName.get())
+      }
+      val tff = formFactor.get().toTemplateFormFactor()
+      projectTemplateDataBuilder.includedFormFactorNames.putIfAbsent(tff, mutableListOf(moduleName.get()))?.add(moduleName.get())
+
+      // TODO(qumeric): remove the following (old system init)
       // TODO(qumeric): let project know about formFactors (it is being rendered before NewModuleModel.init runs)
       projectTemplateValues.also {
         it[formFactor.get().id + ATTR_INCLUDE_FORM_FACTOR] = true
         it[formFactor.get().id + ATTR_MODULE_NAME] = moduleName.get()
-      }
-
-      moduleTemplateValues[ATTR_APP_TITLE] = applicationName.get()
-
-      TemplateValueInjector(moduleTemplateValues).apply {
-        setProjectDefaults(project, isNewProject)
-        setModuleRoots(template.get().paths, project.basePath!!, moduleName.get(), packageName.get())
-        setBuildVersion(androidSdkInfo.value, project, isNewProject)
       }
 
       if (useAppCompat.get()) {
