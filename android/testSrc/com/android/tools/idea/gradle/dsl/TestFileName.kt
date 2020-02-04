@@ -1096,6 +1096,8 @@ enum class TestFileName(val path: String) {
   COMPOSITE_BUILD_MAIN_PROJECT_ROOT_BUILD("compositeBuild/mainProjectRootBuild"),
   COMPOSITE_BUILD_MAIN_PROJECT_SETTINGS("compositeBuild/mainProjectSettings"),
   COMPOSITE_BUILD_MAIN_PROJECT_SUB_MODULE_BUILD("compositeBuild/mainProjectSubModuleBuild"),
+  PS_PARSED_DEPENDENCIES_PARSED_DEPENDENCIES("psParsedDependencies/parsedDependencies"),
+  PS_PARSED_DEPENDENCIES_FIND_LIBRARIES("psParsedDependencies/findLibraries"),
 
   ;
 
