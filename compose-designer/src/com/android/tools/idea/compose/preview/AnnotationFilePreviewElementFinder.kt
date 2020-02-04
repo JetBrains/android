@@ -56,8 +56,8 @@ private fun attributesToConfiguration(node: UAnnotation): PreviewConfiguration {
  * [FilePreviewElementFinder] that uses `@Preview` annotations.
  */
 object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
-  override fun hasPreviewMethods(project: Project, file: VirtualFile): Boolean = ReadAction.compute<Boolean, Throwable> {
-    PsiTreeUtil.findChildrenOfType(PsiManager.getInstance(project).findFile(file), KtImportDirective::class.java)
+  override fun hasPreviewMethods(project: Project, vFile: VirtualFile): Boolean = ReadAction.compute<Boolean, Throwable> {
+    PsiTreeUtil.findChildrenOfType(PsiManager.getInstance(project).findFile(vFile), KtImportDirective::class.java)
       .any { PREVIEW_ANNOTATION_FQN == it.importedFqName?.asString() }
   }
 
@@ -110,7 +110,7 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
             }
 
             // The method must also be annotated with @Composable
-            if (it.annotations.any { annotation -> COMPOSABLE_ANNOTATION_FQN == annotation.qualifiedName }) {
+            if (it.uAnnotations.any { annotation -> COMPOSABLE_ANNOTATION_FQN == annotation.qualifiedName }) {
               visitPreviewAnnotation(node, it)
             }
           }

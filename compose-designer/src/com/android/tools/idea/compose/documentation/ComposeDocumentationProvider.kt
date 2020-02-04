@@ -146,7 +146,7 @@ class ComposeDocumentationProvider : DocumentationProviderEx() {
   private fun getPreviewElement(element: PsiElement): KtNamedFunction? = ReadAction.compute<KtNamedFunction?, Throwable> {
     val docComment = (element as? KtNamedFunction)?.docComment ?: return@compute null
     val sampleTag = docComment.getDefaultSection().findTagByName("sample") ?: return@compute null
-    val sample = PsiTreeUtil.findChildOfType<KDocName>(sampleTag, KDocName::class.java)?.mainReference?.resolve() ?: return@compute null
+    val sample = PsiTreeUtil.findChildOfType(sampleTag, KDocName::class.java)?.mainReference?.resolve() ?: return@compute null
     return@compute if (sample.isPreview()) sample as KtNamedFunction else null
   }
 
