@@ -875,6 +875,55 @@ class TableControllerTest : PlatformTestCase() {
     assertRowSequence(mockResultSet.invocations, expectedInvocations)
   }
 
+  fun `test InsertAtBeginning Next Prev`() {
+    // Prepare
+    val mockResultSet = MockSqliteResultSet()
+    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(10, tableView, sqliteTable, mockDatabaseConnection, SqliteStatement(""), edtExecutor)
+    Disposer.register(testRootDisposable, tableController)
+
+    // Act
+    pumpEventsAndWaitForFuture(tableController.setUp())
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    mockResultSet.insertRowAtIndex(0, -1)
+    tableView.listeners.first().loadNextRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().loadPreviousRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    val expectedInvocations = listOf(
+      listOf(0, 9),
+      listOf(9, 18),
+      listOf(-1, 8)
+    )
+
+    assertRowSequence(mockResultSet.invocations, expectedInvocations)
+  }
+
+  fun `test DeleteAtBeginning Next`() {
+    // Prepare
+    val mockResultSet = MockSqliteResultSet()
+    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(10, tableView, sqliteTable, mockDatabaseConnection, SqliteStatement(""), edtExecutor)
+    Disposer.register(testRootDisposable, tableController)
+
+    // Act
+    pumpEventsAndWaitForFuture(tableController.setUp())
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    mockResultSet.deleteRowAtIndex(0)
+    tableView.listeners.first().loadNextRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    val expectedInvocations = listOf(
+      listOf(0, 9),
+      listOf(11, 20)
+    )
+
+    assertRowSequence(mockResultSet.invocations, expectedInvocations)
+  }
+
   fun testSetUpOnRealDb() {
     // Prepare
     tableController = TableController(

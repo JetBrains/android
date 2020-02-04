@@ -56,4 +56,12 @@ class MockSqliteResultSet(size: Int = 100) : SqliteResultSet {
 
   override fun dispose() {
   }
+
+  fun insertRowAtIndex(index: Int, value: Int) {
+    rows.add(index, SqliteRow(listOf(SqliteColumnValue(_columns[0], value), SqliteColumnValue(_columns[1], value))))
+  }
+
+  fun deleteRowAtIndex(index: Int) {
+    rows.removeAt(index)
+  }
 }
