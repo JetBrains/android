@@ -23,7 +23,7 @@
  * {@link com.android.tools.idea.npw.template.components.ComponentProvider} which is a top-level
  * interface that makes it easy to link Swing components and Swing properties.
  *
- * {@link com.android.tools.idea.npw.template.components.ParameterComponentProvider} which is a
+ * {@link com.android.tools.idea.npw.template.components.ParameterComponentProvider2} which is a
  * ComponentProvider with extra logic for handling defaults provided by the
  * {@link com.android.tools.idea.templates.Parameter} class.
  */
