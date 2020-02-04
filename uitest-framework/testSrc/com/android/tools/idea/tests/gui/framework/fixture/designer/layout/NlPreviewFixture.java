@@ -102,7 +102,7 @@ public class NlPreviewFixture extends ToolWindowFixture {
 
   private boolean allComponentsHaveHeight() {
     return getAllComponents().stream()
-      .noneMatch(component -> component.getHeight() == 0);
+      .noneMatch(component -> component.getSceneComponent().getHeight() == 0);
   }
 
   public boolean hasRenderErrors() {

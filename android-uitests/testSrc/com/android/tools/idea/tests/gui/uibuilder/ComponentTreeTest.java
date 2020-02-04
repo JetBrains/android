@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
+import static com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixtureUtilKt.countAllSceneComponents;
+import static com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixtureUtilKt.getSceneComponentAt;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
@@ -141,13 +143,13 @@ public final class ComponentTreeTest {
 
     JTreeFixture tree = layoutEditor.getComponentTree();
     DesignSurfaceFixture surface = layoutEditor.getSurface();
-    assertEquals("Initial components count unexpected", 2, layoutEditor.getAllComponents().size());
-    Point rootCenter = ((NlComponentFixture)surface.getAllComponents().get(0)).getMidPoint();
-    Point childLocation = ((NlComponentFixture)surface.getAllComponents().get(1)).getMidPoint();
+    assertEquals("Initial components count unexpected", 2, countAllSceneComponents(layoutEditor));
+    Point rootCenter = getSceneComponentAt(layoutEditor, 0).getMidPoint();
+    Point childLocation = getSceneComponentAt(layoutEditor, 1).getMidPoint();
     tree.drag(1);
     surface.drop(rootCenter);
     layoutEditor.waitForRenderToFinish();
-    assertEquals("Components count after drag unexpected", 2, layoutEditor.getAllComponents().size());
-    assertNotEquals(childLocation, ((NlComponentFixture)surface.getAllComponents().get(1)).getMidPoint());
+    assertEquals("Components count after drag unexpected", 2, countAllSceneComponents(layoutEditor));
+    assertNotEquals(childLocation, getSceneComponentAt(layoutEditor, 1).getMidPoint());
   }
 }

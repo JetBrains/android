@@ -35,6 +35,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.ComponentTreeFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.SceneComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.AddDestinationMenuFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.DestinationListFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.NavDesignSurfaceFixture;
@@ -64,10 +65,10 @@ public class NavNlEditorTest {
     editor.open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN);
     NlEditorFixture layout = editor.getLayoutEditor(true).waitForRenderToFinish();
 
-    NlComponentFixture screen = ((NavDesignSurfaceFixture)layout.getSurface()).findDestination("first_screen");
+    SceneComponentFixture screen = ((NavDesignSurfaceFixture)layout.getSurface()).findDestination("first_screen");
     screen.click();
 
-    assertThat(layout.getSelection()).containsExactly(screen.getComponent());
+    assertThat(layout.getSelection()).containsExactly(screen.getSceneComponent());
 
     List<NlComponent> selectedComponents = getPanelSelectedComponents(layout);
     assertEquals(1, selectedComponents.size());

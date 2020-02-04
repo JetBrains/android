@@ -136,7 +136,7 @@ public class ConstraintLayoutTest {
     NlEditorFixture layoutEditor = editor.getLayoutEditor(true);
 
     layoutEditor.waitForRenderToFinish();
-    layoutEditor.findView("TextView", 0).click();
+    layoutEditor.findView("TextView", 0).getSceneComponent().click();
     layoutEditor.getPropertiesPanel().getConstraintLayoutViewInspector().selectMarginStart(8);
 
     editor.selectEditorTab(Tab.EDITOR);
@@ -198,7 +198,7 @@ public class ConstraintLayoutTest {
     NlEditorFixture layoutEditor = editor.getLayoutEditor(true);
     layoutEditor.waitForRenderToFinish();
     layoutEditor.showOnlyDesignView();
-    layoutEditor.findView("TextView", 0).click();
+    layoutEditor.findView("TextView", 0).getSceneComponent().click();
     layoutEditor.getPropertiesPanel().getConstraintLayoutViewInspector().getDeleteRightConstraintButton().click();
 
     editor.selectEditorTab(Tab.EDITOR);

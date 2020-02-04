@@ -95,6 +95,11 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
   }
 
   @NotNull
+  public SceneFixture getScene() {
+    return myDesignSurfaceFixture.getScene();
+  }
+
+  @NotNull
   public NlEditorFixture waitForRenderToFinish() {
     waitForRenderToFinish(Wait.seconds(10));
     return this;
@@ -389,6 +394,11 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
   @NotNull
   public List<NlComponentFixture> getAllComponents() {
     return myDesignSurfaceFixture.getAllComponents();
+  }
+
+  @NotNull
+  public List<SceneViewFixture> getAllSceneViews() {
+    return myDesignSurfaceFixture.getAllSceneViews();
   }
 
   @NotNull

@@ -84,7 +84,7 @@ public class IssuePanelTest {
     NlComponentFixture textView = layoutEditor
       .showOnlyDesignView()
       .findView("TextView", 0);
-    textView.click();
+    textView.getSceneComponent().click();
 
     layoutEditor.waitForRenderToFinish();
     IssuePanelFixture panelFixture = layoutEditor.getIssuePanel();
@@ -95,7 +95,7 @@ public class IssuePanelTest {
     NlPropertyInspectorFixture propertyPanel = layoutEditor.getPropertiesPanel();
     propertyPanel.focusAndWaitForFocusGainInProperty("text", null);
     propertyPanel.pressKeyInUnknownProperty(KeyEvent.VK_B);
-    textView.click();
+    textView.getSceneComponent().click();
 
     layoutEditor.waitForRenderToFinish();
     assertEquals("1 Warning", panelFixture.getTitle().trim());
