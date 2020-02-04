@@ -15,42 +15,31 @@
  */
 package com.android.tools.idea.npw.dynamicapp
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.model.ExistingProjectModelData
-import com.android.tools.idea.npw.model.NewProjectModel.Companion.nameToJavaPackage
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.module.ModuleModel
-import com.android.tools.idea.npw.template.TemplateValueInjector
+import com.android.tools.idea.npw.module.recipes.dynamicFeatureModule.generateDynamicFeatureModule
 import com.android.tools.idea.observable.collections.ObservableList
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_DYNAMIC_FEATURE_DEVICE_FEATURE_LIST
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_DYNAMIC_FEATURE_FUSING
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_DYNAMIC_FEATURE_INSTALL_TIME_DELIVERY
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_DYNAMIC_FEATURE_INSTALL_TIME_WITH_CONDITIONS_DELIVERY
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_DYNAMIC_FEATURE_ON_DEMAND
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_DYNAMIC_FEATURE_ON_DEMAND_DELIVERY
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_DYNAMIC_FEATURE_TITLE
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_DYNAMIC_IS_INSTANT_MODULE
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_DYNAMIC_FEATURE
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_NEW_MODULE
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_MODULE_SIMPLE_NAME
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.Recipe
 import com.android.tools.idea.wizard.template.TemplateData
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer as RenderLoggingEvent
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.util.lang.JavaVersion
-import com.android.tools.idea.npw.module.recipes.dynamicFeatureModule.generateDynamicFeatureModule
-import java.io.File
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer as RenderLoggingEvent
 
 class DynamicFeatureModel(
-  project: Project, templateFile: File, projectSyncInvoker: ProjectSyncInvoker, val isInstant: Boolean
+  project: Project, projectSyncInvoker: ProjectSyncInvoker, val isInstant: Boolean,
+  @JvmField
+  val templateName: String,
+  @JvmField
+  val templateDescription: String
 ) : ModuleModel(
-  templateFile,
+  null,
   "dynamicfeature",
   "New Dynamic Feature Module",
   false,
@@ -90,34 +79,11 @@ class DynamicFeatureModel(
     override fun init() {
       super.init()
 
-      val newValues = mutableMapOf(
-        ATTR_IS_DYNAMIC_FEATURE to true,
-        ATTR_MODULE_SIMPLE_NAME to nameToJavaPackage(moduleName.get()),
-        ATTR_DYNAMIC_FEATURE_TITLE to featureTitle.get(),
-        ATTR_DYNAMIC_FEATURE_ON_DEMAND to featureOnDemand.get(),
-        ATTR_DYNAMIC_FEATURE_FUSING to featureFusing.get(),
-        ATTR_IS_NEW_MODULE to true,
-        ATTR_DYNAMIC_IS_INSTANT_MODULE to instantModule.get(),
-        // Dynamic delivery conditions
-        ATTR_DYNAMIC_FEATURE_INSTALL_TIME_DELIVERY to (downloadInstallKind.value == DownloadInstallKind.INCLUDE_AT_INSTALL_TIME),
-        ATTR_DYNAMIC_FEATURE_INSTALL_TIME_WITH_CONDITIONS_DELIVERY to (downloadInstallKind.value == DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS),
-        ATTR_DYNAMIC_FEATURE_ON_DEMAND_DELIVERY to (downloadInstallKind.value == DownloadInstallKind.ON_DEMAND_ONLY),
-        ATTR_DYNAMIC_FEATURE_DEVICE_FEATURE_LIST to deviceFeatures
-      )
-
-      TemplateValueInjector(newValues)
-        .setBuildVersion(androidSdkInfo.value, project, false)
-        .setBaseFeature(baseApplication.value)
-
-      moduleTemplateValues.putAll(newValues)
-
-      if (StudioFlags.NPW_NEW_MODULE_TEMPLATES.get()) {
-        moduleTemplateDataBuilder.apply {
-          projectTemplateDataBuilder.apply {
-            javaVersion = JavaVersion.parse("1.8")
-          }
-          setBaseFeature(baseApplication.value)
+      moduleTemplateDataBuilder.apply {
+        projectTemplateDataBuilder.apply {
+          javaVersion = JavaVersion.parse("1.8")
         }
+        setBaseFeature(baseApplication.value)
       }
     }
   }
