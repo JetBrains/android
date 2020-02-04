@@ -31,6 +31,7 @@ import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture
 import com.android.tools.idea.tests.gui.framework.fixture.inspector.LayoutInspectorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.properties.PTableFixture
+import com.android.tools.idea.tests.gui.framework.fixture.properties.PropertiesPanelFixture
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Property
@@ -49,6 +50,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.awt.Color
+import java.awt.event.KeyEvent.VK_SPACE
 import java.net.Socket
 
 private const val PROJECT_NAME = "LayoutTest"
@@ -109,6 +111,9 @@ class BasicLayoutInspectorUITest {
     val inspector = LayoutInspectorFixture(frame.project, robot)
     inspector.activate()
 
+    // Resize the root panel to make the layout inspector window taller.
+    frame.findToolWindowSplitter().lastSize = 300
+
     // Select a device and process and wait for the component tree to display the correct amount of nodes.
     inspector.selectDevice("${DEFAULT_DEVICE.manufacturer} ${DEFAULT_DEVICE.model}",
                            "${DEFAULT_PROCESS.name} (${DEFAULT_PROCESS.pid})")
@@ -152,8 +157,138 @@ class BasicLayoutInspectorUITest {
     assertThat(editor.currentFileName).isEqualTo("colors.xml")
     assertThat(editor.currentLine.trim()).isEqualTo("<color name=\"back1\">@color/color2</color>")
 
+    // Click on the LinearLayout
+    val deviceView = inspector.deviceView
+    deviceView.clickOnImage(50, 50)
+    inspector.tree.requireSelection(0)
+    inspector.waitForPropertiesToPopulate(linearLayoutId.name)
+    requireDeclaredAttributeValue(properties, "background", "#FFFF00")
+    requireNoDeclaredAttribute(properties, "backgroundTint")
+
+    // Click on the Button4
+    deviceView.clickOnImage(500, 1400)
+    inspector.tree.requireSelection(3)
+    inspector.waitForPropertiesToPopulate(button4Id.name)
+    requireNoDeclaredAttribute(properties, "background")
+    requireDeclaredAttributeValue(properties, "backgroundTint", "#FF0000")
+
+    // 2D status
+    val layerSpacingSlider = inspector.layerSpacingSlider
+    assertThat(layerSpacingSlider.isEnabled).isFalse()
+    assertThat(deviceView.angleAfterLastPaint).isEqualTo(0.0)
+    deviceView.clickOnImage(310, 510)
+    inspector.waitForPropertiesToPopulate(button3Id.name)
+
+    // Change to 3D viewing
+    deviceView.mode3DActionButton.click()
+    deviceView.clickOnImage(310, 510)  // no longer expected to be button3
+    inspector.waitForPropertiesToPopulate(frameLayoutId.name)
+    deviceView.clickOnImage(410, 320)
+    inspector.waitForPropertiesToPopulate(button3Id.name)
+    assertThat(deviceView.angleAfterLastPaint).isWithin(1.0).of(26.0)
+
+    // Exaggerate the 3D viewing
+    deviceView.clickAndDrag(400, 800, 2000, 1000)
+    deviceView.clickOnImage(410, 320)   // no longer expected to be button3
+    inspector.waitForPropertiesToPopulate(frameLayoutId.name)
+    deviceView.clickOnImage(490, 360)
+    inspector.waitForPropertiesToPopulate(button3Id.name)
+    assertThat(deviceView.angleAfterLastPaint).isWithin(1.0).of(38.4)
+
+    // Layer spacing
+    inspector.waitUntilMode3dSliderEnabled(true)
+    assertThat(deviceView.layerSpacing).isEqualTo(150)
+
+    // Maximum layer spacing moves button3 to the right
+    layerSpacingSlider.slideToMaximum()
+    deviceView.clickOnImage(490, 360) // no longer expected to be button3
+    inspector.waitForPropertiesToPopulate(frameLayoutId.name)
+    deviceView.clickOnImage(720, 420)
+    inspector.waitForPropertiesToPopulate(button3Id.name)
+    assertThat(deviceView.layerSpacing).isEqualTo(500)
+
+    // Minimum layer spacing moves button3 to the left
+    layerSpacingSlider.slideToMinimum()
+    deviceView.clickOnImage(720, 420) // no longer expected to be button3
+    inspector.waitForPropertiesToPopulate(linearLayoutId.name)
+    deviceView.clickOnImage(400, 340)
+    inspector.waitForPropertiesToPopulate(button3Id.name)
+    assertThat(deviceView.layerSpacing).isEqualTo(0)
+
+    // Back to start
+    deviceView.layerSpacing = 150
+
+    // Reset to 2D
+    deviceView.mode3DActionButton.click()
+    deviceView.clickOnImage(310, 510)
+    inspector.waitForPropertiesToPopulate(button3Id.name)
+    assertThat(deviceView.angleAfterLastPaint).isEqualTo(0.0)
+    inspector.waitUntilMode3dSliderEnabled(false)
+
+    // Before any zoom check that the view is fully shown.
+    // The full height of the root layout should fit in the viewport of the ScrollPane.
+    assertThat(deviceView.viewEndPosition.y - deviceView.viewPosition.y >= 2000)
+
+    // Zoom In
+    deviceView.zoomInButton.click()
+    deviceView.waitUntilExpectedViewportHeight(1200, tolerance = 50)
+
+    // Zoom In a second time
+    deviceView.zoomInButton.click()
+    deviceView.waitUntilExpectedViewportHeight(790, tolerance = 50)
+
+    // Panning using the space key
+    var pos = deviceView.viewPosition
+    robot.focusAndWaitForFocusGain(deviceView.contentPanel)
+    robot.pressKey(VK_SPACE)
+    deviceView.clickAndDrag(50, 800, 0, 100)
+    robot.focusAndWaitForFocusGain(deviceView.contentPanel)
+    robot.releaseKey(VK_SPACE)
+    pos.translate(0, -100)
+    deviceView.waitUntilExpectedViewPosition(pos)
+
+    // Panning using the middle mouse button
+    pos = deviceView.viewPosition
+    deviceView.clickAndDrag(50, 700, 0, 100, MouseButton.MIDDLE_BUTTON)
+    pos.translate(0, -100)
+    deviceView.waitUntilExpectedViewPosition(pos)
+
+    // Panning using the Pan button
+    deviceView.panButton.click()
+    pos = deviceView.viewPosition
+    deviceView.clickAndDrag(50, 600, 0, 100)
+    pos.translate(0, -100)
+    deviceView.waitUntilExpectedViewPosition(pos)
+
+    // Zoom out
+    deviceView.zoomOutButton.click()
+    deviceView.waitUntilExpectedViewportHeight(1200, tolerance = 50)
+
+    // Zoom to fit
+    deviceView.zoomToFitButton.click()
+
+    // The full height of the root layout should again fit in the viewport of the ScrollPane.
+    assertThat(deviceView.viewEndPosition.y - deviceView.viewPosition.y >= 2000)
+
     inspector.stop()
     Wait.seconds(10).expecting("debug attribute cleanup").until { commandHandler.stopped }
+  }
+
+  private fun requireDeclaredAttributeValue(properties: PropertiesPanelFixture<*>, attrName: String, attrValue: String) {
+    val declared = properties.findSectionByName("Declared Attributes")!!
+    val table = declared.components.single() as PTableFixture
+    val row = table.findRowOf(attrName)
+    assertThat(row).named("The attribute: ${attrName} was not found").isAtLeast(0)
+    val item = table.item(row)
+    assertThat(item.name).isEqualTo(attrName)
+    assertThat(item.value).isEqualTo(attrValue)
+  }
+
+  private fun requireNoDeclaredAttribute(properties: PropertiesPanelFixture<*>, attrName: String) {
+    val declared = properties.findSectionByName("Declared Attributes")!!
+    val table = declared.components.single() as PTableFixture
+    val row = table.findRowOf(attrName)
+    assertThat(row).named("The attribute: ${attrName} was found unexpectedly").isEqualTo(-1)
   }
 
   private fun waitForAdbToConnect(project: Project) {
@@ -184,6 +319,8 @@ class BasicLayoutInspectorUITest {
   private fun produceProperties(command: Commands.Command, events: MutableList<Common.Event>) {
     val event = when (command.layoutInspector.viewId) {
       1L -> createPropertiesForLinearLayout(command.pid)
+      2L -> createPropertiesForFrameLayout(command.pid)
+      3L -> createPropertiesForButton3(command.pid)
       4L -> createPropertiesForButton4(command.pid)
       else -> error("unexpected property request")
     }
@@ -332,6 +469,91 @@ class BasicLayoutInspectorUITest {
           name = strings.add("elevation")
           type = Property.Type.FLOAT
           floatValue = 0.0f
+        })
+        addAllString(strings.asEntryList())
+      }
+    }.build()
+  }
+
+  private fun createPropertiesForFrameLayout(processId: Int): Common.Event {
+    val strings = TestStringTable()
+    return Common.Event.newBuilder().apply {
+      pid = processId
+      kind = Common.Event.Kind.LAYOUT_INSPECTOR
+      groupId = Common.Event.EventGroupIds.PROPERTIES.number.toLong()
+      timestamp = System.currentTimeMillis()
+      layoutInspectorEventBuilder.propertiesBuilder.apply {
+        viewId = 2L
+        layout = strings.add(layoutReference)
+        addProperty(Property.newBuilder().apply {
+          name = strings.add("id")
+          type = Property.Type.RESOURCE
+          source = strings.add(layoutReference)
+          resourceValue = strings.add(frameLayoutId)
+        })
+        addProperty(Property.newBuilder().apply {
+          name = strings.add("background")
+          type = Property.Type.COLOR
+          source = strings.add(layoutReference)
+          addResolutionStack(strings.add(layoutReference))
+          int32Value = Color.BLUE.rgb
+        })
+        addProperty(Property.newBuilder().apply {
+          name = strings.add("layout_width")
+          type = Property.Type.INT_ENUM
+          source = strings.add(layoutReference)
+          isLayout = true
+          int32Value = strings.add("500")
+        })
+        addProperty(Property.newBuilder().apply {
+          name = strings.add("layout_height")
+          type = Property.Type.INT_ENUM
+          source = strings.add(layoutReference)
+          isLayout = true
+          int32Value = strings.add("1000")
+        })
+        addAllString(strings.asEntryList())
+      }
+    }.build()
+  }
+
+  private fun createPropertiesForButton3(processId: Int): Common.Event {
+    val strings = TestStringTable()
+    return Common.Event.newBuilder().apply {
+      pid = processId
+      kind = Common.Event.Kind.LAYOUT_INSPECTOR
+      groupId = Common.Event.EventGroupIds.PROPERTIES.number.toLong()
+      timestamp = System.currentTimeMillis()
+      layoutInspectorEventBuilder.propertiesBuilder.apply {
+        viewId = 3L
+        layout = strings.add(layoutReference)
+        addProperty(Property.newBuilder().apply {
+          name = strings.add("id")
+          type = Property.Type.RESOURCE
+          source = strings.add(layoutReference)
+          resourceValue = strings.add(button3Id)
+        })
+        addProperty(Property.newBuilder().apply {
+          name = strings.add("backgroundTint")
+          type = Property.Type.COLOR
+          source = strings.add(layoutReference)
+          addResolutionStack(strings.add(layoutReference))
+          addResolutionStack(strings.add(buttonStyleReference))
+          int32Value = Color.BLACK.rgb
+        })
+        addProperty(Property.newBuilder().apply {
+          name = strings.add("layout_width")
+          type = Property.Type.INT32
+          source = strings.add(layoutReference)
+          isLayout = true
+          int32Value = 200
+        })
+        addProperty(Property.newBuilder().apply {
+          name = strings.add("layout_height")
+          type = Property.Type.INT32
+          source = strings.add(layoutReference)
+          isLayout = true
+          int32Value = 500
         })
         addAllString(strings.asEntryList())
       }
