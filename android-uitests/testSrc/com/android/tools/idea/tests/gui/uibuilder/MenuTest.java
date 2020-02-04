@@ -84,7 +84,7 @@ public final class MenuTest {
       .getLayoutEditor(true)
       .waitForRenderToFinish()
       .findView("item", 0);
-    dragAndDrop("Cast Button", settingsItem.getLeftCenterPoint());
+    dragAndDrop("Cast Button", settingsItem.getSceneComponent().getLeftCenterPoint());
 
     MessagesFixture.findByTitle(myGuiTest.robot(), "Add Project Dependency").clickOk();
     myGuiTest.ideFrame().waitForGradleProjectSyncToFinish();
@@ -116,7 +116,7 @@ public final class MenuTest {
       .getLayoutEditor(false)
       .waitForRenderToFinish()
       .findView("item", 0);
-    dragAndDrop("Menu Item", settingsItem.getTopCenterPoint());
+    dragAndDrop("Menu Item", settingsItem.getSceneComponent().getTopCenterPoint());
     myEditor.open(MENU_MAIN_XML_RELATIVE_PATH, Tab.EDITOR);
 
     @Language("XML")
@@ -144,7 +144,7 @@ public final class MenuTest {
       .getLayoutEditor(true)
       .waitForRenderToFinish()
       .findView("item", 0);
-    dragAndDrop("Search Item", settingsItem.getLeftCenterPoint());
+    dragAndDrop("Search Item", settingsItem.getSceneComponent().getLeftCenterPoint());
     myEditor.open(MENU_MAIN_XML_RELATIVE_PATH, Tab.EDITOR);
 
     @Language("XML")

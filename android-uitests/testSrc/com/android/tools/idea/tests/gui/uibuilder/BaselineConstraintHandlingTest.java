@@ -67,6 +67,7 @@ public class BaselineConstraintHandlingTest {
       .waitForRenderToFinish(Wait.seconds(120))
       .showOnlyDesignView()
       .findView("TextView", 0)
+      .getSceneComponent()
       .rightClick();
 
     layoutEditor

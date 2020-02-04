@@ -30,6 +30,9 @@ import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.DesignSurfaceFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.SceneComponentFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.SceneViewFixture;
+import com.google.common.collect.Iterables;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
@@ -54,16 +57,10 @@ public class NavDesignSurfaceFixture extends DesignSurfaceFixture<NavDesignSurfa
    * @param id the destination id
    */
   @NotNull
-  public NlComponentFixture findDestination(@NotNull final String id) {
+  public SceneComponentFixture findDestination(@NotNull final String id) {
     waitForRenderToFinish();
 
-    SceneView view = target().getFocusedSceneView();
-
-    final NlModel model = view.getModel();
-
-    NlComponent component = verifyNotNull(model.find(id));
-
-    return createComponentFixture(component);
+    return verifyNotNull(getScene().findSceneComponentById(id));
   }
 
   /**

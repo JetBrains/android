@@ -101,7 +101,7 @@ public class NlEditorMonkeyTest {
       },
 
       // Click
-      (context) -> context.component.click(),
+      (context) -> context.component.getSceneComponent().click(),
 
       // Resize
       (context) -> context.component.resizeBy(RND.nextInt(RESIZE_RANGE_PX * 2) - RESIZE_RANGE_PX, RND.nextInt(RESIZE_RANGE_PX * 2) -
@@ -180,7 +180,7 @@ public class NlEditorMonkeyTest {
         context.frame.pressKey(KeyEvent.VK_SHIFT);
         List<NlComponentFixture> allComponents = context.editor.getAllComponents();
         for (int i = 0; i <= RND.nextInt(allComponents.size()); i++) {
-          allComponents.get(RND.nextInt(allComponents.size())).click();
+          allComponents.get(RND.nextInt(allComponents.size())).getSceneComponent().click();
         }
         context.frame.releaseKey(KeyEvent.VK_SHIFT);
       },

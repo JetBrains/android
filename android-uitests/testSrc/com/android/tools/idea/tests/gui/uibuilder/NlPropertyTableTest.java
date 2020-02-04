@@ -84,7 +84,7 @@ public class NlPropertyTableTest {
       .getLayoutEditor(true)
       .waitForRenderToFinish();
 
-    layout.findView("TextView", 0).click();
+    layout.findView("TextView", 0).getSceneComponent().click();
     layout.getPropertiesPanel().openAsInspector()
       .adjustIdeFrameHeightFor(myFrame, 4, "ID")
       .focusAndWaitForFocusGainInProperty("ID", null)
@@ -140,7 +140,8 @@ public class NlPropertyTableTest {
       .getLayoutEditor(true)
       .waitForRenderToFinish();
 
-    NlComponentFixture textView = layout.findView("TextView", 0).click();
+    NlComponentFixture textView = layout.findView("TextView", 0);
+    textView.getSceneComponent().click();
 
     NlPropertyTableFixture table = layout.getPropertiesPanel().openAsTable()
       .waitForMinimumRowCount(15)
@@ -175,7 +176,8 @@ public class NlPropertyTableTest {
       .getLayoutEditor(true)
       .waitForRenderToFinish();
 
-    NlComponentFixture textView = layout.findView("TextView", 0).click();
+    NlComponentFixture textView = layout.findView("TextView", 0);
+    textView.getSceneComponent().click();
     NlPropertyTableFixture table = layout.getPropertiesPanel().openAsTable()
       .waitForMinimumRowCount(10)
       .selectRows(7)
@@ -201,7 +203,7 @@ public class NlPropertyTableTest {
       .getLayoutEditor(true)
       .waitForRenderToFinish();
 
-    layout.findView("TextView", 0).click();
+    layout.findView("TextView", 0).getSceneComponent().click();
     NlPropertyTableFixture table = layout.getPropertiesPanel().openAsTable();
     Wait.seconds(10).expecting("The table to render").until(() -> table.target().getVisibleRect().getHeight() > 0);
 
