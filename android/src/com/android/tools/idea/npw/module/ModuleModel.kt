@@ -31,22 +31,17 @@ import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.templates.ModuleTemplateDataBuilder
-import com.android.tools.idea.templates.Template
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_LIBRARY_MODULE
-import com.android.tools.idea.templates.TemplateUtils.openEditors
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor2
 import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor2
-import com.android.tools.idea.templates.recipe.RenderingContext.Builder
 import com.android.tools.idea.templates.recipe.RenderingContext2
 import com.android.tools.idea.wizard.model.WizardModel
 import com.android.tools.idea.wizard.template.Recipe
-import com.google.common.annotations.VisibleForTesting
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer as RenderLoggingEvent
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
-import com.intellij.openapi.project.DumbService
 import java.io.File
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer as RenderLoggingEvent
 
 private val log: Logger get() = logger<ModuleModel>()
 
@@ -133,45 +128,21 @@ abstract class ModuleModel(
 
     protected open fun renderTemplate(dryRun: Boolean): Boolean {
       val moduleRoot = getModuleRoot(project.basePath!!, moduleName.get())
+      val context = RenderingContext2(
+        project = project,
+        module = null,
+        commandName = commandName,
+        templateData = moduleTemplateDataBuilder.build(),
+        moduleRoot = moduleRoot,
+        dryRun = dryRun,
+        showErrors = true
+      )
 
-      if (StudioFlags.NPW_NEW_MODULE_TEMPLATES.get()) {
-        val context = RenderingContext2(
-          project = project,
-          module = null,
-          commandName = commandName,
-          templateData = moduleTemplateDataBuilder.build(),
-          moduleRoot = moduleRoot,
-          dryRun = dryRun,
-          showErrors = true
-        )
+      // TODO(qumeric) We should really only have one root - Update RenderingContext2 to get it from templateData?
+      // assert(moduleRoot == (context.templateData as ModuleTemplateData).rootDir)
 
-        // TODO(qumeric) We should really only have one root - Update RenderingContext2 to get it from templateData?
-        // assert(moduleRoot == (context.templateData as ModuleTemplateData).rootDir)
-
-        val executor = if (dryRun) FindReferencesRecipeExecutor2(context) else DefaultRecipeExecutor2(context)
-        return recipe.render(context, executor, loggingEvent)
-      }
-
-      val projectRoot = File(project.basePath!!)
-      val template = Template.createFromPath(templateFile!!)
-      val filesToOpen = mutableListOf<File>()
-
-      val context = Builder.newContext(template, project)
-        .withCommandName(commandName)
-        .withDryRun(dryRun)
-        .withShowErrors(true)
-        .withOutputRoot(projectRoot)
-        .withModuleRoot(moduleRoot)
-        .withParams(moduleTemplateValues)
-        .intoOpenFiles(filesToOpen)
-        .build()
-
-      return template.render(context!!, dryRun).also {
-        if (it && !dryRun) {
-          // calling smartInvokeLater will make sure that files are open only when the project is ready
-          DumbService.getInstance(project).smartInvokeLater { openEditors(project, filesToOpen, false) }
-        }
-      }
+      val executor = if (dryRun) FindReferencesRecipeExecutor2(context) else DefaultRecipeExecutor2(context)
+      return recipe.render(context, executor, loggingEvent)
     }
   }
 }
