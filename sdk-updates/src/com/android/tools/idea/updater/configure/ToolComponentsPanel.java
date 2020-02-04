@@ -47,7 +47,6 @@ import java.util.TreeSet;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.event.ChangeListener;
-import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -238,7 +237,7 @@ public class ToolComponentsPanel {
   }
 
   private void createUIComponents() {
-    myToolsLoadingIcon = new AsyncProcessIcon(AndroidBundle.message("text.loading"));
+    myToolsLoadingIcon = new AsyncProcessIcon(IdeBundle.message("common.text.loading"));
 
     myToolsSummaryRootNode = new RootNode();
     myToolsDetailsRootNode = new RootNode();
