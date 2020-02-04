@@ -37,3 +37,12 @@ fun getRowIdName(columns: List<SqliteColumn>): RowIdName? {
     else -> null
   }
 }
+
+/**
+ * Returns a new [SqliteStatement], the text of which is obtained applying [func] to the text of the original [SqliteStatement].
+ * The parameters are the same of the original [SqliteStatement].
+ */
+fun SqliteStatement.transform(func: (String) -> String): SqliteStatement {
+  val newStatement = func(this.sqliteStatementText)
+  return SqliteStatement(newStatement, parametersValues)
+}

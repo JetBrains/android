@@ -62,8 +62,8 @@ class JdbcSqliteResultSet(
     check(!Disposer.isDisposed(this)) { "ResultSet has already been closed." }
     check(!connection.isClosed) { "The connection has been closed." }
 
-    val countQuery = "SELECT COUNT(*) FROM (${sqliteStatement.sqliteStatementText})"
-    connection.resolvePreparedStatement(SqliteStatement(countQuery, sqliteStatement.parametersValues)).use { preparedStatement ->
+    val newStatement = sqliteStatement.toRowCountStatement()
+    connection.resolvePreparedStatement(newStatement).use { preparedStatement ->
       preparedStatement.executeQuery().use {
         it.next()
         val count = it.getInt(1)
@@ -88,8 +88,8 @@ class JdbcSqliteResultSet(
       check(!Disposer.isDisposed(this)) { "ResultSet has already been closed." }
       check(!connection.isClosed) { "The connection has been closed." }
 
-      val limitOffsetQuery = "SELECT * FROM (${sqliteStatement.sqliteStatementText}) LIMIT $rowOffset, $rowBatchSize"
-      connection.resolvePreparedStatement(SqliteStatement(limitOffsetQuery, sqliteStatement.parametersValues)).use { preparedStatement ->
+      val newStatement = sqliteStatement.toSelectLimitOffset(rowOffset, rowBatchSize)
+      connection.resolvePreparedStatement(newStatement).use { preparedStatement ->
         preparedStatement.executeQuery().use {
           val rows = ArrayList<SqliteRow>()
           while (it.next()) {
