@@ -17,10 +17,15 @@ package com.android.tools.idea.mlkit;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.mlkit.lightpsi.LightModelClass;
-import com.android.tools.idea.mlkit.lightpsi.MlkitOutputLightClass;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncUtil;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleServiceManager;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.ModificationTracker;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
@@ -31,7 +36,6 @@ import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.util.indexing.FileBasedIndex;
 import com.intellij.util.messages.MessageBusConnection;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +51,7 @@ import org.jetbrains.annotations.Nullable;
 public class MlkitModuleService {
   private final Module myModule;
   private final ModelFileModificationTracker myModelFileModificationTracker;
-  private final Map<MlModelMetadata,LightModelClass> myLightModelClassMap = new ConcurrentHashMap<>();
+  private final Map<MlModelMetadata, LightModelClass> myLightModelClassMap = new ConcurrentHashMap<>();
   //TODO(jackqdyulei): consider remove it and use local value.
   private MlModelMetadata myMetadata;
 
@@ -58,6 +62,15 @@ public class MlkitModuleService {
   public MlkitModuleService(@NotNull Module module) {
     myModule = module;
     myModelFileModificationTracker = new ModelFileModificationTracker(module);
+
+    module.getMessageBus().connect(module).subscribe(ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC, new SyncResultListener() {
+      @Override
+      public void syncEnded(@NotNull ProjectSystemSyncManager.SyncResult result) {
+        ApplicationManager.getApplication()
+          .executeOnPooledThread(() -> DumbService.getInstance(module.getProject()).runReadActionInSmartMode(
+            () -> MlkitUtils.verifyDependenciesForAllModelFiles(module)));
+      }
+    });
   }
 
   @Nullable
@@ -109,10 +122,14 @@ public class MlkitModuleService {
           @Override
           public void after(@NotNull List<? extends VFileEvent> events) {
             for (VFileEvent event : events) {
-              if (event.getFile() != null && MlkitUtils.isMlModelFileInAssetsFolder(event.getFile())) {
+              VirtualFile file = event.getFile();
+              if (file != null && MlkitUtils.isMlModelFileInAssetsFolder(file)) {
                 PsiManager.getInstance(module.getProject()).dropResolveCaches();
                 getInstance(module).myLightModelClassMap.clear();
                 myModificationCount++;
+                ApplicationManager.getApplication()
+                  .executeOnPooledThread(() -> DumbService.getInstance(module.getProject()).runReadActionInSmartMode(
+                    () -> MlkitUtils.verifyDependenciesForModelFile(module, file)));
                 return;
               }
             }

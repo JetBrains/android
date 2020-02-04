@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.mlkit;
 
+import com.android.ide.common.repository.GradleCoordinate;
+import com.android.tools.idea.projectsystem.AndroidModuleSystem;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.mlkit.MetadataExtractor;
 import com.android.tools.mlkit.ModelData;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
@@ -22,15 +27,23 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorState;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
+import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.List;
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JEditorPane;
 import javax.swing.JPanel;
@@ -60,13 +73,38 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   private final VirtualFile myFile;
   private final JBScrollPane myRootPane;
 
-  public TfliteModelFileEditor(@NotNull VirtualFile file) {
+  public TfliteModelFileEditor(@NotNull Project project, @NotNull VirtualFile file) {
     myFile = file;
 
     JPanel contentPanel = new JPanel();
     contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
     contentPanel.setBackground(UIUtil.getTextFieldBackground());
     contentPanel.setBorder(JBUI.Borders.empty(20));
+
+    // TODO(149115468): revisit.
+    Module module = ModuleUtilCore.findModuleForFile(file, project);
+    if (module != null) {
+      List<GradleCoordinate> depsToAdd = MlkitUtils.getMissingDependencies(module, file);
+      if (!depsToAdd.isEmpty()) {
+        JButton addDepButton = new JButton("Add Missing Dependencies");
+        addDepButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        addDepButton.addActionListener(new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            // TODO(b/149224613): switch to use DependencyManagementUtil#addDependencies.
+            AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(module);
+            if (DependencyManagementUtil.userWantsToAdd(module.getProject(), depsToAdd, "")) {
+              for (GradleCoordinate dep : depsToAdd) {
+                moduleSystem.registerDependency(dep);
+              }
+              ProjectSystemUtil.getSyncManager(module.getProject()).syncProject(SyncReason.PROJECT_MODIFIED);
+              contentPanel.remove(addDepButton);
+            }
+          }
+        });
+        contentPanel.add(addDepButton);
+      }
+    }
 
     try {
       ModelData modelData = ModelData.buildFrom(new MetadataExtractor(ByteBuffer.wrap(file.contentsToByteArray())));
@@ -106,6 +144,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
                        "</table>";
 
     JTextPane modelPane = new JTextPane();
+    modelPane.setAlignmentX(Component.LEFT_ALIGNMENT);
     setHtml(modelPane, modelHtml);
     contentPanel.add(modelPane);
   }

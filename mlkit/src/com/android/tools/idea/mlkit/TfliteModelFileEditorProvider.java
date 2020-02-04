@@ -18,6 +18,7 @@ package com.android.tools.idea.mlkit;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
+import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
@@ -25,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Provides editor for the TFLite mode files.
  */
-public class TfliteModelFileEditorProvider implements FileEditorProvider {
+public class TfliteModelFileEditorProvider implements FileEditorProvider, DumbAware {
   private static final String ID = "tflite_model_file_editor";
 
   @Override
@@ -37,7 +38,7 @@ public class TfliteModelFileEditorProvider implements FileEditorProvider {
   @NotNull
   @Override
   public FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
-    return new TfliteModelFileEditor(file);
+    return new TfliteModelFileEditor(project, file);
   }
 
   @NotNull
