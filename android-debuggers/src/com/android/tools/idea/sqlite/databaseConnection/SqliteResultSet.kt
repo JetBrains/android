@@ -17,6 +17,8 @@ package com.android.tools.idea.sqlite.databaseConnection
 
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteRow
+import com.android.tools.idea.sqlite.model.SqliteStatement
+import com.android.tools.idea.sqlite.model.transform
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
 
@@ -30,6 +32,13 @@ import com.intellij.openapi.Disposable
  * the result set.
  */
 interface SqliteResultSet : Disposable {
+  // TODO(b/149286475): make sure that this works for statements that end with a comment.
+  //  eg SELECT COUNT(*) FROM (select * from tab /*a comment*/)
+  fun SqliteStatement.toRowCountStatement() = this.transform { "SELECT COUNT(*) FROM ($it)" }
+  fun SqliteStatement.toSelectLimitOffset(rowOffset: Int, rowBatchSize: Int) = this.transform {
+    "SELECT * FROM ($it) LIMIT $rowOffset, $rowBatchSize"
+  }
+
   val columns: ListenableFuture<List<SqliteColumn>>
   val rowCount: ListenableFuture<Int>
 
