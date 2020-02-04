@@ -45,7 +45,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
   var signingConfigsChanged = 0
   var variantsChanged = 0
 
-  private val DISALLOWED_NAME_CHARS = "/\\:<>\"?*|"
+  private val DISALLOWED_NAME_CHARS = "/\\:<>\"?*|\$'"
 
   fun testFlavorDimensions() {
     loadProject(PSD_SAMPLE_GROOVY)
