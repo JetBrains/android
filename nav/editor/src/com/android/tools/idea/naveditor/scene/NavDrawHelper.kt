@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene
 
+import com.android.tools.adtui.ImageUtils.iconToImage
 import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.adtui.common.SwingEllipse
 import com.android.tools.adtui.common.SwingFont
@@ -34,7 +35,6 @@ import com.android.tools.idea.common.scene.draw.DrawCommand
 import com.android.tools.idea.common.scene.draw.DrawImage
 import com.android.tools.idea.common.scene.draw.FillShape
 import com.android.tools.idea.common.scene.inlineScale
-import com.android.tools.idea.common.util.iconToImage
 import com.android.tools.idea.naveditor.scene.draw.DrawNavScreen
 import com.android.tools.idea.naveditor.scene.draw.DrawPlaceholder
 import com.google.common.annotations.VisibleForTesting

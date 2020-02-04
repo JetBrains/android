@@ -20,10 +20,10 @@ import com.android.SdkConstants.ATTR_NAME
 import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.TAG_INCLUDE
 import com.android.resources.ResourceType
+import com.android.tools.adtui.ImageUtils.iconToImage
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.draw.HQ_RENDERING_HINTS
-import com.android.tools.idea.common.util.iconToImage
 import com.android.tools.idea.naveditor.model.schema
 import com.android.tools.idea.naveditor.model.setAsStartDestination
 import com.android.tools.idea.naveditor.model.startDestinationId
