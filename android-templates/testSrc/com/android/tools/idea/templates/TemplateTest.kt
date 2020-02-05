@@ -56,24 +56,10 @@ open class TemplateTest : TemplateTestBase() {
     checkCreateTemplate("activities", "BasicActivity", ActivityCreationMode.WITHOUT_PROJECT)
   }
 
-  @TemplateCheck
-  fun testCompareNewBasicActivity() {
-    checkCreateTemplate("activities", "BasicActivity", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
-  }
 
   @TemplateCheck
   fun testNewBasicActivityWithKotlin() {
     checkCreateTemplate("activities", "BasicActivity", ActivityCreationMode.WITHOUT_PROJECT, withKotlin)
-  }
-
-  @TemplateCheck
-  fun testCompareNewBasicActivityWithKotlin() {
-    checkCreateTemplate("activities", "BasicActivity", ActivityCreationMode.WITHOUT_PROJECT, withKotlin, withNewRenderingContext)
-  }
-
-  @TemplateCheck
-  fun testCompareNewEmptyActivityWithKotlin() {
-    checkCreateTemplate("activities", "EmptyActivity", ActivityCreationMode.WITHOUT_PROJECT, withKotlin, withNewRenderingContext)
   }
 
   @TemplateCheck
@@ -97,25 +83,8 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
-  fun testCompareThingsActivity() {
-    checkCreateTemplate("activities", "AndroidThingsActivity",
-                        ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext, withThingsLauncher)
-  }
-
-  @TemplateCheck
-  fun testCompareThingsActivityWithKotlin() {
-    checkCreateTemplate("activities", "AndroidThingsActivity",
-                        ActivityCreationMode.WITHOUT_PROJECT, withKotlin, withNewRenderingContext, withThingsLauncher)
-  }
-
-  @TemplateCheck
   fun testNewEmptyActivity() {
     checkCreateTemplate("activities", "EmptyActivity", ActivityCreationMode.WITHOUT_PROJECT)
-  }
-
-  @TemplateCheck
-  fun testCompareNewEmptyActivity() {
-    checkCreateTemplate("activities", "EmptyActivity", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
   }
 
   @TemplateCheck
@@ -148,16 +117,6 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
-  fun testCompareViewModelActivity() {
-    checkCreateTemplate("activities", "ViewModelActivity", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
-  }
-
-  @TemplateCheck
-  fun testCompareViewModelActivityWithKotlin() {
-    checkCreateTemplate("activities", "ViewModelActivity", ActivityCreationMode.WITHOUT_PROJECT, withKotlin, withNewRenderingContext)
-  }
-
-  @TemplateCheck
   fun testNewProjectWithViewModelActivity() {
     checkCreateTemplate("activities", "ViewModelActivity", ActivityCreationMode.WITH_PROJECT)
   }
@@ -178,16 +137,6 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
-  fun testCompareTabbedActivity() {
-    checkCreateTemplate("activities", "TabbedActivity", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
-  }
-
-  @TemplateCheck
-  fun testCompareTabbedActivityWithKotlin() {
-    checkCreateTemplate("activities", "TabbedActivity", ActivityCreationMode.WITHOUT_PROJECT, withKotlin, withNewRenderingContext)
-  }
-
-  @TemplateCheck
   fun testNewBlankWearActivity() {
     checkCreateTemplate("activities", "BlankWearActivity", ActivityCreationMode.WITHOUT_PROJECT)
   }
@@ -203,16 +152,6 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
-  fun testCompareBlankWearActivity() {
-    checkCreateTemplate("activities", "BlankWearActivity", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
-  }
-
-  @TemplateCheck
-  fun testCompareBlankWearActivityWithKotlin() {
-    checkCreateTemplate("activities", "BlankWearActivity", ActivityCreationMode.WITHOUT_PROJECT, withKotlin, withNewRenderingContext)
-  }
-
-  @TemplateCheck
   fun testNewNavigationDrawerActivity() {
     checkCreateTemplate("activities", "NavigationDrawerActivity", ActivityCreationMode.WITHOUT_PROJECT)
   }
@@ -220,11 +159,6 @@ open class TemplateTest : TemplateTestBase() {
   @TemplateCheck
   fun testNewProjectWithNavigationDrawerActivity() {
     checkCreateTemplate("activities", "NavigationDrawerActivity", ActivityCreationMode.WITH_PROJECT)
-  }
-
-  @TemplateCheck
-  fun testCompareNavigationDrawerActivity() {
-    checkCreateTemplate("activities", "NavigationDrawerActivity", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
   }
 
   @TemplateCheck
@@ -248,16 +182,6 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
-  fun testCompareMasterDetailFlow() {
-    checkCreateTemplate("activities", "MasterDetailFlow", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
-  }
-
-  @TemplateCheck
-  fun testCompareMasterDetailFlowWithKotlin() {
-    checkCreateTemplate("activities", "MasterDetailFlow", ActivityCreationMode.WITHOUT_PROJECT, withKotlin, withNewRenderingContext)
-  }
-
-  @TemplateCheck
   fun testNewFullscreenActivity() {
     checkCreateTemplate("activities", "FullscreenActivity", ActivityCreationMode.WITHOUT_PROJECT)
   }
@@ -265,16 +189,6 @@ open class TemplateTest : TemplateTestBase() {
   @TemplateCheck
   fun testNewProjectWithFullscreenActivity() {
     checkCreateTemplate("activities", "FullscreenActivity", ActivityCreationMode.WITH_PROJECT)
-  }
-
-  @TemplateCheck
-  fun testCompareNewFullscreenActivity() {
-    checkCreateTemplate("activities", "FullscreenActivity", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
-  }
-
-  @TemplateCheck
-  fun testCompareNewFullscreenActivityWithKotlin() {
-    checkCreateTemplate("activities", "FullscreenActivity", ActivityCreationMode.WITHOUT_PROJECT, withKotlin, withNewRenderingContext)
   }
 
   @TemplateCheck
@@ -298,16 +212,6 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
-  fun testCompareLoginActivity() {
-    checkCreateTemplate("activities", "LoginActivity", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
-  }
-
-  @TemplateCheck
-  fun testCompareLoginActivityWithKotlin() {
-    checkCreateTemplate("activities", "LoginActivity", ActivityCreationMode.WITHOUT_PROJECT, withKotlin, withNewRenderingContext)
-  }
-
-  @TemplateCheck
   fun testNewScrollActivity() {
     checkCreateTemplate("activities", "ScrollActivity", ActivityCreationMode.WITHOUT_PROJECT)
   }
@@ -322,16 +226,6 @@ open class TemplateTest : TemplateTestBase() {
     checkCreateTemplate(
       "activities", "ScrollActivity", ActivityCreationMode.WITH_PROJECT, withKotlin, withNewLocation("menu_scroll_activity")
     )
-  }
-
-  @TemplateCheck
-  fun testCompareNewScrollActivity() {
-    checkCreateTemplate("activities", "ScrollActivity", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
-  }
-
-  @TemplateCheck
-  fun testCompareNewScrollActivityWithKotlin() {
-    checkCreateTemplate("activities", "ScrollActivity", ActivityCreationMode.WITHOUT_PROJECT, withKotlin, withNewRenderingContext)
   }
 
   @TemplateCheck
@@ -350,16 +244,6 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
-  fun testCompareSettingsActivity() {
-    checkCreateTemplate("activities", "SettingsActivity", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
-  }
-
-  @TemplateCheck
-  fun testCompareSettingsActivityWithKotlin() {
-    checkCreateTemplate("activities", "SettingsActivity", ActivityCreationMode.WITHOUT_PROJECT, withKotlin, withNewRenderingContext)
-  }
-
-  @TemplateCheck
   fun testBottomNavigationActivity() {
     checkCreateTemplate("activities", "BottomNavigationActivity", ActivityCreationMode.WITHOUT_PROJECT)
   }
@@ -372,16 +256,6 @@ open class TemplateTest : TemplateTestBase() {
   @TemplateCheck
   fun testNewProjectWithBottomNavigationActivityWithKotlin() {
     checkCreateTemplate("activities", "BottomNavigationActivity", ActivityCreationMode.WITH_PROJECT, withKotlin)
-  }
-
-  @TemplateCheck
-  fun testCompareBottomNavigationActivity() {
-    checkCreateTemplate("activities", "BottomNavigationActivity", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
-  }
-
-  @TemplateCheck
-  fun testCompareBottomNavigationActivityWithKotlin() {
-    checkCreateTemplate("activities", "BottomNavigationActivity", ActivityCreationMode.WITHOUT_PROJECT, withKotlin, withNewRenderingContext)
   }
 
   @TemplateCheck
@@ -405,16 +279,6 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
-  fun testCompareTvActivity() {
-    checkCreateTemplate("activities", "AndroidTVActivity", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
-  }
-
-  @TemplateCheck
-  fun testCompareTvActivityWithKotlin() {
-    checkCreateTemplate("activities", "AndroidTVActivity", ActivityCreationMode.WITHOUT_PROJECT, withKotlin, withNewRenderingContext)
-  }
-
-  @TemplateCheck
   fun testGoogleAdMobAdsActivity() {
     checkCreateTemplate("activities", "GoogleAdMobAdsActivity", ActivityCreationMode.WITHOUT_PROJECT)
   }
@@ -425,16 +289,6 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
-  fun testCompareGoogleAdMobAdsActivity() {
-    checkCreateTemplate("activities", "GoogleAdMobAdsActivity", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
-  }
-
-  @TemplateCheck
-  fun testCompareGoogleAdMobAdsActivityWithKotlin() {
-   checkCreateTemplate("activities", "GoogleAdMobAdsActivity", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext, withKotlin)
-  }
-
-  @TemplateCheck
   fun testGoogleMapsActivity() {
     checkCreateTemplate("activities", "GoogleMapsActivity", ActivityCreationMode.WITHOUT_PROJECT)
   }
@@ -442,17 +296,6 @@ open class TemplateTest : TemplateTestBase() {
   @TemplateCheck
   fun testNewProjectWithGoogleMapsActivity() {
     checkCreateTemplate("activities", "GoogleMapsActivity", ActivityCreationMode.WITH_PROJECT)
-  }
-
-  @TemplateCheck
-  fun testCompareGoogleMapsActivity() {
-    // TODO(qumeric): Change back to WITHOUT_PROJECT - b/78621322
-    checkCreateTemplate("activities", "GoogleMapsActivity", ActivityCreationMode.WITH_PROJECT, withNewRenderingContext)
-  }
-
-  @TemplateCheck
-  fun testCompareGoogleMapsActivityWithKotlin() {
-    checkCreateTemplate("activities", "GoogleMapsActivity", ActivityCreationMode.WITH_PROJECT, withKotlin, withNewRenderingContext)
   }
 
   @TemplateCheck
@@ -468,17 +311,6 @@ open class TemplateTest : TemplateTestBase() {
   @TemplateCheck
   fun testNewProjectWithGoogleMapsWearActivityWithKotlin() {
     checkCreateTemplate("activities", "GoogleMapsWearActivity", ActivityCreationMode.WITH_PROJECT, withKotlin)
-  }
-
-  fun testCompareGoogleMapsWearActivity() {
-    checkCreateTemplate("activities", "GoogleMapsWearActivity",
-                        ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
-  }
-
-  @TemplateCheck
-  fun testCompareGoogleMapsWearActivityWithKotlin() {
-    checkCreateTemplate("activities", "GoogleMapsWearActivity",
-                        ActivityCreationMode.WITHOUT_PROJECT, withKotlin, withNewRenderingContext)
   }
 
   @TemplateCheck
@@ -501,38 +333,7 @@ open class TemplateTest : TemplateTestBase() {
     checkCreateTemplate("activities", "ComposeActivity", ActivityCreationMode.WITHOUT_PROJECT, withKotlin) // Compose is always kotlin
   }
 
-  @TemplateCheck
-  fun testCompareComposeActivity() {
-    checkCreateTemplate("activities", "ComposeActivity", ActivityCreationMode.WITHOUT_PROJECT,
-                        withKotlin, withNewRenderingContext) // Compose is always kotlin
-  }
-
   //--- Non-activity templates ---
-
-  @TemplateCheck
-  fun testCompareNewAndroidModule() {
-    checkCreateTemplate("gradle-projects", "NewAndroidModule", ActivityCreationMode.DO_NOT_CREATE, withKotlin, withNewRenderingContext)
-  }
-
-  @TemplateCheck
-  fun testCompareNewAutomotiveModule() {
-    checkCreateTemplate("gradle-projects", "NewAndroidAutomotiveModule", ActivityCreationMode.DO_NOT_CREATE, withKotlin, withNewRenderingContext)
-  }
-
-  @TemplateCheck
-  fun testCompareNewThingsModule() {
-    checkCreateTemplate("gradle-projects", "NewAndroidThingsModule", ActivityCreationMode.DO_NOT_CREATE, withKotlin, withNewRenderingContext)
-  }
-
-  @TemplateCheck
-  fun testCompareNewTvModule() {
-    checkCreateTemplate("gradle-projects", "NewAndroidTVModule", ActivityCreationMode.DO_NOT_CREATE, withKotlin, withNewRenderingContext)
-  }
-
-  @TemplateCheck
-  fun testCompareNewWearModule() {
-    checkCreateTemplate("gradle-projects", "AndroidWearModule", ActivityCreationMode.DO_NOT_CREATE, withKotlin, withNewRenderingContext)
-  }
 
   @TemplateCheck
   fun testNewBroadcastReceiver() {
@@ -547,16 +348,6 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
-  fun testCompareBroadcastReceiver() {
-    checkCreateTemplate("other", "BroadcastReceiver", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
-  }
-
-  @TemplateCheck
-  fun testCompareBroadcastReceiverWithKotlin() {
-    checkCreateTemplate("other", "BroadcastReceiver", ActivityCreationMode.WITHOUT_PROJECT, withKotlin, withNewRenderingContext)
-  }
-
-  @TemplateCheck
   fun testNewContentProvider() {
     checkCreateTemplate("other", "ContentProvider")
   }
@@ -564,16 +355,6 @@ open class TemplateTest : TemplateTestBase() {
   @TemplateCheck
   fun testNewContentProviderWithKotlin() {
     checkCreateTemplate("other", "ContentProvider", ActivityCreationMode.WITHOUT_PROJECT, withKotlin)
-  }
-
-  @TemplateCheck
-  fun testCompareContentProvider() {
-    checkCreateTemplate("other", "ContentProvider", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
-  }
-
-  @TemplateCheck
-  fun testCompareContentProviderWithKotlin() {
-    checkCreateTemplate("other", "ContentProvider", ActivityCreationMode.WITHOUT_PROJECT, withKotlin, withNewRenderingContext)
   }
 
   @TemplateCheck
@@ -587,28 +368,8 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
-  fun testCompareSliceProvider() {
-    checkCreateTemplate("other", "SliceProvider", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
-  }
-
-  @TemplateCheck
-  fun testCompareSliceProviderWithKotlin() {
-    checkCreateTemplate("other", "SliceProvider", ActivityCreationMode.WITHOUT_PROJECT, withKotlin, withNewRenderingContext)
-  }
-
-  @TemplateCheck
   fun testNewCustomView() {
     checkCreateTemplate("other", "CustomView")
-  }
-
-  @TemplateCheck
-  fun testCompareCustomView() {
-    checkCreateTemplate("other", "CustomView", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
-  }
-
-  @TemplateCheck
-  fun testCompareCustomViewWithKotlin() {
-    checkCreateTemplate("other", "CustomView", ActivityCreationMode.WITHOUT_PROJECT, withKotlin, withNewRenderingContext)
   }
 
   @TemplateCheck
@@ -622,16 +383,6 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
-  fun testCompareIntentService() {
-    checkCreateTemplate("other", "IntentService", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
-  }
-
-  @TemplateCheck
-  fun testCompareIntentServiceWithKotlin() {
-    checkCreateTemplate("other", "IntentService", ActivityCreationMode.WITHOUT_PROJECT, withKotlin, withNewRenderingContext)
-  }
-
-  @TemplateCheck
   fun testNewListFragment() {
     checkCreateTemplate("fragments", "ListFragment")
   }
@@ -642,43 +393,13 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
-  fun testCompareListFragment() {
-    checkCreateTemplate("fragments", "ListFragment", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
-  }
-
-  @TemplateCheck
-  fun testCompareListFragmentWithKotlin() {
-    checkCreateTemplate("fragments", "ListFragment", ActivityCreationMode.WITHOUT_PROJECT, withKotlin, withNewRenderingContext)
-  }
-
-  @TemplateCheck
   fun testNewModalBottomSheet() {
     checkCreateTemplate("fragments", "ModalBottomSheet")
   }
 
   @TemplateCheck
-  fun testCompareModalBottomSheet() {
-    checkCreateTemplate("fragments", "ModalBottomSheet", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
-  }
-
-  @TemplateCheck
-  fun testCompareModalBottomSheetWithKotlin() {
-    checkCreateTemplate("fragments", "ModalBottomSheet", ActivityCreationMode.WITHOUT_PROJECT, withKotlin, withNewRenderingContext)
-  }
-
-  @TemplateCheck
   fun testNewAppWidget() {
     checkCreateTemplate("other", "AppWidget")
-  }
-
-  @TemplateCheck
-  fun testCompareAppWidget() {
-    checkCreateTemplate("other", "AppWidget", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
-  }
-
-  @TemplateCheck
-  fun testCompareAppWidgetWithKotlin() {
-    checkCreateTemplate("other", "AppWidget", ActivityCreationMode.WITHOUT_PROJECT, withKotlin, withNewRenderingContext)
   }
 
   @TemplateCheck
@@ -692,18 +413,6 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
-  fun testCompareBlankFragment() {
-    checkCreateTemplate("fragments", "BlankFragment",
-                        ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
-  }
-
-  @TemplateCheck
-  fun testCompareBlankFragmentWithKotlin() {
-    checkCreateTemplate("fragments", "BlankFragment",
-                        ActivityCreationMode.WITHOUT_PROJECT, withKotlin, withNewRenderingContext)
-  }
-
-  @TemplateCheck
   fun testNewSettingsFragment() {
     checkCreateTemplate("fragments", "SettingsFragment", ActivityCreationMode.WITH_PROJECT)
   }
@@ -711,18 +420,6 @@ open class TemplateTest : TemplateTestBase() {
   @TemplateCheck
   fun testNewSettingsFragmentWithKotlin() {
     checkCreateTemplate("fragments", "SettingsFragment", ActivityCreationMode.WITHOUT_PROJECT, withKotlin)
-  }
-
-  @TemplateCheck
-  fun testCompareSettingsFragment() {
-    checkCreateTemplate("fragments", "SettingsFragment",
-                        ActivityCreationMode.WITH_PROJECT, withNewRenderingContext)
-  }
-
-  @TemplateCheck
-  fun testCompareSettingsFragmentWithKotlin() {
-    checkCreateTemplate("fragments", "SettingsFragment",
-                        ActivityCreationMode.WITH_PROJECT, withKotlin, withNewRenderingContext)
   }
 
   @TemplateCheck
@@ -736,18 +433,6 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
-  fun testCompareViewModelFragment() {
-    checkCreateTemplate("fragments", "ViewModelFragment", ActivityCreationMode.WITHOUT_PROJECT,
-                        withNewRenderingContext)
-  }
-
-  @TemplateCheck
-  fun testCompareViewModelFragmentWithKotlin() {
-    checkCreateTemplate("fragments", "ViewModelFragment", ActivityCreationMode.WITHOUT_PROJECT,
-                        withKotlin, withNewRenderingContext)
-  }
-
-  @TemplateCheck
   fun testNewScrollFragment() {
     checkCreateTemplate("fragments", "ScrollFragment")
   }
@@ -755,18 +440,6 @@ open class TemplateTest : TemplateTestBase() {
   @TemplateCheck
   fun testNewScrollFragmentWithKotlin() {
     checkCreateTemplate("fragments", "ScrollFragment", ActivityCreationMode.WITHOUT_PROJECT, withKotlin)
-  }
-
-  @TemplateCheck
-  fun testCompareScrollFragment() {
-    checkCreateTemplate("fragments", "ScrollFragment",
-                        ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
-  }
-
-  @TemplateCheck
-  fun testCompareScrollFragmentWithKotlin() {
-    checkCreateTemplate("fragments", "ScrollFragment",
-                        ActivityCreationMode.WITHOUT_PROJECT, withKotlin, withNewRenderingContext)
   }
 
   @TemplateCheck
@@ -780,18 +453,6 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
-  fun testCompareFullscreenFragment() {
-    checkCreateTemplate("fragments", "FullscreenFragment",
-                        ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
-  }
-
-  @TemplateCheck
-  fun testCompareFullscreenFragmentWithKotlin() {
-    checkCreateTemplate("fragments", "FullscreenFragment",
-                        ActivityCreationMode.WITHOUT_PROJECT, withKotlin, withNewRenderingContext)
-  }
-
-  @TemplateCheck
   fun testNewGoogleMapsFragment() {
     checkCreateTemplate("fragments", "GoogleMapsFragment")
   }
@@ -799,18 +460,6 @@ open class TemplateTest : TemplateTestBase() {
   @TemplateCheck
   fun testNewGoogleMapsFragmentWithKotlin() {
     checkCreateTemplate("fragments", "GoogleMapsFragment", ActivityCreationMode.WITHOUT_PROJECT, withKotlin)
-  }
-
-  @TemplateCheck
-  fun testCompareGoogleMapsFragment() {
-    checkCreateTemplate("fragments", "GoogleMapsFragment",
-                        ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
-  }
-
-  @TemplateCheck
-  fun testCompareGoogleMapsFragmentWithKotlin() {
-    checkCreateTemplate("fragments", "GoogleMapsFragment",
-                        ActivityCreationMode.WITHOUT_PROJECT, withKotlin, withNewRenderingContext)
   }
 
   @TemplateCheck
@@ -824,18 +473,6 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
-  fun testCompareGoogleAdMobFragment() {
-    checkCreateTemplate("fragments", "GoogleAdMobAdsFragment",
-                        ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
-  }
-
-  @TemplateCheck
-  fun testCompareGoogleAdMobFragmentWithKotlin() {
-    checkCreateTemplate("fragments", "GoogleAdMobAdsFragment",
-                        ActivityCreationMode.WITHOUT_PROJECT, withKotlin, withNewRenderingContext)
-  }
-
-  @TemplateCheck
   fun testLoginFragment() {
     checkCreateTemplate("fragments", "LoginFragment")
   }
@@ -843,18 +480,6 @@ open class TemplateTest : TemplateTestBase() {
   @TemplateCheck
   fun testLoginFragmentWithKotlin() {
     checkCreateTemplate("fragments", "LoginFragment", ActivityCreationMode.WITHOUT_PROJECT, withKotlin)
-  }
-
-  @TemplateCheck
-  fun testCompareLoginFragment() {
-    checkCreateTemplate("fragments", "LoginFragment",
-                        ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
-  }
-
-  @TemplateCheck
-  fun testCompareLoginFragmentWithKotlin() {
-    checkCreateTemplate("fragments", "LoginFragment",
-                        ActivityCreationMode.WITHOUT_PROJECT, withKotlin, withNewRenderingContext)
   }
 
   @TemplateCheck
@@ -868,23 +493,8 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
-  fun testCompareService() {
-    checkCreateTemplate("other", "Service", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
-  }
-
-  @TemplateCheck
-  fun testCompareServiceWithKotlin() {
-    checkCreateTemplate("other", "Service", ActivityCreationMode.WITHOUT_PROJECT, withKotlin, withNewRenderingContext)
-  }
-
-  @TemplateCheck
   fun testNewAidlFile() {
     checkCreateTemplate("other", "AidlFile")
-  }
-
-  @TemplateCheck
-  fun testCompareAidlFile() {
-    checkCreateTemplate("other", "AidlFile", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
   }
 
   @TemplateCheck
@@ -912,18 +522,8 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
-  fun testCompareLayoutResourceFile() {
-    checkCreateTemplate("other", "LayoutResourceFile", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
-  }
-
-  @TemplateCheck
   fun testNewAppActionsResourceFile() {
     checkCreateTemplate("other", "AppActionsResourceFile")
-  }
-
-  @TemplateCheck
-  fun testCompareAppActionsResourceFile() {
-    checkCreateTemplate("other", "AppActionsResourceFile", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
   }
 
   @TemplateCheck
@@ -947,16 +547,6 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
-  fun testCompareAutomotiveMessagingService() {
-    checkCreateTemplate("other", "AutomotiveMessagingService", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
-  }
-
-  @TemplateCheck
-  fun testCompareAutomotiveMessagingServiceWithKotlin() {
-    checkCreateTemplate("other", "AutomotiveMessagingService", ActivityCreationMode.WITHOUT_PROJECT, withKotlin, withNewRenderingContext)
-  }
-
-  @TemplateCheck
   fun testWatchFaceService() {
     checkCreateTemplate("other", "WatchFaceService")
   }
@@ -967,23 +557,8 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
-  fun testCompareWatchFaceService() {
-    checkCreateTemplate("other", "WatchFaceService", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
-  }
-
-  @TemplateCheck
-  fun testCompareWatchFaceServiceWithKotlin() {
-    checkCreateTemplate("other", "WatchFaceService", ActivityCreationMode.WITHOUT_PROJECT, withKotlin, withNewRenderingContext)
-  }
-
-  @TemplateCheck
   fun testNewValueResourceFile() {
     checkCreateTemplate("other", "ValueResourceFile")
-  }
-
-  @TemplateCheck
-  fun testCompareValueResourceFile() {
-    checkCreateTemplate("other", "ValueResourceFile", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
   }
 
   open fun testAllTemplatesCovered() {
