@@ -48,7 +48,7 @@ class SantaTrackerBenchmark : FullProjectBenchmark() {
 
   @Test
   fun fullProjectHighlighting() {
-    super.fullProjectHighlighting(listOf(StdFileTypes.JAVA, KotlinFileType.INSTANCE as LanguageFileType, StdFileTypes.XML), PROJECT_NAME)
+    super.fullProjectHighlighting(listOf(StdFileTypes.JAVA, StdFileTypes.XML), PROJECT_NAME)
   }
 
   @Test
