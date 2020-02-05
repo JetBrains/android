@@ -22,7 +22,6 @@ import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfiler;
 import com.android.tools.profilers.StudioProfilers;
 import com.intellij.openapi.diagnostic.Logger;
-import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
 
 public class EnergyProfiler extends StudioProfiler {
@@ -48,22 +47,17 @@ public class EnergyProfiler extends StudioProfiler {
       // We need the device ID to run the command, but there has been a report (b/146037091) that 'myProfilers.getDevice()' may
       // be null in release build. Therefore we use if to guard the use of the device to avoid NPE, instead of assert.
       if (myProfilers.getDevice() != null) {
-        try {
-          myProfilers.getClient().getTransportClient().execute(
-            Transport.ExecuteRequest.newBuilder()
-              .setCommand(
-                Commands.Command.newBuilder()
-                  .setStreamId(session.getStreamId())
-                  .setPid(session.getPid())
-                  .setType(Commands.Command.CommandType.GET_CPU_CORE_CONFIG)
-                  .setGetCpuCoreConfig(Commands.GetCpuCoreConfig.newBuilder().setDeviceId(myProfilers.getDevice().getDeviceId())))
-              .build());
-        }
-        catch (StatusRuntimeException e) {
-          // CPU frequency files may not always be available (e.g. emulator), in which case we still have a fallback model to use from
-          // DefaultPowerProfile.
-          getLogger().warn("Unable to parse CPU frequency files.");
-        }
+        // CPU frequency files may not always be available (e.g. emulator), in which case we still have a fallback model to use from
+        // DefaultPowerProfile.
+        myProfilers.getClient().getTransportClient().execute(
+          Transport.ExecuteRequest.newBuilder()
+            .setCommand(
+              Commands.Command.newBuilder()
+                .setStreamId(session.getStreamId())
+                .setPid(session.getPid())
+                .setType(Commands.Command.CommandType.GET_CPU_CORE_CONFIG)
+                .setGetCpuCoreConfig(Commands.GetCpuCoreConfig.newBuilder().setDeviceId(myProfilers.getDevice().getDeviceId())))
+            .build());
       } else {
         getLogger().warn("Unable to retrieve CPU frequency files; device ID unknown.");
       }
