@@ -17,6 +17,9 @@ package com.android.tools.idea.common.surface;
 
 import static com.android.tools.adtui.PannableKt.PANNABLE_KEY;
 import static com.android.tools.adtui.ZoomableKt.ZOOMABLE_KEY;
+import static com.android.tools.idea.common.surface.layout.ScanlineUtilsKt.findAllScanlines;
+import static com.android.tools.idea.common.surface.layout.ScanlineUtilsKt.findLargerScanline;
+import static com.android.tools.idea.common.surface.layout.ScanlineUtilsKt.findSmallerScanline;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.UiThread;
@@ -93,6 +96,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -1096,18 +1100,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   /**
-   * Return the bounds which SceneView can draw invisible components.<br>
-   * The bounds is bigger than the size of SceneView and not overlaps to other SceneViews.
-   * <p>
-   * component in this bounds, which may be outside the SceneView.
-   *
-   * @param rectangle The rectangle to receive the dimension. If this is null, a new instance will be created.
-   * @see JComponent#getBounds(Rectangle)
-   */
-  @NotNull
-  public abstract Rectangle getRenderableBoundsForInvisibleComponents(@NotNull SceneView sceneView, @Nullable Rectangle rectangle);
-
-  /**
    * Return the SceneView under the given position
    *
    * @return the SceneView, or null if we are not above one.
@@ -1293,10 +1285,54 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
       paintBackground(g2d, tlx, tly);
 
-      Rectangle bounds = myScrollPane.getViewport().getViewRect();
-      g2d.setClip(bounds);
+      // The visible area in the editor
+      Rectangle viewportBounds = myScrollPane.getViewport().getViewRect();
 
-      for (SceneView sceneView : getSceneViews()) {
+      // A Dimension used to avoid reallocating new objects just to obtain the SceneView dimensions
+      Dimension reusableDimension = new Dimension();
+      Collection<SceneView> sceneViewsToPaint = getSceneViews();
+
+      List<Integer> horizontalTopScanLines = findAllScanlines(sceneViewsToPaint, sceneView -> sceneView.getY());
+      List<Integer> horizontalBottomScanLines = findAllScanlines(sceneViewsToPaint, sceneView ->
+        sceneView.getY() + sceneView.getSize(reusableDimension).height);
+      List<Integer> verticalLeftScanLines = findAllScanlines(sceneViewsToPaint, sceneView -> sceneView.getX());
+      List<Integer> verticalRightScanLines = findAllScanlines(sceneViewsToPaint, sceneView ->
+        sceneView.getX() + sceneView.getSize(reusableDimension).width);
+
+      @SwingCoordinate int viewportRight = viewportBounds.x + viewportBounds.width;
+      @SwingCoordinate int viewportBottom = viewportBounds.y + viewportBounds.height;
+
+      Rectangle sceneViewBounds = new Rectangle();
+      for (SceneView sceneView : sceneViewsToPaint) {
+        Dimension sceneViewDimension = sceneView.getSize(reusableDimension);
+        @SwingCoordinate int sceneViewRight = sceneView.getX() + sceneViewDimension.width;
+        @SwingCoordinate int sceneViewBottom = sceneView.getY() + sceneViewDimension.height;
+        // This finds the maximum allowed area for the screen views to paint into. See more details in the
+        // ScanlineUtils.kt documentation.
+        @SwingCoordinate int minX = findSmallerScanline(verticalRightScanLines, sceneView.getX(), viewportBounds.x);
+        @SwingCoordinate int minY = findSmallerScanline(horizontalBottomScanLines, sceneView.getY(), viewportBounds.y);
+        @SwingCoordinate int maxX = findLargerScanline(verticalLeftScanLines,
+                                                       sceneViewRight,
+                                                       viewportRight);
+        @SwingCoordinate int maxY = findLargerScanline(horizontalTopScanLines,
+                                                       sceneViewBottom,
+                                                       viewportBottom);
+
+        // Now, (minX, minY) (maxX, maxY) describes the box that a SceneView could paint into without painting
+        // on top of another SceneView render. We use this box to paint the components that are outside of the
+        // rendering area.
+        // However, now we need to avoid there "out of bounds" components from being on top of each other.
+        // To do that, we simply find the middle point, except on the corners of the surface. For example, the
+        // first SceneView on the left, does not have any other SceneView that could paint on its left side so we
+        // do not need to find the middle point in those cases.
+        minX = minX > viewportBounds.x ? (minX + sceneView.getX()) / 2 : viewportBounds.x;
+        maxX = maxX < viewportRight ? (maxX + sceneViewRight) / 2 : viewportRight;
+        minY = minY > viewportBounds.y ? (minY + sceneView.getY()) / 2 : viewportBounds.y;
+        maxY = maxY < viewportBottom ? (maxY + sceneViewBottom) / 2 : viewportBottom;
+
+        sceneViewBounds.setBounds(minX, minY, maxX - minX, maxY - minY);
+        g2d.setClip(sceneViewBounds);
+
         sceneView.paint(g2d);
       }
 

@@ -522,17 +522,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     return view;
   }
 
-  @NotNull
-  @Override
-  public Rectangle getRenderableBoundsForInvisibleComponents(@NotNull SceneView sceneView, @Nullable Rectangle rectangle) {
-    return myLayoutManager.getRenderableBoundsForInvisibleComponents(sceneView,
-                                                                     getSceneViews(),
-                                                                     myScrollPane.getWidth(),
-                                                                     myScrollPane.getHeight(),
-                                                                     myScrollPane.getViewport().getViewRect(),
-                                                                     rectangle);
-  }
-
   /**
    * Return the ScreenView under the given position
    *

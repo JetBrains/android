@@ -32,17 +32,10 @@ import java.awt.Rectangle
 const val TRIMMED_TAIL = "..."
 
 internal class ModelNameLayer(private val myScreenView: ScreenViewBase) : Layer() {
-  /**
-   * A reusable rectangle which is used during painting.
-   */
-  private val myCachedRectangle = Rectangle()
-
   override fun paint(originalGraphics: Graphics2D) {
     val modelName = myScreenView.sceneManager.model.modelDisplayName ?: return
     val g2d = originalGraphics.create() as Graphics2D
     try {
-      myScreenView.surface.getRenderableBoundsForInvisibleComponents(myScreenView, myCachedRectangle)
-      g2d.clip(myCachedRectangle)
       g2d.color = JBColor.foreground()
 
       val font = myScreenView.labelFont
