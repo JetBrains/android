@@ -222,6 +222,69 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
     Truth.assertThat(myFacet.queryPackageNameFromManifestIndex()).isEqualTo("com.changed")
   }
 
+  fun testQueryServices() {
+    val manifestContent = """
+    <?xml version='1.0' encoding='utf-8'?>
+    <manifest xmlns:android='http://schemas.android.com/apk/res/android' 
+      package='com.example' android:enabled='true'>
+        <application android:theme='@style/Theme.AppCompat' android:debuggable='true'>
+            <service android:name='.SomeService1' android:enabled='true'>
+              <intent-filter>
+                <action android:name="android.service.wallpaper.WallpaperService" />
+                <category android:name="com.google.android.wearable.watchface.category.WATCH_FACE" />
+              </intent-filter>
+            </service>
+            
+            <service android:name='.SomeService2' android:enabled='true'>
+              <meta-data
+                android:name="android.service.wallpaper"
+                android:resource="@xml/watch_face" />
+            </service>
+          </application>
+    </manifest>
+    """.trimIndent()
+    updateManifest(myModule, FN_ANDROID_MANIFEST_XML, manifestContent)
+
+    val serviceIntentFilter = IntentFilterRawText(
+      actionNames = setOf("android.service.wallpaper.WallpaperService"),
+      categoryNames = setOf("com.google.android.wearable.watchface.category.WATCH_FACE")
+    )
+
+    val serviceIntentFilterChanged = IntentFilterRawText(
+      actionNames = setOf("android.service.wallpaper.WallpaperServiceChanged"),
+      categoryNames = setOf("com.google.android.wearable.watchface.category.WATCH_FACE")
+    )
+
+    val overrides = ManifestOverrides(
+      directOverrides = emptyMap(),
+      placeholders = emptyMap()
+    )
+
+    Truth.assertThat(myFacet.queryServicesFromManifestIndex()).isEqualTo(
+      setOf(
+        ServiceWrapper(
+          setOf(serviceIntentFilter),
+          overrides),
+        ServiceWrapper(
+          emptySet(),
+          overrides)
+      )
+    )
+
+    updateManifest(myModule, FN_ANDROID_MANIFEST_XML, manifestContent.replace("android.service.wallpaper.WallpaperService",
+                                                                              "android.service.wallpaper.WallpaperServiceChanged"))
+    Truth.assertThat(myFacet.queryServicesFromManifestIndex()).isEqualTo(
+      setOf(
+        ServiceWrapper(
+          setOf(serviceIntentFilterChanged),
+          overrides),
+        ServiceWrapper(
+          emptySet(),
+          overrides)
+      )
+    )
+  }
+
   private fun updateManifest(module: Module, relativePath: String, manifestContents: String) {
     deleteManifest(module)
     myFixture.addFileToProject(relativePath, manifestContents)
