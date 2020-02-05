@@ -29,6 +29,7 @@ import com.intellij.debugger.impl.DebuggerSession
 import com.intellij.execution.ExecutionManager
 import com.intellij.execution.ExecutionTarget
 import com.intellij.execution.configurations.RemoteConnection
+import com.intellij.execution.configurations.RunProfile
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.project.Project
@@ -123,6 +124,12 @@ class ExecutionEnvironmentExtTest {
 
   @Test
   fun findExistingProcessHandler_noExistingSession() {
+    assertThat(mockEnv.findExistingProcessHandler(mockDevices)).isNull()
+  }
+
+  @Test
+  fun findExistingProcessHandler_noExistingSession_nonAndroidRunProfile() {
+    `when`(mockEnv.runProfile).thenReturn(mock(RunProfile::class.java))
     assertThat(mockEnv.findExistingProcessHandler(mockDevices)).isNull()
   }
 }
