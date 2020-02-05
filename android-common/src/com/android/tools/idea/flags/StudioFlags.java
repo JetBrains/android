@@ -548,10 +548,6 @@ public final class StudioFlags {
     NDK, "enhancednativeheadersupport", "Enable enhanced native header support",
     "If enabled, project system view will show a new include node with organized header files", true);
 
-  public static final Flag<Boolean> ENABLE_CLANG_TIDY_INSPECTIONS = Flag.create(
-    NDK, "clangtidyinspections", "Enable clang-tidy inspections",
-    "If enabled, show inspections derived from clang-tidy.", true);
-
   public static final Flag<Boolean> APK_DEBUG_BUILD_ID_CHECK = Flag.create(
     NDK, "apkdebugbuildidcheck", "Enable build ID check in APK debugging",
     "If enabled, the build ID of user-provided symbol files are compared against the binaries inside the APK.", true);
