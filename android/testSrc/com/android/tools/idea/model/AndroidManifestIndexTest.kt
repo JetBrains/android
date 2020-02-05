@@ -54,6 +54,14 @@ class AndroidManifestIndexTest {
     </activity-alias>
     <activity-alias android:name='.DisabledAlias' android:enabled='false' android:targetActivity='.EnabledActivity'>
     </activity-alias>
+    
+    <service android:name='.SomeService' android:enabled='true'>
+      <intent-filter>
+        <action android:name="android.service.wallpaper.WallpaperService" />
+        <category android:name="com.google.android.wearable.watchface.category.WATCH_FACE" />
+      </intent-filter>
+    </service>
+    
   </application>
   <uses-permission android:name='android.permission.SEND_SMS'/>
   <uses-permission-sdk-23 android:name='custom.permissions.NO_GROUP'/>
@@ -82,6 +90,14 @@ class AndroidManifestIndexTest {
         ActivityAliasRawText(name = ".DisabledAlias", targetActivity = ".EnabledActivity",
                              enabled = "false", intentFilters = setOf())
       ),
+      services = setOf(
+        ServiceRawText(
+         name = ".SomeService",
+         intentFilters = setOf(
+           IntentFilterRawText(actionNames = setOf("android.service.wallpaper.WallpaperService"),
+                               categoryNames = setOf("com.google.android.wearable.watchface.category.WATCH_FACE"))
+         )
+        )),
       customPermissionGroupNames = setOf("custom.permissions.CUSTOM_GROUP"),
       customPermissionNames = setOf("custom.permissions.IN_CUSTOM_GROUP",
                                     "custom.permissions.NO_GROUP"),
