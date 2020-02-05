@@ -63,6 +63,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -346,17 +347,17 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
    *                      the extension points.
    * @return all android debuggers that should be populated in the debugger type dropdown.
    */
-  private List<AndroidDebugger> getAndroidDebuggers(@Nullable RunConfiguration configuration) {
+  private ArrayList<AndroidDebugger> getAndroidDebuggers(@Nullable RunConfiguration configuration) {
     if (configuration != null) {
       for (AndroidDebuggerInfoProvider provider : AndroidDebuggerInfoProvider.EP_NAME.getExtensions()) {
         if (!provider.supportsProject(myProject)) {
           continue;
         }
-        return provider.getAndroidDebuggers(configuration);
+        return Lists.newArrayList(provider.getAndroidDebuggers(configuration));
       }
     }
 
-    List<AndroidDebugger> androidDebuggers = Lists.newLinkedList();
+    ArrayList<AndroidDebugger> androidDebuggers = Lists.newArrayList();
     for (AndroidDebugger androidDebugger : AndroidDebugger.EP_NAME.getExtensions()) {
       if (!androidDebugger.supportsProject(myProject)) {
         continue;
