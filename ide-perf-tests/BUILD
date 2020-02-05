@@ -4,6 +4,15 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "intellij.android.ide-perf-tests",
     iml_files = ["intellij.android.ide-perf-tests.iml"],
+    split_test_targets = {
+        "SantaTrackerBenchmark": {
+            "test_filter": "com.android.tools.idea.benchmarks.SantaTrackerBenchmark",
+        },
+        "SantaTrackerKotlinBenchmark": {
+            "test_filter": "com.android.tools.idea.benchmarks.SantaTrackerKotlinBenchmark",
+        },
+        "other": {},
+    },
     test_class = "com.android.tools.idea.benchmarks.IdeBenchmarkTestSuite",
     # keep sorted
     test_data = [
