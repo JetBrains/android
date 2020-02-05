@@ -26,10 +26,12 @@ class TemplateResolver {
   companion object {
     private val EP_NAME = ExtensionPointName<WizardTemplateProvider>("com.android.tools.idea.wizard.template.wizardTemplateProvider")
 
-    fun getAllTemplates() : List<Template> {
+    fun getAllTemplates(): List<Template> {
       return EP_NAME.extensions
         .flatMap { it.getTemplates() }
         .filter { it.category != Category.Compose || StudioFlags.COMPOSE_WIZARD_TEMPLATES.get()}
     }
+
+    fun getTemplateByName(name: String) = getAllTemplates().find { it.name == name }
   }
 }
