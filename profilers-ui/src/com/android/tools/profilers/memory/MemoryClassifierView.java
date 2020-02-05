@@ -39,6 +39,7 @@ import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.UIUtilities;
 import icons.StudioIcons;
+import java.util.function.ToLongFunction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -62,7 +63,6 @@ import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.Cla
 
 final class MemoryClassifierView extends AspectObserver {
   private static final int LABEL_COLUMN_WIDTH = 800;
-  private static final int DEFAULT_COLUMN_WIDTH = 80;
   private static final int HEAP_UPDATING_DELAY_MS = 250;
   private static final int MIN_COLUMN_WIDTH = 16;
 
@@ -130,77 +130,48 @@ final class MemoryClassifierView extends AspectObserver {
         createTreeNodeComparator(Comparator.comparing(ClassifierSet::getName), Comparator.comparing(ClassSet::getName))));
     myAttributeColumns.put(
       ClassifierAttribute.ALLOCATIONS,
-      new AttributeColumn<>(
-        "Allocations",
-        () -> new SimpleColumnRenderer<ClassifierSet>(
-          value -> NumberFormatter.formatInteger(value.getAdapter().getDeltaAllocationCount()),
-          value -> null,
-          SwingConstants.RIGHT),
-        SwingConstants.RIGHT,
-        DEFAULT_COLUMN_WIDTH,
-        SortOrder.DESCENDING,
-        createTreeNodeComparator(Comparator.comparingInt(ClassifierSet::getDeltaAllocationCount),
-                                 Comparator.comparingInt(ClassSet::getDeltaAllocationCount))));
+      makeColumn("Allocations", ClassifierSet::getDeltaAllocationCount));
     myAttributeColumns.put(
       ClassifierAttribute.DEALLOCATIONS,
-      new AttributeColumn<>(
-        "Deallocations",
-        () -> new SimpleColumnRenderer<ClassifierSet>(
-          value -> NumberFormatter.formatInteger(value.getAdapter().getDeltaDeallocationCount()),
-          value -> null,
-          SwingConstants.RIGHT),
-        SwingConstants.RIGHT,
-        DEFAULT_COLUMN_WIDTH,
-        SortOrder.DESCENDING,
-        createTreeNodeComparator(Comparator.comparingInt(ClassifierSet::getDeltaDeallocationCount),
-                                 Comparator.comparingInt(ClassSet::getDeltaDeallocationCount))));
+      makeColumn("Deallocations", ClassifierSet::getDeltaDeallocationCount));
     myAttributeColumns.put(
       ClassifierAttribute.TOTAL_COUNT,
-      new AttributeColumn<>(
-        "Total Count",
-        () -> new SimpleColumnRenderer<ClassifierSet>(
-          value -> NumberFormatter.formatInteger(value.getAdapter().getTotalObjectCount()),
-          value -> null,
-          SwingConstants.RIGHT),
-        SwingConstants.RIGHT,
-        DEFAULT_COLUMN_WIDTH,
-        SortOrder.DESCENDING,
-        createTreeNodeComparator(Comparator.comparingInt(ClassifierSet::getTotalObjectCount),
-                                 Comparator.comparingInt(ClassSet::getTotalObjectCount))));
+      makeColumn("Total Count", ClassifierSet::getTotalObjectCount));
     myAttributeColumns.put(
       ClassifierAttribute.NATIVE_SIZE,
-      new AttributeColumn<>(
-        "Native Size",
-        () -> new SimpleColumnRenderer<ClassifierSet>(
-          value -> NumberFormatter.formatInteger(value.getAdapter().getTotalNativeSize()),
-          value -> null, SwingConstants.RIGHT),
-        SwingConstants.RIGHT,
-        DEFAULT_COLUMN_WIDTH,
-        SortOrder.DESCENDING,
-        createTreeNodeComparator(Comparator.comparingLong(ClassSet::getTotalNativeSize))));
+      makeColumn("Native Size", ClassifierSet::getTotalNativeSize, Comparator.comparing(ClassifierSet::getName)));
     myAttributeColumns.put(
       ClassifierAttribute.SHALLOW_SIZE,
-      new AttributeColumn<>(
-        "Shallow Size",
-        () -> new SimpleColumnRenderer<ClassifierSet>(
-          value -> NumberFormatter.formatInteger(value.getAdapter().getTotalShallowSize()),
-          value -> null, SwingConstants.RIGHT),
-        SwingConstants.RIGHT,
-        DEFAULT_COLUMN_WIDTH,
-        SortOrder.DESCENDING,
-        createTreeNodeComparator(Comparator.comparingLong(ClassSet::getTotalShallowSize))));
+      makeColumn("Shallow Size", ClassifierSet::getTotalShallowSize, Comparator.comparing(ClassifierSet::getName)));
     myAttributeColumns.put(
       ClassifierAttribute.RETAINED_SIZE,
-      new AttributeColumn<>(
-        "Retained Size",
-        () -> new SimpleColumnRenderer<ClassifierSet>(
-          value -> NumberFormatter.formatInteger(value.getAdapter().getTotalRetainedSize()),
-          value -> null, SwingConstants.RIGHT),
-        SwingConstants.RIGHT,
-        DEFAULT_COLUMN_WIDTH,
-        SortOrder.DESCENDING,
-        createTreeNodeComparator(Comparator.comparingLong(ClassifierSet::getTotalRetainedSize),
-                                 Comparator.comparingLong(ClassSet::getTotalRetainedSize))));
+      makeColumn("Retained Size", ClassifierSet::getTotalRetainedSize));
+  }
+
+  /**
+   * Make right-aligned, descending column displaying integer property with custom order for non-ClassSet values
+   */
+  private static AttributeColumn<ClassifierSet> makeColumn(String name,
+                                                           ToLongFunction<ClassifierSet> prop,
+                                                           Comparator<ClassifierSet> comp) {
+    return new AttributeColumn<>(
+      name,
+      () -> new SimpleColumnRenderer<ClassifierSet>(
+        value -> NumberFormatter.formatInteger(prop.applyAsLong(value.getAdapter())),
+        v -> null,
+        SwingConstants.RIGHT),
+      SwingConstants.RIGHT,
+      SimpleColumnRenderer.DEFAULT_COLUMN_WIDTH,
+      SortOrder.DESCENDING,
+      createTreeNodeComparator(comp, Comparator.comparingLong(prop))
+    );
+  }
+
+  /**
+   * Make right-aligned, descending column displaying integer property
+   */
+  private static AttributeColumn<ClassifierSet> makeColumn(String name, ToLongFunction<ClassifierSet> prop) {
+    return makeColumn(name, prop, Comparator.comparingLong(prop));
   }
 
   @NotNull
@@ -696,13 +667,6 @@ final class MemoryClassifierView extends AspectObserver {
       }
       return compareResult;
     };
-  }
-
-  /**
-   * Convenience method for {@link #createTreeNodeComparator(Comparator, Comparator)}.
-   */
-  private static Comparator<MemoryObjectTreeNode<ClassifierSet>> createTreeNodeComparator(@NotNull Comparator<ClassSet> classObjectComparator) {
-    return createTreeNodeComparator(Comparator.comparing(ClassifierSet::getName), classObjectComparator);
   }
 
   private static class MemoryClassifierTreeNode extends LazyMemoryObjectTreeNode<ClassifierSet> {

@@ -18,11 +18,12 @@ package com.android.tools.profilers.memory;
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
 import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
 import static com.android.tools.profilers.ProfilerLayout.TABLE_ROW_BORDER;
-import static com.android.tools.profilers.memory.adapters.MemoryObject.INVALID_VALUE;
+import static com.android.tools.profilers.memory.SimpleColumnRenderer.makeIntColumn;
+import static com.android.tools.profilers.memory.SimpleColumnRenderer.makeSizeColumn;
+import static com.android.tools.profilers.memory.SimpleColumnRenderer.onSubclass;
 
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
-import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.adtui.model.formatter.NumberFormatter;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.adtui.stdui.CommonTabbedPane;
@@ -56,6 +57,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.LongFunction;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JTabbedPane;
@@ -81,11 +83,8 @@ final class MemoryInstanceDetailsView extends AspectObserver {
   private static final String TITLE_TAB_ALLOCATION_CALLSTACK = "Allocation Call Stack";
   private static final String TITLE_TAB_DEALLOCATION_CALLSTACK = "Deallocation Call Stack";
   private static final int LABEL_COLUMN_WIDTH = 500;
-  private static final int DEFAULT_COLUMN_WIDTH = 80;
 
   @NotNull private final MemoryProfilerStage myStage;
-
-  @NotNull private final StreamingTimeline myTimeline;
 
   @NotNull private final IdeProfilerComponents myIdeProfilerComponents;
 
@@ -105,7 +104,6 @@ final class MemoryInstanceDetailsView extends AspectObserver {
 
   MemoryInstanceDetailsView(@NotNull MemoryProfilerStage stage, @NotNull IdeProfilerComponents ideProfilerComponents) {
     myStage = stage;
-    myTimeline = myStage.getTimeline();
     myStage.getAspect().addDependency(this)
       .onChange(MemoryProfilerAspect.CURRENT_INSTANCE, this::instanceChanged)
       .onChange(MemoryProfilerAspect.CURRENT_FIELD_PATH, this::instanceChanged);
@@ -118,115 +116,56 @@ final class MemoryInstanceDetailsView extends AspectObserver {
 
     myInstanceViewers.add(new BitmapViewer());
 
+    LongFunction<String> timeFormatter = t ->
+      TimeFormatter.getSemiSimplifiedClockString(stage.getTimeline().convertToRelativeTimeUs(t));
+
     myAttributeColumns.put(
       InstanceAttribute.LABEL,
       new AttributeColumn<ValueObject>(
         "Reference",
         () -> new SimpleColumnRenderer<ValueObject>(
-          node -> {
-            StringBuilder builder = new StringBuilder();
-            if (node.getAdapter() instanceof ReferenceObject) {
-              builder.append(node.getAdapter().getName());
-              builder.append(" in ");
-            }
-            builder.append(node.getAdapter().getValueText());
-            return builder.toString();
-          },
+          onSubclass(ReferenceObject.class,
+                     v -> v.getName() + " in " + v.getValueText(),
+                     ValueObject::getValueText),
           value -> MemoryProfilerStageView.getValueObjectIcon(value.getAdapter()),
           SwingConstants.LEFT),
         SwingConstants.LEFT,
         LABEL_COLUMN_WIDTH,
         SortOrder.ASCENDING,
-        Comparator.comparing(o -> (o.getAdapter()).getName())));
+        Comparator.comparing(o -> o.getAdapter().getName())));
     myAttributeColumns.put(
       InstanceAttribute.DEPTH,
-      new AttributeColumn<ValueObject>(
-        "Depth",
-        () -> new SimpleColumnRenderer<ValueObject>(value -> {
-          int depth = value.getAdapter().getDepth();
-          if (depth >= 0 && depth < Integer.MAX_VALUE) {
-            return NumberFormatter.formatInteger(depth);
-          }
-          return "";
-        }, value -> null, SwingConstants.RIGHT),
-        SwingConstants.RIGHT,
-        DEFAULT_COLUMN_WIDTH,
-        SortOrder.ASCENDING,
-        Comparator.comparingInt(o -> o.getAdapter().getDepth())));
+      makeIntColumn("Depth",
+                    ValueObject.class,
+                    ValueObject::getDepth,
+                    d -> 0 <= d && d < Integer.MAX_VALUE,
+                    NumberFormatter::formatInteger,
+                    SortOrder.ASCENDING));
     myAttributeColumns.put(
       InstanceAttribute.ALLOCATION_TIME,
-      new AttributeColumn<>(
-        "Alloc Time",
-        () -> new SimpleColumnRenderer<>(value -> {
-          MemoryObject node = value.getAdapter();
-          if (node instanceof InstanceObject) {
-            InstanceObject instanceObject = (InstanceObject)node;
-            if (instanceObject.getAllocTime() > Long.MIN_VALUE) {
-              return TimeFormatter.getSemiSimplifiedClockString(myTimeline.convertToRelativeTimeUs(instanceObject.getAllocTime()));
-            }
-          }
-          return "";
-        }, value -> null, SwingConstants.RIGHT),
-        SwingConstants.RIGHT,
-        DEFAULT_COLUMN_WIDTH,
-        SortOrder.ASCENDING,
-        Comparator.comparingLong(o -> ((InstanceObject)o.getAdapter()).getAllocTime())));
+      makeIntColumn("Alloc Time",
+                    InstanceObject.class,
+                    InstanceObject::getAllocTime,
+                    t -> t > Long.MIN_VALUE,
+                    timeFormatter,
+                    SortOrder.ASCENDING));
     myAttributeColumns.put(
       InstanceAttribute.DEALLOCATION_TIME,
-      new AttributeColumn<>(
-        "Dealloc Time",
-        () -> new SimpleColumnRenderer<>(value -> {
-          MemoryObject node = value.getAdapter();
-          if (node instanceof InstanceObject) {
-            InstanceObject instanceObject = (InstanceObject)node;
-            if (instanceObject.getDeallocTime() < Long.MAX_VALUE) {
-              return TimeFormatter.getSemiSimplifiedClockString(myTimeline.convertToRelativeTimeUs(instanceObject.getDeallocTime()));
-            }
-          }
-          return "";
-        }, value -> null, SwingConstants.RIGHT),
-        SwingConstants.RIGHT,
-        DEFAULT_COLUMN_WIDTH,
-        SortOrder.DESCENDING,
-        Comparator.comparingLong(o -> ((InstanceObject)o.getAdapter()).getDeallocTime())));
+      makeIntColumn("Dealloc Time",
+                    InstanceObject.class,
+                    InstanceObject::getDeallocTime,
+                    t -> t < Long.MAX_VALUE,
+                    timeFormatter,
+                    SortOrder.DESCENDING));
     myAttributeColumns.put(
       InstanceAttribute.NATIVE_SIZE,
-      new AttributeColumn<ValueObject>(
-        "Native Size",
-        () -> new SimpleColumnRenderer<ValueObject>(
-          value -> value.getAdapter().getNativeSize() != INVALID_VALUE
-                   ? NumberFormatter.formatInteger(value.getAdapter().getNativeSize())
-                   : "",
-          value -> null, SwingConstants.RIGHT),
-        SwingConstants.RIGHT,
-        DEFAULT_COLUMN_WIDTH,
-        SortOrder.DESCENDING,
-        Comparator.comparingLong(o -> o.getAdapter().getNativeSize())));
+      makeSizeColumn("Native Size", ValueObject::getNativeSize));
     myAttributeColumns.put(
       InstanceAttribute.SHALLOW_SIZE,
-      new AttributeColumn<ValueObject>(
-        "Shallow Size",
-        () -> new SimpleColumnRenderer<ValueObject>(
-          value -> value.getAdapter().getShallowSize() != INVALID_VALUE
-                   ? NumberFormatter.formatInteger(value.getAdapter().getShallowSize())
-                   : "",
-          value -> null, SwingConstants.RIGHT),
-        SwingConstants.RIGHT,
-        DEFAULT_COLUMN_WIDTH,
-        SortOrder.DESCENDING,
-        Comparator.comparingInt(o -> o.getAdapter().getShallowSize())));
+      makeSizeColumn("Shallow Size", ValueObject::getShallowSize));
     myAttributeColumns.put(
       InstanceAttribute.RETAINED_SIZE,
-      new AttributeColumn<ValueObject>(
-        "Retained Size",
-        () -> new SimpleColumnRenderer<ValueObject>(
-          value -> value.getAdapter().getRetainedSize() != INVALID_VALUE ? NumberFormatter
-            .formatInteger(value.getAdapter().getRetainedSize()) : "",
-          value -> null, SwingConstants.RIGHT),
-        SwingConstants.RIGHT,
-        DEFAULT_COLUMN_WIDTH,
-        SortOrder.DESCENDING,
-        Comparator.comparingLong(o -> o.getAdapter().getRetainedSize())));
+      makeSizeColumn("Retained Size", ValueObject::getRetainedSize));
 
     // Fires the handler once at the beginning to ensure we are sync'd with the latest selection state in the MemoryProfilerStage.
     instanceChanged();

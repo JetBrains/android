@@ -21,6 +21,7 @@ import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.Cla
 import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE;
 import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findChildClassSetWithName;
 import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findChildWithPredicate;
+import static com.android.tools.profilers.memory.adapters.MemoryObject.INVALID_VALUE;
 import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.OBJECT;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertNotNull;
@@ -192,10 +193,17 @@ public class MemoryClassSetViewTest {
                                     new String[]{""},
                                     new String[]{(instance.getDepth() >= 0 && instance.getDepth() < Integer.MAX_VALUE) ?
                                                  NumberFormatter.formatInteger(instance.getDepth()) : ""},
-                                    new String[]{NumberFormatter.formatInteger(instance.getNativeSize())},
-                                    new String[]{NumberFormatter.formatInteger(instance.getShallowSize())},
-                                    new String[]{NumberFormatter.formatInteger(instance.getRetainedSize())});
+                                    new String[]{formatSize(instance.getNativeSize())},
+                                    new String[]{formatSize(instance.getShallowSize())},
+                                    new String[]{formatSize(instance.getRetainedSize())});
     }
+  }
+
+  /**
+   * Return text representation of the size, except nothing when it is the special "invalid" value
+   */
+  private static String formatSize(long size) {
+    return size == INVALID_VALUE ? "" : NumberFormatter.formatInteger(size);
   }
 
   @Test
