@@ -36,8 +36,7 @@ fun RecipeExecutor.generatePureLibrary(
 
   addIncludeToSettings(moduleData.name)
 
-  // TODO(qumeric): set proper Java version?
-  save(buildGradle("1.7"), moduleOut.resolve(FN_BUILD_GRADLE))
+  save(buildGradle("JavaVersion.VERSION_1_7"), moduleOut.resolve(FN_BUILD_GRADLE))
   save(
     if (language == Language.Kotlin) placeholderKt(packageName, className) else placeholderJava(packageName, className),
     srcOut.resolve("$className.${language.extension}")
