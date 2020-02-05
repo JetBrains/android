@@ -235,17 +235,6 @@ public class NavDesignSurface extends DesignSurface {
 
   @NotNull
   @Override
-  public Rectangle getRenderableBoundsForInvisibleComponents(@NotNull SceneView sceneView, @Nullable Rectangle rectangle) {
-    Rectangle viewRect = myScrollPane.getViewport().getViewRect();
-    if (rectangle == null) {
-      rectangle = new Rectangle();
-    }
-    rectangle.setBounds(viewRect);
-    return rectangle;
-  }
-
-  @NotNull
-  @Override
   protected SceneManager createSceneManager(@NotNull NlModel model) {
     return new NavSceneManager(model, this);
   }

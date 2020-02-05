@@ -129,21 +129,3 @@ class SingleDirectionLayoutManagerTest: LayoutTestCase() {
     }
   }
 }
-
-private class TestSceneView(private val width: Int, private val height: Int, private val nameLabelHeight: Int = 0)
-  : SceneView(Mockito.mock(DesignSurface::class.java), Mockito.mock(SceneManager::class.java)) {
-
-  override fun createLayers(): ImmutableList<Layer> = ImmutableList.of()
-
-  override fun getNameLabelHeight() = nameLabelHeight
-
-  override fun getPreferredSize(dimension: Dimension?): Dimension {
-    val dim = dimension ?: Dimension()
-    dim.setSize(width, height)
-    return dim
-  }
-
-  override fun getColorSet(): ColorSet = ColorSet()
-
-  override fun getScale(): Double = 1.0
-}

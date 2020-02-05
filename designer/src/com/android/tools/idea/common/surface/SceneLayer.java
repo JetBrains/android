@@ -80,9 +80,7 @@ public class SceneLayer extends Layer {
         return;
       }
 
-      myDesignSurface.getRenderableBoundsForInvisibleComponents(mySceneView, mySurfaceRectangle);
-      Rectangle2D.intersect(mySurfaceRectangle, clipBounds, mySurfaceRectangle);
-      sceneContext.setRenderableBounds(mySurfaceRectangle);
+      sceneContext.setRenderableBounds(clipBounds);
 
       if (myShowAlways) {
         paintBackground(g, sceneContext);

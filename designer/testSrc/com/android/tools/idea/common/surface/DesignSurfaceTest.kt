@@ -166,12 +166,6 @@ private class TestDesignSurface(project: Project, disposible: Disposable)
 
   override fun createSceneManager(model: NlModel) = SyncLayoutlibSceneManager(model as SyncNlModel)
 
-  override fun getRenderableBoundsForInvisibleComponents(sceneView: SceneView, rectangle: Rectangle?): Rectangle {
-    val rect = rectangle ?: Rectangle()
-    rect.bounds = myScrollPane.viewport.viewRect
-    return rect
-  }
-
   override fun layoutContent() = Unit
 
   override fun scrollToCenter(list: MutableList<NlComponent>) {}

@@ -65,21 +65,4 @@ interface SurfaceLayoutManager {
    * @param keepPreviousPadding true if all padding values should be the same as current one. This happens when resizing the [SceneView].
    */
   fun layout(sceneViews: Collection<SceneView>, availableWidth: Int, availableHeight: Int, keepPreviousPadding: Boolean = false)
-
-  /**
-   * Find the renderable area for the given [targetSceneView].
-   *
-   * @param sceneViews      all [SceneView]s in the current Surface.
-   * @param availableWidth  the width of current visible area, which doesn't include the hidden part in the scroll view.
-   * @param availableHeight the height of current visible area, which doesn't include the hidden part in the scroll view.
-   * @param surfaceRect     the size of total scrollable area in surface.
-   * @param retRect         used to store the result bounds. The new [Rectangle] instance is created if the given instance is null.
-   */
-  fun getRenderableBoundsForInvisibleComponents(targetSceneView: SceneView,
-                                                sceneViews: Collection<SceneView>,
-                                                availableWidth: Int,
-                                                availableHeight: Int,
-                                                surfaceRect: Rectangle,
-                                                retRect: Rectangle?)
-    : Rectangle
 }
