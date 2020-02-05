@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 4.0.0-dev">
+<issues format="5" by="lint 4.1.0-dev">
 
     <issue
         id="DefaultLocale"
@@ -62,7 +62,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/ConstraintComponentUtilities.java"
-            line="634"/>
+            line="635"/>
     </issue>
 
     <issue
@@ -70,7 +70,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/ConstraintComponentUtilities.java"
-            line="759"/>
+            line="760"/>
     </issue>
 
     <issue
@@ -78,7 +78,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/ConstraintComponentUtilities.java"
-            line="764"/>
+            line="765"/>
     </issue>
 
     <issue
@@ -86,7 +86,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/ConstraintComponentUtilities.java"
-            line="826"/>
+            line="827"/>
     </issue>
 
     <issue
@@ -94,7 +94,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/ConstraintComponentUtilities.java"
-            line="837"/>
+            line="838"/>
     </issue>
 
     <issue
@@ -102,7 +102,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/ConstraintComponentUtilities.java"
-            line="1479"/>
+            line="1480"/>
     </issue>
 
     <issue
@@ -430,7 +430,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/WidgetConstraintModel.java"
-            line="631"/>
+            line="630"/>
     </issue>
 
     <issue
@@ -518,7 +518,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/common/model/NlComponent.java"
-            line="102"/>
+            line="101"/>
     </issue>
 
     <issue
@@ -526,23 +526,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/common/model/NlComponent.java"
-            line="102"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/uibuilder/surface/NlDesignSurface.java"
-            line="815"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/uibuilder/surface/NlDesignSurface.java"
-            line="819"/>
+            line="101"/>
     </issue>
 
     <issue

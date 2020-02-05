@@ -38,8 +38,6 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.common.surface.InteractionHandler;
-import com.android.tools.idea.common.surface.Layer;
-import com.android.tools.idea.common.surface.SceneLayer;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
@@ -59,6 +57,7 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.utils.ImmutableCollectors;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
@@ -71,6 +70,7 @@ import com.intellij.util.ui.update.Update;
 import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -502,13 +502,10 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
    * @param value if true, force painting
    */
   public void forceLayersPaint(boolean value) {
-    for (Layer layer : getLayers()) {
-      if (layer instanceof SceneLayer) {
-        SceneLayer sceneLayer = (SceneLayer)layer;
-        sceneLayer.setTemporaryShow(value);
-        repaint();
-      }
+    for (SceneView view : getSceneViews()) {
+      view.setForceLayersRepaint(value);
     }
+    repaint();
   }
 
   @Override
@@ -544,7 +541,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @Nullable
   @Override
   public SceneView getHoverSceneView(@SwingCoordinate int x, @SwingCoordinate int y) {
-    List<SceneView> sceneViews = getSceneViews();
+    Collection<SceneView> sceneViews = getSceneViews();
     for (SceneView view : sceneViews) {
       if (view.getX() <= x && x <= (view.getX() + view.getSize().width) && view.getY() <= y && y <= (view.getY() + view.getSize().height)) {
         return view;
@@ -553,12 +550,16 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     return null;
   }
 
+  @Override
   @NotNull
-  private ImmutableList<SceneView> getSceneViews() {
+  protected ImmutableCollection<SceneView> getSceneViews() {
     ImmutableList.Builder<SceneView> builder = new ImmutableList.Builder<>();
+
+    // Add all primary SceneViews
+    builder.addAll(super.getSceneViews());
+
+    // Add secondary SceneViews
     for (SceneManager manager : getSceneManagers()) {
-      SceneView view = manager.getSceneView();
-      builder.add(view);
       SceneView secondarySceneView = ((LayoutlibSceneManager)manager).getSecondarySceneView();
       if (secondarySceneView != null) {
         builder.add(secondarySceneView);
@@ -569,7 +570,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   @Override
   public Dimension getScrolledAreaSize() {
-    List<SceneView> sceneViews = getSceneViews();
+    Collection<SceneView> sceneViews = getSceneViews();
     Dimension dimension = myLayoutManager.getRequiredSize(sceneViews, myScrollPane.getWidth(), myScrollPane.getHeight(), null);
     if (dimension.width <= 0 || dimension.height <= 0) {
       return null;
@@ -653,7 +654,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @NotNull
   @Override
   protected Dimension getPreferredContentSize(@SwingCoordinate int availableWidth, @SwingCoordinate int availableHeight) {
-    List<SceneView> sceneViews = getSceneViews();
+    Collection<SceneView> sceneViews = getSceneViews();
     return myLayoutManager.getPreferredSize(sceneViews, myScrollPane.getWidth(), myScrollPane.getHeight(), null);
   }
 

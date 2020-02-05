@@ -30,7 +30,6 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
-import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.gradle.project.BuildSettings;
@@ -68,39 +67,6 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     finally {
       super.tearDown();
     }
-  }
-
-  public void testLayers() {
-    ImmutableList<Layer> droppedLayers;
-
-    assertEmpty(mySurface.myLayers);
-    ModelBuilder modelBuilder = model("absolute.xml",
-                                      component(ABSOLUTE_LAYOUT)
-                                        .withBounds(0, 0, 1000, 1000)
-                                        .matchParentWidth()
-                                        .matchParentHeight());
-    NlModel model = modelBuilder.build();
-    mySurface.setModel(model);
-    mySurface.setScreenMode(SceneMode.RENDER, false);
-    assertEquals(5, mySurface.myLayers.size());
-
-    droppedLayers = ImmutableList.copyOf(mySurface.myLayers);
-    mySurface.setScreenMode(SceneMode.BLUEPRINT, false);
-    assertEquals(5, mySurface.myLayers.size());
-    // Make sure all dropped layers are disposed.
-    assertEmpty(droppedLayers.stream().filter(Disposer::isDisposed).collect(Collectors.toList()));
-
-    droppedLayers = ImmutableList.copyOf(mySurface.myLayers);
-    mySurface.setScreenMode(SceneMode.RENDER_AND_BLUEPRINT, false);
-    assertEquals(9, mySurface.myLayers.size());
-    // Make sure all dropped layers are disposed.
-    assertEmpty(droppedLayers.stream().filter(Disposer::isDisposed).collect(Collectors.toList()));
-
-    droppedLayers = ImmutableList.copyOf(mySurface.myLayers);
-    mySurface.setModel(null);
-    assertEmpty(mySurface.myLayers);
-    // Make sure all dropped layers are disposed.
-    assertEmpty(droppedLayers.stream().filter(layer -> !Disposer.isDisposed(layer)).collect(Collectors.toList()));
   }
 
   public void testScreenMode() {

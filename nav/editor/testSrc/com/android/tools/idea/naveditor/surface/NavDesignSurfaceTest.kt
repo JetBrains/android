@@ -125,23 +125,6 @@ class NavDesignSurfaceTest : NavTestCase() {
     LayoutTestCase.assertTrue(surface.isSkipContentResize)
   }
 
-  fun testLayers() {
-    val droppedLayers: ImmutableList<Layer>
-
-    val surface = NavDesignSurface(project, myRootDisposable)
-    assertEmpty(surface.myLayers)
-
-    val model = model("nav.xml") { navigation("root") }
-    surface.model = model
-    assertEquals(1, surface.myLayers.size)
-
-    droppedLayers = ImmutableList.copyOf(surface.myLayers)
-    surface.model = null
-    assertEmpty(surface.myLayers)
-    // Make sure all dropped layers are disposed.
-    assertEmpty(droppedLayers.filter { layer -> !Disposer.isDisposed(layer) })
-  }
-
   fun testComponentActivated() {
     val surface = NavDesignSurface(project, myRootDisposable)
     val model = model("nav.xml") {
