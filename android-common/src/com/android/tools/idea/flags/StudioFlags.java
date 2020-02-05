@@ -681,13 +681,6 @@ public final class StudioFlags {
 
   //endregion
 
-  //region Analyzer
-  private static final FlagGroup ANALYZER = new FlagGroup(FLAGS, "analyzer", "Apk/Bundle Analyzer");
-  public static final Flag<Boolean> ENABLE_APP_SIZE_OPTIMIZER = Flag.create(
-    ANALYZER, "enable.app.size.optimizer", "Enable size optimization suggestions in apk analyzer",
-    "If enabled, it will enable the apk analyzer tool to display suggestions for reducing application size", false);
-  //endregion
-
   //region Unified App Bundle
   private static final FlagGroup UAB = new FlagGroup(FLAGS, "uab", "Unified App Bundle");
 
