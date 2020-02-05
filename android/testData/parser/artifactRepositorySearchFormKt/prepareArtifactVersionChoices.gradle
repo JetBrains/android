@@ -1,0 +1,12 @@
+ext {
+  ver10 = "1.0"
+  ver20 = "2.0"
+  otherVer = "3.0"
+  nonVer = "something"
+  nonString = 123
+  inTheMap = [
+    "itemVer10": "1.0",
+    "itemVer11": "1.1",
+    "other": true
+  ]
+}

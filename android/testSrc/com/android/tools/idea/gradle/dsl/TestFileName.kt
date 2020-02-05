@@ -1104,6 +1104,7 @@ enum class TestFileName(val path: String) {
   MODEL_SIMPLE_PROPERTY_IMPL_REBIND_RESOLVED_PROPERTY("modelSimplePropertyImpl/rebindResolvedProperty"),
   MODEL_SIMPLE_PROPERTY_IMPL_REBIND_RESOLVED_PROPERTY_EXPECTED("modelSimplePropertyImpl/rebindResolvedPropertyExpected"),
   MODEL_SIMPLE_PROPERTY_IMPL_PROPERTY_INITIALIZER("modelSimplePropertyImpl/propertyInitializer"),
+  ARTIFACT_REPOSITORY_SEARCH_FORM_KT_PREPARE_ARTIFACT_VERSION_CHOICES("artifactRepositorySearchFormKt/prepareArtifactVersionChoices"),
 
   ;
 
