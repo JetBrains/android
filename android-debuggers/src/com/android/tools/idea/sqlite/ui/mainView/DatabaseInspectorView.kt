@@ -82,5 +82,7 @@ interface DatabaseInspectorView {
     fun removeDatabaseActionInvoked(database: SqliteDatabase)
     /** Called when the user wants to sync a database */
     fun reDownloadDatabaseFileActionInvoked(database: FileSqliteDatabase)
+    /** Called when the user wants to refresh the schema of all open databases */
+    fun refreshAllOpenDatabasesSchemaActionInvoked()
   }
 }
