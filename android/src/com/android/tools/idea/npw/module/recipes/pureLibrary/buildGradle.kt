@@ -20,10 +20,9 @@ fun buildGradle(javaVersion: String): String {
   return """
 apply plugin: 'java-library'
 
-dependencies {
+java {
+    sourceCompatibility = ${javaVersion}
+    targetCompatibility = ${javaVersion}
 }
-
-sourceCompatibility = "${javaVersion}"
-targetCompatibility = "${javaVersion}"
 """
 }
