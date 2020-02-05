@@ -63,7 +63,13 @@ class NewKtsProjectTest {
     createNewKtsProject(Language.JAVA)
 
     assertThat(guiTest.getProjectFileText(FN_BUILD_GRADLE_KTS)).contains("""tasks.register("clean", Delete::class)""")
-    // TODO(parentej) Check app/build.gradle.kts when code generation is implemented for it
+    assertThat(guiTest.getProjectFileText("app/$FN_BUILD_GRADLE_KTS")).apply {
+      contains("plugins {")
+      contains("""id("com.android.application")""")
+      contains("applicationId =")
+      contains("minSdkVersion(")
+      contains("isMinifyEnabled =")
+    }
   }
 
   /**
@@ -83,7 +89,10 @@ class NewKtsProjectTest {
       assertThat(this).contains("val kotlin_version by extra(")
       assertThat(this).contains("""tasks.register("clean", Delete::class)""")
     }
-    // TODO(parentej) Check app/build.gradle.kts when code generation is implemented for it
+    assertThat(guiTest.getProjectFileText("app/$FN_BUILD_GRADLE_KTS")).apply {
+      contains("""id("kotlin-android")""")
+      contains("""org.jetbrains.kotlin:kotlin-stdlib:${'$'}{rootProject.extra["kotlin_version"]}"""")
+    }
   }
 
   private fun createNewKtsProject(language: Language) {
