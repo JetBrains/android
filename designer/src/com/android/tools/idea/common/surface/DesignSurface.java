@@ -18,6 +18,7 @@ package com.android.tools.idea.common.surface;
 import static com.android.tools.adtui.PannableKt.PANNABLE_KEY;
 import static com.android.tools.adtui.ZoomableKt.ZOOMABLE_KEY;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.UiThread;
 import com.android.tools.adtui.Pannable;
 import com.android.tools.adtui.Zoomable;
@@ -48,7 +49,6 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableCollection;
@@ -142,8 +142,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @NotNull protected final JScrollPane myScrollPane;
   private final MyLayeredPane myLayeredPane;
   @VisibleForTesting
-  @NotNull
-  public ImmutableList<Layer> myLayers = ImmutableList.of();
   private final InteractionManager myInteractionManager;
   private final GlassPane myGlassPane;
   protected final List<DesignSurfaceListener> myListeners = new ArrayList<>();
@@ -391,8 +389,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * Returns the list of all the {@link SceneManager} part of this surface
    * @return
    */
+  @VisibleForTesting(visibility = VisibleForTesting.Visibility.PROTECTED)
   @NotNull
-  protected ImmutableList<SceneManager> getSceneManagers() {
+  public ImmutableList<SceneManager> getSceneManagers() {
     myModelToSceneManagersLock.readLock().lock();
     try {
       return ImmutableList.copyOf(Collections2.filter(myModelToSceneManagers.values(), FILTER_DISPOSED_SCENE_MANAGERS));
@@ -506,9 +505,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     model.getConfiguration().removeListener(myConfigurationListener);
     model.removeListener(myModelListener);
-
-    // Removed the added layers.
-    removeLayers(manager.getLayers());
 
     Disposer.dispose(manager);
     return true;
@@ -668,33 +664,33 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   /**
+   * Returns the list of SceneViews attached to this surface
+   */
+  @NotNull
+  protected ImmutableCollection<SceneView> getSceneViews() {
+    return getSceneManagers().stream()
+      .map(SceneManager::getSceneView)
+      .collect(ImmutableList.toImmutableList());
+  }
+
+  /**
    * Gives us a chance to change layers behaviour upon drag and drop interaction starting
    */
   public void startDragDropInteraction() {
-    for (Layer layer : myLayers) {
-      if (layer instanceof SceneLayer) {
-        SceneLayer sceneLayer = (SceneLayer)layer;
-        if (!sceneLayer.isShowOnHover()) {
-          sceneLayer.setShowOnHover(true);
-          repaint();
-        }
-      }
+    for (SceneView sceneView: getSceneViews()) {
+      sceneView.onDragStart();
     }
+    repaint();
   }
 
   /**
    * Gives us a chance to change layers behaviour upon drag and drop interaction ending
    */
   public void stopDragDropInteraction() {
-    for (Layer layer : myLayers) {
-      if (layer instanceof SceneLayer) {
-        SceneLayer sceneLayer = (SceneLayer)layer;
-        if (sceneLayer.isShowOnHover()) {
-          sceneLayer.setShowOnHover(false);
-          repaint();
-        }
-      }
+    for (SceneView sceneView: getSceneViews()) {
+      sceneView.onDragEnd();
     }
+    repaint();
   }
 
   /**
@@ -795,7 +791,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * @param fitInto {@link ZoomType#FIT_INTO}
    * @return The scale to make the content fit the design surface
    */
-  @VisibleForTesting
+  @VisibleForTesting(visibility = VisibleForTesting.Visibility.PROTECTED)
   public double getFitScale(@AndroidCoordinate Dimension size, boolean fitInto) {
     // Fit to zoom
     int availableWidth = myScrollPane.getWidth() - myScrollPane.getVerticalScrollBar().getWidth();
@@ -920,7 +916,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * @param y     The Y coordinate to center the scale to (in the Viewport's view coordinate system)
    * @return True if the scaling was changed, false if this was a noop.
    */
-  @VisibleForTesting
+  @VisibleForTesting(visibility = VisibleForTesting.Visibility.PROTECTED)
   public boolean setScale(double scale, @SwingCoordinate int x, @SwingCoordinate int y) {
     double newScale = Math.min(Math.max(scale, getMinScale()), getMaxScale());
     if (Math.abs(newScale - myScale) < 0.005 / getScreenScalingFactor()) {
@@ -1298,11 +1294,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       paintBackground(g2d, tlx, tly);
 
       Rectangle bounds = myScrollPane.getViewport().getViewRect();
-      for (Layer layer : myLayers) {
-        if (layer.isVisible()) {
-          g2d.setClip(bounds);
-          layer.paint(g2d);
-        }
+      g2d.setClip(bounds);
+
+      for (SceneView sceneView : getSceneViews()) {
+        sceneView.paint(g2d);
       }
 
       if (!isEditable()) {
@@ -1682,29 +1677,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       }
       return myErrorQueue;
     }
-  }
-
-
-  /**
-   * Attaches the given {@link Layer}s to the current design surface.
-   */
-  public void addLayers(@NotNull ImmutableList<Layer> layers) {
-    myLayers = ImmutableList.copyOf(Iterables.concat(myLayers, layers));
-  }
-
-  /**
-   * Deattaches the given {@link Layer}s to the current design surface
-   */
-  public void removeLayers(@NotNull ImmutableList<Layer> layers) {
-    myLayers = ImmutableList.copyOf((Iterables.filter(myLayers, l -> !layers.contains(l))));
-  }
-
-  /**
-   * Returns the list of {@link Layer}s attached to this {@link DesignSurface}
-   */
-  @NotNull
-  protected List<Layer> getLayers() {
-    return myLayers;
   }
 
   @NotNull

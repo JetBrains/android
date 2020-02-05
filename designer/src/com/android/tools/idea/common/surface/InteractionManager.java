@@ -17,10 +17,8 @@ package com.android.tools.idea.common.surface;
 
 import static java.awt.event.MouseWheelEvent.WHEEL_UNIT_SCROLL;
 
-import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.idea.uibuilder.surface.PanInteraction;
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.actions.ZoomType;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.adtui.ui.AdtUiCursors;
 import com.android.tools.idea.common.model.Coordinates;
@@ -31,6 +29,8 @@ import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.model.NlDropEvent;
 import com.android.tools.idea.uibuilder.surface.DragDropInteraction;
+import com.android.tools.idea.uibuilder.surface.PanInteraction;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
@@ -718,11 +718,9 @@ public class InteractionManager implements Disposable {
       int x = myLastMouseX; // initiate the drag from the mousePress location, not the point we've dragged to
       int y = myLastMouseY;
 
-      // TODO: find the correct tooltip? to show
-
       // TODO (b/142953949): Should layer be hovered when action performed?
-      for (Layer layer : mySurface.getLayers()) {
-        layer.onHover(x, y);
+      for (SceneView sceneView : mySurface.getSceneViews()) {
+        sceneView.onHover(x, y);
       }
     }
 

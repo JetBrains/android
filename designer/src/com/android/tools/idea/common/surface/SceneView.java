@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.surface;
 
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.resources.ScreenRound;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
@@ -31,6 +32,7 @@ import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.idea.configurations.Configuration;
 import com.google.common.collect.ImmutableList;
 import java.awt.Dimension;
+import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
@@ -44,6 +46,8 @@ import org.jetbrains.annotations.Nullable;
 public abstract class SceneView {
   @NotNull private final DesignSurface mySurface;
   @NotNull private final SceneManager myManager;
+  private final Object myLayersCacheLock = new Object();
+  @GuardedBy("myLayersCacheLock")
   private ImmutableList<Layer> myLayersCache;
   @SwingCoordinate private int x;
   @SwingCoordinate private int y;
@@ -66,10 +70,12 @@ public abstract class SceneView {
    */
   @NotNull
   public final ImmutableList<Layer> getLayers() {
-    if (myLayersCache == null) {
-      myLayersCache = createLayers();
+    synchronized (myLayersCacheLock) {
+      if (myLayersCache == null) {
+        myLayersCache = createLayers();
+      }
+      return myLayersCache;
     }
-    return myLayersCache;
   }
 
   @NotNull
@@ -185,7 +191,7 @@ public abstract class SceneView {
     return getSceneManager().getSceneScalingFactor();
   }
 
-  public void setLocation(@SwingCoordinate int screenX, @SwingCoordinate int screenY) {
+  public final void setLocation(@SwingCoordinate int screenX, @SwingCoordinate int screenY) {
     x = screenX;
     y = screenY;
   }
@@ -233,6 +239,78 @@ public abstract class SceneView {
    * Called when {@link DesignSurface#updateUI()} is called.
    */
   public void updateUI() {
+  }
+
+  /**
+   * Called by the surface when the {@link SceneView} needs to be painted
+   * @param graphics
+   */
+  final void paint(@NotNull Graphics2D graphics) {
+    for (Layer layer : getLayers()) {
+      if (layer.isVisible()) {
+        layer.paint(graphics);
+      }
+    }
+  }
+
+  /**
+   * Called when a drag operation starts on the {@link DesignSurface}
+   */
+  final void onDragStart() {
+    for (Layer layer : getLayers()) {
+      if (layer instanceof SceneLayer) {
+        SceneLayer sceneLayer = (SceneLayer)layer;
+        if (sceneLayer.isShowOnHover()) {
+          sceneLayer.setShowOnHover(true);
+        }
+      }
+    }
+  }
+
+  /**
+   * Called when a drag operation ends on the {@link DesignSurface}
+   */
+  final void onDragEnd() {
+    for (Layer layer : getLayers()) {
+      if (layer instanceof SceneLayer) {
+        SceneLayer sceneLayer = (SceneLayer)layer;
+        if (sceneLayer.isShowOnHover()) {
+          sceneLayer.setShowOnHover(false);
+        }
+      }
+    }
+  }
+
+  public void dispose() {
+    synchronized (myLayersCacheLock) {
+      if (myLayersCache != null) {
+        //noinspection SSBasedInspection TODO(http://b/148936113)
+        myLayersCache.forEach(Layer::dispose);
+      }
+    }
+  }
+
+  /**
+   * Called by the {@link DesignSurface} on mouse hover. The coordinates might be outside of the boundaries of this {@link SceneView}
+   */
+  final void onHover(@SwingCoordinate int mouseX, @SwingCoordinate int mouseY) {
+    for (Layer layer : getLayers()) {
+      layer.onHover(mouseX, mouseY);
+    }
+  }
+
+  /**
+   * Set the ConstraintsLayer and SceneLayer layers to paint, even if they are set to paint only on mouse hover
+   *
+   * @param value if true, force painting
+   */
+  public final void setForceLayersRepaint(boolean value) {
+    for (Layer layer : getLayers()) {
+      if (layer instanceof SceneLayer) {
+        SceneLayer sceneLayer = (SceneLayer)layer;
+        sceneLayer.setTemporaryShow(value);
+      }
+    }
   }
 
   /**

@@ -20,6 +20,11 @@ import java.awt.Dimension
 import java.awt.Rectangle
 
 /**
+ * Sorts the [Collection<SceneView>] by its x and y coordinates.
+ */
+internal fun Collection<SceneView>.sortByPosition() = sortedWith(compareBy({ it.y }, { it.x }))
+
+/**
  * Interface used to layout and measure the size of [SceneView]s in [com.android.tools.idea.common.surface.DesignSurface].
  */
 interface SurfaceLayoutManager {
@@ -35,7 +40,7 @@ interface SurfaceLayoutManager {
    *
    * @see [getRequiredSize]
    */
-  fun getPreferredSize(sceneViews: List<SceneView>, availableWidth: Int, availableHeight: Int, dimension: Dimension?): Dimension
+  fun getPreferredSize(sceneViews: Collection<SceneView>, availableWidth: Int, availableHeight: Int, dimension: Dimension?): Dimension
 
   /**
    * Get the total content size of the given [SceneView]s when available display size is [availableWidth] x [availableHeight].
@@ -48,7 +53,7 @@ interface SurfaceLayoutManager {
    *
    * @see [getPreferredSize]
    */
-  fun getRequiredSize(sceneViews: List<SceneView>, availableWidth: Int, availableHeight: Int, dimension: Dimension?): Dimension
+  fun getRequiredSize(sceneViews: Collection<SceneView>, availableWidth: Int, availableHeight: Int, dimension: Dimension?): Dimension
 
   /**
    * Place the given [SceneView]s in the proper positions by using [SceneView.setLocation]
@@ -59,7 +64,7 @@ interface SurfaceLayoutManager {
    * @param availableHeight     the height of current visible area, which doesn't include the hidden part in the scroll view.
    * @param keepPreviousPadding true if all padding values should be the same as current one. This happens when resizing the [SceneView].
    */
-  fun layout(sceneViews: List<SceneView>, availableWidth: Int, availableHeight: Int, keepPreviousPadding: Boolean = false)
+  fun layout(sceneViews: Collection<SceneView>, availableWidth: Int, availableHeight: Int, keepPreviousPadding: Boolean = false)
 
   /**
    * Find the renderable area for the given [targetSceneView].
@@ -71,7 +76,7 @@ interface SurfaceLayoutManager {
    * @param retRect         used to store the result bounds. The new [Rectangle] instance is created if the given instance is null.
    */
   fun getRenderableBoundsForInvisibleComponents(targetSceneView: SceneView,
-                                                sceneViews: List<SceneView>,
+                                                sceneViews: Collection<SceneView>,
                                                 availableWidth: Int,
                                                 availableHeight: Int,
                                                 surfaceRect: Rectangle,

@@ -43,7 +43,6 @@ import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.scene.TemporarySceneComponent;
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.configurations.Configuration;
@@ -397,17 +396,6 @@ public class LayoutlibSceneManager extends SceneManager {
     getDesignSurface().updateErrorDisplay();
     getDesignSurface().getLayeredPane().setPreferredSize(sceneView.getPreferredSize());
     return sceneView;
-  }
-
-  @NotNull
-  @Override
-  public ImmutableList<Layer> getLayers() {
-    ImmutableList.Builder<Layer> builder = new ImmutableList.Builder<>();
-    builder.addAll(super.getLayers());
-    if (mySecondarySceneView != null) {
-      builder.addAll(mySecondarySceneView.getLayers());
-    }
-    return builder.build();
   }
 
   @Nullable

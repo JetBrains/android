@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 26.6.0-dev">
+<issues format="5" by="lint 4.1.0-dev">
 
     <issue
         id="DefaultLocale"
         message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
         <location
             file="src/com/android/tools/idea/naveditor/editor/AddDestinationMenu.kt"
-            line="270"/>
+            line="306"/>
     </issue>
 
     <issue
@@ -14,7 +14,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
         <location
             file="src/com/android/tools/idea/naveditor/editor/AddDestinationMenu.kt"
-            line="270"/>
+            line="306"/>
     </issue>
 
     <issue
@@ -38,7 +38,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/editor/AddDestinationMenu.kt"
-            line="118"/>
+            line="139"/>
     </issue>
 
     <issue
@@ -46,7 +46,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/editor/AddDestinationMenu.kt"
-            line="125"/>
+            line="146"/>
     </issue>
 
     <issue
@@ -54,7 +54,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/editor/AddDestinationMenu.kt"
-            line="333"/>
+            line="379"/>
     </issue>
 
     <issue
@@ -62,7 +62,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/structure/BackPanel.kt"
-            line="96"/>
+            line="114"/>
     </issue>
 
     <issue
@@ -70,7 +70,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/structure/BackPanel.kt"
-            line="96"/>
+            line="114"/>
     </issue>
 
     <issue
@@ -78,7 +78,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/scene/targets/EmptyDesignerTarget.kt"
-            line="74"/>
+            line="79"/>
     </issue>
 
     <issue
@@ -86,7 +86,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/editor/NavActionManager.kt"
-            line="81"/>
+            line="80"/>
     </issue>
 
     <issue
@@ -167,22 +167,6 @@
         <location
             file="src/com/android/tools/idea/naveditor/property/inspector/NavActionsInspectorProvider.kt"
             line="145"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/naveditor/surface/NavDesignSurface.java"
-            line="695"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/naveditor/surface/NavDesignSurface.java"
-            line="705"/>
     </issue>
 
     <issue

@@ -38,7 +38,7 @@ class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalPaddin
   private var previousHorizontalPadding = 0
   private var previousVerticalPadding = 0
 
-  override fun getPreferredSize(sceneViews: List<SceneView>,
+  override fun getPreferredSize(sceneViews: Collection<SceneView>,
                                 availableWidth: Int,
                                 availableHeight: Int,
                                 dimension: Dimension?)
@@ -64,7 +64,7 @@ class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalPaddin
     return dim
   }
 
-  override fun getRequiredSize(sceneViews: List<SceneView>, availableWidth: Int, availableHeight: Int, dimension: Dimension?): Dimension {
+  override fun getRequiredSize(sceneViews: Collection<SceneView>, availableWidth: Int, availableHeight: Int, dimension: Dimension?): Dimension {
     val dim = dimension ?: Dimension()
 
     val requiredWidth: Int
@@ -84,16 +84,16 @@ class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalPaddin
     return dim
   }
 
-  private fun isVertical(sceneViews: List<SceneView>, availableWidth: Int, availableHeight: Int): Boolean {
+  private fun isVertical(sceneViews: Collection<SceneView>, availableWidth: Int, availableHeight: Int): Boolean {
     if (sceneViews.isEmpty()) {
       return false
     }
 
-    val primary = sceneViews[0]
+    val primary = sceneViews.sortByPosition().first()
     return (availableHeight > 3 * availableWidth / 2) || primary.size.width > primary.size.height
   }
 
-  override fun layout(sceneViews: List<SceneView>, availableWidth: Int, availableHeight: Int, keepPreviousPadding: Boolean) {
+  override fun layout(sceneViews: Collection<SceneView>, availableWidth: Int, availableHeight: Int, keepPreviousPadding: Boolean) {
     if (sceneViews.isEmpty()) {
       return
     }
@@ -133,7 +133,7 @@ class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalPaddin
   }
 
   override fun getRenderableBoundsForInvisibleComponents(targetSceneView: SceneView,
-                                                         sceneViews: List<SceneView>,
+                                                         sceneViews: Collection<SceneView>,
                                                          availableWidth: Int,
                                                          availableHeight: Int,
                                                          surfaceRect: Rectangle,
@@ -160,6 +160,7 @@ class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalPaddin
     val bottomBound = surfaceRect.y + surfaceRect.height
 
     val lastSceneViewIndex = sceneViews.size - 1
+    val sortedSceneViews = sceneViews.sortByPosition()
     if (isVertical(sceneViews, availableWidth , availableHeight)) {
       rectangle.x = leftBound
       rectangle.width = rightBound - leftBound
@@ -171,7 +172,7 @@ class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalPaddin
       }
       else {
         // The top side of SceneView shouldn't cover other SceneViews.
-        val previousSceneView = sceneViews[index - 1]
+        val previousSceneView = sortedSceneViews[index - 1]
         val previousBottom = previousSceneView.y + previousSceneView.size.height
         rectangle.y = max(topBound, (previousBottom + targetSceneView.y - targetSceneView.nameLabelHeight) / 2)
       }
@@ -183,7 +184,7 @@ class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalPaddin
       }
       else {
         // The bottom side of SceneView shouldn't cover other SceneViews.
-        val nextSceneView = sceneViews[index + 1]
+        val nextSceneView = sortedSceneViews[index + 1]
         val bottom = targetSceneView.y + targetSceneView.size.height
         rectangle.height = min(bottomBound, (bottom + nextSceneView.y - nextSceneView.nameLabelHeight) / 2) - rectangle.y
       }
@@ -199,7 +200,7 @@ class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalPaddin
       }
       else {
         // The left side of SceneView shouldn't cover other SceneViews.
-        val previousSceneView = sceneViews[index - 1]
+        val previousSceneView = sortedSceneViews[index - 1]
         val previousRight = previousSceneView.x + previousSceneView.size.width
         rectangle.x = max(leftBound, (previousRight + targetSceneView.x) / 2)
       }
@@ -211,7 +212,7 @@ class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalPaddin
       }
       else {
         // The right side of SceneView shouldn't cover other SceneViews.
-        val nextSceneView = sceneViews[index + 1]
+        val nextSceneView = sortedSceneViews[index + 1]
         val right = targetSceneView.x + targetSceneView.size.width
         rectangle.width = min(rightBound, (right + nextSceneView.x) / 2) - rectangle.x
       }
@@ -221,5 +222,5 @@ class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalPaddin
 }
 
 // Helper functions to improve readability
-private fun List<SceneView>.sumOf(mapFunc: SceneView.() -> Int) = map(mapFunc).sum()
-private fun List<SceneView>.maxOf(mapFunc: SceneView.() -> Int) = map(mapFunc).max()
+private fun Collection<SceneView>.sumOf(mapFunc: SceneView.() -> Int) = map(mapFunc).sum()
+private fun Collection<SceneView>.maxOf(mapFunc: SceneView.() -> Int) = map(mapFunc).max()

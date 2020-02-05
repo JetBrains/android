@@ -188,9 +188,8 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface) : Inte
     else {
       cursorWhenNoInteraction = null
     }
-    for (layer in surface.layers) {
-      layer.onHover(mouseX, mouseY)
-    }
+
+    surface.sceneManagers.map { it.sceneView }.forEach { it.onHover(mouseX, mouseY) }
   }
 
   override fun popupMenuTrigger(mouseEvent: MouseEvent) {

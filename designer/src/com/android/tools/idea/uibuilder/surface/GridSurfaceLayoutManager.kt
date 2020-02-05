@@ -36,16 +36,16 @@ class GridSurfaceLayoutManager(private val horizontalPadding: Int,
   private var previousHorizontalPadding = 0
   private var previousVerticalPadding = 0
 
-  override fun getPreferredSize(sceneViews: List<SceneView>,
+  override fun getPreferredSize(sceneViews: Collection<SceneView>,
                                 availableWidth: Int,
                                 availableHeight: Int,
                                 dimension: Dimension?) =
     getSize(sceneViews, SceneView::getPreferredSize, availableWidth, availableHeight, dimension)
 
-  override fun getRequiredSize(sceneViews: List<SceneView>, availableWidth: Int, availableHeight: Int, dimension: Dimension?)
+  override fun getRequiredSize(sceneViews: Collection<SceneView>, availableWidth: Int, availableHeight: Int, dimension: Dimension?)
     = getSize(sceneViews, SceneView::getSize, availableWidth, availableHeight, dimension)
 
-  private fun getSize(sceneViews: List<SceneView>,
+  private fun getSize(sceneViews: Collection<SceneView>,
                       sizeFunc: SceneView.() -> Dimension,
                       availableWidth: Int,
                       availableHeight: Int,
@@ -77,20 +77,20 @@ class GridSurfaceLayoutManager(private val horizontalPadding: Int,
    * Arrange [SceneView]s into a 2-dimension list which represent a list of row of [SceneView].
    * The [widthFunc] is for getting the preferred widths of [SceneView]s when filling the horizontal spaces.
    */
-  private fun convertToGrid(sceneViews: List<SceneView>, availableWidth: Int, widthFunc: SceneView.() -> Int): List<List<SceneView>> {
+  private fun convertToGrid(sceneViews: Collection<SceneView>, availableWidth: Int, widthFunc: SceneView.() -> Int): List<List<SceneView>> {
     if (sceneViews.isEmpty()) {
       return listOf(emptyList())
     }
     val startX = horizontalPadding
     val gridList = mutableListOf<List<SceneView>>()
 
-    val iterator = sceneViews.iterator()
+    val sortedSceneViews = sceneViews.sortByPosition()
 
-    val firstView = iterator.next()
+    val firstView = sortedSceneViews[0]
     var nextX = startX + firstView.widthFunc() + horizontalViewDelta
 
     var columnList = mutableListOf(firstView)
-    for (view in iterator) {
+    for (view in sortedSceneViews.drop(1)) {
       if (nextX + view.widthFunc() > availableWidth) {
         nextX = horizontalPadding + view.widthFunc() + horizontalViewDelta
         gridList.add(columnList)
@@ -105,7 +105,7 @@ class GridSurfaceLayoutManager(private val horizontalPadding: Int,
     return gridList
   }
 
-  override fun layout(sceneViews: List<SceneView>, availableWidth: Int, availableHeight: Int, keepPreviousPadding: Boolean) {
+  override fun layout(sceneViews: Collection<SceneView>, availableWidth: Int, availableHeight: Int, keepPreviousPadding: Boolean) {
     if (sceneViews.isEmpty()) {
       return
     }
@@ -143,7 +143,7 @@ class GridSurfaceLayoutManager(private val horizontalPadding: Int,
   }
 
   override fun getRenderableBoundsForInvisibleComponents(targetSceneView: SceneView,
-                                                         sceneViews: List<SceneView>,
+                                                         sceneViews: Collection<SceneView>,
                                                          availableWidth: Int,
                                                          availableHeight: Int,
                                                          surfaceRect: Rectangle,

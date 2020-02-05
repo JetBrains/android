@@ -24,9 +24,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.rendering.RenderSettings;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
@@ -35,8 +33,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A facility for creating and updating {@link Scene}s based on {@link NlModel}s.
@@ -49,8 +47,7 @@ abstract public class SceneManager implements Disposable {
   @NotNull private final DesignSurface myDesignSurface;
   @NotNull private final Scene myScene;
   // This will be initialized when constructor calls updateSceneView().
-  @SuppressWarnings("NullableProblems")
-  @NotNull private SceneView mySceneView;
+  @Nullable private SceneView mySceneView;
   @NotNull private final HitProvider myHitProvider = new DefaultHitProvider();
 
   public SceneManager(@NotNull NlModel model, @NotNull DesignSurface surface, @NotNull boolean useLiveRendering) {
@@ -65,9 +62,11 @@ abstract public class SceneManager implements Disposable {
    * Create the SceneView
    */
   protected void createSceneView() {
+    if (mySceneView != null) {
+      mySceneView.dispose();
+    }
     mySceneView = doCreateSceneView();
 
-    myDesignSurface.addLayers(getLayers());
     myDesignSurface.layoutContent();
   }
 
@@ -82,20 +81,13 @@ abstract public class SceneManager implements Disposable {
    * Update the SceneView of SceneManager. The SceneView may be recreated if needed.
    */
   public void updateSceneView() {
-    myDesignSurface.removeLayers(getLayers());
-    getLayers().forEach(Layer::dispose);
-
     createSceneView();
   }
 
   @NotNull
   public SceneView getSceneView() {
+    assert mySceneView != null : "createSceneView was not called";
     return mySceneView;
-  }
-
-  @NotNull
-  public ImmutableList<Layer> getLayers() {
-    return mySceneView.getLayers();
   }
 
   /**
@@ -106,7 +98,9 @@ abstract public class SceneManager implements Disposable {
 
   @Override
   public void dispose() {
-    getLayers().forEach(Disposer::dispose);
+    if (mySceneView != null) {
+      mySceneView.dispose();
+    }
   }
 
   /**
