@@ -36,6 +36,10 @@ import java.util.concurrent.TimeUnit
 class CpuCaptureStageCpuUsageTooltipViewTest {
   private val timer = FakeTimer()
 
+  private val myIdeServices = FakeIdeProfilerServices().apply {
+    enableEventsPipeline(true)
+  }
+
   @Rule
   @JvmField
   val grpcChannel = FakeGrpcChannel("CaptureCpuUsageTooltipTest", FakeTransportService(timer), FakeProfilerService(timer))
@@ -44,7 +48,7 @@ class CpuCaptureStageCpuUsageTooltipViewTest {
 
   @Before
   fun setUp() {
-    val profilers = StudioProfilers(ProfilerClient(grpcChannel.name), FakeIdeProfilerServices(), timer)
+    val profilers = StudioProfilers(ProfilerClient(grpcChannel.name), myIdeServices, timer)
     profilers.setPreferredProcess(FakeTransportService.FAKE_DEVICE_NAME, FakeTransportService.FAKE_PROCESS_NAME, null)
     val profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
     captureStage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
