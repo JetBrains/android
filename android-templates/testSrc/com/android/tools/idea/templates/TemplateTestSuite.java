@@ -22,7 +22,6 @@ import org.junit.runner.RunWith;
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses({
   TemplateTestSuite.class,  // a suite mustn't contain itself
-  com.android.tools.idea.templates.TemplateTest.CoverageChecker.class,  // runs all of TemplateTest again
 })
 public class TemplateTestSuite extends IdeaTestSuiteBase {
   static {

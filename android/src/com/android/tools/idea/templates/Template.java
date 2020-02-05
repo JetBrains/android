@@ -248,7 +248,7 @@ public class Template {
         AndroidStudioEvent.newBuilder()
                           .setCategory(EventCategory.TEMPLATE)
                           .setKind(AndroidStudioEvent.EventKind.TEMPLATE_RENDER)
-                          .setTemplateRenderer(titleToTemplateRenderer(title, myMetadata.getFormFactor()))
+                          .setTemplateRenderer(titleToTemplateRenderer(title))
                           .setKotlinSupport(
                             KotlinSupport.newBuilder()
                                          .setIncludeKotlinSupport(kotlinSupport)
@@ -272,7 +272,7 @@ public class Template {
   }
 
   @VisibleForTesting
-  static TemplateRenderer titleToTemplateRenderer(String title, @Nullable String formFactor) {
+  static TemplateRenderer titleToTemplateRenderer(String title) {
     switch (title) {
       case "":
         return TemplateRenderer.UNKNOWN_TEMPLATE_RENDERER;
@@ -283,7 +283,8 @@ public class Template {
       case "Empty Activity":
         return TemplateRenderer.EMPTY_ACTIVITY;
       case "Blank Activity":
-        return FormFactor.WEAR.id.equals(formFactor) ? TemplateRenderer.BLANK_WEAR_ACTIVITY : TemplateRenderer.BLANK_ACTIVITY;
+        return TemplateRenderer.BLANK_ACTIVITY;
+    // TODO FormFactor.WEAR.id.equals(formFactor) ? TemplateRenderer.BLANK_WEAR_ACTIVITY : TemplateRenderer.BLANK_ACTIVITY;
       case "Layout XML File":
         return TemplateRenderer.LAYOUT_XML_FILE;
       case "Fragment (Blank)":
