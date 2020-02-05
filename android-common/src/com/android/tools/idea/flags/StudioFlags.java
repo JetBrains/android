@@ -666,10 +666,6 @@ public final class StudioFlags {
   );
   //endregion
 
-  //region Project Upgrade
-  private static final FlagGroup PROJECT_UPGRADE = new FlagGroup(FLAGS, "project.upgrade", "Project Upgrade");
-  //endregion
-
   //region Testing
   private static final FlagGroup TESTING = new FlagGroup(FLAGS, "testing", "Testing support");
 
