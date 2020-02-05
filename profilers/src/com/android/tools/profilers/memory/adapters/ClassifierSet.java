@@ -82,43 +82,43 @@ public abstract class ClassifierSet implements MemoryObject {
     return myName;
   }
 
-  public boolean isEmpty() {
+  final public boolean isEmpty() {
     return mySnapshotObjectCount == 0 && myDeltaAllocations == 0 && myDeltaDeallocations == 0;
   }
 
-  public int getTotalObjectCount() {
+  final public int getTotalObjectCount() {
     return mySnapshotObjectCount + myDeltaAllocations - myDeltaDeallocations;
   }
 
-  public int getTotalObjectSetCount() {
+  final public int getTotalObjectSetCount() {
     return myObjectSetCount;
   }
 
-  public int getFilteredObjectSetCount() {
+  final public int getFilteredObjectSetCount() {
     return myFilteredObjectSetCount;
   }
 
-  public int getDeltaAllocationCount() {
+  final public int getDeltaAllocationCount() {
     return myDeltaAllocations;
   }
 
-  public int getDeltaDeallocationCount() {
+  final public int getDeltaDeallocationCount() {
     return myDeltaDeallocations;
   }
 
-  public long getTotalRetainedSize() {
+  final public long getTotalRetainedSize() {
     return myTotalRetainedSize;
   }
 
-  public long getTotalShallowSize() {
+  final public long getTotalShallowSize() {
     return myTotalShallowSize;
   }
 
-  public long getTotalNativeSize() {
+  final public long getTotalNativeSize() {
     return myTotalNativeSize;
   }
 
-  public int getFilterMatchCount() {
+  final public int getFilterMatchCount() {
     return myFilterMatchCount;
   }
 
