@@ -49,6 +49,7 @@ iml_module(
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module]",
         "//tools/idea/xml/impl:intellij.xml.impl[module]",
         "//tools/idea/plugins/gradle/tooling-extension-api:intellij.gradle.toolingExtension[module]",
+        "//tools/idea/platform/external-system-api:intellij.platform.externalSystem[module]",
     ],
 )
 
