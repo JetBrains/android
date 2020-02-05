@@ -27,7 +27,7 @@ import org.jetbrains.annotations.TestOnly;
 
 public class AndroidModuleSetup extends BaseSetup<AndroidModuleSetupStep, AndroidModuleModel> {
   public AndroidModuleSetup() {
-    this(new AndroidFacetModuleSetupStep(), new CompilerOutputModuleSetupStep());
+    this(new AndroidFacetModuleSetupStep());
   }
 
   @VisibleForTesting
