@@ -392,7 +392,8 @@ public class CpuCaptureParser {
         if (capture != null) {
           // Update capture metadata
           metadata.setStatus(CpuCaptureMetadata.CaptureStatus.SUCCESS);
-          metadata.setParsingTimeMs(System.currentTimeMillis() - myParsingStartTimeMs);
+          // Set the parsing time at least 1 millisecond, to make it easy to verify in tests.
+          metadata.setParsingTimeMs(Math.max(1, System.currentTimeMillis() - myParsingStartTimeMs));
           metadata.setCaptureDurationMs(TimeUnit.MICROSECONDS.toMillis(capture.getDurationUs()));
           metadata.setRecordDurationMs(calculateRecordDurationMs(capture));
         }
