@@ -15,26 +15,12 @@
  */
 package com.android.tools.idea.npw.module.recipes.pureLibrary
 
-import com.android.tools.idea.npw.module.recipes.getConfigurationName
-import com.android.tools.idea.wizard.template.GradlePluginVersion
-import com.android.tools.idea.wizard.template.Language
-import com.android.tools.idea.wizard.template.renderIf
+fun buildGradle(javaVersion: String): String {
 
-
-fun buildGradle(
-  language: Language,
-  javaVersion: String,
-  gradlePluginVersion: GradlePluginVersion
-): String {
-  fun renderIfKotlin(content: String) = renderIf(language == Language.Kotlin) { content }
-
-  val compileConfiguration = getConfigurationName("compile", gradlePluginVersion)
   return """
 apply plugin: 'java-library'
-${renderIfKotlin("apply plugin: 'kotlin'")}
 
 dependencies {
-  ${renderIfKotlin("$compileConfiguration \"org.jetbrains.kotlin:kotlin-stdlib-jdk7:\$kotlin_version\"")}
 }
 
 sourceCompatibility = "${javaVersion}"
