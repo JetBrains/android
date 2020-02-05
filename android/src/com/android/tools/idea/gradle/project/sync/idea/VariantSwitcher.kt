@@ -96,6 +96,7 @@ fun switchVariant(
     }
 
     // Now we need to recreate these nodes using the information from the new variant.
+    moduleNode.setupCompilerOutputPaths(newVariant)
     val libraryFilePaths = LibraryFilePaths.getInstance(project)
     moduleNode.setupAndroidDependenciesForModule({ id: String -> moduleIdToDataMap[id] }, { id, path ->
       AdditionalArtifactsPaths(

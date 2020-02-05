@@ -209,18 +209,21 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     }
 
     DataNode<ModuleData> moduleDataNode = nextResolver.createModule(gradleModule, projectDataNode);
+
+    createAndAttachModelsToDataNode(moduleDataNode, gradleModule, androidProject);
+
     if (androidProject != null) {
       moduleDataNode.getData().setSourceCompatibility(androidProject.getJavaCompileOptions().getSourceCompatibility());
       moduleDataNode.getData().setTargetCompatibility(androidProject.getJavaCompileOptions().getTargetCompatibility());
+      CompilerOutputUtilKt.setupCompilerOutputPaths(moduleDataNode);
     }
 
-    createAndAttachModelsToDataNode(moduleDataNode, gradleModule, androidProject);
 
     return moduleDataNode;
   }
 
   /**
-   * Creates and attached the following models to the moduleNode depending on the type of module:
+   * Creates and attaches the following models to the moduleNode depending on the type of module:
    * <ul>
    *   <li>AndroidModuleModel</li>
    *   <li>NdkModuleModel</li>
