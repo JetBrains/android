@@ -21,6 +21,7 @@ import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigura
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.Executor
 import com.intellij.execution.RunnerAndConfigurationSettings
+import com.intellij.execution.configurations.RunProfile
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.runners.ProgramRunner
 import com.intellij.openapi.util.Disposer
@@ -70,11 +71,26 @@ class AndroidRunStateTest {
 
   @Test
   fun logcatShouldBeEnabledForApplicationRun() {
-    val mockTestRunConfiguration = mock(AndroidRunConfiguration::class.java)
+    val mockAndroidRunConfiguration = mock(AndroidRunConfiguration::class.java)
     val mockRunnerAndConfigurationSettings = mock(RunnerAndConfigurationSettings::class.java)
-    `when`(mockEnv.runProfile).thenReturn(mockTestRunConfiguration)
+    `when`(mockEnv.runProfile).thenReturn(mockAndroidRunConfiguration)
     `when`(mockEnv.runnerAndConfigurationSettings).thenReturn(mockRunnerAndConfigurationSettings)
     `when`(mockRunnerAndConfigurationSettings.type).thenReturn(AndroidRunConfigurationType.getInstance())
+    val runState = AndroidRunState(mockEnv, "launch config name", projectRule.module, mockApplicationIdProvider,
+                                   mockConsoleProvider, mockDeviceFutures, mockAndroidLaunchTasksProvider)
+
+    val result = runState.execute(mockRunExecutor, mockProgramRunner)
+
+    requireNotNull(result)
+    val processHandler = result.processHandler
+    assertThat(processHandler).isInstanceOf(AndroidProcessHandler::class.java)
+    assertThat((processHandler as AndroidProcessHandler).captureLogcat).isTrue()
+  }
+
+  @Test
+  fun logcatShouldBeEnabledWhenRunConfigurationIsUnknown() {
+    `when`(mockEnv.runProfile).thenReturn(mock(RunProfile::class.java))
+    `when`(mockEnv.runnerAndConfigurationSettings).thenReturn(null)
     val runState = AndroidRunState(mockEnv, "launch config name", projectRule.module, mockApplicationIdProvider,
                                    mockConsoleProvider, mockDeviceFutures, mockAndroidLaunchTasksProvider)
 
