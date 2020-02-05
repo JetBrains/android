@@ -68,8 +68,8 @@ class GradleModuleHierarchyProvider(private val project: Project) {
     val moduleManager = ModuleManager.getInstance(project)
     val grouper = moduleManager.getModuleGrouper(null)
 
-    fun moduleHierarchyId(module: Module?): List<String>? {
-      if (!isExternalSystemAwareModule(GRADLE_SYSTEM_ID, module ?: return null)) return null
+    fun moduleHierarchyId(module: Module): List<String>? {
+      if (!isExternalSystemAwareModule(GRADLE_SYSTEM_ID, module)) return null
       return grouper.getModuleAsGroupPath(module) ?: grouper.getGroupPath(module)
     }
 
