@@ -109,10 +109,9 @@ public class ApkFileSystem extends ArchiveFileSystem {
 
   @NotNull
   @Override
-  protected String extractRootPath(@NotNull String path) {
-    final int apkSeparatorIndex = path.indexOf(APK_SEPARATOR);
-    assert apkSeparatorIndex >= 0 : "Path passed to ApkFileSystem must have apk separator '!/': " + path;
-    return path.substring(0, apkSeparatorIndex + APK_SEPARATOR.length());
+  protected String extractRootPath(@NotNull String normalizedPath) {
+    int apkSeparatorIndex = normalizedPath.indexOf(APK_SEPARATOR);
+    return apkSeparatorIndex > 0 ? normalizedPath.substring(0, apkSeparatorIndex + APK_SEPARATOR.length()) : "";
   }
 
   @Nullable
