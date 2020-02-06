@@ -29,7 +29,6 @@ import com.android.tools.idea.npw.platform.Language.JAVA
 import com.android.tools.idea.npw.platform.Language.KOTLIN
 import com.android.tools.idea.npw.project.DomainToPackageExpression
 import com.android.tools.idea.npw.project.setGradleWrapperExecutable
-import com.android.tools.idea.npw.template.TemplateValueInjector
 import com.android.tools.idea.observable.core.BoolProperty
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.OptionalProperty
@@ -38,17 +37,9 @@ import com.android.tools.idea.observable.core.StringProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.templates.ProjectTemplateDataBuilder
-import com.android.tools.idea.templates.Template
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_ANDROIDX_SUPPORT
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_APP_TITLE
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_CPP_FLAGS
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_CPP_SUPPORT
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_NEW_PROJECT
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_TOP_OUT
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor2
 import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor2
 import com.android.tools.idea.templates.recipe.RenderingContext2
-import com.android.tools.idea.wizard.WizardConstants
 import com.android.tools.idea.wizard.model.WizardModel
 import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.android.tools.idea.wizard.template.Recipe
