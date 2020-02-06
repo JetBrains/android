@@ -18,8 +18,8 @@ package com.android.tools.idea.updater.configure;
 import com.android.repository.api.RepositorySource;
 import com.android.repository.api.SettingsController;
 import com.android.tools.idea.sdk.StudioSettingsController;
+import com.intellij.CommonBundle;
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.IdeBundle;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.progress.ProgressManager;
@@ -58,7 +58,7 @@ public class UpdateSitesPanel {
   }
 
   private void createUIComponents() {
-    mySourcesLoadingIcon = new AsyncProcessIcon(IdeBundle.message("common.text.loading"));
+    mySourcesLoadingIcon = new AsyncProcessIcon(CommonBundle.getLoadingTreeNodeText());
     mySourcesTableModel = new SourcesTableModel(() -> mySourcesLoadingPanel.setVisible(true),
                                                 () -> mySourcesLoadingPanel.setVisible(false), ModalityState.current());
     myUpdateSitesTable = new TableView<>(mySourcesTableModel);

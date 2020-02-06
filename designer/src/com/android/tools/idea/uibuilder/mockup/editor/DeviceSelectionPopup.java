@@ -32,7 +32,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.device.DeviceArtPainter;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
-import com.intellij.ide.IdeBundle;
+import com.intellij.CommonBundle;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -373,7 +373,7 @@ public class DeviceSelectionPopup extends DialogWrapper {
           drawCenteredString(g, "No device selected", getBounds(), g.getFont());
         }
         else {
-          drawCenteredString(g, IdeBundle.message("common.text.loading"), getBounds(), g.getFont());
+          drawCenteredString(g, CommonBundle.getLoadingTreeNodeText(), getBounds(), g.getFont());
         }
         return;
       }
