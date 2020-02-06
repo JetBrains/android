@@ -69,7 +69,7 @@ public abstract class SceneView {
    * If Layers are not exist, they will be created by {@link #createLayers()}. This should happen only once.
    */
   @NotNull
-  public final ImmutableList<Layer> getLayers() {
+  private ImmutableList<Layer> getLayers() {
     synchronized (myLayersCacheLock) {
       if (myLayersCache == null) {
         myLayersCache = createLayers();
@@ -284,7 +284,7 @@ public abstract class SceneView {
   public void dispose() {
     synchronized (myLayersCacheLock) {
       if (myLayersCache != null) {
-        //noinspection SSBasedInspection TODO(http://b/148936113)
+        // TODO(b/148936113)
         myLayersCache.forEach(Layer::dispose);
       }
     }
