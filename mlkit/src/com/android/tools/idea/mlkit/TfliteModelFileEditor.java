@@ -15,54 +15,113 @@
  */
 package com.android.tools.idea.mlkit;
 
+import com.android.tools.mlkit.MetadataExtractor;
+import com.android.tools.mlkit.ModelData;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import java.awt.BorderLayout;
 import java.beans.PropertyChangeListener;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import javax.swing.BoxLayout;
 import javax.swing.JComponent;
+import javax.swing.JEditorPane;
 import javax.swing.JPanel;
-import javax.swing.JTextArea;
+import javax.swing.JTextPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Editor for the TFLite mode file.
  */
-// TODO(b/144867508): complete this based on the UX spec.
+// TODO(b/148866418): complete this based on the UX spec.
 public class TfliteModelFileEditor implements FileEditor {
   private static final String NAME = "TFLite Model File";
+  private static final String HTML_TABLE_STYLE = "<style>\n" +
+                                                 "table {\n" +
+                                                 "  font-family: arial, sans-serif;\n" +
+                                                 "  border-collapse: collapse;\n" +
+                                                 "  width: 60%;\n" +
+                                                 "}\n" +
+                                                 "td, th {\n" +
+                                                 "  border: 0;\n" +
+                                                 "  text-align: left;\n" +
+                                                 "  padding: 8px;\n" +
+                                                 "}\n" +
+                                                 "</style>";
 
   private final VirtualFile myFile;
-  private final JPanel myRootPanel;
-  private final JTextArea myTextArea;
+  private final JBScrollPane myRootPane;
 
-  public TfliteModelFileEditor(VirtualFile file) {
+  public TfliteModelFileEditor(@NotNull VirtualFile file) {
     myFile = file;
 
-    myRootPanel = new JPanel(new BorderLayout());
-    myRootPanel.setBackground(UIUtil.getTextFieldBackground());
-    myRootPanel.setBorder(JBUI.Borders.empty(50));
+    JPanel contentPanel = new JPanel();
+    contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+    contentPanel.setBackground(UIUtil.getTextFieldBackground());
+    contentPanel.setBorder(JBUI.Borders.empty(20));
 
-    myTextArea = new JTextArea();
-    myTextArea.setLineWrap(true);
-    myTextArea.setWrapStyleWord(true);
-    myTextArea.setFont(UIUtil.getLabelFont());
-    myTextArea.setEditable(false);
+    try {
+      ModelData modelData = ModelData.buildFrom(new MetadataExtractor(ByteBuffer.wrap(file.contentsToByteArray())));
+      addModelSummarySection(contentPanel, modelData);
+    }
+    catch (IOException e) {
+      Logger.getInstance(TfliteModelFileEditor.class).error(e);
+    }
 
-    myTextArea.setText("Display model summary here.");
-    myRootPanel.add(myTextArea, BorderLayout.CENTER);
+    myRootPane = new JBScrollPane(contentPanel);
+  }
+
+  private static void addModelSummarySection(@NotNull JPanel contentPanel, @NotNull ModelData modelData) {
+    // TODO(b/148866418): make table collapsible.
+    String modelHtml = "<h2>Model</h2>\n" +
+                       "<table>\n" +
+                       "<tr>\n" +
+                       "<td>Name</td>\n" +
+                       "<td>" + modelData.getModelName() + "</td>\n" +
+                       "</tr>\n" +
+                       "<tr>\n" +
+                       "<td>Description</td>\n" +
+                       "<td>" + modelData.getModelDescription() + "</td>\n" +
+                       "</tr>\n" +
+                       "<tr>\n" +
+                       "<td>Version</td>\n" +
+                       "<td>" + modelData.getModelVersion() + "</td>\n" +
+                       "</tr>\n" +
+                       "<tr>\n" +
+                       "<td>Author</td>\n" +
+                       "<td>" + modelData.getModelAuthor() + "</td>\n" +
+                       "</tr>\n" +
+                       "<tr>\n" +
+                       "<td>License</td>\n" +
+                       "<td>" + modelData.getModelLicense() + "</td>\n" +
+                       "</tr>\n" +
+                       "</table>";
+
+    JTextPane modelPane = new JTextPane();
+    setHtml(modelPane, modelHtml);
+    contentPanel.add(modelPane);
+  }
+
+  private static void setHtml(@NotNull JEditorPane pane, @NotNull String bodyContent) {
+    String html = "<html><head>" + HTML_TABLE_STYLE + "</head><body>" + bodyContent + "</body></html>";
+    pane.setContentType("text/html");
+    pane.setEditable(false);
+    pane.setText(html);
+    pane.setBackground(UIUtil.getTextFieldBackground());
   }
 
   @NotNull
   @Override
   public JComponent getComponent() {
-    return myRootPanel;
+    return myRootPane;
   }
 
   @Nullable
