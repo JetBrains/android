@@ -13,4 +13,3 @@
       android:fillColor="@android:color/white"
       android:pathData="M6,14l3,3v5h6v-5l3,-3L18,9L6,9v5zM8,11h8v2.17l-3,3L13,20h-2v-3.83l-3,-3L8,11zM11,2h2v3h-2zM4.916,4.464l2.12,2.122L5.62,8 3.5,5.877zM18.372,8l-1.414,-1.414 2.12,-2.12 1.415,1.413z"/>
 </vector>
-
