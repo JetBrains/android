@@ -63,8 +63,8 @@ class MaterialIconsDownloaderTest {
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
 
-  lateinit var testDirectory: File
-  lateinit var materialIconsDownloader: MaterialIconsDownloader
+  private lateinit var testDirectory: File
+  private lateinit var materialIconsDownloader: MaterialIconsDownloader
 
   @Before
   fun setup() {

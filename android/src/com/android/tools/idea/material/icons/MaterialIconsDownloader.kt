@@ -20,6 +20,7 @@ import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.material.icons.MaterialIconsUtils.METADATA_FILE_NAME
 import com.android.tools.idea.material.icons.MaterialIconsUtils.toDirFormat
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.util.download.DownloadableFileDescription
 import com.intellij.util.download.DownloadableFileService
 import java.io.File
@@ -38,9 +39,16 @@ private val LOG = Logger.getInstance(MaterialIconsDownloader::class.java)
 class MaterialIconsDownloader(private val existingMetadata: MaterialIconsMetadata,
                               newMetadata: MaterialIconsMetadata) {
   private val iconsToDownload = getIconsToDownload(existingMetadata, newMetadata)
+  // TODO: Consider making this class a single instance that keeps track of downloads performed for each directory (File) to guarantee that
+  //  simultaneous downloads cannot be performed on the same directory.
 
   /**
    * Downloads any new icons to the given [targetDir].
+   *
+   * For each icon that needs to be downloaded, all variants of the icon are first downloaded and then the metadata file is updated, once
+   * the metadata file is updated, the download for that icon is considered finished.
+   *
+   * Checks for a progress indicator between downloads, which may cancel any remaining downloads.
    */
   @Slow
   fun downloadTo(targetDir: File) {
@@ -50,13 +58,14 @@ class MaterialIconsDownloader(private val existingMetadata: MaterialIconsMetadat
                                                        families = existingMetadata.families)
     existingMetadata.icons.forEach(metadataBuilder::addIconMetadata)
     iconsToDownload.forEach { iconMetadata ->
+      ProgressManager.getInstance().progressIndicator?.checkCanceled()
       try {
         downloadIconStyles(targetDir, iconMetadata)
         updateSavedMetadata(targetDir, iconMetadata, metadataBuilder)
       }
       catch (e: Exception) {
         // Don't register failed downloads in the metadata, so that they can be downloaded next time.
-        LOG.warn("Error while downloading '${iconMetadata.name}'", e)
+        LOG.warn("Error while downloading '${iconMetadata.name}'")
       }
     }
   }
