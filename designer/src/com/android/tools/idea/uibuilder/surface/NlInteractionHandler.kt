@@ -188,7 +188,7 @@ class NlInteractionHandler(private val surface: DesignSurface): InteractionHandl
 
     if ((surface as NlDesignSurface).navigationHandler?.handleNavigate(sceneView,
                                                                        sceneComponent,
-                                                                       androidX, androidY,
+                                                                       x, y,
                                                                        needsFocusEditor) != true) {
       navigateToComponent(sceneComponent.nlComponent, needsFocusEditor)
     }
