@@ -262,8 +262,8 @@ class AndroidProjectRule private constructor(
       ApplicationManager.getApplication().runWriteAction { facetModel.commit() }
       facets.clear()
       CodeStyleSettingsManager.getInstance(project).dropTemporarySettings()
-      AndroidTestBase.cleanupMockitoThreadLocals()
     }
     fixture.tearDown()
+    AndroidTestBase.cleanupMockitoThreadLocals()
   }
 }
