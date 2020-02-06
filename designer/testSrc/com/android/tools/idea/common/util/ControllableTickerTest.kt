@@ -15,59 +15,66 @@
  */
 package com.android.tools.idea.common.util
 
+import com.android.testutils.VirtualTimeScheduler
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-import java.lang.Thread.sleep
+import org.junit.Before
 import java.time.Duration
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.TimeUnit
 
 private const val TICKER_STEP_MILLIS = 100L
-// 10% should be ok
-private const val ACCEPTABLE_DEVIATION = (TICKER_STEP_MILLIS * 0.1f).toLong()
-private val ACCEPTABLE_RANGE: LongRange = TICKER_STEP_MILLIS-ACCEPTABLE_DEVIATION..TICKER_STEP_MILLIS+ACCEPTABLE_DEVIATION
+
+/**
+ * This is a workaround to fix the fact that [VirtualTimeScheduler] is blocking thread on [awaitTermination]
+ */
+private class VirtualTimeSchedulerNonBlocking : VirtualTimeScheduler() {
+  override fun isTerminated() = true
+}
 
 class ControllableTickerTest {
+
+  private lateinit var executorProvider: () -> ScheduledExecutorService
+  private var currentExecutor: VirtualTimeScheduler? = null
+
+    @Before
+  fun setUp() {
+    executorProvider = { VirtualTimeSchedulerNonBlocking().apply { currentExecutor = this } }
+  }
+
   @Test
   fun testTickerPeriod() {
-    val timesList = mutableListOf<Long>()
-    val timeRecorder: () -> Unit = { timesList.add(System.nanoTime()) }
+    val tickCounter = object {
+      var counter: Int = 0
+    }
+    val counterIncrementer: () -> Unit = { tickCounter.counter++ }
 
-    val timeDiffs = mutableListOf<Long>()
-
-    val ticker = ControllableTicker(timeRecorder, Duration.ofMillis(TICKER_STEP_MILLIS))
+    val ticker = ControllableTicker(counterIncrementer, Duration.ofMillis(TICKER_STEP_MILLIS), executorProvider)
 
     ticker.start()
 
-    sleep(Duration.ofSeconds(1).toMillis())
+    currentExecutor!!.advanceBy(1, TimeUnit.SECONDS)
 
     ticker.stop()
 
-    for (i in 0 until timesList.count()-1) {
-      timeDiffs.add(Duration.ofNanos((timesList[i+1]-timesList[i])).toMillis())
-    }
-
-    // Check that the difference between the subsequent ticks is acceptable
-    for (i in 0 until timeDiffs.count()) {
-      assertThat(timeDiffs[i]).isIn(ACCEPTABLE_RANGE)
-    }
-    // Check that it stopped in time. Ideally, there should be 10 periods (1s/100ms). Adding one to compensate possible rounding error.
-    assertThat(timeDiffs.size).isLessThan(12)
+    assertThat(tickCounter.counter).isEqualTo(11)
   }
 
   @Test
   fun testCanRestart() {
-    val ticker = ControllableTicker({}, Duration.ofMillis(10))
+    val ticker = ControllableTicker({}, Duration.ofMillis(10), executorProvider)
 
     ticker.start()
 
-    sleep(Duration.ofMillis(50).toMillis())
+    currentExecutor!!.advanceBy(50, TimeUnit.MILLISECONDS)
 
     ticker.stop()
 
-    sleep(Duration.ofMillis(50).toMillis())
+    currentExecutor!!.advanceBy(50, TimeUnit.MILLISECONDS)
 
     ticker.start()
 
-    sleep(Duration.ofMillis(50).toMillis())
+    currentExecutor!!.advanceBy(50, TimeUnit.MILLISECONDS)
 
     ticker.stop()
   }
