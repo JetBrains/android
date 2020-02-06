@@ -288,7 +288,6 @@ data class ProjectChecker(
       File(activityState.getString(ATTR_TEST_OUT).replace("androidTest", "test")), // this is unavailable in the old system
       File(activityState.getString(ATTR_AIDL_OUT)),
       File(activityState.getString(ATTR_PROJECT_OUT)),
-      activityState.getBoolean(ATTR_THEME_EXISTS),
       activityState.getBoolean(ATTR_IS_NEW_MODULE),
       activityState.getBoolean(ATTR_HAS_APPLICATION_THEME),
       moduleState.getString(ATTR_MODULE_NAME),

@@ -174,7 +174,7 @@ class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateD
   fun setBuildVersion(buildVersion: AndroidVersionsInfo.VersionItem, project: Project) {
     projectTemplateDataBuilder.setBuildVersion(buildVersion, project)
     isNew = true
-    themeExists = true // New modules always have a theme (unless its a library, but it will have no activity)
+    themesData = ThemesData() // New modules always have a theme (unless its a library, but it will have no activity)
 
     apis = ApiTemplateData(
       buildVersion.minApiLevelStr,
@@ -234,7 +234,6 @@ class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateD
     unitTestDir ?: srcDir!!.resolve(FD_UNIT_TEST),
     aidlDir!!,
     rootDir!!,
-    themeExists,
     isNew!!,
     hasApplicationTheme,
     name!!,
