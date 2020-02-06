@@ -18,6 +18,7 @@ package com.android.tools.idea.model
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_DEBUGGABLE
 import com.android.SdkConstants.ATTR_ENABLED
+import com.android.SdkConstants.ATTR_EXPORTED
 import com.android.SdkConstants.ATTR_MIN_SDK_VERSION
 import com.android.SdkConstants.ATTR_NAME
 import com.android.SdkConstants.ATTR_PACKAGE
@@ -72,7 +73,6 @@ import com.intellij.util.io.IOUtil.writeUTF
 import com.intellij.util.io.KeyDescriptor
 import com.intellij.util.text.CharArrayUtil
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.utils.addIfNotNull
 import org.kxml2.io.KXmlParser
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParser.END_DOCUMENT
@@ -225,7 +225,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
 
   override fun getValueExternalizer() = AndroidManifestRawText.Externalizer
   override fun getName() = NAME
-  override fun getVersion() = 5
+  override fun getVersion() = 6
   override fun getIndexer() = Indexer
   override fun getInputFilter() = InputFilter
 
@@ -357,6 +357,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
       require(START_TAG, null, TAG_ACTIVITY)
       val activityName: String? = androidName
       val enabled: String? = getAttributeValue(ANDROID_URI, ATTR_ENABLED)
+      val exported: String? = getAttributeValue(ANDROID_URI, ATTR_EXPORTED)
       val intentFilters = hashSetOf<IntentFilterRawText>()
       processChildTags {
         if (name == TAG_INTENT_FILTER) {
@@ -369,6 +370,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
       return ActivityRawText(
         name = activityName,
         enabled = enabled,
+        exported = exported,
         intentFilters = intentFilters.toSet()
       )
     }
@@ -378,6 +380,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
       val aliasName = androidName
       val targetActivity = getAttributeValue(ANDROID_URI, ATTR_TARGET_ACTIVITY)
       val enabled = getAttributeValue(ANDROID_URI, ATTR_ENABLED)
+      val exported: String? = getAttributeValue(ANDROID_URI, ATTR_EXPORTED)
       val intentFilters = hashSetOf<IntentFilterRawText>()
       processChildTags {
         if (name == TAG_INTENT_FILTER) {
@@ -391,6 +394,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
         name = aliasName,
         targetActivity = targetActivity,
         enabled = enabled,
+        exported = exported,
         intentFilters = intentFilters.toSet()
       )
     }
@@ -524,7 +528,12 @@ data class AndroidManifestRawText(
  *
  * @see AndroidManifestRawText
  */
-data class ActivityRawText(val name: String?, val enabled: String?, val intentFilters: Set<IntentFilterRawText>) {
+data class ActivityRawText(
+  val name: String?,
+  val enabled: String?,
+  val exported: String?,
+  val intentFilters: Set<IntentFilterRawText>
+) {
   /**
    * Singleton responsible for serializing/de-serializing [ActivityRawText]s to/from disk.
    *
@@ -538,6 +547,7 @@ data class ActivityRawText(val name: String?, val enabled: String?, val intentFi
       value.apply {
         writeNullable(out, name) { writeUTF(out, it) }
         writeNullable(out, enabled) { writeUTF(out, it) }
+        writeNullable(out, exported) { writeUTF(out, it) }
         writeSeq(out, intentFilters) { IntentFilterRawText.Externalizer.save(out, it) }
       }
     }
@@ -545,6 +555,7 @@ data class ActivityRawText(val name: String?, val enabled: String?, val intentFi
     override fun read(`in`: DataInput) = ActivityRawText(
       name = readNullable(`in`) { readUTF(`in`) },
       enabled = readNullable(`in`) { readUTF(`in`) },
+      exported = readNullable(`in`) { readUTF(`in`) },
       intentFilters = readSeq(`in`) { IntentFilterRawText.Externalizer.read(`in`) }.toSet()
     )
   }
@@ -560,6 +571,7 @@ data class ActivityAliasRawText(
   val name: String?,
   val targetActivity: String?,
   val enabled: String?,
+  val exported: String?,
   val intentFilters: Set<IntentFilterRawText>
 ) {
   /**
@@ -576,6 +588,7 @@ data class ActivityAliasRawText(
         writeNullable(out, name) { writeUTF(out, it) }
         writeNullable(out, targetActivity) { writeUTF(out, it) }
         writeNullable(out, enabled) { writeUTF(out, it) }
+        writeNullable(out, exported) { writeUTF(out, it) }
         writeSeq(out, intentFilters) { IntentFilterRawText.Externalizer.save(out, it) }
       }
     }
@@ -584,6 +597,7 @@ data class ActivityAliasRawText(
       name = readNullable(`in`) { readUTF(`in`) },
       targetActivity = readNullable(`in`) { readUTF(`in`) },
       enabled = readNullable(`in`) { readUTF(`in`) },
+      exported = readNullable(`in`) { readUTF(`in`) },
       intentFilters = readSeq(`in`) { IntentFilterRawText.Externalizer.read(`in`) }.toSet()
     )
   }

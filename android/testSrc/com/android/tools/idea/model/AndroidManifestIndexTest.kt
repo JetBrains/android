@@ -42,17 +42,17 @@ class AndroidManifestIndexTest {
 <manifest xmlns:android='http://schemas.android.com/apk/res/android' 
   package='com.example' android:enabled='true'>
   <application android:theme='@style/Theme.AppCompat' android:debuggable='true'>
-    <activity android:name='.EnabledActivity' android:enabled='true'>
+    <activity android:name='.EnabledActivity' android:enabled='true' android:exported='true'>
       <intent-filter>
         <action android:name='android.intent.action.MAIN'/>
         <category android:name='android.intent.category.DEFAULT'/>
       </intent-filter>
     </activity>
-    <activity android:name='.DisabledActivity' android:enabled='false'>
+    <activity android:name='.DisabledActivity' android:enabled='false' android:exported='true'>
     </activity>
-    <activity-alias android:name='.EnabledAlias' android:enabled='true' android:targetActivity='.DisabledActivity'>
+    <activity-alias android:name='.EnabledAlias' android:enabled='true' android:exported='true' android:targetActivity='.DisabledActivity'>
     </activity-alias>
-    <activity-alias android:name='.DisabledAlias' android:enabled='false' android:targetActivity='.EnabledActivity'>
+    <activity-alias android:name='.DisabledAlias' android:enabled='false' android:exported='true' android:targetActivity='.EnabledActivity'>
     </activity-alias>
   </application>
   <uses-permission android:name='android.permission.SEND_SMS'/>
@@ -69,18 +69,19 @@ class AndroidManifestIndexTest {
         ActivityRawText(
           name = ".EnabledActivity",
           enabled = "true",
+          exported = "true",
           intentFilters = setOf(
             IntentFilterRawText(actionNames = setOf("android.intent.action.MAIN"),
                                 categoryNames = setOf("android.intent.category.DEFAULT"))
           )
         ),
-        ActivityRawText(name = ".DisabledActivity", enabled = "false", intentFilters = setOf())
+        ActivityRawText(name = ".DisabledActivity", enabled = "false", exported = "true", intentFilters = setOf())
       ),
       activityAliases = setOf(
         ActivityAliasRawText(name = ".EnabledAlias", targetActivity = ".DisabledActivity",
-                             enabled = "true", intentFilters = setOf()),
+                             enabled = "true", exported = "true", intentFilters = setOf()),
         ActivityAliasRawText(name = ".DisabledAlias", targetActivity = ".EnabledActivity",
-                             enabled = "false", intentFilters = setOf())
+                             enabled = "false", exported = "true", intentFilters = setOf())
       ),
       customPermissionGroupNames = setOf("custom.permissions.CUSTOM_GROUP"),
       customPermissionNames = setOf("custom.permissions.IN_CUSTOM_GROUP",
