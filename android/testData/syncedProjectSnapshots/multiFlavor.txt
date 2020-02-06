@@ -6,6 +6,11 @@ PROJECT             : MultiFlavor
         LinkedProjectId     : MultiFlavor
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/MultiFlavor [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/MultiFlavor [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/MultiFlavor.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Java-Gradle
@@ -25,6 +30,11 @@ PROJECT             : MultiFlavor
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/firstAbcSecondAbcDebug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/firstAbcSecondAbcDebugUnitTest/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/app/app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android

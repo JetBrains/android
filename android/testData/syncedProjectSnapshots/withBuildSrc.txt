@@ -7,6 +7,11 @@ PROJECT             : testWithBuildSrc
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/app/app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
@@ -506,6 +511,11 @@ PROJECT             : testWithBuildSrc
         LinkedProjectId     : testWithBuildSrc
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testWithBuildSrc [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testWithBuildSrc [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/testWithBuildSrc.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Java-Gradle
@@ -525,6 +535,11 @@ PROJECT             : testWithBuildSrc
         LinkedProjectId     : testWithBuildSrc:buildSrc
         LinkedProjectPath   : <PROJECT>/buildSrc
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/buildSrc/build/classes/java/main
+            compilerTestOutputPath        : file://<PROJECT>/buildSrc/build/classes/java/test [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/testWithBuildSrc_buildSrc.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
@@ -621,6 +636,11 @@ PROJECT             : testWithBuildSrc
         LinkedProjectId     : testWithBuildSrc:buildSrc:lib1
         LinkedProjectPath   : <PROJECT>/buildSrc/lib1
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/buildSrc/lib1/build/classes/java/main
+            compilerTestOutputPath        : file://<PROJECT>/buildSrc/lib1/build/classes/java/test [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/lib1/testWithBuildSrc_lib1.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
@@ -657,6 +677,11 @@ PROJECT             : testWithBuildSrc
         LinkedProjectId     : testWithBuildSrc:buildSrc:lib2
         LinkedProjectPath   : <PROJECT>/buildSrc/lib2
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/buildSrc/lib2/build/classes/java/main
+            compilerTestOutputPath        : file://<PROJECT>/buildSrc/lib2/build/classes/java/test [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/lib2/testWithBuildSrc_lib2.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle

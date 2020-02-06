@@ -7,6 +7,11 @@ PROJECT             : testNdkProjectSync
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/arm7Debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/arm7DebugUnitTest/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/app/app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
@@ -464,6 +469,11 @@ PROJECT             : testNdkProjectSync
         LinkedProjectId     : testNdkProjectSync
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testNdkProjectSync [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testNdkProjectSync [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/testNdkProjectSync.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Java-Gradle

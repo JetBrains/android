@@ -3,6 +3,11 @@ PROJECT             : testLightTestsWithMultipleModulesTestProjectStructureInAnd
         LinkedProjectId     : :app
         LinkedProjectPath   : <TEMP>/app
         RootProjectPath     : <TEMP>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<TEMP>/app/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<TEMP>/app/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <TEMP>/app/app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
@@ -82,6 +87,11 @@ PROJECT             : testLightTestsWithMultipleModulesTestProjectStructureInAnd
         LinkedProjectId     : :lib
         LinkedProjectPath   : <TEMP>/lib
         RootProjectPath     : <TEMP>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<TEMP>/lib/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<TEMP>/lib/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <TEMP>/lib/lib.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
@@ -160,6 +170,9 @@ PROJECT             : testLightTestsWithMultipleModulesTestProjectStructureInAnd
         LinkedProjectId     : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase
         LinkedProjectPath   : <TEMP>
         RootProjectPath     : <TEMP>
+        COMPILER_MODULE_EXTENSION
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
         ModuleFile          : <TEMP>/testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Java-Gradle

@@ -6,6 +6,11 @@ PROJECT             : testWithCompositeBuild
         LinkedProjectId     : TestCompositeLib1
         LinkedProjectPath   : <PROJECT>/TestCompositeLib1
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/TestCompositeLib1 [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/TestCompositeLib1 [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/TestCompositeLib1/TestCompositeLib1.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Java-Gradle
@@ -25,6 +30,11 @@ PROJECT             : testWithCompositeBuild
         LinkedProjectId     : TestCompositeLib1:app
         LinkedProjectPath   : <PROJECT>/TestCompositeLib1/app
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/TestCompositeLib1/app/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/TestCompositeLib1/app/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/TestCompositeLib1/app/TestCompositeLib1-app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
@@ -504,6 +514,11 @@ PROJECT             : testWithCompositeBuild
         LinkedProjectId     : TestCompositeLib1:lib
         LinkedProjectPath   : <PROJECT>/TestCompositeLib1/lib
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/TestCompositeLib1/lib/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/TestCompositeLib1/lib/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/TestCompositeLib1/lib/TestCompositeLib1-lib.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
@@ -965,6 +980,11 @@ PROJECT             : testWithCompositeBuild
         LinkedProjectId     : TestCompositeLib3
         LinkedProjectPath   : <PROJECT>/TestCompositeLib3
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/TestCompositeLib3 [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/TestCompositeLib3 [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/TestCompositeLib3/TestCompositeLib3.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Java-Gradle
@@ -984,6 +1004,11 @@ PROJECT             : testWithCompositeBuild
         LinkedProjectId     : TestCompositeLib3:app
         LinkedProjectPath   : <PROJECT>/TestCompositeLib3/app
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/TestCompositeLib3/app/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/TestCompositeLib3/app/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/TestCompositeLib3/app/TestCompositeLib3-app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
@@ -1461,6 +1486,11 @@ PROJECT             : testWithCompositeBuild
         LinkedProjectId     : TestCompositeLib3:lib
         LinkedProjectPath   : <PROJECT>/TestCompositeLib3/lib
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/TestCompositeLib3/lib/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/TestCompositeLib3/lib/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/TestCompositeLib3/lib/TestCompositeLib3-lib.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
@@ -1839,6 +1869,11 @@ PROJECT             : testWithCompositeBuild
         LinkedProjectId     : composite2
         LinkedProjectPath   : <PROJECT>/TestCompositeLib2
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/TestCompositeLib2/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/TestCompositeLib2/build/classes/java/test [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/TestCompositeLib2/composite2.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
@@ -1864,6 +1899,11 @@ PROJECT             : testWithCompositeBuild
         LinkedProjectId     : composite4
         LinkedProjectPath   : <PROJECT>/TestCompositeLib4
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/TestCompositeLib4/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/TestCompositeLib4/build/classes/java/test [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/TestCompositeLib4/composite4.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
@@ -1889,6 +1929,11 @@ PROJECT             : testWithCompositeBuild
         LinkedProjectId     : testWithCompositeBuild
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testWithCompositeBuild [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testWithCompositeBuild [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/testWithCompositeBuild.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Java-Gradle
@@ -1908,6 +1953,11 @@ PROJECT             : testWithCompositeBuild
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/app/testWithCompositeBuild-app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
@@ -2388,6 +2438,11 @@ PROJECT             : testWithCompositeBuild
         LinkedProjectId     : :lib
         LinkedProjectPath   : <PROJECT>/lib
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/lib/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/lib/testWithCompositeBuild-lib.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
