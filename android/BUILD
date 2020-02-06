@@ -211,7 +211,7 @@ iml_module(
             "test_filter": "com.android.tools.idea.imports",
         },
         "run": {
-            "shard_count": 2,
+            "shard_count": 5,
             "test_filter": "com.android.tools.idea.run",
         },
         "npw.assetstudio": {
