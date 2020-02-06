@@ -34,20 +34,17 @@ import org.jetbrains.annotations.NotNull;
 public class NdkModuleModelDataService extends ModuleModelDataService<NdkModuleModel> {
   @NotNull private final ModuleSetupContext.Factory myModuleSetupContextFactory;
   @NotNull private final NdkModuleSetup myModuleSetup;
-  @NotNull private final NdkModuleCleanupStep myCleanupStep;
 
   @SuppressWarnings("unused") // Instantiated by IDEA
   public NdkModuleModelDataService() {
-    this(new ModuleSetupContext.Factory(), new NdkModuleSetup(), new NdkModuleCleanupStep());
+    this(new ModuleSetupContext.Factory(), new NdkModuleSetup());
   }
 
   @VisibleForTesting
   NdkModuleModelDataService(@NotNull ModuleSetupContext.Factory moduleSetupContextFactory,
-                            @NotNull NdkModuleSetup moduleSetup,
-                            @NotNull NdkModuleCleanupStep cleanupStep) {
+                            @NotNull NdkModuleSetup moduleSetup) {
     myModuleSetupContextFactory = moduleSetupContextFactory;
     myModuleSetup = moduleSetup;
-    myCleanupStep = cleanupStep;
   }
 
   @Override
@@ -71,10 +68,5 @@ public class NdkModuleModelDataService extends ModuleModelDataService<NdkModuleM
         onModelNotFound(module, modelsProvider);
       }
     }
-  }
-
-  @Override
-  protected void onModelNotFound(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
-    myCleanupStep.cleanUpModule(module, modelsProvider);
   }
 }

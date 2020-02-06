@@ -50,6 +50,7 @@ import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.externalSystem.importing.ImportSpecBuilder;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
@@ -164,8 +165,11 @@ public class GradleSyncExecutor {
         myProject.putUserData(FORCE_CREATE_DIRS_KEY, true);
       }
       ProgressExecutionMode executionMode = request.getProgressExecutionMode();
-      refreshProject(myProject, GRADLE_SYSTEM_ID, rootPath, setUpTask, false /* resolve dependencies */,
-                     executionMode, true /* always report import errors */);
+      ImportSpecBuilder builder = new ImportSpecBuilder(myProject, GRADLE_SYSTEM_ID).callback(setUpTask).use(executionMode);
+      if (request.forceCreateDirs) {
+        builder.createDirectoriesForEmptyContentRoots();
+      }
+      refreshProject(rootPath, builder.build());
     }
   }
 

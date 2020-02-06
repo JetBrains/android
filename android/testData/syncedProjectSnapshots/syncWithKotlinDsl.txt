@@ -86,48 +86,61 @@ PROJECT             : testSyncWithKotlinDsl
             JavaResource        : file://<PROJECT>/app/build/generated/res/rs/debug
             JavaSource (test)   : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/debug
             JavaSource          : file://<PROJECT>/app/build/generated/source/buildConfig/debug
+            JavaResource (test) : file://<PROJECT>/app/src/androidTest
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/aidl
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/java
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTest/jni
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/res
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/rs
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/shaders
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/aidl
             JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/java
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/jni
             JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/res
             JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/rs
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/shaders
+            JavaResource        : file://<PROJECT>/app/src/debug
             JavaSource          : file://<PROJECT>/app/src/debug/aidl
             JavaResource        : file://<PROJECT>/app/src/debug/assets
             JavaSource          : file://<PROJECT>/app/src/debug/java
+            JavaSource          : file://<PROJECT>/app/src/debug/jni
             JavaResource        : file://<PROJECT>/app/src/debug/res
             JavaResource        : file://<PROJECT>/app/src/debug/resources
             JavaSource          : file://<PROJECT>/app/src/debug/rs
             JavaSource          : file://<PROJECT>/app/src/debug/shaders
+            JavaResource        : file://<PROJECT>/app/src/main
             JavaSource          : file://<PROJECT>/app/src/main/aidl
             JavaResource        : file://<PROJECT>/app/src/main/assets
             JavaSource          : file://<PROJECT>/app/src/main/java
+            JavaSource          : file://<PROJECT>/app/src/main/jni
             JavaResource        : file://<PROJECT>/app/src/main/res
             JavaResource        : file://<PROJECT>/app/src/main/resources
             JavaSource          : file://<PROJECT>/app/src/main/rs
             JavaSource          : file://<PROJECT>/app/src/main/shaders
+            JavaResource (test) : file://<PROJECT>/app/src/test
             JavaSource (test)   : file://<PROJECT>/app/src/test/aidl
             JavaResource (test) : file://<PROJECT>/app/src/test/assets
             JavaSource (test)   : file://<PROJECT>/app/src/test/java
+            JavaSource (test)   : file://<PROJECT>/app/src/test/jni
             JavaResource (test) : file://<PROJECT>/app/src/test/res
             JavaResource (test) : file://<PROJECT>/app/src/test/resources
             JavaSource (test)   : file://<PROJECT>/app/src/test/rs
             JavaSource (test)   : file://<PROJECT>/app/src/test/shaders
+            JavaResource (test) : file://<PROJECT>/app/src/testDebug
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/aidl
             JavaResource (test) : file://<PROJECT>/app/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/java
+            JavaSource (test)   : file://<PROJECT>/app/src/testDebug/jni
             JavaResource (test) : file://<PROJECT>/app/src/testDebug/res
             JavaResource (test) : file://<PROJECT>/app/src/testDebug/resources
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/rs
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/shaders
+            EXCLUDE_FOLDER      : file://<PROJECT>/app/.gradle [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/app/build
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
@@ -529,48 +542,61 @@ PROJECT             : testSyncWithKotlinDsl
             JavaResource        : file://<PROJECT>/lib/build/generated/res/rs/debug
             JavaSource (test)   : file://<PROJECT>/lib/build/generated/source/buildConfig/androidTest/debug
             JavaSource          : file://<PROJECT>/lib/build/generated/source/buildConfig/debug
+            JavaResource (test) : file://<PROJECT>/lib/src/androidTest
             JavaSource (test)   : file://<PROJECT>/lib/src/androidTest/aidl
             JavaResource (test) : file://<PROJECT>/lib/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/lib/src/androidTest/java
+            JavaSource (test)   : file://<PROJECT>/lib/src/androidTest/jni
             JavaResource (test) : file://<PROJECT>/lib/src/androidTest/res
             JavaResource (test) : file://<PROJECT>/lib/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/lib/src/androidTest/rs
             JavaSource (test)   : file://<PROJECT>/lib/src/androidTest/shaders
+            JavaResource (test) : file://<PROJECT>/lib/src/androidTestDebug
             JavaSource (test)   : file://<PROJECT>/lib/src/androidTestDebug/aidl
             JavaResource (test) : file://<PROJECT>/lib/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/lib/src/androidTestDebug/java
+            JavaSource (test)   : file://<PROJECT>/lib/src/androidTestDebug/jni
             JavaResource (test) : file://<PROJECT>/lib/src/androidTestDebug/res
             JavaResource (test) : file://<PROJECT>/lib/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/lib/src/androidTestDebug/rs
             JavaSource (test)   : file://<PROJECT>/lib/src/androidTestDebug/shaders
+            JavaResource        : file://<PROJECT>/lib/src/debug
             JavaSource          : file://<PROJECT>/lib/src/debug/aidl
             JavaResource        : file://<PROJECT>/lib/src/debug/assets
             JavaSource          : file://<PROJECT>/lib/src/debug/java
+            JavaSource          : file://<PROJECT>/lib/src/debug/jni
             JavaResource        : file://<PROJECT>/lib/src/debug/res
             JavaResource        : file://<PROJECT>/lib/src/debug/resources
             JavaSource          : file://<PROJECT>/lib/src/debug/rs
             JavaSource          : file://<PROJECT>/lib/src/debug/shaders
+            JavaResource        : file://<PROJECT>/lib/src/main
             JavaSource          : file://<PROJECT>/lib/src/main/aidl
             JavaResource        : file://<PROJECT>/lib/src/main/assets
             JavaSource          : file://<PROJECT>/lib/src/main/java
+            JavaSource          : file://<PROJECT>/lib/src/main/jni
             JavaResource        : file://<PROJECT>/lib/src/main/res
             JavaResource        : file://<PROJECT>/lib/src/main/resources
             JavaSource          : file://<PROJECT>/lib/src/main/rs
             JavaSource          : file://<PROJECT>/lib/src/main/shaders
+            JavaResource (test) : file://<PROJECT>/lib/src/test
             JavaSource (test)   : file://<PROJECT>/lib/src/test/aidl
             JavaResource (test) : file://<PROJECT>/lib/src/test/assets
             JavaSource (test)   : file://<PROJECT>/lib/src/test/java
+            JavaSource (test)   : file://<PROJECT>/lib/src/test/jni
             JavaResource (test) : file://<PROJECT>/lib/src/test/res
             JavaResource (test) : file://<PROJECT>/lib/src/test/resources
             JavaSource (test)   : file://<PROJECT>/lib/src/test/rs
             JavaSource (test)   : file://<PROJECT>/lib/src/test/shaders
+            JavaResource (test) : file://<PROJECT>/lib/src/testDebug
             JavaSource (test)   : file://<PROJECT>/lib/src/testDebug/aidl
             JavaResource (test) : file://<PROJECT>/lib/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/lib/src/testDebug/java
+            JavaSource (test)   : file://<PROJECT>/lib/src/testDebug/jni
             JavaResource (test) : file://<PROJECT>/lib/src/testDebug/res
             JavaResource (test) : file://<PROJECT>/lib/src/testDebug/resources
             JavaSource (test)   : file://<PROJECT>/lib/src/testDebug/rs
             JavaSource (test)   : file://<PROJECT>/lib/src/testDebug/shaders
+            EXCLUDE_FOLDER      : file://<PROJECT>/lib/.gradle [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/lib/build
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
@@ -619,6 +645,7 @@ PROJECT             : testSyncWithKotlinDsl
             BuildFolderPath     : <PROJECT>/build [-]
         CONENT_ENTRY        : file://<PROJECT>
             EXCLUDE_FOLDER      : file://<PROJECT>/.gradle
+            EXCLUDE_FOLDER      : file://<PROJECT>/build [-]
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>

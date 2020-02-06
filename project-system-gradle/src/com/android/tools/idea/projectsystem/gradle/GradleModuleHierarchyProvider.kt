@@ -124,7 +124,9 @@ class GradleModuleHierarchyProvider(private val project: Project) {
     hierarchyIdToSubmodulesMap[projectRootHierarchyId]
       ?.takeIf { it.size > 1 }
       ?.removeIf {
-        ModuleRootManager.getInstance(it).sourceRootUrls.isEmpty() && hierarchyIdToSubmodulesMap[moduleHierarchyId(it)]?.isEmpty() == true
+        ModuleRootManager.getInstance(it).sourceRootUrls.isEmpty() &&
+        hierarchyIdToSubmodulesMap[moduleHierarchyId(it)]?.isEmpty() == true &&
+        moduleHierarchyId(it)?.size == 1
       }
     return hierarchyIdToSubmodulesMap.mapKeys<List<String>, List<Module>, ComponentManager> { hierarchyIdToModuleMap[it.key] ?: project }
   }

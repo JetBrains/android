@@ -71,6 +71,7 @@ PROJECT             : testNdkProjectSync
             JavaResource        : file://<PROJECT>/app/build/generated/res/rs/arm7/debug
             JavaSource (test)   : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/arm7/debug
             JavaSource          : file://<PROJECT>/app/build/generated/source/buildConfig/arm7/debug
+            JavaResource (test) : file://<PROJECT>/app/src/androidTest
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/aidl
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/java
@@ -79,6 +80,7 @@ PROJECT             : testNdkProjectSync
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/rs
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/shaders
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestArm7
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestArm7/aidl
             JavaResource (test) : file://<PROJECT>/app/src/androidTestArm7/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestArm7/java
@@ -87,6 +89,7 @@ PROJECT             : testNdkProjectSync
             JavaResource (test) : file://<PROJECT>/app/src/androidTestArm7/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestArm7/rs
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestArm7/shaders
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestArm7Debug
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestArm7Debug/aidl
             JavaResource (test) : file://<PROJECT>/app/src/androidTestArm7Debug/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestArm7Debug/java
@@ -95,6 +98,7 @@ PROJECT             : testNdkProjectSync
             JavaResource (test) : file://<PROJECT>/app/src/androidTestArm7Debug/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestArm7Debug/rs
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestArm7Debug/shaders
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/aidl
             JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/java
@@ -103,6 +107,7 @@ PROJECT             : testNdkProjectSync
             JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/rs
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/shaders
+            JavaResource        : file://<PROJECT>/app/src/arm7
             JavaSource          : file://<PROJECT>/app/src/arm7/aidl
             JavaResource        : file://<PROJECT>/app/src/arm7/assets
             JavaSource          : file://<PROJECT>/app/src/arm7/java
@@ -111,6 +116,7 @@ PROJECT             : testNdkProjectSync
             JavaResource        : file://<PROJECT>/app/src/arm7/resources
             JavaSource          : file://<PROJECT>/app/src/arm7/rs
             JavaSource          : file://<PROJECT>/app/src/arm7/shaders
+            JavaResource        : file://<PROJECT>/app/src/arm7Debug
             JavaSource          : file://<PROJECT>/app/src/arm7Debug/aidl
             JavaResource        : file://<PROJECT>/app/src/arm7Debug/assets
             JavaSource          : file://<PROJECT>/app/src/arm7Debug/java
@@ -119,6 +125,7 @@ PROJECT             : testNdkProjectSync
             JavaResource        : file://<PROJECT>/app/src/arm7Debug/resources
             JavaSource          : file://<PROJECT>/app/src/arm7Debug/rs
             JavaSource          : file://<PROJECT>/app/src/arm7Debug/shaders
+            JavaResource        : file://<PROJECT>/app/src/debug
             JavaSource          : file://<PROJECT>/app/src/debug/aidl
             JavaResource        : file://<PROJECT>/app/src/debug/assets
             JavaSource          : file://<PROJECT>/app/src/debug/java
@@ -127,6 +134,7 @@ PROJECT             : testNdkProjectSync
             JavaResource        : file://<PROJECT>/app/src/debug/resources
             JavaSource          : file://<PROJECT>/app/src/debug/rs
             JavaSource          : file://<PROJECT>/app/src/debug/shaders
+            JavaResource        : file://<PROJECT>/app/src/main
             JavaSource          : file://<PROJECT>/app/src/main/aidl
             JavaResource        : file://<PROJECT>/app/src/main/assets
             JavaSource          : file://<PROJECT>/app/src/main/cpp
@@ -136,6 +144,7 @@ PROJECT             : testNdkProjectSync
             JavaResource        : file://<PROJECT>/app/src/main/resources
             JavaSource          : file://<PROJECT>/app/src/main/rs
             JavaSource          : file://<PROJECT>/app/src/main/shaders
+            JavaResource (test) : file://<PROJECT>/app/src/test
             JavaSource (test)   : file://<PROJECT>/app/src/test/aidl
             JavaResource (test) : file://<PROJECT>/app/src/test/assets
             JavaSource (test)   : file://<PROJECT>/app/src/test/java
@@ -144,6 +153,7 @@ PROJECT             : testNdkProjectSync
             JavaResource (test) : file://<PROJECT>/app/src/test/resources
             JavaSource (test)   : file://<PROJECT>/app/src/test/rs
             JavaSource (test)   : file://<PROJECT>/app/src/test/shaders
+            JavaResource (test) : file://<PROJECT>/app/src/testArm7
             JavaSource (test)   : file://<PROJECT>/app/src/testArm7/aidl
             JavaResource (test) : file://<PROJECT>/app/src/testArm7/assets
             JavaSource (test)   : file://<PROJECT>/app/src/testArm7/java
@@ -152,6 +162,7 @@ PROJECT             : testNdkProjectSync
             JavaResource (test) : file://<PROJECT>/app/src/testArm7/resources
             JavaSource (test)   : file://<PROJECT>/app/src/testArm7/rs
             JavaSource (test)   : file://<PROJECT>/app/src/testArm7/shaders
+            JavaResource (test) : file://<PROJECT>/app/src/testArm7Debug
             JavaSource (test)   : file://<PROJECT>/app/src/testArm7Debug/aidl
             JavaResource (test) : file://<PROJECT>/app/src/testArm7Debug/assets
             JavaSource (test)   : file://<PROJECT>/app/src/testArm7Debug/java
@@ -160,6 +171,7 @@ PROJECT             : testNdkProjectSync
             JavaResource (test) : file://<PROJECT>/app/src/testArm7Debug/resources
             JavaSource (test)   : file://<PROJECT>/app/src/testArm7Debug/rs
             JavaSource (test)   : file://<PROJECT>/app/src/testArm7Debug/shaders
+            JavaResource (test) : file://<PROJECT>/app/src/testDebug
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/aidl
             JavaResource (test) : file://<PROJECT>/app/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/java
@@ -170,6 +182,7 @@ PROJECT             : testNdkProjectSync
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/shaders
             EXCLUDE_FOLDER      : file://<PROJECT>/app/.cxx
             EXCLUDE_FOLDER      : file://<PROJECT>/app/.externalNativeBuild [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/app/.gradle [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/app/build
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
@@ -482,6 +495,7 @@ PROJECT             : testNdkProjectSync
             BuildFolderPath     : <PROJECT>/build [-]
         CONENT_ENTRY        : file://<PROJECT>
             EXCLUDE_FOLDER      : file://<PROJECT>/.gradle
+            EXCLUDE_FOLDER      : file://<PROJECT>/build [-]
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>

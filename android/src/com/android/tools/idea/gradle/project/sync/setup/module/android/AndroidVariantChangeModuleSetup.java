@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class AndroidVariantChangeModuleSetup extends BaseSetup<AndroidModuleSetupStep, AndroidModuleModel> {
   public AndroidVariantChangeModuleSetup() {
-    this(new ContentRootsModuleSetupStep(), new CompilerOutputModuleSetupStep());
+    this(new CompilerOutputModuleSetupStep());
   }
 
   @VisibleForTesting

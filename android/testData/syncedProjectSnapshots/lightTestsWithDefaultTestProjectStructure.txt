@@ -46,16 +46,7 @@ PROJECT             : LightSyncBasedTestsWithDefaultTestProjectStructureTest
             TypeId              : android-gradle
             GradlePath          : :
         CONENT_ENTRY        : file://<PROJECT>/unitTest
-            JavaResource        : file://<PROJECT>/unitTest/res [-]
-            JavaSource          : file://<PROJECT>/unitTest/src [-]
-            JavaSource          : file://<PROJECT>/unitTest/src/debug/aidl [-]
-            JavaResource        : file://<PROJECT>/unitTest/src/debug/assets [-]
-            JavaSource          : file://<PROJECT>/unitTest/src/debug/java [-]
-            JavaSource          : file://<PROJECT>/unitTest/src/debug/renderscript [-]
-            JavaResource        : file://<PROJECT>/unitTest/src/debug/res [-]
-            JavaResource        : file://<PROJECT>/unitTest/src/debug/resources [-]
-            JavaSource          : file://<PROJECT>/unitTest/src/debug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/unitTest/build [-]
+            JavaResource        : file://<PROJECT>/unitTest
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK
