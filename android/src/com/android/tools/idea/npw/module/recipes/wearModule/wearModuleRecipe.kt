@@ -23,11 +23,12 @@ import com.android.tools.idea.wizard.template.RecipeExecutor
 
 fun RecipeExecutor.generateWearModule(
   data: ModuleTemplateData,
-  appTitle: String?
+  appTitle: String?,
+  useKts: Boolean
 ) {
   val usesFeatureBlock = """<uses-feature android:name="android.hardware.type.watch" />"""
   generateCommonModule(
-    data, appTitle,
+    data, appTitle, useKts,
     generateManifest(data.packageName, !data.isLibrary, "@android:style/Theme.DeviceDefault", usesFeatureBlock, false),
     iconsGenerationStyle = IconsGenerationStyle.MIPMAP_SQUARE_ONLY,
     stylesXml = null, colorsXml = null

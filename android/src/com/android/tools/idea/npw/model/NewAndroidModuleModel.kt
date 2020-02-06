@@ -161,12 +161,20 @@ class NewAndroidModuleModel(
   inner class ModuleTemplateRenderer : ModuleModel.ModuleTemplateRenderer() {
     override val recipe: Recipe get() = when(formFactor.get()) {
       FormFactor.MOBILE -> { data: TemplateData ->
-        generateAndroidModule(data as ModuleTemplateData, applicationName.get(), enableCppSupport.get(), cppFlags.get())
+        generateAndroidModule(data as ModuleTemplateData, applicationName.get(), useGradleKts.get(), enableCppSupport.get(), cppFlags.get())
       }
-      FormFactor.WEAR -> { data: TemplateData -> generateWearModule(data as ModuleTemplateData, applicationName.get()) }
-      FormFactor.AUTOMOTIVE -> { data: TemplateData -> generateAutomotiveModule(data as ModuleTemplateData, applicationName.get()) }
-      FormFactor.TV -> { data: TemplateData -> generateTvModule(data as ModuleTemplateData, applicationName.get()) }
-      FormFactor.THINGS -> { data: TemplateData -> generateThingsModule(data as ModuleTemplateData, applicationName.get()) }
+      FormFactor.WEAR -> { data: TemplateData ->
+        generateWearModule(data as ModuleTemplateData, applicationName.get(), useGradleKts.get())
+      }
+      FormFactor.AUTOMOTIVE -> { data: TemplateData ->
+        generateAutomotiveModule(data as ModuleTemplateData, applicationName.get(), useGradleKts.get())
+      }
+      FormFactor.TV -> { data: TemplateData ->
+        generateTvModule(data as ModuleTemplateData, applicationName.get(), useGradleKts.get())
+      }
+      FormFactor.THINGS -> { data: TemplateData ->
+        generateThingsModule(data as ModuleTemplateData, applicationName.get(), useGradleKts.get())
+      }
     }
 
     override val loggingEvent: AndroidStudioEvent.TemplateRenderer
