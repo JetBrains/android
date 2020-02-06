@@ -91,6 +91,9 @@ fun switchVariant(
     findAllRecursively(moduleNode, ProjectKeys.MODULE_DEPENDENCY).forEach { node ->
       node.clear(true)
     }
+    findAllRecursively(moduleNode, ProjectKeys.CONTENT_ROOT).forEach { node ->
+      node.clear(true)
+    }
 
     // Now we need to recreate these nodes using the information from the new variant.
     val libraryFilePaths = LibraryFilePaths.getInstance(project)
@@ -101,6 +104,7 @@ fun switchVariant(
         libraryFilePaths.findSampleSourcesJarPath(id, path)
       )
     }, newVariant)
+    moduleNode.setupAndroidContentEntries(newVariant)
   }
 
   ProjectDataManager.getInstance().importData(projectDataNode, project, false)

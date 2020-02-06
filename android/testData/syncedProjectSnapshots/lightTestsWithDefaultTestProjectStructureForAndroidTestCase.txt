@@ -46,16 +46,9 @@ PROJECT             : testLightTestsWithDefaultTestProjectStructureForAndroidTes
             TypeId              : android-gradle
             GradlePath          : :
         CONENT_ENTRY        : file://<TEMP>
+            JavaResource        : file://<TEMP>
             JavaResource        : file://<TEMP>/res
             JavaSource          : file://<TEMP>/src
-            JavaSource          : file://<TEMP>/src/debug/aidl [-]
-            JavaResource        : file://<TEMP>/src/debug/assets [-]
-            JavaSource          : file://<TEMP>/src/debug/java [-]
-            JavaSource          : file://<TEMP>/src/debug/renderscript [-]
-            JavaResource        : file://<TEMP>/src/debug/res [-]
-            JavaResource        : file://<TEMP>/src/debug/resources [-]
-            JavaSource          : file://<TEMP>/src/debug/shaders [-]
-            EXCLUDE_FOLDER      : file://<TEMP>/build [-]
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK

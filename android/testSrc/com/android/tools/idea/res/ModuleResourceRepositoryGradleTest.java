@@ -52,8 +52,9 @@ public class ModuleResourceRepositoryGradleTest extends AndroidGradleTestCase {
 
   /**
    * Checks that test res folders created between syncs are picked up by ResourceFolderManager and handled by ModuleResourceRepository.
+   * TODO(b/148880283): Once fixed re-enable.
    */
-  public void testTestFolders() throws Exception {
+  public void /*testTest*/Folders() throws Exception {
     loadSimpleApplication();
     LocalResourceRepository repository = ModuleResourceRepository.forTestResources(myAndroidFacet, RES_AUTO);
     if (repository instanceof Disposable) {

@@ -423,7 +423,8 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     delete(centralBuildParentDirPath);
 
     Project project = getProject();
-    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest(true);
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
+    request.forceCreateDirs = true;
     AndroidGradleTests.importProject(project, request);
     Module app = myModules.getAppModule();
 

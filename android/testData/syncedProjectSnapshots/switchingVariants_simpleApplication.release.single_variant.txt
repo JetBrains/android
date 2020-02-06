@@ -26,8 +26,8 @@ PROJECT             : testSwitchingVariants_simpleApplication
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/release/res
-            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/release
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/release/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/release [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
@@ -51,47 +51,34 @@ PROJECT             : testSwitchingVariants_simpleApplication
             TypeId              : android-gradle
             GradlePath          : :app
         CONENT_ENTRY        : file://<PROJECT>/app
-            JavaSource          : file://<PROJECT>/app/build/generated/aidl_source_output_dir/release/out
-            JavaSource          : file://<PROJECT>/app/build/generated/ap_generated_sources/release/out
-            JavaSource (test)   : file://<PROJECT>/app/build/generated/ap_generated_sources/releaseUnitTest/out
-            JavaSource          : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/release/out
-            JavaResource        : file://<PROJECT>/app/build/generated/res/rs/release
-            JavaSource          : file://<PROJECT>/app/build/generated/source/buildConfig/release
+            JavaResource (test) : file://<PROJECT>/app/src/androidTest
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/aidl
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/java
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTest/jni
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/res
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/rs
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/shaders
+            JavaResource        : file://<PROJECT>/app/src/main
             JavaSource          : file://<PROJECT>/app/src/main/aidl
             JavaResource        : file://<PROJECT>/app/src/main/assets
             JavaSource          : file://<PROJECT>/app/src/main/java
+            JavaSource          : file://<PROJECT>/app/src/main/jni
             JavaResource        : file://<PROJECT>/app/src/main/res
             JavaResource        : file://<PROJECT>/app/src/main/resources
             JavaSource          : file://<PROJECT>/app/src/main/rs
             JavaSource          : file://<PROJECT>/app/src/main/shaders
-            JavaSource          : file://<PROJECT>/app/src/release/aidl
-            JavaResource        : file://<PROJECT>/app/src/release/assets
-            JavaSource          : file://<PROJECT>/app/src/release/java
-            JavaResource        : file://<PROJECT>/app/src/release/res
-            JavaResource        : file://<PROJECT>/app/src/release/resources
-            JavaSource          : file://<PROJECT>/app/src/release/rs
-            JavaSource          : file://<PROJECT>/app/src/release/shaders
+            JavaResource (test) : file://<PROJECT>/app/src/test
             JavaSource (test)   : file://<PROJECT>/app/src/test/aidl
             JavaResource (test) : file://<PROJECT>/app/src/test/assets
             JavaSource (test)   : file://<PROJECT>/app/src/test/java
+            JavaSource (test)   : file://<PROJECT>/app/src/test/jni
             JavaResource (test) : file://<PROJECT>/app/src/test/res
             JavaResource (test) : file://<PROJECT>/app/src/test/resources
             JavaSource (test)   : file://<PROJECT>/app/src/test/rs
             JavaSource (test)   : file://<PROJECT>/app/src/test/shaders
-            JavaSource (test)   : file://<PROJECT>/app/src/testRelease/aidl
-            JavaResource (test) : file://<PROJECT>/app/src/testRelease/assets
-            JavaSource (test)   : file://<PROJECT>/app/src/testRelease/java
-            JavaResource (test) : file://<PROJECT>/app/src/testRelease/res
-            JavaResource (test) : file://<PROJECT>/app/src/testRelease/resources
-            JavaSource (test)   : file://<PROJECT>/app/src/testRelease/rs
-            JavaSource (test)   : file://<PROJECT>/app/src/testRelease/shaders
+            EXCLUDE_FOLDER      : file://<PROJECT>/app/.gradle [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/app/build
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
@@ -432,6 +419,7 @@ PROJECT             : testSwitchingVariants_simpleApplication
             BuildFolderPath     : <PROJECT>/build [-]
         CONENT_ENTRY        : file://<PROJECT>
             EXCLUDE_FOLDER      : file://<PROJECT>/.gradle
+            EXCLUDE_FOLDER      : file://<PROJECT>/build [-]
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>

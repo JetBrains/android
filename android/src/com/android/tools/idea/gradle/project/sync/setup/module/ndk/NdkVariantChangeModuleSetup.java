@@ -26,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 public class NdkVariantChangeModuleSetup extends BaseSetup<NdkModuleSetupStep, NdkModuleModel> {
 
   public NdkVariantChangeModuleSetup() {
-    super(new ContentRootModuleSetupStep());
+    super();
   }
 
   @VisibleForTesting

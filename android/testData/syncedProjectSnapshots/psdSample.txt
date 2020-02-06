@@ -72,132 +72,169 @@ PROJECT             : testPsdSample
             JavaResource        : file://<PROJECT>/app/build/generated/res/rs/basicBar/debug
             JavaSource (test)   : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/basicBar/debug
             JavaSource          : file://<PROJECT>/app/build/generated/source/buildConfig/basicBar/debug
+            JavaResource (test) : file://<PROJECT>/app/src/androidTest
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/aidl
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/java
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTest/jni
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/res
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/rs
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/shaders
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestBar
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestBar/aidl
             JavaResource (test) : file://<PROJECT>/app/src/androidTestBar/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestBar/java
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestBar/jni
             JavaResource (test) : file://<PROJECT>/app/src/androidTestBar/res
             JavaResource (test) : file://<PROJECT>/app/src/androidTestBar/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestBar/rs
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestBar/shaders
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestBasic
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestBasic/aidl
             JavaResource (test) : file://<PROJECT>/app/src/androidTestBasic/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestBasic/java
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestBasic/jni
             JavaResource (test) : file://<PROJECT>/app/src/androidTestBasic/res
             JavaResource (test) : file://<PROJECT>/app/src/androidTestBasic/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestBasic/rs
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestBasic/shaders
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestBasicBar
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestBasicBar/aidl
             JavaResource (test) : file://<PROJECT>/app/src/androidTestBasicBar/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestBasicBar/java
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestBasicBar/jni
             JavaResource (test) : file://<PROJECT>/app/src/androidTestBasicBar/res
             JavaResource (test) : file://<PROJECT>/app/src/androidTestBasicBar/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestBasicBar/rs
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestBasicBar/shaders
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestBasicBarDebug
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestBasicBarDebug/aidl
             JavaResource (test) : file://<PROJECT>/app/src/androidTestBasicBarDebug/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestBasicBarDebug/java
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestBasicBarDebug/jni
             JavaResource (test) : file://<PROJECT>/app/src/androidTestBasicBarDebug/res
             JavaResource (test) : file://<PROJECT>/app/src/androidTestBasicBarDebug/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestBasicBarDebug/rs
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestBasicBarDebug/shaders
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/aidl
             JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/java
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/jni
             JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/res
             JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/rs
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/shaders
+            JavaResource        : file://<PROJECT>/app/src/bar
             JavaSource          : file://<PROJECT>/app/src/bar/aidl
             JavaResource        : file://<PROJECT>/app/src/bar/assets
             JavaSource          : file://<PROJECT>/app/src/bar/java
+            JavaSource          : file://<PROJECT>/app/src/bar/jni
             JavaResource        : file://<PROJECT>/app/src/bar/res
             JavaResource        : file://<PROJECT>/app/src/bar/resources
             JavaSource          : file://<PROJECT>/app/src/bar/rs
             JavaSource          : file://<PROJECT>/app/src/bar/shaders
+            JavaResource        : file://<PROJECT>/app/src/basic
             JavaSource          : file://<PROJECT>/app/src/basic/aidl
             JavaResource        : file://<PROJECT>/app/src/basic/assets
             JavaSource          : file://<PROJECT>/app/src/basic/java
+            JavaSource          : file://<PROJECT>/app/src/basic/jni
             JavaResource        : file://<PROJECT>/app/src/basic/res
             JavaResource        : file://<PROJECT>/app/src/basic/resources
             JavaSource          : file://<PROJECT>/app/src/basic/rs
             JavaSource          : file://<PROJECT>/app/src/basic/shaders
+            JavaResource        : file://<PROJECT>/app/src/basicBar
             JavaSource          : file://<PROJECT>/app/src/basicBar/aidl
             JavaResource        : file://<PROJECT>/app/src/basicBar/assets
             JavaSource          : file://<PROJECT>/app/src/basicBar/java
+            JavaSource          : file://<PROJECT>/app/src/basicBar/jni
             JavaResource        : file://<PROJECT>/app/src/basicBar/res
             JavaResource        : file://<PROJECT>/app/src/basicBar/resources
             JavaSource          : file://<PROJECT>/app/src/basicBar/rs
             JavaSource          : file://<PROJECT>/app/src/basicBar/shaders
+            JavaResource        : file://<PROJECT>/app/src/basicBarDebug
             JavaSource          : file://<PROJECT>/app/src/basicBarDebug/aidl
             JavaResource        : file://<PROJECT>/app/src/basicBarDebug/assets
             JavaSource          : file://<PROJECT>/app/src/basicBarDebug/java
+            JavaSource          : file://<PROJECT>/app/src/basicBarDebug/jni
             JavaResource        : file://<PROJECT>/app/src/basicBarDebug/res
             JavaResource        : file://<PROJECT>/app/src/basicBarDebug/resources
             JavaSource          : file://<PROJECT>/app/src/basicBarDebug/rs
             JavaSource          : file://<PROJECT>/app/src/basicBarDebug/shaders
+            JavaResource        : file://<PROJECT>/app/src/debug
             JavaSource          : file://<PROJECT>/app/src/debug/aidl
             JavaResource        : file://<PROJECT>/app/src/debug/assets
             JavaSource          : file://<PROJECT>/app/src/debug/java
+            JavaSource          : file://<PROJECT>/app/src/debug/jni
             JavaResource        : file://<PROJECT>/app/src/debug/res
             JavaResource        : file://<PROJECT>/app/src/debug/resources
             JavaSource          : file://<PROJECT>/app/src/debug/rs
             JavaSource          : file://<PROJECT>/app/src/debug/shaders
+            JavaResource        : file://<PROJECT>/app/src/main
             JavaSource          : file://<PROJECT>/app/src/main/aidl
             JavaResource        : file://<PROJECT>/app/src/main/assets
             JavaSource          : file://<PROJECT>/app/src/main/java
+            JavaSource          : file://<PROJECT>/app/src/main/jni
             JavaResource        : file://<PROJECT>/app/src/main/res
             JavaResource        : file://<PROJECT>/app/src/main/resources
             JavaSource          : file://<PROJECT>/app/src/main/rs
             JavaSource          : file://<PROJECT>/app/src/main/shaders
+            JavaResource (test) : file://<PROJECT>/app/src/test
             JavaSource (test)   : file://<PROJECT>/app/src/test/aidl
             JavaResource (test) : file://<PROJECT>/app/src/test/assets
             JavaSource (test)   : file://<PROJECT>/app/src/test/java
+            JavaSource (test)   : file://<PROJECT>/app/src/test/jni
             JavaResource (test) : file://<PROJECT>/app/src/test/res
             JavaResource (test) : file://<PROJECT>/app/src/test/resources
             JavaSource (test)   : file://<PROJECT>/app/src/test/rs
             JavaSource (test)   : file://<PROJECT>/app/src/test/shaders
+            JavaResource (test) : file://<PROJECT>/app/src/testBar
             JavaSource (test)   : file://<PROJECT>/app/src/testBar/aidl
             JavaResource (test) : file://<PROJECT>/app/src/testBar/assets
             JavaSource (test)   : file://<PROJECT>/app/src/testBar/java
+            JavaSource (test)   : file://<PROJECT>/app/src/testBar/jni
             JavaResource (test) : file://<PROJECT>/app/src/testBar/res
             JavaResource (test) : file://<PROJECT>/app/src/testBar/resources
             JavaSource (test)   : file://<PROJECT>/app/src/testBar/rs
             JavaSource (test)   : file://<PROJECT>/app/src/testBar/shaders
+            JavaResource (test) : file://<PROJECT>/app/src/testBasic
             JavaSource (test)   : file://<PROJECT>/app/src/testBasic/aidl
             JavaResource (test) : file://<PROJECT>/app/src/testBasic/assets
             JavaSource (test)   : file://<PROJECT>/app/src/testBasic/java
+            JavaSource (test)   : file://<PROJECT>/app/src/testBasic/jni
             JavaResource (test) : file://<PROJECT>/app/src/testBasic/res
             JavaResource (test) : file://<PROJECT>/app/src/testBasic/resources
             JavaSource (test)   : file://<PROJECT>/app/src/testBasic/rs
             JavaSource (test)   : file://<PROJECT>/app/src/testBasic/shaders
+            JavaResource (test) : file://<PROJECT>/app/src/testBasicBar
             JavaSource (test)   : file://<PROJECT>/app/src/testBasicBar/aidl
             JavaResource (test) : file://<PROJECT>/app/src/testBasicBar/assets
             JavaSource (test)   : file://<PROJECT>/app/src/testBasicBar/java
+            JavaSource (test)   : file://<PROJECT>/app/src/testBasicBar/jni
             JavaResource (test) : file://<PROJECT>/app/src/testBasicBar/res
             JavaResource (test) : file://<PROJECT>/app/src/testBasicBar/resources
             JavaSource (test)   : file://<PROJECT>/app/src/testBasicBar/rs
             JavaSource (test)   : file://<PROJECT>/app/src/testBasicBar/shaders
+            JavaResource (test) : file://<PROJECT>/app/src/testBasicBarDebug
             JavaSource (test)   : file://<PROJECT>/app/src/testBasicBarDebug/aidl
             JavaResource (test) : file://<PROJECT>/app/src/testBasicBarDebug/assets
             JavaSource (test)   : file://<PROJECT>/app/src/testBasicBarDebug/java
+            JavaSource (test)   : file://<PROJECT>/app/src/testBasicBarDebug/jni
             JavaResource (test) : file://<PROJECT>/app/src/testBasicBarDebug/res
             JavaResource (test) : file://<PROJECT>/app/src/testBasicBarDebug/resources
             JavaSource (test)   : file://<PROJECT>/app/src/testBasicBarDebug/rs
             JavaSource (test)   : file://<PROJECT>/app/src/testBasicBarDebug/shaders
+            JavaResource (test) : file://<PROJECT>/app/src/testDebug
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/aidl
             JavaResource (test) : file://<PROJECT>/app/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/java
+            JavaSource (test)   : file://<PROJECT>/app/src/testDebug/jni
             JavaResource (test) : file://<PROJECT>/app/src/testDebug/res
             JavaResource (test) : file://<PROJECT>/app/src/testDebug/resources
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/rs
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/shaders
+            EXCLUDE_FOLDER      : file://<PROJECT>/app/.gradle [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/app/build
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
@@ -649,48 +686,61 @@ PROJECT             : testPsdSample
             JavaResource        : file://<PROJECT>/nested2/trans/deep2/build/generated/res/rs/debug
             JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/build/generated/source/buildConfig/androidTest/debug
             JavaSource          : file://<PROJECT>/nested2/trans/deep2/build/generated/source/buildConfig/debug
+            JavaResource (test) : file://<PROJECT>/nested2/trans/deep2/src/androidTest
             JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/src/androidTest/aidl
             JavaResource (test) : file://<PROJECT>/nested2/trans/deep2/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/src/androidTest/java
+            JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/src/androidTest/jni
             JavaResource (test) : file://<PROJECT>/nested2/trans/deep2/src/androidTest/res
             JavaResource (test) : file://<PROJECT>/nested2/trans/deep2/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/src/androidTest/rs
             JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/src/androidTest/shaders
+            JavaResource (test) : file://<PROJECT>/nested2/trans/deep2/src/androidTestDebug
             JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/src/androidTestDebug/aidl
             JavaResource (test) : file://<PROJECT>/nested2/trans/deep2/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/src/androidTestDebug/java
+            JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/src/androidTestDebug/jni
             JavaResource (test) : file://<PROJECT>/nested2/trans/deep2/src/androidTestDebug/res
             JavaResource (test) : file://<PROJECT>/nested2/trans/deep2/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/src/androidTestDebug/rs
             JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/src/androidTestDebug/shaders
+            JavaResource        : file://<PROJECT>/nested2/trans/deep2/src/debug
             JavaSource          : file://<PROJECT>/nested2/trans/deep2/src/debug/aidl
             JavaResource        : file://<PROJECT>/nested2/trans/deep2/src/debug/assets
             JavaSource          : file://<PROJECT>/nested2/trans/deep2/src/debug/java
+            JavaSource          : file://<PROJECT>/nested2/trans/deep2/src/debug/jni
             JavaResource        : file://<PROJECT>/nested2/trans/deep2/src/debug/res
             JavaResource        : file://<PROJECT>/nested2/trans/deep2/src/debug/resources
             JavaSource          : file://<PROJECT>/nested2/trans/deep2/src/debug/rs
             JavaSource          : file://<PROJECT>/nested2/trans/deep2/src/debug/shaders
+            JavaResource        : file://<PROJECT>/nested2/trans/deep2/src/main
             JavaSource          : file://<PROJECT>/nested2/trans/deep2/src/main/aidl
             JavaResource        : file://<PROJECT>/nested2/trans/deep2/src/main/assets
             JavaSource          : file://<PROJECT>/nested2/trans/deep2/src/main/java
+            JavaSource          : file://<PROJECT>/nested2/trans/deep2/src/main/jni
             JavaResource        : file://<PROJECT>/nested2/trans/deep2/src/main/res
             JavaResource        : file://<PROJECT>/nested2/trans/deep2/src/main/resources
             JavaSource          : file://<PROJECT>/nested2/trans/deep2/src/main/rs
             JavaSource          : file://<PROJECT>/nested2/trans/deep2/src/main/shaders
+            JavaResource (test) : file://<PROJECT>/nested2/trans/deep2/src/test
             JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/src/test/aidl
             JavaResource (test) : file://<PROJECT>/nested2/trans/deep2/src/test/assets
             JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/src/test/java
+            JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/src/test/jni
             JavaResource (test) : file://<PROJECT>/nested2/trans/deep2/src/test/res
             JavaResource (test) : file://<PROJECT>/nested2/trans/deep2/src/test/resources
             JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/src/test/rs
             JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/src/test/shaders
+            JavaResource (test) : file://<PROJECT>/nested2/trans/deep2/src/testDebug
             JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/src/testDebug/aidl
             JavaResource (test) : file://<PROJECT>/nested2/trans/deep2/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/src/testDebug/java
+            JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/src/testDebug/jni
             JavaResource (test) : file://<PROJECT>/nested2/trans/deep2/src/testDebug/res
             JavaResource (test) : file://<PROJECT>/nested2/trans/deep2/src/testDebug/resources
             JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/src/testDebug/rs
             JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/src/testDebug/shaders
+            EXCLUDE_FOLDER      : file://<PROJECT>/nested2/trans/deep2/.gradle [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/nested2/trans/deep2/build
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
@@ -763,48 +813,61 @@ PROJECT             : testPsdSample
             JavaResource        : file://<PROJECT>/dyn_feature/build/generated/res/rs/debug
             JavaSource (test)   : file://<PROJECT>/dyn_feature/build/generated/source/buildConfig/androidTest/debug
             JavaSource          : file://<PROJECT>/dyn_feature/build/generated/source/buildConfig/debug
+            JavaResource (test) : file://<PROJECT>/dyn_feature/src/androidTest
             JavaSource (test)   : file://<PROJECT>/dyn_feature/src/androidTest/aidl
             JavaResource (test) : file://<PROJECT>/dyn_feature/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/dyn_feature/src/androidTest/java
+            JavaSource (test)   : file://<PROJECT>/dyn_feature/src/androidTest/jni
             JavaResource (test) : file://<PROJECT>/dyn_feature/src/androidTest/res
             JavaResource (test) : file://<PROJECT>/dyn_feature/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/dyn_feature/src/androidTest/rs
             JavaSource (test)   : file://<PROJECT>/dyn_feature/src/androidTest/shaders
+            JavaResource (test) : file://<PROJECT>/dyn_feature/src/androidTestDebug
             JavaSource (test)   : file://<PROJECT>/dyn_feature/src/androidTestDebug/aidl
             JavaResource (test) : file://<PROJECT>/dyn_feature/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/dyn_feature/src/androidTestDebug/java
+            JavaSource (test)   : file://<PROJECT>/dyn_feature/src/androidTestDebug/jni
             JavaResource (test) : file://<PROJECT>/dyn_feature/src/androidTestDebug/res
             JavaResource (test) : file://<PROJECT>/dyn_feature/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/dyn_feature/src/androidTestDebug/rs
             JavaSource (test)   : file://<PROJECT>/dyn_feature/src/androidTestDebug/shaders
+            JavaResource        : file://<PROJECT>/dyn_feature/src/debug
             JavaSource          : file://<PROJECT>/dyn_feature/src/debug/aidl
             JavaResource        : file://<PROJECT>/dyn_feature/src/debug/assets
             JavaSource          : file://<PROJECT>/dyn_feature/src/debug/java
+            JavaSource          : file://<PROJECT>/dyn_feature/src/debug/jni
             JavaResource        : file://<PROJECT>/dyn_feature/src/debug/res
             JavaResource        : file://<PROJECT>/dyn_feature/src/debug/resources
             JavaSource          : file://<PROJECT>/dyn_feature/src/debug/rs
             JavaSource          : file://<PROJECT>/dyn_feature/src/debug/shaders
+            JavaResource        : file://<PROJECT>/dyn_feature/src/main
             JavaSource          : file://<PROJECT>/dyn_feature/src/main/aidl
             JavaResource        : file://<PROJECT>/dyn_feature/src/main/assets
             JavaSource          : file://<PROJECT>/dyn_feature/src/main/java
+            JavaSource          : file://<PROJECT>/dyn_feature/src/main/jni
             JavaResource        : file://<PROJECT>/dyn_feature/src/main/res
             JavaResource        : file://<PROJECT>/dyn_feature/src/main/resources
             JavaSource          : file://<PROJECT>/dyn_feature/src/main/rs
             JavaSource          : file://<PROJECT>/dyn_feature/src/main/shaders
+            JavaResource (test) : file://<PROJECT>/dyn_feature/src/test
             JavaSource (test)   : file://<PROJECT>/dyn_feature/src/test/aidl
             JavaResource (test) : file://<PROJECT>/dyn_feature/src/test/assets
             JavaSource (test)   : file://<PROJECT>/dyn_feature/src/test/java
+            JavaSource (test)   : file://<PROJECT>/dyn_feature/src/test/jni
             JavaResource (test) : file://<PROJECT>/dyn_feature/src/test/res
             JavaResource (test) : file://<PROJECT>/dyn_feature/src/test/resources
             JavaSource (test)   : file://<PROJECT>/dyn_feature/src/test/rs
             JavaSource (test)   : file://<PROJECT>/dyn_feature/src/test/shaders
+            JavaResource (test) : file://<PROJECT>/dyn_feature/src/testDebug
             JavaSource (test)   : file://<PROJECT>/dyn_feature/src/testDebug/aidl
             JavaResource (test) : file://<PROJECT>/dyn_feature/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/dyn_feature/src/testDebug/java
+            JavaSource (test)   : file://<PROJECT>/dyn_feature/src/testDebug/jni
             JavaResource (test) : file://<PROJECT>/dyn_feature/src/testDebug/res
             JavaResource (test) : file://<PROJECT>/dyn_feature/src/testDebug/resources
             JavaSource (test)   : file://<PROJECT>/dyn_feature/src/testDebug/rs
             JavaSource (test)   : file://<PROJECT>/dyn_feature/src/testDebug/shaders
+            EXCLUDE_FOLDER      : file://<PROJECT>/dyn_feature/.gradle [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/dyn_feature/build
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
@@ -909,48 +972,61 @@ PROJECT             : testPsdSample
             JavaResource        : file://<PROJECT>/lib/build/generated/res/rs/debug
             JavaSource (test)   : file://<PROJECT>/lib/build/generated/source/buildConfig/androidTest/debug
             JavaSource          : file://<PROJECT>/lib/build/generated/source/buildConfig/debug
+            JavaResource (test) : file://<PROJECT>/lib/src/androidTest
             JavaSource (test)   : file://<PROJECT>/lib/src/androidTest/aidl
             JavaResource (test) : file://<PROJECT>/lib/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/lib/src/androidTest/java
+            JavaSource (test)   : file://<PROJECT>/lib/src/androidTest/jni
             JavaResource (test) : file://<PROJECT>/lib/src/androidTest/res
             JavaResource (test) : file://<PROJECT>/lib/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/lib/src/androidTest/rs
             JavaSource (test)   : file://<PROJECT>/lib/src/androidTest/shaders
+            JavaResource (test) : file://<PROJECT>/lib/src/androidTestDebug
             JavaSource (test)   : file://<PROJECT>/lib/src/androidTestDebug/aidl
             JavaResource (test) : file://<PROJECT>/lib/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/lib/src/androidTestDebug/java
+            JavaSource (test)   : file://<PROJECT>/lib/src/androidTestDebug/jni
             JavaResource (test) : file://<PROJECT>/lib/src/androidTestDebug/res
             JavaResource (test) : file://<PROJECT>/lib/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/lib/src/androidTestDebug/rs
             JavaSource (test)   : file://<PROJECT>/lib/src/androidTestDebug/shaders
+            JavaResource        : file://<PROJECT>/lib/src/debug
             JavaSource          : file://<PROJECT>/lib/src/debug/aidl
             JavaResource        : file://<PROJECT>/lib/src/debug/assets
             JavaSource          : file://<PROJECT>/lib/src/debug/java
+            JavaSource          : file://<PROJECT>/lib/src/debug/jni
             JavaResource        : file://<PROJECT>/lib/src/debug/res
             JavaResource        : file://<PROJECT>/lib/src/debug/resources
             JavaSource          : file://<PROJECT>/lib/src/debug/rs
             JavaSource          : file://<PROJECT>/lib/src/debug/shaders
+            JavaResource        : file://<PROJECT>/lib/src/main
             JavaSource          : file://<PROJECT>/lib/src/main/aidl
             JavaResource        : file://<PROJECT>/lib/src/main/assets
             JavaSource          : file://<PROJECT>/lib/src/main/java
+            JavaSource          : file://<PROJECT>/lib/src/main/jni
             JavaResource        : file://<PROJECT>/lib/src/main/res
             JavaResource        : file://<PROJECT>/lib/src/main/resources
             JavaSource          : file://<PROJECT>/lib/src/main/rs
             JavaSource          : file://<PROJECT>/lib/src/main/shaders
+            JavaResource (test) : file://<PROJECT>/lib/src/test
             JavaSource (test)   : file://<PROJECT>/lib/src/test/aidl
             JavaResource (test) : file://<PROJECT>/lib/src/test/assets
             JavaSource (test)   : file://<PROJECT>/lib/src/test/java
+            JavaSource (test)   : file://<PROJECT>/lib/src/test/jni
             JavaResource (test) : file://<PROJECT>/lib/src/test/res
             JavaResource (test) : file://<PROJECT>/lib/src/test/resources
             JavaSource (test)   : file://<PROJECT>/lib/src/test/rs
             JavaSource (test)   : file://<PROJECT>/lib/src/test/shaders
+            JavaResource (test) : file://<PROJECT>/lib/src/testDebug
             JavaSource (test)   : file://<PROJECT>/lib/src/testDebug/aidl
             JavaResource (test) : file://<PROJECT>/lib/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/lib/src/testDebug/java
+            JavaSource (test)   : file://<PROJECT>/lib/src/testDebug/jni
             JavaResource (test) : file://<PROJECT>/lib/src/testDebug/res
             JavaResource (test) : file://<PROJECT>/lib/src/testDebug/resources
             JavaSource (test)   : file://<PROJECT>/lib/src/testDebug/rs
             JavaSource (test)   : file://<PROJECT>/lib/src/testDebug/shaders
+            EXCLUDE_FOLDER      : file://<PROJECT>/lib/.gradle [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/lib/build
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
@@ -1292,48 +1368,61 @@ PROJECT             : testPsdSample
             JavaResource        : file://<PROJECT>/nested1/build/generated/res/rs/debug
             JavaSource (test)   : file://<PROJECT>/nested1/build/generated/source/buildConfig/androidTest/debug
             JavaSource          : file://<PROJECT>/nested1/build/generated/source/buildConfig/debug
+            JavaResource (test) : file://<PROJECT>/nested1/src/androidTest
             JavaSource (test)   : file://<PROJECT>/nested1/src/androidTest/aidl
             JavaResource (test) : file://<PROJECT>/nested1/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/nested1/src/androidTest/java
+            JavaSource (test)   : file://<PROJECT>/nested1/src/androidTest/jni
             JavaResource (test) : file://<PROJECT>/nested1/src/androidTest/res
             JavaResource (test) : file://<PROJECT>/nested1/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/nested1/src/androidTest/rs
             JavaSource (test)   : file://<PROJECT>/nested1/src/androidTest/shaders
+            JavaResource (test) : file://<PROJECT>/nested1/src/androidTestDebug
             JavaSource (test)   : file://<PROJECT>/nested1/src/androidTestDebug/aidl
             JavaResource (test) : file://<PROJECT>/nested1/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/nested1/src/androidTestDebug/java
+            JavaSource (test)   : file://<PROJECT>/nested1/src/androidTestDebug/jni
             JavaResource (test) : file://<PROJECT>/nested1/src/androidTestDebug/res
             JavaResource (test) : file://<PROJECT>/nested1/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/nested1/src/androidTestDebug/rs
             JavaSource (test)   : file://<PROJECT>/nested1/src/androidTestDebug/shaders
+            JavaResource        : file://<PROJECT>/nested1/src/debug
             JavaSource          : file://<PROJECT>/nested1/src/debug/aidl
             JavaResource        : file://<PROJECT>/nested1/src/debug/assets
             JavaSource          : file://<PROJECT>/nested1/src/debug/java
+            JavaSource          : file://<PROJECT>/nested1/src/debug/jni
             JavaResource        : file://<PROJECT>/nested1/src/debug/res
             JavaResource        : file://<PROJECT>/nested1/src/debug/resources
             JavaSource          : file://<PROJECT>/nested1/src/debug/rs
             JavaSource          : file://<PROJECT>/nested1/src/debug/shaders
+            JavaResource        : file://<PROJECT>/nested1/src/main
             JavaSource          : file://<PROJECT>/nested1/src/main/aidl
             JavaResource        : file://<PROJECT>/nested1/src/main/assets
             JavaSource          : file://<PROJECT>/nested1/src/main/java
+            JavaSource          : file://<PROJECT>/nested1/src/main/jni
             JavaResource        : file://<PROJECT>/nested1/src/main/res
             JavaResource        : file://<PROJECT>/nested1/src/main/resources
             JavaSource          : file://<PROJECT>/nested1/src/main/rs
             JavaSource          : file://<PROJECT>/nested1/src/main/shaders
+            JavaResource (test) : file://<PROJECT>/nested1/src/test
             JavaSource (test)   : file://<PROJECT>/nested1/src/test/aidl
             JavaResource (test) : file://<PROJECT>/nested1/src/test/assets
             JavaSource (test)   : file://<PROJECT>/nested1/src/test/java
+            JavaSource (test)   : file://<PROJECT>/nested1/src/test/jni
             JavaResource (test) : file://<PROJECT>/nested1/src/test/res
             JavaResource (test) : file://<PROJECT>/nested1/src/test/resources
             JavaSource (test)   : file://<PROJECT>/nested1/src/test/rs
             JavaSource (test)   : file://<PROJECT>/nested1/src/test/shaders
+            JavaResource (test) : file://<PROJECT>/nested1/src/testDebug
             JavaSource (test)   : file://<PROJECT>/nested1/src/testDebug/aidl
             JavaResource (test) : file://<PROJECT>/nested1/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/nested1/src/testDebug/java
+            JavaSource (test)   : file://<PROJECT>/nested1/src/testDebug/jni
             JavaResource (test) : file://<PROJECT>/nested1/src/testDebug/res
             JavaResource (test) : file://<PROJECT>/nested1/src/testDebug/resources
             JavaSource (test)   : file://<PROJECT>/nested1/src/testDebug/rs
             JavaSource (test)   : file://<PROJECT>/nested1/src/testDebug/shaders
+            EXCLUDE_FOLDER      : file://<PROJECT>/nested1/.gradle [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/nested1/build
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
@@ -1407,48 +1496,61 @@ PROJECT             : testPsdSample
             JavaResource        : file://<PROJECT>/nested1/deep/build/generated/res/rs/debug
             JavaSource (test)   : file://<PROJECT>/nested1/deep/build/generated/source/buildConfig/androidTest/debug
             JavaSource          : file://<PROJECT>/nested1/deep/build/generated/source/buildConfig/debug
+            JavaResource (test) : file://<PROJECT>/nested1/deep/src/androidTest
             JavaSource (test)   : file://<PROJECT>/nested1/deep/src/androidTest/aidl
             JavaResource (test) : file://<PROJECT>/nested1/deep/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/nested1/deep/src/androidTest/java
+            JavaSource (test)   : file://<PROJECT>/nested1/deep/src/androidTest/jni
             JavaResource (test) : file://<PROJECT>/nested1/deep/src/androidTest/res
             JavaResource (test) : file://<PROJECT>/nested1/deep/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/nested1/deep/src/androidTest/rs
             JavaSource (test)   : file://<PROJECT>/nested1/deep/src/androidTest/shaders
+            JavaResource (test) : file://<PROJECT>/nested1/deep/src/androidTestDebug
             JavaSource (test)   : file://<PROJECT>/nested1/deep/src/androidTestDebug/aidl
             JavaResource (test) : file://<PROJECT>/nested1/deep/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/nested1/deep/src/androidTestDebug/java
+            JavaSource (test)   : file://<PROJECT>/nested1/deep/src/androidTestDebug/jni
             JavaResource (test) : file://<PROJECT>/nested1/deep/src/androidTestDebug/res
             JavaResource (test) : file://<PROJECT>/nested1/deep/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/nested1/deep/src/androidTestDebug/rs
             JavaSource (test)   : file://<PROJECT>/nested1/deep/src/androidTestDebug/shaders
+            JavaResource        : file://<PROJECT>/nested1/deep/src/debug
             JavaSource          : file://<PROJECT>/nested1/deep/src/debug/aidl
             JavaResource        : file://<PROJECT>/nested1/deep/src/debug/assets
             JavaSource          : file://<PROJECT>/nested1/deep/src/debug/java
+            JavaSource          : file://<PROJECT>/nested1/deep/src/debug/jni
             JavaResource        : file://<PROJECT>/nested1/deep/src/debug/res
             JavaResource        : file://<PROJECT>/nested1/deep/src/debug/resources
             JavaSource          : file://<PROJECT>/nested1/deep/src/debug/rs
             JavaSource          : file://<PROJECT>/nested1/deep/src/debug/shaders
+            JavaResource        : file://<PROJECT>/nested1/deep/src/main
             JavaSource          : file://<PROJECT>/nested1/deep/src/main/aidl
             JavaResource        : file://<PROJECT>/nested1/deep/src/main/assets
             JavaSource          : file://<PROJECT>/nested1/deep/src/main/java
+            JavaSource          : file://<PROJECT>/nested1/deep/src/main/jni
             JavaResource        : file://<PROJECT>/nested1/deep/src/main/res
             JavaResource        : file://<PROJECT>/nested1/deep/src/main/resources
             JavaSource          : file://<PROJECT>/nested1/deep/src/main/rs
             JavaSource          : file://<PROJECT>/nested1/deep/src/main/shaders
+            JavaResource (test) : file://<PROJECT>/nested1/deep/src/test
             JavaSource (test)   : file://<PROJECT>/nested1/deep/src/test/aidl
             JavaResource (test) : file://<PROJECT>/nested1/deep/src/test/assets
             JavaSource (test)   : file://<PROJECT>/nested1/deep/src/test/java
+            JavaSource (test)   : file://<PROJECT>/nested1/deep/src/test/jni
             JavaResource (test) : file://<PROJECT>/nested1/deep/src/test/res
             JavaResource (test) : file://<PROJECT>/nested1/deep/src/test/resources
             JavaSource (test)   : file://<PROJECT>/nested1/deep/src/test/rs
             JavaSource (test)   : file://<PROJECT>/nested1/deep/src/test/shaders
+            JavaResource (test) : file://<PROJECT>/nested1/deep/src/testDebug
             JavaSource (test)   : file://<PROJECT>/nested1/deep/src/testDebug/aidl
             JavaResource (test) : file://<PROJECT>/nested1/deep/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/nested1/deep/src/testDebug/java
+            JavaSource (test)   : file://<PROJECT>/nested1/deep/src/testDebug/jni
             JavaResource (test) : file://<PROJECT>/nested1/deep/src/testDebug/res
             JavaResource (test) : file://<PROJECT>/nested1/deep/src/testDebug/resources
             JavaSource (test)   : file://<PROJECT>/nested1/deep/src/testDebug/rs
             JavaSource (test)   : file://<PROJECT>/nested1/deep/src/testDebug/shaders
+            EXCLUDE_FOLDER      : file://<PROJECT>/nested1/deep/.gradle [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/nested1/deep/build
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
@@ -1525,90 +1627,115 @@ PROJECT             : testPsdSample
             JavaResource        : file://<PROJECT>/nested2/build/generated/res/rs/basic/debug
             JavaSource (test)   : file://<PROJECT>/nested2/build/generated/source/buildConfig/androidTest/basic/debug
             JavaSource          : file://<PROJECT>/nested2/build/generated/source/buildConfig/basic/debug
+            JavaResource (test) : file://<PROJECT>/nested2/src/androidTest
             JavaSource (test)   : file://<PROJECT>/nested2/src/androidTest/aidl
             JavaResource (test) : file://<PROJECT>/nested2/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/nested2/src/androidTest/java
+            JavaSource (test)   : file://<PROJECT>/nested2/src/androidTest/jni
             JavaResource (test) : file://<PROJECT>/nested2/src/androidTest/res
             JavaResource (test) : file://<PROJECT>/nested2/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/nested2/src/androidTest/rs
             JavaSource (test)   : file://<PROJECT>/nested2/src/androidTest/shaders
+            JavaResource (test) : file://<PROJECT>/nested2/src/androidTestBasic
             JavaSource (test)   : file://<PROJECT>/nested2/src/androidTestBasic/aidl
             JavaResource (test) : file://<PROJECT>/nested2/src/androidTestBasic/assets
             JavaSource (test)   : file://<PROJECT>/nested2/src/androidTestBasic/java
+            JavaSource (test)   : file://<PROJECT>/nested2/src/androidTestBasic/jni
             JavaResource (test) : file://<PROJECT>/nested2/src/androidTestBasic/res
             JavaResource (test) : file://<PROJECT>/nested2/src/androidTestBasic/resources
             JavaSource (test)   : file://<PROJECT>/nested2/src/androidTestBasic/rs
             JavaSource (test)   : file://<PROJECT>/nested2/src/androidTestBasic/shaders
+            JavaResource (test) : file://<PROJECT>/nested2/src/androidTestBasicDebug
             JavaSource (test)   : file://<PROJECT>/nested2/src/androidTestBasicDebug/aidl
             JavaResource (test) : file://<PROJECT>/nested2/src/androidTestBasicDebug/assets
             JavaSource (test)   : file://<PROJECT>/nested2/src/androidTestBasicDebug/java
+            JavaSource (test)   : file://<PROJECT>/nested2/src/androidTestBasicDebug/jni
             JavaResource (test) : file://<PROJECT>/nested2/src/androidTestBasicDebug/res
             JavaResource (test) : file://<PROJECT>/nested2/src/androidTestBasicDebug/resources
             JavaSource (test)   : file://<PROJECT>/nested2/src/androidTestBasicDebug/rs
             JavaSource (test)   : file://<PROJECT>/nested2/src/androidTestBasicDebug/shaders
+            JavaResource (test) : file://<PROJECT>/nested2/src/androidTestDebug
             JavaSource (test)   : file://<PROJECT>/nested2/src/androidTestDebug/aidl
             JavaResource (test) : file://<PROJECT>/nested2/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/nested2/src/androidTestDebug/java
+            JavaSource (test)   : file://<PROJECT>/nested2/src/androidTestDebug/jni
             JavaResource (test) : file://<PROJECT>/nested2/src/androidTestDebug/res
             JavaResource (test) : file://<PROJECT>/nested2/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/nested2/src/androidTestDebug/rs
             JavaSource (test)   : file://<PROJECT>/nested2/src/androidTestDebug/shaders
+            JavaResource        : file://<PROJECT>/nested2/src/basic
             JavaSource          : file://<PROJECT>/nested2/src/basic/aidl
             JavaResource        : file://<PROJECT>/nested2/src/basic/assets
             JavaSource          : file://<PROJECT>/nested2/src/basic/java
+            JavaSource          : file://<PROJECT>/nested2/src/basic/jni
             JavaResource        : file://<PROJECT>/nested2/src/basic/res
             JavaResource        : file://<PROJECT>/nested2/src/basic/resources
             JavaSource          : file://<PROJECT>/nested2/src/basic/rs
             JavaSource          : file://<PROJECT>/nested2/src/basic/shaders
+            JavaResource        : file://<PROJECT>/nested2/src/basicDebug
             JavaSource          : file://<PROJECT>/nested2/src/basicDebug/aidl
             JavaResource        : file://<PROJECT>/nested2/src/basicDebug/assets
             JavaSource          : file://<PROJECT>/nested2/src/basicDebug/java
+            JavaSource          : file://<PROJECT>/nested2/src/basicDebug/jni
             JavaResource        : file://<PROJECT>/nested2/src/basicDebug/res
             JavaResource        : file://<PROJECT>/nested2/src/basicDebug/resources
             JavaSource          : file://<PROJECT>/nested2/src/basicDebug/rs
             JavaSource          : file://<PROJECT>/nested2/src/basicDebug/shaders
+            JavaResource        : file://<PROJECT>/nested2/src/debug
             JavaSource          : file://<PROJECT>/nested2/src/debug/aidl
             JavaResource        : file://<PROJECT>/nested2/src/debug/assets
             JavaSource          : file://<PROJECT>/nested2/src/debug/java
+            JavaSource          : file://<PROJECT>/nested2/src/debug/jni
             JavaResource        : file://<PROJECT>/nested2/src/debug/res
             JavaResource        : file://<PROJECT>/nested2/src/debug/resources
             JavaSource          : file://<PROJECT>/nested2/src/debug/rs
             JavaSource          : file://<PROJECT>/nested2/src/debug/shaders
+            JavaResource        : file://<PROJECT>/nested2/src/main
             JavaSource          : file://<PROJECT>/nested2/src/main/aidl
             JavaResource        : file://<PROJECT>/nested2/src/main/assets
             JavaSource          : file://<PROJECT>/nested2/src/main/java
+            JavaSource          : file://<PROJECT>/nested2/src/main/jni
             JavaResource        : file://<PROJECT>/nested2/src/main/res
             JavaResource        : file://<PROJECT>/nested2/src/main/resources
             JavaSource          : file://<PROJECT>/nested2/src/main/rs
             JavaSource          : file://<PROJECT>/nested2/src/main/shaders
+            JavaResource (test) : file://<PROJECT>/nested2/src/test
             JavaSource (test)   : file://<PROJECT>/nested2/src/test/aidl
             JavaResource (test) : file://<PROJECT>/nested2/src/test/assets
             JavaSource (test)   : file://<PROJECT>/nested2/src/test/java
+            JavaSource (test)   : file://<PROJECT>/nested2/src/test/jni
             JavaResource (test) : file://<PROJECT>/nested2/src/test/res
             JavaResource (test) : file://<PROJECT>/nested2/src/test/resources
             JavaSource (test)   : file://<PROJECT>/nested2/src/test/rs
             JavaSource (test)   : file://<PROJECT>/nested2/src/test/shaders
+            JavaResource (test) : file://<PROJECT>/nested2/src/testBasic
             JavaSource (test)   : file://<PROJECT>/nested2/src/testBasic/aidl
             JavaResource (test) : file://<PROJECT>/nested2/src/testBasic/assets
             JavaSource (test)   : file://<PROJECT>/nested2/src/testBasic/java
+            JavaSource (test)   : file://<PROJECT>/nested2/src/testBasic/jni
             JavaResource (test) : file://<PROJECT>/nested2/src/testBasic/res
             JavaResource (test) : file://<PROJECT>/nested2/src/testBasic/resources
             JavaSource (test)   : file://<PROJECT>/nested2/src/testBasic/rs
             JavaSource (test)   : file://<PROJECT>/nested2/src/testBasic/shaders
+            JavaResource (test) : file://<PROJECT>/nested2/src/testBasicDebug
             JavaSource (test)   : file://<PROJECT>/nested2/src/testBasicDebug/aidl
             JavaResource (test) : file://<PROJECT>/nested2/src/testBasicDebug/assets
             JavaSource (test)   : file://<PROJECT>/nested2/src/testBasicDebug/java
+            JavaSource (test)   : file://<PROJECT>/nested2/src/testBasicDebug/jni
             JavaResource (test) : file://<PROJECT>/nested2/src/testBasicDebug/res
             JavaResource (test) : file://<PROJECT>/nested2/src/testBasicDebug/resources
             JavaSource (test)   : file://<PROJECT>/nested2/src/testBasicDebug/rs
             JavaSource (test)   : file://<PROJECT>/nested2/src/testBasicDebug/shaders
+            JavaResource (test) : file://<PROJECT>/nested2/src/testDebug
             JavaSource (test)   : file://<PROJECT>/nested2/src/testDebug/aidl
             JavaResource (test) : file://<PROJECT>/nested2/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/nested2/src/testDebug/java
+            JavaSource (test)   : file://<PROJECT>/nested2/src/testDebug/jni
             JavaResource (test) : file://<PROJECT>/nested2/src/testDebug/res
             JavaResource (test) : file://<PROJECT>/nested2/src/testDebug/resources
             JavaSource (test)   : file://<PROJECT>/nested2/src/testDebug/rs
             JavaSource (test)   : file://<PROJECT>/nested2/src/testDebug/shaders
+            EXCLUDE_FOLDER      : file://<PROJECT>/nested2/.gradle [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/nested2/build
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
@@ -1682,48 +1809,61 @@ PROJECT             : testPsdSample
             JavaResource        : file://<PROJECT>/nested2/deep/build/generated/res/rs/debug
             JavaSource (test)   : file://<PROJECT>/nested2/deep/build/generated/source/buildConfig/androidTest/debug
             JavaSource          : file://<PROJECT>/nested2/deep/build/generated/source/buildConfig/debug
+            JavaResource (test) : file://<PROJECT>/nested2/deep/src/androidTest
             JavaSource (test)   : file://<PROJECT>/nested2/deep/src/androidTest/aidl
             JavaResource (test) : file://<PROJECT>/nested2/deep/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/nested2/deep/src/androidTest/java
+            JavaSource (test)   : file://<PROJECT>/nested2/deep/src/androidTest/jni
             JavaResource (test) : file://<PROJECT>/nested2/deep/src/androidTest/res
             JavaResource (test) : file://<PROJECT>/nested2/deep/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/nested2/deep/src/androidTest/rs
             JavaSource (test)   : file://<PROJECT>/nested2/deep/src/androidTest/shaders
+            JavaResource (test) : file://<PROJECT>/nested2/deep/src/androidTestDebug
             JavaSource (test)   : file://<PROJECT>/nested2/deep/src/androidTestDebug/aidl
             JavaResource (test) : file://<PROJECT>/nested2/deep/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/nested2/deep/src/androidTestDebug/java
+            JavaSource (test)   : file://<PROJECT>/nested2/deep/src/androidTestDebug/jni
             JavaResource (test) : file://<PROJECT>/nested2/deep/src/androidTestDebug/res
             JavaResource (test) : file://<PROJECT>/nested2/deep/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/nested2/deep/src/androidTestDebug/rs
             JavaSource (test)   : file://<PROJECT>/nested2/deep/src/androidTestDebug/shaders
+            JavaResource        : file://<PROJECT>/nested2/deep/src/debug
             JavaSource          : file://<PROJECT>/nested2/deep/src/debug/aidl
             JavaResource        : file://<PROJECT>/nested2/deep/src/debug/assets
             JavaSource          : file://<PROJECT>/nested2/deep/src/debug/java
+            JavaSource          : file://<PROJECT>/nested2/deep/src/debug/jni
             JavaResource        : file://<PROJECT>/nested2/deep/src/debug/res
             JavaResource        : file://<PROJECT>/nested2/deep/src/debug/resources
             JavaSource          : file://<PROJECT>/nested2/deep/src/debug/rs
             JavaSource          : file://<PROJECT>/nested2/deep/src/debug/shaders
+            JavaResource        : file://<PROJECT>/nested2/deep/src/main
             JavaSource          : file://<PROJECT>/nested2/deep/src/main/aidl
             JavaResource        : file://<PROJECT>/nested2/deep/src/main/assets
             JavaSource          : file://<PROJECT>/nested2/deep/src/main/java
+            JavaSource          : file://<PROJECT>/nested2/deep/src/main/jni
             JavaResource        : file://<PROJECT>/nested2/deep/src/main/res
             JavaResource        : file://<PROJECT>/nested2/deep/src/main/resources
             JavaSource          : file://<PROJECT>/nested2/deep/src/main/rs
             JavaSource          : file://<PROJECT>/nested2/deep/src/main/shaders
+            JavaResource (test) : file://<PROJECT>/nested2/deep/src/test
             JavaSource (test)   : file://<PROJECT>/nested2/deep/src/test/aidl
             JavaResource (test) : file://<PROJECT>/nested2/deep/src/test/assets
             JavaSource (test)   : file://<PROJECT>/nested2/deep/src/test/java
+            JavaSource (test)   : file://<PROJECT>/nested2/deep/src/test/jni
             JavaResource (test) : file://<PROJECT>/nested2/deep/src/test/res
             JavaResource (test) : file://<PROJECT>/nested2/deep/src/test/resources
             JavaSource (test)   : file://<PROJECT>/nested2/deep/src/test/rs
             JavaSource (test)   : file://<PROJECT>/nested2/deep/src/test/shaders
+            JavaResource (test) : file://<PROJECT>/nested2/deep/src/testDebug
             JavaSource (test)   : file://<PROJECT>/nested2/deep/src/testDebug/aidl
             JavaResource (test) : file://<PROJECT>/nested2/deep/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/nested2/deep/src/testDebug/java
+            JavaSource (test)   : file://<PROJECT>/nested2/deep/src/testDebug/jni
             JavaResource (test) : file://<PROJECT>/nested2/deep/src/testDebug/res
             JavaResource (test) : file://<PROJECT>/nested2/deep/src/testDebug/resources
             JavaSource (test)   : file://<PROJECT>/nested2/deep/src/testDebug/rs
             JavaSource (test)   : file://<PROJECT>/nested2/deep/src/testDebug/shaders
+            EXCLUDE_FOLDER      : file://<PROJECT>/nested2/deep/.gradle [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/nested2/deep/build
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
@@ -1751,6 +1891,7 @@ PROJECT             : testPsdSample
             BuildFolderPath     : <PROJECT>/build [-]
         CONENT_ENTRY        : file://<PROJECT>
             EXCLUDE_FOLDER      : file://<PROJECT>/.gradle
+            EXCLUDE_FOLDER      : file://<PROJECT>/build [-]
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>

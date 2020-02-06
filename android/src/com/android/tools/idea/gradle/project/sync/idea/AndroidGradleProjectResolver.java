@@ -77,6 +77,7 @@ import com.android.tools.idea.gradle.project.sync.SyncActionOptions;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel;
+import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys;
 import com.android.tools.idea.gradle.project.sync.idea.issues.AgpUpgradeRequiredException;
 import com.android.tools.idea.gradle.project.sync.idea.issues.AndroidSyncException;
 import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidExtraModelProvider;
@@ -100,6 +101,7 @@ import com.intellij.openapi.externalSystem.model.project.LibraryDependencyData;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ModuleDependencyData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.externalSystem.util.Order;
 import com.intellij.openapi.project.Project;
@@ -428,6 +430,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @Override
   public void populateModuleContentRoots(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
     nextResolver.populateModuleContentRoots(gradleModule, ideModule);
+    
+    ContentRootUtilKt.setupAndroidContentEntries(ideModule);
   }
 
   private boolean hasArtifacts(@NotNull IdeaModule gradleModule) {

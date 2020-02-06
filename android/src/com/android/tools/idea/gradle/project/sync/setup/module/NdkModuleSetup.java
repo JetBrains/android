@@ -26,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class NdkModuleSetup extends BaseSetup<NdkModuleSetupStep, NdkModuleModel> {
   public NdkModuleSetup() {
-    this(new NdkFacetModuleSetupStep(), new ContentRootModuleSetupStep());
+    this(new NdkFacetModuleSetupStep());
   }
 
   @VisibleForTesting
