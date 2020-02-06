@@ -422,11 +422,12 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     File centralBuildParentDirPath = centralBuildDirPath.getParentFile();
     delete(centralBuildParentDirPath);
 
-    importProject();
+    Project project = getProject();
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest(true);
+    AndroidGradleTests.importProject(project, request);
     Module app = myModules.getAppModule();
 
-    // Now we have to make sure that if project import was successful, the build folder (with custom path) is excluded in the IDE (to
-    // prevent unnecessary file indexing, which decreases performance.)
+    // Now we have to make sure that if project import was successful, the build folder has included source folders.
     File[] sourceFolderPaths = ApplicationManager.getApplication().runReadAction(
       (Computable<File[]>)() -> {
         ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(app);

@@ -39,11 +39,11 @@ PROJECT             : testWithCompositeBuild
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/TestCompositeLib1/app/src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/TestCompositeLib1/app/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/TestCompositeLib1/app/build/generated/res/rs/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib1/app/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib1/app/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib1/app/build/generated/res/rs/androidTest/debug [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/TestCompositeLib1/app/src/debug/res
+            - ResFoldersRelativePath      : file://<PROJECT>/TestCompositeLib1/app/build/generated/res/rs/debug
+            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib1/app/src/androidTest/res
+            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib1/app/src/androidTestDebug/res
+            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib1/app/build/generated/res/rs/androidTest/debug
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -112,60 +112,60 @@ PROJECT             : testWithCompositeBuild
             UseProjectSettings  : false
             Version             : 3
         CONENT_ENTRY        : file://<PROJECT>/TestCompositeLib1/app
-            JavaSource          : file://<PROJECT>/TestCompositeLib1/app/build/generated/aidl_source_output_dir/debug/out [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
-            JavaSource          : file://<PROJECT>/TestCompositeLib1/app/build/generated/ap_generated_sources/debug/out [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
-            JavaSource          : file://<PROJECT>/TestCompositeLib1/app/build/generated/renderscript_source_output_dir/debug/out [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/build/generated/res/rs/androidTest/debug [-]
-            JavaResource        : file://<PROJECT>/TestCompositeLib1/app/build/generated/res/rs/debug [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/build/generated/source/buildConfig/androidTest/debug [-]
-            JavaSource          : file://<PROJECT>/TestCompositeLib1/app/build/generated/source/buildConfig/debug [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/androidTest/aidl [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/androidTest/assets [-]
+            JavaSource          : file://<PROJECT>/TestCompositeLib1/app/build/generated/aidl_source_output_dir/debug/out
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/build/generated/aidl_source_output_dir/debugAndroidTest/out
+            JavaSource          : file://<PROJECT>/TestCompositeLib1/app/build/generated/ap_generated_sources/debug/out
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/build/generated/ap_generated_sources/debugAndroidTest/out
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/build/generated/ap_generated_sources/debugUnitTest/out
+            JavaSource          : file://<PROJECT>/TestCompositeLib1/app/build/generated/renderscript_source_output_dir/debug/out
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/build/generated/res/rs/androidTest/debug
+            JavaResource        : file://<PROJECT>/TestCompositeLib1/app/build/generated/res/rs/debug
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/build/generated/source/buildConfig/androidTest/debug
+            JavaSource          : file://<PROJECT>/TestCompositeLib1/app/build/generated/source/buildConfig/debug
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/androidTest/aidl
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/androidTest/java
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/androidTest/res [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/androidTest/resources [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/androidTest/rs [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/androidTest/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/androidTestDebug/aidl [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/androidTestDebug/assets [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/androidTestDebug/java [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/androidTestDebug/res [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/androidTestDebug/resources [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/androidTestDebug/rs [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/androidTestDebug/shaders [-]
-            JavaSource          : file://<PROJECT>/TestCompositeLib1/app/src/debug/aidl [-]
-            JavaResource        : file://<PROJECT>/TestCompositeLib1/app/src/debug/assets [-]
-            JavaSource          : file://<PROJECT>/TestCompositeLib1/app/src/debug/java [-]
-            JavaResource        : file://<PROJECT>/TestCompositeLib1/app/src/debug/res [-]
-            JavaResource        : file://<PROJECT>/TestCompositeLib1/app/src/debug/resources [-]
-            JavaSource          : file://<PROJECT>/TestCompositeLib1/app/src/debug/rs [-]
-            JavaSource          : file://<PROJECT>/TestCompositeLib1/app/src/debug/shaders [-]
-            JavaSource          : file://<PROJECT>/TestCompositeLib1/app/src/main/aidl [-]
-            JavaResource        : file://<PROJECT>/TestCompositeLib1/app/src/main/assets [-]
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/androidTest/res
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/androidTest/resources
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/androidTest/rs
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/androidTest/shaders
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/androidTestDebug/aidl
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/androidTestDebug/assets
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/androidTestDebug/java
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/androidTestDebug/res
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/androidTestDebug/resources
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/androidTestDebug/rs
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/androidTestDebug/shaders
+            JavaSource          : file://<PROJECT>/TestCompositeLib1/app/src/debug/aidl
+            JavaResource        : file://<PROJECT>/TestCompositeLib1/app/src/debug/assets
+            JavaSource          : file://<PROJECT>/TestCompositeLib1/app/src/debug/java
+            JavaResource        : file://<PROJECT>/TestCompositeLib1/app/src/debug/res
+            JavaResource        : file://<PROJECT>/TestCompositeLib1/app/src/debug/resources
+            JavaSource          : file://<PROJECT>/TestCompositeLib1/app/src/debug/rs
+            JavaSource          : file://<PROJECT>/TestCompositeLib1/app/src/debug/shaders
+            JavaSource          : file://<PROJECT>/TestCompositeLib1/app/src/main/aidl
+            JavaResource        : file://<PROJECT>/TestCompositeLib1/app/src/main/assets
             JavaSource          : file://<PROJECT>/TestCompositeLib1/app/src/main/java
             JavaResource        : file://<PROJECT>/TestCompositeLib1/app/src/main/res
-            JavaResource        : file://<PROJECT>/TestCompositeLib1/app/src/main/resources [-]
-            JavaSource          : file://<PROJECT>/TestCompositeLib1/app/src/main/rs [-]
-            JavaSource          : file://<PROJECT>/TestCompositeLib1/app/src/main/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/test/aidl [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/test/assets [-]
+            JavaResource        : file://<PROJECT>/TestCompositeLib1/app/src/main/resources
+            JavaSource          : file://<PROJECT>/TestCompositeLib1/app/src/main/rs
+            JavaSource          : file://<PROJECT>/TestCompositeLib1/app/src/main/shaders
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/test/aidl
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/test/assets
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/test/java
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/test/res [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/test/resources [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/test/rs [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/test/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/testDebug/aidl [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/testDebug/assets [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/testDebug/java [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/testDebug/res [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/testDebug/resources [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/testDebug/rs [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/TestCompositeLib1/app/build [-]
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/test/res
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/test/resources
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/test/rs
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/test/shaders
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/testDebug/aidl
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/testDebug/assets
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/testDebug/java
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/testDebug/res
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/testDebug/resources
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/testDebug/rs
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/testDebug/shaders
+            EXCLUDE_FOLDER      : file://<PROJECT>/TestCompositeLib1/app/build
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK
@@ -518,11 +518,11 @@ PROJECT             : testWithCompositeBuild
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/TestCompositeLib1/lib/src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/TestCompositeLib1/lib/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/TestCompositeLib1/lib/build/generated/res/rs/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib1/lib/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib1/lib/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib1/lib/build/generated/res/rs/androidTest/debug [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/TestCompositeLib1/lib/src/debug/res
+            - ResFoldersRelativePath      : file://<PROJECT>/TestCompositeLib1/lib/build/generated/res/rs/debug
+            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib1/lib/src/androidTest/res
+            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib1/lib/src/androidTestDebug/res
+            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib1/lib/build/generated/res/rs/androidTest/debug
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -591,60 +591,60 @@ PROJECT             : testWithCompositeBuild
             UseProjectSettings  : false
             Version             : 3
         CONENT_ENTRY        : file://<PROJECT>/TestCompositeLib1/lib
-            JavaSource          : file://<PROJECT>/TestCompositeLib1/lib/build/generated/aidl_source_output_dir/debug/out [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
-            JavaSource          : file://<PROJECT>/TestCompositeLib1/lib/build/generated/ap_generated_sources/debug/out [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
-            JavaSource          : file://<PROJECT>/TestCompositeLib1/lib/build/generated/renderscript_source_output_dir/debug/out [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/build/generated/res/rs/androidTest/debug [-]
-            JavaResource        : file://<PROJECT>/TestCompositeLib1/lib/build/generated/res/rs/debug [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/build/generated/source/buildConfig/androidTest/debug [-]
-            JavaSource          : file://<PROJECT>/TestCompositeLib1/lib/build/generated/source/buildConfig/debug [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/androidTest/aidl [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/androidTest/assets [-]
+            JavaSource          : file://<PROJECT>/TestCompositeLib1/lib/build/generated/aidl_source_output_dir/debug/out
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out
+            JavaSource          : file://<PROJECT>/TestCompositeLib1/lib/build/generated/ap_generated_sources/debug/out
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/build/generated/ap_generated_sources/debugAndroidTest/out
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/build/generated/ap_generated_sources/debugUnitTest/out
+            JavaSource          : file://<PROJECT>/TestCompositeLib1/lib/build/generated/renderscript_source_output_dir/debug/out
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/build/generated/renderscript_source_output_dir/debugAndroidTest/out
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/build/generated/res/rs/androidTest/debug
+            JavaResource        : file://<PROJECT>/TestCompositeLib1/lib/build/generated/res/rs/debug
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/build/generated/source/buildConfig/androidTest/debug
+            JavaSource          : file://<PROJECT>/TestCompositeLib1/lib/build/generated/source/buildConfig/debug
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/androidTest/aidl
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/androidTest/java
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/androidTest/res [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/androidTest/resources [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/androidTest/rs [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/androidTest/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/androidTestDebug/aidl [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/androidTestDebug/assets [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/androidTestDebug/java [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/androidTestDebug/res [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/androidTestDebug/resources [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/androidTestDebug/rs [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/androidTestDebug/shaders [-]
-            JavaSource          : file://<PROJECT>/TestCompositeLib1/lib/src/debug/aidl [-]
-            JavaResource        : file://<PROJECT>/TestCompositeLib1/lib/src/debug/assets [-]
-            JavaSource          : file://<PROJECT>/TestCompositeLib1/lib/src/debug/java [-]
-            JavaResource        : file://<PROJECT>/TestCompositeLib1/lib/src/debug/res [-]
-            JavaResource        : file://<PROJECT>/TestCompositeLib1/lib/src/debug/resources [-]
-            JavaSource          : file://<PROJECT>/TestCompositeLib1/lib/src/debug/rs [-]
-            JavaSource          : file://<PROJECT>/TestCompositeLib1/lib/src/debug/shaders [-]
-            JavaSource          : file://<PROJECT>/TestCompositeLib1/lib/src/main/aidl [-]
-            JavaResource        : file://<PROJECT>/TestCompositeLib1/lib/src/main/assets [-]
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/androidTest/res
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/androidTest/resources
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/androidTest/rs
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/androidTest/shaders
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/androidTestDebug/aidl
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/androidTestDebug/assets
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/androidTestDebug/java
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/androidTestDebug/res
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/androidTestDebug/resources
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/androidTestDebug/rs
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/androidTestDebug/shaders
+            JavaSource          : file://<PROJECT>/TestCompositeLib1/lib/src/debug/aidl
+            JavaResource        : file://<PROJECT>/TestCompositeLib1/lib/src/debug/assets
+            JavaSource          : file://<PROJECT>/TestCompositeLib1/lib/src/debug/java
+            JavaResource        : file://<PROJECT>/TestCompositeLib1/lib/src/debug/res
+            JavaResource        : file://<PROJECT>/TestCompositeLib1/lib/src/debug/resources
+            JavaSource          : file://<PROJECT>/TestCompositeLib1/lib/src/debug/rs
+            JavaSource          : file://<PROJECT>/TestCompositeLib1/lib/src/debug/shaders
+            JavaSource          : file://<PROJECT>/TestCompositeLib1/lib/src/main/aidl
+            JavaResource        : file://<PROJECT>/TestCompositeLib1/lib/src/main/assets
             JavaSource          : file://<PROJECT>/TestCompositeLib1/lib/src/main/java
             JavaResource        : file://<PROJECT>/TestCompositeLib1/lib/src/main/res
-            JavaResource        : file://<PROJECT>/TestCompositeLib1/lib/src/main/resources [-]
-            JavaSource          : file://<PROJECT>/TestCompositeLib1/lib/src/main/rs [-]
-            JavaSource          : file://<PROJECT>/TestCompositeLib1/lib/src/main/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/test/aidl [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/test/assets [-]
+            JavaResource        : file://<PROJECT>/TestCompositeLib1/lib/src/main/resources
+            JavaSource          : file://<PROJECT>/TestCompositeLib1/lib/src/main/rs
+            JavaSource          : file://<PROJECT>/TestCompositeLib1/lib/src/main/shaders
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/test/aidl
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/test/assets
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/test/java
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/test/res [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/test/resources [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/test/rs [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/test/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/testDebug/aidl [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/testDebug/assets [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/testDebug/java [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/testDebug/res [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/testDebug/resources [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/testDebug/rs [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/TestCompositeLib1/lib/build [-]
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/test/res
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/test/resources
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/test/rs
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/test/shaders
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/testDebug/aidl
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/testDebug/assets
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/testDebug/java
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/testDebug/res
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/testDebug/resources
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/testDebug/rs
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/testDebug/shaders
+            EXCLUDE_FOLDER      : file://<PROJECT>/TestCompositeLib1/lib/build
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK
@@ -998,11 +998,11 @@ PROJECT             : testWithCompositeBuild
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/TestCompositeLib3/app/src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/TestCompositeLib3/app/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/TestCompositeLib3/app/build/generated/res/rs/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib3/app/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib3/app/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib3/app/build/generated/res/rs/androidTest/debug [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/TestCompositeLib3/app/src/debug/res
+            - ResFoldersRelativePath      : file://<PROJECT>/TestCompositeLib3/app/build/generated/res/rs/debug
+            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib3/app/src/androidTest/res
+            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib3/app/src/androidTestDebug/res
+            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib3/app/build/generated/res/rs/androidTest/debug
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -1071,60 +1071,60 @@ PROJECT             : testWithCompositeBuild
             UseProjectSettings  : false
             Version             : 3
         CONENT_ENTRY        : file://<PROJECT>/TestCompositeLib3/app
-            JavaSource          : file://<PROJECT>/TestCompositeLib3/app/build/generated/aidl_source_output_dir/debug/out [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
-            JavaSource          : file://<PROJECT>/TestCompositeLib3/app/build/generated/ap_generated_sources/debug/out [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
-            JavaSource          : file://<PROJECT>/TestCompositeLib3/app/build/generated/renderscript_source_output_dir/debug/out [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/build/generated/res/rs/androidTest/debug [-]
-            JavaResource        : file://<PROJECT>/TestCompositeLib3/app/build/generated/res/rs/debug [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/build/generated/source/buildConfig/androidTest/debug [-]
-            JavaSource          : file://<PROJECT>/TestCompositeLib3/app/build/generated/source/buildConfig/debug [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/androidTest/aidl [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/androidTest/assets [-]
+            JavaSource          : file://<PROJECT>/TestCompositeLib3/app/build/generated/aidl_source_output_dir/debug/out
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/build/generated/aidl_source_output_dir/debugAndroidTest/out
+            JavaSource          : file://<PROJECT>/TestCompositeLib3/app/build/generated/ap_generated_sources/debug/out
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/build/generated/ap_generated_sources/debugAndroidTest/out
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/build/generated/ap_generated_sources/debugUnitTest/out
+            JavaSource          : file://<PROJECT>/TestCompositeLib3/app/build/generated/renderscript_source_output_dir/debug/out
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/build/generated/res/rs/androidTest/debug
+            JavaResource        : file://<PROJECT>/TestCompositeLib3/app/build/generated/res/rs/debug
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/build/generated/source/buildConfig/androidTest/debug
+            JavaSource          : file://<PROJECT>/TestCompositeLib3/app/build/generated/source/buildConfig/debug
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/androidTest/aidl
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/androidTest/java
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/androidTest/res [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/androidTest/resources [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/androidTest/rs [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/androidTest/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/androidTestDebug/aidl [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/androidTestDebug/assets [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/androidTestDebug/java [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/androidTestDebug/res [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/androidTestDebug/resources [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/androidTestDebug/rs [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/androidTestDebug/shaders [-]
-            JavaSource          : file://<PROJECT>/TestCompositeLib3/app/src/debug/aidl [-]
-            JavaResource        : file://<PROJECT>/TestCompositeLib3/app/src/debug/assets [-]
-            JavaSource          : file://<PROJECT>/TestCompositeLib3/app/src/debug/java [-]
-            JavaResource        : file://<PROJECT>/TestCompositeLib3/app/src/debug/res [-]
-            JavaResource        : file://<PROJECT>/TestCompositeLib3/app/src/debug/resources [-]
-            JavaSource          : file://<PROJECT>/TestCompositeLib3/app/src/debug/rs [-]
-            JavaSource          : file://<PROJECT>/TestCompositeLib3/app/src/debug/shaders [-]
-            JavaSource          : file://<PROJECT>/TestCompositeLib3/app/src/main/aidl [-]
-            JavaResource        : file://<PROJECT>/TestCompositeLib3/app/src/main/assets [-]
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/androidTest/res
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/androidTest/resources
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/androidTest/rs
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/androidTest/shaders
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/androidTestDebug/aidl
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/androidTestDebug/assets
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/androidTestDebug/java
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/androidTestDebug/res
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/androidTestDebug/resources
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/androidTestDebug/rs
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/androidTestDebug/shaders
+            JavaSource          : file://<PROJECT>/TestCompositeLib3/app/src/debug/aidl
+            JavaResource        : file://<PROJECT>/TestCompositeLib3/app/src/debug/assets
+            JavaSource          : file://<PROJECT>/TestCompositeLib3/app/src/debug/java
+            JavaResource        : file://<PROJECT>/TestCompositeLib3/app/src/debug/res
+            JavaResource        : file://<PROJECT>/TestCompositeLib3/app/src/debug/resources
+            JavaSource          : file://<PROJECT>/TestCompositeLib3/app/src/debug/rs
+            JavaSource          : file://<PROJECT>/TestCompositeLib3/app/src/debug/shaders
+            JavaSource          : file://<PROJECT>/TestCompositeLib3/app/src/main/aidl
+            JavaResource        : file://<PROJECT>/TestCompositeLib3/app/src/main/assets
             JavaSource          : file://<PROJECT>/TestCompositeLib3/app/src/main/java
             JavaResource        : file://<PROJECT>/TestCompositeLib3/app/src/main/res
-            JavaResource        : file://<PROJECT>/TestCompositeLib3/app/src/main/resources [-]
-            JavaSource          : file://<PROJECT>/TestCompositeLib3/app/src/main/rs [-]
-            JavaSource          : file://<PROJECT>/TestCompositeLib3/app/src/main/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/test/aidl [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/test/assets [-]
+            JavaResource        : file://<PROJECT>/TestCompositeLib3/app/src/main/resources
+            JavaSource          : file://<PROJECT>/TestCompositeLib3/app/src/main/rs
+            JavaSource          : file://<PROJECT>/TestCompositeLib3/app/src/main/shaders
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/test/aidl
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/test/assets
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/test/java
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/test/res [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/test/resources [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/test/rs [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/test/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/testDebug/aidl [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/testDebug/assets [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/testDebug/java [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/testDebug/res [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/testDebug/resources [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/testDebug/rs [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/TestCompositeLib3/app/build [-]
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/test/res
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/test/resources
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/test/rs
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/test/shaders
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/testDebug/aidl
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/testDebug/assets
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/testDebug/java
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/testDebug/res
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/testDebug/resources
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/testDebug/rs
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/testDebug/shaders
+            EXCLUDE_FOLDER      : file://<PROJECT>/TestCompositeLib3/app/build
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK
@@ -1475,11 +1475,11 @@ PROJECT             : testWithCompositeBuild
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/TestCompositeLib3/lib/src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/TestCompositeLib3/lib/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/TestCompositeLib3/lib/build/generated/res/rs/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib3/lib/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib3/lib/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib3/lib/build/generated/res/rs/androidTest/debug [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/TestCompositeLib3/lib/src/debug/res
+            - ResFoldersRelativePath      : file://<PROJECT>/TestCompositeLib3/lib/build/generated/res/rs/debug
+            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib3/lib/src/androidTest/res
+            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib3/lib/src/androidTestDebug/res
+            - TestResFoldersRelativePath  : file://<PROJECT>/TestCompositeLib3/lib/build/generated/res/rs/androidTest/debug
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -1502,60 +1502,60 @@ PROJECT             : testWithCompositeBuild
             TypeId              : android-gradle
             GradlePath          : :lib
         CONENT_ENTRY        : file://<PROJECT>/TestCompositeLib3/lib
-            JavaSource          : file://<PROJECT>/TestCompositeLib3/lib/build/generated/aidl_source_output_dir/debug/out [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
-            JavaSource          : file://<PROJECT>/TestCompositeLib3/lib/build/generated/ap_generated_sources/debug/out [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
-            JavaSource          : file://<PROJECT>/TestCompositeLib3/lib/build/generated/renderscript_source_output_dir/debug/out [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/build/generated/res/rs/androidTest/debug [-]
-            JavaResource        : file://<PROJECT>/TestCompositeLib3/lib/build/generated/res/rs/debug [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/build/generated/source/buildConfig/androidTest/debug [-]
-            JavaSource          : file://<PROJECT>/TestCompositeLib3/lib/build/generated/source/buildConfig/debug [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/androidTest/aidl [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/androidTest/assets [-]
+            JavaSource          : file://<PROJECT>/TestCompositeLib3/lib/build/generated/aidl_source_output_dir/debug/out
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out
+            JavaSource          : file://<PROJECT>/TestCompositeLib3/lib/build/generated/ap_generated_sources/debug/out
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/build/generated/ap_generated_sources/debugAndroidTest/out
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/build/generated/ap_generated_sources/debugUnitTest/out
+            JavaSource          : file://<PROJECT>/TestCompositeLib3/lib/build/generated/renderscript_source_output_dir/debug/out
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/build/generated/renderscript_source_output_dir/debugAndroidTest/out
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/build/generated/res/rs/androidTest/debug
+            JavaResource        : file://<PROJECT>/TestCompositeLib3/lib/build/generated/res/rs/debug
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/build/generated/source/buildConfig/androidTest/debug
+            JavaSource          : file://<PROJECT>/TestCompositeLib3/lib/build/generated/source/buildConfig/debug
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/androidTest/aidl
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/androidTest/java
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/androidTest/res [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/androidTest/resources [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/androidTest/rs [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/androidTest/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/androidTestDebug/aidl [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/androidTestDebug/assets [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/androidTestDebug/java [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/androidTestDebug/res [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/androidTestDebug/resources [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/androidTestDebug/rs [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/androidTestDebug/shaders [-]
-            JavaSource          : file://<PROJECT>/TestCompositeLib3/lib/src/debug/aidl [-]
-            JavaResource        : file://<PROJECT>/TestCompositeLib3/lib/src/debug/assets [-]
-            JavaSource          : file://<PROJECT>/TestCompositeLib3/lib/src/debug/java [-]
-            JavaResource        : file://<PROJECT>/TestCompositeLib3/lib/src/debug/res [-]
-            JavaResource        : file://<PROJECT>/TestCompositeLib3/lib/src/debug/resources [-]
-            JavaSource          : file://<PROJECT>/TestCompositeLib3/lib/src/debug/rs [-]
-            JavaSource          : file://<PROJECT>/TestCompositeLib3/lib/src/debug/shaders [-]
-            JavaSource          : file://<PROJECT>/TestCompositeLib3/lib/src/main/aidl [-]
-            JavaResource        : file://<PROJECT>/TestCompositeLib3/lib/src/main/assets [-]
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/androidTest/res
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/androidTest/resources
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/androidTest/rs
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/androidTest/shaders
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/androidTestDebug/aidl
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/androidTestDebug/assets
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/androidTestDebug/java
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/androidTestDebug/res
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/androidTestDebug/resources
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/androidTestDebug/rs
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/androidTestDebug/shaders
+            JavaSource          : file://<PROJECT>/TestCompositeLib3/lib/src/debug/aidl
+            JavaResource        : file://<PROJECT>/TestCompositeLib3/lib/src/debug/assets
+            JavaSource          : file://<PROJECT>/TestCompositeLib3/lib/src/debug/java
+            JavaResource        : file://<PROJECT>/TestCompositeLib3/lib/src/debug/res
+            JavaResource        : file://<PROJECT>/TestCompositeLib3/lib/src/debug/resources
+            JavaSource          : file://<PROJECT>/TestCompositeLib3/lib/src/debug/rs
+            JavaSource          : file://<PROJECT>/TestCompositeLib3/lib/src/debug/shaders
+            JavaSource          : file://<PROJECT>/TestCompositeLib3/lib/src/main/aidl
+            JavaResource        : file://<PROJECT>/TestCompositeLib3/lib/src/main/assets
             JavaSource          : file://<PROJECT>/TestCompositeLib3/lib/src/main/java
             JavaResource        : file://<PROJECT>/TestCompositeLib3/lib/src/main/res
-            JavaResource        : file://<PROJECT>/TestCompositeLib3/lib/src/main/resources [-]
-            JavaSource          : file://<PROJECT>/TestCompositeLib3/lib/src/main/rs [-]
-            JavaSource          : file://<PROJECT>/TestCompositeLib3/lib/src/main/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/test/aidl [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/test/assets [-]
+            JavaResource        : file://<PROJECT>/TestCompositeLib3/lib/src/main/resources
+            JavaSource          : file://<PROJECT>/TestCompositeLib3/lib/src/main/rs
+            JavaSource          : file://<PROJECT>/TestCompositeLib3/lib/src/main/shaders
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/test/aidl
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/test/assets
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/test/java
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/test/res [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/test/resources [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/test/rs [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/test/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/testDebug/aidl [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/testDebug/assets [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/testDebug/java [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/testDebug/res [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/testDebug/resources [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/testDebug/rs [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/TestCompositeLib3/lib/build [-]
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/test/res
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/test/resources
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/test/rs
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/test/shaders
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/testDebug/aidl
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/testDebug/assets
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/testDebug/java
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/testDebug/res
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/testDebug/resources
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/testDebug/rs
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/testDebug/shaders
+            EXCLUDE_FOLDER      : file://<PROJECT>/TestCompositeLib3/lib/build
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK
@@ -1850,9 +1850,9 @@ PROJECT             : testWithCompositeBuild
             BuildFolderPath     : <PROJECT>/TestCompositeLib2/build
         CONENT_ENTRY        : file://<PROJECT>/TestCompositeLib2
             JavaSource          : file://<PROJECT>/TestCompositeLib2/src/main/java
-            JavaResource        : file://<PROJECT>/TestCompositeLib2/src/main/resources [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib2/src/test/java [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib2/src/test/resources [-]
+            JavaResource        : file://<PROJECT>/TestCompositeLib2/src/main/resources
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib2/src/test/java
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib2/src/test/resources
             EXCLUDE_FOLDER      : file://<PROJECT>/TestCompositeLib2/.gradle
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
@@ -1875,9 +1875,9 @@ PROJECT             : testWithCompositeBuild
             BuildFolderPath     : <PROJECT>/TestCompositeLib4/build
         CONENT_ENTRY        : file://<PROJECT>/TestCompositeLib4
             JavaSource          : file://<PROJECT>/TestCompositeLib4/src/main/java
-            JavaResource        : file://<PROJECT>/TestCompositeLib4/src/main/resources [-]
-            JavaSource (test)   : file://<PROJECT>/TestCompositeLib4/src/test/java [-]
-            JavaResource (test) : file://<PROJECT>/TestCompositeLib4/src/test/resources [-]
+            JavaResource        : file://<PROJECT>/TestCompositeLib4/src/main/resources
+            JavaSource (test)   : file://<PROJECT>/TestCompositeLib4/src/test/java
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib4/src/test/resources
             EXCLUDE_FOLDER      : file://<PROJECT>/TestCompositeLib4/.gradle
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
@@ -1922,11 +1922,11 @@ PROJECT             : testWithCompositeBuild
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res
+            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/debug
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -1995,60 +1995,60 @@ PROJECT             : testWithCompositeBuild
             UseProjectSettings  : false
             Version             : 3
         CONENT_ENTRY        : file://<PROJECT>/app
-            JavaSource          : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debug/out [-]
-            JavaSource (test)   : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
-            JavaSource          : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
-            JavaSource (test)   : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            JavaSource (test)   : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
-            JavaSource          : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debug/out [-]
-            JavaSource (test)   : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
-            JavaResource (test) : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug [-]
-            JavaResource        : file://<PROJECT>/app/build/generated/res/rs/debug [-]
-            JavaSource (test)   : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/debug [-]
-            JavaSource          : file://<PROJECT>/app/build/generated/source/buildConfig/debug [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTest/aidl [-]
-            JavaResource (test) : file://<PROJECT>/app/src/androidTest/assets [-]
+            JavaSource          : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debug/out
+            JavaSource (test)   : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out
+            JavaSource          : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out
+            JavaSource (test)   : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out
+            JavaSource (test)   : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out
+            JavaSource          : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debug/out
+            JavaSource (test)   : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out
+            JavaResource (test) : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug
+            JavaResource        : file://<PROJECT>/app/build/generated/res/rs/debug
+            JavaSource (test)   : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/debug
+            JavaSource          : file://<PROJECT>/app/build/generated/source/buildConfig/debug
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTest/aidl
+            JavaResource (test) : file://<PROJECT>/app/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/java
-            JavaResource (test) : file://<PROJECT>/app/src/androidTest/res [-]
-            JavaResource (test) : file://<PROJECT>/app/src/androidTest/resources [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTest/rs [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTest/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/aidl [-]
-            JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/assets [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/java [-]
-            JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/res [-]
-            JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/resources [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/rs [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/shaders [-]
-            JavaSource          : file://<PROJECT>/app/src/debug/aidl [-]
-            JavaResource        : file://<PROJECT>/app/src/debug/assets [-]
-            JavaSource          : file://<PROJECT>/app/src/debug/java [-]
-            JavaResource        : file://<PROJECT>/app/src/debug/res [-]
-            JavaResource        : file://<PROJECT>/app/src/debug/resources [-]
-            JavaSource          : file://<PROJECT>/app/src/debug/rs [-]
-            JavaSource          : file://<PROJECT>/app/src/debug/shaders [-]
-            JavaSource          : file://<PROJECT>/app/src/main/aidl [-]
-            JavaResource        : file://<PROJECT>/app/src/main/assets [-]
+            JavaResource (test) : file://<PROJECT>/app/src/androidTest/res
+            JavaResource (test) : file://<PROJECT>/app/src/androidTest/resources
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTest/rs
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTest/shaders
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/aidl
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/assets
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/java
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/res
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/resources
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/rs
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/shaders
+            JavaSource          : file://<PROJECT>/app/src/debug/aidl
+            JavaResource        : file://<PROJECT>/app/src/debug/assets
+            JavaSource          : file://<PROJECT>/app/src/debug/java
+            JavaResource        : file://<PROJECT>/app/src/debug/res
+            JavaResource        : file://<PROJECT>/app/src/debug/resources
+            JavaSource          : file://<PROJECT>/app/src/debug/rs
+            JavaSource          : file://<PROJECT>/app/src/debug/shaders
+            JavaSource          : file://<PROJECT>/app/src/main/aidl
+            JavaResource        : file://<PROJECT>/app/src/main/assets
             JavaSource          : file://<PROJECT>/app/src/main/java
             JavaResource        : file://<PROJECT>/app/src/main/res
-            JavaResource        : file://<PROJECT>/app/src/main/resources [-]
-            JavaSource          : file://<PROJECT>/app/src/main/rs [-]
-            JavaSource          : file://<PROJECT>/app/src/main/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/test/aidl [-]
-            JavaResource (test) : file://<PROJECT>/app/src/test/assets [-]
+            JavaResource        : file://<PROJECT>/app/src/main/resources
+            JavaSource          : file://<PROJECT>/app/src/main/rs
+            JavaSource          : file://<PROJECT>/app/src/main/shaders
+            JavaSource (test)   : file://<PROJECT>/app/src/test/aidl
+            JavaResource (test) : file://<PROJECT>/app/src/test/assets
             JavaSource (test)   : file://<PROJECT>/app/src/test/java
-            JavaResource (test) : file://<PROJECT>/app/src/test/res [-]
-            JavaResource (test) : file://<PROJECT>/app/src/test/resources [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/test/rs [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/test/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/testDebug/aidl [-]
-            JavaResource (test) : file://<PROJECT>/app/src/testDebug/assets [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/testDebug/java [-]
-            JavaResource (test) : file://<PROJECT>/app/src/testDebug/res [-]
-            JavaResource (test) : file://<PROJECT>/app/src/testDebug/resources [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/testDebug/rs [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/app/build [-]
+            JavaResource (test) : file://<PROJECT>/app/src/test/res
+            JavaResource (test) : file://<PROJECT>/app/src/test/resources
+            JavaSource (test)   : file://<PROJECT>/app/src/test/rs
+            JavaSource (test)   : file://<PROJECT>/app/src/test/shaders
+            JavaSource (test)   : file://<PROJECT>/app/src/testDebug/aidl
+            JavaResource (test) : file://<PROJECT>/app/src/testDebug/assets
+            JavaSource (test)   : file://<PROJECT>/app/src/testDebug/java
+            JavaResource (test) : file://<PROJECT>/app/src/testDebug/res
+            JavaResource (test) : file://<PROJECT>/app/src/testDebug/resources
+            JavaSource (test)   : file://<PROJECT>/app/src/testDebug/rs
+            JavaSource (test)   : file://<PROJECT>/app/src/testDebug/shaders
+            EXCLUDE_FOLDER      : file://<PROJECT>/app/build
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK
@@ -2402,11 +2402,11 @@ PROJECT             : testWithCompositeBuild
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/lib/src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/lib/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/lib/build/generated/res/rs/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/lib/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/lib/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/lib/build/generated/res/rs/androidTest/debug [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/lib/src/debug/res
+            - ResFoldersRelativePath      : file://<PROJECT>/lib/build/generated/res/rs/debug
+            - TestResFoldersRelativePath  : file://<PROJECT>/lib/src/androidTest/res
+            - TestResFoldersRelativePath  : file://<PROJECT>/lib/src/androidTestDebug/res
+            - TestResFoldersRelativePath  : file://<PROJECT>/lib/build/generated/res/rs/androidTest/debug
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -2475,60 +2475,60 @@ PROJECT             : testWithCompositeBuild
             UseProjectSettings  : false
             Version             : 3
         CONENT_ENTRY        : file://<PROJECT>/lib
-            JavaSource          : file://<PROJECT>/lib/build/generated/aidl_source_output_dir/debug/out [-]
-            JavaSource (test)   : file://<PROJECT>/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
-            JavaSource          : file://<PROJECT>/lib/build/generated/ap_generated_sources/debug/out [-]
-            JavaSource (test)   : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            JavaSource (test)   : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
-            JavaSource          : file://<PROJECT>/lib/build/generated/renderscript_source_output_dir/debug/out [-]
-            JavaSource (test)   : file://<PROJECT>/lib/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
-            JavaResource (test) : file://<PROJECT>/lib/build/generated/res/rs/androidTest/debug [-]
-            JavaResource        : file://<PROJECT>/lib/build/generated/res/rs/debug [-]
-            JavaSource (test)   : file://<PROJECT>/lib/build/generated/source/buildConfig/androidTest/debug [-]
-            JavaSource          : file://<PROJECT>/lib/build/generated/source/buildConfig/debug [-]
-            JavaSource (test)   : file://<PROJECT>/lib/src/androidTest/aidl [-]
-            JavaResource (test) : file://<PROJECT>/lib/src/androidTest/assets [-]
+            JavaSource          : file://<PROJECT>/lib/build/generated/aidl_source_output_dir/debug/out
+            JavaSource (test)   : file://<PROJECT>/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out
+            JavaSource          : file://<PROJECT>/lib/build/generated/ap_generated_sources/debug/out
+            JavaSource (test)   : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out
+            JavaSource (test)   : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugUnitTest/out
+            JavaSource          : file://<PROJECT>/lib/build/generated/renderscript_source_output_dir/debug/out
+            JavaSource (test)   : file://<PROJECT>/lib/build/generated/renderscript_source_output_dir/debugAndroidTest/out
+            JavaResource (test) : file://<PROJECT>/lib/build/generated/res/rs/androidTest/debug
+            JavaResource        : file://<PROJECT>/lib/build/generated/res/rs/debug
+            JavaSource (test)   : file://<PROJECT>/lib/build/generated/source/buildConfig/androidTest/debug
+            JavaSource          : file://<PROJECT>/lib/build/generated/source/buildConfig/debug
+            JavaSource (test)   : file://<PROJECT>/lib/src/androidTest/aidl
+            JavaResource (test) : file://<PROJECT>/lib/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/lib/src/androidTest/java
-            JavaResource (test) : file://<PROJECT>/lib/src/androidTest/res [-]
-            JavaResource (test) : file://<PROJECT>/lib/src/androidTest/resources [-]
-            JavaSource (test)   : file://<PROJECT>/lib/src/androidTest/rs [-]
-            JavaSource (test)   : file://<PROJECT>/lib/src/androidTest/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/lib/src/androidTestDebug/aidl [-]
-            JavaResource (test) : file://<PROJECT>/lib/src/androidTestDebug/assets [-]
-            JavaSource (test)   : file://<PROJECT>/lib/src/androidTestDebug/java [-]
-            JavaResource (test) : file://<PROJECT>/lib/src/androidTestDebug/res [-]
-            JavaResource (test) : file://<PROJECT>/lib/src/androidTestDebug/resources [-]
-            JavaSource (test)   : file://<PROJECT>/lib/src/androidTestDebug/rs [-]
-            JavaSource (test)   : file://<PROJECT>/lib/src/androidTestDebug/shaders [-]
-            JavaSource          : file://<PROJECT>/lib/src/debug/aidl [-]
-            JavaResource        : file://<PROJECT>/lib/src/debug/assets [-]
-            JavaSource          : file://<PROJECT>/lib/src/debug/java [-]
-            JavaResource        : file://<PROJECT>/lib/src/debug/res [-]
-            JavaResource        : file://<PROJECT>/lib/src/debug/resources [-]
-            JavaSource          : file://<PROJECT>/lib/src/debug/rs [-]
-            JavaSource          : file://<PROJECT>/lib/src/debug/shaders [-]
-            JavaSource          : file://<PROJECT>/lib/src/main/aidl [-]
-            JavaResource        : file://<PROJECT>/lib/src/main/assets [-]
+            JavaResource (test) : file://<PROJECT>/lib/src/androidTest/res
+            JavaResource (test) : file://<PROJECT>/lib/src/androidTest/resources
+            JavaSource (test)   : file://<PROJECT>/lib/src/androidTest/rs
+            JavaSource (test)   : file://<PROJECT>/lib/src/androidTest/shaders
+            JavaSource (test)   : file://<PROJECT>/lib/src/androidTestDebug/aidl
+            JavaResource (test) : file://<PROJECT>/lib/src/androidTestDebug/assets
+            JavaSource (test)   : file://<PROJECT>/lib/src/androidTestDebug/java
+            JavaResource (test) : file://<PROJECT>/lib/src/androidTestDebug/res
+            JavaResource (test) : file://<PROJECT>/lib/src/androidTestDebug/resources
+            JavaSource (test)   : file://<PROJECT>/lib/src/androidTestDebug/rs
+            JavaSource (test)   : file://<PROJECT>/lib/src/androidTestDebug/shaders
+            JavaSource          : file://<PROJECT>/lib/src/debug/aidl
+            JavaResource        : file://<PROJECT>/lib/src/debug/assets
+            JavaSource          : file://<PROJECT>/lib/src/debug/java
+            JavaResource        : file://<PROJECT>/lib/src/debug/res
+            JavaResource        : file://<PROJECT>/lib/src/debug/resources
+            JavaSource          : file://<PROJECT>/lib/src/debug/rs
+            JavaSource          : file://<PROJECT>/lib/src/debug/shaders
+            JavaSource          : file://<PROJECT>/lib/src/main/aidl
+            JavaResource        : file://<PROJECT>/lib/src/main/assets
             JavaSource          : file://<PROJECT>/lib/src/main/java
             JavaResource        : file://<PROJECT>/lib/src/main/res
-            JavaResource        : file://<PROJECT>/lib/src/main/resources [-]
-            JavaSource          : file://<PROJECT>/lib/src/main/rs [-]
-            JavaSource          : file://<PROJECT>/lib/src/main/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/lib/src/test/aidl [-]
-            JavaResource (test) : file://<PROJECT>/lib/src/test/assets [-]
+            JavaResource        : file://<PROJECT>/lib/src/main/resources
+            JavaSource          : file://<PROJECT>/lib/src/main/rs
+            JavaSource          : file://<PROJECT>/lib/src/main/shaders
+            JavaSource (test)   : file://<PROJECT>/lib/src/test/aidl
+            JavaResource (test) : file://<PROJECT>/lib/src/test/assets
             JavaSource (test)   : file://<PROJECT>/lib/src/test/java
-            JavaResource (test) : file://<PROJECT>/lib/src/test/res [-]
-            JavaResource (test) : file://<PROJECT>/lib/src/test/resources [-]
-            JavaSource (test)   : file://<PROJECT>/lib/src/test/rs [-]
-            JavaSource (test)   : file://<PROJECT>/lib/src/test/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/lib/src/testDebug/aidl [-]
-            JavaResource (test) : file://<PROJECT>/lib/src/testDebug/assets [-]
-            JavaSource (test)   : file://<PROJECT>/lib/src/testDebug/java [-]
-            JavaResource (test) : file://<PROJECT>/lib/src/testDebug/res [-]
-            JavaResource (test) : file://<PROJECT>/lib/src/testDebug/resources [-]
-            JavaSource (test)   : file://<PROJECT>/lib/src/testDebug/rs [-]
-            JavaSource (test)   : file://<PROJECT>/lib/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/lib/build [-]
+            JavaResource (test) : file://<PROJECT>/lib/src/test/res
+            JavaResource (test) : file://<PROJECT>/lib/src/test/resources
+            JavaSource (test)   : file://<PROJECT>/lib/src/test/rs
+            JavaSource (test)   : file://<PROJECT>/lib/src/test/shaders
+            JavaSource (test)   : file://<PROJECT>/lib/src/testDebug/aidl
+            JavaResource (test) : file://<PROJECT>/lib/src/testDebug/assets
+            JavaSource (test)   : file://<PROJECT>/lib/src/testDebug/java
+            JavaResource (test) : file://<PROJECT>/lib/src/testDebug/res
+            JavaResource (test) : file://<PROJECT>/lib/src/testDebug/resources
+            JavaSource (test)   : file://<PROJECT>/lib/src/testDebug/rs
+            JavaSource (test)   : file://<PROJECT>/lib/src/testDebug/shaders
+            EXCLUDE_FOLDER      : file://<PROJECT>/lib/build
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK

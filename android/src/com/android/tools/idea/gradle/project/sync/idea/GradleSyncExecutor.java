@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea;
 
+import static com.android.tools.idea.gradle.project.sync.ModuleSetupContext.FORCE_CREATE_DIRS_KEY;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.JAVA_MODULE_MODEL;
@@ -158,6 +159,10 @@ public class GradleSyncExecutor {
 
     for (String rootPath : androidProjectCandidatesPaths) {
       ProjectSetUpTask setUpTask = new ProjectSetUpTask(myProject, setupRequest, listener);
+      //noinspection TestOnlyProblems
+      if (request.forceCreateDirs) {
+        myProject.putUserData(FORCE_CREATE_DIRS_KEY, true);
+      }
       ProgressExecutionMode executionMode = request.getProgressExecutionMode();
       refreshProject(myProject, GRADLE_SYSTEM_ID, rootPath, setUpTask, false /* resolve dependencies */,
                      executionMode, true /* always report import errors */);

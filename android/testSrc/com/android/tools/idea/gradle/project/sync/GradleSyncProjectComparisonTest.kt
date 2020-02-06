@@ -143,7 +143,8 @@ abstract class GradleSyncProjectComparisonTest(
 
     fun testExternalSourceSets() {
       val projectRootPath = prepareProjectForImport(NON_STANDARD_SOURCE_SETS)
-      AndroidGradleTests.importProject(project, GradleSyncInvoker.Request.testRequest())
+      val request = GradleSyncInvoker.Request.testRequest(true);
+      AndroidGradleTests.importProject(project, request)
 
       val text = project.saveAndDump(
         mapOf("EXTERNAL_SOURCE_SET" to File(projectRootPath.parentFile, "externalRoot"),
@@ -300,9 +301,9 @@ abstract class GradleSyncProjectComparisonTest(
 
     fun testSwitchingVariants_simpleApplication() {
       val debugBefore = importSyncAndDumpProject(SIMPLE_APPLICATION)
-      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, "app", "release")
+      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, "app", "release", true)
       val release = project.saveAndDump()
-      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, "app", "debug")
+      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, "app", "debug", true)
       val debugAfter = project.saveAndDump()
       assertAreEqualToSnapshots(
         debugBefore to ".debug",
@@ -315,10 +316,10 @@ abstract class GradleSyncProjectComparisonTest(
     fun testSwitchingVariants_variantSpecificDependencies() {
       val freeDebugBefore = importSyncAndDumpProject(VARIANT_SPECIFIC_DEPENDENCIES)
 
-      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, "app", "paidDebug")
+      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, "app", "paidDebug", true)
       val paidDebug = project.saveAndDump()
 
-      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, "app", "freeDebug")
+      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, "app", "freeDebug", true)
       val freeDebugAfter = project.saveAndDump()
 
       assertAreEqualToSnapshots(
@@ -356,7 +357,8 @@ abstract class GradleSyncProjectComparisonTest(
   protected fun importSyncAndDumpProject(projectDir: String, patch: ((projectRootPath: File) -> Unit)? = null): String {
     val projectRootPath = prepareProjectForImport(projectDir)
     patch?.invoke(projectRootPath)
-    AndroidGradleTests.importProject(project, GradleSyncInvoker.Request.testRequest())
+    // In order to display all the information we are interested in we need to force creation of missing content roots.
+    AndroidGradleTests.importProject(project, GradleSyncInvoker.Request.testRequest(true))
     return project.saveAndDump()
   }
 
