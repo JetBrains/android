@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea;
 
+import static com.android.tools.idea.gradle.project.sync.ModuleSetupContext.FORCE_CREATE_DIRS_KEY;
 import static com.android.tools.idea.gradle.util.GradleProjects.open;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.ensureToolWindowContentInitialized;
@@ -91,8 +92,13 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
 
   @WorkerThread
   private void doPopulateProject(@NotNull DataNode<ProjectData> projectInfo, @NotNull ExternalSystemTaskId taskId) {
-    IdeaSyncPopulateProjectTask task = new IdeaSyncPopulateProjectTask(myProject);
-    task.populateProject(projectInfo, taskId, mySetupRequest, mySyncListener);
+    try {
+      IdeaSyncPopulateProjectTask task = new IdeaSyncPopulateProjectTask(myProject);
+      task.populateProject(projectInfo, taskId, mySetupRequest, mySyncListener);
+    }
+    finally {
+      myProject.putUserData(FORCE_CREATE_DIRS_KEY, null);
+    }
   }
 
   @Override

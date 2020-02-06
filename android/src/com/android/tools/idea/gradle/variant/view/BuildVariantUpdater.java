@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.variant.view;
 
+import static com.android.tools.idea.gradle.project.sync.ModuleSetupContext.FORCE_CREATE_DIRS_KEY;
 import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
 import static com.android.tools.idea.gradle.util.BatchUpdatesUtil.finishBatchUpdate;
 import static com.android.tools.idea.gradle.util.BatchUpdatesUtil.startBatchUpdate;
@@ -118,6 +119,23 @@ public class BuildVariantUpdater {
    */
   public void removeSelectionChangeListener(@NotNull BuildVariantView.BuildVariantSelectionChangeListener listener) {
     mySelectionChangeListeners.remove(listener);
+  }
+
+  public boolean updateSelectedBuildVariant(@NotNull Project project,
+                                            @NotNull String moduleName,
+                                            @NotNull String selectedBuildVariant,
+                                            boolean forceCreateDirs) {
+    if (forceCreateDirs) {
+      project.putUserData(FORCE_CREATE_DIRS_KEY, true);
+    }
+    try {
+      return updateSelectedBuildVariant(project, moduleName, selectedBuildVariant);
+    }
+    finally {
+      if (forceCreateDirs) {
+        project.putUserData(FORCE_CREATE_DIRS_KEY, null);
+      }
+    }
   }
 
   /**

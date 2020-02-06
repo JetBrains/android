@@ -20,16 +20,16 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/free/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/freeDebug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/free/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestFree/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestFreeDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/rs/androidTest/free/debug [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/free/res
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/freeDebug/res
+            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/free/debug
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestFree/res
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestFreeDebug/res
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/rs/androidTest/free/debug
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -52,102 +52,102 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             TypeId              : android-gradle
             GradlePath          : :app
         CONENT_ENTRY        : file://<PROJECT>/app
-            JavaSource          : file://<PROJECT>/app/build/generated/aidl_source_output_dir/freeDebug/out [-]
-            JavaSource (test)   : file://<PROJECT>/app/build/generated/aidl_source_output_dir/freeDebugAndroidTest/out [-]
-            JavaSource          : file://<PROJECT>/app/build/generated/ap_generated_sources/freeDebug/out [-]
-            JavaSource (test)   : file://<PROJECT>/app/build/generated/ap_generated_sources/freeDebugAndroidTest/out [-]
-            JavaSource (test)   : file://<PROJECT>/app/build/generated/ap_generated_sources/freeDebugUnitTest/out [-]
-            JavaSource          : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/freeDebug/out [-]
-            JavaSource (test)   : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/freeDebugAndroidTest/out [-]
-            JavaResource (test) : file://<PROJECT>/app/build/generated/res/rs/androidTest/free/debug [-]
-            JavaResource        : file://<PROJECT>/app/build/generated/res/rs/free/debug [-]
-            JavaSource (test)   : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/free/debug [-]
-            JavaSource          : file://<PROJECT>/app/build/generated/source/buildConfig/free/debug [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTest/aidl [-]
-            JavaResource (test) : file://<PROJECT>/app/src/androidTest/assets [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTest/java [-]
-            JavaResource (test) : file://<PROJECT>/app/src/androidTest/res [-]
-            JavaResource (test) : file://<PROJECT>/app/src/androidTest/resources [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTest/rs [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTest/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/aidl [-]
-            JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/assets [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/java [-]
-            JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/res [-]
-            JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/resources [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/rs [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTestFree/aidl [-]
-            JavaResource (test) : file://<PROJECT>/app/src/androidTestFree/assets [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTestFree/java [-]
-            JavaResource (test) : file://<PROJECT>/app/src/androidTestFree/res [-]
-            JavaResource (test) : file://<PROJECT>/app/src/androidTestFree/resources [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTestFree/rs [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTestFree/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTestFreeDebug/aidl [-]
-            JavaResource (test) : file://<PROJECT>/app/src/androidTestFreeDebug/assets [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTestFreeDebug/java [-]
-            JavaResource (test) : file://<PROJECT>/app/src/androidTestFreeDebug/res [-]
-            JavaResource (test) : file://<PROJECT>/app/src/androidTestFreeDebug/resources [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTestFreeDebug/rs [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTestFreeDebug/shaders [-]
-            JavaSource          : file://<PROJECT>/app/src/debug/aidl [-]
-            JavaResource        : file://<PROJECT>/app/src/debug/assets [-]
-            JavaSource          : file://<PROJECT>/app/src/debug/java [-]
-            JavaResource        : file://<PROJECT>/app/src/debug/res [-]
-            JavaResource        : file://<PROJECT>/app/src/debug/resources [-]
-            JavaSource          : file://<PROJECT>/app/src/debug/rs [-]
-            JavaSource          : file://<PROJECT>/app/src/debug/shaders [-]
-            JavaSource          : file://<PROJECT>/app/src/free/aidl [-]
-            JavaResource        : file://<PROJECT>/app/src/free/assets [-]
-            JavaSource          : file://<PROJECT>/app/src/free/java [-]
-            JavaResource        : file://<PROJECT>/app/src/free/res [-]
-            JavaResource        : file://<PROJECT>/app/src/free/resources [-]
-            JavaSource          : file://<PROJECT>/app/src/free/rs [-]
-            JavaSource          : file://<PROJECT>/app/src/free/shaders [-]
-            JavaSource          : file://<PROJECT>/app/src/freeDebug/aidl [-]
-            JavaResource        : file://<PROJECT>/app/src/freeDebug/assets [-]
-            JavaSource          : file://<PROJECT>/app/src/freeDebug/java [-]
-            JavaResource        : file://<PROJECT>/app/src/freeDebug/res [-]
-            JavaResource        : file://<PROJECT>/app/src/freeDebug/resources [-]
-            JavaSource          : file://<PROJECT>/app/src/freeDebug/rs [-]
-            JavaSource          : file://<PROJECT>/app/src/freeDebug/shaders [-]
-            JavaSource          : file://<PROJECT>/app/src/main/aidl [-]
-            JavaResource        : file://<PROJECT>/app/src/main/assets [-]
-            JavaSource          : file://<PROJECT>/app/src/main/java [-]
-            JavaResource        : file://<PROJECT>/app/src/main/res [-]
-            JavaResource        : file://<PROJECT>/app/src/main/resources [-]
-            JavaSource          : file://<PROJECT>/app/src/main/rs [-]
-            JavaSource          : file://<PROJECT>/app/src/main/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/test/aidl [-]
-            JavaResource (test) : file://<PROJECT>/app/src/test/assets [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/test/java [-]
-            JavaResource (test) : file://<PROJECT>/app/src/test/res [-]
-            JavaResource (test) : file://<PROJECT>/app/src/test/resources [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/test/rs [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/test/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/testDebug/aidl [-]
-            JavaResource (test) : file://<PROJECT>/app/src/testDebug/assets [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/testDebug/java [-]
-            JavaResource (test) : file://<PROJECT>/app/src/testDebug/res [-]
-            JavaResource (test) : file://<PROJECT>/app/src/testDebug/resources [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/testDebug/rs [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/testDebug/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/testFree/aidl [-]
-            JavaResource (test) : file://<PROJECT>/app/src/testFree/assets [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/testFree/java [-]
-            JavaResource (test) : file://<PROJECT>/app/src/testFree/res [-]
-            JavaResource (test) : file://<PROJECT>/app/src/testFree/resources [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/testFree/rs [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/testFree/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/testFreeDebug/aidl [-]
-            JavaResource (test) : file://<PROJECT>/app/src/testFreeDebug/assets [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/testFreeDebug/java [-]
-            JavaResource (test) : file://<PROJECT>/app/src/testFreeDebug/res [-]
-            JavaResource (test) : file://<PROJECT>/app/src/testFreeDebug/resources [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/testFreeDebug/rs [-]
-            JavaSource (test)   : file://<PROJECT>/app/src/testFreeDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/app/build [-]
+            JavaSource          : file://<PROJECT>/app/build/generated/aidl_source_output_dir/freeDebug/out
+            JavaSource (test)   : file://<PROJECT>/app/build/generated/aidl_source_output_dir/freeDebugAndroidTest/out
+            JavaSource          : file://<PROJECT>/app/build/generated/ap_generated_sources/freeDebug/out
+            JavaSource (test)   : file://<PROJECT>/app/build/generated/ap_generated_sources/freeDebugAndroidTest/out
+            JavaSource (test)   : file://<PROJECT>/app/build/generated/ap_generated_sources/freeDebugUnitTest/out
+            JavaSource          : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/freeDebug/out
+            JavaSource (test)   : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/freeDebugAndroidTest/out
+            JavaResource (test) : file://<PROJECT>/app/build/generated/res/rs/androidTest/free/debug
+            JavaResource        : file://<PROJECT>/app/build/generated/res/rs/free/debug
+            JavaSource (test)   : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/free/debug
+            JavaSource          : file://<PROJECT>/app/build/generated/source/buildConfig/free/debug
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTest/aidl
+            JavaResource (test) : file://<PROJECT>/app/src/androidTest/assets
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTest/java
+            JavaResource (test) : file://<PROJECT>/app/src/androidTest/res
+            JavaResource (test) : file://<PROJECT>/app/src/androidTest/resources
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTest/rs
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTest/shaders
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/aidl
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/assets
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/java
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/res
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/resources
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/rs
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/shaders
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestFree/aidl
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestFree/assets
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestFree/java
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestFree/res
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestFree/resources
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestFree/rs
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestFree/shaders
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestFreeDebug/aidl
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestFreeDebug/assets
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestFreeDebug/java
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestFreeDebug/res
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestFreeDebug/resources
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestFreeDebug/rs
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestFreeDebug/shaders
+            JavaSource          : file://<PROJECT>/app/src/debug/aidl
+            JavaResource        : file://<PROJECT>/app/src/debug/assets
+            JavaSource          : file://<PROJECT>/app/src/debug/java
+            JavaResource        : file://<PROJECT>/app/src/debug/res
+            JavaResource        : file://<PROJECT>/app/src/debug/resources
+            JavaSource          : file://<PROJECT>/app/src/debug/rs
+            JavaSource          : file://<PROJECT>/app/src/debug/shaders
+            JavaSource          : file://<PROJECT>/app/src/free/aidl
+            JavaResource        : file://<PROJECT>/app/src/free/assets
+            JavaSource          : file://<PROJECT>/app/src/free/java
+            JavaResource        : file://<PROJECT>/app/src/free/res
+            JavaResource        : file://<PROJECT>/app/src/free/resources
+            JavaSource          : file://<PROJECT>/app/src/free/rs
+            JavaSource          : file://<PROJECT>/app/src/free/shaders
+            JavaSource          : file://<PROJECT>/app/src/freeDebug/aidl
+            JavaResource        : file://<PROJECT>/app/src/freeDebug/assets
+            JavaSource          : file://<PROJECT>/app/src/freeDebug/java
+            JavaResource        : file://<PROJECT>/app/src/freeDebug/res
+            JavaResource        : file://<PROJECT>/app/src/freeDebug/resources
+            JavaSource          : file://<PROJECT>/app/src/freeDebug/rs
+            JavaSource          : file://<PROJECT>/app/src/freeDebug/shaders
+            JavaSource          : file://<PROJECT>/app/src/main/aidl
+            JavaResource        : file://<PROJECT>/app/src/main/assets
+            JavaSource          : file://<PROJECT>/app/src/main/java
+            JavaResource        : file://<PROJECT>/app/src/main/res
+            JavaResource        : file://<PROJECT>/app/src/main/resources
+            JavaSource          : file://<PROJECT>/app/src/main/rs
+            JavaSource          : file://<PROJECT>/app/src/main/shaders
+            JavaSource (test)   : file://<PROJECT>/app/src/test/aidl
+            JavaResource (test) : file://<PROJECT>/app/src/test/assets
+            JavaSource (test)   : file://<PROJECT>/app/src/test/java
+            JavaResource (test) : file://<PROJECT>/app/src/test/res
+            JavaResource (test) : file://<PROJECT>/app/src/test/resources
+            JavaSource (test)   : file://<PROJECT>/app/src/test/rs
+            JavaSource (test)   : file://<PROJECT>/app/src/test/shaders
+            JavaSource (test)   : file://<PROJECT>/app/src/testDebug/aidl
+            JavaResource (test) : file://<PROJECT>/app/src/testDebug/assets
+            JavaSource (test)   : file://<PROJECT>/app/src/testDebug/java
+            JavaResource (test) : file://<PROJECT>/app/src/testDebug/res
+            JavaResource (test) : file://<PROJECT>/app/src/testDebug/resources
+            JavaSource (test)   : file://<PROJECT>/app/src/testDebug/rs
+            JavaSource (test)   : file://<PROJECT>/app/src/testDebug/shaders
+            JavaSource (test)   : file://<PROJECT>/app/src/testFree/aidl
+            JavaResource (test) : file://<PROJECT>/app/src/testFree/assets
+            JavaSource (test)   : file://<PROJECT>/app/src/testFree/java
+            JavaResource (test) : file://<PROJECT>/app/src/testFree/res
+            JavaResource (test) : file://<PROJECT>/app/src/testFree/resources
+            JavaSource (test)   : file://<PROJECT>/app/src/testFree/rs
+            JavaSource (test)   : file://<PROJECT>/app/src/testFree/shaders
+            JavaSource (test)   : file://<PROJECT>/app/src/testFreeDebug/aidl
+            JavaResource (test) : file://<PROJECT>/app/src/testFreeDebug/assets
+            JavaSource (test)   : file://<PROJECT>/app/src/testFreeDebug/java
+            JavaResource (test) : file://<PROJECT>/app/src/testFreeDebug/res
+            JavaResource (test) : file://<PROJECT>/app/src/testFreeDebug/resources
+            JavaSource (test)   : file://<PROJECT>/app/src/testFreeDebug/rs
+            JavaSource (test)   : file://<PROJECT>/app/src/testFreeDebug/shaders
+            EXCLUDE_FOLDER      : file://<PROJECT>/app/build
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK
@@ -442,10 +442,10 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             Buildable           : true
             BuildFolderPath     : <PROJECT>/jModuleK/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jModuleK
-            JavaSource          : file://<PROJECT>/jModuleK/src/main/java [-]
-            JavaResource        : file://<PROJECT>/jModuleK/src/main/resources [-]
-            JavaSource (test)   : file://<PROJECT>/jModuleK/src/test/java [-]
-            JavaResource (test) : file://<PROJECT>/jModuleK/src/test/resources [-]
+            JavaSource          : file://<PROJECT>/jModuleK/src/main/java
+            JavaResource        : file://<PROJECT>/jModuleK/src/main/resources
+            JavaSource (test)   : file://<PROJECT>/jModuleK/src/test/java
+            JavaResource (test) : file://<PROJECT>/jModuleK/src/test/resources
             EXCLUDE_FOLDER      : file://<PROJECT>/jModuleK/.gradle [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/jModuleK/build [-]
         JDK                 : <NAME_CUT> JavaSDK
@@ -519,10 +519,10 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             Buildable           : true
             BuildFolderPath     : <PROJECT>/jModuleL/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jModuleL
-            JavaSource          : file://<PROJECT>/jModuleL/src/main/java [-]
-            JavaResource        : file://<PROJECT>/jModuleL/src/main/resources [-]
-            JavaSource (test)   : file://<PROJECT>/jModuleL/src/test/java [-]
-            JavaResource (test) : file://<PROJECT>/jModuleL/src/test/resources [-]
+            JavaSource          : file://<PROJECT>/jModuleL/src/main/java
+            JavaResource        : file://<PROJECT>/jModuleL/src/main/resources
+            JavaSource (test)   : file://<PROJECT>/jModuleL/src/test/java
+            JavaResource (test) : file://<PROJECT>/jModuleL/src/test/resources
             EXCLUDE_FOLDER      : file://<PROJECT>/jModuleL/.gradle [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/jModuleL/build [-]
         JDK                 : <NAME_CUT> JavaSDK
@@ -560,10 +560,10 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             Buildable           : true
             BuildFolderPath     : <PROJECT>/jModuleM/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jModuleM
-            JavaSource          : file://<PROJECT>/jModuleM/src/main/java [-]
-            JavaResource        : file://<PROJECT>/jModuleM/src/main/resources [-]
-            JavaSource (test)   : file://<PROJECT>/jModuleM/src/test/java [-]
-            JavaResource (test) : file://<PROJECT>/jModuleM/src/test/resources [-]
+            JavaSource          : file://<PROJECT>/jModuleM/src/main/java
+            JavaResource        : file://<PROJECT>/jModuleM/src/main/resources
+            JavaSource (test)   : file://<PROJECT>/jModuleM/src/test/java
+            JavaResource (test) : file://<PROJECT>/jModuleM/src/test/resources
             EXCLUDE_FOLDER      : file://<PROJECT>/jModuleM/.gradle [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/jModuleM/build [-]
         JDK                 : <NAME_CUT> JavaSDK
@@ -601,10 +601,10 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             Buildable           : true
             BuildFolderPath     : <PROJECT>/jModuleZ/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jModuleZ
-            JavaSource          : file://<PROJECT>/jModuleZ/src/main/java [-]
-            JavaResource        : file://<PROJECT>/jModuleZ/src/main/resources [-]
-            JavaSource (test)   : file://<PROJECT>/jModuleZ/src/test/java [-]
-            JavaResource (test) : file://<PROJECT>/jModuleZ/src/test/resources [-]
+            JavaSource          : file://<PROJECT>/jModuleZ/src/main/java
+            JavaResource        : file://<PROJECT>/jModuleZ/src/main/resources
+            JavaSource (test)   : file://<PROJECT>/jModuleZ/src/test/java
+            JavaResource (test) : file://<PROJECT>/jModuleZ/src/test/resources
             EXCLUDE_FOLDER      : file://<PROJECT>/jModuleZ/.gradle [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/jModuleZ/build [-]
         JDK                 : <NAME_CUT> JavaSDK
@@ -697,16 +697,16 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/mainModule/src/main/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/mainModule/src/free/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/mainModule/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/mainModule/src/freeDebug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/mainModule/build/generated/res/rs/free/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/mainModule/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/mainModule/src/androidTestFree/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/mainModule/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/mainModule/src/androidTestFreeDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/mainModule/build/generated/res/rs/androidTest/free/debug [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/mainModule/src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/mainModule/src/free/res
+            - ResFoldersRelativePath      : file://<PROJECT>/mainModule/src/debug/res
+            - ResFoldersRelativePath      : file://<PROJECT>/mainModule/src/freeDebug/res
+            - ResFoldersRelativePath      : file://<PROJECT>/mainModule/build/generated/res/rs/free/debug
+            - TestResFoldersRelativePath  : file://<PROJECT>/mainModule/src/androidTest/res
+            - TestResFoldersRelativePath  : file://<PROJECT>/mainModule/src/androidTestFree/res
+            - TestResFoldersRelativePath  : file://<PROJECT>/mainModule/src/androidTestDebug/res
+            - TestResFoldersRelativePath  : file://<PROJECT>/mainModule/src/androidTestFreeDebug/res
+            - TestResFoldersRelativePath  : file://<PROJECT>/mainModule/build/generated/res/rs/androidTest/free/debug
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -729,102 +729,102 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             TypeId              : android-gradle
             GradlePath          : :mainModule
         CONENT_ENTRY        : file://<PROJECT>/mainModule
-            JavaSource          : file://<PROJECT>/mainModule/build/generated/aidl_source_output_dir/freeDebug/out [-]
-            JavaSource (test)   : file://<PROJECT>/mainModule/build/generated/aidl_source_output_dir/freeDebugAndroidTest/out [-]
-            JavaSource          : file://<PROJECT>/mainModule/build/generated/ap_generated_sources/freeDebug/out [-]
-            JavaSource (test)   : file://<PROJECT>/mainModule/build/generated/ap_generated_sources/freeDebugAndroidTest/out [-]
-            JavaSource (test)   : file://<PROJECT>/mainModule/build/generated/ap_generated_sources/freeDebugUnitTest/out [-]
-            JavaSource          : file://<PROJECT>/mainModule/build/generated/renderscript_source_output_dir/freeDebug/out [-]
-            JavaSource (test)   : file://<PROJECT>/mainModule/build/generated/renderscript_source_output_dir/freeDebugAndroidTest/out [-]
-            JavaResource (test) : file://<PROJECT>/mainModule/build/generated/res/rs/androidTest/free/debug [-]
-            JavaResource        : file://<PROJECT>/mainModule/build/generated/res/rs/free/debug [-]
-            JavaSource (test)   : file://<PROJECT>/mainModule/build/generated/source/buildConfig/androidTest/free/debug [-]
-            JavaSource          : file://<PROJECT>/mainModule/build/generated/source/buildConfig/free/debug [-]
-            JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTest/aidl [-]
-            JavaResource (test) : file://<PROJECT>/mainModule/src/androidTest/assets [-]
-            JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTest/java [-]
-            JavaResource (test) : file://<PROJECT>/mainModule/src/androidTest/res [-]
-            JavaResource (test) : file://<PROJECT>/mainModule/src/androidTest/resources [-]
-            JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTest/rs [-]
-            JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTest/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTestDebug/aidl [-]
-            JavaResource (test) : file://<PROJECT>/mainModule/src/androidTestDebug/assets [-]
-            JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTestDebug/java [-]
-            JavaResource (test) : file://<PROJECT>/mainModule/src/androidTestDebug/res [-]
-            JavaResource (test) : file://<PROJECT>/mainModule/src/androidTestDebug/resources [-]
-            JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTestDebug/rs [-]
-            JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTestDebug/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTestFree/aidl [-]
-            JavaResource (test) : file://<PROJECT>/mainModule/src/androidTestFree/assets [-]
-            JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTestFree/java [-]
-            JavaResource (test) : file://<PROJECT>/mainModule/src/androidTestFree/res [-]
-            JavaResource (test) : file://<PROJECT>/mainModule/src/androidTestFree/resources [-]
-            JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTestFree/rs [-]
-            JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTestFree/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTestFreeDebug/aidl [-]
-            JavaResource (test) : file://<PROJECT>/mainModule/src/androidTestFreeDebug/assets [-]
-            JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTestFreeDebug/java [-]
-            JavaResource (test) : file://<PROJECT>/mainModule/src/androidTestFreeDebug/res [-]
-            JavaResource (test) : file://<PROJECT>/mainModule/src/androidTestFreeDebug/resources [-]
-            JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTestFreeDebug/rs [-]
-            JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTestFreeDebug/shaders [-]
-            JavaSource          : file://<PROJECT>/mainModule/src/debug/aidl [-]
-            JavaResource        : file://<PROJECT>/mainModule/src/debug/assets [-]
-            JavaSource          : file://<PROJECT>/mainModule/src/debug/java [-]
-            JavaResource        : file://<PROJECT>/mainModule/src/debug/res [-]
-            JavaResource        : file://<PROJECT>/mainModule/src/debug/resources [-]
-            JavaSource          : file://<PROJECT>/mainModule/src/debug/rs [-]
-            JavaSource          : file://<PROJECT>/mainModule/src/debug/shaders [-]
-            JavaSource          : file://<PROJECT>/mainModule/src/free/aidl [-]
-            JavaResource        : file://<PROJECT>/mainModule/src/free/assets [-]
-            JavaSource          : file://<PROJECT>/mainModule/src/free/java [-]
-            JavaResource        : file://<PROJECT>/mainModule/src/free/res [-]
-            JavaResource        : file://<PROJECT>/mainModule/src/free/resources [-]
-            JavaSource          : file://<PROJECT>/mainModule/src/free/rs [-]
-            JavaSource          : file://<PROJECT>/mainModule/src/free/shaders [-]
-            JavaSource          : file://<PROJECT>/mainModule/src/freeDebug/aidl [-]
-            JavaResource        : file://<PROJECT>/mainModule/src/freeDebug/assets [-]
-            JavaSource          : file://<PROJECT>/mainModule/src/freeDebug/java [-]
-            JavaResource        : file://<PROJECT>/mainModule/src/freeDebug/res [-]
-            JavaResource        : file://<PROJECT>/mainModule/src/freeDebug/resources [-]
-            JavaSource          : file://<PROJECT>/mainModule/src/freeDebug/rs [-]
-            JavaSource          : file://<PROJECT>/mainModule/src/freeDebug/shaders [-]
-            JavaSource          : file://<PROJECT>/mainModule/src/main/aidl [-]
-            JavaResource        : file://<PROJECT>/mainModule/src/main/assets [-]
-            JavaSource          : file://<PROJECT>/mainModule/src/main/java [-]
-            JavaResource        : file://<PROJECT>/mainModule/src/main/res [-]
-            JavaResource        : file://<PROJECT>/mainModule/src/main/resources [-]
-            JavaSource          : file://<PROJECT>/mainModule/src/main/rs [-]
-            JavaSource          : file://<PROJECT>/mainModule/src/main/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/mainModule/src/test/aidl [-]
-            JavaResource (test) : file://<PROJECT>/mainModule/src/test/assets [-]
-            JavaSource (test)   : file://<PROJECT>/mainModule/src/test/java [-]
-            JavaResource (test) : file://<PROJECT>/mainModule/src/test/res [-]
-            JavaResource (test) : file://<PROJECT>/mainModule/src/test/resources [-]
-            JavaSource (test)   : file://<PROJECT>/mainModule/src/test/rs [-]
-            JavaSource (test)   : file://<PROJECT>/mainModule/src/test/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/mainModule/src/testDebug/aidl [-]
-            JavaResource (test) : file://<PROJECT>/mainModule/src/testDebug/assets [-]
-            JavaSource (test)   : file://<PROJECT>/mainModule/src/testDebug/java [-]
-            JavaResource (test) : file://<PROJECT>/mainModule/src/testDebug/res [-]
-            JavaResource (test) : file://<PROJECT>/mainModule/src/testDebug/resources [-]
-            JavaSource (test)   : file://<PROJECT>/mainModule/src/testDebug/rs [-]
-            JavaSource (test)   : file://<PROJECT>/mainModule/src/testDebug/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/mainModule/src/testFree/aidl [-]
-            JavaResource (test) : file://<PROJECT>/mainModule/src/testFree/assets [-]
-            JavaSource (test)   : file://<PROJECT>/mainModule/src/testFree/java [-]
-            JavaResource (test) : file://<PROJECT>/mainModule/src/testFree/res [-]
-            JavaResource (test) : file://<PROJECT>/mainModule/src/testFree/resources [-]
-            JavaSource (test)   : file://<PROJECT>/mainModule/src/testFree/rs [-]
-            JavaSource (test)   : file://<PROJECT>/mainModule/src/testFree/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/mainModule/src/testFreeDebug/aidl [-]
-            JavaResource (test) : file://<PROJECT>/mainModule/src/testFreeDebug/assets [-]
-            JavaSource (test)   : file://<PROJECT>/mainModule/src/testFreeDebug/java [-]
-            JavaResource (test) : file://<PROJECT>/mainModule/src/testFreeDebug/res [-]
-            JavaResource (test) : file://<PROJECT>/mainModule/src/testFreeDebug/resources [-]
-            JavaSource (test)   : file://<PROJECT>/mainModule/src/testFreeDebug/rs [-]
-            JavaSource (test)   : file://<PROJECT>/mainModule/src/testFreeDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/mainModule/build [-]
+            JavaSource          : file://<PROJECT>/mainModule/build/generated/aidl_source_output_dir/freeDebug/out
+            JavaSource (test)   : file://<PROJECT>/mainModule/build/generated/aidl_source_output_dir/freeDebugAndroidTest/out
+            JavaSource          : file://<PROJECT>/mainModule/build/generated/ap_generated_sources/freeDebug/out
+            JavaSource (test)   : file://<PROJECT>/mainModule/build/generated/ap_generated_sources/freeDebugAndroidTest/out
+            JavaSource (test)   : file://<PROJECT>/mainModule/build/generated/ap_generated_sources/freeDebugUnitTest/out
+            JavaSource          : file://<PROJECT>/mainModule/build/generated/renderscript_source_output_dir/freeDebug/out
+            JavaSource (test)   : file://<PROJECT>/mainModule/build/generated/renderscript_source_output_dir/freeDebugAndroidTest/out
+            JavaResource (test) : file://<PROJECT>/mainModule/build/generated/res/rs/androidTest/free/debug
+            JavaResource        : file://<PROJECT>/mainModule/build/generated/res/rs/free/debug
+            JavaSource (test)   : file://<PROJECT>/mainModule/build/generated/source/buildConfig/androidTest/free/debug
+            JavaSource          : file://<PROJECT>/mainModule/build/generated/source/buildConfig/free/debug
+            JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTest/aidl
+            JavaResource (test) : file://<PROJECT>/mainModule/src/androidTest/assets
+            JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTest/java
+            JavaResource (test) : file://<PROJECT>/mainModule/src/androidTest/res
+            JavaResource (test) : file://<PROJECT>/mainModule/src/androidTest/resources
+            JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTest/rs
+            JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTest/shaders
+            JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTestDebug/aidl
+            JavaResource (test) : file://<PROJECT>/mainModule/src/androidTestDebug/assets
+            JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTestDebug/java
+            JavaResource (test) : file://<PROJECT>/mainModule/src/androidTestDebug/res
+            JavaResource (test) : file://<PROJECT>/mainModule/src/androidTestDebug/resources
+            JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTestDebug/rs
+            JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTestDebug/shaders
+            JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTestFree/aidl
+            JavaResource (test) : file://<PROJECT>/mainModule/src/androidTestFree/assets
+            JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTestFree/java
+            JavaResource (test) : file://<PROJECT>/mainModule/src/androidTestFree/res
+            JavaResource (test) : file://<PROJECT>/mainModule/src/androidTestFree/resources
+            JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTestFree/rs
+            JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTestFree/shaders
+            JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTestFreeDebug/aidl
+            JavaResource (test) : file://<PROJECT>/mainModule/src/androidTestFreeDebug/assets
+            JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTestFreeDebug/java
+            JavaResource (test) : file://<PROJECT>/mainModule/src/androidTestFreeDebug/res
+            JavaResource (test) : file://<PROJECT>/mainModule/src/androidTestFreeDebug/resources
+            JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTestFreeDebug/rs
+            JavaSource (test)   : file://<PROJECT>/mainModule/src/androidTestFreeDebug/shaders
+            JavaSource          : file://<PROJECT>/mainModule/src/debug/aidl
+            JavaResource        : file://<PROJECT>/mainModule/src/debug/assets
+            JavaSource          : file://<PROJECT>/mainModule/src/debug/java
+            JavaResource        : file://<PROJECT>/mainModule/src/debug/res
+            JavaResource        : file://<PROJECT>/mainModule/src/debug/resources
+            JavaSource          : file://<PROJECT>/mainModule/src/debug/rs
+            JavaSource          : file://<PROJECT>/mainModule/src/debug/shaders
+            JavaSource          : file://<PROJECT>/mainModule/src/free/aidl
+            JavaResource        : file://<PROJECT>/mainModule/src/free/assets
+            JavaSource          : file://<PROJECT>/mainModule/src/free/java
+            JavaResource        : file://<PROJECT>/mainModule/src/free/res
+            JavaResource        : file://<PROJECT>/mainModule/src/free/resources
+            JavaSource          : file://<PROJECT>/mainModule/src/free/rs
+            JavaSource          : file://<PROJECT>/mainModule/src/free/shaders
+            JavaSource          : file://<PROJECT>/mainModule/src/freeDebug/aidl
+            JavaResource        : file://<PROJECT>/mainModule/src/freeDebug/assets
+            JavaSource          : file://<PROJECT>/mainModule/src/freeDebug/java
+            JavaResource        : file://<PROJECT>/mainModule/src/freeDebug/res
+            JavaResource        : file://<PROJECT>/mainModule/src/freeDebug/resources
+            JavaSource          : file://<PROJECT>/mainModule/src/freeDebug/rs
+            JavaSource          : file://<PROJECT>/mainModule/src/freeDebug/shaders
+            JavaSource          : file://<PROJECT>/mainModule/src/main/aidl
+            JavaResource        : file://<PROJECT>/mainModule/src/main/assets
+            JavaSource          : file://<PROJECT>/mainModule/src/main/java
+            JavaResource        : file://<PROJECT>/mainModule/src/main/res
+            JavaResource        : file://<PROJECT>/mainModule/src/main/resources
+            JavaSource          : file://<PROJECT>/mainModule/src/main/rs
+            JavaSource          : file://<PROJECT>/mainModule/src/main/shaders
+            JavaSource (test)   : file://<PROJECT>/mainModule/src/test/aidl
+            JavaResource (test) : file://<PROJECT>/mainModule/src/test/assets
+            JavaSource (test)   : file://<PROJECT>/mainModule/src/test/java
+            JavaResource (test) : file://<PROJECT>/mainModule/src/test/res
+            JavaResource (test) : file://<PROJECT>/mainModule/src/test/resources
+            JavaSource (test)   : file://<PROJECT>/mainModule/src/test/rs
+            JavaSource (test)   : file://<PROJECT>/mainModule/src/test/shaders
+            JavaSource (test)   : file://<PROJECT>/mainModule/src/testDebug/aidl
+            JavaResource (test) : file://<PROJECT>/mainModule/src/testDebug/assets
+            JavaSource (test)   : file://<PROJECT>/mainModule/src/testDebug/java
+            JavaResource (test) : file://<PROJECT>/mainModule/src/testDebug/res
+            JavaResource (test) : file://<PROJECT>/mainModule/src/testDebug/resources
+            JavaSource (test)   : file://<PROJECT>/mainModule/src/testDebug/rs
+            JavaSource (test)   : file://<PROJECT>/mainModule/src/testDebug/shaders
+            JavaSource (test)   : file://<PROJECT>/mainModule/src/testFree/aidl
+            JavaResource (test) : file://<PROJECT>/mainModule/src/testFree/assets
+            JavaSource (test)   : file://<PROJECT>/mainModule/src/testFree/java
+            JavaResource (test) : file://<PROJECT>/mainModule/src/testFree/res
+            JavaResource (test) : file://<PROJECT>/mainModule/src/testFree/resources
+            JavaSource (test)   : file://<PROJECT>/mainModule/src/testFree/rs
+            JavaSource (test)   : file://<PROJECT>/mainModule/src/testFree/shaders
+            JavaSource (test)   : file://<PROJECT>/mainModule/src/testFreeDebug/aidl
+            JavaResource (test) : file://<PROJECT>/mainModule/src/testFreeDebug/assets
+            JavaSource (test)   : file://<PROJECT>/mainModule/src/testFreeDebug/java
+            JavaResource (test) : file://<PROJECT>/mainModule/src/testFreeDebug/res
+            JavaResource (test) : file://<PROJECT>/mainModule/src/testFreeDebug/resources
+            JavaSource (test)   : file://<PROJECT>/mainModule/src/testFreeDebug/rs
+            JavaSource (test)   : file://<PROJECT>/mainModule/src/testFreeDebug/shaders
+            EXCLUDE_FOLDER      : file://<PROJECT>/mainModule/build
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK
@@ -1153,12 +1153,12 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/moduleA/src/main/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/moduleA/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/moduleA/build/generated/res/rs/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/moduleA/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/moduleA/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/moduleA/build/generated/res/rs/androidTest/debug [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleA/src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleA/src/debug/res
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleA/build/generated/res/rs/debug
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleA/src/androidTest/res
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleA/src/androidTestDebug/res
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleA/build/generated/res/rs/androidTest/debug
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -1181,60 +1181,60 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             TypeId              : android-gradle
             GradlePath          : :moduleA
         CONENT_ENTRY        : file://<PROJECT>/moduleA
-            JavaSource          : file://<PROJECT>/moduleA/build/generated/aidl_source_output_dir/debug/out [-]
-            JavaSource (test)   : file://<PROJECT>/moduleA/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
-            JavaSource          : file://<PROJECT>/moduleA/build/generated/ap_generated_sources/debug/out [-]
-            JavaSource (test)   : file://<PROJECT>/moduleA/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            JavaSource (test)   : file://<PROJECT>/moduleA/build/generated/ap_generated_sources/debugUnitTest/out [-]
-            JavaSource          : file://<PROJECT>/moduleA/build/generated/renderscript_source_output_dir/debug/out [-]
-            JavaSource (test)   : file://<PROJECT>/moduleA/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
-            JavaResource (test) : file://<PROJECT>/moduleA/build/generated/res/rs/androidTest/debug [-]
-            JavaResource        : file://<PROJECT>/moduleA/build/generated/res/rs/debug [-]
-            JavaSource (test)   : file://<PROJECT>/moduleA/build/generated/source/buildConfig/androidTest/debug [-]
-            JavaSource          : file://<PROJECT>/moduleA/build/generated/source/buildConfig/debug [-]
-            JavaSource (test)   : file://<PROJECT>/moduleA/src/androidTest/aidl [-]
-            JavaResource (test) : file://<PROJECT>/moduleA/src/androidTest/assets [-]
-            JavaSource (test)   : file://<PROJECT>/moduleA/src/androidTest/java [-]
-            JavaResource (test) : file://<PROJECT>/moduleA/src/androidTest/res [-]
-            JavaResource (test) : file://<PROJECT>/moduleA/src/androidTest/resources [-]
-            JavaSource (test)   : file://<PROJECT>/moduleA/src/androidTest/rs [-]
-            JavaSource (test)   : file://<PROJECT>/moduleA/src/androidTest/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/moduleA/src/androidTestDebug/aidl [-]
-            JavaResource (test) : file://<PROJECT>/moduleA/src/androidTestDebug/assets [-]
-            JavaSource (test)   : file://<PROJECT>/moduleA/src/androidTestDebug/java [-]
-            JavaResource (test) : file://<PROJECT>/moduleA/src/androidTestDebug/res [-]
-            JavaResource (test) : file://<PROJECT>/moduleA/src/androidTestDebug/resources [-]
-            JavaSource (test)   : file://<PROJECT>/moduleA/src/androidTestDebug/rs [-]
-            JavaSource (test)   : file://<PROJECT>/moduleA/src/androidTestDebug/shaders [-]
-            JavaSource          : file://<PROJECT>/moduleA/src/debug/aidl [-]
-            JavaResource        : file://<PROJECT>/moduleA/src/debug/assets [-]
-            JavaSource          : file://<PROJECT>/moduleA/src/debug/java [-]
-            JavaResource        : file://<PROJECT>/moduleA/src/debug/res [-]
-            JavaResource        : file://<PROJECT>/moduleA/src/debug/resources [-]
-            JavaSource          : file://<PROJECT>/moduleA/src/debug/rs [-]
-            JavaSource          : file://<PROJECT>/moduleA/src/debug/shaders [-]
-            JavaSource          : file://<PROJECT>/moduleA/src/main/aidl [-]
-            JavaResource        : file://<PROJECT>/moduleA/src/main/assets [-]
-            JavaSource          : file://<PROJECT>/moduleA/src/main/java [-]
-            JavaResource        : file://<PROJECT>/moduleA/src/main/res [-]
-            JavaResource        : file://<PROJECT>/moduleA/src/main/resources [-]
-            JavaSource          : file://<PROJECT>/moduleA/src/main/rs [-]
-            JavaSource          : file://<PROJECT>/moduleA/src/main/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/moduleA/src/test/aidl [-]
-            JavaResource (test) : file://<PROJECT>/moduleA/src/test/assets [-]
-            JavaSource (test)   : file://<PROJECT>/moduleA/src/test/java [-]
-            JavaResource (test) : file://<PROJECT>/moduleA/src/test/res [-]
-            JavaResource (test) : file://<PROJECT>/moduleA/src/test/resources [-]
-            JavaSource (test)   : file://<PROJECT>/moduleA/src/test/rs [-]
-            JavaSource (test)   : file://<PROJECT>/moduleA/src/test/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/moduleA/src/testDebug/aidl [-]
-            JavaResource (test) : file://<PROJECT>/moduleA/src/testDebug/assets [-]
-            JavaSource (test)   : file://<PROJECT>/moduleA/src/testDebug/java [-]
-            JavaResource (test) : file://<PROJECT>/moduleA/src/testDebug/res [-]
-            JavaResource (test) : file://<PROJECT>/moduleA/src/testDebug/resources [-]
-            JavaSource (test)   : file://<PROJECT>/moduleA/src/testDebug/rs [-]
-            JavaSource (test)   : file://<PROJECT>/moduleA/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/moduleA/build [-]
+            JavaSource          : file://<PROJECT>/moduleA/build/generated/aidl_source_output_dir/debug/out
+            JavaSource (test)   : file://<PROJECT>/moduleA/build/generated/aidl_source_output_dir/debugAndroidTest/out
+            JavaSource          : file://<PROJECT>/moduleA/build/generated/ap_generated_sources/debug/out
+            JavaSource (test)   : file://<PROJECT>/moduleA/build/generated/ap_generated_sources/debugAndroidTest/out
+            JavaSource (test)   : file://<PROJECT>/moduleA/build/generated/ap_generated_sources/debugUnitTest/out
+            JavaSource          : file://<PROJECT>/moduleA/build/generated/renderscript_source_output_dir/debug/out
+            JavaSource (test)   : file://<PROJECT>/moduleA/build/generated/renderscript_source_output_dir/debugAndroidTest/out
+            JavaResource (test) : file://<PROJECT>/moduleA/build/generated/res/rs/androidTest/debug
+            JavaResource        : file://<PROJECT>/moduleA/build/generated/res/rs/debug
+            JavaSource (test)   : file://<PROJECT>/moduleA/build/generated/source/buildConfig/androidTest/debug
+            JavaSource          : file://<PROJECT>/moduleA/build/generated/source/buildConfig/debug
+            JavaSource (test)   : file://<PROJECT>/moduleA/src/androidTest/aidl
+            JavaResource (test) : file://<PROJECT>/moduleA/src/androidTest/assets
+            JavaSource (test)   : file://<PROJECT>/moduleA/src/androidTest/java
+            JavaResource (test) : file://<PROJECT>/moduleA/src/androidTest/res
+            JavaResource (test) : file://<PROJECT>/moduleA/src/androidTest/resources
+            JavaSource (test)   : file://<PROJECT>/moduleA/src/androidTest/rs
+            JavaSource (test)   : file://<PROJECT>/moduleA/src/androidTest/shaders
+            JavaSource (test)   : file://<PROJECT>/moduleA/src/androidTestDebug/aidl
+            JavaResource (test) : file://<PROJECT>/moduleA/src/androidTestDebug/assets
+            JavaSource (test)   : file://<PROJECT>/moduleA/src/androidTestDebug/java
+            JavaResource (test) : file://<PROJECT>/moduleA/src/androidTestDebug/res
+            JavaResource (test) : file://<PROJECT>/moduleA/src/androidTestDebug/resources
+            JavaSource (test)   : file://<PROJECT>/moduleA/src/androidTestDebug/rs
+            JavaSource (test)   : file://<PROJECT>/moduleA/src/androidTestDebug/shaders
+            JavaSource          : file://<PROJECT>/moduleA/src/debug/aidl
+            JavaResource        : file://<PROJECT>/moduleA/src/debug/assets
+            JavaSource          : file://<PROJECT>/moduleA/src/debug/java
+            JavaResource        : file://<PROJECT>/moduleA/src/debug/res
+            JavaResource        : file://<PROJECT>/moduleA/src/debug/resources
+            JavaSource          : file://<PROJECT>/moduleA/src/debug/rs
+            JavaSource          : file://<PROJECT>/moduleA/src/debug/shaders
+            JavaSource          : file://<PROJECT>/moduleA/src/main/aidl
+            JavaResource        : file://<PROJECT>/moduleA/src/main/assets
+            JavaSource          : file://<PROJECT>/moduleA/src/main/java
+            JavaResource        : file://<PROJECT>/moduleA/src/main/res
+            JavaResource        : file://<PROJECT>/moduleA/src/main/resources
+            JavaSource          : file://<PROJECT>/moduleA/src/main/rs
+            JavaSource          : file://<PROJECT>/moduleA/src/main/shaders
+            JavaSource (test)   : file://<PROJECT>/moduleA/src/test/aidl
+            JavaResource (test) : file://<PROJECT>/moduleA/src/test/assets
+            JavaSource (test)   : file://<PROJECT>/moduleA/src/test/java
+            JavaResource (test) : file://<PROJECT>/moduleA/src/test/res
+            JavaResource (test) : file://<PROJECT>/moduleA/src/test/resources
+            JavaSource (test)   : file://<PROJECT>/moduleA/src/test/rs
+            JavaSource (test)   : file://<PROJECT>/moduleA/src/test/shaders
+            JavaSource (test)   : file://<PROJECT>/moduleA/src/testDebug/aidl
+            JavaResource (test) : file://<PROJECT>/moduleA/src/testDebug/assets
+            JavaSource (test)   : file://<PROJECT>/moduleA/src/testDebug/java
+            JavaResource (test) : file://<PROJECT>/moduleA/src/testDebug/res
+            JavaResource (test) : file://<PROJECT>/moduleA/src/testDebug/resources
+            JavaSource (test)   : file://<PROJECT>/moduleA/src/testDebug/rs
+            JavaSource (test)   : file://<PROJECT>/moduleA/src/testDebug/shaders
+            EXCLUDE_FOLDER      : file://<PROJECT>/moduleA/build
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK
@@ -1545,12 +1545,12 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/moduleB/src/main/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/moduleB/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/moduleB/build/generated/res/rs/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/moduleB/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/moduleB/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/moduleB/build/generated/res/rs/androidTest/debug [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleB/src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleB/src/debug/res
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleB/build/generated/res/rs/debug
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleB/src/androidTest/res
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleB/src/androidTestDebug/res
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleB/build/generated/res/rs/androidTest/debug
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -1573,60 +1573,60 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             TypeId              : android-gradle
             GradlePath          : :moduleB
         CONENT_ENTRY        : file://<PROJECT>/moduleB
-            JavaSource          : file://<PROJECT>/moduleB/build/generated/aidl_source_output_dir/debug/out [-]
-            JavaSource (test)   : file://<PROJECT>/moduleB/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
-            JavaSource          : file://<PROJECT>/moduleB/build/generated/ap_generated_sources/debug/out [-]
-            JavaSource (test)   : file://<PROJECT>/moduleB/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            JavaSource (test)   : file://<PROJECT>/moduleB/build/generated/ap_generated_sources/debugUnitTest/out [-]
-            JavaSource          : file://<PROJECT>/moduleB/build/generated/renderscript_source_output_dir/debug/out [-]
-            JavaSource (test)   : file://<PROJECT>/moduleB/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
-            JavaResource (test) : file://<PROJECT>/moduleB/build/generated/res/rs/androidTest/debug [-]
-            JavaResource        : file://<PROJECT>/moduleB/build/generated/res/rs/debug [-]
-            JavaSource (test)   : file://<PROJECT>/moduleB/build/generated/source/buildConfig/androidTest/debug [-]
-            JavaSource          : file://<PROJECT>/moduleB/build/generated/source/buildConfig/debug [-]
-            JavaSource (test)   : file://<PROJECT>/moduleB/src/androidTest/aidl [-]
-            JavaResource (test) : file://<PROJECT>/moduleB/src/androidTest/assets [-]
-            JavaSource (test)   : file://<PROJECT>/moduleB/src/androidTest/java [-]
-            JavaResource (test) : file://<PROJECT>/moduleB/src/androidTest/res [-]
-            JavaResource (test) : file://<PROJECT>/moduleB/src/androidTest/resources [-]
-            JavaSource (test)   : file://<PROJECT>/moduleB/src/androidTest/rs [-]
-            JavaSource (test)   : file://<PROJECT>/moduleB/src/androidTest/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/moduleB/src/androidTestDebug/aidl [-]
-            JavaResource (test) : file://<PROJECT>/moduleB/src/androidTestDebug/assets [-]
-            JavaSource (test)   : file://<PROJECT>/moduleB/src/androidTestDebug/java [-]
-            JavaResource (test) : file://<PROJECT>/moduleB/src/androidTestDebug/res [-]
-            JavaResource (test) : file://<PROJECT>/moduleB/src/androidTestDebug/resources [-]
-            JavaSource (test)   : file://<PROJECT>/moduleB/src/androidTestDebug/rs [-]
-            JavaSource (test)   : file://<PROJECT>/moduleB/src/androidTestDebug/shaders [-]
-            JavaSource          : file://<PROJECT>/moduleB/src/debug/aidl [-]
-            JavaResource        : file://<PROJECT>/moduleB/src/debug/assets [-]
-            JavaSource          : file://<PROJECT>/moduleB/src/debug/java [-]
-            JavaResource        : file://<PROJECT>/moduleB/src/debug/res [-]
-            JavaResource        : file://<PROJECT>/moduleB/src/debug/resources [-]
-            JavaSource          : file://<PROJECT>/moduleB/src/debug/rs [-]
-            JavaSource          : file://<PROJECT>/moduleB/src/debug/shaders [-]
-            JavaSource          : file://<PROJECT>/moduleB/src/main/aidl [-]
-            JavaResource        : file://<PROJECT>/moduleB/src/main/assets [-]
-            JavaSource          : file://<PROJECT>/moduleB/src/main/java [-]
-            JavaResource        : file://<PROJECT>/moduleB/src/main/res [-]
-            JavaResource        : file://<PROJECT>/moduleB/src/main/resources [-]
-            JavaSource          : file://<PROJECT>/moduleB/src/main/rs [-]
-            JavaSource          : file://<PROJECT>/moduleB/src/main/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/moduleB/src/test/aidl [-]
-            JavaResource (test) : file://<PROJECT>/moduleB/src/test/assets [-]
-            JavaSource (test)   : file://<PROJECT>/moduleB/src/test/java [-]
-            JavaResource (test) : file://<PROJECT>/moduleB/src/test/res [-]
-            JavaResource (test) : file://<PROJECT>/moduleB/src/test/resources [-]
-            JavaSource (test)   : file://<PROJECT>/moduleB/src/test/rs [-]
-            JavaSource (test)   : file://<PROJECT>/moduleB/src/test/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/moduleB/src/testDebug/aidl [-]
-            JavaResource (test) : file://<PROJECT>/moduleB/src/testDebug/assets [-]
-            JavaSource (test)   : file://<PROJECT>/moduleB/src/testDebug/java [-]
-            JavaResource (test) : file://<PROJECT>/moduleB/src/testDebug/res [-]
-            JavaResource (test) : file://<PROJECT>/moduleB/src/testDebug/resources [-]
-            JavaSource (test)   : file://<PROJECT>/moduleB/src/testDebug/rs [-]
-            JavaSource (test)   : file://<PROJECT>/moduleB/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/moduleB/build [-]
+            JavaSource          : file://<PROJECT>/moduleB/build/generated/aidl_source_output_dir/debug/out
+            JavaSource (test)   : file://<PROJECT>/moduleB/build/generated/aidl_source_output_dir/debugAndroidTest/out
+            JavaSource          : file://<PROJECT>/moduleB/build/generated/ap_generated_sources/debug/out
+            JavaSource (test)   : file://<PROJECT>/moduleB/build/generated/ap_generated_sources/debugAndroidTest/out
+            JavaSource (test)   : file://<PROJECT>/moduleB/build/generated/ap_generated_sources/debugUnitTest/out
+            JavaSource          : file://<PROJECT>/moduleB/build/generated/renderscript_source_output_dir/debug/out
+            JavaSource (test)   : file://<PROJECT>/moduleB/build/generated/renderscript_source_output_dir/debugAndroidTest/out
+            JavaResource (test) : file://<PROJECT>/moduleB/build/generated/res/rs/androidTest/debug
+            JavaResource        : file://<PROJECT>/moduleB/build/generated/res/rs/debug
+            JavaSource (test)   : file://<PROJECT>/moduleB/build/generated/source/buildConfig/androidTest/debug
+            JavaSource          : file://<PROJECT>/moduleB/build/generated/source/buildConfig/debug
+            JavaSource (test)   : file://<PROJECT>/moduleB/src/androidTest/aidl
+            JavaResource (test) : file://<PROJECT>/moduleB/src/androidTest/assets
+            JavaSource (test)   : file://<PROJECT>/moduleB/src/androidTest/java
+            JavaResource (test) : file://<PROJECT>/moduleB/src/androidTest/res
+            JavaResource (test) : file://<PROJECT>/moduleB/src/androidTest/resources
+            JavaSource (test)   : file://<PROJECT>/moduleB/src/androidTest/rs
+            JavaSource (test)   : file://<PROJECT>/moduleB/src/androidTest/shaders
+            JavaSource (test)   : file://<PROJECT>/moduleB/src/androidTestDebug/aidl
+            JavaResource (test) : file://<PROJECT>/moduleB/src/androidTestDebug/assets
+            JavaSource (test)   : file://<PROJECT>/moduleB/src/androidTestDebug/java
+            JavaResource (test) : file://<PROJECT>/moduleB/src/androidTestDebug/res
+            JavaResource (test) : file://<PROJECT>/moduleB/src/androidTestDebug/resources
+            JavaSource (test)   : file://<PROJECT>/moduleB/src/androidTestDebug/rs
+            JavaSource (test)   : file://<PROJECT>/moduleB/src/androidTestDebug/shaders
+            JavaSource          : file://<PROJECT>/moduleB/src/debug/aidl
+            JavaResource        : file://<PROJECT>/moduleB/src/debug/assets
+            JavaSource          : file://<PROJECT>/moduleB/src/debug/java
+            JavaResource        : file://<PROJECT>/moduleB/src/debug/res
+            JavaResource        : file://<PROJECT>/moduleB/src/debug/resources
+            JavaSource          : file://<PROJECT>/moduleB/src/debug/rs
+            JavaSource          : file://<PROJECT>/moduleB/src/debug/shaders
+            JavaSource          : file://<PROJECT>/moduleB/src/main/aidl
+            JavaResource        : file://<PROJECT>/moduleB/src/main/assets
+            JavaSource          : file://<PROJECT>/moduleB/src/main/java
+            JavaResource        : file://<PROJECT>/moduleB/src/main/res
+            JavaResource        : file://<PROJECT>/moduleB/src/main/resources
+            JavaSource          : file://<PROJECT>/moduleB/src/main/rs
+            JavaSource          : file://<PROJECT>/moduleB/src/main/shaders
+            JavaSource (test)   : file://<PROJECT>/moduleB/src/test/aidl
+            JavaResource (test) : file://<PROJECT>/moduleB/src/test/assets
+            JavaSource (test)   : file://<PROJECT>/moduleB/src/test/java
+            JavaResource (test) : file://<PROJECT>/moduleB/src/test/res
+            JavaResource (test) : file://<PROJECT>/moduleB/src/test/resources
+            JavaSource (test)   : file://<PROJECT>/moduleB/src/test/rs
+            JavaSource (test)   : file://<PROJECT>/moduleB/src/test/shaders
+            JavaSource (test)   : file://<PROJECT>/moduleB/src/testDebug/aidl
+            JavaResource (test) : file://<PROJECT>/moduleB/src/testDebug/assets
+            JavaSource (test)   : file://<PROJECT>/moduleB/src/testDebug/java
+            JavaResource (test) : file://<PROJECT>/moduleB/src/testDebug/res
+            JavaResource (test) : file://<PROJECT>/moduleB/src/testDebug/resources
+            JavaSource (test)   : file://<PROJECT>/moduleB/src/testDebug/rs
+            JavaSource (test)   : file://<PROJECT>/moduleB/src/testDebug/shaders
+            EXCLUDE_FOLDER      : file://<PROJECT>/moduleB/build
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK
@@ -1931,12 +1931,12 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/moduleC/src/main/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/moduleC/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/moduleC/build/generated/res/rs/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/moduleC/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/moduleC/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/moduleC/build/generated/res/rs/androidTest/debug [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleC/src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleC/src/debug/res
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleC/build/generated/res/rs/debug
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleC/src/androidTest/res
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleC/src/androidTestDebug/res
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleC/build/generated/res/rs/androidTest/debug
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -1959,60 +1959,60 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             TypeId              : android-gradle
             GradlePath          : :moduleC
         CONENT_ENTRY        : file://<PROJECT>/moduleC
-            JavaSource          : file://<PROJECT>/moduleC/build/generated/aidl_source_output_dir/debug/out [-]
-            JavaSource (test)   : file://<PROJECT>/moduleC/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
-            JavaSource          : file://<PROJECT>/moduleC/build/generated/ap_generated_sources/debug/out [-]
-            JavaSource (test)   : file://<PROJECT>/moduleC/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            JavaSource (test)   : file://<PROJECT>/moduleC/build/generated/ap_generated_sources/debugUnitTest/out [-]
-            JavaSource          : file://<PROJECT>/moduleC/build/generated/renderscript_source_output_dir/debug/out [-]
-            JavaSource (test)   : file://<PROJECT>/moduleC/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
-            JavaResource (test) : file://<PROJECT>/moduleC/build/generated/res/rs/androidTest/debug [-]
-            JavaResource        : file://<PROJECT>/moduleC/build/generated/res/rs/debug [-]
-            JavaSource (test)   : file://<PROJECT>/moduleC/build/generated/source/buildConfig/androidTest/debug [-]
-            JavaSource          : file://<PROJECT>/moduleC/build/generated/source/buildConfig/debug [-]
-            JavaSource (test)   : file://<PROJECT>/moduleC/src/androidTest/aidl [-]
-            JavaResource (test) : file://<PROJECT>/moduleC/src/androidTest/assets [-]
-            JavaSource (test)   : file://<PROJECT>/moduleC/src/androidTest/java [-]
-            JavaResource (test) : file://<PROJECT>/moduleC/src/androidTest/res [-]
-            JavaResource (test) : file://<PROJECT>/moduleC/src/androidTest/resources [-]
-            JavaSource (test)   : file://<PROJECT>/moduleC/src/androidTest/rs [-]
-            JavaSource (test)   : file://<PROJECT>/moduleC/src/androidTest/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/moduleC/src/androidTestDebug/aidl [-]
-            JavaResource (test) : file://<PROJECT>/moduleC/src/androidTestDebug/assets [-]
-            JavaSource (test)   : file://<PROJECT>/moduleC/src/androidTestDebug/java [-]
-            JavaResource (test) : file://<PROJECT>/moduleC/src/androidTestDebug/res [-]
-            JavaResource (test) : file://<PROJECT>/moduleC/src/androidTestDebug/resources [-]
-            JavaSource (test)   : file://<PROJECT>/moduleC/src/androidTestDebug/rs [-]
-            JavaSource (test)   : file://<PROJECT>/moduleC/src/androidTestDebug/shaders [-]
-            JavaSource          : file://<PROJECT>/moduleC/src/debug/aidl [-]
-            JavaResource        : file://<PROJECT>/moduleC/src/debug/assets [-]
-            JavaSource          : file://<PROJECT>/moduleC/src/debug/java [-]
-            JavaResource        : file://<PROJECT>/moduleC/src/debug/res [-]
-            JavaResource        : file://<PROJECT>/moduleC/src/debug/resources [-]
-            JavaSource          : file://<PROJECT>/moduleC/src/debug/rs [-]
-            JavaSource          : file://<PROJECT>/moduleC/src/debug/shaders [-]
-            JavaSource          : file://<PROJECT>/moduleC/src/main/aidl [-]
-            JavaResource        : file://<PROJECT>/moduleC/src/main/assets [-]
-            JavaSource          : file://<PROJECT>/moduleC/src/main/java [-]
-            JavaResource        : file://<PROJECT>/moduleC/src/main/res [-]
-            JavaResource        : file://<PROJECT>/moduleC/src/main/resources [-]
-            JavaSource          : file://<PROJECT>/moduleC/src/main/rs [-]
-            JavaSource          : file://<PROJECT>/moduleC/src/main/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/moduleC/src/test/aidl [-]
-            JavaResource (test) : file://<PROJECT>/moduleC/src/test/assets [-]
-            JavaSource (test)   : file://<PROJECT>/moduleC/src/test/java [-]
-            JavaResource (test) : file://<PROJECT>/moduleC/src/test/res [-]
-            JavaResource (test) : file://<PROJECT>/moduleC/src/test/resources [-]
-            JavaSource (test)   : file://<PROJECT>/moduleC/src/test/rs [-]
-            JavaSource (test)   : file://<PROJECT>/moduleC/src/test/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/moduleC/src/testDebug/aidl [-]
-            JavaResource (test) : file://<PROJECT>/moduleC/src/testDebug/assets [-]
-            JavaSource (test)   : file://<PROJECT>/moduleC/src/testDebug/java [-]
-            JavaResource (test) : file://<PROJECT>/moduleC/src/testDebug/res [-]
-            JavaResource (test) : file://<PROJECT>/moduleC/src/testDebug/resources [-]
-            JavaSource (test)   : file://<PROJECT>/moduleC/src/testDebug/rs [-]
-            JavaSource (test)   : file://<PROJECT>/moduleC/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/moduleC/build [-]
+            JavaSource          : file://<PROJECT>/moduleC/build/generated/aidl_source_output_dir/debug/out
+            JavaSource (test)   : file://<PROJECT>/moduleC/build/generated/aidl_source_output_dir/debugAndroidTest/out
+            JavaSource          : file://<PROJECT>/moduleC/build/generated/ap_generated_sources/debug/out
+            JavaSource (test)   : file://<PROJECT>/moduleC/build/generated/ap_generated_sources/debugAndroidTest/out
+            JavaSource (test)   : file://<PROJECT>/moduleC/build/generated/ap_generated_sources/debugUnitTest/out
+            JavaSource          : file://<PROJECT>/moduleC/build/generated/renderscript_source_output_dir/debug/out
+            JavaSource (test)   : file://<PROJECT>/moduleC/build/generated/renderscript_source_output_dir/debugAndroidTest/out
+            JavaResource (test) : file://<PROJECT>/moduleC/build/generated/res/rs/androidTest/debug
+            JavaResource        : file://<PROJECT>/moduleC/build/generated/res/rs/debug
+            JavaSource (test)   : file://<PROJECT>/moduleC/build/generated/source/buildConfig/androidTest/debug
+            JavaSource          : file://<PROJECT>/moduleC/build/generated/source/buildConfig/debug
+            JavaSource (test)   : file://<PROJECT>/moduleC/src/androidTest/aidl
+            JavaResource (test) : file://<PROJECT>/moduleC/src/androidTest/assets
+            JavaSource (test)   : file://<PROJECT>/moduleC/src/androidTest/java
+            JavaResource (test) : file://<PROJECT>/moduleC/src/androidTest/res
+            JavaResource (test) : file://<PROJECT>/moduleC/src/androidTest/resources
+            JavaSource (test)   : file://<PROJECT>/moduleC/src/androidTest/rs
+            JavaSource (test)   : file://<PROJECT>/moduleC/src/androidTest/shaders
+            JavaSource (test)   : file://<PROJECT>/moduleC/src/androidTestDebug/aidl
+            JavaResource (test) : file://<PROJECT>/moduleC/src/androidTestDebug/assets
+            JavaSource (test)   : file://<PROJECT>/moduleC/src/androidTestDebug/java
+            JavaResource (test) : file://<PROJECT>/moduleC/src/androidTestDebug/res
+            JavaResource (test) : file://<PROJECT>/moduleC/src/androidTestDebug/resources
+            JavaSource (test)   : file://<PROJECT>/moduleC/src/androidTestDebug/rs
+            JavaSource (test)   : file://<PROJECT>/moduleC/src/androidTestDebug/shaders
+            JavaSource          : file://<PROJECT>/moduleC/src/debug/aidl
+            JavaResource        : file://<PROJECT>/moduleC/src/debug/assets
+            JavaSource          : file://<PROJECT>/moduleC/src/debug/java
+            JavaResource        : file://<PROJECT>/moduleC/src/debug/res
+            JavaResource        : file://<PROJECT>/moduleC/src/debug/resources
+            JavaSource          : file://<PROJECT>/moduleC/src/debug/rs
+            JavaSource          : file://<PROJECT>/moduleC/src/debug/shaders
+            JavaSource          : file://<PROJECT>/moduleC/src/main/aidl
+            JavaResource        : file://<PROJECT>/moduleC/src/main/assets
+            JavaSource          : file://<PROJECT>/moduleC/src/main/java
+            JavaResource        : file://<PROJECT>/moduleC/src/main/res
+            JavaResource        : file://<PROJECT>/moduleC/src/main/resources
+            JavaSource          : file://<PROJECT>/moduleC/src/main/rs
+            JavaSource          : file://<PROJECT>/moduleC/src/main/shaders
+            JavaSource (test)   : file://<PROJECT>/moduleC/src/test/aidl
+            JavaResource (test) : file://<PROJECT>/moduleC/src/test/assets
+            JavaSource (test)   : file://<PROJECT>/moduleC/src/test/java
+            JavaResource (test) : file://<PROJECT>/moduleC/src/test/res
+            JavaResource (test) : file://<PROJECT>/moduleC/src/test/resources
+            JavaSource (test)   : file://<PROJECT>/moduleC/src/test/rs
+            JavaSource (test)   : file://<PROJECT>/moduleC/src/test/shaders
+            JavaSource (test)   : file://<PROJECT>/moduleC/src/testDebug/aidl
+            JavaResource (test) : file://<PROJECT>/moduleC/src/testDebug/assets
+            JavaSource (test)   : file://<PROJECT>/moduleC/src/testDebug/java
+            JavaResource (test) : file://<PROJECT>/moduleC/src/testDebug/res
+            JavaResource (test) : file://<PROJECT>/moduleC/src/testDebug/resources
+            JavaSource (test)   : file://<PROJECT>/moduleC/src/testDebug/rs
+            JavaSource (test)   : file://<PROJECT>/moduleC/src/testDebug/shaders
+            EXCLUDE_FOLDER      : file://<PROJECT>/moduleC/build
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK
@@ -2309,16 +2309,16 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/moduleFlavor/src/main/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/moduleFlavor/src/free/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/moduleFlavor/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/moduleFlavor/src/freeDebug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/moduleFlavor/build/generated/res/rs/free/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/moduleFlavor/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/moduleFlavor/src/androidTestFree/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/moduleFlavor/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/moduleFlavor/src/androidTestFreeDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/moduleFlavor/build/generated/res/rs/androidTest/free/debug [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleFlavor/src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleFlavor/src/free/res
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleFlavor/src/debug/res
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleFlavor/src/freeDebug/res
+            - ResFoldersRelativePath      : file://<PROJECT>/moduleFlavor/build/generated/res/rs/free/debug
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleFlavor/src/androidTest/res
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleFlavor/src/androidTestFree/res
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleFlavor/src/androidTestDebug/res
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleFlavor/src/androidTestFreeDebug/res
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleFlavor/build/generated/res/rs/androidTest/free/debug
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -2341,102 +2341,102 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             TypeId              : android-gradle
             GradlePath          : :moduleFlavor
         CONENT_ENTRY        : file://<PROJECT>/moduleFlavor
-            JavaSource          : file://<PROJECT>/moduleFlavor/build/generated/aidl_source_output_dir/freeDebug/out [-]
-            JavaSource (test)   : file://<PROJECT>/moduleFlavor/build/generated/aidl_source_output_dir/freeDebugAndroidTest/out [-]
-            JavaSource          : file://<PROJECT>/moduleFlavor/build/generated/ap_generated_sources/freeDebug/out [-]
-            JavaSource (test)   : file://<PROJECT>/moduleFlavor/build/generated/ap_generated_sources/freeDebugAndroidTest/out [-]
-            JavaSource (test)   : file://<PROJECT>/moduleFlavor/build/generated/ap_generated_sources/freeDebugUnitTest/out [-]
-            JavaSource          : file://<PROJECT>/moduleFlavor/build/generated/renderscript_source_output_dir/freeDebug/out [-]
-            JavaSource (test)   : file://<PROJECT>/moduleFlavor/build/generated/renderscript_source_output_dir/freeDebugAndroidTest/out [-]
-            JavaResource (test) : file://<PROJECT>/moduleFlavor/build/generated/res/rs/androidTest/free/debug [-]
-            JavaResource        : file://<PROJECT>/moduleFlavor/build/generated/res/rs/free/debug [-]
-            JavaSource (test)   : file://<PROJECT>/moduleFlavor/build/generated/source/buildConfig/androidTest/free/debug [-]
-            JavaSource          : file://<PROJECT>/moduleFlavor/build/generated/source/buildConfig/free/debug [-]
-            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTest/aidl [-]
-            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTest/assets [-]
-            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTest/java [-]
-            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTest/res [-]
-            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTest/resources [-]
-            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTest/rs [-]
-            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTest/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestDebug/aidl [-]
-            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTestDebug/assets [-]
-            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestDebug/java [-]
-            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTestDebug/res [-]
-            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTestDebug/resources [-]
-            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestDebug/rs [-]
-            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestDebug/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestFree/aidl [-]
-            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTestFree/assets [-]
-            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestFree/java [-]
-            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTestFree/res [-]
-            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTestFree/resources [-]
-            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestFree/rs [-]
-            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestFree/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestFreeDebug/aidl [-]
-            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTestFreeDebug/assets [-]
-            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestFreeDebug/java [-]
-            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTestFreeDebug/res [-]
-            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTestFreeDebug/resources [-]
-            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestFreeDebug/rs [-]
-            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestFreeDebug/shaders [-]
-            JavaSource          : file://<PROJECT>/moduleFlavor/src/debug/aidl [-]
-            JavaResource        : file://<PROJECT>/moduleFlavor/src/debug/assets [-]
-            JavaSource          : file://<PROJECT>/moduleFlavor/src/debug/java [-]
-            JavaResource        : file://<PROJECT>/moduleFlavor/src/debug/res [-]
-            JavaResource        : file://<PROJECT>/moduleFlavor/src/debug/resources [-]
-            JavaSource          : file://<PROJECT>/moduleFlavor/src/debug/rs [-]
-            JavaSource          : file://<PROJECT>/moduleFlavor/src/debug/shaders [-]
-            JavaSource          : file://<PROJECT>/moduleFlavor/src/free/aidl [-]
-            JavaResource        : file://<PROJECT>/moduleFlavor/src/free/assets [-]
-            JavaSource          : file://<PROJECT>/moduleFlavor/src/free/java [-]
-            JavaResource        : file://<PROJECT>/moduleFlavor/src/free/res [-]
-            JavaResource        : file://<PROJECT>/moduleFlavor/src/free/resources [-]
-            JavaSource          : file://<PROJECT>/moduleFlavor/src/free/rs [-]
-            JavaSource          : file://<PROJECT>/moduleFlavor/src/free/shaders [-]
-            JavaSource          : file://<PROJECT>/moduleFlavor/src/freeDebug/aidl [-]
-            JavaResource        : file://<PROJECT>/moduleFlavor/src/freeDebug/assets [-]
-            JavaSource          : file://<PROJECT>/moduleFlavor/src/freeDebug/java [-]
-            JavaResource        : file://<PROJECT>/moduleFlavor/src/freeDebug/res [-]
-            JavaResource        : file://<PROJECT>/moduleFlavor/src/freeDebug/resources [-]
-            JavaSource          : file://<PROJECT>/moduleFlavor/src/freeDebug/rs [-]
-            JavaSource          : file://<PROJECT>/moduleFlavor/src/freeDebug/shaders [-]
-            JavaSource          : file://<PROJECT>/moduleFlavor/src/main/aidl [-]
-            JavaResource        : file://<PROJECT>/moduleFlavor/src/main/assets [-]
-            JavaSource          : file://<PROJECT>/moduleFlavor/src/main/java [-]
-            JavaResource        : file://<PROJECT>/moduleFlavor/src/main/res [-]
-            JavaResource        : file://<PROJECT>/moduleFlavor/src/main/resources [-]
-            JavaSource          : file://<PROJECT>/moduleFlavor/src/main/rs [-]
-            JavaSource          : file://<PROJECT>/moduleFlavor/src/main/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/test/aidl [-]
-            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/test/assets [-]
-            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/test/java [-]
-            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/test/res [-]
-            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/test/resources [-]
-            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/test/rs [-]
-            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/test/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testDebug/aidl [-]
-            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/testDebug/assets [-]
-            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testDebug/java [-]
-            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/testDebug/res [-]
-            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/testDebug/resources [-]
-            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testDebug/rs [-]
-            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testDebug/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testFree/aidl [-]
-            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/testFree/assets [-]
-            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testFree/java [-]
-            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/testFree/res [-]
-            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/testFree/resources [-]
-            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testFree/rs [-]
-            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testFree/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testFreeDebug/aidl [-]
-            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/testFreeDebug/assets [-]
-            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testFreeDebug/java [-]
-            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/testFreeDebug/res [-]
-            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/testFreeDebug/resources [-]
-            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testFreeDebug/rs [-]
-            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testFreeDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/moduleFlavor/build [-]
+            JavaSource          : file://<PROJECT>/moduleFlavor/build/generated/aidl_source_output_dir/freeDebug/out
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/build/generated/aidl_source_output_dir/freeDebugAndroidTest/out
+            JavaSource          : file://<PROJECT>/moduleFlavor/build/generated/ap_generated_sources/freeDebug/out
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/build/generated/ap_generated_sources/freeDebugAndroidTest/out
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/build/generated/ap_generated_sources/freeDebugUnitTest/out
+            JavaSource          : file://<PROJECT>/moduleFlavor/build/generated/renderscript_source_output_dir/freeDebug/out
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/build/generated/renderscript_source_output_dir/freeDebugAndroidTest/out
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/build/generated/res/rs/androidTest/free/debug
+            JavaResource        : file://<PROJECT>/moduleFlavor/build/generated/res/rs/free/debug
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/build/generated/source/buildConfig/androidTest/free/debug
+            JavaSource          : file://<PROJECT>/moduleFlavor/build/generated/source/buildConfig/free/debug
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTest/aidl
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTest/assets
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTest/java
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTest/res
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTest/resources
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTest/rs
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTest/shaders
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestDebug/aidl
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTestDebug/assets
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestDebug/java
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTestDebug/res
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTestDebug/resources
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestDebug/rs
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestDebug/shaders
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestFree/aidl
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTestFree/assets
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestFree/java
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTestFree/res
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTestFree/resources
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestFree/rs
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestFree/shaders
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestFreeDebug/aidl
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTestFreeDebug/assets
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestFreeDebug/java
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTestFreeDebug/res
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/androidTestFreeDebug/resources
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestFreeDebug/rs
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/androidTestFreeDebug/shaders
+            JavaSource          : file://<PROJECT>/moduleFlavor/src/debug/aidl
+            JavaResource        : file://<PROJECT>/moduleFlavor/src/debug/assets
+            JavaSource          : file://<PROJECT>/moduleFlavor/src/debug/java
+            JavaResource        : file://<PROJECT>/moduleFlavor/src/debug/res
+            JavaResource        : file://<PROJECT>/moduleFlavor/src/debug/resources
+            JavaSource          : file://<PROJECT>/moduleFlavor/src/debug/rs
+            JavaSource          : file://<PROJECT>/moduleFlavor/src/debug/shaders
+            JavaSource          : file://<PROJECT>/moduleFlavor/src/free/aidl
+            JavaResource        : file://<PROJECT>/moduleFlavor/src/free/assets
+            JavaSource          : file://<PROJECT>/moduleFlavor/src/free/java
+            JavaResource        : file://<PROJECT>/moduleFlavor/src/free/res
+            JavaResource        : file://<PROJECT>/moduleFlavor/src/free/resources
+            JavaSource          : file://<PROJECT>/moduleFlavor/src/free/rs
+            JavaSource          : file://<PROJECT>/moduleFlavor/src/free/shaders
+            JavaSource          : file://<PROJECT>/moduleFlavor/src/freeDebug/aidl
+            JavaResource        : file://<PROJECT>/moduleFlavor/src/freeDebug/assets
+            JavaSource          : file://<PROJECT>/moduleFlavor/src/freeDebug/java
+            JavaResource        : file://<PROJECT>/moduleFlavor/src/freeDebug/res
+            JavaResource        : file://<PROJECT>/moduleFlavor/src/freeDebug/resources
+            JavaSource          : file://<PROJECT>/moduleFlavor/src/freeDebug/rs
+            JavaSource          : file://<PROJECT>/moduleFlavor/src/freeDebug/shaders
+            JavaSource          : file://<PROJECT>/moduleFlavor/src/main/aidl
+            JavaResource        : file://<PROJECT>/moduleFlavor/src/main/assets
+            JavaSource          : file://<PROJECT>/moduleFlavor/src/main/java
+            JavaResource        : file://<PROJECT>/moduleFlavor/src/main/res
+            JavaResource        : file://<PROJECT>/moduleFlavor/src/main/resources
+            JavaSource          : file://<PROJECT>/moduleFlavor/src/main/rs
+            JavaSource          : file://<PROJECT>/moduleFlavor/src/main/shaders
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/test/aidl
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/test/assets
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/test/java
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/test/res
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/test/resources
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/test/rs
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/test/shaders
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testDebug/aidl
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/testDebug/assets
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testDebug/java
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/testDebug/res
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/testDebug/resources
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testDebug/rs
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testDebug/shaders
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testFree/aidl
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/testFree/assets
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testFree/java
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/testFree/res
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/testFree/resources
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testFree/rs
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testFree/shaders
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testFreeDebug/aidl
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/testFreeDebug/assets
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testFreeDebug/java
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/testFreeDebug/res
+            JavaResource (test) : file://<PROJECT>/moduleFlavor/src/testFreeDebug/resources
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testFreeDebug/rs
+            JavaSource (test)   : file://<PROJECT>/moduleFlavor/src/testFreeDebug/shaders
+            EXCLUDE_FOLDER      : file://<PROJECT>/moduleFlavor/build
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK
@@ -2464,12 +2464,12 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/modulePlus/src/main/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/modulePlus/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/modulePlus/build/generated/res/rs/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/modulePlus/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/modulePlus/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/modulePlus/build/generated/res/rs/androidTest/debug [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/modulePlus/src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/modulePlus/src/debug/res
+            - ResFoldersRelativePath      : file://<PROJECT>/modulePlus/build/generated/res/rs/debug
+            - TestResFoldersRelativePath  : file://<PROJECT>/modulePlus/src/androidTest/res
+            - TestResFoldersRelativePath  : file://<PROJECT>/modulePlus/src/androidTestDebug/res
+            - TestResFoldersRelativePath  : file://<PROJECT>/modulePlus/build/generated/res/rs/androidTest/debug
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -2492,60 +2492,60 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             TypeId              : android-gradle
             GradlePath          : :modulePlus
         CONENT_ENTRY        : file://<PROJECT>/modulePlus
-            JavaSource          : file://<PROJECT>/modulePlus/build/generated/aidl_source_output_dir/debug/out [-]
-            JavaSource (test)   : file://<PROJECT>/modulePlus/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
-            JavaSource          : file://<PROJECT>/modulePlus/build/generated/ap_generated_sources/debug/out [-]
-            JavaSource (test)   : file://<PROJECT>/modulePlus/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-            JavaSource (test)   : file://<PROJECT>/modulePlus/build/generated/ap_generated_sources/debugUnitTest/out [-]
-            JavaSource          : file://<PROJECT>/modulePlus/build/generated/renderscript_source_output_dir/debug/out [-]
-            JavaSource (test)   : file://<PROJECT>/modulePlus/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
-            JavaResource (test) : file://<PROJECT>/modulePlus/build/generated/res/rs/androidTest/debug [-]
-            JavaResource        : file://<PROJECT>/modulePlus/build/generated/res/rs/debug [-]
-            JavaSource (test)   : file://<PROJECT>/modulePlus/build/generated/source/buildConfig/androidTest/debug [-]
-            JavaSource          : file://<PROJECT>/modulePlus/build/generated/source/buildConfig/debug [-]
-            JavaSource (test)   : file://<PROJECT>/modulePlus/src/androidTest/aidl [-]
-            JavaResource (test) : file://<PROJECT>/modulePlus/src/androidTest/assets [-]
-            JavaSource (test)   : file://<PROJECT>/modulePlus/src/androidTest/java [-]
-            JavaResource (test) : file://<PROJECT>/modulePlus/src/androidTest/res [-]
-            JavaResource (test) : file://<PROJECT>/modulePlus/src/androidTest/resources [-]
-            JavaSource (test)   : file://<PROJECT>/modulePlus/src/androidTest/rs [-]
-            JavaSource (test)   : file://<PROJECT>/modulePlus/src/androidTest/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/modulePlus/src/androidTestDebug/aidl [-]
-            JavaResource (test) : file://<PROJECT>/modulePlus/src/androidTestDebug/assets [-]
-            JavaSource (test)   : file://<PROJECT>/modulePlus/src/androidTestDebug/java [-]
-            JavaResource (test) : file://<PROJECT>/modulePlus/src/androidTestDebug/res [-]
-            JavaResource (test) : file://<PROJECT>/modulePlus/src/androidTestDebug/resources [-]
-            JavaSource (test)   : file://<PROJECT>/modulePlus/src/androidTestDebug/rs [-]
-            JavaSource (test)   : file://<PROJECT>/modulePlus/src/androidTestDebug/shaders [-]
-            JavaSource          : file://<PROJECT>/modulePlus/src/debug/aidl [-]
-            JavaResource        : file://<PROJECT>/modulePlus/src/debug/assets [-]
-            JavaSource          : file://<PROJECT>/modulePlus/src/debug/java [-]
-            JavaResource        : file://<PROJECT>/modulePlus/src/debug/res [-]
-            JavaResource        : file://<PROJECT>/modulePlus/src/debug/resources [-]
-            JavaSource          : file://<PROJECT>/modulePlus/src/debug/rs [-]
-            JavaSource          : file://<PROJECT>/modulePlus/src/debug/shaders [-]
-            JavaSource          : file://<PROJECT>/modulePlus/src/main/aidl [-]
-            JavaResource        : file://<PROJECT>/modulePlus/src/main/assets [-]
-            JavaSource          : file://<PROJECT>/modulePlus/src/main/java [-]
-            JavaResource        : file://<PROJECT>/modulePlus/src/main/res [-]
-            JavaResource        : file://<PROJECT>/modulePlus/src/main/resources [-]
-            JavaSource          : file://<PROJECT>/modulePlus/src/main/rs [-]
-            JavaSource          : file://<PROJECT>/modulePlus/src/main/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/modulePlus/src/test/aidl [-]
-            JavaResource (test) : file://<PROJECT>/modulePlus/src/test/assets [-]
-            JavaSource (test)   : file://<PROJECT>/modulePlus/src/test/java [-]
-            JavaResource (test) : file://<PROJECT>/modulePlus/src/test/res [-]
-            JavaResource (test) : file://<PROJECT>/modulePlus/src/test/resources [-]
-            JavaSource (test)   : file://<PROJECT>/modulePlus/src/test/rs [-]
-            JavaSource (test)   : file://<PROJECT>/modulePlus/src/test/shaders [-]
-            JavaSource (test)   : file://<PROJECT>/modulePlus/src/testDebug/aidl [-]
-            JavaResource (test) : file://<PROJECT>/modulePlus/src/testDebug/assets [-]
-            JavaSource (test)   : file://<PROJECT>/modulePlus/src/testDebug/java [-]
-            JavaResource (test) : file://<PROJECT>/modulePlus/src/testDebug/res [-]
-            JavaResource (test) : file://<PROJECT>/modulePlus/src/testDebug/resources [-]
-            JavaSource (test)   : file://<PROJECT>/modulePlus/src/testDebug/rs [-]
-            JavaSource (test)   : file://<PROJECT>/modulePlus/src/testDebug/shaders [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/modulePlus/build [-]
+            JavaSource          : file://<PROJECT>/modulePlus/build/generated/aidl_source_output_dir/debug/out
+            JavaSource (test)   : file://<PROJECT>/modulePlus/build/generated/aidl_source_output_dir/debugAndroidTest/out
+            JavaSource          : file://<PROJECT>/modulePlus/build/generated/ap_generated_sources/debug/out
+            JavaSource (test)   : file://<PROJECT>/modulePlus/build/generated/ap_generated_sources/debugAndroidTest/out
+            JavaSource (test)   : file://<PROJECT>/modulePlus/build/generated/ap_generated_sources/debugUnitTest/out
+            JavaSource          : file://<PROJECT>/modulePlus/build/generated/renderscript_source_output_dir/debug/out
+            JavaSource (test)   : file://<PROJECT>/modulePlus/build/generated/renderscript_source_output_dir/debugAndroidTest/out
+            JavaResource (test) : file://<PROJECT>/modulePlus/build/generated/res/rs/androidTest/debug
+            JavaResource        : file://<PROJECT>/modulePlus/build/generated/res/rs/debug
+            JavaSource (test)   : file://<PROJECT>/modulePlus/build/generated/source/buildConfig/androidTest/debug
+            JavaSource          : file://<PROJECT>/modulePlus/build/generated/source/buildConfig/debug
+            JavaSource (test)   : file://<PROJECT>/modulePlus/src/androidTest/aidl
+            JavaResource (test) : file://<PROJECT>/modulePlus/src/androidTest/assets
+            JavaSource (test)   : file://<PROJECT>/modulePlus/src/androidTest/java
+            JavaResource (test) : file://<PROJECT>/modulePlus/src/androidTest/res
+            JavaResource (test) : file://<PROJECT>/modulePlus/src/androidTest/resources
+            JavaSource (test)   : file://<PROJECT>/modulePlus/src/androidTest/rs
+            JavaSource (test)   : file://<PROJECT>/modulePlus/src/androidTest/shaders
+            JavaSource (test)   : file://<PROJECT>/modulePlus/src/androidTestDebug/aidl
+            JavaResource (test) : file://<PROJECT>/modulePlus/src/androidTestDebug/assets
+            JavaSource (test)   : file://<PROJECT>/modulePlus/src/androidTestDebug/java
+            JavaResource (test) : file://<PROJECT>/modulePlus/src/androidTestDebug/res
+            JavaResource (test) : file://<PROJECT>/modulePlus/src/androidTestDebug/resources
+            JavaSource (test)   : file://<PROJECT>/modulePlus/src/androidTestDebug/rs
+            JavaSource (test)   : file://<PROJECT>/modulePlus/src/androidTestDebug/shaders
+            JavaSource          : file://<PROJECT>/modulePlus/src/debug/aidl
+            JavaResource        : file://<PROJECT>/modulePlus/src/debug/assets
+            JavaSource          : file://<PROJECT>/modulePlus/src/debug/java
+            JavaResource        : file://<PROJECT>/modulePlus/src/debug/res
+            JavaResource        : file://<PROJECT>/modulePlus/src/debug/resources
+            JavaSource          : file://<PROJECT>/modulePlus/src/debug/rs
+            JavaSource          : file://<PROJECT>/modulePlus/src/debug/shaders
+            JavaSource          : file://<PROJECT>/modulePlus/src/main/aidl
+            JavaResource        : file://<PROJECT>/modulePlus/src/main/assets
+            JavaSource          : file://<PROJECT>/modulePlus/src/main/java
+            JavaResource        : file://<PROJECT>/modulePlus/src/main/res
+            JavaResource        : file://<PROJECT>/modulePlus/src/main/resources
+            JavaSource          : file://<PROJECT>/modulePlus/src/main/rs
+            JavaSource          : file://<PROJECT>/modulePlus/src/main/shaders
+            JavaSource (test)   : file://<PROJECT>/modulePlus/src/test/aidl
+            JavaResource (test) : file://<PROJECT>/modulePlus/src/test/assets
+            JavaSource (test)   : file://<PROJECT>/modulePlus/src/test/java
+            JavaResource (test) : file://<PROJECT>/modulePlus/src/test/res
+            JavaResource (test) : file://<PROJECT>/modulePlus/src/test/resources
+            JavaSource (test)   : file://<PROJECT>/modulePlus/src/test/rs
+            JavaSource (test)   : file://<PROJECT>/modulePlus/src/test/shaders
+            JavaSource (test)   : file://<PROJECT>/modulePlus/src/testDebug/aidl
+            JavaResource (test) : file://<PROJECT>/modulePlus/src/testDebug/assets
+            JavaSource (test)   : file://<PROJECT>/modulePlus/src/testDebug/java
+            JavaResource (test) : file://<PROJECT>/modulePlus/src/testDebug/res
+            JavaResource (test) : file://<PROJECT>/modulePlus/src/testDebug/resources
+            JavaSource (test)   : file://<PROJECT>/modulePlus/src/testDebug/rs
+            JavaSource (test)   : file://<PROJECT>/modulePlus/src/testDebug/shaders
+            EXCLUDE_FOLDER      : file://<PROJECT>/modulePlus/build
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK
@@ -2873,10 +2873,10 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             Buildable           : true
             BuildFolderPath     : <PROJECT>/jModuleZ/nestedZ/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jModuleZ/nestedZ
-            JavaSource          : file://<PROJECT>/jModuleZ/nestedZ/src/main/java [-]
-            JavaResource        : file://<PROJECT>/jModuleZ/nestedZ/src/main/resources [-]
-            JavaSource (test)   : file://<PROJECT>/jModuleZ/nestedZ/src/test/java [-]
-            JavaResource (test) : file://<PROJECT>/jModuleZ/nestedZ/src/test/resources [-]
+            JavaSource          : file://<PROJECT>/jModuleZ/nestedZ/src/main/java
+            JavaResource        : file://<PROJECT>/jModuleZ/nestedZ/src/main/resources
+            JavaSource (test)   : file://<PROJECT>/jModuleZ/nestedZ/src/test/java
+            JavaResource (test) : file://<PROJECT>/jModuleZ/nestedZ/src/test/resources
             EXCLUDE_FOLDER      : file://<PROJECT>/jModuleZ/nestedZ/.gradle [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/jModuleZ/nestedZ/build [-]
         JDK                 : <NAME_CUT> JavaSDK
