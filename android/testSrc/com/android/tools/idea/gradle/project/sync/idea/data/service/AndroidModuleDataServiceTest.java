@@ -23,11 +23,10 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
-import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetup;
-import com.android.tools.idea.gradle.project.sync.setup.module.android.AndroidModuleCleanupStep;
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.ProjectFiles;
+import com.intellij.facet.FacetManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -35,19 +34,19 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import java.util.Collections;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.mockito.Mock;
 
 /**
- * Tests for {@link AndroidModuleModelDataService}.
+ * Tests for {@link AndroidModuleDataService}.
  */
-public class AndroidModuleModelDataServiceTest extends AndroidGradleTestCase {
-  @Mock private AndroidModuleSetup myModuleSetup;
+public class AndroidModuleDataServiceTest extends AndroidGradleTestCase {
   @Mock private AndroidModuleValidator myValidator;
-  @Mock private AndroidModuleCleanupStep myCleanupStep;
   @Mock private ModuleSetupContext.Factory myModuleSetupContextFactory;
   @Mock private ModuleSetupContext myModuleSetupContext;
+  private IdeModifiableModelsProvider myModelsProvider;
 
-  private AndroidModuleModelDataService myService;
+  private AndroidModuleDataService myService;
 
   @Override
   public void setUp() throws Exception {
@@ -57,7 +56,21 @@ public class AndroidModuleModelDataServiceTest extends AndroidGradleTestCase {
     AndroidModuleValidator.Factory validatorFactory = mock(AndroidModuleValidator.Factory.class);
     when(validatorFactory.create(getProject())).thenReturn(myValidator);
 
-    myService = new AndroidModuleModelDataService(myModuleSetupContextFactory, myModuleSetup, validatorFactory, myCleanupStep);
+    myService = new AndroidModuleDataService(validatorFactory);
+    myModelsProvider = new IdeModifiableModelsProviderImpl(getProject());
+  }
+
+  @Override
+  public void tearDown() throws Exception {
+    try {
+      myModelsProvider.dispose();
+    }
+    catch (Throwable e) {
+      addSuppressedException(e);
+    }
+    finally {
+      super.tearDown();
+    }
   }
 
   public void testGetTargetDataKey() {
@@ -73,28 +86,21 @@ public class AndroidModuleModelDataServiceTest extends AndroidGradleTestCase {
 
     DataNode<AndroidModuleModel> dataNode = new DataNode<>(ANDROID_MODEL, androidModel, null);
     Project project = getProject();
-    IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(project);
 
-    when(myModuleSetupContextFactory.create(appModule, modelsProvider)).thenReturn(myModuleSetupContext);
-    myService.importData(Collections.singletonList(dataNode), mock(ProjectData.class), project, modelsProvider);
+    when(myModuleSetupContextFactory.create(appModule, myModelsProvider)).thenReturn(myModuleSetupContext);
+    myService.importData(Collections.singletonList(dataNode), mock(ProjectData.class), project, myModelsProvider);
 
-    verify(myModuleSetup).setUpModule(myModuleSetupContext, androidModel);
+    assertNotNull(FacetManager.getInstance(appModule).findFacet(AndroidFacet.ID, AndroidFacet.NAME));
     verify(myValidator).validate(appModule, androidModel);
     verify(myValidator).fixAndReportFoundIssues();
   }
 
   public void testImportDataWithoutModels() {
     Module appModule = ProjectFiles.createModule(getProject(), "app");
+    FacetManager.getInstance(appModule).createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null);
     IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
 
     myService.importData(Collections.emptyList(), getProject(), modelsProvider, Collections.emptyMap());
-    verify(myCleanupStep).cleanUpModule(appModule, modelsProvider);
-  }
-
-  public void testOnModelsNotFound() {
-    Module appModule = ProjectFiles.createModule(getProject(), "app");
-    IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
-    myService.onModelsNotFound(modelsProvider);
-    verify(myCleanupStep).cleanUpModule(appModule, modelsProvider);
+    assertNull(FacetManager.getInstance(appModule).findFacet(AndroidFacet.ID, AndroidFacet.NAME));
   }
 }

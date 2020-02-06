@@ -71,8 +71,10 @@ public class GradleModuleModelDataService extends ModuleModelDataService<GradleM
     for (Module module : modelsProvider.getModules()) {
       GradleModuleModel gradleModuleModel = modelsByModuleName.get(module.getName());
       if (gradleModuleModel == null) {
-        onModelNotFound(module, modelsProvider);
-      }
+        // This happens when there is an orphan IDEA module that does not map to a Gradle project. One way for this to happen is when
+        // opening a project created in another machine, and Gradle import assigns a different name to a module. Then, user decides
+        // not to delete the orphan module when Studio prompts to do so.
+        removeAllFacets(modelsProvider.getModifiableFacetModel(module), GradleFacet.getFacetTypeId());      }
       else {
         myModuleSetup.setUpModule(module, modelsProvider, gradleModuleModel);
       }
@@ -81,14 +83,6 @@ public class GradleModuleModelDataService extends ModuleModelDataService<GradleM
     // For example, if module A -> B, and B comes from buildSrc. Then the dependency A has will be [PathToBuildSrcFolder]:[GradlePathOfModuleB].
     // In this case, a build participant will be created, which has [PathToBuildSrcFolder] as the project path, and [PathToModuleB] as one of the projects.
     populateExtraBuildParticipantFromBuildSrc(toImport, project);
-  }
-
-  @Override
-  protected void onModelNotFound(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
-    // This happens when there is an orphan IDEA module that does not map to a Gradle project. One way for this to happen is when
-    // opening a project created in another machine, and Gradle import assigns a different name to a module. Then, user decides
-    // not to delete the orphan module when Studio prompts to do so.
-    removeAllFacets(modelsProvider.getModifiableFacetModel(module), GradleFacet.getFacetTypeId());
   }
 
   private static void populateExtraBuildParticipantFromBuildSrc(@NotNull Collection<DataNode<GradleModuleModel>> toImport,

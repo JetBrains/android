@@ -15,32 +15,34 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.JAVA_MODULE_MODEL;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
+import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSetup;
-import com.android.tools.idea.gradle.project.sync.setup.module.java.JavaModuleCleanupStep;
 import com.android.tools.idea.testing.IdeComponents;
+import com.android.tools.idea.testing.ProjectFiles;
+import com.intellij.facet.FacetManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.PlatformTestCase;
-import org.mockito.Mock;
-
 import java.util.Collection;
 import java.util.Collections;
-
-import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.JAVA_MODULE_MODEL;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
+import org.mockito.Mock;
 
 /**
  * Tests for {@link JavaModuleModelDataService}.
  */
 public class JavaModuleModelDataServiceTest extends PlatformTestCase {
   @Mock private JavaModuleSetup myModuleSetup;
-  @Mock private JavaModuleCleanupStep myCleanupStep;
   @Mock private GradleSyncState mySyncState;
   @Mock private ModuleSetupContext.Factory myModuleSetupContextFactory;
   @Mock private ModuleSetupContext myModuleSetupContext;
@@ -55,19 +57,11 @@ public class JavaModuleModelDataServiceTest extends PlatformTestCase {
 
     new IdeComponents(getProject()).replaceProjectService(GradleSyncState.class, mySyncState);
     myModelsProvider = new IdeModifiableModelsProviderImpl(getProject());
-    myService = new JavaModuleModelDataService(myModuleSetupContextFactory, myModuleSetup, myCleanupStep);
+    myService = new JavaModuleModelDataService(myModuleSetupContextFactory, myModuleSetup);
   }
 
   public void testGetTargetDataKey() {
     assertSame(JAVA_MODULE_MODEL, myService.getTargetDataKey());
-  }
-
-  public void testImportDataWithoutModels() {
-    Module appModule = createModule("app");
-    IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
-
-    myService.importData(Collections.emptyList(), getProject(), modelsProvider, Collections.emptyMap());
-    verify(myCleanupStep).cleanUpModule(appModule, modelsProvider);
   }
 
   public void testImportData() {
@@ -86,9 +80,12 @@ public class JavaModuleModelDataServiceTest extends PlatformTestCase {
     verify(myModuleSetup).setUpModule(myModuleSetupContext, model);
   }
 
-  public void testOnModelsNotFound() {
+  public void testImportDataWithoutModels() {
+    Module appModule = ProjectFiles.createModule(getProject(), "app");
+    FacetManager.getInstance(appModule).createFacet(JavaFacet.getFacetType(), JavaFacet.getFacetName(), null);
     IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
-    myService.onModelsNotFound(modelsProvider);
-    verify(myCleanupStep).cleanUpModule(myModule, modelsProvider);
+
+    myService.importData(Collections.emptyList(), getProject(), modelsProvider, Collections.emptyMap());
+    assertNull(FacetManager.getInstance(appModule).findFacet(JavaFacet.getFacetTypeId(), JavaFacet.getFacetName()));
   }
 }
