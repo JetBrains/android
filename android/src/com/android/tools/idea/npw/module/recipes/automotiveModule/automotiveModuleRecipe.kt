@@ -22,7 +22,8 @@ import com.android.tools.idea.npw.module.recipes.generateManifest
 
 fun RecipeExecutor.generateAutomotiveModule(
   data: ModuleTemplateData,
-  appTitle: String
+  appTitle: String,
+  useKts: Boolean
 ) {
   val usesFeatureBlock = """
 <uses-feature
@@ -30,7 +31,7 @@ fun RecipeExecutor.generateAutomotiveModule(
     android:required="true"/>
 """
   generateCommonModule(
-    data, appTitle,
+    data, appTitle, useKts,
     generateManifest(data.packageName, !data.isLibrary, usesFeatureBlock = usesFeatureBlock),
     true
   )

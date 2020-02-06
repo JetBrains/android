@@ -25,11 +25,12 @@ import com.android.tools.idea.wizard.template.has
 fun RecipeExecutor.generateAndroidModule(
   data: ModuleTemplateData,
   appTitle: String?, // may be null only for libraries
+  useKts: Boolean,
   includeCppSupport: Boolean = false,
   cppFlags: String
 ) {
   generateCommonModule(
-    data, appTitle, generateManifest(data.packageName, !data.isLibrary), true, includeCppSupport, cppFlags = cppFlags
+    data, appTitle, useKts, generateManifest(data.packageName, !data.isLibrary), true, includeCppSupport, cppFlags = cppFlags
   )
   val projectData = data.projectTemplateData
   val formFactorNames = projectData.includedFormFactorNames

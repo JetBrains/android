@@ -404,11 +404,11 @@ data class ProjectChecker(
         val newTemplates = TemplateResolver.getAllTemplates()
         val newTemplate = newTemplates.find { it.name == template.metadata?.title }!!
         val recipe: Recipe = when (newTemplate.formFactor) {
-          FormFactor.Mobile -> { data: TemplateData -> this.generateAndroidModule(data as ModuleTemplateData, appTitle, false, "") }
-          FormFactor.Wear -> { data: TemplateData -> this.generateWearModule(data as ModuleTemplateData, appTitle) }
-          FormFactor.Tv -> { data: TemplateData -> this.generateTvModule(data as ModuleTemplateData, appTitle) }
-          FormFactor.Automotive -> { data: TemplateData -> this.generateAutomotiveModule(data as ModuleTemplateData, appTitle) }
-          FormFactor.Things -> { data: TemplateData -> this.generateThingsModule(data as ModuleTemplateData, appTitle) }
+          FormFactor.Mobile -> { data: TemplateData -> this.generateAndroidModule(data as ModuleTemplateData, appTitle, false, false, "") }
+          FormFactor.Wear -> { data: TemplateData -> this.generateWearModule(data as ModuleTemplateData, appTitle, false) }
+          FormFactor.Tv -> { data: TemplateData -> this.generateTvModule(data as ModuleTemplateData, appTitle, false) }
+          FormFactor.Automotive -> { data: TemplateData -> this.generateAutomotiveModule(data as ModuleTemplateData, appTitle, false) }
+          FormFactor.Things -> { data: TemplateData -> this.generateThingsModule(data as ModuleTemplateData, appTitle, false) }
           FormFactor.Generic -> { data: TemplateData -> this.generatePureLibrary(data as ModuleTemplateData, moduleState.getString(ATTR_CLASS_NAME)) }
         }
         createProjectForNewRenderingContext(this, moduleName, activityState, recipe = recipe)
@@ -451,12 +451,12 @@ data class ProjectChecker(
           val cppSupport = moduleState[ATTR_CPP_SUPPORT] as Boolean? ?: false
           val recipe: Recipe = { data: TemplateData ->
             when {
-              // TODO(qumeric) pass cppFlags?
-              moduleName.contains("NewAndroidModule") -> this.generateAndroidModule(data as ModuleTemplateData, appTitle!!, cppSupport, "")
-              moduleName.contains("NewAndroidAutomotiveModule") -> this.generateAutomotiveModule(data as ModuleTemplateData, appTitle!!)
-              moduleName.contains("NewAndroidThingsModule") -> this.generateThingsModule(data as ModuleTemplateData, appTitle!!)
-              moduleName.contains("NewAndroidTVModule") -> this.generateTvModule(data as ModuleTemplateData, appTitle!!)
-              moduleName.contains("AndroidWearModule") -> this.generateWearModule(data as ModuleTemplateData, appTitle!!)
+              // TODO(qumeric) pass cppFlags? Test with kts?
+              moduleName.contains("NewAndroidModule") -> this.generateAndroidModule(data as ModuleTemplateData, appTitle!!, false, cppSupport, "")
+              moduleName.contains("NewAndroidAutomotiveModule") -> this.generateAutomotiveModule(data as ModuleTemplateData, appTitle!!, false)
+              moduleName.contains("NewAndroidThingsModule") -> this.generateThingsModule(data as ModuleTemplateData, appTitle!!, false)
+              moduleName.contains("NewAndroidTVModule") -> this.generateTvModule(data as ModuleTemplateData, appTitle!!, false)
+              moduleName.contains("AndroidWearModule") -> this.generateWearModule(data as ModuleTemplateData, appTitle!!, false)
               moduleName.contains("NewJavaOrKotlinLibrary") -> this.generatePureLibrary(data as ModuleTemplateData, className!!)
               moduleName.contains("NewBenchmarkModule") -> this.generateBenchmarkModule(data as ModuleTemplateData)
               else -> throw IllegalArgumentException("given module name ($moduleName) is unknown")

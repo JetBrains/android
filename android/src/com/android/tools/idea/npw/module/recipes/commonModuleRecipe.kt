@@ -19,7 +19,6 @@ import com.android.SdkConstants
 import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
 import com.android.SdkConstants.FN_BUILD_GRADLE
 import com.android.SdkConstants.FN_BUILD_GRADLE_KTS
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.module.recipes.androidModule.buildGradle
 import com.android.tools.idea.npw.module.recipes.androidModule.cMakeListsTxt
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleColors
@@ -38,6 +37,7 @@ enum class IconsGenerationStyle {
 fun RecipeExecutor.generateCommonModule(
   data: ModuleTemplateData,
   appTitle: String?, // may be null only for libraries
+  useKts: Boolean,
   manifestXml: String,
   generateTests: Boolean = false,
   includeCppSupport: Boolean = false,
@@ -60,15 +60,13 @@ fun RecipeExecutor.generateCommonModule(
   createDefaultDirectories(moduleOut, srcOut)
   addIncludeToSettings(data.name)
 
-  // TODO(parentj) this boolean will be passed has parameter on a upcoming CL
-  val isKts = StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.get()
-  val buildFile = if (isKts) FN_BUILD_GRADLE_KTS else FN_BUILD_GRADLE
+  val buildFile = if (useKts) FN_BUILD_GRADLE_KTS else FN_BUILD_GRADLE
 
   save(
     buildGradle(
-      isKts,
+      useKts,
       isLibraryProject,
-      data.baseFeature != null,
+      data.isDynamic,
       packageName,
       apis.buildApiString!!,
       projectData.buildToolsVersion,
