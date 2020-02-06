@@ -38,7 +38,9 @@ class DatabaseInspectorClient private constructor(
   companion object {
     private const val inspectorId = "androidx.sqlite.inspection"
     private val inspectorJar =
-      AppInspectorJar("sqlite-inspection.jar", developmentDirectory = "../../prebuilts/tools/common/app-inspection/androidx/sqlite/")
+      AppInspectorJar("sqlite-inspection.jar",
+                      developmentDirectory = "../../prebuilts/tools/common/app-inspection/androidx/sqlite/",
+                      releaseDirectory = "plugins/android/resources/app-inspection/")
 
     /**
      * Starts listening for the creation of new connections to a device.
