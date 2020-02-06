@@ -7,6 +7,11 @@ PROJECT             : testSyncKotlinProject
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/app/app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
@@ -594,6 +599,11 @@ PROJECT             : testSyncKotlinProject
         LinkedProjectId     : :awesomeandroidlibrary
         LinkedProjectPath   : <PROJECT>/awesomeandroidlibrary
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/awesomeandroidlibrary/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/awesomeandroidlibrary/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/awesomeandroidlibrary/awesomeandroidlibrary.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
@@ -1139,6 +1149,11 @@ PROJECT             : testSyncKotlinProject
         LinkedProjectId     : :contentLib
         LinkedProjectPath   : <PROJECT>/contentLib
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/contentLib/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/contentLib/build/classes/java/test [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/contentLib/contentLib.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
@@ -1268,6 +1283,11 @@ PROJECT             : testSyncKotlinProject
         LinkedProjectId     : testSyncKotlinProject
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testSyncKotlinProject [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testSyncKotlinProject [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/testSyncKotlinProject.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Java-Gradle

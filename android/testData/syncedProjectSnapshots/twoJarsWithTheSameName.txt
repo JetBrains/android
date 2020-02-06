@@ -6,6 +6,11 @@ PROJECT             : My Application
         LinkedProjectId     : My Application
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/My_Application.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
@@ -130,6 +135,11 @@ PROJECT             : My Application
         LinkedProjectId     : :lib
         LinkedProjectPath   : <PROJECT>/lib
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/lib/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/lib/build/classes/java/test [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/lib/lib.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle

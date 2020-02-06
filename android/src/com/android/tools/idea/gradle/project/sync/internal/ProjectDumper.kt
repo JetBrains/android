@@ -34,6 +34,7 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.AnnotationOrderRootType
+import com.intellij.openapi.roots.CompilerModuleExtension
 import com.intellij.openapi.roots.ContentEntry
 import com.intellij.openapi.roots.ExcludeFolder
 import com.intellij.openapi.roots.InheritedJdkOrderEntry
@@ -212,6 +213,10 @@ private fun ProjectDumper.dump(module: Module) {
     prop("LinkedProjectPath") { externalPropertyManager.getLinkedProjectPath()?.toPrintablePath() }
     prop("RootProjectPath") { externalPropertyManager.getRootProjectPath()?.toPrintablePath() }
     prop("IsMavenized") { externalPropertyManager.isMavenized().takeIf { it }?.toString() }
+    val compilerModuleExtension = CompilerModuleExtension.getInstance(module)
+    if (compilerModuleExtension != null) {
+      dump(compilerModuleExtension)
+    }
 
     prop("ModuleFile") { moduleFile }
     prop("ModuleTypeName") { module.moduleTypeName }
@@ -463,6 +468,16 @@ private fun ProjectDumper.dump(compilerSettings: CompilerSettings) {
     prop("outputDirectoryForJsLibraryFiles") { compilerSettings.outputDirectoryForJsLibraryFiles }
     prop("scriptTemplates") { compilerSettings.scriptTemplates.nullize() }
     prop("scriptTemplatesClasspath") { compilerSettings.scriptTemplatesClasspath.nullize() }
+  }
+}
+
+private fun ProjectDumper.dump(compilerModuleExtension: CompilerModuleExtension) {
+  head("COMPILER_MODULE_EXTENSION") { null }
+  nest {
+    prop("compilerSourceOutputPath") { compilerModuleExtension.compilerOutputUrl?.toPrintablePath() }
+    prop("compilerTestOutputPath") { compilerModuleExtension.compilerOutputUrlForTests?.toPrintablePath() }
+    prop("isCompilerPathInherited") { compilerModuleExtension.isCompilerOutputPathInherited.toString() }
+    prop("isExcludeOutput") { compilerModuleExtension.isExcludeOutput.toString() }
   }
 }
 

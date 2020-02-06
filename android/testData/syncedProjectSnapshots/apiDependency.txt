@@ -7,6 +7,11 @@ PROJECT             : testApiDependency
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/app/app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
@@ -434,6 +439,11 @@ PROJECT             : testApiDependency
         LinkedProjectId     : :jlib
         LinkedProjectPath   : <PROJECT>/jlib
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/jlib/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/jlib/build/classes/java/test [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/jlib/jlib.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
@@ -475,6 +485,11 @@ PROJECT             : testApiDependency
         LinkedProjectId     : :jlib0
         LinkedProjectPath   : <PROJECT>/jlib0
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/jlib0/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/jlib0/build/classes/java/test [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/jlib0/jlib0.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
@@ -517,6 +532,11 @@ PROJECT             : testApiDependency
         LinkedProjectId     : :lib
         LinkedProjectPath   : <PROJECT>/lib
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/lib/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/lib/lib.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
@@ -926,6 +946,11 @@ PROJECT             : testApiDependency
         LinkedProjectId     : testApiDependency
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testApiDependency [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testApiDependency [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/testApiDependency.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Java-Gradle

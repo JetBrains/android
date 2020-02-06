@@ -7,6 +7,11 @@ PROJECT             : testTransitiveDependencies
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/app/app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
@@ -445,6 +450,11 @@ PROJECT             : testTransitiveDependencies
         LinkedProjectId     : :javalib1
         LinkedProjectPath   : <PROJECT>/javalib1
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/javalib1/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/javalib1/build/classes/java/test [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/javalib1/javalib1.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
@@ -508,6 +518,11 @@ PROJECT             : testTransitiveDependencies
         LinkedProjectId     : :javalib2
         LinkedProjectPath   : <PROJECT>/javalib2
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/javalib2/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/javalib2/build/classes/java/test [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/javalib2/javalib2.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
@@ -535,6 +550,11 @@ PROJECT             : testTransitiveDependencies
         LinkedProjectId     : :library1
         LinkedProjectPath   : <PROJECT>/library1
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/library1/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/library1/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/library1/library1.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
@@ -1012,6 +1032,11 @@ PROJECT             : testTransitiveDependencies
         LinkedProjectId     : :library2
         LinkedProjectPath   : <PROJECT>/library2
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/library2/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/library2/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/library2/library2.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
@@ -1425,6 +1450,11 @@ PROJECT             : testTransitiveDependencies
         LinkedProjectId     : testTransitiveDependencies
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testTransitiveDependencies [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testTransitiveDependencies [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/testTransitiveDependencies.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Java-Gradle

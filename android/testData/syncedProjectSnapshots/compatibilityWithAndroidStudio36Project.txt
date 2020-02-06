@@ -6,6 +6,11 @@ PROJECT             : AS36
         LinkedProjectId     : AS36
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/AS36 [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36 [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/AS36.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Java-Gradle
@@ -26,6 +31,11 @@ PROJECT             : AS36
         LinkedProjectId     : :libs:android_library
         LinkedProjectPath   : <PROJECT>/libs/android_library
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/libs/android_library/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/libs/android_library/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/libs/android_library/android_library.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
@@ -531,6 +541,11 @@ PROJECT             : AS36
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/app/app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
@@ -1037,6 +1052,11 @@ PROJECT             : AS36
         LinkedProjectId     : :features:dynamicfeature
         LinkedProjectPath   : <PROJECT>/features/dynamicfeature
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/features/dynamicfeature/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/features/dynamicfeature/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/features/dynamicfeature/dynamicfeature.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
@@ -1148,6 +1168,11 @@ PROJECT             : AS36
         LinkedProjectId     : :features:dynamicfeature2
         LinkedProjectPath   : <PROJECT>/features/dynamicfeature2
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/features/dynamicfeature2/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/features/dynamicfeature2/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/features/dynamicfeature2/dynamicfeature2.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
@@ -1258,6 +1283,11 @@ PROJECT             : AS36
         LinkedProjectId     : :features
         LinkedProjectPath   : <PROJECT>/features
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/features [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/features [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/features/features.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
@@ -1282,6 +1312,11 @@ PROJECT             : AS36
         LinkedProjectId     : :libs:java_lib
         LinkedProjectPath   : <PROJECT>/libs/java_lib
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/libs/java_lib/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/libs/java_lib/build/classes/java/test [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/libs/java_lib/java_lib.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
@@ -1309,6 +1344,11 @@ PROJECT             : AS36
         LinkedProjectId     : :libs
         LinkedProjectPath   : <PROJECT>/libs
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/libs [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/libs [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/libs/libs.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle

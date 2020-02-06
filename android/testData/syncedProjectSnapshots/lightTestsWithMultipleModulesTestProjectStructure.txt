@@ -3,6 +3,9 @@ PROJECT             : LightSyncBasedTestsWithMultipleModulesTestProjectStructure
         LinkedProjectId     : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest
         LinkedProjectPath   : <PROJECT>/unitTest
         RootProjectPath     : <PROJECT>/unitTest
+        COMPILER_MODULE_EXTENSION
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/unitTest/LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Java-Gradle
@@ -14,6 +17,11 @@ PROJECT             : LightSyncBasedTestsWithMultipleModulesTestProjectStructure
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/unitTest/app
         RootProjectPath     : <PROJECT>/unitTest
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/unitTest/app/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/unitTest/app/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/unitTest/app/app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
@@ -93,6 +101,11 @@ PROJECT             : LightSyncBasedTestsWithMultipleModulesTestProjectStructure
         LinkedProjectId     : :lib
         LinkedProjectPath   : <PROJECT>/unitTest/lib
         RootProjectPath     : <PROJECT>/unitTest
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/unitTest/lib/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/unitTest/lib/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/unitTest/lib/lib.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android

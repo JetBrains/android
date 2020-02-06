@@ -7,6 +7,11 @@ PROJECT             : testExternalSourceSets
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/app/app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
@@ -514,6 +519,11 @@ PROJECT             : testExternalSourceSets
         LinkedProjectId     : testExternalSourceSets
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testExternalSourceSets [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testExternalSourceSets [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/testExternalSourceSets.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Java-Gradle

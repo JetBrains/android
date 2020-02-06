@@ -7,6 +7,11 @@ PROJECT             : testSyncWithKotlinDsl
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/app/app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
@@ -445,6 +450,11 @@ PROJECT             : testSyncWithKotlinDsl
         LinkedProjectId     : :lib
         LinkedProjectPath   : <PROJECT>/lib
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/lib/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/lib/lib.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
@@ -596,6 +606,11 @@ PROJECT             : testSyncWithKotlinDsl
         LinkedProjectId     : testSyncWithKotlinDsl
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testSyncWithKotlinDsl [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testSyncWithKotlinDsl [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/testSyncWithKotlinDsl.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Java-Gradle

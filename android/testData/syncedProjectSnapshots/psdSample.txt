@@ -7,6 +7,11 @@ PROJECT             : testPsdSample
         LinkedProjectId     : :app
         LinkedProjectPath   : <PROJECT>/app
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/basicBarDebug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/basicBarDebugUnitTest/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/app/app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
@@ -587,6 +592,11 @@ PROJECT             : testPsdSample
         LinkedProjectId     : :nested2:trans:deep2
         LinkedProjectPath   : <PROJECT>/nested2/trans/deep2
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/nested2/trans/deep2/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/nested2/trans/deep2/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/nested2/trans/deep2/deep2.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
@@ -696,6 +706,11 @@ PROJECT             : testPsdSample
         LinkedProjectId     : :dyn_feature
         LinkedProjectPath   : <PROJECT>/dyn_feature
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/dyn_feature/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/dyn_feature/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/dyn_feature/dyn_feature.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
@@ -805,6 +820,11 @@ PROJECT             : testPsdSample
         LinkedProjectId     : :jav
         LinkedProjectPath   : <PROJECT>/jav
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/jav/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/jav/build/classes/java/test [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/jav/jav.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
@@ -832,6 +852,11 @@ PROJECT             : testPsdSample
         LinkedProjectId     : :lib
         LinkedProjectPath   : <PROJECT>/lib
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/lib/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/lib/lib.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
@@ -1210,6 +1235,11 @@ PROJECT             : testPsdSample
         LinkedProjectId     : :nested1
         LinkedProjectPath   : <PROJECT>/nested1
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/nested1/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/nested1/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/nested1/nested1.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
@@ -1320,6 +1350,11 @@ PROJECT             : testPsdSample
         LinkedProjectId     : :nested1:deep
         LinkedProjectPath   : <PROJECT>/nested1/deep
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/nested1/deep/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/nested1/deep/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/nested1/deep/nested1-deep.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
@@ -1429,6 +1464,11 @@ PROJECT             : testPsdSample
         LinkedProjectId     : :nested2
         LinkedProjectPath   : <PROJECT>/nested2
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/nested2/build/intermediates/javac/basicDebug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/nested2/build/intermediates/javac/basicDebugUnitTest/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/nested2/nested2.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
@@ -1585,6 +1625,11 @@ PROJECT             : testPsdSample
         LinkedProjectId     : :nested2:deep
         LinkedProjectPath   : <PROJECT>/nested2/deep
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/nested2/deep/build/intermediates/javac/debug/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/nested2/deep/build/intermediates/javac/debugUnitTest/classes [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/nested2/deep/nested2-deep.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
@@ -1693,6 +1738,11 @@ PROJECT             : testPsdSample
         LinkedProjectId     : testPsdSample
         LinkedProjectPath   : <PROJECT>
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdSample [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdSample [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/testPsdSample.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Java-Gradle
@@ -1713,6 +1763,11 @@ PROJECT             : testPsdSample
         LinkedProjectId     : :nested2:trans
         LinkedProjectPath   : <PROJECT>/nested2/trans
         RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/trans [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/trans [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
         ModuleFile          : <PROJECT>/.idea/modules/nested2/trans/trans.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
