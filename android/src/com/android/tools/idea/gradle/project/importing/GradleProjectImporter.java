@@ -120,6 +120,8 @@ public class GradleProjectImporter {
           false,
           false,
           true,
+          null,
+          null,
           null));
     }
     catch (Throwable e) {
