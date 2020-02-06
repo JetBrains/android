@@ -138,7 +138,7 @@ public class DefaultActivityLocator extends ActivityLocator {
   private static List<ActivityWrapper> getActivitiesFromManifestIndex(@NotNull final AndroidFacet facet) {
     boolean onEdt = ApplicationManager.getApplication().isDispatchThread();
     Stopwatch timer = Stopwatch.createStarted();
-    List<ActivityWrapper> activityWrappers = queryActivitiesFromManifestIndex(facet);
+    List<ActivityWrapper> activityWrappers = queryActivitiesFromManifestIndex(facet).getJoined();
     logManifestLatency(onEdt, true, false, timer.elapsed(TimeUnit.MILLISECONDS));
     return activityWrappers;
   }
