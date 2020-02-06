@@ -17,6 +17,7 @@ package com.android.tools.idea.ui.wizard;
 
 import com.android.tools.adtui.validation.Validator.Result;
 import com.android.tools.adtui.validation.Validator.Severity;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.ide.GeneralSettings;
 import com.intellij.ide.RecentProjectsManager;
@@ -82,7 +83,7 @@ public class WizardUtilsTest {
     setRecentProjectLocation(null);
     setDefaultProjectDirectory(null);
 
-    assertThat(getProjectLocationParent().getName()).isEqualTo("AndroidStudioProjects");
+    assertThat(getProjectLocationParent().getName()).isEqualTo(IdeInfo.getInstance().isAndroidStudio() ? "AndroidStudioProjects" : "IntelliJIDEAProjects");
   }
 
   @Test
