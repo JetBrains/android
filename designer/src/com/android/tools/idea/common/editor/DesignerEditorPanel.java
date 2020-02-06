@@ -27,8 +27,8 @@ import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.util.SyncUtil;
+import com.intellij.CommonBundle;
 import com.intellij.ProjectTopics;
-import com.intellij.ide.IdeBundle;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
@@ -118,7 +118,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
     myAccessoryPanel = mySurface.getAccessoryPanel();
     myContentPanel.add(createSurfaceToolbar(mySurface), BorderLayout.NORTH);
 
-    myWorkBench.setLoadingText(IdeBundle.message("common.text.loading"));
+    myWorkBench.setLoadingText(CommonBundle.getLoadingTreeNodeText());
 
     mySplitter = new IssuePanelSplitter(mySurface, myWorkBench);
     add(mySplitter);

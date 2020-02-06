@@ -28,8 +28,8 @@ import com.android.tools.idea.gradle.util.ModuleTypeComparator;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.CommonBundle;
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.IdeBundle;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -578,7 +578,7 @@ public class BuildVariantView {
       myLoading = loading;
       setPaintBusy(myLoading);
       clearContents();
-      String text = myLoading ? IdeBundle.message("common.text.loading") : "Nothing to Show";
+      String text = myLoading ? CommonBundle.getLoadingTreeNodeText() : "Nothing to Show";
       getEmptyText().setText(text);
     }
 

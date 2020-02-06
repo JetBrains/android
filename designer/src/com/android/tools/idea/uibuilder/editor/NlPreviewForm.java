@@ -47,7 +47,7 @@ import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.android.tools.idea.uibuilder.type.AdaptiveIconFileType;
 import com.android.tools.idea.util.SyncUtil;
 import com.google.common.collect.ImmutableList;
-import com.intellij.ide.IdeBundle;
+import com.intellij.CommonBundle;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.editor.CaretModel;
 import com.intellij.openapi.editor.event.CaretEvent;
@@ -128,7 +128,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
     myRenderingQueue.setRestartTimerOnAdd(true);
 
     myWorkBench = new WorkBench<>(myProject, "Preview", null, this);
-    myWorkBench.setLoadingText(IdeBundle.message("common.text.loading"));
+    myWorkBench.setLoadingText(CommonBundle.getLoadingTreeNodeText());
     myRoot.add(new IssuePanelSplitter(mySurface, myWorkBench));
   }
 
