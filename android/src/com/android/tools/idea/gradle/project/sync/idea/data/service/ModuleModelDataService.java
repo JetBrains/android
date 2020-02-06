@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+
 import com.android.tools.idea.gradle.project.model.ModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -27,15 +28,12 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.externalSystem.service.project.manage.AbstractProjectDataService;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class ModuleModelDataService<T extends ModuleModel> extends AbstractProjectDataService<T, Void> {
   @Override
@@ -43,13 +41,6 @@ public abstract class ModuleModelDataService<T extends ModuleModel> extends Abst
                                @Nullable ProjectData projectData,
                                @NotNull Project project,
                                @NotNull IdeModifiableModelsProvider modelsProvider) {
-    if (toImport.isEmpty()) {
-      // there can be other build systems which can use the same project elements for the import
-      if(projectData != null && GradleUtil.GRADLE_SYSTEM_ID.equals(projectData.getOwner())) {
-        onModelsNotFound(modelsProvider);
-      }
-      return;
-    }
     try {
       importData(toImport, project, modelsProvider);
     }
@@ -57,15 +48,6 @@ public abstract class ModuleModelDataService<T extends ModuleModel> extends Abst
       String msg = e.getMessage();
       GradleSyncState.getInstance(project).syncFailed(isNotEmpty(msg) ? msg : e.getClass().getCanonicalName(), e, null);
     }
-  }
-
-  protected void onModelsNotFound(@NotNull IdeModifiableModelsProvider modelsProvider) {
-    for (Module module : modelsProvider.getModules()) {
-      onModelNotFound(module, modelsProvider);
-    }
-  }
-
-  protected void onModelNotFound(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
   }
 
   private void importData(@NotNull Collection<DataNode<T>> toImport,

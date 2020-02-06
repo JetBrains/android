@@ -68,14 +68,8 @@ public class NdkModuleModelDataService extends ModuleModelDataService<NdkModuleM
         myModuleSetup.setUpModule(context, ndkModuleModel);
       }
       else {
-        onModelNotFound(module, modelsProvider);
-      }
+        ModifiableFacetModel facetModel = modelsProvider.getModifiableFacetModel(module);
+        removeAllFacets(facetModel, NdkFacet.getFacetTypeId());      }
     }
-  }
-
-  @Override
-  protected void onModelNotFound(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
-    ModifiableFacetModel facetModel = modelsProvider.getModifiableFacetModel(module);
-    removeAllFacets(facetModel, NdkFacet.getFacetTypeId());
   }
 }
