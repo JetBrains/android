@@ -15,7 +15,9 @@
  */
 package com.android.tools.profilers.cpu
 
+import com.android.testutils.TestUtils
 import com.android.tools.adtui.chart.statechart.StateChart
+import com.android.tools.adtui.common.DataVisualizationColors
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.trackgroup.TrackModel
@@ -27,11 +29,13 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilerTrackRendererType
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture
+import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import java.io.FileInputStream
 
 class CpuCoreTrackRendererTest {
   private val timer = FakeTimer()
@@ -48,6 +52,8 @@ class CpuCoreTrackRendererTest {
   @Throws(Exception::class)
   fun setUp() {
     profilers = StudioProfilers(profilerClient, services, timer)
+    DataVisualizationColors.initialize(
+      FileInputStream(TestUtils.getWorkspaceFile("tools/adt/idea/profilers-ui/testData/data-colors.json")))
   }
 
   @Test
@@ -63,5 +69,13 @@ class CpuCoreTrackRendererTest {
     assertThat(coreTrackModel.dataModel.appProcessId).isEqualTo(123)
     val component = CpuCoreTrackRenderer().render(coreTrackModel)
     assertThat(component).isInstanceOf(StateChart::class.java)
+  }
+
+  @Test
+  fun colorByThreadName() {
+    val colorProvider = CpuCoreTrackRenderer.CpuCoreColorProvider()
+    val thread1 = CpuThreadSliceInfo(1, "fooThread", 1000, "fooProcess")
+    val thread2 = CpuThreadSliceInfo(2, "barThread", 1000, "fooProcess")
+    assertThat(colorProvider.getColor(false, thread1)).isNotEqualTo(colorProvider.getColor(false, thread2))
   }
 }
