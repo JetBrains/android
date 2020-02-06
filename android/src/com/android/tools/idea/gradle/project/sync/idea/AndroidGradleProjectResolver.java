@@ -427,10 +427,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   @Override
   public void populateModuleContentRoots(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
-    // TODO: Remove this when we switch to correct content entry handling
-    if (!isAndroidGradleProject() || BUILD_SRC_FOLDER_NAME.equals(gradleModule.getGradleProject().getName())) {
-      nextResolver.populateModuleContentRoots(gradleModule, ideModule);
-    }
+    nextResolver.populateModuleContentRoots(gradleModule, ideModule);
   }
 
   private boolean hasArtifacts(@NotNull IdeaModule gradleModule) {
