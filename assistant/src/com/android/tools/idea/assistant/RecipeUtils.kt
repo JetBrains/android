@@ -16,13 +16,12 @@
 package com.android.tools.idea.assistant
 
 import com.android.SdkConstants
-import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException
+import com.android.tools.idea.npw.model.actuallyRender
+import com.android.tools.idea.npw.model.findReferences
 import com.android.tools.idea.templates.TemplateUtils.openEditors
-import com.android.tools.idea.templates.recipe.Recipe
-import com.android.tools.idea.templates.recipe.RenderingContext
+import com.android.tools.idea.templates.getDummyModuleTemplateDataBuilder
+import com.android.tools.idea.templates.recipe.RenderingContext2
 import com.google.common.collect.ImmutableList
-import com.google.common.collect.LinkedHashMultimap
-import com.google.common.collect.SetMultimap
 import com.intellij.openapi.command.WriteCommandAction.writeCommandAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
@@ -35,6 +34,7 @@ import org.xml.sax.Attributes
 import org.xml.sax.helpers.DefaultHandler
 import java.io.File
 import javax.xml.parsers.SAXParserFactory
+import com.android.tools.idea.wizard.template.Recipe
 
 private val log: Logger get() = logger<RecipeUtils>()
 
@@ -42,10 +42,10 @@ private val log: Logger get() = logger<RecipeUtils>()
  * A collection of utility methods for interacting with an `Recipe`.
  */
 object RecipeUtils {
+  // TODO(qumeric): remove this cache. It is not needed anymore, everything is fast without it.
   private val recipeMetadataCache: MutableMap<Pair<Recipe, Project>, List<RecipeMetadata>> = hashMapOf()
 
-  @JvmStatic
-  fun getRecipeMetadata(recipe: Recipe, module: Module): RecipeMetadata {
+  private fun getRecipeMetadata(recipe: Recipe, module: Module): RecipeMetadata {
     val key = Pair(recipe, module.project)
     if (recipeMetadataCache.containsKey(key)) {
       val metadata = recipeMetadataCache[key]!!.find { it.recipe == recipe }
@@ -53,47 +53,39 @@ object RecipeUtils {
         return metadata
       }
     }
-    val dependencies: SetMultimap<String, String> = LinkedHashMultimap.create()
-    val classpathEntries: Set<String> = hashSetOf()
-    val plugins: Set<String> = hashSetOf()
-    val sourceFiles: List<File> = mutableListOf()
-    val targetFiles: List<File> = mutableListOf()
     val metadata = RecipeMetadata(recipe, module)
-    var context: RenderingContext? = null
 
-    try {
-      val moduleRoot = AndroidRootUtil.findModuleRootFolderPath(module)!!
-      // TODO: do we care about this path?
-      val rootPath = File(FileUtil.generateRandomTemporaryPath(), "unused")
-      rootPath.deleteOnExit()
-      context = RenderingContext.Builder
-        .newContext(rootPath, module.project)
-        .withOutputRoot(moduleRoot)
-        .withModuleRoot(moduleRoot)
-        .withFindOnlyReferences(true)
-        .intoDependencies(dependencies)
-        .intoClasspathEntries(classpathEntries)
-        .intoPlugins(plugins)
-        .intoSourceFiles(sourceFiles)
-        .intoTargetFiles(targetFiles)
-        .build()
-      val recipeExecutor = context.recipeExecutor
-      recipe.execute(recipeExecutor)
+    val moduleRoot = AndroidRootUtil.findModuleRootFolderPath(module)!!
+    // TODO: do we care about this path?
+    val rootPath = File(FileUtil.generateRandomTemporaryPath(), "unused")
+    rootPath.deleteOnExit()
+
+    val context = RenderingContext2(
+      project = module.project,
+      module = module,
+      commandName = "Unnamed",
+      templateData = getDummyModuleTemplateDataBuilder(module.project).build(),
+      outputRoot = rootPath,
+      moduleRoot = moduleRoot,
+      dryRun = false,
+      showErrors = true
+    )
+
+    // TODO(b/149085696): create logging events for Firebase?
+    recipe.findReferences(context)
+
+    // TODO(qumeric): consider using RenderingContext instead of custom RecipeMetadata class
+    with(context) {
+      val manifests = mutableListOf<File>()
+      // FIXME(qumeric): sourceFiles.filter { it.name == SdkConstants.FN_ANDROID_MANIFEST_XML }
+
+      // Ignore test configurations here.
+      dependencies[SdkConstants.GRADLE_COMPILE_CONFIGURATION].forEach { metadata.dependencies.add(it!!) }
+      classpathEntries.forEach { metadata.classpathEntries.add(it) }
+      manifests.forEach { parseManifestForPermissions(it, metadata) }
+      plugins.forEach { metadata.plugins.add(it) }
+      targetFiles.forEach { metadata.modifiedFiles.add(it) }
     }
-    catch (e: TemplateProcessingException) {
-      // TODO(b/31039466): Extra logging to track down a rare issue.
-      log.warn("Template processing exception with context in the following state: $context")
-      throw RuntimeException(e)
-    }
-
-    val manifests = sourceFiles.filter { it.name == SdkConstants.FN_ANDROID_MANIFEST_XML }
-
-    // Ignore test configurations here.
-    dependencies[SdkConstants.GRADLE_COMPILE_CONFIGURATION].forEach { metadata.dependencies.add(it!!) }
-    classpathEntries.forEach { metadata.classpathEntries.add(it) }
-    manifests.forEach { parseManifestForPermissions(it, metadata) }
-    plugins.forEach { metadata.plugins.add(it) }
-    targetFiles.forEach { metadata.modifiedFiles.add(it) }
     return metadata
   }
 
@@ -112,21 +104,26 @@ object RecipeUtils {
 
   @JvmStatic
   fun execute(recipe: Recipe, module: Module) {
-    val filesToOpen: List<File> = mutableListOf()
     val moduleRoot = AndroidRootUtil.findModuleRootFolderPath(module)!!
-    val rootPath: File = File(FileUtil.generateRandomTemporaryPath(), "unused")
-    val context = RenderingContext.Builder
-      .newContext(rootPath, module.project)
-      .withOutputRoot(moduleRoot)
-      .withModuleRoot(moduleRoot)
-      .intoOpenFiles(filesToOpen)
-      .build()
+    val rootPath = File(FileUtil.generateRandomTemporaryPath(), "unused")
+
+    val context = RenderingContext2(
+      project = module.project,
+      module = module,
+      commandName = "Unnamed",
+      templateData = getDummyModuleTemplateDataBuilder(module.project).build(),
+      outputRoot = rootPath,
+      moduleRoot = moduleRoot,
+      dryRun = false,
+      showErrors = true
+    )
 
     writeCommandAction(module.project).withName("Executing recipe instructions").run<Exception> {
-      recipe.execute(context.recipeExecutor)
+      // TODO(b/149085696): create logging events for Firebase?
+      recipe.actuallyRender(context)
     }
 
-    openEditors(module.project, filesToOpen, true)
+    openEditors(module.project, context.filesToOpen, true)
   }
 
   private fun parseManifestForPermissions(f: File, metadata: RecipeMetadata) = try {
@@ -149,3 +146,4 @@ object RecipeUtils {
     log.warn("Failed to read permissions from AndroidManifest.xml", e)
   }
 }
+

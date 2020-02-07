@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.assistant
 
-import com.android.tools.idea.templates.recipe.Recipe
+import com.android.tools.idea.wizard.template.Recipe
 import com.intellij.openapi.module.Module
 import java.io.File
 
