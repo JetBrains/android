@@ -19,6 +19,7 @@ import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.templates.TemplateUtils
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor2
+import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor2
 import com.android.tools.idea.templates.recipe.RenderingContext2
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
@@ -47,6 +48,12 @@ private val log: Logger get() = logger<Template>()
 
 fun Template.render(c: RenderingContext2, e: RecipeExecutor) =
   recipe.render(c, e, titleToTemplateRenderer(name, formFactor).takeUnless { this == Template.NoActivity })
+
+fun Recipe.findReferences(c: RenderingContext2) =
+  render(c, FindReferencesRecipeExecutor2(c), null)
+
+fun Recipe.actuallyRender(c: RenderingContext2) =
+  render(c, DefaultRecipeExecutor2(c), null)
 
 fun Recipe.render(c: RenderingContext2, e: RecipeExecutor, loggingEvent: TemplateRenderer?): Boolean {
   val success = if (c.project.isInitialized)

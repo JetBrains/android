@@ -21,8 +21,10 @@ import com.android.SdkConstants.FD_UNIT_TEST
 import com.android.sdklib.AndroidTargetHash
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.AndroidVersion.VersionCodes.P
+import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.model.MergedManifestManager
@@ -33,6 +35,7 @@ import com.android.tools.idea.projectsystem.AndroidModulePaths
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_APP_THEME_APP_BAR_OVERLAY
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_APP_THEME_NO_ACTION_BAR
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_APP_THEME_POPUP_OVERLAY
+import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.template.ApiTemplateData
 import com.android.tools.idea.wizard.template.BaseFeature
 import com.android.tools.idea.wizard.template.FormFactor
@@ -44,11 +47,13 @@ import com.android.tools.idea.wizard.template.ThemeData
 import com.android.tools.idea.wizard.template.Version
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtilCore
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.android.facet.SourceProviderManager
+import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.android.sdk.AndroidPlatform
 import java.io.File
 
@@ -251,3 +256,36 @@ class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateD
  */
 fun AndroidVersion.toApiString(): String =
   if (isPreview) AndroidTargetHash.getPlatformHashString(this) else apiString
+
+// Note: New projects are always created with androidx dependencies
+fun Project?.hasAndroidxSupport(isNewProject: Boolean) = this == null || isNewProject || this.isAndroidx()
+
+fun getDummyModuleTemplateDataBuilder(project: Project): ModuleTemplateDataBuilder {
+  val projectStateBuilder = ProjectTemplateDataBuilder(true).apply {
+    androidXSupport = true
+    setProjectDefaults(project)
+    language = com.android.tools.idea.npw.platform.Language.JAVA
+    topOut = project.guessProjectDir()!!.toIoFile()
+    debugKeyStoreSha1 = KeystoreUtils.sha1(KeystoreUtils.getOrCreateDefaultDebugKeystore())
+    applicationPackage = ""
+    overridePathCheck = false
+  }
+
+  return ModuleTemplateDataBuilder(projectStateBuilder).apply {
+    name = "Fake module state"
+    packageName = ""
+    val paths = GradleAndroidModuleTemplate.createDefaultTemplateAt(project.basePath!!, name!!).paths
+    setModuleRoots(paths, projectTemplateDataBuilder.topOut!!.path, name!!, packageName!!)
+    isNew = true
+    isLibrary = false
+    formFactor = FormFactor.Mobile
+    themesData = ThemesData()
+    apis = ApiTemplateData(
+      minApi = SdkVersionInfo.LOWEST_ACTIVE_API.toString(),
+      minApiLevel = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
+      buildApi = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
+      buildApiString = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
+      targetApi = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
+    )
+  }
+}
