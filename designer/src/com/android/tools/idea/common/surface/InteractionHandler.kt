@@ -27,6 +27,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities
 import com.android.tools.idea.uibuilder.model.NlDropEvent
 import com.android.tools.idea.uibuilder.surface.DragDropInteraction
+import com.android.tools.idea.uibuilder.surface.PanInteraction
 import com.intellij.ide.util.PsiNavigationSupport
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -263,12 +264,16 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface) : Inte
   }
 
   override fun keyPressedWithoutInteraction(keyEvent: KeyEvent): Interaction? {
+    val keyCode = keyEvent.keyCode
+    if (keyCode == DesignSurfaceShortcut.PAN.keyCode) {
+      return PanInteraction(surface)
+    }
+
     // The deletion only applies without modifier keys.
     if (keyEvent.isAltDown || keyEvent.isMetaDown || keyEvent.isShiftDown || keyEvent.isControlDown) {
       return null
     }
 
-    val keyCode = keyEvent.keyCode
     if (keyCode == KeyEvent.VK_DELETE || keyCode == KeyEvent.VK_BACK_SPACE) {
       // Try to delete selected Constraints first.
       if (!ConstraintComponentUtilities.clearSelectedConstraint(surface)) {

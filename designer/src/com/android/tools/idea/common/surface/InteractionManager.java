@@ -594,13 +594,10 @@ public class InteractionManager implements Disposable {
         if (keyCode == KeyEvent.VK_ESCAPE) {
           finishInteraction(new KeyPressedEvent(event, getInteractionInformation()), true);
           myIsInteractionCanceled = true;
-          return;
         }
-      }
-
-      if (isPanningKeyboardKey(event)) {
-        // TODO (b/142953949): Replace this by startInteraction with PanInteraction.
-        setPanning(new KeyPressedEvent(event, getInteractionInformation()), true);
+        else {
+          myCurrentInteraction.update(new KeyPressedEvent(event, getInteractionInformation()));
+        }
         return;
       }
 
@@ -622,7 +619,7 @@ public class InteractionManager implements Disposable {
         scene.repaint();
       }
       if (myCurrentInteraction != null) {
-        if (myCurrentInteraction instanceof PanInteraction && isPanningKeyboardKey(event)) {
+        if (myCurrentInteraction instanceof PanInteraction && event.getKeyCode() == DesignSurfaceShortcut.PAN.getKeyCode()) {
           // TODO (b/142953949): this should be handled by PanInteraction itself.
           setPanning(new KeyReleasedEvent(event, getInteractionInformation()), false);
           updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
@@ -793,10 +790,6 @@ public class InteractionManager implements Disposable {
       return true;
     }
     return false;
-  }
-
-  private static boolean isPanningKeyboardKey(@NotNull KeyEvent event) {
-    return event.getKeyCode() == DesignSurfaceShortcut.PAN.getKeyCode();
   }
 
   /**
