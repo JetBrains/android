@@ -15,15 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.surface
 
-import com.android.tools.idea.common.scene.SceneManager
-import com.android.tools.idea.common.scene.draw.ColorSet
-import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.common.surface.Layer
-import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.uibuilder.LayoutTestCase
-import com.google.common.collect.ImmutableList
-import org.mockito.Mockito
-import java.awt.Dimension
+import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager
 
 class SingleDirectionLayoutManagerTest: LayoutTestCase() {
 
