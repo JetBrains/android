@@ -22,9 +22,7 @@ import com.android.tools.idea.appinspection.api.TestInspectorCommandHandler
 import com.android.tools.idea.appinspection.test.ASYNC_TIMEOUT_MS
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createRawAppInspectionEvent
-import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createRawEvent
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID
-import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler
@@ -43,7 +41,7 @@ import java.util.concurrent.TimeUnit
 
 class AppInspectorConnectionTest {
   private val timer = FakeTimer()
-  private val transportService = FakeTransportService(timer)
+  private val transportService = FakeTransportService(timer, false)
 
   private val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("AppInspectorConnectionTest", transportService, transportService)!!
   private val appInspectionRule = AppInspectionServiceRule(timer, transportService, grpcServerRule)
@@ -210,7 +208,6 @@ class AppInspectorConnectionTest {
       Event.newBuilder()
         .setKind(PROCESS)
         .setIsEnded(true)
-        .setTimestamp(timer.currentTimeNs)
         .build()
     )
 
@@ -277,30 +274,6 @@ class AppInspectorConnectionTest {
       assertThat(e.cause).isInstanceOf(RuntimeException::class.java)
       assertThat(e.cause!!.message).isEqualTo("Inspector $INSPECTOR_ID has crashed.")
     }
-  }
-
-  @Test
-  fun receiveEventsInChronologicalOrder() {
-    val latch = CountDownLatch(2)
-    val listener = object : AppInspectionServiceRule.TestInspectorEventListener() {
-      override fun onRawEvent(eventData: ByteArray) {
-        super.onRawEvent(eventData)
-        latch.countDown()
-      }
-    }
-
-    appInspectionRule.addEvent(createRawEvent(ByteString.copyFromUtf8("second"), 3))
-    appInspectionRule.addEvent(createRawEvent(ByteString.copyFromUtf8("first"), 2))
-
-    appInspectionRule.launchInspectorConnection(
-      inspectorId = INSPECTOR_ID,
-      eventListener = listener
-    )
-
-    latch.await()
-
-    assertThat(String(listener.rawEvents[0])).isEqualTo("first")
-    assertThat(String(listener.rawEvents[1])).isEqualTo("second")
   }
 
   @Test
