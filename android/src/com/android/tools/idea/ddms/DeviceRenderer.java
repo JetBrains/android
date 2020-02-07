@@ -102,19 +102,14 @@ public class DeviceRenderer {
                          DevicePropertyUtil.getModel(deviceNameProperties.getModel(), ""));
   }
 
-  @NotNull
-  private static String getDeviceName(@NotNull IDevice d) {
-    return String.format("%1$s %2$s ", DevicePropertyUtil.getManufacturer(d, ""), DevicePropertyUtil.getModel(d, ""));
-  }
-
-  public static boolean shouldShowSerialNumbers(@NotNull List<IDevice> devices) {
+  public static boolean shouldShowSerialNumbers(@NotNull List<IDevice> devices, @NotNull DeviceNamePropertiesProvider provider) {
     Set<String> myNames = Sets.newHashSet();
     for (IDevice currentDevice : devices) {
       if (currentDevice.isEmulator()) {
         continue;
       }
 
-      String currentName = getDeviceName(currentDevice);
+      String currentName = getDeviceName(provider.get(currentDevice));
       if (myNames.contains(currentName)) {
         return true;
       }
