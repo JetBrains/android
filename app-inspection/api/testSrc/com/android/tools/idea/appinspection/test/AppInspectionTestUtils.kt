@@ -17,7 +17,7 @@ package com.android.tools.idea.appinspection.test
 
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
-import com.android.tools.idea.appinspection.api.AppInspectorJar
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.profiler.proto.Common
 

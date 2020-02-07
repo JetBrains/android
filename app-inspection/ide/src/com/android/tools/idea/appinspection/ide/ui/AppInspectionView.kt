@@ -16,16 +16,43 @@
 package com.android.tools.idea.appinspection.ide.ui
 
 import com.android.tools.adtui.common.AdtUiUtils
+import com.android.tools.adtui.stdui.CommonTabbedPane
+import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
+import com.android.tools.idea.appinspection.api.TransportProcessDescriptor
 import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessesComboBoxModel
-import com.intellij.ide.plugins.newui.VerticalLayout
+import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
+import com.intellij.ide.plugins.newui.HorizontalLayout
+import java.awt.BorderLayout
+import java.awt.event.ItemEvent
 import javax.swing.JPanel
 
-class AppInspectionView {
-  val component = JPanel(VerticalLayout(0))
-  private val comboBoxModel = AppInspectionProcessesComboBoxModel.newInstance()
+class AppInspectionView(appInspectionDiscoveryHost: AppInspectionDiscoveryHost) {
+  val component = JPanel(BorderLayout())
 
   init {
     component.border = AdtUiUtils.DEFAULT_RIGHT_BORDER
-    component.add(AppInspectionProcessesComboBox(comboBoxModel))
+
+    val inspectionProcessesComboBox = AppInspectionProcessesComboBox(AppInspectionProcessesComboBoxModel(appInspectionDiscoveryHost))
+    val toolbar = JPanel(HorizontalLayout(0))
+    toolbar.add(inspectionProcessesComboBox)
+    component.add(toolbar, BorderLayout.NORTH)
+
+    val tabbedPane = CommonTabbedPane()
+    component.add(tabbedPane, BorderLayout.CENTER)
+    inspectionProcessesComboBox.addItemListener { e ->
+      if (e.stateChange == ItemEvent.SELECTED) {
+        tabbedPane.removeAll()
+        val transportProcessDescriptor = e.item as? TransportProcessDescriptor ?: return@addItemListener
+        val target = appInspectionDiscoveryHost.attachToProcess(transportProcessDescriptor).get()
+                     ?: return@addItemListener
+        for (provider in AppInspectorTabProvider.EP_NAME.extensionList) {
+          target.launchInspector(provider.inspectorId, provider.inspectorAgentJar) { messenger ->
+            val tab = provider.createTab(messenger)
+            tabbedPane.addTab(provider.displayName, tab.component)
+            tab.client
+          }
+        }
+      }
+    }
   }
 }
