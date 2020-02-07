@@ -90,7 +90,7 @@ class DetailedPreview : JPanel(null) {
       iconPreviewContainer.isVisible = value != null
     }
 
-  private val iconPreviewContainer = ChessBoardPanel(BorderLayout()).apply {
+  private val iconPreviewContainer = ChessBoardPanel().apply {
     isVisible = false
     alignmentX = LEFT_ALIGNMENT
     border = BorderFactory.createCompoundBorder(JBUI.Borders.emptyBottom(PREVIEW_BOTTOM_MARGIN),
