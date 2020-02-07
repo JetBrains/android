@@ -89,4 +89,39 @@ class TableViewImplTest : LightPlatformTestCase() {
     assertEquals(0, jbScrollPane.horizontalScrollBar.model.minimum)
     assertTrue(jbScrollPane.horizontalScrollBar.model.maximum > 598)
   }
+
+  fun testSetEditableHidesReadOnlyLabelAndEnablesCellEditing() {
+    // Prepare
+    val treeWalker = TreeWalker(view.component)
+
+    val readOnlyLabel = treeWalker.descendants().first { it.name == "read-only-label" }
+    val table = treeWalker.descendants().filterIsInstance<JBTable>().first()
+
+    view.showTableColumns(emptyList())
+
+    // Act
+    view.setEditable(true)
+
+    // Assert
+    assertFalse(readOnlyLabel.isVisible)
+    assertTrue(table.model.isCellEditable(0, 0))
+  }
+
+  fun testSetNotEditableShowsReadOnlyLabelAndDisableCellEditing() {
+    // Prepare
+    val treeWalker = TreeWalker(view.component)
+
+    val readOnlyLabel = treeWalker.descendants().first { it.name == "read-only-label" }
+    val table = treeWalker.descendants().filterIsInstance<JBTable>().first()
+
+    view.showTableColumns(emptyList())
+
+    // Act
+    view.setEditable(false)
+
+
+    // Assert
+    assertTrue(readOnlyLabel.isVisible)
+    assertFalse(table.model.isCellEditable(0, 0))
+  }
 }
