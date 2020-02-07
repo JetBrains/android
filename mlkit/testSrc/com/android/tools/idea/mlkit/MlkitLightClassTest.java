@@ -79,17 +79,20 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "import java.lang.Float;\n" +
       "import java.util.Map;\n" +
       "import android.graphics.Bitmap;\n" +
+      "import java.io.IOException;\n" +
       "\n" +
       "public class MainActivity extends Activity {\n" +
       "    @Override\n" +
       "    protected void onCreate(Bundle savedInstanceState) {\n" +
       "        super.onCreate(savedInstanceState);\n" +
-      "        MyModel myModel = new MyModel(this);\n" +
-      "        Bitmap image = null;\n" +
-      "        MyModel.Inputs inputs = myModel.createInputs();\n" +
-      "        inputs.loadImage1(image);\n" +
-      "        MyModel.Outputs output = myModel.run(inputs);\n" +
-      "        Map<String, Float> probability = output.getProbability();\n" +
+      "        try {\n" +
+      "            MyModel myModel = new MyModel(this);\n" +
+      "            Bitmap image = null;\n" +
+      "            MyModel.Inputs inputs = myModel.createInputs();\n" +
+      "            inputs.loadImage1(image);\n" +
+      "            MyModel.Outputs output = myModel.run(inputs);\n" +
+      "            Map<String, Float> probability = output.getProbability();\n" +
+      "        } catch (IOException e) {};\n" +
       "    }\n" +
       "}"
     );
