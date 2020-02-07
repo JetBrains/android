@@ -15,17 +15,22 @@
  */
 package com.android.tools.idea.ddms;
 
+import static com.android.ddmlib.IDevice.DeviceState;
+import static com.android.ddmlib.IDevice.PROP_BUILD_API_LEVEL;
+import static com.android.ddmlib.IDevice.PROP_BUILD_VERSION;
+import static com.android.ddmlib.IDevice.PROP_DEVICE_MANUFACTURER;
+import static com.android.ddmlib.IDevice.PROP_DEVICE_MODEL;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import com.android.ddmlib.IDevice;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.SimpleColoredText;
-import org.easymock.EasyMock;
-import org.junit.Test;
-
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.android.ddmlib.IDevice.*;
-import static org.junit.Assert.*;
+import org.easymock.EasyMock;
+import org.junit.Test;
 
 public final class DeviceRendererTest {
   private static String manufacturer = "google";
@@ -40,7 +45,7 @@ public final class DeviceRendererTest {
                                       String buildVersion,
                                       String apiLevel,
                                       String serial,
-                                      IDevice.DeviceState state) throws Exception {
+                                      DeviceState state) {
     IDevice d = EasyMock.createMock(IDevice.class);
     EasyMock.expect(d.isEmulator()).andStubReturn(isEmulator);
     if (isEmulator) {
@@ -60,9 +65,9 @@ public final class DeviceRendererTest {
   }
 
   @Test
-  public void deviceNameRendering1() throws Exception {
+  public void deviceNameRendering1() {
     String serial = "123";
-    IDevice d = createDevice(false, null, manufacturer, model, buildVersion, apiLevel, serial, IDevice.DeviceState.ONLINE);
+    IDevice d = createDevice(false, null, manufacturer, model, buildVersion, apiLevel, serial, DeviceState.ONLINE);
     DeviceNameProperties deviceNameProperties = new DeviceNameProperties(model, manufacturer, buildVersion, apiLevel);
     SimpleColoredText target = new SimpleColoredText();
     DeviceRenderer.renderDeviceName(d, deviceNameProperties, target, false);
@@ -76,15 +81,15 @@ public final class DeviceRendererTest {
                                apiLevel),
                  name);
     // status should be shown only if !online
-    assertFalse(StringUtil.containsIgnoreCase(name, IDevice.DeviceState.ONLINE.toString()));
+    assertFalse(StringUtil.containsIgnoreCase(name, DeviceState.ONLINE.toString()));
     // serial should be shown only if !online
     assertFalse(StringUtil.containsIgnoreCase(name, serial));
   }
 
   @Test
-  public void deviceNameRendering2() throws Exception {
+  public void deviceNameRendering2() {
     String serial = "123";
-    IDevice d = createDevice(true, "Avdname", manufacturer, model, buildVersion, apiLevel, serial, IDevice.DeviceState.BOOTLOADER);
+    IDevice d = createDevice(true, "Avdname", manufacturer, model, buildVersion, apiLevel, serial, DeviceState.BOOTLOADER);
     DeviceNameProperties deviceNameProperties = new DeviceNameProperties(model, manufacturer, buildVersion, apiLevel);
     SimpleColoredText target = new SimpleColoredText();
     DeviceRenderer.renderDeviceName(d, deviceNameProperties, target, false);
@@ -92,14 +97,14 @@ public final class DeviceRendererTest {
     String name = target.toString();
     assertFalse(StringUtil.containsIgnoreCase(name, "Nexus 4"));
     assertTrue(StringUtil.containsIgnoreCase(name, "Avdname"));
-    assertTrue(StringUtil.containsIgnoreCase(name, IDevice.DeviceState.BOOTLOADER.toString()));
+    assertTrue(StringUtil.containsIgnoreCase(name, DeviceState.BOOTLOADER.toString()));
     assertTrue(StringUtil.containsIgnoreCase(name, serial));
   }
 
   @Test
-  public void deviceNameRenderingSerial() throws Exception {
+  public void deviceNameRenderingSerial() {
     String serial = "123";
-    IDevice d = createDevice(false, null, manufacturer, model, buildVersion, apiLevel, serial, IDevice.DeviceState.ONLINE);
+    IDevice d = createDevice(false, null, manufacturer, model, buildVersion, apiLevel, serial, DeviceState.ONLINE);
     DeviceNameProperties deviceNameProperties = new DeviceNameProperties(model, manufacturer, buildVersion, apiLevel);
     SimpleColoredText target = new SimpleColoredText();
     DeviceRenderer.renderDeviceName(d, deviceNameProperties, target, true);
@@ -111,9 +116,9 @@ public final class DeviceRendererTest {
   }
 
   @Test
-  public void nullAvdNameForEmulator() throws Exception {
+  public void nullAvdNameForEmulator() {
     String serial = "emulator-5554";
-    IDevice d = createDevice(true, null, manufacturer, model, buildVersion, apiLevel, serial, IDevice.DeviceState.ONLINE);
+    IDevice d = createDevice(true, null, manufacturer, model, buildVersion, apiLevel, serial, DeviceState.ONLINE);
     DeviceNameProperties deviceNameProperties = new DeviceNameProperties(model, manufacturer, buildVersion, apiLevel);
     SimpleColoredText target = new SimpleColoredText();
     DeviceRenderer.renderDeviceName(d, deviceNameProperties, target, false);
@@ -123,23 +128,23 @@ public final class DeviceRendererTest {
   }
 
   @Test
-  public void showSerialFalseForEmulator() throws Exception {
+  public void showSerialFalseForEmulator() {
     List<IDevice> devices = new ArrayList<>();
 
-    IDevice d1 = createDevice(true, null, manufacturer, model, buildVersion, apiLevel, "123", IDevice.DeviceState.ONLINE);
+    IDevice d1 = createDevice(true, null, manufacturer, model, buildVersion, apiLevel, "123", DeviceState.ONLINE);
     devices.add(d1);
-    devices.add(createDevice(true, null, manufacturer, model, buildVersion, apiLevel, "1234", IDevice.DeviceState.ONLINE));
+    devices.add(createDevice(true, null, manufacturer, model, buildVersion, apiLevel, "1234", DeviceState.ONLINE));
 
     assertFalse(DeviceRenderer.shouldShowSerialNumbers(devices));
   }
 
   @Test
-  public void showSerialTrueForDuplicate() throws Exception {
+  public void showSerialTrueForDuplicate() {
     List<IDevice> devices = new ArrayList<>();
 
-    IDevice d1 = createDevice(false, null, manufacturer, model, buildVersion, apiLevel, "123", IDevice.DeviceState.ONLINE);
+    IDevice d1 = createDevice(false, null, manufacturer, model, buildVersion, apiLevel, "123", DeviceState.ONLINE);
     devices.add(d1);
-    devices.add(createDevice(false, null, manufacturer, model, buildVersion, apiLevel, "1234", IDevice.DeviceState.ONLINE));
+    devices.add(createDevice(false, null, manufacturer, model, buildVersion, apiLevel, "1234", DeviceState.ONLINE));
 
     assertTrue(DeviceRenderer.shouldShowSerialNumbers(devices));
   }
