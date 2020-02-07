@@ -60,9 +60,12 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
   override fun handleFinished() {
     initMainModule()
     val newRenderTemplateModel = createMainRenderModel()
+    val packageName = projectModel.packageName.get()
     if (hasCompanionApp.get() && newRenderTemplateModel.hasActivity) {
       val companionModuleModel = createCompanionModuleModel(projectModel)
-      val companionRenderModel = createCompanionRenderModel(companionModuleModel)
+      val companionRenderModel = createCompanionRenderModel(companionModuleModel, packageName).apply {
+        newTemplate.parameters.find { it.name == "Package name" }
+      }
 
       companionModuleModel.androidSdkInfo.value = androidSdkInfo().value
 
@@ -77,7 +80,7 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
     }
 
     if (newRenderTemplateModel.hasActivity) {
-      addRenderDefaultTemplateValues(newRenderTemplateModel)
+      addRenderDefaultTemplateValues(newRenderTemplateModel, packageName)
       newRenderTemplateModel.handleFinished()
     }
     else {
@@ -98,8 +101,7 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
   }
 
   private fun createMainRenderModel(): RenderTemplateModel = when {
-    projectModel.enableCppSupport.get() -> createCompanionRenderModel(newModuleModel)
-    !extraRenderTemplateModel.hasActivity -> {
+    projectModel.enableCppSupport.get() || !extraRenderTemplateModel.hasActivity -> {
       RenderTemplateModel.fromModuleModel(newModuleModel).apply {
         if (newRenderTemplate.isPresent.get()) {
           newTemplate = newRenderTemplate.value
@@ -110,7 +112,7 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
   }
 }
 
-private const val EMPTY_ACTIVITY = "Empty Activity"
+internal const val EMPTY_ACTIVITY = "Empty Activity"
 
 private fun createCompanionModuleModel(projectModel: NewProjectModel): NewAndroidModuleModel {
   // Note: The companion Module is always a Mobile app
@@ -122,21 +124,24 @@ private fun createCompanionModuleModel(projectModel: NewProjectModel): NewAndroi
   return companionModuleModel
 }
 
-private fun createCompanionRenderModel(moduleModel: NewAndroidModuleModel): RenderTemplateModel {
+private fun createCompanionRenderModel(moduleModel: NewAndroidModuleModel, packageName: String): RenderTemplateModel {
   // Note: The companion Render is always a "Empty Activity"
   val companionRenderModel = RenderTemplateModel.fromModuleModel(moduleModel).apply {
     newTemplate = TemplateResolver.getAllTemplates().first { it.name == EMPTY_ACTIVITY }
   }
-  addRenderDefaultTemplateValues(companionRenderModel)
+  addRenderDefaultTemplateValues(companionRenderModel, packageName)
 
   return companionRenderModel
 }
+
+private fun addRenderDefaultTemplateValues(renderTemplateModel: RenderTemplateModel, packageName: String) =
+  renderTemplateModel.newTemplate.parameters.run {
+    filterIsInstance<StringParameter>().forEach { it.value = it.suggest() ?: it.value }
+    val packageNameParameter = find { it.name == "Package name" } as StringParameter?
+    packageNameParameter?.value = packageName
+  }
 
 private fun getModuleName(formFactor: FormFactor): String =
   // Form factors like Android Auto build upon another form factor
   (formFactor.baseFormFactor ?: formFactor).id.replace("\\s".toRegex(), "_").toLowerCase(Locale.US)
 
-private fun addRenderDefaultTemplateValues(renderTemplateModel: RenderTemplateModel) =
-  renderTemplateModel.newTemplate.parameters
-    .filterIsInstance<StringParameter>()
-    .forEach { it.value = it.suggest() ?: it.value }

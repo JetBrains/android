@@ -80,6 +80,7 @@ import com.google.common.base.Joiner
 import com.google.common.cache.CacheBuilder
 import com.google.common.io.Files
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.Project
 import com.intellij.ui.RecentsManager
 import com.intellij.ui.components.JBLabel
 import com.intellij.uiDesigner.core.GridConstraints
@@ -166,9 +167,6 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
 
   private var evaluationState = EvaluationState.NOT_EVALUATING
 
-  private val isNewModule: Boolean
-    get() = model.module == null
-
   private val widgets: Collection<Widget<*>> get() = model.newTemplate.widgets
 
   private val parameters: Collection<Parameter<*>> get() = model.newTemplate.parameters
@@ -178,6 +176,9 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
    */
   private val thumbnailPath: String
     get() = model.newTemplate.thumb().path.path
+
+  // TODO(qumeric): probably model.project should be nullable instead of lateinit.
+  private val project: Project? get() = if (model.isNewProject) null else model.project
 
   /**
    * Given a parameter, return a String key we can use to interact with IntelliJ's [RecentsManager] system.
@@ -365,7 +366,7 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
       }
       when (parameter) {
         is StringParameter -> parameter.validate(
-          model.project, model.module, sourceProvider, model.packageName.get(), property.get(), getRelatedValues(parameter))
+          project, model.module, sourceProvider, model.packageName.get(), property.get(), getRelatedValues(parameter))
         else -> null
       }
     }
@@ -518,7 +519,6 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
     val filenameJoiner = Joiner.on('.').skipNulls()
 
     var suffix = 2
-    val project = model.project
     val relatedValues = getRelatedValues(parameter)
     val sourceProvider = model.template.get().getSourceProvider()
     while (!parameter.uniquenessSatisfied(project, model.module, sourceProvider, model.packageName.get(), suggested, relatedValues)) {
