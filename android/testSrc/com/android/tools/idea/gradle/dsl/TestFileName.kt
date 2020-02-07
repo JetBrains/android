@@ -1116,6 +1116,13 @@ enum class TestFileName(val path: String) {
   MODEL_SIMPLE_PROPERTY_IMPL_REBIND_RESOLVED_PROPERTY_EXPECTED("modelSimplePropertyImpl/rebindResolvedPropertyExpected"),
   MODEL_SIMPLE_PROPERTY_IMPL_PROPERTY_INITIALIZER("modelSimplePropertyImpl/propertyInitializer"),
   ARTIFACT_REPOSITORY_SEARCH_FORM_KT_PREPARE_ARTIFACT_VERSION_CHOICES("artifactRepositorySearchFormKt/prepareArtifactVersionChoices"),
+  DEPENDENCIES_INFO_MODEL_PARSE("dependenciesInfoModel/parse"),
+  DEPENDENCIES_INFO_MODEL_ADD_AND_APPLY("dependenciesInfoModel/addAndApply"),
+  DEPENDENCIES_INFO_MODEL_ADD_AND_APPLY_EXPECTED("dependenciesInfoModel/addAndApplyExpected"),
+  DEPENDENCIES_INFO_MODEL_EDIT_AND_APPLY("dependenciesInfoModel/editAndApply"),
+  DEPENDENCIES_INFO_MODEL_EDIT_AND_APPLY_EXPECTED("dependenciesInfoModel/editAndApplyExpected"),
+  DEPENDENCIES_INFO_MODEL_REMOVE_AND_APPLY("dependenciesInfoModel/removeAndApply"),
+  DEPENDENCIES_INFO_MODEL_REMOVE_AND_APPLY_EXPECTED("dependenciesInfoModel/removeAndApplyExpected"),
 
   ;
 
