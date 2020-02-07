@@ -22,6 +22,7 @@ import com.android.builder.model.AndroidLibrary
 import com.android.builder.model.AndroidProject
 import com.android.builder.model.BuildTypeContainer
 import com.android.builder.model.Dependencies
+import com.android.builder.model.DependenciesInfo
 import com.android.builder.model.JavaArtifact
 import com.android.builder.model.JavaLibrary
 import com.android.builder.model.ProductFlavorContainer
@@ -38,6 +39,7 @@ import com.android.ide.common.gradle.model.stubs.AndroidProjectStub
 import com.android.ide.common.gradle.model.stubs.ApiVersionStub
 import com.android.ide.common.gradle.model.stubs.BuildTypeContainerStub
 import com.android.ide.common.gradle.model.stubs.BuildTypeStub
+import com.android.ide.common.gradle.model.stubs.DependenciesInfoStub
 import com.android.ide.common.gradle.model.stubs.DependenciesStub
 import com.android.ide.common.gradle.model.stubs.DependencyGraphsStub
 import com.android.ide.common.gradle.model.stubs.InstantRunStub
@@ -177,6 +179,7 @@ interface AndroidProjectStubBuilder {
   val releaseBuildType: BuildTypeContainer?
   val dynamicFeatures: List<String>
   val viewBindingOptions: ViewBindingOptions
+  val dependenciesInfo: DependenciesInfo
   val supportsBundleTask: Boolean
   fun androidModuleDependencies(variant: String): List<AndroidModuleDependency>?
   fun mainArtifact(variant: String): AndroidArtifact
@@ -208,6 +211,7 @@ data class AndroidProjectBuilder(
   val releaseBuildType: AndroidProjectStubBuilder.() -> BuildTypeContainerStub? = { buildReleaseBuildTypeStub() },
   val dynamicFeatures: AndroidProjectStubBuilder.() -> List<String> = { emptyList() },
   val viewBindingOptions: AndroidProjectStubBuilder.() -> ViewBindingOptionsStub = { buildViewBindingOptions() },
+  val dependenciesInfo: AndroidProjectStubBuilder.() -> DependenciesInfoStub = { buildDependenciesInfo() },
   val supportsBundleTask: AndroidProjectStubBuilder.() -> Boolean = { true },
   val mainArtifactStub: AndroidProjectStubBuilder.(variant: String) -> AndroidArtifactStub = { variant -> buildMainArtifactStub(variant) },
   val androidTestArtifactStub: AndroidProjectStubBuilder.(variant: String) -> AndroidArtifactStub =
@@ -299,6 +303,7 @@ data class AndroidProjectBuilder(
       override val releaseBuildType: BuildTypeContainer? = releaseBuildType()
       override val dynamicFeatures: List<String> = dynamicFeatures()
       override val viewBindingOptions: ViewBindingOptions = viewBindingOptions()
+      override val dependenciesInfo: DependenciesInfo = dependenciesInfo()
       override val supportsBundleTask: Boolean = supportsBundleTask()
       override fun androidModuleDependencies(variant: String): List<AndroidModuleDependency> = androidModuleDependencyList(variant)
       override fun mainArtifact(variant: String): AndroidArtifact = mainArtifactStub(variant)
@@ -403,6 +408,7 @@ fun AndroidProjectStubBuilder.buildReleaseBuildTypeStub() = releaseSourceProvide
 }
 
 fun AndroidProjectStubBuilder.buildViewBindingOptions() = ViewBindingOptionsStub()
+fun AndroidProjectStubBuilder.buildDependenciesInfo() = DependenciesInfoStub()
 
 fun AndroidProjectStubBuilder.buildMainArtifactStub(
   variant: String,
@@ -582,6 +588,7 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): AndroidProjectStub {
     AaptOptionsStub(),
     dynamicFeatures,
     viewBindingOptions,
+    dependenciesInfo,
     buildPath,
     null,
     1,
