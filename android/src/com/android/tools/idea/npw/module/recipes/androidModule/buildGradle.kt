@@ -53,17 +53,12 @@ fun buildGradle(
   val supportsImprovedTestDeps = supportsImprovedTestDeps(gradlePluginVersion)
   val isApplicationProject = !isLibraryProject
 
+  // Note: Not doing this programmatically (applyPlugin) for groovy because if there is no plugin it uses syntax plugins { id(...) }
   val pluginsBlock = "    " + when {
     isLibraryProject -> "apply plugin: 'com.android.library'"
     isDynamicFeature -> "apply plugin: 'com.android.dynamic-feature'"
     else -> "apply plugin: 'com.android.application'"
   }
-
-  val ktsPluginsBlock = "plugins {\n" + when {
-    isLibraryProject -> "id(\"com.android.library\")"
-    isDynamicFeature -> "id(\"com.android.dynamic-feature\")"
-    else -> "id(\"com.android.application\")"
-  } + "\n }"
 
   val androidConfigBlock = androidConfig(
     buildApiString,
@@ -111,7 +106,7 @@ fun buildGradle(
 
   return if (isKts) {
     """
-    $ktsPluginsBlock
+
     $androidConfigBlock
     $dependenciesBlock
     """

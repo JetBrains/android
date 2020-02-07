@@ -82,6 +82,12 @@ fun RecipeExecutor.generateCommonModule(
     moduleOut.resolve(buildFile)
   )
 
+  // Note: com.android.* needs to be applied before kotlin
+  when {
+    isLibraryProject -> applyPlugin("com.android.library")
+    data.isDynamic -> applyPlugin("com.android.dynamic-feature")
+    else -> applyPlugin("com.android.application")
+  }
   addKotlinIfNeeded(projectData)
 
   save(manifestXml, manifestOut.resolve(FN_ANDROID_MANIFEST_XML))
