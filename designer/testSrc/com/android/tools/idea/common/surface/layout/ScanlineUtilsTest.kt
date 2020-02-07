@@ -59,9 +59,9 @@ class ScanlineUtilsTest {
     // Verify start horizontal scanlines
     assertArrayEquals(arrayOf(101, 201), sceneViews.findAllScanlines { it.y }.toTypedArray())
     // Verify end vertical scanlines
-    assertArrayEquals(arrayOf(110, 212), sceneViews.findAllScanlines { it.x + it.getSize(null).width }.toTypedArray())
+    assertArrayEquals(arrayOf(110, 212), sceneViews.findAllScanlines { it.x + it.getScaledContentSize(null).width }.toTypedArray())
     // Verify end horizontal scanlines
-    assertArrayEquals(arrayOf(112, 214), sceneViews.findAllScanlines { it.y + it.getSize(null).height }.toTypedArray())
+    assertArrayEquals(arrayOf(112, 214), sceneViews.findAllScanlines { it.y + it.getScaledContentSize(null).height }.toTypedArray())
   }
 
   @Test

@@ -83,42 +83,44 @@ public abstract class SceneView {
   }
 
   @NotNull
-  public Scene getScene() {
-    return myManager.getScene();
+  public final Scene getScene() {
+    return getSceneManager().getScene();
   }
 
   /**
-   * Returns the current size of the view. This is the same as {@link #getPreferredSize()} but accounts for the current zoom level.
+   * Returns the current size of the view content, excluding margins. This is the same as {@link #getContentSize()} but accounts for the
+   * current zoom level
    *
    * @param dimension optional existing {@link Dimension} instance to be reused. If not null, the values will be set and this instance
    *                  returned.
    */
   @NotNull
   @SwingCoordinate
-  public Dimension getSize(@Nullable Dimension dimension) {
+  public final Dimension getScaledContentSize(@Nullable Dimension dimension) {
     if (dimension == null) {
       dimension = new Dimension();
     }
 
-    Dimension preferred = getPreferredSize(dimension);
+    Dimension contentSize = getContentSize(dimension);
     double scale = getScale();
 
-    dimension.setSize((int)(scale * preferred.width), (int)(scale * preferred.height));
+    dimension.setSize((int)(scale * contentSize.width), (int)(scale * contentSize.height));
     return dimension;
   }
 
   @NotNull
-  public Dimension getPreferredSize() {
-    return getPreferredSize(null);
+  public final Dimension getContentSize() {
+    return getContentSize(null);
   }
 
   /**
-   * Returns the current size of the view. This is the same as {@link #getPreferredSize()} but accounts for the current zoom level.
+   * Returns the current size of the view content, excluding margins. This is the same as {@link #getContentSize()} but accounts for the
+   * current zoom level.
    */
   @NotNull
   @SwingCoordinate
-  public Dimension getSize() {
-    return getSize(null);
+  public final Dimension getScaledContentSize() {
+    return getScaledContentSize(null);
   }
 
   /**
@@ -130,7 +132,7 @@ public abstract class SceneView {
   }
 
   @NotNull
-  abstract public Dimension getPreferredSize(@Nullable Dimension dimension);
+  abstract public Dimension getContentSize(@Nullable Dimension dimension);
 
   @NotNull
   public Configuration getConfiguration() {
@@ -166,7 +168,7 @@ public abstract class SceneView {
       return null;
     }
 
-    Dimension size = getSize();
+    Dimension size = getScaledContentSize();
 
     int chin = screen.getChin();
     int originX = getX();

@@ -53,7 +53,6 @@ import com.android.tools.idea.naveditor.scene.targets.NavScreenTargetProvider
 import com.android.tools.idea.naveditor.scene.targets.NavigationTargetProvider
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.surface.NavView
-import com.android.tools.idea.rendering.RenderSettings
 import com.android.tools.idea.rendering.parsers.TagSnapshot
 import com.intellij.openapi.command.undo.BasicUndoableAction
 import com.intellij.openapi.command.undo.UndoManager
@@ -115,7 +114,7 @@ open class NavSceneManager(
 
   override fun doCreateSceneView(): NavView {
     val navView = NavView(designSurface, this)
-    designSurface.layeredPane.preferredSize = navView.preferredSize
+    designSurface.layeredPane.preferredSize = navView.contentSize
     return navView
   }
 

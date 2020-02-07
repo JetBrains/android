@@ -33,7 +33,7 @@ class TestSceneView(private val width: Int, private val height: Int, private val
 
   override fun createLayers(): ImmutableList<Layer> = ImmutableList.of()
 
-  override fun getPreferredSize(dimension: Dimension?): Dimension {
+  override fun getContentSize(dimension: Dimension?): Dimension {
     val dim = dimension ?: Dimension()
     dim.setSize(width, height)
     return dim

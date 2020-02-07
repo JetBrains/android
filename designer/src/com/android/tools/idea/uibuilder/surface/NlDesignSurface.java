@@ -534,7 +534,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   public SceneView getHoverSceneView(@SwingCoordinate int x, @SwingCoordinate int y) {
     Collection<SceneView> sceneViews = getSceneViews();
     for (SceneView view : sceneViews) {
-      if (view.getX() <= x && x <= (view.getX() + view.getSize().width) && view.getY() <= y && y <= (view.getY() + view.getSize().height)) {
+      if (view.getX() <= x && x <= (view.getX() + view.getScaledContentSize().width) && view.getY() <= y && y <= (view.getY() + view.getScaledContentSize().height)) {
         return view;
       }
     }

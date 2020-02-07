@@ -71,7 +71,7 @@ public class SceneLayer extends Layer {
     Graphics2D g = (Graphics2D)g2.create();
     try {
       g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-      mySceneView.getSize(myScreenViewSize);
+      mySceneView.getScaledContentSize(myScreenViewSize);
 
       Rectangle clipBounds = g.getClipBounds();
       mySizeRectangle.setBounds(mySceneView.getX(), mySceneView.getY(), myScreenViewSize.width, myScreenViewSize.height);

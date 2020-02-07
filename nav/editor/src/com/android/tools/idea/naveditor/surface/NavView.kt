@@ -32,7 +32,7 @@ class NavView(surface: NavDesignSurface, sceneManager: SceneManager) : SceneView
   override fun createLayers(): ImmutableList<Layer> = ImmutableList.of(SceneLayer(surface, this, true))
   override fun getContentTranslationX() = -Coordinates.getSwingDimension(this, sceneManager.scene.root?.drawX ?: 0)
   override fun getContentTranslationY() = -Coordinates.getSwingDimension(this, sceneManager.scene.root?.drawY ?: 0)
-  override fun getPreferredSize(dimension: Dimension?): Dimension {
+  override fun getContentSize(dimension: Dimension?): Dimension {
     val result = dimension ?: Dimension()
 
     result.height = Coordinates.dpToPx(this, sceneManager.scene.root?.drawHeight ?: 0)

@@ -247,7 +247,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
     DesignSurface target = myDesignSurfaceFixture.target();
     SceneView sceneView = target.getFocusedSceneView();
 
-    dragComponentToSurface(group, item, sceneView.getSize().width / 2, sceneView.getSize().height / 2);
+    dragComponentToSurface(group, item, sceneView.getScaledContentSize().width / 2, sceneView.getScaledContentSize().height / 2);
     return this;
   }
 
@@ -263,7 +263,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
     DesignSurface surface = myDesignSurfaceFixture.target();
     SceneView screenView = surface.getFocusedSceneView();
 
-    Dimension size = screenView.getSize();
+    Dimension size = screenView.getScaledContentSize();
     robot().pressMouse(surface, new Point(screenView.getX() + size.width + 24, screenView.getY() + size.height + 24));
     return this;
   }
@@ -356,7 +356,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
     DesignSurface surface = myDesignSurfaceFixture.target();
 
     SceneView view = surface.getFocusedSceneView();
-    Dimension contentDimension = view.getSize();
+    Dimension contentDimension = view.getScaledContentSize();
     // The square icon is placed in the center of a portrait ImageView, shift the y-axis to make the position same as icon's.
     return new Point(view.getX(), view.getY() + (contentDimension.height - contentDimension.width + 1) / 2);
   }
