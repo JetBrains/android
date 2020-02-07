@@ -1,4 +1,5 @@
 PROJECT             : MultiFlavor
+    languageLevel       : 7 - Diamonds, ARM, multi-catch etc.
     MODULE              : MultiFlavor
         - ModuleGroupPath   : MultiFlavor
         ExternalModuleGroup :

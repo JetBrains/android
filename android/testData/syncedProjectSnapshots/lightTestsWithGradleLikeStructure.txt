@@ -1,4 +1,5 @@
 PROJECT             : LightSyncBasedTestsWithGradleLikeStructureTest
+    languageLevel       : 8 - Lambdas, type annotations etc.
     MODULE              : LightSyncBasedTestsWithGradleLikeStructureTest
         LinkedProjectId     : LightSyncBasedTestsWithGradleLikeStructureTest
         LinkedProjectPath   : <PROJECT>/unitTest

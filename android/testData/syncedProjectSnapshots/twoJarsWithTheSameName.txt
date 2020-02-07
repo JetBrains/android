@@ -1,4 +1,5 @@
 PROJECT             : My Application
+    languageLevel       : 7 - Diamonds, ARM, multi-catch etc.
     MODULE              : My_Application
         - ModuleGroupPath   : My_Application
         ExternalModuleGroup :

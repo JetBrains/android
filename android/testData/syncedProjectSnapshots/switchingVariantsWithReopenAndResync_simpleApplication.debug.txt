@@ -1,4 +1,5 @@
 PROJECT             : project
+    languageLevel       : 7 - Diamonds, ARM, multi-catch etc.
     MODULE              : app
         - ModuleGroupPath   : project
         - ModuleGroupPath   : app

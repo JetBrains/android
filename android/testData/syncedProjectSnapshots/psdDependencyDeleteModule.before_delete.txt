@@ -1,4 +1,5 @@
 PROJECT             : testPsdDependencyDeleteModule
+    languageLevel       : 7 - Diamonds, ARM, multi-catch etc.
     MODULE              : app
         - ModuleGroupPath   : testPsdDependencyDeleteModule
         - ModuleGroupPath   : app

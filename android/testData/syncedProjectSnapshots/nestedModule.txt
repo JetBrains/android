@@ -1,4 +1,5 @@
 PROJECT             : testNestedModule
+    languageLevel       : 7 - Diamonds, ARM, multi-catch etc.
     MODULE              : app
         - ModuleGroupPath   : testNestedModule
         - ModuleGroupPath   : app

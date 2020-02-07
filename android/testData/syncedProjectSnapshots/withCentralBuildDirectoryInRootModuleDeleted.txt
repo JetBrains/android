@@ -1,4 +1,5 @@
 PROJECT             : testWithCentralBuildDirectoryInRootModuleDeleted
+    languageLevel       : 7 - Diamonds, ARM, multi-catch etc.
     MODULE              : app
         - ModuleGroupPath   : testWithCentralBuildDirectoryInRootModuleDeleted
         - ModuleGroupPath   : app

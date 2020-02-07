@@ -1,4 +1,5 @@
 PROJECT             : testSimpleApplicationWithAgp3_3_2
+    languageLevel       : 7 - Diamonds, ARM, multi-catch etc.
     MODULE              : app
         - ModuleGroupPath   : testSimpleApplicationWithAgp3_3_2
         - ModuleGroupPath   : app
