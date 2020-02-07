@@ -31,7 +31,9 @@ import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import javax.swing.BorderFactory
 import javax.swing.JComponent
+import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTable
 import javax.swing.table.AbstractTableModel
@@ -55,6 +57,8 @@ class TableViewImpl : TableView {
   private val rootPanel = JPanel(BorderLayout())
   override val component: JComponent = rootPanel
 
+  private val readOnlyLabel = JLabel("Results are read-only")
+
   private val firstRowsPageButton = CommonButton("First", AllIcons.Actions.Play_first)
   private val lastRowsPageButton = CommonButton("Last", AllIcons.Actions.Play_last)
 
@@ -70,30 +74,36 @@ class TableViewImpl : TableView {
   init {
     val northPanel = JPanel(FlowLayout(FlowLayout.LEFT))
     val centerPanel = JPanel(BorderLayout())
-    val southPanel = JPanel(FlowLayout(FlowLayout.RIGHT))
+    val southPanel = JPanel(BorderLayout())
     rootPanel.add(northPanel, BorderLayout.NORTH)
     rootPanel.add(centerPanel, BorderLayout.CENTER)
     rootPanel.add(southPanel, BorderLayout.SOUTH)
 
+    readOnlyLabel.name = "read-only-label"
+    readOnlyLabel.border = BorderFactory.createEmptyBorder(0, 4, 0, 0)
+    southPanel.add(readOnlyLabel, BorderLayout.WEST)
+    val pagingControlsPanel = JPanel(FlowLayout(FlowLayout.LEFT))
+    southPanel.add(pagingControlsPanel, BorderLayout.EAST)
+
     firstRowsPageButton.toolTipText = "First"
-    southPanel.add(firstRowsPageButton)
+    pagingControlsPanel.add(firstRowsPageButton)
     firstRowsPageButton.addActionListener { listeners.forEach { it.loadFirstRowsInvoked() }}
 
     previousRowsPageButton.toolTipText = "Previous"
-    southPanel.add(previousRowsPageButton)
+    pagingControlsPanel.add(previousRowsPageButton)
     previousRowsPageButton.addActionListener { listeners.forEach { it.loadPreviousRowsInvoked() }}
 
     pageSizeComboBox.isEditable = true
     pageSizeDefaultValues.forEach { pageSizeComboBox.addItem(it) }
-    southPanel.add(pageSizeComboBox)
+    pagingControlsPanel.add(pageSizeComboBox)
     pageSizeComboBox.addActionListener { listeners.forEach { it.rowCountChanged((pageSizeComboBox.selectedItem as Int)) } }
 
     nextRowsPageButton.toolTipText = "Next"
-    southPanel.add(nextRowsPageButton)
+    pagingControlsPanel.add(nextRowsPageButton)
     nextRowsPageButton.addActionListener { listeners.forEach { it.loadNextRowsInvoked() }}
 
     lastRowsPageButton.toolTipText = "Last"
-    southPanel.add(lastRowsPageButton)
+    pagingControlsPanel.add(lastRowsPageButton)
     lastRowsPageButton.addActionListener { listeners.forEach { it.loadLastRowsInvoked() }}
 
     refreshButton.toolTipText = "Sync table"
@@ -176,6 +186,7 @@ class TableViewImpl : TableView {
 
   override fun setEditable(isEditable: Boolean) {
     (table.model as MyTableModel).isEditable = isEditable
+    readOnlyLabel.isVisible = !isEditable
   }
 
   override fun addListener(listener: TableView.Listener) {
