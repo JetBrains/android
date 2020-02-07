@@ -127,7 +127,8 @@ fun StringParameter.validateStringType(
       }
     KOTLIN_FUNCTION -> {
       project ?: return false
-      val moduleInfo = module!!.toInfo(SourceType.PRODUCTION)!!
+      module ?: return false
+      val moduleInfo = module.toInfo(SourceType.PRODUCTION)!!
       val platform = TargetPlatformDetector.getPlatform(module)
       val facade = KotlinCacheService.getInstance(project).getResolutionFacadeByModuleInfo(moduleInfo, platform)!!
       val helper = KotlinIndicesHelper(facade, searchScope, { true })

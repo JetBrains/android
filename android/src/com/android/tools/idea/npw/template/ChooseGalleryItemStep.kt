@@ -246,7 +246,7 @@ fun Template.validate(moduleApiLevel: Int,
   moduleApiLevel < this.minSdk -> message(messageKeys.invalidMinSdk, this.minSdk)
   moduleBuildApiLevel < this.minCompileSdk -> message(messageKeys.invalidMinBuild, this.minCompileSdk)
   constraints.contains(TemplateConstraint.AndroidX) && !isAndroidxProject -> message(messageKeys.invalidAndroidX)
-  constraints.contains(TemplateConstraint.Kotlin) && language != Language.KOTLIN -> message(messageKeys.invalidNeedsKotlin)
+  constraints.contains(TemplateConstraint.Kotlin) && language != Language.KOTLIN && isNewModule -> message(messageKeys.invalidNeedsKotlin)
   else -> ""
 }
 
