@@ -847,6 +847,20 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     assertTrue(AndroidModuleModel.get(myModules.getAppModule()).getAndroidProject().getViewBindingOptions().isEnabled());
   }
 
+  public void testDependenciesInfoOptionsAreCorrectlyVisibleFromIDE() throws Exception {
+    loadSimpleApplication();
+
+    // Default option value should be true (at least at the moment)
+    assertTrue(AndroidModuleModel.get(myModules.getAppModule()).getAndroidProject().getDependenciesInfo().getIncludeInApk());
+
+    // explicitly set the option
+    File appBuildFile = getBuildFilePath("app");
+    appendToFile(appBuildFile, "\nandroid { dependenciesInfo { includeInApk false } }");
+    requestSyncAndWait();
+
+    assertFalse(AndroidModuleModel.get(myModules.getAppModule()).getAndroidProject().getDependenciesInfo().getIncludeInApk());
+  }
+
   public void testProjectSyncIssuesAreCorrectlyReported() throws Exception {
     loadProject(HELLO_JNI);
 
