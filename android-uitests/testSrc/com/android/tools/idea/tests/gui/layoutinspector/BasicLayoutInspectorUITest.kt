@@ -28,10 +28,13 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture
 import com.android.tools.idea.tests.gui.framework.fixture.inspector.LayoutInspectorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.properties.PTableFixture
 import com.android.tools.idea.tests.gui.framework.fixture.properties.PropertiesPanelFixture
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.UseBleak
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.runWithBleak
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Property
@@ -40,7 +43,6 @@ import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
 import com.intellij.notification.EventLog
-import com.intellij.openapi.project.Project
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.core.MouseButton
 import org.fest.swing.data.TableCell
@@ -95,11 +97,41 @@ class BasicLayoutInspectorUITest {
   @Test
   @RunIn(TestGroup.UNRELIABLE) // new test - wait and investigate test results before moving to default
   fun testLayoutInspector() {
-    val robot = guiTest.robot()
+    basicLayoutInspectorOperations(init())
+  }
+
+  @Test
+  @UseBleak
+  @RunIn(TestGroup.PERFORMANCE)
+  fun testLayoutInspectorWithBleak() {
+    val frame = init()
+
+    // Run once to create the layout inspector tool window outside of the Bleak run
+    basicLayoutInspectorOperations(frame)
+
+    runWithBleak { basicLayoutInspectorOperations(frame) }
+  }
+
+  private fun init(): IdeFrameFixture {
     val frame = guiTest.importProjectAndWaitForProjectSyncToFinish(PROJECT_NAME)
 
-    // Initialize the AndroidDebugBridge.
-    waitForAdbToConnect(frame.project)
+    // Get the bridge synchronously, since we're in test mode.
+    val bridge = AdbService.getInstance().getDebugBridge(AndroidSdkUtils.getAdb(frame.project)!!).get()
+
+    // Wait for ADB.
+    Wait.seconds(10).expecting("Android Debug Bridge to connect").until { bridge.isConnected }
+    Wait.seconds(10).expecting("Initial device list is available").until { bridge.hasInitialDeviceList() }
+
+    // Add the default device and process
+    transportRule.addProcess(DEFAULT_DEVICE, DEFAULT_PROCESS)
+
+    transportRule.saveEventPositionMark(DEFAULT_DEVICE.deviceId)
+
+    return frame
+  }
+
+  private fun basicLayoutInspectorOperations(frame: IdeFrameFixture) {
+    val robot = guiTest.robot()
 
     // Hide the messages tool window which may appear after the build. Remove such that the inspector has more room.
     MessagesToolWindowFixture.ifExists(frame.project, robot)?.hide()
@@ -118,6 +150,7 @@ class BasicLayoutInspectorUITest {
     inspector.selectDevice("${DEFAULT_DEVICE.manufacturer} ${DEFAULT_DEVICE.model}",
                            "${DEFAULT_PROCESS.name} (${DEFAULT_PROCESS.pid})")
     inspector.waitForComponentTreeToLoad(1)
+    commandHandler.started()
 
     // Simulate that the user did something on the device that caused a different skia image to be received.
     transportRule.addEventToStream(DEFAULT_DEVICE, createBoxesTreeEvent(DEFAULT_PROCESS.pid))
@@ -260,6 +293,9 @@ class BasicLayoutInspectorUITest {
     pos.translate(0, -100)
     deviceView.waitUntilExpectedViewPosition(pos)
 
+    // Restore the pan button to default state
+    deviceView.panButton.click()
+
     // Zoom out
     deviceView.zoomOutButton.click()
     deviceView.waitUntilExpectedViewportHeight(1200, tolerance = 50)
@@ -291,29 +327,13 @@ class BasicLayoutInspectorUITest {
     assertThat(row).named("The attribute: ${attrName} was found unexpectedly").isEqualTo(-1)
   }
 
-  private fun waitForAdbToConnect(project: Project) {
-    // Get the bridge synchronously, since we're in test mode.
-    val bridge = AdbService.getInstance().getDebugBridge(AndroidSdkUtils.getAdb(project)!!).get()
-
-    // Wait for ADB.
-    Wait.seconds(10).expecting("Android Debug Bridge to connect").until { bridge.isConnected }
-    Wait.seconds(10).expecting("Initial device list is available").until { bridge.hasInitialDeviceList() }
-
-    // Add the default device and process
-    transportRule.addProcess(DEFAULT_DEVICE, DEFAULT_PROCESS)
-  }
-
   private fun startHandler(command: Commands.Command, events: MutableList<Common.Event>) {
     events.add(createSingleBoxTreeEvent(command.pid))
   }
 
+  @Suppress("UNUSED_PARAMETER")
   private fun stopHandler(command: Commands.Command, events: MutableList<Common.Event>) {
-    events.add(Common.Event.newBuilder().apply {
-      pid = command.pid
-      kind = Common.Event.Kind.PROCESS
-      groupId = command.pid.toLong()
-      isEnded = true
-    }.build())
+    transportRule.revertToEventPositionMark(DEFAULT_DEVICE.deviceId)
   }
 
   private fun produceProperties(command: Commands.Command, events: MutableList<Common.Event>) {
@@ -631,6 +651,10 @@ class BasicLayoutInspectorUITest {
 
     val stopped: Boolean
       get() = debugAttributeCleanupCount == 2
+
+    fun started() {
+      debugAttributeCleanupCount = 0
+    }
 
     override fun accept(server: FakeAdbServer, socket: Socket, device: DeviceState, command: String, args: String): Boolean {
       when (args) {

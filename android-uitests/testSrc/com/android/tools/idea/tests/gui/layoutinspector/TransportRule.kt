@@ -134,6 +134,22 @@ class TransportRule(
     }
   }
 
+  /**
+   * Remember a position in the event list for the specified stream.
+   */
+  fun saveEventPositionMark(streamId: Long) {
+    transportService.saveEventPositionMark(streamId)
+  }
+
+  /**
+   * Remove all events added added after the previously saved mark in the events for the specified stream.
+   *
+   * This is useful if we want the process event to remain in a Bleak test.
+   */
+  fun revertToEventPositionMark(streamId: Long) {
+    transportService.revertToEventPositionMark(streamId)
+  }
+
   override fun apply(base: Statement, description: Description): Statement {
     return grpcServer.apply(adbRule.apply(
       object: Statement() {
