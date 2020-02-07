@@ -75,7 +75,6 @@ class DatabaseInspectorViewImpl(
 
   private val rootPanel = JPanel()
   private val workBench: WorkBench<SqliteViewContext> = WorkBench(project, "Sqlite", null, parentDisposable)
-  private var sqliteEditorPanel = SqliteEditorPanel()
   private val defaultUiPanel = DefaultUiPanel()
   private val tabs = JBEditorTabs(project, ActionManager.getInstance(), IdeFocusManager.getInstance(project), project)
   private val logTabView = LogTabViewImpl(project)
@@ -85,9 +84,13 @@ class DatabaseInspectorViewImpl(
   private val openTabs = mutableMapOf<TabId, TabInfo>()
 
   init {
-    val definitions = mutableListOf<ToolWindowDefinition<SqliteViewContext>>()
-    definitions.add(createToolWindowDefinition())
-    workBench.init(sqliteEditorPanel.mainPanel, viewContext, definitions, false)
+    val panel = JPanel(BorderLayout())
+    val northPanel = JPanel(FlowLayout(FlowLayout.LEFT))
+    val centerPanel = JPanel(BorderLayout())
+    panel.add(northPanel, BorderLayout.NORTH)
+    panel.add(centerPanel, BorderLayout.CENTER)
+
+    workBench.init(panel, viewContext, listOf(createToolWindowDefinition()), false)
 
     rootPanel.layout = OverlayLayout(rootPanel)
     rootPanel.add(defaultUiPanel.rootPanel)
@@ -98,14 +101,14 @@ class DatabaseInspectorViewImpl(
     defaultUiPanel.label.foreground = UIUtil.getInactiveTextColor()
 
     tabs.apply {
-      setTabDraggingEnabled(true)
+      isTabDraggingEnabled = true
       setUiDecorator { UiDecorator.UiDecoration(null, JBUI.insets(4, 10)) }
       addTabMouseListener(TabMouseListener())
     }
 
-    sqliteEditorPanel.tabsRoot.add(tabs)
-    setUpLogTab()
+    centerPanel.add(tabs)
 
+    setUpLogTab()
     setUpSqliteSchemaTree()
   }
 
