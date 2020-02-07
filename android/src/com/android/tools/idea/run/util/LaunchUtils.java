@@ -17,17 +17,13 @@ package com.android.tools.idea.run.util;
 
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.VALUE_TRUE;
-import static com.android.tools.idea.model.AndroidManifestIndexQueryUtils.queryServicesFromManifestIndex;
 
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.NullOutputReceiver;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.model.AndroidManifestIndex;
-import com.android.tools.idea.model.AndroidManifestIndexQueryUtils;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
-import com.android.tools.idea.model.ServiceWrapper;
 import com.android.tools.idea.run.activity.ActivityLocatorUtils;
 import com.android.tools.idea.run.activity.DefaultActivityLocator.ActivityWrapper;
 import com.android.utils.XmlUtils;
@@ -40,14 +36,11 @@ import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.DumbService;
-import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -98,34 +91,6 @@ public class LaunchUtils {
       return false;
     }
 
-    return isWatchFaceAppFromServices(facet, info);
-  }
-
-  /**
-   * Try to get service information from the manifest index if index is enabled. and it falls back to the merged manifest
-   * snapshot if necessary.
-   */
-  private static boolean isWatchFaceAppFromServices(@NotNull AndroidFacet facet, @NotNull MergedManifestSnapshot info) {
-    if (AndroidManifestIndex.indexEnabled()) {
-      try {
-        Set<ServiceWrapper> services = DumbService.getInstance(facet.getModule().getProject())
-          .runReadActionInSmartMode(() -> queryServicesFromManifestIndex(facet));
-
-        return services.stream().anyMatch(service -> service.hasAction(AndroidUtils.WALLPAPER_SERVICE_ACTION_NAME) &&
-                                                     service.hasCategory(AndroidUtils.WATCHFACE_CATEGORY_NAME));
-      }
-      catch (IndexNotReadyException e) {
-        // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
-        //  We need to refactor the callers of this to require a *smart*
-        //  read action, at which point we can remove this try-catch.
-        AndroidManifestIndexQueryUtils.logManifestIndexQueryError(e);
-      }
-    }
-
-    return isWatchFaceAppFromMergedManifest(info);
-  }
-
-  private static boolean isWatchFaceAppFromMergedManifest(@NotNull MergedManifestSnapshot info) {
     final List<Element> services = info.getServices();
     if (services.size() != 1) {
       return false;

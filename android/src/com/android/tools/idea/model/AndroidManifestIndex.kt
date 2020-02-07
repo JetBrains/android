@@ -34,7 +34,6 @@ import com.android.SdkConstants.TAG_INTENT_FILTER
 import com.android.SdkConstants.TAG_MANIFEST
 import com.android.SdkConstants.TAG_PERMISSION
 import com.android.SdkConstants.TAG_PERMISSION_GROUP
-import com.android.SdkConstants.TAG_SERVICE
 import com.android.SdkConstants.TAG_USES_PERMISSION
 import com.android.SdkConstants.TAG_USES_PERMISSION_SDK_23
 import com.android.SdkConstants.TAG_USES_PERMISSION_SDK_M
@@ -73,6 +72,7 @@ import com.intellij.util.io.IOUtil.writeUTF
 import com.intellij.util.io.KeyDescriptor
 import com.intellij.util.text.CharArrayUtil
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.kotlin.utils.addIfNotNull
 import org.kxml2.io.KXmlParser
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParser.END_DOCUMENT
@@ -225,7 +225,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
 
   override fun getValueExternalizer() = AndroidManifestRawText.Externalizer
   override fun getName() = NAME
-  override fun getVersion() = 6
+  override fun getVersion() = 5
   override fun getIndexer() = Indexer
   override fun getInputFilter() = InputFilter
 
@@ -294,7 +294,6 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
       require(START_TAG, null, TAG_MANIFEST)
       val activities = hashSetOf<ActivityRawText>()
       val activityAliases = hashSetOf<ActivityAliasRawText>()
-      val services = hashSetOf<ServiceRawText>()
       val customPermissionGroupNames = hashSetOf<String>()
       val customPermissionNames = hashSetOf<String>()
       val enabled = getAttributeValue(ANDROID_URI, ATTR_ENABLED)
@@ -314,7 +313,6 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
               when (name) {
                 TAG_ACTIVITY -> activities.add(parseActivityTag())
                 TAG_ACTIVITY_ALIAS -> activityAliases.add(parseActivityAliasTag())
-                TAG_SERVICE -> services.add(parseServiceTag())
                 else -> skipSubTree()
               }
             }
@@ -343,7 +341,6 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
       return AndroidManifestRawText(
         activities = activities.toSet(),
         activityAliases = activityAliases.toSet(),
-        services = services.toSet(),
         customPermissionGroupNames = customPermissionGroupNames.toSet(),
         customPermissionNames = customPermissionNames.toSet(),
         debuggable = debuggable,
@@ -394,24 +391,6 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
         name = aliasName,
         targetActivity = targetActivity,
         enabled = enabled,
-        intentFilters = intentFilters.toSet()
-      )
-    }
-
-    private fun KXmlParser.parseServiceTag(): ServiceRawText {
-      require(START_TAG, null, TAG_SERVICE)
-      val serviceName: String? = androidName
-      val intentFilters = hashSetOf<IntentFilterRawText>()
-      processChildTags {
-        if (name == TAG_INTENT_FILTER) {
-          intentFilters.add(parseIntentFilterTag())
-        }
-        else {
-          skipSubTree()
-        }
-      }
-      return ServiceRawText(
-        name = serviceName,
         intentFilters = intentFilters.toSet()
       )
     }
@@ -488,7 +467,6 @@ private val KXmlParser.androidName get() = getAttributeValue(ANDROID_URI, ATTR_N
 data class AndroidManifestRawText(
   val activities: Set<ActivityRawText>,
   val activityAliases: Set<ActivityAliasRawText>,
-  val services: Set<ServiceRawText>,
   val customPermissionGroupNames: Set<String>,
   val customPermissionNames: Set<String>,
   val debuggable: String?,
@@ -512,7 +490,6 @@ data class AndroidManifestRawText(
       value.apply {
         writeSeq(out, activities) { ActivityRawText.Externalizer.save(out, it) }
         writeSeq(out, activityAliases) { ActivityAliasRawText.Externalizer.save(out, it) }
-        writeSeq(out, services) { ServiceRawText.Externalizer.save(out, it) }
         writeSeq(out, customPermissionNames) { writeUTF(out, it) }
         writeSeq(out, customPermissionGroupNames) { writeUTF(out, it) }
         writeNullable(out, debuggable) { writeUTF(out, it) }
@@ -528,7 +505,6 @@ data class AndroidManifestRawText(
     override fun read(`in`: DataInput) = AndroidManifestRawText(
       activities = readSeq(`in`) { ActivityRawText.Externalizer.read(`in`) }.toSet(),
       activityAliases = readSeq(`in`) { ActivityAliasRawText.Externalizer.read(`in`) }.toSet(),
-      services = readSeq(`in`) { ServiceRawText.Externalizer.read(`in`) }.toSet(),
       customPermissionNames = readSeq(`in`) { readUTF(`in`) }.toSet(),
       customPermissionGroupNames = readSeq(`in`) { readUTF(`in`) }.toSet(),
       debuggable = readNullable(`in`) { readUTF(`in`) },
@@ -612,37 +588,6 @@ data class ActivityAliasRawText(
     )
   }
 }
-
-/**
- * Structured pieces of raw text from an AndroidManifest.xml file corresponding to a subset of a
- * service tag's attributes and sub-tags.
- *
- * @see AndroidManifestRawText
- */
-data class ServiceRawText(val name: String?, val intentFilters: Set<IntentFilterRawText>) {
-  /**
-   * Singleton responsible for serializing/de-serializing [ServiceRawText]s to/from disk.
-   *
-   * [AndroidManifestIndex] uses this externalizer to keep its cache within its memory limit
-   * and also to persist indexed data between IDE sessions. Any structural change to [ServiceRawText]
-   * requires an update to the schema used here, and any update to the schema requires us to increment
-   * [AndroidManifestIndex.getVersion].
-   */
-  object Externalizer : DataExternalizer<ServiceRawText> {
-    override fun save(out: DataOutput, value: ServiceRawText) {
-      value.apply {
-        writeNullable(out, name) { writeUTF(out, it) }
-        writeSeq(out, intentFilters) { IntentFilterRawText.Externalizer.save(out, it) }
-      }
-    }
-
-    override fun read(`in`: DataInput) = ServiceRawText(
-      name = readNullable(`in`) { readUTF(`in`) },
-      intentFilters = readSeq(`in`) { IntentFilterRawText.Externalizer.read(`in`) }.toSet()
-    )
-  }
-}
-
 
 /**
  * Structured pieces of raw text from an AndroidManifest.xml file corresponding to a subset of an
