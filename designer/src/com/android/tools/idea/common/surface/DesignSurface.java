@@ -1344,6 +1344,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
         return;
       }
 
+      // Temporary overlays do not have a clipping area
+      g2d.setClip(viewportBounds);
+
       // Temporary overlays:
       List<Layer> interactionLayers = myInteractionManager.getLayers();
       if (interactionLayers != null) {
