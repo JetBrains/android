@@ -1,4 +1,5 @@
 PROJECT             : testNdkProjectSync
+    languageLevel       : 7 - Diamonds, ARM, multi-catch etc.
     MODULE              : app
         - ModuleGroupPath   : testNdkProjectSync
         - ModuleGroupPath   : app

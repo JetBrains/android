@@ -1,4 +1,5 @@
 PROJECT             : testWithEmptyGradleSettingsFileInSingleModuleProject
+    languageLevel       : 7 - Diamonds, ARM, multi-catch etc.
     MODULE              : testWithEmptyGradleSettingsFileInSingleModuleProject
         - ModuleGroupPath   : testWithEmptyGradleSettingsFileInSingleModuleProject
         ExternalModuleGroup :

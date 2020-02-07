@@ -40,6 +40,7 @@ import com.intellij.openapi.roots.ExcludeFolder
 import com.intellij.openapi.roots.InheritedJdkOrderEntry
 import com.intellij.openapi.roots.JavadocOrderRootType
 import com.intellij.openapi.roots.JdkOrderEntry
+import com.intellij.openapi.roots.LanguageLevelProjectExtension
 import com.intellij.openapi.roots.LibraryOrderEntry
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.ModuleRootModel
@@ -178,6 +179,8 @@ class ProjectDumper(
     println("<PROJECT>     <== ${currentRootDirectory}")
     head("PROJECT") { project.name }
     nest {
+      val languageLevelExtension = LanguageLevelProjectExtension.getInstance(project)
+      prop("languageLevel" ) { languageLevelExtension.languageLevel.presentableText }
       ModuleManager.getInstance(project).modules.sortedBy { it.name }.forEach { dump(it) }
     }
   }

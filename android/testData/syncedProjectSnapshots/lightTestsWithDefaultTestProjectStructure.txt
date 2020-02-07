@@ -1,4 +1,5 @@
 PROJECT             : LightSyncBasedTestsWithDefaultTestProjectStructureTest
+    languageLevel       : 8 - Lambdas, type annotations etc.
     MODULE              : LightSyncBasedTestsWithDefaultTestProjectStructureTest
         LinkedProjectId     : LightSyncBasedTestsWithDefaultTestProjectStructureTest
         LinkedProjectPath   : <PROJECT>/unitTest

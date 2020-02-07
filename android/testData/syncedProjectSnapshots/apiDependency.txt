@@ -1,4 +1,5 @@
 PROJECT             : testApiDependency
+    languageLevel       : 7 - Diamonds, ARM, multi-catch etc.
     MODULE              : app
         - ModuleGroupPath   : testApiDependency
         - ModuleGroupPath   : app

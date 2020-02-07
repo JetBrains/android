@@ -1,4 +1,5 @@
 PROJECT             : testSwitchingVariants_variantSpecificDependencies
+    languageLevel       : 7 - Diamonds, ARM, multi-catch etc.
     MODULE              : app
         - ModuleGroupPath   : testSwitchingVariants_variantSpecificDependencies
         - ModuleGroupPath   : app

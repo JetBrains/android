@@ -1,4 +1,5 @@
 PROJECT             : testPsdDependencyUpgradeLibraryModule
+    languageLevel       : 7 - Diamonds, ARM, multi-catch etc.
     MODULE              : app
         - ModuleGroupPath   : testPsdDependencyUpgradeLibraryModule
         - ModuleGroupPath   : app

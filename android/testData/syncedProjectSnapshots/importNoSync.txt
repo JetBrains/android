@@ -1,4 +1,5 @@
 PROJECT             : testImportNoSync
+    languageLevel       : 8 - Lambdas, type annotations etc.
     MODULE              : testImportNoSync
         LinkedProjectId     : :
         LinkedProjectPath   : <PROJECT>

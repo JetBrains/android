@@ -1,4 +1,5 @@
 PROJECT             : testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase
+    languageLevel       : 8 - Lambdas, type annotations etc.
     MODULE              : app
         LinkedProjectId     : :app
         LinkedProjectPath   : <TEMP>/app

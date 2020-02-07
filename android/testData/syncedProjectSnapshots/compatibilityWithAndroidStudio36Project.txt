@@ -1,4 +1,5 @@
 PROJECT             : AS36
+    languageLevel       : 7 - Diamonds, ARM, multi-catch etc.
     MODULE              : AS36
         - ModuleGroupPath   : AS36
         ExternalModuleGroup :

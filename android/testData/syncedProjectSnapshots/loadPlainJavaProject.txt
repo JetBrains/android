@@ -1,4 +1,5 @@
 PROJECT             : testLoadPlainJavaProject
+    languageLevel       : 8 - Lambdas, type annotations etc.
     MODULE              : testLoadPlainJavaProject
         - ModuleGroupPath   : testLoadPlainJavaProject
         ExternalModuleGroup :
