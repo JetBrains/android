@@ -23,6 +23,7 @@ import com.intellij.icons.AllIcons
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.JBTable
+import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
@@ -110,8 +111,19 @@ class TableViewImpl : TableView {
     northPanel.add(refreshButton)
     refreshButton.addActionListener{ listeners.forEach { it.refreshDataInvoked() } }
 
-    table.tableHeader.defaultRenderer = MyTableHeaderRenderer()
     table.emptyText.text = tableIsEmptyText
+    table.tableHeader.defaultRenderer = MyTableHeaderRenderer()
+    table.tableHeader.reorderingAllowed = false
+    table.tableHeader.addMouseListener(object : MouseAdapter() {
+      override fun mouseClicked(e: MouseEvent) {
+        if (isLoading) return
+
+        val columnIndex = table.columnAtPoint(e.point)
+        if (columnIndex <= 0) return
+
+        listeners.forEach { it.toggleOrderByColumnInvoked(columns[columnIndex - 1]) }
+      }
+    })
 
     val scrollPane = JBScrollPane(table)
 
@@ -122,16 +134,6 @@ class TableViewImpl : TableView {
     })
 
     centerPanel.add(scrollPane, BorderLayout.CENTER)
-
-    table.tableHeader.addMouseListener(object : MouseAdapter() {
-      override fun mouseClicked(e: MouseEvent) {
-        if (isLoading) return
-
-        val point = e.point
-        val columnIndex = table.columnAtPoint(point)
-        listeners.forEach { it.toggleOrderByColumnInvoked(columns[columnIndex]) }
-      }
-    })
   }
 
   override fun showPageSizeValue(maxRowCount: Int) {
@@ -154,6 +156,9 @@ class TableViewImpl : TableView {
   override fun showTableColumns(columns: List<SqliteColumn>) {
     this.columns = columns
     table.model = MyTableModel(columns)
+
+    table.columnModel.getColumn(0).maxWidth = JBUI.scale(60)
+    table.columnModel.getColumn(0).resizable = false
 
     setAutoResizeMode()
   }
@@ -235,6 +240,14 @@ class TableViewImpl : TableView {
       viewRowIndex: Int,
       viewColumnIndex: Int
     ): Component {
+      if (viewColumnIndex == 0) {
+        columnNameLabel.icon = null
+        (panel.getComponent(panel.componentCount - 1) as DefaultTableCellRenderer).icon = null
+      } else {
+        columnNameLabel.icon = AllIcons.Nodes.DataColumn
+        (panel.getComponent(panel.componentCount - 1) as DefaultTableCellRenderer).icon = AllIcons.General.ArrowSplitCenterV
+      }
+
       columnNameLabel.text = value as String
       return panel
     }
@@ -258,22 +271,36 @@ class TableViewImpl : TableView {
       fireTableRowsDeleted(0, endIndex)
     }
 
-    override fun getColumnName(modelColumnIndex: Int) = columns[modelColumnIndex].name
+    override fun getColumnName(modelColumnIndex: Int): String {
+      return if (modelColumnIndex == 0) {
+        ""
+      } else {
+        columns[modelColumnIndex - 1].name
+      }
+    }
 
     override fun getColumnClass(modelColumnIndex: Int) = String::class.java
 
-    override fun getColumnCount() = columns.size
+    override fun getColumnCount() = columns.size + 1
 
     override fun getRowCount() = rows.size
 
-    override fun getValueAt(modelRowIndex: Int, modelColumnIndex: Int) = rows[modelRowIndex].values[modelColumnIndex].value.toString()
+    override fun getValueAt(modelRowIndex: Int, modelColumnIndex: Int): String {
+      return if (modelColumnIndex == 0) {
+        (modelRowIndex + 1).toString()
+      } else {
+        rows[modelRowIndex].values[modelColumnIndex - 1].value.toString()
+      }
+    }
 
     override fun setValueAt(newValue: Any, modelRowIndex: Int, modelColumnIndex: Int) {
+      assert(modelColumnIndex > 0) { "Setting value of column at index 0 is not allowed" }
+
       val row = rows[modelRowIndex]
-      val column = columns[modelColumnIndex]
+      val column = columns[modelColumnIndex - 1]
       listeners.forEach { it.updateCellInvoked(row, column, newValue) }
     }
 
-    override fun isCellEditable(modelRowIndex: Int, modelColumnIndex: Int) = isEditable
+    override fun isCellEditable(modelRowIndex: Int, modelColumnIndex: Int) = modelColumnIndex != 0 && isEditable
   }
 }
