@@ -21,7 +21,6 @@ import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.adtui.ui.AdtUiCursors;
-import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.model.NlDropEvent;
 import com.android.tools.idea.uibuilder.surface.DragDropInteraction;
@@ -580,14 +579,6 @@ public class InteractionManager implements Disposable {
 
       myLastModifiersEx = modifiersEx;
 
-      Scene scene = mySurface.getScene();
-      if (scene != null) {
-        // TODO: Make it so this step is only done when necessary. i.e Move to ConstraintSceneInteraction.keyPressed().
-        // Since holding some of these keys might change some visuals, repaint.
-        scene.needsRebuildList();
-        scene.repaint();
-      }
-
       // Give interactions a first chance to see and consume the key press
       if (myCurrentInteraction != null) {
         // unless it's "Escape", which cancels the interaction
@@ -611,13 +602,6 @@ public class InteractionManager implements Disposable {
     public void keyReleased(KeyEvent event) {
       myLastModifiersEx = event.getModifiersEx();
 
-      Scene scene = mySurface.getScene();
-      if (scene != null) {
-        // TODO: Make it so this step is only done when necessary. i.e Move to ConstraintSceneInteraction.keyReleased().
-        // Since holding some of these keys might change some visuals, repaint.
-        scene.needsRebuildList();
-        scene.repaint();
-      }
       if (myCurrentInteraction != null) {
         if (myCurrentInteraction instanceof PanInteraction && event.getKeyCode() == DesignSurfaceShortcut.PAN.getKeyCode()) {
           // TODO (b/142953949): this should be handled by PanInteraction itself.
