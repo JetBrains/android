@@ -30,7 +30,8 @@ import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler
-import com.android.tools.idea.transport.poller.TransportEventPoller
+import com.android.tools.idea.transport.manager.TransportPoller
+import com.android.tools.idea.transport.manager.TransportStreamChannel
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.google.common.util.concurrent.ListenableFuture
@@ -42,7 +43,7 @@ import java.util.concurrent.TimeUnit
 val TEST_JAR = AppInspectorJar("test")
 
 /**
- * Rule providing all of the underlying components of App Inspection, including [executorService], [poller], [transport] and [client].
+ * Rule providing all of the underlying components of App Inspection including [executorService], [streamChannel], [transport] and [client].
  *
  * It also provides a number of useful utility functions for tests. Normally used in conjunction with [FakeGrpcServer] rule.
  */
@@ -52,18 +53,24 @@ class AppInspectionServiceRule(
   private val grpcServer: FakeGrpcServer
 ) : NamedExternalResource() {
   lateinit var client: TransportClient
-  lateinit var poller: TransportEventPoller
   lateinit var executorService: ThreadPoolExecutor
+  lateinit var streamChannel: TransportStreamChannel
   lateinit var transport: AppInspectionTransport
   lateinit var jarCopier: AppInspectionTestUtils.TestTransportJarCopier
 
-  val stream = Common.Stream.getDefaultInstance()!!
-  val process = Common.Process.getDefaultInstance()!!
+  private val stream = Common.Stream.newBuilder()
+    .setType(Common.Stream.Type.DEVICE)
+    .setStreamId(FakeTransportService.FAKE_DEVICE_ID)
+    .setDevice(FakeTransportService.FAKE_DEVICE)
+    .build()
+  private val process = FakeTransportService.FAKE_PROCESS!!
 
   private val defaultAttachHandler = object : CommandHandler(timer) {
     override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
       events.add(
         Common.Event.newBuilder()
+          .setCommandId(command.commandId)
+          .setPid(command.pid)
           .setKind(Common.Event.Kind.AGENT)
           .setAgentData(Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.ATTACHED).build())
           .build()
@@ -73,14 +80,15 @@ class AppInspectionServiceRule(
 
   override fun before(description: Description) {
     client = TransportClient(grpcServer.name)
-    poller = TransportEventPoller.createPoller(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100))
+    streamChannel =
+      TransportStreamChannel(stream, TransportPoller.createPoller(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100)))
     executorService = ThreadPoolExecutor(0, 1, 1L, TimeUnit.SECONDS, LinkedBlockingQueue())
-    transport = AppInspectionTransport(client, stream, process, executorService, poller)
+    transport = AppInspectionTransport(client, stream, process, executorService, streamChannel)
     jarCopier = AppInspectionTestUtils.TestTransportJarCopier
   }
 
   override fun after(description: Description) {
-    TransportEventPoller.stopPoller(poller)
+    TransportPoller.removePoller(streamChannel.poller)
     executorService.shutdownNow()
   }
 
@@ -92,7 +100,9 @@ class AppInspectionServiceRule(
   ): ListenableFuture<AppInspectionTarget> {
     transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, defaultAttachHandler)
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, commandHandler)
-    return attachAppInspectionTarget(transport, jarCopier)
+    val targetFuture = attachAppInspectionTarget(transport, jarCopier)
+    timer.currentTimeNs += 1
+    return targetFuture
   }
 
   /**
@@ -106,13 +116,17 @@ class AppInspectionServiceRule(
     eventListener: AppInspectorClient.EventListener = TestInspectorEventListener()
   ): AppInspectorClient.CommandMessenger {
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, commandHandler)
-    return launchInspectorForTest(inspectorId, transport, timer.currentTimeNs) {
+    val messenger = launchInspectorForTest(inspectorId, transport, timer.currentTimeNs) {
       TestInspectorClient(it, eventListener)
     }.messenger
+    timer.currentTimeNs += 1
+    return messenger
   }
 
   fun addEvent(event: Common.Event) {
-    transportService.addEventToStream(stream.streamId, event)
+    val modifiedEvent = event.toBuilder().setPid(process.pid).setTimestamp(timer.currentTimeNs).build()
+    transportService.addEventToStream(stream.streamId, modifiedEvent)
+    timer.currentTimeNs += 1
   }
 
   /**
@@ -123,11 +137,13 @@ class AppInspectionServiceRule(
       stream.streamId,
       Common.Event.newBuilder()
         .setKind(Common.Event.Kind.APP_INSPECTION_RESPONSE)
+        .setPid(process.pid)
         .setTimestamp(timer.currentTimeNs)
         .setIsEnded(true)
         .setAppInspectionResponse(appInspectionResponse)
         .build()
     )
+    timer.currentTimeNs += 1
   }
 
   /**
@@ -137,12 +153,14 @@ class AppInspectionServiceRule(
     transportService.addEventToStream(
       stream.streamId,
       Common.Event.newBuilder()
+        .setPid(process.pid)
         .setKind(Common.Event.Kind.APP_INSPECTION_EVENT)
         .setTimestamp(timer.currentTimeNs)
         .setIsEnded(true)
         .setAppInspectionEvent(appInspectionEvent)
         .build()
     )
+    timer.currentTimeNs += 1
   }
 
   /**

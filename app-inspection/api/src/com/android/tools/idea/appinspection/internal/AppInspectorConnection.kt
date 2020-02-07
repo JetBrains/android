@@ -65,10 +65,10 @@ internal class AppInspectorConnection(
   var clientEventListener = STUB_CLIENT_EVENT_LISTENER
     set(value) {
       field = value
-      transport.poller.registerListener(inspectorEventListener)
+      transport.registerEventListener(inspectorEventListener)
     }
 
-  private val inspectorEventListener = transport.createEventListener(
+  private val inspectorEventListener = transport.createStreamEventListener(
     eventKind = APP_INSPECTION_EVENT,
     filter = { event -> event.hasAppInspectionEvent() && event.appInspectionEvent.inspectorId == inspectorId },
     startTimeNs = { connectionStartTimeNs }
@@ -85,21 +85,20 @@ internal class AppInspectorConnection(
         clientEventListener.onCrashEvent(appInspectionEvent.crashEvent.errorMessage)
       }
     }
-    false
   }
 
-  private val responsesListener = transport.createEventListener(
+  private val responsesListener = transport.createStreamEventListener(
     eventKind = APP_INSPECTION_RESPONSE,
     filter = { it.hasAppInspectionResponse() && it.appInspectionResponse.hasRawResponse() },
     startTimeNs = { connectionStartTimeNs }
   ) { event ->
     pendingCommands.remove(event.appInspectionResponse.commandId)?.set(event.appInspectionResponse.rawResponse.content.toByteArray())
-    false
   }
 
-  private val processEndListener = transport.createEventListener(
+  private val processEndListener = transport.createStreamEventListener(
     eventKind = PROCESS,
-    startTimeNs = { connectionStartTimeNs }
+    startTimeNs = { connectionStartTimeNs },
+    isTransient = true
   ) {
     if (it.isEnded) {
       cleanup("Inspector $inspectorId was disposed, because app process terminated.")
@@ -108,8 +107,8 @@ internal class AppInspectorConnection(
   }
 
   init {
-    transport.poller.registerListener(responsesListener)
-    transport.poller.registerListener(processEndListener)
+    transport.registerEventListener(responsesListener)
+    transport.registerEventListener(processEndListener)
   }
 
   override fun disposeInspector(): ListenableFuture<Unit> {
@@ -121,18 +120,17 @@ internal class AppInspectorConnection(
           .setDisposeInspectorCommand(disposeInspectorCommand)
           .build()
         val commandId = transport.executeCommand(appInspectionCommand)
-        val listener = transport.createEventListener(
+        val listener = transport.createStreamEventListener(
           eventKind = APP_INSPECTION_RESPONSE,
           filter = { it.hasAppInspectionResponse() && it.appInspectionResponse.commandId == commandId },
           startTimeNs = { connectionStartTimeNs }
         ) {
           cleanup("Inspector $inspectorId was disposed.", it.appInspectionResponse)
           // we manually call unregister, because future can be completed from other places, so we clean up the listeners there
-          false
         }
         transport.registerEventListener(listener)
         disposeFuture.addListener(Runnable {
-          transport.poller.unregisterListener(listener)
+          transport.unregisterEventListener(listener)
         }, MoreExecutors.directExecutor())
       }
     }
@@ -172,9 +170,9 @@ internal class AppInspectorConnection(
    */
   private fun cleanup(futureExceptionMessage: String, disposeResponse: AppInspection.AppInspectionResponse? = null) {
     if (isDisposed.compareAndSet(false, true)) {
-      transport.poller.unregisterListener(inspectorEventListener)
-      transport.poller.unregisterListener(processEndListener)
-      transport.poller.unregisterListener(responsesListener)
+      transport.unregisterEventListener(inspectorEventListener)
+      transport.unregisterEventListener(processEndListener)
+      transport.unregisterEventListener(responsesListener)
       pendingCommands.values.forEach { it.setException(RuntimeException(futureExceptionMessage)) }
       pendingCommands.clear()
       if (disposeResponse == null) {
