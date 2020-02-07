@@ -65,10 +65,4 @@ public interface ActionData {
    * Gets whether the button should be highlighted like the default action in dialogs
    */
   boolean isHighlighted();
-
-  /**
-   * Gets a set of well formed instructions to be performed on button click.
-   */
-  @Nullable("not all instructions may be expressed in Recipe form")
-  Recipe getRecipe();
 }
