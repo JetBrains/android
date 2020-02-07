@@ -15,20 +15,14 @@
  */
 package com.android.tools.idea.sqlite.ui.mainView;
 
-import javax.swing.JButton;
 import javax.swing.JPanel;
 
 public class SqliteEditorPanel {
   private JPanel mainPanel;
-  private JPanel headerPanel;
   private JPanel tabsRoot;
 
   public JPanel getMainPanel() {
     return mainPanel;
-  }
-
-  public JPanel getHeaderPanel() {
-    return headerPanel;
   }
 
   public JPanel getTabsRoot() {

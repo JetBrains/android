@@ -97,12 +97,6 @@ class DatabaseInspectorViewImpl(
     defaultUiPanel.label.font = AdtUiUtils.EMPTY_TOOL_WINDOW_FONT
     defaultUiPanel.label.foreground = UIUtil.getInactiveTextColor()
 
-    val openSqliteEvaluatorButton = CommonButton("Open SQLite evaluator", AllIcons.Actions.Search)
-    openSqliteEvaluatorButton.toolTipText = "Open SQLite evaluator"
-    sqliteEditorPanel.headerPanel.add(openSqliteEvaluatorButton)
-
-    openSqliteEvaluatorButton.addActionListener { listeners.forEach { it.openSqliteEvaluatorTabActionInvoked() } }
-
     tabs.apply {
       setTabDraggingEnabled(true)
       setUiDecorator { UiDecorator.UiDecoration(null, JBUI.insets(4, 10)) }
@@ -333,6 +327,12 @@ class DatabaseInspectorViewImpl(
                                ?.first() ?: return@addActionListener
         listeners.forEach { it.reDownloadDatabaseFileActionInvoked(databaseToSync) }
       }
+
+      val openSqliteEvaluatorButton = CommonButton("Run SQL", AllIcons.RunConfigurations.TestState.Run)
+      openSqliteEvaluatorButton.toolTipText = "Open SQL evaluator tab"
+      northPanel.add(openSqliteEvaluatorButton)
+
+      openSqliteEvaluatorButton.addActionListener { listeners.forEach { it.openSqliteEvaluatorTabActionInvoked() } }
 
       northPanel.add(syncProgressLabel)
 
