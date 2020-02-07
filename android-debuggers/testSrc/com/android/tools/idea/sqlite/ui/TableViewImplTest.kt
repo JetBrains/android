@@ -24,11 +24,12 @@ import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
 import com.intellij.testFramework.LightPlatformTestCase
+import com.intellij.testFramework.LightPlatformTestCase.assertThrows
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.JBTable
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
-import java.awt.Component
 import java.awt.Dimension
 import java.awt.Point
 import javax.swing.JPanel
@@ -62,9 +63,10 @@ class TableViewImplTest : LightPlatformTestCase() {
 
     // Assert
     assertEquals(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS, table.autoResizeMode)
-    
+
     assertEquals(598, table.size.width)
-    assertEquals(598, table.columnModel.getColumn(0).width)
+    assertEquals(60, table.columnModel.getColumn(0).width)
+    assertEquals(538, table.columnModel.getColumn(1).width)
 
     assertEquals(0, jbScrollPane.horizontalScrollBar.model.minimum)
     assertEquals(598, jbScrollPane.horizontalScrollBar.model.maximum)
@@ -91,8 +93,8 @@ class TableViewImplTest : LightPlatformTestCase() {
     assertEquals(JTable.AUTO_RESIZE_OFF, table.autoResizeMode)
 
     assertTrue(table.size.width > 598)
-    assertEquals(COLUMN_DEFAULT_WIDTH, table.columnModel.getColumn(0).width)
-    
+    assertEquals(COLUMN_DEFAULT_WIDTH, table.columnModel.getColumn(1).width)
+
     assertEquals(0, jbScrollPane.horizontalScrollBar.model.minimum)
     assertTrue(jbScrollPane.horizontalScrollBar.model.maximum > 598)
   }
@@ -111,7 +113,7 @@ class TableViewImplTest : LightPlatformTestCase() {
 
     // Assert
     assertFalse(readOnlyLabel.isVisible)
-    assertTrue(table.model.isCellEditable(0, 0))
+    assertTrue(table.model.isCellEditable(0, 1))
   }
 
   fun testSetNotEditableShowsReadOnlyLabelAndDisableCellEditing() {
@@ -162,7 +164,145 @@ class TableViewImplTest : LightPlatformTestCase() {
     fakeUi.mouse.click(597, 0)
 
     // Assert
-    assertEquals(0, table.columnAtPoint(Point(597, 0)))
+    assertEquals(1, table.columnAtPoint(Point(597, 0)))
     verify(mockListener).toggleOrderByColumnInvoked(col)
+  }
+
+  fun testClickOnFirstColumnHeaderDoesNotSortTable() {
+    // Prepare
+    val treeWalker = TreeWalker(view.component)
+
+    val table = treeWalker.descendants().filterIsInstance<JBTable>().first()
+
+    val mockListener = mock(TableView.Listener::class.java)
+    view.addListener(mockListener)
+
+    val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
+    val cols = listOf(col)
+    val rows = listOf(SqliteRow(listOf(SqliteColumnValue(col, "val"))))
+
+    view.startTableLoading()
+    view.showTableColumns(cols)
+    view.showTableRowBatch(rows)
+    view.stopTableLoading()
+
+    table.size = Dimension(600, 200)
+    table.tableHeader.size = Dimension(600, 100)
+
+    table.preferredSize = table.size
+    TreeWalker(table).descendants().forEach { it.doLayout() }
+
+    fakeUi = FakeUi(table.tableHeader)
+
+    // Act
+    fakeUi.mouse.click(0, 0)
+
+    // Assert
+    assertEquals(0, table.columnAtPoint(Point(0, 0)))
+    verify(mockListener, times(0)).toggleOrderByColumnInvoked(col)
+  }
+
+  fun testColumnsAreResizableExceptForFirstColumn() {
+    // Prepare
+    val treeWalker = TreeWalker(view.component)
+    val table = treeWalker.descendants().filterIsInstance<JBTable>().first()
+
+    val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
+    val cols = listOf(col)
+    val rows = listOf(SqliteRow(listOf(SqliteColumnValue(col, "val"))))
+
+    view.startTableLoading()
+    view.showTableColumns(cols)
+    view.showTableRowBatch(rows)
+    view.stopTableLoading()
+
+    // Assert
+    assertFalse(table.columnModel.getColumn(0).resizable)
+    assertTrue(table.columnModel.getColumn(1).resizable)
+  }
+
+  fun testColumnsAreNamedCorrectly() {
+    // Prepare
+    val treeWalker = TreeWalker(view.component)
+    val table = treeWalker.descendants().filterIsInstance<JBTable>().first()
+
+    val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
+    val cols = listOf(col)
+    val rows = listOf(SqliteRow(listOf(SqliteColumnValue(col, "val"))))
+
+    view.startTableLoading()
+    view.showTableColumns(cols)
+    view.showTableRowBatch(rows)
+    view.stopTableLoading()
+
+    // Assert
+    assertEquals("", table.model.getColumnName(0))
+    assertEquals("col", table.model.getColumnName(1))
+  }
+
+  fun testRowsHaveExpectedValues() {
+    // Prepare
+    val treeWalker = TreeWalker(view.component)
+    val table = treeWalker.descendants().filterIsInstance<JBTable>().first()
+
+    val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
+    val cols = listOf(col)
+    val rows = listOf(SqliteRow(listOf(SqliteColumnValue(col, "val1"))), SqliteRow(listOf(SqliteColumnValue(col, "val2"))))
+
+    view.startTableLoading()
+    view.showTableColumns(cols)
+    view.showTableRowBatch(rows)
+    view.stopTableLoading()
+
+    // Assert
+    assertEquals("1", table.model.getValueAt(0, 0))
+    assertEquals("val1", table.model.getValueAt(0, 1))
+    assertEquals("2", table.model.getValueAt(1, 0))
+    assertEquals("val2", table.model.getValueAt(1, 1))
+  }
+
+  fun testSetValueInColumnsOtherThanFirstIsAllowed() {
+    // Prepare
+    val treeWalker = TreeWalker(view.component)
+    val table = treeWalker.descendants().filterIsInstance<JBTable>().first()
+
+    val mockListener = mock(TableView.Listener::class.java)
+    view.addListener(mockListener)
+
+    val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
+    val cols = listOf(col)
+    val row = SqliteRow(listOf(SqliteColumnValue(col, "val1")))
+    val rows = listOf(row)
+
+    view.startTableLoading()
+    view.showTableColumns(cols)
+    view.showTableRowBatch(rows)
+    view.stopTableLoading()
+
+    // Act
+    table.model.setValueAt("newValue", 0, 1)
+
+    // Assert
+    verify(mockListener).updateCellInvoked(row, col, "newValue")
+  }
+
+  fun testColumnsAreEditableExceptForFirst() {
+    // Prepare
+    val treeWalker = TreeWalker(view.component)
+    val table = treeWalker.descendants().filterIsInstance<JBTable>().first()
+
+    val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
+    val cols = listOf(col)
+    val rows = listOf(SqliteRow(listOf(SqliteColumnValue(col, "val1"))))
+
+    view.startTableLoading()
+    view.showTableColumns(cols)
+    view.showTableRowBatch(rows)
+    view.stopTableLoading()
+    view.setEditable(true)
+
+    // Assert
+    assertFalse(table.model.isCellEditable(0, 0))
+    assertTrue(table.model.isCellEditable(0, 1))
   }
 }
