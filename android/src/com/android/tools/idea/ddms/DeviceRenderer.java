@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.ddms;
 
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_NAME;
+
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
@@ -26,15 +28,13 @@ import com.intellij.ui.ColoredTextContainer;
 import com.intellij.ui.SimpleTextAttributes;
 import icons.AndroidIcons;
 import icons.StudioIcons;
+import java.util.List;
+import java.util.Set;
+import javax.swing.JList;
+import javax.swing.JTable;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.util.List;
-import java.util.Set;
-
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_NAME;
 
 public class DeviceRenderer {
 
@@ -129,9 +129,9 @@ public class DeviceRenderer {
     private boolean myShowSerial;
     private DeviceNamePropertiesProvider myDeviceNamePropertiesProvider;
 
-    public DeviceComboBoxRenderer(@NotNull String emptyText,
-                                  boolean showSerial,
-                                  @NotNull DeviceNamePropertiesProvider deviceNamePropertiesProvider) {
+    DeviceComboBoxRenderer(@NotNull String emptyText,
+                           boolean showSerial,
+                           @NotNull DeviceNamePropertiesProvider deviceNamePropertiesProvider) {
       myEmptyText = emptyText;
       myShowSerial = showSerial;
       myDeviceNamePropertiesProvider = deviceNamePropertiesProvider;

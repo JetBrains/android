@@ -21,11 +21,11 @@ import com.android.tools.idea.ddms.DeviceRenderer;
 import com.android.tools.idea.explorer.fs.DeviceFileSystemRenderer;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
+import com.intellij.util.containers.ContainerUtil;
 import java.util.List;
-import java.util.stream.Collectors;
+import javax.swing.JList;
+import javax.swing.ListCellRenderer;
+import org.jetbrains.annotations.NotNull;
 
 public final class AdbDeviceFileSystemRenderer implements DeviceFileSystemRenderer<AdbDeviceFileSystem> {
   @NotNull private final DeviceNameRenderer myDeviceNameRenderer;
@@ -45,8 +45,8 @@ public final class AdbDeviceFileSystemRenderer implements DeviceFileSystemRender
     @NotNull private final AdbDeviceFileSystemService myService;
     private final DeviceNamePropertiesProvider myDeviceNamePropertiesProvider;
 
-    public DeviceNameRenderer(@NotNull AdbDeviceFileSystemService service,
-                              @NotNull DeviceNamePropertiesProvider deviceNamePropertiesProvider) {
+    private DeviceNameRenderer(@NotNull AdbDeviceFileSystemService service,
+                               @NotNull DeviceNamePropertiesProvider deviceNamePropertiesProvider) {
       myService = service;
       myDeviceNamePropertiesProvider = deviceNamePropertiesProvider;
     }
@@ -64,11 +64,9 @@ public final class AdbDeviceFileSystemRenderer implements DeviceFileSystemRender
 
       IDevice device = value.getDevice();
 
-      List<IDevice> devices = myService.getDeviceList().stream()
-        .map(AdbDeviceFileSystem::getDevice)
-        .collect(Collectors.toList());
-
+      List<IDevice> devices = ContainerUtil.map(myService.getDeviceList(), AdbDeviceFileSystem::getDevice);
       boolean showSerialNumbers = DeviceRenderer.shouldShowSerialNumbers(devices);
+
       DeviceRenderer.renderDeviceName(device, myDeviceNamePropertiesProvider.get(device), this, showSerialNumbers);
     }
   }

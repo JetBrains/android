@@ -1,4 +1,4 @@
-  /*
+/*
  * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -66,17 +66,18 @@ class DeviceNamePropertiesFetcher(private val uiCallback: FutureCallback<DeviceN
 
   private fun IDevice.getDeviceSystemProperties(): ListenableFuture<DeviceNameProperties> {
     val futures = listOf<Future<String>>(
-        getSystemProperty(IDevice.PROP_DEVICE_MODEL),
-        getSystemProperty(IDevice.PROP_DEVICE_MANUFACTURER),
-        getSystemProperty(IDevice.PROP_BUILD_VERSION),
-        getSystemProperty(IDevice.PROP_BUILD_API_LEVEL))
+      getSystemProperty(IDevice.PROP_DEVICE_MODEL),
+      getSystemProperty(IDevice.PROP_DEVICE_MANUFACTURER),
+      getSystemProperty(IDevice.PROP_BUILD_VERSION),
+      getSystemProperty(IDevice.PROP_BUILD_API_LEVEL))
 
+    @Suppress("UnstableApiUsage")
     return futures
-        .listenInPoolThread(taskExecutor)
-        .whenAllComplete()
-        .call(
-          Callable<DeviceNameProperties> { DeviceNameProperties(futures[0].get(), futures[1].get(), futures[2].get(), futures[3].get()) },
-          MoreExecutors.directExecutor())
+      .listenInPoolThread(taskExecutor)
+      .whenAllComplete()
+      .call(
+        Callable<DeviceNameProperties> { DeviceNameProperties(futures[0].get(), futures[1].get(), futures[2].get(), futures[3].get()) },
+        MoreExecutors.directExecutor())
   }
 
   private fun isRetrieving(device: IDevice): Boolean {
@@ -88,18 +89,21 @@ class DeviceNamePropertiesFetcher(private val uiCallback: FutureCallback<DeviceN
   private fun startRetriever(device: IDevice) {
     assertThreadMatch(ThreadType.TASK)
     val task = device.getDeviceSystemProperties()
-    task.addCallback(edtExecutor, { deviceNameProperties ->
-      if (deviceNamePropertiesMap[device] != deviceNameProperties) {
-        deviceNamePropertiesMap[device] = deviceNameProperties
-        if (!Disposer.isDisposed(this)) {
-          uiCallback.onSuccess(deviceNameProperties)
+    task.addCallback(
+      edtExecutor,
+      { deviceNameProperties ->
+        if (deviceNamePropertiesMap[device] != deviceNameProperties) {
+          deviceNamePropertiesMap[device] = deviceNameProperties
+          if (!Disposer.isDisposed(this)) {
+            uiCallback.onSuccess(deviceNameProperties)
+          }
         }
-      }
-    }, { t ->
-      if (!Disposer.isDisposed(this)) {
-        uiCallback.onFailure(t!!)
-      }
-    })
+      },
+      { t ->
+        if (!Disposer.isDisposed(this)) {
+          uiCallback.onFailure(t!!)
+        }
+      })
     tasksMap[device] = task
   }
 
