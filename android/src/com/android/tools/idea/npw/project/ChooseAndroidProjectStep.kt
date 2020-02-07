@@ -20,6 +20,7 @@ import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.adtui.util.FormScalingUtil
 import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.cpp.ConfigureCppSupportStep
+import com.android.tools.idea.npw.model.EMPTY_ACTIVITY
 import com.android.tools.idea.npw.model.NewProjectModel
 import com.android.tools.idea.npw.model.NewProjectModuleModel
 import com.android.tools.idea.npw.template.ChooseGalleryItemStep
@@ -33,6 +34,7 @@ import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
 import com.android.tools.idea.wizard.model.ModelWizard.Facade
 import com.android.tools.idea.wizard.model.ModelWizardStep
+import com.android.tools.idea.wizard.template.BooleanParameter
 import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.WizardUiContext
 import com.google.common.base.Suppliers
@@ -73,6 +75,7 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
   private val formFactors: Supplier<List<FormFactorInfo>>? = Suppliers.memoize { createFormFactors(title) }
   private val canGoForward = BoolValueProperty()
   private var newProjectModuleModel: NewProjectModuleModel? = null
+  private val selectedFormFactorInfo: FormFactorInfo get() = formFactors!!.get()[tabsPanel.selectedIndex]
 
   init {
     loadingPanel.add(tabsPanel)
@@ -89,7 +92,6 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
     return listOf(
       ConfigureAndroidProjectStep(newProjectModuleModel!!, model),
       ConfigureCppSupportStep(model),
-      // TODO(qumeric): check if it's correct
       ConfigureTemplateParametersStep2(renderModel, message("android.wizard.config.activity.title"), listOf()))
   }
 
@@ -152,18 +154,22 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
   }
 
   override fun onProceeding() {
-    val formFactorInfo = formFactors!!.get()[tabsPanel.selectedIndex]
-    val selectedTemplate = formFactorInfo.tabPanel.myGallery.selectedElement!!
+    val selectedTemplate =  selectedFormFactorInfo.tabPanel.myGallery.selectedElement!!
     model.enableCppSupport.set(selectedTemplate is CppTemplateRendererWithDescription)
     with(newProjectModuleModel!!) {
-      formFactor.set(formFactorInfo.formFactor)
+      formFactor.set(selectedFormFactorInfo.formFactor)
       when (selectedTemplate) {
         is NewTemplateRendererWithDescription -> {
           newRenderTemplate.setNullableValue(selectedTemplate.template)
-          // TODO(qumeric): add support for Android Things
+          if (selectedFormFactorInfo.formFactor == FormFactor.THINGS) {
+            newProjectModuleModel!!.extraRenderTemplateModel.newTemplate = selectedTemplate.template
+          }
         }
         is CppTemplateRendererWithDescription -> {
-          // Do nothing
+          newRenderTemplate.value = TemplateResolver.getAllTemplates().first { it.name == EMPTY_ACTIVITY }.apply {
+            val p = parameters.find { it.name == "C++ support" } as BooleanParameter
+            p.value = true
+          }
         }
         else -> throw IllegalArgumentException("Add support for additional template renderer")
       }
