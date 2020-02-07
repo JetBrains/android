@@ -279,6 +279,6 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
     assertThat(moduleDependencies).contains(new ModuleDependency(createUniqueModuleId(projectFolder, ":test-util"), TEST, testUtilModule));
 
     moduleDependencies = scopes.getAndroidTestDependencies().onModules();
-    assertThat(moduleDependencies).isEmpty();
+    assertThat(moduleDependencies).contains(new ModuleDependency(moduleId, COMPILE, libModule));
   }
 }
