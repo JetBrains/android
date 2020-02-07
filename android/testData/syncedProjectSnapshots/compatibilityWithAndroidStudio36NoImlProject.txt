@@ -1,5 +1,5 @@
 PROJECT             : AS36_noiml
-    languageLevel       : 7 - Diamonds, ARM, multi-catch etc.
+    languageLevel       : 8 - Lambdas, type annotations etc.
     MODULE              : AS36_noiml
         - ModuleGroupPath   : AS36_noiml
         ExternalModuleGroup :

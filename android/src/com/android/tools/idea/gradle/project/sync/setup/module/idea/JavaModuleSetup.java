@@ -26,8 +26,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class JavaModuleSetup extends BaseSetup<JavaModuleSetupStep, JavaModuleModel> {
   public JavaModuleSetup() {
-    this(new JavaFacetModuleSetupStep(), new ArtifactsByConfigurationModuleSetupStep(), new CompilerOutputModuleSetupStep(),
-         new JavaLanguageLevelModuleSetupStep());
+    this(new JavaFacetModuleSetupStep(), new ArtifactsByConfigurationModuleSetupStep(), new CompilerOutputModuleSetupStep());
   }
 
   @VisibleForTesting

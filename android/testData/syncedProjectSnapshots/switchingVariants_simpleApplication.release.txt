@@ -1,5 +1,5 @@
 PROJECT             : testSwitchingVariants_simpleApplication
-    languageLevel       : 7 - Diamonds, ARM, multi-catch etc.
+    languageLevel       : 8 - Lambdas, type annotations etc.
     MODULE              : app
         - ModuleGroupPath   : testSwitchingVariants_simpleApplication
         - ModuleGroupPath   : app
