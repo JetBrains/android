@@ -43,12 +43,15 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.ui.DoubleClickListener
 import com.intellij.ui.UIBundle
+import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.tabs.TabInfo
 import com.intellij.ui.tabs.UiDecorator
 import com.intellij.ui.tabs.impl.JBEditorTabs
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
+import java.awt.BorderLayout
+import java.awt.FlowLayout
 import java.awt.event.InputEvent
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
@@ -300,33 +303,38 @@ class DatabaseInspectorViewImpl(
 
   inner class SchemaPanelToolContent : ToolContent<SqliteViewContext> {
 
-    private val schemaPanel = SqliteSchemaPanel()
-    private val tree = schemaPanel.tree
+    private val rootPanel = JPanel(BorderLayout())
+    private val tree = Tree()
     private val syncProgressLabel = JLabel()
 
     init {
+      val northPanel = JPanel(FlowLayout(FlowLayout.LEFT))
+
+      rootPanel.add(northPanel, BorderLayout.NORTH)
+      rootPanel.add(JBScrollPane(tree), BorderLayout.CENTER)
+
       val closeDatabaseButton = CommonButton("Close db", AllIcons.Diff.Remove)
       closeDatabaseButton.toolTipText = "Close db"
-      schemaPanel.controlsPanel.add(closeDatabaseButton)
+      northPanel.add(closeDatabaseButton)
 
       closeDatabaseButton.addActionListener {
-        val databaseToRemove = tree?.selectionPaths?.mapNotNull { findDatabaseNode(it) }
+        val databaseToRemove = tree.selectionPaths?.mapNotNull { findDatabaseNode(it) }
         listeners.forEach { databaseToRemove?.forEach { database -> it.removeDatabaseActionInvoked(database) } }
       }
 
       val reDownloadButton = CommonButton("Re-download file", AllIcons.Actions.Refresh)
       reDownloadButton.toolTipText = "Re-download file"
-      schemaPanel.controlsPanel.add(reDownloadButton)
+      northPanel.add(reDownloadButton)
 
       reDownloadButton.addActionListener {
-        val databaseToSync = tree?.selectionPaths
+        val databaseToSync = tree.selectionPaths
                                ?.mapNotNull { findDatabaseNode(it) }
                                ?.filterIsInstance(FileSqliteDatabase::class.java)
                                ?.first() ?: return@addActionListener
         listeners.forEach { it.reDownloadDatabaseFileActionInvoked(databaseToSync) }
       }
 
-      schemaPanel.controlsPanel.add(syncProgressLabel)
+      northPanel.add(syncProgressLabel)
 
       setUpSchemaTree(tree)
     }
@@ -352,7 +360,7 @@ class DatabaseInspectorViewImpl(
     }
 
     override fun getComponent(): JComponent {
-      return schemaPanel.component
+      return rootPanel
     }
 
     override fun dispose() {
@@ -362,7 +370,7 @@ class DatabaseInspectorViewImpl(
      * Initialize the UI from the passed in [SqliteViewContext]
      */
     override fun setToolContext(toolContext: SqliteViewContext?) {
-      toolContext?.schemaTree = schemaPanel.tree
+      toolContext?.schemaTree = tree
       toolContext?.syncLabel = syncProgressLabel
     }
   }
