@@ -39,7 +39,6 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil.getRelativePath
 import com.intellij.openapi.util.io.FileUtil.toSystemIndependentName
-import com.intellij.openapi.util.io.systemIndependentPath
 import com.intellij.openapi.vfs.VfsUtilCore
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidFacetProperties.PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION
@@ -64,7 +63,6 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     val moduleValidator = myModuleValidatorFactory.create(project)
     for (module in modelsProvider.modules) {
       val androidModel = modelsByModuleName[module.name]
-
       if (androidModel != null) {
         // The SDK needs to be set here for Android modules, unfortunately we can't use intellijs
         // code to set this us as we need to reload the SDKs in case AGP has just downloaded it.

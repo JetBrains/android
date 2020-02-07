@@ -21,7 +21,6 @@ import static com.android.tools.idea.gradle.project.sync.ModuleSetupContext.remo
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_CACHED_SETUP_FAILED;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.executeProjectChangeAction;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static java.lang.System.currentTimeMillis;
 
@@ -72,13 +71,8 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.externalSystem.service.notification.NotificationSource;
-import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.util.Key;
-import com.intellij.pom.java.LanguageLevel;
 import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.SystemProperties;
 import java.util.ArrayList;
@@ -88,7 +82,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.model.serialization.PathMacroUtil;
@@ -187,7 +180,6 @@ public class PostSyncProjectSetup {
 
       myProjectStructure.analyzeProjectStructure();
 
-      updateJavaLanguageLevel();
       notifySyncFinished(request);
 
       ModuleSetup.setUpModules(myProject);
@@ -198,45 +190,6 @@ public class PostSyncProjectSetup {
       mySyncState.syncFailed("setup project failed: " + t.getMessage(), t, syncListener);
       finishFailedSync(taskId, myProject, t.getMessage());
     }
-  }
-
-  @VisibleForTesting
-  void updateJavaLanguageLevel() {
-    executeProjectChangeAction(true, new DisposeAwareProjectChange(myProject) {
-      @Override
-      public void execute() {
-        if (myProject.isOpen()) {
-          LanguageLevel langLevel = getMaxJavaLanguageLevel(myProject);
-          if (langLevel != null) {
-            LanguageLevelProjectExtension ext = LanguageLevelProjectExtension.getInstance(myProject);
-            if (langLevel != ext.getLanguageLevel()) {
-              ext.setLanguageLevel(langLevel);
-            }
-          }
-        }
-      }
-    });
-  }
-
-  @VisibleForTesting
-  @Nullable
-  static LanguageLevel getMaxJavaLanguageLevel(@NotNull Project project) {
-    LanguageLevel maxLangLevel = null;
-
-    Module[] modules = ModuleManager.getInstance(project).getModules();
-    for (Module module : modules) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null) {
-        AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
-        if (androidModel != null) {
-          LanguageLevel langLevel = androidModel.getJavaLanguageLevel();
-          if (langLevel != null && (maxLangLevel == null || maxLangLevel.compareTo(langLevel) < 0)) {
-            maxLangLevel = langLevel;
-          }
-        }
-      }
-    }
-    return maxLangLevel;
   }
 
   private void finishSuccessfulSync(@Nullable ExternalSystemTaskId taskId) {

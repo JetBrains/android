@@ -1,5 +1,5 @@
 PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
-    languageLevel       : 7 - Diamonds, ARM, multi-catch etc.
+    languageLevel       : 8 - Lambdas, type annotations etc.
     MODULE              : app
         - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack
         - ModuleGroupPath   : app
