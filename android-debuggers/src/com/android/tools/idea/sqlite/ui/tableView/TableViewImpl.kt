@@ -70,28 +70,30 @@ class TableViewImpl : TableView {
   init {
     val northPanel = JPanel(FlowLayout(FlowLayout.LEFT))
     val centerPanel = JPanel(BorderLayout())
+    val southPanel = JPanel(FlowLayout(FlowLayout.RIGHT))
     rootPanel.add(northPanel, BorderLayout.NORTH)
     rootPanel.add(centerPanel, BorderLayout.CENTER)
+    rootPanel.add(southPanel, BorderLayout.SOUTH)
 
     firstRowsPageButton.toolTipText = "First"
-    northPanel.add(firstRowsPageButton)
+    southPanel.add(firstRowsPageButton)
     firstRowsPageButton.addActionListener { listeners.forEach { it.loadFirstRowsInvoked() }}
 
     previousRowsPageButton.toolTipText = "Previous"
-    northPanel.add(previousRowsPageButton)
+    southPanel.add(previousRowsPageButton)
     previousRowsPageButton.addActionListener { listeners.forEach { it.loadPreviousRowsInvoked() }}
 
     pageSizeComboBox.isEditable = true
     pageSizeDefaultValues.forEach { pageSizeComboBox.addItem(it) }
-    northPanel.add(pageSizeComboBox)
+    southPanel.add(pageSizeComboBox)
     pageSizeComboBox.addActionListener { listeners.forEach { it.rowCountChanged((pageSizeComboBox.selectedItem as Int)) } }
 
     nextRowsPageButton.toolTipText = "Next"
-    northPanel.add(nextRowsPageButton)
+    southPanel.add(nextRowsPageButton)
     nextRowsPageButton.addActionListener { listeners.forEach { it.loadNextRowsInvoked() }}
 
     lastRowsPageButton.toolTipText = "Last"
-    northPanel.add(lastRowsPageButton)
+    southPanel.add(lastRowsPageButton)
     lastRowsPageButton.addActionListener { listeners.forEach { it.loadLastRowsInvoked() }}
 
     refreshButton.toolTipText = "Sync table"
