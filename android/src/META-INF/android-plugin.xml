@@ -407,9 +407,6 @@
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.GradleExperimentalSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.sdk.StudioSettingsController"/>
 
-    <applicationService serviceInterface="com.intellij.openapi.help.HelpManager"
-                        serviceImplementation="com.android.tools.idea.help.StudioHelpManagerImpl"
-                        overrides="true"/>
     <applicationService serviceImplementation="com.android.tools.idea.diagnostics.crash.StudioCrashReporter" />
     <applicationService serviceInterface="com.android.tools.idea.fonts.DownloadableFontCacheService"
                         serviceImplementation="com.android.tools.idea.fonts.DownloadableFontCacheServiceImpl" />
