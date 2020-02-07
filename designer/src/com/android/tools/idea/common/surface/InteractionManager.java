@@ -21,11 +21,8 @@ import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.adtui.ui.AdtUiCursors;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.model.NlDropEvent;
 import com.android.tools.idea.uibuilder.surface.DragDropInteraction;
 import com.android.tools.idea.uibuilder.surface.PanInteraction;
@@ -607,22 +604,9 @@ public class InteractionManager implements Disposable {
         return;
       }
 
-      // The below shortcuts only apply without modifier keys.
-      // (Zooming with "+" *may* require modifier keys, since on some keyboards you press for
-      // example Shift+= to create the + key.
-      if (event.isAltDown() || event.isMetaDown() || event.isShiftDown() || event.isControlDown()) {
-        return;
-      }
-
-      if (keyCode == KeyEvent.VK_DELETE || keyCode == KeyEvent.VK_BACK_SPACE) {
-        SceneView sceneView = mySurface.getSceneView(myLastMouseX, myLastMouseY);
-        if (sceneView != null) {
-          SelectionModel model = sceneView.getSelectionModel();
-          if (!model.isEmpty() && !ConstraintComponentUtilities.clearSelectedConstraint(mySurface)) {
-            List<NlComponent> selection = model.getSelection();
-            sceneView.getModel().delete(selection);
-          }
-        }
+      Interaction interaction = myInteractionHandler.keyPressedWithoutInteraction(event);
+      if (interaction != null) {
+        startInteraction(new KeyPressedEvent(event, getInteractionInformation()), interaction);
       }
     }
 
@@ -638,14 +622,18 @@ public class InteractionManager implements Disposable {
         scene.repaint();
       }
       if (myCurrentInteraction != null) {
-        myCurrentInteraction.update(new KeyReleasedEvent(event, getInteractionInformation()));
+        if (myCurrentInteraction instanceof PanInteraction && isPanningKeyboardKey(event)) {
+          // TODO (b/142953949): this should be handled by PanInteraction itself.
+          setPanning(new KeyReleasedEvent(event, getInteractionInformation()), false);
+          updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
+        }
+        else {
+          myCurrentInteraction.update(new KeyReleasedEvent(event, getInteractionInformation()));
+        }
+        return;
       }
 
-      if (isPanningKeyboardKey(event)) {
-        // TODO (b/142953949): this should be handled by PanInteraction itself.
-        setPanning(new KeyReleasedEvent(event, getInteractionInformation()), false);
-        updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
-      }
+      myInteractionHandler.keyReleasedWithoutInteraction(event);
     }
 
     // ---- Implements DropTargetListener ----
