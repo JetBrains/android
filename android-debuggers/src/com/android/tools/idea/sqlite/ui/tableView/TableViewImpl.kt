@@ -26,6 +26,7 @@ import com.intellij.ui.table.JBTable
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
+import java.awt.FlowLayout
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.awt.event.MouseAdapter
@@ -51,8 +52,8 @@ class TableViewImpl : TableView {
 
   private lateinit var columns: List<SqliteColumn>
 
-  private val panel = TablePanel()
-  override val component: JComponent = panel.root
+  private val rootPanel = JPanel(BorderLayout())
+  override val component: JComponent = rootPanel
 
   private val firstRowsPageButton = CommonButton("First", AllIcons.Actions.Play_first)
   private val lastRowsPageButton = CommonButton("Last", AllIcons.Actions.Play_last)
@@ -67,29 +68,34 @@ class TableViewImpl : TableView {
   private val table = JBTable()
 
   init {
+    val northPanel = JPanel(FlowLayout(FlowLayout.LEFT))
+    val centerPanel = JPanel(BorderLayout())
+    rootPanel.add(northPanel, BorderLayout.NORTH)
+    rootPanel.add(centerPanel, BorderLayout.CENTER)
+
     firstRowsPageButton.toolTipText = "First"
-    panel.controlsPanel.add(firstRowsPageButton)
+    northPanel.add(firstRowsPageButton)
     firstRowsPageButton.addActionListener { listeners.forEach { it.loadFirstRowsInvoked() }}
 
     previousRowsPageButton.toolTipText = "Previous"
-    panel.controlsPanel.add(previousRowsPageButton)
+    northPanel.add(previousRowsPageButton)
     previousRowsPageButton.addActionListener { listeners.forEach { it.loadPreviousRowsInvoked() }}
 
     pageSizeComboBox.isEditable = true
     pageSizeDefaultValues.forEach { pageSizeComboBox.addItem(it) }
-    panel.controlsPanel.add(pageSizeComboBox)
+    northPanel.add(pageSizeComboBox)
     pageSizeComboBox.addActionListener { listeners.forEach { it.rowCountChanged((pageSizeComboBox.selectedItem as Int)) } }
 
     nextRowsPageButton.toolTipText = "Next"
-    panel.controlsPanel.add(nextRowsPageButton)
+    northPanel.add(nextRowsPageButton)
     nextRowsPageButton.addActionListener { listeners.forEach { it.loadNextRowsInvoked() }}
 
     lastRowsPageButton.toolTipText = "Last"
-    panel.controlsPanel.add(lastRowsPageButton)
+    northPanel.add(lastRowsPageButton)
     lastRowsPageButton.addActionListener { listeners.forEach { it.loadLastRowsInvoked() }}
 
     refreshButton.toolTipText = "Sync table"
-    panel.controlsPanel.add(refreshButton)
+    northPanel.add(refreshButton)
     refreshButton.addActionListener{ listeners.forEach { it.refreshDataInvoked() } }
 
     table.tableHeader.defaultRenderer = MyTableHeaderRenderer()
@@ -103,7 +109,7 @@ class TableViewImpl : TableView {
       }
     })
 
-    panel.root.add(scrollPane)
+    centerPanel.add(scrollPane, BorderLayout.CENTER)
 
     table.tableHeader.addMouseListener(object : MouseAdapter() {
       override fun mouseClicked(e: MouseEvent) {
