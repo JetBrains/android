@@ -135,6 +135,15 @@ class AppInspectionDiscoveryHost(
   }
 
   /**
+   * Attaches to a process on device and creates an [AppInspectionTarget] with the default [AppInspectionJarCopier].
+   *
+   * TODO(b/149308030): pass all dependencies need to launch a process to AppInspectionProcessListener.
+   */
+  fun attachToProcess(descriptor: TransportProcessDescriptor): ListenableFuture<AppInspectionTarget> {
+    return discovery.attachToProcess(descriptor, descriptor.getLaunchedAppCopier()!!)
+  }
+
+  /**
    * Register listeners to receive stream and process events from transport pipeline.
    */
   private fun registerListenersForDiscovery() {

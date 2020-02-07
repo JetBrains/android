@@ -15,34 +15,39 @@
  */
 package com.android.tools.idea.appinspection.ide
 
+import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
 import com.android.tools.idea.appinspection.api.LaunchedProcessDescriptor
 import com.android.tools.idea.appinspection.api.TestInspectorCommandHandler
-import com.android.tools.idea.appinspection.api.TransportProcessDescriptor
-import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessesComboBoxModel
-import com.android.tools.idea.appinspection.test.ASYNC_TIMEOUT_MS
+import com.android.tools.idea.appinspection.ide.ui.AppInspectionView
+import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
+import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
-import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
+import com.intellij.testFramework.EdtRule
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.Timeout
+import org.junit.rules.RuleChain
+import java.awt.event.ContainerEvent
+import java.awt.event.ContainerListener
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
-import javax.swing.event.ListDataEvent
-import javax.swing.event.ListDataListener
 
-class AppInspectionProcessesComboBoxModelTest {
+class TestAppInspectorTabProvider1 : AppInspectorTabProvider by StubTestAppInspectorTabProvider()
+class TestAppInspectorTabProvider2 : AppInspectorTabProvider by StubTestAppInspectorTabProvider()
+
+class AppInspectionViewTest {
   private val timer = FakeTimer()
-  private val transportService = FakeTransportService(timer)
+  private val transportService = FakeTransportService(timer, false)
 
   private val ATTACH_HANDLER = object : CommandHandler(timer) {
     override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
@@ -56,39 +61,40 @@ class AppInspectionProcessesComboBoxModelTest {
     }
   }
 
-  @get:Rule
-  val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("AppInspectionTargetsComboBoxModelTest", transportService, transportService)!!
+  private val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("AppInspectionViewTest", transportService, transportService)!!
+  private val appInspectionServiceRule = AppInspectionServiceRule(timer, transportService, grpcServerRule)
+  private val projectRule = AndroidProjectRule.inMemory()
 
   @get:Rule
-  val timeoutRule = Timeout(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+  val ruleChain = RuleChain.outerRule(grpcServerRule).around(appInspectionServiceRule)!!.around(projectRule).around(EdtRule())!!
 
   init {
     transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, ATTACH_HANDLER)
+    transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, TestInspectorCommandHandler(timer))
   }
 
   @Test
-  fun addsAndRemovesProcess_comboBoxModelUpdatesProperly() {
+  fun selectProcessInAppInspectionView_addsTwoTabs() {
     val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
     val discoveryHost = AppInspectionDiscoveryHost(executor, TransportClient(grpcServerRule.name))
 
-    transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, TestInspectorCommandHandler(timer))
-    val addedLatch = CountDownLatch(1)
-    val removedLatch = CountDownLatch(1)
+    val inspectionView = AppInspectionView(discoveryHost)
+    val newProcessLatch = CountDownLatch(1)
+    val tabAddedLatch = CountDownLatch(2)
+    discoveryHost.discovery.addTargetListener(appInspectionServiceRule.executorService) {
+      newProcessLatch.countDown()
+    }
+    val tabbedPane = TreeWalker(inspectionView.component).descendants().filterIsInstance<CommonTabbedPane>().first()
+    tabbedPane.addContainerListener(object : ContainerListener {
+      override fun componentAdded(e: ContainerEvent) {
 
-    val model = AppInspectionProcessesComboBoxModel(discoveryHost)
-    model.addListDataListener(object : ListDataListener {
-      override fun contentsChanged(e: ListDataEvent?) {}
-
-      override fun intervalRemoved(e: ListDataEvent?) {
-        removedLatch.countDown()
+        tabAddedLatch.countDown()
       }
 
-      override fun intervalAdded(e: ListDataEvent?) {
-        addedLatch.countDown()
-      }
+      override fun componentRemoved(e: ContainerEvent?) {}
     })
-
     // Attach to a fake process.
+    transportService.addDevice(FakeTransportService.FAKE_DEVICE)
     transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
     discoveryHost.addLaunchedProcess(
       LaunchedProcessDescriptor(
@@ -98,23 +104,7 @@ class AppInspectionProcessesComboBoxModelTest {
       ),
       AppInspectionTestUtils.TestTransportJarCopier
     )
-    addedLatch.await()
-
-    // Verify the added target.
-    assertThat(model.size).isEqualTo(1)
-    assertThat(model.getElementAt(0)).isEqualTo(
-      TransportProcessDescriptor(
-        Common.Stream.newBuilder().setDevice(FakeTransportService.FAKE_DEVICE)
-          .setType(Common.Stream.Type.DEVICE).setStreamId(FakeTransportService.FAKE_DEVICE.deviceId).build(),
-        FakeTransportService.FAKE_PROCESS
-      )
-    )
-
-    // Remove the fake process.
-    transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_OFFLINE_PROCESS)
-    removedLatch.await()
-
-    // Verify the empty model list.
-    assertThat(model.size).isEqualTo(0)
+    newProcessLatch.await()
+    tabAddedLatch.await()
   }
 }
