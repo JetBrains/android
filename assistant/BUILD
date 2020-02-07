@@ -51,6 +51,7 @@ iml_module(
         "//tools/idea/plugins/groovy/groovy-psi:intellij.groovy.psi[module]",
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module]",
         "//tools/idea/platform/lang-api:intellij.platform.lang[module]",
+        "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module]",
     ],
 )
 
