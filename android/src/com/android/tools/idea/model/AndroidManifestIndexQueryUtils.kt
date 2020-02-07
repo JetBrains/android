@@ -206,18 +206,6 @@ fun AndroidFacet.queryPackageNameFromManifestIndex(): String? {
 }
 
 /**
- * Returns the union set of services, instead of merged results with merging rules applied.
- *
- * Must be called in a smart read action.
- */
-fun AndroidFacet.queryServicesFromManifestIndex() = queryManifestIndex { overrides, contributors ->
-  contributors.asSequence()
-    .flatMap { it.services.asSequence()}
-    .mapNotNull { ServiceWrapper(it.intentFilters, overrides) }
-    .toSet()
-}
-
-/**
  * To track in crash analytics when EAP
  */
 fun logManifestIndexQueryError(e: Exception) {
