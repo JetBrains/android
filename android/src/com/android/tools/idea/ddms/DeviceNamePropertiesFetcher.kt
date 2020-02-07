@@ -25,6 +25,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.concurrency.SequentialTaskExecutor
@@ -57,6 +58,18 @@ class DeviceNamePropertiesFetcher(private val uiCallback: FutureCallback<DeviceN
   init {
     Disposer.register(parent, this)
     AndroidDebugBridge.addDeviceChangeListener(myDeviceChangeListener)
+  }
+
+  internal constructor(parent: Disposable) : this(DefaultCallback(), parent)
+
+  private class DefaultCallback : FutureCallback<DeviceNameProperties> {
+    /** Does nothing. Use [DeviceNamePropertiesFetcher.get] to get the properties. */
+    override fun onSuccess(properties: DeviceNameProperties?) {
+    }
+
+    override fun onFailure(throwable: Throwable) {
+      Logger.getInstance(DeviceNamePropertiesFetcher::class.java).warn(throwable)
+    }
   }
 
   enum class ThreadType {

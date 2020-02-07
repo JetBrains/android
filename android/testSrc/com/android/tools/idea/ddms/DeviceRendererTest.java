@@ -30,6 +30,7 @@ import com.intellij.ui.SimpleColoredText;
 import java.util.ArrayList;
 import java.util.List;
 import org.easymock.EasyMock;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 public final class DeviceRendererTest {
@@ -135,7 +136,7 @@ public final class DeviceRendererTest {
     devices.add(d1);
     devices.add(createDevice(true, null, manufacturer, model, buildVersion, apiLevel, "1234", DeviceState.ONLINE));
 
-    assertFalse(DeviceRenderer.shouldShowSerialNumbers(devices));
+    assertFalse(DeviceRenderer.shouldShowSerialNumbers(devices, DeviceRendererTest::newDeviceNameProperties));
   }
 
   @Test
@@ -146,6 +147,11 @@ public final class DeviceRendererTest {
     devices.add(d1);
     devices.add(createDevice(false, null, manufacturer, model, buildVersion, apiLevel, "1234", DeviceState.ONLINE));
 
-    assertTrue(DeviceRenderer.shouldShowSerialNumbers(devices));
+    assertTrue(DeviceRenderer.shouldShowSerialNumbers(devices, DeviceRendererTest::newDeviceNameProperties));
+  }
+
+  @NotNull
+  private static DeviceNameProperties newDeviceNameProperties(@NotNull IDevice device) {
+    return new DeviceNameProperties(DevicePropertyUtil.getModel(device, ""), DevicePropertyUtil.getManufacturer(device, ""), null, null);
   }
 }

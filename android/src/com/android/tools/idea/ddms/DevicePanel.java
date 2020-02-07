@@ -57,6 +57,10 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
   @Nullable private AndroidDebugBridge myBridge;
 
   @NotNull private final Project myProject;
+
+  @NotNull
+  private final DeviceNamePropertiesProvider myProvider;
+
   @NotNull private final Map<String, String> myPreferredClients;
   private boolean myIgnoringActionEvents;
 
@@ -80,6 +84,7 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
               @NotNull DeviceComboBox deviceComboBox,
               @NotNull ComboBox<Client> processComboBox) {
     myProject = project;
+    myProvider = new DeviceNamePropertiesFetcher(myProject);
     myDeviceContext = deviceContext;
     myPreferredClients = new HashMap<>();
 
@@ -292,7 +297,7 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
     List<IDevice> devices = Arrays.asList(myBridge.getDevices());
     devices.forEach(device -> myDeviceCombo.addItem(device));
 
-    myDeviceCombo.setSerialNumbersVisible(DeviceRenderer.shouldShowSerialNumbers(devices));
+    myDeviceCombo.setSerialNumbersVisible(DeviceRenderer.shouldShowSerialNumbers(devices, myProvider));
 
     Optional<IDevice> optionalDevice = IntStream.range(0, myDeviceCombo.getItemCount())
       .mapToObj(i -> myDeviceCombo.getItemAt(i))
