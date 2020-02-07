@@ -27,7 +27,6 @@ import java.util.List;
  * Container for instruction details from a {@code Recipe} instance.
  */
 public class RecipeMetadata {
-
   @NotNull private final List<String> myDependencies = Lists.newArrayList();
   @NotNull private final List<String> myClasspathEntries = Lists.newArrayList();
   @NotNull private final List<String> myPlugins = Lists.newArrayList();
@@ -74,11 +73,6 @@ public class RecipeMetadata {
   @NotNull
   public List<String> getPlugins() {
     return myPlugins;
-  }
-
-  @NotNull
-  public List<String> getModifiedFiles() {
-    return myModifiedFiles;
   }
 
   @NotNull

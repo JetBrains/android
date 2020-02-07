@@ -21,38 +21,39 @@ import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.templates.recipe.Recipe;
 import com.android.tools.idea.templates.recipe.RecipeExecutor;
 import com.android.tools.idea.templates.recipe.RenderingContext;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.SetMultimap;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
-import org.jetbrains.android.facet.AndroidRootUtil;
-import org.jetbrains.annotations.NotNull;
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
-import org.xml.sax.helpers.DefaultHandler;
-
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import org.jetbrains.android.facet.AndroidRootUtil;
+import org.jetbrains.annotations.NotNull;
+import org.xml.sax.Attributes;
+import org.xml.sax.helpers.DefaultHandler;
 
 /**
  * A collection of utility methods for interacting with an {@code Recipe}.
  */
 public class RecipeUtils {
-
   private static Map<Pair<Recipe, Project>, List<RecipeMetadata>> myRecipeMetadataCache = new HashMap<>();
 
   @NotNull
   public static RecipeMetadata getRecipeMetadata(@NotNull Recipe recipe, @NotNull Module module) {
-    Pair key = new Pair(recipe, module.getProject());
+    Pair<Recipe, Project> key = new Pair<>(recipe, module.getProject());
     if (myRecipeMetadataCache.containsKey(key)) {
       List<RecipeMetadata> metadataSet = myRecipeMetadataCache.get(key);
       for (RecipeMetadata metadata : metadataSet) {
@@ -122,7 +123,7 @@ public class RecipeUtils {
 
   @NotNull
   public static List<RecipeMetadata> getRecipeMetadata(@NotNull Recipe recipe, @NotNull Project project) {
-    Pair key = new Pair(recipe, project);
+    Pair<Recipe, Project> key = new Pair<>(recipe, project);
     if (!myRecipeMetadataCache.containsKey(key)) {
       ImmutableList.Builder<RecipeMetadata> cache = ImmutableList.builder();
       for (Module module : AssistActionStateManager.getAndroidModules(project)) {
@@ -137,7 +138,7 @@ public class RecipeUtils {
     List<File> filesToOpen = Lists.newArrayList();
     File moduleRoot = AndroidRootUtil.findModuleRootFolderPath(module);
     assert moduleRoot != null;
-    File RootPath = null;
+    File RootPath;
     try {
       RootPath = new File(FileUtil.generateRandomTemporaryPath(), "unused");
     }
@@ -170,7 +171,7 @@ public class RecipeUtils {
       SAXParser saxParser = factory.newSAXParser();
       saxParser.parse(f, new DefaultHandler() {
         @Override
-        public void startElement(String uri, String localName, String tagName, Attributes attributes) throws SAXException {
+        public void startElement(String uri, String localName, String tagName, Attributes attributes) {
           if (tagName.equals(SdkConstants.TAG_USES_PERMISSION) ||
               tagName.equals(SdkConstants.TAG_USES_PERMISSION_SDK_23) ||
               tagName.equals(SdkConstants.TAG_USES_PERMISSION_SDK_M)) {
