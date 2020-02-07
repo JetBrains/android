@@ -605,7 +605,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     SceneView view = getFocusedSceneView();
     if (view != null) {
-      myProgressPanel.setBounds(view.getX(), view.getY(), view.getSize().width, view.getSize().height);
+      myProgressPanel.setBounds(view.getX(), view.getY(), view.getScaledContentSize().width, view.getScaledContentSize().height);
     }
   }
 
@@ -1298,17 +1298,17 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
       List<Integer> horizontalTopScanLines = findAllScanlines(sceneViewsToPaint, sceneView -> sceneView.getY());
       List<Integer> horizontalBottomScanLines = findAllScanlines(sceneViewsToPaint, sceneView ->
-        sceneView.getY() + sceneView.getSize(reusableDimension).height);
+        sceneView.getY() + sceneView.getScaledContentSize(reusableDimension).height);
       List<Integer> verticalLeftScanLines = findAllScanlines(sceneViewsToPaint, sceneView -> sceneView.getX());
       List<Integer> verticalRightScanLines = findAllScanlines(sceneViewsToPaint, sceneView ->
-        sceneView.getX() + sceneView.getSize(reusableDimension).width);
+        sceneView.getX() + sceneView.getScaledContentSize(reusableDimension).width);
 
       @SwingCoordinate int viewportRight = viewportBounds.x + viewportBounds.width;
       @SwingCoordinate int viewportBottom = viewportBounds.y + viewportBounds.height;
 
       Rectangle sceneViewBounds = new Rectangle();
       for (SceneView sceneView : sceneViewsToPaint) {
-        Dimension sceneViewDimension = sceneView.getSize(reusableDimension);
+        Dimension sceneViewDimension = sceneView.getScaledContentSize(reusableDimension);
         @SwingCoordinate int sceneViewRight = sceneView.getX() + sceneViewDimension.width;
         @SwingCoordinate int sceneViewBottom = sceneView.getY() + sceneViewDimension.height;
         // This finds the maximum allowed area for the screen views to paint into. See more details in the

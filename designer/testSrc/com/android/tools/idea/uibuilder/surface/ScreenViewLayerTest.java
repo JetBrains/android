@@ -106,7 +106,8 @@ public class ScreenViewLayerTest {
     });
     when(screenView.getX()).thenReturn(0);
     when(screenView.getY()).thenReturn(0);
-    when(screenView.getSize(any())).thenAnswer(new Answer<Dimension>() {
+    when(screenView.getScale()).thenReturn(1.);
+    when(screenView.getContentSize(any(Dimension.class))).thenAnswer(new Answer<Dimension>() {
       @Override
       public Dimension answer(InvocationOnMock invocation) {
         Dimension returnDimension = (Dimension)invocation.getArguments()[0];

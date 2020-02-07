@@ -40,10 +40,10 @@ class GridSurfaceLayoutManager(private val horizontalPadding: Int,
                                 availableWidth: Int,
                                 availableHeight: Int,
                                 dimension: Dimension?) =
-    getSize(sceneViews, SceneView::getPreferredSize, availableWidth, availableHeight, dimension)
+    getSize(sceneViews, SceneView::getContentSize, availableWidth, availableHeight, dimension)
 
   override fun getRequiredSize(sceneViews: Collection<SceneView>, availableWidth: Int, availableHeight: Int, dimension: Dimension?)
-    = getSize(sceneViews, SceneView::getSize, availableWidth, availableHeight, dimension)
+    = getSize(sceneViews, SceneView::getScaledContentSize, availableWidth, availableHeight, dimension)
 
   private fun getSize(sceneViews: Collection<SceneView>,
                       sizeFunc: SceneView.() -> Dimension,
@@ -126,7 +126,7 @@ class GridSurfaceLayoutManager(private val horizontalPadding: Int,
       previousVerticalPadding = startY
     }
 
-    val grid = convertToGrid(sceneViews, availableWidth) { size.width }
+    val grid = convertToGrid(sceneViews, availableWidth) { scaledContentSize.width }
 
     var nextX = startX
     var nextY = startY
@@ -134,8 +134,8 @@ class GridSurfaceLayoutManager(private val horizontalPadding: Int,
     for (row in grid) {
       for (view in row) {
         view.setLocation(nextX, nextY)
-        nextX += view.size.width + horizontalViewDelta
-        maxBottomInRow = max(maxBottomInRow, nextY + view.margin.vertical + view.size.height)
+        nextX += view.scaledContentSize.width + horizontalViewDelta
+        maxBottomInRow = max(maxBottomInRow, nextY + view.margin.vertical + view.scaledContentSize.height)
       }
       nextX = startX
       nextY = maxBottomInRow + verticalViewDelta
@@ -158,6 +158,6 @@ private val SceneView.left: Int
 private val SceneView.top: Int
   get() = y
 private val SceneView.right: Int
-  get() = x + size.width
+  get() = x + scaledContentSize.width
 private val SceneView.bottom: Int
-  get() = y + size.height
+  get() = y + scaledContentSize.height

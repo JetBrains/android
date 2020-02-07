@@ -44,7 +44,7 @@ internal class ModelNameLayer(private val myScreenView: ScreenViewBase) : Layer(
       val x = myScreenView.x
       val y = myScreenView.y - (myScreenView.margin.top - fontHeight)
 
-      val textToDisplay = createTrimmedText(modelName, myScreenView.size.width) { metrics.stringWidth(it) }
+      val textToDisplay = createTrimmedText(modelName, myScreenView.scaledContentSize.width) { metrics.stringWidth(it) }
 
       g2d.setRenderingHints(HQ_RENDERING_HINTS)
       g2d.drawString(textToDisplay, x, y)

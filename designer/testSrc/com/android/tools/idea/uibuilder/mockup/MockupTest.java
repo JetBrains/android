@@ -223,8 +223,7 @@ public class MockupTest extends MockupTestCase {
     ScreenView screenView = mock(ScreenView.class);
     when(screenView.getX()).thenReturn(0);
     when(screenView.getY()).thenReturn(0);
-    when(screenView.getSize()).thenReturn(new Dimension(1000, 2000));
-    when(screenView.getSize(anyObject())).thenReturn(new Dimension(1000, 2000));
+    when(screenView.getContentSize(anyObject())).thenReturn(new Dimension(1000, 2000));
     when(screenView.getScale()).thenReturn(2.);
     when(screenView.getSurface()).thenReturn(mockSurface);
     LayoutlibSceneManager mockSceneManager = mock(LayoutlibSceneManager.class);

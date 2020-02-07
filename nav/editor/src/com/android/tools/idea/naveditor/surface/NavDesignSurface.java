@@ -469,7 +469,7 @@ public class NavDesignSurface extends DesignSurface {
       dimension.setSize(0, 0);
       return dimension;
     }
-    return view.getSize(dimension);
+    return view.getScaledContentSize(dimension);
   }
 
   @Override

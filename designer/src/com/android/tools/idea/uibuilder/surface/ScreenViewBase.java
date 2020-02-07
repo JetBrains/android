@@ -79,7 +79,7 @@ abstract class ScreenViewBase extends SceneView {
    */
   @Override
   @NotNull
-  public Dimension getPreferredSize(@Nullable Dimension dimension) {
+  public Dimension getContentSize(@Nullable Dimension dimension) {
     if (dimension == null) {
       dimension = new Dimension();
     }

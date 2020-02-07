@@ -31,7 +31,7 @@ class LayoutHandlerTest : SceneTest() {
     val ph = layoutComponent.nlComponent.viewHandler!!.getPlaceholders(layoutComponent)[0]
 
     val sceneView = myScreen.screen
-    val size = sceneView.size
+    val size = sceneView.scaledContentSize
     val width = Coordinates.getAndroidDimensionDip(sceneView, size.width)
     val height = Coordinates.getAndroidDimensionDip(sceneView, size.height)
     assertEquals(Region(0, 0, width, height), ph.region)

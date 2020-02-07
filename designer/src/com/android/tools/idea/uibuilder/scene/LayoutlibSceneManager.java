@@ -375,7 +375,7 @@ public class LayoutlibSceneManager extends SceneManager {
     mySecondarySceneView = mode.createSecondarySceneView(getDesignSurface(), this);
 
     getDesignSurface().updateErrorDisplay();
-    getDesignSurface().getLayeredPane().setPreferredSize(primarySceneView.getPreferredSize());
+    getDesignSurface().getLayeredPane().setPreferredSize(primarySceneView.getContentSize());
 
     return primarySceneView;
   }
@@ -394,7 +394,7 @@ public class LayoutlibSceneManager extends SceneManager {
     }
 
     getDesignSurface().updateErrorDisplay();
-    getDesignSurface().getLayeredPane().setPreferredSize(sceneView.getPreferredSize());
+    getDesignSurface().getLayeredPane().setPreferredSize(sceneView.getContentSize());
     return sceneView;
   }
 
