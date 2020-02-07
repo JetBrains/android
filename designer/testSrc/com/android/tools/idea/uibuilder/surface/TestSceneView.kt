@@ -21,15 +21,17 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.Layer
 import com.android.tools.idea.common.surface.SceneView
 import com.google.common.collect.ImmutableList
+import org.jetbrains.android.dom.drawable.Inset
 import org.mockito.Mockito
 import java.awt.Dimension
+import java.awt.Insets
 
-class TestSceneView(private val width: Int, private val height: Int,private val nameLabelHeight: Int = 0)
+class TestSceneView(private val width: Int, private val height: Int, private val margin: Insets = NO_MARGIN)
   : SceneView(Mockito.mock(DesignSurface::class.java), Mockito.mock(SceneManager::class.java)) {
 
-  override fun createLayers(): ImmutableList<Layer> = ImmutableList.of()
+  override fun getMargin(): Insets = margin
 
-  override fun getNameLabelHeight() = nameLabelHeight
+  override fun createLayers(): ImmutableList<Layer> = ImmutableList.of()
 
   override fun getPreferredSize(dimension: Dimension?): Dimension {
     val dim = dimension ?: Dimension()

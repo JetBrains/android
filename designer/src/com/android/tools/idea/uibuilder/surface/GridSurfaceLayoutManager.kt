@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.surface
 
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.uibuilder.surface.layout.vertical
 import java.awt.Dimension
 import java.awt.Rectangle
 import kotlin.math.max
@@ -63,7 +64,7 @@ class GridSurfaceLayoutManager(private val horizontalPadding: Int,
       var currentHeight = 0
       for (view in row) {
         rowX += view.sizeFunc().width + horizontalViewDelta
-        currentHeight = max(currentHeight, rowY + verticalViewDelta + view.sizeFunc().height + view.nameLabelHeight)
+        currentHeight = max(currentHeight, rowY + verticalViewDelta + view.sizeFunc().height + view.margin.vertical)
       }
       requiredWidth = max(requiredWidth, max(rowX - horizontalViewDelta, 0))
       requiredHeight = currentHeight
@@ -135,7 +136,7 @@ class GridSurfaceLayoutManager(private val horizontalPadding: Int,
       for (view in row) {
         view.setLocation(nextX, nextY)
         nextX += view.size.width + horizontalViewDelta
-        maxBottomInRow = max(maxBottomInRow, nextY + view.nameLabelHeight + view.size.height)
+        maxBottomInRow = max(maxBottomInRow, nextY + view.margin.vertical + view.size.height)
       }
       nextX = startX
       nextY = maxBottomInRow + verticalViewDelta

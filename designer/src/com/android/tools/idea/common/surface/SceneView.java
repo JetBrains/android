@@ -31,8 +31,10 @@ import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.idea.configurations.Configuration;
 import com.google.common.collect.ImmutableList;
+import com.intellij.util.ui.JBUI;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.awt.Insets;
 import java.awt.Shape;
 import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
@@ -44,6 +46,8 @@ import org.jetbrains.annotations.Nullable;
  * View of a {@link Scene} used in a {@link DesignSurface}.
  */
 public abstract class SceneView {
+  protected static final Insets NO_MARGIN = JBUI.emptyInsets();
+
   @NotNull private final DesignSurface mySurface;
   @NotNull private final SceneManager myManager;
   private final Object myLayersCacheLock = new Object();
@@ -118,10 +122,12 @@ public abstract class SceneView {
   }
 
   /**
-   * Get the height of the name label which displays the name on the top of SceneView.
-   * The value is sum of text height and space between text and SceneView.
+   * Returns the margin requested by this {@link SceneView}
    */
-  abstract public int getNameLabelHeight();
+  @NotNull
+  public Insets getMargin() {
+    return NO_MARGIN;
+  }
 
   @NotNull
   abstract public Dimension getPreferredSize(@Nullable Dimension dimension);

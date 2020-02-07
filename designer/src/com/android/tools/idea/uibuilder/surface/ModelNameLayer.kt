@@ -21,7 +21,6 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.ui.JBColor
 import java.awt.FontMetrics
 import java.awt.Graphics2D
-import java.awt.Rectangle
 
 /**
  * The text appended at the tail of trimmed label. For example,: assuming all the characters have same width, when there is only 10
@@ -43,7 +42,7 @@ internal class ModelNameLayer(private val myScreenView: ScreenViewBase) : Layer(
       val fontHeight = metrics.height
 
       val x = myScreenView.x
-      val y = myScreenView.y - (myScreenView.nameLabelHeight - fontHeight)
+      val y = myScreenView.y - (myScreenView.margin.top - fontHeight)
 
       val textToDisplay = createTrimmedText(modelName, myScreenView.size.width) { metrics.stringWidth(it) }
 

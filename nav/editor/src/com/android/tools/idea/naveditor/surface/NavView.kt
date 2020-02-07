@@ -47,6 +47,4 @@ class NavView(surface: NavDesignSurface, sceneManager: SceneManager) : SceneView
    * Navigation-specific colors are defined in NavColors.
    */
   override fun getColorSet(): ColorSet = colorSet
-
-  override fun getNameLabelHeight() = 0
 }

@@ -17,10 +17,9 @@ package com.android.tools.idea.uibuilder.surface
 
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.uibuilder.surface.layout.vertical
 import java.awt.Dimension
-import java.awt.Rectangle
 import kotlin.math.max
-import kotlin.math.min
 
 /**
  * A [SurfaceLayoutManager] which layouts all [SceneView]s vertically or horizontally depending on the given available size.
@@ -51,7 +50,7 @@ class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalPaddin
     val preferredHeight: Int
     if (vertical) {
       preferredWidth = sceneViews.maxOf { preferredSize.width } ?: 0
-      preferredHeight = sceneViews.sumOf { nameLabelHeight + preferredSize.height + verticalViewDelta } - verticalViewDelta
+      preferredHeight = sceneViews.sumOf { margin.vertical + preferredSize.height + verticalViewDelta } - verticalViewDelta
     }
     else {
       preferredWidth = sceneViews.sumOf { preferredSize.width + horizontalViewDelta } - horizontalViewDelta
@@ -71,7 +70,7 @@ class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalPaddin
     val requiredHeight: Int
     if (isVertical(sceneViews, availableWidth, availableHeight)) {
       requiredWidth = sceneViews.maxOf { size.width } ?: 0
-      requiredHeight = sceneViews.sumOf { nameLabelHeight + size.height + verticalViewDelta } - verticalViewDelta
+      requiredHeight = sceneViews.sumOf { margin.vertical + size.height + verticalViewDelta } - verticalViewDelta
     }
     else {
       requiredWidth = sceneViews.sumOf { size.width + horizontalViewDelta } - horizontalViewDelta
@@ -118,9 +117,9 @@ class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalPaddin
     if (vertical) {
       var nextY = startY
       for (sceneView in sceneViews) {
-        nextY += sceneView.nameLabelHeight
+        nextY += sceneView.margin.top
         sceneView.setLocation(startX, nextY)
-        nextY += sceneView.size.height + verticalViewDelta
+        nextY += sceneView.size.height + sceneView.margin.bottom + verticalViewDelta
       }
     }
     else {
