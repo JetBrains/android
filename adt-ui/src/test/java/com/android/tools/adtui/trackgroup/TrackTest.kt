@@ -20,6 +20,7 @@ import com.android.tools.adtui.common.selectionForeground
 import com.android.tools.adtui.model.trackgroup.TestTrackRendererType
 import com.android.tools.adtui.model.trackgroup.TrackModel
 import com.google.common.truth.Truth.assertThat
+import com.intellij.icons.AllIcons
 import org.junit.Test
 import javax.swing.JLabel
 import javax.swing.UIManager
@@ -45,12 +46,26 @@ class TrackTest {
 
   @Test
   fun updateSelected() {
-    val trackModel = TrackModel.newBuilder(true, TestTrackRendererType.BOOLEAN, "foo").build()
+    val trackModel = TrackModel.newBuilder(true, TestTrackRendererType.BOOLEAN, "foo").setCollapsible(false).build()
     val track = Track.create(trackModel, BooleanTrackRenderer())
     assertThat(track.component.background).isEqualTo(UIManager.getColor("Panel.background"))
     assertThat(track.titleLabel.foreground).isEqualTo(UIManager.getColor("Label.foreground"))
     track.updateSelected(true)
     assertThat(track.component.background).isEqualTo(selectionBackground)
     assertThat(track.titleLabel.foreground).isEqualTo(selectionForeground)
+    assertThat(track.titleLabel.icon).isNull()
+  }
+
+  @Test
+  fun collapseTrack() {
+    val trackModel = TrackModel.newBuilder(true, TestTrackRendererType.BOOLEAN, "foo")
+      .setCollapsible(true)
+      .setCollapsed(false)
+      .build()
+    val collapsedTrack = Track.create(trackModel, BooleanTrackRenderer())
+    assertThat(collapsedTrack.titleLabel.icon).isEqualTo(AllIcons.General.ArrowDown)
+    trackModel.isCollapsed = true
+    val expandedTrack = Track.create(trackModel, BooleanTrackRenderer())
+    assertThat(expandedTrack.titleLabel.icon).isEqualTo(AllIcons.General.ArrowRight)
   }
 }
