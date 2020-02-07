@@ -89,11 +89,11 @@ object RecipeUtils {
     val manifests = sourceFiles.filter { it.name == SdkConstants.FN_ANDROID_MANIFEST_XML }
 
     // Ignore test configurations here.
-    dependencies[SdkConstants.GRADLE_COMPILE_CONFIGURATION].forEach { metadata.addDependency(it!!) }
-    classpathEntries.forEach { metadata.addClasspathEntry(it) }
+    dependencies[SdkConstants.GRADLE_COMPILE_CONFIGURATION].forEach { metadata.dependencies.add(it!!) }
+    classpathEntries.forEach { metadata.classpathEntries.add(it) }
     manifests.forEach { parseManifestForPermissions(it, metadata) }
-    plugins.forEach { metadata.addPlugin(it) }
-    targetFiles.forEach { metadata.addModifiedFile(it) }
+    plugins.forEach { metadata.plugins.add(it) }
+    targetFiles.forEach { metadata.modifiedFiles.add(it) }
     return metadata
   }
 
@@ -138,7 +138,7 @@ object RecipeUtils {
           // Most permissions are "android.permission.XXX", so for readability, just remove the prefix if present
           val permission = attributes.getValue(SdkConstants.ANDROID_NS_NAME_PREFIX + SdkConstants.ATTR_NAME)
             .replace(SdkConstants.ANDROID_PKG_PREFIX + SdkConstants.ATTR_PERMISSION + ".", "")
-          metadata.addPermission(permission)
+          metadata.permissions.add(permission)
         }
       }
     })
