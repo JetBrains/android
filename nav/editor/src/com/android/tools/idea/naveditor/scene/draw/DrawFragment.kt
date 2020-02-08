@@ -36,13 +36,12 @@ import com.android.tools.idea.naveditor.scene.RefinableImage
 import com.android.tools.idea.naveditor.scene.createDrawImageCommand
 import com.android.tools.idea.naveditor.scene.decorator.HIGHLIGHTED_FRAME_STROKE
 import com.android.tools.idea.naveditor.scene.decorator.REGULAR_FRAME_STROKE
-import com.google.common.annotations.VisibleForTesting
 import java.awt.Color
 
-class DrawFragment(@VisibleForTesting val rectangle: SwingRectangle,
-                   @VisibleForTesting val scale: Scale,
-                   @VisibleForTesting val highlightColor: Color?,
-                   @VisibleForTesting val image: RefinableImage? = null) : CompositeDrawCommand(COMPONENT_LEVEL) {
+class DrawFragment(private val rectangle: SwingRectangle,
+                   private val scale: Scale,
+                   private val highlightColor: Color?,
+                   private val image: RefinableImage? = null) : CompositeDrawCommand(COMPONENT_LEVEL) {
 
   constructor(serialized: String) : this(parse(serialized, 3))
 
