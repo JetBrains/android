@@ -49,6 +49,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 
 class TagToClassMapperImpl implements TagToClassMapper {
   private static final Logger LOG = Logger.getInstance(TagToClassMapper.class);
@@ -66,9 +67,33 @@ class TagToClassMapperImpl implements TagToClassMapper {
       @Override
       public void rootsChanged(@NotNull ModuleRootEvent event) {
         // Clear the class inheritance map to make sure new dependencies from libraries are picked up
-        clear();
+        clearInitialClassMaps();
       }
     });
+  }
+
+  @NotNull
+  @Override
+  public ClassMapFreshness getClassMapFreshness(String className) {
+    CachedValue<Map<String, PsiClass>> value = myClassMaps.get(className);
+    if (value == null) {
+      return ClassMapFreshness.REBUILD_ENTIRE_CLASS_MAP;
+    }
+    if (value.hasUpToDateValue()) {
+      return ClassMapFreshness.VALID_CLASS_MAP;
+    }
+    Map<String, SmartPsiElementPointer<PsiClass>> classMap = myInitialClassMaps.get(className);
+    if (classMap != null && isClassMapUpToDate(classMap)) {
+      return ClassMapFreshness.REBUILD_PARTIAL_CLASS_MAP;
+    }
+    return ClassMapFreshness.REBUILD_ENTIRE_CLASS_MAP;
+  }
+
+  @Override
+  @TestOnly
+  public void resetAllClassMaps() {
+    clearInitialClassMaps();
+    myClassMaps.clear();
   }
 
   @Override
@@ -126,6 +151,20 @@ class TagToClassMapperImpl implements TagToClassMapper {
 
   private static boolean isUpToDate(@NotNull PsiClass aClass, @NotNull String tagName, int apiLevel) {
     return ArrayUtil.contains(tagName, getTagNamesByClass(aClass, apiLevel));
+  }
+
+  private boolean isClassMapUpToDate(@NotNull Map<String, SmartPsiElementPointer<PsiClass>> classMap) {
+    int apiLevel = getMinApiLevel();
+    for (String key : classMap.keySet()) {
+      SmartPsiElementPointer<PsiClass> pointer = classMap.get(key);
+      PsiClass aClass = pointer.getElement();
+      if (aClass != null) {
+        if (!isUpToDate(aClass, key, apiLevel)) {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
   @NotNull
@@ -223,7 +262,7 @@ class TagToClassMapperImpl implements TagToClassMapper {
     return androidModuleInfo == null ? 1 : androidModuleInfo.getModuleMinApi();
   }
 
-  public void clear() {
+  public void clearInitialClassMaps() {
     myInitialClassMaps.clear();
   }
 }

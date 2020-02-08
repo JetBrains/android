@@ -37,6 +37,7 @@ import com.android.tools.idea.compose.preview.actions.requestBuildForSurface
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.UniqueTaskCoroutineLauncher
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.editors.notifications.NotificationPanel
@@ -52,15 +53,12 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlInteractionHandler
 import com.android.tools.idea.uibuilder.surface.SceneMode
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
-import com.android.utils.concurrency.EvictingExecutor
 import com.intellij.ide.util.PsiNavigationSupport
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditor
-import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.UserDataHolderBase
@@ -71,15 +69,11 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotifications
-import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.UIUtil
-import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.uipreview.ModuleClassLoaderManager
 import org.jetbrains.kotlin.backend.common.pop
 import java.awt.BorderLayout
 import java.time.Duration
@@ -103,13 +97,16 @@ private val REFRESHING_STATUS = ComposePreviewManager.Status(hasRuntimeErrors = 
  * Sets up the given [sceneManager] with the right values to work on the Compose Preview. Currently, this
  * will configure if the preview elements will be displayed with "full device size" or simply containing the
  * previewed components (shrink mode).
- * @param fullDeviceSize when true, the rendered content will be shown with the full device size specified in
- * the device configuration.
+ * @param showDecorations when true, the rendered content will be shown with the full device size specified in
+ * the device configuration and with the frame decorations.
  */
-private fun configureLayoutlibSceneManager(sceneManager: LayoutlibSceneManager, fullDeviceSize: Boolean): LayoutlibSceneManager =
+private fun configureLayoutlibSceneManager(sceneManager: LayoutlibSceneManager, showDecorations: Boolean): LayoutlibSceneManager =
   sceneManager.apply {
-    setTransparentRendering(!fullDeviceSize)
-    setShrinkRendering(!fullDeviceSize)
+    setTransparentRendering(!showDecorations)
+    setShrinkRendering(!showDecorations)
+    setUseImagePool(false)
+    setQuality(0.7f)
+    setShowDecorations(showDecorations)
     forceReinflate()
   }
 
@@ -148,8 +145,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   private val previewProvider = GroupNameFilteredPreviewProvider(previewProvider)
 
-  private val refreshDispatcher = AppExecutorUtil.createBoundedApplicationPoolExecutor("Compose Preview refresh thread", 1)
-    .asCoroutineDispatcher()
+  /**
+   * A [UniqueTaskCoroutineLauncher] used to run the image rendering. This ensures that only one image rendering is running at time.
+   */
+  private val uniqueRefreshLauncher = UniqueTaskCoroutineLauncher(this, "Compose Preview refresh")
 
   override var groupNameFilter: String? by Delegates.observable(null as String?) { _, oldValue, newValue ->
     if (oldValue != newValue) {
@@ -159,9 +158,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   }
   override val availableGroups: Set<String> get() = previewProvider.availableGroups
 
-  private val refreshExecutor = EvictingExecutor(
-    AppExecutorUtil.createBoundedApplicationPoolExecutor(
-      "Compose Preview thread", AppExecutorUtil.getAppExecutorService(), 1, this), 1)
   private enum class InteractionMode {
     DEFAULT,
     INTERACTIVE,
@@ -183,11 +179,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         // we customize the quality setting and set it to the minimum for now to optimize for rendering speed.
         // For now we just render at 70% quality to get a good balance of speed/memory vs rendering quality.
         currentRenderSettings
-          .copy(quality = 0.7f, useLiveRendering = true)
+          .copy(quality = 0.7f)
       }
       // When showing decorations, show the full device size
-      configureLayoutlibSceneManager(LayoutlibSceneManager(model, surface, settingsProvider),
-                                     fullDeviceSize = currentRenderSettings.showDecorations)
+      configureLayoutlibSceneManager(LayoutlibSceneManager(model, surface),
+                                     showDecorations = currentRenderSettings.showDecorations)
     }
     .setActionManagerProvider { surface -> PreviewSurfaceActionManager(surface) }
     .setInteractionHandlerProvider { surface ->
@@ -301,11 +297,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           return
         }
 
-        // Clean-up the class loading cache for all the possibly affected modules.
-        val module = ModuleUtil.findModuleForFile(file)!!
-        val modules = mutableSetOf<Module>()
-        ModuleUtil.collectModulesDependsOn(module, modules)
-        modules.forEach { ModuleClassLoaderManager.get().clearCache(it) }
         EditorNotifications.getInstance(project).updateNotifications(file.virtualFile!!)
         refresh()
       }
@@ -428,13 +419,13 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * Refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
    * The call will block until all the given [PreviewElement]s have completed rendering.
    */
-  private suspend fun doRefreshSync(filePreviewElements: List<PreviewElement>) = withContext(refreshDispatcher) {
+  private suspend fun doRefreshSync(filePreviewElements: List<PreviewElement>) {
     if (LOG.isDebugEnabled) LOG.debug("doRefresh of ${filePreviewElements.size} elements.")
     val stopwatch = if (LOG.isDebugEnabled) StopWatch() else null
     val psiFile = psiFilePointer.element
     if (psiFile == null || !psiFile.isValid) {
       LOG.warn("doRefresh with invalid PsiFile")
-      return@withContext
+      return
     }
     val facet = AndroidFacet.getInstance(psiFile)!!
     val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
@@ -452,7 +443,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
         if (LOG.isDebugEnabled) {
           LOG.debug("""Preview found at ${stopwatch?.duration?.toMillis()}ms
-              displayName=${previewElement.displayName}
+              displayName=${previewElement.displaySettings.name}
               methodName=${previewElement.composableMethodFqn}
 
               ${fileContents}
@@ -461,14 +452,14 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
         val model = if (existingModels.isNotEmpty()) {
           LOG.debug("Re-using model")
-          configureExistingModel(existingModels.pop(), previewElement.displayName, fileContents, surface)
+          configureExistingModel(existingModels.pop(), previewElement.displaySettings.name, fileContents, surface)
         }
         else {
           LOG.debug("No models to reuse were found. New model.")
           val file = ComposeAdapterLightVirtualFile("testFile.xml", fileContents)
           val configuration = Configuration.create(configurationManager, null, FolderConfiguration.createDefault())
           NlModel.create(this@ComposePreviewRepresentation,
-                         previewElement.displayName,
+                         previewElement.displaySettings.name,
                          facet,
                          file,
                          configuration,
@@ -476,9 +467,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                          modelUpdater)
         }
 
-        val navigable: Navigatable = PsiNavigationSupport.getInstance().createNavigatable(
-          project, psiFile.virtualFile, previewElement.previewElementDefinitionPsi?.element?.textOffset ?: 0)
-        navigationHandler.addDefaultLocation(model, navigable, psiFile.virtualFile)
+        navigationHandler.setDefaultLocation(model, psiFile, previewElement.previewElementDefinitionPsi?.element?.textOffset ?: 0)
 
         previewElement.configuration.applyTo(model.configuration)
 
@@ -537,7 +526,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * The refresh will only happen if the Preview elements have changed from the last render.
    */
   override fun refresh() {
-    refreshDispatcher.cancel()
     launch(uiThread) {
       isContentBeingRendered = true
       val filePreviewElements = previewProvider.previewElements
@@ -549,19 +537,21 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         // configured and that we are showing the right size for components. For example, if the user switches on/off
         // decorations, that will not generate/remove new PreviewElements but will change the surface settings.
         val showingDecorations = RenderSettings.getProjectSettings(project).showDecorations
-        withContext(refreshDispatcher) {
+        uniqueRefreshLauncher.launch {
           surface.models
             .mapNotNull { surface.getSceneManager(it) }
             .filterIsInstance<LayoutlibSceneManager>()
             .forEach {
               // When showing decorations, show the full device size
-              configureLayoutlibSceneManager(it, fullDeviceSize = showingDecorations)
+              configureLayoutlibSceneManager(it, showDecorations = showingDecorations)
             }
           surface.requestRender().await()
-        }
+        }.join()
       }
       else {
-        doRefreshSync(filePreviewElements)
+        uniqueRefreshLauncher.launch {
+          doRefreshSync(filePreviewElements)
+        }.join()
       }
 
       isContentBeingRendered = false

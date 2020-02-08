@@ -56,8 +56,8 @@ import com.android.ide.common.gradle.model.IdeNativeVariantAbi;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.gradle.model.GradlePluginModel;
-import com.android.ide.gradle.model.sources.SourcesAndJavadocArtifact;
-import com.android.ide.gradle.model.sources.SourcesAndJavadocArtifacts;
+import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifacts;
+import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel;
 import com.android.repository.Revision;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
@@ -174,6 +174,10 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @Override
   @NotNull
   public DataNode<ModuleData> createModule(@NotNull IdeaModule gradleModule, @NotNull DataNode<ProjectData> projectDataNode) {
+    if (!isAndroidGradleProject()) {
+      return nextResolver.createModule(gradleModule, projectDataNode);
+    }
+
     AndroidProject androidProject = resolverCtx.getExtraProject(gradleModule, AndroidProject.class);
     if (androidProject != null && !isSupportedVersion(androidProject)) {
       AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder();
@@ -324,7 +328,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     }
 
     // 5 - Populate extra things
-    populateSourcesAndJavadocModel(gradleModule);
+    populateAdditionalClassifierArtifactsModel(gradleModule);
   }
 
   /**
@@ -411,9 +415,9 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     }));
   }
 
-  private void populateSourcesAndJavadocModel(@NotNull IdeaModule gradleModule) {
+  private void populateAdditionalClassifierArtifactsModel(@NotNull IdeaModule gradleModule) {
     Project project = myProjectFinder.findProject(resolverCtx);
-    SourcesAndJavadocArtifacts artifacts = resolverCtx.getExtraProject(gradleModule, SourcesAndJavadocArtifacts.class);
+    AdditionalClassifierArtifactsModel artifacts = resolverCtx.getExtraProject(gradleModule, AdditionalClassifierArtifactsModel.class);
     if (artifacts != null && project != null) {
       LibraryFilePaths.getInstance(project).populate(artifacts);
     }
@@ -468,24 +472,26 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       }
     }
 
-    SourcesAndJavadocArtifacts sourcesAndJavadocArtifact = resolverCtx.getExtraProject(gradleModule, SourcesAndJavadocArtifacts.class);
-    // TODO: Log error messages from sourcesAndJavadocArtifact.
+    AdditionalClassifierArtifactsModel additionalArtifacts =
+      resolverCtx.getExtraProject(gradleModule, AdditionalClassifierArtifactsModel.class);
+    // TODO: Log error messages from additionalArtifacts.
 
     GradleExecutionSettings settings = resolverCtx.getSettings();
     GradleExecutionWorkspace workspace = (settings == null) ? null : settings.getExecutionWorkspace();
 
-    Map<String, SourcesAndJavadocArtifact> sourcesAndJavadocMap;
-    if (sourcesAndJavadocArtifact != null) {
-      sourcesAndJavadocMap =
-        sourcesAndJavadocArtifact
+    Map<String, AdditionalClassifierArtifacts> additionalArtifactsMap;
+    if (additionalArtifacts != null) {
+      additionalArtifactsMap =
+        additionalArtifacts
           .getArtifacts()
           .stream()
           .collect(
             Collectors.toMap((k) -> String.format("%s:%s:%s", k.getId().getGroupId(), k.getId().getArtifactId(), k.getId().getVersion()),
                              (k) -> k
             ));
-    } else {
-      sourcesAndJavadocMap = ImmutableMap.of();
+    }
+    else {
+      additionalArtifactsMap = ImmutableMap.of();
     }
 
     DependencyUtilKt.setupAndroidDependenciesForModule(ideModule, (id) -> {
@@ -494,11 +500,11 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       }
       return null;
     }, (artifactId, artifactPath) -> {
-      SourcesAndJavadocArtifact sja = sourcesAndJavadocMap.get(artifactId);
-      if (sja == null) {
+      AdditionalClassifierArtifacts artifacts = additionalArtifactsMap.get(artifactId);
+      if (artifacts == null) {
         return null;
       }
-      return new SourcesAndJavadocPaths(sja.getSources(),  sja.getJavadoc());
+      return new AdditionalArtifactsPaths(artifacts.getSources(), artifacts.getJavadoc());
     });
   }
 
@@ -748,7 +754,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     SelectedVariants selectedVariants = null;
     boolean isSingleVariantSync = false;
     boolean shouldGenerateSources = false;
-    Collection<String> cachedSourcesAndJavadoc = null;
+    Collection<String> cachedLibraries = null;
     String moduleWithVariantSwitched = null;
 
     if (project != null) {
@@ -759,14 +765,14 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         moduleWithVariantSwitched = project.getUserData(MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI);
         project.putUserData(MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI, null);
       }
-      cachedSourcesAndJavadoc = LibraryFilePaths.getInstance(project).retrieveCachedLibs();
+      cachedLibraries = LibraryFilePaths.getInstance(project).retrieveCachedLibs();
     }
 
     SyncActionOptions options = new SyncActionOptions();
     options.setModuleIdWithVariantSwitched(moduleWithVariantSwitched);
     options.setSingleVariantSyncEnabled(isSingleVariantSync);
     options.setSelectedVariants(selectedVariants);
-    options.setCachedSourcesAndJavadoc(cachedSourcesAndJavadoc);
+    options.setCachedLibraries(cachedLibraries);
     return new AndroidExtraModelProvider(options);
   }
 

@@ -17,7 +17,6 @@
 package com.android.tools.idea.npw.module.recipes.benchmarkModule
 
 import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.npw.module.recipes.kotlinDependencies
 import com.android.tools.idea.wizard.template.GradlePluginVersion
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.renderIf
@@ -32,12 +31,6 @@ fun buildGradle(
   gradlePluginVersion: GradlePluginVersion
 ): String {
   val buildToolsVersionBlock = renderIf(explicitBuildToolsVersion) { "buildToolsVersion \"$buildToolsVersion\"" }
-  val kotlinPluginsBlock = renderIf(language == Language.Kotlin) {
-    """
-    apply plugin : "kotlin-android"
-    apply plugin : "kotlin-android-extensions"
-    """
-  }
   val kotlinOptionsBlock = renderIf(language == Language.Kotlin) {
     """
    kotlinOptions {
@@ -59,14 +52,9 @@ fun buildGradle(
     """
   }
 
-  val kotlinDependenciesBlock = renderIf(language == Language.Kotlin) {
-    kotlinDependencies(gradlePluginVersion)
-  }
-
   return """
 apply plugin: 'com.android.library'
 apply plugin: 'androidx.benchmark'
-$kotlinPluginsBlock
 
 android {
     compileSdkVersion ${buildApiString.toIntOrNull() ?: "\"$buildApiString\""}
@@ -101,14 +89,11 @@ android {
 }
 
 dependencies {
-    implementation fileTree(dir: "libs", include: ["*.jar"])
-
     // Add your dependencies here. Note that you cannot benchmark code
     // in an app module this way - you will need to move any code you
     // want to benchmark to a library module:
     // https://developer.android.com/studio/projects/android-library#Convert
 
-    $kotlinDependenciesBlock
 }
 """
 }

@@ -62,6 +62,7 @@ class ResourceExplorer private constructor(
   init {
     toolbarViewModel.facetUpdaterCallback = {newValue -> this.facet = newValue}
     toolbarViewModel.resourceUpdaterCallback = { name, type -> selectAsset(name, type) }
+    toolbarViewModel.refreshResourcesPreviewsCallback = { resourceExplorerViewModel.refreshPreviews() }
     resourceExplorerViewModel.facetUpdaterCallback = { newValue -> this.facet = newValue}
     resourceExplorerViewModel.resourceTypeUpdaterCallback = this::updateResourceType
 

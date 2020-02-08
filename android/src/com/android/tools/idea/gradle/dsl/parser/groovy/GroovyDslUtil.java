@@ -29,6 +29,7 @@ import static org.jetbrains.plugins.groovy.lang.psi.util.GrStringUtil.removeQuot
 
 import com.android.tools.idea.gradle.dsl.api.ext.RawText;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
@@ -57,8 +58,12 @@ import com.intellij.psi.impl.source.tree.ChangeUtil;
 import com.intellij.psi.impl.source.tree.TreeElement;
 import com.intellij.util.IncorrectOperationException;
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.regex.Pattern;
 import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -752,6 +757,69 @@ public final class GroovyDslUtil {
     return added;
   }
 
+  // from Groovy documentation
+  //
+  // 2 (Keywords) The following list represents all the keywords of the Groovy language
+  @NotNull private static final Set<String> GROOVY_KEYWORDS = new HashSet<>(Arrays.asList(
+    "as", "assert", "break", "case",
+    "catch", "class", "const", "continue",
+    "def", "default", "do", "else",
+    "enum", "extends", "false", "finally",
+    "for", "goto", "if", "implements",
+    "import", "in", "instanceof", "interface",
+    "new", "null", "package", "return",
+    "super", "switch", "this", "throw",
+    "throws", "trait", "true", "try",
+    "while"
+    ));
+
+  // from Groovy documentation
+  //
+  // 3.1 (Normal Identifiers) Identifiers start with a letter, a dollar or an underscore. They cannot start with a number.
+  //
+  // from groovy.flex
+  //
+  //   mDIGIT = [0-9]
+  //   mLETTER = [:letter:] | "_"
+  //   mIDENT = ({mLETTER}|\$) ({mLETTER} | {mDIGIT} | \$)*
+  //
+  // so apparently we can only have ASCII digits, but arbitrary letters.  OK then.
+  @NotNull private static final Pattern GROOVY_NORMAL_IDENTIFIER = Pattern.compile("(\\p{L}|[_$])(\\p{L}|[0-9]|[_$])*");
+
+  @NotNull
+  static String quotePartIfNecessary(String part) {
+    if(!GROOVY_NORMAL_IDENTIFIER.matcher(part).matches()) {
+      // TODO(b/126937269): need to escape single quotes (and backslashes).  Also needs support from the parser
+      return "\'" + part + "\'";
+    }
+    else if (GROOVY_KEYWORDS.contains(part)) {
+      return "\'" + part + "\'";
+    }
+    else {
+      return part;
+    }
+  }
+
+  @NotNull
+  static String quotePartsIfNecessary(ExternalNameInfo info) {
+    List<String> parts = info.externalNameParts;
+    if (info.verbatim) {
+      return String.join(".", parts);
+    }
+    StringBuilder sb = new StringBuilder();
+    boolean firstPart = true;
+    for (String part: parts) {
+      if (!firstPart) {
+        sb.append('.');
+      }
+      else {
+        firstPart = false;
+      }
+      sb.append(quotePartIfNecessary(part));
+    }
+    return sb.toString();
+  }
+
   @Nullable
   static PsiElement createNameElement(@NotNull GradleDslElement context, @NotNull String name) {
     GroovyPsiElementFactory factory = getPsiElementFactory(context);
@@ -759,10 +827,10 @@ public final class GroovyDslUtil {
       return null;
     }
 
-    String str = name + " = 1";
+    String str = name + " 1";
     GrExpression expression = factory.createExpressionFromText(str);
-    if (expression instanceof GrAssignmentExpression) {
-      return ((GrAssignmentExpression)expression).getLValue();
+    if (expression instanceof GrApplicationStatement) {
+      return ((GrApplicationStatement)expression).getInvokedExpression();
     }
     else {
       return null;
@@ -773,7 +841,7 @@ public final class GroovyDslUtil {
     GradleNameElement nameElement = element.getNameElement();
 
     String localName = nameElement.getLocalName();
-    if (localName == null) return;
+    if (localName == null || localName.isEmpty()) return;
     if (localName.equals(nameElement.getOriginalName())) return;
 
     PsiElement oldName = element.getNameElement().getNamedPsiElement();
@@ -799,7 +867,7 @@ public final class GroovyDslUtil {
       newElement = namedElement;
     }
     else {
-      PsiElement psiElement = createNameElement(element, newName);
+      PsiElement psiElement = createNameElement(element, quotePartIfNecessary(newName));
       if (psiElement == null) {
         return;
       }

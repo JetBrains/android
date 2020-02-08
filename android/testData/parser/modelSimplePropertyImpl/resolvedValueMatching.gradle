@@ -1,0 +1,6 @@
+ext {
+  propValue = 'value'
+  prop25 = 25
+  propTrue = true
+  propRef = propValue
+}

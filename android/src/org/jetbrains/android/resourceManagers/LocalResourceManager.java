@@ -184,7 +184,7 @@ public class LocalResourceManager extends ResourceManager {
           for (Attr attr : styleable.getAttrs()) {
             ResourceReference resourceReference = attr.getName().getValue();
             if (resourceReference != null) {
-              if (ResourcesUtil.flattenResourceName(resourceReference.getQualifiedName()).equals(attrName) ||
+              if (ResourcesUtil.resourceNameToFieldName(resourceReference.getQualifiedName()).equals(attrName) ||
                   resourceReference.getName().equals(attrName)) {
                 list.add(attr);
               }

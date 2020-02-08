@@ -62,7 +62,7 @@ public class NlEditorTest {
 
     // Find and click the first text view
     NlComponentFixture textView = layout.findView("TextView", 0);
-    textView.click();
+    textView.getSceneComponent().click();
 
     // It should be selected now
     assertThat(layout.getSelection()).containsExactly(textView.getComponent());
@@ -91,7 +91,7 @@ public class NlEditorTest {
 
     // Find and click the checkBox
     NlComponentFixture checkBox = layout.findView("CheckBox", 0);
-    checkBox.click();
+    checkBox.getSceneComponent().click();
 
     // It should be selected now
     assertEquals(3, layout.getAllComponents().size()); // 3 = root layout + the 2 widgets added
@@ -100,9 +100,9 @@ public class NlEditorTest {
     assertThat(layout.getSelection()).isEmpty();
     assertEquals(2, layout.getAllComponents().size());
 
-    layout.findView("Button", 0).click();
+    layout.findView("Button", 0).getSceneComponent().click();
     ideFrame.invokeMenuPath("Edit", "Paste");
-    layout.findView("CheckBox", 0).click();
+    layout.findView("CheckBox", 0).getSceneComponent().click();
     ideFrame.invokeMenuPath("Edit", "Copy");
     ideFrame.invokeMenuPath("Edit", "Paste");
     assertEquals(4, layout.getAllComponents().size());
@@ -181,8 +181,8 @@ public class NlEditorTest {
 
       // Test click on a suggestion
       NlComponentFixture textView = layout.findView("TextView", 0);
-      textView.rightClick();
-      textView.invokeContextMenuAction("Convert view...");
+      textView.getSceneComponent().rightClick();
+      textView.getSceneComponent().invokeContextMenuAction("Convert view...");
       MorphDialogFixture fixture = layout.findMorphDialog();
       fixture.getTextField().click();
       assertThat(fixture.getTextField().target().isFocusOwner()).isTrue();
@@ -195,7 +195,7 @@ public class NlEditorTest {
 
       // Test enter text manually
       NlComponentFixture button = layout.findView("Button", 0);
-      button.rightClick();
+      button.getSceneComponent().rightClick();
       layout.invokeContextMenuAction("Convert view...");
       fixture = layout.findMorphDialog();
       fixture.getTextField().click();

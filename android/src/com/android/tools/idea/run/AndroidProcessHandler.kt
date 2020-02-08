@@ -51,15 +51,17 @@ import java.io.OutputStream
  *
  * @param project IDE project which uses this process handler
  * @param targetApplicationId a target application id to be monitored
+ * @param captureLogcat true if you need logcat message to be captured and displayed in an attached console view, false otherwise
  * @param deploymentApplicationService a service to be used to look up running processes on a device
  * @param androidProcessMonitorManagerFactory a factory method to construct [AndroidProcessMonitorManager]
  */
 class AndroidProcessHandler @JvmOverloads constructor(
   private val project: Project,
   private val targetApplicationId: String,
+  val captureLogcat: Boolean = true,
   private val deploymentApplicationService: DeploymentApplicationService = DeploymentApplicationService.getInstance(),
   androidProcessMonitorManagerFactory: AndroidProcessMonitorManagerFactory = { _, _, textEmitter, listener ->
-    AndroidProcessMonitorManager(targetApplicationId, deploymentApplicationService, textEmitter, listener)
+    AndroidProcessMonitorManager(targetApplicationId, deploymentApplicationService, textEmitter, captureLogcat, listener)
   }) : ProcessHandler(), KillableProcess, SwappableProcessHandler {
 
   companion object {

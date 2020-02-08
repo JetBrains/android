@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.Serializable;
-
 public class SyncActionOptions implements Serializable {
   @Nullable private SelectedVariants mySelectedVariants;
-  @Nullable private Collection<String> myCachedSourcesAndJavadoc;
+  @Nullable private Collection<String> myCachedLibraries;
   @Nullable private String myModuleIdWithVariantSwitched;
   private boolean mySingleVariantSyncEnabled;
 
@@ -46,12 +45,12 @@ public class SyncActionOptions implements Serializable {
   }
 
   @NotNull
-  public Collection<String> getCachedSourcesAndJavadoc() {
-    return myCachedSourcesAndJavadoc == null ? Collections.emptySet() : myCachedSourcesAndJavadoc;
+  public Collection<String> getCachedLibraries() {
+    return myCachedLibraries == null ? Collections.emptySet() : myCachedLibraries;
   }
 
-  public void setCachedSourcesAndJavadoc(@Nullable Collection<String> cached) {
-    myCachedSourcesAndJavadoc = cached;
+  public void setCachedLibraries(@Nullable Collection<String> cached) {
+    myCachedLibraries = cached;
   }
 
   @Nullable

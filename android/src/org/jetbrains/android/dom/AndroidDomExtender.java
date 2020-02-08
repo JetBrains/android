@@ -21,6 +21,7 @@ import com.intellij.util.xml.GenericAttributeValue;
 import com.intellij.util.xml.reflect.DomExtender;
 import com.intellij.util.xml.reflect.DomExtensionsRegistrar;
 import java.util.Set;
+import org.jetbrains.android.dom.layout.LayoutElement;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -49,11 +50,11 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
 
   @Override
   public void registerExtensions(@NotNull AndroidDomElement element, @NotNull final DomExtensionsRegistrar registrar) {
-    if (!areExtensionsKnown()) {
-      return;
+    if (element instanceof LayoutElement) {
+      if (StudioFlags.LAYOUT_XML_MODE.get() == StudioFlags.LayoutXmlMode.NO_DOM_EXTENDER) {
+        return;
+      }
     }
-    AndroidDomUtil.checkThreading();
-
     final AndroidFacet facet = AndroidFacet.getInstance(element);
 
     if (facet == null) {
@@ -66,10 +67,5 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
       return registrar.registerGenericAttributeValueChildExtension(xmlName, valueClass);
     });
     SubtagsProcessingUtil.processSubtags(facet, element, registrar::registerCollectionChildrenExtension);
-  }
-
-  public static boolean areExtensionsKnown() {
-    // TODO(b/122487428): Implement computing in the background and caching.
-    return StudioFlags.RUN_DOM_EXTENDER.get();
   }
 }

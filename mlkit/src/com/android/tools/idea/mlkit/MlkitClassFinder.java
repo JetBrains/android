@@ -17,21 +17,19 @@ package com.android.tools.idea.mlkit;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.mlkit.lightpsi.LightModelClass;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.AndroidLightPackage;
 import com.android.tools.mlkit.MlkitNames;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElementFinder;
-import com.intellij.psi.PsiNameHelper;
 import com.intellij.psi.PsiPackage;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.indexing.FileBasedIndex;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -57,39 +55,45 @@ public class MlkitClassFinder extends PsiElementFinder {
   @NotNull
   @Override
   public PsiClass[] findClasses(@NotNull String qualifiedName, @NotNull GlobalSearchScope scope) {
-    if (StudioFlags.MLKIT_LIGHT_CLASSES.get()) {
-      List<PsiClass> lightClassList = new ArrayList<>();
-      String className = computeDataKey(qualifiedName);
-      FileBasedIndex.getInstance().processValues(MlModelFileIndex.INDEX_ID, className, null, (file, value) -> {
-        Module module = ModuleUtilCore.findModuleForFile(file, myProject);
-        if (module != null && AndroidFacet.getInstance(module) != null && value.isValidModel()) {
-          LightModelClass lightModelClass = MlkitModuleService.getInstance(module).getOrCreateLightModelClass(value);
-          if (lightModelClass != null && lightModelClass.getQualifiedName().equals(qualifiedName)) {
-            lightClassList.add(lightModelClass);
-          }
+    if (!StudioFlags.MLKIT_LIGHT_CLASSES.get() || !qualifiedName.contains(MlkitNames.PACKAGE_SUFFIX)) {
+      return PsiClass.EMPTY_ARRAY;
+    }
+
+    List<PsiClass> lightClassList = new ArrayList<>();
+    String className = computeDataKey(qualifiedName);
+    FileBasedIndex.getInstance().processValues(MlModelFileIndex.INDEX_ID, className, null, (file, value) -> {
+      Module module = ModuleUtilCore.findModuleForFile(file, myProject);
+      if (module != null && AndroidFacet.getInstance(module) != null && value.isValidModel()) {
+        LightModelClass lightModelClass = MlkitModuleService.getInstance(module).getOrCreateLightModelClass(value);
+        if (lightModelClass == null) {
+          return true;
+        }
+
+        if (lightModelClass.getQualifiedName().equals(qualifiedName)) {
+          lightClassList.add(lightModelClass);
+        }
+        else {
           for (PsiClass innerClass : lightModelClass.getInnerClasses()) {
-            if (innerClass.getQualifiedName().equals(qualifiedName)) {
+            if (qualifiedName.equals(innerClass.getQualifiedName())) {
               lightClassList.add(innerClass);
             }
           }
         }
+      }
 
-        return true;
-      }, scope);
+      return true;
+    }, scope);
 
-      return lightClassList.toArray(PsiClass.EMPTY_ARRAY);
-    }
-
-    return PsiClass.EMPTY_ARRAY;
+    return lightClassList.toArray(PsiClass.EMPTY_ARRAY);
   }
 
   @NotNull
-  private String computeDataKey(@NotNull String qualifiedName) {
+  private static String computeDataKey(@NotNull String qualifiedName) {
     // If it might inner class, then find second last element which matches data key.
-    if (qualifiedName.endsWith(MlkitNames.OUTPUT) || qualifiedName.endsWith(MlkitNames.LABEL)) {
+    if (qualifiedName.endsWith(MlkitNames.OUTPUTS) || qualifiedName.endsWith(MlkitNames.INPUTS)) {
       String[] candidates = qualifiedName.split("\\.");
       if (candidates.length >= 2) {
-        return candidates[candidates.length-2];
+        return candidates[candidates.length - 2];
       }
     }
 
@@ -98,19 +102,16 @@ public class MlkitClassFinder extends PsiElementFinder {
 
   @Nullable
   @Override
-  public PsiPackage findPackage(@NotNull String qualifiedName) {
-    if (StudioFlags.MLKIT_LIGHT_CLASSES.get() && qualifiedName.endsWith(MlkitNames.PACKAGE_SUFFIX)) {
-      //TODO(b/147890886): Avoid scanning all modules
-      for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-        String mlkitPackageName = MlkitUtils.computeModelPackageName(module);
-        if (mlkitPackageName != null) {
-          if (PsiNameHelper.isSubpackageOf(mlkitPackageName, qualifiedName)) {
-            return AndroidLightPackage.withName(qualifiedName, myProject);
-          }
-        }
-      }
+  public PsiPackage findPackage(@NotNull String packageName) {
+    if (!StudioFlags.MLKIT_LIGHT_CLASSES.get() || !packageName.endsWith(MlkitNames.PACKAGE_SUFFIX)) {
+      return null;
     }
 
-    return null;
+    String modulePackageName = StringUtil.substringBeforeLast(packageName, MlkitNames.PACKAGE_SUFFIX);
+    boolean moduleFound = !ProjectSystemUtil.getProjectSystem(myProject)
+      .getAndroidFacetsWithPackageName(myProject, modulePackageName, GlobalSearchScope.projectScope(myProject))
+      .isEmpty();
+
+    return moduleFound ? AndroidLightPackage.withName(packageName, myProject) : null;
   }
 }

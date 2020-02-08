@@ -34,7 +34,7 @@ import com.android.tools.idea.naveditor.scene.layout.NEW_DESTINATION_MARKER_PROP
 import com.android.tools.idea.naveditor.structure.findReferences
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
-import com.android.tools.idea.ui.resourcemanager.ImageCache
+import com.android.tools.idea.ui.resourcemanager.rendering.ImageCache
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.rendering.LayoutSlowPreviewProvider
 import com.android.tools.idea.ui.resourcemanager.rendering.SlowResourcePreviewManager
@@ -101,9 +101,8 @@ import javax.swing.border.CompoundBorder
 import javax.swing.event.DocumentEvent
 
 const val DESTINATION_MENU_MAIN_PANEL_NAME = "destinationMenuMainPanel"
-// TODO: Replace revision when artifact available in maven
 private val DYNAMIC_DEPENDENCIES
-  = listOf(GoogleMavenArtifactId.ANDROIDX_NAVIGATION_DYNAMIC_FEATURES_FRAGMENT.getCoordinate("2.3.0-SNAPSHOT"))
+  = listOf(GoogleMavenArtifactId.ANDROIDX_NAVIGATION_DYNAMIC_FEATURES_FRAGMENT.getCoordinate("+"))
 
 /**
  * "Add" popup menu in the navigation editor.
@@ -119,8 +118,9 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
   private val iconProvider: SlowResourcePreviewManager by lazy {
     val model = surface.model!!
     // TODO(147157941): Get the Icon provider with AssetPreviewManager
-    SlowResourcePreviewManager(ImageCache.createSmallImageCache(model.project),
-                               LayoutSlowPreviewProvider(model.facet, model.configuration.resourceResolver))
+    SlowResourcePreviewManager(
+      ImageCache.createImageCache(model.project),
+      LayoutSlowPreviewProvider(model.facet, model.configuration.resourceResolver))
   }
 
   @VisibleForTesting

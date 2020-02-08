@@ -555,7 +555,8 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): AndroidProjectStub {
           listOf(),
           defaultConfig.productFlavor,
           listOf(),
-          false
+          false,
+          listOf()
         )
       },
     listOfNotNull(debugBuildType?.sourceProvider?.name, releaseBuildType?.sourceProvider?.name),

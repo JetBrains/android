@@ -32,7 +32,7 @@ import com.android.tools.idea.naveditor.scene.HANDLE_STROKE
 import com.android.tools.idea.naveditor.scene.makeCircleLerp
 import java.awt.Color
 
-data class DrawActionHandle(private val center: SwingPoint,
+class DrawActionHandle(private val center: SwingPoint,
                             private val initialOuterRadius: SwingLength,
                             private val finalOuterRadius: SwingLength,
                             private val initialInnerRadius: SwingLength,

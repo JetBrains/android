@@ -36,15 +36,15 @@ class GroupNameFilteredPreviewProviderTest {
 
     // An invalid group should return all the items
     groupPreviewProvider.groupName = "InvalidGroup"
-    assertThat(groupPreviewProvider.previewElements.map { it.displayName },
+    assertThat(groupPreviewProvider.previewElements.map { it.displaySettings.name },
                `is`(listOf<String>("PreviewMethod1", "PreviewMethod2", "PreviewMethod3", "PreviewMethod4")))
 
     groupPreviewProvider.groupName = "GroupA"
-    assertThat(groupPreviewProvider.previewElements.map { it.displayName },
+    assertThat(groupPreviewProvider.previewElements.map { it.displaySettings.name },
                `is`(listOf<String>("PreviewMethod1", "PreviewMethod2")))
 
     groupPreviewProvider.groupName = "GroupB"
-    assertEquals("PreviewMethod3", groupPreviewProvider.previewElements.map { it.displayName }.single())
+    assertEquals("PreviewMethod3", groupPreviewProvider.previewElements.map { it.displaySettings.name }.single())
 
     groupPreviewProvider.groupName = null
   }

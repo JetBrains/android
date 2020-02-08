@@ -20,6 +20,7 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.compose.preview.PREVIEW_ANNOTATION_FQN
 import com.android.tools.idea.compose.preview.PREVIEW_NAME
 import com.android.tools.idea.compose.preview.PreviewConfiguration
+import com.android.tools.idea.compose.preview.PreviewDisplaySettings
 import com.android.tools.idea.compose.preview.PreviewElement
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
 import com.android.tools.idea.flags.StudioFlags
@@ -125,9 +126,13 @@ class ComposeDocumentationProvider : DocumentationProviderEx() {
 
   private fun previewFromMethodName(fqName: String) =
     PreviewElement(
-      displayName = "",
-      groupName = null,
       composableMethodFqn = fqName,
+      displaySettings = PreviewDisplaySettings(
+        name = "",
+        group = null,
+        showBackground = false,
+        showDecorations = false,
+        backgroundColor = null),
       previewElementDefinitionPsi = null,
       previewBodyPsi = null,
       configuration = nullConfiguration
@@ -141,7 +146,7 @@ class ComposeDocumentationProvider : DocumentationProviderEx() {
   private fun getPreviewElement(element: PsiElement): KtNamedFunction? = ReadAction.compute<KtNamedFunction?, Throwable> {
     val docComment = (element as? KtNamedFunction)?.docComment ?: return@compute null
     val sampleTag = docComment.getDefaultSection().findTagByName("sample") ?: return@compute null
-    val sample = PsiTreeUtil.findChildOfType<KDocName>(sampleTag, KDocName::class.java)?.mainReference?.resolve() ?: return@compute null
+    val sample = PsiTreeUtil.findChildOfType(sampleTag, KDocName::class.java)?.mainReference?.resolve() ?: return@compute null
     return@compute if (sample.isPreview()) sample as KtNamedFunction else null
   }
 

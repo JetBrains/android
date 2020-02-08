@@ -41,7 +41,7 @@ interface DatabaseConnection : Disposable {
    *
    * @see java.sql.PreparedStatement.execute
    */
-  fun execute(sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet?>
+  fun execute(sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet>
 
   override fun dispose() {
     close().get()

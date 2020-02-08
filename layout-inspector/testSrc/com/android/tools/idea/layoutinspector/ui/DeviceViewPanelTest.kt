@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
+import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeMouse.Button
 import com.android.tools.adtui.swing.FakeMouse.Button.LEFT
@@ -30,7 +31,10 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.ui.components.JBScrollPane
+import com.intellij.util.ui.UIUtil
 import junit.framework.TestCase
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
@@ -39,6 +43,9 @@ import java.awt.Dimension
 import java.awt.Image
 import java.awt.Point
 import javax.swing.JCheckBox
+import javax.swing.JComponent
+import javax.swing.JPanel
+import javax.swing.JScrollPane
 import javax.swing.JViewport
 
 @RunsInEdt
@@ -140,6 +147,82 @@ class DeviceViewPanelLegacyTest {
     val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
     assertThat(checkbox.isEnabled).isFalse()
     assertThat(checkbox.toolTipText).isEqualTo("Live updates not available for devices below API 29")
+  }
+}
+
+class MyViewportLayoutManagerTest {
+  private lateinit var scrollPane: JScrollPane
+  private lateinit var contentPanel: JComponent
+  private lateinit var layoutManager: MyViewportLayoutManager
+
+  private var layerSpacing = INITIAL_LAYER_SPACING
+
+  @Before
+  fun setUp() {
+    contentPanel = JPanel()
+    scrollPane = JBScrollPane(contentPanel)
+    scrollPane.size = Dimension(502, 202)
+    scrollPane.preferredSize = Dimension(502, 202)
+    contentPanel.preferredSize = Dimension(1000, 1000)
+    layoutManager = MyViewportLayoutManager(scrollPane.viewport) { layerSpacing }
+    layoutManager.layoutContainer(scrollPane.viewport)
+    scrollPane.layout.layoutContainer(scrollPane)
+  }
+
+  @Test
+  fun testAdjustLayerSpacing() {
+    // Start view as centered
+    scrollPane.viewport.viewPosition = Point(250, 400)
+    // expand spacing
+    layerSpacing = 200
+    contentPanel.preferredSize = Dimension(1200, 1200)
+    layoutManager.layoutContainer(scrollPane.viewport)
+    // Still centered
+    assertThat(scrollPane.viewport.viewPosition).isEqualTo(Point(350, 500))
+
+    // offset view (-100, -50) from center
+    scrollPane.viewport.viewPosition = Point(250, 450)
+    // put spacing and size back
+    layerSpacing = INITIAL_LAYER_SPACING
+    contentPanel.preferredSize = Dimension(1000, 1000)
+    layoutManager.layoutContainer(scrollPane.viewport)
+
+    // view still offset (-100, -50) from center
+    assertThat(scrollPane.viewport.viewPosition).isEqualTo(Point(150, 350))
+  }
+
+  @Test
+  fun testZoomToFit() {
+    assertThat(scrollPane.viewport.viewPosition).isEqualTo(Point(0, 0))
+    layoutManager.currentZoomOperation = ZoomType.FIT
+    layoutManager.layoutContainer(scrollPane.viewport)
+    // view is centered after fit
+    assertThat(scrollPane.viewport.viewPosition).isEqualTo(Point(250, 400))
+  }
+
+  @Test
+  fun testZoom() {
+    // Start view as centered
+    scrollPane.viewport.viewPosition = Point(250, 400)
+    // zoom in
+    layoutManager.currentZoomOperation = ZoomType.IN
+    contentPanel.preferredSize = Dimension(1200, 1200)
+
+    layoutManager.layoutContainer(scrollPane.viewport)
+    // Still centered
+    assertThat(scrollPane.viewport.viewPosition).isEqualTo(Point(350, 500))
+
+    // offset view (-100, -50) from center
+    scrollPane.viewport.viewPosition = Point(250, 450)
+    // zoom out
+    layoutManager.currentZoomOperation = ZoomType.OUT
+    contentPanel.preferredSize = Dimension(1000, 1000)
+
+    layoutManager.layoutContainer(scrollPane.viewport)
+
+    // view proportionally offset from center
+    assertThat(scrollPane.viewport.viewPosition).isEqualTo(Point(166, 358))
+
   }
 }
 

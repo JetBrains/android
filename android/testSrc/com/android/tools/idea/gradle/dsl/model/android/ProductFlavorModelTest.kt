@@ -98,6 +98,7 @@ import com.android.tools.idea.gradle.dsl.model.android.productFlavors.externalNa
 import com.android.tools.idea.gradle.dsl.model.android.productFlavors.externalNativeBuild.NdkBuildOptionsModelImpl
 import com.google.common.truth.Truth.assertThat
 import org.junit.Assume.assumeTrue
+import org.junit.Ignore
 import org.junit.Test
 
 /**
@@ -1099,7 +1100,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     defaultConfig.testHandleProfiling().setValue(false)
     defaultConfig.testInstrumentationRunner().setValue("efgh")
     defaultConfig.useJack().setValue(true)
-    defaultConfig.versionCode().setValue("2")
+    defaultConfig.versionCode().setValue(2)
     defaultConfig.versionName().setValue("2.0")
 
     assertEquals("applicationId", "com.example.myapplication-1", defaultConfig.applicationId())
@@ -1113,7 +1114,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertEquals("testHandleProfiling", false, defaultConfig.testHandleProfiling())
     assertEquals("testInstrumentationRunner", "efgh", defaultConfig.testInstrumentationRunner())
     assertEquals("useJack", true, defaultConfig.useJack())
-    assertEquals("versionCode", "2", defaultConfig.versionCode())
+    assertEquals("versionCode", 2, defaultConfig.versionCode())
     assertEquals("versionName", "2.0", defaultConfig.versionName())
 
     applyChanges(buildModel)
@@ -1130,7 +1131,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertEquals("testHandleProfiling", false, defaultConfig.testHandleProfiling())
     assertEquals("testInstrumentationRunner", "efgh", defaultConfig.testInstrumentationRunner())
     assertEquals("useJack", true, defaultConfig.useJack())
-    assertEquals("versionCode", "2", defaultConfig.versionCode())
+    assertEquals("versionCode", 2, defaultConfig.versionCode())
     assertEquals("versionName", "2.0", defaultConfig.versionName())
 
     buildModel.reparse()
@@ -1149,7 +1150,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertEquals("testHandleProfiling", false, defaultConfig.testHandleProfiling())
     assertEquals("testInstrumentationRunner", "efgh", defaultConfig.testInstrumentationRunner())
     assertEquals("useJack", true, defaultConfig.useJack())
-    assertEquals("versionCode", "2", defaultConfig.versionCode())
+    assertEquals("versionCode", 2, defaultConfig.versionCode())
     assertEquals("versionName", "2.0", defaultConfig.versionName())
   }
 

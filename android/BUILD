@@ -45,12 +45,19 @@ iml_module(
     exports = ["//tools/adt/idea/build-common:intellij.android.buildCommon"],
     # do not sort: must match IML order
     runtime_deps = [
+        "//tools/idea/.idea/libraries:delight-rhino-sandbox",
+        "//tools/idea/.idea/libraries:rhino",
+        "//tools/idea/.idea/libraries:netty-handler-proxy",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
+        "//tools/idea/.idea/libraries:javassist",
         "//tools/idea/platform/diagnostic:intellij.platform.diagnostic",
+        "//tools/idea/.idea/libraries:error-prone-annotations",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
+        "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/193.4:jar",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
+        "//tools/idea/.idea/libraries:precompiled_jshell-frontend",
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
         "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
@@ -169,8 +176,78 @@ iml_module(
     name = "intellij.android.core.tests",
     exec_properties = LARGE_MACHINE,
     iml_files = ["intellij.android.core.tests.iml"],
+    split_test_targets = {
+        "gradle": {
+            "shard_count": 10,
+            "data": ["//prebuilts/studio/sdk:ndk"],
+            "tags": ["no_windows"],  # WIP: many sync errors with dependencies, but some others related to paths, etc.
+            "test_filter": "com.android.tools.idea.gradle",
+        },
+        "gradle.structure": {
+            "shard_count": 6,
+            "tags": ["no_windows"],
+            "test_filter": "com.android.tools.idea.gradle.structure",
+        },
+        "gradle.structure.configurables.variables.VariablesTableTest": {
+            "tags": ["no_windows"],
+            "test_filter": "com.android.tools.idea.gradle.structure.configurables.variables.VariablesTableTest",
+        },
+        "avd": {
+            "test_filter": "com.android.tools.idea.avdmanager",
+        },
+        "jetbrains": {
+            "shard_count": 6,
+            "tags": ["no_windows"],
+            "test_filter": "org.jetbrains.android",
+        },
+        "navigator": {
+            "shard_count": 2,
+            "data": ["//prebuilts/studio/sdk:ndk"],
+            "tags": ["no_windows"],  # testDependentNativeModules (ag/9872410)
+            "test_filter": "com.android.tools.idea.navigator",
+        },
+        "imports": {
+            "shard_count": 2,
+            "test_filter": "com.android.tools.idea.imports",
+        },
+        "run": {
+            "shard_count": 2,
+            "test_filter": "com.android.tools.idea.run",
+        },
+        "npw.assetstudio": {
+            "test_filter": "com.android.tools.idea.npw.assetstudio.ui",
+            "tags": ["no_windows"],  # leaks, json exceptions (b/147453294)
+        },
+        "templates": {
+            "shard_count": 3,
+            "test_filter": "com.android.tools.idea.templates",
+        },
+        "testartifacts": {
+            "shard_count": 3,
+            "test_filter": "com.android.tools.idea.testartifacts",
+        },
+        "AndroidKotlinCompletionContributorTest": {
+            "test_filter": "com.android.tools.idea.completion.AndroidKotlinCompletionContributorTest",
+        },
+        "editors.manifest": {
+            "test_filter": "com.android.tools.idea.editors.manifest",
+        },
+        "instantapp": {
+            "test_filter": "com.android.tools.idea.instantapp",
+        },
+        "rendering": {
+            "test_filter": "com.android.tools.idea.rendering",
+            "shard_count": 2,
+        },
+        "ArchiveToGradleModuleModelTest": {
+            "shard_count": 2,
+            "test_filter": "com.android.tools.idea.npw.importing.ArchiveToGradleModuleModelTest",
+        },
+        "other": {
+            "shard_count": 10,
+        },
+    },
     test_class = "com.android.tools.idea.IdeaTestSuite",
-    test_coverage = True,
     # keep sorted
     test_data = [
         ":test_deps.zip",
@@ -184,7 +261,6 @@ iml_module(
         "//prebuilts/studio/sdk:cmake",
         "//prebuilts/studio/sdk:docs",
         "//prebuilts/studio/sdk:licenses",
-        "//prebuilts/studio/sdk:ndk",
         "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/studio/sdk:platforms/latest-preview",
@@ -205,19 +281,6 @@ iml_module(
         "//tools/idea/java/jdkAnnotations",
         "//tools/idea/java/mockJDK-1.7",
     ],
-    # Note: test_excluded_packages is a dictionary that is converted to a "select()", so
-    #       we use a syntax that is very similar to what a "select()" would look like.
-    test_excluded_packages = {
-        "//tools/base/bazel:windows": [
-            "com.android.tools.idea.diagnostics",  # heap analysis line endings (ag/10016457)
-            "com.android.tools.idea.gradle",  # WIP: many sync errors with dependencies, but some others related to paths, etc.
-            "com.android.tools.idea.navigator",  # testDependentNativeModules (ag/9872410)
-            "com.android.tools.idea.npw.assetstudio",  # leaks, json exceptions (b/147453294), drawable generator tests
-            "com.android.tools.idea.run",  # some test directory paths are too long
-            "org.jetbrains.android",
-        ],
-        "//conditions:default": [],
-    },
     test_resources = ["testResources"],
     # do not sort: must match IML order
     test_runtime_deps = [
@@ -231,7 +294,6 @@ iml_module(
         "//tools/idea/java/plugin:intellij.java.plugin",
         "//tools/idea/plugins/ui-designer-core:intellij.uiDesigner",
     ],
-    test_shard_count = 40,
     test_srcs = ["testSrc"],
     test_tags = [
         "cpu:3",
@@ -243,11 +305,18 @@ iml_module(
     # do not sort: must match IML order
     runtime_deps = [
         "//tools/adt/idea/databinding:intellij.android.databinding",
+        "//tools/idea/.idea/libraries:delight-rhino-sandbox",
+        "//tools/idea/.idea/libraries:rhino",
+        "//tools/idea/.idea/libraries:netty-handler-proxy",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
+        "//tools/idea/.idea/libraries:javassist",
         "//tools/idea/platform/diagnostic:intellij.platform.diagnostic",
+        "//tools/idea/.idea/libraries:error-prone-annotations",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
+        "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/193.4:jar",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
+        "//tools/idea/.idea/libraries:precompiled_jshell-frontend",
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
     ],
@@ -312,7 +381,6 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
         "//tools/adt/idea/android-adb:intellij.android.adb[module, test]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
-        "//tools/adt/idea/project-system:intellij.android.projectSystem.tests[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore[module, test]",
         "//tools/adt/idea/android-lang:intellij.android.lang[module, test]",
@@ -411,16 +479,10 @@ filegroup(
 )
 
 filegroup(
-    name = "experimental-sqlite-inspector-artifacts",
-    srcs = select({
-        "//tools/base/app-inspection:app_inspection_experimental": [
-            "//tools/base/experimental/live-sql-inspector:live_sql_viewer_dex.jar",
-        ],
-        "//conditions:default": [
-            # building just a proto, so we can compile code behind the flag in studio
-            "//tools/base/experimental/live-sql-inspector:live_sql_java_proto",
-        ],
-    }),
+    name = "sqlite-inspector-artifacts",
+    srcs = [
+        "//prebuilts/tools/common/app-inspection/androidx/sqlite:sqlite_inspector_proto",
+    ],
     visibility = ["//visibility:public"],
 )
 
@@ -434,7 +496,7 @@ filegroup(
         ":layout-inspector-artifacts",
         ":profiler-artifacts",
         ":transport-artifacts",
-        ":experimental-sqlite-inspector-artifacts",
+        ":sqlite-inspector-artifacts",
         "//tools/adt/idea/swingp:swing-instrumenter_deploy.jarjar.jar",
         "//tools/analytics-library/protos/src/main/proto:studio.proto",
         "//tools/base/bazel:studio-grpc",
@@ -509,6 +571,7 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/androidx/compose/compose-compiler/0.1.0-dev04:jar",
         "//prebuilts/tools/common/m2/repository/androidx/compose/compose-runtime/0.1.0-dev03:aar",
         "//prebuilts/tools/common/m2/repository/androidx/compose/compose-runtime/0.1.0-dev04:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/compose/compose-runtime/0.1.0-dev05:aar",
         "//prebuilts/tools/common/m2/repository/androidx/concurrent/concurrent-futures/1.0.0-beta01:jar",
         "//prebuilts/tools/common/m2/repository/androidx/constraintlayout/constraintlayout-solver/1.1.0:jar",
         "//prebuilts/tools/common/m2/repository/androidx/constraintlayout/constraintlayout-solver/1.1.3:jar",
@@ -597,32 +660,48 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/androidx/transition/transition/1.0.1:aar",
         "//prebuilts/tools/common/m2/repository/androidx/ui/ui-android-text/0.1.0-dev03:aar",
         "//prebuilts/tools/common/m2/repository/androidx/ui/ui-android-text/0.1.0-dev04:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/ui/ui-android-text/0.1.0-dev05:aar",
         "//prebuilts/tools/common/m2/repository/androidx/ui/ui-animation-core/0.1.0-dev03:aar",
         "//prebuilts/tools/common/m2/repository/androidx/ui/ui-animation-core/0.1.0-dev04:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/ui/ui-animation-core/0.1.0-dev05:aar",
         "//prebuilts/tools/common/m2/repository/androidx/ui/ui-animation/0.1.0-dev03:aar",
         "//prebuilts/tools/common/m2/repository/androidx/ui/ui-animation/0.1.0-dev04:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/ui/ui-animation/0.1.0-dev05:aar",
         "//prebuilts/tools/common/m2/repository/androidx/ui/ui-core/0.1.0-dev03:aar",
         "//prebuilts/tools/common/m2/repository/androidx/ui/ui-core/0.1.0-dev04:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/ui/ui-core/0.1.0-dev05:aar",
         "//prebuilts/tools/common/m2/repository/androidx/ui/ui-foundation/0.1.0-dev03:aar",
         "//prebuilts/tools/common/m2/repository/androidx/ui/ui-foundation/0.1.0-dev04:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/ui/ui-foundation/0.1.0-dev05:aar",
         "//prebuilts/tools/common/m2/repository/androidx/ui/ui-framework/0.1.0-dev03:aar",
         "//prebuilts/tools/common/m2/repository/androidx/ui/ui-framework/0.1.0-dev04:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/ui/ui-framework/0.1.0-dev05:aar",
         "//prebuilts/tools/common/m2/repository/androidx/ui/ui-geometry/0.1.0-dev04:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/ui/ui-geometry/0.1.0-dev05:aar",
         "//prebuilts/tools/common/m2/repository/androidx/ui/ui-graphics/0.1.0-dev04:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/ui/ui-graphics/0.1.0-dev05:aar",
         "//prebuilts/tools/common/m2/repository/androidx/ui/ui-layout/0.1.0-dev03:aar",
         "//prebuilts/tools/common/m2/repository/androidx/ui/ui-layout/0.1.0-dev04:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/ui/ui-layout/0.1.0-dev05:aar",
         "//prebuilts/tools/common/m2/repository/androidx/ui/ui-material/0.1.0-dev03:aar",
         "//prebuilts/tools/common/m2/repository/androidx/ui/ui-material/0.1.0-dev04:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/ui/ui-material/0.1.0-dev05:aar",
         "//prebuilts/tools/common/m2/repository/androidx/ui/ui-platform/0.1.0-dev03:aar",
         "//prebuilts/tools/common/m2/repository/androidx/ui/ui-platform/0.1.0-dev04:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/ui/ui-platform/0.1.0-dev05:aar",
         "//prebuilts/tools/common/m2/repository/androidx/ui/ui-text/0.1.0-dev03:aar",
         "//prebuilts/tools/common/m2/repository/androidx/ui/ui-text/0.1.0-dev04:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/ui/ui-text/0.1.0-dev05:aar",
         "//prebuilts/tools/common/m2/repository/androidx/ui/ui-tooling/0.1.0-dev03:aar",
         "//prebuilts/tools/common/m2/repository/androidx/ui/ui-tooling/0.1.0-dev04:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/ui/ui-tooling/0.1.0-dev05:aar",
         "//prebuilts/tools/common/m2/repository/androidx/ui/ui-unit/0.1.0-dev04:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/ui/ui-unit/0.1.0-dev05:aar",
         "//prebuilts/tools/common/m2/repository/androidx/ui/ui-util/0.1.0-dev04:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/ui/ui-util/0.1.0-dev05:aar",
         "//prebuilts/tools/common/m2/repository/androidx/ui/ui-vector/0.1.0-dev03:aar",
         "//prebuilts/tools/common/m2/repository/androidx/ui/ui-vector/0.1.0-dev04:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/ui/ui-vector/0.1.0-dev05:aar",
         "//prebuilts/tools/common/m2/repository/androidx/vectordrawable/vectordrawable-animated/1.0.0:aar",
         "//prebuilts/tools/common/m2/repository/androidx/vectordrawable/vectordrawable-animated/1.1.0:aar",
         "//prebuilts/tools/common/m2/repository/androidx/vectordrawable/vectordrawable/1.0.1:aar",
@@ -834,6 +913,7 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib/1.3.41:jar",
         "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib/1.3.60:jar",
         "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib/1.3.61:jar",
+        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlinx/kotlinx-collections-immutable-jvm/0.3:jar",
         "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlinx/kotlinx-coroutines-android/1.1.1:jar",
         "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlinx/kotlinx-coroutines-android/1.3.0:jar",
         "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlinx/kotlinx-coroutines-core-common/1.1.1:jar",

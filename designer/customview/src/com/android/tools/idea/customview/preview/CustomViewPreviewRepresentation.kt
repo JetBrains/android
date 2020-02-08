@@ -267,13 +267,6 @@ class CustomViewPreviewRepresentation(
           return
         }
 
-        // Clean-up the class loading cache for all the possibly affected modules. Source files from 3rd party libs have no module.
-        ModuleUtil.findModuleForFile(file)?.let { module ->
-          val modules = mutableSetOf<Module>()
-          ModuleUtil.collectModulesDependsOn(module, modules)
-          modules.forEach { ModuleClassLoaderManager.get().clearCache(it) }
-        }
-
         stateTracker.setBuildState(CustomViewVisualStateTracker.BuildState.SUCCESSFUL)
         refresh()
       }

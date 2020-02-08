@@ -249,7 +249,7 @@ public class NlPreviewTest {
 
     // Find and click the first text view
     NlComponentFixture checkBox = layout.findView("CheckBox", 0);
-    checkBox.click();
+    checkBox.getSceneComponent().click();
 
     // It should be selected now
     assertThat(layout.getSelection()).containsExactly(checkBox.getComponent());
@@ -258,9 +258,9 @@ public class NlPreviewTest {
     ideFrame.waitAndInvokeMenuPath("Edit", "Cut");
     assertEquals(3, layout.getAllComponents().size());
 
-    layout.findView("Button", 0).click();
+    layout.findView("Button", 0).getSceneComponent().click();
     ideFrame.waitAndInvokeMenuPath("Edit", "Paste");
-    layout.findView("CheckBox", 0).click();
+    layout.findView("CheckBox", 0).getSceneComponent().click();
     ideFrame.waitAndInvokeMenuPath("Edit", "Copy");
     ideFrame.waitAndInvokeMenuPath("Edit", "Paste");
     assertEquals(5, layout.getAllComponents().size());
@@ -403,25 +403,25 @@ public class NlPreviewTest {
     assertThat(first).isNotEqualTo(last);
 
     // Double click on the first component should move the caret in the selected editor, and leave the other editor unchanged
-    first.doubleClick();
+    first.getSceneComponent().doubleClick();
     Wait.seconds(2).expecting("editor to be at offset " + firstOffset + " was " + selectedEditor.getOffset())
       .until(() -> selectedEditor.getOffset() == firstOffset);
     assertThat(otherEditor.getOffset()).isEqualTo(expectedOffset);
 
     // Double click on the last component should move the caret in the selected editor, and leave the other editor unchanged
-    last.doubleClick();
+    last.getSceneComponent().doubleClick();
     Wait.seconds(2).expecting("editor to be at offset " + lastOffset + " was " + selectedEditor.getOffset())
       .until(() -> selectedEditor.getOffset() == lastOffset);
     assertThat(otherEditor.getOffset()).isEqualTo(expectedOffset);
 
     // Double click on the first component should move the caret in the selected editor, and leave the other editor unchanged
-    first.doubleClick();
+    first.getSceneComponent().doubleClick();
     Wait.seconds(2).expecting("editor to be at offset " + firstOffset + " was " + selectedEditor.getOffset())
       .until(() -> selectedEditor.getOffset() == firstOffset);
     assertThat(otherEditor.getOffset()).isEqualTo(expectedOffset);
 
     // Double click on the last component should move the caret in the selected editor, and leave the other editor unchanged
-    last.doubleClick();
+    last.getSceneComponent().doubleClick();
     Wait.seconds(2).expecting("editor to be at offset " + lastOffset + " was " + selectedEditor.getOffset())
       .until(() -> selectedEditor.getOffset() == lastOffset);
     assertThat(otherEditor.getOffset()).isEqualTo(expectedOffset);

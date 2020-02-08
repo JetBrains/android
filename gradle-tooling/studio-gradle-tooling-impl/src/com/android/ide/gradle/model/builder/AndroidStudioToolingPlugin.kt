@@ -16,7 +16,7 @@
 
 package com.android.ide.gradle.model.builder
 
-import com.android.ide.gradle.model.sources.builder.SourcesAndJavadocModelBuilder
+import com.android.ide.gradle.model.artifacts.builder.AdditionalClassifierArtifactsModelBuilder
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
@@ -28,9 +28,9 @@ internal constructor(private val registry: ToolingModelBuilderRegistry) : Plugin
 
   override fun apply(project: Project) {
     registry.register(GradlePluginModelBuilder())
-    // SourcesAndJavadocModelBuilder extends ParameterizedToolingModelBuilder, which is available since Gradle 4.4.
+    // AdditionalArtifactsModelBuilder extends ParameterizedToolingModelBuilder, which is available since Gradle 4.4.
     if (isGradleAtLeast(project.gradle.gradleVersion, "4.4")) {
-      registry.register(SourcesAndJavadocModelBuilder())
+      registry.register(AdditionalClassifierArtifactsModelBuilder())
     }
   }
 }

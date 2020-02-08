@@ -43,7 +43,7 @@ import com.android.tools.idea.run.editor.TestRunParameters;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.ui.BaseAction;
 import com.android.tools.idea.run.util.LaunchStatus;
-import com.android.tools.idea.testartifacts.instrumented.testsuite.AndroidTestSuiteView;
+import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;

@@ -20,21 +20,36 @@ import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemantics
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.OTHER;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR_BUT_DO_NOT_USE_FOR_WRITING_IN_KTS;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VWO;
 
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.impl.source.resolve.reference.impl.manipulators.StringLiteralManipulator;
+import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import java.util.Map;
 import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.groovy.lang.lexer.TokenSets;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrReferenceExpression;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrString;
+import org.jetbrains.plugins.groovy.lang.resolve.GroovyStringLiteralManipulator;
 
 public class GroovyDslNameConverter implements GradleDslNameConverter {
   @NotNull
   @Override
   public String psiToName(@NotNull PsiElement element) {
+    PsiElement child = element.getFirstChild();
+    if (child instanceof LeafPsiElement && child == element.getLastChild() &&
+        TokenSets.STRING_LITERAL_SET.contains(((LeafPsiElement) child).getElementType())) {
+      String text = element.getText();
+      return GradleNameElement.escape(text.substring(1, text.length() - 1));
+    }
     return getGradleNameForPsiElement(element);
   }
 
@@ -55,17 +70,17 @@ public class GroovyDslNameConverter implements GradleDslNameConverter {
 
   @NotNull
   @Override
-  public Pair<String, Boolean> externalNameForParent(@NotNull String modelName, @NotNull GradleDslElement context) {
+  public ExternalNameInfo externalNameForParent(@NotNull String modelName, @NotNull GradleDslElement context) {
     ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> map = context.getExternalToModelMap(this);
-    Pair<String, Boolean> result = new Pair<>(modelName, null);
+    ExternalNameInfo result = new ExternalNameInfo(modelName, null);
     for (Map.Entry<Pair<String,Integer>, Pair<String,SemanticsDescription>> e : map.entrySet()) {
       if (e.getValue().getFirst().equals(modelName)) {
         SemanticsDescription semantics = e.getValue().getSecond();
         if (semantics == SET || semantics == ADD_AS_LIST || semantics == OTHER) {
-          return new Pair<>(e.getKey().getFirst(), true);
+          return new ExternalNameInfo(e.getKey().getFirst(), true);
         }
-        if (semantics == VAR || semantics == VWO) {
-          result = new Pair<>(e.getKey().getFirst(), false);
+        if (semantics == VAR || semantics == VWO || semantics == VAR_BUT_DO_NOT_USE_FOR_WRITING_IN_KTS) {
+          result = new ExternalNameInfo(e.getKey().getFirst(), false);
         }
       }
     }

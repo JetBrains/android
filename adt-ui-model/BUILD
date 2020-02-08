@@ -6,9 +6,14 @@ iml_module(
     srcs = ["src/main/java"],
     iml_files = ["intellij.android.adt.ui.model.iml"],
     lint_baseline = "lint_baseline.xml",
-    test_coverage = True,
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    runtime_deps = [
+        "//tools/idea/.idea/libraries:delight-rhino-sandbox",
+        "//tools/idea/.idea/libraries:rhino",
+        "//tools/idea/.idea/libraries:netty-handler-proxy",
+    ],
     # do not sort: must match IML order
     deps = [
         "//tools/idea/.idea/libraries:jetbrains-annotations-java5",

@@ -47,6 +47,7 @@ import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact;
 import com.android.tools.profilers.memory.HprofSessionArtifact;
 import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.containers.ContainerUtil;
@@ -237,7 +238,14 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     List previousArtifactProtos = ContainerUtil.map(mySessionArtifacts, artifact -> artifact.getArtifactProto());
 
     // Note: we only add to a growing list of sessions at the moment.
-    groups.forEach(group -> {
+    // If there are multiple groups being updated (e.g., one session ends and another one starts), we want to
+    // process the new session at last. The last one being processed will be the selected session. The order
+    // of completed sessions don't matter.
+    List<EventGroup> sortedGroups = Lists.newArrayList(groups);
+    // Each group should have up to two events. The first event is the start event, and the second one is the end.
+    // So the new session should have one event, while completed sessions have two events.
+    Collections.sort(sortedGroups, Comparator.comparingInt(EventGroup::getEventsCount).reversed());
+    sortedGroups.forEach(group -> {
       SessionItem sessionItem = mySessionItems.get(group.getGroupId());
       boolean sessionStateChanged = false;
       Common.Event startEvent = group.getEvents(0);

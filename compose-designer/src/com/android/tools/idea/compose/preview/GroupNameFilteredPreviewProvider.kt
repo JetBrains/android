@@ -28,14 +28,14 @@ class GroupNameFilteredPreviewProvider(private val delegate: PreviewElementProvi
   PreviewElementProvider {
   private val filteredPreviewElementProvider = FilteredPreviewElementProvider(
     delegate) {
-    groupName == null || groupName == it.groupName
+    groupName == null || groupName == it.displaySettings.group
   }
 
   /**
    * Returns a [Set] with all the available groups in the source [delegate]. Only groups returned can be set on [groupName].
    */
   val availableGroups: Set<String>
-    get() = delegate.previewElements.mapNotNull { it.groupName }.filter { it.isNotBlank() }.toSet()
+    get() = delegate.previewElements.mapNotNull { it.displaySettings.group }.filter { it.isNotBlank() }.toSet()
 
   override val previewElements: List<PreviewElement>
     get() {

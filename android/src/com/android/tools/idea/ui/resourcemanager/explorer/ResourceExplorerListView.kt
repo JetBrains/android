@@ -22,6 +22,7 @@ import com.android.tools.idea.ui.resourcemanager.importer.ResourceImportDragTarg
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
+import com.android.tools.idea.ui.resourcemanager.model.ResourceSection
 import com.android.tools.idea.ui.resourcemanager.model.designAssets
 import com.android.tools.idea.ui.resourcemanager.rendering.DefaultIconProvider
 import com.android.tools.idea.ui.resourcemanager.widget.DetailedPreview
@@ -246,7 +247,10 @@ class ResourceExplorerListView(
   private val popupHandler = object : PopupHandler() {
     val actionManager = ActionManager.getInstance()
     val group = DefaultActionGroup().apply {
-      add(RefreshDesignAssetAction { assets -> assets.forEach { viewModel.clearImageCache(it) } })
+      add(RefreshDesignAssetAction { assets ->
+        assets.forEach { viewModel.clearImageCache(it) }
+        repaint()
+      })
       addSeparator()
       add(actionManager.getAction("ResourceExplorer") as ActionGroup)
     }
@@ -375,12 +379,20 @@ class ResourceExplorerListView(
     DnDManager.getInstance().registerTarget(resourceImportDragTarget, this)
 
     viewModel.updateUiCallback = { reason ->
-      if (reason == UpdateUiReason.RESOURCE_TYPE_CHANGED) {
-        setContentPanel()
+      when (reason) {
+        UpdateUiReason.IMAGE_CACHE_CHANGED -> repaint()
+        UpdateUiReason.RESOURCE_TYPE_CHANGED -> {
+          setContentPanel()
+          populateExternalActions()
+          populateResourcesLists()
+          populateSearchLinkLabels()
+        }
+        UpdateUiReason.RESOURCES_CHANGED -> {
+          populateExternalActions()
+          populateResourcesLists()
+          populateSearchLinkLabels()
+        }
       }
-      populateExternalActions()
-      populateResourcesLists()
-      populateSearchLinkLabels()
     }
     populateExternalActions()
     populateResourcesLists()

@@ -23,7 +23,7 @@ import com.android.builder.model.level2.GlobalLibraryMap
 import com.android.ide.gradle.model.GradlePluginModel
 import com.android.tools.idea.gradle.project.sync.SyncActionOptions
 import com.android.tools.idea.gradle.project.sync.idea.UsedInBuildAction
-import com.android.tools.idea.gradle.project.sync.idea.getSourcesAndJavadocArtifacts
+import com.android.tools.idea.gradle.project.sync.idea.getAdditionalClassifierArtifactsModel
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.Model
@@ -104,8 +104,8 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
       }
     }
 
-    // SourcesAndJavadocArtifacts must be requested after AndroidProject and Variant model since it requires the library list in dependency model.
-    getSourcesAndJavadocArtifacts(controller, androidModules, syncActionOptions.cachedSourcesAndJavadoc, consumer)
+    // AdditionalClassiferArtifactsModel must be requested after AndroidProject and Variant model since it requires the library list in dependency model.
+    getAdditionalClassifierArtifactsModel(controller, androidModules, syncActionOptions.cachedLibraries, consumer)
   }
 
   private fun populateProjectSyncIssues(

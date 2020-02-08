@@ -34,7 +34,7 @@ public class CodeUtils {
   public static String getTypeQualifiedName(@NotNull Param param) {
     if (param.getSource() == Param.Source.INPUT) {
       if (param.getContentType() == Param.ContentType.IMAGE) {
-        return ClassNames.VISION_IMAGE;
+        return ClassNames.BITMAP;
       } else {
         return ClassNames.BYTE_BUFFER;
       }

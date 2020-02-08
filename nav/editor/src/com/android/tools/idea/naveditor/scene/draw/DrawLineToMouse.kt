@@ -22,20 +22,18 @@ import com.android.tools.idea.common.scene.draw.DrawCommandBase
 import com.android.tools.idea.common.scene.draw.buildString
 import com.android.tools.idea.common.scene.draw.parse
 import com.android.tools.idea.naveditor.scene.NavColors.SELECTED
-import com.google.common.annotations.VisibleForTesting
 import com.intellij.util.ui.JBUI
 import java.awt.BasicStroke
 import java.awt.Graphics2D
 import java.awt.Stroke
 import java.awt.geom.Line2D
 
-val LINE_TO_MOUSE_STROKE: Stroke = BasicStroke(JBUI.scale(3.0f))
+private val LINE_TO_MOUSE_STROKE: Stroke = BasicStroke(JBUI.scale(3.0f))
 
-data class DrawLineToMouse(@VisibleForTesting val center: SwingPoint) : DrawCommandBase() {
+class DrawLineToMouse(private val center: SwingPoint) : DrawCommandBase() {
+  private val line = Line2D.Float(center.x.value, center.y.value, 0f, 0f)
+
   private constructor(tokens: Array<String>) : this(tokens[0].toSwingPoint())
-
-  @VisibleForTesting
-  val line = Line2D.Float(center.x.value, center.y.value, 0f, 0f)
 
   constructor(serialized: String) : this(parse(serialized, 1))
 

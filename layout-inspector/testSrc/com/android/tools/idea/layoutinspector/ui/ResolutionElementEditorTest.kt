@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_ELEVATION
 import com.android.SdkConstants.ATTR_TEXT_COLOR
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
@@ -121,6 +122,22 @@ class ResolutionElementEditorTest {
 
     editor.editorModel.isExpandedTableItem = false
     assertThat(editor.isCustomHeight).isFalse()
+  }
+
+  @Test
+  fun testHasLinkPanel() {
+    val model = model(projectRule.project, DemoExample.setUpDemo(projectRule.fixture))
+    val node = model["title"]!!
+    val item1 = InspectorPropertyItem(
+      ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, Type.COLOR, null, PropertySection.DECLARED, node.layout, node, model.resourceLookup)
+    val item2 = InspectorPropertyItem(
+      ANDROID_URI, ATTR_ELEVATION, ATTR_ELEVATION, Type.FLOAT, null, PropertySection.DEFAULT, null, node, model.resourceLookup)
+
+    // The "textColor" attribute is defined in the layout file and we should have a link to the layout definition
+    assertThat(ResolutionElementEditor.hasLinkPanel(item1)).isTrue()
+
+    // The "elevation" attribute is never set so there will not be a link to follow:
+    assertThat(ResolutionElementEditor.hasLinkPanel(item2)).isFalse()
   }
 
   private fun checkImage(editors: List<ResolutionElementEditor>, expected: String) {

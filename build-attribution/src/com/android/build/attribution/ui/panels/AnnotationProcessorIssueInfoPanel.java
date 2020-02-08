@@ -16,6 +16,7 @@
 package com.android.build.attribution.ui.panels;
 
 import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.warningIcon;
+import static com.android.build.attribution.ui.panels.BuildAttributionPanelsKt.htmlTextLabel;
 
 import com.android.build.attribution.ui.DescriptionWithHelpLinkLabel;
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics;
@@ -28,7 +29,6 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.SwingConstants;
 
 public class AnnotationProcessorIssueInfoPanel extends JBPanel {
   private static final String DESCRIPTION = "This annotation processor is non-incremental and causes the JavaCompile task " +
@@ -62,13 +62,13 @@ public class AnnotationProcessorIssueInfoPanel extends JBPanel {
   }
 
   protected JComponent createIssueDescription() {
-    String text = new HtmlBuilder()
+    String descriptionHtml = new HtmlBuilder()
       .openHtmlBody()
       .addHtml(DESCRIPTION)
-      .newline()
-      .addLink("Learn more", HELP_LINK)
-      .newline()
-      .newline()
+      .closeHtmlBody()
+      .getHtml();
+    String recommendationHtml = new HtmlBuilder()
+      .openHtmlBody()
       .addBold("Recommendation")
       .newline()
       .add("Ensure that you are using the most recent version of this annotation processor.")
@@ -76,8 +76,8 @@ public class AnnotationProcessorIssueInfoPanel extends JBPanel {
       .getHtml();
 
     JLabel iconLabel = new JLabel(warningIcon());
-    JBLabel issueDescription = new DescriptionWithHelpLinkLabel(text, myAnalytics);
-    issueDescription.setVerticalTextPosition(SwingConstants.TOP);
+    JComponent issueDescription = new DescriptionWithHelpLinkLabel(descriptionHtml, HELP_LINK, myAnalytics);
+    JBLabel recommendation = htmlTextLabel(recommendationHtml);
 
     JBPanel<JBPanel> panel = new JBPanel<>(new GridBagLayout());
     GridBagConstraints c = new GridBagConstraints();
@@ -88,11 +88,18 @@ public class AnnotationProcessorIssueInfoPanel extends JBPanel {
     panel.add(iconLabel, c);
 
     c.gridx = 1;
+    c.gridy = 0;
     c.insets = JBUI.insetsLeft(5);
     c.weightx = 1.0;
-    c.weighty = 1.0;
+    c.weighty = 0.0;
     c.fill = GridBagConstraints.BOTH;
     panel.add(issueDescription, c);
+
+    c.gridx = 1;
+    c.gridy = 1;
+    c.weighty = 1.0;
+    c.insets = JBUI.insets(5, 5, 0, 0);
+    panel.add(recommendation, c);
     return panel;
   }
 }

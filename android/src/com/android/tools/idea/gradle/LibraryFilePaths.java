@@ -15,11 +15,17 @@
  */
 package com.android.tools.idea.gradle;
 
-import com.android.ide.gradle.model.sources.SourcesAndJavadocArtifact;
-import com.android.ide.gradle.model.sources.SourcesAndJavadocArtifacts;
-import com.intellij.openapi.project.Project;
+import static com.android.tools.idea.gradle.project.sync.idea.AdditionalClassifierArtifactsModelCollectorKt.idToString;
+import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.NAME_PREFIX;
+import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
+import static com.intellij.openapi.util.io.FileUtil.notNullize;
+
+import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifacts;
+import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel;
 import com.intellij.jarFinder.InternetAttachSourceProvider;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.project.Project;
+import java.io.File;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -27,13 +33,6 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-
-import static com.android.tools.idea.gradle.project.sync.idea.SourcesAndJavadocCollectorKt.idToString;
-import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.NAME_PREFIX;
-import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
-import static com.intellij.openapi.util.io.FileUtil.notNullize;
 
 public class LibraryFilePaths {
   // Key: libraryId, Value: ExtraArtifactsPaths for the library.
@@ -54,8 +53,8 @@ public class LibraryFilePaths {
     }
   }
 
-  public void populate(@NotNull SourcesAndJavadocArtifacts artifacts) {
-    for (SourcesAndJavadocArtifact artifact : artifacts.getArtifacts()) {
+  public void populate(@NotNull AdditionalClassifierArtifactsModel artifacts) {
+    for (AdditionalClassifierArtifacts artifact : artifacts.getArtifacts()) {
       myPathsMap.computeIfAbsent(idToString(artifact.getId()),
                                  k -> new ArtifactPaths(artifact.getJavadoc(), artifact.getSources(), artifact.getMavenPom()));
     }

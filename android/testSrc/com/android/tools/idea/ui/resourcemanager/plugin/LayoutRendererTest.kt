@@ -22,7 +22,7 @@ import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.ui.resourcemanager.ImageCache
+import com.android.tools.idea.ui.resourcemanager.rendering.ImageCache
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerListViewModel
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerListViewModelImpl
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
@@ -92,8 +92,8 @@ class LayoutRendererTest {
         Mockito.mock(ResourceResolver::class.java),
         FilterOptions.createDefault(),
         ResourceType.DRAWABLE,
-        ImageCache.createLargeImageCache(disposable),
-        ImageCache.createSmallImageCache(disposable)
+        ImageCache.createImageCache(disposable),
+        ImageCache.createImageCache(disposable)
       )
       val previewProvider = resourceExplorerListViewModel.assetPreviewManager.getPreviewProvider(ResourceType.LAYOUT)
       val width = 150

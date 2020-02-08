@@ -36,6 +36,7 @@ import org.jetbrains.annotations.Nullable;
  * Label light class if the output tensor is {@code TENSOR_AXIS_LABELS}. It contains label string
  * and probability of its likelihood.
  */
+//TODO(b/148677238): consider remove it or use it
 public class MlkitLabelLightClass extends AndroidLightClassBase {
   private final PsiClass containingClass;
   private final String qualifiedName;

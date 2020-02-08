@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.api.actions
 
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.uibuilder.actions.ToggleShowDecorationsAction
+import com.android.tools.idea.uibuilder.actions.ToggleAllShowDecorationsAction
 import com.android.tools.idea.uibuilder.actions.ToggleShowTooltipsAction
 import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.api.ViewHandler
@@ -93,7 +93,7 @@ object ViewActionUtils {
                          StudioIcons.Common.VISIBILITY_INLINE,
                          listOf(ImmutableList.builder<ViewAction>()
                                   .addAll(additionalActions)
-                                  .add(ToggleShowDecorationsAction())
+                                  .add(ToggleAllShowDecorationsAction())
                                   .add(ToggleShowTooltipsAction())
                                   .build()))
 

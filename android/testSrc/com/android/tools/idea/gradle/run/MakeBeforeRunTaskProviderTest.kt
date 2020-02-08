@@ -23,7 +23,6 @@ import com.android.sdklib.devices.Abi
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
-import com.android.tools.idea.run.AndroidAppRunConfigurationBase
 import com.android.tools.idea.run.AndroidDevice
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
@@ -56,7 +55,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
   @Mock
   private lateinit var myLaunchedDevice: IDevice
   @Mock
-  private lateinit var myRunConfiguration: AndroidAppRunConfigurationBase
+  private lateinit var myRunConfiguration: AndroidRunConfiguration
 
   private lateinit var myModules: Array<Module>
 
@@ -204,7 +203,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
   }
 
   fun testRunGradleSyncWithBuildOutputFileSupported() {
-    setUpTestProject("4.0.0", ":" to AndroidProjectBuilder())
+    setUpTestProject("4.1.0", ":" to AndroidProjectBuilder())
     val syncInvoker = IdeComponents(myProject).mockApplicationService(GradleSyncInvoker::class.java)
     val syncState = IdeComponents(
       myProject).mockProjectService(

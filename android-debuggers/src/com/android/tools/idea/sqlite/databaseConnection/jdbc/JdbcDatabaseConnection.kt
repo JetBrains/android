@@ -19,6 +19,7 @@ import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
+import com.android.tools.idea.sqlite.databaseConnection.ImmediateSqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteSchema
@@ -96,7 +97,7 @@ class JdbcDatabaseConnection(
     }
   }
 
-  override fun execute(sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet?> {
+  override fun execute(sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet> {
     return sequentialTaskExecutor.executeAsync {
       connection.resolvePreparedStatement(sqliteStatement).use { preparedStatement ->
         var resultSet: ResultSet? = null
@@ -110,7 +111,7 @@ class JdbcDatabaseConnection(
             JdbcSqliteResultSet(this, connection, sqliteStatement)
           }
           else {
-            null
+            ImmediateSqliteResultSet(emptyList())
           }
         } finally {
           resultSet?.close()

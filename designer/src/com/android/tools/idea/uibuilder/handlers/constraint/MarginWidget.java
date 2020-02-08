@@ -126,6 +126,7 @@ public class MarginWidget extends JComboBox<String> {
   /**
    * @return Launch resource dialog, and return the chosen value (e.g. "@dimen/left_margin". {@link DEFAULT} if cancelled or tag invalid.
    */
+  @NotNull
   private String selectFromResourceDialog(@Nullable NlComponent component) {
     if (component == null) {
       return DEFAULT;
@@ -152,7 +153,10 @@ public class MarginWidget extends JComboBox<String> {
     );
 
     if (dialog.showAndGet()) {
-      return dialog.getResourceName();
+      String pickedResourceName = dialog.getResourceName();
+      if (pickedResourceName != null) {
+        return pickedResourceName;
+      }
     }
 
     return DEFAULT;

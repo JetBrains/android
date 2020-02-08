@@ -23,7 +23,6 @@ import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
-import com.android.tools.idea.rendering.RenderSettings;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
 import com.intellij.util.concurrency.EdtExecutorService;
@@ -42,7 +41,7 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
   private ViewEditor myCustomViewEditor;
 
   public SyncLayoutlibSceneManager(@NotNull SyncNlModel model) {
-    super(model, model.getSurface(), () -> RenderSettings.getProjectSettings(model.getProject()), EdtExecutorService.getInstance());
+    super(model, model.getSurface(), EdtExecutorService.getInstance());
     myDefaultProperties = new HashMap<>();
   }
 

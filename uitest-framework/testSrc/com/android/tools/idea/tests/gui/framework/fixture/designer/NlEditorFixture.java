@@ -95,6 +95,11 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
   }
 
   @NotNull
+  public SceneFixture getScene() {
+    return myDesignSurfaceFixture.getScene();
+  }
+
+  @NotNull
   public NlEditorFixture waitForRenderToFinish() {
     waitForRenderToFinish(Wait.seconds(10));
     return this;
@@ -392,6 +397,11 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
   }
 
   @NotNull
+  public List<SceneViewFixture> getAllSceneViews() {
+    return myDesignSurfaceFixture.getAllSceneViews();
+  }
+
+  @NotNull
   public Point getScrollPosition() {
     return myDesignSurfaceFixture.target().getScrollPosition();
   }
@@ -441,5 +451,9 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
 
   public DestinationListFixture destinationList() {
     return DestinationListFixture.Companion.create(robot());
+  }
+
+  public ComponentTreeFixture<NlComponent> navComponentTree() {
+    return ComponentTreeFixture.Companion.create("navComponentTree", robot());
   }
 }

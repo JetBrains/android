@@ -68,7 +68,7 @@ typealias SourcesPath = File?
 typealias JavadocPath = File?
 typealias ArtifactId = String
 typealias ArtifactPath = File
-data class SourcesAndJavadocPaths(val sources: SourcesPath?, val javadoc: JavadocPath?)
+data class AdditionalArtifactsPaths(val sources: SourcesPath, val javadoc: JavadocPath)
 
 /**
  * Sets up the [LibraryDependencyData] and [ModuleDependencyData] on the receiving [ModuleData] node.
@@ -77,7 +77,7 @@ data class SourcesAndJavadocPaths(val sources: SourcesPath?, val javadoc: Javado
  * variant from the [AndroidModuleModel] is used. This method assumes that this module has an attached
  * [AndroidModuleModel] data node (given by the key [AndroidProjectKeys.ANDROID_MODEL]).
  *
- * [sourcesAndJavadocArtifactMapper] is used to obtain the respective sources and Javadocs which are attached to the
+ * [additionalArtifactsMapper] is used to obtain the respective sources and Javadocs which are attached to the
  * libraries. TODO: Replace with something that makes the call sites nicer and shouldn't rely on the project object.
  *
  * The [idToModuleData] map must be provided and must correctly map module ids created in the same form
@@ -87,7 +87,7 @@ data class SourcesAndJavadocPaths(val sources: SourcesPath?, val javadoc: Javado
 @JvmOverloads
 fun DataNode<ModuleData>.setupAndroidDependenciesForModule(
   idToModuleData: (String) -> ModuleData?,
-  sourcesAndJavadocArtifactMapper: (ArtifactId, ArtifactPath) -> SourcesAndJavadocPaths,
+  additionalArtifactsMapper: (ArtifactId, ArtifactPath) -> AdditionalArtifactsPaths,
   variant: IdeVariant? = null
 ) {
   val androidModel = ExternalSystemApiUtil.find(this, AndroidProjectKeys.ANDROID_MODEL)?.data ?: return // TODO: Error here
@@ -123,7 +123,7 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForModule(
     projectDataNode,
     compositeData,
     idToModuleData,
-    sourcesAndJavadocArtifactMapper,
+    additionalArtifactsMapper,
     processedLibraries,
     processedModuleDependencies
   )
@@ -138,7 +138,7 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForModule(
       projectDataNode,
       compositeData,
       idToModuleData,
-      sourcesAndJavadocArtifactMapper,
+      additionalArtifactsMapper,
       processedLibraries,
       processedModuleDependencies
     )
@@ -271,7 +271,7 @@ private fun setupAndroidDependenciesForArtifact(
   projectDataNode: DataNode<ProjectData>,
   compositeData: CompositeBuildData?,
   idToModuleData: (String) -> ModuleData?,
-  sourcesAndJavadocArtifactMapper: (ArtifactId, ArtifactPath) -> SourcesAndJavadocPaths?,
+  additionalArtifactsMapper: (ArtifactId, ArtifactPath) -> AdditionalArtifactsPaths?,
   processedLibraries: MutableMap<String, LibraryDependencyData>,
   processedModuleDependencies: MutableMap<String, ModuleDependencyData>
 ) {
@@ -306,7 +306,7 @@ private fun setupAndroidDependenciesForArtifact(
     }
 
     // Add the JavaDoc and sources location if we have them.
-    sourcesAndJavadocArtifactMapper(stripExtension(libraryName), library.artifact)?.also { (sources, javadocs) ->
+    additionalArtifactsMapper(stripExtension(libraryName), library.artifact)?.also { (sources, javadocs) ->
       sources?.also { libraryData.addPath(SOURCE, it.absolutePath) }
       javadocs?.also { libraryData.addPath(DOC, it.absolutePath) }
     }

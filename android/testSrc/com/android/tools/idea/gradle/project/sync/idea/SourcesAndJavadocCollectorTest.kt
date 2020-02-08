@@ -15,18 +15,17 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea
 
+import com.android.builder.model.AndroidProject
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
-
-import com.android.builder.model.AndroidProject
 import org.junit.Test
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.mock
 
 /**
  * Tests for [is3Dot5OrNewer].
  */
-class SourcesAndJavadocCollectorTest {
+class AdditionalClassifierArtifactsModelCollectorTest {
   @Test
   fun verifyModelVersion() {
     assertFalse(is3Dot5OrNewer(getAndroidProject("1.5.0")))

@@ -227,4 +227,32 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
     List<DefaultActivityLocator.ActivityWrapper> activities = getActivitiesFromMergedManifest(myFacet);
     assertSame(activities, getActivitiesFromMergedManifest(myFacet));
   }
+
+  public void testIndexStrategy_valid() {
+    StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.override(DefaultActivityLocatorStrategy.INDEX);
+    MergedManifestModificationListener.ensureSubscribed(getProject());
+
+    myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/java/com/example/unittest/Launcher.java",
+                                "src/com/example/unittest/Launcher.java");
+
+    DefaultActivityLocator defaultActivityLocator = new DefaultActivityLocator(myFacet);
+    try {
+      defaultActivityLocator.validate();
+    } catch (ActivityLocator.ActivityLocatorException e) {
+      fail("A launchable activity registration is present in the manifest, but none was detected.");
+    }
+  }
+
+  public void testIndexStrategy_invalid() {
+    StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.override(DefaultActivityLocatorStrategy.INDEX);
+    myFixture.copyFileToProject(RUN_CONFIG_MANIFESTS + "/InvalidCategory.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    DefaultActivityLocator defaultActivityLocator = new DefaultActivityLocator(myFacet);
+    try {
+      defaultActivityLocator.validate();
+    } catch (ActivityLocator.ActivityLocatorException e) {
+      return;
+    }
+    fail("No launchable activity registration is present in the manifest, but one was detected");
+  }
 }

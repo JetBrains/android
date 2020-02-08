@@ -30,7 +30,6 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.event.MouseWheelEvent;
-import java.util.EventObject;
 import javax.swing.JScrollPane;
 import javax.swing.JViewport;
 import org.intellij.lang.annotations.JdkConstants;
@@ -91,16 +90,16 @@ public class ScrollInteraction extends Interaction {
   }
 
   @Override
-  public void begin(@Nullable EventObject event, @NotNull InteractionInformation interactionInformation) {
-    assert event instanceof MouseWheelEvent;
-    MouseWheelEvent mouseEvent = (MouseWheelEvent) event;
+  public void begin(@NotNull InteractionEvent event) {
+    assert event instanceof MouseWheelMovedEvent;
+    MouseWheelEvent mouseEvent = ((MouseWheelMovedEvent)event).getEventObject();
     begin(mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getModifiersEx());
   }
 
   @Override
-  public void update(@NotNull EventObject event, @NotNull InteractionInformation interactionInformation) {
-    if (event instanceof MouseWheelEvent) {
-      MouseWheelEvent mouseWheelEvent = (MouseWheelEvent)event;
+  public void update(@NotNull InteractionEvent event) {
+    if (event instanceof MouseWheelMovedEvent) {
+      MouseWheelEvent mouseWheelEvent = ((MouseWheelMovedEvent)event).getEventObject();
       int x = mouseWheelEvent.getX();
       int y = mouseWheelEvent.getY();
       int scrollAmount = mouseWheelEvent.getScrollType() == WHEEL_UNIT_SCROLL ? mouseWheelEvent.getUnitsToScroll()
@@ -157,9 +156,9 @@ public class ScrollInteraction extends Interaction {
   }
 
   @Override
-  public void commit(@Nullable EventObject event, @NotNull InteractionInformation interactionInformation) {
+  public void commit(@NotNull InteractionEvent event) {
     //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
-    end(interactionInformation.getX(), interactionInformation.getY(), interactionInformation.getModifiersEx());
+    end(event.getInfo().getX(), event.getInfo().getY(), event.getInfo().getModifiersEx());
   }
 
   @Override
@@ -171,9 +170,9 @@ public class ScrollInteraction extends Interaction {
   }
 
   @Override
-  public void cancel(@Nullable EventObject event, @NotNull InteractionInformation interactionInformation) {
+  public void cancel(@NotNull InteractionEvent event) {
     //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
-    cancel(interactionInformation.getX(), interactionInformation.getY(), interactionInformation.getModifiersEx());
+    cancel(event.getInfo().getX(), event.getInfo().getY(), event.getInfo().getModifiersEx());
   }
 
   @Override

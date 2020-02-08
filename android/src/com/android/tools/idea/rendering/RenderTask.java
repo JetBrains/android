@@ -835,18 +835,15 @@ public class RenderTask {
 
   /**
    * Triggers execution of the Handler and frame callbacks in layoutlib
-   * @return a future that is completed when callbacks are executed
+   * @return a boolean future that is completed when callbacks are executed that is true if there are more callbacks to execute
    */
   @NotNull
-  public CompletableFuture<Void> executeCallbacks() {
+  public CompletableFuture<Boolean> executeCallbacks() {
     if (myRenderSession == null) {
-      return CompletableFuture.completedFuture(null);
+      return CompletableFuture.completedFuture(false);
     }
 
-    return runAsyncRenderAction(() -> {
-      myRenderSession.executeCallbacks(System.nanoTime());
-      return null;
-    });
+    return runAsyncRenderAction(() -> myRenderSession.executeCallbacks(System.nanoTime()));
   }
 
   /**

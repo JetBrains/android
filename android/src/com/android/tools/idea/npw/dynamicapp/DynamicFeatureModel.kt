@@ -44,7 +44,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.util.lang.JavaVersion
-import generateDynamicFeatureModule
+import com.android.tools.idea.npw.module.recipes.dynamicFeatureModule.generateDynamicFeatureModule
 import java.io.File
 
 class DynamicFeatureModel(

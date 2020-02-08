@@ -29,7 +29,6 @@ import com.android.tools.editor.ActionToolbarUtil;
 import com.android.tools.editor.PanZoomListener;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.rendering.RenderSettings;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
@@ -70,7 +69,6 @@ import java.awt.event.AdjustmentEvent;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Supplier;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -139,13 +137,12 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
       .setIsPreview(false)
       .setEditable(true)
       .setSceneManagerProvider((surface, model) -> {
-        Supplier<RenderSettings> renderSettingsProvider = () -> {
-          RenderSettings settings = RenderSettings.getProjectSettings(model.getProject());
-          boolean showDecoration = VisualizationToolSettings.getInstance().getGlobalState().getShowDecoration();
-          // 0.0f makes it spend 50% memory. See document in RenderTask#MIN_DOWNSCALING_FACTOR.
-          return settings.copy(0.0f, false, showDecoration);
-        };
-        return new LayoutlibSceneManager(model, surface, renderSettingsProvider);
+        LayoutlibSceneManager sceneManager = new LayoutlibSceneManager(model, surface);
+        sceneManager.setShowDecorations(VisualizationToolSettings.getInstance().getGlobalState().getShowDecoration());
+        sceneManager.setUseImagePool(false);
+        // 0.0f makes it spend 50% memory. See document in RenderTask#MIN_DOWNSCALING_FACTOR.
+        sceneManager.setQuality(0.0f);
+        return sceneManager;
       })
       .setActionManagerProvider((surface) -> new VisualizationActionManager((NlDesignSurface) surface))
       .setInteractionHandlerProvider((surface) -> new VisualizationInteractionHandler(surface, () -> myCurrentModelsProvider ))

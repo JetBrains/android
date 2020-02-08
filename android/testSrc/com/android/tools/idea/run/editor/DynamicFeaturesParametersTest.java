@@ -41,7 +41,9 @@ public class DynamicFeaturesParametersTest {
   @Parameterized.Parameter(0)
   public boolean featureOnFeatureFlagEnabled = true;
 
-  @Parameterized.Parameters(name = "SUPPORT_FEATURE_ON_FEATURE_DEPS = {0}")
+  // We need this name to be short because we can't create a gradle project in a long path on Windows (260 char limit)
+  // The name (+ value) is used to create the test directory
+  @Parameterized.Parameters(name = "P1={0}")
   public static List<Boolean> paramValues() {
     return ImmutableList.of(false, true);
   }
@@ -112,7 +114,7 @@ public class DynamicFeaturesParametersTest {
   }
 
   @Test
-  public void disablesDependentFeaturesAutomaticallyWithUndoOnlyWhenFlagEnabled() {
+  public void disablesDependentFeatures() {
     DynamicFeaturesParameters parameters = loadParametersForDynamicApp();
     FakeUi fakeUi = initializeUi(parameters);
     JTable table = parameters.getTableComponent();
@@ -140,7 +142,7 @@ public class DynamicFeaturesParametersTest {
   }
 
   @Test
-  public void enablesDependencyFeaturesAutomaticallyWithUndoOnlyWhenFlagEnabled() {
+  public void enablesDependencyFeatures() {
     DynamicFeaturesParameters parameters = loadParametersForDynamicApp();
     FakeUi fakeUi = initializeUi(parameters);
     JTable table = parameters.getTableComponent();

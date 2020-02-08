@@ -72,7 +72,7 @@ class HostPanelTest {
       .getLayoutEditor(true)
       .surface as NlDesignSurfaceFixture
 
-    nlFixture.findView("fragment", 0).click()
+    nlFixture.findView("fragment", 0).sceneComponent!!.click()
     guiTest.robot().pressAndReleaseKey(VK_DELETE, 0)
 
     frame

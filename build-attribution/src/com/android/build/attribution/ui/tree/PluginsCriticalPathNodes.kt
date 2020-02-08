@@ -37,6 +37,7 @@ import com.android.build.attribution.ui.panels.TreeLinkListener
 import com.android.build.attribution.ui.panels.createIssueTypeListPanel
 import com.android.build.attribution.ui.panels.criticalPathHeader
 import com.android.build.attribution.ui.panels.headerLabel
+import com.android.build.attribution.ui.panels.htmlTextLabel
 import com.android.build.attribution.ui.panels.pluginInfoPanel
 import com.android.build.attribution.ui.panels.taskInfoPanel
 import com.android.build.attribution.ui.percentageString
@@ -78,10 +79,8 @@ class CriticalPathPluginsRoot(
         .add("Each of these plugins added at least one task that had an impact on this build’s duration.")
         .newline()
         .add("Addressing this group provides the greatest likelihood of reducing the overall build duration.")
-        .newline()
-        .addLink("Learn more", CRITICAL_PATH_LINK)
         .closeHtmlBody()
-      return DescriptionWithHelpLinkLabel(text.html, analytics)
+      return DescriptionWithHelpLinkLabel(text.html, CRITICAL_PATH_LINK, analytics)
     }
 
     override fun createRightInfoPanel(): JComponent? = null
@@ -215,10 +214,8 @@ private class PluginTasksRootNode(
           .add("${pluginDescriptionPrefix} to a group of sequentially executed tasks that has the largest impact on this build's duration.")
           .newline()
           .add("Addressing this group provides the greatest likelihood of reducing the overall build duration.")
-          .newline()
-          .addLink("Learn more", CRITICAL_PATH_LINK)
           .closeHtmlBody()
-        return DescriptionWithHelpLinkLabel(descriptionText.html, analytics)
+        return DescriptionWithHelpLinkLabel(descriptionText.html, CRITICAL_PATH_LINK, analytics)
       }
     }
 
@@ -268,15 +265,15 @@ private class PluginIssuesRootNode(
     override fun createBody(): JComponent {
       val listPanel = JBPanel<JBPanel<*>>(VerticalLayout(6))
       val totalWarningsCount = pluginUiData.warningCount
-      listPanel.add(JBLabel().apply {
-        text = if (children.isEmpty())
-          "No warnings detected for this build."
-        else
-          "$totalWarningsCount ${StringUtil.pluralize("warning", totalWarningsCount)} " +
-          "of the following ${StringUtil.pluralize("type", children.size)} were detected for this build."
-        setAllowAutoWrapping(true)
-        setCopyable(true)
-      })
+      listPanel.add(
+        htmlTextLabel(
+          if (children.isEmpty())
+            "No warnings detected for this build."
+          else
+            "$totalWarningsCount ${StringUtil.pluralize("warning", totalWarningsCount)} " +
+            "of the following ${StringUtil.pluralize("type", children.size)} were detected for this build."
+        )
+      )
       children.forEach {
         if (it is AbstractBuildAttributionNode) {
           val name = it.nodeName

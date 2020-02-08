@@ -104,9 +104,7 @@ abstract class GradleSyncProjectComparisonTest(
     // https://code.google.com/p/android/issues/detail?id=233038
     open fun testLoadPlainJavaProject() {
       val text = importSyncAndDumpProject(PURE_JAVA_PROJECT)
-/* b/148497490
       assertIsEqualToSnapshot(text)
-b/148497490 */
     }
 
     // See https://code.google.com/p/android/issues/detail?id=226802

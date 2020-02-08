@@ -183,7 +183,7 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
     myGradleDslFile.removeProperty(projectDirPropertyName);
 
     // Create the GradleDslMethodCall that represents that method.
-    GradleNameElement gradleNameElement = GradleNameElement.create(projectDirPropertyName);
+    GradleNameElement gradleNameElement = GradleNameElement.fake(projectDirPropertyName);
     GradleDslMethodCall methodCall = new GradleDslMethodCall(myGradleDslFile, gradleNameElement, FILE_METHOD_NAME);
     methodCall.setUseAssignment(true);
     myGradleDslFile.setNewElement(methodCall);

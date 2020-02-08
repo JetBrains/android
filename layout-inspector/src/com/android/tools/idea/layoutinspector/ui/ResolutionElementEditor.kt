@@ -177,6 +177,22 @@ class ResolutionElementEditor(
     }
   }
 
+  companion object {
+
+    /**
+     * Return true if this property be displayed with a link panel.
+     *
+     * This information is useful for determining if a property value is editable.
+     */
+    fun hasLinkPanel(property: InspectorPropertyItem): Boolean {
+      if (property is PTableGroupItem) {
+        return true
+      }
+      val resourceLookup = property.resourceLookup ?: return false
+      return resourceLookup.findFileLocations(property, max = 1).isNotEmpty()
+    }
+  }
+
   /**
    * Allow the link to be clickable in the table even though the editor is only used for rendering.
    *

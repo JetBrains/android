@@ -48,7 +48,7 @@ public class DefaultTransform extends PropertyTransform {
                                   @Nullable GradleDslElement oldElement,
                                   @NotNull Object value,
                                   @NotNull String name) {
-    return createOrReplaceBasicExpression(holder, oldElement, value, GradleNameElement.create(name));
+    return createOrReplaceBasicExpression(holder, oldElement, value, GradleNameElement.fake(name));
   }
 
   @Override

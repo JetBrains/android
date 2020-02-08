@@ -225,11 +225,17 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
                 sourceProviderManager.mainIdeaSourceProvider.dump()
               }
               val model = AndroidModuleModel.get(module)
+
+              fun SourceProvider.adjustedName() =
+                if (name == "main") "_" else name
+              fun NamedIdeaSourceProvider.adjustedName() =
+                if (name == "main") "_" else name
+
               if (model != null) {
                 nest("by AndroidModel:") {
                   model.defaultSourceProvider.dump()
                   nest("Active:") { model.activeSourceProviders.forEach { it.dump() } }
-                  nest("All:") { model.allSourceProviders.forEach { it.dump() } }
+                  nest("All:") { model.allSourceProviders.sortedBy { it.adjustedName() }.forEach { it.dump() } }
                   nest("UnitTest:") { model.unitTestSourceProviders.forEach { it.dump() } }
                   nest("AndroidTest:") { model.androidTestSourceProviders.forEach { it.dump() } }
                 }
@@ -240,7 +246,7 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
                 nest("Sources:") { sourceProviderManager.sources.dump("Sources") }
                 nest("UnitTestSources:") { sourceProviderManager.unitTestSources.dump("UnitTestSources") }
                 nest("AndroidTestSources:") { sourceProviderManager.androidTestSources.dump("AndroidTestSources") }
-                nest("AllIdeaSourceProviders:") { sourceProviderManager.allSourceProviders.forEach { it.dump() } }
+                nest("AllIdeaSourceProviders:") { sourceProviderManager.allSourceProviders.sortedBy { it.adjustedName() }.forEach { it.dump() } }
                 nest("CurrentSourceProviders:") { sourceProviderManager.currentSourceProviders.forEach { it.dump() } }
                 nest("CurrentUnitTestSourceProviders:") { sourceProviderManager.currentUnitTestSourceProviders.forEach { it.dump() } }
                 nest("CurrentAndroidTestSourceProviders:") { sourceProviderManager.currentAndroidTestSourceProviders.forEach { it.dump() } }

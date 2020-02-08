@@ -204,12 +204,12 @@ public class TvBannerGeneratorTest extends AndroidTestCase {
     myIconGenerator.sourceAsset().setValue(createImageAsset("foreground.xml"));
     TextAsset textAsset = new TextAsset();
     textAsset.text().set("Test");
-    textAsset.fontFamily().set("Roboto");
+    textAsset.fontFamily().set("Droid Sans");
     textAsset.color().setValue(new Color(0x888888));
     myIconGenerator.textAsset().setValue(textAsset);
     myIconGenerator.backgroundColor().set(Color.WHITE);
     // Don't compare context of ic_launcher_foreground.xml because it is slightly platform dependent.
-    checkGeneratedIcons(expectedFilenames, 1.5, "resources/drawable-v24/ic_banner_foreground.xml");
+    checkGeneratedIcons(expectedFilenames, "resources/drawable-v24/ic_banner_foreground.xml");
   }
 
   public void testDrawable() throws Exception {
@@ -231,13 +231,13 @@ public class TvBannerGeneratorTest extends AndroidTestCase {
         "resources/mipmap-xhdpi/ic_banner.png" };
     TextAsset textAsset = new TextAsset();
     textAsset.text().set("Test");
-    textAsset.fontFamily().set("Roboto");
+    textAsset.fontFamily().set("Droid Sans");
     textAsset.color().setValue(new Color(0x0000FF));
     textAsset.scalingPercent().set(50);
     myIconGenerator.sourceAsset().setNullableValue(null);
     myIconGenerator.textAsset().setValue(textAsset);
     myIconGenerator.backgroundColor().set(new Color(0x88AAFF));
     // Don't compare context of ic_launcher_foreground.xml because it is slightly platform dependent.
-    checkGeneratedIcons(expectedFilenames, 1.5, "resources/drawable/ic_banner_foreground.xml");
+    checkGeneratedIcons(expectedFilenames, "resources/drawable/ic_banner_foreground.xml");
   }
 }

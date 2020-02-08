@@ -22,28 +22,19 @@ import com.android.tools.idea.npw.module.recipes.getConfigurationName
 import com.android.tools.idea.templates.RepositoryUrlManager
 import com.android.tools.idea.templates.resolveDependency
 import com.android.tools.idea.wizard.template.GradlePluginVersion
-import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.renderIf
 
 fun buildGradle(
   baseFeatureName: String,
   agpVersion: GradlePluginVersion,
   isLibraryProject: Boolean,
-  packageName: String,
   buildApiString: String,
   explicitBuildToolsVersion: Boolean,
   buildToolsVersion: String,
   minApi: Int,
   targetApi: Int,
-  useAndroidX: Boolean,
-  language: Language
+  useAndroidX: Boolean
 ): String {
-  val kotlinPluginsBlock = renderIf(language == Language.Kotlin) {
-    """
-apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
-    """
-  }
 
   val androidConfigBlock = androidConfig(
     buildApiString,
@@ -71,12 +62,10 @@ apply plugin: 'kotlin-android-extensions'
 
   return """
 apply plugin: "com.android.dynamic-feature"
-$kotlinPluginsBlock
 
 $androidConfigBlock
 
 dependencies {
-    ${getConfigurationName("compile", agpVersion)} fileTree(dir: "libs", include: ["*.jar"])
     $testDepsBlock
     implementation project("${baseFeatureName}")
 }

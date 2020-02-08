@@ -270,12 +270,12 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_CONSTRAINT_LAYOUT_ASSISTANT = Flag.create(
     ASSISTANT, "layout.editor.help.constraintlayout", "Display Help for Constraint Layout",
     "If enabled, the assistant panel will display helpful guide on using Constraint Layout.",
-    false);
+    true);
 
   public static final Flag<Boolean> NELE_MOTION_LAYOUT_ASSISTANT = Flag.create(
     ASSISTANT, "layout.editor.help.motionlayout", "Display Help for Motion Layout",
     "If enabled, the assistant panel will display helpful guide on using Motion Layout.",
-    false);
+    true);
 
   public static final Flag<Boolean> NELE_NAV_EDITOR_ASSISTANT = Flag.create(
     ASSISTANT, "layout.editor.help.naveditor", "Display Help for Navigation Editor",
@@ -548,10 +548,6 @@ public final class StudioFlags {
     NDK, "enhancednativeheadersupport", "Enable enhanced native header support",
     "If enabled, project system view will show a new include node with organized header files", true);
 
-  public static final Flag<Boolean> ENABLE_CLANG_TIDY_INSPECTIONS = Flag.create(
-    NDK, "clangtidyinspections", "Enable clang-tidy inspections",
-    "If enabled, show inspections derived from clang-tidy.", true);
-
   public static final Flag<Boolean> APK_DEBUG_BUILD_ID_CHECK = Flag.create(
     NDK, "apkdebugbuildidcheck", "Enable build ID check in APK debugging",
     "If enabled, the build ID of user-provided symbol files are compared against the binaries inside the APK.", true);
@@ -584,13 +580,17 @@ public final class StudioFlags {
     "Use ResourceRepository to resolve references, not ResourceManager.",
     true);
 
-  public static final Flag<Boolean> RUN_DOM_EXTENDER = Flag.create(
+  public enum LayoutXmlMode {
+    DEFAULT,
+    NO_DOM_EXTENDER
+  }
+
+  public static final Flag<LayoutXmlMode> LAYOUT_XML_MODE = Flag.create(
     EDITOR,
-    "run.dom.extender",
-    "Run DOM extender",
-    "When disabled AndroidDomExtender does nothing, simulating a situation where DOM extensions have not been " +
-    "computed yet.",
-    true);
+    "layout.mode",
+    "Layout XML editing mode",
+    "Controls how XML editing in layout files works.",
+    LayoutXmlMode.DEFAULT);
 
   public static final Flag<Boolean> MULTI_DEX_KEEP_FILE_SUPPORT_ENABLED = Flag.create(
     EDITOR, "multidexkeepfile.support.enabled",
@@ -662,10 +662,6 @@ public final class StudioFlags {
   );
   //endregion
 
-  //region Project Upgrade
-  private static final FlagGroup PROJECT_UPGRADE = new FlagGroup(FLAGS, "project.upgrade", "Project Upgrade");
-  //endregion
-
   //region Testing
   private static final FlagGroup TESTING = new FlagGroup(FLAGS, "testing", "Testing support");
 
@@ -679,12 +675,6 @@ public final class StudioFlags {
   public static final Flag<Boolean> KOTLIN_INCORRECT_SCOPE_CHECK_IN_TESTS = Flag.create(
     TESTING, "kotlin.incorrect.scope.check", "Checks the scope of classes being used in kotlin test files",
     "If enabled, an inspection will run that shows an error when a class is used in a kotlin test file that is not is scope.",
-    true
-  );
-
-  public static final Flag<Boolean> NITROGEN = Flag.create(
-    TESTING, "nitrogen", "Enables Nitrogen test runner features",
-    "If enabled, Nitrogen test runner configuration becomes available in addition to traditional test runner configurations.",
     false
   );
 

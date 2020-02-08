@@ -71,7 +71,7 @@ public class OpenIncludedLayoutTest {
     layoutEditor.getAllComponents()
       .stream()
       .filter(fixture -> fixture.getComponent().getTagName().equalsIgnoreCase(SdkConstants.VIEW_INCLUDE))
-      .findFirst().get().doubleClick();
+      .findFirst().get().getSceneComponent().doubleClick();
     assertEquals(INCLUDED_XML, editor.getCurrentFileName());
   }
 }

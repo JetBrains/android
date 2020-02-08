@@ -15,9 +15,17 @@
  */
 package com.android.tools.idea.sqlite.databaseConnection.live
 
+import androidx.sqlite.inspection.SqliteInspectorProtocol
+import androidx.sqlite.inspection.SqliteInspectorProtocol.CellValue
+import androidx.sqlite.inspection.SqliteInspectorProtocol.Column
+import androidx.sqlite.inspection.SqliteInspectorProtocol.Command
+import androidx.sqlite.inspection.SqliteInspectorProtocol.GetSchemaCommand
+import androidx.sqlite.inspection.SqliteInspectorProtocol.Row
+import androidx.sqlite.inspection.SqliteInspectorProtocol.Table
 import com.android.tools.idea.appinspection.api.AppInspectorClient
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
+import com.android.tools.idea.sqlite.databaseConnection.ImmediateSqliteResultSet
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumn
@@ -27,7 +35,6 @@ import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.model.getRowIdName
-import com.android.tools.sql.protocol.SqliteInspection
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import java.util.concurrent.Executor
@@ -48,73 +55,67 @@ class LiveDatabaseConnection(
   }
 
   override fun readSchema(): ListenableFuture<SqliteSchema> {
-    val commands = SqliteInspection.Commands.newBuilder()
-      .setGetSchema(SqliteInspection.GetSchemaCommand.newBuilder().setId(id))
+    val commands = Command.newBuilder()
+      .setGetSchema(GetSchemaCommand.newBuilder().setDatabaseId(id))
       .build()
     val responseFuture = messenger.sendRawCommand(commands.toByteArray())
 
     return taskExecutor.transform(responseFuture) {
-      val schemaResponse = SqliteInspection.SchemaResponse.parseFrom(it)
-      schemaResponse.schema.toSqliteSchema()
+      val schemaResponse = SqliteInspectorProtocol.Response.parseFrom(it)
+      schemaResponse.getSchema.tablesList.toSqliteSchema()
     }
   }
 
-  override fun execute(sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet?> {
+  override fun execute(sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet> {
     // TODO(blocked b/144336989) pass SqliteStatement object instead of String.
-    val queryBuilder = SqliteInspection.QueryCommand.newBuilder().setQuery(sqliteStatement.assignValuesToParameters()).setDatabaseId(id)
+    val queryBuilder = SqliteInspectorProtocol.QueryCommand.newBuilder().setQuery(sqliteStatement.assignValuesToParameters()).setDatabaseId(id)
     // TODO(blocked) decide how the on-device inspector is going to notify the client about changes in the tables.
     //hints.forEach { queryBuilder.addAffectedTables(it) }
-    val command = SqliteInspection.Commands.newBuilder().setQuery(queryBuilder).build()
+    val command = Command.newBuilder().setQuery(queryBuilder).build()
     val responseFuture = messenger.sendRawCommand(command.toByteArray())
 
     return taskExecutor.transform(responseFuture) {
-      val cursor = SqliteInspection.Cursor.parseFrom(it)
-      // TODO(blocked): we need a better way to differentiate between query and update statements.
-      //  This doesn't work if the result from the query is empty (eg. empty table or SELECT * FROM t where 1 = 2).
-      if (cursor.rowsList.size == 0) {
-        null
-      } else {
-        getLiveSqliteResultSet(cursor)
-      }
+      val queryResponse = SqliteInspectorProtocol.Response.parseFrom(it).query
+      getLiveSqliteResultSet(queryResponse.rowsList)
     }
   }
 
-  private fun getLiveSqliteResultSet(cursor: SqliteInspection.Cursor): ImmediateSqliteResultSet {
-    val rows = cursor.rowsList.map {
+  private fun getLiveSqliteResultSet(rows: List<Row>): ImmediateSqliteResultSet {
+    val rows = rows.map {
       val row = it.valuesList.map { cellValue -> cellValue.toSqliteColumn() }
       SqliteRow(row)
     }
     return ImmediateSqliteResultSet(rows)
   }
 
-  private fun SqliteInspection.Schema.toSqliteSchema(): SqliteSchema {
-    val tables = tablesList.map { table ->
+  private fun List<Table>.toSqliteSchema(): SqliteSchema {
+    val tables = map { table ->
       val columns = table.columnsList.map { it.toSqliteColumn() }
       val rowIdName = getRowIdName(columns)
+      // TODO(blocked): set isView
       SqliteTable(table.name, columns, rowIdName, false)
     }
     return SqliteSchema(tables)
   }
 
-  // TODO(blocked): properly handle supported data types. See https://www.sqlite.org/datatype3.html
-  private fun SqliteInspection.Column.toSqliteColumn(): SqliteColumn {
+  private fun Column.toSqliteColumn(): SqliteColumn {
     // TODO(blocked): add support for primary keys
     // TODO(blocked): add support for NOT NULL
     return SqliteColumn(name, SqliteAffinity.fromTypename(type), false, false)
   }
 
-  private fun SqliteInspection.CellValue.toSqliteColumn(): SqliteColumnValue {
+  private fun CellValue.toSqliteColumn(): SqliteColumnValue {
     // TODO(blocked): add support for primary keys
     // TODO(blocked): add support for NOT NULL
     // TODO(blocked): we need to get affinity info from the on device inspector.
-    return when (unionCase) {
-      SqliteInspection.CellValue.UnionCase.STRING_VALUE ->
+    return when (valueCase) {
+      CellValue.ValueCase.STRING_VALUE ->
         SqliteColumnValue(SqliteColumn(columnName, SqliteAffinity.TEXT, false, false), stringValue)
-      SqliteInspection.CellValue.UnionCase.FLOAT_VALUE ->
+      CellValue.ValueCase.FLOAT_VALUE ->
         SqliteColumnValue(SqliteColumn(columnName, SqliteAffinity.TEXT, false, false), floatValue)
-      SqliteInspection.CellValue.UnionCase.BLOB_VALUE ->
+      CellValue.ValueCase.BLOB_VALUE ->
         SqliteColumnValue(SqliteColumn(columnName, SqliteAffinity.TEXT, false, false), blobValue)
-      SqliteInspection.CellValue.UnionCase.INT_VALUE ->
+      CellValue.ValueCase.INT_VALUE ->
         SqliteColumnValue(SqliteColumn(columnName, SqliteAffinity.TEXT, false, false), intValue)
       else -> SqliteColumnValue(SqliteColumn(columnName, SqliteAffinity.TEXT, false, false), "null")
     }
