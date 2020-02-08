@@ -18,14 +18,6 @@ package com.android.tools.idea.naveditor.scene.draw
 import com.android.tools.idea.common.scene.draw.DrawCommand
 import org.jetbrains.android.AndroidTestCase
 
-fun assertDrawCommandsEqual(expected: DrawFragment, actual: DrawCommand) {
-  val drawFragment = actual as DrawFragment
-  AndroidTestCase.assertEquals(expected.rectangle, drawFragment.rectangle)
-  AndroidTestCase.assertEquals(expected.scale, drawFragment.scale)
-  AndroidTestCase.assertEquals(expected.highlightColor, drawFragment.highlightColor)
-  AndroidTestCase.assertEquals(expected.image, drawFragment.image)
-}
-
 fun assertDrawCommandsEqual(expected: DrawActivity, actual: DrawCommand) {
   val drawActivity = actual as DrawActivity
   AndroidTestCase.assertEquals(expected.rectangle, drawActivity.rectangle)
