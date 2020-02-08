@@ -89,7 +89,7 @@ class AndroidProcessHandler @JvmOverloads constructor(
   /**
    * Adds a target device to this handler.
    */
-  @WorkerThread
+  @AnyThread
   fun addTargetDevice(device: IDevice) {
     myMonitorManager.add(device)
 
@@ -115,8 +115,8 @@ class AndroidProcessHandler @JvmOverloads constructor(
   /**
    * Checks if a given device is monitored by this handler. Returns true if it is monitored otherwise false.
    */
-  @WorkerThread
-  fun isAssociated(device: IDevice) = myMonitorManager.getMonitor(device) != null
+  @AnyThread
+  fun isAssociated(device: IDevice) = myMonitorManager.isAssociated(device)
 
   /**
    * Returns jdwp client of a target application running on a given device, or null if the device is not monitored by
@@ -164,8 +164,10 @@ class AndroidProcessHandler @JvmOverloads constructor(
     }
   }
 
+  @AnyThread
   override fun detachIsDefault() = false
 
+  @AnyThread
   override fun getProcessInput(): OutputStream? = null
 
   /**
@@ -173,6 +175,7 @@ class AndroidProcessHandler @JvmOverloads constructor(
    * Note the global Stop button prefers the result of this method over content descriptor internal state,
    * but the tool window Stop button prefers the content descriptor internal state over this method.
    */
+  @AnyThread
   override fun canKillProcess(): Boolean {
     val activeTarget = ExecutionTargetManager.getInstance(project).activeTarget
     if (activeTarget === DefaultExecutionTarget.INSTANCE || activeTarget !is AndroidExecutionTarget) {
@@ -181,12 +184,15 @@ class AndroidProcessHandler @JvmOverloads constructor(
     return activeTarget.iDevice?.let { isAssociated(it) } ?: false
   }
 
+  @AnyThread
   override fun killProcess() {
     destroyProcess()
   }
 
+  @AnyThread
   override fun getExecutor() = getUserData(AndroidSessionInfo.KEY)?.executor
 
+  @AnyThread
   override fun isRunningWith(runConfiguration: RunConfiguration, executionTarget: ExecutionTarget): Boolean {
     val sessionInfo = getUserData(AndroidSessionInfo.KEY) ?: return false
     if (sessionInfo.runConfiguration !== runConfiguration) {
