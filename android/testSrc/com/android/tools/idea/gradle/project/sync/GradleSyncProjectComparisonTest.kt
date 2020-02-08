@@ -23,8 +23,8 @@ import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.FileSubject
 import com.android.tools.idea.testing.FileSubject.file
+import com.android.tools.idea.testing.GradleSnapshotComparisonTest
 import com.android.tools.idea.testing.IdeComponents
-import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.TestProjectPaths.BASIC
 import com.android.tools.idea.testing.TestProjectPaths.CENTRAL_BUILD_DIRECTORY
@@ -42,11 +42,16 @@ import com.android.tools.idea.testing.TestProjectPaths.TWO_JARS
 import com.android.tools.idea.testing.TestProjectPaths.VARIANT_SPECIFIC_DEPENDENCIES
 import com.android.tools.idea.testing.assertAreEqualToSnapshots
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
+import com.android.tools.idea.testing.fileUnderGradleRoot
+import com.android.tools.idea.testing.gradleModule
+import com.android.tools.idea.testing.openGradleProject
+import com.android.tools.idea.testing.reopenGradleProject
 import com.android.tools.idea.testing.saveAndDump
 import com.google.common.truth.Truth.assertAbout
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.WriteAction.run
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.io.FileUtil.delete
 import com.intellij.openapi.util.io.FileUtil.join
@@ -79,7 +84,7 @@ bazel test //tools/adt/idea/android:intellij.android.core.tests_tests  --test_sh
  */
 abstract class GradleSyncProjectComparisonTest(
   private val singleVariantSync: Boolean = false
-) : GradleSyncIntegrationTestCase(), SnapshotComparisonTest {
+) : GradleSyncIntegrationTestCase(), GradleSnapshotComparisonTest {
   override fun useSingleVariantSyncInfrastructure(): Boolean = singleVariantSync
 
   class FullVariantGradleSyncProjectComparisonTest : GradleSyncProjectComparisonTestCase()
@@ -309,6 +314,49 @@ abstract class GradleSyncProjectComparisonTest(
         debugBefore to ".debug",
         release to ".release",
         debugAfter to ".debug"
+      )
+    }
+
+    fun testSwitchingVariantsWithReopen_simpleApplication() {
+      val debugBefore = openGradleProject(SIMPLE_APPLICATION, "project") { project ->
+        project.saveAndDump()
+      }
+      val release = reopenGradleProject("project") { project ->
+        BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, "app", "release", true)
+        project.saveAndDump()
+      }
+      val reopenedRelease = reopenGradleProject("project") { project ->
+        project.saveAndDump()
+      }
+      assertAreEqualToSnapshots(
+        debugBefore to ".debug",
+        release to ".release",
+        reopenedRelease to ".release"
+      )
+    }
+
+    // TODO(b/142608498): Enable when variant selection is not lost on sync when opening a project.
+    fun /*test*/SwitchingVariantsWithReopenAndResync_simpleApplication() {
+      val debugBefore = openGradleProject(SIMPLE_APPLICATION, "project") { project ->
+        project.saveAndDump()
+      }
+      val release = reopenGradleProject("project") { project ->
+        BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, "app", "release", true)
+        runWriteAction {
+          // Modify the project build file to ensure the project is synced when opened.
+          project.gradleModule(":")!!.fileUnderGradleRoot("build.gradle")!!.also { file ->
+            file.setBinaryContent((String(file.contentsToByteArray()) + " // ").toByteArray())
+          }
+        }
+        project.saveAndDump()
+      }
+      val reopenedRelease = reopenGradleProject("project") { project ->
+        project.saveAndDump()
+      }
+      assertAreEqualToSnapshots(
+        debugBefore to ".debug",
+        release to ".release",
+        reopenedRelease to ".release"
       )
     }
 
