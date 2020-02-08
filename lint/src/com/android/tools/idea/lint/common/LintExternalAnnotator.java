@@ -175,7 +175,7 @@ public class LintExternalAnnotator extends ExternalAnnotator<LintEditorResult, L
                                                Collections.singletonList(lintResult.getModule()), true /* incremental */);
       request.setScope(scope);
 
-      LintDriver lint = new LintDriver(LintIdeIssueRegistry.get(), client, request);
+      LintDriver lint = client.createDriver(request);
       lint.analyze();
 
       lint.setAnalysisStartTime(startTime);

@@ -25,4 +25,5 @@ public class ExampleTest extends ApplicationTestCase<Application> {
     public ExampleTest() {
         super(Application.class);
     }
+    private String path = "/sdcard/foo"; // Deliberate lint warning
 }
