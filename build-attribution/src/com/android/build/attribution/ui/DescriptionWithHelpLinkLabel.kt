@@ -16,8 +16,12 @@
 package com.android.build.attribution.ui
 
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
-import com.intellij.ui.components.JBLabel
-import javax.swing.event.HyperlinkListener
+import com.android.build.attribution.ui.panels.htmlTextLabel
+import com.intellij.ui.HyperlinkLabel
+import com.intellij.ui.components.JBPanel
+import com.intellij.util.ui.JBUI
+import java.awt.GridBagConstraints
+import java.awt.GridBagLayout
 
 /**
  * This class defines a text label on build attribution pages showing html text with a single web link for help documentation.
@@ -26,19 +30,34 @@ import javax.swing.event.HyperlinkListener
  */
 class DescriptionWithHelpLinkLabel(
   text: String,
-  private val analytics: BuildAttributionUiAnalytics
-) : JBLabel(text) {
+  learnMoreTarget: String,
+  analytics: BuildAttributionUiAnalytics
+) : JBPanel<JBPanel<*>>(GridBagLayout()) {
 
   init {
-    setAllowAutoWrapping(true)
-    setCopyable(true)
-  }
+    val descriptionTextLabel = htmlTextLabel(text)
 
-  override fun createHyperlinkListener(): HyperlinkListener {
-    val hyperlinkListener = super.createHyperlinkListener()
-    return HyperlinkListener { e ->
-      analytics.helpLinkClicked()
-      hyperlinkListener.hyperlinkUpdate(e)
+    val descriptionConstraints = GridBagConstraints().apply {
+      fill = GridBagConstraints.HORIZONTAL
+      gridx = 0
+      weightx = 1.0
+      gridy = 0
+      insets = JBUI.insetsLeft(2)
+      anchor = GridBagConstraints.FIRST_LINE_START
     }
+
+    val learnMoreLink = HyperlinkLabel("Learn more").apply {
+      addHyperlinkListener { analytics.helpLinkClicked() }
+      setHyperlinkTarget(learnMoreTarget)
+    }
+    val linkConstraints = GridBagConstraints().apply {
+      fill = GridBagConstraints.HORIZONTAL
+      gridx = 0
+      gridy = 1
+      anchor = GridBagConstraints.LINE_START
+    }
+
+    add(descriptionTextLabel, descriptionConstraints)
+    add(learnMoreLink, linkConstraints)
   }
 }

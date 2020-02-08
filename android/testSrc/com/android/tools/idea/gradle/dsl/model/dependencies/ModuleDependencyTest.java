@@ -19,6 +19,7 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_A
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_INSERTION_ORDER;
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_INSERTION_ORDER_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_INSERT_PSI_ELEMENT_AFTER_FILE_BLOCK_COMMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_INSERT_PSI_ELEMENT_AFTER_FILE_BLOCK_COMMENT_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_MULTI_TYPE_APPLICATION_STATEMENT_DOES_NOT_THROW_EXCEPTION;
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_PARSING_WITH_COMPACT_NOTATION;
 import static com.android.tools.idea.gradle.dsl.TestFileName.MODULE_DEPENDENCY_PARSING_WITH_DEPENDENCY_ON_ROOT;
@@ -477,6 +478,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
     buildModel.dependencies().addModule("compile", ":module1");
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, MODULE_DEPENDENCY_INSERT_PSI_ELEMENT_AFTER_FILE_BLOCK_COMMENT_EXPECTED);
 
     PsiElement psiFile = ((GradleBuildModelImpl)buildModel).getDslFile().getPsiElement();
     if (myLanguageName.equals("Groovy")) {

@@ -310,16 +310,12 @@ public class NdkLibraryNode extends ProjectViewNode<Collection<NativeArtifact>> 
       return false;
     }
     NdkLibraryNode that = (NdkLibraryNode)o;
-    return getValue() == that.getValue();
+    return Objects.equals(getValue(), that.getValue());
   }
 
   @Override
   public int hashCode() {
-    int result = super.hashCode();
-    for (NativeArtifact artifact : getArtifacts()) {
-      result = 31 * result + artifact.hashCode();
-    }
-    return result;
+    return Objects.hash(super.hashCode(), getValue());
   }
 
   @Override

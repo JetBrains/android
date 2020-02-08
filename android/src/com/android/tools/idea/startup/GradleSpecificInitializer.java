@@ -265,7 +265,7 @@ b/137334921 */
 
   private static void setupSdks() {
     try {
-      repairDuplicateAndroidSdks(); // TODO(b/143326468): Remove in Studio 4.1.
+      repairDuplicateAndroidSdks(); // TODO(b/143326468): Remove in Studio 4.2.
     }
     catch (Throwable e) {
       LOG.error("Failed to remove duplicate Android SDKs", e);
@@ -334,8 +334,6 @@ b/137334921 */
 
   /**
    * Removes duplicate Android SDKs that could be created due to b/142005646.
-   * To limit the negative impact of potential bugs in this method, removal of SDKs
-   * is triggered only if there are 20 or more duplicate Android SDKs in JDK table.
    */
   private static void repairDuplicateAndroidSdks() {
     ProjectJdkTable jdkTable = ProjectJdkTable.getInstance();
@@ -352,9 +350,8 @@ b/137334921 */
         androidSdksByClasses.put(Arrays.asList(urls), sdk);
       }
     }
-    // Bail out if there are fewer than 20 duplicate SDKs.
-    if (androidSdksByClasses.size() - androidSdksByClasses.keySet().size() < 20) {
-      return;
+    if (androidSdksByClasses.size() == androidSdksByClasses.keySet().size()) {
+      return; // No duplicates to remove.
     }
 
     for (List<String> classes : androidSdksByClasses.keySet()) {

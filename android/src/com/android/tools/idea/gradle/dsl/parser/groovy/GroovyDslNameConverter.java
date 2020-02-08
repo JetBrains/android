@@ -46,6 +46,15 @@ public class GroovyDslNameConverter implements GradleDslNameConverter {
 
   @NotNull
   @Override
+  public String convertReferenceToExternalText(
+    @NotNull GradleDslElement context,
+    @NotNull String referenceText,
+    @NotNull boolean forInjection) {
+    return referenceText;
+  }
+
+  @NotNull
+  @Override
   public Pair<String, Boolean> externalNameForParent(@NotNull String modelName, @NotNull GradleDslElement context) {
     ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> map = context.getExternalToModelMap(this);
     Pair<String, Boolean> result = new Pair<>(modelName, null);

@@ -31,13 +31,6 @@
                          level="WEAK WARNING"
                          language="kotlin" />
 
-        <localInspection implementationClass="org.jetbrains.kotlin.android.inspection.IncorrectScopeInspection"
-                         displayName="Unresolved reference, in wrong test scope"
-                         groupName="Kotlin Android"
-                         enabledByDefault="true"
-                         level="ERROR"
-                         language="kotlin" />
-
         <intentionAction>
             <className>org.jetbrains.kotlin.android.intention.KotlinAndroidAddStringResource</className>
             <category>Kotlin Android</category>
