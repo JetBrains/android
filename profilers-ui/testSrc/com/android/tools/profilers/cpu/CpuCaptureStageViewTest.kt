@@ -230,7 +230,7 @@ class CpuCaptureStageViewTest {
     ui.keyboard.release(FakeKeyboard.Key.S)
     assertThat(selectionRange.length).isGreaterThan(rangeLength)
 
-    // Press A or left arrow to pan left.
+    // Press A to pan left.
     // First select a small range.
     selectionRange.set(selectionRange.min + 100.0, selectionRange.min + 200.0)
     var oldRange = Range(selectionRange)
@@ -238,23 +238,13 @@ class CpuCaptureStageViewTest {
     ui.keyboard.release(FakeKeyboard.Key.A)
     assertThat(selectionRange.min).isLessThan(oldRange.min)
     assertThat(selectionRange.max).isLessThan(oldRange.max)
-    oldRange = Range(selectionRange)
-    ui.keyboard.press(FakeKeyboard.Key.LEFT)
-    ui.keyboard.release(FakeKeyboard.Key.LEFT)
-    assertThat(selectionRange.min).isLessThan(oldRange.min)
-    assertThat(selectionRange.max).isLessThan(oldRange.max)
 
-    // Press D or right arrow to pan right.
+    // Press D to pan right.
     // First select a small range.
     selectionRange.set(selectionRange.min + 100.0, selectionRange.min + 200.0)
     oldRange = Range(selectionRange)
     ui.keyboard.press(FakeKeyboard.Key.D)
     ui.keyboard.release(FakeKeyboard.Key.D)
-    assertThat(selectionRange.min).isGreaterThan(oldRange.min)
-    assertThat(selectionRange.max).isGreaterThan(oldRange.max)
-    oldRange = Range(selectionRange)
-    ui.keyboard.press(FakeKeyboard.Key.RIGHT)
-    ui.keyboard.release(FakeKeyboard.Key.RIGHT)
     assertThat(selectionRange.min).isGreaterThan(oldRange.min)
     assertThat(selectionRange.max).isGreaterThan(oldRange.max)
   }
