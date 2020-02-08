@@ -655,7 +655,11 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     if (isInProcessMode(GRADLE_SYSTEM_ID)) {
       List<Pair<String, String>> args = new ArrayList<>();
 
-      if (!IdeInfo.getInstance().isAndroidStudio()) {
+      if (IdeInfo.getInstance().isAndroidStudio()) {
+        // Inject javaagent args.
+        TraceSyncUtil.addTraceJvmArgs(args);
+      }
+      else {
         LocalProperties localProperties = getLocalProperties();
         if (localProperties.getAndroidSdkPath() == null) {
           File androidHomePath = IdeSdks.getInstance().getAndroidSdkPath();
