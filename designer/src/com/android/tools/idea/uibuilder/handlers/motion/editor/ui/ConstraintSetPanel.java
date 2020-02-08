@@ -382,7 +382,13 @@ class ConstraintSetPanel extends JPanel {
         String cset_id = Utils.stripID(mConstraintSet.getAttributeValue("id"));
         MTag[] sets = mConstraintSet.getChildTags("Constraint");
         String derived = mConstraintSet.getAttributeValue("deriveConstraintsFrom");
+        if (DEBUG) {
+          for (int i = 0; i < sets.length; i++) {
+            MTag set = sets[i];
+            Debug.log(i+" "+set.getTagName() + " "+ set.getTreeId());
+          }
 
+        }
         for (int i = 0; i < sets.length; i++) {
           MTag constraint = sets[i];
           Object[] row = new Object[4];
