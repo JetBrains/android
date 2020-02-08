@@ -31,6 +31,7 @@ import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.idea.configurations.Configuration;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.util.ui.JBUI;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
@@ -293,7 +294,7 @@ public abstract class SceneView {
     synchronized (myLayersCacheLock) {
       if (myLayersCache != null) {
         // TODO(b/148936113)
-        myLayersCache.forEach(Layer::dispose);
+        myLayersCache.forEach(Disposer::dispose);
       }
     }
   }
