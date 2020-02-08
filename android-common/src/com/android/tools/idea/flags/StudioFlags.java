@@ -265,7 +265,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_NAV_EDITOR_ASSISTANT = Flag.create(
     ASSISTANT, "layout.editor.help.naveditor", "Display Help for Navigation Editor",
     "If enabled, the assistant panel will display helpful guide on using the Navigation Editor.",
-    false);
+    true);
 
   public static final Flag<Boolean> NELE_NEW_PROPERTY_PANEL = Flag.create(
     NELE, "new.property", "Enable the new Property Panel",
