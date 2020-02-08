@@ -20,7 +20,7 @@ import com.android.tools.profilers.cpu.CpuCapture;
 import org.jetbrains.annotations.NotNull;
 
 public class CpuFullTraceAnalysisModel extends CpuAnalysisModel<CpuCapture> {
-  private static final String DEFAULT_ANALYSIS_NAME = "Full trace";
+  private static final String DEFAULT_ANALYSIS_NAME = "All threads";
 
   public CpuFullTraceAnalysisModel(@NotNull CpuCapture capture, @NotNull Range selectionRange) {
     super(DEFAULT_ANALYSIS_NAME);

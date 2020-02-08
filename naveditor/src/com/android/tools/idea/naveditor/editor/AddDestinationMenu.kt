@@ -100,9 +100,8 @@ import javax.swing.border.CompoundBorder
 import javax.swing.event.DocumentEvent
 
 const val DESTINATION_MENU_MAIN_PANEL_NAME = "destinationMenuMainPanel"
-// TODO: Replace revision when artifact available in maven
 private val DYNAMIC_DEPENDENCIES
-  = listOf(GoogleMavenArtifactId.ANDROIDX_NAVIGATION_DYNAMIC_FEATURES_FRAGMENT.getCoordinate("2.3.0-SNAPSHOT"))
+  = listOf(GoogleMavenArtifactId.ANDROIDX_NAVIGATION_DYNAMIC_FEATURES_FRAGMENT.getCoordinate("+"))
 
 /**
  * "Add" popup menu in the navigation editor.

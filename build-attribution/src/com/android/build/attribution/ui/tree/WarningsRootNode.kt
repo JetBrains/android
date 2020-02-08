@@ -19,10 +19,10 @@ import com.android.build.attribution.ui.data.BuildAttributionReportUiData
 import com.android.build.attribution.ui.data.TaskIssueType
 import com.android.build.attribution.ui.panels.AbstractBuildAttributionInfoPanel
 import com.android.build.attribution.ui.panels.headerLabel
+import com.android.build.attribution.ui.panels.htmlTextLabel
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.HyperlinkLabel
-import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.ui.treeStructure.SimpleNode
@@ -61,15 +61,15 @@ class WarningsRootNode(
     override fun createBody(): JComponent {
       val listPanel = JBPanel<JBPanel<*>>(VerticalLayout(6))
       val totalWarningsCount = reportData.totalIssuesCount
-      listPanel.add(JBLabel().apply {
-        text = if (children.isEmpty())
-          "No warnings detected for this build."
-        else
-          "$totalWarningsCount ${StringUtil.pluralize("warning", totalWarningsCount)} " +
-          "of the following ${StringUtil.pluralize("type", children.size)} were detected for this build:"
-        setAllowAutoWrapping(true)
-        setCopyable(true)
-      })
+      listPanel.add(
+        htmlTextLabel(
+          if (children.isEmpty())
+            "No warnings detected for this build."
+          else
+            "$totalWarningsCount ${StringUtil.pluralize("warning", totalWarningsCount)} " +
+            "of the following ${StringUtil.pluralize("type", children.size)} were detected for this build:"
+        )
+      )
       children.forEach {
         if (it is AbstractBuildAttributionNode) {
           val name = it.nodeName

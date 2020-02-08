@@ -16,7 +16,6 @@
 package com.android.tools.adtui.stdui
 
 import com.android.tools.adtui.model.stdui.CommonTextFieldModel
-import com.android.tools.adtui.model.stdui.SelectiveFilteringListModel
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.codeStyle.MinusculeMatcher
 import com.intellij.psi.codeStyle.NameUtil
@@ -26,6 +25,7 @@ import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.SimpleTextAttributes.STYLE_PLAIN
 import com.intellij.ui.components.JBList
+import com.intellij.ui.speedSearch.FilteringListModel
 import com.intellij.ui.speedSearch.SpeedSearchUtil
 import com.intellij.util.ui.accessibility.AccessibleContextUtil
 import java.awt.Component
@@ -61,7 +61,7 @@ private fun Int.modulo(other: Int): Int {
  */
 class Lookup<out M : CommonTextFieldModel>(val editor: CommonTextField<M>, private val ui: LookupUI = DefaultLookupUI()) {
   private val listModel = DefaultListModel<String>()
-  private val filteredModel = SelectiveFilteringListModel<String>(listModel)
+  private val filteredModel = FilteringListModel<String>(listModel)
   private var matcher = Matcher()
   private val condition = { element: String -> matcher.matches(element) }
   private var showBelow = true
@@ -106,7 +106,13 @@ class Lookup<out M : CommonTextFieldModel>(val editor: CommonTextField<M>, priva
         dataLoaded = true
         support.uiExecution(Runnable {
           listModel.clear()
-          values.forEach { listModel.addElement(it) }
+          if (values.isNotEmpty()) {
+            val currentValue = editor.text
+            if (support.allowCustomValues && currentValue.isNotEmpty()) {
+              listModel.addElement(currentValue)
+            }
+            values.forEach { if (it != currentValue) listModel.addElement(it) }
+          }
           updateFilter()
         })
       })
@@ -114,17 +120,21 @@ class Lookup<out M : CommonTextFieldModel>(val editor: CommonTextField<M>, priva
   }
 
   private fun updateFilter() {
+    val support = editor.editorModel.editingSupport
     val text = editor.text
     val oldSelectedValue = ui.selectedValue
+    val isCurrentValueSelected = ui.selectedIndex == 0
+    if (support.allowCustomValues && listModel.size() > 0) {
+      listModel.set(0, text)
+    }
     matcher.pattern = text
-    filteredModel.perfectMatch = text
     filteredModel.refilter()
-    val matchesToShow = filteredModel.size > 0
+    val hasMatchesToShow = filteredModel.size > 1
     when {
-      matchesToShow && !ui.visible -> display()
-      !matchesToShow && ui.visible -> hideLookup()
-      matchesToShow -> {
-        restoreSelection(oldSelectedValue)
+      hasMatchesToShow && !ui.visible -> display()
+      !hasMatchesToShow && ui.visible -> hideLookup()
+      hasMatchesToShow -> {
+        restoreSelection(isCurrentValueSelected, oldSelectedValue)
         updateFrameBounds()
       }
     }
@@ -200,11 +210,11 @@ class Lookup<out M : CommonTextFieldModel>(val editor: CommonTextField<M>, priva
     dataLoaded = false
   }
 
-  private fun restoreSelection(oldSelectedItem: String?) {
-    if (oldSelectedItem != null) {
+  private fun restoreSelection(currentValueSelected: Boolean, oldSelectedItem: String?) {
+    if (oldSelectedItem != null && !currentValueSelected) {
       ui.selectedValue = oldSelectedItem
     }
-    if (ui.selectedIndex < 0) {
+    if (ui.selectedIndex < 0 || currentValueSelected) {
       ui.selectedIndex = 0
     }
   }
@@ -234,7 +244,7 @@ class Lookup<out M : CommonTextFieldModel>(val editor: CommonTextField<M>, priva
    * Also make sure there is room to the left if the popup is wide.
    */
   private fun computeLocation(): Point {
-    ui.visibleRowCount = Math.min(filteredModel.size, MAX_LOOKUP_LIST_HEIGHT)
+    ui.visibleRowCount = min(filteredModel.size, MAX_LOOKUP_LIST_HEIGHT)
     val popupSize = ui.popupSize
     val screenBounds = ui.screenBounds(editor)
     val editorBounds = ui.editorBounds(editor)

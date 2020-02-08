@@ -126,6 +126,14 @@ enum class NelePropertyType {
     }
   }
 
+  val allowCustomValues: Boolean
+    get() = when (this) {
+      THREE_STATE_BOOLEAN,
+      BOOLEAN,
+      ENUM -> false
+      else -> true
+    }
+
   private fun error(condition: Boolean, message: () -> String): String? {
     return if (condition) message() else null
   }

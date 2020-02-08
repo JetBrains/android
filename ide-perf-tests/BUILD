@@ -22,7 +22,10 @@ iml_module(
         "//tools/idea/java/jdkAnnotations",
     ],
     # do not sort: must match IML order
-    test_runtime_deps = ["//tools/idea:intellij.java.ui.tests"],
+    test_runtime_deps = [
+        "//tools/idea:intellij.java.ui.tests",
+        "//prebuilts/tools/common/m2/repository/it/unimi/dsi/fastutil/7.2.1:jar",
+    ],
     test_srcs = ["testSrc"],
     test_tags = [
         "cpu:3",
@@ -31,11 +34,18 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
+        "//tools/idea/.idea/libraries:delight-rhino-sandbox",
+        "//tools/idea/.idea/libraries:rhino",
+        "//tools/idea/.idea/libraries:netty-handler-proxy",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
+        "//tools/idea/.idea/libraries:javassist",
         "//tools/idea/platform/diagnostic:intellij.platform.diagnostic",
+        "//tools/idea/.idea/libraries:error-prone-annotations",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
+        "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/193.4:jar",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
+        "//tools/idea/.idea/libraries:precompiled_jshell-frontend",
         "//tools/idea/platform/platform-main:intellij.platform.main",
         "//tools/idea/java/ide-customization:intellij.java.ide.customization",
         "//tools/idea/java/plugin:intellij.java.plugin",
@@ -45,6 +55,7 @@ iml_module(
         "//tools/idea/plugins/devkit/devkit-core:intellij.devkit",
         "//tools/idea/plugins/devkit/jps-plugin:intellij.devkit.jps",
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
+        "//prebuilts/tools/common/m2/repository/org/xerial/sqlite-jdbc/3.20.1:jar",
         "//tools/idea/plugins/tasks/tasks-api:intellij.tasks",
         "//tools/idea/plugins/tasks/tasks-java:intellij.tasks.java",
         "//tools/idea/plugins/github:intellij.vcs.github",
@@ -64,6 +75,8 @@ iml_module(
         "//tools/idea/plugins/changeReminder:intellij.vcs.changeReminder",
         "//tools/idea/plugins/sh:intellij.sh",
         "//tools/idea/plugins/gradle-maven:intellij.gradle.java.maven",
+        "//tools/idea/.idea/libraries:jgoodies-common",
+        "//tools/idea/.idea/libraries:commons-net",
     ],
     # do not sort: must match IML order
     deps = [

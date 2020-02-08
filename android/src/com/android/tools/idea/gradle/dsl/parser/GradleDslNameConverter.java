@@ -40,7 +40,23 @@ public interface GradleDslNameConverter {
    * @return a string containing a dotted-name representation of the external-named element
    */
   @NotNull
-  default String convertReferenceText(@NotNull GradleDslElement context, @NotNull String referenceText) { return ""; }
+  default String convertReferenceText(@NotNull GradleDslElement context, @NotNull String referenceText) {
+    return "";
+  }
+
+  /**
+   * Convert a reference text expressed in a dsl-compatible syntax to a text compatible with the corresponding build script language.
+   * @param context the dsl context within which we are applying the conversion
+   * @param referenceText the reference text.
+   * @param forInjection indicates whether the reference text should be converted to be used for a variable injection or not.
+   * @return reference text converted to the external language syntax.
+   */
+  @NotNull
+  default String convertReferenceToExternalText(
+    @NotNull GradleDslElement context,
+    @NotNull String referenceText,
+    @NotNull boolean forInjection
+  ) { return "";}
 
   /**
    * Converts a dotted-hierarchy name with hierarchy denoted by canonical model names to a dotted-hierarchy name in the vocabulary

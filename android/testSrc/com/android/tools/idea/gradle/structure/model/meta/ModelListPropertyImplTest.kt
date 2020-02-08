@@ -227,7 +227,7 @@ class ModelListPropertyImplTest : GradleFileModelTestCase() {
 
     val propList = extModel.findProperty("propList").wrap(::parseInt, ResolvedPropertyModel::asInt)
 
-    val newResolvedProperty = extModel.findProperty("newVar").resolve()
+    val newResolvedProperty = extModel.findProperty("ext.newVar").resolve()
     var localModified = false
     var localModifying = false
     @Suppress("UNCHECKED_CAST")

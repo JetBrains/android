@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.OBJECT_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.helpers.matchHashStrings
 import com.android.tools.idea.gradle.structure.model.meta.DslText
@@ -148,5 +149,66 @@ class AndroidModuleDescriptorsTest : AndroidGradleTestCase() {
 
     assertThat(appModule.parsedModel?.android()?.compileSdkVersion()?.getValue(OBJECT_TYPE), equalTo<Any>(15))
     assertThat(appModule.parsedModel?.android()?.compileSdkVersion()?.getRawValue(STRING_TYPE), equalTo<Any>(expectedValues[1]))
+  }
+
+  fun doTestSetDependencyReferenceVersion(expectedValues: List<String>) {
+    var project = PsProjectImpl(myFixture.project)
+    val appModule = project.findModuleByName("app") as PsAndroidModule
+    var existingAgpDependency =
+      appModule
+        .parsedModel
+        ?.dependencies()
+        ?.artifacts()
+
+    assertTrue(existingAgpDependency != null && existingAgpDependency.size == 4)
+    existingAgpDependency!![0].version().setValue(ReferenceTo("myVariable"))
+    existingAgpDependency!![1].version().setValue(ReferenceTo("versionVal"))
+    existingAgpDependency!![2].version().setValue(ReferenceTo("localList[0]"))
+    existingAgpDependency!![3].version().setValue(ReferenceTo("dependencyVersion"))
+
+    project.applyChanges()
+
+    existingAgpDependency =
+      appModule
+        .parsedModel
+        ?.dependencies()
+        ?.artifacts()
+
+    assertTrue(existingAgpDependency != null && existingAgpDependency.size == 4)
+    assertThat(existingAgpDependency!![0].compactNotation(), equalTo<String>("com.android.support:appcompat-v7:26.1.0"))
+    assertThat(existingAgpDependency!![0].completeModel().getRawValue(STRING_TYPE),
+               equalTo<String>("com.android.support:appcompat-v7:${expectedValues[0]}"))
+
+    assertThat(existingAgpDependency!![1].compactNotation(),
+               equalTo<String>("com.android.support.constraint:constraint-layout:28.0.0"))
+    assertThat(existingAgpDependency!![1].completeModel().getRawValue(STRING_TYPE),
+               equalTo<String>("com.android.support.constraint:constraint-layout:${expectedValues[1]}"))
+
+    assertThat(existingAgpDependency!![2].compactNotation(),
+               equalTo<String>("com.android.support.test:runner:26.1.1"))
+    assertThat(existingAgpDependency!![2].completeModel().getRawValue(STRING_TYPE),
+               equalTo<String>("com.android.support.test:runner:${expectedValues[2]}"))
+
+    assertThat(existingAgpDependency!![3].compactNotation(),
+               equalTo<String>("com.android.support.test.espresso:espresso-core:28.0.0"))
+    assertThat(existingAgpDependency!![3].completeModel().getRawValue(STRING_TYPE),
+               equalTo<String>("com.android.support.test.espresso:espresso-core:${expectedValues[3]}"))
+  }
+
+  fun testSetDependencyReferenceVersionGroovy() {
+    loadProject(PSD_SAMPLE_GROOVY)
+    val expectedValues = listOf("${'$'}{myVariable}", "${'$'}{versionVal}", "${'$'}{localList[0]}", "${'$'}{dependencyVersion}")
+    doTestSetDependencyReferenceVersion(expectedValues)
+  }
+
+  fun testSetDependencyReferenceVersionKts() {
+    loadProject(PSD_SAMPLE_KOTLIN)
+    val expectedValues =
+      listOf(
+        "${'$'}{myVariable}",
+        "${'$'}{project.extra[\"versionVal\"]}",
+        "${'$'}{localList[0]}",
+        "${'$'}{rootProject.extra[\"dependencyVersion\"]}")
+    doTestSetDependencyReferenceVersion(expectedValues)
   }
 }

@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.kotlin
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtPsiFactory
@@ -43,6 +44,14 @@ interface KotlinDslNameConverter: GradleDslNameConverter {
       result = gradleNameFor(referencePsi)
     }
     return result ?: referenceText
+  }
+
+  @JvmDefault
+  override fun convertReferenceToExternalText(context: GradleDslElement, referenceText: String, forInjection: Boolean): String {
+    return when (context) {
+      is GradleDslSimpleExpression -> convertToExternalTextValue(context, context.dslFile, referenceText, forInjection)
+      else -> referenceText
+    }
   }
 
   @JvmDefault

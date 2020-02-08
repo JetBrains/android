@@ -66,7 +66,8 @@ class PsVariablesTest : AndroidGradleTestCase() {
         "rootFloat" to BigDecimal("3.14").asParsed(),
         "listProp" to listOf(15.asParsed(),16.asParsed(),45.asParsed()).asParsed(),
         "mapProp" to mapOf("key1" to "val1".asParsed(), "key2" to "val2".asParsed()).asParsed(),
-        "boolRoot" to true.asParsed()
+        "boolRoot" to true.asParsed(),
+        "dependencyVersion" to "28.0.0".asParsed()
       ))
     )
   }
@@ -89,6 +90,7 @@ class PsVariablesTest : AndroidGradleTestCase() {
         "localList",
         "localMap",
         "valVersion",
+        "versionVal",
         "moreVariable",
         "mapVariable"))
     )
@@ -234,7 +236,9 @@ class PsVariablesTest : AndroidGradleTestCase() {
             ("rootFloat" to "3.14").asParsed().annotated(),
             ("varRefString" to "1.3").asParsed().annotated(),
             ("localMap.KTSApp" to "com.example.text.KTSApp").asParsed().annotated(),
-            ("localMap.LocalApp" to "com.android.localApp").asParsed().annotated()
+            ("localMap.LocalApp" to "com.android.localApp").asParsed().annotated(),
+            ("versionVal" to "28.0.0").asParsed().annotated(),
+            ("dependencyVersion" to "28.0.0").asParsed().annotated()
           )
         )
       )
@@ -287,7 +291,7 @@ class PsVariablesTest : AndroidGradleTestCase() {
     val otherVariables = PsVariables(psProject, "other", "other", null)
 
     assumeThat(otherVariables.entries.keys, equalTo(setOf("someVar", "rootBool", "rootBool2", "rootBool3", "rootFloat", "listProp",
-                                                          "mapProp", "boolRoot")))
+                                                          "mapProp", "boolRoot", "dependencyVersion")))
 
     val someVar = variables.getVariable("someVar")
     someVar?.setName("tmp321")
@@ -296,12 +300,12 @@ class PsVariablesTest : AndroidGradleTestCase() {
     val tmp999 = variables.getOrCreateVariable("tmp999")
     tmp999.value = 999.asParsed()
     assertThat(variables.map { it.name }.toSet(), equalTo(setOf("tmp321", "rootBool", "rootBool3", "tmp999", "rootFloat", "listProp",
-                                                                "mapProp", "boolRoot")))
+                                                                "mapProp", "boolRoot", "dependencyVersion")))
 
     assumeThat(otherVariables.entries.keys, equalTo(setOf("someVar", "rootBool", "rootBool2", "rootBool3", "rootFloat", "listProp",
-                                                          "mapProp", "boolRoot")))
+                                                          "mapProp", "boolRoot", "dependencyVersion")))
     otherVariables.refresh()
     assertThat(otherVariables.entries.keys, equalTo(setOf("tmp321", "rootBool", "rootBool3", "tmp999", "rootFloat", "listProp",
-                                                          "mapProp", "boolRoot")))
+                                                          "mapProp", "boolRoot", "dependencyVersion")))
   }
 }

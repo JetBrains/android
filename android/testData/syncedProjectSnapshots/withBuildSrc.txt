@@ -523,55 +523,55 @@ PROJECT             : testWithBuildSrc
             IsExported          : true
             Name                : Gradle: gradle-api-<GRADLE_VERSION> [=]
             *CLASSES            : jar://<GRADLE>/caches/<GRADLE_VERSION>/generated-gradle-jars/gradle-api-<GRADLE_VERSION>.jar!/
-        LIBRARY             : Gradle: gradle-installation-beacon-6.1
+        LIBRARY             : Gradle: gradle-installation-beacon-<GRADLE_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : true
-            Name                : Gradle: gradle-installation-beacon-6.1 [=]
-            *CLASSES            : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/gradle-installation-beacon-6.1.jar!/
+            Name                : Gradle: gradle-installation-beacon-<GRADLE_VERSION> [=]
+            *CLASSES            : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/w712waclrl0qs05zrowh04r0/gradle-<GRADLE_VERSION>/lib/gradle-installation-beacon-<GRADLE_VERSION>.jar!/
         LIBRARY             : Gradle: groovy-all-1.3-2.5.8
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : true
             Name                : Gradle: groovy-all-1.3-2.5.8 [=]
-            *CLASSES            : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-all-1.3-2.5.8.jar!/
+            *CLASSES            : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/w712waclrl0qs05zrowh04r0/gradle-<GRADLE_VERSION>/lib/groovy-all-1.3-2.5.8.jar!/
         LIBRARY             : Gradle: kotlin-reflect-<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : true
             Name                : Gradle: kotlin-reflect-<KOTLIN_VERSION> [=]
-            *CLASSES            : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-reflect-<KOTLIN_VERSION>.jar!/
+            *CLASSES            : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/w712waclrl0qs05zrowh04r0/gradle-<GRADLE_VERSION>/lib/kotlin-reflect-<KOTLIN_VERSION>.jar!/
         LIBRARY             : Gradle: kotlin-stdlib-<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : true
             Name                : Gradle: kotlin-stdlib-<KOTLIN_VERSION> [=]
-            *CLASSES            : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
+            *CLASSES            : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/w712waclrl0qs05zrowh04r0/gradle-<GRADLE_VERSION>/lib/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
         LIBRARY             : Gradle: kotlin-stdlib-common-<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : true
             Name                : Gradle: kotlin-stdlib-common-<KOTLIN_VERSION> [=]
-            *CLASSES            : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-stdlib-common-<KOTLIN_VERSION>.jar!/
+            *CLASSES            : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/w712waclrl0qs05zrowh04r0/gradle-<GRADLE_VERSION>/lib/kotlin-stdlib-common-<KOTLIN_VERSION>.jar!/
         LIBRARY             : Gradle: kotlin-stdlib-jdk7-<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : true
             Name                : Gradle: kotlin-stdlib-jdk7-<KOTLIN_VERSION> [=]
-            *CLASSES            : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar!/
+            *CLASSES            : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/w712waclrl0qs05zrowh04r0/gradle-<GRADLE_VERSION>/lib/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar!/
         LIBRARY             : Gradle: kotlin-stdlib-jdk8-<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : true
             Name                : Gradle: kotlin-stdlib-jdk8-<KOTLIN_VERSION> [=]
-            *CLASSES            : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar!/
+            *CLASSES            : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/w712waclrl0qs05zrowh04r0/gradle-<GRADLE_VERSION>/lib/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar!/
         LIBRARY             : Gradle: testWithBuildSrc_buildSrc.buildSrc
             LibraryLevel        : project
             IsModuleLevel       : false

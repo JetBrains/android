@@ -9,6 +9,12 @@ iml_module(
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
+    runtime_deps = [
+        "//tools/idea/.idea/libraries:delight-rhino-sandbox",
+        "//tools/idea/.idea/libraries:rhino",
+        "//tools/idea/.idea/libraries:netty-handler-proxy",
+    ],
+    # do not sort: must match IML order
     deps = [
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
         "//tools/idea/.idea/libraries:jsr305",
@@ -40,6 +46,10 @@ iml_module(
         "//tools/idea/images:intellij.platform.images",
         "//tools/idea/platform/external-system-impl:intellij.platform.externalSystem.impl",
         "//tools/idea/platform/built-in-server:intellij.platform.builtInServer.impl",
+        "//tools/idea/.idea/libraries:Slf4j",
+        "//tools/idea/.idea/libraries:javax.activation",
+        "//tools/idea/.idea/libraries:jaxb-api",
+        "//tools/idea/.idea/libraries:javax.annotation-api",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
         "//tools/idea/plugins/groovy/jps-plugin:intellij.groovy.jps",
         "//tools/idea/plugins/ant/jps-plugin:intellij.ant.jps",
@@ -62,19 +72,27 @@ iml_module(
         "//tools/idea/plugins/eclipse:intellij.eclipse",
         "//tools/idea/java/plugin:intellij.java.plugin",
         "//tools/idea/plugins/ui-designer-core:intellij.uiDesigner",
+        "//tools/idea/.idea/libraries:precompiled_jshell-frontend",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
         "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
+        "//tools/idea/.idea/libraries:delight-rhino-sandbox",
+        "//tools/idea/.idea/libraries:rhino",
+        "//tools/idea/.idea/libraries:netty-handler-proxy",
         "//tools/idea/platform/lvcs-impl:intellij.platform.lvcs.impl",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
         "//tools/idea/json:intellij.json",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
+        "//tools/idea/.idea/libraries:javassist",
         "//tools/idea/platform/diagnostic:intellij.platform.diagnostic",
+        "//tools/idea/.idea/libraries:error-prone-annotations",
+        "//tools/idea/.idea/libraries:jaxb-runtime",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
+        "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/193.4:jar",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
     ],
     # do not sort: must match IML order

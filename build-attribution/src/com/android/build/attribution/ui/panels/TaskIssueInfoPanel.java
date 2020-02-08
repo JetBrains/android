@@ -18,6 +18,7 @@ package com.android.build.attribution.ui.panels;
 import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.durationString;
 import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.issueIcon;
 import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.percentageString;
+import static com.android.build.attribution.ui.panels.BuildAttributionPanelsKt.htmlTextLabel;
 
 import com.android.build.attribution.ui.DescriptionWithHelpLinkLabel;
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics;
@@ -38,7 +39,6 @@ import java.awt.GridBagLayout;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SwingConstants;
 
 public class TaskIssueInfoPanel extends JBPanel {
   private final TaskUiData myTaskData;
@@ -82,14 +82,11 @@ public class TaskIssueInfoPanel extends JBPanel {
     String text = new HtmlBuilder()
       .openHtmlBody()
       .addHtml(myIssue.getExplanation())
-      .newline()
-      .addLink("Learn more", myIssue.getHelpLink())
       .closeHtmlBody()
       .getHtml();
 
     JLabel iconLabel = new JLabel(issueIcon(myIssue.getType()));
-    JBLabel issueDescription = new DescriptionWithHelpLinkLabel(text, myAnalytics);
-    issueDescription.setVerticalTextPosition(SwingConstants.TOP);
+    JComponent issueDescription = new DescriptionWithHelpLinkLabel(text, myIssue.getHelpLink(), myAnalytics);
 
     JBPanel<JBPanel> panel = new JBPanel<>(new GridBagLayout());
     GridBagConstraints c = new GridBagConstraints();
@@ -100,6 +97,7 @@ public class TaskIssueInfoPanel extends JBPanel {
     panel.add(iconLabel, c);
 
     c.gridx = 1;
+    c.gridy = 0;
     c.insets = JBUI.insetsLeft(5);
     c.weightx = 1.0;
     c.weighty = 1.0;
@@ -174,9 +172,6 @@ public class TaskIssueInfoPanel extends JBPanel {
       .add(taskData.getExecutedIncrementally() ? "Yes" : "No")
       .closeHtmlBody()
       .getHtml();
-    JBLabel label = new JBLabel().setAllowAutoWrapping(true).setCopyable(true);
-    label.setVerticalTextPosition(SwingConstants.TOP);
-    label.setText(text);
-    return label;
+    return htmlTextLabel(text);
   }
 }
