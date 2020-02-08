@@ -695,11 +695,6 @@ public class LintIdeClient extends LintClient implements Disposable {
   }
 
   @Override
-  public boolean checkForSuppressComments() {
-    return false;
-  }
-
-  @Override
   public boolean supportsProjectResources() {
     return true;
   }

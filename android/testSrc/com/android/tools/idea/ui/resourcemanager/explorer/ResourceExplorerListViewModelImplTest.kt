@@ -26,7 +26,7 @@ import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.res.addAndroidModule
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.ui.resourcemanager.ImageCache
+import com.android.tools.idea.ui.resourcemanager.rendering.ImageCache
 import com.android.tools.idea.ui.resourcemanager.getPNGFile
 import com.android.tools.idea.ui.resourcemanager.getPNGResourceItem
 import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
@@ -73,8 +73,8 @@ class ResourceExplorerListViewModelImplTest {
   @Before
   fun setUp() {
     projectRule.fixture.testDataPath = getTestDataDirectory()
-    largeImageCache = ImageCache.createLargeImageCache(disposable)
-    smallImageCache = ImageCache.createSmallImageCache(disposable)
+    largeImageCache = ImageCache.createImageCache(disposable)
+    smallImageCache = ImageCache.createImageCache(disposable)
     resourceResolver = Mockito.mock(ResourceResolver::class.java)
   }
 
@@ -84,6 +84,33 @@ class ResourceExplorerListViewModelImplTest {
     smallImageCache.clear()
     Disposer.dispose(disposable)
   }
+
+  @Test
+  fun refreshDrawablePreviews() {
+    var renderLatch = CountDownLatch(1)
+    val uiCallbackLatch = CountDownLatch(1)
+    val pngDrawable = projectRule.getPNGResourceItem()
+    val asset = Asset.fromResourceItem(pngDrawable) as DesignAsset
+    val iconSize = 32 // To compensate the 10% margin around the icon
+    Mockito.`when`(resourceResolver.resolveResValue(asset.resourceItem.resourceValue)).thenReturn(asset.resourceItem.resourceValue)
+    val viewModel = createViewModel(projectRule.module, ResourceType.DRAWABLE)
+    viewModel.updateUiCallback = { if (it == ResourceExplorerListViewModel.UpdateUiReason.IMAGE_CACHE_CHANGED) uiCallbackLatch.countDown() }
+
+    // Trigger a render for a drawable asset, will load generated image into cache.
+    viewModel.drawablePreviewManager.getIcon(asset, iconSize, iconSize, { renderLatch.countDown() })
+    assertTrue(renderLatch.await(1, TimeUnit.SECONDS))
+    Truth.assertThat(uiCallbackLatch.count).isEqualTo(1)
+
+    // Clear cache for all current drawable resources.
+    viewModel.clearCacheForCurrentResources()
+    assertTrue(uiCallbackLatch.await(1, TimeUnit.SECONDS))
+
+    // Another render request for the drawable asset, should load the image into cache again, since it was recently cleared.
+    renderLatch = CountDownLatch(1)
+    viewModel.drawablePreviewManager.getIcon(asset, iconSize, iconSize, { renderLatch.countDown() })
+    assertTrue(renderLatch.await(1, TimeUnit.SECONDS))
+  }
+
 
   @Test
   fun getDrawablePreviewAndRefresh() {

@@ -1,4 +1,4 @@
 ext.jUnitVersion = 2
 dependencies {
-  implementation "junit:junit:${jUnitVersion}"
+  implementation "junit:junit:$jUnitVersion"
 }

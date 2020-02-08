@@ -30,6 +30,7 @@ import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APP
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.ADD_AS_LIST;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR_BUT_DO_NOT_USE_FOR_WRITING_IN_KTS;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VWO;
 
 /**
@@ -120,7 +121,7 @@ public class GradleDslBlockElement extends GradlePropertiesDslElement {
     if (semantics == null) return;
     SemanticsDescription description = semantics.getSecond();
     if (element.shouldUseAssignment()) {
-      if (description != VAR && description != VWO) {
+      if (description != VAR && description != VWO && description != VAR_BUT_DO_NOT_USE_FOR_WRITING_IN_KTS) {
         // we are maybe-renaming a property involved in an assignment, which only makes sense if the property has a writer (i.e.
         // it is a property and not a read-only VAL)
         return;

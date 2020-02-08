@@ -22,7 +22,6 @@ import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.deployable.Deployable;
 import com.android.tools.idea.run.deployable.DeployableProvider;
-import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.project.Project;
 import java.util.Collections;
 import java.util.List;
@@ -47,14 +46,13 @@ public class DeviceAndSnapshotComboBoxDeployableProvider implements DeployablePr
   @Nullable
   @Override
   public Deployable getDeployable() throws ApkProvisionException {
-    ActionManager manager = ActionManager.getInstance();
-    Device device = ((DeviceAndSnapshotComboBoxAction)manager.getAction("DeviceAndSnapshotComboBox")).getSelectedDevice(myProject);
+    List<Device> devices = DeviceAndSnapshotComboBoxAction.getSelectedDevices(myProject);
 
-    if (device == null) {
+    if (devices.size() != 1) {
       return null;
     }
 
-    return new DeployableDevice(device, myApplicationIdProvider.getPackageName());
+    return new DeployableDevice(devices.get(0), myApplicationIdProvider.getPackageName());
   }
 
   private static final class DeployableDevice implements Deployable {

@@ -52,6 +52,7 @@ class ComponentTreeBuilder {
   private var installTreeSearch = true
   private var isRootVisible = true
   private var showRootHandles = false
+  private var componentName =  "componentTree"
 
   /**
    * Register a [NodeType].
@@ -103,13 +104,19 @@ class ComponentTreeBuilder {
    */
   fun withExpandableRoot() = apply { showRootHandles = true }
 
+
+  /**
+   * Set the component name for UI tests
+   */
+  fun withComponentName(name: String) = apply { componentName = name }
+
   /**
    * Build the tree component and return it with the tree model.
    */
   fun build(): Triple<JComponent, ComponentTreeModel, ComponentTreeSelectionModel> {
     val model = ComponentTreeModelImpl(nodeTypeMap, invokeLater)
     val selectionModel = ComponentTreeSelectionModelImpl(model)
-    val tree = TreeImpl(model, contextPopup, doubleClick, badges)
+    val tree = TreeImpl(model, contextPopup, doubleClick, badges, componentName)
     tree.isRootVisible = isRootVisible
     tree.showsRootHandles = !isRootVisible || showRootHandles
     if (installTreeSearch) {

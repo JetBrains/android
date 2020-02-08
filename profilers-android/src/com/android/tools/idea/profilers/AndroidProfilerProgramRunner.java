@@ -39,11 +39,10 @@ public class AndroidProfilerProgramRunner extends AndroidBaseProgramRunner {
 
   @Override
   public boolean canRun(@NotNull String executorId, @NotNull RunProfile profile) {
-    if (!ProfileRunExecutor.EXECUTOR_ID.equals(executorId)) {
+    if (!ProfileRunExecutor.EXECUTOR_ID.equals(executorId) || !(profile instanceof AndroidRunConfigurationBase)) {
       return false;
     }
-
-    return profile instanceof AndroidRunConfigurationBase;
+    return ((AndroidRunConfigurationBase)profile).isProfilable();
   }
 
   @Nullable

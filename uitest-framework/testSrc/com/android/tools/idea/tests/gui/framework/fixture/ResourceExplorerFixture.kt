@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.framework.fixture
 
 import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture
+import com.android.tools.idea.tests.gui.framework.fixture.designer.SceneComponentFixture
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import com.android.tools.idea.ui.resourcemanager.ResourceExplorer
 import com.android.tools.idea.ui.resourcemanager.explorer.AssetListView
@@ -111,14 +112,14 @@ class ResourceExplorerFixture private constructor(robot: Robot, target: JPanel) 
   fun dragResourceToLayoutEditor(resourceName: String): ResourceExplorerFixture {
     val layoutEditor = IdeFrameFixture.find(robot()).editor.getLayoutEditor(false)
     val surface = layoutEditor.surface
-    val componentsCountBeforeDrop = surface.allComponents.size
-    val rootComponent = surface.allComponents[0] as NlComponentFixture
+    val componentsCountBeforeDrop = surface.scene.sceneComponents.count()
+    val rootComponent = surface.scene.sceneComponents.first()
 
     findResource(resourceName).drag()
     surface.drop(rootComponent.midPoint) // Drop in the middle of the surface.
     layoutEditor.waitForRenderToFinish()
     Wait.seconds(10L).expecting("Dragged resource in Layout Editor").until {
-      surface.allComponents.size == componentsCountBeforeDrop + 1
+      surface.scene.sceneComponents.count() == componentsCountBeforeDrop + 1
     }
     return this
   }

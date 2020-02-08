@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
+import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.projectsystem.ModuleHierarchyProvider
 import com.intellij.ProjectTopics
 import com.intellij.openapi.components.ComponentManager
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isExternalSystemAwareModule
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
@@ -65,8 +68,9 @@ class GradleModuleHierarchyProvider(private val project: Project) {
     val moduleManager = ModuleManager.getInstance(project)
     val grouper = moduleManager.getModuleGrouper(null)
 
-    fun moduleHierarchyId(module: Module?): List<String>? {
-      return grouper.getModuleAsGroupPath(module ?: return null) ?: grouper.getGroupPath(module)
+    fun moduleHierarchyId(module: Module): List<String>? {
+      if (!isExternalSystemAwareModule(GRADLE_SYSTEM_ID, module)) return null
+      return grouper.getModuleAsGroupPath(module) ?: grouper.getGroupPath(module)
     }
 
     val modules = moduleManager.modules

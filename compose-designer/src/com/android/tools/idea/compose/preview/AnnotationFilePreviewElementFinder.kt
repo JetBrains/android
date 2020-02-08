@@ -56,8 +56,8 @@ private fun attributesToConfiguration(node: UAnnotation): PreviewConfiguration {
  * [FilePreviewElementFinder] that uses `@Preview` annotations.
  */
 object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
-  override fun hasPreviewMethods(project: Project, file: VirtualFile): Boolean = ReadAction.compute<Boolean, Throwable> {
-    PsiTreeUtil.findChildrenOfType(PsiManager.getInstance(project).findFile(file), KtImportDirective::class.java)
+  override fun hasPreviewMethods(project: Project, vFile: VirtualFile): Boolean = ReadAction.compute<Boolean, Throwable> {
+    PsiTreeUtil.findChildrenOfType(PsiManager.getInstance(project).findFile(vFile), KtImportDirective::class.java)
       .any { PREVIEW_ANNOTATION_FQN == it.importedFqName?.asString() }
   }
 
@@ -80,13 +80,20 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
         val composableMethod = "${uClass.qualifiedName}.${annotatedMethod.name}"
         val previewName = previewAnnotation.findDeclaredAttributeValue("name")?.evaluateString() ?: annotatedMethod.name
         val groupName = previewAnnotation.findDeclaredAttributeValue("group")?.evaluateString()
+        val showDecorations = previewAnnotation.findDeclaredAttributeValue("showDecorations")?.evaluate() as? Boolean ?: false
+        val showBackground = previewAnnotation.findDeclaredAttributeValue("showBackground")?.evaluate() as? Boolean ?: false
 
         // If the same composable functions is found multiple times, only keep the first one. This usually will happen during
         // copy & paste and both the compiler and Studio will flag it as an error.
         if (previewMethodsFqName.add(composableMethod)) {
-          previewElements.add(PreviewElement(previewName,
-                                             groupName,
-                                             composableMethod,
+          val displaySettings = PreviewDisplaySettings(previewName,
+                                                       groupName,
+                                                       showDecorations,
+                                                       showBackground,
+                                                       null)
+
+          previewElements.add(PreviewElement(composableMethod,
+                                             displaySettings,
                                              previewAnnotation.toSmartPsiPointer(),
                                              annotatedMethod.uastBody.toSmartPsiPointer(),
                                              attributesToConfiguration(previewAnnotation)))
@@ -103,7 +110,7 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
             }
 
             // The method must also be annotated with @Composable
-            if (it.annotations.any { annotation -> COMPOSABLE_ANNOTATION_FQN == annotation.qualifiedName }) {
+            if (it.uAnnotations.any { annotation -> COMPOSABLE_ANNOTATION_FQN == annotation.qualifiedName }) {
               visitPreviewAnnotation(node, it)
             }
           }

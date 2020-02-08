@@ -157,20 +157,16 @@ internal fun findLastPsiElementIn(startElement: GradleDslElement): PsiElement? {
 
 /**
  * Get the external name of a dsl element by trimming the parent's name parts and converting the name from model to external, if necessary,
- * returning a pair of the name and whether this is a method call an assignment or unknown (see
+ * returning an instance containing the name and whether this is a method call an assignment or unknown (see
  * [GradleDslNameConverter.externalNameForParent])
  */
-internal fun maybeTrimForParent(name: GradleNameElement,
-                                parent: GradleDslElement?,
-                                converter: GradleDslNameConverter): Pair<String, Boolean?> {
+internal fun maybeTrimForParent(name: GradleNameElement, parent: GradleDslElement?, converter: GradleDslNameConverter): ExternalNameInfo {
+  val parts = ArrayList(name.fullNameParts());
   // FIXME(xof): this case needs fixing too
-  if (parent == null) return name.fullName() to null
+  if (parent == null || parts.isEmpty()) return ExternalNameInfo(parts, null, name.isFake)
 
-  val parts = ArrayList(name.fullNameParts())
-  if (parts.isEmpty()) {
-    return name.fullName() to null
-  }
-  var lastNamePart = parts.removeAt(parts.size - 1)
+  val lastNamePart = parts.removeAt(parts.size - 1)
+  // TODO(xof): this Splitter is unlikely to be correct
   val parentParts = Splitter.on(".").splitToList(parent.qualifiedName)
   var i = 0
   while (i < parentParts.size && !parts.isEmpty() && parentParts[i] == parts[0]) {
@@ -179,8 +175,6 @@ internal fun maybeTrimForParent(name: GradleNameElement,
   }
 
   val externalNameInfo = converter.externalNameForParent(lastNamePart, parent)
-
-  lastNamePart = externalNameInfo.first
-  parts.add(lastNamePart)
-  return GradleNameElement.createNameFromParts(parts) to externalNameInfo.second
+  parts.addAll(externalNameInfo.externalNameParts)
+  return ExternalNameInfo(parts, externalNameInfo.asMethod, name.isFake)
 }

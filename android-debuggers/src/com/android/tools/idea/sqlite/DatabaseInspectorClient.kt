@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.sqlite
 
+import androidx.sqlite.inspection.SqliteInspectorProtocol
 import com.android.tools.idea.appinspection.api.AppInspectionTarget
 import com.android.tools.idea.appinspection.api.AppInspectorClient
 import com.android.tools.idea.appinspection.api.AppInspectorJar
 import com.android.tools.idea.appinspection.ide.AppInspectionClientsService
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
-import com.android.tools.sql.protocol.SqliteInspection
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.application.ApplicationManager
@@ -36,9 +36,9 @@ class DatabaseInspectorClient private constructor(
 ) : AppInspectorClient(messenger) {
 
   companion object {
-    private const val inspectorId = "appinspector.sqlite"
+    private const val inspectorId = "androidx.sqlite.inspection"
     private val inspectorJar =
-      AppInspectorJar("live_sql_viewer_dex.jar", developmentDirectory = "../../bazel-bin/tools/base/experimental/live-sql-inspector")
+      AppInspectorJar("sqlite-inspection.jar", developmentDirectory = "../../prebuilts/tools/common/app-inspection/androidx/sqlite/")
 
     /**
      * Starts listening for the creation of new connections to a device.
@@ -89,16 +89,13 @@ class DatabaseInspectorClient private constructor(
 
   override val eventListener: EventListener = object : EventListener {
     override fun onRawEvent(eventData: ByteArray) {
-      val event = SqliteInspection.Events.parseFrom(eventData)
+      val event = SqliteInspectorProtocol.Event.parseFrom(eventData)
       when {
-        event.hasDatabaseOpen() -> {
-          val openedDatabase = event.databaseOpen
+        event.hasDatabaseOpened() -> {
+          val openedDatabase = event.databaseOpened
           ApplicationManager.getApplication().invokeLater {
-            databaseInspectorProjectService.openSqliteDatabase(messenger, openedDatabase.id, openedDatabase.name)
+            databaseInspectorProjectService.openSqliteDatabase(messenger, openedDatabase.databaseId, openedDatabase.name)
           }
-        }
-        event.hasTableUpdate() -> {
-          TODO()
         }
       }
     }
@@ -117,8 +114,8 @@ class DatabaseInspectorClient private constructor(
    */
   private fun trackDatabases() {
     messenger.sendRawCommand(
-      SqliteInspection.Commands.newBuilder()
-        .setTrackDatabases(SqliteInspection.TrackDatabasesCommand.getDefaultInstance())
+      SqliteInspectorProtocol.Command.newBuilder()
+        .setTrackDatabases(SqliteInspectorProtocol.TrackDatabasesCommand.getDefaultInstance())
         .build()
         .toByteArray()
     )

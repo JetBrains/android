@@ -16,8 +16,9 @@
 package com.android.tools.idea.run.activity;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.model.MergedManifestManager;
+import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.intellij.execution.JavaExecutionUtil;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaPsiFacade;
@@ -77,16 +78,19 @@ public class SpecificActivityLocator extends ActivityLocator {
     }
 
     PsiClass c = JavaExecutionUtil.findMainClass(project, myActivityName, mySearchScope);
+    // If we're on EDT, use a potentially stale manifest to prevent blocking the UI while recomputing a fresh manifest.
+    boolean onEdt = ApplicationManager.getApplication().isDispatchThread() && !ApplicationManager.getApplication().isUnitTestMode();
+    MergedManifestSnapshot manifest = getMergedManifest(myFacet, onEdt);
     Element element;
     if (c == null || !c.isInheritor(activityClass, true)) {
-      element = MergedManifestManager.getSnapshot(module).findActivityAlias(myActivityName);
+      element = manifest == null ? null : manifest.findActivityAlias(myActivityName);
       if (element == null) {
         throw new ActivityLocatorException(AndroidBundle.message("not.activity.subclass.error", myActivityName));
       }
     }
     else {
       // check whether activity is declared in the manifest
-      element = MergedManifestManager.getSnapshot(module).findActivity(ActivityLocatorUtils.getQualifiedActivityName(c));
+      element = manifest == null ? null : manifest.findActivity(ActivityLocatorUtils.getQualifiedActivityName(c));
       if (element == null) {
         throw new ActivityLocatorException(AndroidBundle.message("activity.not.declared.in.manifest", c.getName()));
       }

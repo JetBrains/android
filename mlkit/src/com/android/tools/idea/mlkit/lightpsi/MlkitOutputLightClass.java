@@ -15,13 +15,20 @@
  */
 package com.android.tools.idea.mlkit.lightpsi;
 
+import static com.intellij.psi.CommonClassNames.JAVA_UTIL_MAP;
+
 import com.android.tools.idea.mlkit.MlkitModuleService;
 import com.android.tools.idea.mlkit.MlkitUtils;
+import com.android.tools.mlkit.MlkitNames;
 import com.android.tools.mlkit.Param;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
+import com.intellij.psi.CommonClassNames;
+import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElementFactory;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifier;
@@ -32,7 +39,6 @@ import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PropertyUtilBase;
-import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.android.augment.AndroidLightClassBase;
 import org.jetbrains.annotations.NotNull;
@@ -40,22 +46,18 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Output class for output tensors. For each tensor it has a private field to store data and a getter method.
+ *
+ * @see LightModelClass
  */
 public class MlkitOutputLightClass extends AndroidLightClassBase {
-  public static final String NAME = "Output";
-
   private final PsiClass containingClass;
   private final String qualifiedName;
-  private final List<Param> params;
-  private final Module myModule;
   private final CachedValue<PsiMethod[]> myMethodCache;
 
   public MlkitOutputLightClass(@NotNull Module module, List<Param> params, PsiClass containingClass) {
     super(PsiManager.getInstance(module.getProject()),
           ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL));
-    this.params = params;
-    this.qualifiedName = String.join(".", MlkitUtils.computeModelPackageName(module), containingClass.getName(), NAME);
-    this.myModule = module;
+    this.qualifiedName = String.join(".", MlkitUtils.computeModelPackageName(module), containingClass.getName(), MlkitNames.OUTPUTS);
     this.containingClass = containingClass;
 
     setModuleInfo(module, false);
@@ -82,7 +84,7 @@ public class MlkitOutputLightClass extends AndroidLightClassBase {
 
   @Override
   public String getName() {
-    return NAME;
+    return MlkitNames.OUTPUTS;
   }
 
   @NotNull
@@ -92,7 +94,17 @@ public class MlkitOutputLightClass extends AndroidLightClassBase {
   }
 
   private PsiMethod buildGetterMethod(Param param) {
-    PsiType returnType = PsiType.getTypeByName(CodeUtils.getTypeQualifiedName(param), myModule.getProject(), getResolveScope());
+    Project project = getProject();
+    GlobalSearchScope scope = getResolveScope();
+    PsiType returnType;
+    if (param.getFileType() == Param.FileType.TENSOR_AXIS_LABELS) {
+      final PsiClass mapClass = JavaPsiFacade.getInstance(project).findClass(JAVA_UTIL_MAP, scope);
+      final PsiType key = PsiType.getJavaLangString(PsiManager.getInstance(getProject()), scope);
+      final PsiType value = PsiType.getTypeByName(CommonClassNames.JAVA_LANG_FLOAT, project, scope);
+      returnType = PsiElementFactory.getInstance(project).createType(mapClass, key, value);
+    } else {
+      returnType = PsiType.getTypeByName(CodeUtils.getTypeQualifiedName(param), project, scope);
+    }
 
     return new LightMethodBuilder(myManager, PropertyUtilBase.suggestGetterName(param.getName(), returnType))
       .setMethodReturnType(returnType)

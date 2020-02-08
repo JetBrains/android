@@ -20,6 +20,7 @@ import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.lint.client.api.IssueRegistry
 import com.android.tools.lint.client.api.LintDriver
 import com.android.tools.lint.detector.api.Issue
+import com.android.tools.lint.detector.api.Platform
 import com.android.utils.SdkUtils.endsWithIgnoreCase
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInspection.LocalQuickFix
@@ -36,6 +37,7 @@ import com.intellij.psi.xml.XmlFile
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.plugins.groovy.GroovyFileType
 import java.io.File
+import java.util.EnumSet
 
 /**
  * Extension point for the general lint support to look up services it does not
@@ -74,6 +76,7 @@ abstract class LintIdeSupport {
     return null
   }
 
+  open fun getPlatforms(): EnumSet<Platform> = Platform.JDK_SET
   open fun getSeverityOverrides(module: Module): Map<String, Int>? = null
   open fun askForAttributeValue(attributeName: String, context: PsiElement): String? = null
   /** Whether or not the given file should be annotated on the fly in the editor */

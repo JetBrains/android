@@ -18,12 +18,14 @@ package com.android.tools.idea.common.scene;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.surface.Interaction;
-import com.android.tools.idea.common.surface.InteractionInformation;
+import com.android.tools.idea.common.surface.InteractionEvent;
+import com.android.tools.idea.common.surface.MouseDraggedEvent;
+import com.android.tools.idea.common.surface.MousePressedEvent;
+import com.android.tools.idea.common.surface.MouseReleasedEvent;
 import com.android.tools.idea.common.surface.SceneView;
 import com.intellij.openapi.diagnostic.Logger;
 import java.awt.Cursor;
 import java.awt.event.MouseEvent;
-import java.util.EventObject;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,9 +51,9 @@ public class SceneInteraction extends Interaction {
   }
 
   @Override
-  public void begin(@Nullable EventObject event, @NotNull InteractionInformation interactionInformation) {
-    if (event instanceof MouseEvent) {
-      MouseEvent mouseEvent = (MouseEvent)event;
+  public void begin(@NotNull InteractionEvent event) {
+    if (event instanceof MousePressedEvent) {
+      MouseEvent mouseEvent = ((MousePressedEvent)event).getEventObject();
       begin(mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getModifiersEx());
     }
     else {
@@ -78,9 +80,9 @@ public class SceneInteraction extends Interaction {
   }
 
   @Override
-  public void update(@NotNull EventObject event, @NotNull InteractionInformation interactionInformation) {
-    if (event instanceof MouseEvent) {
-      MouseEvent mouseEvent = (MouseEvent)event;
+  public void update(@NotNull InteractionEvent event) {
+    if (event instanceof MouseDraggedEvent) {
+      MouseEvent mouseEvent = ((MouseDraggedEvent)event).getEventObject();
       int mouseX = mouseEvent.getX();
       int mouseY = mouseEvent.getY();
       mySceneView.getContext().setMouseLocation(mouseX, mouseY);
@@ -108,9 +110,9 @@ public class SceneInteraction extends Interaction {
   }
 
   @Override
-  public void commit(@Nullable EventObject event, @NotNull InteractionInformation interactionInformation) {
-    assert event instanceof MouseEvent;
-    MouseEvent mouseEvent = (MouseEvent)event;
+  public void commit(@NotNull InteractionEvent event) {
+    assert event instanceof MouseReleasedEvent;
+    MouseEvent mouseEvent = ((MouseReleasedEvent)event).getEventObject();
     end(mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getModifiersEx());
   }
 
@@ -133,9 +135,9 @@ public class SceneInteraction extends Interaction {
   }
 
   @Override
-  public void cancel(@Nullable EventObject event, @NotNull InteractionInformation interactionInformation) {
+  public void cancel(@NotNull InteractionEvent event) {
     //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
-    cancel(interactionInformation.getX(), interactionInformation.getY(), interactionInformation.getModifiersEx());
+    cancel(event.getInfo().getX(), event.getInfo().getY(), event.getInfo().getModifiersEx());
   }
 
   /**

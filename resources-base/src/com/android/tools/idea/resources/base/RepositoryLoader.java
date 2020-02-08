@@ -1076,7 +1076,7 @@ public abstract class RepositoryLoader<T extends LoadableResourceRepository> imp
   @NotNull
   protected String getKeyForVisibilityLookup(@NotNull String resourceName) {
     // In public.txt all resource names are transformed by replacing dots, colons and dashes with underscores.
-    return ResourcesUtil.flattenResourceName(resourceName);
+    return ResourcesUtil.resourceNameToFieldName(resourceName);
   }
 
   @NotNull

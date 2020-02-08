@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.module
 
+import com.android.sdklib.repository.targets.AddonTarget
 import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo.VersionItem
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_MIN_API
@@ -40,7 +41,8 @@ class AndroidApiLevelComboBox : JComboBox<VersionItem?>() {
     val selectedItem = selectedItem
     removeItemListener(itemListener)
     removeAllItems()
-    for (item in items) {
+    // Filter addons because we do not support older compile targets in wizards. See bug 148015659.
+    for (item in items.filterNot { it.androidTarget is AddonTarget }) {
       addItem(item)
     }
 

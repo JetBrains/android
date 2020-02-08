@@ -30,6 +30,7 @@ import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunConfigurationBase;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -39,6 +40,7 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.project.Project;
 import icons.StudioIcons;
+import java.awt.Component;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.time.Clock;
@@ -46,6 +48,7 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import javax.swing.JComponent;
+import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -251,28 +254,22 @@ public final class DeviceAndSnapshotComboBoxActionTest {
   }
 
   @Test
-  public void getSelectedSnapshotSnapshotsDisabled() {
+  public void createCustomComponent() {
     // Arrange
-    Device device = new VirtualDevice.Builder()
-      .setName("Pixel 3 XL API 28")
-      .setKey(new Key("Pixel_3_XL_API_28"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setSnapshot(new Snapshot(FileSystems.getDefault().getPath("snap_2019-07-31_14-14-25"), "Snapshot 1"))
-      .build();
+    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(() -> false, project -> null, project -> null, myClock);
 
-    Mockito.when(myDevicesGetter.get()).thenReturn(Collections.singletonList(device));
+    myPresentation.setIcon(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE);
 
-    AnAction action = new DeviceAndSnapshotComboBoxAction(
-      () -> false,
-      project -> myDevicesGetter,
-      PropertiesComponent::getInstance,
-      myClock);
+    // noinspection DialogTitleCapitalization
+    myPresentation.setText(
+      "Pixel 2 API 29 (Failed to parse properties from /usr/local/google/home/juancnuno/.android/avd/Pixel_2_API_29.avd/config.ini)",
+      false);
 
     // Act
-    action.update(myEvent);
+    Component component = action.createCustomComponent(myPresentation, i -> i);
 
     // Assert
-    assertEquals("Pixel 3 XL API 28", myPresentation.getText());
+    assertEquals(253, component.getPreferredSize().width);
   }
 
   @Test
@@ -280,13 +277,18 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
       () -> true,
       project -> myDevicesGetter,
-      project -> null,
+      PropertiesComponent::getInstance,
       myClock);
 
     action.update(myEvent);
     Object actualChildren = Arrays.asList(action.createPopupActionGroup(Mockito.mock(JComponent.class), myContext).getChildren(null));
 
-    assertEquals(actualChildren, Arrays.asList(action.getRunOnMultipleDevicesAction(), action.getOpenAvdManagerAction()));
+    Object expectedChildren = Arrays.asList(
+      action.getMultipleDevicesAction(),
+      action.getModifyDeviceSetAction(),
+      ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID));
+
+    assertEquals(expectedChildren, actualChildren);
   }
 
   @Test
@@ -312,8 +314,9 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       new Heading("Available devices"),
       SelectDeviceAction.newSelectDeviceAction(action, myProject, builder.build()),
       Separator.getInstance(),
-      action.getRunOnMultipleDevicesAction(),
-      action.getOpenAvdManagerAction());
+      action.getMultipleDevicesAction(),
+      action.getModifyDeviceSetAction(),
+      ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID));
 
     assertEquals(expectedChildren, actualChildren);
   }
@@ -342,8 +345,9 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       new Heading("Running devices"),
       SelectDeviceAction.newSelectDeviceAction(action, myProject, builder.build()),
       Separator.getInstance(),
-      action.getRunOnMultipleDevicesAction(),
-      action.getOpenAvdManagerAction());
+      action.getMultipleDevicesAction(),
+      action.getModifyDeviceSetAction(),
+      ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID));
 
     assertEquals(expectedChildren, actualChildren);
   }
@@ -382,8 +386,9 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       new Heading("Available devices"),
       SelectDeviceAction.newSelectDeviceAction(action, myProject, virtualDeviceBuilder.build()),
       Separator.getInstance(),
-      action.getRunOnMultipleDevicesAction(),
-      action.getOpenAvdManagerAction());
+      action.getMultipleDevicesAction(),
+      action.getModifyDeviceSetAction(),
+      ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID));
 
     assertEquals(expectedChildren, actualChildren);
   }
@@ -412,8 +417,9 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       new Heading("Available devices"),
       SelectDeviceAction.newSelectDeviceAction(action, myProject, builder.build()),
       Separator.getInstance(),
-      action.getRunOnMultipleDevicesAction(),
-      action.getOpenAvdManagerAction());
+      action.getMultipleDevicesAction(),
+      action.getModifyDeviceSetAction(),
+      ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID));
 
     assertEquals(expectedChildren, actualChildren);
   }
@@ -444,8 +450,9 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       new Heading("Available devices"),
       SelectDeviceAction.newSelectDeviceAction(action, myProject, builder.build()),
       Separator.getInstance(),
-      action.getRunOnMultipleDevicesAction(),
-      action.getOpenAvdManagerAction());
+      action.getMultipleDevicesAction(),
+      action.getModifyDeviceSetAction(),
+      ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID));
 
     assertEquals(expectedChildren, actualChildren);
   }
@@ -480,7 +487,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
   @Test
   public void updatePresentationConfigurationIsntAndroidRunConfigurationNorAndroidTestRunConfigurationButDeploysToLocalDevice() {
     // Arrange
-    RunConfigurationBase configuration = Mockito.mock(RunConfigurationBase.class);
+    RunConfigurationBase<?> configuration = Mockito.mock(RunConfigurationBase.class);
     Mockito.when(configuration.getUserData(DeviceAndSnapshotComboBoxAction.DEPLOYS_TO_LOCAL_DEVICE)).thenReturn(true);
 
     RunnerAndConfigurationSettings settings = Mockito.mock(RunnerAndConfigurationSettings.class);
@@ -582,11 +589,36 @@ public final class DeviceAndSnapshotComboBoxActionTest {
   }
 
   @Test
+  public void updateMultipleDevicesIsSelected() {
+    // Arrange
+    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
+      () -> false,
+      project -> null,
+      PropertiesComponent::getInstance,
+      myClock);
+
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel 2 API 29")
+      .setKey(new Key("Pixel_2_API_29"))
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    action.setMultipleDevicesSelected(myProject, true, Collections.singletonList(device));
+
+    // Act
+    action.update(myEvent);
+
+    // Assert
+    assertNull(myPresentation.getIcon());
+    assertEquals("Multiple Devices", myPresentation.getText());
+  }
+
+  @Test
   public void updateDevicesIsEmpty() {
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
       () -> true,
       project -> myDevicesGetter,
-      project -> null,
+      PropertiesComponent::getInstance,
       myClock);
 
     action.update(myEvent);
@@ -879,7 +911,11 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .thenReturn(Collections.emptyList())
       .thenReturn(Collections.singletonList(device));
 
-    AnAction action = new DeviceAndSnapshotComboBoxAction(() -> false, project -> myDevicesGetter, project -> null, myClock);
+    AnAction action = new DeviceAndSnapshotComboBoxAction(
+      () -> false,
+      project -> myDevicesGetter,
+      PropertiesComponent::getInstance,
+      myClock);
 
     // Act
     action.update(myEvent);

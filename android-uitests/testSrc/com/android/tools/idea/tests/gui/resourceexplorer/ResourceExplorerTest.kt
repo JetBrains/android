@@ -105,7 +105,7 @@ class ResourceExplorerTest {
     ide.closeResourceManager()
 
     // 4. Invoke the Resource Picker to set SampleData for the previously created ImageView.
-    layoutEditor.findView("ImageView", 0).rightClick()
+    layoutEditor.findView("ImageView", 0).sceneComponent!!.rightClick()
     // Open the 'Set Sample Data' panel, then click 'Browse' to open the Resource Picker.
     ide.invokeMenuPath("Set Sample Data")
     val finder = ide.robot().finder()

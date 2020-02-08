@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.kotlin
 
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtPsiFactory
@@ -26,11 +28,18 @@ import kotlin.jvm.JvmDefault
 import com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*
 import com.intellij.openapi.application.runReadAction
+import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
+import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 
 interface KotlinDslNameConverter: GradleDslNameConverter {
   @JvmDefault
   override fun psiToName(element: PsiElement): String {
     return when (element) {
+      is KtStringTemplateExpression -> when {
+        element.entries.size == 1 && element.entries[0] is KtLiteralStringTemplateEntry ->
+          GradleNameElement.escape((element.entries[0] as KtLiteralStringTemplateEntry).text)
+        else -> element.text
+      }
       is KtExpression -> gradleNameFor(element) ?: element.text
       else -> element.text
     }
@@ -55,16 +64,16 @@ interface KotlinDslNameConverter: GradleDslNameConverter {
   }
 
   @JvmDefault
-  override fun externalNameForParent(modelName: String, context: GradleDslElement): Pair<String, Boolean?> {
+  override fun externalNameForParent(modelName: String, context: GradleDslElement): ExternalNameInfo {
     val map = context.getExternalToModelMap(this)
-    val defaultResult : Pair<String, Boolean?> = modelName to null
-    var result : Pair<String, Boolean?>? = null
+    val defaultResult = ExternalNameInfo(modelName, null)
+    var result : ExternalNameInfo? = null
     for (e in map.entries) {
       if (e.value.first == modelName ) {
         // prefer assignment if possible, or otherwise the first appropriate method we find
         when (e.value.second) {
-          VAR, VWO -> return e.key.first to false
-          SET, ADD_AS_LIST, OTHER -> if (result == null) result = e.key.first to true
+          VAR, VWO -> return ExternalNameInfo(e.key.first, false)
+          SET, ADD_AS_LIST, OTHER -> if (result == null) result = ExternalNameInfo(e.key.first, true)
           else -> Unit
         }
       }

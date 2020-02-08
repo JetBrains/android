@@ -164,9 +164,9 @@ class UniqueTaskCoroutineLauncher(private val coroutineScope: CoroutineScope, de
 
   private var taskJob: Job? = null
 
-  fun launch(task: suspend () -> Unit) {
+  fun launch(task: suspend () -> Unit): Job {
     taskJob?.cancel()
-    coroutineScope.launch(taskDispatcher) {
+    return coroutineScope.launch(taskDispatcher) {
       jobMutex.withLock {
         taskJob?.join()
         taskJob = launch(taskDispatcher) {

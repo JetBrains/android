@@ -18,9 +18,9 @@ package com.android.tools.idea.instantapp
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.run.AndroidAppRunConfigurationBase
 import com.android.tools.idea.run.AndroidLaunchTasksProvider
 import com.android.tools.idea.run.AndroidProgramRunner
+import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationType
 import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.GradleApkProvider
@@ -44,7 +44,7 @@ import org.mockito.MockitoAnnotations
 
 class DynamicFeatureInstantAppTest : AndroidGradleTestCase(){
   private lateinit var configSettings : RunnerAndConfigurationSettings
-  private lateinit var configuration : AndroidAppRunConfigurationBase
+  private lateinit var configuration : AndroidRunConfiguration
   val runner = AndroidProgramRunner()
   private lateinit var ex : Executor
   private lateinit var env : ExecutionEnvironment
@@ -74,7 +74,7 @@ class DynamicFeatureInstantAppTest : AndroidGradleTestCase(){
     invokeGradleTasks(project, taskName)
 
     configSettings = RunManager.getInstance(project).createRunConfiguration("debug", AndroidRunConfigurationType.getInstance().factory)
-    configuration = configSettings.configuration as AndroidAppRunConfigurationBase
+    configuration = configSettings.configuration as AndroidRunConfiguration
     ex = DefaultDebugExecutor.getDebugExecutorInstance()
     env = ExecutionEnvironment(ex, runner, configSettings, project)
 

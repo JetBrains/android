@@ -1,0 +1,45 @@
+<!--
+  ~ Copyright (C) 2020 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<idea-plugin>
+  <extensions defaultExtensionNs="com.intellij">
+     <customizableActionGroupProvider implementation="com.android.tools.idea.emulator.EmulatorCustomizableActionGroupProvider"/>
+  </extensions>
+
+  <actions>
+    <group id="EmulatorToolbar" resource-bundle="">
+      <action id="android.emulator.power" class="com.android.tools.idea.emulator.EmulatorPowerAction"
+              icon="StudioIcons.Emulator.POWER" text="Power" description="Press Power button"/>
+      <action id="android.emulator.volume.up" class="com.android.tools.idea.emulator.EmulatorVolumeUpAction"
+              icon="StudioIcons.Emulator.VOLUME_UP" text="Volume Up" description="Press Volume Up button"/>
+      <action id="android.emulator.volume.down" class="com.android.tools.idea.emulator.EmulatorVolumeDownAction"
+              icon="StudioIcons.Emulator.VOLUME_DOWN" text="Volume Down" description="Press Volume Down button"/>
+      <action id="android.emulator.rotate.left" class="com.android.tools.idea.emulator.EmulatorRotateLeftAction"
+              icon="StudioIcons.Emulator.ROTATE_LEFT" text="Rotate Left" description="Rotate counterclockwise by 90 degrees"/>
+      <action id="android.emulator.rotate.right" class="com.android.tools.idea.emulator.EmulatorRotateRightAction"
+              icon="StudioIcons.Emulator.ROTATE_RIGHT" text="Rotate Left" description="Rotate clockwise by 90 degrees"/>
+      <action id="android.emulator.screenshot" class="com.android.tools.idea.emulator.EmulatorScreenshotAction"
+              icon="StudioIcons.Emulator.SCREENSHOT" text="Take Screenshot" description="Take screenshot"/>
+      <action id="android.emulator.zoom.in" class="com.android.tools.idea.emulator.EmulatorZoomInAction"
+              icon="StudioIcons.Emulator.ZOOM_IN" text="Enter Zoom Mode" description="Enter zoom mode"/>
+      <action id="android.emulator.back" class="com.android.tools.idea.emulator.EmulatorBackAction"
+              icon="StudioIcons.Emulator.BACK" text="Back" description="Press Back button"/>
+      <action id="android.emulator.home" class="com.android.tools.idea.emulator.EmulatorHomeAction"
+              icon="StudioIcons.Emulator.HOME" text="Home" description="Press Home button"/>
+      <action id="android.emulator.overview" class="com.android.tools.idea.emulator.EmulatorOverviewAction"
+              icon="StudioIcons.Emulator.OVERVIEW" text="Overview" description="Press Overview button"/>
+    </group>
+  </actions>
+</idea-plugin>

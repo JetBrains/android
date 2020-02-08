@@ -29,6 +29,7 @@ import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.scale.ScaleContext;
 import com.intellij.util.JBHiDPIScaledImage;
 import com.intellij.util.RetinaImage;
+import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.UIUtil;
 import java.awt.AlphaComposite;
 import java.awt.Color;
@@ -49,6 +50,8 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageReadParam;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -781,5 +784,21 @@ public class ImageUtils {
      * @return true if the pixel should be cropped (for example, is blank)
      */
     boolean crop(BufferedImage image, int x, int y);
+  }
+
+  /**
+   * Utility function to convert from an Icon to a BufferedImage.
+   */
+  public static BufferedImage iconToImage(Icon icon) {
+    if (icon instanceof ImageIcon) {
+      return ImageUtil.toBufferedImage(((ImageIcon)icon).getImage());
+    }
+    int w = icon.getIconWidth();
+    int h = icon.getIconHeight();
+    BufferedImage image = ImageUtil.createImage(w, h, BufferedImage.TYPE_4BYTE_ABGR);
+    Graphics2D g = image.createGraphics();
+    icon.paintIcon(null, g, 0, 0);
+    g.dispose();
+    return image;
   }
 }

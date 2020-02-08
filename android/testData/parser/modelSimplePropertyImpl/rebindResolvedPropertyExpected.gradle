@@ -1,0 +1,4 @@
+ext {
+  prop25 = 25
+  newVar = 1
+}

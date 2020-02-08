@@ -16,6 +16,7 @@
 package com.android.tools.adtui.trackgroup;
 
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.google.common.annotations.VisibleForTesting;
@@ -50,20 +51,22 @@ public class Track {
   @NotNull private final JPanel myComponent;
   @NotNull private final JLabel myTitleLabel;
   @NotNull private final JComponent myTrackContent;
+  @NotNull private final TrackModel myTrackModel;
 
   private Track(@NotNull TrackModel trackModel, @NotNull JComponent trackContent) {
     myTrackContent = trackContent;
+    myTrackModel = trackModel;
     myTitleLabel = new JLabel(trackModel.getTitle());
     myTitleLabel.setVerticalAlignment(SwingConstants.TOP);
     myTitleLabel.setToolTipText(trackModel.getTitleTooltip());
     if (trackModel.isCollapsible()) {
-      myTitleLabel.setIcon(trackModel.isCollapsed() ? COLLAPSE_ICON : EXPAND_ICON);
+      myTitleLabel.setIcon(getExpandCollapseIcon(false));
       myTitleLabel.addMouseListener(new MouseAdapter() {
         @Override
         public void mouseClicked(MouseEvent e) {
           if (myTitleLabel.contains(e.getPoint()) && e.getClickCount() == 2) {
             trackModel.setCollapsed(!trackModel.isCollapsed());
-            myTitleLabel.setIcon(trackModel.isCollapsed() ? COLLAPSE_ICON : EXPAND_ICON);
+            myTitleLabel.setIcon(getExpandCollapseIcon(false));
           }
         }
       });
@@ -117,6 +120,7 @@ public class Track {
   public Track updateSelected(boolean selected) {
     myComponent.setBackground(selected ? StudioColorsKt.getSelectionBackground() : null);
     myTitleLabel.setForeground(selected ? StudioColorsKt.getSelectionForeground() : null);
+    myTitleLabel.setIcon(getExpandCollapseIcon(selected));
     myTrackContent.setBorder(selected ? CONTENT_BORDER_SELECTED : CONTENT_BORDER_DEFAULT);
     return this;
   }
@@ -133,6 +137,11 @@ public class Track {
   @NotNull
   JLabel getTitleLabel() {
     return myTitleLabel;
+  }
+
+  private Icon getExpandCollapseIcon(boolean selected) {
+    Icon expandCollapseIcon = myTrackModel.isCollapsed() ? COLLAPSE_ICON : EXPAND_ICON;
+    return selected ? ColoredIconGenerator.INSTANCE.generateWhiteIcon(expandCollapseIcon) : expandCollapseIcon;
   }
 
   /**

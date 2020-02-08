@@ -27,6 +27,7 @@ import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.trackgroup.Track;
 import com.android.tools.adtui.trackgroup.TrackGroupListPanel;
+import com.android.tools.adtui.ui.AdtUiCursors;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerLayout;
@@ -54,6 +55,8 @@ import com.intellij.util.ui.JBUI;
 import java.awt.Dimension;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import javax.swing.JComponent;
@@ -71,11 +74,17 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
    * The percentage of the current view range's length to pan.
    */
   private static final double TIMELINE_PAN_FACTOR = 0.1;
+  private static final double TIMELINE_DRAG_FACTOR = 0.001;
   private static final ProfilerTrackRendererFactory TRACK_RENDERER_FACTORY = new ProfilerTrackRendererFactory();
 
   private final TrackGroupListPanel myTrackGroupList;
   private final CpuAnalysisPanel myAnalysisPanel;
   private final JScrollPane myScrollPane;
+
+  /**
+   * To avoid conflict with drag-and-drop, we need a keyboard modifier (e.g. VK_SPACE) to toggle panning mode.
+   */
+  private boolean myIsPanningMode = false;
 
   public CpuCaptureStageView(@NotNull StudioProfilersView view, @NotNull CpuCaptureStage stage) {
     super(view, stage);
@@ -208,6 +217,28 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   @NotNull
   private TrackGroupListPanel createTrackGroupListPanel() {
     TrackGroupListPanel trackGroupListPanel = new TrackGroupListPanel(TRACK_RENDERER_FACTORY);
+    MouseAdapter mouseListener = new MouseAdapter() {
+      private int myLastX = 0;
+
+      @Override
+      public void mousePressed(MouseEvent e) {
+        if (myIsPanningMode) {
+          myLastX = e.getX();
+        }
+      }
+
+      @Override
+      public void mouseDragged(MouseEvent e) {
+        if (myIsPanningMode) {
+          // Panning is opposite direction (i.e. pan left to shift range right).
+          int deltaX = myLastX - e.getX();
+          myLastX = e.getX();
+          getStage().getTimeline().panView(getStage().getTimeline().getViewRange().getLength() * deltaX * TIMELINE_DRAG_FACTOR);
+        }
+      }
+    };
+    trackGroupListPanel.getComponent().addMouseListener(mouseListener);
+    trackGroupListPanel.getComponent().addMouseMotionListener(mouseListener);
     trackGroupListPanel.getComponent().addMouseWheelListener(new MouseWheelListener() {
       @Override
       public void mouseWheelMoved(MouseWheelEvent e) {
@@ -246,10 +277,26 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
           case KeyEvent.VK_RIGHT:
             getStage().getTimeline().panView(getStage().getTimeline().getViewRange().getLength() * TIMELINE_PAN_FACTOR);
             break;
+          case KeyEvent.VK_SPACE:
+            setPanningMode(true, trackGroupListPanel);
+            break;
+        }
+      }
+
+      @Override
+      public void keyReleased(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+          setPanningMode(false, trackGroupListPanel);
         }
       }
     });
     return trackGroupListPanel;
+  }
+
+  private void setPanningMode(boolean isPanningMode, @NotNull TrackGroupListPanel trackGroupListPanel) {
+    myIsPanningMode = isPanningMode;
+    trackGroupListPanel.setEnabled(!isPanningMode);
+    getProfilersView().getComponent().setCursor(isPanningMode ? AdtUiCursors.GRABBING : null);
   }
 
   private static JComponent createBottomAxisPanel(@NotNull Range range) {

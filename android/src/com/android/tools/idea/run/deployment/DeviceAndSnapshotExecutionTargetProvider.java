@@ -15,88 +15,22 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.android.ddmlib.IDevice;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.DefaultExecutionTarget;
 import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.ExecutionTargetProvider;
-import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.project.Project;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class DeviceAndSnapshotExecutionTargetProvider extends ExecutionTargetProvider {
   @NotNull
   @Override
-  public List<ExecutionTarget> getTargets(@NotNull Project project, @NotNull RunnerAndConfigurationSettings configuration) {
-    ActionManager manager = ActionManager.getInstance();
-    DeviceAndSnapshotComboBoxAction action = (DeviceAndSnapshotComboBoxAction)manager.getAction("DeviceAndSnapshotComboBox");
+  public List<ExecutionTarget> getTargets(@NotNull Project project, @NotNull RunConfiguration configuration) {
+    List<Device> devices = DeviceAndSnapshotComboBoxAction.getSelectedDevices(project);
+    ExecutionTarget target = devices.isEmpty() ? DefaultExecutionTarget.INSTANCE : new DeviceAndSnapshotComboBoxExecutionTarget(devices);
 
-    // We always return an ExecutionTarget as long as we have valid config and package names.
-    // This is because we don't want to maintain listener states with ddmlib, and we don't
-    // need to keep track of online/offline states, and we let things that need the states
-    // to query on their own.
-    Device device = action.getSelectedDevice(project);
-    if (device != null) {
-      return Collections.singletonList(new Target(device));
-    }
-
-    return Collections.singletonList(DefaultExecutionTarget.INSTANCE);
-  }
-
-  static class Target extends AndroidExecutionTarget {
-    @NotNull private final Device myDevice;
-
-    @VisibleForTesting
-    Target(@NotNull Device device) {
-      myDevice = device;
-    }
-
-    @NotNull
-    @Override
-    public String getId() {
-      return myDevice.getKey().toString();
-    }
-
-    @NotNull
-    @Override
-    public String getDisplayName() {
-      return myDevice.getName();
-    }
-
-    @Nullable
-    @Override
-    public Icon getIcon() {
-      return myDevice.getIcon();
-    }
-
-    @Override
-    public boolean canRun(@NotNull RunConfiguration configuration) {
-      return true;
-    }
-
-    @Override
-    public boolean isApplicationRunning(@NotNull String packageName) {
-      return myDevice.isRunning(packageName);
-    }
-
-    @NotNull
-    @Override
-    public Collection<IDevice> getDevices() {
-      // TODO Handle the Multiple Devices case
-      IDevice device = myDevice.getDdmlibDevice();
-      return device == null ? Collections.emptyList() : Collections.singletonList(device);
-    }
-
-    @NotNull
-    Device getDevice() {
-      return myDevice;
-    }
+    return Collections.singletonList(target);
   }
 }

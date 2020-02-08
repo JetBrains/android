@@ -80,7 +80,7 @@ class ViewTreeCellRendererTest {
 (This should probably be moved to testFragmentsWithLessThanOptimalSpaceAndRowExpanded.) */
     doAnswer { focusOwner }.`when`<KeyboardFocusManager>(focusManager!!).focusOwner
     KeyboardFocusManager.setCurrentKeyboardFocusManager(focusManager)
-    tree = TreeImpl(model, contextPopupHandler, doubleClickHandler, emptyList())
+    tree = TreeImpl(model, contextPopupHandler, doubleClickHandler, emptyList(), "testComponentTree")
   }
 
   @After

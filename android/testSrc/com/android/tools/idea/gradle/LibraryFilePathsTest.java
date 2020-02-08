@@ -19,8 +19,8 @@ import static com.android.tools.idea.gradle.LibraryFilePaths.getLibraryId;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.ide.gradle.model.ArtifactIdentifier;
-import com.android.ide.gradle.model.sources.SourcesAndJavadocArtifact;
-import com.android.ide.gradle.model.sources.SourcesAndJavadocArtifacts;
+import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifacts;
+import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import java.io.File;
 import java.util.Arrays;
@@ -61,11 +61,11 @@ public class LibraryFilePathsTest extends AndroidGradleTestCase {
   }
 
   @NotNull
-  private static SourcesAndJavadocArtifacts createArtifacts() {
-    return new SourcesAndJavadocArtifacts() {
+  private static AdditionalClassifierArtifactsModel createArtifacts() {
+    return new AdditionalClassifierArtifactsModel() {
       @NotNull
       @Override
-      public Collection<SourcesAndJavadocArtifact> getArtifacts() {
+      public Collection<AdditionalClassifierArtifacts> getArtifacts() {
         return Arrays
           .asList(createArtifact("junit", "junit", "4.12", "/cache/junit-javadoc.jar", "/cache/junit-sources.jar", "/cache/junit.pom"),
                   createArtifact("androidx.fragment", "fragment", "1.0.0", "/cache/fragment-javadoc.jar",
@@ -81,13 +81,13 @@ public class LibraryFilePathsTest extends AndroidGradleTestCase {
   }
 
   @NotNull
-  private static SourcesAndJavadocArtifact createArtifact(@NotNull String group,
-                                                          @NotNull String artifactId,
-                                                          @NotNull String version,
-                                                          @NotNull String javadoc,
-                                                          @NotNull String sources,
-                                                          @NotNull String pom) {
-    return new SourcesAndJavadocArtifact() {
+  private static AdditionalClassifierArtifacts createArtifact(@NotNull String group,
+                                                              @NotNull String artifactId,
+                                                              @NotNull String version,
+                                                              @NotNull String javadoc,
+                                                              @NotNull String sources,
+                                                              @NotNull String pom) {
+    return new AdditionalClassifierArtifacts() {
       @NotNull
       @Override
       public ArtifactIdentifier getId() {

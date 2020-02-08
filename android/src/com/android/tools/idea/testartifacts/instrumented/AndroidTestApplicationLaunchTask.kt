@@ -32,7 +32,7 @@ import com.android.tools.idea.testartifacts.instrumented.AndroidTestApplicationL
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestApplicationLaunchTask.Companion.allInPackageTest
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestApplicationLaunchTask.Companion.classTest
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestApplicationLaunchTask.Companion.methodTest
-import com.android.tools.idea.testartifacts.instrumented.testsuite.ANDROID_TEST_RESULT_LISTENER_KEY
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
 import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.DdmlibTestRunListenerAdapter
 import com.intellij.execution.Executor
 import com.intellij.openapi.application.ApplicationManager

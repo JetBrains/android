@@ -33,7 +33,7 @@ class DatabaseConnectionWrapper(val databaseConnection: DatabaseConnection) : Da
     return databaseConnection.readSchema()
   }
 
-  override fun execute(sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet?> {
+  override fun execute(sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet> {
     executedSqliteStatements.add(sqliteStatement.sqliteStatementText)
     return databaseConnection.execute(sqliteStatement)
   }

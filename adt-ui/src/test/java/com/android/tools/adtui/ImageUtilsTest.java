@@ -19,6 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.testutils.TestResources;
 import com.android.tools.adtui.imagediff.ImageDiffUtil;
+import com.intellij.util.ui.ColorIcon;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -345,5 +346,13 @@ public class ImageUtilsTest extends TestCase {
     BufferedImage golden = readImage("/imageutils/star.png");
     BufferedImage image = ImageUtils.readImageAtScale(new FileInputStream(imageFile), new Dimension(252, 200));
     ImageDiffUtil.assertImageSimilar("star_scale_down.png", golden, image, 0.0);
+  }
+
+  public void testIconToImage() {
+    ColorIcon icon = new ColorIcon(10,  new Color(0xff, 0, 0));
+    BufferedImage image = ImageUtils.iconToImage(icon);
+    assertThat(image.getWidth()).isEqualTo(10);
+    assertThat(image.getHeight()).isEqualTo(10);
+    assertThat(image.getRGB(5, 5)).isEqualTo(0xffff0000);
   }
 }

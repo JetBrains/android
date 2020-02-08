@@ -218,121 +218,6 @@ MODULE: app
                     ./app/src/main/resources
                 ShadersDirectories:
                     ./app/src/main/shaders
-            firstXyz
-                Manifest:
-                    ./app/src/firstXyz/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/firstXyz/aidl
-                AssetsDirectories:
-                    ./app/src/firstXyz/assets
-                CDirectories:
-                    ./app/src/firstXyz/jni
-                CppDirectories:
-                    ./app/src/firstXyz/jni
-                JavaDirectories:
-                    ./app/src/firstXyz/java
-                JniLibsDirectories:
-                    ./app/src/firstXyz/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/firstXyz/rs
-                ResDirectories:
-                    ./app/src/firstXyz/res
-                ResourcesDirectories:
-                    ./app/src/firstXyz/resources
-                ShadersDirectories:
-                    ./app/src/firstXyz/shaders
-            secondXyz
-                Manifest:
-                    ./app/src/secondXyz/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/secondXyz/aidl
-                AssetsDirectories:
-                    ./app/src/secondXyz/assets
-                CDirectories:
-                    ./app/src/secondXyz/jni
-                CppDirectories:
-                    ./app/src/secondXyz/jni
-                JavaDirectories:
-                    ./app/src/secondXyz/java
-                JniLibsDirectories:
-                    ./app/src/secondXyz/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/secondXyz/rs
-                ResDirectories:
-                    ./app/src/secondXyz/res
-                ResourcesDirectories:
-                    ./app/src/secondXyz/resources
-                ShadersDirectories:
-                    ./app/src/secondXyz/shaders
-            firstAbc
-                Manifest:
-                    ./app/src/firstAbc/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/firstAbc/aidl
-                AssetsDirectories:
-                    ./app/src/firstAbc/assets
-                CDirectories:
-                    ./app/src/firstAbc/jni
-                CppDirectories:
-                    ./app/src/firstAbc/jni
-                JavaDirectories:
-                    ./app/src/firstAbc/java
-                JniLibsDirectories:
-                    ./app/src/firstAbc/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/firstAbc/rs
-                ResDirectories:
-                    ./app/src/firstAbc/res
-                ResourcesDirectories:
-                    ./app/src/firstAbc/resources
-                ShadersDirectories:
-                    ./app/src/firstAbc/shaders
-            secondAbc
-                Manifest:
-                    ./app/src/secondAbc/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/secondAbc/aidl
-                AssetsDirectories:
-                    ./app/src/secondAbc/assets
-                CDirectories:
-                    ./app/src/secondAbc/jni
-                CppDirectories:
-                    ./app/src/secondAbc/jni
-                JavaDirectories:
-                    ./app/src/secondAbc/java
-                JniLibsDirectories:
-                    ./app/src/secondAbc/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/secondAbc/rs
-                ResDirectories:
-                    ./app/src/secondAbc/res
-                ResourcesDirectories:
-                    ./app/src/secondAbc/resources
-                ShadersDirectories:
-                    ./app/src/secondAbc/shaders
-            firstAbcSecondAbc
-                Manifest:
-                    ./app/src/firstAbcSecondAbc/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/firstAbcSecondAbc/aidl
-                AssetsDirectories:
-                    ./app/src/firstAbcSecondAbc/assets
-                CDirectories:
-                    ./app/src/firstAbcSecondAbc/jni
-                CppDirectories:
-                    ./app/src/firstAbcSecondAbc/jni
-                JavaDirectories:
-                    ./app/src/firstAbcSecondAbc/java
-                JniLibsDirectories:
-                    ./app/src/firstAbcSecondAbc/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/firstAbcSecondAbc/rs
-                ResDirectories:
-                    ./app/src/firstAbcSecondAbc/res
-                ResourcesDirectories:
-                    ./app/src/firstAbcSecondAbc/resources
-                ShadersDirectories:
-                    ./app/src/firstAbcSecondAbc/shaders
             debug
                 Manifest:
                     ./app/src/debug/AndroidManifest.xml
@@ -356,29 +241,52 @@ MODULE: app
                     ./app/src/debug/resources
                 ShadersDirectories:
                     ./app/src/debug/shaders
-            release
+            firstAbc
                 Manifest:
-                    ./app/src/release/AndroidManifest.xml
+                    ./app/src/firstAbc/AndroidManifest.xml
                 AidlDirectories:
-                    ./app/src/release/aidl
+                    ./app/src/firstAbc/aidl
                 AssetsDirectories:
-                    ./app/src/release/assets
+                    ./app/src/firstAbc/assets
                 CDirectories:
-                    ./app/src/release/jni
+                    ./app/src/firstAbc/jni
                 CppDirectories:
-                    ./app/src/release/jni
+                    ./app/src/firstAbc/jni
                 JavaDirectories:
-                    ./app/src/release/java
+                    ./app/src/firstAbc/java
                 JniLibsDirectories:
-                    ./app/src/release/jniLibs
+                    ./app/src/firstAbc/jniLibs
                 RenderscriptDirectories:
-                    ./app/src/release/rs
+                    ./app/src/firstAbc/rs
                 ResDirectories:
-                    ./app/src/release/res
+                    ./app/src/firstAbc/res
                 ResourcesDirectories:
-                    ./app/src/release/resources
+                    ./app/src/firstAbc/resources
                 ShadersDirectories:
-                    ./app/src/release/shaders
+                    ./app/src/firstAbc/shaders
+            firstAbcSecondAbc
+                Manifest:
+                    ./app/src/firstAbcSecondAbc/AndroidManifest.xml
+                AidlDirectories:
+                    ./app/src/firstAbcSecondAbc/aidl
+                AssetsDirectories:
+                    ./app/src/firstAbcSecondAbc/assets
+                CDirectories:
+                    ./app/src/firstAbcSecondAbc/jni
+                CppDirectories:
+                    ./app/src/firstAbcSecondAbc/jni
+                JavaDirectories:
+                    ./app/src/firstAbcSecondAbc/java
+                JniLibsDirectories:
+                    ./app/src/firstAbcSecondAbc/jniLibs
+                RenderscriptDirectories:
+                    ./app/src/firstAbcSecondAbc/rs
+                ResDirectories:
+                    ./app/src/firstAbcSecondAbc/res
+                ResourcesDirectories:
+                    ./app/src/firstAbcSecondAbc/resources
+                ShadersDirectories:
+                    ./app/src/firstAbcSecondAbc/shaders
             firstAbcSecondAbcDebug
                 Manifest:
                     ./app/src/firstAbcSecondAbcDebug/AndroidManifest.xml
@@ -402,6 +310,98 @@ MODULE: app
                     ./app/src/firstAbcSecondAbcDebug/resources
                 ShadersDirectories:
                     ./app/src/firstAbcSecondAbcDebug/shaders
+            firstXyz
+                Manifest:
+                    ./app/src/firstXyz/AndroidManifest.xml
+                AidlDirectories:
+                    ./app/src/firstXyz/aidl
+                AssetsDirectories:
+                    ./app/src/firstXyz/assets
+                CDirectories:
+                    ./app/src/firstXyz/jni
+                CppDirectories:
+                    ./app/src/firstXyz/jni
+                JavaDirectories:
+                    ./app/src/firstXyz/java
+                JniLibsDirectories:
+                    ./app/src/firstXyz/jniLibs
+                RenderscriptDirectories:
+                    ./app/src/firstXyz/rs
+                ResDirectories:
+                    ./app/src/firstXyz/res
+                ResourcesDirectories:
+                    ./app/src/firstXyz/resources
+                ShadersDirectories:
+                    ./app/src/firstXyz/shaders
+            release
+                Manifest:
+                    ./app/src/release/AndroidManifest.xml
+                AidlDirectories:
+                    ./app/src/release/aidl
+                AssetsDirectories:
+                    ./app/src/release/assets
+                CDirectories:
+                    ./app/src/release/jni
+                CppDirectories:
+                    ./app/src/release/jni
+                JavaDirectories:
+                    ./app/src/release/java
+                JniLibsDirectories:
+                    ./app/src/release/jniLibs
+                RenderscriptDirectories:
+                    ./app/src/release/rs
+                ResDirectories:
+                    ./app/src/release/res
+                ResourcesDirectories:
+                    ./app/src/release/resources
+                ShadersDirectories:
+                    ./app/src/release/shaders
+            secondAbc
+                Manifest:
+                    ./app/src/secondAbc/AndroidManifest.xml
+                AidlDirectories:
+                    ./app/src/secondAbc/aidl
+                AssetsDirectories:
+                    ./app/src/secondAbc/assets
+                CDirectories:
+                    ./app/src/secondAbc/jni
+                CppDirectories:
+                    ./app/src/secondAbc/jni
+                JavaDirectories:
+                    ./app/src/secondAbc/java
+                JniLibsDirectories:
+                    ./app/src/secondAbc/jniLibs
+                RenderscriptDirectories:
+                    ./app/src/secondAbc/rs
+                ResDirectories:
+                    ./app/src/secondAbc/res
+                ResourcesDirectories:
+                    ./app/src/secondAbc/resources
+                ShadersDirectories:
+                    ./app/src/secondAbc/shaders
+            secondXyz
+                Manifest:
+                    ./app/src/secondXyz/AndroidManifest.xml
+                AidlDirectories:
+                    ./app/src/secondXyz/aidl
+                AssetsDirectories:
+                    ./app/src/secondXyz/assets
+                CDirectories:
+                    ./app/src/secondXyz/jni
+                CppDirectories:
+                    ./app/src/secondXyz/jni
+                JavaDirectories:
+                    ./app/src/secondXyz/java
+                JniLibsDirectories:
+                    ./app/src/secondXyz/jniLibs
+                RenderscriptDirectories:
+                    ./app/src/secondXyz/rs
+                ResDirectories:
+                    ./app/src/secondXyz/res
+                ResourcesDirectories:
+                    ./app/src/secondXyz/resources
+                ShadersDirectories:
+                    ./app/src/secondXyz/shaders
         UnitTest:
             test
                 Manifest:
@@ -959,50 +959,28 @@ MODULE: app
                     file://./app/src/main/resources
                 ShadersDirectoryUrls:
                     file://./app/src/main/shaders
-            firstXyz (IDEA)
+            debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
-                    file://./app/src/firstXyz/AndroidManifest.xml
+                    file://./app/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
-                    file://./app/src/firstXyz
+                    file://./app/src/debug
                 AidlDirectoryUrls:
-                    file://./app/src/firstXyz/aidl
+                    file://./app/src/debug/aidl
                 AssetsDirectoryUrls:
-                    file://./app/src/firstXyz/assets
+                    file://./app/src/debug/assets
                 JavaDirectoryUrls:
-                    file://./app/src/firstXyz/java
+                    file://./app/src/debug/java
                 JniLibsDirectoryUrls:
-                    file://./app/src/firstXyz/jniLibs
+                    file://./app/src/debug/jniLibs
                 RenderscriptDirectoryUrls:
-                    file://./app/src/firstXyz/rs
+                    file://./app/src/debug/rs
                 ResDirectoryUrls:
-                    file://./app/src/firstXyz/res
+                    file://./app/src/debug/res
                 ResourcesDirectoryUrls:
-                    file://./app/src/firstXyz/resources
+                    file://./app/src/debug/resources
                 ShadersDirectoryUrls:
-                    file://./app/src/firstXyz/shaders
-            secondXyz (IDEA)
-                ScopeType: MAIN
-                ManifestFileUrls:
-                    file://./app/src/secondXyz/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./app/src/secondXyz
-                AidlDirectoryUrls:
-                    file://./app/src/secondXyz/aidl
-                AssetsDirectoryUrls:
-                    file://./app/src/secondXyz/assets
-                JavaDirectoryUrls:
-                    file://./app/src/secondXyz/java
-                JniLibsDirectoryUrls:
-                    file://./app/src/secondXyz/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/secondXyz/rs
-                ResDirectoryUrls:
-                    file://./app/src/secondXyz/res
-                ResourcesDirectoryUrls:
-                    file://./app/src/secondXyz/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/secondXyz/shaders
+                    file://./app/src/debug/shaders
             firstAbc (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1025,32 +1003,6 @@ MODULE: app
                     file://./app/src/firstAbc/resources
                 ShadersDirectoryUrls:
                     file://./app/src/firstAbc/shaders
-            secondAbc (IDEA)
-                ScopeType: MAIN
-                ManifestFileUrls:
-                    file://./app/src/secondAbc/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./app/src/secondAbc
-                ManifestDirectories:
-                    file://./app/src/secondAbc
-                AidlDirectoryUrls:
-                    file://./app/src/secondAbc/aidl
-                AssetsDirectoryUrls:
-                    file://./app/src/secondAbc/assets
-                JavaDirectoryUrls:
-                    file://./app/src/secondAbc/java
-                JavaDirectories:
-                    file://./app/src/secondAbc/java
-                JniLibsDirectoryUrls:
-                    file://./app/src/secondAbc/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/secondAbc/rs
-                ResDirectoryUrls:
-                    file://./app/src/secondAbc/res
-                ResourcesDirectoryUrls:
-                    file://./app/src/secondAbc/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/secondAbc/shaders
             firstAbcSecondAbc (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1077,50 +1029,6 @@ MODULE: app
                     file://./app/src/firstAbcSecondAbc/resources
                 ShadersDirectoryUrls:
                     file://./app/src/firstAbcSecondAbc/shaders
-            debug (IDEA)
-                ScopeType: MAIN
-                ManifestFileUrls:
-                    file://./app/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./app/src/debug
-                AidlDirectoryUrls:
-                    file://./app/src/debug/aidl
-                AssetsDirectoryUrls:
-                    file://./app/src/debug/assets
-                JavaDirectoryUrls:
-                    file://./app/src/debug/java
-                JniLibsDirectoryUrls:
-                    file://./app/src/debug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/debug/rs
-                ResDirectoryUrls:
-                    file://./app/src/debug/res
-                ResourcesDirectoryUrls:
-                    file://./app/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/debug/shaders
-            release (IDEA)
-                ScopeType: MAIN
-                ManifestFileUrls:
-                    file://./app/src/release/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./app/src/release
-                AidlDirectoryUrls:
-                    file://./app/src/release/aidl
-                AssetsDirectoryUrls:
-                    file://./app/src/release/assets
-                JavaDirectoryUrls:
-                    file://./app/src/release/java
-                JniLibsDirectoryUrls:
-                    file://./app/src/release/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/release/rs
-                ResDirectoryUrls:
-                    file://./app/src/release/res
-                ResourcesDirectoryUrls:
-                    file://./app/src/release/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/release/shaders
             firstAbcSecondAbcDebug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1143,6 +1051,98 @@ MODULE: app
                     file://./app/src/firstAbcSecondAbcDebug/resources
                 ShadersDirectoryUrls:
                     file://./app/src/firstAbcSecondAbcDebug/shaders
+            firstXyz (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./app/src/firstXyz/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/firstXyz
+                AidlDirectoryUrls:
+                    file://./app/src/firstXyz/aidl
+                AssetsDirectoryUrls:
+                    file://./app/src/firstXyz/assets
+                JavaDirectoryUrls:
+                    file://./app/src/firstXyz/java
+                JniLibsDirectoryUrls:
+                    file://./app/src/firstXyz/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./app/src/firstXyz/rs
+                ResDirectoryUrls:
+                    file://./app/src/firstXyz/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/firstXyz/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/firstXyz/shaders
+            release (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./app/src/release/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/release
+                AidlDirectoryUrls:
+                    file://./app/src/release/aidl
+                AssetsDirectoryUrls:
+                    file://./app/src/release/assets
+                JavaDirectoryUrls:
+                    file://./app/src/release/java
+                JniLibsDirectoryUrls:
+                    file://./app/src/release/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./app/src/release/rs
+                ResDirectoryUrls:
+                    file://./app/src/release/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/release/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/release/shaders
+            secondAbc (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./app/src/secondAbc/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/secondAbc
+                ManifestDirectories:
+                    file://./app/src/secondAbc
+                AidlDirectoryUrls:
+                    file://./app/src/secondAbc/aidl
+                AssetsDirectoryUrls:
+                    file://./app/src/secondAbc/assets
+                JavaDirectoryUrls:
+                    file://./app/src/secondAbc/java
+                JavaDirectories:
+                    file://./app/src/secondAbc/java
+                JniLibsDirectoryUrls:
+                    file://./app/src/secondAbc/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./app/src/secondAbc/rs
+                ResDirectoryUrls:
+                    file://./app/src/secondAbc/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/secondAbc/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/secondAbc/shaders
+            secondXyz (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./app/src/secondXyz/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/secondXyz
+                AidlDirectoryUrls:
+                    file://./app/src/secondXyz/aidl
+                AssetsDirectoryUrls:
+                    file://./app/src/secondXyz/assets
+                JavaDirectoryUrls:
+                    file://./app/src/secondXyz/java
+                JniLibsDirectoryUrls:
+                    file://./app/src/secondXyz/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./app/src/secondXyz/rs
+                ResDirectoryUrls:
+                    file://./app/src/secondXyz/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/secondXyz/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/secondXyz/shaders
         CurrentSourceProviders:
             main (IDEA)
                 ScopeType: MAIN

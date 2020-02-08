@@ -38,7 +38,6 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import org.jetbrains.android.dom.AndroidAnyAttributeDescriptor;
-import org.jetbrains.android.dom.AndroidDomExtender;
 import org.jetbrains.android.dom.AndroidXmlTagDescriptor;
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription;
 import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
@@ -79,10 +78,6 @@ public class AndroidUnknownAttributeInspection extends LocalInspectionTool {
 
     AndroidFacet facet = AndroidFacet.getInstance(file);
     if (facet == null) {
-      return ProblemDescriptor.EMPTY_ARRAY;
-    }
-
-    if (!AndroidDomExtender.areExtensionsKnown()) {
       return ProblemDescriptor.EMPTY_ARRAY;
     }
 

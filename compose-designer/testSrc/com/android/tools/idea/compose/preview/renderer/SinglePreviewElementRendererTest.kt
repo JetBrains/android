@@ -75,6 +75,22 @@ class SinglePreviewElementRendererTest {
   }
 
   /**
+   * Checks the rendering of the default `@Preview` in the Compose template with a background
+   */
+  @Test
+  fun testDefaultPreviewRenderingWithBackground() {
+    val defaultRenderWithBackground = renderPreviewElement(projectRule.androidFacet,
+                                                           PreviewElement.forTesting(
+                                                             "google.simpleapplication.MainActivityKt.DefaultPreview",
+                                                             showBackground = true,
+                                                             backgroundColor = "#F00")).get()
+    ImageDiffUtil.assertImageSimilar(
+      File("${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultRender-withBackground.png"),
+      defaultRenderWithBackground!!,
+      0.0)
+  }
+
+  /**
    * Checks the rendering that rendering an empty preview does not throw an exception.
    * Regression test for b/144722608.
    */

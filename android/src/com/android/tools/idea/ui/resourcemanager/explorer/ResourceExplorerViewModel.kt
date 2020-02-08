@@ -26,7 +26,7 @@ import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.getFolderType
-import com.android.tools.idea.ui.resourcemanager.ImageCache
+import com.android.tools.idea.ui.resourcemanager.rendering.ImageCache
 import com.android.tools.idea.ui.resourcemanager.MANAGER_SUPPORTED_RESOURCES
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerListViewModel.UpdateUiReason
 import com.android.tools.idea.ui.resourcemanager.model.Asset
@@ -91,11 +91,11 @@ class ResourceExplorerViewModel private constructor(
     modelState.filterParams
   )
 
-  private val listViewImageCache = ImageCache.createLargeImageCache(
+  private val listViewImageCache = ImageCache.createImageCache(
     parentDisposable = this,
     mergingUpdateQueue = MergingUpdateQueue("queue", 1000, true, MergingUpdateQueue.ANY_COMPONENT, this, null, false))
 
-  private val summaryImageCache = ImageCache.createSmallImageCache(
+  private val summaryImageCache = ImageCache.createImageCache(
     parentDisposable = this,
     mergingUpdateQueue = MergingUpdateQueue("queue", 1000, true, MergingUpdateQueue.ANY_COMPONENT, this, null, false))
 
@@ -160,6 +160,13 @@ class ResourceExplorerViewModel private constructor(
 
   init {
     subscribeListener(defaultFacet)
+  }
+
+  /**
+   * Refresh the previews of the current [listViewModel].
+   */
+  fun refreshPreviews() {
+    listViewModel?.clearCacheForCurrentResources()
   }
 
   fun getTabIndexForFile(virtualFile: VirtualFile): Int {

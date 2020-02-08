@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.android.tools.idea.npw.module.recipes.dynamicFeatureModule
 
 import com.android.ide.common.repository.GradleVersion
 import com.android.repository.Revision.parseRevision
@@ -23,9 +24,6 @@ import com.android.tools.idea.npw.model.NewProjectModel
 import com.android.tools.idea.npw.module.recipes.addKotlinIfNeeded
 import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleUnitTestJava
 import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleUnitTestKt
-import com.android.tools.idea.npw.module.recipes.dynamicFeatureModule.androidManifestXml
-import com.android.tools.idea.npw.module.recipes.dynamicFeatureModule.baseAndroidManifestXml
-import com.android.tools.idea.npw.module.recipes.dynamicFeatureModule.buildGradle
 import com.android.tools.idea.npw.module.recipes.dynamicFeatureModule.res.values.stringsXml
 import com.android.tools.idea.npw.module.recipes.dynamicFeatureModule.test.exampleInstrumentedTestJava
 import com.android.tools.idea.npw.module.recipes.dynamicFeatureModule.test.exampleInstrumentedTestKt
@@ -67,14 +65,12 @@ fun RecipeExecutor.generateDynamicFeatureModule(
     baseFeature.name,
     agpVersion,
     false,
-    packageName,
     buildApiString!!,
     needsExplicitBuildToolsVersion(GradleVersion.parse(projectData.gradlePluginVersion), parseRevision(buildToolsVersion)),
     buildToolsVersion,
     minApiLevel,
     targetApi,
-    useAndroidX,
-    language
+    useAndroidX
     ), moduleOut.resolve("build.gradle"))
   save(
     androidManifestXml(fusing.toString(), isInstantModule, packageName, projectSimpleName, downloadInstallKind, deviceFeatures),

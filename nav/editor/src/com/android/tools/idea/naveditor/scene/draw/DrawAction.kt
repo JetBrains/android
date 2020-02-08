@@ -38,7 +38,9 @@ import com.android.tools.idea.naveditor.scene.getArrowPoint
 import com.android.tools.idea.naveditor.scene.getCurvePoints
 import com.android.tools.idea.naveditor.scene.getRegularActionIconRect
 import com.android.tools.idea.naveditor.scene.makeDrawArrowCommand
+import com.android.tools.idea.naveditor.scene.makeDrawImageCommand
 import com.google.common.annotations.VisibleForTesting
+import icons.StudioIcons.NavEditor.Surface.POP_ACTION
 import java.awt.Color
 
 /**
@@ -75,7 +77,7 @@ class DrawAction(@VisibleForTesting val source: SwingRectangle,
 
     if (isPopAction) {
       val iconRectangle = getRegularActionIconRect(source, dest, scale)
-      list.add(DrawIcon(iconRectangle, DrawIcon.IconType.POP_ACTION, color))
+      list.add(makeDrawImageCommand(POP_ACTION, iconRectangle, color))
     }
 
     return list

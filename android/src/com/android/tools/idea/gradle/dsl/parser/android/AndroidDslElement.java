@@ -71,7 +71,7 @@ public final class AndroidDslElement extends GradleDslBlockElement {
   private static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
     {"buildToolsVersion", property, BUILD_TOOLS_VERSION, VAR},
     {"buildToolsVersion", exactly(1), BUILD_TOOLS_VERSION, SET},
-    {"compileSdkVersion", property, COMPILE_SDK_VERSION, VAR}, // TODO(xof): type handling of this is tricky
+    {"compileSdkVersion", property, COMPILE_SDK_VERSION, VAR}, // TODO(b/148657110): type handling of this is tricky
     {"compileSdkVersion", exactly(1), COMPILE_SDK_VERSION, SET},
     {"defaultPublishConfig", property, DEFAULT_PUBLISH_CONFIG, VAR},
     {"defaultPublishConfig", exactly(1), DEFAULT_PUBLISH_CONFIG, SET},

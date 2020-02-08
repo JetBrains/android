@@ -50,7 +50,7 @@ import static com.android.SdkConstants.TAG;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.VALUE_TRUE;
 import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
-import static com.android.tools.idea.common.util.ImageUtilKt.iconToImage;
+import static com.android.tools.adtui.ImageUtils.iconToImage;
 import static com.android.tools.idea.uibuilder.api.actions.ViewActionUtils.getViewOptionsAction;
 import static icons.StudioIcons.LayoutEditor.Toolbar.BASELINE_ALIGNED_CONSTRAINT;
 import static icons.StudioIcons.LayoutEditor.Toolbar.CENTER_HORIZONTAL;
@@ -84,7 +84,8 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog;
-import com.android.tools.idea.uibuilder.actions.ToggleLiveRenderingAction;
+import com.android.tools.idea.uibuilder.actions.ChainStyleViewActions;
+import com.android.tools.idea.uibuilder.actions.ToggleAllLiveRenderingAction;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.api.CustomPanel;
 import com.android.tools.idea.uibuilder.api.DragHandler;
@@ -106,7 +107,6 @@ import com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator.Wi
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.BarrierAnchorTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.BarrierTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.BaseLineToggleViewAction;
-import com.android.tools.idea.uibuilder.actions.ChainStyleViewActions;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintAnchorTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDragTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintResizeTarget;
@@ -261,7 +261,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       new ToggleVisibilityAction(SHOW_CONSTRAINTS_PREF_KEY, "Show All Constraints", false),
       new ToggleVisibilityAction(SHOW_MARGINS_PREF_KEY, "Show Margins", true),
       new ToggleVisibilityAction(FADE_UNSELECTED_VIEWS, "Fade Unselected Views ", false),
-      new ToggleLiveRenderingAction())));
+      new ToggleAllLiveRenderingAction())));
     actions.add(new ToggleAutoConnectAction());
     actions.add(new MarginSelector());
     actions.add(new ViewActionSeparator());

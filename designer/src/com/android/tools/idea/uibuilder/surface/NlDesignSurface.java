@@ -289,19 +289,22 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
    * Optional navigation helper for when the surface is clicked.
    */
   public interface NavigationHandler extends Disposable {
-
     /**
-     * Returns true if the file name passed is handled by the navigation handler. False otherwise.
+     * Triggered when preview in the design surface is clicked, returns true if the navigation was handled by this handler.
+     * This method receives the x and y coordinates of the click. You will usually only need the coordinates if your navigation can
+     * be different within a same {@link SceneComponent}.
+     *
+     * @param sceneView {@link SceneView} for which the navigation request is being issued
+     * @param sceneComponent {@link SceneComponent} for which the navigation request is being issued
+     * @param x X coordinate within the {@link SceneView} where the click action was initiated
+     * @param y y coordinate within the {@link SceneView} where the click action was initiated
+     * @param requestFocus true if the navigation should focus the editor
      */
-    @NotNull boolean isFileHandled(String filename);
-
-    /**
-     * Triggered when preview in the design surface is clicked.
-     */
-    void handleNavigate(SceneView view,
-                        ImmutableList<NlModel> models,
-                        boolean editor,
-                        @Nullable NlComponent component);
+    boolean handleNavigate(@NotNull SceneView sceneView,
+                           @NotNull SceneComponent sceneComponent,
+                           @SwingCoordinate int x,
+                           @SwingCoordinate int y,
+                           boolean requestFocus);
   }
 
   @NotNull private SceneMode mySceneMode = SceneMode.Companion.loadPreferredMode();
@@ -367,7 +370,12 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
    */
   @NotNull
   public static LayoutlibSceneManager defaultSceneManagerProvider(@NotNull NlDesignSurface surface, @NotNull NlModel model) {
-    return new LayoutlibSceneManager(model, surface, () -> RenderSettings.getProjectSettings(model.getProject()));
+    LayoutlibSceneManager sceneManager = new LayoutlibSceneManager(model, surface);
+    RenderSettings settings = RenderSettings.getProjectSettings(model.getProject());
+    sceneManager.setShowDecorations(settings.getShowDecorations());
+    sceneManager.setUseImagePool(settings.getUseLiveRendering());
+    sceneManager.setQuality(settings.getQuality());
+    return sceneManager;
   }
 
   @NotNull
@@ -755,7 +763,13 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @NotNull
   @Override
   public CompletableFuture<Void> forceUserRequestedRefresh() {
-    return requestRender();
+    ArrayList<CompletableFuture<Void>> refreshFutures = new ArrayList<>();
+    for (SceneManager sceneManager : getSceneManagers()) {
+      LayoutlibSceneManager layoutlibSceneManager = (LayoutlibSceneManager)sceneManager;
+      refreshFutures.add(layoutlibSceneManager.requestUserInitiatedRender());
+    }
+
+    return CompletableFuture.allOf(refreshFutures.toArray(new CompletableFuture[refreshFutures.size()]));
   }
 
   @Override

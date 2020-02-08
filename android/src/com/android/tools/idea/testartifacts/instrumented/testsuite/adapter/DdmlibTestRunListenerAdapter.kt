@@ -18,7 +18,7 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.adapter
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.testrunner.ITestRunListener
 import com.android.ddmlib.testrunner.TestIdentifier
-import com.android.tools.idea.testartifacts.instrumented.testsuite.AndroidTestResultListener
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult

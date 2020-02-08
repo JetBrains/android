@@ -25,11 +25,12 @@ import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.google.common.collect.Lists;
 import com.intellij.psi.PsiElement;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -59,6 +60,10 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
                                                                               ArtifactDependencyModel {
   @Nullable private GradleDslClosure myConfigurationElement;
   protected boolean mySetThrough = false;
+
+  @NotNull private static final Pattern WRAPPED_VARIABLE_FORM = Pattern.compile("\\$\\{(.*)}");
+  @NotNull private static final Pattern UNWRAPPED_VARIABLE_FORM = Pattern.compile("\\$(([a-zA-Z0-9_]\\w*)(\\.([a-zA-Z0-9_]\\w+))*)");
+
 
   public ArtifactDependencyModelImpl(@Nullable GradleDslClosure configurationElement,
                                      @NotNull String configurationName,
@@ -134,7 +139,7 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
     GradleNameElement name = GradleNameElement.create(configurationName);
     GradleDslLiteral literal = new GradleDslLiteral(parent, name);
     literal.setElementType(REGULAR);
-    literal.setValue(createCompactNotationForLiterals(dependency));
+    literal.setValue(createCompactNotationForLiterals(literal, dependency));
 
     if (!excludes.isEmpty()) {
       PsiElement configBlock = parent.getDslFile().getParser().convertToExcludesBlock(excludes);
@@ -149,12 +154,46 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
    * @return same as {@link ArtifactDependencySpec#compactNotation} but quoted if interpolation is needed.
    */
   @NotNull
-  private static String createCompactNotationForLiterals(@NotNull ArtifactDependencySpec spec) {
+  private static String createCompactNotationForLiterals(@NotNull GradleDslElement dslElement, @NotNull ArtifactDependencySpec spec) {
     List<String> segments =
       Lists.newArrayList(spec.getGroup(), spec.getName(), spec.getVersion(), spec.getClassifier(), spec.getExtension());
-    boolean shouldInterpolate = segments.stream().filter(Objects::nonNull).anyMatch(FakeArtifactElement::shouldInterpolate);
-    String compact = spec.compactNotation();
-    return shouldInterpolate ? iStr(compact) : compact;
+    boolean shouldInterpolate  = false;
+
+    // TODO(b/148283067): this is a workaround to use the correct syntax when creating literals with interpolation.
+    StringBuilder compactNotation = new StringBuilder();
+    for (int currentElementIdx = 0; currentElementIdx < segments.size(); currentElementIdx++) {
+      String segment = segments.get(currentElementIdx);
+      if (segment != null) {
+        if (currentElementIdx == 4) compactNotation.append("@");
+        else if (currentElementIdx > 0) compactNotation.append(":");
+        if (FakeArtifactElement.shouldInterpolate(segment)) {
+          shouldInterpolate = true;
+          Matcher wrappedValueMatcher = WRAPPED_VARIABLE_FORM.matcher(segment);
+          Matcher unwrappedValueMatcher = UNWRAPPED_VARIABLE_FORM.matcher(segment);
+          String interpolatedVariable = null;
+          if (wrappedValueMatcher.find()) {
+            interpolatedVariable = wrappedValueMatcher.group(1);
+          } else if (unwrappedValueMatcher.find()) {
+            interpolatedVariable = unwrappedValueMatcher.group(1);
+          }
+
+          String value = interpolatedVariable != null ?
+                          dslElement.getDslFile().getParser().convertReferenceToExternalText(dslElement, interpolatedVariable, true)
+                                                      : segment;
+          // If we have a simple value (i.e. one word) then we don't need to use {} for the injection.
+          if (Pattern.compile("([a-zA-Z0-9_]\\w*)").matcher(value).matches()) {
+            compactNotation.append("$" + value);
+          } else {
+            compactNotation.append("${" + value + "}");
+          }
+          continue;
+        }
+        compactNotation.append(segment);
+      }
+    }
+    ArtifactDependencySpec dependencySpec = ArtifactDependencySpecImpl.create(compactNotation.toString());
+
+    return shouldInterpolate ? iStr(dependencySpec.compactNotation()) : dependencySpec.compactNotation();
   }
 
   static class MapNotation extends ArtifactDependencyModelImpl {

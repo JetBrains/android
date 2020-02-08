@@ -34,23 +34,22 @@ import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.SystemInfo.isWindows
 import com.intellij.util.net.NetUtils
-import com.intellij.util.ui.UIUtil
 import io.grpc.ManagedChannel
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
 import io.grpc.netty.NettyChannelBuilder
 import java.awt.Image
 import java.awt.Point
-import java.awt.Transparency
 import java.awt.color.ColorSpace
 import java.awt.image.BufferedImage
-import java.awt.image.ComponentColorModel
 import java.awt.image.DataBuffer
-import java.awt.image.DataBufferByte
-import java.awt.image.PixelInterleavedSampleModel
+import java.awt.image.DataBufferInt
+import java.awt.image.DirectColorModel
 import java.awt.image.Raster
+import java.awt.image.SinglePixelPackedSampleModel
 import java.io.File
 import java.io.FileReader
+import java.nio.ByteOrder
 import java.util.concurrent.CompletableFuture
 import javax.xml.bind.JAXBContext
 import javax.xml.bind.annotation.XmlAttribute
@@ -68,6 +67,8 @@ class InvalidPictureException : Exception()
 interface SkiaParserService {
   @Throws(InvalidPictureException::class)
   fun getViewTree(data: ByteArray): InspectorView?
+
+  fun shutdownAll()
 }
 
 object SkiaParser : SkiaParserService {
@@ -85,24 +86,24 @@ object SkiaParser : SkiaParserService {
     return response?.root?.let { buildTree(it) }
   }
 
+  override fun shutdownAll() {
+    supportedVersionMap?.values?.forEach { it.shutdown() }
+  }
+
   private fun buildTree(node: SkiaParser.InspectorView): InspectorView? {
     val width = node.width
     val height = node.height
     var image: Image? = null
     if (!node.image.isEmpty) {
-      val buffer = DataBufferByte(node.image.toByteArray(), width * height * 4)
-      val model = PixelInterleavedSampleModel(DataBuffer.TYPE_BYTE, width, height, 4, 4 * width, intArrayOf(2, 1, 0, 3))
+      val intArray = IntArray(width * height)
+      node.image.asReadOnlyByteBuffer().order(ByteOrder.LITTLE_ENDIAN).asIntBuffer().get(intArray)
+      val buffer = DataBufferInt(intArray, width * height)
+      val model = SinglePixelPackedSampleModel(DataBuffer.TYPE_INT, width, height, intArrayOf(0xff0000, 0xff00, 0xff, 0xff000000.toInt()))
       val raster = Raster.createWritableRaster(model, buffer, Point(0, 0))
-      val colorModel = ComponentColorModel(
-        ColorSpace.getInstance(ColorSpace.CS_sRGB),
-        true, false,
-        Transparency.TRANSLUCENT,
-        DataBuffer.TYPE_BYTE)
-      val tmpimage = BufferedImage(colorModel, raster, false, null)
-      image = UIUtil.createImage(width, height, BufferedImage.TYPE_INT_ARGB)
-      val g = image.createGraphics()
-      g.drawImage(tmpimage, 0, 0, null)
-      g.dispose()
+      val colorModel = DirectColorModel(ColorSpace.getInstance(ColorSpace.CS_sRGB),
+                                        32, 0xff0000, 0xff00, 0xff, 0xff000000.toInt(), false, DataBuffer.TYPE_INT)
+      @Suppress("UndesirableClassUsage")
+      image = BufferedImage(colorModel, raster, false, null)
     }
     val res = InspectorView(node.id, node.type, node.x, node.y, width, height, image)
     node.childrenList.mapNotNull { buildTree(it) }.forEach { res.addChild(it) }
@@ -278,6 +279,12 @@ private class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
     client = SkiaParserServiceGrpc.newBlockingStub(channel)
 
     handler = OSProcessHandler(GeneralCommandLine(realPath.absolutePath, localPort.toString()))
+    handler?.startNotify()
+  }
+
+  fun shutdown() {
+    handler?.destroyProcess()
+    handler = null
   }
 
   private fun tryDownload(): Boolean {

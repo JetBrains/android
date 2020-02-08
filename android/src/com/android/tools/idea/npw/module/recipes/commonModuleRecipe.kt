@@ -68,7 +68,6 @@ fun RecipeExecutor.generateCommonModule(
       minApi,
       targetApi,
       useAndroidX,
-      language,
       agpVersion,
       includeCppSupport,
       cppFlags,
@@ -78,6 +77,9 @@ fun RecipeExecutor.generateCommonModule(
     ),
     moduleOut.resolve(FN_BUILD_GRADLE)
   )
+
+  addKotlinIfNeeded(projectData)
+
   save(manifestXml, manifestOut.resolve(FN_ANDROID_MANIFEST_XML))
   save(gitignore(), moduleOut.resolve(".gitignore"))
   if (generateTests) {
@@ -85,8 +87,6 @@ fun RecipeExecutor.generateCommonModule(
     addTestDependencies(agpVersion)
   }
   proguardRecipe(moduleOut, data.isLibrary)
-
-  addKotlinIfNeeded(projectData)
 
   if (!isLibraryProject) {
     when(iconsGenerationStyle) {

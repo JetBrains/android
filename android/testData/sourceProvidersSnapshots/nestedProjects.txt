@@ -240,52 +240,6 @@ MODULE: app
                     ./app/src/bar/resources
                 ShadersDirectories:
                     ./app/src/bar/shaders
-            otherBar
-                Manifest:
-                    ./app/src/otherBar/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/otherBar/aidl
-                AssetsDirectories:
-                    ./app/src/otherBar/assets
-                CDirectories:
-                    ./app/src/otherBar/jni
-                CppDirectories:
-                    ./app/src/otherBar/jni
-                JavaDirectories:
-                    ./app/src/otherBar/java
-                JniLibsDirectories:
-                    ./app/src/otherBar/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/otherBar/rs
-                ResDirectories:
-                    ./app/src/otherBar/res
-                ResourcesDirectories:
-                    ./app/src/otherBar/resources
-                ShadersDirectories:
-                    ./app/src/otherBar/shaders
-            paid
-                Manifest:
-                    ./app/src/paid/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/paid/aidl
-                AssetsDirectories:
-                    ./app/src/paid/assets
-                CDirectories:
-                    ./app/src/paid/jni
-                CppDirectories:
-                    ./app/src/paid/jni
-                JavaDirectories:
-                    ./app/src/paid/java
-                JniLibsDirectories:
-                    ./app/src/paid/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/paid/rs
-                ResDirectories:
-                    ./app/src/paid/res
-                ResourcesDirectories:
-                    ./app/src/paid/resources
-                ShadersDirectories:
-                    ./app/src/paid/shaders
             basic
                 Manifest:
                     ./app/src/basic/AndroidManifest.xml
@@ -332,6 +286,29 @@ MODULE: app
                     ./app/src/basicBar/resources
                 ShadersDirectories:
                     ./app/src/basicBar/shaders
+            basicBarDebug
+                Manifest:
+                    ./app/src/basicBarDebug/AndroidManifest.xml
+                AidlDirectories:
+                    ./app/src/basicBarDebug/aidl
+                AssetsDirectories:
+                    ./app/src/basicBarDebug/assets
+                CDirectories:
+                    ./app/src/basicBarDebug/jni
+                CppDirectories:
+                    ./app/src/basicBarDebug/jni
+                JavaDirectories:
+                    ./app/src/basicBarDebug/java
+                JniLibsDirectories:
+                    ./app/src/basicBarDebug/jniLibs
+                RenderscriptDirectories:
+                    ./app/src/basicBarDebug/rs
+                ResDirectories:
+                    ./app/src/basicBarDebug/res
+                ResourcesDirectories:
+                    ./app/src/basicBarDebug/resources
+                ShadersDirectories:
+                    ./app/src/basicBarDebug/shaders
             debug
                 Manifest:
                     ./app/src/debug/AndroidManifest.xml
@@ -355,6 +332,52 @@ MODULE: app
                     ./app/src/debug/resources
                 ShadersDirectories:
                     ./app/src/debug/shaders
+            otherBar
+                Manifest:
+                    ./app/src/otherBar/AndroidManifest.xml
+                AidlDirectories:
+                    ./app/src/otherBar/aidl
+                AssetsDirectories:
+                    ./app/src/otherBar/assets
+                CDirectories:
+                    ./app/src/otherBar/jni
+                CppDirectories:
+                    ./app/src/otherBar/jni
+                JavaDirectories:
+                    ./app/src/otherBar/java
+                JniLibsDirectories:
+                    ./app/src/otherBar/jniLibs
+                RenderscriptDirectories:
+                    ./app/src/otherBar/rs
+                ResDirectories:
+                    ./app/src/otherBar/res
+                ResourcesDirectories:
+                    ./app/src/otherBar/resources
+                ShadersDirectories:
+                    ./app/src/otherBar/shaders
+            paid
+                Manifest:
+                    ./app/src/paid/AndroidManifest.xml
+                AidlDirectories:
+                    ./app/src/paid/aidl
+                AssetsDirectories:
+                    ./app/src/paid/assets
+                CDirectories:
+                    ./app/src/paid/jni
+                CppDirectories:
+                    ./app/src/paid/jni
+                JavaDirectories:
+                    ./app/src/paid/java
+                JniLibsDirectories:
+                    ./app/src/paid/jniLibs
+                RenderscriptDirectories:
+                    ./app/src/paid/rs
+                ResDirectories:
+                    ./app/src/paid/res
+                ResourcesDirectories:
+                    ./app/src/paid/resources
+                ShadersDirectories:
+                    ./app/src/paid/shaders
             release
                 Manifest:
                     ./app/src/release/AndroidManifest.xml
@@ -401,29 +424,6 @@ MODULE: app
                     ./app/src/specialRelease/resources
                 ShadersDirectories:
                     ./app/src/specialRelease/shaders
-            basicBarDebug
-                Manifest:
-                    ./app/src/basicBarDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/basicBarDebug/aidl
-                AssetsDirectories:
-                    ./app/src/basicBarDebug/assets
-                CDirectories:
-                    ./app/src/basicBarDebug/jni
-                CppDirectories:
-                    ./app/src/basicBarDebug/jni
-                JavaDirectories:
-                    ./app/src/basicBarDebug/java
-                JniLibsDirectories:
-                    ./app/src/basicBarDebug/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/basicBarDebug/rs
-                ResDirectories:
-                    ./app/src/basicBarDebug/res
-                ResourcesDirectories:
-                    ./app/src/basicBarDebug/resources
-                ShadersDirectories:
-                    ./app/src/basicBarDebug/shaders
         UnitTest:
             test
                 Manifest:
@@ -985,6 +985,94 @@ MODULE: app
                     file://./app/src/bar/resources
                 ShadersDirectoryUrls:
                     file://./app/src/bar/shaders
+            basic (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./app/src/basic/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/basic
+                AidlDirectoryUrls:
+                    file://./app/src/basic/aidl
+                AssetsDirectoryUrls:
+                    file://./app/src/basic/assets
+                JavaDirectoryUrls:
+                    file://./app/src/basic/java
+                JniLibsDirectoryUrls:
+                    file://./app/src/basic/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./app/src/basic/rs
+                ResDirectoryUrls:
+                    file://./app/src/basic/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/basic/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/basic/shaders
+            basicBar (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./app/src/basicBar/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/basicBar
+                AidlDirectoryUrls:
+                    file://./app/src/basicBar/aidl
+                AssetsDirectoryUrls:
+                    file://./app/src/basicBar/assets
+                JavaDirectoryUrls:
+                    file://./app/src/basicBar/java
+                JniLibsDirectoryUrls:
+                    file://./app/src/basicBar/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./app/src/basicBar/rs
+                ResDirectoryUrls:
+                    file://./app/src/basicBar/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/basicBar/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/basicBar/shaders
+            basicBarDebug (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./app/src/basicBarDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/basicBarDebug
+                AidlDirectoryUrls:
+                    file://./app/src/basicBarDebug/aidl
+                AssetsDirectoryUrls:
+                    file://./app/src/basicBarDebug/assets
+                JavaDirectoryUrls:
+                    file://./app/src/basicBarDebug/java
+                JniLibsDirectoryUrls:
+                    file://./app/src/basicBarDebug/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./app/src/basicBarDebug/rs
+                ResDirectoryUrls:
+                    file://./app/src/basicBarDebug/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/basicBarDebug/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/basicBarDebug/shaders
+            debug (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./app/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/debug
+                AidlDirectoryUrls:
+                    file://./app/src/debug/aidl
+                AssetsDirectoryUrls:
+                    file://./app/src/debug/assets
+                JavaDirectoryUrls:
+                    file://./app/src/debug/java
+                JniLibsDirectoryUrls:
+                    file://./app/src/debug/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./app/src/debug/rs
+                ResDirectoryUrls:
+                    file://./app/src/debug/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/debug/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/debug/shaders
             otherBar (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1037,72 +1125,6 @@ MODULE: app
                     file://./app/src/paid/resources
                 ShadersDirectoryUrls:
                     file://./app/src/paid/shaders
-            basic (IDEA)
-                ScopeType: MAIN
-                ManifestFileUrls:
-                    file://./app/src/basic/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./app/src/basic
-                AidlDirectoryUrls:
-                    file://./app/src/basic/aidl
-                AssetsDirectoryUrls:
-                    file://./app/src/basic/assets
-                JavaDirectoryUrls:
-                    file://./app/src/basic/java
-                JniLibsDirectoryUrls:
-                    file://./app/src/basic/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/basic/rs
-                ResDirectoryUrls:
-                    file://./app/src/basic/res
-                ResourcesDirectoryUrls:
-                    file://./app/src/basic/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/basic/shaders
-            basicBar (IDEA)
-                ScopeType: MAIN
-                ManifestFileUrls:
-                    file://./app/src/basicBar/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./app/src/basicBar
-                AidlDirectoryUrls:
-                    file://./app/src/basicBar/aidl
-                AssetsDirectoryUrls:
-                    file://./app/src/basicBar/assets
-                JavaDirectoryUrls:
-                    file://./app/src/basicBar/java
-                JniLibsDirectoryUrls:
-                    file://./app/src/basicBar/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/basicBar/rs
-                ResDirectoryUrls:
-                    file://./app/src/basicBar/res
-                ResourcesDirectoryUrls:
-                    file://./app/src/basicBar/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/basicBar/shaders
-            debug (IDEA)
-                ScopeType: MAIN
-                ManifestFileUrls:
-                    file://./app/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./app/src/debug
-                AidlDirectoryUrls:
-                    file://./app/src/debug/aidl
-                AssetsDirectoryUrls:
-                    file://./app/src/debug/assets
-                JavaDirectoryUrls:
-                    file://./app/src/debug/java
-                JniLibsDirectoryUrls:
-                    file://./app/src/debug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/debug/rs
-                ResDirectoryUrls:
-                    file://./app/src/debug/res
-                ResourcesDirectoryUrls:
-                    file://./app/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/debug/shaders
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1147,28 +1169,6 @@ MODULE: app
                     file://./app/src/specialRelease/resources
                 ShadersDirectoryUrls:
                     file://./app/src/specialRelease/shaders
-            basicBarDebug (IDEA)
-                ScopeType: MAIN
-                ManifestFileUrls:
-                    file://./app/src/basicBarDebug/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./app/src/basicBarDebug
-                AidlDirectoryUrls:
-                    file://./app/src/basicBarDebug/aidl
-                AssetsDirectoryUrls:
-                    file://./app/src/basicBarDebug/assets
-                JavaDirectoryUrls:
-                    file://./app/src/basicBarDebug/java
-                JniLibsDirectoryUrls:
-                    file://./app/src/basicBarDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/basicBarDebug/rs
-                ResDirectoryUrls:
-                    file://./app/src/basicBarDebug/res
-                ResourcesDirectoryUrls:
-                    file://./app/src/basicBarDebug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/basicBarDebug/shaders
         CurrentSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -4657,29 +4657,6 @@ MODULE: nested2
                     ./nested2/src/main/resources
                 ShadersDirectories:
                     ./nested2/src/main/shaders
-            paid
-                Manifest:
-                    ./nested2/src/paid/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/src/paid/aidl
-                AssetsDirectories:
-                    ./nested2/src/paid/assets
-                CDirectories:
-                    ./nested2/src/paid/jni
-                CppDirectories:
-                    ./nested2/src/paid/jni
-                JavaDirectories:
-                    ./nested2/src/paid/java
-                JniLibsDirectories:
-                    ./nested2/src/paid/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/src/paid/rs
-                ResDirectories:
-                    ./nested2/src/paid/res
-                ResourcesDirectories:
-                    ./nested2/src/paid/resources
-                ShadersDirectories:
-                    ./nested2/src/paid/shaders
             basic
                 Manifest:
                     ./nested2/src/basic/AndroidManifest.xml
@@ -4703,52 +4680,6 @@ MODULE: nested2
                     ./nested2/src/basic/resources
                 ShadersDirectories:
                     ./nested2/src/basic/shaders
-            debug
-                Manifest:
-                    ./nested2/src/debug/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/src/debug/aidl
-                AssetsDirectories:
-                    ./nested2/src/debug/assets
-                CDirectories:
-                    ./nested2/src/debug/jni
-                CppDirectories:
-                    ./nested2/src/debug/jni
-                JavaDirectories:
-                    ./nested2/src/debug/java
-                JniLibsDirectories:
-                    ./nested2/src/debug/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/src/debug/rs
-                ResDirectories:
-                    ./nested2/src/debug/res
-                ResourcesDirectories:
-                    ./nested2/src/debug/resources
-                ShadersDirectories:
-                    ./nested2/src/debug/shaders
-            release
-                Manifest:
-                    ./nested2/src/release/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/src/release/aidl
-                AssetsDirectories:
-                    ./nested2/src/release/assets
-                CDirectories:
-                    ./nested2/src/release/jni
-                CppDirectories:
-                    ./nested2/src/release/jni
-                JavaDirectories:
-                    ./nested2/src/release/java
-                JniLibsDirectories:
-                    ./nested2/src/release/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/src/release/rs
-                ResDirectories:
-                    ./nested2/src/release/res
-                ResourcesDirectories:
-                    ./nested2/src/release/resources
-                ShadersDirectories:
-                    ./nested2/src/release/shaders
             basicDebug
                 Manifest:
                     ./nested2/src/basicDebug/AndroidManifest.xml
@@ -4772,6 +4703,75 @@ MODULE: nested2
                     ./nested2/src/basicDebug/resources
                 ShadersDirectories:
                     ./nested2/src/basicDebug/shaders
+            debug
+                Manifest:
+                    ./nested2/src/debug/AndroidManifest.xml
+                AidlDirectories:
+                    ./nested2/src/debug/aidl
+                AssetsDirectories:
+                    ./nested2/src/debug/assets
+                CDirectories:
+                    ./nested2/src/debug/jni
+                CppDirectories:
+                    ./nested2/src/debug/jni
+                JavaDirectories:
+                    ./nested2/src/debug/java
+                JniLibsDirectories:
+                    ./nested2/src/debug/jniLibs
+                RenderscriptDirectories:
+                    ./nested2/src/debug/rs
+                ResDirectories:
+                    ./nested2/src/debug/res
+                ResourcesDirectories:
+                    ./nested2/src/debug/resources
+                ShadersDirectories:
+                    ./nested2/src/debug/shaders
+            paid
+                Manifest:
+                    ./nested2/src/paid/AndroidManifest.xml
+                AidlDirectories:
+                    ./nested2/src/paid/aidl
+                AssetsDirectories:
+                    ./nested2/src/paid/assets
+                CDirectories:
+                    ./nested2/src/paid/jni
+                CppDirectories:
+                    ./nested2/src/paid/jni
+                JavaDirectories:
+                    ./nested2/src/paid/java
+                JniLibsDirectories:
+                    ./nested2/src/paid/jniLibs
+                RenderscriptDirectories:
+                    ./nested2/src/paid/rs
+                ResDirectories:
+                    ./nested2/src/paid/res
+                ResourcesDirectories:
+                    ./nested2/src/paid/resources
+                ShadersDirectories:
+                    ./nested2/src/paid/shaders
+            release
+                Manifest:
+                    ./nested2/src/release/AndroidManifest.xml
+                AidlDirectories:
+                    ./nested2/src/release/aidl
+                AssetsDirectories:
+                    ./nested2/src/release/assets
+                CDirectories:
+                    ./nested2/src/release/jni
+                CppDirectories:
+                    ./nested2/src/release/jni
+                JavaDirectories:
+                    ./nested2/src/release/java
+                JniLibsDirectories:
+                    ./nested2/src/release/jniLibs
+                RenderscriptDirectories:
+                    ./nested2/src/release/rs
+                ResDirectories:
+                    ./nested2/src/release/res
+                ResourcesDirectories:
+                    ./nested2/src/release/resources
+                ShadersDirectories:
+                    ./nested2/src/release/shaders
         UnitTest:
             test
                 Manifest:
@@ -5151,28 +5151,6 @@ MODULE: nested2
                     file://./nested2/src/main/resources
                 ShadersDirectoryUrls:
                     file://./nested2/src/main/shaders
-            paid (IDEA)
-                ScopeType: MAIN
-                ManifestFileUrls:
-                    file://./nested2/src/paid/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./nested2/src/paid
-                AidlDirectoryUrls:
-                    file://./nested2/src/paid/aidl
-                AssetsDirectoryUrls:
-                    file://./nested2/src/paid/assets
-                JavaDirectoryUrls:
-                    file://./nested2/src/paid/java
-                JniLibsDirectoryUrls:
-                    file://./nested2/src/paid/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/src/paid/rs
-                ResDirectoryUrls:
-                    file://./nested2/src/paid/res
-                ResourcesDirectoryUrls:
-                    file://./nested2/src/paid/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/paid/shaders
             basic (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -5195,50 +5173,6 @@ MODULE: nested2
                     file://./nested2/src/basic/resources
                 ShadersDirectoryUrls:
                     file://./nested2/src/basic/shaders
-            debug (IDEA)
-                ScopeType: MAIN
-                ManifestFileUrls:
-                    file://./nested2/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./nested2/src/debug
-                AidlDirectoryUrls:
-                    file://./nested2/src/debug/aidl
-                AssetsDirectoryUrls:
-                    file://./nested2/src/debug/assets
-                JavaDirectoryUrls:
-                    file://./nested2/src/debug/java
-                JniLibsDirectoryUrls:
-                    file://./nested2/src/debug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/src/debug/rs
-                ResDirectoryUrls:
-                    file://./nested2/src/debug/res
-                ResourcesDirectoryUrls:
-                    file://./nested2/src/debug/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/debug/shaders
-            release (IDEA)
-                ScopeType: MAIN
-                ManifestFileUrls:
-                    file://./nested2/src/release/AndroidManifest.xml
-                ManifestDirectoryUrls:
-                    file://./nested2/src/release
-                AidlDirectoryUrls:
-                    file://./nested2/src/release/aidl
-                AssetsDirectoryUrls:
-                    file://./nested2/src/release/assets
-                JavaDirectoryUrls:
-                    file://./nested2/src/release/java
-                JniLibsDirectoryUrls:
-                    file://./nested2/src/release/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/src/release/rs
-                ResDirectoryUrls:
-                    file://./nested2/src/release/res
-                ResourcesDirectoryUrls:
-                    file://./nested2/src/release/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/release/shaders
             basicDebug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -5261,6 +5195,72 @@ MODULE: nested2
                     file://./nested2/src/basicDebug/resources
                 ShadersDirectoryUrls:
                     file://./nested2/src/basicDebug/shaders
+            debug (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./nested2/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/src/debug
+                AidlDirectoryUrls:
+                    file://./nested2/src/debug/aidl
+                AssetsDirectoryUrls:
+                    file://./nested2/src/debug/assets
+                JavaDirectoryUrls:
+                    file://./nested2/src/debug/java
+                JniLibsDirectoryUrls:
+                    file://./nested2/src/debug/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./nested2/src/debug/rs
+                ResDirectoryUrls:
+                    file://./nested2/src/debug/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/src/debug/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/src/debug/shaders
+            paid (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./nested2/src/paid/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/src/paid
+                AidlDirectoryUrls:
+                    file://./nested2/src/paid/aidl
+                AssetsDirectoryUrls:
+                    file://./nested2/src/paid/assets
+                JavaDirectoryUrls:
+                    file://./nested2/src/paid/java
+                JniLibsDirectoryUrls:
+                    file://./nested2/src/paid/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./nested2/src/paid/rs
+                ResDirectoryUrls:
+                    file://./nested2/src/paid/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/src/paid/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/src/paid/shaders
+            release (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./nested2/src/release/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/src/release
+                AidlDirectoryUrls:
+                    file://./nested2/src/release/aidl
+                AssetsDirectoryUrls:
+                    file://./nested2/src/release/assets
+                JavaDirectoryUrls:
+                    file://./nested2/src/release/java
+                JniLibsDirectoryUrls:
+                    file://./nested2/src/release/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./nested2/src/release/rs
+                ResDirectoryUrls:
+                    file://./nested2/src/release/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/src/release/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
                 ScopeType: MAIN

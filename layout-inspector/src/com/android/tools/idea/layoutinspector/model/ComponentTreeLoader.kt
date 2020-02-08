@@ -28,7 +28,6 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.ui.UIUtil
 import java.awt.Image
 import java.awt.Rectangle
-import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
@@ -40,6 +39,7 @@ private val LOAD_TIMEOUT = TimeUnit.SECONDS.toMillis(20)
  * A [TreeLoader] that uses a [DefaultInspectorClient] to fetch a view tree from an API 29+ device, and parses it into [ViewNode]s
  */
 object ComponentTreeLoader : TreeLoader {
+
   override fun loadComponentTree(
     maybeEvent: Any?, resourceLookup: ResourceLookup, client: InspectorClient
   ): ViewNode? {
@@ -170,13 +170,15 @@ private class ComponentTreeLoaderImpl(
       if (view.image == null) {
         return image
       }
+      if (image == null) {
+        return view.image
+      }
       @Suppress("UndesirableClassUsage")
-      val result = image ?: BufferedImage(bounds.width, bounds.height, (view.image as BufferedImage).type)
       // Combine the images...
-      val g = result.graphics
+      val g = image.graphics
       UIUtil.drawImage(g, view.image!!, offset.x + view.x - bounds.x, offset.y + view.y - bounds.y, null)
       g.dispose()
-      return result
+      return image
     }
   }
 }

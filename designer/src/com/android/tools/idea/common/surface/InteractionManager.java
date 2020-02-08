@@ -54,7 +54,6 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-import java.util.EventObject;
 import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
@@ -181,7 +180,7 @@ public class InteractionManager implements Disposable {
       @Override
       public void actionPerformed(ActionEvent e) {
         myScrollEndTimer.removeActionListener(this);
-        finishInteraction(e, false);
+        finishInteraction(new MouseWheelStopEvent(e, getInteractionInformation()), false);
       }
     };
   }
@@ -257,7 +256,7 @@ public class InteractionManager implements Disposable {
    * @param event       The event makes the interaction start.
    * @param interaction The given interaction to start
    */
-  private void startInteraction(@Nullable EventObject event, @Nullable Interaction interaction) {
+  private void startInteraction(@NotNull InteractionEvent event, @Nullable Interaction interaction) {
     if (myCurrentInteraction != null) {
       finishInteraction(event, true);
       assert myCurrentInteraction == null;
@@ -265,7 +264,7 @@ public class InteractionManager implements Disposable {
 
     if (interaction != null) {
       myCurrentInteraction = interaction;
-      myCurrentInteraction.begin(event, new InteractionInformation(myLastMouseX, myLastMouseY, myLastModifiersEx));
+      myCurrentInteraction.begin(event);
       myLayers = interaction.createOverlays();
     }
   }
@@ -299,7 +298,7 @@ public class InteractionManager implements Disposable {
    */
   private void updateMouseMoved(@NotNull MouseEvent event, @SwingCoordinate int x, @SwingCoordinate int y) {
     if (myCurrentInteraction != null) {
-      myCurrentInteraction.update(event, new InteractionInformation(x, y, myLastModifiersEx));
+      myCurrentInteraction.update(new MouseMovedEvent(event, getInteractionInformation()));
     }
     else {
       myInteractionHandler.hoverWhenNoInteraction(x, y, myLastModifiersEx);
@@ -313,13 +312,13 @@ public class InteractionManager implements Disposable {
    * @param event    The event which makes the current interaction end.
    * @param canceled True if and only if the interaction was canceled.
    */
-  private void finishInteraction(@Nullable EventObject event, boolean canceled) {
+  private void finishInteraction(@NotNull InteractionEvent event, boolean canceled) {
     if (myCurrentInteraction != null) {
       if (canceled) {
-        myCurrentInteraction.cancel(event, new InteractionInformation(myLastMouseX, myLastMouseY, myLastModifiersEx));
+        myCurrentInteraction.cancel(event);
       }
       else {
-        myCurrentInteraction.commit(event, new InteractionInformation(myLastMouseX, myLastMouseY, myLastModifiersEx));
+        myCurrentInteraction.commit(event);
       }
       if (myLayers != null) {
         for (Layer layer : myLayers) {
@@ -372,6 +371,7 @@ public class InteractionManager implements Disposable {
 
     @Override
     public void mouseClicked(@NotNull MouseEvent event) {
+      // TODO(b/142953949): send MouseClickEvent into myCurrentInteraction.
       int x = event.getX();
       int y = event.getY();
       int clickCount = event.getClickCount();
@@ -415,19 +415,19 @@ public class InteractionManager implements Disposable {
       }
       // TODO: move this logic into InteractionHandler.createInteractionOnPressed()
       if (myCurrentInteraction instanceof PanInteraction) {
-        myCurrentInteraction.update(event, new InteractionInformation(myLastMouseX, myLastMouseY, myLastModifiersEx));
+        myCurrentInteraction.update(new MousePressedEvent(event, getInteractionInformation()));
         updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
         return;
       }
       else if (SwingUtilities.isMiddleMouseButton(event)) {
-        startInteraction(event, new PanInteraction(mySurface));
+        startInteraction(new MousePressedEvent(event, getInteractionInformation()), new PanInteraction(mySurface));
         updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
         return;
       }
 
       Interaction interaction = myInteractionHandler.createInteractionOnPressed(myLastMouseX, myLastMouseY, myLastModifiersEx);
       if (interaction != null) {
-        startInteraction(event, interaction);
+        startInteraction(new MousePressedEvent(event, getInteractionInformation()), interaction);
       }
     }
 
@@ -448,10 +448,11 @@ public class InteractionManager implements Disposable {
         // This never be true because PanInteraction never be created when NELE_NEW_INTERACTION_INTERFACE is disable.
         // Consume event, but only stop panning if the middle mouse button was released.
         if (SwingUtilities.isMiddleMouseButton(event)) {
-          finishInteraction(event, true);
+          finishInteraction(new MouseReleasedEvent(event, getInteractionInformation()), true);
         }
         else {
-          myCurrentInteraction.update(event, new InteractionInformation(myLastMouseX, myLastMouseY, myLastModifiersEx));
+          myCurrentInteraction.update(
+            new MouseReleasedEvent(event, new InteractionInformation(event.getX(), event.getY(), event.getModifiersEx())));
           updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
         }
         return;
@@ -479,7 +480,7 @@ public class InteractionManager implements Disposable {
         updateCursor(x, y, modifiersEx);
       }
       else {
-        finishInteraction(event, false);
+        finishInteraction(new MouseReleasedEvent(event, getInteractionInformation()), false);
         myCurrentInteraction = null;
       }
       mySurface.repaint();
@@ -497,6 +498,9 @@ public class InteractionManager implements Disposable {
 
     // --- Implements MouseMotionListener ----
 
+    /**
+     * TODO(b/142953949): Should always update last mouse and modifiersEx.
+     */
     @Override
     public void mouseDragged(MouseEvent event) {
       if (myIsInteractionCanceled) {
@@ -506,8 +510,8 @@ public class InteractionManager implements Disposable {
       int y = event.getY();
 
       if (myCurrentInteraction instanceof PanInteraction) {
-        myCurrentInteraction.update(event, new InteractionInformation(myLastMouseX, myLastMouseY, myLastModifiersEx));
-        updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
+        myCurrentInteraction.update(new MouseDraggedEvent(event, new InteractionInformation(x, y, event.getModifiersEx())));
+        updateCursor(x, y, event.getModifiersEx());
         return;
       }
 
@@ -522,7 +526,7 @@ public class InteractionManager implements Disposable {
         myLastMouseX = x;
         myLastMouseY = y;
         myLastModifiersEx = modifiersEx;
-        myCurrentInteraction.update(event, new InteractionInformation(myLastMouseX, myLastMouseY, myLastModifiersEx));
+        myCurrentInteraction.update(new MouseDraggedEvent(event, getInteractionInformation()));
         updateCursor(x, y, modifiersEx);
         mySurface.getLayeredPane().scrollRectToVisible(
           new Rectangle(x - NlConstants.DEFAULT_SCREEN_OFFSET_X, y - NlConstants.DEFAULT_SCREEN_OFFSET_Y,
@@ -537,7 +541,7 @@ public class InteractionManager implements Disposable {
         Interaction interaction = myInteractionHandler.createInteractionOnDrag(x, y, myLastModifiersEx);
 
         if (interaction != null) {
-          startInteraction(event, interaction);
+          startInteraction(new MouseDraggedEvent(event, getInteractionInformation()), interaction);
         }
         updateCursor(x, y, modifiersEx);
       }
@@ -554,7 +558,7 @@ public class InteractionManager implements Disposable {
       myLastModifiersEx = modifiersEx;
 
       if (myCurrentInteraction instanceof PanInteraction) {
-        myCurrentInteraction.update(event, new InteractionInformation(myLastMouseX, myLastMouseY, myLastModifiersEx));
+        myCurrentInteraction.update(new MouseMovedEvent(event, getInteractionInformation()));
         updateCursor(x, y, modifiersEx);
         return;
       }
@@ -592,7 +596,7 @@ public class InteractionManager implements Disposable {
       if (myCurrentInteraction != null) {
         // unless it's "Escape", which cancels the interaction
         if (keyCode == KeyEvent.VK_ESCAPE) {
-          finishInteraction(event, true);
+          finishInteraction(new KeyPressedEvent(event, getInteractionInformation()), true);
           myIsInteractionCanceled = true;
           return;
         }
@@ -603,7 +607,8 @@ public class InteractionManager implements Disposable {
       }
 
       if (isPanningKeyboardKey(event)) {
-        setPanning(true);
+        // TODO (b/142953949): Replace this by startInteraction with PanInteraction.
+        setPanning(new KeyPressedEvent(event, getInteractionInformation()), true);
         return;
       }
 
@@ -638,11 +643,12 @@ public class InteractionManager implements Disposable {
         scene.repaint();
       }
       if (myCurrentInteraction != null) {
-        myCurrentInteraction.update(event, new InteractionInformation(myLastMouseX, myLastMouseY, myLastModifiersEx));
+        myCurrentInteraction.update(new KeyReleasedEvent(event, getInteractionInformation()));
       }
 
       if (isPanningKeyboardKey(event)) {
-        setPanning(false);
+        // TODO (b/142953949): this should be handled by PanInteraction itself.
+        setPanning(new KeyReleasedEvent(event, getInteractionInformation()), false);
         updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
       }
     }
@@ -656,7 +662,7 @@ public class InteractionManager implements Disposable {
         myLastMouseX = location.x;
         myLastMouseY = location.y;
         Interaction interaction = myInteractionHandler.createInteractionOnDragEnter(dragEvent);
-        startInteraction(dragEvent, interaction);
+        startInteraction(new DragEnterEvent(dragEvent, getInteractionInformation()), interaction);
       }
     }
 
@@ -670,17 +676,20 @@ public class InteractionManager implements Disposable {
         event.reject();
         return;
       }
-      myCurrentInteraction.update(dragEvent, new InteractionInformation(myLastMouseX, myLastMouseY, myLastModifiersEx));
+      myCurrentInteraction.update(new DragOverEvent(dragEvent, getInteractionInformation()));
     }
 
     @Override
     public void dropActionChanged(DropTargetDragEvent event) {
+      if (myCurrentInteraction != null) {
+        myCurrentInteraction.update(new DropActionChangedEvent(event, getInteractionInformation()));
+      }
     }
 
     @Override
     public void dragExit(DropTargetEvent event) {
       if (myCurrentInteraction instanceof DragDropInteraction) {
-        finishInteraction(event, true);
+        finishInteraction(new DragExistEvent(event, getInteractionInformation()), true);
       }
     }
 
@@ -695,7 +704,7 @@ public class InteractionManager implements Disposable {
         event.reject();
         return;
       }
-      finishInteraction(dropEvent, false);
+      finishInteraction(new DropEvent(dropEvent, getInteractionInformation()), false);
     }
 
     // --- Implements ActionListener ----
@@ -755,7 +764,7 @@ public class InteractionManager implements Disposable {
         }
 
         // Start a scroll interaction and a timer to bundle all the scroll events
-        startInteraction(e, scrollInteraction);
+        startInteraction(new MouseWheelMovedEvent(e, getInteractionInformation()), scrollInteraction);
         myScrollEndTimer.addActionListener(myScrollEndListener);
       }
       else {
@@ -775,7 +784,7 @@ public class InteractionManager implements Disposable {
       }
 
       boolean isScrollInteraction = myCurrentInteraction instanceof ScrollInteraction;
-      myCurrentInteraction.update(e, new InteractionInformation(myLastMouseX, myLastMouseY, myLastModifiersEx));
+      myCurrentInteraction.update(new MouseWheelMovedEvent(e, getInteractionInformation()));
       if (isScrollInteraction) {
         myScrollEndTimer.restart();
       }
@@ -784,11 +793,22 @@ public class InteractionManager implements Disposable {
 
   void setPanning(boolean panning) {
     if (panning && !(myCurrentInteraction instanceof PanInteraction)) {
-      startInteraction(null, new PanInteraction(mySurface));
+      startInteraction(new InteractionNonInputEvent(getInteractionInformation()), new PanInteraction(mySurface));
       updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
     }
     else if (!panning && myCurrentInteraction instanceof PanInteraction) {
-      finishInteraction(null, false);
+      finishInteraction(new InteractionNonInputEvent(getInteractionInformation()), false);
+      updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
+    }
+  }
+
+  private void setPanning(@NotNull InteractionEvent event, boolean panning) {
+    if (panning && !(myCurrentInteraction instanceof PanInteraction)) {
+      startInteraction(event, new PanInteraction(mySurface));
+      updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
+    }
+    else if (!panning && myCurrentInteraction instanceof PanInteraction) {
+      finishInteraction(event, false);
       updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
     }
   }
@@ -817,7 +837,15 @@ public class InteractionManager implements Disposable {
    * Cancels the current running interaction
    */
   public void cancelInteraction() {
-    finishInteraction(null, true);
+    finishInteraction(new InteractionNonInputEvent(getInteractionInformation()), true);
+  }
+
+  /**
+   * Create and return a <b>copy</b> of current {@link InteractionInformation} data.
+   */
+  @NotNull
+  private InteractionInformation getInteractionInformation() {
+    return new InteractionInformation(myLastMouseX, myLastMouseY, myLastModifiersEx);
   }
 
   @VisibleForTesting

@@ -120,6 +120,7 @@ import com.android.tools.idea.lint.AndroidLintWrongViewCastInspection;
 import com.android.tools.idea.lint.common.AndroidLintGradleDynamicVersionInspection;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.common.LintExternalAnnotator;
+import com.android.tools.idea.lint.common.LintIdeIssueRegistry;
 import com.android.tools.idea.lint.common.LintResult;
 import com.android.tools.idea.lint.common.SuppressLintIntentionAction;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
@@ -129,6 +130,7 @@ import com.android.tools.idea.testing.AndroidTestUtils;
 import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.lint.checks.IconDetector;
 import com.android.tools.lint.checks.TextViewDetector;
+import com.android.tools.lint.client.api.IssueRegistry;
 import com.android.utils.CharSequences;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -1295,6 +1297,13 @@ public class AndroidLintTest extends AndroidTestCase {
   public void testInvalidImeActionId() throws Exception {
     doTestNoFix(new AndroidLintInvalidImeActionIdInspection(),
                 "/res/layout/layout.xml", "xml");
+  }
+
+  public void testLintNonAndroid() {
+    // See LintIdeTest; this is the opposite check
+    // Make sure that we don't include the non-Android lint checks here.
+    IssueRegistry issues = new LintIdeIssueRegistry();
+    assertNull(issues.getIssue("LintImplDollarEscapes"));
   }
 
   private SynchronizedBidiMultiMap<RefEntity, CommonProblemDescriptor> doGlobalInspectionTest(@NotNull AndroidLintInspectionBase inspection) {

@@ -71,6 +71,12 @@ interface Asset {
       }
     }
 
+  /**
+   * A light-weight object to represent [Asset] instances, use for maps that may outlive the current Module. E.g. Cache<AssetKey, V>
+   */
+  val key: AssetKey
+    get() = AssetKey(name, type, null)
+
   companion object {
     /**
      * Returns an [Asset] implementation for the given [ResourceItem].
@@ -101,6 +107,14 @@ interface Asset {
     }
   }
 }
+
+/**
+ * A light-weight class to represent [Asset] instances.
+ *
+ * It's intended to be used to differentiate between different resource assets without depending on potentially large [ResourceItem]
+ * instances.
+ */
+data class AssetKey(val name: String, val type: ResourceType, val path: String?)
 
 /**
  * An [Asset] with the basic information to display a resource in the explorer. Unlike [DesignAsset], it can't point to a source file.
@@ -136,46 +150,9 @@ data class DesignAsset(
     }
     return ""
   }
-}
 
-/**
- * Represents a set of resource assets grouped by base name.
- *
- * For example, fr/icon@2x.png, fr/icon.jpg  and en/icon.png will be
- * gathered in the same DesignAssetSet under the name "icon"
- */
-data class ResourceAssetSet(
-  val name: String,
-  var assets: List<Asset>
-) {
-
-  /**
-   * Return the asset in this set with the highest density
-   */
-  fun getHighestDensityAsset(): Asset {
-    return designAssets.maxBy { asset ->
-      asset.qualifiers
-        .filterIsInstance<DensityQualifier>()
-        .map { densityQualifier -> densityQualifier.value.dpiValue }
-        .singleOrNull() ?: 0
-    } ?: assets[0]
-  }
-}
-
-/**
- * Find all the [ResourceAssetSet] in the given directory
- *
- * @param supportedTypes The file types supported for importation
- */
-fun getAssetSets(
-  directory: VirtualFile,
-  supportedTypes: Set<String>,
-  qualifierMatcher: QualifierMatcher
-): List<ResourceAssetSet> {
-  return getDesignAssets(directory, supportedTypes, directory, qualifierMatcher)
-    .groupBy { designAsset -> designAsset.name }
-    .map { (drawableName, designAssets) -> ResourceAssetSet(drawableName, designAssets) }
-    .toList()
+  override val key: AssetKey
+    get() = AssetKey(name, type, file.path)
 }
 
 fun getDesignAssets(

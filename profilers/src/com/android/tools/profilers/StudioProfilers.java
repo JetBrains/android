@@ -343,7 +343,15 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   public void setAutoProfilingEnabled(boolean enabled) {
     myAutoProfilingEnabled = enabled;
 
-    if (myAutoProfilingEnabled) {
+    if (myIdeServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
+      // Do nothing. Let update() take care of which process should be selected.
+      // If setProcess() is called now, it may be confused if the process start/end events don't arrive immediately.
+      // For example, if the user ends a session (which will set myProcess null), then click the Run button.
+      // setAutoProfilingEnabled(true) will be called when Run button is clicked. If the previous process's
+      // DEAD event is delayed, setProcess() may start a new session on it (which is already dead) because
+      // the event stream shows it is still alive, and it's "new" in the perspective of StudioProfilers.
+    }
+    else if (myAutoProfilingEnabled) {
       setProcess(findPreferredDevice(), null);
     }
   }
@@ -649,12 +657,18 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     // Stops the previous profiling session if it is active
     if (!Common.Session.getDefaultInstance().equals(myProfilingSession)) {
       assert SessionsManager.isSessionAlive(myProfilingSession);
+      // TODO: If there are multiple instances of StudioProfiers class, we should call stopProfiling() only once.
       myProfilers.forEach(profiler -> profiler.stopProfiling(myProfilingSession));
     }
 
     myProfilingSession = newSession;
 
-    if (!Common.Session.getDefaultInstance().equals(myProfilingSession)) {
+    if (!Common.Session.getDefaultInstance().equals(myProfilingSession)
+        // When multiple instances of Studio are open, there may be multiple instances of StudioProfiers class. Each of them
+        // registers to PROFILING_SESSION aspect and this method will be called on each of the instance. We should not call
+        // startProfiling() if the device isn't the one where the new session is from. Ideally, we should call startProfiling()
+        // only once.
+        && myDevice != null && myDevice.getDeviceId() == myProfilingSession.getStreamId()) {
       assert SessionsManager.isSessionAlive(myProfilingSession);
       myProfilers.forEach(profiler -> profiler.startProfiling(myProfilingSession));
       myIdeServices.getFeatureTracker().trackProfilingStarted();

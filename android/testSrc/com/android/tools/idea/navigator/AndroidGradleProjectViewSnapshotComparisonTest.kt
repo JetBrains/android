@@ -33,6 +33,7 @@ import com.intellij.ide.util.treeView.AbstractTreeStructure
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.ui.DeferredIcon
 import com.intellij.ui.LayeredIcon
 import com.intellij.ui.RowIcon
@@ -128,6 +129,24 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
 
   fun testCompatibilityWithAndroidStudio36NoImlProject() {
     val text = importSyncAndDumpProject(TestProjectPaths.COMPATIBILITY_TESTS_AS_36_NO_IML)
+    assertIsEqualToSnapshot(text)
+  }
+
+  fun testMissingImlIsIgnored() {
+    val srcPath = File(myFixture.testDataPath, toSystemDependentName(TestProjectPaths.SIMPLE_APPLICATION_CORRUPTED_MISSING_IML_40))
+    // Prepare project in a different directory (_Test) to avoid closing the currently opened project.
+    val projectPath = File(toSystemDependentName(project.basePath + "_Test"))
+
+    AndroidGradleTests.validateGradleProjectSource(srcPath)
+    AndroidGradleTests.prepareProjectForImportCore(srcPath, projectPath) { projectRoot ->
+      patchPreparedProject(projectRoot, null, null);
+    }
+
+    val project = ProjectUtil.openProject(projectPath.absolutePath, null, true)!!
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    val text = project.dumpAndroidProjectView()
+    ProjectUtil.closeAndDispose(project)
+
     assertIsEqualToSnapshot(text)
   }
 

@@ -39,8 +39,11 @@ import com.google.common.base.CharMatcher
 import java.io.File
 import javax.swing.Icon
 
-const val DISALLOWED_MESSAGE = "['/', ':', '<', '>', '\"', '?', '*', '|']"
-val DISALLOWED_IN_NAME: CharMatcher = CharMatcher.anyOf("/\\:<>\"?*|")
+// TODO(b/148838329): the first eight characters are disallowed by the Android Gradle Plugin: attempts to create names containing them throw
+//  errors.  The last two, $ and ', are permitted in names by the plugin, but currently cause difficulty in the Dsl parsers/writers for
+//  KotlinScript and Groovy respectively, and could be allowed if the Dsl supported them properly.
+const val DISALLOWED_MESSAGE = "['/', ':', '<', '>', '\"', '?', '*', '|', '\$', ''']"
+val DISALLOWED_IN_NAME: CharMatcher = CharMatcher.anyOf("/\\:<>\"?*|\$'")
 
 class PsAndroidModule(
   parent: PsProject,

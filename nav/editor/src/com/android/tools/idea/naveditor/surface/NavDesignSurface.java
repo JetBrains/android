@@ -195,14 +195,6 @@ public class NavDesignSurface extends DesignSurface {
     }
   }
 
-  @NotNull
-  @Override
-  public CompletableFuture<Void> requestRender() {
-    // TODO: According to the document of this function, we should implement NavSceneManager#requestLayoutAndRender() and use it here.
-    SceneManager manager = Iterables.getFirst(getSceneManagers(), null);
-    return manager != null ? manager.requestRender() : CompletableFuture.completedFuture(null);
-  }
-
   @Override
   public void dispose() {
     Future<?> future = getScheduleRef().get();
@@ -805,10 +797,8 @@ public class NavDesignSurface extends DesignSurface {
       return;
     }
 
-    for(NlComponent selected: selection) {
-      if (getSelectableComponents().contains(selected)) {
-        return;
-      }
+    if (getSelectableComponents().stream().anyMatch(selection::contains)) {
+      return;
     }
 
     NlComponent selected = selection.get(0);

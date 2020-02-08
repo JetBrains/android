@@ -66,11 +66,11 @@ public class ConstraintLayoutResizeHandleTest {
       .waitForRenderToFinish();
 
     NlComponentFixture textView = design.findView("Button", 0);
-    int width = textView.getWidth();
-    int height = textView.getHeight();
+    int width = textView.getSceneComponent().getWidth();
+    int height = textView.getSceneComponent().getHeight();
     textView.resizeBy(10, 10);
     design.waitForRenderToFinish();
-    assertThat(textView.getWidth()).isGreaterThan(width);
-    assertThat(textView.getHeight()).isGreaterThan(height);
+    assertThat(textView.getSceneComponent().getWidth()).isGreaterThan(width);
+    assertThat(textView.getSceneComponent().getHeight()).isGreaterThan(height);
   }
 }

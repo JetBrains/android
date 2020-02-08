@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.ui
 
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
+import com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_REPOSITORY_SEARCH_FORM_KT_PREPARE_ARTIFACT_VERSION_CHOICES
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.gradle.structure.model.PsModel
@@ -29,7 +30,6 @@ import com.android.tools.idea.gradle.structure.model.meta.annotated
 import com.android.tools.idea.gradle.structure.model.repositories.search.FoundArtifact
 import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Assert.assertThat
-import org.junit.Assume.assumeTrue
 import org.junit.Test
 
 class ArtifactRepositorySearchFormKtTest : GradleFileModelTestCase() {
@@ -71,22 +71,7 @@ class ArtifactRepositorySearchFormKtTest : GradleFileModelTestCase() {
 
   @Test
   fun testPrepareArtifactVersionChoices() {
-    assumeTrue(isGroovy())
-    writeToBuildFile(
-      """
-        ext {
-          ver10 = "1.0"
-          ver20 = "2.0"
-          otherVer = "3.0
-          nonVer = "something"
-          nonString = 123
-          inTheMap = [
-            "itemVer10": "1.0",
-            "itemVer11": "1.1",
-            "other": true
-          ]
-        }"""
-    )
+    writeToBuildFile(ARTIFACT_REPOSITORY_SEARCH_FORM_KT_PREPARE_ARTIFACT_VERSION_CHOICES)
 
     val variables = object: PsVariables(stubModel, "variables", "variables", null) {
       override fun getContainer(from: PsModel): ExtModel? = gradleBuildModel.ext()

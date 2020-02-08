@@ -25,11 +25,12 @@ import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.common.AdtSecondaryPanel;
+import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
+import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog;
 import com.android.tools.property.ptable.PTable;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.editors.NlComponentEditor;
-import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.android.tools.idea.uibuilder.api.AttributeBrowser;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
@@ -56,6 +57,7 @@ import java.util.Set;
 import javax.swing.BoxLayout;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -190,7 +192,7 @@ public class BrowsePanel extends AdtSecondaryPanel {
     }
   }
 
-  private static ChooseResourceDialog showResourceChooser(@NotNull NlProperty property, @NotNull XmlTag tag) {
+  private static ResourcePickerDialog showResourceChooser(@NotNull NlProperty property, @NotNull XmlTag tag) {
     Module module = property.getModel().getModule();
     Set<ResourceType> types = getResourceTypes(property);
     boolean onlyLayoutType = types.size() == 1 && types.contains(ResourceType.LAYOUT);
@@ -199,15 +201,18 @@ public class BrowsePanel extends AdtSecondaryPanel {
     boolean isImageViewDrawable = IMAGE_VIEW.equals(property.getTagName()) &&
                                   (ATTR_SRC_COMPAT.equals(propertyName) ||
                                   ATTR_SRC.equals(propertyName));
-    return ChooseResourceDialog.builder()
-      .setModule(module)
-      .setTypes(types)
-      .setCurrentValue(property.getValue())
-      .setTag(tag)
-      .setDefaultType(defaultResourceType)
-      .setFilterColorStateLists(isImageViewDrawable)
-      .setShowSampleDataPicker(!onlyLayoutType && TOOLS_URI.equals(property.getNamespace()))
-      .build();
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    assert facet != null;
+    return ResourceChooserHelperKt.createResourcePickerDialog(
+      "Choose a resource",
+      property.getValue(),
+      facet,
+      types,
+      defaultResourceType,
+      isImageViewDrawable,
+      !onlyLayoutType && TOOLS_URI.equals(property.getNamespace()),
+      tag.getContainingFile().getVirtualFile()
+    );
   }
 
   public static boolean hasBrowseDialog(@NotNull NlProperty property) {
@@ -228,7 +233,7 @@ public class BrowsePanel extends AdtSecondaryPanel {
       return browser.browse(editor, property.getValue());
     }
     else if (!getResourceTypes(property).isEmpty() && tag != null) {
-      ChooseResourceDialog dialog = showResourceChooser(property, tag);
+      ResourcePickerDialog dialog = showResourceChooser(property, tag);
       if (dialog.showAndGet()) {
         return dialog.getResourceName();
       }
@@ -300,7 +305,7 @@ public class BrowsePanel extends AdtSecondaryPanel {
    * For some attributes, it make more sense the display a specific type by default.
    * <p>
    * For example <code>textColor</code> has more chance to have a color value than a drawable value,
-   * so in the {@link ChooseResourceDialog}, we need to select the Color tab by default.
+   * so in the {@link ResourcePickerDialog}, we need to select the Color tab by default.
    *
    * @param propertyName The property name to get the associated default type from.
    * @return The {@link ResourceType} that should be selected by default for the provided property name.

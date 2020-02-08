@@ -103,7 +103,7 @@ public class CpuAnalysisPanel extends AspectObserver {
   }
 
   /**
-   * This function is called when the user selects an analysis tab (eg "Full trace").
+   * This function is called when the user selects an analysis tab (eg "All threads").
    * We update and display the child tabs (eg "Summary", "Flame Chart").
    */
   private void onSelectAnalysis(@NotNull CpuAnalysisModel<?> model) {

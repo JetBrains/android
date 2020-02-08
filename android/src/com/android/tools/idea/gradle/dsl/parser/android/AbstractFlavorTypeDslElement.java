@@ -42,7 +42,25 @@ public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement
     {"buildConfigField", exactly(3), BUILD_CONFIG_FIELD, OTHER}, // ADD: add argument list as property to Dsl
     {"consumerProguardFiles", atLeast(0), CONSUMER_PROGUARD_FILES, OTHER}, // APPENDN: append each argument
     {"setConsumerProguardFiles", exactly(1), CONSUMER_PROGUARD_FILES, SET},
-    {"manifestPlaceholders", property, MANIFEST_PLACEHOLDERS, VAR},
+    // in AGP 4.0, the manifestPlaceholders property is defined as a Java Map<String, Object>.  It is legal to use
+    // assignment to set this property to e.g. mapOf("a" to "b"), but not to mutableMapOf("a" to "b") because the inferred type of the
+    // mutableMapOf expression is MutableMap<String,String>, which is not compatible with (Mutable)Map<String!, Any!> (imagine something
+    // later on adding an entry to the property with String key and Integer value).
+    //
+    // in AGP 4.1, the manifestPlaceholders property is defined as a Kotlin MutableMap<String,Any>.  It would no longer be legal to assign
+    // a plain map; the assignment must be of a mutableMap.
+    //
+    // The DSL writer does not (as of January 2020) make use of information about which version of AGP is in use for this particular
+    // project.  It is therefore difficult to support writing out an assignment to manifestPlaceholders which will work in both cases:
+    // it would have to emit mutableMapOf<String,Any>(...).  This is perhaps desirable, but we don't have the general support
+    // for this: properties would need to be decorated with their types  TODO(b/148657110) so that we could get both manifestPlaceholders
+    //  and testInstrumentationRunnerArguments correct, and it is further complicated by setting the property through variables or extra
+    // properties.
+    //
+    // Instead, then, we will continue parsing assignments to manifestPlaceholders permissively, but when writing we will use the setter
+    // method rather than assignment.
+    {"manifestPlaceholders", property, MANIFEST_PLACEHOLDERS, VAR_BUT_DO_NOT_USE_FOR_WRITING_IN_KTS},
+    {"setManifestPlaceholders", exactly(1), MANIFEST_PLACEHOLDERS, OTHER}, // CLEAR + PUTALL, which is not quite the same as SET
     {"matchingFallbacks", property, MATCHING_FALLBACKS, VAR},
     {"multiDexEnabled", property, MULTI_DEX_ENABLED, VAR},
     {"setMultiDexEnabled", exactly(1), MULTI_DEX_ENABLED, SET},

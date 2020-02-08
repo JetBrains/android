@@ -888,6 +888,8 @@
     <extensionPoint qualifiedName="com.android.ide.androidConfigurableContributor"
                     interface="com.android.tools.idea.structure.dialog.AndroidConfigurableContributor"/>
     <extensionPoint qualifiedName="com.android.run.androidDebugger" interface="com.android.tools.idea.run.editor.AndroidDebugger" />
+    <extensionPoint qualifiedName="com.android.tools.idea.run.editor.androidDebuggerInfoProvider"
+                    interface="com.android.tools.idea.run.editor.AndroidDebuggerInfoProvider" />
     <extensionPoint qualifiedName="com.android.logcat.filterProvider"
                     interface="com.android.tools.idea.logcat.LogcatFilterProvider" />
     <extensionPoint qualifiedName="org.jetbrains.android.actions.newResourceCreationHandler"
@@ -1027,6 +1029,10 @@
 
   <extensions defaultExtensionNs="com.android.run">
     <androidDebugger implementation="com.android.tools.idea.run.editor.AndroidJavaDebugger"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="com.android.tools.idea.run.editor">
+    <androidDebuggerInfoProvider implementation="com.android.tools.idea.run.editor.AndroidAppAndroidDebuggerInfoProvider" />
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
