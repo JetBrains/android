@@ -53,15 +53,19 @@ import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import java.awt.Dimension;
-import java.awt.event.KeyAdapter;
+import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
+import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.KeyStroke;
 import javax.swing.ScrollPaneConstants;
 import org.jetbrains.annotations.NotNull;
 
@@ -76,6 +80,16 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   private static final double TIMELINE_PAN_FACTOR = 0.1;
   private static final double TIMELINE_DRAG_FACTOR = 0.001;
   private static final ProfilerTrackRendererFactory TRACK_RENDERER_FACTORY = new ProfilerTrackRendererFactory();
+
+  /**
+   * Key binding keys.
+   */
+  private static final String ZOOM_IN_KEY = "zoom_in";
+  private static final String ZOOM_OUT_KEY = "zoom_out";
+  private static final String PAN_LEFT_KEY = "pan_left";
+  private static final String PAN_RIGHT_KEY = "pan_right";
+  private static final String PANNING_MODE_ON_KEY = "panning_mode_on";
+  private static final String PANNING_MODE_OFF_KEY = "panning_mode_off";
 
   private final TrackGroupListPanel myTrackGroupList;
   private final CpuAnalysisPanel myAnalysisPanel;
@@ -206,12 +220,62 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
     container.add(minimap.getComponent(), new TabularLayout.Constraint(0, 0));
     container.add(myScrollPane, new TabularLayout.Constraint(1, 0));
     container.add(createBottomAxisPanel(minimapModel.getRangeSelectionModel().getSelectionRange()), new TabularLayout.Constraint(2, 0));
+    initKeyBindings(container);
 
     JBSplitter splitter = new JBSplitter(false, 0.5f);
     splitter.setFirstComponent(container);
     splitter.setSecondComponent(myAnalysisPanel.getComponent());
     splitter.getDivider().setBorder(JBUI.Borders.customLine(StudioColorsKt.getBorder(), 0, 1, 0, 1));
     return splitter;
+  }
+
+  private void initKeyBindings(@NotNull JComponent container) {
+    InputMap inputMap = container.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+    ActionMap actionMap = container.getActionMap();
+
+    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_W, 0), ZOOM_IN_KEY);
+    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_S, 0), ZOOM_OUT_KEY);
+    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_A, 0), PAN_LEFT_KEY);
+    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_D, 0), PAN_RIGHT_KEY);
+    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), PANNING_MODE_ON_KEY);
+    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0, true), PANNING_MODE_OFF_KEY);
+
+    actionMap.put(ZOOM_IN_KEY, new AbstractAction() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        getStage().getTimeline().zoomIn();
+      }
+    });
+    actionMap.put(ZOOM_OUT_KEY, new AbstractAction() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        getStage().getTimeline().zoomOut();
+      }
+    });
+    actionMap.put(PAN_LEFT_KEY, new AbstractAction() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        getStage().getTimeline().panView(-getStage().getTimeline().getViewRange().getLength() * TIMELINE_PAN_FACTOR);
+      }
+    });
+    actionMap.put(PAN_RIGHT_KEY, new AbstractAction() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        getStage().getTimeline().panView(getStage().getTimeline().getViewRange().getLength() * TIMELINE_PAN_FACTOR);
+      }
+    });
+    actionMap.put(PANNING_MODE_ON_KEY, new AbstractAction() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        setPanningMode(true, myTrackGroupList);
+      }
+    });
+    actionMap.put(PANNING_MODE_OFF_KEY, new AbstractAction() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        setPanningMode(false, myTrackGroupList);
+      }
+    });
   }
 
   @NotNull
@@ -254,39 +318,6 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
           // Ctrl/Cmd key is not pressed, dispatch the wheel event to the scroll pane for scrolling to work.
           e.setSource(myScrollPane);
           myScrollPane.dispatchEvent(e);
-        }
-      }
-    });
-    trackGroupListPanel.getComponent().addKeyListener(new KeyAdapter() {
-      @Override
-      public void keyPressed(KeyEvent e) {
-        switch (e.getKeyCode()) {
-          case KeyEvent.VK_W:
-            // VK_UP is used by JList to move selection up by default.
-            getStage().getTimeline().zoomIn();
-            break;
-          case KeyEvent.VK_S:
-            // VK_DOWN is used by JList to move selection down by default.
-            getStage().getTimeline().zoomOut();
-            break;
-          case KeyEvent.VK_A:
-          case KeyEvent.VK_LEFT:
-            getStage().getTimeline().panView(-getStage().getTimeline().getViewRange().getLength() * TIMELINE_PAN_FACTOR);
-            break;
-          case KeyEvent.VK_D:
-          case KeyEvent.VK_RIGHT:
-            getStage().getTimeline().panView(getStage().getTimeline().getViewRange().getLength() * TIMELINE_PAN_FACTOR);
-            break;
-          case KeyEvent.VK_SPACE:
-            setPanningMode(true, trackGroupListPanel);
-            break;
-        }
-      }
-
-      @Override
-      public void keyReleased(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-          setPanningMode(false, trackGroupListPanel);
         }
       }
     });

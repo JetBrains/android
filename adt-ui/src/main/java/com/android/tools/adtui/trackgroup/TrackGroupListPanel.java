@@ -31,8 +31,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.ui.MouseEventHandler;
 import java.awt.FlowLayout;
 import java.awt.Point;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -103,13 +101,6 @@ public class TrackGroupListPanel implements TrackGroupMover {
         DelegateMouseEventHandler.delegateTo(getComponent())
           .installListenerOn(trackGroup.getTrackList())
           .installMotionListenerOn(trackGroup.getTrackList());
-        trackGroup.getTrackList().addFocusListener(new FocusAdapter() {
-          @Override
-          public void focusGained(FocusEvent e) {
-            // Focus the parent component so that its KeyListeners can handle keyboard shortcuts.
-            myPanel.requestFocusInWindow();
-          }
-        });
       });
     initTrackGroups();
   }
