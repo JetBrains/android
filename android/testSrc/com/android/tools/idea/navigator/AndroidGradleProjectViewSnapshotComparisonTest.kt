@@ -20,9 +20,10 @@ import com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludesViewNode
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.AndroidGradleTests
-import com.android.tools.idea.testing.SnapshotComparisonTest
+import com.android.tools.idea.testing.GradleSnapshotComparisonTest
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
+import com.android.tools.idea.testing.openGradleProject
 import com.intellij.ide.impl.ProjectUtil
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.projectView.ProjectView
@@ -33,7 +34,6 @@ import com.intellij.ide.util.treeView.AbstractTreeStructure
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
-import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.ui.DeferredIcon
 import com.intellij.ui.LayeredIcon
 import com.intellij.ui.RowIcon
@@ -41,7 +41,7 @@ import sun.swing.ImageIconUIResource
 import java.io.File
 import javax.swing.Icon
 
-class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotComparisonTest {
+class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), GradleSnapshotComparisonTest {
   override val snapshotDirectoryName = "projectViewSnapshots"
 
   data class ProjectViewSettings(val hideEmptyPackages: Boolean = true)
@@ -133,19 +133,9 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
   }
 
   fun testMissingImlIsIgnored() {
-    val srcPath = File(myFixture.testDataPath, toSystemDependentName(TestProjectPaths.SIMPLE_APPLICATION_CORRUPTED_MISSING_IML_40))
-    // Prepare project in a different directory (_Test) to avoid closing the currently opened project.
-    val projectPath = File(toSystemDependentName(project.basePath + "_Test"))
-
-    AndroidGradleTests.validateGradleProjectSource(srcPath)
-    AndroidGradleTests.prepareProjectForImportCore(srcPath, projectPath) { projectRoot ->
-      patchPreparedProject(projectRoot, null, null);
+    val text = openGradleProject(TestProjectPaths.SIMPLE_APPLICATION_CORRUPTED_MISSING_IML_40, "testMissingImlIsIgnored_Test") { project ->
+      project.dumpAndroidProjectView()
     }
-
-    val project = ProjectUtil.openProject(projectPath.absolutePath, null, true)!!
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    val text = project.dumpAndroidProjectView()
-    ProjectUtil.closeAndDispose(project)
 
     assertIsEqualToSnapshot(text)
   }
@@ -269,4 +259,3 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
     }
   }
 }
-
