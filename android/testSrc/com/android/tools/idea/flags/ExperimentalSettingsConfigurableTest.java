@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.flags;
 
+import static com.android.tools.idea.flags.ExperimentalSettingsConfigurable.TraceProfileItem.DEFAULT;
+import static com.android.tools.idea.flags.ExperimentalSettingsConfigurable.TraceProfileItem.SPECIFIED_LOCATION;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
@@ -34,6 +36,7 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
   protected void setUp() throws Exception {
     super.setUp();
     initMocks(this);
+    mySettings.TRACE_PROFILE_LOCATION = "";
     myConfigurable = new ExperimentalSettingsConfigurable(mySettings, new RenderSettings());
   }
 
@@ -55,49 +58,91 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     assertTrue(myConfigurable.isModified());
     mySettings.SKIP_GRADLE_TASKS_LIST = true;
     assertFalse(myConfigurable.isModified());
+
+    myConfigurable.setTraceGradleSync(true);
+    mySettings.TRACE_GRADLE_SYNC = false;
+    assertTrue(myConfigurable.isModified());
+    mySettings.TRACE_GRADLE_SYNC = true;
+    assertFalse(myConfigurable.isModified());
+
+    myConfigurable.setTraceProfileLocation("/tmp/text1.profile");
+    mySettings.TRACE_PROFILE_LOCATION = "/tmp/text2.profile";
+    assertTrue(myConfigurable.isModified());
+    mySettings.TRACE_PROFILE_LOCATION = "/tmp/text1.profile";
+    assertFalse(myConfigurable.isModified());
+
+    myConfigurable.setTraceProfileSelection(DEFAULT);
+    mySettings.TRACE_PROFILE_SELECTION = SPECIFIED_LOCATION;
+    assertTrue(myConfigurable.isModified());
+    mySettings.TRACE_PROFILE_SELECTION = DEFAULT;
+    assertFalse(myConfigurable.isModified());
   }
 
   public void testApply() throws ConfigurationException {
     myConfigurable.setUseL2DependenciesInSync(true);
     myConfigurable.setUseSingleVariantSync(true);
     myConfigurable.setSkipGradleTasksList(true);
+    myConfigurable.setTraceGradleSync(true);
+    myConfigurable.setTraceProfileLocation("/tmp/text1.profile");
+    myConfigurable.setTraceProfileSelection(DEFAULT);
 
     myConfigurable.apply();
 
     assertTrue(mySettings.USE_L2_DEPENDENCIES_ON_SYNC);
     assertTrue(mySettings.USE_SINGLE_VARIANT_SYNC);
     assertTrue(mySettings.SKIP_GRADLE_TASKS_LIST);
+    assertTrue(mySettings.TRACE_GRADLE_SYNC);
+    assertEquals("/tmp/text1.profile", mySettings.TRACE_PROFILE_LOCATION);
+    assertEquals(DEFAULT, mySettings.TRACE_PROFILE_SELECTION);
 
     myConfigurable.setUseL2DependenciesInSync(false);
     myConfigurable.setUseSingleVariantSync(false);
     myConfigurable.setSkipGradleTasksList(false);
+    myConfigurable.setTraceGradleSync(false);
+    myConfigurable.setTraceProfileLocation("/tmp/text2.profile");
+    myConfigurable.setTraceProfileSelection(SPECIFIED_LOCATION);
 
     myConfigurable.apply();
 
     assertFalse(mySettings.USE_L2_DEPENDENCIES_ON_SYNC);
     assertFalse(mySettings.USE_SINGLE_VARIANT_SYNC);
     assertFalse(mySettings.SKIP_GRADLE_TASKS_LIST);
+    assertFalse(mySettings.TRACE_GRADLE_SYNC);
+    assertEquals("/tmp/text2.profile", mySettings.TRACE_PROFILE_LOCATION);
+    assertEquals(SPECIFIED_LOCATION, mySettings.TRACE_PROFILE_SELECTION);
   }
 
   public void testReset() {
     mySettings.USE_L2_DEPENDENCIES_ON_SYNC = true;
     mySettings.USE_SINGLE_VARIANT_SYNC = true;
     mySettings.SKIP_GRADLE_TASKS_LIST = true;
+    mySettings.TRACE_GRADLE_SYNC = true;
+    mySettings.TRACE_PROFILE_LOCATION = "/tmp/text1.profile";
+    mySettings.TRACE_PROFILE_SELECTION = DEFAULT;
 
     myConfigurable.reset();
 
     assertTrue(myConfigurable.isUseL2DependenciesInSync());
     assertTrue(myConfigurable.isUseSingleVariantSync());
     assertTrue(myConfigurable.skipGradleTasksList());
+    assertTrue(myConfigurable.traceGradleSync());
+    assertEquals("/tmp/text1.profile", myConfigurable.getTraceProfileLocation());
+    assertEquals(DEFAULT, myConfigurable.getTraceProfileSelection());
 
     mySettings.USE_L2_DEPENDENCIES_ON_SYNC = false;
     mySettings.USE_SINGLE_VARIANT_SYNC = false;
     mySettings.SKIP_GRADLE_TASKS_LIST = false;
+    mySettings.TRACE_GRADLE_SYNC = false;
+    mySettings.TRACE_PROFILE_LOCATION = "/tmp/text2.profile";
+    mySettings.TRACE_PROFILE_SELECTION = SPECIFIED_LOCATION;
 
     myConfigurable.reset();
 
     assertFalse(myConfigurable.isUseL2DependenciesInSync());
     assertFalse(myConfigurable.isUseSingleVariantSync());
     assertFalse(myConfigurable.skipGradleTasksList());
+    assertFalse(myConfigurable.traceGradleSync());
+    assertEquals("/tmp/text2.profile", myConfigurable.getTraceProfileLocation());
+    assertEquals(SPECIFIED_LOCATION, myConfigurable.getTraceProfileSelection());
   }
 }
