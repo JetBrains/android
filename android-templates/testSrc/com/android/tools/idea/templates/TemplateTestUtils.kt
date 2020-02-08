@@ -36,7 +36,6 @@ import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.ThemesData
 import com.android.tools.lint.checks.ManifestDetector
-import com.android.tools.lint.client.api.LintDriver
 import com.android.tools.lint.detector.api.Issue
 import com.android.tools.lint.detector.api.Scope
 import com.android.tools.lint.detector.api.Severity
@@ -96,7 +95,7 @@ internal fun getLintIssueMessage(project: Project, maxSeverity: Severity, ignore
     remove(Scope.JAVA_LIBRARIES)
   }
   request.setScope(scope)
-  LintDriver(registry, client, request).analyze()
+  client.createDriver(request, registry).analyze()
   map.values.forEach { fileListMap ->
     fileListMap.forEach { (file, problems) ->
       val problem = problems.filterNot { it.issue in ignored }.firstOrNull { it.issue.defaultSeverity < maxSeverity }

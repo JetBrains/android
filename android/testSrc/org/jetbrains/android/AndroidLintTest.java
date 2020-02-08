@@ -301,6 +301,16 @@ public class AndroidLintTest extends AndroidTestCase {
   public void testContentDescription1() throws Exception {
     doTestNoFix(new AndroidLintContentDescriptionInspection(),
                 "/res/layout/layout.xml", "xml");
+
+    // Also test the other lint infrastructure, where we produce an error report instead of overlaying
+    // XML-like tags for error ranges into an existing XML doc (which makes it syntactically invalid)
+    AndroidLintGradleTestKt.checkLint(
+      myFixture, myFixture.getFile(), new AndroidLintContentDescriptionInspection(),
+      "TODO|",
+      "Warning: Empty `contentDescription` attribute on image\n" +
+      "    android:contentDescription=\"TODO\"/>\n" +
+      "    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n" +
+      "    Fix: Suppress: Add tools:ignore=\"ContentDescription\" attribute");
   }
 
   public void testAdapterViewChildren() throws Exception {

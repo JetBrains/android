@@ -254,7 +254,7 @@ public class LintGlobalInspectionContext implements GlobalInspectionContextExten
 
     LintRequest request = new LintIdeRequest(client, project, files, modules, false);
     request.setScope(lintScope);
-    final LintDriver lint = new LintDriver(LintIdeIssueRegistry.get(), client, request);
+    final LintDriver lint = client.createDriver(request);
 
     // Baseline analysis?
     myBaseline = null;
