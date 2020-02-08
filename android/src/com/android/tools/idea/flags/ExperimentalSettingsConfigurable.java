@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.flags;
 
+import static com.android.tools.idea.flags.ExperimentalSettingsConfigurable.TraceProfileItem.DEFAULT;
+import static com.android.tools.idea.flags.ExperimentalSettingsConfigurable.TraceProfileItem.SPECIFIED_LOCATION;
 import static com.android.tools.idea.layoutlib.LayoutLibrary.LAYOUTLIB_NATIVE_PLUGIN;
 import static com.android.tools.idea.layoutlib.LayoutLibrary.LAYOUTLIB_STANDARD_PLUGIN;
+import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFileDescriptor;
 
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
@@ -32,9 +35,13 @@ import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.TitledSeparator;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.Hashtable;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -56,6 +63,9 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   private TitledSeparator myLayoutInspectorSeparator;
   private JCheckBox mySkipGradleTasksList;
   private JCheckBox myUseLayoutlibNative;
+  private JCheckBox myTraceGradleSyncCheckBox;
+  private JComboBox<TraceProfileItem> myTraceProfileComboBox;
+  private TextFieldWithBrowseButton myTraceProfilePathField;
 
   private Runnable myRestartCallback;
 
@@ -83,7 +93,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     boolean showLayoutInspectorSettings = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLED.get();
     myLayoutInspectorSeparator.setVisible(showLayoutInspectorSettings);
     myLayoutInspectorCheckbox.setVisible(showLayoutInspectorSettings);
-
+    initTraceComponents();
     reset();
   }
 
@@ -122,6 +132,9 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     return mySettings.USE_L2_DEPENDENCIES_ON_SYNC != isUseL2DependenciesInSync() ||
            mySettings.USE_SINGLE_VARIANT_SYNC != isUseSingleVariantSync() ||
            mySettings.SKIP_GRADLE_TASKS_LIST != skipGradleTasksList() ||
+           mySettings.TRACE_GRADLE_SYNC != traceGradleSync() ||
+           mySettings.TRACE_PROFILE_SELECTION != getTraceProfileSelection() ||
+           !mySettings.TRACE_PROFILE_LOCATION.equals(getTraceProfileLocation()) ||
            (int)(myRenderSettings.getQuality() * 100) != getQualitySetting() ||
            myLayoutInspectorCheckbox.isSelected() != LayoutInspectorSettingsKt.getEnableLiveLayoutInspector() ||
            (myUseLayoutlibNative.isSelected() == PluginManagerCore.isDisabled(LAYOUTLIB_NATIVE_PLUGIN));
@@ -136,6 +149,9 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     mySettings.USE_L2_DEPENDENCIES_ON_SYNC = isUseL2DependenciesInSync();
     mySettings.USE_SINGLE_VARIANT_SYNC = isUseSingleVariantSync();
     mySettings.SKIP_GRADLE_TASKS_LIST = skipGradleTasksList();
+    mySettings.TRACE_GRADLE_SYNC = traceGradleSync();
+    mySettings.TRACE_PROFILE_SELECTION = getTraceProfileSelection();
+    mySettings.TRACE_PROFILE_LOCATION = getTraceProfileLocation();
 
     myRenderSettings.setQuality(getQualitySetting() / 100f);
 
@@ -196,6 +212,64 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     mySkipGradleTasksList.setSelected(value);
   }
 
+  boolean traceGradleSync() {
+    return myTraceGradleSyncCheckBox.isSelected();
+  }
+
+  @TestOnly
+  void setTraceGradleSync(boolean value) {
+    myTraceGradleSyncCheckBox.setSelected(value);
+  }
+
+  @Nullable
+  TraceProfileItem getTraceProfileSelection() {
+    return (TraceProfileItem)myTraceProfileComboBox.getSelectedItem();
+  }
+
+  @TestOnly
+  void setTraceProfileSelection(@NotNull TraceProfileItem value) {
+    myTraceProfileComboBox.setSelectedItem(value);
+  }
+
+  @NotNull
+  String getTraceProfileLocation() {
+    return myTraceProfilePathField.getText();
+  }
+
+  @TestOnly
+  void setTraceProfileLocation(@NotNull String value) {
+    myTraceProfilePathField.setText(value);
+  }
+
+  private void initTraceComponents() {
+    myTraceGradleSyncCheckBox.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        updateTraceComponents();
+      }
+    });
+
+    myTraceProfileComboBox.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        myTraceProfilePathField.setEnabled(SPECIFIED_LOCATION.equals(myTraceProfileComboBox.getSelectedItem()));
+      }
+    });
+
+    myTraceProfilePathField.addBrowseFolderListener("Trace Profile", "Please select trace profile",
+                                                    null, createSingleFileDescriptor("profile"));
+    myTraceProfileComboBox.addItem(DEFAULT);
+    myTraceProfileComboBox.addItem(SPECIFIED_LOCATION);
+  }
+
+
+  private void updateTraceComponents() {
+    myTraceProfileComboBox.setEnabled(myTraceGradleSyncCheckBox.isSelected());
+    // Enable text field only if trace is enabled, and using profile from local disk.
+    myTraceProfilePathField
+      .setEnabled(myTraceGradleSyncCheckBox.isSelected() && SPECIFIED_LOCATION.equals(myTraceProfileComboBox.getSelectedItem()));
+  }
+
   @Override
   public void reset() {
     myUseL2DependenciesCheckBox.setSelected(mySettings.USE_L2_DEPENDENCIES_ON_SYNC);
@@ -204,5 +278,25 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myLayoutEditorQualitySlider.setValue((int)(myRenderSettings.getQuality() * 100));
     myLayoutInspectorCheckbox.setSelected(LayoutInspectorSettingsKt.getEnableLiveLayoutInspector());
     myUseLayoutlibNative.setSelected(!PluginManagerCore.isDisabled(LAYOUTLIB_NATIVE_PLUGIN));
+    myTraceGradleSyncCheckBox.setSelected(mySettings.TRACE_GRADLE_SYNC);
+    myTraceProfileComboBox.setSelectedItem(mySettings.TRACE_PROFILE_SELECTION);
+    myTraceProfilePathField.setText(mySettings.TRACE_PROFILE_LOCATION);
+    updateTraceComponents();
+  }
+
+  public enum TraceProfileItem {
+    DEFAULT("Default profile"),
+    SPECIFIED_LOCATION("Specified location");
+
+    private String displayValue;
+
+    TraceProfileItem(@NotNull String value) {
+      displayValue = value;
+    }
+
+    @Override
+    public String toString() {
+      return displayValue;
+    }
   }
 }
