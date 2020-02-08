@@ -17,9 +17,12 @@ package com.android.tools.idea.run
 
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
+import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.run.deployable.SwappableProcessHandler
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget
 import com.google.common.truth.Truth.assertThat
+import com.intellij.execution.ExecutionTarget
+import com.intellij.execution.ExecutionTargetManager
 import com.intellij.execution.process.ProcessListener
 import com.intellij.execution.process.ProcessOutputTypes
 import com.intellij.openapi.project.Project
@@ -28,8 +31,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.ArgumentMatchers.argThat
-import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.inOrder
@@ -47,14 +50,12 @@ class AndroidProcessHandlerTest {
     const val TARGET_APP_NAME: String = "example.target.app"
   }
 
-  @Mock
-  lateinit var mockProject: Project
-  @Mock
-  lateinit var mockDeploymentAppService: DeploymentApplicationService
-  @Mock
-  lateinit var mockMonitorManager: AndroidProcessMonitorManager
-  @Mock
-  lateinit var mockProcessListener: ProcessListener
+  @Mock lateinit var mockProject: Project
+  @Mock lateinit var mockExecutionTargetManager: ExecutionTargetManager
+  @Mock lateinit var mockExecutionTarget: AndroidExecutionTarget
+  @Mock lateinit var mockDeploymentAppService: DeploymentApplicationService
+  @Mock lateinit var mockMonitorManager: AndroidProcessMonitorManager
+  @Mock lateinit var mockProcessListener: ProcessListener
 
   lateinit var handler: AndroidProcessHandler
   lateinit var textEmitter: TextEmitter
@@ -63,6 +64,10 @@ class AndroidProcessHandlerTest {
   @Before
   fun setUp() {
     initMocks(this)
+
+    `when`(mockProject.getService(eq(ExecutionTargetManager::class.java), anyBoolean()))
+      .thenReturn(mockExecutionTargetManager)
+    `when`(mockExecutionTargetManager.activeTarget).thenReturn(mockExecutionTarget)
 
     handler = AndroidProcessHandler(
       mockProject,
@@ -168,52 +173,36 @@ class AndroidProcessHandlerTest {
   }
 
   @Test
-  fun areAnyDevicesAssociatedDevicesIsEmpty() {
-    // Arrange
-    val target = mock(AndroidExecutionTarget::class.java)
-
-    // Act
-    val associated = handler.areAnyDevicesAssociated(target)
-
-    // Assert
-    assertThat(associated).isFalse()
+  fun canKillProcess_returnsFalseWhenNoAssociatedDevices() {
+    assertThat(handler.canKillProcess()).isFalse()
   }
 
   @Test
-  fun areAnyDevicesAssociatedDevicesContainsOneAssociated() {
-    // Arrange
-    val device = mock(IDevice::class.java)
+  fun canKillProcess_returnsTrueWhenThereIsAnyAssociatedDevice() {
+    val nonAssociatedDevice = mock(IDevice::class.java)
+    val associatedDevice = mock(IDevice::class.java)
 
-    val target = mock(AndroidExecutionTarget::class.java)
-    `when`(target.devices).thenReturn(listOf(device))
+    `when`(mockExecutionTarget.devices).thenReturn(listOf(nonAssociatedDevice, associatedDevice))
+    `when`(mockMonitorManager.isAssociated(associatedDevice)).thenReturn(true)
 
-    val monitor = mock(SingleDeviceAndroidProcessMonitor::class.java)
-    `when`(mockMonitorManager.getMonitor(device)).thenReturn(monitor)
-
-    // Act
-    val associated = handler.areAnyDevicesAssociated(target)
-
-    // Assert
-    assertThat(associated).isTrue()
+    assertThat(handler.canKillProcess()).isTrue()
   }
 
   @Test
-  fun areAnyDevicesAssociatedDevicesContainsOneAssociatedAndOneUnassociated() {
-    // Arrange
-    val device1 = mock(IDevice::class.java)
-    val device2 = mock(IDevice::class.java)
+  fun canKillProcess_returnsFalseWhenThereAreNoAssociatedDevices() {
+    val nonAssociatedDevice1 = mock(IDevice::class.java)
+    val nonAssociatedDevice2 = mock(IDevice::class.java)
 
-    val target = mock(AndroidExecutionTarget::class.java)
-    `when`(target.devices).thenReturn(listOf(device1, device2))
+    `when`(mockExecutionTarget.devices).thenReturn(listOf(nonAssociatedDevice1, nonAssociatedDevice2))
 
-    val monitor = mock(SingleDeviceAndroidProcessMonitor::class.java)
-    `when`(mockMonitorManager.getMonitor(device1)).thenReturn(monitor)
+    assertThat(handler.canKillProcess()).isFalse()
+  }
 
-    // Act
-    val associated = handler.areAnyDevicesAssociated(target)
+  @Test
+  fun canKillProcess_returnsFalseWhenActiveTargetIsNotAndroidTarget() {
+    `when`(mockExecutionTargetManager.activeTarget).thenReturn(mock(ExecutionTarget::class.java))
 
-    // Assert
-    assertThat(associated).isTrue()
+    assertThat(handler.canKillProcess()).isFalse()
   }
 
   private fun createMockDevice(apiVersion: Int): IDevice {
