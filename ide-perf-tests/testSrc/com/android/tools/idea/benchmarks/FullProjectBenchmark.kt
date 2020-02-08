@@ -32,11 +32,12 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.search.FileTypeIndex
 import com.intellij.psi.search.ProjectScope
 import com.intellij.testFramework.runInEdtAndWait
-import org.jetbrains.kotlin.idea.util.projectStructure.allModules
 import org.jetbrains.android.AndroidTestBase
+import org.jetbrains.kotlin.idea.util.projectStructure.allModules
 import org.junit.After
 import org.junit.Ignore
 import java.io.File
+
 
 /**
  * Contains the inputs necessary to run a layout critical user journey completion run, @see layoutAttributeCompletionBenchmark
@@ -197,6 +198,7 @@ abstract class FullProjectBenchmark {
       waitForAsyncVfsRefreshes() // Avoids write actions during highlighting.
     }
 
+    // Note: metadata for this benchmark is uploaded by IdeBenchmarkTestSuite.
     val highlightingBenchmark = Benchmark.Builder("Full Project Highlighting")
       .setDescription("""
         For each test project, this benchmark runs syntax highlighting on all files of a given file type
@@ -211,6 +213,7 @@ abstract class FullProjectBenchmark {
       .setProject(EDITOR_PERFGATE_PROJECT_NAME)
       .build()
 
+    // Note: metadata for this benchmark is uploaded by IdeBenchmarkTestSuite.
     val layoutCompletionBenchmark = Benchmark.Builder("Layout Completion Benchmark")
       .setDescription("""
         This test record the time taken to provide completion results for view attributes and tags in layout 
