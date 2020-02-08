@@ -63,12 +63,14 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.openapi.wm.impl.StripeButton;
+import com.intellij.openapi.wm.impl.ToolWindowsPane;
 import com.intellij.util.ThreeState;
 import java.awt.Component;
 import java.awt.Container;
@@ -208,6 +210,13 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     ApplicationManager.getApplication().putUserData(EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY, failTask);
     selectProjectMakeAction();
     return this;
+  }
+
+  @NotNull
+  public ThreeComponentsSplitterFixture findToolWindowSplitter() {
+    ToolWindowsPane toolWindowsPane = GuiTests.waitUntilFound(robot(), target(), Matchers.byType(ToolWindowsPane.class));
+    ThreeComponentsSplitter splitter = (ThreeComponentsSplitter)toolWindowsPane.getMyLayeredPane().getComponent(0);
+    return new ThreeComponentsSplitterFixture(robot(), splitter);
   }
 
   /**
