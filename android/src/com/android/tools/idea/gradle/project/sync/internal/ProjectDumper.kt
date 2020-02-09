@@ -272,20 +272,22 @@ private fun ProjectDumper.dump(library: Library, matchingName: String) {
   val orderRootTypes = OrderRootType.getAllPersistentTypes().toList() + OrderRootType.DOCUMENTATION
   orderRootTypes.forEach { type ->
     library
-        .getUrls(type)
-        .filter { file ->
-          !file.toPrintablePath().contains("<M2>") ||
-          (type != OrderRootType.DOCUMENTATION &&
-           type != OrderRootType.SOURCES &&
-           type != JavadocOrderRootType.getInstance())
-        }
-        .filter { file ->
-          !file.toPrintablePath().contains("<USER_M2>") || type != AnnotationOrderRootType.getInstance()
-        }
-        .forEach { file ->
-          // TODO(b/124659827): Include source and JavaDocs artifacts when available.
-          prop("*" + type.name()) { file.toPrintablePath().replaceMatchingVersion(androidVersion) }
-        }
+      .getUrls(type)
+      .filter { file ->
+        !file.toPrintablePath().contains("<M2>") ||
+        (type != OrderRootType.DOCUMENTATION &&
+         type != OrderRootType.SOURCES &&
+         type != JavadocOrderRootType.getInstance())
+      }
+      .filter { file ->
+        !file.toPrintablePath().contains("<USER_M2>") || type != AnnotationOrderRootType.getInstance()
+      }
+      .map { file -> file.toPrintablePath().replaceMatchingVersion(androidVersion) }
+      .sorted()
+      .forEach { printerPath ->
+        // TODO(b/124659827): Include source and JavaDocs artifacts when available.
+        prop("*" + type.name()) { printerPath }
+      }
   }
 }
 
