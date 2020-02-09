@@ -56,6 +56,7 @@ import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.io.FileUtil.delete
 import com.intellij.openapi.util.io.FileUtil.join
 import com.intellij.openapi.util.io.FileUtil.writeToFile
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.PathUtil.toSystemDependentName
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED
@@ -87,7 +88,10 @@ abstract class GradleSyncProjectComparisonTest(
 ) : GradleSyncIntegrationTestCase(), GradleSnapshotComparisonTest {
   override fun useSingleVariantSyncInfrastructure(): Boolean = singleVariantSync
 
-  class FullVariantGradleSyncProjectComparisonTest : GradleSyncProjectComparisonTestCase()
+  class FullVariantGradleSyncProjectComparisonTest : GradleSyncProjectComparisonTestCase() {
+    // TODO(b/135453395): Re-enable after variant switching from cache is fixed.
+    override fun testSwitchingVariantsWithReopenAndResync_simpleApplication() = Unit
+  }
 
   class SingleVariantGradleSyncProjectComparisonTest :
     GradleSyncProjectComparisonTestCase(singleVariantSync = true) {
@@ -323,6 +327,7 @@ abstract class GradleSyncProjectComparisonTest(
       }
       val release = reopenGradleProject("project") { project ->
         BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, "app", "release", true)
+        PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
         project.saveAndDump()
       }
       val reopenedRelease = reopenGradleProject("project") { project ->
@@ -335,13 +340,13 @@ abstract class GradleSyncProjectComparisonTest(
       )
     }
 
-    // TODO(b/142608498): Enable when variant selection is not lost on sync when opening a project.
-    fun /*test*/SwitchingVariantsWithReopenAndResync_simpleApplication() {
+    open fun testSwitchingVariantsWithReopenAndResync_simpleApplication() {
       val debugBefore = openGradleProject(SIMPLE_APPLICATION, "project") { project ->
         project.saveAndDump()
       }
       val release = reopenGradleProject("project") { project ->
         BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, "app", "release", true)
+        PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
         runWriteAction {
           // Modify the project build file to ensure the project is synced when opened.
           project.gradleModule(":")!!.fileUnderGradleRoot("build.gradle")!!.also { file ->

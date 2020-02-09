@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -55,22 +56,21 @@ public class SelectedVariantCollector {
   SelectedVariant findSelectedVariant(@NotNull Module module) {
     GradleFacet gradleFacet = GradleFacet.getInstance(module);
     if (gradleFacet != null) {
-      GradleModuleModel gradleModel = gradleFacet.getGradleModuleModel();
-      if (gradleModel != null) {
-        File rootFolder = gradleModel.getRootFolderPath();
-        String projectPath = gradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
+      String rootProjectPath = ExternalSystemApiUtil.getExternalRootProjectPath(module);
+      if (rootProjectPath == null) return null;
+      File rootFolder = new File(rootProjectPath);
+      String projectPath = gradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
 
-        AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-        NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
-        NdkFacet ndkFacet = NdkFacet.getInstance(module);
-        if (ndkFacet != null && ndkModuleModel != null) {
-          String ndkVariantName = ndkFacet.getConfiguration().SELECTED_BUILD_VARIANT;
-          return new SelectedVariant(rootFolder, projectPath, ndkModuleModel.getVariantName(ndkVariantName),
-                                     ndkModuleModel.getAbiName(ndkVariantName));
-        }
-        if (androidFacet != null) {
-          return new SelectedVariant(rootFolder, projectPath, androidFacet.getProperties().SELECTED_BUILD_VARIANT, null);
-        }
+      AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+      NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
+      NdkFacet ndkFacet = NdkFacet.getInstance(module);
+      if (ndkFacet != null && ndkModuleModel != null) {
+        String ndkVariantName = ndkFacet.getConfiguration().SELECTED_BUILD_VARIANT;
+        return new SelectedVariant(rootFolder, projectPath, ndkModuleModel.getVariantName(ndkVariantName),
+                                   ndkModuleModel.getAbiName(ndkVariantName));
+      }
+      if (androidFacet != null) {
+        return new SelectedVariant(rootFolder, projectPath, androidFacet.getProperties().SELECTED_BUILD_VARIANT, null);
       }
     }
     return null;
