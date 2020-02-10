@@ -62,7 +62,7 @@ public class AndroidKtsSupportNotificationTest extends PlatformTestCase {
   /**
    * Verify an AndroidNotification is created with the expected parameters
    */
-  public void testShowEnabledWarningIfNotShown() {
+  public void testShowNoWarningIfEnabled() {
     StudioFlags.KOTLIN_DSL_PARSING.override(true);
     AndroidKtsSupportNotification myKtsNotification = new AndroidKtsSupportNotification(myProject);
     myKtsNotification.showWarningIfNotShown();
@@ -79,7 +79,7 @@ public class AndroidKtsSupportNotificationTest extends PlatformTestCase {
   /**
    * Verify that warning is generated only once even when called multiple times
    */
-  public void testShowEnabledWarningIfNotShownTwice() {
+  public void testShowNoWarningIfEnabledEvenIfCalledTwice() {
     StudioFlags.KOTLIN_DSL_PARSING.override(true);
     AndroidKtsSupportNotification myKtsNotification = new AndroidKtsSupportNotification(myProject);
     myKtsNotification.showWarningIfNotShown();
@@ -98,17 +98,19 @@ public class AndroidKtsSupportNotificationTest extends PlatformTestCase {
   private void verifyBalloon() {
     boolean enabled = StudioFlags.KOTLIN_DSL_PARSING.get();
     ArgumentCaptor<NotificationHyperlink> hyperlinkCaptor = ArgumentCaptor.forClass(NotificationHyperlink.class);
-    verify(myAndroidNotification, times(1))
-      .showBalloon(same(KTS_WARNING_TITLE),
-                   enabled ? same(KTS_ENABLED_WARNING_MSG) : same(KTS_DISABLED_WARNING_MSG),
-                   same(WARNING),
-                   same(KTS_NOTIFICATION_GROUP),
-                   hyperlinkCaptor.capture());
-    List<NotificationHyperlink> hyperlinks = hyperlinkCaptor.getAllValues();
-    assertThat(hyperlinks).hasSize(enabled ? 2 : 1);
-    assertThat(hyperlinks.get(0)).isInstanceOf(DisableAndroidKtsNotificationHyperlink.class);
     if (enabled) {
-      assertThat(hyperlinks.get(1)).isInstanceOf(FileBugHyperlink.class);
+      assertNull(verify(myAndroidNotification, times(0)).getNotification());
+    }
+    else {
+      verify(myAndroidNotification, times(1))
+        .showBalloon(same(KTS_WARNING_TITLE),
+                     same(KTS_DISABLED_WARNING_MSG),
+                     same(WARNING),
+                     same(KTS_NOTIFICATION_GROUP),
+                     hyperlinkCaptor.capture());
+      List<NotificationHyperlink> hyperlinks = hyperlinkCaptor.getAllValues();
+      assertThat(hyperlinks).hasSize(1);
+      assertThat(hyperlinks.get(0)).isInstanceOf(DisableAndroidKtsNotificationHyperlink.class);
     }
   }
 }
