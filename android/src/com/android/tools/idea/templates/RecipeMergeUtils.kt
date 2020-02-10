@@ -25,7 +25,6 @@ import com.android.manifmerger.ManifestMerger2
 import com.android.manifmerger.MergingReport
 import com.android.manifmerger.XmlDocument
 import com.android.resources.ResourceFolderType
-import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.templates.recipe.RenderingContext2
 import com.android.utils.StdLogger
 import com.android.utils.XmlUtils
@@ -59,12 +58,12 @@ private const val MERGE_ATTR_STRATEGY = "templateMergeStrategy"
 private const val MERGE_ATTR_STRATEGY_REPLACE = "replace"
 private const val MERGE_ATTR_STRATEGY_PRESERVE = "preserve"
 
+// TODO(qumeric): remove it. We do not need an adapter anymore
 data class RenderingContextAdapter(
   val project: Project,
   val moduleRoot: File?,
   val warningsToAdd: MutableCollection<String>
 ) {
-  constructor(c: RenderingContext): this(c.project, c.moduleRoot, c.warnings)
   constructor(c2: RenderingContext2): this(c2.project, c2.moduleRoot, c2.warnings)
 }
 

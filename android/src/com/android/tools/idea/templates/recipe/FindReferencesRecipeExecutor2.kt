@@ -22,7 +22,7 @@ import com.android.tools.idea.wizard.template.RecipeExecutor as RecipeExecutor2
 import java.io.File
 
 /**
- * [RecipeExecutor] that collects references as a result of executing instructions in a [Recipe].
+ * [RecipeExecutor] that collects references as a result of executing instructions in a recipe.
  */
 internal class FindReferencesRecipeExecutor2(private val context: RenderingContext2) : RecipeExecutor2 {
   override fun hasDependency(mavenCoordinate: String, moduleDir: File?): Boolean = false

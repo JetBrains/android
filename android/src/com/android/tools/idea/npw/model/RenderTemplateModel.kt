@@ -70,9 +70,9 @@ class ExistingNewModuleModelData(
 class RenderTemplateModel private constructor(
   moduleModelData: ModuleModelData,
   val androidFacet: AndroidFacet?,
+  // TODO(qumeric): check if it is needed (3 below)
   private val commandName: String,
   private val shouldOpenFiles: Boolean,
-  /** Populated in [Template.render] */
   val createdFiles: MutableList<File> = arrayListOf()
 ) : WizardModel(), ModuleModelData by moduleModelData {
   /**

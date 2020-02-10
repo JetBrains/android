@@ -23,7 +23,6 @@ import com.android.tools.idea.assistant.datamodel.StepElementType;
 import com.android.tools.idea.assistant.datamodel.TutorialBundleData;
 import com.android.tools.idea.assistant.datamodel.TutorialData;
 import com.android.tools.idea.assistant.view.UIUtils;
-import com.android.tools.idea.templates.recipe.Recipe;
 import com.android.utils.FileUtils;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;

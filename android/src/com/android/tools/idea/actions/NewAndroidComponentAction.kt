@@ -49,7 +49,7 @@ import java.util.EnumSet
 
 // These categories will be using a new wizard
 @JvmField
-val NEW_WIZARD_CATEGORIES = setOf("Activity", "Google", TemplateManager.CATEGORY_AUTOMOTIVE, TemplateManager.CATEGORY_COMPOSE)
+val NEW_WIZARD_CATEGORIES = setOf("Activity", "Google", "Automotive", "Compose")
 @JvmField
 val FRAGMENT_CATEGORY = setOf("Fragment")
 @JvmField
@@ -63,8 +63,7 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
   private val templateName: String,
   private val minSdkApi: Int,
   private val minBuildSdkApi: Int = minSdkApi,
-  private val templateConstraints: EnumSet<TemplateConstraint> = EnumSet.noneOf(TemplateConstraint::class.java),
-  private val templateFile: File? = TemplateManager.getInstance().getTemplateFile(templateCategory, templateName)
+  private val templateConstraints: EnumSet<TemplateConstraint> = EnumSet.noneOf(TemplateConstraint::class.java)
 ) : AnAction(templateName, AndroidBundle.message("android.wizard.action.new.component", templateName), null) {
   var shouldOpenFiles = true
 

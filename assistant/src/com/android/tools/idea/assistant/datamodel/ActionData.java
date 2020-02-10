@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.assistant.datamodel;
 
-import com.android.tools.idea.templates.recipe.Recipe;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
 
 /**
  * An action represents a single button and its behaviors.
