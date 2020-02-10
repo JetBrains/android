@@ -373,7 +373,12 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
    * Sets sourceCompatibility and targetCompatibility in compileOptions and (if needed) jvmTarget in kotlinOptions.
    */
   override fun requireJavaVersion(version: String, kotlinSupport: Boolean) {
-    val languageLevel = LanguageLevel.parse(version)!!
+    var languageLevel = LanguageLevel.parse(version)!!
+    // Kotlin does not support 1.7
+    // See https://kotlinlang.org/docs/reference/using-gradle.html#attributes-specific-for-jvm
+    if (kotlinSupport && languageLevel == LanguageLevel.JDK_1_7) {
+      languageLevel = LanguageLevel.JDK_1_8
+    }
     val buildModel = moduleGradleBuildModel ?: return
 
     fun updateCompatibility(current: LanguageLevelPropertyModel) {
