@@ -212,7 +212,7 @@ internal fun cleanupProjectFiles(projectDir: File) {
 private const val defaultPackage = "template.test.pkg"
 
 internal fun getDefaultModuleState(project: Project): ModuleTemplateDataBuilder {
-  // TODO: is always new?
+  // TODO(qumeric): is always new?
   val projectStateBuilder = ProjectTemplateDataBuilder(true).apply {
     androidXSupport = true
     setProjectDefaults(project)
@@ -220,8 +220,7 @@ internal fun getDefaultModuleState(project: Project): ModuleTemplateDataBuilder 
     topOut = project.guessProjectDir()!!.toIoFile()
     debugKeyStoreSha1 = sha1(getOrCreateDefaultDebugKeystore())
     applicationPackage = defaultPackage
-    // TODO(qumeric): check if it is correct
-    overridePathCheck = false // To disable android plugin checking for ascii in paths (windows tests)
+    overridePathCheck = true // To disable android plugin checking for ascii in paths (windows tests)
   }
 
   return ModuleTemplateDataBuilder(projectStateBuilder).apply {
