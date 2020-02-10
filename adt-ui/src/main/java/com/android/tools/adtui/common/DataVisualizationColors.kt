@@ -123,6 +123,18 @@ object DataVisualizationColors {
     return getColorFromPalette(name, 0, false, fontPalette)
   }
 
+  /**
+   * Returns the computed grayscale version of the passed in color
+   */
+  fun toGrayscale(color: Color): Color {
+    val avg = (0.3f * color.red / 255.0f) + (0.59f * color.blue / 255.0f) + (0.11f * color.green / 255.0f)
+    return Color(avg, avg, avg)
+  }
+
+  /**
+   * Returns grayscale
+   */
+
   private fun getColorFromPalette(index: Int, toneIndex: Int, isFocused: Boolean, palette: Map<String, List<JBColor>>): JBColor {
     if (!isInitialized) {
       initialize()
