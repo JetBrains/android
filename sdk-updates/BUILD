@@ -65,7 +65,6 @@ iml_module(
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/android/testData",
-        "//tools/base/templates",
     ],
     # do not sort: must match IML order
     test_runtime_deps = [

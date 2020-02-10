@@ -18,7 +18,6 @@ iml_module(
         "//tools/adt/idea/android-templates/testData",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system:studio_repo.zip",
-        "//tools/base/templates",
         "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
     ],
     # do not sort: must match IML order

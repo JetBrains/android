@@ -30,7 +30,6 @@ COMMON_DATA = [
     "//tools/adt/idea/adt-ui/lib/libwebp",
     "//tools/base/build-system:studio_repo.zip",
     "//tools/base/build-system:gradle-distrib",
-    "//tools/base/templates",
     "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
     "//tools/data-binding:data_binding_runtime.zip",
     "//tools/idea/bin:log.xml",

@@ -101,7 +101,6 @@ public class TemplateManager {
    * templates with the application instead of waiting for SDK updates.
    */
   private static final String BUNDLED_TEMPLATE_PATH = "/plugins/android/lib/templates";
-  private static final String[] DEVELOPMENT_TEMPLATE_PATHS = {"/../../tools/base/templates", "/android/tools-base/templates", "/community/android/tools-base/templates"};
   private static final String EXPLODED_AAR_PATH = "build/intermediates/exploded-aar";
 
   public static final String CATEGORY_OTHER = "Other";
@@ -149,16 +148,6 @@ public class TemplateManager {
     String homePath = toSystemIndependentName(PathManager.getHomePath());
     // Release build?
     VirtualFile root = LocalFileSystem.getInstance().findFileByPath(toSystemIndependentName(homePath + BUNDLED_TEMPLATE_PATH));
-    if (root == null) {
-      // Development build?
-      for (String path : DEVELOPMENT_TEMPLATE_PATHS) {
-        root = LocalFileSystem.getInstance().findFileByPath(toSystemIndependentName(homePath + path));
-
-        if (root != null) {
-          break;
-        }
-      }
-    }
     if (root != null) {
       File rootFile = VfsUtilCore.virtualToIoFile(root);
       if (templateRootIsValid(rootFile)) {
@@ -246,21 +235,10 @@ public class TemplateManager {
     String homePath = toSystemIndependentName(PathManager.getHomePath());
     // Release build?
     VirtualFile root = LocalFileSystem.getInstance().findFileByPath(toSystemIndependentName(homePath + BUNDLED_TEMPLATE_PATH));
-    if (root == null) {
-      // Development build?
-      for (String path : DEVELOPMENT_TEMPLATE_PATHS) {
-        root = LocalFileSystem.getInstance().findFileByPath(toSystemIndependentName(homePath + path));
-
-        if (root != null) {
-          break;
-        }
-      }
-    }
 
     if (root == null) {
       // error message tailored for release build file layout
-      LOG.error("Templates not found in: " + homePath + BUNDLED_TEMPLATE_PATH +
-                " or " + homePath + Arrays.toString(DEVELOPMENT_TEMPLATE_PATHS));
+      LOG.error("Templates not found in: " + homePath + BUNDLED_TEMPLATE_PATH);
     } else {
       File templateDir = new File(root.getCanonicalPath()).getAbsoluteFile();
       if (templateDir.isDirectory()) {
