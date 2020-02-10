@@ -30,7 +30,7 @@ fun RecipeExecutor.generateAndroidModule(
   useKts: Boolean,
   includeCppSupport: Boolean = false,
   cppFlags: String,
-  javaVersion: JavaVersion = "1.6"
+  javaVersion: JavaVersion = "1.7"
 ) {
   generateCommonModule(
     data, appTitle, useKts, generateManifest(data.packageName, !data.isLibrary), true, includeCppSupport, cppFlags = cppFlags
