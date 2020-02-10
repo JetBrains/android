@@ -23,6 +23,7 @@ import com.android.tools.idea.npw.template.TemplateResolver
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.wizard.template.StringParameter
+import com.intellij.openapi.util.SystemInfo
 import kotlin.system.measureTimeMillis
 
 /**
@@ -479,7 +480,9 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testNewFiles() {
-    checkCreateTemplate("AIDL File")
+    if (!SystemInfo.isWindows) {
+      checkCreateTemplate("AIDL File")
+    }
     checkCreateTemplate("App Actions XML File")
     checkCreateTemplate("Layout XML File")
     checkCreateTemplate("Values XML File")
