@@ -20,6 +20,7 @@ import com.android.tools.adtui.common.AdtPrimaryPanel;
 import com.android.tools.adtui.workbench.ToolWindowDefinition;
 import com.android.tools.adtui.workbench.WorkBench;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.actions.DesignerDataKeys;
 import com.android.tools.idea.common.error.IssuePanelSplitter;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
@@ -30,6 +31,7 @@ import com.android.tools.idea.util.SyncUtil;
 import com.intellij.ProjectTopics;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -68,7 +70,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
   @NotNull private final Project myProject;
   @NotNull private final VirtualFile myFile;
   @NotNull private final DesignSurface mySurface;
-  @NotNull private final JPanel myContentPanel;
+  @NotNull private final MyContentPanel myContentPanel;
   @NotNull private final WorkBench<DesignSurface> myWorkBench;
   private JBSplitter mySplitter;
   @Nullable private final JPanel myAccessoryPanel;
@@ -108,7 +110,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
     myFile = file;
     myWorkBench = workBench;
 
-    myContentPanel = new AdtPrimaryPanel(new BorderLayout());
+    myContentPanel = new MyContentPanel();
     mySurface = surface.apply(this);
     Disposer.register(this, mySurface);
     // Update the workbench context on state change, so we can have different contexts for each mode.
@@ -327,6 +329,23 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
   private static class WaitingForGradleSyncException extends RuntimeException {
     private WaitingForGradleSyncException(@NotNull String message) {
       super(message);
+    }
+  }
+
+  private class MyContentPanel extends AdtPrimaryPanel implements DataProvider {
+    private MyContentPanel() {
+      super(new BorderLayout());
+    }
+
+    @Nullable
+    @Override
+    public Object getData(@NotNull String dataId) {
+      // This class is the parent of ActionToolBar, DesignSurface, and Accessory Panel. The data of editor actions should be provided here.
+      // For example, the refresh action can be performed when focusing ActionToolBar or DesignSurface.
+      if (DesignerDataKeys.DESIGN_EDITOR.is(dataId)) {
+        return DesignerEditorPanel.this;
+      }
+      return null;
     }
   }
 }

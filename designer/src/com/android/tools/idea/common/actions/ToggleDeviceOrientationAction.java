@@ -14,8 +14,10 @@
 package com.android.tools.idea.common.actions;
 
 import com.android.sdklib.devices.State;
+import com.android.tools.idea.actions.DesignerActions;
+import com.android.tools.idea.actions.DesignerDataKeys;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.configurations.Configuration;
+import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import org.jetbrains.annotations.NotNull;
@@ -25,15 +27,23 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ToggleDeviceOrientationAction extends AnAction {
 
-  private final DesignSurface mySurface;
+  private ToggleDeviceOrientationAction() {
+  }
 
-  public ToggleDeviceOrientationAction(@NotNull DesignSurface surface) {
-    mySurface = surface;
+  @NotNull
+  public static ToggleDeviceOrientationAction getInstance() {
+    return (ToggleDeviceOrientationAction) ActionManager.getInstance().getAction(DesignerActions.ACTION_TOGGLE_DEVICE_ORIENTATION);
+  }
+
+  @Override
+  public void update(@NotNull AnActionEvent e) {
+    e.getPresentation().setEnabled(e.getData(DesignerDataKeys.DESIGN_EDITOR) != null);
   }
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
-    mySurface.getConfigurations()
+    DesignSurface surface = e.getRequiredData(DesignerDataKeys.DESIGN_EDITOR).getSurface();
+    surface.getConfigurations()
       .forEach(configuration -> {
         configuration.getDeviceState();
         State current = configuration.getDeviceState();
