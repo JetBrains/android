@@ -25,14 +25,13 @@ import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker.Request
 import com.android.tools.idea.npw.model.render
 import com.android.tools.idea.npw.module.recipes.androidModule.generateAndroidModule
-import com.android.tools.idea.npw.module.recipes.wearModule.generateWearModule
-import com.android.tools.idea.npw.module.recipes.tvModule.generateTvModule
-import com.android.tools.idea.npw.module.recipes.thingsModule.generateThingsModule
-import com.android.tools.idea.npw.module.recipes.pureLibrary.generatePureLibrary
-import com.android.tools.idea.npw.module.recipes.automotiveModule.generateAutomotiveModule
 import com.android.tools.idea.npw.module.recipes.androidProject.androidProjectRecipe
+import com.android.tools.idea.npw.module.recipes.automotiveModule.generateAutomotiveModule
+import com.android.tools.idea.npw.module.recipes.pureLibrary.generatePureLibrary
+import com.android.tools.idea.npw.module.recipes.thingsModule.generateThingsModule
+import com.android.tools.idea.npw.module.recipes.tvModule.generateTvModule
+import com.android.tools.idea.npw.module.recipes.wearModule.generateWearModule
 import com.android.tools.idea.npw.project.setGradleWrapperExecutable
-import com.android.tools.idea.templates.Template.titleToTemplateRenderer
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor2
 import com.android.tools.idea.templates.recipe.RenderingContext2
 import com.android.tools.idea.testing.AndroidGradleTests
@@ -50,8 +49,10 @@ import com.android.tools.idea.wizard.template.StringParameter
 import com.android.tools.idea.wizard.template.TemplateData
 import com.android.tools.idea.wizard.template.Thumb
 import com.android.tools.idea.wizard.template.WizardParameterData
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Charsets.UTF_8
 import com.google.common.io.Files
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
@@ -207,4 +208,57 @@ data class ProjectChecker(
     // Make sure project root is set up correctly
     assertEquals(projectRoot, guessProjectDir()!!.toIoFile())
   }
+}
+
+
+@VisibleForTesting
+fun titleToTemplateRenderer(title: String?) = when (title) {
+  "" -> AndroidStudioEvent.TemplateRenderer.UNKNOWN_TEMPLATE_RENDERER
+  Template.ANDROID_MODULE_TEMPLATE -> AndroidStudioEvent.TemplateRenderer.ANDROID_MODULE
+  Template.ANDROID_PROJECT_TEMPLATE -> AndroidStudioEvent.TemplateRenderer.ANDROID_PROJECT
+  "Empty Activity" -> AndroidStudioEvent.TemplateRenderer.EMPTY_ACTIVITY
+  "Blank Activity" -> AndroidStudioEvent.TemplateRenderer.BLANK_ACTIVITY
+  "Layout XML File" -> AndroidStudioEvent.TemplateRenderer.LAYOUT_XML_FILE
+  "Fragment (Blank)" -> AndroidStudioEvent.TemplateRenderer.FRAGMENT_BLANK
+  "Navigation Drawer Activity" -> AndroidStudioEvent.TemplateRenderer.NAVIGATION_DRAWER_ACTIVITY
+  "Values XML File" -> AndroidStudioEvent.TemplateRenderer.VALUES_XML_FILE
+  "Google Maps Activity" -> AndroidStudioEvent.TemplateRenderer.GOOGLE_MAPS_ACTIVITY
+  "Login Activity" -> AndroidStudioEvent.TemplateRenderer.LOGIN_ACTIVITY
+  "Assets Folder" -> AndroidStudioEvent.TemplateRenderer.ASSETS_FOLDER
+  "Tabbed Activity" -> AndroidStudioEvent.TemplateRenderer.TABBED_ACTIVITY
+  "Scrolling Activity" -> AndroidStudioEvent.TemplateRenderer.SCROLLING_ACTIVITY
+  "Fullscreen Activity" -> AndroidStudioEvent.TemplateRenderer.FULLSCREEN_ACTIVITY
+  "Service" -> AndroidStudioEvent.TemplateRenderer.SERVICE
+  "Java Library" -> AndroidStudioEvent.TemplateRenderer.JAVA_LIBRARY
+  "Settings Activity" -> AndroidStudioEvent.TemplateRenderer.SETTINGS_ACTIVITY
+  "Fragment (List)" -> AndroidStudioEvent.TemplateRenderer.FRAGMENT_LIST
+  "Master/Detail Flow" -> AndroidStudioEvent.TemplateRenderer.MASTER_DETAIL_FLOW
+  "Wear OS Module" -> AndroidStudioEvent.TemplateRenderer.ANDROID_WEAR_MODULE
+  "Broadcast Receiver" -> AndroidStudioEvent.TemplateRenderer.BROADCAST_RECEIVER
+  "AIDL File" -> AndroidStudioEvent.TemplateRenderer.AIDL_FILE
+  "Service (IntentService)" -> AndroidStudioEvent.TemplateRenderer.INTENT_SERVICE
+  "JNI Folder" -> AndroidStudioEvent.TemplateRenderer.JNI_FOLDER
+  "Java Folder" -> AndroidStudioEvent.TemplateRenderer.JAVA_FOLDER
+  "Custom View" -> AndroidStudioEvent.TemplateRenderer.CUSTOM_VIEW
+  "Android TV Module" -> AndroidStudioEvent.TemplateRenderer.ANDROID_TV_MODULE
+  "Google AdMob Ads Activity" -> AndroidStudioEvent.TemplateRenderer.GOOGLE_ADMOBS_ADS_ACTIVITY
+  "Always On Wear Activity" -> AndroidStudioEvent.TemplateRenderer.ALWAYS_ON_WEAR_ACTIVITY
+  "Res Folder" -> AndroidStudioEvent.TemplateRenderer.RES_FOLDER
+  "Android TV Activity" -> AndroidStudioEvent.TemplateRenderer.ANDROID_TV_ACTIVITY
+  "Basic Activity" -> AndroidStudioEvent.TemplateRenderer.BASIC_ACTIVITIY
+  "App Widget" -> AndroidStudioEvent.TemplateRenderer.APP_WIDGET
+  "Instant App Project" -> AndroidStudioEvent.TemplateRenderer.ANDROID_INSTANT_APP_PROJECT
+  "Instant App" -> AndroidStudioEvent.TemplateRenderer.ANDROID_INSTANT_APP_MODULE
+  "Dynamic Feature (Instant App)" -> AndroidStudioEvent.TemplateRenderer.ANDROID_INSTANT_APP_DYNAMIC_MODULE
+  "Benchmark Module" -> AndroidStudioEvent.TemplateRenderer.BENCHMARK_LIBRARY_MODULE
+  "Fullscreen Fragment" -> AndroidStudioEvent.TemplateRenderer.FRAGMENT_FULLSCREEN
+  "Google AdMob Ads Fragment" -> AndroidStudioEvent.TemplateRenderer.FRAGMENT_GOOGLE_ADMOB_ADS
+  "Google Maps Fragment" -> AndroidStudioEvent.TemplateRenderer.FRAGMENT_GOOGLE_MAPS
+  "Login Fragment" -> AndroidStudioEvent.TemplateRenderer.FRAGMENT_LOGIN
+  "Modal Bottom Sheet" -> AndroidStudioEvent.TemplateRenderer.FRAGMENT_MODAL_BOTTOM_SHEET
+  "Scrolling Fragment" -> AndroidStudioEvent.TemplateRenderer.FRAGMENT_SCROLL
+  "Settings Fragment" -> AndroidStudioEvent.TemplateRenderer.FRAGMENT_SETTINGS
+  "Fragment (with ViewModel)" -> AndroidStudioEvent.TemplateRenderer.FRAGMENT_VIEWMODEL
+  "Empty Compose Activity" -> AndroidStudioEvent.TemplateRenderer.COMPOSE_EMPTY_ACTIVITY
+  else -> AndroidStudioEvent.TemplateRenderer.CUSTOM_TEMPLATE_RENDERER
 }

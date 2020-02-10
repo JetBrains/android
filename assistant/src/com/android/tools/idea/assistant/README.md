@@ -91,15 +91,6 @@ etc.) at the push of a button. See `Tools > Firebase` for a working example.
                      key="unique_key_for_action"
                      label="Button Label"
                      successMessage="Optional message displayed when action is completed">
-                   <!-- recipes are an optional convenience for performing common actions, see
-                        com.android.tools.idea.templates.recipe.Recipe for more information.
-                        Note that you will need to execute the recipe in your handler via
-                        RecipeUtils#execute or similar. -->
-                   <recipe>
-                     <classpath mavenUrl="com.foo:bang:3.0.0"></classpath>
-                     <apply plugin="com.foo.bar"></apply>
-                     <dependency mavenUrl="com.foo.bop:biz:9.8.0"></dependency>
-                   </recipe>
                  </action>
                </stepElement>
              </step>
