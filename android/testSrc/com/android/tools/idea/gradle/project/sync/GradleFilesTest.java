@@ -42,6 +42,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -54,6 +55,7 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplicationStatement;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 
 /**
@@ -87,6 +89,89 @@ public class GradleFilesTest extends AndroidGradleTestCase {
   public void testNotModifiedWhenAddingWhitespaceInBuildFile() throws Exception {
     loadSimpleApplication();
     runFakeModificationTest((factory, file) -> file.add(factory.createLineTerminator(1)), false);
+  }
+
+  public void testNotModifiedWhenAddingCommentInBuildFile() throws Exception {
+    loadSimpleApplication();
+    runFakeModificationTest((factory, file) -> {
+      PsiFile dummyFile = factory.createGroovyFile("// foo", false, null);
+      PsiElement comment = dummyFile.getFirstChild();
+      file.add(comment);
+    }, false);
+  }
+
+  public void testNotModifiedWhenEditingCommentInBuildFile() throws Exception {
+    loadSimpleApplication();
+    VirtualFile buildFile = findOrCreateFileInProjectRootFolder(FN_BUILD_GRADLE);
+
+    runFakeModificationTest((factory, file) -> {
+      assertThat(file.getFirstChild() instanceof PsiComment).isTrue();
+      Document doc = PsiDocumentManager.getInstance(getProject()).getDocument(file);
+      doc.insertString(file.getFirstChild().getTextOffset() + 3, "abc");
+      PsiDocumentManager.getInstance(getProject()).commitDocument(doc);
+    }, false, buildFile);
+  }
+
+  public void testNotModifiedWhenAddingNewlineCommentToCommentInBuildFile() throws Exception {
+    loadSimpleApplication();
+    VirtualFile buildFile = findOrCreateFileInProjectRootFolder(FN_BUILD_GRADLE);
+
+    runFakeModificationTest((factory, file) -> {
+      assertThat(file.getFirstChild() instanceof PsiComment).isTrue();
+      Document doc = PsiDocumentManager.getInstance(getProject()).getDocument(file);
+      doc.insertString(file.getFirstChild().getTextOffset() + "// Top-level".length(), "\n//");
+      PsiDocumentManager.getInstance(getProject()).commitDocument(doc);
+    }, false, buildFile);
+  }
+
+  public void testNotModifiedWhenRemovingCommentInBuildFile() throws Exception {
+    loadSimpleApplication();
+    VirtualFile buildFile = findOrCreateFileInProjectRootFolder(FN_BUILD_GRADLE);
+
+    runFakeModificationTest((factory, file) -> {
+      assertThat(file.getFirstChild() instanceof PsiComment).isTrue();
+      file.deleteChildRange(file.getFirstChild(), file.getFirstChild());
+    }, false, buildFile);
+  }
+
+  public void testModifiedWhenDeletingBringsProgramToCommentInBuildFile() throws Exception {
+    loadSimpleApplication();
+    VirtualFile buildFile = findOrCreateFileInProjectRootFolder(FN_BUILD_GRADLE);
+
+    runFakeModificationTest((factory, file) -> {
+      assertThat(file.getFirstChild() instanceof PsiComment).isTrue();
+      // This is fragile, but at least the assertions below will catch modifications to build.gradle which would invalidate this test
+      PsiElement buildscript = file.findElementAt(101);
+      assertThat(buildscript.getTextOffset()).isEqualTo(101);
+      assertThat(buildscript.getText()).isEqualTo("buildscript");
+      Document doc = PsiDocumentManager.getInstance(getProject()).getDocument(file);
+      doc.deleteString(3, 101);
+      PsiDocumentManager.getInstance(getProject()).commitDocument(doc);
+    }, true, buildFile);
+  }
+
+  public void testModifiedWhenDeletingCommentCharacters() throws Exception {
+    loadSimpleApplication();
+    VirtualFile buildFile = findOrCreateFileInProjectRootFolder(FN_BUILD_GRADLE);
+
+    runFakeModificationTest((factory, file) -> {
+      assertThat(file.getFirstChild() instanceof PsiComment).isTrue();
+      Document doc = PsiDocumentManager.getInstance(getProject()).getDocument(file);
+      doc.deleteString(1, 2);
+      PsiDocumentManager.getInstance(getProject()).commitDocument(doc);
+    }, true, buildFile);
+  }
+
+  public void testModifiedWhenAddingNewlineToCommentInBuildFile() throws Exception {
+    loadSimpleApplication();
+    VirtualFile buildFile = findOrCreateFileInProjectRootFolder(FN_BUILD_GRADLE);
+
+    runFakeModificationTest((factory, file) -> {
+      assertThat(file.getFirstChild() instanceof PsiComment).isTrue();
+      Document doc = PsiDocumentManager.getInstance(getProject()).getDocument(file);
+      doc.insertString(file.getFirstChild().getTextOffset() + "// Top-level".length(), "\n");
+      PsiDocumentManager.getInstance(getProject()).commitDocument(doc);
+    }, true, buildFile);
   }
 
   public void testModifiedWhenAddingTextChildInBuildFile() throws Exception {
@@ -151,6 +236,7 @@ public class GradleFilesTest extends AndroidGradleTestCase {
     loadSimpleApplication();
     runFakeModificationTest(((factory, file) -> {
       assertThat(file.getChildren().length).isGreaterThan(0);
+      assertThat(file.getFirstChild() instanceof PsiComment).isFalse();
       file.deleteChildRange(file.getFirstChild(), file.getFirstChild());
     }), true);
   }
@@ -320,7 +406,7 @@ public class GradleFilesTest extends AndroidGradleTestCase {
     assertFalse(myGradleFiles.areGradleFilesModified());
   }
 
-  public void testAddingCommentTriggersModification() throws Exception {
+  public void testCommentingOutTriggersModification() throws Exception {
     loadSimpleApplication();
     runFakeModificationTest(((factory, file) -> {
       PsiElement element = ProjectBuildModelHandler.Companion.getInstance(getProject()).read((model) -> {
@@ -329,7 +415,7 @@ public class GradleFilesTest extends AndroidGradleTestCase {
         return dependencies.get(0).getPsiElement();
       }).getParent();
       Document doc = PsiDocumentManager.getInstance(getProject()).getDocument(element.getContainingFile());
-      doc.insertString(element.getTextOffset(), "/");
+      doc.insertString(element.getTextOffset(), "//");
       PsiDocumentManager.getInstance(getProject()).commitDocument(doc);
     }), true);
   }
