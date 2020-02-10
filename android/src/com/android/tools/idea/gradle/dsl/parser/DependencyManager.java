@@ -16,9 +16,10 @@
 package com.android.tools.idea.gradle.dsl.parser;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -29,7 +30,7 @@ import java.util.List;
  * Class to manage unresolved dependencies.
  */
 public final class DependencyManager {
-  @NotNull private final List<GradleReferenceInjection> myUnresolvedReferences = new ArrayList<>();
+  @NotNull private final LinkedHashMap<GradleDslFile, List<GradleReferenceInjection>> myUnresolvedReferences = new LinkedHashMap<>();
 
   public static DependencyManager create() {
     return new DependencyManager();
@@ -44,7 +45,10 @@ public final class DependencyManager {
   public void registerUnresolvedReference(@NotNull GradleReferenceInjection injection) {
     // Make sure the reference is not resolved.
     assert !injection.isResolved();
-    myUnresolvedReferences.add(injection);
+    GradleDslFile originFile = injection.getOriginElement().getDslFile();
+    List<GradleReferenceInjection> injections = myUnresolvedReferences.getOrDefault(originFile, new ArrayList<>());
+    injections.add(injection);
+    myUnresolvedReferences.put(originFile, injections);
   }
 
   /**
@@ -53,7 +57,9 @@ public final class DependencyManager {
   public void unregisterUnresolvedReference(@NotNull GradleReferenceInjection injection) {
     // Make sure the reference is not resolved.
     assert !injection.isResolved();
-    myUnresolvedReferences.remove(injection);
+    GradleDslFile originFile = injection.getOriginElement().getDslFile();
+    List<GradleReferenceInjection> injections = myUnresolvedReferences.get(originFile); // should always be present
+    injections.remove(injection);
   }
 
   /**
@@ -66,19 +72,33 @@ public final class DependencyManager {
     resolveAll();
   }
 
-  /**
-   * Attempt to resolve all of the current unresolved dependencies.
-   */
-  public void resolveAll() {
-    for (Iterator<GradleReferenceInjection> it = myUnresolvedReferences.iterator(); it.hasNext();) {
+  public void resolveAllIn(@NotNull GradleDslFile dslFile, boolean appliedFiles) {
+    List<GradleReferenceInjection> injections = myUnresolvedReferences.getOrDefault(dslFile, new ArrayList<>());
+    for (Iterator<GradleReferenceInjection> it = injections.iterator(); it.hasNext(); ) {
       GradleReferenceInjection injection = it.next();
-      // Attempt to re-resolve any references.
       GradleDslElement newElement = injection.getOriginElement().resolveReference(injection.getName(), true);
       if (newElement != null) {
         injection.resolveWith(newElement);
         newElement.registerDependent(injection);
         it.remove();
       }
+    }
+    if (injections.isEmpty()) {
+      myUnresolvedReferences.remove(dslFile);
+    }
+    if (appliedFiles) {
+      for (GradleDslFile appliedFile : dslFile.getApplyDslElement()) {
+        resolveAllIn(appliedFile, true);
+      }
+    }
+  }
+
+  /**
+   * Attempt to resolve all of the current unresolved dependencies.
+   */
+  public void resolveAll() {
+    for (GradleDslFile dslFile : myUnresolvedReferences.keySet()) {
+      resolveAllIn(dslFile, false);
     }
   }
 }
