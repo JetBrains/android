@@ -121,6 +121,9 @@ abstract class SplitEditor<P : FileEditor>(textEditor: TextEditor,
 
   private fun List<SplitEditorAction>.previous(selectedIndex: Int): SplitEditorAction = this[(this.size + selectedIndex - 1) % this.size]
 
+  /**
+   * TODO (b/149212539): Register these shortcuts to plugin xml file to support custom keymap. Then remove this function.
+   */
   @VisibleForTesting
   protected fun registerModeNavigationShortcuts(applicableTo: JComponent) {
     navigateLeftAction.registerCustomShortcutSet(KeymapUtil.getActiveKeymapShortcuts(IdeActions.ACTION_PREVIOUS_EDITOR_TAB), applicableTo)

@@ -363,6 +363,13 @@ public final class StudioFlags {
     "When you right click recycler view in layout editor, you can now see \"Generate Adapter\" " +
     "that takes you through setup wizard",
     false);
+
+  public static final Flag<Boolean> NELE_CUSTOM_SHORTCUT_KEYMAP = Flag.create(
+    NELE, "custom.shortcut.keymap", "Design Tool Custom Shortcut",
+    "Make the shortcuts of design tools configurable. The shortcut keymap can be changed in Preferences -> Keymap -> Android Design" +
+    " Tools",
+    true
+  );
   //endregion
 
   //region Navigation Editor
