@@ -193,7 +193,7 @@ abstract class FullProjectBenchmark {
       enableAllDefaultInspections(gradleRule.fixture)
 
       gradleRule.load(projectName)
-      gradleRule.generateSources() // Gets us closer to a production setup.
+      // TODO(b/149240940): gradleRule.generateSources() // Gets us closer to a production setup.
       waitForAsyncVfsRefreshes() // Avoids write actions during highlighting.
     }
 
