@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.sqliteExplorer
 
+import com.android.tools.idea.editors.sqlite.SqliteViewer
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 
-class SqliteExplorerToolWindowFactory : DumbAware, ToolWindowFactory {
+internal class SqliteExplorerToolWindowFactory : DumbAware, ToolWindowFactory {
   companion object {
     const val TOOL_WINDOW_ID = "Sqlite Explorer"
   }
@@ -33,4 +34,6 @@ class SqliteExplorerToolWindowFactory : DumbAware, ToolWindowFactory {
     )
     toolWindow.contentManager.addContent(toolWindowContent)
   }
+
+  override fun isApplicable(project: Project) = SqliteViewer.isFeatureEnabled
 }
