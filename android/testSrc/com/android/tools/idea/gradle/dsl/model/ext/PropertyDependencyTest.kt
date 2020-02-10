@@ -219,17 +219,22 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     val appliedExt = appliedModel.ext()
     val varsModel = appliedExt.findProperty("vars")
     val appliedMinSdkModel = varsModel.toMap()!!["minSdk"]!!
-    val appliedMaxDskModel = varsModel.toMap()!!["maxSdk"]!!
+    val appliedMaxSdkModel = varsModel.toMap()!!["maxSdk"]!!
     val appliedSigningModel = varsModel.toMap()!!["signing"]!!
     val appliedSigningVarModel = appliedSigningModel.dependencies[0]!!
     val storeFModel = appliedSigningVarModel.toMap()!!["storeF"]!!
     val storePModel = appliedSigningVarModel.toMap()!!["storeP"]!!
     val keyFModel = appliedSigningVarModel.toMap()!!["keyF"]!!
     val keyPModel = appliedSigningVarModel.toMap()!!["keyP"]!!
+    // TODO(b/149286032): at some point in some Gradle versions, there might have been some lazy evaluation permitting a construct of
+    //  the form
+    //     ext.vars = [ minSdk: 1, maxSdk: ext.vars.minSdk ]
+    //  to work.  As far as I can tell, it doesn't as of Gradle 6.1.  We currently resolve the reference to the sibling entry, which is
+    //  harmless in this case but would be wrong if there were a previous binding of ext.vars (for example, from buildscript).
     assertDependencyNumbers(varsModel, 2, 2, 0, 0)
     assertDependencyNumbers(appliedMinSdkModel, 0, 0, 0, 2)
-    assertDependencyNumbers(appliedMaxDskModel, 1, 1, 0, 1)
-    assertDependencyBetween(appliedMaxDskModel, appliedMinSdkModel, "ext.vars.minSdk")
+    assertDependencyNumbers(appliedMaxSdkModel, 1, 1, 0, 1)
+    assertDependencyBetween(appliedMaxSdkModel, appliedMinSdkModel, "ext.vars.minSdk")
     assertDependencyNumbers(appliedSigningModel, 1, 1, 0, 0)
     assertDependencyBetween(appliedSigningModel, appliedSigningVarModel, "signing")
     assertDependencyNumbers(appliedSigningVarModel, 0, 0, 0, 1)
@@ -283,7 +288,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     assertDependencyNumbers(defaultConfig.applicationId(), 0, 1, 1, 0)
     assertDependencyNumbers(defaultConfig.testApplicationId(), 0, 1, 1, 0)
     assertDependencyNumbers(defaultConfig.maxSdkVersion(), 1, 1, 0, 0)
-    assertDependencyBetween(defaultConfig.maxSdkVersion(), appliedMaxDskModel, "vars.maxSdk")
+    assertDependencyBetween(defaultConfig.maxSdkVersion(), appliedMaxSdkModel, "vars.maxSdk")
     assertDependencyNumbers(defaultConfig.minSdkVersion(), 1, 1, 0, 0)
     assertDependencyBetween(defaultConfig.minSdkVersion(), appliedMinSdkModel, "vars.minSdk")
   }
