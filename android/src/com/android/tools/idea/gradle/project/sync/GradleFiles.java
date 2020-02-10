@@ -54,6 +54,7 @@ import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -539,7 +540,7 @@ public class GradleFiles {
 
       boolean foundChange = false;
       for (PsiElement element : elements) {
-        if (element == null || element instanceof PsiWhiteSpace) {
+        if (element == null || element instanceof PsiWhiteSpace || element instanceof PsiComment) {
           continue;
         }
 
