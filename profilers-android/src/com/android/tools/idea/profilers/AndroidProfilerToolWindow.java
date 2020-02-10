@@ -90,13 +90,13 @@ public class AndroidProfilerToolWindow implements Disposable {
   @Nullable
   private StudioProfilersWrapper myProfilersWrapper;
   @NotNull
-  private final ToolWindow myWindow;
+  private final ToolWindowWrapper myWindow;
   @NotNull
   private final Project myProject;
   @NotNull
   private final IntellijProfilerServices myIdeProfilerServices;
 
-  public AndroidProfilerToolWindow(@NotNull ToolWindow window, @NotNull Project project) {
+  public AndroidProfilerToolWindow(@NotNull ToolWindowWrapper window, @NotNull Project project) {
     myWindow = window;
     myProject = project;
 
@@ -278,12 +278,12 @@ public class AndroidProfilerToolWindow implements Disposable {
 
   private static class StudioProfilersWrapper extends AspectObserver implements Disposable {
     @NotNull private final Project myProject;
-    @NotNull private final ToolWindow myWindow;
+    @NotNull private final ToolWindowWrapper myWindow;
     @NotNull private final StudioProfilers myProfilers;
     @NotNull private final StudioProfilersView myView;
 
     StudioProfilersWrapper(@NotNull Project project,
-                           @NotNull ToolWindow window,
+                           @NotNull ToolWindowWrapper window,
                            @NotNull TransportService service,
                            @NotNull IntellijProfilerServices ideProfilerServices) {
       myProject = project;
@@ -341,16 +341,13 @@ public class AndroidProfilerToolWindow implements Disposable {
     }
 
     private void modeChanged() {
-      ToolWindowManager manager = ToolWindowManager.getInstance(myProject);
       boolean maximize = myProfilers.getMode() == ProfilerMode.EXPANDED;
-      if (maximize != manager.isMaximized(myWindow)) {
-        manager.setMaximized(myWindow, maximize);
-      }
+      myWindow.setMaxmized(maximize);
     }
 
     private void stageChanged() {
       if (myProfilers.isStopped()) {
-        AndroidProfilerToolWindowFactory.removeContent(myWindow);
+        myWindow.removeContent();
       }
     }
 
