@@ -15,12 +15,16 @@
  */
 package com.android.tools.idea.sqlite.ui.tableView
 
+import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.adtui.stdui.CommonButton
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.ui.notifyError
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.editor.colors.EditorColors
+import com.intellij.openapi.editor.colors.EditorColorsManager
 import com.intellij.openapi.ui.ComboBox
+import com.intellij.ui.ColoredTableCellRenderer
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.JBTable
 import com.intellij.util.ui.JBUI
@@ -124,6 +128,8 @@ class TableViewImpl : TableView {
         listeners.forEach { it.toggleOrderByColumnInvoked(columns[columnIndex - 1]) }
       }
     })
+
+    table.setDefaultRenderer(String::class.java, MyColoredTableCellRenderer())
 
     val scrollPane = JBScrollPane(table)
 
@@ -250,6 +256,25 @@ class TableViewImpl : TableView {
 
       columnNameLabel.text = value as String
       return panel
+    }
+  }
+
+  private class MyColoredTableCellRenderer : ColoredTableCellRenderer() {
+    override fun customizeCellRenderer(
+      table: JTable?,
+      value: Any?,
+      selected: Boolean,
+      focused: Boolean,
+      viewRowIndex: Int,
+      viewColumnIndex: Int
+    ) {
+      if (viewColumnIndex == 0) {
+        background = EditorColorsManager.getInstance().globalScheme.getColor(EditorColors.GUTTER_BACKGROUND)
+      } else {
+        background = primaryContentBackground
+      }
+
+      append(value as String)
     }
   }
 
