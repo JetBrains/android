@@ -69,7 +69,6 @@ iml_module(
         "//tools/adt/idea/android/testData",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system:studio_repo.zip",
-        "//tools/base/templates",
     ],
     # do not sort: must match IML order
     test_runtime_deps = [

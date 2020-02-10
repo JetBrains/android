@@ -86,7 +86,6 @@ iml_module(
         "//tools/adt/idea/databinding/testData",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system:studio_repo.zip",
-        "//tools/base/templates",
         "//tools/data-binding:data_binding_runtime.zip",
         "//tools/data-binding:integration-test-projects",
         "//tools/idea/java/mockJDK-1.7",
