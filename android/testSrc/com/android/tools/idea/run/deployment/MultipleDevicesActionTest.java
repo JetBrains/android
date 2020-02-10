@@ -100,7 +100,7 @@ public final class MultipleDevicesActionTest {
   }
 
   @Test
-  public void updateDevicesIsEmpty() {
+  public void updateSelectedDevicesIsEmpty() {
     // Arrange
     RunnerAndConfigurationSettings settings = Mockito.mock(RunnerAndConfigurationSettings.class);
     Mockito.when(settings.getType()).thenReturn(AndroidRunConfigurationType.getInstance());
