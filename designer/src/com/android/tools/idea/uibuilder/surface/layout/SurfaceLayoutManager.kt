@@ -26,6 +26,7 @@ internal fun Collection<SceneView>.sortByPosition() = sortedWith(compareBy({ it.
 /**
  * Interface used to layout and measure the size of [SceneView]s in [com.android.tools.idea.common.surface.DesignSurface].
  */
+@Deprecated("The functionality here will be migrated to the SceneViewLayoutManager")
 interface SurfaceLayoutManager {
 
   /**

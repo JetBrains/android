@@ -66,8 +66,6 @@ abstract public class SceneManager implements Disposable {
       mySceneView.dispose();
     }
     mySceneView = doCreateSceneView();
-
-    myDesignSurface.layoutContent();
   }
 
   /**

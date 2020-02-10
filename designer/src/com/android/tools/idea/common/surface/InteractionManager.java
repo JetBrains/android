@@ -26,6 +26,7 @@ import com.android.tools.idea.uibuilder.model.NlDropEvent;
 import com.android.tools.idea.uibuilder.surface.DragDropInteraction;
 import com.android.tools.idea.uibuilder.surface.PanInteraction;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
@@ -210,14 +211,14 @@ public class InteractionManager implements Disposable {
     if (myIsListening) {
       return;
     }
-    JComponent layeredPane = mySurface.getLayeredPane();
+    JComponent layeredPane = mySurface.getInteractionPane();
     layeredPane.addMouseMotionListener(myListener);
     layeredPane.addMouseWheelListener(myListener);
     layeredPane.addMouseListener(myListener);
     layeredPane.addKeyListener(myListener);
 
     if (!ApplicationManager.getApplication().isHeadlessEnvironment()) {
-      myDropTarget = new DropTarget(mySurface.getLayeredPane(), DnDConstants.ACTION_COPY_OR_MOVE, myListener, true, null);
+      myDropTarget = new DropTarget(mySurface.getInteractionPane(), DnDConstants.ACTION_COPY_OR_MOVE, myListener, true, null);
     }
     myHoverTimer.addActionListener(myListener);
     myIsListening = true;
@@ -232,7 +233,7 @@ public class InteractionManager implements Disposable {
     if (!myIsListening) {
       return;
     }
-    JComponent layeredPane = mySurface.getLayeredPane();
+    JComponent layeredPane = mySurface.getInteractionPane();
     layeredPane.removeMouseMotionListener(myListener);
     layeredPane.removeMouseWheelListener(myListener);
     layeredPane.removeMouseListener(myListener);
@@ -265,11 +266,11 @@ public class InteractionManager implements Disposable {
   }
 
   /**
-   * Returns the currently active overlays, if any
+   * Returns any active overlays that need to be drawn.
    */
-  @Nullable
-  public List<Layer> getLayers() {
-    return myLayers;
+  @NotNull
+  List<Layer> getLayers() {
+    return myLayers != null ? myLayers : ImmutableList.of();
   }
 
   /**
@@ -389,7 +390,7 @@ public class InteractionManager implements Disposable {
     @Override
     public void mousePressed(@NotNull MouseEvent event) {
       if (event.getID() == MouseEvent.MOUSE_PRESSED) {
-        mySurface.getLayeredPane().requestFocusInWindow();
+        mySurface.getInteractionPane().requestFocusInWindow();
       }
 
       myIsInteractionCanceled = false;
@@ -523,7 +524,7 @@ public class InteractionManager implements Disposable {
         myLastModifiersEx = modifiersEx;
         myCurrentInteraction.update(new MouseDraggedEvent(event, getInteractionInformation()));
         updateCursor(x, y, modifiersEx);
-        mySurface.getLayeredPane().scrollRectToVisible(
+        mySurface.getInteractionPane().scrollRectToVisible(
           new Rectangle(x - NlConstants.DEFAULT_SCREEN_OFFSET_X, y - NlConstants.DEFAULT_SCREEN_OFFSET_Y,
                         2 * NlConstants.DEFAULT_SCREEN_OFFSET_X, 2 * NlConstants.DEFAULT_SCREEN_OFFSET_Y));
         mySurface.repaint();

@@ -157,7 +157,6 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
 
     updateScreenMode();
     Disposer.register(this, mySurface);
-    mySurface.setCentered(true);
     mySurface.setName(VISUALIZATION_DESIGN_SURFACE);
 
     myWorkBench = new WorkBench<>(myProject, "Visualization", null, this);
@@ -397,7 +396,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
             if (!mySurface.setScale(lastScaling)) {
               // Update scroll area because the scaling doesn't change, which keeps the old scroll area and may not suitable to new
               // configuration set.
-              mySurface.updateScrolledAreaSize();
+              mySurface.revalidateScrollArea();
             }
             myWorkBench.showContent();
           }

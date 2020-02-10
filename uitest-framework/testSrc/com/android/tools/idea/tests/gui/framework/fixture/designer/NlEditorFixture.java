@@ -162,7 +162,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
   }
 
   @NotNull
-  public DesignSurfaceFixture getSurface() {
+  public DesignSurfaceFixture<? extends DesignSurfaceFixture, ? extends DesignSurface>  getSurface() {
     return myDesignSurfaceFixture;
   }
 

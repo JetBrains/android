@@ -29,6 +29,7 @@ import com.google.common.collect.ImmutableList
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
+import java.awt.Container
 import java.awt.Dimension
 import java.awt.event.ComponentEvent
 import java.util.concurrent.CompletableFuture
@@ -144,13 +145,20 @@ class TestInteractionHandler(surface: DesignSurface) : InteractionHandlerBase(su
   override fun createInteractionOnDrag(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? = null
 }
 
+class TestLayoutManager(private val surface: DesignSurface) : SceneViewLayoutManager() {
+  override fun preferredLayoutSize(parent: Container?): Dimension = surface.sceneViews.map { it.contentSize }.firstOrNull() ?: Dimension(0,
+                                                                                                                                         0)
+
+}
+
 private class TestDesignSurface(project: Project, disposible: Disposable)
   : DesignSurface(project,
                   disposible,
                   java.util.function.Function { TestActionManager(it) },
                   java.util.function.Function { TestInteractionHandler(it) },
                   State.FULL,
-                  true) {
+                  true,
+                  java.util.function.Function { TestLayoutManager(it) }) {
   override fun getSelectionAsTransferable(): ItemTransferable {
     return ItemTransferable(DnDTransferItem(0, ImmutableList.of()))
   }
@@ -163,11 +171,7 @@ private class TestDesignSurface(project: Project, disposible: Disposable)
 
   override fun createSceneManager(model: NlModel) = SyncLayoutlibSceneManager(model as SyncNlModel)
 
-  override fun layoutContent() = Unit
-
   override fun scrollToCenter(list: MutableList<NlComponent>) {}
-
-  override fun getScrolledAreaSize(): Dimension? = null
 
   override fun getDefaultOffset() = Dimension()
 
