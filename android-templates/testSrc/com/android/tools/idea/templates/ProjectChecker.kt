@@ -158,8 +158,9 @@ data class ProjectChecker(
     }
 
     val moduleRecipe: Recipe = when (template.formFactor) {
-      // TODO: support C++
-      FormFactor.Mobile -> { data: TemplateData -> this.generateAndroidModule(data as ModuleTemplateData, appTitle, false, false, "") }
+      // TODO(qumeric): support C++
+      // TODO(qumeric): investigate why it requires 1.8 and does not work with 1.7
+      FormFactor.Mobile -> { data: TemplateData -> this.generateAndroidModule(data as ModuleTemplateData, appTitle, false, false, "", "1.8") }
       FormFactor.Wear -> { data: TemplateData -> this.generateWearModule(data as ModuleTemplateData, appTitle, false) }
       FormFactor.Tv -> { data: TemplateData -> this.generateTvModule(data as ModuleTemplateData, appTitle, false) }
       FormFactor.Automotive -> { data: TemplateData -> this.generateAutomotiveModule(data as ModuleTemplateData, appTitle, false) }
