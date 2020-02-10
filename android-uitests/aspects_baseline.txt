@@ -29,7 +29,6 @@ com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|com.android
 com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|com.android.tools.idea.uibuilder.handlers.assistant.RecyclerViewAssistant.getTemplateName
 com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|com.android.tools.idea.uibuilder.handlers.assistant.TextViewAssistant.<init>
 com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|org.jetbrains.android.actions.CreateXmlResourceDialog.lambda$new$0
-com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|org.jetbrains.android.AndroidResourceRenameResourceProcessor.findExistingNameConflicts
 com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|org.jetbrains.android.resourceManagers.LocalResourceManager.getResourceRepository
 com.android.tools.idea.res.ResourceRepositoryManager.getFrameworkResources|com.android.tools.idea.res.IdeResourcesUtil.isAccessible
 com.android.tools.idea.res.ResourceRepositoryManager.getFrameworkResources|com.android.tools.idea.res.ResourceRepositoryManager.getAllResources
@@ -44,5 +43,4 @@ com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.and
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.res.ResourceNotificationManager$ModuleEventObserver.registerListeners
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.res.ResourceRepositoryManager.lambda$getLocalesAndLanguages$7
-com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|org.jetbrains.android.AndroidResourceRenameResourceProcessor.findExistingNameConflicts
 com.android.tools.idea.uibuilder.palette.NlPaletteModel.getPalette|com.android.tools.idea.uibuilder.palette.DataModel.update
