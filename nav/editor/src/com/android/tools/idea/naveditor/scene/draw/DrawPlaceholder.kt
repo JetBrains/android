@@ -25,12 +25,10 @@ import com.android.tools.idea.common.scene.draw.FillShape
 import com.android.tools.idea.naveditor.scene.NavColors.PLACEHOLDER_BACKGROUND
 import com.android.tools.idea.naveditor.scene.NavColors.PLACEHOLDER_BORDER
 import com.android.tools.idea.naveditor.scene.decorator.REGULAR_FRAME_THICKNESS
-import com.google.common.annotations.VisibleForTesting
-import java.awt.geom.Line2D
 
 private val STROKE = SwingStroke(REGULAR_FRAME_THICKNESS)
 
-class DrawPlaceholder(@VisibleForTesting val rectangle: SwingRectangle) : CompositeDrawCommand() {
+class DrawPlaceholder(private val rectangle: SwingRectangle) : CompositeDrawCommand() {
   override fun serialize(): String = ""
 
   override fun buildCommands(): List<DrawCommand> {
