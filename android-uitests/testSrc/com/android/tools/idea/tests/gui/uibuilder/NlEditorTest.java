@@ -92,6 +92,7 @@ public class NlEditorTest {
     // Find and click the checkBox
     NlComponentFixture checkBox = layout.findView("CheckBox", 0);
     checkBox.getSceneComponent().click();
+    assertEquals("CheckBox", layout.getSelection().get(0).getTagName());
 
     // It should be selected now
     assertEquals(3, layout.getAllComponents().size()); // 3 = root layout + the 2 widgets added

@@ -75,6 +75,10 @@ public abstract class SceneView {
    */
   @NotNull
   private ImmutableList<Layer> getLayers() {
+    if (Disposer.isDisposed(mySurface)) {
+      // Do not try to re-create the layers for a disposed surface
+      return ImmutableList.of();
+    }
     synchronized (myLayersCacheLock) {
       if (myLayersCache == null) {
         myLayersCache = createLayers();
@@ -110,6 +114,7 @@ public abstract class SceneView {
   }
 
   @NotNull
+  @AndroidDpCoordinate
   public final Dimension getContentSize() {
     return getContentSize(null);
   }
@@ -133,6 +138,7 @@ public abstract class SceneView {
   }
 
   @NotNull
+  @AndroidDpCoordinate
   abstract public Dimension getContentSize(@Nullable Dimension dimension);
 
   @NotNull

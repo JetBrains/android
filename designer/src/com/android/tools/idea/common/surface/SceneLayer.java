@@ -95,16 +95,21 @@ public class SceneLayer extends Layer {
   }
 
   private void paintBackground(@NotNull Graphics2D g, @NotNull SceneContext sceneContext) {
+    Color backgroundColor = sceneContext.getColorSet().getBackground();
+    if (backgroundColor == null) {
+      return;
+    }
+
     Shape shape = mySceneView.getScreenShape();
     if (shape == null) {
-      g.setColor(sceneContext.getColorSet().getBackground());
+      g.setColor(backgroundColor);
       g.fillRect(mySizeRectangle.x, mySizeRectangle.y, mySizeRectangle.width, mySizeRectangle.height);
     }
     else {
-      g.setColor(sceneContext.getColorSet().getBackground().darker());
+      g.setColor(backgroundColor.darker());
       g.fillRect(mySizeRectangle.x, mySizeRectangle.y, mySizeRectangle.width, mySizeRectangle.height);
       Shape clip = g.getClip();
-      g.setColor(sceneContext.getColorSet().getBackground());
+      g.setColor(backgroundColor);
       g.setClip(shape);
       g.fillRect(mySizeRectangle.x, mySizeRectangle.y, mySizeRectangle.width, mySizeRectangle.height);
       g.setClip(clip);

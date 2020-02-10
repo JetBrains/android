@@ -49,7 +49,6 @@ class NlEditor(file: VirtualFile, project: Project) : DesignerEditor(file, proje
                         { NlDesignSurface.builder(myProject, this)
                           .setDefaultSurfaceState(AndroidEditorSettings.getInstance().globalState.preferredSurfaceState())
                           .build()
-                          .apply { setCentered(true) }
                         },
                         { toolWindowDefinitions(it) })
 
