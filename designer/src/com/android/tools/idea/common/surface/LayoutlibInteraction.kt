@@ -40,8 +40,8 @@ class LayoutlibInteraction(private val sceneView: SceneView) : Interaction() {
   }
 
   override fun begin(event: InteractionEvent) {
-    if (event is MouseEvent) {
-      begin(event.x, event.y, event.modifiersEx)
+    if (event is MousePressedEvent) {
+      begin(event.eventObject.x, event.eventObject.y, event.eventObject.modifiersEx)
     }
   }
 
@@ -66,11 +66,11 @@ class LayoutlibInteraction(private val sceneView: SceneView) : Interaction() {
   override fun getCursor(): Cursor? = sceneView.scene.mouseCursor
 
   override fun update(event: InteractionEvent) {
-    if (event is MouseEvent) {
-      val mouseX = event.x
-      val mouseY = event.y
+    if (event is MouseDraggedEvent) {
+      val mouseX = event.eventObject.x
+      val mouseY = event.eventObject.y
       sceneView.context.setMouseLocation(mouseX, mouseY)
-      update(mouseX, mouseY, event.modifiersEx)
+      update(mouseX, mouseY, event.eventObject.modifiersEx)
     }
   }
 
