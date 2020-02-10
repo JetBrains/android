@@ -119,9 +119,9 @@ import com.android.tools.idea.lint.AndroidLintWrongCaseInspection;
 import com.android.tools.idea.lint.AndroidLintWrongViewCastInspection;
 import com.android.tools.idea.lint.common.AndroidLintGradleDynamicVersionInspection;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
+import com.android.tools.idea.lint.common.LintIgnoredResult;
 import com.android.tools.idea.lint.common.LintExternalAnnotator;
 import com.android.tools.idea.lint.common.LintIdeIssueRegistry;
-import com.android.tools.idea.lint.common.LintResult;
 import com.android.tools.idea.lint.common.SuppressLintIntentionAction;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.TestProjectSystem;
@@ -837,7 +837,7 @@ public class AndroidLintTest extends AndroidTestCase {
 
   public void testOldTargetApi() throws Exception {
     deleteManifest();
-    String expectedTarget = Integer.toString(new AndroidLintIdeClient(getProject(), new LintResult()).getHighestKnownApiLevel());
+    String expectedTarget = Integer.toString(new AndroidLintIdeClient(getProject(), new LintIgnoredResult()).getHighestKnownApiLevel());
     doTestWithFix(new AndroidLintOldTargetApiInspection(),
                   "Update targetSdkVersion to " + expectedTarget, "AndroidManifest.xml", "xml");
   }
