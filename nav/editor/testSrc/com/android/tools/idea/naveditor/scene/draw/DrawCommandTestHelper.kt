@@ -18,26 +18,6 @@ package com.android.tools.idea.naveditor.scene.draw
 import com.android.tools.idea.common.scene.draw.DrawCommand
 import org.jetbrains.android.AndroidTestCase
 
-fun assertDrawCommandsEqual(expected: DrawActivity, actual: DrawCommand) {
-  val drawActivity = actual as DrawActivity
-  AndroidTestCase.assertEquals(expected.rectangle, drawActivity.rectangle)
-  AndroidTestCase.assertEquals(expected.imageRectangle, drawActivity.imageRectangle)
-  AndroidTestCase.assertEquals(expected.scale, drawActivity.scale)
-  AndroidTestCase.assertEquals(expected.frameColor, drawActivity.frameColor)
-  AndroidTestCase.assertEquals(expected.frameThickness, drawActivity.frameThickness)
-  AndroidTestCase.assertEquals(expected.textColor, drawActivity.textColor)
-  AndroidTestCase.assertEquals(expected.image, drawActivity.image)
-}
-
-fun assertDrawCommandsEqual(expected: DrawHeader, actual: DrawCommand) {
-  val drawHeader = actual as DrawHeader
-  AndroidTestCase.assertEquals(expected.rectangle, drawHeader.rectangle)
-  AndroidTestCase.assertEquals(expected.scale, drawHeader.scale)
-  AndroidTestCase.assertEquals(expected.text, drawHeader.text)
-  AndroidTestCase.assertEquals(expected.isStart, drawHeader.isStart)
-  AndroidTestCase.assertEquals(expected.hasDeepLink, drawHeader.hasDeepLink)
-}
-
 fun assertDrawCommandsEqual(expected: DrawSelfAction, actual: DrawCommand) {
   val drawSelfAction = actual as DrawSelfAction
 
