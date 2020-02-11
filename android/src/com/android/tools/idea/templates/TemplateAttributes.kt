@@ -16,13 +16,9 @@
 package com.android.tools.idea.templates
 
 object TemplateAttributes {
-  const val ATTR_MIN_API = "minApi"
-  const val ATTR_MIN_API_LEVEL = "minApiLevel"
   const val ATTR_BUILD_API = "buildApi"
   const val ATTR_BUILD_API_STRING = "buildApiString"
-  const val ATTR_GRADLE_PLUGIN_VERSION = "gradlePluginVersion"
 
   const val ATTR_MODULE_NAME = "projectName"
-  const val ATTR_PROJECT_OUT = "projectOut" // Module (Project in gradle language) location
   const val ATTR_INCLUDE_FORM_FACTOR = "included"
 }

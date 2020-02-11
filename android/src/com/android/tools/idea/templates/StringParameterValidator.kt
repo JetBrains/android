@@ -35,7 +35,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.JavaPsiFacade
-import com.intellij.psi.impl.java.stubs.index.JavaStaticMemberNameIndex
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.GlobalSearchScope.EMPTY_SCOPE
 import org.jetbrains.android.facet.AndroidFacet
