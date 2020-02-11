@@ -100,6 +100,7 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
         name = ".EnabledActivity",
         enabled = "true",
         exported = "true",
+        theme = null,
         intentFilters = setOf(mainIntentFilter),
         overrides = overrides,
         resolvedPackage = "com.example"
@@ -108,6 +109,7 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
         name = ".DisabledActivity",
         enabled = "false",
         exported = null,
+        theme = null,
         intentFilters = emptySet(),
         overrides = overrides,
         resolvedPackage = "com.example"
@@ -116,6 +118,7 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
         name = ".EnabledAlias",
         enabled = "true",
         exported = "true",
+        theme = null,
         intentFilters = emptySet(),
         overrides = overrides,
         resolvedPackage = "com.example"
@@ -124,6 +127,7 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
         name = ".DisabledAlias",
         enabled = "false",
         exported = null,
+        theme = null,
         intentFilters = emptySet(),
         overrides = overrides,
         resolvedPackage = "com.example"

@@ -46,6 +46,12 @@ import org.jetbrains.annotations.NotNull;
 @SuppressWarnings("javadoc")
 public class MergedManifestManagerTest extends AndroidTestCase {
   @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    MergedManifestModificationListener.ensureSubscribed(myFixture.getProject());
+  }
+
+  @Override
   protected void tearDown() throws Exception {
     try {
       Clock.reset();

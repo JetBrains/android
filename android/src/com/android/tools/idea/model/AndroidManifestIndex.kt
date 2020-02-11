@@ -226,7 +226,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
 
   override fun getValueExternalizer() = AndroidManifestRawText.Externalizer
   override fun getName() = NAME
-  override fun getVersion() = 7
+  override fun getVersion() = 8
   override fun getIndexer() = Indexer
   override fun getInputFilter() = InputFilter
 
@@ -379,6 +379,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
       val activityName: String? = androidName
       val enabled: String? = getAttributeValue(ANDROID_URI, ATTR_ENABLED)
       val exported: String? = getAttributeValue(ANDROID_URI, ATTR_EXPORTED)
+      val theme: String? = getAttributeValue(ANDROID_URI, ATTR_THEME)
       val intentFilters = hashSetOf<IntentFilterRawText>()
       processChildTags {
         if (name == TAG_INTENT_FILTER) {
@@ -392,6 +393,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
         name = activityName,
         enabled = enabled,
         exported = exported,
+        theme = theme,
         intentFilters = intentFilters.toSet()
       )
     }
@@ -573,6 +575,7 @@ data class ActivityRawText(
   val name: String?,
   val enabled: String?,
   val exported: String?,
+  val theme: String?,
   val intentFilters: Set<IntentFilterRawText>
 ) {
   /**
@@ -589,6 +592,7 @@ data class ActivityRawText(
         writeNullable(out, name) { writeUTF(out, it) }
         writeNullable(out, enabled) { writeUTF(out, it) }
         writeNullable(out, exported) { writeUTF(out, it) }
+        writeNullable(out, theme) { writeUTF(out, it) }
         writeSeq(out, intentFilters) { IntentFilterRawText.Externalizer.save(out, it) }
       }
     }
@@ -597,6 +601,7 @@ data class ActivityRawText(
       name = readNullable(`in`) { readUTF(`in`) },
       enabled = readNullable(`in`) { readUTF(`in`) },
       exported = readNullable(`in`) { readUTF(`in`) },
+      theme = readNullable(`in`) { readUTF(`in`) },
       intentFilters = readSeq(`in`) { IntentFilterRawText.Externalizer.read(`in`) }.toSet()
     )
   }
