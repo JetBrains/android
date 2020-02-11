@@ -19,6 +19,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
+import com.android.tools.idea.profilers.perfetto.traceprocessor.TraceProcessorServiceImpl;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConverter;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilingConfigService;
 import com.android.tools.idea.profilers.stacktrace.IntelliJNativeFrameSymbolizer;
@@ -35,6 +36,7 @@ import com.android.tools.profilers.Notification;
 import com.android.tools.profilers.ProfilerPreferences;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
+import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer;
 import com.google.common.collect.ImmutableList;
@@ -44,6 +46,7 @@ import com.intellij.execution.impl.EditConfigurationsDialog;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
@@ -431,5 +434,11 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
       AndroidNotification.getInstance(myProject)
         .showBalloon(notification.getTitle(), notification.getText(), type, AndroidNotification.BALLOON_GROUP);
     }
+  }
+
+  @NotNull
+  @Override
+  public TraceProcessorService getTraceProcessorService() {
+    return TraceProcessorServiceImpl.getInstance();
   }
 }
