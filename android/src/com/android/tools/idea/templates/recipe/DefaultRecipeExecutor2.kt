@@ -563,10 +563,6 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
     open fun applyChanges(gradleModel: GradleFileModel) {
       gradleModel.applyChanges()
     }
-
-    open fun mergeBuildFiles(
-      dependencies: String, destinationContents: String, project: Project, supportLibVersionFilter: String?
-    ): String = project.getProjectSystem().mergeBuildFiles(dependencies, destinationContents, supportLibVersionFilter)
   }
 
   // TODO(qumeric): make private
@@ -588,10 +584,6 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
     }
 
     override fun applyChanges(gradleModel: GradleFileModel) {}
-
-    override fun mergeBuildFiles(
-      dependencies: String, destinationContents: String, project: Project, supportLibVersionFilter: String?
-    ): String = destinationContents
   }
 }
 
