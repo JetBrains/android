@@ -39,7 +39,7 @@ class AndroidManifestIndexTest {
     @Language("xml")
     val manifestContent = """
 <?xml version='1.0' encoding='utf-8'?>
-<manifest xmlns:android='http://schemas.android.com/apk/res/android' 
+<manifest xmlns:android='http://schemas.android.com/apk/res/android'
   package='com.example' android:enabled='true'>
   <application android:theme='@style/Theme.AppCompat' android:debuggable='true'>
     <activity android:name='.EnabledActivity' android:enabled='true' android:exported='true'>
@@ -97,11 +97,11 @@ class AndroidManifestIndexTest {
   }
 
   @Test
-  fun indexer_malFormedManifest() {
+  fun indexer_malformedManifest() {
     @Language("xml")
     val manifestContent = """
 <?xml version='1.0' encoding='utf-8'?>
-<manifest xmlns:android='http://schemas.android.com/apk/res/android' 
+<manifest xmlns:android='http://schemas.android.com/apk/res/android'
   package='com.example' android:enabled='true'>
   <application android:theme='@style/Theme.AppCompat' android:debuggable='true'>
     <activity android:name='.EnabledActivity' android:enabled='true'>
@@ -109,7 +109,7 @@ class AndroidManifestIndexTest {
         <action android:name='android.intent.action.MAIN'/>
         <category android:name='android.intent.category.DEFAULT'/>
         
-        <!-- Recovery case1: Though Attr.value missing errors, no more other siblings(child tags of <intent-filter>) 
+        <!-- Recovery case1: Though Attr.value missing errors, no more other siblings(child tags of <intent-filter>)
         need to be processed, we can go to the next END_TAG and then return to its parent tag, <intent-filter> -->
         <action android:name
         
@@ -133,8 +133,8 @@ class AndroidManifestIndexTest {
     
   <uses-sdk android:minSdkVersion='22' android:targetSdkVersion='28'/>
   
-  <!-- No recovery case1: though no end tag of uses-permission, info of this tag is retrieved still. However for the rest of the file, 
-  parsing won't be recovered because no matching end tag after skipping sub tree(based on the level matching). And eventually, it hits
+  <!-- No recovery case1: though no end tag of uses-permission, info of this tag is retrieved still. However for the rest of the file,
+  parsing won't be recovered because no matching end tag after skipping sub tree (based on the level matching). And eventually, it hits
   the end of document. -->
   <uses-permission android:name='android.permission.SEND_SMS'>
   
