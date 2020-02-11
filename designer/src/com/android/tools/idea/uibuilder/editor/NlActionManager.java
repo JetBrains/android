@@ -55,6 +55,7 @@ import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.DataKey;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -83,6 +84,12 @@ import org.jetbrains.annotations.Nullable;
  * Provides and handles actions in the layout editor
  */
 public class NlActionManager extends ActionManager<NlDesignSurface> {
+  /**
+   * Data key for the actions work in Layout Editor. This includes NlDesignSurface and ActionToolBar, but **exclude** all attached
+   * TODO: Try to make all actions work for all design tools, so we can remove this data key.
+   */
+  public static final DataKey<NlDesignSurface> LAYOUT_EDITOR = DataKey.create(NlDesignSurface.class.getName() + "_LayoutEditor");
+
   private AnAction mySelectAllAction;
   private AnAction mySelectParent;
   private GotoComponentAction myGotoComponentAction;
