@@ -22,7 +22,7 @@ import static org.jetbrains.android.util.AndroidUtils.getApplicationFacets;
  */
 public class GenerateSignedApkAction extends AnAction {
   public GenerateSignedApkAction() {
-    super(AndroidBundle.message(StudioFlags.RUNDEBUG_ANDROID_BUILD_BUNDLE_ENABLED.get() ? "android.generate.signed.apk.action.bundle.text" : "android.generate.signed.apk.action.text"));
+    super(AndroidBundle.lazyMessage(StudioFlags.RUNDEBUG_ANDROID_BUILD_BUNDLE_ENABLED.get() ? "android.generate.signed.apk.action.bundle.text" : "android.generate.signed.apk.action.text"));
   }
 
   @Override

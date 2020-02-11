@@ -45,7 +45,7 @@ import java.io.IOException;
 
 public class ConvertToNinePatchAction extends AnAction {
   public ConvertToNinePatchAction() {
-    super(AndroidBundle.message("android.9patch.creator.title"));
+    super(AndroidBundle.lazyMessage("android.9patch.creator.title"));
   }
 
   @Override
