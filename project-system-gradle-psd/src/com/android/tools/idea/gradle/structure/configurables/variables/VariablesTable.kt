@@ -423,7 +423,7 @@ class VariablesTable private constructor(
         panel.add(nodeIconLabel)
       }
       panel.add(textBox)
-      panel.background = table.selectionBackground
+      panel.background = table.getSelectionBackground()
       textBox.text = value as String
 
       panel.addFocusListener(object : FocusAdapter() {

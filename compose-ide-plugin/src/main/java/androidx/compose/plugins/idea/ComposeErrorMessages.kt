@@ -25,8 +25,7 @@ class ComposeErrorMessages : DefaultErrorMessages.Extension {
   override fun getMap() = MAP
 
   init {
-    Errors.Initializer.initializeFactoryNames(
-      ComposeErrors::class.java)
+
     MAP.put(
       ComposeErrors.COMPOSABLE_INVOCATION,
       "@Composable invocations can only happen from the context of a @Composable function"
@@ -64,5 +63,8 @@ class ComposeErrorMessages : DefaultErrorMessages.Extension {
       ComposeErrors.ILLEGAL_TRY_CATCH_AROUND_COMPOSABLE,
       "Try catch is not supported around composable function invocations."
     )
+
+    Errors.Initializer.initializeFactoryNamesAndDefaultErrorMessages(
+      ComposeErrors::class.java, this)
   }
 }

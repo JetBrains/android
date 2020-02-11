@@ -33,7 +33,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.jetbrains.kotlin.tools.projectWizard.plugins.printer.GradlePrinter;
 
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 

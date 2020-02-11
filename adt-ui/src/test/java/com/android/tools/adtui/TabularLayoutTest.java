@@ -50,7 +50,7 @@ public final class TabularLayoutTest {
       panel.add(row2);
       fail();
     }
-    catch (IllegalArgumentException ignored) {
+    catch (Exception ignored) {
     }
   }
 
