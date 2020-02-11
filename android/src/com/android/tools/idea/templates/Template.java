@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.templates;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer;
 import java.io.File;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,11 +27,7 @@ public class Template {
   /**
    * Reserved filename which describes each template
    */
-  public static final String TEMPLATE_XML_NAME = "template.xml";
   // Various tags and attributes used in template.xml
-  public static final String TAG_PARAMETER = "parameter";
-  public static final String ATTR_FORMAT = "format";
-  public static final String ATTR_VALUE = "value";
   public static final String ATTR_DEFAULT = "default";
   public static final String ATTR_SUGGEST = "suggest";
   public static final String ATTR_ID = "id";
@@ -48,23 +42,10 @@ public class Template {
   public static final String ANDROID_MODULE_TEMPLATE = "Android Module";
   public static final String ANDROID_PROJECT_TEMPLATE = "Android Project";
 
-  /**
-   * Path to the directory containing the templates
-   */
-  private final File myTemplateRoot;
-
-  private TemplateMetadata myMetadata;
-
-  private Template(@NotNull File templateRoot) {
-    myTemplateRoot = templateRoot;
-  }
+  private Template(@NotNull File templateRoot) { }
 
   @Nullable
   public TemplateMetadata getMetadata() {
-    if (myMetadata == null) {
-      myMetadata = TemplateManager.getInstance().getTemplateMetadata(myTemplateRoot);
-    }
-
-    return myMetadata;
+    return null;
   }
 }
