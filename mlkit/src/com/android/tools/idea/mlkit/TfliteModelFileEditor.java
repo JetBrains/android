@@ -137,7 +137,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   }
 
   private boolean shouldShowAddDepButton() {
-    return MlkitUtils.isMlModelFileInAssetsFolder(myFile) &&
+    return MlkitUtils.isModelFileInMlModelsFolder(myFile) &&
            myModule != null &&
            !MlkitUtils.getMissingDependencies(myModule, myFile).isEmpty();
   }
