@@ -17,7 +17,8 @@ package com.android.tools.idea.gradle.dsl.parser.dependencies;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
-import com.android.tools.idea.templates.GradleFileMergers;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Ordering;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -123,7 +124,27 @@ public class DependenciesDslElement extends GradleDslBlockElement {
     )
   );
 
-  public static final Comparator comparator = Comparator.comparing(GradleDslElement::getName, GradleFileMergers.CONFIGURATION_ORDERING);
+  private static final List<String> KNOWN_CONFIGURATIONS_IN_ORDER = ImmutableList.of(
+    "feature", "api", "implementation", "compile",
+    "testApi", "testImplementation", "testCompile",
+    "androidTestApi", "androidTestImplementation", "androidTestCompile", "androidTestUtil"
+  );
+
+
+  /**
+   * Defined an ordering on gradle configuration names.
+   */
+  static final Ordering<String> CONFIGURATION_ORDERING =
+    Ordering
+      .natural()
+      .onResultOf((String input) -> {
+        int result = KNOWN_CONFIGURATIONS_IN_ORDER.indexOf(input);
+        return result != -1 ? result : KNOWN_CONFIGURATIONS_IN_ORDER.size();
+      })
+      .compound(Ordering.natural());
+
+
+  public static final Comparator comparator = Comparator.comparing(GradleDslElement::getName, CONFIGURATION_ORDERING);
 
   public DependenciesDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);

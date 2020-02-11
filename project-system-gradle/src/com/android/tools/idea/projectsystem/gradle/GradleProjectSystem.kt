@@ -40,7 +40,6 @@ import com.android.tools.idea.res.AndroidManifestClassPsiElementFinder
 import com.android.tools.idea.res.AndroidResourceClassPsiElementFinder
 import com.android.tools.idea.res.ProjectLightResourceClassService
 import com.android.tools.idea.sdk.AndroidSdks
-import com.android.tools.idea.templates.GradleFilePsiMerger
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
@@ -98,10 +97,6 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
 
   override fun buildProject() {
     GradleProjectBuilder.getInstance(project).compileJava()
-  }
-
-  override fun mergeBuildFiles(dependencies: String, destinationContents: String, supportLibVersionFilter: String?): String {
-    return GradleFilePsiMerger.mergeGradleFiles(dependencies, destinationContents, project, supportLibVersionFilter)
   }
 
   override fun getModuleSystem(module: Module): AndroidModuleSystem {

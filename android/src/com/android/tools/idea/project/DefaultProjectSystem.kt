@@ -81,10 +81,6 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
     override fun getLastSyncResult() = SyncResult.SUCCESS
   }
 
-  override fun mergeBuildFiles(dependencies: String, destinationContents: String, supportLibVersionFilter: String?): String {
-    return destinationContents
-  }
-
   override val projectSystem = this
 
   override fun getModuleSystem(module: Module): AndroidModuleSystem = DefaultModuleSystem(module)
