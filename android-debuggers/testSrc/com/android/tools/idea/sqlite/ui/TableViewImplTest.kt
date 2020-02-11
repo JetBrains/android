@@ -19,11 +19,18 @@ import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumn
+import com.android.tools.idea.sqlite.model.SqliteColumnValue
+import com.android.tools.idea.sqlite.model.SqliteRow
+import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.JBTable
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
+import java.awt.Component
 import java.awt.Dimension
+import java.awt.Point
 import javax.swing.JPanel
 import javax.swing.JTable
 
@@ -123,5 +130,39 @@ class TableViewImplTest : LightPlatformTestCase() {
     // Assert
     assertTrue(readOnlyLabel.isVisible)
     assertFalse(table.model.isCellEditable(0, 0))
+  }
+
+  fun testClickOnColumnHeaderSortsTable() {
+    // Prepare
+    val treeWalker = TreeWalker(view.component)
+
+    val table = treeWalker.descendants().filterIsInstance<JBTable>().first()
+
+    val mockListener = mock(TableView.Listener::class.java)
+    view.addListener(mockListener)
+
+    val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
+    val cols = listOf(col)
+    val rows = listOf(SqliteRow(listOf(SqliteColumnValue(col, "val"))))
+
+    view.startTableLoading()
+    view.showTableColumns(cols)
+    view.showTableRowBatch(rows)
+    view.stopTableLoading()
+
+    table.size = Dimension(600, 200)
+    table.tableHeader.size = Dimension(600, 100)
+
+    table.preferredSize = table.size
+    TreeWalker(table).descendants().forEach { it.doLayout() }
+
+    fakeUi = FakeUi(table.tableHeader)
+
+    // Act
+    fakeUi.mouse.click(597, 0)
+
+    // Assert
+    assertEquals(0, table.columnAtPoint(Point(597, 0)))
+    verify(mockListener).toggleOrderByColumnInvoked(col)
   }
 }
