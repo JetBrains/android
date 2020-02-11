@@ -205,6 +205,19 @@ fun AndroidFacet.queryApplicationDebuggableFromManifestIndex() = queryManifestIn
 }
 
 /**
+ * Returns the first non-null application theme value, or null if such attribute is not specified,
+ * instead of merged results with merging rules applied.
+ *
+ * Must be called in a smart read action.
+ */
+fun AndroidFacet.queryApplicationThemeFromManifestIndex() = queryManifestIndex { overrides, contributors ->
+  contributors.asSequence()
+    .mapNotNull(AndroidManifestRawText::theme)
+    .map(overrides::resolvePlaceholders)
+    .firstOrNull()
+}
+
+/**
  * Returns the package name from primary manifest
  *
  * Must be called in a smart read action.
