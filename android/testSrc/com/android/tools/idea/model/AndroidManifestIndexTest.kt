@@ -42,7 +42,7 @@ class AndroidManifestIndexTest {
 <manifest xmlns:android='http://schemas.android.com/apk/res/android'
   package='com.example' android:enabled='true'>
   <application android:theme='@style/Theme.AppCompat' android:debuggable='true'>
-    <activity android:name='.EnabledActivity' android:enabled='true' android:exported='true'>
+    <activity android:name='.EnabledActivity' android:enabled='true' android:exported='true' android:theme='@style/AppTheme.NoActionBar'>
       <intent-filter>
         <action android:name='android.intent.action.MAIN'/>
         <category android:name='android.intent.category.DEFAULT'/>
@@ -70,12 +70,13 @@ class AndroidManifestIndexTest {
           name = ".EnabledActivity",
           enabled = "true",
           exported = "true",
+          theme = "@style/AppTheme.NoActionBar",
           intentFilters = setOf(
             IntentFilterRawText(actionNames = setOf("android.intent.action.MAIN"),
                                 categoryNames = setOf("android.intent.category.DEFAULT"))
           )
         ),
-        ActivityRawText(name = ".DisabledActivity", enabled = "false", exported = "true", intentFilters = setOf())
+        ActivityRawText(name = ".DisabledActivity", enabled = "false", exported = "true", theme = null, intentFilters = setOf())
       ),
       activityAliases = setOf(
         ActivityAliasRawText(name = ".EnabledAlias", targetActivity = ".DisabledActivity",
@@ -104,7 +105,7 @@ class AndroidManifestIndexTest {
 <manifest xmlns:android='http://schemas.android.com/apk/res/android'
   package='com.example' android:enabled='true'>
   <application android:theme='@style/Theme.AppCompat' android:debuggable='true'>
-    <activity android:name='.EnabledActivity' android:enabled='true'>
+    <activity android:name='.EnabledActivity' android:enabled='true' android:theme="@style/AppTheme.NoActionBar">
       <intent-filter>
         <action android:name='android.intent.action.MAIN'/>
         <category android:name='android.intent.category.DEFAULT'/>
@@ -148,12 +149,13 @@ class AndroidManifestIndexTest {
           name = ".EnabledActivity",
           enabled = "true",
           exported = null,
+          theme = "@style/AppTheme.NoActionBar",
           intentFilters = setOf(
             IntentFilterRawText(actionNames = setOf("android.intent.action.MAIN"),
                                 categoryNames = setOf("android.intent.category.DEFAULT"))
           )
         ),
-        ActivityRawText(name = ".DisabledActivity", enabled = "false", exported = null, intentFilters = setOf())
+        ActivityRawText(name = ".DisabledActivity", enabled = "false", exported = null, theme = null, intentFilters = setOf())
       ),
       activityAliases = setOf(
         ActivityAliasRawText(name = ".EnabledAlias", targetActivity = ".DisabledActivity",

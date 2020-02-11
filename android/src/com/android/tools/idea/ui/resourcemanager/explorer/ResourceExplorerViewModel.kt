@@ -23,7 +23,8 @@ import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.model.MergedManifestManager
+import com.android.tools.idea.configurations.getAppThemeName
+import com.android.tools.idea.configurations.getDefaultTheme
 import com.android.tools.idea.npw.ThemeHelper
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.getFolderType
@@ -444,13 +445,11 @@ private fun getResourceResolver(
  */
 private fun getApplicationTheme(facet: AndroidFacet): String {
   val module = facet.module
-  val appTheme = ThemeHelper(module).appThemeNameFromManifest
+  val appTheme = module.getAppThemeName()
 
   if (appTheme != null) {
     return appTheme
   }
 
-  // Don't care if we block here.
-  val manifest = MergedManifestManager.getMergedManifestSupplier(facet.module).get().get()
-  return manifest.getDefaultTheme(null, null, null)
+  return module.getDefaultTheme(null, null, null)
 }

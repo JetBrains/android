@@ -22,13 +22,12 @@ import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeResolver;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
-import com.android.tools.idea.model.ActivityAttributesSnapshot;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.model.MergedManifestSnapshot;
-import com.android.tools.idea.model.MergedManifestManager;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Streams;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.IdeFocusManager;
@@ -46,11 +45,11 @@ import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -329,36 +328,10 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
         }
         break;
       case MANIFEST: {
-        MergedManifestSnapshot manifest = MergedManifestManager.getSnapshot(myConfiguration.getModule());
-        Map<String, ActivityAttributesSnapshot> activityAttributesMap = manifest.getActivityAttributesMap();
-        /*
-        TODO: Until we don't sort the theme lists automatically, no need to call out the preferred one first
-        String activity = myConfiguration.getActivity();
-        if (activity != null) {
-          String theme = activityThemes.get(activity);
-          if (theme != null) {
-            themes.add(theme);
-          }
-        }
-        */
-
-        String manifestTheme = manifest.getManifestTheme();
-        Set<String> allThemes = new HashSet<>();
-        if (manifestTheme != null) {
-          allThemes.add(manifestTheme);
-        }
-        for (ActivityAttributesSnapshot info : activityAttributesMap.values()) {
-          if (info.getTheme() != null) {
-            allThemes.add(info.getTheme());
-          }
-        }
-        List<String> sorted = new ArrayList<>(allThemes);
-        Collections.sort(sorted);
-
-        for (String theme : sorted) {
-          themes.add(ResolutionUtils.getQualifiedNameFromResourceUrl(theme));
-        }
-
+        collectThemesFromManifest(myConfiguration.getModule())
+          .sorted()
+          .map(ResolutionUtils::getQualifiedNameFromResourceUrl)
+          .forEach(themes::add);
         break;
       }
       case ALL:
@@ -374,6 +347,17 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
 
     myThemeMap.put(category, themes);
     return themes;
+  }
+
+  /** Collect all distinct themes from the module's manifest (i.e. application and activity themes) */
+  @NotNull
+  private static Stream<String> collectThemesFromManifest(@NotNull Module module) {
+    String appTheme = ThemeUtils.getAppThemeName(module);
+    Set<String> activityThemes = ThemeUtils.getAllActivityThemeNames(module);
+    if (appTheme != null && !activityThemes.contains(appTheme)) {
+      return Streams.concat(Stream.of(appTheme), activityThemes.stream());
+    }
+    return activityThemes.stream();
   }
 
   private void updateThemeList() {

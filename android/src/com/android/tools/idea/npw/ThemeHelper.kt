@@ -23,18 +23,11 @@ import com.android.ide.common.rendering.api.StyleResourceValue
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.configurations.Configuration
-import com.android.tools.idea.model.AndroidManifestIndex
-import com.android.tools.idea.model.MergedManifestManager
-import com.android.tools.idea.model.logManifestIndexQueryError
-import com.android.tools.idea.model.queryApplicationThemeFromManifestIndex
+import com.android.tools.idea.configurations.getAppThemeName
 import com.android.tools.idea.res.LocalResourceRepository
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.project.DumbService
-import com.intellij.openapi.project.IndexNotReadyException
-import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.text.StringUtil.trimStart
-import org.jetbrains.android.facet.AndroidFacet
 
 private const val DEFAULT_THEME_NAME = "AppTheme"
 private const val ALTERNATE_THEME_NAME = "Theme.App"
@@ -46,39 +39,13 @@ class ThemeHelper(private val module: Module) {
   private val projectRepository: LocalResourceRepository? = ResourceRepositoryManager.getProjectResources(module)
   val appThemeName: String?
     get() {
-      val manifestTheme = appThemeNameFromManifest
+      val manifestTheme = module.getAppThemeName()
       return when {
         manifestTheme != null -> trimStart(manifestTheme, SdkConstants.STYLE_RESOURCE_PREFIX)
         DEFAULT_THEME_NAME.toProjectStyleResource() != null -> DEFAULT_THEME_NAME
         ALTERNATE_THEME_NAME.toProjectStyleResource() != null -> ALTERNATE_THEME_NAME
         else -> null
       }
-    }
-
-  /**
-   *  Try to get application theme from [AndroidManifestIndex] if index is enabled. And it falls back to the merged
-   *  manifest snapshot if necessary.
-   */
-  val appThemeNameFromManifest: String?
-    get() {
-      if (AndroidManifestIndex.indexEnabled()) {
-        try {
-          val facet = AndroidFacet.getInstance(module)
-          if (facet != null) {
-            return DumbService.getInstance(module.project).runReadActionInSmartMode(Computable {
-              facet.queryApplicationThemeFromManifestIndex()
-            })
-          }
-        }
-        catch (e: IndexNotReadyException) {
-          // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
-          //  We need to refactor the callers of this to require a *smart*
-          //  read action, at which point we can remove this try-catch.
-          logManifestIndexQueryError(e);
-        }
-      }
-
-      return MergedManifestManager.getFreshSnapshot(module).manifestTheme
     }
 
   fun isLocalTheme(themeName: String) = themeName.toProjectStyleResource() != null

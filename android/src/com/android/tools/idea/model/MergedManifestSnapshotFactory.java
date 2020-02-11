@@ -284,7 +284,7 @@ class MergedManifestSnapshotFactory {
                 String childNodeName = child.getNodeName();
                 if (NODE_ACTIVITY.equals(childNodeName)) {
                   Element element = (Element)child;
-                  ActivityAttributesSnapshot attributes = createActivityAttributesSnapshot(element, appId, namespace);
+                  ActivityAttributesSnapshot attributes = createActivityAttributesSnapshot(element, packageName, namespace);
                   activityAttributesMap.put(attributes.getName(), attributes);
                   activities.add(element);
                 }

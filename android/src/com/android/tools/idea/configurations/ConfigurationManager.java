@@ -20,7 +20,6 @@ import static com.android.tools.idea.configurations.ConfigurationListener.CFG_DE
 import static com.android.tools.idea.configurations.ConfigurationListener.CFG_LOCALE;
 import static com.android.tools.idea.configurations.ConfigurationListener.CFG_TARGET;
 
-import com.android.SdkConstants;
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.Bridge;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
@@ -29,9 +28,6 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repository.targets.PlatformTarget;
-import com.android.tools.idea.model.ActivityAttributesSnapshot;
-import com.android.tools.idea.model.MergedManifestManager;
-import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableList;
@@ -41,7 +37,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.Collections;
@@ -301,45 +296,35 @@ public class ConfigurationManager implements Disposable {
   }
 
   /**
-   * Returns the preferred theme
+   * Try to get activity theme from manifest. If no theme is found, We fall back to the app theme. If that isn't found,
+    * we use the default system theme.
    */
   @NotNull
   public String computePreferredTheme(@NotNull Configuration configuration) {
-    MergedManifestSnapshot manifest = MergedManifestManager.getSnapshot(myModule);
-
     // TODO: If we are rendering a layout in included context, pick the theme from the outer layout instead.
-
-    String activity = configuration.getActivity();
-    if (activity != null) {
-      String activityFqcn = activity;
-      if (activity.startsWith(".")) {
-        String pkg = StringUtil.notNullize(manifest.getPackage());
-        activityFqcn = pkg + activity;
+    String activityName = configuration.getActivity();
+    if (activityName != null) {
+      String activityFqcn = activityName;
+      if (activityName.startsWith(".")) {
+        String packageName = AndroidManifestUtils.getPackageName(myModule);
+        activityFqcn = packageName + activityName;
       }
 
-      ActivityAttributesSnapshot attributes = manifest.getActivityAttributes(activityFqcn);
-      if (attributes != null) {
-        String theme = attributes.getTheme();
-        // Check that the theme looks like a reference.
-        if (theme != null && theme.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
-          return theme;
-        }
-      }
-
-      // Try with the package name from the manifest.
-      attributes = manifest.getActivityAttributes(activity);
-      if (attributes != null) {
-        String theme = attributes.getTheme();
-        // Check that the theme looks like a reference.
-        if (theme != null && theme.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
-          return theme;
-        }
+      String theme = ThemeUtils.getThemeNameForActivity(myModule, activityFqcn);
+      if (theme != null) {
+        return theme;
       }
     }
 
-    // Look up the default/fallback theme to use for this project (which depends on
-    // the screen size when no particular theme is specified in the manifest).
-    return manifest.getDefaultTheme(configuration.getTarget(), configuration.getScreenSize(), configuration.getCachedDevice());
+    // Returns an app theme if possible
+    String appTheme = ThemeUtils.getAppThemeName(myModule);
+    if (appTheme != null) {
+      return appTheme;
+    }
+
+    // Look up the default/fallback theme to use for this project (which depends on the screen size when no particular
+    // theme is specified in the manifest).
+    return ThemeUtils.getDefaultTheme(myModule, configuration.getTarget(), configuration.getScreenSize(), configuration.getCachedDevice());
   }
 
   @NotNull
