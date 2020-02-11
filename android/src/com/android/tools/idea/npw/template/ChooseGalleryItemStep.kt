@@ -31,9 +31,6 @@ import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
-import com.android.tools.idea.templates.TemplateMetadata
-import com.android.tools.idea.templates.TemplateMetadata.TemplateConstraint.ANDROIDX
-import com.android.tools.idea.templates.TemplateMetadata.TemplateConstraint.KOTLIN
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.model.SkippableWizardStep
@@ -46,7 +43,6 @@ import com.intellij.ui.components.JBScrollPane
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.android.util.AndroidBundle.message
-import org.jetbrains.annotations.TestOnly
 import java.awt.event.ActionEvent
 import javax.swing.AbstractAction
 import javax.swing.Icon

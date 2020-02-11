@@ -47,7 +47,6 @@ import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.progress.StudioProgressRunner
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.PackageResolutionException
-import com.android.tools.idea.templates.TemplateMetadata
 import com.android.tools.idea.templates.TemplateUtils.knownVersions
 import com.google.common.annotations.VisibleForTesting
 import java.io.File
@@ -230,7 +229,7 @@ class AndroidVersionsInfo {
     val buildApiLevelStr: String
       get() = when {
         androidTarget == null -> buildApiLevel.toString()
-        androidTarget!!.isPlatform -> TemplateMetadata.getBuildApiString(androidTarget!!.version)
+        androidTarget!!.isPlatform -> androidTarget!!.version.toBuildApiString()
         else -> AndroidTargetHash.getTargetHashString(androidTarget!!)
       }
 
@@ -322,3 +321,9 @@ private fun getTag(repoPackage: RepoPackage): IdDisplay? {
     else -> NO_MATCH
   }
 }
+
+/**
+ * Computes a suitable build api string, e.g. "18" for API level 18.
+ */
+fun AndroidVersion.toBuildApiString() =
+  if (isPreview) AndroidTargetHash.getPlatformHashString(this) else apiString

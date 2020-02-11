@@ -16,29 +16,11 @@
 package com.android.tools.idea.templates
 
 object TemplateAttributes {
-  const val ATTR_IS_NEW_MODULE = "isNewModule"
-  const val ATTR_IS_NEW_PROJECT = "isNewProject"
-  const val ATTR_IS_LIBRARY_MODULE = "isLibraryProject"
-  const val ATTR_IS_LOW_MEMORY = "isLowMemory"
-  const val ATTR_ANDROIDX_SUPPORT = "addAndroidXSupport"
-  const val ATTR_OVERRIDE_PATH_CHECK = "overridePathCheck" // To disable android plugin checking for ascii in paths (windows tests)
-
-  const val ATTR_TARGET_API = "targetApi"
-  const val ATTR_TARGET_API_STRING = "targetApiString"
-  const val ATTR_MIN_BUILD_API = "minBuildApi"
   const val ATTR_MIN_API = "minApi"
   const val ATTR_MIN_API_LEVEL = "minApiLevel"
   const val ATTR_BUILD_API = "buildApi"
   const val ATTR_BUILD_API_STRING = "buildApiString"
-  const val ATTR_BUILD_API_REVISION = "buildApiRevision"
-  const val ATTR_BUILD_TOOLS_VERSION = "buildToolsVersion"
   const val ATTR_GRADLE_PLUGIN_VERSION = "gradlePluginVersion"
-  const val ATTR_GRADLE_VERSION = "gradleVersion"
-  const val ATTR_EXPLICIT_BUILD_TOOLS_VERSION = "explicitBuildToolsVersion"
-  const val ATTR_LANGUAGE = "language" // Java vs Kotlin
-  const val ATTR_JAVA_VERSION = "javaVersion"
-  const val ATTR_KOTLIN_VERSION = "kotlinVersion"
-  const val ATTR_KOTLIN_EAP_REPO = "includeKotlinEapRepo"
 
   const val ATTR_MODULE_NAME = "projectName"
   const val ATTR_PACKAGE_NAME = "packageName"
