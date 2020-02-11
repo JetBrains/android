@@ -21,13 +21,10 @@ import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.model.NewAndroidModuleModel
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedProjectPackage
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
-import com.android.tools.idea.templates.Template
-import com.android.tools.idea.templates.TemplateManager
 import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.intellij.openapi.project.Project
 import icons.AndroidIcons
 import org.jetbrains.android.util.AndroidBundle.message
-import java.io.File
 import javax.swing.Icon
 
 class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {

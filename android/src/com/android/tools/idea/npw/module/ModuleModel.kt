@@ -55,7 +55,6 @@ abstract class ModuleModel(
   override val formFactor: ObjectProperty<FormFactor> = ObjectValueProperty(FormFactor.MOBILE)
   final override val moduleName = StringValueProperty(name).apply { addConstraint(String::trim) }
   override val androidSdkInfo = OptionalValueProperty<AndroidVersionsInfo.VersionItem>()
-  override val moduleTemplateValues = mutableMapOf<String, Any>()
   override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(projectTemplateDataBuilder)
   abstract val renderer: MultiTemplateRenderer.TemplateRenderer
 
@@ -94,10 +93,6 @@ abstract class ModuleModel(
 
     @WorkerThread
     override fun doDryRun(): Boolean {
-      // This is done because module needs to know about all included form factors, and currently we know about them only after init run,
-      // so we need to set it again after all inits (thus in dryRun) TODO(qumeric): remove after adding formFactors to the project
-      moduleTemplateValues.putAll(projectTemplateValues)
-
       // Returns false if there was a render conflict and the user chose to cancel creating the template
       return renderTemplate(true)
     }

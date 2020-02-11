@@ -214,8 +214,8 @@ data class ProjectChecker(
 @VisibleForTesting
 fun titleToTemplateRenderer(title: String?) = when (title) {
   "" -> AndroidStudioEvent.TemplateRenderer.UNKNOWN_TEMPLATE_RENDERER
-  Template.ANDROID_MODULE_TEMPLATE -> AndroidStudioEvent.TemplateRenderer.ANDROID_MODULE
-  Template.ANDROID_PROJECT_TEMPLATE -> AndroidStudioEvent.TemplateRenderer.ANDROID_PROJECT
+  "Android Module" -> AndroidStudioEvent.TemplateRenderer.ANDROID_MODULE
+  "Android Project"-> AndroidStudioEvent.TemplateRenderer.ANDROID_PROJECT
   "Empty Activity" -> AndroidStudioEvent.TemplateRenderer.EMPTY_ACTIVITY
   "Blank Activity" -> AndroidStudioEvent.TemplateRenderer.BLANK_ACTIVITY
   "Layout XML File" -> AndroidStudioEvent.TemplateRenderer.LAYOUT_XML_FILE

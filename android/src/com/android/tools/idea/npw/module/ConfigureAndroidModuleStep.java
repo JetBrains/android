@@ -208,7 +208,6 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewAndroidMo
   @Override
   protected void onProceeding() {
     NewAndroidModuleModel moduleModel = getModel();
-    moduleModel.getModuleTemplateValues().put(myFormFactor.id + ATTR_INCLUDE_FORM_FACTOR, true);
 
     // At this point, the validator panel should have no errors, and the user has typed a valid Module Name
     getModel().getModuleName().set(myModuleName.getText());

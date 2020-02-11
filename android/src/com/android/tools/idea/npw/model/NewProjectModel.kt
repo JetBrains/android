@@ -84,7 +84,6 @@ interface ProjectModelData {
   val cppFlags: StringProperty
   var project: Project
   val isNewProject: Boolean
-  val projectTemplateValues: MutableMap<String, Any>
   val language: OptionalProperty<Language>
   val multiTemplateRenderer: MultiTemplateRenderer
   val projectTemplateDataBuilder: ProjectTemplateDataBuilder
@@ -101,7 +100,6 @@ class NewProjectModel : WizardModel(), ProjectModelData {
   override val cppFlags = StringValueProperty()
   override lateinit var project: Project
   override val isNewProject = true
-  override val projectTemplateValues = mutableMapOf<String, Any>()
   override val language = OptionalValueProperty<Language>()
   override val multiTemplateRenderer = MultiTemplateRenderer { renderer ->
     run {

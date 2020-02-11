@@ -49,7 +49,6 @@ import com.android.tools.idea.gradle.util.GradleUtil.dependsOn
 import com.android.tools.idea.gradle.util.GradleUtil.dependsOnAndroidTest
 import com.android.tools.idea.gradle.util.GradleUtil.dependsOnJavaLibrary
 import com.android.tools.idea.projectsystem.getProjectSystem
-import com.android.tools.idea.templates.RenderingContextAdapter
 import com.android.tools.idea.templates.RepositoryUrlManager
 import com.android.tools.idea.templates.TemplateUtils
 import com.android.tools.idea.templates.TemplateUtils.checkDirectoryIsWriteable
@@ -180,7 +179,7 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
       return
     }
 
-    val contents = mergeXmlUtil(RenderingContextAdapter(context), content, targetText, targetFile)
+    val contents = mergeXmlUtil(context, content, targetText, targetFile)
 
     writeTargetFile(this, contents, targetFile)
   }

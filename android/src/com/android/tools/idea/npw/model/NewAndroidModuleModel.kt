@@ -61,7 +61,6 @@ class ExistingProjectModelData(
   override val useAppCompat = BoolValueProperty()
   override val useGradleKts = BoolValueProperty(project.hasKtsUsage())
   override val isNewProject = false
-  override val projectTemplateValues: MutableMap<String, Any> = mutableMapOf()
   override val language: OptionalValueProperty<Language> = OptionalValueProperty(getInitialSourceLanguage(project))
   override val multiTemplateRenderer: MultiTemplateRenderer = MultiTemplateRenderer { renderer ->
     object : Task.Modal(project, message("android.compile.messages.generating.r.java.content.name"), false) {
@@ -82,7 +81,6 @@ interface ModuleModelData : ProjectModelData {
   val template: ObjectProperty<NamedModuleTemplate>
   val formFactor: ObjectProperty<FormFactor>
   val isLibrary: Boolean
-  val moduleTemplateValues: MutableMap<String, Any>
   val moduleName: StringValueProperty
   /**
    * A template that's associated with a user's request to create a new module. This may be null if the user skips creating a
@@ -106,7 +104,6 @@ class NewAndroidModuleModel(
   projectModelData,
   template
 ) {
-  override val moduleTemplateValues = mutableMapOf<String, Any>()
   override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(projectTemplateDataBuilder)
   override val renderer = ModuleTemplateRenderer()
 
@@ -176,20 +173,6 @@ class NewAndroidModuleModel(
       }
       val tff = formFactor.get().toTemplateFormFactor()
       projectTemplateDataBuilder.includedFormFactorNames.putIfAbsent(tff, mutableListOf(moduleName.get()))?.add(moduleName.get())
-
-      // TODO(qumeric): remove the following (old system init)
-      // TODO(qumeric): let project know about formFactors (it is being rendered before NewModuleModel.init runs)
-      projectTemplateValues.also {
-        it[formFactor.get().id + ATTR_INCLUDE_FORM_FACTOR] = true
-        it[formFactor.get().id + ATTR_MODULE_NAME] = moduleName.get()
-      }
-
-      if (useAppCompat.get()) {
-        // The highest supported/recommended appCompact version is P(28)
-        moduleTemplateValues[ATTR_BUILD_API] = androidSdkInfo.value.buildApiLevel.coerceAtMost(P)
-      }
-
-      moduleTemplateValues.putAll(projectTemplateValues)
     }
   }
 }

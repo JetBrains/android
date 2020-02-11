@@ -33,12 +33,12 @@ import com.android.tools.idea.templates.KeystoreUtils.getDebugKeystore
 import com.android.tools.idea.templates.KeystoreUtils.getOrCreateDefaultDebugKeystore
 import com.android.tools.idea.templates.ModuleTemplateDataBuilder
 import com.android.tools.idea.templates.ProjectTemplateDataBuilder
-import com.android.tools.idea.templates.Template
 import com.android.tools.idea.templates.TemplateUtils
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor2
 import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor2
 import com.android.tools.idea.templates.recipe.RenderingContext2
 import com.android.tools.idea.wizard.model.WizardModel
+import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.WizardParameterData
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.diagnostic.logger
@@ -47,7 +47,6 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
-import com.android.tools.idea.wizard.template.Template as Template2
 
 private val log = logger<RenderTemplateModel>()
 
@@ -56,7 +55,6 @@ class ExistingNewModuleModelData(
 ) : ModuleModelData, ProjectModelData by existingProjectModelData {
   override val template: ObjectProperty<NamedModuleTemplate> = ObjectValueProperty(template)
   override val moduleName: StringValueProperty = StringValueProperty(facet.module.name)
-  override val moduleTemplateValues: MutableMap<String, Any> = mutableMapOf()
   override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(ProjectTemplateDataBuilder(false))
 
   override val formFactor: ObjectValueProperty<FormFactor> get() = TODO("not implemented")
@@ -65,7 +63,7 @@ class ExistingNewModuleModelData(
 }
 
 /**
- * A model responsible for instantiating a FreeMarker [Template] into the current project representing an Android component.
+ * A model responsible for instantiating a [Template] into the current project representing an Android component.
  */
 class RenderTemplateModel private constructor(
   moduleModelData: ModuleModelData,
@@ -81,7 +79,7 @@ class RenderTemplateModel private constructor(
    */
   val templateValues = hashMapOf<String, Any>()
   private lateinit var wizardParameterData: WizardParameterData
-  var newTemplate: Template2 = Template2.NoActivity
+  var newTemplate: Template = Template.NoActivity
   set(value) {
     field = value
     wizardParameterData = WizardParameterData(
@@ -100,7 +98,7 @@ class RenderTemplateModel private constructor(
   val module: Module?
     get() = androidFacet?.module
 
-  val hasActivity: Boolean get() = newTemplate != Template2.NoActivity
+  val hasActivity: Boolean get() = newTemplate != Template.NoActivity
 
   public override fun handleFinished() {
     multiTemplateRenderer.requestRender(FreeMarkerTemplateRenderer())
@@ -120,8 +118,6 @@ class RenderTemplateModel private constructor(
         log.error("RenderTemplateModel can't create files because module root is not found. Please report this error.")
         return
       }
-
-      templateValues.putAll(moduleTemplateValues)
 
       moduleTemplateDataBuilder.apply {
         // sourceProviderName = template.get().name TODO(qumeric) there is no sourcesProvider (yet?)
