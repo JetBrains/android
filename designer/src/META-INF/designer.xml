@@ -130,6 +130,13 @@
               description="Refresh preview(s)">
         <keyboard-shortcut keymap="$default" first-keystroke="R"/>
       </action>
+      <action id="Android.Designer.IssueNotificationAction"
+              icon="StudioIcons.Common.ERROR"
+              class="com.android.tools.idea.common.actions.IssueNotificationAction"
+              text="Toggle Issue Panel"
+              description="Toggle the visibility of Issue Panel">
+        <keyboard-shortcut keymap="$default" first-keystroke="E"/>
+      </action>
     </group>
 
     <group id="Android.Designer.ToolsActions"/> <!-- Keymap group for Preferences -> Keymap -> Android Design Tools -> [Tool_Name] -->
