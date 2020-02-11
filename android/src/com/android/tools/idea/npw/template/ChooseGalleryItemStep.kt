@@ -179,32 +179,6 @@ fun getDefaultSelectedTemplateIndex(
   defaultTemplateIndex ?: firstValidTemplateIndex ?: throw IllegalArgumentException("No valid Template found")
 }
 
-@Deprecated("Belongs to the old system")
-@TestOnly
-fun validateTemplate(template: TemplateMetadata?,
-                     moduleApiLevel: Int,
-                     moduleBuildApiLevel: Int,
-                     isNewModule: Boolean,
-                     isAndroidxProject: Boolean,
-                     language: Language,
-                     messageKeys: WizardGalleryItemsStepMessageKeys): String =
-  if (template == null) {
-    if (isNewModule) "" else message(messageKeys.itemNotFound)
-  }
-  else if (moduleApiLevel < template.minSdk) {
-    message(messageKeys.invalidMinSdk, template.minSdk)
-  }
-  else if (moduleBuildApiLevel < template.minBuildApi) {
-    message(messageKeys.invalidMinBuild, template.minBuildApi)
-  }
-  else if (template.constraints.contains(ANDROIDX) && !isAndroidxProject) {
-    message(messageKeys.invalidAndroidX)
-  }
-  else if (template.constraints.contains(KOTLIN) && language != Language.KOTLIN && isNewModule) {
-    message(messageKeys.invalidNeedsKotlin)
-  }
-  else ""
-
 @VisibleForTesting
 fun Template.validate(moduleApiLevel: Int,
                       moduleBuildApiLevel: Int,
