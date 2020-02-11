@@ -17,7 +17,6 @@ package com.android.tools.idea.templates;
 
 import static com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_API;
 import static com.android.tools.idea.templates.TemplateAttributes.ATTR_MIN_API_LEVEL;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_DEPENDENCIES_MULTIMAP;
 
 import com.android.SdkConstants;
 import com.google.common.collect.LinkedHashMultimap;
@@ -67,13 +66,14 @@ public class FmHasDependencyMethodTest extends TestCase {
     testProvidedDependencies(SdkConstants.GRADLE_API_CONFIGURATION);
   }
 
+
   private void testProvidedDependencies(String configuration) throws Exception {
     SetMultimap<String, String> dependencies = LinkedHashMultimap.create();
     dependencies.put(configuration, "com.android.support:appcompat-v7:21.0.0");
 
     check(false,
           "com.android.support:support-v4",
-          createMap(ATTR_DEPENDENCIES_MULTIMAP, dependencies));
+          createMap("dependenciesMultimap", dependencies));
 
     dependencies.clear();
     dependencies.put(configuration, "com.android.support:appcompat-v7:21.0.0");
@@ -81,7 +81,7 @@ public class FmHasDependencyMethodTest extends TestCase {
 
     check(true,
           "com.android.support:support-v4",
-          createMap(ATTR_DEPENDENCIES_MULTIMAP, dependencies));
+          createMap("dependenciesMultimap", dependencies));
   }
 
   public void testAppCompatBasedOnMinAndCompileApis() throws Exception {

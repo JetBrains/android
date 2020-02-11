@@ -78,7 +78,8 @@ class FmHasDependencyMethod(private val myParamMap: Map<String, Any>) : Template
 
     @Suppress("UNCHECKED_CAST")
     fun findInMultiMap(): Boolean {
-      val dependencies = myParamMap[TemplateMetadata.ATTR_DEPENDENCIES_MULTIMAP] as? SetMultimap<String, String> ?: return false
+      return false
+      val dependencies = myParamMap["dependenciesMultimap"] as? SetMultimap<String, String> ?: return false
       return configurations.any { c ->
         dependencies.get(c).any { it.contains(artifact) }
       }

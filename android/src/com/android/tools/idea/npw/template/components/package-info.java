@@ -25,6 +25,6 @@
  *
  * {@link com.android.tools.idea.npw.template.components.ParameterComponentProvider2} which is a
  * ComponentProvider with extra logic for handling defaults provided by the
- * {@link com.android.tools.idea.templates.Parameter} class.
+ * {@link com.android.tools.idea.wizard.template.Parameter} class.
  */
 package com.android.tools.idea.npw.template.components;

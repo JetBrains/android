@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.npw.template.components
 
-import com.android.tools.idea.templates.Parameter
 import javax.swing.JSeparator
 import javax.swing.SwingConstants
 
 /**
- * Provides a separator well suited for [Parameter.Type.SEPARATOR] parameters.
+ * Provides a separator.
  */
 class SeparatorProvider : ComponentProvider<JSeparator>() {
   override fun createComponent(): JSeparator = JSeparator(SwingConstants.HORIZONTAL)

@@ -15,10 +15,6 @@
  */
 package com.android.tools.idea.templates;
 
-import java.io.File;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 /**
  * Handler which manages instantiating FreeMarker templates, copying resources
  * and merging into existing files
@@ -28,24 +24,10 @@ public class Template {
    * Reserved filename which describes each template
    */
   // Various tags and attributes used in template.xml
-  public static final String ATTR_DEFAULT = "default";
-  public static final String ATTR_SUGGEST = "suggest";
   public static final String ATTR_ID = "id";
   public static final String ATTR_NAME = "name";
-  public static final String ATTR_DESCRIPTION = "description";
-  public static final String ATTR_TYPE = "type";
-  public static final String ATTR_HELP = "help";
-  public static final String ATTR_CONSTRAINTS = "constraints";
   public static final String ATTR_VISIBILITY = "visibility";
-  public static final String ATTR_ENABLED = "enabled";
   public static final String CATEGORY_PROJECTS = "gradle-projects";
   public static final String ANDROID_MODULE_TEMPLATE = "Android Module";
   public static final String ANDROID_PROJECT_TEMPLATE = "Android Project";
-
-  private Template(@NotNull File templateRoot) { }
-
-  @Nullable
-  public TemplateMetadata getMetadata() {
-    return null;
-  }
 }
