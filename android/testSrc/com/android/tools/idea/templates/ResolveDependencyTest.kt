@@ -26,8 +26,7 @@ import java.security.InvalidParameterException
 import kotlin.reflect.KClass
 import kotlin.test.assertFailsWith
 
-class FmResolveDependencyMethodTest {
-
+class ResolveDependencyTest {
   @Test
   fun resolveInvalidDependency() {
     assertFailsWith(InvalidParameterException::class) {
