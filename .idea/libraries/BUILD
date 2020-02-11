@@ -3,10 +3,10 @@ java_import(
     name = "unb.kotlin-stdlib-jdk8",
     # do not sort: must match IML order
     jars = [
-        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.3.70:unb.kotlin-stdlib-jdk8_files",
-        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib/1.3.70:unb.kotlin-stdlib-jdk8_files",
-        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.70:unb.kotlin-stdlib-jdk8_files",
-        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.3.70:unb.kotlin-stdlib-jdk8_files",
+        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.4.0:unb.kotlin-stdlib-jdk8_files",
+        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib/1.4.0:unb.kotlin-stdlib-jdk8_files",
+        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib-common/1.4.0:unb.kotlin-stdlib-jdk8_files",
+        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.4.0:unb.kotlin-stdlib-jdk8_files",
     ],
     tags = [
         "manual",
