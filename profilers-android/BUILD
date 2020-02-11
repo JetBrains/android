@@ -9,8 +9,6 @@ iml_module(
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.profilers.ProfilersAndroidTestSuite",
     test_data = [
-        "//tools/idea:platform-build-info",
-        "//tools/idea/java/jdkAnnotations",
     ],
     test_resources = ["testResources"],
     # do not sort: must match IML order

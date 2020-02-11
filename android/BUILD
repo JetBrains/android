@@ -277,8 +277,6 @@ iml_module(
         "//tools/base/templates",
         "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
         "//tools/data-binding:data_binding_runtime.zip",
-        "//tools/idea:platform-build-info",
-        "//tools/idea/java/jdkAnnotations",
         "//tools/idea/java/mockJDK-1.7",
     ],
     test_resources = ["testResources"],

@@ -11,7 +11,6 @@ iml_module(
     test_class = "com.android.tools.nativeSymbolizer.NativeSymbolizerTestSuite",
     test_data = glob(["testData/**"]) + [
         "//prebuilts/tools:lldb",
-        "//tools/idea:platform-build-info",
     ],
     test_resources = ["testData"],
     # do not sort: must match IML order

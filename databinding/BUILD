@@ -89,8 +89,6 @@ iml_module(
         "//tools/base/templates",
         "//tools/data-binding:data_binding_runtime.zip",
         "//tools/data-binding:integration-test-projects",
-        "//tools/idea:platform-build-info",
-        "//tools/idea/java/jdkAnnotations",
         "//tools/idea/java/mockJDK-1.7",
     ],
     # do not sort: must match IML order

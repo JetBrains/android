@@ -194,8 +194,6 @@ iml_module(
         "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/tools/common/kotlin-plugin:kotlinc-files",
         "//tools/adt/idea/android/annotations",
-        "//tools/idea:platform-build-info",
-        "//tools/idea/java/jdkAnnotations",
     ],
     # do not sort: must match IML order
     test_runtime_deps = [
