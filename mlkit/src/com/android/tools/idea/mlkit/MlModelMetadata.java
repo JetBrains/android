@@ -17,13 +17,7 @@ package com.android.tools.idea.mlkit;
 
 import com.android.tools.mlkit.MetadataExtractor;
 import com.android.tools.mlkit.ModelData;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileManager;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import com.android.tools.mlkit.MetadataExtractor;
-import com.android.tools.mlkit.ModelData;
+import com.android.tools.mlkit.ModelParsingException;
 import com.android.tools.mlkit.Param;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -43,7 +37,7 @@ public class MlModelMetadata {
   public final String myClassName;
 
   @Nullable
-  private final ModelData myModelData;
+  private ModelData myModelData;
 
   private static final Logger LOG = Logger.getInstance(MlModelMetadata.class);
 
@@ -59,12 +53,19 @@ public class MlModelMetadata {
         byte[] data = modelFile.contentsToByteArray();
         byteBuffer = ByteBuffer.wrap(data);
       }
-    } catch (IOException e) {
+    }
+    catch (IOException e) {
       LOG.error("IO Exception when loading model: " + modelFileUrl, e);
     }
-    myModelData = byteBuffer != null
-                  ? ModelData.buildFrom(new MetadataExtractor(byteBuffer))
-                  : null;
+
+    try {
+      if (byteBuffer != null) {
+        myModelData = ModelData.buildFrom(new MetadataExtractor(byteBuffer));
+      }
+    }
+    catch (ModelParsingException e) {
+      LOG.warn("Metadata is invalid in model: " + modelFileUrl, e);
+    }
   }
 
   public boolean isValidModel() {

@@ -25,6 +25,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.mlkit.MetadataExtractor;
 import com.android.tools.mlkit.ModelData;
+import com.android.tools.mlkit.ModelParsingException;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -112,9 +113,11 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     try {
       ModelData modelData = ModelData.buildFrom(new MetadataExtractor(ByteBuffer.wrap(file.contentsToByteArray())));
       addModelSummarySection(contentPanel, modelData);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       Logger.getInstance(TfliteModelFileEditor.class).error(e);
+    } catch (ModelParsingException e) {
+      Logger.getInstance(TfliteModelFileEditor.class).warn(e);
+      // TODO(deanzhou): show warning message in panel
     }
 
     myRootPane = new JBScrollPane(contentPanel);
