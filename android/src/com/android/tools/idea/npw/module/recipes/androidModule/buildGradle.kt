@@ -121,6 +121,7 @@ fun buildGradle(
           .toKtsProperty("testInstrumentationRunner")
           .toKtsProperty("minifyEnabled")
           .toKtsFunction("proguardFiles")
+          .toKtsFunction("wearApp")
           .replace("minifyEnabled", "isMinifyEnabled")
           .replace("release {", "getByName(\"release\") {")
       }

@@ -52,6 +52,11 @@ public class ChooseAndroidProjectStepFixture<W extends AbstractWizardFixture>
     return this;
   }
 
+  public ChooseAndroidProjectStepFixture<W> selectTvTab() {
+    selectTab("TV");
+    return this;
+  }
+
   public ChooseAndroidProjectStepFixture<W> selectThingsTab() {
     selectTab("Android Things");
     return this;
