@@ -16,6 +16,8 @@
 package com.android.tools.idea.templates
 
 import com.android.annotations.concurrency.UiThread
+import com.android.ide.common.repository.GradleCoordinate
+import com.android.ide.common.repository.GradleCoordinate.parseCoordinateString
 import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
 import com.android.tools.idea.sdk.AndroidSdks
@@ -52,6 +54,7 @@ import org.w3c.dom.Element
 import org.w3c.dom.Node
 import java.io.File
 import java.io.IOException
+import java.security.InvalidParameterException
 import java.util.regex.Pattern
 import kotlin.math.max
 
@@ -423,3 +426,16 @@ object TemplateUtils {
   fun hasExtension(file: File, extension: String): Boolean =
     Files.getFileExtension(file.name).equals(extension.trimStart { it == '.' }, ignoreCase = true)
 }
+
+fun resolveDependency(repo: RepositoryUrlManager, dependency: String, minRev: String? = null): String {
+  // If we can't parse the dependency, just return it back
+  val coordinate = parseCoordinateString(dependency) ?: throw InvalidParameterException("Invalid dependency: $dependency")
+
+  val minCoordinate = if (minRev == null) coordinate else GradleCoordinate(coordinate.groupId, coordinate.artifactId, minRev)
+
+  // If we cannot resolve the dependency on the repo, return the at least the min requested
+  val resolved = repo.resolveDynamicCoordinate(coordinate, null, null) ?: return minCoordinate.toString()
+
+  return maxOf(resolved, minCoordinate, GradleCoordinate.COMPARE_PLUS_LOWER).toString()
+}
+

@@ -31,9 +31,6 @@ import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.npw.ThemeHelper
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.projectsystem.AndroidModulePaths
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_APP_THEME_APP_BAR_OVERLAY
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_APP_THEME_NO_ACTION_BAR
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_APP_THEME_POPUP_OVERLAY
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.template.ApiTemplateData
 import com.android.tools.idea.wizard.template.BaseFeature
@@ -212,13 +209,16 @@ class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateD
       return ThemeData(fullThemeName, exists)
     }
 
+    val noActionBar = "NoActionBar"
+    val appBarOverlay = "AppBarOverlay"
+    val popupOverlay = "PopupOverlay"
     ApplicationManager.getApplication().runReadAction {
       val hasActionBar = ThemeHelper.hasActionBar(configuration, themeName)
       themesData = ThemesData(
         ThemeData(themeName, true),
-        getDerivedTheme(themeName, ATTR_APP_THEME_NO_ACTION_BAR, hasActionBar == false),
-        getDerivedTheme(themeName, ATTR_APP_THEME_APP_BAR_OVERLAY, false),
-        getDerivedTheme(themeName, ATTR_APP_THEME_POPUP_OVERLAY, false)
+        getDerivedTheme(themeName, noActionBar, hasActionBar == false),
+        getDerivedTheme(themeName, appBarOverlay, false),
+        getDerivedTheme(themeName, popupOverlay, false)
       )
     }
   }
