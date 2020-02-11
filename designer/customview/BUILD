@@ -68,8 +68,6 @@ iml_module(
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.customview.preview.CustomViewTestSuite",
     test_data = [
-        "//tools/idea:platform-build-info",
-        "//tools/idea/java/jdkAnnotations",
         "//tools/idea/java/mockJDK-1.7",
     ],
     # do not sort: must match IML order

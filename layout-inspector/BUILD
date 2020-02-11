@@ -79,8 +79,6 @@ iml_module(
     test_data = [
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/layout-inspector/testData",
-        "//tools/idea:platform-build-info",
-        "//tools/idea/java/jdkAnnotations",
     ],
     test_resources = ["testResources"],
     # do not sort: must match IML order

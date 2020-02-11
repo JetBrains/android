@@ -82,8 +82,6 @@ iml_module(
         "//tools/base/build-system:studio_repo.zip",
         "//tools/base/templates",
         "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
-        "//tools/idea:platform-build-info",
-        "//tools/idea/java/jdkAnnotations",
         "//tools/idea/java/mockJDK-1.7",
     ],
     # do not sort: must match IML order

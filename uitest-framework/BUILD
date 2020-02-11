@@ -9,7 +9,6 @@ iml_module(
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.tests.gui.framework.GuiTestFrameworkTestSuite",
     test_data = [
-        "//tools/idea:platform-build-info",
     ],
     # do not sort: must match IML order
     test_runtime_deps = [

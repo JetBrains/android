@@ -69,8 +69,6 @@ iml_module(
     iml_files = ["intellij.android.debuggers.tests.iml"],
     test_class = "com.android.tools.idea.debuggers.AndroidDebuggersTestSuite",
     test_data = [
-        "//tools/idea:platform-build-info",
-        "//tools/idea/java/jdkAnnotations",
     ],
     # do not sort: must match IML order
     test_runtime_deps = [

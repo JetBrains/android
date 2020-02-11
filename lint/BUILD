@@ -78,9 +78,7 @@ iml_module(
     test_data = [
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/lint/tests/testData",
-        "//tools/idea:platform-build-info",
         "//tools/adt/idea/android/annotations",
-        "//tools/idea/java/jdkAnnotations",
         "//tools/idea/java/mockJDK-1.7",
     ],
     test_resources = ["tests/testData"],
