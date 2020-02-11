@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.tests.gui.framework
 
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.BleakOptions
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.DisposerCheck
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.LeakInfo
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.MainBleakCheck
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.Whitelist
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.WhitelistEntry
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.ElidingExpander
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.SmartFMapExpander
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.SmartListExpander
+import com.android.tools.idea.bleak.BleakOptions
+import com.android.tools.idea.bleak.DisposerCheck
+import com.android.tools.idea.bleak.LeakInfo
+import com.android.tools.idea.bleak.MainBleakCheck
+import com.android.tools.idea.bleak.Whitelist
+import com.android.tools.idea.bleak.WhitelistEntry
+import com.android.tools.idea.bleak.expander.ElidingExpander
+import com.android.tools.idea.bleak.expander.SmartFMapExpander
+import com.android.tools.idea.bleak.expander.SmartListExpander
 import gnu.trove.TObjectHash
 import java.util.function.Supplier
 

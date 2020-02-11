@@ -513,7 +513,7 @@ filegroup(
     ] + select({
         "//tools/base/bazel:windows": [],
         "//conditions:default": [
-            "//tools/adt/idea/uitest-framework/testSrc/com/android/tools/idea/tests/gui/framework/heapassertions/bleak/agents:jnibleakhelper",
+            "//tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents:jnibleakhelper",
         ],
     }),
 )

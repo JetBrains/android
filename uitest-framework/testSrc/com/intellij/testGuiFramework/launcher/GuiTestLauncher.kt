@@ -177,7 +177,7 @@ object GuiTestLauncher {
       options += "-Xmx16g"
       options += "-XX:+UseG1GC"
       val jvmtiAgent = File(TestUtils.getWorkspaceRoot(),
-                            "bazel-bin/tools/adt/idea/uitest-framework/testSrc/com/android/tools/idea/tests/gui/framework/heapassertions/bleak/agents/libjnibleakhelper.so")
+                            "bazel-bin/tools/adt/idea/bleak/testSrc/com/android/tools/adt/idea/bleak/agents/libjnibleakhelper.so")
       if (jvmtiAgent.exists()) {
         options += "-agentpath:${jvmtiAgent.absolutePath}"
         options += "-Dbleak.jvmti.enabled=true"
