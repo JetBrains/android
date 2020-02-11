@@ -18,7 +18,4 @@ package com.android.tools.idea.templates
 object TemplateAttributes {
   const val ATTR_BUILD_API = "buildApi"
   const val ATTR_BUILD_API_STRING = "buildApiString"
-
-  const val ATTR_MODULE_NAME = "projectName"
-  const val ATTR_INCLUDE_FORM_FACTOR = "included"
 }

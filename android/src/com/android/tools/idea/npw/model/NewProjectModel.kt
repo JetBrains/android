@@ -37,9 +37,9 @@ import com.android.tools.idea.observable.core.StringProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.templates.ProjectTemplateDataBuilder
-import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor2
-import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor2
-import com.android.tools.idea.templates.recipe.RenderingContext2
+import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
+import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor
+import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.wizard.model.WizardModel
 import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.android.tools.idea.wizard.template.Recipe
@@ -212,7 +212,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
     }
 
     private fun performCreateProject(dryRun: Boolean) {
-      val context = RenderingContext2(
+      val context = RenderingContext(
         project,
         null,
         "New Project",
@@ -221,7 +221,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
         dryRun = dryRun,
         moduleRoot = null
       )
-      val executor = if (dryRun) FindReferencesRecipeExecutor2(context) else DefaultRecipeExecutor2(context)
+      val executor = if (dryRun) FindReferencesRecipeExecutor(context) else DefaultRecipeExecutor(context)
       val recipe: Recipe = { data: TemplateData ->
         androidProjectRecipe(data as ProjectTemplateData, applicationName.get(), language.value, !useAppCompat.get(), useGradleKts.get())
       }

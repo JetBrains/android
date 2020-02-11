@@ -29,9 +29,9 @@ import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.templates.ModuleTemplateDataBuilder
-import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor2
-import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor2
-import com.android.tools.idea.templates.recipe.RenderingContext2
+import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
+import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor
+import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.wizard.model.WizardModel
 import com.android.tools.idea.wizard.template.Recipe
 import com.intellij.openapi.command.WriteCommandAction
@@ -110,7 +110,7 @@ abstract class ModuleModel(
 
     protected open fun renderTemplate(dryRun: Boolean): Boolean {
       val moduleRoot = getModuleRoot(project.basePath!!, moduleName.get())
-      val context = RenderingContext2(
+      val context = RenderingContext(
         project = project,
         module = null,
         commandName = commandName,
@@ -123,7 +123,7 @@ abstract class ModuleModel(
       // TODO(qumeric) We should really only have one root - Update RenderingContext2 to get it from templateData?
       // assert(moduleRoot == (context.templateData as ModuleTemplateData).rootDir)
 
-      val executor = if (dryRun) FindReferencesRecipeExecutor2(context) else DefaultRecipeExecutor2(context)
+      val executor = if (dryRun) FindReferencesRecipeExecutor(context) else DefaultRecipeExecutor(context)
       return recipe.render(context, executor, loggingEvent)
     }
   }

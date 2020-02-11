@@ -20,7 +20,7 @@ import com.android.tools.idea.npw.model.actuallyRender
 import com.android.tools.idea.npw.model.findReferences
 import com.android.tools.idea.templates.TemplateUtils.openEditors
 import com.android.tools.idea.templates.getDummyModuleTemplateDataBuilder
-import com.android.tools.idea.templates.recipe.RenderingContext2
+import com.android.tools.idea.templates.recipe.RenderingContext
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.command.WriteCommandAction.writeCommandAction
 import com.intellij.openapi.diagnostic.Logger
@@ -60,7 +60,7 @@ object RecipeUtils {
     val rootPath = File(FileUtil.generateRandomTemporaryPath(), "unused")
     rootPath.deleteOnExit()
 
-    val context = RenderingContext2(
+    val context = RenderingContext(
       project = module.project,
       module = module,
       commandName = "Unnamed",
@@ -107,7 +107,7 @@ object RecipeUtils {
     val moduleRoot = AndroidRootUtil.findModuleRootFolderPath(module)!!
     val rootPath = File(FileUtil.generateRandomTemporaryPath(), "unused")
 
-    val context = RenderingContext2(
+    val context = RenderingContext(
       project = module.project,
       module = module,
       commandName = "Unnamed",

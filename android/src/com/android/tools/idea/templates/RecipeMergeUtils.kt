@@ -25,7 +25,7 @@ import com.android.manifmerger.ManifestMerger2
 import com.android.manifmerger.MergingReport
 import com.android.manifmerger.XmlDocument
 import com.android.resources.ResourceFolderType
-import com.android.tools.idea.templates.recipe.RenderingContext2
+import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.utils.StdLogger
 import com.android.utils.XmlUtils
 import com.google.common.base.Charsets
@@ -62,7 +62,7 @@ private const val MERGE_ATTR_STRATEGY_PRESERVE = "preserve"
  * Merges sourceXml into targetXml/targetFile (targetXml is the contents of targetFile).
  * @return the resulting xml if it still needs to be written to targetFile or null if the file has already been/doesn't need to be updated.
  */
-fun mergeXml(context: RenderingContext2, sourceXml: String, targetXml: String, targetFile: File): String {
+fun mergeXml(context: RenderingContext, sourceXml: String, targetXml: String, targetFile: File): String {
   val fileName = targetFile.name
   var errors: String? = null
 

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.templates
 
-import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor2
-import com.android.tools.idea.templates.recipe.RenderingContext2
+import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
+import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
@@ -34,7 +34,7 @@ class TemplateRecipeTest {
 
   @Test
   fun fileAlreadyExistWarning() {
-    val renderingContext = RenderingContext2(
+    val renderingContext = RenderingContext(
       projectRule.project,
       projectRule.module,
       "file already exists test",
@@ -50,7 +50,7 @@ class TemplateRecipeTest {
       vfTo.getOutputStream(this).use { os -> os.write('b'.toInt()) }
 
       val to = File(vfTo.path)
-      val recipeExecutor = DefaultRecipeExecutor2(renderingContext)
+      val recipeExecutor = DefaultRecipeExecutor(renderingContext)
       recipeExecutor.save("something", to)
       val warnings = renderingContext.warnings.toTypedArray()
 

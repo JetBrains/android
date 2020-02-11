@@ -32,8 +32,8 @@ import com.android.tools.idea.npw.module.recipes.thingsModule.generateThingsModu
 import com.android.tools.idea.npw.module.recipes.tvModule.generateTvModule
 import com.android.tools.idea.npw.module.recipes.wearModule.generateWearModule
 import com.android.tools.idea.npw.project.setGradleWrapperExecutable
-import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor2
-import com.android.tools.idea.templates.recipe.RenderingContext2
+import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
+import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidGradleTests.getLocalRepositoriesForGroovy
 import com.android.tools.idea.testing.AndroidGradleTests.updateLocalRepositories
@@ -46,6 +46,7 @@ import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.android.tools.idea.wizard.template.Recipe
 import com.android.tools.idea.wizard.template.StringParameter
+import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.TemplateData
 import com.android.tools.idea.wizard.template.Thumb
 import com.android.tools.idea.wizard.template.WizardParameterData
@@ -66,11 +67,10 @@ import org.junit.Assert.assertNotEquals
 import org.mockito.Mockito.mock
 import java.io.File
 import java.io.IOException
-import com.android.tools.idea.wizard.template.Template as Template2
 
 data class ProjectChecker(
   private val syncProject: Boolean,
-  private val template: Template2,
+  private val template: Template,
   private val usageTracker: TestUsageTracker
 ) {
   private lateinit var moduleState: ModuleTemplateDataBuilder
@@ -85,7 +85,7 @@ data class ProjectChecker(
 
     try {
       createProject(fixture, modifiedModuleName)
-      // TODO(qumeric): ProjectTemplateData[Builder] shuld use only one language [class]
+      // TODO(b/149006038): ProjectTemplateData[Builder] should use only one language [class]
       val language = Language.valueOf(moduleState.projectTemplateDataBuilder.language!!.toString())
       project.verify(language)
     }
@@ -169,7 +169,7 @@ data class ProjectChecker(
       FormFactor.Generic -> { data: TemplateData -> this.generatePureLibrary(data as ModuleTemplateData, "LibraryTemplate") }
     }
 
-    val projectContext = RenderingContext2(
+    val projectContext = RenderingContext(
       project = this,
       module = null,
       commandName = "Run TemplateTest",
@@ -179,7 +179,7 @@ data class ProjectChecker(
       showErrors = true
     )
 
-    val context = RenderingContext2(
+    val context = RenderingContext(
       project = this,
       module = null,
       commandName = "Run TemplateTest",
@@ -190,9 +190,9 @@ data class ProjectChecker(
     )
 
     // TODO(qumeric): why doesn't it work with one executor?
-    val executor1 = DefaultRecipeExecutor2(context)
-    val executor2 = DefaultRecipeExecutor2(context)
-    val executor3 = DefaultRecipeExecutor2(context)
+    val executor1 = DefaultRecipeExecutor(context)
+    val executor2 = DefaultRecipeExecutor(context)
+    val executor3 = DefaultRecipeExecutor(context)
 
     WizardParameterData(moduleState.packageName!!, false, "main", template.parameters)
     (template.parameters.find { it.name == "Package name" } as StringParameter?)?.value = moduleState.packageName!!
