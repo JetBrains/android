@@ -78,6 +78,7 @@ iml_module(
         "//tools/adt/idea/android-transport:intellij.android.transport[module]",
         "//tools/idea/.idea/libraries:studio-grpc",
         "//tools/idea/.idea/libraries:studio-proto",
+        "//tools/base/profiler/native/trace_processor_daemon:traceprocessor_protos",
         "//tools/idea/.idea/libraries:transport-proto",
         "//tools/idea/java/java-indexing-api:intellij.java.indexing[module]",
     ],
