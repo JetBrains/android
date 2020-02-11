@@ -48,7 +48,6 @@ import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.gradle.util.GradleUtil.dependsOn
 import com.android.tools.idea.gradle.util.GradleUtil.dependsOnAndroidTest
 import com.android.tools.idea.gradle.util.GradleUtil.dependsOnJavaLibrary
-import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.templates.RepositoryUrlManager
 import com.android.tools.idea.templates.TemplateUtils
 import com.android.tools.idea.templates.TemplateUtils.checkDirectoryIsWriteable
@@ -62,6 +61,7 @@ import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.ProjectTemplateData
+import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.wizard.template.SKIP_LINE
 import com.android.tools.idea.wizard.template.SourceSetType
 import com.android.tools.idea.wizard.template.findResource
@@ -70,8 +70,6 @@ import com.android.utils.findGradleBuildFile
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.diff.comparison.ComparisonManager
 import com.intellij.diff.comparison.ComparisonPolicy.IGNORE_WHITESPACES
-import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.ReadonlyStatusHandler
@@ -84,18 +82,15 @@ import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.XmlElementFactory
 import java.io.File
 import com.android.tools.idea.templates.mergeXml as mergeXmlUtil
-import com.android.tools.idea.wizard.template.RecipeExecutor as RecipeExecutor2
-
-private val log: Logger get() = logger<DefaultRecipeExecutor2>()
 
 /**
  * Executor support for recipe instructions.
  *
  * Note: it tries to use [GradleBuildModel] for merging of Gradle files, but falls back on simple merging if it is unavailable.
  */
-class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExecutor2 {
+class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecutor {
   private val project: Project get() = context.project
-  private val referencesExecutor: FindReferencesRecipeExecutor2 = FindReferencesRecipeExecutor2(context)
+  private val referencesExecutor: FindReferencesRecipeExecutor = FindReferencesRecipeExecutor(context)
   private val io: RecipeIO = if (context.dryRun) DryRunRecipeIO() else RecipeIO()
   private val readonlyStatusHandler: ReadonlyStatusHandler = ReadonlyStatusHandler.getInstance(project)
 

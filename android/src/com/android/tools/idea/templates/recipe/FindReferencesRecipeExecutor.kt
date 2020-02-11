@@ -18,13 +18,13 @@ package com.android.tools.idea.templates.recipe
 import com.android.tools.idea.wizard.template.SourceSetType
 import com.android.tools.idea.wizard.template.findResource
 import com.intellij.openapi.vfs.VfsUtil
-import com.android.tools.idea.wizard.template.RecipeExecutor as RecipeExecutor2
+import com.android.tools.idea.wizard.template.RecipeExecutor
 import java.io.File
 
 /**
  * [RecipeExecutor] that collects references as a result of executing instructions in a recipe.
  */
-internal class FindReferencesRecipeExecutor2(private val context: RenderingContext2) : RecipeExecutor2 {
+internal class FindReferencesRecipeExecutor(private val context: RenderingContext) : RecipeExecutor {
   override fun hasDependency(mavenCoordinate: String, moduleDir: File?): Boolean = false
 
   override fun save(source: String, to: File, trimVertical: Boolean, squishEmptyLines: Boolean, commitDocument: Boolean) {

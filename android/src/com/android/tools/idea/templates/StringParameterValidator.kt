@@ -260,11 +260,9 @@ fun Constraint.toResourceFolderType(): ResourceFolderType = when (this) {
   else -> throw IllegalArgumentException("There is no matching ResourceFolderType for $this constraint")
 }
 
-// TODO(qumeric): make private
-fun isValidFullyQualifiedJavaIdentifier(value: String) = AndroidUtils.isValidJavaPackageName(value) && value.contains('.')
+private fun isValidFullyQualifiedJavaIdentifier(value: String) = AndroidUtils.isValidJavaPackageName(value) && value.contains('.')
 
-// TODO(qumeric): make private
-fun existsPackage(project: Project?, sourceProvider: SourceProvider?, packageName: String): Boolean {
+private fun existsPackage(project: Project?, sourceProvider: SourceProvider?, packageName: String): Boolean {
   if (project == null) {
     return false
   }

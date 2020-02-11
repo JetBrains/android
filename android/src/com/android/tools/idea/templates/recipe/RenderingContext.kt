@@ -26,7 +26,7 @@ import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.VfsUtilCore
 import java.io.File
 
-data class RenderingContext2(
+data class RenderingContext(
   val project: Project,
   val module: Module?,
   val commandName: String,

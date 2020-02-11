@@ -47,11 +47,10 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.LangDataKeys
 import icons.AndroidIcons
-import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle.message
 import org.jetbrains.annotations.PropertyKey
 import java.io.File
-import com.android.tools.idea.wizard.template.Template as Template2
+import com.android.tools.idea.wizard.template.Template
 
 /**
  * Handles locating templates and providing template metadata
@@ -62,10 +61,10 @@ class TemplateManager private constructor() {
 
   /** Table mapping (Category, Template Name) -> Template File  */
   @GuardedBy("CATEGORY_TABLE_LOCK")
-  private var _categoryTable: Table<Category, String, Template2>? = null
+  private var _categoryTable: Table<Category, String, Template>? = null
 
   @get:GuardedBy("CATEGORY_TABLE_LOCK")
-  private val categoryTable: Table<Category, String, Template2>?
+  private val categoryTable: Table<Category, String, Template>?
     get() {
       if (_categoryTable == null) {
         reloadCategoryTable()
@@ -151,7 +150,7 @@ class TemplateManager private constructor() {
   }
 
   @GuardedBy("CATEGORY_TABLE_LOCK")
-  private fun addTemplateToTable(template: Template2, userDefinedTemplate: Boolean = false) = with(template) {
+  private fun addTemplateToTable(template: Template, userDefinedTemplate: Boolean = false) = with(template) {
     if (category == Category.Compose && !StudioFlags.COMPOSE_WIZARD_TEMPLATES.get()) {
       return
     }

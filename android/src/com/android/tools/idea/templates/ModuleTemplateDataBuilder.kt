@@ -76,7 +76,6 @@ class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateD
   var unitTestDir: File? = null
   var aidlDir: File? = null
   var rootDir: File? = null
-  var themeExists: Boolean = false
   var isNew: Boolean? = null
   var hasApplicationTheme: Boolean = true
   var name: String? = null

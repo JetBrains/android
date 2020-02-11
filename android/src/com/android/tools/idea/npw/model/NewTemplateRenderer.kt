@@ -18,9 +18,9 @@ package com.android.tools.idea.npw.model
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.templates.TemplateUtils
-import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor2
-import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor2
-import com.android.tools.idea.templates.recipe.RenderingContext2
+import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
+import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor
+import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ProjectTemplateData
@@ -37,7 +37,6 @@ import com.intellij.openapi.command.WriteCommandAction.writeCommandAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.startup.StartupManager
 import com.intellij.openapi.ui.Messages
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.impl.source.PostprocessReformattingAspect
@@ -46,16 +45,16 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 private val log: Logger get() = logger<Template>()
 
-fun Template.render(c: RenderingContext2, e: RecipeExecutor) =
+fun Template.render(c: RenderingContext, e: RecipeExecutor) =
   recipe.render(c, e, titleToTemplateRenderer(name, formFactor).takeUnless { this == Template.NoActivity })
 
-fun Recipe.findReferences(c: RenderingContext2) =
-  render(c, FindReferencesRecipeExecutor2(c), null)
+fun Recipe.findReferences(c: RenderingContext) =
+  render(c, FindReferencesRecipeExecutor(c), null)
 
-fun Recipe.actuallyRender(c: RenderingContext2) =
-  render(c, DefaultRecipeExecutor2(c), null)
+fun Recipe.actuallyRender(c: RenderingContext) =
+  render(c, DefaultRecipeExecutor(c), null)
 
-fun Recipe.render(c: RenderingContext2, e: RecipeExecutor, loggingEvent: TemplateRenderer?): Boolean {
+fun Recipe.render(c: RenderingContext, e: RecipeExecutor, loggingEvent: TemplateRenderer?): Boolean {
   val success = if (c.project.isInitialized)
     doRender(c, e)
   else
@@ -76,13 +75,13 @@ fun Recipe.render(c: RenderingContext2, e: RecipeExecutor, loggingEvent: Templat
   return success
 }
 
-private fun Recipe.doRender(c: RenderingContext2, e: RecipeExecutor): Boolean {
+private fun Recipe.doRender(c: RenderingContext, e: RecipeExecutor): Boolean {
   try {
     writeCommandAction(c.project).withName(c.commandName).run<IOException> {
       this(e, c.templateData)
       // Old recipe executor calls applyChanges after every BuildModel update. It is slow but correct.
       // TODO(qumeric): remove casting when the old executor will be deleted
-      if (e is DefaultRecipeExecutor2) {
+      if (e is DefaultRecipeExecutor) {
         e.applyChanges()
       }
     }
@@ -134,7 +133,7 @@ Your project may not compile.
 You may want to Undo to get back to the original state.
 """
 
-fun formatWarningMessage(context: RenderingContext2): String {
+fun formatWarningMessage(context: RenderingContext): String {
   val maxWarnings = 10
   val warningCount = context.warnings.size
   var messages: MutableList<String> = context.warnings.toMutableList()

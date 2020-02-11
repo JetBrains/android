@@ -16,7 +16,6 @@
 package com.android.tools.idea.npw.model
 
 import com.android.annotations.concurrency.WorkerThread
-import com.android.sdklib.AndroidVersion.VersionCodes.P
 import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.getInitialSourceLanguage
 import com.android.tools.idea.npw.module.ModuleModel
@@ -36,9 +35,6 @@ import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.templates.ModuleTemplateDataBuilder
 import com.android.tools.idea.templates.ProjectTemplateDataBuilder
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_API
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_INCLUDE_FORM_FACTOR
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_MODULE_NAME
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.Recipe
 import com.android.tools.idea.wizard.template.TemplateData
