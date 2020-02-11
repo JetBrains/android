@@ -66,7 +66,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
   }
 
   public void testHighlighting_java() {
-    VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/assets/my_model.tflite");
+    VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/ml/my_model.tflite");
     PsiTestUtil.addSourceContentToRoots(myModule, modelVirtualFile.getParent());
 
     PsiFile activityFile = myFixture.addFileToProject(
@@ -104,7 +104,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
   }
 
   public void testHighlighting_modelWithoutMetadata_java() {
-    VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_no_metadata.tflite", "/assets/my_plain_model.tflite");
+    VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_no_metadata.tflite", "/ml/my_plain_model.tflite");
     PsiTestUtil.addSourceContentToRoots(myModule, modelVirtualFile.getParent());
     PsiFile activityFile = myFixture.addFileToProject(
       "/src/p1/p2/MainActivity.java",
@@ -142,7 +142,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
   }
 
   public void testHighlighting_kotlin() {
-    VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/assets/my_model.tflite");
+    VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/ml/my_model.tflite");
     PsiTestUtil.addSourceContentToRoots(myModule, modelVirtualFile.getParent());
 
     PsiFile activityFile = myFixture.addFileToProject(
@@ -175,7 +175,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
   }
 
   public void testHighlighting_modelWithoutMetadata_kotlin() {
-    VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_no_metadata.tflite", "/assets/my_plain_model.tflite");
+    VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_no_metadata.tflite", "/ml/my_plain_model.tflite");
     PsiTestUtil.addSourceContentToRoots(myModule, modelVirtualFile.getParent());
 
     PsiFile activityFile = myFixture.addFileToProject(
@@ -208,7 +208,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
   }
 
   public void testLightModelClassNavigation() {
-    VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/assets/my_model.tflite");
+    VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/ml/my_model.tflite");
     PsiTestUtil.addSourceContentToRoots(myModule, modelVirtualFile.getParent());
 
     // Below is the workaround to make MockFileDocumentManagerImpl#getDocument return a non-null value for a model file, so the non-null
@@ -246,7 +246,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
 
 
   public void testCompleteRunMethod() {
-    VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/assets/my_model.tflite");
+    VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/ml/my_model.tflite");
     PsiTestUtil.addSourceContentToRoots(myModule, modelVirtualFile.getParent());
 
     PsiFile activityFile = myFixture.addFileToProject(
@@ -288,7 +288,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
   }
 
   public void testCompleteCreateInputsMethod() {
-    VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/assets/my_model.tflite");
+    VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/ml/my_model.tflite");
     PsiTestUtil.addSourceContentToRoots(myModule, modelVirtualFile.getParent());
 
     PsiFile activityFile = myFixture.addFileToProject(
@@ -330,7 +330,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
   }
 
   public void testCompleteInnerClass() {
-    VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/assets/my_model.tflite");
+    VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/ml/my_model.tflite");
     PsiTestUtil.addSourceContentToRoots(myModule, modelVirtualFile.getParent());
 
     PsiFile activityFile = myFixture.addFileToProject(
@@ -375,7 +375,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
   }
 
   public void testCompleteInnerInputClassWithoutOuterClass() {
-    VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/assets/my_model.tflite");
+    VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/ml/my_model.tflite");
     PsiTestUtil.addSourceContentToRoots(myModule, modelVirtualFile.getParent());
 
     PsiFile activityFile = myFixture.addFileToProject(
@@ -428,7 +428,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
 
 
   public void testCompleteModelClass() {
-    VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/assets/my_model.tflite");
+    VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/ml/my_model.tflite");
     PsiTestUtil.addSourceContentToRoots(myModule, modelVirtualFile.getParent());
 
     PsiFile activityFile = myFixture.addFileToProject(
@@ -472,9 +472,9 @@ public class MlkitLightClassTest extends AndroidTestCase {
   }
 
   public void testModuleService() {
-    VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/assets/my_model.tflite");
+    VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/ml/my_model.tflite");
     PsiTestUtil.addSourceContentToRoots(myModule, modelVirtualFile.getParent());
-    myFixture.copyFileToProject("mobilenet_quant_no_metadata.tflite", "/assets/my_plain_model.tflite");
+    myFixture.copyFileToProject("mobilenet_quant_no_metadata.tflite", "/ml/my_plain_model.tflite");
 
     MlkitModuleService mlkitService = MlkitModuleService.getInstance(myModule);
     List<PsiClass> lightClasses = mlkitService.getLightModelClassList();
@@ -485,8 +485,8 @@ public class MlkitLightClassTest extends AndroidTestCase {
   }
 
   public void testBrokenFiles() {
-    VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/assets/my_model.tflite");
-    VfsTestUtil.createFile(ProjectUtil.guessModuleDir(myModule), "assets/broken.tflite", new byte[]{1, 2, 3});
+    VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/ml/my_model.tflite");
+    VfsTestUtil.createFile(ProjectUtil.guessModuleDir(myModule), "ml/broken.tflite", new byte[]{1, 2, 3});
     PsiTestUtil.addSourceContentToRoots(myModule, modelVirtualFile.getParent());
 
     assertThat(myFixture.getJavaFacade().findClass("p1.p2.ml.MyModel", GlobalSearchScope.projectScope(getProject())))
