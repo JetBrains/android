@@ -16,7 +16,6 @@
 package org.jetbrains.android.refactoring.namespaces
 
 import com.android.tools.idea.flags.StudioFlags
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vcs.FileStatus
 import com.intellij.usages.Usage
@@ -30,7 +29,6 @@ import com.intellij.usages.rules.UsageGroupingRuleProvider
 import javax.swing.Icon
 
 class ResourcePackageGroupingRuleProvider : UsageGroupingRuleProvider {
-  override fun createGroupingActions(view: UsageView): Array<AnAction> = AnAction.EMPTY_ARRAY
 
   override fun getActiveRules(project: Project): Array<UsageGroupingRule> {
     return if (StudioFlags.MIGRATE_TO_NON_TRANSITIVE_R_CLASSES_REFACTORING_ENABLED.get()) {
