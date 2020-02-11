@@ -25,12 +25,12 @@ import com.android.tools.idea.npw.project.getPackageForApplication
 import com.android.tools.idea.npw.project.getPackageForPath
 import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep2
 import com.android.tools.idea.npw.template.TemplateResolver
-import com.android.tools.idea.templates.TemplateManager
-import com.android.tools.idea.templates.TemplateMetadata.TemplateConstraint
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
 import com.android.tools.idea.ui.wizard.WizardUtils
 import com.android.tools.idea.ui.wizard.WizardUtils.COMPOSE_MIN_AGP_VERSION
 import com.android.tools.idea.wizard.model.ModelWizard
+import com.android.tools.idea.wizard.template.Category
+import com.android.tools.idea.wizard.template.TemplateConstraint
 import com.android.tools.idea.wizard.template.WizardUiContext
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -48,27 +48,34 @@ import java.io.File
 import java.util.EnumSet
 
 // These categories will be using a new wizard
-@JvmField
-val NEW_WIZARD_CATEGORIES = setOf("Activity", "Google", "Automotive", "Compose")
-@JvmField
-val FRAGMENT_CATEGORY = setOf("Fragment")
+val NEW_WIZARD_CATEGORIES = setOf(Category.Activity, Category.Google, Category.Automotive, Category.Compose)
+val FRAGMENT_CATEGORY = setOf(Category.Fragment)
 @JvmField
 val CREATED_FILES = DataKey.create<MutableList<File>>("CreatedFiles")
 
 /**
  * An action to launch a wizard to create a component from a template.
  */
+// TODO(qumeric): consider accepting [Template] instead?
 data class NewAndroidComponentAction @JvmOverloads constructor(
-  private val templateCategory: String,
+  private val category: Category,
   private val templateName: String,
   private val minSdkApi: Int,
   private val minBuildSdkApi: Int = minSdkApi,
-  private val templateConstraints: EnumSet<TemplateConstraint> = EnumSet.noneOf(TemplateConstraint::class.java)
+  private val templateConstraints: Collection<TemplateConstraint> = setOf()
 ) : AnAction(templateName, AndroidBundle.message("android.wizard.action.new.component", templateName), null) {
+
+  @Deprecated("Please use the main constructor")
+  constructor(
+    category: String,
+    templateName: String,
+    minSdkApi: Int
+  ): this(Category.values().find { it.name == category }!!, templateName, minSdkApi)
+
   var shouldOpenFiles = true
 
   private val isActivityTemplate: Boolean
-    get() = NEW_WIZARD_CATEGORIES.contains(templateCategory)
+    get() = NEW_WIZARD_CATEGORIES.contains(category)
 
   init {
     templatePresentation.icon = if (isActivityTemplate) AndroidIcons.Activity else StudioIcons.Shell.Filetree.ANDROID_FILE
@@ -90,11 +97,11 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
         presentation.text = AndroidBundle.message("android.wizard.action.requires.minbuildsdk", templateName, minBuildSdkApi)
         presentation.isEnabled = false
       }
-      templateConstraints.contains(TemplateConstraint.ANDROIDX) && !useAndroidX(module) -> {
+      templateConstraints.contains(TemplateConstraint.AndroidX) && !useAndroidX(module) -> {
         presentation.text = AndroidBundle.message("android.wizard.action.requires.androidx", templateName)
         presentation.isEnabled = false
       }
-      !WizardUtils.hasComposeMinAgpVersion(module.project, templateCategory) -> {
+      !WizardUtils.hasComposeMinAgpVersion(module.project, category) -> {
         presentation.text = AndroidBundle.message("android.wizard.action.requires.new.agp", templateName, COMPOSE_MIN_AGP_VERSION)
         presentation.isEnabled = false
       }

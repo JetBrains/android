@@ -94,12 +94,4 @@ public class TypedVariable {
 
     return null;
   }
-
-  @Nullable
-  public static Object parseGlobal(@NotNull Attributes attributes) {
-    String value = attributes.getValue(Template.ATTR_VALUE);
-    Type type = Type.get(attributes.getValue(Template.ATTR_TYPE));
-    Object result = parse(type, value);
-    return (result != null) ? result : value;
-  }
 }

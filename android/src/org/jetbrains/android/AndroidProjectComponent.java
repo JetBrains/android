@@ -68,25 +68,6 @@ public class AndroidProjectComponent implements ProjectComponent, Disposable {
         });
       }
     }
-
-    registerTemplatesAutoRefresh();
-  }
-
-  private void registerTemplatesAutoRefresh() {
-    myProject.getMessageBus().connect(this).subscribe(ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC, result -> {
-      if (result.isSuccessful()) {
-        Runnable runnable = () -> {
-          if (myProject.isDisposed() || !ProjectFacetManager.getInstance(myProject).hasFacets(AndroidFacet.ID)) return;
-          TemplateManager.getInstance().refreshDynamicTemplateMenu(myProject);
-        };
-        if (ApplicationManager.getApplication().isUnitTestMode()) {
-          runnable.run();
-        }
-        else {
-          ApplicationManager.getApplication().executeOnPooledThread(runnable);
-        }
-      }
-    });
   }
 
   private void createAndroidSpecificComponents() {
@@ -116,7 +97,7 @@ public class AndroidProjectComponent implements ProjectComponent, Disposable {
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
         indicator.setIndeterminate(true);
-        menu = TemplateManager.getInstance().getTemplateCreationMenu(null);
+        menu = TemplateManager.getInstance().getTemplateCreationMenu();
       }
 
       @Override
