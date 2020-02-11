@@ -19,9 +19,12 @@ import com.android.SdkConstants.FN_BUILD_GRADLE_KTS
 import com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.platform.Language
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
+import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureNewAndroidProjectStepFixture
+import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.junit.After
@@ -60,7 +63,7 @@ class NewKtsProjectTest {
    */
   @Test
   fun createNewJavaKtsProject() {
-    createNewKtsProject(Language.JAVA)
+    createNewMobileKtsProject(Language.JAVA)
 
     assertThat(guiTest.getProjectFileText(FN_BUILD_GRADLE_KTS)).contains("""tasks.register("clean", Delete::class)""")
     assertThat(guiTest.getProjectFileText("app/$FN_BUILD_GRADLE_KTS")).apply {
@@ -83,7 +86,7 @@ class NewKtsProjectTest {
    */
   @Test
   fun createNewKotlinKtsProject() {
-    createNewKtsProject(Language.KOTLIN)
+    createNewMobileKtsProject(Language.KOTLIN)
 
     guiTest.getProjectFileText(FN_BUILD_GRADLE_KTS).apply {
       assertThat(this).contains("val kotlin_version by extra(")
@@ -95,7 +98,80 @@ class NewKtsProjectTest {
     }
   }
 
-  private fun createNewKtsProject(language: Language) {
+  @Test
+  fun createNewWearWithCompanionKotlinKtsProject() {
+    guiTest.welcomeFrame()
+      .createNewProject()
+      .chooseAndroidProjectStep
+      .selectWearTab()
+      .wizard()
+      .clickNext() // Select default Wear Activity
+      .configureNewAndroidProjectStep
+      .setPairWithPhoneApp(true)
+      .configureProjectWithDefaultsAndFinish(Language.KOTLIN, FormFactor.WEAR)
+
+    assertThat(guiTest.getProjectFileText(FN_SETTINGS_GRADLE_KTS)).apply {
+      contains("""include(":wear")""")
+      contains("""include(":mobile")""")
+    }
+    assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful).isTrue()
+  }
+
+  @Test
+  fun createNewTVKotlinKtsProject() {
+    guiTest.welcomeFrame()
+      .createNewProject()
+      .chooseAndroidProjectStep
+      .selectTvTab()
+      .wizard()
+      .clickNext() // Select default TV Activity
+      .configureNewAndroidProjectStep
+      .configureProjectWithDefaultsAndFinish(Language.KOTLIN, FormFactor.TV)
+
+    assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful).isTrue()
+  }
+
+  @Test
+  fun createNewAutomotiveKotlinKtsProject() {
+    guiTest.welcomeFrame()
+      .createNewProject()
+      .chooseAndroidProjectStep
+      .selectAutomotiveTab()
+      .wizard()
+      .clickNext() // Select default Automotive Activity
+      .configureNewAndroidProjectStep
+      .configureProjectWithDefaultsAndFinish(Language.KOTLIN, FormFactor.AUTOMOTIVE)
+
+    assertThat(guiTest.getProjectFileText(FN_SETTINGS_GRADLE_KTS)).apply {
+      contains("""include(":automotive")""")
+      contains("""include(":mobile")""")
+    }
+    assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful).isTrue()
+  }
+
+  @Test
+  fun createNewThingsKotlinKtsProject() {
+    guiTest.welcomeFrame()
+      .createNewProject()
+      .chooseAndroidProjectStep
+      .selectThingsTab()
+      .wizard()
+      .clickNext() // Select default Automotive Activity
+      .configureNewAndroidProjectStep
+      .setSourceLanguage(Language.KOTLIN)
+      .selectMinimumSdkApi(FormFactor.THINGS, AndroidVersion.VersionCodes.P)
+      .setUseKtsBuildFiles(true)
+      .wizard()
+      .clickNext() // Skip extra Step to configure Activity
+      .clickFinish()
+
+    guiTest.ideFrame()
+      .waitForGradleProjectSyncToFinish()
+
+    assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful).isTrue()
+  }
+
+  private fun createNewMobileKtsProject(language: Language) {
     guiTest.welcomeFrame()
       .createNewProject()
       .chooseAndroidProjectStep
@@ -103,8 +179,17 @@ class NewKtsProjectTest {
       .wizard()
       .clickNext()
       .configureNewAndroidProjectStep
-      .setSourceLanguage(language)
-      .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
+      .configureProjectWithDefaultsAndFinish(language, FormFactor.MOBILE)
+
+    assertThat(guiTest.getProjectFileText(FN_SETTINGS_GRADLE_KTS)).contains("""include(":app")""")
+    assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful).isTrue()
+  }
+
+  private fun ConfigureNewAndroidProjectStepFixture<NewProjectWizardFixture>.configureProjectWithDefaultsAndFinish(language: Language, formFactor: FormFactor) :
+    ConfigureNewAndroidProjectStepFixture<NewProjectWizardFixture> {
+
+    setSourceLanguage(language)
+      .selectMinimumSdkApi(formFactor, AndroidVersion.VersionCodes.P)
       .setUseKtsBuildFiles(true)
       .wizard()
       .clickFinish()
@@ -112,7 +197,6 @@ class NewKtsProjectTest {
     guiTest.ideFrame()
       .waitForGradleProjectSyncToFinish()
 
-    assertThat(guiTest.getProjectFileText(FN_SETTINGS_GRADLE_KTS)).contains("""include(":app")""")
-    assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful).isTrue()
+    return this
   }
 }
