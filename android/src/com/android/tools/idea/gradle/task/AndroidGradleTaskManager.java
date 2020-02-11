@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.task;
 
+import static org.jetbrains.plugins.gradle.service.task.GradleTaskManager.appendInitScriptArgument;
+import static org.jetbrains.plugins.gradle.service.task.GradleTaskManager.setupGradleScriptDebugging;
+
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.util.GradleProjects;
@@ -75,6 +78,7 @@ public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
 
       GradleExecutionSettings effectiveSettings =
         settings == null ? new GradleExecutionSettings(null, null, DistributionType.BUNDLED, false) : settings;
+      setupGradleScriptDebugging(effectiveSettings);
       appendInitScriptArgument(taskNames, jvmParametersSetup, effectiveSettings);
       // @formatter:off
       request.setJvmArguments(effectiveSettings.getJvmArguments())
