@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.tests.gui.framework.heapassertions.bleak;
+package com.android.tools.idea.bleak
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+class Whitelist<T>(val patterns: List<WhitelistEntry<T>> = listOf()) {
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-public @interface UseBleak {
+  fun matches(info: T) = patterns.any { it.test(info) }
+
+  operator fun plus(w: Whitelist<T>): Whitelist<T> {
+    return Whitelist(this.patterns + w.patterns)
+  }
+
+  operator fun plus(e: WhitelistEntry<T>): Whitelist<T> {
+    return Whitelist(this.patterns + e)
+  }
 }

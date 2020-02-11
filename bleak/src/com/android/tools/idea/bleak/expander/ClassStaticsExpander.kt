@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander
+package com.android.tools.idea.bleak.expander
 
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.DoNotTrace
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.Edge
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.ReflectionUtil
+import com.android.tools.idea.bleak.DoNotTrace
+import com.android.tools.idea.bleak.Edge
+import com.android.tools.idea.bleak.ReflectionUtil
 import sun.misc.Unsafe
 import java.lang.reflect.Modifier
 

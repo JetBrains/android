@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 @file:JvmName("Bleak")
-package com.android.tools.idea.tests.gui.framework.heapassertions.bleak
+package com.android.tools.idea.bleak
 
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.HeapGraph.Companion.jniHelper
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.ArrayObjectIdentityExpander
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.ClassLoaderExpander
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.ClassStaticsExpander
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.DefaultObjectExpander
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.Expander
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.ExpanderChooser
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.RootExpander
+import com.android.tools.idea.bleak.HeapGraph.Companion.jniHelper
+import com.android.tools.idea.bleak.expander.ArrayObjectIdentityExpander
+import com.android.tools.idea.bleak.expander.ClassLoaderExpander
+import com.android.tools.idea.bleak.expander.ClassStaticsExpander
+import com.android.tools.idea.bleak.expander.DefaultObjectExpander
+import com.android.tools.idea.bleak.expander.Expander
+import com.android.tools.idea.bleak.expander.ExpanderChooser
+import com.android.tools.idea.bleak.expander.RootExpander
 import java.util.function.Supplier
 
 /**

@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.tests.gui.framework.heapassertions.bleak
+package com.android.tools.idea.bleak
 
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.BootstrapClassloaderPlaceholder
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.Expander
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.ExpanderChooser
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.Node
+import com.android.tools.idea.bleak.expander.BootstrapClassloaderPlaceholder
+import com.android.tools.idea.bleak.expander.Expander
+import com.android.tools.idea.bleak.expander.ExpanderChooser
+import com.android.tools.idea.bleak.expander.Node
 import java.lang.ref.Reference
 import java.lang.ref.SoftReference
 import java.lang.ref.WeakReference

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.tests.gui.framework.heapassertions.bleak
+package com.android.tools.idea.bleak
 
-class Whitelist<T>(val patterns: List<WhitelistEntry<T>> = listOf()) {
+class BleakOptions private constructor(var iterations: Int, var checks: List<BleakCheck<*,*>>) {
+  constructor() : this(DEFAULT_ITERATION_COUNT, listOf())
 
-  fun matches(info: T) = patterns.any { it.test(info) }
-
-  operator fun plus(w: Whitelist<T>): Whitelist<T> {
-    return Whitelist(this.patterns + w.patterns)
+  fun iterations(i: Int): BleakOptions {
+    iterations = i
+    return this
   }
 
-  operator fun plus(e: WhitelistEntry<T>): Whitelist<T> {
-    return Whitelist(this.patterns + e)
+  fun withCheck(check: BleakCheck<*,*>): BleakOptions {
+    checks += check
+    return this
   }
+
+  companion object {
+    val DEFAULT_ITERATION_COUNT = 3
+  }
+
 }

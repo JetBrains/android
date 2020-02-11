@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.tests.gui.framework.heapassertions.bleak
+package com.android.tools.idea.bleak
 
 abstract class BleakCheck<OptionsType, ResultType>(val options: OptionsType, val whitelist: Whitelist<ResultType>, val knownIssues: Whitelist<ResultType>) {
   // callbacks from BLeak

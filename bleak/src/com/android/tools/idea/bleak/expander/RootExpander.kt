@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander
+package com.android.tools.idea.bleak.expander
 
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.BleakHelper
+import com.android.tools.idea.bleak.BleakHelper
 
 /** Expands the synthetic root node, whose children are the ClassLoader instances. This enables tracking growth
  * in the number of ClassLoaders just like any other leak. This fake root node doesn't really correspond to any
