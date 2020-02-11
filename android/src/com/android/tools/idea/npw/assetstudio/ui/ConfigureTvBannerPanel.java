@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.npw.assetstudio.ui;
 
+import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.getNewAndroidModuleTemplateImage;
+
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
@@ -101,7 +103,7 @@ public class ConfigureTvBannerPanel extends JPanel implements Disposable, Config
   private static final boolean HIDE_INAPPLICABLE_CONTROLS = false; // TODO Decide on hiding or disabling.
 
   private static final Color DEFAULT_FOREGROUND_COLOR = Color.BLACK;
-  private static final File DEFAULT_FOREGROUND_IMAGE = getTemplateImage("drawable-v24", "ic_banner_image.xml");
+  private static final File DEFAULT_FOREGROUND_IMAGE = getNewAndroidModuleTemplateImage("drawable-v24", "ic_banner_image.xml");
   private static final BackgroundAssetType DEFAULT_BACKGROUND_ASSET_TYPE = BackgroundAssetType.COLOR;
   private static final String DEFAULT_OUTPUT_NAME = AndroidIconType.TV_BANNER.toOutputName("");
 
@@ -381,15 +383,6 @@ public class ConfigureTvBannerPanel extends JPanel implements Disposable, Config
     myOutputName.set(state.get(OUTPUT_NAME_PROPERTY, DEFAULT_OUTPUT_NAME));
     myForegroundLayerName.set(state.get(FOREGROUND_LAYER_NAME_PROPERTY, defaultForegroundLayerName()));
     myBackgroundLayerName.set(state.get(BACKGROUND_LAYER_NAME_PROPERTY, defaultBackgroundLayerName()));
-  }
-
-  /**
-   * Returns a file pointing to a resource inside template.
-   */
-  @NotNull
-  private static File getTemplateImage(@NotNull String resourceDir, @NotNull String fileName) {
-    String path = FileUtil.join(Template.CATEGORY_PROJECTS, "NewAndroidModule", "root", "res", resourceDir, fileName);
-    return new File(TemplateManager.getTemplateRootFolder(), path);
   }
 
   private void initializeListenersAndBindings() {
