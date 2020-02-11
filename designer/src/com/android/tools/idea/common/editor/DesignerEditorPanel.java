@@ -27,6 +27,9 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
+import com.android.tools.idea.uibuilder.editor.NlActionManager;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.android.tools.idea.util.SyncUtil;
 import com.intellij.ProjectTopics;
 import com.intellij.ide.util.PropertiesComponent;
@@ -346,6 +349,16 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
       // For example, the refresh action can be performed when focusing ActionToolBar or DesignSurface.
       if (DesignerDataKeys.DESIGN_EDITOR.is(dataId)) {
         return DesignerEditorPanel.this;
+      }
+      else if (NlActionManager.LAYOUT_EDITOR.is(dataId)) {
+        DesignSurface surface = getSurface();
+        if (surface instanceof NlDesignSurface) {
+          SceneMode mode = ((NlDesignSurface) surface).getSceneMode();
+          if (mode == SceneMode.RENDER || mode == SceneMode.BLUEPRINT || mode == SceneMode.RENDER_AND_BLUEPRINT) {
+            // This editor is Layout Editor. TODO: Can we have better condition to know if it is Layout Editor?
+            return surface;
+          }
+        }
       }
       return null;
     }

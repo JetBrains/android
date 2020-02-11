@@ -26,6 +26,7 @@ import com.intellij.testFramework.JavaProjectTestCase
 private val DESIGNER_SHORTCUT_ACTIONS = arrayListOf(
   DesignerActions.ACTION_FORCE_REFRESH_PREVIEW,
   DesignerActions.ACTION_TOGGLE_ISSUE_PANEL,
+  DesignerActions.ACTION_SWITCH_DESIGN_MODE,
   DesignerActions.ACTION_TOGGLE_DEVICE_ORIENTATION
 )
 
