@@ -22,7 +22,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorState;
-import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
@@ -42,7 +42,7 @@ import org.jetbrains.annotations.Nullable;
  * Editor for the TFLite mode file.
  */
 // TODO(b/148866418): complete this based on the UX spec.
-public class TfliteModelFileEditor implements FileEditor {
+public class TfliteModelFileEditor extends UserDataHolderBase implements FileEditor {
   private static final String NAME = "TFLite Model File";
   private static final String HTML_TABLE_STYLE = "<style>\n" +
                                                  "table {\n" +
@@ -180,15 +180,5 @@ public class TfliteModelFileEditor implements FileEditor {
 
   @Override
   public void dispose() {
-  }
-
-  @Nullable
-  @Override
-  public <T> T getUserData(@NotNull Key<T> key) {
-    return null;
-  }
-
-  @Override
-  public <T> void putUserData(@NotNull Key<T> key, @Nullable T value) {
   }
 }
