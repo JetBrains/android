@@ -38,15 +38,6 @@ class AppInspectionDiscoveryHostTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
 
-  private val FAKE_PROCESS_DESCRIPTOR = TransportProcessDescriptor(
-    Common.Stream.newBuilder()
-      .setType(Common.Stream.Type.DEVICE)
-      .setStreamId(FakeTransportService.FAKE_DEVICE_ID)
-      .setDevice(FakeTransportService.FAKE_DEVICE)
-      .build(),
-    FakeTransportService.FAKE_PROCESS
-  )
-
   private val ATTACH_HANDLER = object : CommandHandler(timer) {
     override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
       events.add(
@@ -82,9 +73,9 @@ class AppInspectionDiscoveryHostTest {
       LaunchedProcessDescriptor(
         FakeTransportService.FAKE_DEVICE.manufacturer,
         FakeTransportService.FAKE_DEVICE.model,
-        FakeTransportService.FAKE_PROCESS.name
-      ),
-      AppInspectionTestUtils.TestTransportJarCopier
+        FakeTransportService.FAKE_PROCESS.name,
+        AppInspectionTestUtils.TestTransportJarCopier
+      )
     )
     advanceTimer()
   }
@@ -104,12 +95,12 @@ class AppInspectionDiscoveryHostTest {
     val discoveryHost = AppInspectionDiscoveryHost(executor, TransportClient(grpcServerRule.name))
 
     val latch = CountDownLatch(1)
-    discoveryHost.addProcessListener(executor, object : AppInspectionDiscoveryHost.AppInspectionProcessListener {
-      override fun onProcessConnected(descriptor: TransportProcessDescriptor) {
+    discoveryHost.addProcessListener(executor, object : AppInspectionDiscoveryHost.ProcessListener {
+      override fun onProcessConnected(descriptor: ProcessDescriptor) {
         latch.countDown()
       }
 
-      override fun onProcessDisconnected(descriptor: TransportProcessDescriptor) {
+      override fun onProcessDisconnected(descriptor: ProcessDescriptor) {
       }
     })
 
@@ -129,14 +120,14 @@ class AppInspectionDiscoveryHostTest {
     launchFakeProcess(discoveryHost)
 
     val latch = CountDownLatch(1)
-    val processesList = mutableListOf<TransportProcessDescriptor>()
-    discoveryHost.addProcessListener(executor, object : AppInspectionDiscoveryHost.AppInspectionProcessListener {
-      override fun onProcessConnected(descriptor: TransportProcessDescriptor) {
+    val processesList = mutableListOf<ProcessDescriptor>()
+    discoveryHost.addProcessListener(executor, object : AppInspectionDiscoveryHost.ProcessListener {
+      override fun onProcessConnected(descriptor: ProcessDescriptor) {
         processesList.add(descriptor)
         latch.countDown()
       }
 
-      override fun onProcessDisconnected(descriptor: TransportProcessDescriptor) {
+      override fun onProcessDisconnected(descriptor: ProcessDescriptor) {
       }
     })
 
@@ -144,7 +135,10 @@ class AppInspectionDiscoveryHostTest {
     latch.await()
 
     // Verify
-    assertThat(processesList).containsExactly(FAKE_PROCESS_DESCRIPTOR)
+    assertThat(processesList).hasSize(1)
+    assertThat(processesList[0].info.manufacturer).isEqualTo(FakeTransportService.FAKE_DEVICE.manufacturer)
+    assertThat(processesList[0].info.model).isEqualTo(FakeTransportService.FAKE_DEVICE.model)
+    assertThat(processesList[0].info.processName).isEqualTo(FakeTransportService.FAKE_PROCESS.name)
   }
 
   @Test
@@ -155,12 +149,12 @@ class AppInspectionDiscoveryHostTest {
 
     val processConnectLatch = CountDownLatch(1)
     val processDisconnectLatch = CountDownLatch(1)
-    discoveryHost.addProcessListener(executor, object : AppInspectionDiscoveryHost.AppInspectionProcessListener {
-      override fun onProcessConnected(descriptor: TransportProcessDescriptor) {
+    discoveryHost.addProcessListener(executor, object : AppInspectionDiscoveryHost.ProcessListener {
+      override fun onProcessConnected(descriptor: ProcessDescriptor) {
         processConnectLatch.countDown()
       }
 
-      override fun onProcessDisconnected(descriptor: TransportProcessDescriptor) {
+      override fun onProcessDisconnected(descriptor: ProcessDescriptor) {
         processDisconnectLatch.countDown()
       }
     })
@@ -185,8 +179,8 @@ class AppInspectionDiscoveryHostTest {
     val firstProcessLatch = CountDownLatch(1)
     val secondProcessLatch = CountDownLatch(1)
     val processDisconnectLatch = CountDownLatch(1)
-    discoveryHost.addProcessListener(executor, object : AppInspectionDiscoveryHost.AppInspectionProcessListener {
-      override fun onProcessConnected(descriptor: TransportProcessDescriptor) {
+    discoveryHost.addProcessListener(executor, object : AppInspectionDiscoveryHost.ProcessListener {
+      override fun onProcessConnected(descriptor: ProcessDescriptor) {
         if (firstProcessLatch.count > 0) {
           firstProcessLatch.countDown()
         } else {
@@ -194,7 +188,7 @@ class AppInspectionDiscoveryHostTest {
         }
       }
 
-      override fun onProcessDisconnected(descriptor: TransportProcessDescriptor) {
+      override fun onProcessDisconnected(descriptor: ProcessDescriptor) {
         processDisconnectLatch.countDown()
       }
     })
