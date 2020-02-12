@@ -22,7 +22,7 @@ import com.android.tools.idea.device.fs.DownloadProgress
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
-import com.android.tools.idea.sqlite.databaseConnection.ImmediateSqliteResultSet
+import com.android.tools.idea.sqlite.databaseConnection.EmptySqliteResultSet
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorModel
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorView
@@ -409,7 +409,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(schema))
     `when`(mockDatabaseConnection.execute(SqliteStatement("INSERT")))
       .thenReturn(Futures.immediateFuture(
-        ImmediateSqliteResultSet(emptyList())))
+        EmptySqliteResultSet()))
 
     runDispatching {
       sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
