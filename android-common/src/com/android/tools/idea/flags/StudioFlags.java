@@ -679,6 +679,13 @@ public final class StudioFlags {
     false
   );
 
+  public static final Flag<Boolean> DAGGER_SUPPORT_ENABLED = Flag.create(
+    EDITOR, "dagger.support.enabled",
+    "Enable editor support for Dagger",
+    "If enabled adds Dagger specific find usages, gutter icons and new parsing for Dagger errors",
+    false
+  );
+
   //endregion
 
   //region Analyzer
