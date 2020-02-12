@@ -130,7 +130,7 @@ class TableController(
     view.setFetchNextRowsButtonState(false)
 
     return edtExecutor.transformAsync(fetchAndDisplayRows()) {
-      edtExecutor.transform(resultSet.rowCount) { rowCount ->
+      edtExecutor.transform(resultSet.totalRowCount) { rowCount ->
         view.setFetchPreviousRowsButtonState(start > 0)
         view.setFetchNextRowsButtonState(start+rowBatchSize < rowCount)
         return@transform
@@ -233,7 +233,7 @@ class TableController(
     }
 
     override fun loadLastRowsInvoked() {
-      edtExecutor.transformAsync(resultSet.rowCount) { rowCount ->
+      edtExecutor.transformAsync(resultSet.totalRowCount) { rowCount ->
         start = (rowCount!! / rowBatchSize) * rowBatchSize
 
         if (start == rowCount) start -= rowBatchSize

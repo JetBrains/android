@@ -47,7 +47,7 @@ class LiveSqliteResultSet(
 
   override val columns: ListenableFuture<List<SqliteColumn>> = Futures.immediateFuture(_columns)
 
-  override val rowCount: ListenableFuture<Int> get() {
+  override val totalRowCount: ListenableFuture<Int> get() {
     val queryCommand = buildQueryCommand(sqliteStatement.toRowCountStatement(), connectionId)
     val responseFuture = messenger.sendRawCommand(queryCommand.toByteArray())
 

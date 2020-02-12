@@ -24,7 +24,7 @@ import com.google.common.util.concurrent.ListenableFuture
  * Implementation of [SqliteResultSet] that takes all the data from its constructor.
  */
 class ImmediateSqliteResultSet(private val rows: List<SqliteRow>) : SqliteResultSet {
-  override val rowCount: ListenableFuture<Int> = Futures.immediateFuture(rows.size)
+  override val totalRowCount: ListenableFuture<Int> = Futures.immediateFuture(rows.size)
 
   override val columns: ListenableFuture<List<SqliteColumn>>
     get() {
