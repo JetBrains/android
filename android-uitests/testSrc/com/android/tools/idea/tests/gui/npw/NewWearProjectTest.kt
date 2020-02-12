@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.npw
 
 import com.android.sdklib.AndroidVersion
+import com.android.tools.idea.npw.FormFactor
 import com.google.common.truth.Truth.assertThat
 
 import com.android.tools.idea.npw.platform.Language
@@ -73,7 +74,7 @@ class NewWearProjectTest {
     guiTest.welcomeFrame()
       .createNewProject()
       .chooseAndroidProjectStep
-      .selectWearTab()
+      .selectTab(FormFactor.WEAR)
       .chooseActivity(activityName)
       .wizard()
       .clickNext()
