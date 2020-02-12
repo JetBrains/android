@@ -18,7 +18,7 @@ package com.android.tools.idea.appinspection.ide.ui
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
-import com.android.tools.idea.appinspection.api.TransportProcessDescriptor
+import com.android.tools.idea.appinspection.api.ProcessDescriptor
 import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessesComboBoxModel
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.intellij.ide.plugins.newui.HorizontalLayout
@@ -42,9 +42,8 @@ class AppInspectionView(appInspectionDiscoveryHost: AppInspectionDiscoveryHost) 
     inspectionProcessesComboBox.addItemListener { e ->
       if (e.stateChange == ItemEvent.SELECTED) {
         tabbedPane.removeAll()
-        val transportProcessDescriptor = e.item as? TransportProcessDescriptor ?: return@addItemListener
-        val target = appInspectionDiscoveryHost.attachToProcess(transportProcessDescriptor).get()
-                     ?: return@addItemListener
+        val descriptor = e.item as? ProcessDescriptor ?: return@addItemListener
+        val target = appInspectionDiscoveryHost.attachToProcess(descriptor).get() ?: return@addItemListener
         for (provider in AppInspectorTabProvider.EP_NAME.extensionList) {
           target.launchInspector(provider.inspectorId, provider.inspectorAgentJar) { messenger ->
             val tab = provider.createTab(messenger)

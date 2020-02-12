@@ -17,24 +17,24 @@ package com.android.tools.idea.appinspection.ide.model
 
 import com.android.tools.adtui.model.stdui.DefaultCommonComboBoxModel
 import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
-import com.android.tools.idea.appinspection.api.TransportProcessDescriptor
+import com.android.tools.idea.appinspection.api.ProcessDescriptor
 import com.intellij.util.concurrency.AppExecutorUtil
 
 //TODO(b/148546243): separate view and model code into independent modules.
-class AppInspectionProcessesComboBoxModel(appInspectionDiscoveryHost: AppInspectionDiscoveryHost)
-  : DefaultCommonComboBoxModel<TransportProcessDescriptor>("") {
+class AppInspectionProcessesComboBoxModel(appInspectionDiscoveryHost: AppInspectionDiscoveryHost) :
+  DefaultCommonComboBoxModel<ProcessDescriptor>("") {
   override var editable = false
 
   init {
     appInspectionDiscoveryHost.addProcessListener(
       AppExecutorUtil.getAppScheduledExecutorService(),
-      object : AppInspectionDiscoveryHost.AppInspectionProcessListener {
-        override fun onProcessConnected(descriptor: TransportProcessDescriptor) {
+      object : AppInspectionDiscoveryHost.ProcessListener {
+        override fun onProcessConnected(descriptor: ProcessDescriptor) {
           addElement(descriptor)
           selectedItem = descriptor
         }
 
-        override fun onProcessDisconnected(descriptor: TransportProcessDescriptor) {
+        override fun onProcessDisconnected(descriptor: ProcessDescriptor) {
           removeElement(descriptor)
         }
       })

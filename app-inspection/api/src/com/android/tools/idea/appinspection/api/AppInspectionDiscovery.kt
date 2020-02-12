@@ -27,6 +27,7 @@ import com.android.tools.idea.transport.manager.TransportStreamManager
 import com.android.tools.idea.transport.poller.TransportEventListener
 import com.android.tools.profiler.proto.Common
 import com.google.common.annotations.VisibleForTesting
+import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executor
@@ -74,23 +75,17 @@ class AppInspectionDiscoveryHost(
   /**
    * Defines a listener that is fired when a new inspectable process is available or an existing one is disconnected.
    */
-  interface AppInspectionProcessListener {
+  interface ProcessListener {
     /**
      * Called when a new process on device is available.
      */
-    fun onProcessConnected(descriptor: TransportProcessDescriptor)
+    fun onProcessConnected(descriptor: ProcessDescriptor)
 
     /**
      * Called when an existing process is disconnected.
      */
-    fun onProcessDisconnected(descriptor: TransportProcessDescriptor)
+    fun onProcessDisconnected(descriptor: ProcessDescriptor)
   }
-
-  @VisibleForTesting
-  internal data class TransportProcessInfo(
-    val descriptor: TransportProcessDescriptor,
-    val streamChannel: TransportStreamChannel
-  )
 
   val discovery = AppInspectionDiscovery(executor, client)
 
@@ -99,13 +94,16 @@ class AppInspectionDiscoveryHost(
   @VisibleForTesting
   internal class ProcessData {
     @GuardedBy("processData")
-    val processIdMap = mutableMapOf<Long, TransportProcessInfo>()
+    val processIdMap = mutableMapOf<Long, TransportProcessDescriptor>()
+
     @GuardedBy("processData")
-    val launchedProcesses = mutableMapOf<LaunchedProcessDescriptor, AppInspectionJarCopier>()
+    val launchedProcesses = mutableMapOf<ProcessDescriptor, AppInspectionJarCopier>()
+
     @GuardedBy("processData")
-    val inspectableProcesses = mutableSetOf<TransportProcessDescriptor>()
+    val inspectableProcesses = mutableSetOf<AttachableProcessDescriptor>()
+
     @GuardedBy("processData")
-    val processListeners = mutableMapOf<AppInspectionProcessListener, Executor>()
+    val processListeners = mutableMapOf<ProcessListener, Executor>()
   }
 
   @VisibleForTesting
@@ -116,13 +114,13 @@ class AppInspectionDiscoveryHost(
   }
 
   /**
-   * Adds an [AppInspectionProcessListener] to discovery service. Listener will receive future connections when they come online.
+   * Adds an [ProcessListener] to discovery service. Listener will receive future connections when they come online.
    *
    * This has the side effect of notifying users of all existing live targets the discovery service is aware of.
    */
   fun addProcessListener(
     executor: Executor,
-    listener: AppInspectionProcessListener
+    listener: ProcessListener
   ) {
     synchronized(processData) {
       if (processData.processListeners.putIfAbsent(listener, executor) == null) {
@@ -136,11 +134,11 @@ class AppInspectionDiscoveryHost(
    *
    * This also checks if transport pipeline knows about the process. If so, add it as an inspectable process.
    */
-  fun addLaunchedProcess(launchedProcessDescriptor: LaunchedProcessDescriptor, jarCopier: AppInspectionJarCopier) {
+  fun addLaunchedProcess(launchedProcessDescriptor: LaunchedProcessDescriptor) {
     synchronized(processData) {
-      processData.launchedProcesses[launchedProcessDescriptor] = jarCopier
-      processData.processIdMap.values.find { it.descriptor.matchesLaunchedAppDescriptor(launchedProcessDescriptor) }
-        ?.let { addInspectableProcess(it, jarCopier) }
+      processData.launchedProcesses[launchedProcessDescriptor] = launchedProcessDescriptor.jarCopier
+      processData.processIdMap.values.find { it.equals(launchedProcessDescriptor) }
+        ?.let { addInspectableProcess(it, launchedProcessDescriptor.jarCopier) }
     }
   }
 
@@ -150,17 +148,12 @@ class AppInspectionDiscoveryHost(
    * This is meant to be called by the frontend when it needs to obtain an [AppInspectionTarget]. For example, when user selects a process
    * from a dropdown of all inspectable processes.
    */
-  private fun attachToProcess(processInfo: TransportProcessInfo, jarCopier: AppInspectionJarCopier): ListenableFuture<AppInspectionTarget> {
-    return discovery.attachToProcess(processInfo.descriptor, processInfo.streamChannel, jarCopier)
-  }
-
-  /**
-   * Attaches to a process on device and creates an [AppInspectionTarget] with the default [AppInspectionJarCopier].
-   *
-   * TODO(b/149308030): pass all dependencies need to launch a process to AppInspectionProcessListener.
-   */
-  fun attachToProcess(descriptor: TransportProcessDescriptor): ListenableFuture<AppInspectionTarget> {
-    return discovery.attachToProcess(descriptor, streamIdMap[descriptor.stream.streamId]!!, descriptor.getLaunchedAppCopier()!!)
+  fun attachToProcess(processDescriptor: ProcessDescriptor): ListenableFuture<AppInspectionTarget> {
+    val attachableProcessDescriptor = processDescriptor as AttachableProcessDescriptor
+    streamIdMap[attachableProcessDescriptor.stream.streamId]?.let {
+      return discovery.attachToProcess(attachableProcessDescriptor, it)
+    }
+    return Futures.immediateFailedFuture(RuntimeException("Stream no longer exists!"))
   }
 
   /**
@@ -206,12 +199,11 @@ class AppInspectionDiscoveryHost(
   private fun addProcess(streamChannel: TransportStreamChannel, process: Common.Process) {
     synchronized(processData) {
       processData.processIdMap.computeIfAbsent(process.pid.toLong()) {
-        val descriptor = TransportProcessDescriptor(streamChannel.stream, process)
-        val processInfo = TransportProcessInfo(descriptor, streamChannel)
+        val descriptor = TransportProcessDescriptor(streamChannel, process)
         descriptor.getLaunchedAppCopier()?.let {
-          addInspectableProcess(processInfo, it)
+          addInspectableProcess(descriptor, it)
         }
-        processInfo
+        descriptor
       }
     }
   }
@@ -221,14 +213,15 @@ class AppInspectionDiscoveryHost(
    */
   @GuardedBy("processData")
   private fun addInspectableProcess(
-    processInfo: TransportProcessInfo,
+    transportProcessDescriptor: TransportProcessDescriptor,
     jarCopier: AppInspectionJarCopier
   ) {
-    if (!processData.inspectableProcesses.contains(processInfo.descriptor)) {
-      processData.inspectableProcesses.add(processInfo.descriptor)
-      processData.processListeners
-        .forEach { (listener, executor) -> executor.execute { listener.onProcessConnected(processInfo.descriptor) } }
-      attachToProcess(processInfo, jarCopier)
+    if (!processData.inspectableProcesses.contains<ProcessDescriptor>(transportProcessDescriptor)) {
+      val attachableProcess =
+        AttachableProcessDescriptor(transportProcessDescriptor.streamChannel.stream, transportProcessDescriptor.process, jarCopier)
+      processData.inspectableProcesses.add(attachableProcess)
+      processData.processListeners.forEach { (listener, executor) -> executor.execute { listener.onProcessConnected(attachableProcess) } }
+      attachToProcess(attachableProcess)
     }
   }
 
@@ -238,28 +231,15 @@ class AppInspectionDiscoveryHost(
   private fun removeProcess(processId: Long) {
     synchronized(processData) {
       processData.processIdMap.remove(processId)?.let {
-        processData.launchedProcesses.remove(it.descriptor.toLaunchedAppDescriptor())
-        if (processData.inspectableProcesses.remove(it.descriptor)) {
-          processData.processListeners
-            .forEach { (listener, executor) -> executor.execute { listener.onProcessDisconnected(it.descriptor) } }
+        processData.launchedProcesses.remove(it)
+        if (processData.inspectableProcesses.remove<ProcessDescriptor>(it)) {
+          processData.processListeners.forEach { (listener, executor) -> executor.execute { listener.onProcessDisconnected(it) } }
         }
       }
     }
   }
 
-  private fun TransportProcessDescriptor.getLaunchedAppCopier() = processData.launchedProcesses[toLaunchedAppDescriptor()]
-
-  private fun TransportProcessDescriptor.matchesLaunchedAppDescriptor(launchedProcessDescriptor: LaunchedProcessDescriptor): Boolean {
-    return launchedProcessDescriptor.manufacturer == stream.device.manufacturer
-      && launchedProcessDescriptor.model == stream.device.model
-      && launchedProcessDescriptor.processName == process.name
-  }
-
-  private fun TransportProcessDescriptor.toLaunchedAppDescriptor() = LaunchedProcessDescriptor(
-    stream.device.manufacturer,
-    stream.device.model,
-    process.name
-  )
+  private fun TransportProcessDescriptor.getLaunchedAppCopier() = processData.launchedProcesses[this]
 }
 
 /**
@@ -276,10 +256,12 @@ class AppInspectionDiscovery internal constructor(
   private val transportClient: TransportClient
 ) {
   private val lock = Any()
+
   @GuardedBy("lock")
   private val targetListeners = mutableMapOf<TargetListener, Executor>()
+
   @GuardedBy("lock")
-  private val targets = ConcurrentHashMap<TransportProcessDescriptor, ListenableFuture<AppInspectionTarget>>()
+  private val targets = ConcurrentHashMap<AttachableProcessDescriptor, ListenableFuture<AppInspectionTarget>>()
 
   /**
    * Adds a [TargetListener]. Target listeners will receive a callback when a new target is available.
@@ -297,23 +279,26 @@ class AppInspectionDiscovery internal constructor(
   }
 
   /**
-   * Attempts to connect to a process on device specified by [descriptor]. Returns a future of [AppInspectionTarget] which can be used to
+   * Attempts to connect to a process on device specified by [processDescriptor]. Returns a future of [AppInspectionTarget] which can be used to
    * launch inspector connections.
    *
    * Synchronization used here to make sure no new listener is added during the life of this function call, and this gets called atomically.
    */
   internal fun attachToProcess(
-    descriptor: TransportProcessDescriptor,
-    streamChannel: TransportStreamChannel,
-    jarCopier: AppInspectionJarCopier
-  ): ListenableFuture<AppInspectionTarget> = synchronized(lock) {
-    targets.computeIfAbsent(descriptor) {
-      val transport = AppInspectionTransport(transportClient, descriptor.stream, descriptor.process, executor, streamChannel)
-      attachAppInspectionTarget(transport, jarCopier).transform { target ->
-        target.addTargetTerminatedListener(executor) { targets.remove(it) }
-        targetListeners.forEach { (listener, executor) -> executor.execute { listener(target) } }
-        target
+    processDescriptor: AttachableProcessDescriptor,
+    streamChannel: TransportStreamChannel
+  ): ListenableFuture<AppInspectionTarget> =
+    synchronized(lock) {
+      synchronized(lock) {
+        targets.computeIfAbsent(processDescriptor) {
+          val transport =
+            AppInspectionTransport(transportClient, processDescriptor.stream, processDescriptor.process, executor, streamChannel)
+          attachAppInspectionTarget(transport, processDescriptor.appInspectionJarCopier).transform { target ->
+            target.addTargetTerminatedListener(executor) { targets.remove(it) }
+            targetListeners.forEach { (listener, executor) -> executor.execute { listener(target) } }
+            target
+          }
+        }
       }
     }
-  }
 }

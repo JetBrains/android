@@ -19,7 +19,6 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
 import com.android.tools.idea.appinspection.api.LaunchedProcessDescriptor
 import com.android.tools.idea.appinspection.api.TestInspectorCommandHandler
-import com.android.tools.idea.appinspection.api.TransportProcessDescriptor
 import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessesComboBoxModel
 import com.android.tools.idea.appinspection.test.ASYNC_TIMEOUT_MS
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils
@@ -94,21 +93,18 @@ class AppInspectionProcessesComboBoxModelTest {
       LaunchedProcessDescriptor(
         FakeTransportService.FAKE_DEVICE.manufacturer,
         FakeTransportService.FAKE_DEVICE.model,
-        FakeTransportService.FAKE_PROCESS.name
-      ),
-      AppInspectionTestUtils.TestTransportJarCopier
+        FakeTransportService.FAKE_PROCESS.name,
+        AppInspectionTestUtils.TestTransportJarCopier
+      )
     )
     addedLatch.await()
 
     // Verify the added target.
     assertThat(model.size).isEqualTo(1)
-    assertThat(model.getElementAt(0)).isEqualTo(
-      TransportProcessDescriptor(
-        Common.Stream.newBuilder().setDevice(FakeTransportService.FAKE_DEVICE)
-          .setType(Common.Stream.Type.DEVICE).setStreamId(FakeTransportService.FAKE_DEVICE.deviceId).build(),
-        FakeTransportService.FAKE_PROCESS
-      )
-    )
+    with(model.getElementAt(0)) {
+      assertThat(this.info.model).isEqualTo(FakeTransportService.FAKE_DEVICE.model)
+      assertThat(this.info.processName).isEqualTo(FakeTransportService.FAKE_PROCESS.name)
+    }
 
     // Remove the fake process.
     transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_OFFLINE_PROCESS)
