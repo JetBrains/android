@@ -92,7 +92,7 @@ class SqliteEvaluatorController(
     edtExecutor.addCallback(databaseConnection.execute(sqliteStatement), object : FutureCallback<SqliteResultSet> {
       override fun onSuccess(resultSet: SqliteResultSet?) {
         checkNotNull(resultSet)
-        edtExecutor.transform(resultSet.rowCount) { rowCount ->
+        edtExecutor.transform(resultSet.totalRowCount) { rowCount ->
           if (rowCount > 0) {
             currentTableController = TableController(
               view = view.tableView,

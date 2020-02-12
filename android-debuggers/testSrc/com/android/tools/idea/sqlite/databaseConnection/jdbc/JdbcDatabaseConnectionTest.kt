@@ -542,7 +542,7 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
 
     // Assert
     val columns = pumpEventsAndWaitForFuture(resultSet.columns)
-    val rowCount = pumpEventsAndWaitForFuture(resultSet.rowCount)
+    val rowCount = pumpEventsAndWaitForFuture(resultSet.totalRowCount)
     assertEquals(0, rowCount)
     assertEmpty(columns)
   }
@@ -563,7 +563,7 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
 
     // Assert
     val columns = pumpEventsAndWaitForFuture(resultSet.columns)
-    val rowCount = pumpEventsAndWaitForFuture(resultSet.rowCount)
+    val rowCount = pumpEventsAndWaitForFuture(resultSet.totalRowCount)
     assertEquals(0, rowCount)
     assertEmpty(columns)
   }
@@ -582,7 +582,7 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
 
     // Assert
     val columns = pumpEventsAndWaitForFuture(resultSet.columns)
-    val rowCount = pumpEventsAndWaitForFuture(resultSet.rowCount)
+    val rowCount = pumpEventsAndWaitForFuture(resultSet.totalRowCount)
     assertEquals(0, rowCount)
     assertEmpty(columns)
   }

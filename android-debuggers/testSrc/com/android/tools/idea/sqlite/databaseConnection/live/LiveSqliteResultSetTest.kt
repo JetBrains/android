@@ -82,7 +82,7 @@ class LiveSqliteResultSetTest : LightPlatformTestCase() {
     val resultSet = LiveSqliteResultSet(columns, SqliteStatement("SELECT"), mockMessenger, 0, taskExecutor)
 
     // Act
-    val rowCount = pumpEventsAndWaitForFuture(resultSet.rowCount)
+    val rowCount = pumpEventsAndWaitForFuture(resultSet.totalRowCount)
 
     // Assert
     assertEquals(12345, rowCount)
@@ -109,7 +109,7 @@ class LiveSqliteResultSetTest : LightPlatformTestCase() {
 
     // Act / Assert
     Disposer.dispose(resultSet)
-    pumpEventsAndWaitForFutureException(resultSet.rowCount)
+    pumpEventsAndWaitForFutureException(resultSet.totalRowCount)
   }
 
   fun testGetRowBatchReturnsCorrectListOfRows() {

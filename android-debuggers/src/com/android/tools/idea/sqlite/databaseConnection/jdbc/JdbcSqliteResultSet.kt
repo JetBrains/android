@@ -79,7 +79,7 @@ class JdbcSqliteResultSet(
 
   override val columns get() = service.sequentialTaskExecutor.executeAsync { _columns }
 
-  override val rowCount get() = service.sequentialTaskExecutor.executeAsync { _rowCount }
+  override val totalRowCount get() = service.sequentialTaskExecutor.executeAsync { _rowCount }
 
   override fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<List<SqliteRow>> {
     checkOffsetAndSize(rowOffset, rowBatchSize)

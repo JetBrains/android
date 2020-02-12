@@ -41,7 +41,7 @@ class MockSqliteResultSet(size: Int = 100) : SqliteResultSet {
 
   override val columns: ListenableFuture<List<SqliteColumn>> get() = Futures.immediateFuture(_columns)
 
-  override val rowCount: ListenableFuture<Int> get() = Futures.immediateFuture(rows.size)
+  override val totalRowCount: ListenableFuture<Int> get() = Futures.immediateFuture(rows.size)
 
   override fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<List<SqliteRow>> {
     assert(rowOffset >= 0)
