@@ -19,6 +19,7 @@ import com.android.SdkConstants.FN_BUILD_GRADLE_KTS
 import com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.platform.Language
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
@@ -102,7 +103,7 @@ class NewKtsProjectTest {
     guiTest.welcomeFrame()
       .createNewProject()
       .chooseAndroidProjectStep
-      .selectWearTab()
+      .selectTab(FormFactor.WEAR)
       .wizard()
       .clickNext() // Select default Wear Activity
       .configureNewAndroidProjectStep
@@ -121,7 +122,7 @@ class NewKtsProjectTest {
     guiTest.welcomeFrame()
       .createNewProject()
       .chooseAndroidProjectStep
-      .selectTvTab()
+      .selectTab(FormFactor.TV)
       .wizard()
       .clickNext() // Select default TV Activity
       .configureNewAndroidProjectStep
@@ -135,7 +136,7 @@ class NewKtsProjectTest {
     guiTest.welcomeFrame()
       .createNewProject()
       .chooseAndroidProjectStep
-      .selectAutomotiveTab()
+      .selectTab(FormFactor.AUTOMOTIVE)
       .wizard()
       .clickNext() // Select default Automotive Activity
       .configureNewAndroidProjectStep
@@ -153,7 +154,7 @@ class NewKtsProjectTest {
     guiTest.welcomeFrame()
       .createNewProject()
       .chooseAndroidProjectStep
-      .selectThingsTab()
+      .selectTab(FormFactor.THINGS)
       .wizard()
       .clickNext() // Select default Automotive Activity
       .configureNewAndroidProjectStep

@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.uibuilder;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.gradle.util.BuildMode;
+import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.Rule;
@@ -40,7 +41,7 @@ public class NewProjectThingsTest {
       .welcomeFrame()
       .createNewProject()
       .getChooseAndroidProjectStep()
-      .selectThingsTab()
+      .selectTab(FormFactor.THINGS)
       .chooseActivity("Android Things Empty Activity")
       .wizard()
       .clickNext()

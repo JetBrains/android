@@ -20,6 +20,7 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowi
 import static com.android.tools.idea.tests.gui.framework.matcher.Matchers.byType;
 
 import com.android.tools.adtui.ASGallery;
+import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
 import javax.swing.JRootPane;
@@ -42,27 +43,8 @@ public class ChooseAndroidProjectStepFixture<W extends AbstractWizardFixture>
     return this;
   }
 
-  public ChooseAndroidProjectStepFixture<W> selectAutomotiveTab() {
-    selectTab("Automotive");
+  public ChooseAndroidProjectStepFixture<W> selectTab(@NotNull FormFactor formFactor) {
+    new JTabbedPaneFixture(robot(), waitUntilFound(robot(), target(), byType(JTabbedPane.class))).selectTab(formFactor.toString());
     return this;
-  }
-
-  public ChooseAndroidProjectStepFixture<W> selectWearTab() {
-    selectTab("Wear OS");
-    return this;
-  }
-
-  public ChooseAndroidProjectStepFixture<W> selectTvTab() {
-    selectTab("TV");
-    return this;
-  }
-
-  public ChooseAndroidProjectStepFixture<W> selectThingsTab() {
-    selectTab("Android Things");
-    return this;
-  }
-
-  private void selectTab(@NotNull String tabName) {
-    new JTabbedPaneFixture(robot(), waitUntilFound(robot(), target(), byType(JTabbedPane.class))).selectTab(tabName);
   }
 }
