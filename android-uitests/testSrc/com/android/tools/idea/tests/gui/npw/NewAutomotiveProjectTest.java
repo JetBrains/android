@@ -17,7 +17,7 @@ package com.android.tools.idea.tests.gui.npw;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.tools.idea.npw.FormFactor;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
@@ -61,7 +61,7 @@ public class NewAutomotiveProjectTest {
       .clickNext()
       .getConfigureNewAndroidProjectStep()
       .setSourceLanguage(language)
-      .selectMinimumSdkApi(FormFactor.AUTOMOTIVE, 28)
+      .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
       .wizard()
       .clickFinish();
 
