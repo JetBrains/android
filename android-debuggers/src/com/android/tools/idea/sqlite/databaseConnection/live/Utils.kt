@@ -63,7 +63,5 @@ internal fun List<SqliteInspectorProtocol.Table>.toSqliteSchema(): SqliteSchema 
 }
 
 private fun SqliteInspectorProtocol.Column.toSqliteColumn(): SqliteColumn {
-  // TODO(blocked): add support for primary keys
-  // TODO(blocked): add support for NOT NULL
-  return SqliteColumn(name, SqliteAffinity.fromTypename(type), false, false)
+  return SqliteColumn(name, SqliteAffinity.fromTypename(type), !isNotNull, primaryKey > 0)
 }
