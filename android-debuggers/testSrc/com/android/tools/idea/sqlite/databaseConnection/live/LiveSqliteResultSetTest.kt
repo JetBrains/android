@@ -58,15 +58,13 @@ class LiveSqliteResultSetTest : LightPlatformTestCase() {
 
   fun testRowCountReturnsCorrectNumberOfRows() {
     // Prepare
-    val cellValueString = SqliteInspectorProtocol.CellValue.newBuilder()
-      .setColumnName("column1")
-      .setStringValue("a string")
+    val rowCountCellValue = SqliteInspectorProtocol.CellValue.newBuilder()
+      .setColumnName("COUNT(*)")
+      .setIntValue(12345)
       .build()
 
     val row = SqliteInspectorProtocol.Row.newBuilder()
-      .addValues(cellValueString)
-      .addValues(cellValueString)
-      .addValues(cellValueString)
+      .addValues(rowCountCellValue)
       .build()
 
     val cursor = SqliteInspectorProtocol.Response.newBuilder()
@@ -87,7 +85,7 @@ class LiveSqliteResultSetTest : LightPlatformTestCase() {
     val rowCount = pumpEventsAndWaitForFuture(resultSet.rowCount)
 
     // Assert
-    assertEquals(3, rowCount)
+    assertEquals(12345, rowCount)
   }
 
   fun testRowCountFailsIfDisposed() {
@@ -106,7 +104,7 @@ class LiveSqliteResultSetTest : LightPlatformTestCase() {
       SqliteColumn("col1", SqliteAffinity.TEXT, false, true),
       SqliteColumn("col2", SqliteAffinity.INTEGER, true, false)
     )
-    val resultSet = LiveSqliteResultSet(columns, SqliteStatement("SELECT"), mockMessenger, 0, taskExecutor)
+    val resultSet = LiveSqliteResultSet(columns, SqliteStatement("SELECT COUNT(*) FROM (query)"), mockMessenger, 0, taskExecutor)
     Disposer.register(project, resultSet)
 
     // Act / Assert

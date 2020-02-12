@@ -55,7 +55,7 @@ class LiveSqliteResultSet(
       check(!Disposer.isDisposed(this)) { "ResultSet has already been disposed." }
 
       val queryResponse = SqliteInspectorProtocol.Response.parseFrom(it).query
-      queryResponse.rowsList.firstOrNull()?.valuesList?.size ?: 0
+      queryResponse.rowsList.firstOrNull()?.valuesList?.firstOrNull()?.intValue ?: 0
     }
   }
 
