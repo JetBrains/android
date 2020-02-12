@@ -58,8 +58,8 @@ private const val FILTERS_BUTTON_LABEL = "Filter displayed resources"
 private const val MODULE_PREFIX = "Module: "
 
 private val MIN_FIELD_SIZE = JBUI.scale(40)
-private val PREF_FIELD_SIZE = JBUI.scale(300)
-private val MAX_FIELD_SIZE = JBUI.scale(400)
+private val PREF_FIELD_SIZE = JBUI.scale(125)
+private val MAX_FIELD_SIZE = JBUI.scale(150)
 private val BUTTON_SIZE = JBUI.size(20)
 private val GAP_SIZE = JBUI.scale(10)
 private val ACTION_BTN_SIZE get() = JBUI.scale(32)
@@ -91,8 +91,7 @@ class ResourceExplorerToolbar private constructor(
       .addComponent(refreshActionComponent, ACTION_BTN_SIZE, ACTION_BTN_SIZE, ACTION_BTN_SIZE)
       .addFixedSizeComponent(separator)
       .addComponent(moduleSelectionCombo, MIN_FIELD_SIZE, PREF_FIELD_SIZE, MAX_FIELD_SIZE)
-      .addComponent(searchAction, MIN_FIELD_SIZE, PREF_FIELD_SIZE, MAX_FIELD_SIZE)
-      .addGap(GAP_SIZE, GAP_SIZE, Int.MAX_VALUE) // Align the rest of the components to the right
+      .addComponent(searchAction, MIN_FIELD_SIZE, PREF_FIELD_SIZE, Int.MAX_VALUE)
       .addFixedSizeComponent(filterAction)
 
     val verticalGroup = groupLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
