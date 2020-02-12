@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.importing;
 
+import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectTypeService;
 import com.intellij.openapi.roots.CompilerProjectExtension;
@@ -51,6 +52,7 @@ public class NewProjectSetupTest extends PlatformTestCase {
     ProjectTypeService.clearFieldsForLightProjectInTests(project);
 
     myNewProjectSetup = new NewProjectSetup(myTopLevelModuleFactory);
+    IdeSdks.removeJdksOn(myProject);
   }
 
   public void testPrepareProjectForImportWithLanguageLevel() {
