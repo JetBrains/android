@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.templates
 
+import com.android.annotations.concurrency.UiThread
 import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.util.GradleUtil.isGradleScript
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.utils.usLocaleCapitalize
 import com.google.common.base.CaseFormat
@@ -40,7 +39,9 @@ import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileVisitor
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
@@ -370,6 +371,49 @@ object TemplateUtils {
     if (!d.canWrite()) {
       throw IOException("Cannot write to folder: " + d.absolutePath)
     }
+  }
+
+  /**
+   * [VfsUtil.copyDirectory] messes up the undo stack, most likely by trying to create a directory even if it already exists.
+   * This is an undo-friendly replacement.
+   *
+   * Note: this method should be run inside write action.
+   */
+  @JvmStatic
+  @JvmOverloads
+  @UiThread
+  fun copyDirectory(src: VirtualFile, dest: File, copyFile: (file: VirtualFile, src: VirtualFile, destination: File) -> Boolean = ::copyFile) {
+    VfsUtilCore.visitChildrenRecursively(src, object : VirtualFileVisitor<Any>() {
+      override fun visitFile(file: VirtualFile): Boolean {
+        try {
+          return copyFile(file, src, dest)
+        }
+        catch (e: IOException) {
+          throw VisitorException(e)
+        }
+      }
+    }, IOException::class.java)!!
+  }
+
+  /**
+   * Copies a file or a directory. Returns true if it was copied, otherwise false.
+   */
+  @JvmStatic
+  @UiThread
+  private fun copyFile(fileToCopy: VirtualFile, parent: VirtualFile, destination: File): Boolean {
+    val relativePath = VfsUtilCore.getRelativePath(fileToCopy, parent, File.separatorChar)
+    check(relativePath != null) { "${fileToCopy.path} is not a child of $parent" }
+    if (fileToCopy.isDirectory) {
+      checkedCreateDirectoryIfMissing(File(destination, relativePath))
+      return true
+    }
+    val target = File(destination, relativePath)
+    val toDir = checkedCreateDirectoryIfMissing(target.parentFile)
+    if (target.exists()) {
+      return false
+    }
+    VfsUtilCore.copyFile(this, fileToCopy, toDir)
+    return true
   }
 
   /**
