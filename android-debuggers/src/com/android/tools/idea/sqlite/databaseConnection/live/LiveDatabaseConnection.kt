@@ -21,7 +21,7 @@ import androidx.sqlite.inspection.SqliteInspectorProtocol.GetSchemaCommand
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
-import com.android.tools.idea.sqlite.databaseConnection.ImmediateSqliteResultSet
+import com.android.tools.idea.sqlite.databaseConnection.EmptySqliteResultSet
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumn
@@ -76,7 +76,7 @@ class LiveDatabaseConnection(
         LiveSqliteResultSet(sqliteColumns, sqliteStatement, messenger, id, taskExecutor)
       }
       else {
-        ImmediateSqliteResultSet(emptyList())
+        EmptySqliteResultSet()
       }
       Disposer.register(this, resultSet)
 

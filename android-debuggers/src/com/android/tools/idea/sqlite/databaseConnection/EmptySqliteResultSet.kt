@@ -21,20 +21,14 @@ import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 
 /**
- * Implementation of [SqliteResultSet] that takes all the data from its constructor.
+ * Implementation of [SqliteResultSet] that is empty.
  */
-class ImmediateSqliteResultSet(private val rows: List<SqliteRow>) : SqliteResultSet {
-  override val totalRowCount: ListenableFuture<Int> = Futures.immediateFuture(rows.size)
+class EmptySqliteResultSet : SqliteResultSet {
+  override val totalRowCount: ListenableFuture<Int> = Futures.immediateFuture(0)
 
-  override val columns: ListenableFuture<List<SqliteColumn>>
-    get() {
-      return if (rows.isEmpty()) return Futures.immediateFuture(emptyList())
-      else Futures.immediateFuture(rows[0].values.map { it.column })
-    }
+  override val columns: ListenableFuture<List<SqliteColumn>> = Futures.immediateFuture(emptyList())
 
-  override fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<List<SqliteRow>> {
-    return Futures.immediateFuture(rows.subList(rowOffset, minOf(rowOffset + rowBatchSize, rows.size)))
-  }
+  override fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<List<SqliteRow>> = Futures.immediateFuture(emptyList())
 
   override fun dispose() { }
 }

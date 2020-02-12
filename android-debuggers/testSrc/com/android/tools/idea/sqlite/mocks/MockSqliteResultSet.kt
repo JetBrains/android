@@ -29,7 +29,7 @@ class MockSqliteResultSet(size: Int = 100) : SqliteResultSet {
     SqliteColumn("id", SqliteAffinity.INTEGER, true, false),
     SqliteColumn(RowIdName.ROWID.stringName, SqliteAffinity.INTEGER, true, false)
   )
-  private val rows = mutableListOf<SqliteRow>()
+  val rows = mutableListOf<SqliteRow>()
 
   val invocations = mutableListOf<List<SqliteRow>>()
 
