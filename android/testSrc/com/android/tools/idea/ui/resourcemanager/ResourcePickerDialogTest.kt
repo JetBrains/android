@@ -58,19 +58,24 @@ class ResourcePickerDialogTest {
   fun updateSelectedResource() {
     // Save project to guarantee project.getProjectFile() is non-null.
     runInEdtAndWait { runInAllowSaveMode { projectRule.project.save() } }
+    pickerDialog = createResourcePickerDialog(false)
+    Disposer.register(projectRule.project, pickerDialog.disposable)
     val explorerView = UIUtil.findComponentOfType(pickerDialog.resourceExplorerPanel, ResourceExplorerView::class.java)!!
+
+    waitAndAssert<AssetListView>(explorerView) {
+      it != null && it.model.size > 0
+    }
+
     val list = UIUtil.findComponentOfType(explorerView, AssetListView::class.java)!!
     list.ui = HeadlessListUI()
 
     var point = list.indexToLocation(0)
     simulateMouseClick(list, point, 1)
-/* b/145854765
     assertThat(pickerDialog.resourceName).isEqualTo("@drawable/png")
 
     point = list.indexToLocation(1)
     simulateMouseClick(list, point, 1)
     assertThat(pickerDialog.resourceName).isEqualTo("@drawable/vector_drawable")
-b/145854765 */
   }
 
   @Test
