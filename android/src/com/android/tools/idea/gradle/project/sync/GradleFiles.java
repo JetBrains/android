@@ -176,7 +176,7 @@ public class GradleFiles {
     }
   }
 
-  private void removeChangedFiles() {
+  public void removeChangedFiles() {
     synchronized (myLock) {
       myChangedFiles.clear();
       myChangedExternalFiles.clear();
@@ -423,6 +423,11 @@ public class GradleFiles {
     }
   }
 
+  public void resetChangedFilesState() {
+    scheduleUpdateFileHashes();
+    removeChangedFiles();
+  }
+
   /**
    * Listens for GradleSync events in order to clear the files that have changed and update the
    * file hashes for each of the gradle build files.
@@ -437,9 +442,7 @@ public class GradleFiles {
       if (!project.isInitialized() && project.equals(myProject)) {
         return;
       }
-
-      scheduleUpdateFileHashes();
-      removeChangedFiles();
+      resetChangedFilesState();
     }
   }
 
