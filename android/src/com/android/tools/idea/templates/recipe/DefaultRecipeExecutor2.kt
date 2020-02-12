@@ -475,7 +475,7 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
     File(context.outputRoot, file.path)
 
   private fun readTextFile(file: File): String? =
-    if (moduleTemplateData?.isNew != false)
+    if (moduleTemplateData?.isNewModule != false)
       readTextFromDisk(file)
     else
       readTextFromDocument(project, file)
