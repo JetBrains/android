@@ -48,6 +48,7 @@ public class MlkitUtils {
   }
 
   // TODO(b/144867508): revisit later.
+  @NotNull
   public static String computeModelClassName(@NotNull String modelFileUrl) {
     String modelFileName = FileUtil.getNameWithoutExtension(VfsUtil.extractFileName(modelFileUrl));
     return CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, modelFileName);
