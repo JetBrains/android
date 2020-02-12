@@ -150,12 +150,16 @@ class DeviceViewPanelLegacyTest {
   }
 }
 
+@RunsInEdt
 class MyViewportLayoutManagerTest {
   private lateinit var scrollPane: JScrollPane
   private lateinit var contentPanel: JComponent
   private lateinit var layoutManager: MyViewportLayoutManager
 
   private var layerSpacing = INITIAL_LAYER_SPACING
+
+  @get:Rule
+  val edtRule = EdtRule()
 
   @Before
   fun setUp() {
