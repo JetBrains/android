@@ -279,6 +279,10 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
       }
       createActionLabel("Sync Now",
                         () -> GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_USER_STALE_CHANGES));
+      createActionLabel("Ignore these changes", () -> {
+        GradleFiles.getInstance(project).removeChangedFiles();
+        this.setVisible(false);
+      });
     }
   }
 
