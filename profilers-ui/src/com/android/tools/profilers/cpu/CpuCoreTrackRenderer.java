@@ -15,8 +15,6 @@
  */
 package com.android.tools.profilers.cpu;
 
-import static com.android.tools.adtui.common.DataVisualizationColors.PRIMARY_DATA_COLOR;
-
 import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.chart.statechart.StateChartColorProvider;
 import com.android.tools.adtui.common.AdtUiUtils;
@@ -26,6 +24,7 @@ import com.android.tools.adtui.trackgroup.TrackRenderer;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTrackRendererType;
 import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
+import com.google.common.annotations.VisibleForTesting;
 import java.awt.Color;
 import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
@@ -38,20 +37,14 @@ public class CpuCoreTrackRenderer implements TrackRenderer<CpuCoreTrackModel, Pr
   @Override
   public JComponent render(@NotNull TrackModel<CpuCoreTrackModel, ProfilerTrackRendererType> trackModel) {
     CpuCoreTrackModel dataModel = trackModel.getDataModel();
-    StateChart<CpuThreadSliceInfo> stateChart =
-      new StateChart<>(dataModel.getStateChartModel(), new CpuCoreColorProvider(dataModel.getAppProcessId()));
+    StateChart<CpuThreadSliceInfo> stateChart = new StateChart<>(dataModel.getStateChartModel(), new CpuCoreColorProvider());
     stateChart.setRenderMode(StateChart.RenderMode.TEXT);
     stateChart.setOpaque(true);
     return stateChart;
   }
 
-  private static class CpuCoreColorProvider extends StateChartColorProvider<CpuThreadSliceInfo> {
-    private final int myAppProcessId;
-
-    CpuCoreColorProvider(int appProcessId) {
-      myAppProcessId = appProcessId;
-    }
-
+  @VisibleForTesting
+  protected static class CpuCoreColorProvider extends StateChartColorProvider<CpuThreadSliceInfo> {
     @NotNull
     @Override
     public Color getColor(boolean isMouseOver, @NotNull CpuThreadSliceInfo value) {
@@ -59,14 +52,7 @@ public class CpuCoreTrackRenderer implements TrackRenderer<CpuCoreTrackModel, Pr
       if (value == CpuThreadSliceInfo.NULL_THREAD) {
         return ProfilerColors.DEFAULT_BACKGROUND;
       }
-      int nameHash = value.getProcessName().hashCode();
-      DataVisualizationColors dataColors = DataVisualizationColors.INSTANCE;
-      // Return other process colors.
-      if (value.getProcessId() != myAppProcessId) {
-        return dataColors.getColor(nameHash, isMouseOver);
-      }
-      // Return app process color.
-      return dataColors.getColor(PRIMARY_DATA_COLOR, isMouseOver);
+      return DataVisualizationColors.INSTANCE.getColor(value.getId(), isMouseOver);
     }
 
     @NotNull
@@ -76,14 +62,7 @@ public class CpuCoreTrackRenderer implements TrackRenderer<CpuCoreTrackModel, Pr
       if (value == CpuThreadSliceInfo.NULL_THREAD) {
         return AdtUiUtils.DEFAULT_FONT_COLOR;
       }
-      int nameHash = value.getProcessName().hashCode();
-      DataVisualizationColors dataColors = DataVisualizationColors.INSTANCE;
-      // Return other process color.
-      if (value.getProcessId() != myAppProcessId) {
-        return dataColors.getFontColor(nameHash);
-      }
-      // Return app process color.
-      return dataColors.getFontColor(PRIMARY_DATA_COLOR);
+      return DataVisualizationColors.INSTANCE.getFontColor(value.getId());
     }
   }
 }

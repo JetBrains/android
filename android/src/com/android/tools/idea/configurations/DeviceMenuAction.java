@@ -285,10 +285,13 @@ public class DeviceMenuAction extends DropDownAction {
     public DeviceCategory(@Nullable String text, @Nullable String description, @Nullable Icon icon) {
       super(text, description, null);
       myIcon = icon;
+    }
 
-      Presentation p = getTemplatePresentation();
-      p.setDisabledIcon(myIcon);
+    @Override
+    public void update(@NotNull AnActionEvent e) {
+      Presentation p = e.getPresentation();
       p.setEnabled(false);
+      p.setDisabledIcon(myIcon);
     }
 
     @Override

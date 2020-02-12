@@ -114,7 +114,7 @@ public class LintIdeClient extends LintClient implements Disposable {
    */
   @Nullable
   public static ApiLookup getApiLookup(@NotNull Project project) {
-    return ApiLookup.get(LintIdeSupport.get().createClient(project, new LintResult()));
+    return ApiLookup.get(LintIdeSupport.get().createClient(project, new LintIgnoredResult()));
   }
 
   @Override
@@ -320,6 +320,9 @@ public class LintIdeClient extends LintClient implements Disposable {
     }
     else if (myLintResult instanceof LintBatchResult) {
       report((LintBatchResult)myLintResult, context, issue, severity, location, message, format, extraData);
+    }
+    else if (myLintResult instanceof LintIgnoredResult) {
+      // Ignore
     }
     else {
       assert false : message;
