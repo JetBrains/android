@@ -250,20 +250,24 @@ class TableController(
     override fun updateCellInvoked(targetRow: SqliteRow, targetColumn: SqliteColumn, newValue: Any?) {
       require(table != null) { "Table is null, can't update." }
 
-      val rowIdColumnValue = targetRow.values.firstOrNull { it.column.name == table.rowIdName?.stringName }
+      val rowIdColumnValue = targetRow.values.firstOrNull { it.columnName == table.rowIdName?.stringName }
 
       val parametersValues = mutableListOf(newValue)
 
       val whereExpression = if (rowIdColumnValue != null) {
         parametersValues.add(rowIdColumnValue.value)
-        "${AndroidSqlLexer.getValidName(rowIdColumnValue.column.name)} = ?"
+        "${AndroidSqlLexer.getValidName(rowIdColumnValue.columnName)} = ?"
       } else {
-        targetRow.values
-          .filter { it.column.inPrimaryKey }
+        val tablePrimaryKeyNames = table.columns.filter { it.inPrimaryKey }.map { it.name }
+        val expression = targetRow.values
+          .filter { tablePrimaryKeyNames.contains(it.columnName) }
           .onEach { parametersValues.add(it.value) }
           .joinToString(separator = " AND ") {
-            "${AndroidSqlLexer.getValidName(it.column.name)} = ?"
+            "${AndroidSqlLexer.getValidName(it.columnName)} = ?"
           }
+
+        // check that all columns in the primary key have been used
+        if (parametersValues.size - 1 != tablePrimaryKeyNames.size) "" else expression
       }
 
       if (whereExpression.isEmpty()) {

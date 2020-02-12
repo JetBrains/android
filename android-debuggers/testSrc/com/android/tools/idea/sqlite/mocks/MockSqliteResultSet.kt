@@ -35,7 +35,7 @@ class MockSqliteResultSet(size: Int = 100) : SqliteResultSet {
 
   init {
     for (i in 0 until size) {
-      rows.add(SqliteRow(listOf(SqliteColumnValue(_columns[0], i), SqliteColumnValue(_columns[1], i))))
+      rows.add(SqliteRow(listOf(SqliteColumnValue(_columns[0].name, i), SqliteColumnValue(_columns[1].name, i))))
     }
   }
 
@@ -58,7 +58,7 @@ class MockSqliteResultSet(size: Int = 100) : SqliteResultSet {
   }
 
   fun insertRowAtIndex(index: Int, value: Int) {
-    rows.add(index, SqliteRow(listOf(SqliteColumnValue(_columns[0], value), SqliteColumnValue(_columns[1], value))))
+    rows.add(index, SqliteRow(listOf(SqliteColumnValue(_columns[0].name, value), SqliteColumnValue(_columns[1].name, value))))
   }
 
   fun deleteRowAtIndex(index: Int) {
