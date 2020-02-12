@@ -36,7 +36,7 @@ class AndroidApiLevelComboBox : JComboBox<VersionItem?>() {
   fun init(ff: FormFactor, items: List<VersionItem>) {
     ApplicationManager.getApplication().assertIsDispatchThread()
     formFactor = ff
-    name = ff.id + ".minSdk" // Name used for testing
+    name = "minSdkComboBox" // Name used for testing
 
     val selectedItem = selectedItem
     removeItemListener(itemListener)
