@@ -19,16 +19,10 @@ import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.controllers.TaskIssueReporter
 import com.android.build.attribution.ui.controllers.TreeNodeSelector
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
-import com.android.build.attribution.ui.data.TaskIssueUiData
-import com.android.build.attribution.ui.panels.TreeLinkListener
 import com.android.build.attribution.ui.tree.AbstractBuildAttributionNode
 import com.android.build.attribution.ui.tree.BuildAttributionNodeRenderer
-import com.android.build.attribution.ui.tree.BuildSummaryNode
-import com.android.build.attribution.ui.tree.ControllersAwareBuildAttributionNode
 import com.android.build.attribution.ui.tree.CriticalPathPluginsRoot
-import com.android.build.attribution.ui.tree.CriticalPathTasksRoot
-import com.android.build.attribution.ui.tree.PluginConfigurationTimeRoot
-import com.android.build.attribution.ui.tree.WarningsRootNode
+import com.android.build.attribution.ui.tree.RootNode
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.ComponentContainer
 import com.intellij.ui.OnePixelSplitter
@@ -61,11 +55,11 @@ private const val SPLITTER_PROPERTY = "BuildAttribution.Splitter.Proportion"
 class BuildAttributionTreeView(
   reportData: BuildAttributionReportUiData,
   issueReporter: TaskIssueReporter,
-  uiAnalytics: BuildAttributionUiAnalytics
-) : ComponentContainer {
+  private var uiAnalytics: BuildAttributionUiAnalytics
+) : ComponentContainer, TreeNodeSelector {
 
   private val disposed = AtomicBoolean()
-  private val rootNode = RootNode(reportData, uiAnalytics, issueReporter)
+  private val rootNode = RootNode(reportData, uiAnalytics, issueReporter, this)
   private val treeModel: StructureTreeModel<SimpleTreeStructure>
   private val panel = JPanel()
   private val tree: Tree
@@ -97,6 +91,13 @@ class BuildAttributionTreeView(
     TreeUtil.installActions(tree)
     tree.cellRenderer = BuildAttributionNodeRenderer()
     return tree
+  }
+
+  override fun selectNode(node: SimpleNode) {
+    uiAnalytics.registerNodeLinkClick()
+    treeModel.select(node, tree) { t: TreePath? ->
+      Logger.getInstance(BuildAttributionTreeView::class.java).debug("Path selected with link: ${t}")
+    }
   }
 
   override fun getComponent(): JComponent = panel
@@ -170,38 +171,4 @@ class BuildAttributionTreeView(
     }
   }
 
-  private inner class RootNode(
-    private val reportData: BuildAttributionReportUiData,
-    override val analytics: BuildAttributionUiAnalytics,
-    override val issueReporter: TaskIssueReporter
-  ) : ControllersAwareBuildAttributionNode(null) {
-    val taskIssueLinkListener = object : TreeLinkListener<TaskIssueUiData> {
-      override fun clickedOn(target: TaskIssueUiData) {
-        children.asSequence()
-          .filterIsInstance<WarningsRootNode>()
-          .first()
-          .findIssueRoot(target.type)?.findNodeForIssue(target)?.let { nodeSelector.selectNode(it) }
-      }
-    }
-
-    override fun buildChildren(): Array<SimpleNode> {
-      val nodes = mutableListOf<SimpleNode>()
-      nodes.add(BuildSummaryNode(reportData.buildSummary, this))
-      nodes.add(CriticalPathPluginsRoot(reportData.criticalPathPlugins, this))
-      nodes.add(CriticalPathTasksRoot(reportData.criticalPathTasks, this, taskIssueLinkListener))
-      // TODO(b/148275039): Re-enable plugin configuration
-      // nodes.add(PluginConfigurationTimeRoot(reportData.configurationTime, this))
-      nodes.add(WarningsRootNode(reportData, this))
-      return nodes.toTypedArray()
-    }
-
-    override val nodeSelector = object : TreeNodeSelector {
-      override fun selectNode(node: SimpleNode) {
-        analytics.registerNodeLinkClick()
-        treeModel.select(node, tree) { t: TreePath? ->
-          Logger.getInstance(BuildAttributionTreeView::class.java).debug("Path selected with link: ${t}")
-        }
-      }
-    }
-  }
 }

@@ -493,7 +493,7 @@ PROJECT             : testWithBuildSrc
         - ModuleGroupPath   : testWithBuildSrc_buildSrc
         ExternalModuleGroup :
         ExternalModuleVersion         : unspecified
-        LinkedProjectId     : buildSrc
+        LinkedProjectId     : testWithBuildSrc:buildSrc
         LinkedProjectPath   : <PROJECT>/buildSrc
         RootProjectPath     : <PROJECT>
         ModuleFile          : <PROJECT>/.idea/modules/testWithBuildSrc_buildSrc.iml
@@ -513,6 +513,7 @@ PROJECT             : testWithBuildSrc
             JavaSource (test)   : file://<PROJECT>/buildSrc/src/test/java [-]
             JavaResource (test) : file://<PROJECT>/buildSrc/src/test/resources [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/buildSrc/.gradle
+            EXCLUDE_FOLDER      : file://<PROJECT>/buildSrc/build
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
@@ -587,7 +588,7 @@ PROJECT             : testWithBuildSrc
         - ModuleGroupPath   : lib1
         ExternalModuleGroup : buildSrc
         ExternalModuleVersion         : unspecified
-        LinkedProjectId     : :lib1
+        LinkedProjectId     : testWithBuildSrc:buildSrc:lib1
         LinkedProjectPath   : <PROJECT>/buildSrc/lib1
         RootProjectPath     : <PROJECT>
         ModuleFile          : <PROJECT>/.idea/modules/lib1/testWithBuildSrc_lib1.iml
@@ -623,7 +624,7 @@ PROJECT             : testWithBuildSrc
         - ModuleGroupPath   : lib2
         ExternalModuleGroup : buildSrc
         ExternalModuleVersion         : unspecified
-        LinkedProjectId     : :lib2
+        LinkedProjectId     : testWithBuildSrc:buildSrc:lib2
         LinkedProjectPath   : <PROJECT>/buildSrc/lib2
         RootProjectPath     : <PROJECT>
         ModuleFile          : <PROJECT>/.idea/modules/lib2/testWithBuildSrc_lib2.iml

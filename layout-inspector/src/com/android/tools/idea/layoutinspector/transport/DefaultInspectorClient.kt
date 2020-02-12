@@ -20,6 +20,7 @@ import com.android.ddmlib.CollectingOutputReceiver
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.layoutinspector.LayoutInspectorPreferredProcess
+import com.android.tools.idea.layoutinspector.SkiaParser
 import com.android.tools.idea.layoutinspector.isDeviceMatch
 import com.android.tools.idea.layoutinspector.model.ComponentTreeLoader
 import com.android.tools.idea.layoutinspector.model.InspectorModel
@@ -123,7 +124,6 @@ class DefaultInspectorClient(
     // TODO: retry getting adb if it fails the first time
     adb = AndroidSdkUtils.getAdb(project)?.let { AdbService.getInstance().getDebugBridge(it) } ?:
           Futures.immediateFuture(AndroidDebugBridge.createBridge())
-
   }
 
   // TODO: detect when a connection is dropped
@@ -406,6 +406,7 @@ class DefaultInspectorClient(
     }
     if (didDisconnect) {
       processChangedListeners.forEach { it() }
+      SkiaParser.shutdownAll()
     }
   }
 
