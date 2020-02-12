@@ -60,7 +60,7 @@ public class BasicLayoutEditTest {
     assertThat(editorFixture.canInteractWithSurface()).isTrue();
 
     editorFixture
-      .dragComponentToSurface("Layouts", "TableRow")
+      .dragComponentToSurface("Containers", "Spinner")
       .waitForRenderToFinish()
       .dragComponentToSurface("Buttons", "Button")
       .waitForRenderToFinish();
@@ -69,7 +69,7 @@ public class BasicLayoutEditTest {
                                        .getEditor()
                                        .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
                                        .getCurrentFileContents();
-    assertThat(layoutFileContents).contains("<TableRow");
+    assertThat(layoutFileContents).contains("<Spinner");
     assertThat(layoutFileContents).contains("<Button");
   }
 }
