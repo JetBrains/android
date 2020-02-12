@@ -40,6 +40,10 @@ interface SqliteResultSet : Disposable {
   }
 
   val columns: ListenableFuture<List<SqliteColumn>>
+
+  /**
+   * Returns the total amount of rows in the table.
+   */
   val rowCount: ListenableFuture<Int>
 
   /**
