@@ -15,14 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
-import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.NEXT_DEVICE;
-
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.actions.BlueprintAndDesignModeAction;
 import com.android.tools.idea.actions.BlueprintModeAction;
 import com.android.tools.idea.actions.DesignModeAction;
 import com.android.tools.idea.common.actions.IssueNotificationAction;
-import com.android.tools.idea.common.actions.NextDeviceAction;
 import com.android.tools.idea.common.actions.ToggleDeviceOrientationAction;
 import com.android.tools.idea.common.editor.ToolbarActionGroups;
 import com.android.tools.idea.configurations.DeviceMenuAction;
@@ -83,7 +80,7 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
 
     group.addSeparator();
     DeviceMenuAction menuAction = new DeviceMenuAction(mySurface::getConfiguration);
-    group.add(NEXT_DEVICE.registerForHiddenAction(menuAction, new NextDeviceAction(menuAction), mySurface, this));
+    group.add(menuAction);
 
     group.add(new TargetMenuAction(mySurface::getConfiguration));
     group.add(new ThemeMenuAction(mySurface::getConfiguration));

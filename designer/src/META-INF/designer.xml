@@ -153,7 +153,18 @@
               description="Toggle the preview orientation between portrait and landscape">
         <keyboard-shortcut keymap="$default" first-keystroke="O"/>
       </action>
-
+      <action id="Android.Designer.NextDevice"
+              class="com.android.tools.idea.common.actions.NextDeviceAction"
+              text="Preview Next Device"
+              description="Change to next device in the device menu">
+        <keyboard-shortcut keymap="$default" first-keystroke="D"/>
+      </action>
+      <action id="Android.Designer.PreviousDevice"
+              class="com.android.tools.idea.common.actions.PreviousDeviceAction"
+              text="Preview Previous Device"
+              description="Change to previous device in the device menu">
+        <keyboard-shortcut keymap="$default" first-keystroke="shift D"/>
+      </action>
       <!-- TODO (b/149212539): Migrate other shortcuts of Layout Editor -->
 
       <add-to-group group-id="Android.Designer.ToolsActions"/>

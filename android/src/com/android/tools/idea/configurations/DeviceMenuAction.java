@@ -19,6 +19,7 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.device.DeviceArtPainter;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -29,7 +30,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.android.ide.common.rendering.HardwareConfigHelper.*;
 
@@ -65,31 +65,6 @@ public class DeviceMenuAction extends DropDownAction {
     }
     if (visible != presentation.isVisible()) {
       presentation.setVisible(visible);
-    }
-  }
-
-  public void nextDevice(AnActionEvent e) {
-    Configuration config = myRenderContext.getConfiguration();
-    if (config == null) {
-      return;
-    }
-    Device current = config.getDevice();
-    if (current == null) {
-      return;
-    }
-
-    AnAction[] action = getChildren(null);
-    // filter Separator.
-    List<DeviceAction> actions = Arrays.stream(action)
-                                       .filter(a -> a instanceof DeviceAction)
-                                       .map(a -> (DeviceAction) a)
-                                       .collect(Collectors.toList());
-
-    Optional<DeviceAction> currentActions = actions.stream().filter(a -> a.getDevice() == current).findFirst();
-    if (currentActions.isPresent()) {
-      int index = actions.indexOf(currentActions.get());
-      DeviceAction nextAction = actions.get((index + 1) % actions.size());
-      nextAction.actionPerformed(e);
     }
   }
 
@@ -178,20 +153,24 @@ public class DeviceMenuAction extends DropDownAction {
       }
     }
 
+    createDeviceMenuList(configuration, current);
+
+    return true;
+  }
+
+  private void createDeviceMenuList(@NotNull Configuration configuration, @Nullable Device currentDevice) {
     Map<DeviceGroup, List<Device>> groupedDevices = DeviceUtils.getSuitableDevices(configuration);
 
     // We don't add DeviceGroup.NEXUS because all Nexus devices with small screen size are legacy devices.
-    addDeviceSection(groupedDevices, DeviceGroup.NEXUS_XL, current);
-    addDeviceSection(groupedDevices, DeviceGroup.NEXUS_TABLET, current);
-    addDeviceSection(groupedDevices, DeviceGroup.WEAR, current);
-    addDeviceSection(groupedDevices, DeviceGroup.TV, current);
-    addDeviceSection(groupedDevices, DeviceGroup.AUTOMOTIVE, current);
-    addCustomDeviceSection(current);
-    addAvdDeviceSection(DeviceUtils.getAvdDevices(configuration), current);
-    addGenericDeviceSection(groupedDevices.getOrDefault(DeviceGroup.GENERIC, Collections.emptyList()), current);
+    addDeviceSection(groupedDevices, DeviceGroup.NEXUS_XL, currentDevice);
+    addDeviceSection(groupedDevices, DeviceGroup.NEXUS_TABLET, currentDevice);
+    addDeviceSection(groupedDevices, DeviceGroup.WEAR, currentDevice);
+    addDeviceSection(groupedDevices, DeviceGroup.TV, currentDevice);
+    addDeviceSection(groupedDevices, DeviceGroup.AUTOMOTIVE, currentDevice);
+    addCustomDeviceSection(currentDevice);
+    addAvdDeviceSection(DeviceUtils.getAvdDevices(configuration), currentDevice);
+    addGenericDeviceSection(groupedDevices.getOrDefault(DeviceGroup.GENERIC, Collections.emptyList()), currentDevice);
     add(ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID));
-
-    return true;
   }
 
   private void addDeviceSection(@NotNull Map<DeviceGroup, List<Device>> groupedDevices,
@@ -258,6 +237,23 @@ public class DeviceMenuAction extends DropDownAction {
       }
       add(genericGroup);
     }
+  }
+
+  @NotNull
+  public static ImmutableList<Device> getSortedDevicesInMenu(@NotNull Configuration configuration) {
+    Map<DeviceGroup, List<Device>> groupedDevices = DeviceUtils.getSuitableDevices(configuration);
+
+    // TODO: Refactor to have same device order as #createDeviceMenuList() function.
+    ImmutableList.Builder<Device> builder = new ImmutableList.Builder<>();
+    builder.addAll(groupedDevices.getOrDefault(DeviceGroup.NEXUS_XL, Collections.emptyList()));
+    builder.addAll(groupedDevices.getOrDefault(DeviceGroup.NEXUS_TABLET, Collections.emptyList()));
+    builder.addAll(groupedDevices.getOrDefault(DeviceGroup.WEAR, Collections.emptyList()));
+    builder.addAll(groupedDevices.getOrDefault(DeviceGroup.TV, Collections.emptyList()));
+    builder.addAll(groupedDevices.getOrDefault(DeviceGroup.AUTOMOTIVE, Collections.emptyList()));
+    builder.addAll(DeviceUtils.getAvdDevices(configuration));
+    builder.addAll(groupedDevices.getOrDefault(DeviceGroup.GENERIC, Collections.emptyList()));
+
+    return builder.build();
   }
 
   private String getLabel(Device device, boolean isNexus) {
