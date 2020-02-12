@@ -47,7 +47,7 @@ class ResourceNamespaceReference(
 
   override fun resolve(): PsiElement? {
     val prefix = rangeInElement.substring(element.text).nullize(nullizeSpaces = true) ?: return null
-    val prefixDeclaration = XmlExtension.getExtensionByElement(element)?.getPrefixDeclaration(element.parentOfType(XmlTag::class), prefix)
+    val prefixDeclaration = XmlExtension.getExtensionByElement(element)?.getPrefixDeclaration(element.parentOfType<XmlTag>(), prefix)
 
     val repositoryManager = ResourceRepositoryManager.getInstance(element) ?: return null
 
