@@ -168,7 +168,7 @@ class DatabaseInspectorViewImpl(
     val root = treeModel.root as DefaultMutableTreeNode
 
     val schemaNode = DefaultMutableTreeNode(database)
-    schema.tables.forEach { table ->
+    schema.tables.sortedBy { it.name }.forEach { table ->
       val tableNode = DefaultMutableTreeNode(table)
       table.columns.forEach { column -> tableNode.add(DefaultMutableTreeNode(column)) }
       schemaNode.add(tableNode)
