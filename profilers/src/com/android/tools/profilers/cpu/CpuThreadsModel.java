@@ -250,8 +250,7 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
         assert capture != null;
         isMainThread = threadId == capture.getMainThreadId();
         if (capture.getType() == Cpu.CpuTraceType.ATRACE) {
-          mySeries =
-            new AtraceDataSeries<>((AtraceCpuCapture)capture, (atraceCapture) -> atraceCapture.getThreadStatesForThread(threadId));
+          mySeries = new LazyDataSeries<>(() -> capture.getThreadStatesForThread(threadId));
         }
         else {
           // If thread is created from an imported trace (excluding atrace), we should use an ImportedTraceThreadDataSeries
@@ -268,10 +267,8 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
                    new LegacyCpuThreadStateDataSeries(myProfilers.getClient().getCpuClient(), mySession, threadId, capture);
         // If we have an Atrace capture selected then we need to create a MergeCaptureDataSeries
         if (capture != null && capture.getType() == Cpu.CpuTraceType.ATRACE) {
-          AtraceCpuCapture atraceCpuCapture = (AtraceCpuCapture)capture;
-          AtraceDataSeries<CpuProfilerStage.ThreadState> atraceDataSeries =
-            new AtraceDataSeries<>(atraceCpuCapture, (atraceCapture) -> atraceCapture.getThreadStatesForThread(threadId));
-          mySeries = new MergeCaptureDataSeries<>(capture, mySeries, atraceDataSeries);
+          mySeries = new MergeCaptureDataSeries<>(
+            capture, mySeries, new LazyDataSeries<>(() -> capture.getThreadStatesForThread(threadId)));
         }
         // For non-imported traces, the main thread ID is equal to the process ID of the current session
         isMainThread = threadId == mySession.getPid();

@@ -16,10 +16,11 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.StateChartModel;
-import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.cpu.atrace.AtraceFrame;
 import org.jetbrains.annotations.NotNull;
 
@@ -53,11 +54,10 @@ public class CpuFramesModel extends DefaultListModel<CpuFramesModel.FrameState> 
   private void captureStateChanged() {
     removeAllElements();
     CpuCapture capture = myStage.getCapture();
-    if (capture instanceof AtraceCpuCapture) {
-      AtraceCpuCapture atraceCapture = (AtraceCpuCapture)capture;
+    if (capture != null && capture.getType() == Cpu.CpuTraceType.ATRACE) {
       // For now we hard code the main thread, and the render thread frame information.
-      addElement(new FrameState("Main", capture.getMainThreadId(), AtraceFrame.FrameThread.MAIN, atraceCapture, myRange));
-      addElement(new FrameState("Render", atraceCapture.getRenderThreadId(), AtraceFrame.FrameThread.RENDER, atraceCapture, myRange));
+      addElement(new FrameState("Main", capture.getMainThreadId(), AtraceFrame.FrameThread.MAIN, capture, myRange));
+      addElement(new FrameState("Render", capture.getRenderThreadId(), AtraceFrame.FrameThread.RENDER, capture, myRange));
     }
     contentsChanged();
   }
@@ -68,7 +68,7 @@ public class CpuFramesModel extends DefaultListModel<CpuFramesModel.FrameState> 
 
   public static class FrameState {
     @NotNull
-    private final AtraceDataSeries<AtraceFrame> myAtraceCpuStateDataSeries;
+    private final DataSeries<AtraceFrame> myFrameDataSeries;
     @NotNull
     private final StateChartModel<AtraceFrame> myModel;
     private final String myThreadName;
@@ -77,14 +77,14 @@ public class CpuFramesModel extends DefaultListModel<CpuFramesModel.FrameState> 
     public FrameState(String threadName,
                       int threadId,
                       @NotNull AtraceFrame.FrameThread threadType,
-                      @NotNull AtraceCpuCapture atraceCapture,
+                      @NotNull CpuCapture capture,
                       @NotNull Range range) {
       myModel = new StateChartModel<>();
       myThreadName = threadName;
       myThreadId = threadId;
-      myAtraceCpuStateDataSeries = new AtraceDataSeries<>(atraceCapture, capture -> capture.getFrames(threadType));
+      myFrameDataSeries = new LazyDataSeries<>(() -> capture.getFrames(threadType));
       // TODO(b/122964201) Pass data range as 3rd param to RangedSeries to only show data from current session
-      myModel.addSeries(new RangedSeries<>(range, myAtraceCpuStateDataSeries));
+      myModel.addSeries(new RangedSeries<>(range, myFrameDataSeries));
     }
 
     public String getThreadName() {
@@ -96,8 +96,8 @@ public class CpuFramesModel extends DefaultListModel<CpuFramesModel.FrameState> 
     }
 
     @NotNull
-    public AtraceDataSeries<AtraceFrame> getSeries() {
-      return myAtraceCpuStateDataSeries;
+    public DataSeries<AtraceFrame> getSeries() {
+      return myFrameDataSeries;
     }
 
     @NotNull

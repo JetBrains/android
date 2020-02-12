@@ -16,12 +16,12 @@
 package com.android.tools.profilers.cpu.audits
 
 import com.android.tools.adtui.model.Range
-import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture
+import com.android.tools.profilers.cpu.CpuCapture
 
 /**
  * Model for the RenderAudit UI Component. Holds state and dispatches events to other models.
  */
-class RenderAuditModel(capture: AtraceCpuCapture) {
+class RenderAuditModel(capture: CpuCapture) {
 
   // Render Audit Data
   val tripleBuffers: List<TripleBuffer> = listOf()

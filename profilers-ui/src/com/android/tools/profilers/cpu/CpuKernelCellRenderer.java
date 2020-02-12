@@ -51,7 +51,7 @@ public class CpuKernelCellRenderer extends CpuCellRenderer<CpuKernelModel.CpuSta
 
   /**
    * Creates a new {@link CpuKernelCellRenderer}, this cell renderer creates a label, as well as a {@link StateChart} for each element
-   * in the list. The {@link AtraceDataSeries} returned by {@link CpuKernelModel.CpuState} is used to populate the {@link StateChart}.
+   * in the list. The {@link LazyDataSeries} returned by {@link CpuKernelModel.CpuState} is used to populate the {@link StateChart}.
    * All items with a process id matching the process id passed in are highlighted one color, while everything else is a different color.
    *
    * @param processId    Id of the process to stand out as the user process.

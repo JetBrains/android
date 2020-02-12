@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu.simpleperf;
 
+import com.android.tools.profilers.cpu.BaseCpuCapture;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Cpu;
@@ -163,7 +164,7 @@ public class SimpleperfTraceParser implements TraceParser {
   public CpuCapture parse(File trace, long traceId) throws IOException {
     parseTraceFile(trace);
     parseSampleData();
-    return new CpuCapture(this, traceId, Cpu.CpuTraceType.SIMPLEPERF);
+    return new BaseCpuCapture(this, traceId, Cpu.CpuTraceType.SIMPLEPERF);
   }
 
   @Override
