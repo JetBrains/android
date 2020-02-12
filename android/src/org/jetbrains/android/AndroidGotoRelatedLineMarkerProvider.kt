@@ -245,10 +245,10 @@ class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
      */
     private fun checkJavaReference(element: PsiElement): GotoRelatedItem? {
       val referenceExpression = element as? PsiReferenceExpression ?: return null
-      val method = referenceExpression.parentOfType(PsiMethodCallExpression::class) ?: return null
+      val method = referenceExpression.parentOfType<PsiMethodCallExpression>() ?: return null
       val methodName = method.methodExpression.referenceName
       if (SdkConstants.SET_CONTENT_VIEW_METHOD == methodName || SdkConstants.INFLATE_METHOD == methodName) {
-        val relatedClass = method.parentOfType(PsiClass::class) ?: return null
+        val relatedClass = method.parentOfType<PsiClass>() ?: return null
         if (relatedClass.isInheritorOfOne(CONTEXT_CLASSES)) {
           return GotoRelatedItem(relatedClass)
         }
@@ -261,7 +261,7 @@ class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
      * @return The [GotoRelatedItem] for an element if it passes all the checks.
      */
     private fun checkKotlinReference(element: PsiElement): GotoRelatedItem? {
-      val callExpression = element.parentOfType(KtCallExpression::class) ?: return null
+      val callExpression = element.parentOfType<KtCallExpression>() ?: return null
       val calleeExpression = callExpression.calleeExpression as? KtNameReferenceExpression ?: return null
       val methodName = calleeExpression.getReferencedName()
       if (SdkConstants.SET_CONTENT_VIEW_METHOD == methodName || SdkConstants.INFLATE_METHOD == methodName) {
