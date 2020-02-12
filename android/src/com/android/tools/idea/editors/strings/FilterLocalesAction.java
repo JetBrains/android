@@ -58,7 +58,7 @@ class FilterLocalesAction extends ComboBoxAction {
   @NotNull
   @Override
   protected DefaultActionGroup createPopupActionGroup(@Nullable JComponent button) {
-    DefaultActionGroup group = new DefaultActionGroup(null, true);
+    DefaultActionGroup group = new DefaultActionGroup();
 
     group.add(new AnAction(NO_FILTER_TITLE) {
       @Override

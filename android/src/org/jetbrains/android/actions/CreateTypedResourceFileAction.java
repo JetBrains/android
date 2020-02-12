@@ -78,8 +78,8 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
                                        @NotNull ResourceFolderType resourceFolderType,
                                        boolean valuesResourceFile,
                                        boolean chooseTagName) {
-    super(AndroidBundle.message("new.typed.resource.action.title", resourcePresentableName),
-          AndroidBundle.message("new.typed.resource.action.description", resourcePresentableName), StdFileTypes.XML.getIcon());
+    super(AndroidBundle.lazyMessage("new.typed.resource.action.title", resourcePresentableName),
+          AndroidBundle.lazyMessage("new.typed.resource.action.description", resourcePresentableName), StdFileTypes.XML.getIcon());
     myResourceFolderType = resourceFolderType;
     myResourcePresentableName = resourcePresentableName;
     myDefaultRootTag = getDefaultRootTagByResourceType(resourceFolderType);
