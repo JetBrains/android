@@ -269,6 +269,23 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
     assertTrue(pk!!.inPrimaryKey)
   }
 
+  fun testMultiplePrimaryKeys() {
+    // Prepare
+    customSqliteFile = sqliteUtil.createTestSqliteDatabase("rowidDb", "testTable", listOf("col1"), listOf("pk1", "pk2"), false)
+    customConnection = pumpEventsAndWaitForFuture(
+      getSqliteJdbcService(customSqliteFile!!, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
+    )
+
+    // Act
+    val schema = pumpEventsAndWaitForFuture(customConnection!!.readSchema())
+
+    // Assert
+    val pk1 = schema.tables.first().columns.find { it.name == "pk1" }
+    assertTrue(pk1!!.inPrimaryKey)
+    val pk2 = schema.tables.first().columns.find { it.name == "pk2" }
+    assertTrue(pk2!!.inPrimaryKey)
+  }
+
   fun testAffinity() {
     // Prepare
     customSqliteFile = sqliteUtil.createTestSqliteDatabaseWithConfigurableTypes(
