@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu.capturedetails;
 
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.VisualNodeCaptureNode;
@@ -320,8 +321,8 @@ public abstract class CaptureDetails {
     RenderAuditCaptureDetails(@NotNull Range range, @NotNull List<CaptureNode> nodes, @NotNull CpuCapture cpuCapture) {
       super(cpuCapture);
       // The Render Audit tab is only added in the CapturePane is the capture is an AtraceCpuCapture
-      assert cpuCapture instanceof AtraceCpuCapture;
-      myRenderAuditModel = new RenderAuditModel((AtraceCpuCapture)cpuCapture);
+      assert cpuCapture.getType() == Cpu.CpuTraceType.ATRACE;
+      myRenderAuditModel = new RenderAuditModel(cpuCapture);
     }
 
     @Override

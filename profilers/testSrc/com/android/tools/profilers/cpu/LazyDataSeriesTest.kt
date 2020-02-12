@@ -19,7 +19,6 @@ import com.android.tools.adtui.model.SeriesData
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.FakeProfilerService
-import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture
 import com.android.tools.profilers.cpu.atrace.AtraceParser
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -28,9 +27,9 @@ import org.junit.Test
 import java.util.ArrayList
 import java.util.concurrent.TimeUnit
 
-class AtraceDataSeriesTest {
+class LazyDataSeriesTest {
   private val timer = FakeTimer()
-  private lateinit var capture: AtraceCpuCapture
+  private lateinit var capture: CpuCapture
 
   @Rule
   @JvmField
@@ -40,13 +39,13 @@ class AtraceDataSeriesTest {
   @Before
   fun setup() {
     val parser = AtraceParser(1)
-    capture = parser.parse(CpuProfilerTestUtils.getTraceFile("atrace_processid_1.ctrace"), 2) as AtraceCpuCapture
+    capture = parser.parse(CpuProfilerTestUtils.getTraceFile("atrace_processid_1.ctrace"), 2)
   }
 
   @Test
   fun testCaptureDataRange() {
     val testSeriesData = buildSeriesData(1, 100, 10)
-    val series = AtraceDataSeries<CpuProfilerStage.ThreadState>(capture, { _ -> testSeriesData })
+    val series = LazyDataSeries<CpuProfilerStage.ThreadState> { testSeriesData }
     // Test get exact data.
     var seriesData: List<SeriesData<CpuProfilerStage.ThreadState>> =
       series.getDataForRange(
@@ -113,9 +112,9 @@ class AtraceDataSeriesTest {
   @Test
   fun testEmptySeries() {
     val testSeriesData = buildSeriesData(1, 100, 0)
-    val series = AtraceDataSeries<CpuProfilerStage.ThreadState>(capture, { _ -> testSeriesData })
+    val series = LazyDataSeries<CpuProfilerStage.ThreadState> { testSeriesData }
     // Test getting data for an empty series doesn't cause issues and returns nothing.
-    var seriesData: List<SeriesData<CpuProfilerStage.ThreadState>> =
+    val seriesData: List<SeriesData<CpuProfilerStage.ThreadState>> =
       series.getDataForRange(
         Range(
           TimeUnit.MILLISECONDS.toMicros(1).toDouble(),

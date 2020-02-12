@@ -62,7 +62,7 @@ class MergeCaptureDataSeriesTest {
     val capture = myParser.parse(CpuProfilerTestUtils.getTraceFile("atrace_processid_1.ctrace"), 0)
     capture.range.set(TimeUnit.MILLISECONDS.toMicros(50).toDouble(), TimeUnit.MILLISECONDS.toMicros(150).toDouble())
     myStage.capture = capture
-    val aTraceSeries = AtraceDataSeries<CpuProfilerStage.ThreadState>(capture as AtraceCpuCapture) { buildSeriesData(50, 150, 10) }
+    val aTraceSeries = LazyDataSeries<CpuProfilerStage.ThreadState> { buildSeriesData(50, 150, 10) }
     val threadStateSeries = LegacyCpuThreadStateDataSeries(myProfilerClient.cpuClient, ProfilersTestData.SESSION_DATA, 1, capture)
     myMergeCaptureDataSeries = MergeCaptureDataSeries<CpuProfilerStage.ThreadState>(capture, threadStateSeries, aTraceSeries)
     myCpuService.addThreads(1, "Thread", buildThreadActivityData(1, 200, 20))
@@ -136,10 +136,10 @@ class MergeCaptureDataSeriesTest {
 
   @Test
   fun testGetDataNoTraceGetsSampledData() {
-    val atraceCpuCapture = myStage.capture as AtraceCpuCapture
-    val aTraceSeries = AtraceDataSeries<CpuProfilerStage.ThreadState>(atraceCpuCapture) { buildSeriesData(50, 150, 0) }
+    val capture = myStage.capture!!
+    val aTraceSeries = LazyDataSeries<CpuProfilerStage.ThreadState> { buildSeriesData(50, 150, 0) }
     val threadStateSeries = LegacyCpuThreadStateDataSeries(myProfilerClient.cpuClient, ProfilersTestData.SESSION_DATA, 1, myStage.capture)
-    myMergeCaptureDataSeries = MergeCaptureDataSeries<CpuProfilerStage.ThreadState>(atraceCpuCapture, threadStateSeries, aTraceSeries)
+    myMergeCaptureDataSeries = MergeCaptureDataSeries<CpuProfilerStage.ThreadState>(capture, threadStateSeries, aTraceSeries)
     val stateSeries = myMergeCaptureDataSeries.getDataForRange(
       Range(
         TimeUnit.MILLISECONDS.toMicros(100).toDouble(),
@@ -153,11 +153,11 @@ class MergeCaptureDataSeriesTest {
   fun testGetDataIsCalledWithRangeUptoFirstState() {
     // Our capture range is 50 -> 150, so we create a data sample that starts at 100 to ensure we get a ThreadStateDataSeries range call
     // from 0 -> 100
-    val atraceCpuCapture = myStage.capture as AtraceCpuCapture
-    val aTraceSeries = AtraceDataSeries<CpuProfilerStage.ThreadState>(atraceCpuCapture) { buildSeriesData(100, 150, 10) }
+    val capture = myStage.capture!!
+    val aTraceSeries = LazyDataSeries<CpuProfilerStage.ThreadState> { buildSeriesData(100, 150, 10) }
     val threadStateSeries = FakeLegacyCpuThreadStateDataSeries(myProfilerClient.cpuClient, ProfilersTestData.SESSION_DATA, 1,
                                                                myStage.capture)
-    myMergeCaptureDataSeries = MergeCaptureDataSeries<CpuProfilerStage.ThreadState>(atraceCpuCapture, threadStateSeries, aTraceSeries)
+    myMergeCaptureDataSeries = MergeCaptureDataSeries<CpuProfilerStage.ThreadState>(capture, threadStateSeries, aTraceSeries)
     myMergeCaptureDataSeries.getDataForRange(
       Range(
         TimeUnit.MILLISECONDS.toMicros(0).toDouble(),

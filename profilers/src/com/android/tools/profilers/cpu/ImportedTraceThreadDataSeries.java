@@ -69,6 +69,7 @@ public final class ImportedTraceThreadDataSeries extends InMemoryDataSeries<CpuP
   }
 
   @Override
+  @NotNull
   protected List<SeriesData<CpuProfilerStage.ThreadState>> inMemoryDataList() {
     return myStates;
   }

@@ -16,9 +16,11 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.StateChartModel;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
 import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
 import org.jetbrains.annotations.NotNull;
@@ -50,11 +52,10 @@ public class CpuKernelModel extends DefaultListModel<CpuKernelModel.CpuState> {
   private void captureStateChanged() {
     removeAllElements();
     CpuCapture capture = myStage.getCapture();
-    if (capture instanceof AtraceCpuCapture) {
-      AtraceCpuCapture atraceCpuCapture = (AtraceCpuCapture)capture;
-      int count = atraceCpuCapture.getCpuCount();
+    if (capture != null && capture.getType() == Cpu.CpuTraceType.ATRACE) {
+      int count = capture.getCpuCount();
       for (int i = 0; i < count; i++) {
-        addElement(new CpuState(i, atraceCpuCapture));
+        addElement(new CpuState(i, capture));
       }
     }
     contentsChanged();
@@ -67,16 +68,16 @@ public class CpuKernelModel extends DefaultListModel<CpuKernelModel.CpuState> {
   public class CpuState {
     private final int myCpuId;
     @NotNull
-    private final AtraceDataSeries<CpuThreadSliceInfo> myAtraceCpuStateDataSeries;
+    private final DataSeries<CpuThreadSliceInfo> myCpuStateDataSeries;
     @NotNull
     private final StateChartModel<CpuThreadSliceInfo> myModel;
 
-    public CpuState(int cpuId, @NotNull AtraceCpuCapture atraceCpuCapture) {
+    public CpuState(int cpuId, @NotNull CpuCapture cpuCapture) {
       myCpuId = cpuId;
       myModel = new StateChartModel<>();
-      myAtraceCpuStateDataSeries = new AtraceDataSeries<>(atraceCpuCapture, capture -> capture.getCpuThreadSliceInfoStates(myCpuId));
+      myCpuStateDataSeries = new LazyDataSeries<>(() -> cpuCapture.getCpuThreadSliceInfoStates(myCpuId));
       // TODO(b/122964201) Pass data range as 3rd param to RangedSeries to only show data from current session
-      myModel.addSeries(new RangedSeries<>(myRange, myAtraceCpuStateDataSeries));
+      myModel.addSeries(new RangedSeries<>(myRange, myCpuStateDataSeries));
     }
 
     public int getCpuId() {
@@ -84,8 +85,8 @@ public class CpuKernelModel extends DefaultListModel<CpuKernelModel.CpuState> {
     }
 
     @NotNull
-    public AtraceDataSeries<CpuThreadSliceInfo> getSeries() {
-      return myAtraceCpuStateDataSeries;
+    public DataSeries<CpuThreadSliceInfo> getSeries() {
+      return myCpuStateDataSeries;
     }
 
     @NotNull

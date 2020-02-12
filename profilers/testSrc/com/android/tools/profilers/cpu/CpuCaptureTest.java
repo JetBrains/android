@@ -76,7 +76,7 @@ public class CpuCaptureTest {
     Map<CpuThreadInfo, CaptureNode> captureTrees =
       new ImmutableMap.Builder<CpuThreadInfo, CaptureNode>().put(info, new CaptureNode(new SingleNameModel("Thread1"))).build();
     CpuCapture capture =
-      new CpuCapture(new FakeTraceParser(range, captureTrees, true), 20, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
+      new BaseCpuCapture(new FakeTraceParser(range, captureTrees, true), 20, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
     // Test if we don't have an actual main thread, we still get a main thread id.
     assertThat(capture.getMainThreadId()).isEqualTo(10);
     assertThat(capture.getCaptureNode(10).getData().getName()).isEqualTo("Thread1");
@@ -91,7 +91,7 @@ public class CpuCaptureTest {
       new ImmutableMap.Builder<CpuThreadInfo, CaptureNode>().put(valid, new CaptureNode(new SingleNameModel("Valid")))
         .put(other, new CaptureNode(new SingleNameModel("Other"))).build();
     CpuCapture capture =
-      new CpuCapture(new FakeTraceParser(range, captureTrees, true), 20, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
+      new BaseCpuCapture(new FakeTraceParser(range, captureTrees, true), 20, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
     // Test if we don't have a main thread, and we pass in an invalid name we still get a main thread id.
     assertThat(capture.getMainThreadId()).isEqualTo(10);
     assertThat(capture.getCaptureNode(10).getData().getName()).isEqualTo("Valid");
@@ -108,7 +108,7 @@ public class CpuCaptureTest {
         .put(other, new CaptureNode(new SingleNameModel("Other")))
         .put(main, new CaptureNode(new SingleNameModel("MainThread"))).build();
     CpuCapture capture =
-      new CpuCapture(new FakeTraceParser(range, captureTrees, true), 20, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
+      new BaseCpuCapture(new FakeTraceParser(range, captureTrees, true), 20, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
     // Test if we don't have a main thread, and we pass in an invalid name we still get a main thread id.
     assertThat(capture.getMainThreadId()).isEqualTo(main.getProcessId());
     assertThat(capture.getCaptureNode(main.getProcessId()).getData().getName()).isEqualTo(main.getProcessName());
@@ -162,7 +162,7 @@ public class CpuCaptureTest {
     try {
       Range range = new Range(0, 30);
       Map<CpuThreadInfo, CaptureNode> captureTrees = new HashMap<>();
-      capture = new CpuCapture(new FakeTraceParser(range, captureTrees, true), 20, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
+      capture = new BaseCpuCapture(new FakeTraceParser(range, captureTrees, true), 20, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
       fail();
     }
     catch (IllegalStateException e) {
@@ -211,10 +211,10 @@ public class CpuCaptureTest {
     Map<CpuThreadInfo, CaptureNode> captureTrees =
       new ImmutableMap.Builder<CpuThreadInfo, CaptureNode>().put(info, new CaptureNode(new StubCaptureNodeModel())).build();
     CpuCapture capture =
-      new CpuCapture(new FakeTraceParser(range, captureTrees, true), 20, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
+      new BaseCpuCapture(new FakeTraceParser(range, captureTrees, true), 20, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
     assertThat(capture.isDualClock()).isTrue();
 
-    capture = new CpuCapture(new FakeTraceParser(range, captureTrees, false), 20, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
+    capture = new BaseCpuCapture(new FakeTraceParser(range, captureTrees, false), 20, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
     assertThat(capture.isDualClock()).isFalse();
   }
 
@@ -227,11 +227,11 @@ public class CpuCaptureTest {
       new ImmutableMap.Builder<CpuThreadInfo, CaptureNode>().put(info, new CaptureNode(new StubCaptureNodeModel())).build();
     TraceParser parser = new FakeTraceParser(range, captureTrees, false);
 
-    CpuCapture capture = new CpuCapture(parser, traceId1, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
+    CpuCapture capture = new BaseCpuCapture(parser, traceId1, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
     assertThat(capture.getTraceId()).isEqualTo(traceId1);
 
     int traceId2 = 50;
-    capture = new CpuCapture(parser, traceId2, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
+    capture = new BaseCpuCapture(parser, traceId2, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
     assertThat(capture.getTraceId()).isEqualTo(traceId2);
   }
 
@@ -244,16 +244,16 @@ public class CpuCaptureTest {
       new ImmutableMap.Builder<CpuThreadInfo, CaptureNode>().put(info, new CaptureNode(new StubCaptureNodeModel())).build();
     TraceParser parser = new FakeTraceParser(range, captureTrees, false);
 
-    CpuCapture capture = new CpuCapture(parser, traceId, Cpu.CpuTraceType.ART);
+    CpuCapture capture = new BaseCpuCapture(parser, traceId, Cpu.CpuTraceType.ART);
     assertThat(capture.getType()).isEqualTo(Cpu.CpuTraceType.ART);
 
-    capture = new CpuCapture(parser, traceId, Cpu.CpuTraceType.SIMPLEPERF);
+    capture = new BaseCpuCapture(parser, traceId, Cpu.CpuTraceType.SIMPLEPERF);
     assertThat(capture.getType()).isEqualTo(Cpu.CpuTraceType.SIMPLEPERF);
 
-    capture = new CpuCapture(parser, traceId, Cpu.CpuTraceType.ATRACE);
+    capture = new BaseCpuCapture(parser, traceId, Cpu.CpuTraceType.ATRACE);
     assertThat(capture.getType()).isEqualTo(Cpu.CpuTraceType.ATRACE);
 
-    capture = new CpuCapture(parser, traceId, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
+    capture = new BaseCpuCapture(parser, traceId, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
     assertThat(capture.getType()).isEqualTo(Cpu.CpuTraceType.UNSPECIFIED_TYPE);
   }
 

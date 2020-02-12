@@ -15,170 +15,169 @@
  */
 package com.android.tools.profilers.cpu;
 
-
 import com.android.tools.adtui.model.ConfigurableDurationData;
-import com.android.tools.adtui.model.DefaultTimeline;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.Timeline;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.profilers.cpu.atrace.AtraceFrame;
+import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Map;
+import java.util.List;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class CpuCapture implements ConfigurableDurationData {
-
-  private final int myMainThreadId;
-
-  @NotNull
-  private ClockType myClockType;
-
-  @NotNull
-  private final Map<CpuThreadInfo, CaptureNode> myCaptureTrees;
+/**
+ * This interface represents a CPU trace/capture and all the data accessible from it.
+ */
+public interface CpuCapture extends ConfigurableDurationData {
+  // General Capture information:
+  /**
+   * Returns the unique id that represents the trace used to generate this capture.
+   */
+  long getTraceId();
 
   /**
-   * The CPU capture has its own {@link Timeline} for the purpose of exposing a variety of {@link Range}s.
+   * Returns the underlying method/technology used to produce this capture.
    */
   @NotNull
-  private final Timeline myTimeline = new DefaultTimeline();
-
-  private final boolean myCaptureSupportsDualClock;
+  Cpu.CpuTraceType getType();
 
   /**
-   * ID of the trace used to generate the capture.
-   */
-  private final long myTraceId;
-
-  /**
-   * Technology used to generate the capture.
-   */
-  private final Cpu.CpuTraceType myType;
-
-  public CpuCapture(@NotNull TraceParser parser, long traceId, Cpu.CpuTraceType type) {
-    myTraceId = traceId;
-    myType = type;
-    myTimeline.getDataRange().set(parser.getRange());
-    myTimeline.getViewRange().set(parser.getRange());
-    myCaptureSupportsDualClock = parser.supportsDualClock();
-
-    // Sometimes a capture may fail and return a file that is incomplete. This results in the parser not having any capture trees.
-    // If this happens then we don't have any thread info to determine which is the main thread
-    // so we throw an error and let the capture pipeline handle this and present a dialog to the user.
-    myCaptureTrees = parser.getCaptureTrees();
-    if (myCaptureTrees.isEmpty()) {
-      throw new IllegalStateException("Trace file contained no CPU data.");
-    }
-
-    // Try to find the main thread. If there is no actual main thread, we will fall back to the thread with the most information.
-    Map.Entry<CpuThreadInfo, CaptureNode> main = null;
-    for (Map.Entry<CpuThreadInfo, CaptureNode> entry : myCaptureTrees.entrySet()) {
-      if (entry.getKey().isMainThread()) {
-        main = entry;
-        break;
-      }
-
-      if (main == null || main.getValue().getDuration() < entry.getValue().getDuration()) {
-        main = entry;
-      }
-    }
-
-    myMainThreadId = main.getKey().getId();
-
-    // Set clock type
-    CaptureNode mainNode = getCaptureNode(myMainThreadId);
-    assert mainNode != null;
-    myClockType = mainNode.getClockType();
-  }
-
-  public int getMainThreadId() {
-    return myMainThreadId;
-  }
-
-  /**
-   * @return a timeline that uses the capture range as its data & view range.
+   * Returns the timeline associated with this CpuCapture, which includes the data & view ranges.
    */
   @NotNull
-  public Timeline getTimeline() {
-    return myTimeline;
-  }
+  Timeline getTimeline();
 
+  /**
+   * Returns the data range for this capture.
+   */
   @NotNull
-  public Range getRange() {
-    return myTimeline.getDataRange();
+  default Range getRange() {
+    return getTimeline().getDataRange();
   }
 
+  // Multiple Clocks Support
+  /**
+   * Return true if this capture supports more than one clock type.
+   */
+  boolean isDualClock();
+
+  /**
+   * Update all CaptureNodes in this capture to reference the new {@code clockType}.
+   */
+  void updateClockType(@NotNull ClockType clockType);
+
+
+  // Capture Information
+  /**
+   * Returns the id of the main thread associated with this capture.
+   */
+  int getMainThreadId();
+
+  /**
+   * Returns information on all threads in this capture.
+   */
+  @NotNull
+  Set<CpuThreadInfo> getThreads();
+
+  /**
+   * Returns true if the capture contains data for a thread with {@code threadId}.
+   */
+  // TODO: Remove this, migrate users to getCaptureNode + check the result for null.
+  boolean containsThread(int threadId);
+
+  /**
+   * Returns the CaptureNode that represents the thread with {@code threadId} or null if such thread isn't present on this capture.
+   */
   @Nullable
-  public CaptureNode getCaptureNode(int threadId) {
-    return myCaptureTrees.entrySet().stream()
-      .filter(e -> e.getKey().getId() == threadId)
-      .findFirst()
-      .map(Map.Entry::getValue)
-      .orElse(null);
-  }
+  CaptureNode getCaptureNode(int threadId);
 
-  @NotNull
-  Set<CpuThreadInfo> getThreads() {
-    return myCaptureTrees.keySet();
-  }
-
+  /**
+   * Return all {@link CaptureNode}s in this capture.
+   */
   // TODO (b/138408053): Remove this when we have a proper selection model.
   @NotNull
-  public Collection<CaptureNode> getCaptureNodes() {
-    return myCaptureTrees.values();
+  Collection<CaptureNode> getCaptureNodes();
+
+  // Extended Capture Information - CPU data
+  // These might not be available on all profiling technologies.
+
+  /**
+   * Returns the thread state transitions for the given thread.
+   * @param threadId Thread Id of thread requesting states for. If thread id is not found an empty list is returned.
+   */
+  @NotNull
+  default List<SeriesData<CpuProfilerStage.ThreadState>> getThreadStatesForThread(int threadId) {
+    return new ArrayList<>();
   }
 
-  public boolean containsThread(int threadId) {
-    return getCaptureNode(threadId) != null;
+  /**
+   * Returns a series of {@link CpuThreadSliceInfo} information.
+   * @param cpu The cpu index to get {@link CpuThreadSliceInfo} series for.
+   */
+  @NotNull
+  default List<SeriesData<CpuThreadSliceInfo>> getCpuThreadSliceInfoStates(int cpu) {
+    return new ArrayList<>();
   }
 
-  @Override
-  public long getDurationUs() {
-    return (long)getRange().getLength();
+  /**
+   * Returns multiple CPU Utilization data series, with one for each CPU core present on the traced device.
+   */
+  @NotNull
+  default List<SeriesData<Long>> getCpuUtilizationSeries() {
+    return new ArrayList<>();
   }
 
-  @Override
-  public boolean getSelectableWhenMaxDuration() {
+  /**
+   * The number of CPU cores represented in this capture.
+   */
+  default int getCpuCount() {
+    return getCpuUtilizationSeries().size();
+  }
+
+  /**
+   * Returns true if the capture is potentially missing data. For example, on a ATrace or Perfetto capture,
+   * due to the capture buffer being a ring buffer.
+   */
+  default boolean isMissingData() {
     return false;
   }
 
-  public long getTraceId() {
-    return myTraceId;
+  // Extended Capture Information - GPU/Frames data
+  // These might not be available on all profiling technologies.
+
+  /**
+   * Returns a data series with frame performance classes sorted by frame start time.
+   */
+  @NotNull
+  default List<SeriesData<AtraceFrame>> getFrames(AtraceFrame.FrameThread threadType) {
+    return new ArrayList<>();
+  }
+
+  /**
+   * Returns the thread id of thread matching name of the render thread.
+   */
+  default int getRenderThreadId() {
+    return Integer.MAX_VALUE;
+  }
+
+  // Default overrides of ConfigurableDurationData methods for convenience.
+  @Override
+  default long getDurationUs() {
+    return (long) getRange().getLength();
   }
 
   @Override
-  public boolean canSelectPartialRange() {
+  default boolean getSelectableWhenMaxDuration() {
+    return false;
+  }
+
+  @Override
+  default boolean canSelectPartialRange() {
     return true;
-  }
-
-  public void updateClockType(@NotNull ClockType clockType) {
-    if (myClockType == clockType) {
-      // Avoid traversing the capture trees if there is no change.
-      return;
-    }
-    myClockType = clockType;
-
-    for (CaptureNode tree : getCaptureNodes()) {
-      updateClockType(tree, clockType);
-    }
-  }
-
-  private static void updateClockType(@Nullable CaptureNode node, @NotNull ClockType clockType) {
-    if (node == null) {
-      return;
-    }
-    node.setClockType(clockType);
-    for (CaptureNode child : node.getChildren()) {
-      updateClockType(child, clockType);
-    }
-  }
-
-  public boolean isDualClock() {
-    return myCaptureSupportsDualClock;
-  }
-
-  public Cpu.CpuTraceType getType() {
-    return myType;
   }
 }

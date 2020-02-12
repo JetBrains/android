@@ -15,35 +15,34 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
+import com.google.common.base.Preconditions;
 import com.intellij.util.NotNullFunction;
+import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.List;
 
 /**
- * This class manages {@link DataSeries} parsed from atrace captures. The data series is responsible for
- * returning data supplied to it upon parsing an atrace capture.
+ * This class lazily fetches data from the provided {@link Supplier} in order to build an {@link InMemoryDataSeries}.
+ *
+ * <p>The supplier used should never return an null object.</p>
  */
-public class AtraceDataSeries<T> extends InMemoryDataSeries<T> {
+public class LazyDataSeries<T> extends InMemoryDataSeries<T> {
   @NotNull
-  private final NotNullFunction<AtraceCpuCapture, List<SeriesData<T>>> mySeriesDataFunction;
+  private final Supplier<List<SeriesData<T>>> mySeriesDataSupplier;
 
-  private final AtraceCpuCapture myCapture;
-
-  public AtraceDataSeries(AtraceCpuCapture capture, @NotNull NotNullFunction<AtraceCpuCapture, List<SeriesData<T>>> seriesDataFunction) {
-    myCapture = capture;
-    mySeriesDataFunction = seriesDataFunction;
+  public LazyDataSeries(@NotNull Supplier<List<SeriesData<T>>> seriesDataSupplier) {
+    Preconditions.checkArgument(seriesDataSupplier != null, "mySeriesDataSupplier can't be null");
+    mySeriesDataSupplier = seriesDataSupplier;
   }
 
   @Override
+  @NotNull
   protected List<SeriesData<T>> inMemoryDataList() {
-    if (myCapture == null) {
-      return Collections.emptyList();
-    }
-    return mySeriesDataFunction.fun(myCapture);
+    List<SeriesData<T>> producedList = mySeriesDataSupplier.get();
+    Preconditions.checkState(producedList != null, "Supplier in LazyDataSeries can't produce null as result.");
+    return producedList;
   }
 }
