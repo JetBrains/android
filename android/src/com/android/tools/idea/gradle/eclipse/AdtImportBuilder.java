@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.eclipse;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.eclipse.GradleImport.IMPORT_SUMMARY_TXT;
+import static com.android.tools.idea.gradle.util.GradleWrapper.getWrapperLocation;
 import static com.android.tools.idea.templates.TemplateUtils.openEditor;
 import static com.android.tools.idea.util.ToolWindows.activateProjectView;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_IMPORT_ADT_MODULE;
@@ -25,7 +26,6 @@ import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.templates.TemplateManager;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.application.ApplicationManager;
@@ -35,6 +35,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.packaging.artifacts.ModifiableArtifactModel;
 import com.intellij.projectImport.ProjectImportBuilder;
@@ -78,17 +79,12 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
   private GradleImport createImporter(@NotNull List<File> projects) {
     GradleImport importer = new GradleImport();
     importer.setImportIntoExisting(!myCreateProject);
+
     if (myCreateProject) {
-      File templates = TemplateManager.getTemplateRootFolder();
-      if (templates != null) {
-        File wrapper = TemplateManager.getWrapperLocation(templates);
-        if (wrapper.exists()) {
-          importer.setGradleWrapperLocation(wrapper);
-          AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
-          if (sdkData != null) {
-            importer.setSdkLocation(sdkData.getLocation());
-          }
-        }
+      importer.setCreateGradleWrapper(true);
+      AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
+      if (sdkData != null) {
+        importer.setSdkLocation(sdkData.getLocation());
       }
     }
     importer.importProjects(projects);

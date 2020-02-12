@@ -25,6 +25,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
+import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.util.PropertiesFiles;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.utils.PositionXmlParser;
@@ -124,7 +125,7 @@ public class GradleImport {
   private Set<ImportModule> myModules;
   private ImportSummary mySummary;
   private File myWorkspaceLocation;
-  private File myGradleWrapperLocation;
+  private boolean myCreateGradleWrapper = false;
   private File mySdkLocation;
   private File myNdkLocation;
   private Set<String> myHandledJars = Sets.newHashSet();
@@ -440,8 +441,8 @@ public class GradleImport {
    * Sets location of gradle wrapper to copy into exported project, if known
    */
   @NonNull
-  public GradleImport setGradleWrapperLocation(@NonNull File gradleWrapper) {
-    myGradleWrapperLocation = gradleWrapper;
+  public GradleImport setCreateGradleWrapper(boolean createGradleWrapper) {
+    myCreateGradleWrapper = createGradleWrapper;
     return this;
   }
 
@@ -888,15 +889,13 @@ public class GradleImport {
   }
 
   private void exportGradleWrapper(@NonNull File destDir) throws IOException {
-    if (myGradleWrapperLocation != null && myGradleWrapperLocation.exists()) {
-      File gradlewDest = new File(destDir, FN_GRADLE_WRAPPER_UNIX);
-      copyDir(new File(myGradleWrapperLocation, FN_GRADLE_WRAPPER_UNIX), gradlewDest, null, false, null);
-      boolean madeExecutable = gradlewDest.setExecutable(true);
-      if (!madeExecutable) {
-        reportWarning((ImportModule)null, gradlewDest, "Could not make gradle wrapper script executable");
-      }
-      copyDir(new File(myGradleWrapperLocation, FN_GRADLE_WRAPPER_WIN), new File(destDir, FN_GRADLE_WRAPPER_WIN), null, false, null);
-      copyDir(new File(myGradleWrapperLocation, FD_GRADLE), new File(destDir, FD_GRADLE), null, false, null);
+    if (!myCreateGradleWrapper) {
+      return;
+    }
+    GradleWrapper.create(destDir, GRADLE_LATEST_VERSION);
+    File gradlewDest = new File(destDir, FN_GRADLE_WRAPPER_UNIX);
+    if (!gradlewDest.canExecute()) {
+      reportWarning((ImportModule)null, gradlewDest, "Gradle wrapper script is not executable");
     }
   }
 

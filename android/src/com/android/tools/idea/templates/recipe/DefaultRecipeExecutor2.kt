@@ -28,6 +28,19 @@ import com.android.tools.idea.gradle.dsl.api.GradleFileModel
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.ANDROID_TEST_API
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.ANDROID_TEST_COMPILE
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.ANDROID_TEST_IMPLEMENTATION
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.API
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.APK
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.CLASSPATH
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.IMPLEMENTATION
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.PROVIDED
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.RUNTIME
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.TEST_API
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.TEST_COMPILE
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.TEST_IMPLEMENTATION
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
@@ -38,6 +51,7 @@ import com.android.tools.idea.gradle.util.GradleUtil.dependsOnJavaLibrary
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.templates.RenderingContextAdapter
 import com.android.tools.idea.templates.RepositoryUrlManager
+import com.android.tools.idea.templates.TemplateUtils
 import com.android.tools.idea.templates.TemplateUtils.checkDirectoryIsWriteable
 import com.android.tools.idea.templates.TemplateUtils.checkedCreateDirectoryIfMissing
 import com.android.tools.idea.templates.TemplateUtils.hasExtension
@@ -57,6 +71,8 @@ import com.android.utils.findGradleBuildFile
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.diff.comparison.ComparisonManager
 import com.intellij.diff.comparison.ComparisonPolicy.IGNORE_WHITESPACES
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.ReadonlyStatusHandler
@@ -64,17 +80,12 @@ import com.intellij.openapi.vfs.VfsUtil.findFileByIoFile
 import com.intellij.openapi.vfs.VfsUtil.findFileByURL
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.vfs.VirtualFileVisitor
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.XmlElementFactory
 import java.io.File
-import java.io.IOException
 import com.android.tools.idea.templates.mergeXml as mergeXmlUtil
 import com.android.tools.idea.wizard.template.RecipeExecutor as RecipeExecutor2
-import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.*
-import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.diagnostic.logger
 
 private val log: Logger get() = logger<DefaultRecipeExecutor2>()
 
@@ -434,17 +445,7 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
    * [VfsUtil.copyDirectory] messes up the undo stack, most likely by trying to create a directory even if it already exists.
    * This is an undo-friendly replacement.
    */
-  private fun copyDirectory(src: VirtualFile, dest: File) =
-    VfsUtilCore.visitChildrenRecursively(src, object : VirtualFileVisitor<Any>() {
-      override fun visitFile(file: VirtualFile): Boolean {
-        try {
-          return copyFile(file, src, dest)
-        }
-        catch (e: IOException) {
-          throw VisitorException(e)
-        }
-      }
-    }, IOException::class.java)
+  private fun copyDirectory(src: VirtualFile, dest: File) = TemplateUtils.copyDirectory(src, dest, ::copyFile)
 
   private fun copyFile(file: VirtualFile, src: VirtualFile, destinationFile: File): Boolean {
     val relativePath = VfsUtilCore.getRelativePath(file, src, File.separatorChar)
