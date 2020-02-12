@@ -46,6 +46,7 @@ import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.ModuleRootModel
 import com.intellij.openapi.roots.OrderEntry
 import com.intellij.openapi.roots.OrderRootType
+import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.roots.SourceFolder
 import com.intellij.openapi.roots.libraries.Library
 import com.intellij.openapi.util.io.FileUtil
@@ -56,6 +57,7 @@ import org.jetbrains.android.facet.AndroidFacetProperties
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
 import org.jetbrains.kotlin.config.CompilerSettings
 import org.jetbrains.kotlin.idea.facet.KotlinFacetConfiguration
+import org.jetbrains.kotlin.idea.util.projectStructure.version
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
 import java.lang.Math.max
@@ -180,7 +182,11 @@ class ProjectDumper(
     head("PROJECT") { project.name }
     nest {
       val languageLevelExtension = LanguageLevelProjectExtension.getInstance(project)
-      prop("languageLevel" ) { languageLevelExtension.languageLevel.presentableText }
+      prop("LanguageLevel" ) { languageLevelExtension.languageLevel.presentableText }
+      head("PROJECT_JDK") { ProjectRootManager.getInstance(project).projectSdk?.name }
+      nest {
+        prop("Version") { ProjectRootManager.getInstance(project).projectSdk?.versionString?.replaceJdkVersion() }
+      }
       ModuleManager.getInstance(project).modules.sortedBy { it.name }.forEach { dump(it) }
     }
   }
