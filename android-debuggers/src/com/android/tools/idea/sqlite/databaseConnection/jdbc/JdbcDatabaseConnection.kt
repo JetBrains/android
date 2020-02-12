@@ -90,7 +90,10 @@ class JdbcDatabaseConnection(
             columnName,
             SqliteAffinity.fromTypename(columnType),
             colNotNull == "0",
-            colPk == "1"
+            // The number in table_info for primary key is an integer that corresponds
+            // to the position of the column in the primary key constraint.
+            // Or 0 if the column is not in the primary key.
+            colPk.toInt() > 0
           )
         }.toList()
       }
