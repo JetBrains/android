@@ -145,7 +145,7 @@ class LiveSqliteResultSetTest : LightPlatformTestCase() {
 
     // Assert
     assertSize(1, rowsFromResultSet)
-    assertEquals("column1", rowsFromResultSet.first().values.first().column.name)
+    assertEquals("column1", rowsFromResultSet.first().values.first().columnName)
     assertEquals("a string", rowsFromResultSet.first().values.first().value)
   }
 

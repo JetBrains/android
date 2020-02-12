@@ -106,7 +106,7 @@ class JdbcSqliteResultSet(
 
   @WorkerThread
   private fun createCurrentRow(resultSet: ResultSet): SqliteRow {
-    return SqliteRow(_columns.mapIndexed { i, column -> SqliteColumnValue(column, resultSet.getObject(i + 1)) })
+    return SqliteRow(_columns.mapIndexed { i, column -> SqliteColumnValue(column.name, resultSet.getObject(i + 1)) })
   }
 
   override fun dispose() {

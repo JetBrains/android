@@ -145,7 +145,7 @@ class TableViewImplTest : LightPlatformTestCase() {
 
     val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col)
-    val rows = listOf(SqliteRow(listOf(SqliteColumnValue(col, "val"))))
+    val rows = listOf(SqliteRow(listOf(SqliteColumnValue(col.name, "val"))))
 
     view.startTableLoading()
     view.showTableColumns(cols)
@@ -179,7 +179,7 @@ class TableViewImplTest : LightPlatformTestCase() {
 
     val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col)
-    val rows = listOf(SqliteRow(listOf(SqliteColumnValue(col, "val"))))
+    val rows = listOf(SqliteRow(listOf(SqliteColumnValue("col", "val"))))
 
     view.startTableLoading()
     view.showTableColumns(cols)
@@ -209,7 +209,7 @@ class TableViewImplTest : LightPlatformTestCase() {
 
     val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col)
-    val rows = listOf(SqliteRow(listOf(SqliteColumnValue(col, "val"))))
+    val rows = listOf(SqliteRow(listOf(SqliteColumnValue("col", "val"))))
 
     view.startTableLoading()
     view.showTableColumns(cols)
@@ -228,7 +228,7 @@ class TableViewImplTest : LightPlatformTestCase() {
 
     val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col)
-    val rows = listOf(SqliteRow(listOf(SqliteColumnValue(col, "val"))))
+    val rows = listOf(SqliteRow(listOf(SqliteColumnValue("col", "val"))))
 
     view.startTableLoading()
     view.showTableColumns(cols)
@@ -247,7 +247,7 @@ class TableViewImplTest : LightPlatformTestCase() {
 
     val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col)
-    val rows = listOf(SqliteRow(listOf(SqliteColumnValue(col, "val1"))), SqliteRow(listOf(SqliteColumnValue(col, "val2"))))
+    val rows = listOf(SqliteRow(listOf(SqliteColumnValue("col", "val1"))), SqliteRow(listOf(SqliteColumnValue("col", "val2"))))
 
     view.startTableLoading()
     view.showTableColumns(cols)
@@ -271,7 +271,7 @@ class TableViewImplTest : LightPlatformTestCase() {
 
     val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col)
-    val row = SqliteRow(listOf(SqliteColumnValue(col, "val1")))
+    val row = SqliteRow(listOf(SqliteColumnValue("col", "val1")))
     val rows = listOf(row)
 
     view.startTableLoading()
@@ -293,7 +293,7 @@ class TableViewImplTest : LightPlatformTestCase() {
 
     val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col)
-    val rows = listOf(SqliteRow(listOf(SqliteColumnValue(col, "val1"))))
+    val rows = listOf(SqliteRow(listOf(SqliteColumnValue("col", "val1"))))
 
     view.startTableLoading()
     view.showTableColumns(cols)

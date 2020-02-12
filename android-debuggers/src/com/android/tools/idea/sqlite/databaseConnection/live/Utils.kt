@@ -36,19 +36,16 @@ internal fun buildQueryCommand(sqliteStatement: SqliteStatement, databaseConnect
 }
 
 internal fun SqliteInspectorProtocol.CellValue.toSqliteColumnValue(): SqliteColumnValue {
-  // TODO(blocked): add support for primary keys
-  // TODO(blocked): add support for NOT NULL
-  // TODO(blocked): we need to get affinity info from the on device inspector.
   return when (valueCase) {
     SqliteInspectorProtocol.CellValue.ValueCase.STRING_VALUE ->
-      SqliteColumnValue(SqliteColumn(columnName, SqliteAffinity.TEXT, false, false), stringValue)
+      SqliteColumnValue(columnName, stringValue)
     SqliteInspectorProtocol.CellValue.ValueCase.FLOAT_VALUE ->
-      SqliteColumnValue(SqliteColumn(columnName, SqliteAffinity.TEXT, false, false), floatValue)
+      SqliteColumnValue(columnName, floatValue)
     SqliteInspectorProtocol.CellValue.ValueCase.BLOB_VALUE ->
-      SqliteColumnValue(SqliteColumn(columnName, SqliteAffinity.TEXT, false, false), blobValue)
+      SqliteColumnValue(columnName, blobValue)
     SqliteInspectorProtocol.CellValue.ValueCase.INT_VALUE ->
-      SqliteColumnValue(SqliteColumn(columnName, SqliteAffinity.TEXT, false, false), intValue)
-    else -> SqliteColumnValue(SqliteColumn(columnName, SqliteAffinity.TEXT, false, false), "null")
+      SqliteColumnValue(columnName, intValue)
+    else -> SqliteColumnValue(columnName, "null")
   }
 }
 
