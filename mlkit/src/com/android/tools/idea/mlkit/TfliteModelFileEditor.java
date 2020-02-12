@@ -17,13 +17,12 @@ package com.android.tools.idea.mlkit;
 
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason;
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncUtil;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.mlkit.MetadataExtractor;
+import com.android.tools.mlkit.MlkitNames;
 import com.android.tools.mlkit.ModelData;
 import com.android.tools.mlkit.ModelParsingException;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
@@ -36,12 +35,12 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiMethod;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Component;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -93,19 +92,16 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     JButton addDepButton = new JButton("Add Missing Dependencies");
     addDepButton.setAlignmentX(Component.LEFT_ALIGNMENT);
     addDepButton.setVisible(shouldShowAddDepButton());
-    addDepButton.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        List<GradleCoordinate> depsToAdd = MlkitUtils.getMissingDependencies(myModule, myFile);
-        // TODO(b/149224613): switch to use DependencyManagementUtil#addDependencies.
-        AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(myModule);
-        if (DependencyManagementUtil.userWantsToAdd(myModule.getProject(), depsToAdd, "")) {
-          for (GradleCoordinate dep : depsToAdd) {
-            moduleSystem.registerDependency(dep);
-          }
-          ProjectSystemUtil.getSyncManager(myProject).syncProject(SyncReason.PROJECT_MODIFIED);
-          addDepButton.setVisible(false);
+    addDepButton.addActionListener(actionEvent -> {
+      List<GradleCoordinate> depsToAdd = MlkitUtils.getMissingDependencies(myModule, myFile);
+      // TODO(b/149224613): switch to use DependencyManagementUtil#addDependencies.
+      AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(myModule);
+      if (DependencyManagementUtil.userWantsToAdd(myModule.getProject(), depsToAdd, "")) {
+        for (GradleCoordinate dep : depsToAdd) {
+          moduleSystem.registerDependency(dep);
         }
+        ProjectSystemUtil.getSyncManager(myProject).syncProject(SyncReason.PROJECT_MODIFIED);
+        addDepButton.setVisible(false);
       }
     });
     contentPanel.add(addDepButton);
@@ -113,6 +109,10 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     try {
       ModelData modelData = ModelData.buildFrom(new MetadataExtractor(ByteBuffer.wrap(file.contentsToByteArray())));
       addModelSummarySection(contentPanel, modelData);
+
+      PsiClass modelClass = MlkitModuleService.getInstance(myModule)
+        .getOrCreateLightModelClass(new MlModelMetadata(file.getUrl(), MlkitUtils.computeModelClassName(file.getUrl())));
+      addSampleCodeSection(contentPanel, modelClass);
     } catch (IOException e) {
       Logger.getInstance(TfliteModelFileEditor.class).error(e);
     } catch (ModelParsingException e) {
@@ -122,12 +122,8 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
 
     myRootPane = new JBScrollPane(contentPanel);
 
-    project.getMessageBus().connect(project).subscribe(ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC, new SyncResultListener() {
-      @Override
-      public void syncEnded(@NotNull ProjectSystemSyncManager.SyncResult result) {
-        addDepButton.setVisible(shouldShowAddDepButton());
-      }
-    });
+    project.getMessageBus().connect(project)
+      .subscribe(ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC, result -> addDepButton.setVisible(shouldShowAddDepButton()));
   }
 
   private boolean shouldShowAddDepButton() {
@@ -160,7 +156,18 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
                        "<td>License</td>\n" +
                        "<td>" + modelData.getModelLicense() + "</td>\n" +
                        "</tr>\n" +
-                       "</table>";
+                       "</table>\n";
+
+    JTextPane modelPane = new JTextPane();
+    modelPane.setAlignmentX(Component.LEFT_ALIGNMENT);
+    setHtml(modelPane, modelHtml);
+    contentPanel.add(modelPane);
+  }
+
+  private static void addSampleCodeSection(@NotNull JPanel contentPanel, @NotNull PsiClass modelClass) {
+    // TODO(b/148866418): make table collapsible.
+    String modelHtml = "<h2>Sample Code</h2>\n" +
+                       "<code>" + buildSampleCode(modelClass) + "</code>";
 
     JTextPane modelPane = new JTextPane();
     modelPane.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -174,6 +181,49 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     pane.setEditable(false);
     pane.setText(html);
     pane.setBackground(UIUtil.getTextFieldBackground());
+  }
+
+  @NotNull
+  private static String buildSampleCode(@NotNull PsiClass modelClass) {
+    StringBuilder stringBuilder = new StringBuilder();
+    String modelClassName = modelClass.getName();
+    stringBuilder.append(String.format("%s model = new %s(context);<br>", modelClassName, modelClassName));
+    stringBuilder.append(String.format("%s.%s inputs = model.createInputs();<br>", modelClassName, MlkitNames.INPUTS));
+
+    PsiClass inputsClass = getInnerClass(modelClass, MlkitNames.INPUTS);
+    if (inputsClass != null) {
+      for (PsiMethod psiMethod : inputsClass.getMethods()) {
+        stringBuilder.append(String.format("inputs.%s(/* parameter */);<br>", psiMethod.getName()));
+      }
+    }
+
+    stringBuilder.append(String.format("<br>%s.%s outputs = model.run(inputs);<br><br>", modelClassName, MlkitNames.OUTPUTS));
+
+    int index = 1;
+    PsiClass outputsClass = getInnerClass(modelClass, MlkitNames.OUTPUTS);
+    if (outputsClass != null) {
+      for (PsiMethod psiMethod : outputsClass.getMethods()) {
+        // Convert html escape characters.
+        String returnType = psiMethod.getReturnType().getPresentableText()
+          .replace("<", "&lt;")
+          .replace(">", "&gt;");
+        stringBuilder.append(
+          String.format("%s %s = outputs.%s();<br>", returnType, "data" + index, psiMethod.getName()));
+        index++;
+      }
+    }
+
+    return stringBuilder.toString();
+  }
+
+  @Nullable
+  private static PsiClass getInnerClass(@NotNull PsiClass modelClass, @NotNull String innerClassName) {
+    for (PsiClass innerClass : modelClass.getInnerClasses()) {
+      if (innerClassName.equals(innerClass.getName())) {
+        return innerClass;
+      }
+    }
+    return null;
   }
 
   @NotNull
