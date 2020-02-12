@@ -49,12 +49,12 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
         java.lang.String myString;
       }
       """.trimIndent())
-    var fieldName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassMember::class)!!
+    var fieldName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8ClassMember>()!!
     assertThat(fieldName.type).isNotNull()
     assertThat(fieldName.type!!.matchesPsiType(PsiPrimitiveType.INT)).isTrue()
 
     myFixture.moveCaret("my|String")
-    fieldName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassMember::class)!!
+    fieldName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8ClassMember>()!!
     assertThat(fieldName.type).isNotNull()
 
     val realType = myFixture.findClass("test.MyClass").findFieldByName("myString", false)!!.type

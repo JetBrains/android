@@ -34,7 +34,7 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
   }
 
   private fun getTypeUnderCaret() =
-    myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassMember::class)!!.type
+    myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8ClassMember>()!!.type
 
   fun testResolvePsiClassFromQualifiedName() {
     myFixture.addClass(
@@ -51,7 +51,7 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
       -keep class test.MyClas${caret}s {}
       """.trimIndent())
 
-    val qName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8QualifiedName::class)
+    val qName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8QualifiedName>()
 
     assertThat(qName).isNotNull()
     assertThat(qName!!.resolveToPsiClass()).isEqualTo(myFixture.findClass("test.MyClass"))
@@ -74,7 +74,7 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
       ProguardR8FileType.INSTANCE,
       " -keep class test.MyClass\$Inner\$Second${caret}Inner {}"
     )
-    val qName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8QualifiedName::class)!!
+    val qName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8QualifiedName>()!!
 
     assertThat(qName.resolveToPsiClass()).isEqualTo(myFixture.findClass("test.MyClass.Inner.SecondInner"))
   }
@@ -95,7 +95,7 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
       ProguardR8FileType.INSTANCE,
       " -keep class test.MyClass.${caret}Inner {}"
     )
-    val qName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8QualifiedName::class)!!
+    val qName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8QualifiedName>()!!
 
     assertThat(qName.resolveToPsiClass()).isNull()
   }
@@ -116,7 +116,7 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
       -keep class "test.MyClas${caret}s" {}
       """.trimIndent())
 
-    var qName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8QualifiedName::class)
+    var qName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8QualifiedName>()
 
     assertThat(qName).isNotNull()
     assertThat(qName!!.resolveToPsiClass()).isEqualTo(myFixture.findClass("test.MyClass"))
@@ -128,7 +128,7 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
       -keep class 'test.MyClas${caret}s' {}
       """.trimIndent())
 
-    qName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8QualifiedName::class)
+    qName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8QualifiedName>()
 
     assertThat(qName).isNotNull()
     assertThat(qName!!.resolveToPsiClass()).isEqualTo(myFixture.findClass("test.MyClass"))
@@ -140,7 +140,7 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
       -keep class "test.MyClas${caret}s
       """.trimIndent())
 
-    qName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8QualifiedName::class)
+    qName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8QualifiedName>()
 
     assertThat(qName).isNotNull()
     assertThat(qName!!.resolveToPsiClass()).isEqualTo(myFixture.findClass("test.MyClass"))
@@ -152,7 +152,7 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
       -keep class test.MyClas${caret}s' {}
       """.trimIndent())
 
-    qName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8QualifiedName::class)
+    qName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8QualifiedName>()
 
     assertThat(qName).isNotNull()
     assertThat(qName!!.resolveToPsiClass()).isEqualTo(myFixture.findClass("test.MyClass"))
@@ -179,7 +179,7 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
       }
       """.trimIndent())
 
-    var type = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8Type::class)
+    var type = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8Type>()
     assertThat(type).isNotNull()
     val arrayStringType = JavaPsiFacade.getElementFactory(project).createTypeFromText("java.lang.String[]", null)
     assertThat(type!!.matchesPsiType(arrayStringType)).isTrue()
@@ -189,7 +189,7 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
     assertThat(type.matchesPsiType(listType)).isFalse()
 
     myFixture.moveCaret("Li|st")
-    type = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8Type::class)!!
+    type = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8Type>()!!
     assertThat(type.matchesPsiType(listType)).isTrue()
   }
 
@@ -204,14 +204,14 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
       }
       """.trimIndent())
 
-    var primitiveType = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8JavaPrimitive::class)
+    var primitiveType = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8JavaPrimitive>()
 
     assertThat(primitiveType).isNotNull()
     assertThat(primitiveType!!.psiPrimitive).isEqualTo(PsiPrimitiveType.INT)
 
     myFixture.moveCaret("by|te")
 
-    primitiveType = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8JavaPrimitive::class)
+    primitiveType = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8JavaPrimitive>()
 
     assertThat(primitiveType).isNotNull()
     assertThat(primitiveType!!.psiPrimitive).isEqualTo(PsiPrimitiveType.BYTE)
@@ -229,23 +229,23 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
       }
       """.trimIndent())
 
-    var type = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8Type::class)!!
+    var type = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8Type>()!!
     assertThat(type.matchesPsiType(PsiPrimitiveType.BOOLEAN)).isTrue()
 
     myFixture.moveCaret("Str|ing")
-    type = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8Type::class)!!
+    type = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8Type>()!!
     val stringType = JavaPsiFacade.getElementFactory(project).createTypeFromText("java.lang.String", null)
     assertThat(type.matchesPsiType(stringType)).isTrue()
 
     myFixture.moveCaret("%|")
-    type = myFixture.file.findElementAt(myFixture.caretOffset - 1)!!.parentOfType(ProguardR8Type::class)!!
+    type = myFixture.file.findElementAt(myFixture.caretOffset - 1)!!.parentOfType<ProguardR8Type>()!!
     // String is NOT primitive
     assertThat(type.matchesPsiType(stringType)).isFalse()
     assertThat(type.matchesPsiType(PsiPrimitiveType.LONG)).isTrue()
     assertThat(type.matchesPsiType(PsiPrimitiveType.VOID)).isFalse()
 
     myFixture.moveCaret("*|**")
-    type = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8Type::class)!!
+    type = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8Type>()!!
     assertThat(type.matchesPsiType(stringType)).isTrue()
     assertThat(type.matchesPsiType(PsiPrimitiveType.LONG)).isTrue()
   }
@@ -264,19 +264,19 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
     )
 
     myFixture.moveCaret("myMethod(..|.)")
-    var parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8Parameters::class)!!
+    var parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8Parameters>()!!
     assertThat(parameters.isAcceptAnyParameters).isTrue()
 
     myFixture.moveCaret("myMethod(int, ..|.)")
-    parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8Parameters::class)!!
+    parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8Parameters>()!!
     assertThat(parameters.isAcceptAnyParameters).isFalse()
 
     myFixture.moveCaret("myMethod(..|., int)")
-    parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8Parameters::class)!!
+    parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8Parameters>()!!
     assertThat(parameters.isAcceptAnyParameters).isFalse()
 
     myFixture.moveCaret("myMethod(int, ..|., int)")
-    parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8Parameters::class)!!
+    parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8Parameters>()!!
     assertThat(parameters.isAcceptAnyParameters).isFalse()
   }
 
@@ -302,7 +302,7 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
       """.trimIndent())
 
     myFixture.moveCaret("myMethod(i|nt)")
-    var parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8Parameters::class)!!
+    var parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8Parameters>()!!
     // (int) == (int)
     var psiParameters = createParameterList(intFQ)
     assertThat(parameters.matchesPsiParameterList(psiParameters)).isTrue()
@@ -320,7 +320,7 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
     assertThat(parameters.matchesPsiParameterList(psiParameters)).isFalse()
 
     myFixture.moveCaret("myMethod(i|nt, java.lang.String)")
-    parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8Parameters::class)!!
+    parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8Parameters>()!!
     // (int, String) == (int, String)
     psiParameters = createParameterList(intFQ, stringFQ)
     assertThat(parameters.matchesPsiParameterList(psiParameters)).isTrue()
@@ -339,7 +339,7 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
     assertThat(parameters.matchesPsiParameterList(psiParameters)).isFalse()
 
     myFixture.moveCaret("myMethod(i|nt[], java.lang.String[])")
-    parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8Parameters::class)!!
+    parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8Parameters>()!!
     // (int[], String[]) == (int[], String[])
     psiParameters = createParameterList("${intFQ}[]", "${stringFQ}[]")
     assertThat(parameters.matchesPsiParameterList(psiParameters)).isTrue()
@@ -351,7 +351,7 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
     assertThat(parameters.matchesPsiParameterList(psiParameters)).isFalse()
 
     myFixture.moveCaret("myMethod(**|*, java.lang.String)")
-    parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8Parameters::class)!!
+    parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8Parameters>()!!
     // (***, String) == (String, String)
     psiParameters = createParameterList(stringFQ, stringFQ)
     assertThat(parameters.matchesPsiParameterList(psiParameters)).isTrue()
@@ -366,7 +366,7 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
     assertThat(parameters.matchesPsiParameterList(psiParameters)).isFalse()
 
     myFixture.moveCaret("myMethod(%, java.lan|g.String, %)")
-    parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8Parameters::class)!!
+    parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8Parameters>()!!
     // (%, String, %) == (int, String, boolean)
     psiParameters = createParameterList(
       intFQ, stringFQ, PsiPrimitiveType.BOOLEAN.name)
@@ -381,7 +381,7 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
     assertThat(parameters.matchesPsiParameterList(psiParameters)).isFalse()
 
     myFixture.moveCaret("myMethod(..|.)")
-    parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8Parameters::class)!!
+    parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8Parameters>()!!
     // (...) == (int)
     psiParameters = createParameterList(intFQ)
     assertThat(parameters.matchesPsiParameterList(psiParameters)).isTrue()
@@ -394,7 +394,7 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
     assertThat(parameters.matchesPsiParameterList(psiParameters)).isTrue()
 
     myFixture.moveCaret("myMethod(int, ..|.)")
-    parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8Parameters::class)!!
+    parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8Parameters>()!!
     // (int, ...) == (int)
     psiParameters = createParameterList(intFQ)
     assertThat(parameters.matchesPsiParameterList(psiParameters)).isTrue()
@@ -410,7 +410,7 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
     assertThat(parameters.matchesPsiParameterList(psiParameters)).isFalse()
 
     myFixture.moveCaret("myMethod(..|., int)")
-    parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8Parameters::class)!!
+    parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8Parameters>()!!
     // (..., int) != (int)
     psiParameters = createParameterList(intFQ)
     assertThat(parameters.matchesPsiParameterList(psiParameters)).isFalse()
@@ -422,7 +422,7 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
     assertThat(parameters.matchesPsiParameterList(psiParameters)).isFalse()
 
     myFixture.moveCaret("myMethod(wildca|rd**)")
-    parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8Parameters::class)!!
+    parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8Parameters>()!!
     // (wildcard**) != (int)
     psiParameters = createParameterList(intFQ)
     assertThat(parameters.matchesPsiParameterList(psiParameters)).isFalse()
@@ -451,7 +451,7 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
     )
 
     myFixture.moveCaret("myMethod(p1.p2.MyTyp|e)")
-    val parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8Parameters::class)!!
+    val parameters = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8Parameters>()!!
 
     val psiParameters = createParameterList("p1.p2.MyType")
     assertThat(parameters.matchesPsiParameterList(psiParameters)).isTrue()
@@ -476,7 +476,7 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
           -keep class $caret p1.p2.MyClass
       """.trimIndent())
 
-    var header = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassSpecificationHeader::class)!!
+    var header = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8ClassSpecificationHeader>()!!
     assertThat(header.resolvePsiClasses()).containsExactly(myClass)
 
     myFixture.configureByText(
@@ -485,7 +485,7 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
           -keep class $caret * implements p1.p2.MyClass
       """.trimIndent()
     )
-    header = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassSpecificationHeader::class)!!
+    header = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8ClassSpecificationHeader>()!!
     assertThat(header.resolveSuperPsiClasses()).containsExactly(myClass)
 
     myFixture.configureByText(
@@ -494,7 +494,7 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
           -keep class $caret p1.p2.MyClass extends p1.p2.MySuperClass
       """.trimIndent()
     )
-    header = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassSpecificationHeader::class)!!
+    header = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8ClassSpecificationHeader>()!!
     assertThat(header.resolvePsiClasses() + header.resolveSuperPsiClasses()).containsExactly(myClass, superClass)
   }
 
@@ -522,7 +522,7 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
       """.trimIndent()
     )
 
-    val header = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassSpecificationHeader::class)!!
+    val header = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8ClassSpecificationHeader>()!!
     assertThat(header.resolvePsiClasses()).containsExactly(class1, class2)
     assertThat(header.resolvePsiClasses().map { it.qualifiedName }).containsExactly("p1.p2.MyClass1", "p1.p2.MyClass2")
   }
@@ -588,7 +588,7 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
   }
 
   fun testGetParameters() {
-    fun getParameters() = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassMember::class)!!.parameters
+    fun getParameters() = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8ClassMember>()!!.parameters
 
     myFixture.configureByText(
       ProguardR8FileType.INSTANCE,
@@ -624,15 +624,15 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
     )
 
     myFixture.moveCaret("No|Wildcard")
-    var classMemberName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassMemberName::class)!!
+    var classMemberName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8ClassMemberName>()!!
     assertThat(classMemberName.containsWildcards()).isFalse()
 
     myFixture.moveCaret("|*")
-    classMemberName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassMemberName::class)!!
+    classMemberName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8ClassMemberName>()!!
     assertThat(classMemberName.containsWildcards()).isTrue()
 
     myFixture.moveCaret("**w|ildcard")
-    classMemberName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassMemberName::class)!!
+    classMemberName = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8ClassMemberName>()!!
     assertThat(classMemberName.containsWildcards()).isTrue()
   }
 
@@ -650,19 +650,19 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
     """.trimIndent()
     )
 
-    var accessModifier = myFixture.moveCaret("publ|ic int field1").parentOfType(ProguardR8Modifier::class)!!
+    var accessModifier = myFixture.moveCaret("publ|ic int field1").parentOfType<ProguardR8Modifier>()!!
     assertThat(accessModifier.isNegated).isFalse()
 
-    accessModifier = myFixture.moveCaret("stat|ic int field1").parentOfType(ProguardR8Modifier::class)!!
+    accessModifier = myFixture.moveCaret("stat|ic int field1").parentOfType<ProguardR8Modifier>()!!
     assertThat(accessModifier.isNegated).isFalse()
 
-    accessModifier = myFixture.moveCaret("!publ|ic int field2").parentOfType(ProguardR8Modifier::class)!!
+    accessModifier = myFixture.moveCaret("!publ|ic int field2").parentOfType<ProguardR8Modifier>()!!
     assertThat(accessModifier.isNegated).isTrue()
 
-    accessModifier = myFixture.moveCaret("! publ|ic int field3").parentOfType(ProguardR8Modifier::class)!!
+    accessModifier = myFixture.moveCaret("! publ|ic int field3").parentOfType<ProguardR8Modifier>()!!
     assertThat(accessModifier.isNegated).isTrue()
 
-    accessModifier = myFixture.moveCaret("! fi|nal int field3").parentOfType(ProguardR8Modifier::class)!!
+    accessModifier = myFixture.moveCaret("! fi|nal int field3").parentOfType<ProguardR8Modifier>()!!
     assertThat(accessModifier.isNegated).isTrue()
   }
 

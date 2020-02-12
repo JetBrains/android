@@ -110,7 +110,7 @@ class XmlAttributeNameGotoDeclarationHandlerTest : AndroidTestCase() {
       fun createDeclarationDescription(element: PsiElement): DeclarationDescription {
         return DeclarationDescription(
           element.containingFile.parent!!.name + "/" + element.containingFile.name,
-          element.parentOfType(XmlTag::class)?.text ?: "")
+          element.parentOfType<XmlTag>()?.text ?: "")
       }
     }
   }

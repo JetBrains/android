@@ -33,7 +33,7 @@ import org.junit.Assert
 class ProguardR8MethodTest : ProguardR8TestCase() {
 
   private fun getMethodsAtCaret(): List<PsiMethod> {
-    val proguardMethod = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassMemberName::class)
+    val proguardMethod = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8ClassMemberName>()
     assertThat(proguardMethod).isNotNull()
     return (proguardMethod!!.reference!!.resolveReference() as Collection<ResolveResult>).map { it.element as PsiMethod }
   }
@@ -59,12 +59,12 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
       }
       """.trimIndent())
 
-    var method = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassMember::class)!!
+    var method = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8ClassMember>()!!
     assertThat(method.type).isNotNull()
     assertThat(method.type!!.matchesPsiType(PsiPrimitiveType.INT)).isTrue()
 
     myFixture.moveCaret("my|String")
-    method = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassMember::class)!!
+    method = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8ClassMember>()!!
     assertThat(method.type).isNotNull()
 
     val realType = myFixture.findClass("test.MyClass").findMethodsByName("myString", false).first().returnType!!
@@ -97,12 +97,12 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     val parameterList2 = psiClass.findMethodsByName("method2", false).first().parameterList
 
 
-    val method1 = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassMember::class)!!
+    val method1 = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8ClassMember>()!!
     assertThat(method1.parameters!!.matchesPsiParameterList(parameterList1)).isTrue()
     assertThat(method1.parameters!!.matchesPsiParameterList(parameterList2)).isFalse()
 
     myFixture.moveCaret("m|ethod2")
-    val method2 = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassMember::class)!!
+    val method2 = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8ClassMember>()!!
     assertThat(method2.parameters!!.matchesPsiParameterList(parameterList2)).isTrue()
     assertThat(method2.parameters!!.matchesPsiParameterList(parameterList1)).isFalse()
   }

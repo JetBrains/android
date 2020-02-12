@@ -50,23 +50,23 @@ class ProguardR8ClassMemberTest : ProguardR8TestCase() {
     )
 
     myFixture.moveCaret("My|Class()")
-    var member = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassMember::class)!!
+    var member = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8ClassMember>()!!
     assertThat(member.isConstructor()).isTrue()
 
     myFixture.moveCaret("p1.p2.My|Class()")
-    member = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassMember::class)!!
+    member = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8ClassMember>()!!
     assertThat(member.isConstructor()).isTrue()
 
     myFixture.moveCaret("NotMy|Class")
-    member = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassMember::class)!!
+    member = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8ClassMember>()!!
     assertThat(member.isConstructor()).isFalse()
 
     myFixture.moveCaret("p1.p2.NotMy|Class")
-    member = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassMember::class)!!
+    member = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8ClassMember>()!!
     assertThat(member.isConstructor()).isFalse()
 
     myFixture.moveCaret("p3.My|Class()")
-    member = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType(ProguardR8ClassMember::class)!!
+    member = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<ProguardR8ClassMember>()!!
     assertThat(member.isConstructor()).isFalse()
   }
 

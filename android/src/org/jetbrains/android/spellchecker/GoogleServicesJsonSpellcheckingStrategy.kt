@@ -38,7 +38,7 @@ class GoogleServicesJsonSpellcheckingStrategy : SpellcheckingStrategy() {
     return if (element is JsonStringLiteral) {
       object : Tokenizer<JsonStringLiteral>() {
         override fun tokenize(element: JsonStringLiteral, consumer: TokenConsumer) {
-          val property = element.parentOfType(JsonProperty::class) ?: return consumer.consumeToken(element, PlainTextSplitter.getInstance())
+          val property = element.parentOfType<JsonProperty>() ?: return consumer.consumeToken(element, PlainTextSplitter.getInstance())
           val name = (property.nameElement as? JsonStringLiteral)?.value ?: return
           if (IGNORE_SUFFIX.none { name.endsWith(it) }) {
             consumer.consumeToken(element, PlainTextSplitter.getInstance())
