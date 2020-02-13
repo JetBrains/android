@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.util
 
-import com.android.tools.idea.gradle.util.DynamicAppUtils.getOutputFileOrFolderFromListingFile
 import com.android.utils.FileUtils.writeToFile
 import com.intellij.testFramework.rules.TempDirectory
 import junit.framework.TestCase.assertEquals
@@ -25,9 +24,9 @@ import org.junit.Test
 import java.io.File
 
 /**
- * Tests for [DynamicAppUtils]
+ * Tests for GradleBuildOutputUtil.kt
  */
-class DynamicAppUtilsTest {
+class GradleBuildOutputFileUtilTest {
   @get:Rule
   val tempDir = TempDirectory()
 

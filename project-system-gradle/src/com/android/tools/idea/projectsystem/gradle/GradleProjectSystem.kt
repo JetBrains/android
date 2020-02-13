@@ -21,7 +21,8 @@ import com.android.tools.apk.analyzer.AaptInvoker
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModelHandler
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.gradle.util.DynamicAppUtils.getOutputFileOrFolderFromListingFile
+import com.android.tools.idea.gradle.util.OutputType
+import com.android.tools.idea.gradle.util.getOutputFileOrFolderFromListingFile
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.model.AndroidManifestIndex
 import com.android.tools.idea.model.logManifestIndexQueryError
@@ -84,7 +85,7 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
       .flatMap { androidModel ->
         @Suppress("DEPRECATION")
         if (androidModel.features.isBuildOutputFileSupported) {
-          sequenceOf(getOutputFileOrFolderFromListingFile(androidModel.selectedVariant.mainArtifact.assembleTaskOutputListingFile))
+          sequenceOf(getOutputFileOrFolderFromListingFile(androidModel, androidModel.selectedVariant.name, OutputType.Apk, false))
         }
         else {
           androidModel.selectedVariant.mainArtifact.outputs.asSequence().map { it.mainOutputFile.outputFile }
