@@ -29,9 +29,12 @@ import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.OSProcessHandler
+import com.intellij.execution.process.ProcessAdapter
+import com.intellij.execution.process.ProcessEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.SystemInfo.isWindows
 import com.intellij.util.net.NetUtils
 import io.grpc.ManagedChannel
@@ -279,6 +282,24 @@ private class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
     client = SkiaParserServiceGrpc.newBlockingStub(channel)
 
     handler = OSProcessHandler(GeneralCommandLine(realPath.absolutePath, localPort.toString()))
+    handler!!.addProcessListener(object : ProcessAdapter() {
+      override fun processTerminated(event: ProcessEvent) {
+        if (event.exitCode != 0) {
+          Logger.getInstance(SkiaParser::class.java).error("SkiaServer terminated exitCode: ${event.exitCode}  text: ${event.text}")
+        }
+        else {
+          Logger.getInstance(SkiaParser::class.java).info("SkiaServer terminated successfully")
+        }
+      }
+
+      override fun processWillTerminate(event: ProcessEvent, willBeDestroyed: Boolean) {
+        Logger.getInstance(SkiaParser::class.java).debug("SkiaServer willTerminate")
+      }
+
+      override fun onTextAvailable(event: ProcessEvent, outputType: Key<*>) {
+        Logger.getInstance(SkiaParser::class.java).info("SkiaServer Message: ${event.text}")
+      }
+    })
     handler?.startNotify()
   }
 
