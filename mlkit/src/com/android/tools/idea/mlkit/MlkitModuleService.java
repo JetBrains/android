@@ -52,8 +52,6 @@ public class MlkitModuleService {
   private final Module myModule;
   private final ModelFileModificationTracker myModelFileModificationTracker;
   private final Map<MlModelMetadata, LightModelClass> myLightModelClassMap = new ConcurrentHashMap<>();
-  //TODO(jackqdyulei): consider remove it and use local value.
-  private MlModelMetadata myMetadata;
 
   public static MlkitModuleService getInstance(@NotNull Module module) {
     return Objects.requireNonNull(ModuleServiceManager.getService(module, MlkitModuleService.class));
@@ -91,19 +89,22 @@ public class MlkitModuleService {
     }
 
     return CachedValuesManager.getManager(myModule.getProject()).getCachedValue(myModule, () -> {
-      List<PsiClass> lightModelClassList = new ArrayList<>();
+      List<MlModelMetadata> modelMetadataList = new ArrayList<>();
       FileBasedIndex index = FileBasedIndex.getInstance();
       index.processAllKeys(MlModelFileIndex.INDEX_ID, key -> {
         index.processValues(MlModelFileIndex.INDEX_ID, key, null, (file, value) -> {
-          myMetadata = value;
+          if (value.isValidModel()) {
+            modelMetadataList.add(value);
+          }
           return true;
         }, myModule.getModuleScope(false));
 
         return true;
       }, myModule.getModuleScope(false), null);
 
-      if (myMetadata != null && myMetadata.isValidModel()) {
-        LightModelClass lightModelClass = getOrCreateLightModelClass(myMetadata);
+      List<PsiClass> lightModelClassList = new ArrayList<>();
+      for (MlModelMetadata modelMetadata : modelMetadataList) {
+        LightModelClass lightModelClass = getOrCreateLightModelClass(modelMetadata);
         if (lightModelClass != null) {
           lightModelClassList.add(lightModelClass);
         }
