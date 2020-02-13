@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.framework.fixture.designer
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.common.editor.SplitEditor
 import com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing
+import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.WorkBenchLoadingPanelFixture
@@ -25,8 +26,10 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlDesi
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.google.common.base.Preconditions.checkState
+import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
+import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.core.Robot
 import org.fest.swing.edt.GuiQuery
 import org.fest.swing.timing.Pause
@@ -65,6 +68,16 @@ class SplitEditorFixture(val robot: Robot, val editor: SplitEditor<out FileEdito
 
   fun hasRenderErrors() = designSurface.hasRenderErrors()
 
+
+  fun findActionButtonByText(text: String): ActionButtonFixture {
+    val button = waitUntilShowing(
+      robot(), target(), object : GenericTypeMatcher<ActionButton>(ActionButton::class.java) {
+      override fun isMatching(component: ActionButton): Boolean {
+        return text == component.action.templateText
+      }
+    })
+    return ActionButtonFixture(robot(), button)
+  }
 }
 
 /**

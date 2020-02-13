@@ -32,6 +32,7 @@ import junit.framework.TestCase.assertFalse
 import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.fixture.JPopupMenuFixture
 import org.fest.swing.timing.Wait
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -40,6 +41,7 @@ import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
 import java.awt.datatransfer.UnsupportedFlavorException
+import java.awt.event.KeyEvent
 import java.util.concurrent.TimeUnit
 import javax.swing.JMenuItem
 
@@ -183,6 +185,51 @@ class ComposePreviewTest {
     composePreview
       .designSurface
       .waitUntilNotShowing(Wait.seconds(10));
+
+    editor.close()
+  }
+
+  @Test
+  @RunIn(TestGroup.UNRELIABLE) // b/149464527
+  @Throws(Exception::class)
+  fun testAddAdditionalPreview() {
+    val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
+    val composePreview = openComposePreview(fixture)
+
+    composePreview
+      .waitForRenderToFinish()
+      .getNotificationsFixture()
+      .assertNoNotifications()
+
+    assertFalse(composePreview.hasRenderErrors())
+    assertEquals(1, composePreview.designSurface.allSceneViews.count())
+
+    val editor = fixture.editor
+    editor.invokeAction(EditorFixture.EditorAction.TEXT_END)
+      .pressAndReleaseKeys(KeyEvent.VK_ENTER)
+      // The closing braces are not needed since they are added by the editor automatically
+      .typeText("""
+        @Preview(name = "Second")
+        @Composable
+        fun SecondPreview() {
+          MaterialTheme {
+            Text(text = "A second preview")
+      """.trimIndent())
+
+    composePreview
+      .getNotificationsFixture()
+      .waitForNotificationContains("out of date")
+
+    composePreview
+      .findActionButtonByText("Build  Refresh")
+      .waitUntilEnabledAndShowing()
+      .click()
+
+    fixture.waitForBuildToFinish(BuildMode.ASSEMBLE)
+    composePreview.waitForRenderToFinish()
+
+    // Check the new preview has been added
+    assertEquals(2, composePreview.designSurface.allSceneViews.count())
 
     editor.close()
   }

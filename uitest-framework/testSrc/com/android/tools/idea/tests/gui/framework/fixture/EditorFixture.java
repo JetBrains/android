@@ -276,6 +276,14 @@ public class EditorFixture {
     return this;
   }
 
+  @NotNull
+  public EditorFixture pressAndReleaseKeys(@NotNull int keys) {
+    getFocusedEditor();
+    robot.pressAndReleaseKeys(keys);
+
+    return this;
+  }
+
   /**
    * Requests focus in the editor, waits and returns editor component.
    */
@@ -978,6 +986,7 @@ public class EditorFixture {
     TOGGLE_LINE_BREAKPOINT("ToggleLineBreakpoint"),
     UNDO("$Undo"),
     CLOSE_ALL("CloseAllEditors"),
+    TEXT_END("EditorTextEnd")
     ;
 
     /** The {@code id} of an action mapped to a keyboard shortcut in, for example, {@code $default.xml}. */
