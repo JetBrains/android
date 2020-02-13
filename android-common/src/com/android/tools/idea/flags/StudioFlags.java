@@ -203,7 +203,8 @@ public final class StudioFlags {
     false);
   public static final Flag<Boolean> MLKIT_LIGHT_CLASSES = Flag.create(
     MLKIT, "lightclasses", "Enable light model classes generation",
-    "When enabled, light model classes will be generated for each recognized TFLite model file.",
+    "When enabled, light model classes will be generated for each recognized TFLite model file. Please invalidates file " +
+    "caches after enabling (File -> Invalidate Caches...) in order to reindex model files.",
     false);
   //endregion
 

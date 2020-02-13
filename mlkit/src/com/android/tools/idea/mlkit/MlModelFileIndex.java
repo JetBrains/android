@@ -47,7 +47,6 @@ public class MlModelFileIndex extends FileBasedIndexExtension<String, MlModelMet
       @NotNull
       @Override
       public Map<String, MlModelMetadata> map(@NotNull FileContent inputData) {
-        // TODO(b/146356789): consider doing the model extraction here instead of light class generation time.
         String fileUrl = inputData.getFile().getUrl();
         String className = MlkitUtils.computeModelClassName(fileUrl);
         Map<String, MlModelMetadata> map = new HashMap<>();
@@ -98,7 +97,7 @@ public class MlModelFileIndex extends FileBasedIndexExtension<String, MlModelMet
   @NotNull
   @Override
   public FileBasedIndex.InputFilter getInputFilter() {
-    return file -> StudioFlags.MLKIT_LIGHT_CLASSES.get() && MlkitUtils.isMlModelFileInAssetsFolder(file);
+    return file -> StudioFlags.MLKIT_LIGHT_CLASSES.get() && file.getFileType() == TfliteModelFileType.INSTANCE;
   }
 
   @Override

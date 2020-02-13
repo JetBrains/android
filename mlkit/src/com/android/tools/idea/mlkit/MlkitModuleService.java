@@ -31,6 +31,7 @@ import com.intellij.openapi.vfs.newvfs.BulkFileListener;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiManager;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.util.indexing.FileBasedIndex;
@@ -90,6 +91,7 @@ public class MlkitModuleService {
 
     return CachedValuesManager.getManager(myModule.getProject()).getCachedValue(myModule, () -> {
       List<MlModelMetadata> modelMetadataList = new ArrayList<>();
+      GlobalSearchScope searchScope = MlModelFilesSearchScope.inModule(myModule);
       FileBasedIndex index = FileBasedIndex.getInstance();
       index.processAllKeys(MlModelFileIndex.INDEX_ID, key -> {
         index.processValues(MlModelFileIndex.INDEX_ID, key, null, (file, value) -> {
@@ -97,10 +99,10 @@ public class MlkitModuleService {
             modelMetadataList.add(value);
           }
           return true;
-        }, myModule.getModuleScope(false));
+        }, searchScope);
 
         return true;
-      }, myModule.getModuleScope(false), null);
+      }, searchScope, null);
 
       List<PsiClass> lightModelClassList = new ArrayList<>();
       for (MlModelMetadata modelMetadata : modelMetadataList) {
