@@ -17,6 +17,7 @@ package com.android.tools.idea.assistant.view;
 
 
 import com.android.tools.idea.assistant.AssistActionHandler;
+import com.android.tools.idea.assistant.AssistNavListener;
 import com.android.tools.idea.assistant.datamodel.*;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -120,7 +121,14 @@ public class FeaturesPanel extends JPanel implements ItemListener, ActionListene
         myAnalyticsProvider.trackTutorialClosed(myOpenTutorial.getKey(), myOpenTutorial.getReadDuration(), myProject);
         myOpenTutorial = null;
       }
-      showCard(t.getKey());
+      String key = t.getKey();
+      showCard(key);
+      for (AssistNavListener navListener : AssistNavListener.EP_NAME.getExtensions()) {
+        if (key.startsWith(navListener.getIdPrefix())) {
+          navListener.onActionPerformed(key, e);
+          break;
+        }
+      }
     }
     else if (source instanceof StatefulButton.ActionButton) {
       StatefulButton.ActionButton a = (StatefulButton.ActionButton)e.getSource();
