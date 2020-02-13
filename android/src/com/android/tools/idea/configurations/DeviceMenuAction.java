@@ -256,7 +256,7 @@ public class DeviceMenuAction extends DropDownAction {
 
   private void addGenericDeviceSection(@NotNull List<Device> devices, @Nullable Device current) {
     if (!devices.isEmpty()) {
-      DefaultActionGroup genericGroup = new DefaultActionGroup("_Generic Phones and Tablets", true);
+      DefaultActionGroup genericGroup = DefaultActionGroup.createPopupGroup(() -> "_Generic Phones and Tablets");
       for (final Device device : devices) {
         String label = getLabel(device, isNexus(device));
         genericGroup.add(new SetDeviceAction(myRenderContext, label, device, null, current == device));

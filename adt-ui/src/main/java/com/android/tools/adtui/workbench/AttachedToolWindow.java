@@ -447,7 +447,7 @@ final class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
         group.addSeparator();
       }
     }
-    DefaultActionGroup attachedSide = new DefaultActionGroup("Attached Side", true);
+    DefaultActionGroup attachedSide = DefaultActionGroup.createPopupGroup(() -> "Attached Side");
     attachedSide.add(new TogglePropertyTypeAction(PropertyType.LEFT, "Left"));
     attachedSide.add(new ToggleOppositePropertyTypeAction(PropertyType.LEFT, "Right"));
     attachedSide.add(new SwapAction());
