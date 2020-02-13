@@ -40,6 +40,7 @@ public class DependenciesInfoModelTest extends GradleFileModelTestCase {
 
     DependenciesInfoModel dependenciesInfo = android.dependenciesInfo();
     assertEquals("includeInApk", Boolean.FALSE, dependenciesInfo.includeInApk());
+    assertEquals("includeInBundle", Boolean.TRUE, dependenciesInfo.includeInBundle());
   }
 
   @Test
@@ -49,12 +50,14 @@ public class DependenciesInfoModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesInfoModel dependenciesInfo = buildModel.android().dependenciesInfo();
     dependenciesInfo.includeInApk().setValue(true);
+    dependenciesInfo.includeInBundle().setValue(false);
 
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, DEPENDENCIES_INFO_MODEL_ADD_AND_APPLY_EXPECTED);
 
     dependenciesInfo = buildModel.android().dependenciesInfo();
     assertEquals("includeInApk", Boolean.TRUE, dependenciesInfo.includeInApk());
+    assertEquals("includeInBundle", Boolean.FALSE, dependenciesInfo.includeInBundle());
   }
 
   @Test
@@ -64,12 +67,14 @@ public class DependenciesInfoModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesInfoModel dependenciesInfo = buildModel.android().dependenciesInfo();
     dependenciesInfo.includeInApk().setValue(true);
+    dependenciesInfo.includeInBundle().setValue(false);
 
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, DEPENDENCIES_INFO_MODEL_EDIT_AND_APPLY_EXPECTED);
 
     dependenciesInfo = buildModel.android().dependenciesInfo();
     assertEquals("includeInApk", Boolean.TRUE, dependenciesInfo.includeInApk());
+    assertEquals("includeInBundle", Boolean.FALSE, dependenciesInfo.includeInBundle());
   }
 
   @Test
@@ -79,7 +84,9 @@ public class DependenciesInfoModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesInfoModel dependenciesInfo = buildModel.android().dependenciesInfo();
     assertEquals("includeInApk", Boolean.TRUE, dependenciesInfo.includeInApk());
+    assertEquals("includeInBundle", Boolean.FALSE, dependenciesInfo.includeInBundle());
     dependenciesInfo.includeInApk().delete();
+    dependenciesInfo.includeInBundle().delete();
 
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, DEPENDENCIES_INFO_MODEL_REMOVE_AND_APPLY_EXPECTED);

@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.parser.android;
 
 import static com.android.tools.idea.gradle.dsl.model.android.DependenciesInfoModelImpl.INCLUDE_IN_APK;
+import static com.android.tools.idea.gradle.dsl.model.android.DependenciesInfoModelImpl.INCLUDE_IN_BUNDLE;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
@@ -40,12 +41,15 @@ public class DependenciesInfoDslElement extends GradleDslBlockElement {
 
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelMap = Stream.of(new Object[][]{
-    {"includeInApk", property, INCLUDE_IN_APK, VAR}
+    {"includeInApk", property, INCLUDE_IN_APK, VAR},
+    {"includeInBundle", property, INCLUDE_IN_BUNDLE, VAR}
   }).collect(toModelMap());
 
   public static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> groovyToModelMap = Stream.of(new Object[][] {
     {"includeInApk", property, INCLUDE_IN_APK, VAR},
-    {"includeInApk", exactly(1), INCLUDE_IN_APK, SET}
+    {"includeInApk", exactly(1), INCLUDE_IN_APK, SET},
+    {"includeInBundle", property, INCLUDE_IN_BUNDLE, VAR},
+    {"includeInBundle", exactly(1), INCLUDE_IN_BUNDLE, SET}
   }).collect(toModelMap());
 
   @NotNull

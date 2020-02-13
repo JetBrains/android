@@ -49,14 +49,14 @@ class AndroidModuleRootConfigurable(
 }
 
 // TODO(b/142099752): this could be a general mechanism attached to the descriptors
-private fun includeDependenciesInfoInApkPresent(context: PsContext, module: PsAndroidModule) =
+private fun dependenciesInfoPresent(context: PsContext, module: PsAndroidModule) =
   module.projectType == PsModuleType.ANDROID_APP &&
   context.project.androidGradlePluginVersion.maybeValue
     ?.let { GradleVersion.tryParse(it) }?.isAtLeastIncludingPreviews(4, 0, 0) ?: false
 
 fun androidModulePropertiesModel(context: PsContext, module: PsAndroidModule) =
   PropertiesUiModel(
-    listOfNotNull(
+    listOf(
       uiProperty(AndroidModuleDescriptors.compileSdkVersion, ::simplePropertyEditor,
                  PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULE_PROPERTIES_COMPILE_SDK_VERSION),
       uiProperty(AndroidModuleDescriptors.buildToolsVersion, ::simplePropertyEditor,
@@ -64,16 +64,17 @@ fun androidModulePropertiesModel(context: PsContext, module: PsAndroidModule) =
       uiProperty(AndroidModuleDescriptors.sourceCompatibility, ::simplePropertyEditor,
                  PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULE_PROPERTIES_SOURCE_COMPATIBILITY),
       uiProperty(AndroidModuleDescriptors.targetCompatibility, ::simplePropertyEditor,
-                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULE_PROPERTIES_TARGET_COMPATIBILITY),
-      when (includeDependenciesInfoInApkPresent(context, module)) {
-        true -> uiProperty(AndroidModuleDescriptors.includeDependenciesInfoInApk, ::simplePropertyEditor, null)
-        false -> null
-      }
+                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULE_PROPERTIES_TARGET_COMPATIBILITY)
       // TODO(b/142099752): Properly configure condition when it is available and enable.
       /*,
       uiProperty(AndroidModuleDescriptors.viewBindingEnabled, ::simplePropertyEditor,
                  null)*/
-    )
+    ) + when (dependenciesInfoPresent(context, module)) {
+      true -> listOf(
+        uiProperty(AndroidModuleDescriptors.includeDependenciesInfoInApk, ::simplePropertyEditor, null),
+        uiProperty(AndroidModuleDescriptors.includeDependenciesInfoInBundle, ::simplePropertyEditor, null))
+      false -> listOf()
+    }
   )
 
 
