@@ -44,7 +44,7 @@ public final class AndroidTestRunConfigurationType implements ConfigurationType 
     }
   };
 
-  private final ConfigurationFactory myFactory = new AndroidRunConfigurationType.AndroidRunConfigurationFactory(this) {
+  private final ConfigurationFactory myFactory = new AndroidRunConfigurationType.AndroidRunConfigurationFactory(this, "Android Instrumented Tests") {
     @NotNull
     @Override
     public RunConfiguration createTemplateConfiguration(@NotNull Project project) {
