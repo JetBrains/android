@@ -389,6 +389,7 @@ class ResourceExplorerListViewModelImplTest {
     val facet = AndroidFacet.getInstance(module)!!
     return ResourceExplorerListViewModelImpl(
       facet,
+      null,
       resourceResolver,
       FilterOptions.createDefault(),
       resourceType,

@@ -186,6 +186,7 @@ class ResourceExplorerViewModel private constructor(
         Function { resourceResolver ->
           ResourceExplorerListViewModelImpl(
             facet,
+            contextFileForConfiguration,
             resourceResolver,
             filterOptions,
             supportedResourceTypes[resourceTypeIndex],
