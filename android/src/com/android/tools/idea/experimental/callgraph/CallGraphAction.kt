@@ -19,15 +19,12 @@ import com.android.tools.lint.detector.api.interprocedural.*
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.Multimap
 import com.intellij.analysis.AnalysisScope
+import com.intellij.ide.hierarchy.*
+import com.intellij.ide.hierarchy.actions.BrowseHierarchyActionBase
 import com.intellij.ide.hierarchy.HierarchyBrowser
 import com.intellij.ide.hierarchy.HierarchyProvider
 import com.intellij.ide.hierarchy.JavaHierarchyUtil
 import com.intellij.ide.hierarchy.call.CallHierarchyNodeDescriptor
-import com.intellij.ide.hierarchy.newAPI.CallHierarchyBrowserBase
-import com.intellij.ide.hierarchy.newAPI.HierarchyNodeDescriptor
-import com.intellij.ide.hierarchy.newAPI.HierarchyScopeType
-import com.intellij.ide.hierarchy.newAPI.HierarchyTreeStructure
-import com.intellij.ide.hierarchy.newAPI.actions.BrowseHierarchyActionBase
 import com.intellij.ide.util.treeView.NodeDescriptor
 import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.application.ApplicationManager
@@ -70,7 +67,7 @@ class ContextualCallPathTreeStructure(
     element: PsiElement,
     private val reverseEdges: Boolean
 ) :
-  HierarchyTreeStructure(
+    HierarchyTreeStructure(
         project,
         CallHierarchyNodeDescriptor(project, null, element, true, false)) {
 
@@ -110,12 +107,12 @@ open class ContextualCallPathBrowser(
     element: PsiElement
 ) : CallHierarchyBrowserBase(project, element) {
 
-  override fun createHierarchyTreeStructure(kind: HierarchyScopeType, psiElement: PsiElement): HierarchyTreeStructure {
+  override fun createHierarchyTreeStructure(kind: String, psiElement: PsiElement): HierarchyTreeStructure {
     val reverseEdges = kind == getCallerType()
     return ContextualCallPathTreeStructure(myProject, graph, psiElement, reverseEdges)
   }
 
-  override fun createTrees(typeToTreeMap: MutableMap<HierarchyScopeType, JTree>) {
+  override fun createTrees(typeToTreeMap: MutableMap<String, JTree>) {
     val group = ActionManager.getInstance().getAction(IdeActions.GROUP_CALL_HIERARCHY_POPUP) as ActionGroup
     val baseOnThisMethodAction = BaseOnThisMethodAction()
     val kinds = arrayOf(getCalleeType(), getCallerType())
@@ -153,8 +150,7 @@ class ContextualCallPathProvider(val graph: ContextualCallGraph) : HierarchyProv
   override fun createHierarchyBrowser(target: PsiElement) = ContextualCallPathBrowser(target.project, graph, target)
 
   override fun browserActivated(hierarchyBrowser: HierarchyBrowser) {
-    (hierarchyBrowser as ContextualCallPathBrowser).changeView(
-      CallHierarchyBrowserBase.getCalleeType())
+    (hierarchyBrowser as ContextualCallPathBrowser).changeView(CallHierarchyBrowserBase.getCalleeType())
   }
 }
 
