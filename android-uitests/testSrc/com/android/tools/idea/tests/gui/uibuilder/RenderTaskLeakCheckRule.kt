@@ -36,6 +36,10 @@ class RenderTaskLeakCheckRule : TestRule {
         try {
           base.evaluate()
         }
+        catch (t: Throwable) {
+          // Log the original failure before showing any potential leaks
+          t.printStackTrace(System.err)
+        }
         finally {
           if (notDisposedRenderTasks().count() != 0) {
             // Give tasks the opportunity to complete the dispose
