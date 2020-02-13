@@ -17,6 +17,8 @@ package com.android.tools.idea.sqlite.controllers
 
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
+import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture
+import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.device.fs.DeviceFileId
 import com.android.tools.idea.device.fs.DownloadProgress
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
@@ -24,22 +26,34 @@ import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.EmptySqliteResultSet
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
+import com.android.tools.idea.sqlite.databaseConnection.jdbc.JdbcDatabaseConnection
+import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorModel
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorView
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.mocks.MockSchemaProvider
 import com.android.tools.idea.sqlite.model.FileSqliteDatabase
 import com.android.tools.idea.sqlite.model.LiveSqliteDatabase
+import com.android.tools.idea.sqlite.model.RowIdName
+import com.android.tools.idea.sqlite.model.SqliteAffinity
+import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteTable
+import com.android.tools.idea.sqlite.ui.mainView.AddColumns
+import com.android.tools.idea.sqlite.ui.mainView.AddTable
+import com.android.tools.idea.sqlite.ui.mainView.IndexedSqliteColumn
+import com.android.tools.idea.sqlite.ui.mainView.IndexedSqliteTable
+import com.android.tools.idea.sqlite.ui.mainView.RemoveTable
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.android.tools.idea.testing.runDispatching
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.HeavyPlatformTestCase
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
@@ -56,8 +70,8 @@ import org.mockito.Mockito.`when`
 import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
-import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import java.sql.DriverManager
 import java.util.concurrent.Executor
 import javax.swing.JComponent
 
@@ -68,6 +82,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
   private lateinit var taskExecutor: Executor
   private lateinit var sqliteController: DatabaseInspectorControllerImpl
   private lateinit var orderVerifier: InOrder
+  private lateinit var sqliteUtil: SqliteTestUtil
 
   private lateinit var mockViewFactory: MockDatabaseInspectorViewsFactory
 
@@ -80,6 +95,8 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
   private lateinit var testSqliteSchema3: SqliteSchema
 
   private lateinit var mockDatabaseConnection: DatabaseConnection
+  private lateinit var realDatabaseConnection: DatabaseConnection
+  private lateinit var sqliteFile: VirtualFile
 
   private val testSqliteTable = SqliteTable("testTable", arrayListOf(), null, true)
   private lateinit var sqliteResultSet: SqliteResultSet
@@ -128,12 +145,26 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     sqliteDatabase3 = LiveSqliteDatabase("db", mockDatabaseConnection)
 
     orderVerifier = inOrder(mockSqliteView, mockDatabaseConnection)
+
+    sqliteUtil = SqliteTestUtil(
+      IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
+    sqliteUtil.setUp()
+
+    sqliteFile = sqliteUtil.createTestSqliteDatabase("db-name", "t1", listOf("c1"), emptyList(), false)
+    realDatabaseConnection = pumpEventsAndWaitForFuture(
+      getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(taskExecutor))
+    )
   }
 
   override fun tearDown() {
-    super.tearDown()
     Disposer.dispose(sqliteController)
-    tempDirTestFixture.tearDown()
+    try {
+      pumpEventsAndWaitForFuture(realDatabaseConnection.close())
+      sqliteUtil.tearDown()
+    } finally {
+      tempDirTestFixture.tearDown()
+      super.tearDown()
+    }
   }
 
   fun testAddSqliteDatabase() {
@@ -424,9 +455,222 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    verify(mockSqliteView).updateDatabase(
+    verify(mockSqliteView).updateDatabaseSchema(
       sqliteDatabase1,
-      listOf(SqliteTable("table", emptyList(), null, false))
+      listOf(AddTable(IndexedSqliteTable(SqliteTable("table", emptyList(), null, false), 0), emptyList()))
+    )
+  }
+
+  fun testCreateTableUpdatesSchema() {
+    // Prepare
+    val sqliteDatabase = FileSqliteDatabase("db", realDatabaseConnection, sqliteFile)
+
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase))
+    }
+
+    // Act
+    runDispatching {
+      sqliteController.runSqlStatement(sqliteDatabase, SqliteStatement("CREATE TABLE t2 (c1 int not null primary key)"))
+    }
+
+    // Assert
+    val column = SqliteColumn("c1", SqliteAffinity.INTEGER, false, true)
+    val table = SqliteTable("t2", listOf(column), null, false)
+
+    verify(mockSqliteView).updateDatabaseSchema(
+      sqliteDatabase,
+      listOf(AddTable(IndexedSqliteTable(table, 1), listOf(IndexedSqliteColumn(column, 0))))
+    )
+  }
+
+  fun testAlterTableRenameTableUpdatesSchema() {
+    // Prepare
+    val sqliteDatabase = FileSqliteDatabase("db", realDatabaseConnection, sqliteFile)
+
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase))
+    }
+
+    // Act
+    runDispatching {
+      sqliteController.runSqlStatement(sqliteDatabase, SqliteStatement("ALTER TABLE t1 RENAME TO t2"))
+    }
+
+    // Assert
+    val column = SqliteColumn("c1", SqliteAffinity.BLOB, true, false)
+    val tableToRemove = SqliteTable("t1", listOf(column), RowIdName._ROWID_, false)
+    val tableToAdd = SqliteTable("t2", listOf(column), RowIdName._ROWID_, false)
+
+    verify(mockSqliteView).updateDatabaseSchema(
+      sqliteDatabase,
+      listOf(RemoveTable(tableToRemove.name), AddTable(IndexedSqliteTable(tableToAdd, 0), listOf(IndexedSqliteColumn(column, 0))))
+    )
+  }
+
+  fun testAlterTableAddColumnUpdatesSchema() {
+    // Prepare
+    val sqliteDatabase = FileSqliteDatabase("db", realDatabaseConnection, sqliteFile)
+
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase))
+    }
+
+    // Act
+    runDispatching {
+      sqliteController.runSqlStatement(sqliteDatabase, SqliteStatement("ALTER TABLE t1 ADD c2 TEXT"))
+    }
+
+    // Assert
+    val columnAlreadyThere = SqliteColumn("c1", SqliteAffinity.BLOB, true, false)
+    val columnToAdd = SqliteColumn("c2", SqliteAffinity.TEXT, true, false)
+
+    val table = SqliteTable("t1", listOf(columnAlreadyThere, columnToAdd), RowIdName._ROWID_, false)
+
+    verify(mockSqliteView).updateDatabaseSchema(
+      sqliteDatabase,
+      listOf(AddColumns(table.name, listOf(IndexedSqliteColumn(columnToAdd, 1)), table))
+    )
+  }
+
+  fun `test AlterTableAddColumn AlterTableRenameTable UpdatesSchema`() {
+    // Prepare
+    val sqliteDatabase = FileSqliteDatabase("db", realDatabaseConnection, sqliteFile)
+
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase))
+    }
+
+    // Act
+    runDispatching {
+      sqliteController.runSqlStatement(sqliteDatabase, SqliteStatement("ALTER TABLE t1 ADD c2 TEXT"))
+    }
+
+    // Assert
+    val columnAlreadyThere = SqliteColumn("c1", SqliteAffinity.BLOB, true, false)
+    val columnToAdd = SqliteColumn("c2", SqliteAffinity.TEXT, true, false)
+
+    val table = SqliteTable("t1", listOf(columnAlreadyThere, columnToAdd), RowIdName._ROWID_, false)
+
+    verify(mockSqliteView).updateDatabaseSchema(
+      sqliteDatabase,
+      listOf(AddColumns(table.name, listOf(IndexedSqliteColumn(columnToAdd, 1)), table))
+    )
+
+    // Act
+    runDispatching {
+      sqliteController.runSqlStatement(sqliteDatabase, SqliteStatement("ALTER TABLE t1 RENAME TO t2"))
+    }
+
+    // Assert
+    val column1 = SqliteColumn("c1", SqliteAffinity.BLOB, true, false)
+    val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, true, false)
+    val tableToRemove = SqliteTable("t1", listOf(column1, column2), RowIdName._ROWID_, false)
+    val tableToAdd = SqliteTable("t2", listOf(column1, column2), RowIdName._ROWID_, false)
+
+    verify(mockSqliteView).updateDatabaseSchema(
+      sqliteDatabase,
+      listOf(
+        RemoveTable(tableToRemove.name),
+        AddTable(
+          IndexedSqliteTable(tableToAdd, 0),
+          listOf(IndexedSqliteColumn(column1, 0), IndexedSqliteColumn(column2, 1))
+        )
+      )
+    )
+  }
+
+  fun testDropTableUpdatesSchema() {
+    // Prepare
+    val sqliteDatabase = FileSqliteDatabase("db", realDatabaseConnection, sqliteFile)
+
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase))
+    }
+
+    // Act
+    runDispatching {
+      sqliteController.runSqlStatement(sqliteDatabase, SqliteStatement("DROP TABLE t1"))
+    }
+
+    // Assert
+    val column = SqliteColumn("c1", SqliteAffinity.BLOB, true, false)
+    val tableToRemove = SqliteTable("t1", listOf(column), RowIdName._ROWID_, false)
+
+    verify(mockSqliteView).updateDatabaseSchema(
+      sqliteDatabase,
+      listOf(RemoveTable(tableToRemove.name))
+    )
+  }
+
+  fun `test CreateTable AddColumn RenameTable AddColumn UpdatesSchema`() {
+    // Prepare
+    val sqliteDatabase = FileSqliteDatabase("db", realDatabaseConnection, sqliteFile)
+
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase))
+    }
+
+    // Act
+    runDispatching {
+      sqliteController.runSqlStatement(sqliteDatabase, SqliteStatement("CREATE TABLE t0 (c1 TEXT)"))
+    }
+
+    // Assert
+    val column = SqliteColumn("c1", SqliteAffinity.TEXT, true, false)
+    val tableToAdd = SqliteTable("t0", listOf(column), RowIdName._ROWID_, false)
+
+    verify(mockSqliteView).updateDatabaseSchema(
+      sqliteDatabase,
+      listOf(AddTable(IndexedSqliteTable(tableToAdd, 0), listOf(IndexedSqliteColumn(column, 0))))
+    )
+
+    // Act
+    runDispatching {
+      sqliteController.runSqlStatement(sqliteDatabase, SqliteStatement("ALTER TABLE t0 ADD c2 TEXT"))
+    }
+
+    // Assert
+    val columnToAdd = SqliteColumn("c2", SqliteAffinity.TEXT, true, false)
+    val table = SqliteTable("t0", listOf(column, columnToAdd), RowIdName._ROWID_, false)
+
+    verify(mockSqliteView).updateDatabaseSchema(
+      sqliteDatabase,
+      listOf(AddColumns(table.name, listOf(IndexedSqliteColumn(columnToAdd, 1)), table))
+    )
+
+    // Act
+    runDispatching {
+      sqliteController.runSqlStatement(sqliteDatabase, SqliteStatement("ALTER TABLE t0 RENAME TO t2"))
+    }
+
+    // Assert
+    val tableToRemove = SqliteTable("t0", listOf(column, columnToAdd), RowIdName._ROWID_, false)
+    val tableToAdd2 = SqliteTable("t2", listOf(column, columnToAdd), RowIdName._ROWID_, false)
+
+    verify(mockSqliteView).updateDatabaseSchema(
+      sqliteDatabase,
+      listOf(
+        RemoveTable(tableToRemove.name),
+        AddTable(
+          IndexedSqliteTable(tableToAdd2, 1),
+          listOf(IndexedSqliteColumn(column, 0), IndexedSqliteColumn(columnToAdd, 1))
+        )
+      )
+    )
+
+    // Act
+    runDispatching {
+      sqliteController.runSqlStatement(sqliteDatabase, SqliteStatement("ALTER TABLE t2 ADD c0 TEXT"))
+    }
+
+    // Assert
+    val columnToAdd2 = SqliteColumn("c0", SqliteAffinity.TEXT, true, false)
+    val table2 = SqliteTable("t2", listOf(column, columnToAdd, columnToAdd2), RowIdName._ROWID_, false)
+
+    verify(mockSqliteView).updateDatabaseSchema(
+      sqliteDatabase,
+      listOf(AddColumns(table2.name, listOf(IndexedSqliteColumn(columnToAdd2, 0)), table2))
     )
   }
 
@@ -457,20 +701,52 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testRefreshAllOpenDatabasesSchemaActionInvokedUpdatesSchemas() {
     // Prepare
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
+    val sqliteSchema = SqliteSchema(listOf(SqliteTable("tab", emptyList(), null, false)))
+
+    val sqliteSchemaUpdated = SqliteSchema(listOf(SqliteTable("tab-updated", emptyList(), null, false)))
+
+    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(sqliteSchema))
 
     // Act
     runDispatching {
       sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
       sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase2))
     }
+
+    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(sqliteSchemaUpdated))
+
     mockSqliteView.viewListeners.first().refreshAllOpenDatabasesSchemaActionInvoked()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    verify(mockDatabaseInspectorModel, times(2)).add(sqliteDatabase1, testSqliteSchema1)
-    verify(mockDatabaseInspectorModel, times(2)).add(sqliteDatabase2, testSqliteSchema1)
-    verify(mockSqliteView).updateDatabase(sqliteDatabase1, testSqliteSchema1.tables)
-    verify(mockSqliteView).updateDatabase(sqliteDatabase2, testSqliteSchema1.tables)
+    verify(mockDatabaseInspectorModel).add(sqliteDatabase1, sqliteSchema)
+    verify(mockDatabaseInspectorModel).add(sqliteDatabase2, sqliteSchema)
+
+    verify(mockDatabaseInspectorModel).add(sqliteDatabase1, sqliteSchemaUpdated)
+    verify(mockDatabaseInspectorModel).add(sqliteDatabase2, sqliteSchemaUpdated)
+
+    verify(mockSqliteView).updateDatabaseSchema(
+      sqliteDatabase1,
+      listOf(
+        RemoveTable("tab"),
+        AddTable(IndexedSqliteTable(SqliteTable("tab-updated", emptyList(), null, false), 0), emptyList())
+      )
+    )
+
+    verify(mockSqliteView).updateDatabaseSchema(
+      sqliteDatabase2,
+      listOf(
+        RemoveTable("tab"),
+        AddTable(IndexedSqliteTable(SqliteTable("tab-updated", emptyList(), null, false), 0), emptyList())
+      )
+    )
+  }
+
+  private fun getJdbcDatabaseConnection(sqliteFile: VirtualFile, executor: FutureCallbackExecutor): ListenableFuture<DatabaseConnection> {
+    return executor.executeAsync {
+      val url = "jdbc:sqlite:${sqliteFile.path}"
+      val connection = DriverManager.getConnection(url)
+      return@executeAsync JdbcDatabaseConnection(connection, sqliteFile, executor)
+    }
   }
 }

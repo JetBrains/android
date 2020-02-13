@@ -68,20 +68,8 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     tree.expandPath(TreePath(schemaNode.path))
   }
 
-  fun updateDatabase(database: SqliteDatabase, toAdd: List<SqliteTable>) {
-    val treeModel = tree.model as DefaultTreeModel
-    val currentSchemaNode = findTreeNode(database)
-    currentSchemaNode.userObject = database
-
-    currentSchemaNode.children().toList().map { it as DefaultMutableTreeNode }.forEach { treeModel.removeNodeFromParent(it) }
-
-    toAdd.forEachIndexed { index, table ->
-      val newTableNode = DefaultMutableTreeNode(table)
-      table.columns.forEach { column -> newTableNode.add(DefaultMutableTreeNode(column)) }
-      treeModel.insertNodeInto(newTableNode, currentSchemaNode, index)
-    }
-
-    tree.expandPath(TreePath(currentSchemaNode.path))
+  fun updateDatabase(database: SqliteDatabase, diffOperations: List<SchemaDiffOperation>) {
+    // TODO(next CL)
   }
 
   fun removeDatabaseSchema(database: SqliteDatabase) {
