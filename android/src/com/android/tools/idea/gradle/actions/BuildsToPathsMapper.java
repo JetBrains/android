@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import static com.android.tools.idea.gradle.util.DynamicAppUtils.getOutputFileOrFolderFromListingFile;
+import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutputFileOrFolderFromListingFile;
 
 import com.android.AndroidProjectTypes;
 import com.android.build.OutputFile;
@@ -29,6 +29,7 @@ import com.android.builder.model.VariantBuildOutput;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.OutputBuildAction;
 import com.android.tools.idea.gradle.run.PostBuildModel;
+import com.android.tools.idea.gradle.util.OutputType;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -101,17 +102,9 @@ public class BuildsToPathsMapper {
                                            @Nullable String signedApkOrBundlePath) {
     File outputFolderOrFile = null;
     if (androidModel.getFeatures().isBuildOutputFileSupported()) {
-      // TODO: handle signed apk/bundle when AGP supports it.
-      // Currently, signed will fall back to use signedApkOrBundlePath, which is the parent folder of variant outputs.
-      if (!isSigned) {
-        // get from build output listing file.
-        String listingFile = isAppBundle
-                             ? androidModel.getMainArtifact().getBundleTaskOutputListingFile()
-                             : androidModel.getMainArtifact().getAssembleTaskOutputListingFile();
-        if (listingFile != null) {
-          outputFolderOrFile = getOutputFileOrFolderFromListingFile(listingFile);
-        }
-      }
+      // get from build output listing file.
+      OutputType outputType = isAppBundle ? OutputType.Bundle : OutputType.Apk;
+      outputFolderOrFile = getOutputFileOrFolderFromListingFile(androidModel, buildVariant, outputType, false);
     }
     else if (postBuildModel != null) {
       if (androidModel.getAndroidProject().getProjectType() == AndroidProjectTypes.PROJECT_TYPE_APP ||
