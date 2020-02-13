@@ -132,7 +132,7 @@ final class DetachedToolWindow<T> implements ToolWindowCallback, Disposable {
   }
 
   private void setAdditionalGearPopupActions(@NotNull ToolWindowEx toolWindow) {
-    DefaultActionGroup attachedSide = new DefaultActionGroup("Attached Side", true);
+    DefaultActionGroup attachedSide = DefaultActionGroup.createPopupGroup(() -> "Attached Side");
     attachedSide.add(new AttachToSideAction(Side.LEFT));
     attachedSide.add(new AttachToSideAction(Side.RIGHT));
     attachedSide.add(new DetachedAction());

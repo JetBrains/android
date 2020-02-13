@@ -467,7 +467,7 @@ public class TemplateManager {
   public void refreshDynamicTemplateMenu(@Nullable Project project) {
     synchronized (CATEGORY_TABLE_LOCK) {
       if (myTopGroup == null) {
-        myTopGroup = new DefaultActionGroup("AndroidTemplateGroup", false);
+        myTopGroup = DefaultActionGroup.createFlatGroup(() -> "AndroidTemplateGroup");
       } else {
         myTopGroup.removeAll();
       }

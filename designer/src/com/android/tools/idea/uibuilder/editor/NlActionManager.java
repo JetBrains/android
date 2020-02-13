@@ -126,7 +126,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
 
   @NotNull
   private static ActionGroup createRefactoringMenu() {
-    DefaultActionGroup group = new DefaultActionGroup("_Refactor", true);
+    DefaultActionGroup group = DefaultActionGroup.createPopupGroup(() -> "_Refactor");
     com.intellij.openapi.actionSystem.ActionManager manager =
       com.intellij.openapi.actionSystem.ActionManager.getInstance();
 

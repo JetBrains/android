@@ -87,7 +87,7 @@ public class OrientationMenuAction extends DropDownAction {
       }
 
       addSeparator();
-      DefaultActionGroup uiModeGroup = new DefaultActionGroup("_UI Mode", true);
+      DefaultActionGroup uiModeGroup = DefaultActionGroup.createPopupGroup(() -> "_UI Mode");
       UiMode currentUiMode = configuration.getUiMode();
       for (UiMode uiMode : UiMode.values()) {
         String title = uiMode.getShortDisplayValue();
@@ -97,7 +97,7 @@ public class OrientationMenuAction extends DropDownAction {
       add(uiModeGroup);
 
       addSeparator();
-      DefaultActionGroup nightModeGroup = new DefaultActionGroup("_Night Mode", true);
+      DefaultActionGroup nightModeGroup = DefaultActionGroup.createPopupGroup(() -> "_Night Mode");
       NightMode currentNightMode = configuration.getNightMode();
       for (NightMode nightMode : NightMode.values()) {
         String title = nightMode.getShortDisplayValue();
