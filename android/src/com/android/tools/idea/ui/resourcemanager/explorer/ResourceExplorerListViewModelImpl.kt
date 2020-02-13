@@ -47,6 +47,7 @@ import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiBinaryFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.xml.XmlFileImpl
@@ -82,6 +83,7 @@ private const val UNRESOLVED_VALUE = "Could not resolve"
  */
 class ResourceExplorerListViewModelImpl(
   override val facet: AndroidFacet,
+  private val contextFile: VirtualFile?,
   private val resourceResolver: ResourceResolver,
   override val filterOptions: FilterOptions,
   defaultResourceType: ResourceType,
@@ -125,14 +127,14 @@ class ResourceExplorerListViewModelImpl(
         else -> emptyList()
       }
 
-  override val assetPreviewManager: AssetPreviewManager = AssetPreviewManagerImpl(facet, listViewImageCache, resourceResolver)
+  override val assetPreviewManager: AssetPreviewManager = AssetPreviewManagerImpl(facet, listViewImageCache, resourceResolver, contextFile)
 
   /**
    * Doing it this way since otherwise there's a bigger delay to get the high quality image on the screen if there's a low quality image in
    * place (from the cache used for [assetPreviewManager]), among other ui issues.
    */
   override val summaryPreviewManager: AssetPreviewManager by lazy {
-    AssetPreviewManagerImpl(facet, summaryImageCache, resourceResolver)
+    AssetPreviewManagerImpl(facet, summaryImageCache, resourceResolver, contextFile)
   }
 
   override fun clearCacheForCurrentResources() {

@@ -150,7 +150,8 @@ class StubRenderer : DesignAssetRenderer {
 
   override fun getImage(file: VirtualFile,
                         module: Module?,
-                        dimension: Dimension): CompletableFuture<out BufferedImage?> = future
+                        dimension: Dimension,
+                        context: Any?): CompletableFuture<out BufferedImage?> = future
 
   fun simulateRender(image: BufferedImage?) {
     future.complete(image)

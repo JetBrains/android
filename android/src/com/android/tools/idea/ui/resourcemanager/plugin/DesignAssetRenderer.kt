@@ -37,9 +37,12 @@ interface DesignAssetRenderer {
 
   /**
    * Implementing class should return an image corresponding to the [file] with
-   * dimension optimized to be displayed at the provided [dimension] (this usually means equals or smaller)
+   * dimension optimized to be displayed at the provided [dimension] (this usually means equals or smaller).
+   *
+   * Use the [context] parameter to provide any additional information that the expected renderer could use. E.g: [DrawableAssetRenderer]
+   * may take a VirtualFile to render the Drawable in a different Configuration context.
    */
-  fun getImage(file: VirtualFile, module: Module?, dimension: Dimension): CompletableFuture<out BufferedImage?>
+  fun getImage(file: VirtualFile, module: Module?, dimension: Dimension, context: Any? = null): CompletableFuture<out BufferedImage?>
 
 }
 
@@ -80,6 +83,9 @@ class DesignAssetRendererManager private constructor() {
  */
 private object NullDesignAssetRenderer : DesignAssetRenderer {
   override fun isFileSupported(file: VirtualFile) = false
-  override fun getImage(file: VirtualFile, module: Module?, dimension: Dimension): CompletableFuture<out BufferedImage?> =
+  override fun getImage(file: VirtualFile,
+                        module: Module?,
+                        dimension: Dimension,
+                        context: Any?): CompletableFuture<out BufferedImage?> =
     CompletableFuture.completedFuture(null)
 }

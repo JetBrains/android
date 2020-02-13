@@ -34,7 +34,7 @@ import kotlin.test.assertTrue
 class FrameworkDrawableRendererTest {
 
   @get:Rule
-  var rule = AndroidProjectRule.withSdk()
+  var rule = AndroidProjectRule.inMemory()
 
   @Before
   fun setup() {
@@ -45,31 +45,10 @@ class FrameworkDrawableRendererTest {
 
   @Test
   fun testNotNullInstance() {
-    runInEdtAndWait {
-      runInAllowSaveMode {
-        rule.project.save() // Save project to guarantee a project file.
-      }
-    }
     val facet = rule.module.androidFacet!!
-    val rendererFuture = FrameworkDrawableRenderer.getInstance(facet)
-    assertNotNull(rendererFuture)
-    assertFalse(rendererFuture.isDone)
-    // Check that consecutive calls to getInstance yield the same pending future.
-    assertSame(rendererFuture, FrameworkDrawableRenderer.getInstance(facet))
-    val renderer = rendererFuture.get()
+    val renderer = FrameworkDrawableRenderer.getInstance(facet)
     assertNotNull(renderer)
-    val completedFuture = FrameworkDrawableRenderer.getInstance(facet)
-    // Once the initial future has finished, consecutive calls should yield a CompletedFuture.
-    assertTrue(completedFuture.isDone)
-    assertNotSame(rendererFuture, completedFuture)
-    // The returned instance should be the same as long as the given facet is the same.
-    assertSame(renderer, completedFuture.get())
-  }
-
-  @Test
-  fun testGetInstanceWithNoProjectFile() {
-    val facet = rule.module.androidFacet!!
-    val e = assertFailsWith<ExecutionException> { FrameworkDrawableRenderer.getInstance(facet).get() }
-    assertEquals(e.cause!!.message, "ProjectFile should not be null to obtain Configuration")
+    // Check that consecutive calls to getInstance yield the same renderer.
+    assertSame(renderer, FrameworkDrawableRenderer.getInstance(facet))
   }
 }

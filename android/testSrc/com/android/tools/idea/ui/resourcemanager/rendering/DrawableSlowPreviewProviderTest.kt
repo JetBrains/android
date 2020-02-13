@@ -62,9 +62,10 @@ class DrawableSlowPreviewProviderTest {
     val image = createTestImage()
     val name = "file"
     val resourceItem = ResourceMergerItem(name, ResourceNamespace.RES_AUTO, ResourceType.ATTR, null, null, "external")
+    val mockFile = MockVirtualFile("${name}.png")
 
     // This would be a Drawable resource, represented by an Attribute resource (a Theme Attribute).
-    val designAsset = DesignAsset(MockVirtualFile("${name}.png"), emptyList(), ResourceType.DRAWABLE, name, resourceItem)
+    val designAsset = DesignAsset(mockFile, emptyList(), ResourceType.DRAWABLE, name, resourceItem)
 
     // The 'Framework ResourceValue' that should be rendered by DrawableRenderer instead of DesignAssetRenderer.
     val frameworkResourceValue = ResourceValueImpl(ResourceNamespace.ANDROID, ResourceType.DRAWABLE, name, null)
@@ -73,14 +74,14 @@ class DrawableSlowPreviewProviderTest {
     Mockito.`when`(resourceResolver.findItemInTheme(resourceItem.referenceToSelf)).thenReturn(frameworkResourceValue)
 
     // Have the drawable renderer return a valid image for our desired framework resource value.
-    Mockito.`when`(drawableRenderer.getDrawableRender(frameworkResourceValue, Dimension(100, 100))).thenReturn(
+    Mockito.`when`(drawableRenderer.getDrawableRender(frameworkResourceValue, mockFile, Dimension(100, 100))).thenReturn(
       CompletableFuture.completedFuture(image)
     )
-    val provider = DrawableSlowPreviewProvider(facet, resourceResolver)
+    val provider = DrawableSlowPreviewProvider(facet, resourceResolver, null)
 
     val result = provider.getSlowPreview(100, 100, designAsset).get(5, TimeUnit.SECONDS)
     assertNotNull(result)
-    Mockito.verify(drawableRenderer).getDrawableRender(MockitoKt.eq(frameworkResourceValue), MockitoKt.eq(Dimension(100, 100)))
+    Mockito.verify(drawableRenderer).getDrawableRender(MockitoKt.eq(frameworkResourceValue), MockitoKt.eq(mockFile), MockitoKt.eq(Dimension(100, 100)))
     Truth.assertThat(result!!.getRGB(1, 1)).isEqualTo(0xff012345.toInt())
   }
 
