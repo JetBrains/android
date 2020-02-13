@@ -27,11 +27,11 @@ import com.intellij.openapi.ui.Queryable;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.IdeaSourceProviderUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.android.SdkConstants.FD_MAIN;
+import static com.android.tools.idea.projectsystem.SourceProvidersKt.findByFile;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.psi.PsiDirectory.EMPTY_ARRAY;
 import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
@@ -70,7 +70,7 @@ public class AndroidManifestFileNode extends PsiFileNode implements FolderGroupN
 
   @Nullable
   static NamedIdeaSourceProvider getSourceProvider(@NotNull AndroidFacet facet, @NotNull PsiFile file) {
-    return IdeaSourceProviderUtil.findByFile(AndroidProjectViewPane.getSourceProviders(facet), file.getVirtualFile());
+    return findByFile(AndroidProjectViewPane.getSourceProviders(facet), file.getVirtualFile());
   }
 
   @Override

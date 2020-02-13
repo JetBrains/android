@@ -22,30 +22,13 @@ import static com.android.SdkConstants.FD_RESOURCES;
 import static com.android.SdkConstants.FD_SOURCES;
 import static com.android.SdkConstants.FD_TEST;
 import static com.android.SdkConstants.FD_UNIT_TEST;
-import static com.android.tools.idea.templates.SourceProviderUtilKt.getSourceProvidersForFile;
 
-import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.npw.module.ModuleModelKt;
-import com.android.tools.idea.projectsystem.AndroidModulePaths;
-import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
+import com.android.tools.idea.projectsystem.AndroidModulePathsImpl;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes;
 
 /**
  * Project paths for a Gradle Android project.
@@ -66,66 +49,7 @@ import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes;
  *      `-com/google/foo/bar/... (test directory of package com.google.foo.bar)
  * </pre>
  */
-public class GradleAndroidModuleTemplate implements AndroidModulePaths {
-  @Nullable private File myModuleRoot;
-  @Nullable private File mySrcRoot;
-  @Nullable private File myTestRoot;
-  @Nullable private File myUnitTestRoot;
-  @NotNull private List<File> myResDirectories = Collections.emptyList();
-  @Nullable private File myAidlRoot;
-  @Nullable private File myManifestDirectory;
-
-  @Override
-  @Nullable
-  public File getModuleRoot() {
-    return myModuleRoot;
-  }
-
-  @Nullable
-  private static File appendPackageToRoot(@Nullable File root, @Nullable String packageName) {
-    if (root == null || packageName == null) {
-      return root;
-    }
-    String packagePath = packageName.replace('.', File.separatorChar);
-    return new File(root, packagePath);
-  }
-
-  @Override
-  @Nullable
-  public File getSrcDirectory(@Nullable String packageName) {
-    return appendPackageToRoot(mySrcRoot, packageName);
-  }
-
-  @Override
-  @Nullable
-  public File getTestDirectory(@Nullable String packageName) {
-    return appendPackageToRoot(myTestRoot, packageName);
-  }
-
-  @Override
-  @Nullable
-  public File getUnitTestDirectory(@Nullable String packageName) {
-    return appendPackageToRoot(myUnitTestRoot, packageName);
-  }
-
-  @Override
-  @NotNull
-  public List<File> getResDirectories() {
-    return myResDirectories;
-  }
-
-  @Override
-  @Nullable
-  public File getAidlDirectory(@Nullable String packageName) {
-    return appendPackageToRoot(myAidlRoot, packageName);
-  }
-
-  @Override
-  @Nullable
-  public File getManifestDirectory() {
-    return myManifestDirectory;
-  }
-
+public class GradleAndroidModuleTemplate {
   public static NamedModuleTemplate createDummyTemplate() {
     return createDefaultTemplateAt("", "");
   }
@@ -136,73 +60,17 @@ public class GradleAndroidModuleTemplate implements AndroidModulePaths {
    * aidl and manifest.
    */
   public static NamedModuleTemplate createDefaultTemplateAt(@NotNull String projectPath, @NotNull String moduleName) {
-    // Note: Module name may have ":", needs to be converted to a path
     File moduleRoot = ModuleModelKt.getModuleRoot(projectPath, moduleName);
     File baseSrcDir = new File(moduleRoot, FD_SOURCES);
     File baseFlavorDir = new File(baseSrcDir, FD_MAIN);
-    GradleAndroidModuleTemplate paths = new GradleAndroidModuleTemplate();
-    paths.myModuleRoot = moduleRoot;
-    paths.mySrcRoot = new File(baseFlavorDir, FD_JAVA);
-    paths.myTestRoot = new File(baseSrcDir.getPath(), FD_TEST + File.separatorChar + FD_JAVA);
-    paths.myUnitTestRoot = new File(baseSrcDir.getPath(), FD_UNIT_TEST + File.separatorChar + FD_JAVA);
-    paths.myResDirectories = ImmutableList.of(new File(baseFlavorDir, FD_RESOURCES));
-    paths.myAidlRoot = new File(baseFlavorDir, FD_AIDL);
-    paths.myManifestDirectory = baseFlavorDir;
-    return new NamedModuleTemplate("main", paths);
-  }
-
-  /**
-   * Convenience method to get {@link SourceProvider}s from the current project which can be used
-   * to instantiate an instance of this class.
-   */
-  @NotNull
-  private static Collection<NamedIdeaSourceProvider> getSourceProviders(@NotNull AndroidFacet androidFacet,
-                                                                   @Nullable VirtualFile targetDirectory) {
-    List<NamedIdeaSourceProvider> providersForFile = null;
-    if (targetDirectory != null) {
-      providersForFile = getSourceProvidersForFile(androidFacet, targetDirectory);
-    }
-    if (providersForFile == null) {
-      providersForFile = SourceProviderManager.getInstance(androidFacet).getCurrentAndSomeFrequentlyUsedInactiveSourceProviders();
-    }
-    return providersForFile;
-  }
-
-  /**
-   * @param androidFacet    from which we receive {@link SourceProvider}s.
-   * @param targetDirectory to filter the relevant {@link SourceProvider}s from the {@code androidFacet}.
-   * @return a list of {@link NamedModuleTemplate}s created from each of {@code androidFacet}'s {@link SourceProvider}s.
-   * In cases where the source provider returns multiple paths, we always take the first match.
-   */
-  @NotNull
-  public static List<NamedModuleTemplate> getModuleTemplates(@NotNull Module module, @Nullable VirtualFile targetDirectory) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null) {
-      return Collections.emptyList();
-    }
-    List<NamedModuleTemplate> templates = Lists.newArrayList();
-    for (NamedIdeaSourceProvider sourceProvider : getSourceProviders(facet, targetDirectory)) {
-      GradleAndroidModuleTemplate paths = new GradleAndroidModuleTemplate();
-      VirtualFile[] roots = ModuleRootManager.getInstance(module).getContentRoots();
-      if (roots.length > 0) {
-        paths.myModuleRoot = VfsUtilCore.virtualToIoFile(roots[0]);
-      }
-      paths.mySrcRoot = new File(VfsUtilCore.urlToPath(Iterables.getFirst(sourceProvider.getJavaDirectoryUrls(), null)));
-      List<VirtualFile> testsRoot = ModuleRootManager.getInstance(module).getSourceRoots(JavaModuleSourceRootTypes.TESTS);
-      if (testsRoot.size() == 1) {
-        paths.myUnitTestRoot = VfsUtilCore.virtualToIoFile(testsRoot.get(0));
-      }
-      else if (!testsRoot.isEmpty()) {
-        paths.myTestRoot = VfsUtilCore.virtualToIoFile(testsRoot.get(0));
-        paths.myUnitTestRoot = VfsUtilCore.virtualToIoFile(testsRoot.get(1));
-      }
-      paths.myResDirectories =
-        ImmutableList.copyOf(ContainerUtil.map(sourceProvider.getResDirectoryUrls(), it -> new File(VfsUtilCore.urlToPath(it))));
-      paths.myAidlRoot = new File(VfsUtilCore.urlToPath(Iterables.getFirst(sourceProvider.getAidlDirectoryUrls(), null)));
-      paths.myManifestDirectory =
-        sourceProvider.getManifestDirectoryUrls().stream().map(it -> new File(VfsUtilCore.urlToPath(it))).findFirst().get();
-      templates.add(new NamedModuleTemplate(sourceProvider.getName(), paths));
-    }
-    return templates;
+    return new NamedModuleTemplate("main", new AndroidModulePathsImpl(
+      moduleRoot,
+      baseFlavorDir,
+      new File(baseFlavorDir, FD_JAVA),
+      new File(baseSrcDir.getPath(), FD_UNIT_TEST + File.separatorChar + FD_JAVA),
+      new File(baseSrcDir.getPath(), FD_TEST + File.separatorChar + FD_JAVA),
+      new File(baseFlavorDir, FD_AIDL),
+      ImmutableList.of(new File(baseFlavorDir, FD_RESOURCES))
+    ));
   }
 }

@@ -21,6 +21,7 @@ import com.android.resources.ResourceFolderType
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.projectsystem.isManifestFile
 import com.android.tools.idea.util.LazyFileListenerSubscriber
 import com.android.tools.idea.util.PoliteAndroidVirtualFileListener
 import com.android.tools.idea.util.listenUntilNextSync
@@ -33,7 +34,6 @@ import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.containers.TreeTraversal
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.SourceProviderManager
-import org.jetbrains.android.facet.isManifestFile
 
 
 /**
@@ -64,7 +64,7 @@ class MergedManifestRefreshListener(project: Project) : PoliteAndroidVirtualFile
    *  @see [MergedManifestContributors]
    */
   override fun isRelevant(file: VirtualFile, facet: AndroidFacet): Boolean {
-    if (file.name == SdkConstants.FN_ANDROID_MANIFEST_XML) return isManifestFile(facet, file)
+    if (file.name == SdkConstants.FN_ANDROID_MANIFEST_XML) return facet.isManifestFile(file)
 
     fun VirtualFile.couldBeNavigationFolder(): Boolean {
       return isDirectory && parent != null && ResourceFolderType.getFolderType(name) == ResourceFolderType.NAVIGATION

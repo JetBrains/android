@@ -27,15 +27,24 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem
 import com.android.tools.idea.templates.RepositoryUrlManager
+import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.IdeComponents
+import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.gradleModule
+import com.android.tools.idea.util.androidFacet
+import com.google.common.collect.MoreCollectors
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import junit.framework.AssertionFailedError
+import junit.framework.TestCase
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.SourceProviderManager
+import org.jetbrains.android.facet.SourceProviderManager.Companion.getInstance
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
@@ -60,7 +69,8 @@ class GradleModuleSystemTest : AndroidTestCase() {
   private val gradleModuleSystem get() = _gradleModuleSystem!!
 
   private val mavenRepository = object : GoogleMavenRepository(File(AndroidTestBase.getTestDataPath(),
-      "../../project-system-gradle/testData/repoIndex"), cacheExpiryHours = Int.MAX_VALUE, useNetwork = false) {
+                                                                    "../../project-system-gradle/testData/repoIndex"),
+                                                               cacheExpiryHours = Int.MAX_VALUE, useNetwork = false) {
     override fun readUrlData(url: String, timeout: Int): ByteArray? = throw AssertionFailedError("shouldn't try to read!")
 
     override fun error(throwable: Throwable, message: String?) {}
@@ -69,7 +79,7 @@ class GradleModuleSystemTest : AndroidTestCase() {
   private val repoUrlManager = RepositoryUrlManager(mavenRepository, mavenRepository, forceRepositoryChecksInTests = false,
                                                     useEmbeddedStudioRepo = false)
 
-  private val moduleHierarchyProviderStub = object: ModuleHierarchyProvider {}
+  private val moduleHierarchyProviderStub = object : ModuleHierarchyProvider {}
 
   private val library1ModuleName = "library1"
   private val library1Path = AndroidTestCase.getAdditionalModulePath(library1ModuleName)
@@ -343,6 +353,98 @@ class GradleModuleSystemTest : AndroidTestCase() {
       GradleCoordinate.parseCoordinateString("androidx.core:core-ktx:1.0.0"),
       GradleCoordinate.parseCoordinateString("androidx.navigation:navigation-runtime-ktx:2.0.0"))
     assertThat(missing).isEmpty()
+  }
+
+  class Gradle : AndroidGradleTestCase() {
+    fun testFindSourceProvider() {
+      loadProject(TestProjectPaths.PROJECT_WITH_APPAND_LIB)
+      val module = project.gradleModule(":app")!!
+      val facet = module.androidFacet!!
+      TestCase.assertNotNull(AndroidModel.get(facet))
+      val moduleFile = VfsUtil.findFileByIoFile(getProjectFolderPath(), true)!!.findFileByRelativePath("app")
+      TestCase.assertNotNull(moduleFile)
+      // Try finding main flavor
+      val mainFlavorSourceProvider = getInstance(facet).mainIdeaSourceProvider
+      TestCase.assertNotNull(mainFlavorSourceProvider)
+      val javaMainSrcFile = moduleFile!!.findFileByRelativePath("src/main/java/com/example/projectwithappandlib/")
+      TestCase.assertNotNull(javaMainSrcFile)
+      var providers: Collection<NamedIdeaSourceProvider?>? = facet.getSourceProvidersForFile(javaMainSrcFile)
+      TestCase.assertNotNull(providers)
+      TestCase.assertEquals(1, providers!!.size)
+      var actualProvider = providers.iterator().next()
+      TestCase.assertEquals(mainFlavorSourceProvider, actualProvider)
+      // Try finding paid flavor
+      val paidFlavorSourceProvider =
+        getInstance(facet).currentAndSomeFrequentlyUsedInactiveSourceProviders
+          .single { it: NamedIdeaSourceProvider -> it.name.equals("paid", ignoreCase = true) }
+      val javaSrcFile = moduleFile.findFileByRelativePath("src/paid/java/com/example/projectwithappandlib/app/paid")
+      TestCase.assertNotNull(javaSrcFile)
+      providers = facet.getSourceProvidersForFile(javaSrcFile)
+      TestCase.assertNotNull(providers)
+      TestCase.assertEquals(1, providers!!.size)
+      actualProvider = providers.iterator().next()
+      TestCase.assertEquals(paidFlavorSourceProvider, actualProvider)
+    }
+
+    fun testSourceProviderContainsFile() {
+      loadProject(TestProjectPaths.PROJECT_WITH_APPAND_LIB)
+      val module = project.gradleModule(":app")!!
+      val facet = module.androidFacet!!
+      TestCase.assertNotNull(AndroidModel.get(facet))
+      val paidFlavorSourceProvider: IdeaSourceProvider =
+        getInstance(facet).currentAndSomeFrequentlyUsedInactiveSourceProviders
+          .single { it: NamedIdeaSourceProvider -> it.name.equals("paid", ignoreCase = true) }
+      val moduleFile = VfsUtil.findFileByIoFile(projectFolderPath, true)!!.findFileByRelativePath("app")
+      TestCase.assertNotNull(moduleFile)
+      val javaSrcFile = moduleFile!!.findFileByRelativePath("src/paid/java/com/example/projectwithappandlib/app/paid")
+      TestCase.assertNotNull(javaSrcFile)
+      assertTrue(paidFlavorSourceProvider.containsFile(javaSrcFile!!))
+      val javaMainSrcFile = moduleFile.findFileByRelativePath("src/main/java/com/example/projectwithappandlib/")
+      TestCase.assertNotNull(javaMainSrcFile)
+      assertFalse(paidFlavorSourceProvider.containsFile(javaMainSrcFile!!))
+    }
+
+    fun testSourceProviderIsContainedByFolder() {
+      loadProject(TestProjectPaths.PROJECT_WITH_APPAND_LIB, "app")
+
+      val paidFlavorSourceProvider = SourceProviderManager.getInstance(myAndroidFacet)
+        .currentAndSomeFrequentlyUsedInactiveSourceProviders
+        .filter { it -> it.name.equals("paid", ignoreCase = true) }
+        .single()
+
+      val moduleFile = VfsUtil.findFileByIoFile(projectFolderPath, true)!!.findFileByRelativePath("app")
+      assertNotNull(moduleFile)
+      val javaSrcFile = moduleFile!!.findFileByRelativePath("src/paid/java/com/example/projectwithappandlib/app/paid")!!
+      assertNotNull(javaSrcFile)
+
+      assertFalse(paidFlavorSourceProvider.isContainedBy(javaSrcFile))
+
+      val flavorRoot = moduleFile.findFileByRelativePath("src/paid")!!
+      assertNotNull(flavorRoot)
+
+      assertTrue(paidFlavorSourceProvider.isContainedBy(flavorRoot))
+
+      val srcFile = moduleFile.findChild("src")!!
+      assertNotNull(srcFile)
+
+      assertTrue(paidFlavorSourceProvider.isContainedBy(srcFile))
+    }
+
+    fun testSourceProviderIsContainedByFolder_noSources() {
+      loadProject(TestProjectPaths.PROJECT_WITH_APPAND_LIB, "app")
+
+      val paidFlavorSourceProvider = SourceProviderManager.getInstance(myAndroidFacet)
+        .currentAndSomeFrequentlyUsedInactiveSourceProviders.single { it.name.equals("basicDebug", ignoreCase = true) }
+
+      val moduleFile = VfsUtil.findFileByIoFile(projectFolderPath, true)!!.findFileByRelativePath("app")
+      assertNotNull(moduleFile)
+
+
+      val srcFile = moduleFile!!.findChild("src")!!
+      assertNotNull(srcFile)
+
+      assertTrue(paidFlavorSourceProvider.isContainedBy(srcFile))
+    }
   }
 
   private fun toGradleCoordinate(id: GoogleMavenArtifactId, version: String = "+"): GradleCoordinate {

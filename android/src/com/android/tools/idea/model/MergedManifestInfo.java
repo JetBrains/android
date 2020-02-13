@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.model;
 
+import static com.android.tools.idea.projectsystem.SourceProvidersKt.getManifestFiles;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.android.annotations.concurrency.Immutable;
@@ -55,7 +56,6 @@ import java.util.Collection;
 import java.util.List;
 import org.apache.commons.io.input.CharSequenceInputStream;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.IdeaSourceProviderUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
@@ -399,7 +399,7 @@ final class MergedManifestInfo {
             continue;
           }
 
-          Collection<VirtualFile> manifestFiles = IdeaSourceProviderUtil.getManifestFiles(androidFacet);
+          Collection<VirtualFile> manifestFiles = getManifestFiles(androidFacet);
           for (VirtualFile manifestFile : manifestFiles) {
             if (vFile.equals(manifestFile)) {
               return m;
