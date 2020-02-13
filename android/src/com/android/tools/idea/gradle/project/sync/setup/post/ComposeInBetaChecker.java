@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.setup.post;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationDisplayType;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationType;
@@ -58,7 +59,7 @@ public class ComposeInBetaChecker {
 
   static class ComposeProjectNotification extends Notification {
     public ComposeProjectNotification(String content) {
-      super(NOTIFICATION_GROUP.getDisplayId(), "Compose project opened in non-Canary IDE", content, NotificationType.INFORMATION);
+      super(NOTIFICATION_GROUP.getDisplayId(), "Compose project opened in non-Canary IDE", content, NotificationType.INFORMATION, NotificationListener.URL_OPENING_LISTENER);
     }
   }
 }
