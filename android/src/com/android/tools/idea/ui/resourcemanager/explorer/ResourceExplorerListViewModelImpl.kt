@@ -20,7 +20,6 @@ import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceResolver
 import com.android.resources.ResourceType
 import com.android.tools.idea.actions.OpenStringResourceEditorAction
-import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerListViewModel.UpdateUiReason
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
@@ -73,7 +72,6 @@ private const val UNRESOLVED_VALUE = "Could not resolve"
  * to manage resources in the provided [facet].
  *
  * @param facet Starting [AndroidFacet] for the view model.
- * @param configuration The [Configuration] used to obtain Theme Attributes.
  * @param resourceResolver [ResourceResolver] that it's used to obtain most of the information for resources.
  * @param filterOptions The [FilterOptions] that defines the resources to include in [getResourceSections].
  * @param defaultResourceType The initial value of [currentResourceType].
@@ -84,7 +82,6 @@ private const val UNRESOLVED_VALUE = "Could not resolve"
  */
 class ResourceExplorerListViewModelImpl(
   override val facet: AndroidFacet,
-  private val configuration: Configuration?,
   private val resourceResolver: ResourceResolver,
   override val filterOptions: FilterOptions,
   defaultResourceType: ResourceType,
@@ -211,8 +208,8 @@ class ResourceExplorerListViewModelImpl(
     if (showAndroidResources) {
       getAndroidResources(forFacet, resourceType, typeFilters)?.let { resources.add(it) }
     }
-    if (showThemeAttributes && configuration != null) {
-      getThemeAttributes(forFacet, resourceType, typeFilters, configuration, resourceResolver)?.let { resources.add(it) }
+    if (showThemeAttributes) {
+      getThemeAttributes(forFacet, resourceType, typeFilters, resourceResolver)?.let { resources.add(it) }
     }
     return resources
   }

@@ -279,13 +279,19 @@ public class ResolutionUtils {
   public static ResourceType getAttrType(@NotNull StyleItemResourceValue item, @NotNull Configuration configuration) {
     ResourceResolver resolver = configuration.getResourceResolver();
     assert resolver != null;
+    return getAttrType(item, resolver, configuration.getModule());
+  }
+
+  @Nullable
+  public static ResourceType getAttrType(@NotNull StyleItemResourceValue item, @NotNull ResourceResolver resolver, @NotNull Module module) {
     ResourceValue resolvedValue = resolver.resolveResValue(item);
     ResourceType attrType = resolvedValue.getResourceType();
     if (attrType != null) {
       return attrType;
     }
     else {
-      AttributeDefinition def = getAttributeDefinition(configuration, item);
+      ResourceReference attr = item.getAttr();
+      AttributeDefinition def = attr == null ? null : getAttributeDefinition(module, attr);
       if (def != null) {
         for (AttributeFormat attrFormat : def.getFormats()) {
           attrType = AndroidDomUtil.getResourceType(attrFormat);

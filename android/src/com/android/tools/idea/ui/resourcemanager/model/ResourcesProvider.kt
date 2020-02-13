@@ -27,7 +27,6 @@ import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.resources.ResourceVisitor
 import com.android.resources.ResourceType
 import com.android.resources.ResourceVisibility
-import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.editors.theme.ResolutionUtils
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.SampleDataResourceItem
@@ -135,32 +134,30 @@ fun getAndroidResources(forFacet: AndroidFacet, type: ResourceType, typeFilters:
 fun getThemeAttributes(forFacet: AndroidFacet,
                        type: ResourceType,
                        typeFilters: List<TypeFilter>,
-                       configuration: Configuration,
                        resourceResolver: ResourceResolver): ResourceSection? {
+  val repoManager = ResourceRepositoryManager.getInstance(forFacet)
   val projectThemeAttributes =
-    ResourceRepositoryManager.getInstance(forFacet).projectResources.let { resourceRepository ->
+    repoManager.projectResources.let { resourceRepository ->
       resourceRepository.getNonPrivateAttributeResources(resourceRepository.namespaces.toList(),
                                                          resourceResolver,
-                                                         configuration,
                                                          forFacet,
                                                          type,
                                                          typeFilters)
     }
   val libraryThemeAttributes = hashMapOf<String, ResourceItem>()
-  ResourceRepositoryManager.getInstance(forFacet).libraryResources.forEach { resourceRepository ->
+  repoManager.libraryResources.forEach { resourceRepository ->
     resourceRepository.getNonPrivateAttributeResources(resourceRepository.namespaces.toList(),
                                                        resourceResolver,
-                                                       configuration,
                                                        forFacet,
                                                        type,
                                                        typeFilters).let { libraryThemeAttributes.putAll(it) }
   }
   // Framework resources should have visibility properly defined. So we only get the public ones.
-  val frameworkResources = configuration.frameworkResources
+  val languages = if (type == ResourceType.STRING) repoManager.languagesInProject else emptySet<String>()
+  val frameworkResources = ResourceRepositoryManager.getInstance(forFacet).getFrameworkResources(languages)
   val androidThemeAttributes = frameworkResources?.let {
     frameworkResources.getPublicOnlyAttributeResources(listOf(ResourceNamespace.ANDROID),
                                                        resourceResolver,
-                                                       configuration,
                                                        forFacet,
                                                        type,
                                                        typeFilters)
@@ -256,11 +253,10 @@ private fun ResourceItem.isValidForFilters(typeFilters: List<TypeFilter>, facet:
 /** Returns only the attributes in a [ResourceRepository] that are explicitly [ResourceVisibility.PUBLIC]. */
 private fun ResourceRepository.getPublicOnlyAttributeResources(namespaces: List<ResourceNamespace>,
                                                                resourceResolver: ResourceResolver,
-                                                               configuration: Configuration,
                                                                facet: AndroidFacet,
                                                                targetType: ResourceType,
                                                                typeFilters: List<TypeFilter>): HashMap<String, ResourceItem> {
-  return getAttributeResources(namespaces, resourceResolver, configuration, facet, targetType, typeFilters) {
+  return getAttributeResources(namespaces, resourceResolver, facet, targetType, typeFilters) {
     return@getAttributeResources (it as ResourceItemWithVisibility).visibility == ResourceVisibility.PUBLIC
   }
 }
@@ -271,11 +267,10 @@ private fun ResourceRepository.getPublicOnlyAttributeResources(namespaces: List<
  */
 private fun ResourceRepository.getNonPrivateAttributeResources(namespaces: List<ResourceNamespace>,
                                                                resourceResolver: ResourceResolver,
-                                                               configuration: Configuration,
                                                                facet: AndroidFacet,
                                                                targetType: ResourceType,
                                                                typeFilters: List<TypeFilter>): HashMap<String, ResourceItem> {
-  return getAttributeResources(namespaces, resourceResolver, configuration, facet, targetType, typeFilters) {
+  return getAttributeResources(namespaces, resourceResolver, facet, targetType, typeFilters) {
     return@getAttributeResources if (it is ResourceItemWithVisibility) {
       it.visibility != ResourceVisibility.PRIVATE
     }
@@ -291,17 +286,17 @@ private fun ResourceRepository.getNonPrivateAttributeResources(namespaces: List<
  */
 private fun ResourceRepository.getAttributeResources(namespaces: List<ResourceNamespace>,
                                                      resourceResolver: ResourceResolver,
-                                                     configuration: Configuration,
                                                      facet: AndroidFacet,
                                                      targetType: ResourceType,
                                                      typeFilters: List<TypeFilter>,
                                                      visibilityFilter: (ResourceItem) -> Boolean): HashMap<String, ResourceItem> {
-
   val attributesMap = hashMapOf<String, ResourceItem>()
   accept { resourceItem ->
     if (resourceItem.type == ResourceType.ATTR && namespaces.contains(resourceItem.namespace) && visibilityFilter(resourceItem)) {
       resourceResolver.findItemInTheme(resourceItem.referenceToSelf)?.let { attributeValue ->
-        if (attributeValue is StyleItemResourceValue && (ResolutionUtils.getAttrType(attributeValue, configuration) == targetType)) {
+        if (attributeValue is StyleItemResourceValue && (ResolutionUtils.getAttrType(attributeValue,
+                                                                                     resourceResolver,
+                                                                                     facet.module) == targetType)) {
           if (typeFilters.isNotEmpty()) {
             // Should be filtered
             val resolvedThemeAttribute = resourceResolver.resolveResValue(attributeValue)

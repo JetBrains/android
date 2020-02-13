@@ -88,7 +88,6 @@ class LayoutRendererTest {
     try {
       resourceExplorerListViewModel = ResourceExplorerListViewModelImpl(
         androidFacet,
-        null,
         Mockito.mock(ResourceResolver::class.java),
         FilterOptions.createDefault(),
         ResourceType.DRAWABLE,
