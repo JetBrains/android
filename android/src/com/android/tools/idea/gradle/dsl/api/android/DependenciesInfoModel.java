@@ -20,4 +20,6 @@ import org.jetbrains.annotations.NotNull;
 
 public interface DependenciesInfoModel {
   @NotNull ResolvedPropertyModel includeInApk();
+
+  @NotNull ResolvedPropertyModel includeInBundle();
 }

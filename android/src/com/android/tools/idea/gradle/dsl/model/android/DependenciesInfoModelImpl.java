@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class DependenciesInfoModelImpl extends GradleDslBlockModel implements DependenciesInfoModel {
   @NotNull public static final String INCLUDE_IN_APK = "mIncludeInApk";
+  @NotNull public static final String INCLUDE_IN_BUNDLE = "mIncludeInBundle";
 
   public DependenciesInfoModelImpl(@NotNull DependenciesInfoDslElement dslElement) {
     super(dslElement);
@@ -32,5 +33,11 @@ public class DependenciesInfoModelImpl extends GradleDslBlockModel implements De
   @Override
   public ResolvedPropertyModel includeInApk() {
     return getModelForProperty(INCLUDE_IN_APK);
+  }
+
+  @NotNull
+  @Override
+  public ResolvedPropertyModel includeInBundle() {
+    return getModelForProperty(INCLUDE_IN_BUNDLE);
   }
 }
