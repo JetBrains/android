@@ -74,6 +74,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.updateSettings.impl.UpdateSettingsConfigurable;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.HyperlinkAdapter;
@@ -95,6 +96,8 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -242,8 +245,8 @@ public class SdkUpdaterConfigPanel implements Disposable {
                                @Nullable SettingsController settings,
                                @NotNull SdkUpdaterConfigurable configurable) {
     UsageTracker.log(AndroidStudioEvent.newBuilder()
-                                     .setCategory(EventCategory.SDK_MANAGER)
-                                     .setKind(EventKind.SDK_MANAGER_LOADED));
+                       .setCategory(EventCategory.SDK_MANAGER)
+                       .setKind(EventKind.SDK_MANAGER_LOADED));
 
     myConfigurable = configurable;
     myUpdateSitesPanel.setConfigurable(configurable);
@@ -444,7 +447,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
               return htmlBuilder;
             }
             return null;
-          },"Analyzing SDK Disk Space Utilization", true, null);
+          }, "Analyzing SDK Disk Space Utilization", true, null);
       }
       catch (ProcessCanceledException ex) {
         return;
@@ -462,7 +465,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
               File cleanupDirFile = new File(sdkLocation, cleanupDir);
               FileUtil.delete(cleanupDirFile);
             }
-          },"Deleting SDK Temporary Files", false, null);
+          }, "Deleting SDK Temporary Files", false, null);
       }
     });
   }
@@ -579,7 +582,25 @@ public class SdkUpdaterConfigPanel implements Disposable {
         if (table.getSelectionModel().getMinSelectionIndex() != -1) {
           return;
         }
-        if (e instanceof CausedFocusEvent && ((CausedFocusEvent)e).getCause() == CausedFocusEvent.Cause.TRAVERSAL_BACKWARD) {
+
+        boolean traversalBackward = false;
+
+        if (SystemInfo.IS_AT_LEAST_JAVA9) {
+          try {
+            Method getCause = FocusEvent.class.getMethod("getCause");
+            Enum<?> cause = (Enum<?>)getCause.invoke(e);
+            traversalBackward = "TRAVERSAL_BACKWARD".equals(cause.name());
+          }
+          catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
+            Logger.getInstance(SdkUpdaterConfigPanel.class).warn(ex);
+          }
+        }
+        else {
+          traversalBackward =
+            (e instanceof CausedFocusEvent && ((CausedFocusEvent)e).getCause() == CausedFocusEvent.Cause.TRAVERSAL_BACKWARD);
+        }
+
+        if (traversalBackward) {
           backwardAction.doAction(table);
         }
         else {
@@ -619,13 +640,13 @@ public class SdkUpdaterConfigPanel implements Disposable {
       myPlatformComponentsPanel.startLoading();
       myToolComponentsPanel.startLoading();
       myConfigurable.getRepoManager()
-                    .load(0, ImmutableList.of(myLocalUpdater), ImmutableList.of(myRemoteUpdater), null,
-                          progressRunner, myDownloader, mySettings, false);
+        .load(0, ImmutableList.of(myLocalUpdater), ImmutableList.of(myRemoteUpdater), null,
+              progressRunner, myDownloader, mySettings, false);
     }
     else {
       myConfigurable.getRepoManager()
-                    .load(0, ImmutableList.of(myLocalUpdater), null, null,
-                          progressRunner, null, mySettings, false);
+        .load(0, ImmutableList.of(myLocalUpdater), null, null,
+              progressRunner, null, mySettings, false);
     }
   }
 
@@ -643,7 +664,8 @@ public class SdkUpdaterConfigPanel implements Disposable {
     if (severity == OK) {
       mySdkLocationLabel.setForeground(JBColor.foreground());
       mySdkErrorLabel.setVisible(false);
-    } else {
+    }
+    else {
       mySdkErrorLabel.setIcon(severity.getIcon());
       mySdkErrorLabel.setText(result.getMessage());
       mySdkErrorLabel.setVisible(true);
