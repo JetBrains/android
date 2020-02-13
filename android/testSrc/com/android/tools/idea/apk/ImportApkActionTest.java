@@ -126,7 +126,7 @@ public class ImportApkActionTest extends PlatformTestCase {
     }
   }
 
-  private static class RecentProjectsManagerStub extends RecentProjectsManager {
+  private static final class RecentProjectsManagerStub extends RecentProjectsManager {
     @NotNull private String myLastProjectLocation;
 
     RecentProjectsManagerStub(@NotNull String lastProjectLocation) {
@@ -164,7 +164,8 @@ public class ImportApkActionTest extends PlatformTestCase {
     }
 
     @Override
-    public void reopenLastProjectsOnStart() {
+    public boolean reopenLastProjectsOnStart() {
+      return false;
     }
   }
 }
