@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite.ui.mainView
 
 import com.android.tools.adtui.stdui.CommonButton
+import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
@@ -68,13 +69,38 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     tree.expandPath(TreePath(schemaNode.path))
   }
 
+  // TODO(b/149920358) handle error by recreating the view.
   fun updateDatabase(database: SqliteDatabase, diffOperations: List<SchemaDiffOperation>) {
-    // TODO(next CL)
+    val treeModel = tree.model as DefaultTreeModel
+    val databaseNode = findDatabaseNode(database)
+    databaseNode.userObject = database
+
+    for (diffOp in diffOperations) {
+      when (diffOp) {
+        is AddTable -> {
+          addNewTableNode(treeModel, databaseNode, diffOp.indexedSqliteTable, diffOp.columns)
+        }
+        is AddColumns -> {
+          val tableNode = findTableNode(databaseNode, diffOp.tableName) ?: error("No tree node found for table ${diffOp.tableName}")
+          tableNode.userObject = diffOp.newTable
+          addColumnsToTableNode(treeModel, tableNode, diffOp.columns)
+        }
+        is RemoveTable -> {
+          val tableNode = findTableNode(databaseNode, diffOp.tableName) ?: error("No tree node found for table ${diffOp.tableName}")
+          treeModel.removeNodeFromParent(tableNode)
+        }
+        is RemoveColumns -> {
+          val tableNode = findTableNode(databaseNode, diffOp.tableName) ?: error("No tree node found for table ${diffOp.tableName}")
+          tableNode.userObject = diffOp.newTable
+          diffOp.columnsToRemove.map { findColumnNode(tableNode, it.name) }.forEach { treeModel.removeNodeFromParent(it) }
+        }
+      }
+    }
   }
 
   fun removeDatabaseSchema(database: SqliteDatabase) {
     val treeModel = tree.model as DefaultTreeModel
-    val databaseNode = findTreeNode(database)
+    val databaseNode = findDatabaseNode(database)
     treeModel.removeNodeFromParent(databaseNode)
   }
 
@@ -154,11 +180,46 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     }
   }
 
-  private fun findTreeNode(database: SqliteDatabase): DefaultMutableTreeNode {
+  /** Adds a child node to [databaseNode] for the table in [sqliteTableToAdd] at the specified index. */
+  private fun addNewTableNode(treeModel: DefaultTreeModel, databaseNode: DefaultMutableTreeNode, sqliteTableToAdd: IndexedSqliteTable, sqliteColumnsToAdd: List<IndexedSqliteColumn>) {
+    val (sqliteTable, index) = sqliteTableToAdd
+    val newTableNode = DefaultMutableTreeNode(sqliteTable)
+    sqliteColumnsToAdd.sortedBy { it.index }.map { it.sqliteColumn }.forEach { column -> newTableNode.add(DefaultMutableTreeNode(column)) }
+    treeModel.insertNodeInto(newTableNode, databaseNode, index)
+  }
+
+  /** Add child nodes to [tableNode] for each column in [columnsToAdd] at the specified index */
+  private fun addColumnsToTableNode(
+    treeModel: DefaultTreeModel,
+    tableNode: DefaultMutableTreeNode,
+    columnsToAdd: List<IndexedSqliteColumn>
+  ) {
+    columnsToAdd.forEach {  indexedSqliteColumn ->
+      val (sqliteColumn, index) = indexedSqliteColumn
+      val newColumnNode = DefaultMutableTreeNode(sqliteColumn)
+      treeModel.insertNodeInto(newColumnNode, tableNode, index)
+    }
+  }
+
+  private fun findDatabaseNode(database: SqliteDatabase): DefaultMutableTreeNode {
     val root = tree.model.root as DefaultMutableTreeNode
     return root.children().asSequence()
       .map { it as DefaultMutableTreeNode }
       .first { it.userObject == database }
+  }
+
+  private fun findTableNode(databaseNode: DefaultMutableTreeNode, tableName: String): DefaultMutableTreeNode? {
+    return databaseNode.children().asSequence()
+      .map { it as DefaultMutableTreeNode }
+      .filter { it.userObject is SqliteTable }
+      .firstOrNull { (it.userObject as SqliteTable).name == tableName }
+  }
+
+  private fun findColumnNode(databaseNode: DefaultMutableTreeNode, columnName: String): DefaultMutableTreeNode? {
+    return databaseNode.children().asSequence()
+      .map { it as DefaultMutableTreeNode }
+      .filter { it.userObject is SqliteColumn }
+      .firstOrNull { (it.userObject as SqliteColumn).name == columnName }
   }
 
   private fun findDatabaseNode(treePath: TreePath): SqliteDatabase {
