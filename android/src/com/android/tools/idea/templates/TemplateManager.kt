@@ -49,7 +49,6 @@ import com.intellij.openapi.actionSystem.LangDataKeys
 import icons.AndroidIcons
 import org.jetbrains.android.util.AndroidBundle.message
 import org.jetbrains.annotations.PropertyKey
-import java.io.File
 import com.android.tools.idea.wizard.template.Template
 
 /**
@@ -171,15 +170,6 @@ class TemplateManager private constructor() {
 
     @JvmStatic
     val instance = TemplateManager()
-
-    /**
-     * @return the root folder containing templates
-     */
-    @JvmStatic
-    val templateRootFolder: File?
-      get() {
-        return null
-      }
 
     private fun updateAction(event: AnActionEvent, actionText: String?, visible: Boolean, disableIfNotReady: Boolean) {
       val view = event.getData(LangDataKeys.IDE_VIEW)
