@@ -29,6 +29,7 @@ import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
+import com.android.tools.profilers.StudioMonitorStage
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.analysis.CaptureNodeAnalysisModel
@@ -198,11 +199,21 @@ class CpuCaptureStageViewTest {
     profilersView.deselectAllLabel.setBounds(0, 0, 100, 100)
     val ui = FakeUi(profilersView.deselectAllLabel)
 
+    // Label should be visible when selection changes.
     assertThat(profilersView.deselectAllToolbar.isVisible).isFalse()
     stage.multiSelectionModel.setSelection(setOf(CaptureNodeAnalysisModel(captureNode, stage.capture)))
     assertThat(profilersView.deselectAllToolbar.isVisible).isTrue()
+
+    // Clicking the label should clear the selection.
     ui.mouse.click(0, 0)
     assertThat(stage.multiSelectionModel.isEmpty).isTrue()
+    assertThat(profilersView.deselectAllToolbar.isVisible).isFalse()
+
+    // The label should be gone after we navigate away from the capture stage.
+    stage.multiSelectionModel.setSelection(setOf(CaptureNodeAnalysisModel(captureNode, stage.capture)))
+    assertThat(profilersView.deselectAllToolbar.isVisible).isTrue()
+    profilersView.studioProfilers.stage = StudioMonitorStage(profilersView.studioProfilers)
+    assertThat(profilersView.deselectAllToolbar.isVisible).isFalse()
   }
 
   @Test
