@@ -73,4 +73,14 @@ class SantaTrackerKotlinBenchmark : FullProjectBenchmark() {
       ),
       PROJECT_NAME)
   }
+
+  @Test
+  fun kotlinTopLevelCompletion() {
+    super.testTopLevelCompletionForKotlin(PROJECT_NAME)
+  }
+
+  @Test
+  fun kotlinLocalLevelCompletion() {
+    super.testLocalLevelCompletionForKotlin(PROJECT_NAME)
+  }
 }
