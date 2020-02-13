@@ -131,6 +131,7 @@ import org.jetbrains.kotlin.kapt.idea.KaptSourceSetModel;
 import org.jetbrains.plugins.gradle.model.Build;
 import org.jetbrains.plugins.gradle.model.BuildScriptClasspathModel;
 import org.jetbrains.plugins.gradle.model.ExternalProject;
+import org.jetbrains.plugins.gradle.model.ExternalSourceSet;
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
@@ -216,8 +217,20 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       moduleDataNode.getData().setSourceCompatibility(androidProject.getJavaCompileOptions().getSourceCompatibility());
       moduleDataNode.getData().setTargetCompatibility(androidProject.getJavaCompileOptions().getTargetCompatibility());
       CompilerOutputUtilKt.setupCompilerOutputPaths(moduleDataNode);
+    } else {
+      // Workaround BaseGradleProjectResolverExtension since the IdeaJavaLanguageSettings doesn't contain any information.
+      // For this we set the language level based on the "main" source set of the module.
+      // TODO: Remove once we have switched to module per source set. The base resolver should handle that correctly.
+      ExternalProject externalProject = resolverCtx.getExtraProject(gradleModule, ExternalProject.class);
+      if (externalProject != null) {
+        // main should always exist, if it doesn't other things will fail before this.
+        ExternalSourceSet externalSourceSet = externalProject.getSourceSets().get("main");
+        if (externalSourceSet != null) {
+          moduleDataNode.getData().setSourceCompatibility(externalSourceSet.getSourceCompatibility());
+          moduleDataNode.getData().setTargetCompatibility(externalSourceSet.getTargetCompatibility());
+        }
+      }
     }
-
 
     return moduleDataNode;
   }
@@ -231,8 +244,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
    *   <li>JavaModuleModel</li>
    * </ul>
    *
-   * @param moduleNode the module node to attach the models to
-   * @param gradleModule the module in question
+   * @param moduleNode     the module node to attach the models to
+   * @param gradleModule   the module in question
    * @param androidProject the android project obtained from this module (null is none found)
    */
   private void createAndAttachModelsToDataNode(@NotNull DataNode<ModuleData> moduleNode,
