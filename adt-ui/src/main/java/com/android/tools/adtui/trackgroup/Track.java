@@ -32,6 +32,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents horizontal data visualization (e.g. time-based data series), used in a {@link TrackGroup}.
@@ -139,7 +140,11 @@ public class Track {
     return myTitleLabel;
   }
 
+  @Nullable
   private Icon getExpandCollapseIcon(boolean selected) {
+    if (!myTrackModel.isCollapsible()) {
+      return null;
+    }
     Icon expandCollapseIcon = myTrackModel.isCollapsed() ? COLLAPSE_ICON : EXPAND_ICON;
     return selected ? ColoredIconGenerator.INSTANCE.generateWhiteIcon(expandCollapseIcon) : expandCollapseIcon;
   }
