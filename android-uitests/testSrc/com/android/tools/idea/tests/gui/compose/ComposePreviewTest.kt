@@ -67,7 +67,6 @@ class ComposePreviewTest {
   }
 
   @Test
-  @RunIn(TestGroup.UNRELIABLE) // b/148000568
   @Throws(Exception::class)
   fun testCopyPreviewImage() {
     val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
