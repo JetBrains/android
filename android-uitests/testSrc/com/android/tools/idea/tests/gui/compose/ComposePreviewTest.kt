@@ -31,6 +31,7 @@ import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import junit.framework.TestCase.assertFalse
 import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.fixture.JPopupMenuFixture
+import org.fest.swing.timing.Wait
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -158,6 +159,32 @@ class ComposePreviewTest {
     // Undo modifications and close editor to return to the initial state
     editor.select("(${modification})")
     editor.invokeAction(EditorFixture.EditorAction.BACK_SPACE)
+    editor.close()
+  }
+
+  @Test
+  @RunIn(TestGroup.UNRELIABLE) // b/149464002
+  @Throws(Exception::class)
+  fun testRemoveExistingPreview() {
+    val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
+    val composePreview = openComposePreview(fixture)
+
+    composePreview
+      .waitForRenderToFinish()
+      .getNotificationsFixture()
+      .assertNoNotifications()
+
+    assertFalse(composePreview.hasRenderErrors())
+
+    val editor = fixture.editor
+    editor.select("(@Preview)")
+    editor.invokeAction(EditorFixture.EditorAction.BACK_SPACE)
+    guiTest.ideFrame().invokeMenuPath("Code", "Optimize Imports") // This will remove the Preview import
+    guiTest.robot().waitForIdle()
+    Wait.seconds(10)
+      .expecting("preview panel to hide")
+      .until { !composePreview.designSurface.isShowing }
+
     editor.close()
   }
 }
