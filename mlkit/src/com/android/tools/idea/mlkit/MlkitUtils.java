@@ -17,18 +17,23 @@ package com.android.tools.idea.mlkit;
 
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.tools.idea.mlkit.lightpsi.LightModelClass;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.problems.WolfTheProblemSolver;
+import com.intellij.psi.PsiClass;
 import com.intellij.util.indexing.FileBasedIndex;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -40,7 +45,6 @@ public class MlkitUtils {
   }
 
   public static boolean isMlModelFileInAssetsFolder(@NotNull VirtualFile file) {
-    // TODO(b/144867508): support other model types.
     // TODO(b/146357353): revisit the way to check if the file belongs to assets folder.
     return file.getFileType() == TfliteModelFileType.INSTANCE
            && file.getParent() != null
@@ -52,6 +56,23 @@ public class MlkitUtils {
   public static String computeModelClassName(@NotNull String modelFileUrl) {
     String modelFileName = FileUtil.getNameWithoutExtension(VfsUtil.extractFileName(modelFileUrl));
     return CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, modelFileName);
+  }
+
+  public static PsiClass[] getLightModelClasses(@NotNull Project project, @NotNull Map<VirtualFile, MlModelMetadata> modelFileMap) {
+    List<PsiClass> lightModelClassList = new ArrayList<>();
+    for (Map.Entry<VirtualFile, MlModelMetadata> metadata : modelFileMap.entrySet()) {
+      if (!metadata.getValue().isValidModel()) {
+        continue;
+      }
+
+      Module module = ModuleUtilCore.findModuleForFile(metadata.getKey(), project);
+      LightModelClass lightModelClass =
+        module != null ? MlkitModuleService.getInstance(module).getOrCreateLightModelClass(metadata.getValue()) : null;
+      if (lightModelClass != null) {
+        lightModelClassList.add(lightModelClass);
+      }
+    }
+    return lightModelClassList.toArray(PsiClass.EMPTY_ARRAY);
   }
 
   /**
