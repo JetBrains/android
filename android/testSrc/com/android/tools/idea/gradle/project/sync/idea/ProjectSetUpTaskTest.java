@@ -67,4 +67,17 @@ public class ProjectSetUpTaskTest extends AndroidGradleTestCase {
     // Verify that no events were created.
     verify(syncViewManager, never()).onEvent(eq(myTaskId), any());
   }
+
+  public void testOnFailureUsesErrorDetails() {
+    SyncViewManager syncViewManager = mock(SyncViewManager.class);
+    new IdeComponents(getProject()).replaceProjectService(SyncViewManager.class, syncViewManager);
+
+    // Invoke method to test.
+    mySetupTask.onFailure(myTaskId, "sync failed", "IllegalStateException: very bad thing happened\notherline:32");
+
+    // Verify that no events were created.
+    verify(syncViewManager, never()).onEvent(eq(myTaskId), any());
+    verify(mySyncState).syncFailed(eq("sync failed\nIllegalStateException: very bad thing happened\notherline:32\n\n" +
+                                      "Consult IDE log for more details (Help | Show Log)"), any(), any());
+  }
 }
