@@ -17,6 +17,8 @@ package com.android.tools.idea.uibuilder.editor;
 
 import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.DESIGN_MODE;
 import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.NEXT_DEVICE;
+import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.REFRESH_LAYOUT;
+import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.SWITCH_ORIENTATION;
 import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.TOGGLE_ISSUE_PANEL;
 
 import com.android.tools.adtui.actions.DropDownAction;
@@ -33,17 +35,14 @@ import com.android.tools.idea.configurations.OrientationMenuAction;
 import com.android.tools.idea.configurations.TargetMenuAction;
 import com.android.tools.idea.configurations.ThemeMenuAction;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.common.actions.RefreshRenderAction;
+import com.android.tools.idea.rendering.RefreshRenderAction;
 import com.android.tools.idea.uibuilder.actions.LayoutEditorHelpAssistantAction;
 import com.android.tools.idea.uibuilder.actions.SwitchDesignModeAction;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.keymap.KeymapUtil;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
@@ -78,10 +77,8 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
                                                   new SwitchDesignModeAction((NlDesignSurface)mySurface), mySurface, this));
     group.addSeparator();
 
-    OrientationMenuAction orientationMenuAction = new OrientationMenuAction(mySurface::getConfiguration, mySurface);
-    appendShortcutText(orientationMenuAction, ToggleDeviceOrientationAction.getInstance());
-    group.add(orientationMenuAction);
-
+    group.add(SWITCH_ORIENTATION.registerForHiddenAction(new OrientationMenuAction(mySurface::getConfiguration, mySurface),
+                                                         new ToggleDeviceOrientationAction(mySurface), mySurface, this));
     group.addSeparator();
     DeviceMenuAction menuAction = new DeviceMenuAction(mySurface::getConfiguration);
     group.add(NEXT_DEVICE.registerForHiddenAction(menuAction, new NextDeviceAction(menuAction), mySurface, this));
@@ -95,14 +92,6 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     return group;
   }
 
-  private void appendShortcutText(@NotNull AnAction targetAction , @NotNull AnAction action) {
-    String shortcutsText = KeymapUtil.getPreferredShortcutText(action.getShortcutSet().getShortcuts());
-    Presentation presentation = targetAction.getTemplatePresentation();
-    if (!shortcutsText.isEmpty()) {
-      presentation.setDescription(String.format("%s (%s)", presentation.getDescription(), shortcutsText));
-    }
-  }
-
   @NotNull
   private DropDownAction createDesignModeAction() {
     DropDownAction designSurfaceMenu = new DropDownAction(null, "Select Design Surface", StudioIcons.LayoutEditor.Toolbar.VIEW_MODE);
@@ -110,8 +99,7 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     designSurfaceMenu.addAction(new BlueprintModeAction((NlDesignSurface)mySurface));
     designSurfaceMenu.addAction(new BlueprintAndDesignModeAction((NlDesignSurface)mySurface));
     designSurfaceMenu.addSeparator();
-    // Get the action instead of creating a new one, to make the popup menu display the shortcut.
-    designSurfaceMenu.addAction(RefreshRenderAction.getInstance());
+    designSurfaceMenu.addAction(REFRESH_LAYOUT.registerForAction(new RefreshRenderAction(mySurface), mySurface, this));
     return designSurfaceMenu;
   }
 

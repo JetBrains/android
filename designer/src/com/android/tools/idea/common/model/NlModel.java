@@ -36,8 +36,7 @@ import com.android.tools.idea.common.type.DesignerEditorFileTypeKt;
 import com.android.tools.idea.common.util.XmlTagUtil;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.common.actions.RefreshRenderAction;
-import com.android.tools.idea.rendering.RenderUtils;
+import com.android.tools.idea.rendering.RefreshRenderAction;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.IdeResourcesUtil;
@@ -925,14 +924,14 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
           notifyModifiedViaUpdateQueue(ChangeType.EDIT);
           break;
         case IMAGE_RESOURCE_CHANGED:
-          RenderUtils.clearCache(ImmutableList.of(getConfiguration()));
+          RefreshRenderAction.clearCache(ImmutableList.of(getConfiguration()));
           notifyModified(ChangeType.RESOURCE_CHANGED);
           break;
         case GRADLE_SYNC:
         case PROJECT_BUILD:
         case VARIANT_CHANGED:
         case SDK_CHANGED:
-          RenderUtils.clearCache(ImmutableList.of(getConfiguration()));
+          RefreshRenderAction.clearCache(ImmutableList.of(getConfiguration()));
           notifyModified(ChangeType.BUILD);
           break;
         case CONFIGURATION_CHANGED:

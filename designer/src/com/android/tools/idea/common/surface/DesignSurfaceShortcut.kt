@@ -31,14 +31,14 @@ import javax.swing.KeyStroke
  * the '+' in on the KeyCode of '='. This is necessary for the Intellij ActionButton which uses
  * the key code to display the character in the tooltip and not the key char.
  *
- * TODO (b/149212539): Register these shortcuts to plugin xml file to support custom keymap. Then remove this class.
- *
  * @see KeyStroke
  * @See KeyEvent
  */
 enum class DesignSurfaceShortcut(val keyCode: Int, private val keyChar: Char? = null) {
   TOGGLE_ISSUE_PANEL(KeyEvent.VK_E),
+  SWITCH_ORIENTATION(KeyEvent.VK_O),
   NEXT_DEVICE(KeyEvent.VK_D),
+  REFRESH_LAYOUT(KeyEvent.VK_R),
   DESIGN_MODE(KeyEvent.VK_B),
 
   PAN(KeyEvent.VK_SPACE);
