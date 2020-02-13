@@ -109,7 +109,7 @@ interface SourceProviders {
    *
    * Use this method only if absolutely necessary and consider using [currentSourceProviders] where possible.
    */
-  val allSourceProviders: List<NamedIdeaSourceProvider>
+  val currentAndSomeFrequentlyUsedInactiveSourceProviders: List<NamedIdeaSourceProvider>
 
   /**
    * Returns a list of source providers which includes the main source provider and
@@ -145,7 +145,7 @@ interface SourceProviders {
           get() = throw UnsupportedOperationException()
         override val currentAndroidTestSourceProviders: List<NamedIdeaSourceProvider>
           get() = throw UnsupportedOperationException()
-        override val allSourceProviders: List<NamedIdeaSourceProvider>
+        override val currentAndSomeFrequentlyUsedInactiveSourceProviders: List<NamedIdeaSourceProvider>
           get() = throw UnsupportedOperationException()
         @Suppress("OverridingDeprecatedMember")
         override val mainAndFlavorSourceProviders: List<NamedIdeaSourceProvider>
@@ -178,7 +178,7 @@ interface SourceProviders {
           get() = throw UnsupportedOperationException()
         override val currentAndroidTestSourceProviders: List<NamedIdeaSourceProvider>
           get() = throw UnsupportedOperationException()
-        override val allSourceProviders: List<NamedIdeaSourceProvider>
+        override val currentAndSomeFrequentlyUsedInactiveSourceProviders: List<NamedIdeaSourceProvider>
           get() = throw UnsupportedOperationException()
         @Suppress("OverridingDeprecatedMember")
         override val mainAndFlavorSourceProviders: List<NamedIdeaSourceProvider>

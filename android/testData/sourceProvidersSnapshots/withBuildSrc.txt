@@ -383,7 +383,7 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/androidTest/shaders
                     file://./app/src/androidTestDebug/shaders
-        AllIdeaSourceProviders:
+        CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:

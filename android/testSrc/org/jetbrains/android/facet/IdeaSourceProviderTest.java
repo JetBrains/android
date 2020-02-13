@@ -94,7 +94,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
 
     // Try finding paid flavor
     NamedIdeaSourceProvider paidFlavorSourceProvider =
-      SourceProviderManager.getInstance(myAppFacet).getAllSourceProviders().stream()
+      SourceProviderManager.getInstance(myAppFacet).getCurrentAndSomeFrequentlyUsedInactiveSourceProviders().stream()
         .filter(it -> it.getName().equalsIgnoreCase("paid")).collect(MoreCollectors.onlyElement());
 
     VirtualFile javaSrcFile = moduleFile.findFileByRelativePath("src/paid/java/com/example/projectwithappandlib/app/paid");
@@ -110,7 +110,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
   public void testSourceProviderContainsFile() throws Exception {
     assertNotNull(AndroidModel.get(myAppFacet));
     IdeaSourceProvider paidFlavorSourceProvider =
-      SourceProviderManager.getInstance(myAppFacet).getAllSourceProviders().stream()
+      SourceProviderManager.getInstance(myAppFacet).getCurrentAndSomeFrequentlyUsedInactiveSourceProviders().stream()
         .filter(it -> it.getName().equalsIgnoreCase("paid")).collect(MoreCollectors.onlyElement());
 
     VirtualFile moduleFile = findFileByIoFile(getProjectFolderPath(), true).findFileByRelativePath("app");

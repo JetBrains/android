@@ -124,7 +124,7 @@ public class CreateResourceDialogUtils {
       return;
     }
     if (facet != null && AndroidModel.isRequired(facet) && AndroidModel.get(facet) != null) {
-      Collection<NamedIdeaSourceProvider> providers = SourceProviderManager.getInstance(facet).getAllSourceProviders();
+      Collection<NamedIdeaSourceProvider> providers = SourceProviderManager.getInstance(facet).getCurrentAndSomeFrequentlyUsedInactiveSourceProviders();
       DefaultComboBoxModel<SourceSetItem> model = new DefaultComboBoxModel<SourceSetItem>();
       for (NamedIdeaSourceProvider sourceProvider : providers) {
         for (String resDirUrl : sourceProvider.getResDirectoryUrls()) {

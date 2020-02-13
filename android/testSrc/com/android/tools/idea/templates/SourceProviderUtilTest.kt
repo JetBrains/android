@@ -25,7 +25,7 @@ class SourceProviderUtilTest : AndroidGradleTestCase() {
     loadProject(PROJECT_WITH_APPAND_LIB, "app")
 
     val paidFlavorSourceProvider = SourceProviderManager.getInstance(myAndroidFacet)
-      .allSourceProviders
+      .currentAndSomeFrequentlyUsedInactiveSourceProviders
       .filter { it -> it.name.equals("paid", ignoreCase = true) }
       .single()
 
@@ -51,7 +51,7 @@ class SourceProviderUtilTest : AndroidGradleTestCase() {
     loadProject(PROJECT_WITH_APPAND_LIB, "app")
 
     val paidFlavorSourceProvider = SourceProviderManager.getInstance(myAndroidFacet)
-      .allSourceProviders.single { it.name.equals("basicDebug", ignoreCase = true) }
+      .currentAndSomeFrequentlyUsedInactiveSourceProviders.single { it.name.equals("basicDebug", ignoreCase = true) }
 
     val moduleFile = findFileByIoFile(projectFolderPath, true)!!.findFileByRelativePath("app")
     assertNotNull(moduleFile)
