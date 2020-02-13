@@ -22,6 +22,7 @@ import com.android.SdkConstants.ATTR_EXPORTED
 import com.android.SdkConstants.ATTR_MIN_SDK_VERSION
 import com.android.SdkConstants.ATTR_NAME
 import com.android.SdkConstants.ATTR_PACKAGE
+import com.android.SdkConstants.ATTR_REQUIRED
 import com.android.SdkConstants.ATTR_TARGET_ACTIVITY
 import com.android.SdkConstants.ATTR_TARGET_SDK_VERSION
 import com.android.SdkConstants.ATTR_THEME
@@ -35,6 +36,7 @@ import com.android.SdkConstants.TAG_INTENT_FILTER
 import com.android.SdkConstants.TAG_MANIFEST
 import com.android.SdkConstants.TAG_PERMISSION
 import com.android.SdkConstants.TAG_PERMISSION_GROUP
+import com.android.SdkConstants.TAG_USES_FEATURE
 import com.android.SdkConstants.TAG_USES_PERMISSION
 import com.android.SdkConstants.TAG_USES_PERMISSION_SDK_23
 import com.android.SdkConstants.TAG_USES_PERMISSION_SDK_M
@@ -226,7 +228,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
 
   override fun getValueExternalizer() = AndroidManifestRawText.Externalizer
   override fun getName() = NAME
-  override fun getVersion() = 8
+  override fun getVersion() = 9
   override fun getIndexer() = Indexer
   override fun getInputFilter() = InputFilter
 
@@ -321,6 +323,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
       var minSdkLevel: String? = null
       val packageName = getAttributeValue(null, ATTR_PACKAGE)
       val usedPermissionNames = hashSetOf<String>()
+      val usedFeatures = hashSetOf<UsedFeatureRawText>()
       var debuggable: String? = null
       var targetSdkLevel: String? = null
       var theme: String? = null
@@ -350,6 +353,11 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
             androidName?.let(usedPermissionNames::add)
             skipSubTreeWithExceptionCaught()
           }
+          TAG_USES_FEATURE -> {
+            val required = getAttributeValue(ANDROID_URI, ATTR_REQUIRED)
+            usedFeatures.add(UsedFeatureRawText(androidName, required))
+            skipSubTreeWithExceptionCaught()
+          }
           TAG_USES_SDK -> {
             minSdkLevel = getAttributeValue(ANDROID_URI, ATTR_MIN_SDK_VERSION)
             targetSdkLevel = getAttributeValue(ANDROID_URI, ATTR_TARGET_SDK_VERSION)
@@ -369,6 +377,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
         minSdkLevel = minSdkLevel,
         packageName = packageName,
         usedPermissionNames = usedPermissionNames.toSet(),
+        usedFeatures = usedFeatures.toSet(),
         targetSdkLevel = targetSdkLevel,
         theme = theme
       )
@@ -521,6 +530,7 @@ data class AndroidManifestRawText(
   val minSdkLevel: String?,
   val packageName: String?,
   val usedPermissionNames: Set<String>,
+  val usedFeatures: Set<UsedFeatureRawText>,
   val targetSdkLevel: String?,
   val theme: String?
 ) {
@@ -544,6 +554,7 @@ data class AndroidManifestRawText(
         writeNullable(out, minSdkLevel) { writeUTF(out, it) }
         writeNullable(out, packageName) { writeUTF(out, it) }
         writeSeq(out, usedPermissionNames) { writeUTF(out, it) }
+        writeSeq(out, usedFeatures) { UsedFeatureRawText.Externalizer.save(out, it) }
         writeNullable(out, targetSdkLevel) { writeUTF(out, it) }
         writeNullable(out, theme) { writeUTF(out, it) }
       }
@@ -559,6 +570,7 @@ data class AndroidManifestRawText(
       minSdkLevel = readNullable(`in`) { readUTF(`in`) },
       packageName = readNullable(`in`) { readUTF(`in`) },
       usedPermissionNames = readSeq(`in`) { readUTF(`in`) }.toSet(),
+      usedFeatures = readSeq(`in`) { UsedFeatureRawText.Externalizer.read(`in`) }.toSet(),
       targetSdkLevel = readNullable(`in`) { readUTF(`in`) },
       theme = readNullable(`in`) { readUTF(`in`) }
     )
@@ -675,6 +687,36 @@ data class IntentFilterRawText(val actionNames: Set<String>, val categoryNames: 
     override fun read(`in`: DataInput) = IntentFilterRawText(
       actionNames = readSeq(`in`) { readUTF(`in`) }.toSet(),
       categoryNames = readSeq(`in`) { readUTF(`in`) }.toSet()
+    )
+  }
+}
+
+/**
+ * Structured pieces of raw text from an AndroidManifest.xml file corresponding to a subset of uses-feature tag's
+ * attributes.
+ *
+ * @see AndroidManifestRawText
+ */
+data class UsedFeatureRawText(val name: String?, val required: String?) {
+  /**
+   * Singleton responsible for serializing/de-serializing [UsedFeatureRawText]s to/from disk.
+   *
+   * [AndroidManifestIndex] uses this externalizer to keep its cache within its memory limit
+   * and also to persist indexed data between IDE sessions. Any structural change to [UsedFeatureRawText]
+   * requires an update to the schema used here, and any update to the schema requires us to increment
+   * [AndroidManifestIndex.getVersion].
+   */
+  object Externalizer : DataExternalizer<UsedFeatureRawText> {
+    override fun save(out: DataOutput, value: UsedFeatureRawText) {
+      value.apply {
+        writeNullable(out, name) { writeUTF(out, it) }
+        writeNullable(out, required) { writeUTF(out, it) }
+      }
+    }
+
+    override fun read(`in`: DataInput) = UsedFeatureRawText(
+      name = readNullable(`in`) { readUTF(`in`) },
+      required = readNullable(`in`) { readUTF(`in`) }
     )
   }
 }
