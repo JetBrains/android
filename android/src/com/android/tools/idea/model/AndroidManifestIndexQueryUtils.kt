@@ -242,6 +242,22 @@ fun AndroidFacet.queryPackageNameFromManifestIndex(): String? {
 }
 
 /**
+ * Returns the union set of used features, instead of merged results with merging rules applied.
+ *
+ * Must be called in a smart read action
+ */
+fun AndroidFacet.queryUsedFeaturesFromManifestIndex() = queryManifestIndex { overrides, contributors ->
+  contributors
+    .asSequence()
+    .flatMap { it.usedFeatures.asSequence() }
+    .mapNotNull { feature ->
+      UsedFeatureRawText(feature.name?.let { overrides.resolvePlaceholders(it) },
+                         feature.required?.let { overrides.resolvePlaceholders(it) })
+    }
+    .toSet()
+}
+
+/**
  * To track in crash analytics when EAP
  */
 fun logManifestIndexQueryError(e: Exception) {

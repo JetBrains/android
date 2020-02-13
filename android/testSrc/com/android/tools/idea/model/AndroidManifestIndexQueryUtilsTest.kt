@@ -331,4 +331,24 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
     Truth.assertThat(facets.size).isEqualTo(1)
     Truth.assertThat(facets[0]).isEqualTo(myFacet)
   }
+
+  fun testQueryUsedFeatures() {
+    val manifestContent = """
+    <?xml version='1.0' encoding='utf-8'?>
+    <manifest xmlns:android='http://schemas.android.com/apk/res/android'
+      package='com.example' android:enabled='true'>
+      <uses-feature android:name="android.hardware.type.watch" android:required="true" android:glEsVersion="integer" />
+    </manifest>
+    """.trimIndent()
+    updateManifest(myModule, FN_ANDROID_MANIFEST_XML, manifestContent)
+    Truth.assertThat(myFacet.queryUsedFeaturesFromManifestIndex()).isEqualTo(
+      setOf(UsedFeatureRawText(name = "android.hardware.type.watch", required = "true"))
+    )
+
+    // change required value
+    updateManifest(myModule, FN_ANDROID_MANIFEST_XML, manifestContent.replace("true", "false"))
+    Truth.assertThat(myFacet.queryUsedFeaturesFromManifestIndex()).isEqualTo(
+      setOf(UsedFeatureRawText(name = "android.hardware.type.watch", required = "false"))
+    )
+  }
 }

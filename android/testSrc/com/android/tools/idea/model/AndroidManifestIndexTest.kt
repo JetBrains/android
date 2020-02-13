@@ -55,6 +55,7 @@ class AndroidManifestIndexTest {
     <activity-alias android:name='.DisabledAlias' android:enabled='false' android:exported='true' android:targetActivity='.EnabledActivity'>
     </activity-alias>
   </application>
+  <uses-feature android:name="android.hardware.type.watch" android:required="true" android:glEsVersion="integer" />
   <uses-permission android:name='android.permission.SEND_SMS'/>
   <uses-permission-sdk-23 android:name='custom.permissions.NO_GROUP'/>
   <permission-group android:name='custom.permissions.CUSTOM_GROUP'/>
@@ -92,6 +93,7 @@ class AndroidManifestIndexTest {
       minSdkLevel = "22",
       packageName = "com.example",
       usedPermissionNames = setOf("android.permission.SEND_SMS", "custom.permissions.NO_GROUP"),
+      usedFeatures = setOf(UsedFeatureRawText(name = "android.hardware.type.watch", required = "true")),
       targetSdkLevel = "28",
       theme = "@style/Theme.AppCompat")
     )
@@ -123,6 +125,8 @@ class AndroidManifestIndexTest {
     <activity-alias android:name='.DisabledAlias' android:enabled='false' android:targetActivity='.EnabledActivity'>
     </activity-alias>
   </application>
+
+  <uses-feature android:name="android.hardware.type.watch" android:required="true" android:glEsVersion="integer" />
 
   <uses-permission-sdk-23 android:name='custom.permissions.NO_GROUP'/>
   <permission-group android:name='custom.permissions.CUSTOM_GROUP'/>
@@ -171,6 +175,7 @@ class AndroidManifestIndexTest {
       minSdkLevel = "22",
       packageName = "com.example",
       usedPermissionNames = setOf("android.permission.SEND_SMS", "custom.permissions.NO_GROUP"),
+      usedFeatures = setOf(UsedFeatureRawText(name = "android.hardware.type.watch", required = "true")),
       targetSdkLevel = "28",
       theme = "@style/Theme.AppCompat")
     )
