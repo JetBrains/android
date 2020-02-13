@@ -139,6 +139,10 @@ class ComposePreviewTest {
 
     assertFalse(composePreview.hasRenderErrors())
 
+    // Verify that the element rendered correctly by checking it's not empty
+    val previewElementRender = composePreview.designSurface.scene.sceneComponents.single()
+    assertTrue(previewElementRender.width > 10 && previewElementRender.height > 10)
+
     val editor = fixture.editor
 
     // Now let's make a change on the source code and check that the notification displays
