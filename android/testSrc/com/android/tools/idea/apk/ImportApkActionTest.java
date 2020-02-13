@@ -163,6 +163,9 @@ public class ImportApkActionTest extends PlatformTestCase {
       return false;
     }
 
-    public void reopenLastProjectsOnStart() {}
+    @Override
+    public boolean reopenLastProjectsOnStart() {
+      return false;
+    }
   }
 }
