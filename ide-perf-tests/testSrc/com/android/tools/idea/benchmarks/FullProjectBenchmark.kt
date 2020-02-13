@@ -22,17 +22,31 @@ import com.android.tools.idea.testing.moveCaret
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
 import com.google.common.truth.Truth.assertThat
+import com.intellij.lang.Language
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.module.ModuleUtilCore
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
+import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.search.FileTypeIndex
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.ProjectScope
 import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.android.AndroidTestBase
+import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
+import org.jetbrains.kotlin.idea.KotlinFileType
+import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.psi.KtClassOrObject
+import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtFunction
+import org.jetbrains.kotlin.psi.psiUtil.endOffset
+import org.jetbrains.kotlin.psi.psiUtil.nextLeafs
 import org.jetbrains.kotlin.idea.util.projectStructure.allModules
 import org.junit.After
 import org.junit.Ignore
@@ -56,6 +70,21 @@ data class LayoutCompletionSample (
   val fastPathTime: Metric.MetricSample,
   val mediumPathTime: Metric.MetricSample,
   val slowPathTime: Metric.MetricSample
+)
+
+/**
+ * Contains information relevant to a completion action performed in a source file.
+ *
+ * Only the sample property is uploaded to perfgate, the fileName and completionCount properties are used for debugging purposes.
+ *
+ * @property fileName the name of the file in which the completion event occurred.
+ * @property completionCount the amount of lookupElements returned from calling completion.
+ * @property sample time taken for all completion results to be fetched.
+ */
+data class CompletionSample(
+  val fileName: String,
+  val completionCount: Int,
+  val sample: Metric.MetricSample
 )
 
 /**
@@ -89,6 +118,98 @@ abstract class FullProjectBenchmark {
 
   fun layoutTagCompletion(layoutTagCompletionInput: LayoutCompletionInput, projectName: String) {
     testLayoutCompletion(layoutTagCompletionInput, projectName, "Tag")
+  }
+
+  fun testLocalLevelCompletionForKotlin(projectName: String) {
+    runBenchmark(
+      collectElements = { collectSuitableFiles(KotlinFileType.INSTANCE as FileType, ProjectScope.getContentScope(gradleRule.project), 50) },
+      warmupAction = { performLocalCompletionForFile(it, 1) },
+      benchmarkAction = { performLocalCompletionForFile(it, 5) },
+      commitResults = { commitCompletionSamplesToBenchmark(it, projectName, KotlinLanguage.INSTANCE, "Local") }
+    )
+  }
+
+  fun testTopLevelCompletionForKotlin(projectName: String) {
+    runBenchmark(
+      collectElements = { collectSuitableFiles(KotlinFileType.INSTANCE as FileType, ProjectScope.getContentScope(gradleRule.project), 50) },
+      warmupAction = { performTopLevelCompletionForFile(it) },
+      benchmarkAction = { performTopLevelCompletionForFile(it) },
+      commitResults = { commitCompletionSamplesToBenchmark(it, projectName, KotlinLanguage.INSTANCE, "TopLevel") }
+    )
+  }
+
+  private fun performLocalCompletionForFile(file: VirtualFile, maxNumberOfFunctions: Int): List<CompletionSample> {
+    val fixture = gradleRule.fixture
+    fixture.openFileInEditor(file)
+    val psiFile = PsiManager.getInstance(gradleRule.project).findFile(file) as? PsiElement ?: return emptyList()
+    val functions = psiFile.collectDescendantsOfType<KtFunction> { it.hasBlockBody() && it.bodyExpression != null }.toMutableList()
+    val samples = mutableListOf<CompletionSample>()
+    functions.take(maxNumberOfFunctions).forEach { function ->
+      // Performing completion before the end of the function
+      val offset = function.bodyExpression!!.endOffset - 1
+      fixture.editor.caretModel.moveToOffset(offset)
+      var lookupElementCount = 0
+      val elapsedMillis = measureElapsedMillis {
+        val arrayOfLookupElements = fixture.completeBasic()
+        lookupElementCount = arrayOfLookupElements.size
+      }
+      samples.add(
+        CompletionSample(
+          file.name,
+          lookupElementCount,
+          Metric.MetricSample(System.currentTimeMillis(), elapsedMillis)))
+    }
+    return samples
+  }
+
+  private fun performTopLevelCompletionForFile(file: VirtualFile): List<CompletionSample> {
+    val fixture = gradleRule.fixture
+    fixture.openFileInEditor(file)
+    val psiFile = PsiManager.getInstance(gradleRule.project).findFile(file) as? KtFile ?: return emptyList()
+    val samples = mutableListOf<CompletionSample>()
+
+    // Perform completion for function after import statement
+    val offset = (psiFile.importList?.nextLeafs?.firstOrNull() as? PsiWhiteSpace)?.endOffset ?: 0
+    fixture.editor.caretModel.moveToOffset(offset)
+    var lookupElementCount = 0
+    val elapsedMillis = measureElapsedMillis {
+      fixture.type("fun ")
+      val arrayOfLookupElements = fixture.completeBasic()
+      lookupElementCount = arrayOfLookupElements.size
+    }
+    samples.add(CompletionSample(file.name, lookupElementCount, Metric.MetricSample(System.currentTimeMillis(), elapsedMillis)))
+    UndoManager.getInstance(fixture.project).undo(TextEditorProvider.getInstance().getTextEditor(fixture.editor))
+
+    // Perform completion for function before the end of the first available class, if any.
+    val classes = (psiFile as PsiElement).collectDescendantsOfType<KtClassOrObject> { it.body != null }
+    val body = classes.firstOrNull()?.body ?: return samples
+    val innerOffset = body.endOffset - 1
+    fixture.editor.caretModel.moveToOffset(innerOffset)
+    lookupElementCount = 0
+    val elapsedMillisInClass = measureElapsedMillis {
+      fixture.type("fun ")
+      val innerLookupElements = fixture.completeBasic()
+      lookupElementCount = innerLookupElements.size
+    }
+    samples.add(CompletionSample(file.name, lookupElementCount, Metric.MetricSample(System.currentTimeMillis(), elapsedMillisInClass)))
+    UndoManager.getInstance(fixture.project).undo(TextEditorProvider.getInstance().getTextEditor(fixture.editor))
+
+    return samples
+  }
+
+  private fun commitCompletionSamplesToBenchmark(
+    samples: List<CompletionSample>,
+    projectName: String,
+    language: Language,
+    completionType: String
+  ) {
+    println("File_Name,Lookup_Element_Count,Time")
+    samples.forEach {
+      println("${it.fileName},${it.completionCount},${it.sample.sampleData}")
+    }
+    val metric =  Metric("${projectName}_${language.displayName}_${completionType}")
+    metric.addSamples(completionBenchmark, *samples.map { it.sample }.toTypedArray())
+    metric.commit()
   }
 
   private fun testLayoutCompletion(layoutCompletionInput: LayoutCompletionInput, projectName: String, completionType: String) {
@@ -198,6 +319,12 @@ abstract class FullProjectBenchmark {
       waitForAsyncVfsRefreshes() // Avoids write actions during highlighting.
     }
 
+    private fun collectSuitableFiles(fileType: FileType, scope: GlobalSearchScope, limit: Int = 100): List<VirtualFile> {
+      val files = FileTypeIndex.getFiles(fileType, scope)
+      assert(files.isNotEmpty())
+      return files.sortedBy { it.name }.take(limit)
+    }
+
     // Note: metadata for this benchmark is uploaded by IdeBenchmarkTestSuite.
     val highlightingBenchmark = Benchmark.Builder("Full Project Highlighting")
       .setDescription("""
@@ -225,6 +352,19 @@ abstract class FullProjectBenchmark {
           files.
         Slow Path relates to time where there is no cache. Local, SDK and library results must be recalculated.
           This happens on project open, or after Gradle sync.
+      """.trimIndent())
+      .setProject(EDITOR_PERFGATE_PROJECT_NAME)
+      .build()
+
+    // Note: metadata for this benchmark is uploaded by IdeBenchmarkTestSuite.
+    val completionBenchmark = Benchmark.Builder("Completion Benchmark")
+      .setDescription("""
+        This test records the time taken to provide completion results in various languages.
+
+        This measures the total time to collect all completion results in top level and local scenarios, given
+        little context or restraints. Therefore the completion results are many. This is a worst case scenario.
+
+        This does not measure completion insert latency or popup latency.
       """.trimIndent())
       .setProject(EDITOR_PERFGATE_PROJECT_NAME)
       .build()
