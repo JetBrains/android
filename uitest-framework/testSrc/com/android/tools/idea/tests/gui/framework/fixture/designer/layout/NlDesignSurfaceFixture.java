@@ -41,6 +41,9 @@ public class NlDesignSurfaceFixture extends DesignSurfaceFixture<NlDesignSurface
     super(NlDesignSurfaceFixture.class, robot, designSurface);
   }
 
+  public boolean isShowing() {
+    return target().isShowing();
+  }
 
   @Override
   public void waitForRenderToFinish(@NotNull Wait wait) {
