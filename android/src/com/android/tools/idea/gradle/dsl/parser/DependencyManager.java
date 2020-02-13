@@ -17,9 +17,13 @@ package com.android.tools.idea.gradle.dsl.parser;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
+import com.intellij.util.containers.HashSetQueue;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Queue;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -64,12 +68,39 @@ public final class DependencyManager {
 
   /**
    * Attempt to resolve dependencies related to a change in a given element.
-   * This currently just delegates to {@link #resolveAll()}
    *
-   * @param element the element that has triggered the attempted resolve. This is currently unused.
+   * @param element the element that has triggered the attempted resolve.
    */
   public void resolveWith(@NotNull GradleDslElement element) {
-    resolveAll();
+    Queue<GradleDslFile> queue = new HashSetQueue<>();
+    Set<GradleDslFile> seen = new HashSet<>();
+    GradleDslElement thisFile = element.getDslFile();
+
+    // attempt re-resolution on the element's file, and all descendants of that file
+    queue.add(element.getDslFile());
+    GradleDslFile dslFile;
+    while ((dslFile = queue.peek()) != null) {
+      queue.remove();
+      if (!seen.contains(dslFile)) {
+        seen.add(dslFile);
+        resolveAllIn(dslFile, true);
+        queue.addAll(dslFile.getChildModuleDslFiles());
+      }
+    }
+
+    // the element's file might be applied from any arbitrary project build file
+
+    // TODO(xof): since altering an element can in principle change resolution of all build files which apply the file which contain
+    //  this element, for correctness we have to check all those files.  At the moment this is a loop over all the files to check
+    //  whether they apply the file containing the element, which scales badly; information about which files are applied where could
+    //  probably be cached and updated at parse-time.
+    for (GradleDslFile buildFile : myUnresolvedReferences.keySet()) {
+      if (!seen.contains(buildFile)) {
+        if (buildFile.getApplyDslElement().contains(thisFile)) {
+          resolveAllIn(buildFile, true);
+        }
+      }
+    }
   }
 
   public void resolveAllIn(@NotNull GradleDslFile dslFile, boolean appliedFiles) {
