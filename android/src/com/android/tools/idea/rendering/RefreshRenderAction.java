@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2014 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,19 +17,46 @@ package com.android.tools.idea.rendering;
 
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.google.common.collect.ImmutableCollection;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
-import java.util.Objects;
-import java.util.stream.Stream;
+import java.util.concurrent.CompletableFuture;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidTargetData;
+import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class RenderUtils {
+import java.util.Objects;
+import java.util.stream.Stream;
+
+public class RefreshRenderAction extends AnAction {
+  private final EditorDesignSurface mySurface;
+
+  public RefreshRenderAction(EditorDesignSurface surface) {
+    super(AndroidBundle.message("android.layout.preview.refresh.action.text"), null, null);
+    mySurface = surface;
+  }
+
+  @Override
+  public void actionPerformed(@NotNull AnActionEvent e) {
+    clearCacheAndRefreshSurface(mySurface);
+  }
+
+  @NotNull
+  public static CompletableFuture<Void> clearCacheAndRefreshSurface(@NotNull EditorDesignSurface surface) {
+    clearCache(surface.getConfigurations());
+    return surface.forceUserRequestedRefresh();
+  }
+
   public static void clearCache(@NotNull ImmutableCollection<Configuration> configurations) {
     ModuleClassLoaderManager.get().clearCache();
 

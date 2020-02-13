@@ -20,7 +20,6 @@ import com.android.tools.adtui.common.AdtPrimaryPanel;
 import com.android.tools.adtui.workbench.ToolWindowDefinition;
 import com.android.tools.adtui.workbench.WorkBench;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.actions.DesignerDataKeys;
 import com.android.tools.idea.common.error.IssuePanelSplitter;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
@@ -31,7 +30,6 @@ import com.android.tools.idea.util.SyncUtil;
 import com.intellij.ProjectTopics;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -61,7 +59,7 @@ import org.jetbrains.annotations.TestOnly;
 /**
  * Assembles a designer editor from various components.
  */
-public class DesignerEditorPanel extends JPanel implements Disposable, DataProvider {
+public class DesignerEditorPanel extends JPanel implements Disposable {
 
   private static final String DESIGN_UNAVAILABLE_MESSAGE = "Design editor is unavailable until after a successful project sync";
   private static final String ACCESSORY_PROPORTION = "AndroidStudio.AccessoryProportion";
@@ -150,17 +148,6 @@ public class DesignerEditorPanel extends JPanel implements Disposable, DataProvi
                              @NotNull WorkBench<DesignSurface> workBench, @NotNull Function<DesignerEditorPanel, DesignSurface> surface,
                              @NotNull Function<AndroidFacet, List<ToolWindowDefinition<DesignSurface>>> toolWindowDefinitions) {
     this(editor, project, file, workBench, surface, toolWindowDefinitions, null);
-  }
-
-  @Nullable
-  @Override
-  public Object getData(@NotNull String dataId) {
-    // This class is the root JComponent of design tool. The data of tool-wide actions should be provided here.
-    // For example, the refresh action can be performed when focusing ActionToolBar or DesignSurface.
-    if (DesignerDataKeys.DESIGN_EDITOR.is(dataId)) {
-      return this;
-    }
-    return null;
   }
 
   @NotNull
