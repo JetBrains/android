@@ -25,7 +25,7 @@
     name="Design Tools Keyboard Shortcuts">
     <description></description>
     <tutorial
-        key="analytics-layout-editor-shortcuts"
+        key="analytics-layouteditor-shortcuts"
         label="Layout Editor Keyboard Shortcuts"
         remoteLink="https://developer.android.com/training/constraint-layout"
         remoteLinkLabel="View ConstraintLayout Guide.">
@@ -162,7 +162,7 @@
     </description>
     </tutorial>
     <tutorial
-        key="analytics-navigation-editor-shortcuts"
+        key="analytics-layouteditor-naveditor-shortcuts"
         label="Navigation Editor Keyboard Shortcuts"
         remoteLink="https://developer.android.com/training/constraint-layout"
         remoteLinkLabel="View ConstraintLayout Guide.">
@@ -274,7 +274,7 @@
       name="Guide to ConstraintLayout.">
     <description></description>
     <tutorial
-      key="analytics-constraintlayout-concepts"
+      key="analytics-layouteditor-constraintlayout-concepts"
       label="ConstraintLayout concepts"
       remoteLink="https://developer.android.com/training/constraint-layout"
       remoteLinkLabel="View ConstraintLayout Guide."
@@ -327,7 +327,7 @@ the corresponding parent’s sides:
       </description>
     </tutorial>
     <tutorial
-        key="analytics-constraintlayout-editor"
+        key="analytics-layouteditor-constraintlayout-editor"
         label="ConstraintLayout editor"
         remoteLink="https://developer.android.com/training/constraint-layout"
         remoteLinkLabel="View ConstraintLayout Guide."
