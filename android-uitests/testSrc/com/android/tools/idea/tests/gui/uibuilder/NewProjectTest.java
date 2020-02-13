@@ -178,12 +178,11 @@ public class NewProjectTest {
     assertThat(version.getApiString()).named("minSdkVersion API").isEqualTo("21");
     assertThat(appAndroidModel.getJavaLanguageLevel()).named("Gradle Java language level").isSameAs(LanguageLevel.JDK_1_7);
     LanguageLevelProjectExtension projectExt = LanguageLevelProjectExtension.getInstance(guiTest.ideFrame().getProject());
-    assertThat(projectExt.getLanguageLevel()).named("Project Java language level").isSameAs(LanguageLevel.JDK_1_7);
-    for (Module module : ModuleManager.getInstance(guiTest.ideFrame().getProject()).getModules()) {
-      LanguageLevelModuleExtension moduleExt = LanguageLevelModuleExtensionImpl.getInstance(module);
-      assertThat(moduleExt.getLanguageLevel()).named("Gradle Java language level in module " + module.getName())
-        .isSameAs(LanguageLevel.JDK_1_7);
-    }
+    assertThat(projectExt.getLanguageLevel()).named("Project Java language level").isSameAs(LanguageLevel.JDK_1_8);
+    Module appModule = guiTest.ideFrame().getModule("app");
+    LanguageLevelModuleExtension moduleExt = LanguageLevelModuleExtensionImpl.getInstance(appModule);
+    assertThat(moduleExt.getLanguageLevel()).named("Gradle Java language level in module " + appModule.getName())
+      .isSameAs(LanguageLevel.JDK_1_7);
   }
 
   @Test
