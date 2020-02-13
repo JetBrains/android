@@ -176,7 +176,7 @@ public class AssetRepositoryImpl extends AssetRepository {
                                                     @NotNull Function<Library, String> aarMapper) {
     Stream<VirtualFile> dirsFromSources =
       Stream.concat(Stream.of(facet), AndroidUtils.getAllAndroidDependencies(facet.getModule(), true).stream())
-        .flatMap(f -> SourceProviderManager.getInstance(f).getAllSourceProviders().stream())
+        .flatMap(f -> SourceProviderManager.getInstance(f).getCurrentAndSomeFrequentlyUsedInactiveSourceProviders().stream())
         .distinct()
         .map(sourceMapper)
         .flatMap(Collection::stream);

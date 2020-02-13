@@ -62,7 +62,7 @@ MODULE: MyApplication
         AndroidTestSources:
             AndroidTestSources (IDEA)
                 ScopeType: ANDROID_TEST
-        AllIdeaSourceProviders:
+        CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
              (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
