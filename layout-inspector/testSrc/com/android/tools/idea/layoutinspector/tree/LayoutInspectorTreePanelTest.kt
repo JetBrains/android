@@ -72,7 +72,7 @@ class LayoutInspectorTreePanelTest {
   fun testGotoDeclaration() {
     val tree = LayoutInspectorTreePanel()
     val model = model(projectRule.project, DemoExample.setUpDemo(projectRule.fixture))
-    val inspector = LayoutInspector(model)
+    val inspector = LayoutInspector(model, projectRule.fixture.projectDisposable)
     tree.setToolContext(inspector)
     tree.componentTreeSelectionModel.selection = listOf(model["title"]!!)
     val treeComponent = UIUtil.findComponentOfType(tree.component, JTree::class.java)
@@ -95,7 +95,7 @@ class LayoutInspectorTreePanelTest {
   fun testMultiWindow() {
     val tree = LayoutInspectorTreePanel()
     val model = InspectorModel(projectRule.project)
-    val inspector = LayoutInspector(model)
+    val inspector = LayoutInspector(model, projectRule.fixture.projectDisposable)
     tree.setToolContext(inspector)
     val jtree = UIUtil.findComponentOfType(tree.component, JTree::class.java) as JTree
     model.update(view(ROOT) { view(VIEW1) }, ROOT, listOf(ROOT))
