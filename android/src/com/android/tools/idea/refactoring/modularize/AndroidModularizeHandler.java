@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.refactoring.modularize;
 
+import static com.android.tools.idea.projectsystem.SourceProvidersKt.containsFile;
+import static com.android.tools.idea.projectsystem.SourceProvidersKt.getManifestFiles;
 import static com.intellij.openapi.actionSystem.LangDataKeys.TARGET_MODULE;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -68,7 +70,6 @@ import java.util.Locale;
 import java.util.Queue;
 import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.IdeaSourceProviderUtil;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.annotations.NotNull;
@@ -187,7 +188,7 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
           element.accept(new JavaReferenceVisitor(facet, element));
 
           // Check for manifest entries referencing this class (this applies to activities, content providers, etc).
-          GlobalSearchScope manifestScope = GlobalSearchScope.filesScope(myProject, IdeaSourceProviderUtil.getManifestFiles(facet));
+          GlobalSearchScope manifestScope = GlobalSearchScope.filesScope(myProject, getManifestFiles(facet));
 
           ReferencesSearch.search(element, manifestScope).forEach(reference -> {
             PsiElement tag = reference.getElement();
@@ -395,7 +396,7 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
         if (target instanceof PsiClass) {
           if (!(target instanceof PsiTypeParameter) && !(target instanceof SyntheticElement)) {
             VirtualFile source = target.getContainingFile().getVirtualFile();
-            if (IdeaSourceProviderUtil.containsFile(SourceProviderManager.getInstance(myFacet).getSources(), source)) {
+            if (containsFile(SourceProviderManager.getInstance(myFacet).getSources(), source)) {
               // This is a local source file, therefore a candidate to be moved
               if (myClassRefSet.add((PsiClass)target)) {
                 myVisitQueue.add(target);

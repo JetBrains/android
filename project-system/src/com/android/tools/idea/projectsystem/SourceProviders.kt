@@ -16,6 +16,7 @@
 package com.android.tools.idea.projectsystem
 
 import com.android.utils.reflection.qualifiedName
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.ProjectTopics
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetManager
@@ -29,6 +30,7 @@ import com.intellij.openapi.roots.ModuleRootEvent
 import com.intellij.openapi.roots.ModuleRootListener
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
+import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 
@@ -132,7 +134,7 @@ interface SourceProviders {
      */
     @JvmStatic
     fun replaceForTest(facet: AndroidFacet, disposable: Disposable, sourceSet: NamedIdeaSourceProvider) {
-      facet.putUserData(KEY, object: SourceProviders {
+      facet.putUserData(KEY, object : SourceProviders {
         override val sources: IdeaSourceProvider
           get() = sourceSet
         override val unitTestSources: IdeaSourceProvider
@@ -165,7 +167,7 @@ interface SourceProviders {
      */
     @JvmStatic
     fun replaceForTest(facet: AndroidFacet, disposable: Disposable, manifestFile: VirtualFile?) {
-      facet.putUserData(KEY, object: SourceProviders {
+      facet.putUserData(KEY, object : SourceProviders {
         override val sources: IdeaSourceProvider
           get() = throw UnsupportedOperationException()
         override val unitTestSources: IdeaSourceProvider
@@ -272,3 +274,109 @@ fun createMergedSourceProvider(scopeType: ScopeType, providers: List<NamedIdeaSo
     shadersDirectoryUrls = providers.flatMap { it.shadersDirectoryUrls }
   )
 }
+
+/**
+ * Returns a list of all source providers that contain, or are contained by, the given file.
+ * For example, with the file structure:
+ *
+ * ```
+ * src
+ *   main
+ *     aidl
+ *       myfile.aidl
+ *   free
+ *     aidl
+ *       myoverlay.aidl
+ * ```
+ *
+ * With target file == "myoverlay.aidl" the returned list would be ['free'], but if target file == "src",
+ * the returned list would be ['main', 'free'] since both of those source providers have source folders which
+ * are descendants of "src."
+ *
+ * Returns `null` if none found.
+ */
+fun AndroidFacet.getSourceProvidersForFile(targetFolder: VirtualFile?): List<NamedIdeaSourceProvider>? {
+  return if (targetFolder != null) {
+    // Add source providers that contain the file (if any) and any that have files under the given folder
+    SourceProviders.getInstance(this).currentAndSomeFrequentlyUsedInactiveSourceProviders
+      .filter { provider ->
+        provider.containsFile(targetFolder) || provider.isContainedBy(targetFolder)
+      }
+      .takeUnless { it.isEmpty() }
+  }
+  else null
+}
+
+@VisibleForTesting
+fun IdeaSourceProvider.isContainedBy(targetFolder: VirtualFile): Boolean {
+  return manifestFileUrls.any { manifestFileUrl -> VfsUtilCore.isEqualOrAncestor(targetFolder.url, manifestFileUrl) } ||
+         allSourceFolderUrls.any { sourceFolderUrl -> VfsUtilCore.isEqualOrAncestor(targetFolder.url, sourceFolderUrl) }
+}
+
+
+private val IdeaSourceProvider.allSourceFolderUrls: Sequence<String>
+  get() =
+    arrayOf(
+      javaDirectoryUrls,
+      resDirectoryUrls,
+      aidlDirectoryUrls,
+      renderscriptDirectoryUrls,
+      assetsDirectoryUrls,
+      jniDirectoryUrls,
+      jniLibsDirectoryUrls
+    )
+      .asSequence()
+      .flatten()
+
+
+/**
+ * Returns true if this SourceProvider has one or more source folders contained by (or equal to)
+ * the given folder.
+ */
+fun IdeaSourceProvider.containsFile(file: VirtualFile): Boolean {
+  if (manifestFiles.contains(file) || manifestDirectories.contains(file)) {
+    return true
+  }
+
+  for (container in allSourceFolders) {
+    // Don't do ancestry checking if this file doesn't exist
+    if (!container.exists()) {
+      continue
+    }
+
+    if (VfsUtilCore.isAncestor(container, file, false /* allow them to be the same */)) {
+      return true
+    }
+  }
+  return false
+}
+
+fun <T : IdeaSourceProvider> Iterable<T>.findByFile(file: VirtualFile): T? = firstOrNull { it.containsFile(file) }
+
+fun isTestFile(facet: AndroidFacet, candidate: VirtualFile): Boolean {
+  return SourceProviders.getInstance(facet).unitTestSources.containsFile(candidate) ||
+         SourceProviders.getInstance(facet).androidTestSources.containsFile(candidate)
+}
+
+/** Returns true if the given candidate file is a manifest file in the given module  */
+fun AndroidFacet.isManifestFile(candidate: VirtualFile): Boolean {
+  return SourceProviders.getInstance(this).sources.manifestFiles.contains(candidate)
+}
+
+/** Returns the manifest files in the given module  */
+fun AndroidFacet.getManifestFiles(): List<VirtualFile> = SourceProviders.getInstance(this).sources.manifestFiles.toList()
+
+val IdeaSourceProvider.allSourceFolders: Sequence<VirtualFile>
+  get() =
+    arrayOf(
+      javaDirectories,
+      resDirectories,
+      aidlDirectories,
+      renderscriptDirectories,
+      assetsDirectories,
+      jniDirectories,
+      jniLibsDirectories
+    )
+      .asSequence()
+      .flatten()
+

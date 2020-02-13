@@ -15,6 +15,8 @@
  */
 package org.jetbrains.android.dom.converters;
 
+import static com.android.tools.idea.projectsystem.SourceProvidersKt.isTestFile;
+
 import com.android.tools.idea.AndroidTextUtils;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.codeInsight.completion.JavaLookupElementBuilder;
@@ -66,7 +68,6 @@ import java.util.stream.Stream;
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.IdeaSourceProviderUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -269,7 +270,7 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
     AndroidFacet facet = AndroidFacet.getInstance(context);
     // If the source XML file is contained within the test folders, we'll also allow to resolve test classes
     VirtualFile file = element.getContainingFile().getVirtualFile();
-    final boolean isTestFile = facet != null && file != null && IdeaSourceProviderUtil.isTestFile(facet, file);
+    final boolean isTestFile = facet != null && file != null && isTestFile(facet, file);
 
     if (strValue.isEmpty()) {
       return PsiReference.EMPTY_ARRAY;
