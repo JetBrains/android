@@ -250,7 +250,8 @@ private fun computeModuleIdForLibraryTarget(
   if (projectData == null) {
     return library.projectPath
   }
-  if (library.buildId == projectData.linkedExternalProjectPath ||
+  val libraryBuildId = library.buildId?.let { toSystemIndependentName(it) }
+  if (libraryBuildId == projectData.linkedExternalProjectPath ||
       compositeData == null) {
     return GradleProjectResolverUtil.getModuleId(library.projectPath, projectData.externalName)
   }
@@ -259,7 +260,7 @@ private fun computeModuleIdForLibraryTarget(
   // module in an included build. We now need to find the name of the root Gradle build that the module
   // belongs to in order to construct the module ID.
   val projectName = compositeData.compositeParticipants.firstOrNull {
-    it.rootPath == library.buildId
+    it.rootPath == libraryBuildId
   }?.rootProjectName ?: return GradleProjectResolverUtil.getModuleId(library.projectPath, projectData.externalName)
 
   return if (library.projectPath == ":") projectName else projectName + library.projectPath
