@@ -32,6 +32,7 @@ PROJECT             : testSwitchingVariants_simpleApplication
             - ResFoldersRelativePath      : file://<PROJECT>/app/src/release/res
             - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/release
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestRelease/res
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -69,6 +70,15 @@ PROJECT             : testSwitchingVariants_simpleApplication
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/rs
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/shaders
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestRelease
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestRelease/aidl
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestRelease/assets
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestRelease/java
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestRelease/jni
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestRelease/res
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestRelease/resources
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestRelease/rs
+            JavaSource (test)   : file://<PROJECT>/app/src/androidTestRelease/shaders
             JavaResource        : file://<PROJECT>/app/src/main
             JavaSource          : file://<PROJECT>/app/src/main/aidl
             JavaResource        : file://<PROJECT>/app/src/main/assets
