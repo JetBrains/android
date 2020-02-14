@@ -80,6 +80,7 @@ class MenuFixture {
     for (int i = 0; i < segmentCount; i++) {
       final String segment = path[i];
       JMenuItem found = GuiTests.waitUntilShowing(myRobot, root, Matchers.byText(JMenuItem.class, segment));
+      found.requestFocus();
       if (root instanceof JPopupMenu) {
         previouslyFoundPopups.add((JPopupMenu)root);
       }
