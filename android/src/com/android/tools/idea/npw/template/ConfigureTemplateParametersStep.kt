@@ -83,6 +83,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.ui.RecentsManager
 import com.intellij.ui.components.JBLabel
+import com.intellij.ui.components.JBPanel
 import com.intellij.uiDesigner.core.GridConstraints
 import com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER
 import com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH
@@ -144,15 +145,9 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
     font = Font("Default", Font.PLAIN, 16)
   }
   private var parametersPanel = JPanel(TabularLayout("Fit-,*").setVGap(10))
-  private val footerSeparator = JSeparator()
-  private val parameterDescriptionLabel = TooltipLabel().apply {
-    setScope(parametersPanel)
-    // Add an extra blank line under the template description to separate it from the main body
-    border = JBUI.Borders.emptyBottom(templateDescriptionLabel.font.size)
-  }
 
   // TODO(b/142107543) Replace it with TabularLayout for more readability
-  private val rootPanel = JPanel(GridLayoutManager(2, 2)).apply {
+  private val rootPanel = JBPanel<JBPanel<*>>(GridLayoutManager(2, 2)).apply {
     val anySize = Dimension(-1, -1)
     val defaultSizePolicy = GridConstraints.SIZEPOLICY_CAN_GROW or GridConstraints.SIZEPOLICY_CAN_SHRINK
     add(templateThumbLabel, GridConstraints(0, 0, 1, 1, ANCHOR_CENTER, FILL_NONE, 0, 0, anySize, anySize, anySize))
@@ -160,7 +155,6 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
         GridConstraints(0, 1, 1, 1, ANCHOR_CENTER, FILL_BOTH, defaultSizePolicy, defaultSizePolicy or GridConstraints.SIZEPOLICY_WANT_GROW,
                         anySize, anySize, anySize))
     add(templateDescriptionLabel, GridConstraints(1, 0, 1, 1, ANCHOR_CENTER, FILL_NONE, defaultSizePolicy, 0, anySize, anySize, anySize))
-    add(footerSeparator, GridConstraints(1, 1, 1, 1, ANCHOR_CENTER, FILL_HORIZONTAL, defaultSizePolicy, 0, anySize, anySize, anySize))
   }
 
   private val validatorPanel: ValidatorPanel = ValidatorPanel(this, wrappedWithVScroll(rootPanel))
@@ -205,11 +199,9 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
 
     val thumb = IconProperty(templateThumbLabel)
     val thumbVisibility = VisibleProperty(templateThumbLabel)
-    val parameterDescription = TextProperty(parameterDescriptionLabel)
     bindings.apply {
       bindExpression(thumb, thumbPath) { thumbnailsCache.getUnchecked(newTemplate.thumb().path) }
       bindExpression(thumbVisibility, thumb) { thumb.get().isPresent }
-      bindExpression(VisibleProperty(footerSeparator), thumb) { parameterDescription.get().isNotEmpty() }
     }
     thumbPath.set(thumbnailPath)
     templateThumbLabel.text = newTemplate.name
@@ -444,7 +436,7 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
 
     private val header: JPanel?
     private val componentProvider: ComponentProvider<T>
-    private val container: JPanel = JPanel().apply {
+    private val container: JPanel = JBPanel<JBPanel<*>>().apply {
       layout = BoxLayout(this, BoxLayout.Y_AXIS)
     }
 
