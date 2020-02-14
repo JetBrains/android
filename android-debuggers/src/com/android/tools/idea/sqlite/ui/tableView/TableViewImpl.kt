@@ -76,13 +76,16 @@ class TableViewImpl : TableView {
 
   private val table = JBTable()
 
+  private val tableActionsPanel = JPanel(FlowLayout(FlowLayout.LEFT))
+
   init {
-    val northPanel = JPanel(FlowLayout(FlowLayout.LEFT))
     val centerPanel = JPanel(BorderLayout())
     val southPanel = JPanel(BorderLayout())
-    rootPanel.add(northPanel, BorderLayout.NORTH)
+    rootPanel.add(tableActionsPanel, BorderLayout.NORTH)
     rootPanel.add(centerPanel, BorderLayout.CENTER)
     rootPanel.add(southPanel, BorderLayout.SOUTH)
+
+    tableActionsPanel.name = "table-actions-panel"
 
     readOnlyLabel.name = "read-only-label"
     readOnlyLabel.border = BorderFactory.createEmptyBorder(0, 4, 0, 0)
@@ -112,7 +115,7 @@ class TableViewImpl : TableView {
     lastRowsPageButton.addActionListener { listeners.forEach { it.loadLastRowsInvoked() }}
 
     refreshButton.toolTipText = "Sync table"
-    northPanel.add(refreshButton)
+    tableActionsPanel.add(refreshButton)
     refreshButton.addActionListener{ listeners.forEach { it.refreshDataInvoked() } }
 
     table.background = primaryContentBackground
@@ -142,6 +145,9 @@ class TableViewImpl : TableView {
 
     centerPanel.add(scrollPane, BorderLayout.CENTER)
   }
+
+  override var isTableActionsRowVisible: Boolean = true
+    set(value) { tableActionsPanel.isVisible = value; field = value }
 
   override fun showPageSizeValue(maxRowCount: Int) {
     pageSizeComboBox.selectedItem = maxRowCount
