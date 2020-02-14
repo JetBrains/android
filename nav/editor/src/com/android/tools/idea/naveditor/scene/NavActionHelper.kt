@@ -18,12 +18,10 @@ package com.android.tools.idea.naveditor.scene
 import com.android.tools.adtui.common.SwingLength
 import com.android.tools.adtui.common.SwingPoint
 import com.android.tools.adtui.common.SwingRectangle
-import com.android.tools.adtui.common.SwingStroke
 import com.android.tools.adtui.common.SwingX
 import com.android.tools.adtui.common.SwingY
 import com.android.tools.adtui.common.distance
 import com.android.tools.adtui.common.min
-import com.android.tools.adtui.common.scaledSwingLength
 import com.android.tools.adtui.common.times
 import com.android.tools.idea.common.model.Scale
 import com.android.tools.idea.common.model.scaledAndroidLength
@@ -36,14 +34,12 @@ import com.android.tools.idea.naveditor.model.ActionType
 import com.android.tools.idea.naveditor.model.effectiveDestination
 import com.android.tools.idea.naveditor.model.getActionType
 import com.android.tools.idea.naveditor.model.getEffectiveSource
-import java.awt.BasicStroke
 import kotlin.math.acos
 import kotlin.math.pow
 import kotlin.math.sin
 
 val SELF_ACTION_LENGTHS = arrayOf(28f, 26f, 60f, 8f).map { scaledAndroidLength(it) }
 val SELF_ACTION_RADII = arrayOf(10f, 10f, 5f).map { scaledAndroidLength(it) }
-val ACTION_STROKE = SwingStroke(scaledSwingLength(3f), BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND)
 
 private val START_DIRECTION = ConnectionDirection.RIGHT
 private val CONTROL_POINT_THRESHOLD = scaledAndroidLength(120f)

@@ -21,32 +21,25 @@ import com.android.tools.adtui.common.toSwingRect
 import com.android.tools.idea.common.model.Scale
 import com.android.tools.idea.common.model.times
 import com.android.tools.idea.common.model.toScale
-import com.android.tools.idea.common.scene.draw.CompositeDrawCommand
-import com.android.tools.idea.common.scene.draw.DrawCommand
-import com.android.tools.idea.common.scene.draw.DrawShape
 import com.android.tools.idea.common.scene.draw.buildString
 import com.android.tools.idea.common.scene.draw.colorToString
 import com.android.tools.idea.common.scene.draw.parse
 import com.android.tools.idea.common.scene.draw.stringToColor
 import com.android.tools.idea.naveditor.scene.ACTION_ARROW_PARALLEL
 import com.android.tools.idea.naveditor.scene.ACTION_ARROW_PERPENDICULAR
-import com.android.tools.idea.naveditor.scene.ACTION_STROKE
 import com.android.tools.idea.naveditor.scene.ArrowDirection
 import com.android.tools.idea.naveditor.scene.SELF_ACTION_RADII
 import com.android.tools.idea.naveditor.scene.getSelfActionIconRect
-import com.android.tools.idea.naveditor.scene.makeDrawArrowCommand
-import com.android.tools.idea.naveditor.scene.makeDrawImageCommand
+import com.android.tools.idea.naveditor.scene.getStartPoint
 import com.android.tools.idea.naveditor.scene.selfActionPoints
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionUtils
-import com.google.common.annotations.VisibleForTesting
-import icons.StudioIcons.NavEditor.Surface.POP_ACTION
 import java.awt.Color
 
 
-class DrawSelfAction(@VisibleForTesting val rectangle: SwingRectangle,
-                     @VisibleForTesting val scale: Scale,
-                     @VisibleForTesting val color: Color,
-                     @VisibleForTesting val isPopAction: Boolean) : CompositeDrawCommand() {
+class DrawSelfAction(private val rectangle: SwingRectangle,
+                     scale: Scale,
+                     color: Color,
+                     isPopAction: Boolean) : DrawActionBase(scale, color, isPopAction) {
 
   private constructor(tokens: Array<String>)
     : this(tokens[0].toSwingRect(), tokens[1].toScale(), stringToColor(tokens[2]), tokens[3].toBoolean())
@@ -56,9 +49,7 @@ class DrawSelfAction(@VisibleForTesting val rectangle: SwingRectangle,
   override fun serialize(): String = buildString(javaClass.simpleName, rectangle.toString(),
                                                  scale, colorToString(color), isPopAction)
 
-  override fun buildCommands(): List<DrawCommand> {
-    val list = mutableListOf<DrawCommand>()
-
+  override fun buildAction(): Action {
     val points = selfActionPoints(rectangle, scale)
     val path = SwingPath()
     path.moveTo(points[0])
@@ -67,20 +58,14 @@ class DrawSelfAction(@VisibleForTesting val rectangle: SwingRectangle,
                                   points.map { it.y.toInt() }.toIntArray(),
                                   points.size,
                                   SELF_ACTION_RADII.map { (it * scale).toInt() }.toIntArray())
-    list.add(DrawShape(path, color, ACTION_STROKE))
 
     val width = ACTION_ARROW_PERPENDICULAR * scale
     val height = ACTION_ARROW_PARALLEL * scale
     val x = points[4].x - width / 2
     val y = points[4].y - height
-    val drawArrow = makeDrawArrowCommand(SwingRectangle(x, y, width, height), ArrowDirection.UP, color)
-    list.add(drawArrow)
 
-    if (isPopAction) {
-      val iconRect = getSelfActionIconRect(points[0], scale)
-      list.add(makeDrawImageCommand(POP_ACTION, iconRect, color))
-    }
-
-    return list
+    return Action(path, SwingRectangle(x, y, width, height), ArrowDirection.UP)
   }
+
+  override fun getPopIconRectangle(): SwingRectangle = getSelfActionIconRect(getStartPoint(rectangle), scale)
 }
