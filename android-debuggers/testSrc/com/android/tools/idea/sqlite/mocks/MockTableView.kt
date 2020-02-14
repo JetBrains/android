@@ -24,6 +24,7 @@ import javax.swing.JComponent
 open class MockTableView : TableView {
 
   val listeners = mutableListOf<TableView.Listener>()
+  override var isTableActionsRowVisible = true
 
   override val component = mock(JComponent::class.java)
 
