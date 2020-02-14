@@ -43,14 +43,11 @@ class BuildToolsTooLowReporterIntegrationTest : AndroidGradleTestCase() {
     val appModule = myModules.appModule
     val appFile = getGradleBuildFile(appModule)!!
 
-    val project = project
-    val buildModel = ProjectBuildModel.get(project)
-
     val issue = mock(SyncIssue::class.java)
 
     val syncIssues = ImmutableList.of<SyncIssue>(issue)
-    val link = reporter!!.createModuleLink(getProject(), appModule, buildModel, syncIssues, appFile)
-    assertThat(link.lineNumber).isEqualTo(4)
+    val link = reporter!!.createModuleLink(getProject(), appModule, syncIssues, appFile)
+    assertThat(link.lineNumber).isEqualTo(-1)
     assertThat(link.filePath).isEqualTo(appFile.path)
   }
 }

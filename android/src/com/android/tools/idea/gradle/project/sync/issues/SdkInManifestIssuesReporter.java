@@ -97,7 +97,6 @@ public abstract class SdkInManifestIssuesReporter extends SimpleDeduplicatingSyn
   @NotNull
   protected OpenFileHyperlink createModuleLink(@NotNull Project project,
                                                @NotNull Module module,
-                                               @NotNull ProjectBuildModel projectBuildModel,
                                                @NotNull List<SyncIssue> syncIssues,
                                                @NotNull VirtualFile buildFile) {
     AndroidFacet androidFacet = AndroidFacet.getInstance(module);
@@ -120,7 +119,7 @@ public abstract class SdkInManifestIssuesReporter extends SimpleDeduplicatingSyn
         return new OpenFileHyperlink(manifestFile.getPath(), module.getName(), lineNumber, -1);
       }
     }
-    return super.createModuleLink(project, module, projectBuildModel, syncIssues, buildFile);
+    return super.createModuleLink(project, module, syncIssues, buildFile);
   }
 
   @NotNull
