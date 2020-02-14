@@ -815,8 +815,6 @@ java_test(
         "no-remote",
         "requires-fakeroot",
         "qa_sanity",
-        "qa_sanity_unreliable",  # b/148179655
-        "qa_unreliable",  # b/148179655
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
