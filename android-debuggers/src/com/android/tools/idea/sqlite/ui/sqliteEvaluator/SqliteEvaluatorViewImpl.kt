@@ -20,13 +20,19 @@ import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.sqlLanguage.SqliteSchemaContext
 import com.android.tools.idea.sqlite.ui.tableView.TableView
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CustomShortcutSet
 import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiManager
 import com.intellij.ui.LanguageTextField
 import java.awt.BorderLayout
+import java.awt.event.InputEvent
+import java.awt.event.KeyEvent
 import java.util.ArrayList
 import javax.swing.JComponent
+import javax.swing.KeyStroke
 
 /**
  * @see SqliteEvaluatorView
@@ -53,6 +59,12 @@ class SqliteEvaluatorViewImpl(
     }
 
     evaluatorPanel.databaseComboBox.addActionListener { setSchemaFromSelectedItem() }
+
+    DumbAwareAction.create { e: AnActionEvent ->
+      listeners.forEach {
+        it.evaluateSqlActionInvoked((evaluatorPanel.databaseComboBox.selectedItem as ComboBoxItem).database, editorTextField.text)
+      }
+    }.registerCustomShortcutSet(CustomShortcutSet(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.META_DOWN_MASK)), editorTextField)
   }
 
   private fun setSchemaFromSelectedItem() {
