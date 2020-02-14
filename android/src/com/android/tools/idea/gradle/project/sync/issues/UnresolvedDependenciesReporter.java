@@ -71,26 +71,6 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
     return TYPE_UNRESOLVED_DEPENDENCY;
   }
 
-  @Override
-  @NotNull
-  protected OpenFileHyperlink createModuleLink(@NotNull Project project,
-                                               @NotNull Module module,
-                                               @NotNull ProjectBuildModel projectBuildModel,
-                                               @NotNull List<SyncIssue> syncIssues,
-                                               @NotNull VirtualFile buildFile) {
-    assert !syncIssues.isEmpty();
-    // Get the dependency
-    String dependency = syncIssues.get(0).getData();
-    GradleBuildModel buildModel = projectBuildModel.getModuleBuildModel(buildFile);
-    ArtifactDependencyModel dependencyModel =
-      buildModel.dependencies().artifacts().stream().filter(artifact -> artifact.compactNotation().equals(dependency)).findFirst()
-                .orElse(null);
-    PsiElement element = dependencyModel == null ? null : dependencyModel.getPsiElement();
-    int lineNumber = getLineNumberForElement(project, element);
-
-    return new OpenFileHyperlink(buildFile.getPath(), module.getName(), lineNumber, -1);
-  }
-
   @NotNull
   @Override
   protected Object getDeduplicationKey(@NotNull SyncIssue issue) {
