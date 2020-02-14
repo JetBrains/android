@@ -163,6 +163,36 @@ public final class StudioFlags {
     PROFILER, "custom.event.visualization", "Enable Profiler Custom Event Visualization",
     "When enabled, profiler will track and display events defined through developer APIs",
     false);
+
+  public static final Flag<Boolean> PROFILER_MEMORY_COLOR_BARS_BY_PERCENTAGE = Flag.create(
+    PROFILER, "memory.ui.bars.color", "Indicate class's percentage contribution",
+    "In classifier view, paint the statistics for each class by their relative contributions to the whole",
+    false);
+
+  public static final Flag<Boolean> PROFILER_MEMORY_HEAP_DUMP_SEPARATE = Flag.create(
+    PROFILER, "memory.ui.heapdump.separate", "Show heap dump in its own page",
+    "Show heap dump in a separate frame that takes up the entire window",
+    false);
+
+  public static final Flag<Boolean> PROFILER_MEMORY_FIELDS_IN_DETAIL_VIEW = Flag.create(
+    PROFILER, "memory.ui.details.fields", "Show instance fields in detail view",
+    "Show an instance's fields in the detail view. The class-set view only shows the list of instances.",
+    false);
+
+  public static final Flag<Boolean> PROFILER_SUMMARY_STATS = Flag.create(
+    PROFILER, "memory.ui.stats", "Show summary statistics",
+    "Show summary statistics on the top",
+    false);
+
+  public static final Flag<Boolean> PROFILER_LEAKS_ALWAYS = Flag.create(
+    PROFILER, "memory.ui.leaks.always", "Always detect Activity/Fragment leak check",
+    "Always check for Activity/Fragment leaks and display warnings if they exist",
+    false);
+
+  public static final Flag<Boolean> PROFILER_NEW_TOOLBAR = Flag.create(
+    PROFILER, "memory.ui.toolbar.new", "Show all filtering tools in toolbar",
+    "Show all filters such as \"Leaks\", \"Projects\", and custom search in toolbar",
+    false);
   //endregion
 
   //region ML Kit
