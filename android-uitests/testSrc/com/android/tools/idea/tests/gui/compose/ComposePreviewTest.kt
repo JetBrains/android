@@ -180,10 +180,9 @@ class ComposePreviewTest {
     editor.select("(@Preview)")
     editor.invokeAction(EditorFixture.EditorAction.BACK_SPACE)
     guiTest.ideFrame().invokeMenuPath("Code", "Optimize Imports") // This will remove the Preview import
-    guiTest.robot().waitForIdle()
-    Wait.seconds(10)
-      .expecting("preview panel to hide")
-      .until { !composePreview.designSurface.isShowing }
+    composePreview
+      .designSurface
+      .waitUntilNotShowing(Wait.seconds(10));
 
     editor.close()
   }

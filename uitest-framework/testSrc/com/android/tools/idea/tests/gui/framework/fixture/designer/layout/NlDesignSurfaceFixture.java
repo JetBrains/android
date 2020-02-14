@@ -113,4 +113,10 @@ public class NlDesignSurfaceFixture extends DesignSurfaceFixture<NlDesignSurface
   public boolean isInScreenMode(@NotNull SceneMode mode) {
     return target().getSceneMode() == mode;
   }
+
+  public void waitUntilNotShowing(@NotNull Wait wait) {
+    wait
+      .expecting("surface to hide")
+      .until(() -> !isShowing());
+  }
 }
