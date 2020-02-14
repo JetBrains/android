@@ -303,9 +303,7 @@ class DefaultInspectorClient(
         execute(LayoutInspectorCommand.Type.START)
       }
       // TODO: verify that capture started successfully
-      attachListener?.let { transportPoller.unregisterListener(it) }
-      attachListener = null
-      false
+      true // Remove the listener after this callback
     }
     attachListener?.let { transportPoller.registerListener(it) }
 
