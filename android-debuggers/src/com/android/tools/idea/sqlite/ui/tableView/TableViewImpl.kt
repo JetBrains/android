@@ -115,6 +115,7 @@ class TableViewImpl : TableView {
     northPanel.add(refreshButton)
     refreshButton.addActionListener{ listeners.forEach { it.refreshDataInvoked() } }
 
+    table.background = primaryContentBackground
     table.emptyText.text = tableIsEmptyText
     table.tableHeader.defaultRenderer = MyTableHeaderRenderer()
     table.tableHeader.reorderingAllowed = false
