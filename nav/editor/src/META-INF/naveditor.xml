@@ -40,5 +40,6 @@
 
   <extensions defaultExtensionNs="com.android.tools.idea.assistant">
     <assistantBundleCreator implementation="com.android.tools.idea.naveditor.actions.NavEditorPanelAssistantBundleCreator"/>
+    <scrollHandler implementation="com.android.tools.idea.naveditor.actions.NavEditorHelpScrollHandler" />
   </extensions>
 </idea-plugin>

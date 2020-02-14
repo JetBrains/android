@@ -16,11 +16,11 @@
 package com.android.tools.idea.naveditor.editor;
 
 import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.TOGGLE_ISSUE_PANEL;
+import static com.android.tools.idea.uibuilder.actions.LayoutEditorHelpAssistantActionKt.NAV_EDITOR_BUNDLE_ID;
 
 import com.android.tools.idea.common.actions.IssueNotificationAction;
 import com.android.tools.idea.common.editor.ToolbarActionGroups;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.naveditor.actions.NavEditorHelpAssistantActionKt;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -40,7 +40,7 @@ public class NavToolbarActionGroups extends ToolbarActionGroups {
     DefaultActionGroup group = new DefaultActionGroup();
     addActionsWithSeparator(group, getZoomActionsWithShortcuts(mySurface, this));
     group.add(TOGGLE_ISSUE_PANEL.registerForAction(new IssueNotificationAction(mySurface), mySurface, this));
-    group.add(ActionManager.getInstance().getAction(NavEditorHelpAssistantActionKt.BUNDLE_ID));
+    group.add(ActionManager.getInstance().getAction(NAV_EDITOR_BUNDLE_ID));
     return group;
   }
 }

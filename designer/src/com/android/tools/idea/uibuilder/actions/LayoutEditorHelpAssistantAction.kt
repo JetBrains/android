@@ -20,18 +20,15 @@ import com.android.tools.idea.assistant.AssistantBundleCreator
 import com.android.tools.idea.assistant.OpenAssistSidePanelAction
 import com.android.tools.idea.assistant.datamodel.TutorialBundleData
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.uibuilder.actions.analytics.AssistantPanelMetricsTracker
+import com.android.tools.idea.uibuilder.actions.analytics.LayoutEditorHelpActionListener
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.wm.ToolWindowManager
-import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import org.jetbrains.kotlin.idea.debugger.readAction
-import java.lang.ref.WeakReference
 import java.net.URL
 
 /**
@@ -68,7 +65,7 @@ open class LayoutEditorHelpAssistantAction : OpenAssistSidePanelAction() {
   }
 
   override fun actionPerformed(event: AnActionEvent) {
-    listener.register(event.project, type)
+    listener.register(event.project)
 
     when (type) {
       Type.CONSTRAINT_LAYOUT -> {
@@ -165,56 +162,19 @@ open class LayoutEditorHelpAssistantAction : OpenAssistSidePanelAction() {
   }
 }
 
-class LayoutEditorHelpActionListener() : ToolWindowManagerListener {
-
-  private var isOpen = false
-  private var isRegistered = false
-  private var projectRef: WeakReference<Project?> = WeakReference(null)
-
-  private val metrics = HashMap<LayoutEditorHelpAssistantAction.Type, AssistantPanelMetricsTracker>()
-  private var currType = LayoutEditorHelpAssistantAction.Type.NONE
-
-  private val currMetric: AssistantPanelMetricsTracker get() = metrics[currType]!!
-
-  fun register(project: Project?,
-               type: LayoutEditorHelpAssistantAction.Type) {
-    projectRef = WeakReference(project)
-    if (!metrics.contains(type)) {
-      metrics[type] = AssistantPanelMetricsTracker(type)
-    }
-    currType = type
-    project ?: return
-
-    if (!isRegistered) {
-      project.messageBus.connect(project).subscribe(ToolWindowManagerListener.TOPIC, this)
-      isRegistered = true
-    }
-  }
-
-  override fun stateChanged() {
-    val project = projectRef.get() ?: return
-
-    val window = ToolWindowManager.getInstance(project).getToolWindow(
-      OpenAssistSidePanelAction.TOOL_WINDOW_TITLE) ?: return
-    if (isOpen && !window.isVisible) {
-      isOpen = false
-      currMetric.logClose()
-    }
-    else if (!isOpen && window.isVisible) {
-      isOpen = true
-      currMetric.logOpen()
-    }
-  }
-}
+const val NAV_EDITOR_BUNDLE_ID = "LayoutEditor.HelpAssistant.NavEditor"
+const val MOTION_EDITOR_BUNDLE_ID = "LayoutEditor.HelpAssistant.MotionLayout"
+const val CONSTRAINT_LAYOUT_BUNDLE_ID = "LayoutEditor.HelpAssistant.ConstraintLayout"
+const val FULL_HELP_BUNDLE_ID = "LayoutEditor.HelpAssistant.Full"
 
 private val motionLayoutHelpPanelBundle =
-  HelpPanelBundle("LayoutEditor.HelpAssistant.MotionLayout", "/motionlayout_help_assistance_bundle.xml")
+  HelpPanelBundle(MOTION_EDITOR_BUNDLE_ID, "/motionlayout_help_assistance_bundle.xml")
 
 private val constraintLayoutHelpPanelBundle =
-  HelpPanelBundle("LayoutEditor.HelpAssistant.ConstraintLayout", "/constraintlayout_help_assistance_bundle.xml")
+  HelpPanelBundle(CONSTRAINT_LAYOUT_BUNDLE_ID, "/constraintlayout_help_assistance_bundle.xml")
 
 private val fullHelpPanelBundle =
-  HelpPanelBundle("LayoutEditor.HelpAssistant.Full", "/layout_editor_help_assistance_bundle.xml")
+  HelpPanelBundle(FULL_HELP_BUNDLE_ID, "/layout_editor_help_assistance_bundle.xml")
 
 class MotionLayoutPanelAssistantBundleCreator :
   LayoutEditorHelpPanelAssistantBundleCreatorBase(motionLayoutHelpPanelBundle)
