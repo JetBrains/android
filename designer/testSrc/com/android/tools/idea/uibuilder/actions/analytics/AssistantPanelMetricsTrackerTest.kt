@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.actions.analytics
 
-import com.android.tools.idea.uibuilder.actions.LayoutEditorHelpAssistantAction.Type
 import com.google.wireless.android.sdk.stats.DesignEditorHelpPanelEvent
 import com.google.wireless.android.sdk.stats.DesignEditorHelpPanelEvent.HelpPanelAction
 import com.google.wireless.android.sdk.stats.DesignEditorHelpPanelEvent.HelpPanelType
@@ -26,7 +25,7 @@ class AssistantPanelMetricsTrackerTest : AndroidTestCase() {
 
   fun testLogOpen() {
     var eventBuilder: DesignEditorHelpPanelEvent.Builder? = null
-    val type = Type.FULL
+    val type = HelpPanelType.FULL_ALL
     val metric = object : AssistantPanelMetricsTracker(type) {
       override fun logEvent(event: DesignEditorHelpPanelEvent.Builder) {
         eventBuilder = event
@@ -35,13 +34,13 @@ class AssistantPanelMetricsTrackerTest : AndroidTestCase() {
     metric.logOpen()
     assertTrue(metric.timer.isRunning)
     assertNotNull(eventBuilder)
-    assertEquals(HelpPanelType.FULL_ALL, eventBuilder!!.helpPanelType)
+    assertEquals(type, eventBuilder!!.helpPanelType)
     assertEquals(HelpPanelAction.OPEN, eventBuilder!!.action)
   }
 
   fun testLogCLose() {
     var eventBuilder: DesignEditorHelpPanelEvent.Builder? = null
-    val type = Type.FULL
+    val type = HelpPanelType.FULL_ALL
     val metric = object : AssistantPanelMetricsTracker(type) {
       override fun logEvent(event: DesignEditorHelpPanelEvent.Builder) {
         eventBuilder = event
@@ -53,7 +52,7 @@ class AssistantPanelMetricsTrackerTest : AndroidTestCase() {
     metric.logClose()
     assertTrue(!metric.timer.isRunning)
     assertNotEquals(0, metric.timer.elapsed().toMillis())
-    assertEquals(HelpPanelType.FULL_ALL, eventBuilder!!.helpPanelType)
+    assertEquals(type, eventBuilder!!.helpPanelType)
     assertEquals(metric.timer.elapsed().toMillis(), eventBuilder!!.timeToCloseMs)
     assertEquals(HelpPanelAction.CLOSE, eventBuilder!!.action)
   }

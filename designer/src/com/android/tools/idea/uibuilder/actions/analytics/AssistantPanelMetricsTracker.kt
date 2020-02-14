@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.actions.analytics
 
 import com.android.tools.analytics.UsageTracker.log
-import com.android.tools.idea.uibuilder.actions.LayoutEditorHelpAssistantAction
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Stopwatch
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -24,9 +23,8 @@ import com.google.wireless.android.sdk.stats.DesignEditorHelpPanelEvent
 import com.google.wireless.android.sdk.stats.DesignEditorHelpPanelEvent.HelpPanelAction
 import com.google.wireless.android.sdk.stats.DesignEditorHelpPanelEvent.HelpPanelType
 
-open class AssistantPanelMetricsTracker(actionType: LayoutEditorHelpAssistantAction.Type) {
-
-  private val type = convertType(actionType)
+open class AssistantPanelMetricsTracker(
+  private val type: HelpPanelType) {
   @VisibleForTesting val timer: Stopwatch = Stopwatch.createUnstarted()
 
   fun logOpen() {
@@ -72,14 +70,4 @@ open class AssistantPanelMetricsTracker(actionType: LayoutEditorHelpAssistantAct
     event.action = action
     return event
   }
-
-  private fun convertType(type: LayoutEditorHelpAssistantAction.Type): HelpPanelType {
-    return when(type) {
-      LayoutEditorHelpAssistantAction.Type.NONE -> HelpPanelType.UNKNOWN_PANEL_TYPE
-      LayoutEditorHelpAssistantAction.Type.CONSTRAINT_LAYOUT -> HelpPanelType.CONSTRAINT_LAYOUT
-      LayoutEditorHelpAssistantAction.Type.MOTION_LAYOUT -> HelpPanelType.MOTION_LAYOUT
-      LayoutEditorHelpAssistantAction.Type.FULL -> HelpPanelType.FULL_ALL
-    }
-  }
-
 }
