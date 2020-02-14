@@ -93,8 +93,8 @@ public final class DeployableFile {
       return dir;
     }
 
-    AndroidProfilerDownloader.makeSureProfilerIsInPlace();
-    dir = AndroidProfilerDownloader.getHostDir(myReleaseDir);
+    AndroidProfilerDownloader.getInstance().makeSureComponentIsInPlace();
+    dir = AndroidProfilerDownloader.getInstance().getHostDir(myReleaseDir);
     if (dir.exists()) {
       return dir;
     } else {

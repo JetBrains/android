@@ -122,7 +122,7 @@ public final class TransportFileManager {
     throws AdbCommandRejectedException, IOException, ShellCommandUnresponsiveException, SyncException, TimeoutException {
     // Copy resources into device directory, all resources need to be included in profiler-artifacts target to build and
     // in AndroidStudioProperties.groovy to package in release.
-    if (!AndroidProfilerDownloader.makeSureProfilerIsInPlace()) return;
+    if (!AndroidProfilerDownloader.getInstance().makeSureComponentIsInPlace()) return;
     copyFileToDevice(HostFiles.TRANSPORT);
     if (isAtLeastO(myDevice)) {
       copyFileToDevice(HostFiles.PERFA);
