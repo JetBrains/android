@@ -31,6 +31,7 @@ import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.roots.ExternalProjectSystemRegistry;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
@@ -88,7 +89,7 @@ public class GradleModuleSetup {
       ModifiableFacetModel facetModel = ideModelsProvider.getModifiableFacetModel(module);
       GradleFacetType facetType = GradleFacet.getFacetType();
       facet = facetType.createFacet(module, GradleFacet.getFacetName(), facetType.createDefaultConfiguration(), null);
-      facetModel.addFacet(facet);
+      facetModel.addFacet(facet, ExternalProjectSystemRegistry.getInstance().getExternalSource(module));
     }
     facet.setGradleModuleModel(model);
 

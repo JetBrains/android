@@ -18,6 +18,7 @@ PROJECT             : testWithEmptyGradleSettingsFileInSingleModuleProject
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
+            ExternalSource      : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName    : assembleDebug
             CompileJavaTaskName : compileDebugSources
@@ -53,6 +54,7 @@ PROJECT             : testWithEmptyGradleSettingsFileInSingleModuleProject
             - ProGuardCfgFiles  : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET               : Android-Gradle
             TypeId              : android-gradle
+            ExternalSource      : GRADLE
             GradlePath          : :
         CONENT_ENTRY        : file://<PROJECT>
             JavaSource          : file://<PROJECT>/build/generated/aidl_source_output_dir/debug/out
