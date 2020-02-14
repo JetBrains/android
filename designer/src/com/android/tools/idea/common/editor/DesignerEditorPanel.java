@@ -49,6 +49,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import org.jetbrains.android.download.AndroidLayoutlibDownloader;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -214,6 +215,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
 
   @NotNull
   private NlModel createAndInitNeleModel() {
+    AndroidLayoutlibDownloader.getInstance().makeSureComponentIsInPlace();
     XmlFile file = ReadAction.compute(() -> getFile());
     AndroidFacet facet = AndroidFacet.getInstance(file);
     if (facet == null) {

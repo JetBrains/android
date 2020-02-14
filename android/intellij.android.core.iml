@@ -182,6 +182,5 @@
     <orderEntry type="module" module-name="android.sdktools.wizardTemplate.plugin" />
     <orderEntry type="module" module-name="intellij.terminal" />
     <orderEntry type="library" scope="PROVIDED" name="org.jetbrains.intellij.deps.android.tools.base:templates" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="org.jetbrains.intellij.deps.android.tools.base:layoutlib-resources" level="project" />
   </component>
 </module>
