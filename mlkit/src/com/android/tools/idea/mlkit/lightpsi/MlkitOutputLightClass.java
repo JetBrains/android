@@ -64,7 +64,7 @@ public class MlkitOutputLightClass extends AndroidLightClassBase {
     setModuleInfo(module, false);
 
     // Cache getter methods for output class
-    ModificationTracker modificationTracker = new MlkitModuleService.ModelFileModificationTracker(module);
+    ModificationTracker modificationTracker = MlkitModuleService.getInstance(module).getModelFileModificationTracker();
     myMethodCache = CachedValuesManager.getManager(getProject()).createCachedValue(
       () -> {
         PsiMethod[] methods = new PsiMethod[tensorInfos.size()];
