@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,29 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.exportSignedPackage;
-
-import com.android.builder.model.AndroidProject;
-import com.android.builder.model.Variant;
-import com.android.ide.common.gradle.model.IdeAndroidProject;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.google.common.collect.Sets;
-import org.jetbrains.android.exportSignedPackage.ExportSignedPackageWizard;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
-import java.util.Set;
+package org.jetbrains.android.exportSignedPackage;
 
 import static com.android.tools.idea.testing.TestProjectPaths.SIGNAPK_MULTIFLAVOR;
 import static com.android.tools.idea.testing.TestProjectPaths.SIGNAPK_NO_FLAVORS;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
-import static com.intellij.openapi.util.text.StringUtil.capitalize;
-import static com.intellij.openapi.util.text.StringUtil.decapitalize;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
+import static org.jetbrains.android.exportSignedPackage.ExportSignedPackageWizard.getTaskNamesFromSelectedVariant;
 
-public class ExportSignedPackageTest extends AndroidGradleTestCase {
+import com.android.ide.common.gradle.model.IdeAndroidProject;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.google.common.collect.Sets;
+import java.util.List;
+import java.util.Set;
+
+public class ExportSignedPackageWizardTest extends AndroidGradleTestCase {
   public void testNoFlavors() throws Exception {
     loadProject(SIGNAPK_NO_FLAVORS);
     IdeAndroidProject androidProject = getModel().getAndroidProject();
@@ -101,6 +94,32 @@ public class ExportSignedPackageTest extends AndroidGradleTestCase {
     assertTrue(assembleTasks.contains(":bundleFreeArmRelease"));
   }
 
+  public void testGetTaskNamesFromSelectedVariantWithNoFlavors() {
+    List<String> tasks = getTaskNamesFromSelectedVariant(singletonList("release"), "debug", ":assembleDebug");
+    assertEquals(1, tasks.size());
+    assertEquals(":assembleRelease", tasks.get(0));
+  }
+
+  public void testGetTaskNamesFromSelectedVariantWithFlavors() {
+    List<String> tasks = getTaskNamesFromSelectedVariant(asList("proX86Release", "freeArmRelease"), "proX86Debug", ":assembleProX86Debug");
+    assertEquals(2, tasks.size());
+    assertTrue(tasks.contains(":assembleProX86Release"));
+    assertTrue(tasks.contains(":assembleFreeArmRelease"));
+  }
+
+  public void testGetTaskNamesFromSelectedVariantWithBundleNoFlavors() {
+    List<String> tasks = getTaskNamesFromSelectedVariant(singletonList("release"), "debug", ":bundleDebug");
+    assertEquals(1, tasks.size());
+    assertEquals(":bundleRelease", tasks.get(0));
+  }
+
+  public void testGetTaskNamesFromSelectedVariantWithBundleFlavors() {
+    List<String> tasks = getTaskNamesFromSelectedVariant(asList("proX86Release", "freeArmRelease"), "proX86Debug", ":bundleProX86Debug");
+    assertEquals(2, tasks.size());
+    assertTrue(tasks.contains(":bundleProX86Release"));
+    assertTrue(tasks.contains(":bundleFreeArmRelease"));
+  }
+
   public void testReplaceVariantFromTask() {
     assertEquals(":flavorBuildType",
                  ExportSignedPackageWizard.replaceVariantFromTask(":oldVariantName", "oldVariantName", "flavorBuildType"));
@@ -135,74 +154,5 @@ public class ExportSignedPackageTest extends AndroidGradleTestCase {
 
   public void testReplaceVariantFromTaskMissingPreSuf() {
     assertNull(ExportSignedPackageWizard.replaceVariantFromTask(":prefixOldVariantNameSuffix", "NonVariantName", "flavorBuildType"));
-  }
-
-  /**
-   * Verify that assemble task contains variant name in the form expected by {@link ExportSignedPackageWizard#getGradleTasks} when there are
-   * no flavors.
-   */
-  public void testVariantNameInAssembleTaskNoFlavors() throws Exception {
-    loadProject(SIGNAPK_NO_FLAVORS);
-    AndroidModuleModel androidModel = getModel();
-
-    Variant selectedVariant = androidModel.getSelectedVariant();
-    String variantName = selectedVariant.getName();
-    String assembleTaskName = selectedVariant.getMainArtifact().getAssembleTaskName();
-    verifyContainsVariantName(assembleTaskName, variantName);
-  }
-
-  /**
-   * Verify that bundle task contains variant name in the form expected by {@link ExportSignedPackageWizard#getGradleTasks} when flavors are
-   * used.
-   */
-  public void testVariantNameInAssembleTaskWithFlavors() throws Exception {
-    loadProject(SIGNAPK_MULTIFLAVOR);
-    AndroidModuleModel androidModel = getModel();
-
-    Variant selectedVariant = androidModel.getSelectedVariant();
-    String variantName = selectedVariant.getName();
-    String assembleTaskName = selectedVariant.getMainArtifact().getAssembleTaskName();
-    verifyContainsVariantName(assembleTaskName, variantName);
-  }
-
-  /**
-   * Verify that assemble task contains variant name in the form expected by {@link ExportSignedPackageWizard#getGradleTasks} when there are
-   * no flavors.
-   */
-  public void testVariantNameInBundleTaskNoFlavors() throws Exception {
-    loadProject(SIGNAPK_NO_FLAVORS);
-    AndroidModuleModel androidModel = getModel();
-
-    Variant selectedVariant = androidModel.getSelectedVariant();
-    String variantName = selectedVariant.getName();
-    String bundleTaskName = selectedVariant.getMainArtifact().getBundleTaskName();
-    if (bundleTaskName != null) {
-      // Only test if bundle task exists
-      verifyContainsVariantName(bundleTaskName, variantName);
-    }
-  }
-
-  /**
-   * Verify that bundle task contains variant name in the form expected by {@link ExportSignedPackageWizard#getGradleTasks} when flavors are
-   * used.
-   */
-  public void testVariantNameInBundleTaskWithFlavors() throws Exception {
-    loadProject(SIGNAPK_MULTIFLAVOR);
-    AndroidModuleModel androidModel = getModel();
-
-    Variant selectedVariant = androidModel.getSelectedVariant();
-    String variantName = selectedVariant.getName();
-    String bundleTaskName = selectedVariant.getMainArtifact().getBundleTaskName();
-    if (bundleTaskName != null) {
-      // Only test if bundle task exists
-      verifyContainsVariantName(bundleTaskName, variantName);
-    }
-  }
-
-
-  private static void verifyContainsVariantName(@NotNull String taskName, @NotNull String variantName) {
-    boolean containsName = (taskName.indexOf(capitalize(variantName)) > 1) ||  // :prefixVariantName
-                           (taskName.indexOf(decapitalize(variantName)) == 1); // :variantNameSuffix
-    assertTrue("Variant name not found in task " + taskName, containsName);
   }
 }
