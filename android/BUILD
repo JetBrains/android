@@ -502,6 +502,7 @@ filegroup(
         "//tools/base/build-system:gradle-api_neverlink",  # Provided when run in Gradle.
         "//tools/base/ddmlib:am-instrumentation-data-proto",
         "//tools/base/emulator/proto:emulator_java_proto",
+        "//tools/base/game-tools/protos:game-tools-protos",
         "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
         "//tools/base/tracer:trace_agent",
     ] + select({
