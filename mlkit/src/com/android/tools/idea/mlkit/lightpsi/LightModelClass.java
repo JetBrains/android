@@ -17,6 +17,7 @@ package com.android.tools.idea.mlkit.lightpsi;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.mlkit.LightModelClassConfig;
+import com.android.tools.idea.mlkit.MlkitModuleService;
 import com.android.tools.mlkit.MlkitNames;
 import com.android.tools.mlkit.TensorInfo;
 import com.google.common.collect.ImmutableSet;
@@ -88,8 +89,7 @@ public class LightModelClass extends AndroidLightClassBase {
 
     setModuleInfo(module, false);
 
-    //TODO(jackqdyulei): create a more accurate modification tracker
-    ModificationTracker modificationTracker = ModificationTracker.EVER_CHANGED;
+    ModificationTracker modificationTracker = MlkitModuleService.getInstance(module).getModelFileModificationTracker();
     myCachedMembers = CachedValuesManager.getManager(getProject()).createCachedValue(
       () -> {
         //Build methods

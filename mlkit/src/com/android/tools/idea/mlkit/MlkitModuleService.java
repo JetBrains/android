@@ -72,6 +72,10 @@ public class MlkitModuleService {
     });
   }
 
+  public ModelFileModificationTracker getModelFileModificationTracker() {
+    return myModelFileModificationTracker;
+  }
+
   @Nullable
   public LightModelClass getOrCreateLightModelClass(@NotNull MlModelMetadata modelMetadata) {
     return myLightModelClassMap.computeIfAbsent(modelMetadata, modelMetadata1 -> {
@@ -118,7 +122,7 @@ public class MlkitModuleService {
   public static class ModelFileModificationTracker implements ModificationTracker {
     private int myModificationCount;
 
-    public ModelFileModificationTracker(Module module) {
+    private ModelFileModificationTracker(Module module) {
       if (StudioFlags.MLKIT_LIGHT_CLASSES.get()) {
         MessageBusConnection connection = module.getMessageBus().connect(module);
         connection.subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
