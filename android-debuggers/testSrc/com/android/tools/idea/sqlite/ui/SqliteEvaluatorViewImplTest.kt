@@ -59,4 +59,18 @@ class SqliteEvaluatorViewImplTest: LightPlatformTestCase() {
     view.removeDatabase(0)
     assertEquals(-1, comboBox.selectedIndex)
   }
+
+  fun testSelectDatabaseChangesSelectedDatabase() {
+    // Prepare
+    val database1 = FileSqliteDatabase("db1", mock(DatabaseConnection::class.java), mock(VirtualFile::class.java))
+    val database2 = FileSqliteDatabase("db2", mock(DatabaseConnection::class.java), mock(VirtualFile::class.java))
+
+    // Act/Assert
+    view.addDatabase(database1, 0)
+    view.addDatabase(database2, 0)
+    assertEquals(database1, view.getActiveDatabase())
+
+    view.selectDatabase(database2)
+    assertEquals(database2, view.getActiveDatabase())
+  }
 }
