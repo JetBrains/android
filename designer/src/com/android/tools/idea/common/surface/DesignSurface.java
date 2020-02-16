@@ -268,8 +268,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myZoomControlsLayerPane.setLayout(new BorderLayout());
     myZoomControlsLayerPane.setFocusable(true);
 
-    mySceneViewPanel = new SceneViewPanel(this, sceneViewLayoutManagerProvider.apply(this));
-    mySceneViewPanel.setOpaque(false);
+    mySceneViewPanel = new SceneViewPanel(() -> getInteractionManager().getLayers(), sceneViewLayoutManagerProvider.apply(this));
+    mySceneViewPanel.setBackground(getBackground());
 
     myScrollPane = new MyScrollPane();
     myScrollPane.setViewportView(mySceneViewPanel);
@@ -400,7 +400,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   /**
    * Returns the list of all the {@link SceneManager} part of this surface
-   * @return
    */
   @VisibleForTesting(visibility = VisibleForTesting.Visibility.PROTECTED)
   @NotNull
@@ -411,6 +410,27 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
     finally {
       myModelToSceneManagersLock.readLock().unlock();
+    }
+  }
+
+  /**
+   * Removes the {@link SceneView} from the surface. It will not be rendered anymore.
+   */
+  public final void removeSceneView(@NotNull SceneView sceneView) {
+    // Remove the associated panels if any
+    //noinspection ConstantConditions, prevent this method from failing when using mocks (http://b/149700391)
+    if (mySceneViewPanel != null) {
+      mySceneViewPanel.removeSceneView(sceneView);
+    }
+  }
+
+  /**
+   * Adds the given {@link SceneView} to the surface.
+   */
+  public final void addSceneView(@NotNull SceneView sceneView) {
+    //noinspection ConstantConditions, prevent this method from failing when using mocks (http://b/149700391)
+    if (mySceneViewPanel != null) {
+      mySceneViewPanel.addSceneView(sceneView);
     }
   }
 
@@ -432,6 +452,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     model.addListener(myModelListener);
     model.getConfiguration().addListener(myConfigurationListener);
     manager = createSceneManager(model);
+    manager.getSceneViews().forEach(sceneView -> addSceneView(sceneView));
     myModelToSceneManagersLock.writeLock().lock();
     try {
       myModelToSceneManagers.put(model, manager);
@@ -515,6 +536,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     if (manager == null) {
       return false;
     }
+
+    manager.getSceneViews().forEach(sceneView -> removeSceneView(sceneView));
 
     model.deactivate(this);
 
@@ -607,6 +630,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     mySceneViewPanel.invalidate();
     myScrollPane.invalidate();
     myScrollPane.validate();
+    myScrollPane.repaint();
   }
 
   /**
@@ -664,14 +688,14 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       // Always return primary SceneView In single-model mode,
       SceneManager manager = getSceneManager();
       assert manager != null;
-      return manager.getSceneView();
+      return Iterables.getFirst(manager.getSceneViews(), null);
     }
     List<NlComponent> selection = mySelectionModel.getSelection();
     if (!selection.isEmpty()) {
       NlComponent primary = selection.get(0);
       SceneManager manager = getSceneManager(primary.getModel());
       if (manager != null) {
-        return manager.getSceneView();
+        return Iterables.getFirst(manager.getSceneViews(), null);
       }
     }
     return null;
@@ -683,7 +707,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @NotNull
   protected ImmutableCollection<SceneView> getSceneViews() {
     return getSceneManagers().stream()
-      .map(SceneManager::getSceneView)
+      .flatMap(sceneManager -> sceneManager.getSceneViews().stream())
       .collect(ImmutableList.toImmutableList());
   }
 
@@ -1646,7 +1670,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     if (myModelToSceneManagers != null) {
       // updateUI() is called in the parent constructor, at that time all class member in this class has not initialized.
       for (SceneManager manager : getSceneManagers()) {
-        manager.getSceneView().updateUI();
+        manager.getSceneViews().forEach(SceneView::updateUI);
       }
     }
   }

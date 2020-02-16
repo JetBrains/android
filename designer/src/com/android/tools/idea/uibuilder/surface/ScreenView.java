@@ -92,9 +92,6 @@ public class ScreenView extends ScreenViewBase {
     if (myHasBorderLayer) {
       builder.add(new BorderLayer(this));
     }
-    if (getSurface().isShowModelNames()) {
-      builder.add(new ModelNameLayer(this));
-    }
     builder.add(new ScreenViewLayer(this));
 
     SceneLayer sceneLayer = new SceneLayer(getSurface(), this, false);

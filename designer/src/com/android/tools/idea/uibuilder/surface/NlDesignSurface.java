@@ -106,11 +106,11 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     }
 
     @Override
-    public void layoutContainer(@Nullable Container parent) {
+    public void layoutSceneViews(@NotNull Collection<? extends SceneView> sceneViews) {
       Dimension extentSize = myDesignSurface.getExtentSize();
       int availableWidth = extentSize.width;
       int availableHeight = extentSize.height;
-      myLayoutManager.layout(myDesignSurface.getSceneViews(), availableWidth, availableHeight, myDesignSurface.isCanvasResizing());
+      myLayoutManager.layout(sceneViews, availableWidth, availableHeight, myDesignSurface.isCanvasResizing());
     }
 
     @Override

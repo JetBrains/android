@@ -17,14 +17,13 @@ package com.android.tools.idea.uibuilder.surface.layout
 
 import com.android.tools.idea.common.surface.SceneView
 import java.awt.Dimension
-import java.awt.Rectangle
 import kotlin.math.max
 
 /**
  * [SurfaceLayoutManager] that layouts [SceneView]s in grid style. It tries to fill the [SceneView]s horizontally then vertically.
  * When a row has no horizontal space for the next [SceneView], it fills the remaining [SceneView]s in the new row, and so on.
  *
- * The [horizontalPadding] and [verticalPadding] are minimum gaps between [SceneView] and the boundaries of [NlDesignSurface].
+ * The [horizontalPadding] and [verticalPadding] are minimum gaps between [SceneView] and the boundaries of `NlDesignSurface`.
  * The [horizontalViewDelta] and [verticalViewDelta] are the gaps between different [SceneView]s.
  */
 class GridSurfaceLayoutManager(private val horizontalPadding: Int,
@@ -40,15 +39,14 @@ class GridSurfaceLayoutManager(private val horizontalPadding: Int,
                                 availableWidth: Int,
                                 availableHeight: Int,
                                 dimension: Dimension?) =
-    getSize(sceneViews, SceneView::getContentSize, availableWidth, availableHeight, dimension)
+    getSize(sceneViews, SceneView::getContentSize, availableWidth, dimension)
 
   override fun getRequiredSize(sceneViews: Collection<SceneView>, availableWidth: Int, availableHeight: Int, dimension: Dimension?)
-    = getSize(sceneViews, SceneView::getScaledContentSize, availableWidth, availableHeight, dimension)
+    = getSize(sceneViews, SceneView::getScaledContentSize, availableWidth, dimension)
 
   private fun getSize(sceneViews: Collection<SceneView>,
                       sizeFunc: SceneView.() -> Dimension,
                       availableWidth: Int,
-                      availableHeight: Int,
                       dimension: Dimension?)
     : Dimension {
     val dim = dimension ?: Dimension()
@@ -142,22 +140,3 @@ class GridSurfaceLayoutManager(private val horizontalPadding: Int,
     }
   }
 }
-
-// Helper functions to improve readability
-private val Rectangle.left: Int
-  get() = x
-private val Rectangle.top: Int
-  get() = y
-private val Rectangle.right: Int
-  get() = x + width
-private val Rectangle.bottom: Int
-  get() = y + height
-
-private val SceneView.left: Int
-  get() = x
-private val SceneView.top: Int
-  get() = y
-private val SceneView.right: Int
-  get() = x + scaledContentSize.width
-private val SceneView.bottom: Int
-  get() = y + scaledContentSize.height
