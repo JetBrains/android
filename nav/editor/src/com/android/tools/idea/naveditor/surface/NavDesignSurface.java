@@ -162,7 +162,7 @@ public class NavDesignSurface extends DesignSurface {
    */
   public NavDesignSurface(@NotNull Project project, @Nullable DesignerEditorPanel editorPanel, @NotNull Disposable parentDisposable) {
     super(project, parentDisposable, surface -> new NavActionManager((NavDesignSurface)surface), NavInteractionHandler::new,
-          getDefaultSurfaceState(), true, (surface) -> new SingleSceneViewLayoutManager(surface));
+          getDefaultSurfaceState(), true, (surface) -> new SingleSceneViewLayoutManager());
     setBackground(JBColor.white);
 
     // TODO: add nav-specific issues

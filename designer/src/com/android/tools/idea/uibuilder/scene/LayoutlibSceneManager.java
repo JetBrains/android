@@ -371,12 +371,24 @@ public class LayoutlibSceneManager extends SceneManager {
     SceneMode mode = getDesignSurface().getSceneMode();
 
     SceneView primarySceneView = mode.createPrimarySceneView(getDesignSurface(), this);
-
     mySecondarySceneView = mode.createSecondarySceneView(getDesignSurface(), this);
 
     getDesignSurface().updateErrorDisplay();
 
     return primarySceneView;
+  }
+
+  @NotNull
+  @Override
+  public List<SceneView> getSceneViews() {
+    ImmutableList.Builder<SceneView> builder = ImmutableList.<SceneView>builder()
+      .addAll(super.getSceneViews());
+
+    if (mySecondarySceneView != null) {
+      builder.add(mySecondarySceneView);
+    }
+
+    return builder.build();
   }
 
   private SceneView createSceneViewsForMenu() {

@@ -146,6 +146,9 @@ class TestInteractionHandler(surface: DesignSurface) : InteractionHandlerBase(su
 }
 
 class TestLayoutManager(private val surface: DesignSurface) : SceneViewLayoutManager() {
+  override fun layoutSceneViews(sceneViews: Collection<SceneView>) {
+  }
+
   override fun preferredLayoutSize(parent: Container?): Dimension = surface.sceneViews.map { it.contentSize }.firstOrNull() ?: Dimension(0,
                                                                                                                                          0)
 
