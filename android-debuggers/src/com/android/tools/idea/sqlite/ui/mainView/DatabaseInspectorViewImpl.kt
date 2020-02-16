@@ -16,7 +16,6 @@
 package com.android.tools.idea.sqlite.ui.mainView
 
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.stdui.CommonButton
 import com.android.tools.adtui.workbench.AutoHide
 import com.android.tools.adtui.workbench.Side
@@ -48,7 +47,6 @@ import com.intellij.ui.tabs.UiDecorator
 import com.intellij.ui.tabs.impl.JBEditorTabs
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.FlowLayout
 import java.awt.event.InputEvent
@@ -59,7 +57,6 @@ import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
-import javax.swing.OverlayLayout
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.TreePath
@@ -72,32 +69,20 @@ class DatabaseInspectorViewImpl(
   private val viewContext = SqliteViewContext()
   private val listeners = mutableListOf<DatabaseInspectorView.Listener>()
 
-  private val rootPanel = JPanel()
   private val workBench: WorkBench<SqliteViewContext> = WorkBench(project, "Sqlite", null, parentDisposable)
-  private val defaultUiPanel = DefaultUiPanel()
   private val tabs = JBEditorTabs(project, ActionManager.getInstance(), IdeFocusManager.getInstance(project), project)
   private val logTabView = LogTabViewImpl(project)
 
-  override val component: JComponent = rootPanel
+  override val component: JComponent = workBench
 
   private val openTabs = mutableMapOf<TabId, TabInfo>()
 
   init {
     val panel = JPanel(BorderLayout())
-    val northPanel = JPanel(FlowLayout(FlowLayout.LEFT))
     val centerPanel = JPanel(BorderLayout())
-    panel.add(northPanel, BorderLayout.NORTH)
     panel.add(centerPanel, BorderLayout.CENTER)
 
     workBench.init(panel, viewContext, listOf(createToolWindowDefinition()), false)
-
-    rootPanel.layout = OverlayLayout(rootPanel)
-    rootPanel.add(defaultUiPanel.rootPanel)
-    rootPanel.add(workBench)
-    workBench.isVisible = false
-
-    defaultUiPanel.label.font = AdtUiUtils.EMPTY_TOOL_WINDOW_FONT
-    defaultUiPanel.label.foreground = UIUtil.getInactiveTextColor()
 
     tabs.apply {
       isTabDraggingEnabled = true
@@ -154,8 +139,6 @@ class DatabaseInspectorViewImpl(
     // TODO(b/133320900) Should show proper loading UI.
     //  This loading logic is not the best now that multiple databases can be opened.
     //  This method is called each time a new database is opened.
-    workBench.isVisible = true
-    defaultUiPanel.rootPanel.isVisible = false
     workBench.setLoadingText(text)
   }
 
