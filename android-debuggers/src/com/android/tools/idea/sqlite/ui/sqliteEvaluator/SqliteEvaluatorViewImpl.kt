@@ -67,7 +67,7 @@ class SqliteEvaluatorViewImpl(
   }
 
   override fun selectDatabase(database: SqliteDatabase) {
-    evaluatorPanel.databaseComboBox.selectedItem = database
+    evaluatorPanel.databaseComboBox.selectedItem = ComboBoxItem(database, database.name)
   }
 
   override fun removeDatabase(index: Int) {
