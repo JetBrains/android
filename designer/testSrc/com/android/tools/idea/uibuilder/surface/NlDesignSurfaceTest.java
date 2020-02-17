@@ -89,9 +89,9 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     assertEquals(SceneMode.Companion.loadPreferredMode(), SceneMode.Companion.getDEFAULT_SCREEN_MODE());
 
     // Test next() function
-    assertEquals(SceneMode.RENDER.next(), SceneMode.BLUEPRINT);
-    assertEquals(SceneMode.BLUEPRINT.next(), SceneMode.RENDER_AND_BLUEPRINT);
-    assertEquals(SceneMode.RENDER_AND_BLUEPRINT.next(), SceneMode.RENDER);
+    assertEquals(SceneMode.BLUEPRINT, SceneMode.RENDER.next());
+    assertEquals(SceneMode.RENDER_AND_BLUEPRINT, SceneMode.BLUEPRINT.next());
+    assertEquals(SceneMode.RENDER, SceneMode.RENDER_AND_BLUEPRINT.next());
   }
 
   public void testEmptyRenderSuccess() {
