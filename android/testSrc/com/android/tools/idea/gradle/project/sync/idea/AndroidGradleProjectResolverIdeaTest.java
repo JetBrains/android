@@ -127,9 +127,8 @@ public class AndroidGradleProjectResolverIdeaTest extends PlatformTestCase {
     };
     myResolverCtx.setModels(allModels);
 
-    myProjectResolver = new AndroidGradleProjectResolver(myCommandLineArgs, myProjectFinder, myVariantSelector,
-                                                         myNativeAndroidProjectFactory, myIdeaJavaModuleModelFactory,
-                                                         new IdeDependenciesFactory());
+    myProjectResolver = new AndroidGradleProjectResolver(myCommandLineArgs, myProjectFinder, myNativeAndroidProjectFactory,
+                                                         myIdeaJavaModuleModelFactory, new IdeDependenciesFactory());
     myProjectResolver.setProjectResolverContext(myResolverCtx);
 
     GradleProjectResolverExtension next = new BaseGradleProjectResolverExtension();
