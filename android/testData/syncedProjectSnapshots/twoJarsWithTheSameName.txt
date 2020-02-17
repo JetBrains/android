@@ -1,4 +1,4 @@
-PROJECT             : testTwoJarsWithTheSameName
+PROJECT             : My Application
     MODULE              : My Application
         - ModuleGroupPath   : My Application
         LinkedProjectId     : My Application
