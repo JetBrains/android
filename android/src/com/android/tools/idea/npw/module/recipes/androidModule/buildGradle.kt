@@ -53,13 +53,6 @@ fun buildGradle(
   val supportsImprovedTestDeps = supportsImprovedTestDeps(gradlePluginVersion)
   val isApplicationProject = !isLibraryProject
 
-  // Note: Not doing this programmatically (applyPlugin) for groovy because if there is no plugin it uses syntax plugins { id(...) }
-  val pluginsBlock = "    " + when {
-    isLibraryProject -> "apply plugin: 'com.android.library'"
-    isDynamicFeature -> "apply plugin: 'com.android.dynamic-feature'"
-    else -> "apply plugin: 'com.android.application'"
-  }
-
   val androidConfigBlock = androidConfig(
     buildApiString,
     explicitBuildToolsVersion,
@@ -104,12 +97,15 @@ fun buildGradle(
   }
   """
 
-  return if (isKts) {
+  val allBlocks =
     """
 
     $androidConfigBlock
     $dependenciesBlock
     """
+
+  return if (isKts) {
+    allBlocks
       .split("\n").joinToString("\n") {
         it.replace("'", "\"")
           .toKtsFunction("compileSdkVersion")
@@ -127,11 +123,7 @@ fun buildGradle(
       }
   }
   else {
-    """
-    $pluginsBlock
-    $androidConfigBlock
-    $dependenciesBlock
-    """
+    allBlocks
   }
 }
 

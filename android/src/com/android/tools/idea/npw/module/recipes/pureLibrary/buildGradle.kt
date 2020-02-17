@@ -18,7 +18,6 @@ package com.android.tools.idea.npw.module.recipes.pureLibrary
 fun buildGradle(javaVersion: String): String {
 
   return """
-apply plugin: 'java-library'
 
 java {
     sourceCompatibility = ${javaVersion}
