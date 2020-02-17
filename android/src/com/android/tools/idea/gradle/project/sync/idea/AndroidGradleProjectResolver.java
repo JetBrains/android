@@ -42,7 +42,6 @@ import static com.intellij.util.PathUtil.getJarPathForClass;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 
-import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
@@ -75,9 +74,7 @@ import com.android.tools.idea.gradle.project.sync.SelectedVariantCollector;
 import com.android.tools.idea.gradle.project.sync.SelectedVariants;
 import com.android.tools.idea.gradle.project.sync.SyncActionOptions;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
-import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel;
-import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys;
 import com.android.tools.idea.gradle.project.sync.idea.issues.AgpUpgradeRequiredException;
 import com.android.tools.idea.gradle.project.sync.idea.issues.AndroidSyncException;
 import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidExtraModelProvider;
@@ -102,7 +99,6 @@ import com.intellij.openapi.externalSystem.model.project.LibraryDependencyData;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ModuleDependencyData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.externalSystem.util.Order;
 import com.intellij.openapi.project.Project;
@@ -129,7 +125,6 @@ import org.gradle.tooling.model.idea.IdeaProject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.kapt.idea.KaptGradleModel;
-import org.jetbrains.kotlin.kapt.idea.KaptSourceSetModel;
 import org.jetbrains.plugins.gradle.model.Build;
 import org.jetbrains.plugins.gradle.model.BuildScriptClasspathModel;
 import org.jetbrains.plugins.gradle.model.ExternalProject;
@@ -149,7 +144,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   @NotNull private final CommandLineArgs myCommandLineArgs;
   @NotNull private final ProjectFinder myProjectFinder;
-  @NotNull private final VariantSelector myVariantSelector;
   @NotNull private final IdeNativeAndroidProject.Factory myNativeAndroidProjectFactory;
   @NotNull private final IdeaJavaModuleModelFactory myIdeaJavaModuleModelFactory;
   @NotNull private final IdeDependenciesFactory myDependenciesFactory;
@@ -158,20 +152,18 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @SuppressWarnings("unused")
   // This constructor is used by the IDE. This class is an extension point implementation, registered in plugin.xml.
   public AndroidGradleProjectResolver() {
-    this(new CommandLineArgs(), new ProjectFinder(), new VariantSelector(), new IdeNativeAndroidProjectImpl.FactoryImpl(),
+    this(new CommandLineArgs(), new ProjectFinder(), new IdeNativeAndroidProjectImpl.FactoryImpl(),
          new IdeaJavaModuleModelFactory(), new IdeDependenciesFactory());
   }
 
   @VisibleForTesting
   AndroidGradleProjectResolver(@NotNull CommandLineArgs commandLineArgs,
                                @NotNull ProjectFinder projectFinder,
-                               @NotNull VariantSelector variantSelector,
                                @NotNull IdeNativeAndroidProject.Factory nativeAndroidProjectFactory,
                                @NotNull IdeaJavaModuleModelFactory ideaJavaModuleModelFactory,
                                @NotNull IdeDependenciesFactory dependenciesFactory) {
     myCommandLineArgs = commandLineArgs;
     myProjectFinder = projectFinder;
-    myVariantSelector = variantSelector;
     myNativeAndroidProjectFactory = nativeAndroidProjectFactory;
     myIdeaJavaModuleModelFactory = ideaJavaModuleModelFactory;
     myDependenciesFactory = dependenciesFactory;
@@ -383,8 +375,9 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
    * Obtain the selected variant using either the legacy method or from the [VariantGroup]. If no variants are
    * found then this method throws an [AndroidSyncException].
    */
+  @VisibleForTesting
   @NotNull
-  private static Variant findVariantToSelect(@NotNull AndroidProject androidProject, @Nullable VariantGroup variantGroup) {
+  public static Variant findVariantToSelect(@NotNull AndroidProject androidProject, @Nullable VariantGroup variantGroup) {
     if (variantGroup != null) {
       List<Variant> variants = variantGroup.getVariants();
       if (!variants.isEmpty()) {
@@ -558,24 +551,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       projectDataNode.createChild(PROJECT_CLEANUP_MODEL, ProjectCleanupModel.getInstance());
     }
     super.populateProjectExtraModels(gradleProject, projectDataNode);
-  }
-
-  private void populateKaptKotlinGeneratedSourceDir(@NotNull IdeaModule gradleModule, @NotNull AndroidModuleModel androidModuleModel) {
-    KaptGradleModel kaptGradleModel = resolverCtx.getExtraProject(gradleModule, KaptGradleModel.class);
-    if (kaptGradleModel == null || !kaptGradleModel.isEnabled()) {
-      return;
-    }
-
-    for (KaptSourceSetModel sourceSetModel : kaptGradleModel.getSourceSets()) {
-      Variant variant = androidModuleModel.findVariantByName(sourceSetModel.getSourceSetName());
-      File kotlinGenSourceDir = sourceSetModel.getGeneratedKotlinSourcesDirFile();
-      if (variant != null && kotlinGenSourceDir != null) {
-        AndroidArtifact mainArtifact = variant.getMainArtifact();
-        if (mainArtifact instanceof IdeBaseArtifact) {
-          ((IdeBaseArtifact)mainArtifact).addGeneratedSourceFolder(kotlinGenSourceDir);
-        }
-      }
-    }
   }
 
   /**
@@ -788,7 +763,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     Project project = myProjectFinder.findProject(resolverCtx);
     SelectedVariants selectedVariants = null;
     boolean isSingleVariantSync = false;
-    boolean shouldGenerateSources = false;
     Collection<String> cachedLibraries = emptySet();
     String moduleWithVariantSwitched = null;
 

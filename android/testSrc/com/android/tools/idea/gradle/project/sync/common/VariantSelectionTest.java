@@ -17,28 +17,44 @@ package com.android.tools.idea.gradle.project.sync.common;
 
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
+import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver;
+import com.android.tools.idea.gradle.project.sync.idea.issues.AndroidSyncException;
+import com.android.tools.idea.gradle.project.sync.idea.svs.VariantGroup;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Collections;
 
+import static com.google.common.truth.Truth.assertThat;
+import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-/**
- * Tests for {@link VariantSelector}.
- */
-public class VariantSelectorTest {
+public class VariantSelectionTest {
   private AndroidProject myAndroidProject;
-  private VariantSelector myVariantSelector;
 
   @Before
   public void setUp() {
-    myVariantSelector = new VariantSelector();
     myAndroidProject = mock(AndroidProject.class);
+  }
+
+  @Test
+  public void findVariantFromVariantGroup() {
+    Variant debugVariant = mock(Variant.class);
+    Variant releaseVariant = mock(Variant.class);
+
+    when(debugVariant.getName()).thenReturn("debug");
+    when(releaseVariant.getName()).thenReturn("release");
+
+    when(myAndroidProject.getVariants()).thenReturn(Collections.emptyList());
+    VariantGroup group = new VariantGroup(ImmutableList.of(debugVariant, releaseVariant), ImmutableList.of());
+
+    Variant variant = AndroidGradleProjectResolver.findVariantToSelect(myAndroidProject, group);
+    assertSame(debugVariant, variant);
   }
 
   @Test
@@ -50,7 +66,7 @@ public class VariantSelectorTest {
     when(debugVariant.getName()).thenReturn("debug");
     when(releaseVariant.getName()).thenReturn("release");
 
-    Variant variant = myVariantSelector.findVariantToSelect(myAndroidProject);
+    Variant variant = AndroidGradleProjectResolver.findVariantToSelect(myAndroidProject, null);
     assertSame(debugVariant, variant);
   }
 
@@ -63,14 +79,20 @@ public class VariantSelectorTest {
     when(aVariant.getName()).thenReturn("a");
     when(bVariant.getName()).thenReturn("b");
 
-    Variant variant = myVariantSelector.findVariantToSelect(myAndroidProject);
+    Variant variant = AndroidGradleProjectResolver.findVariantToSelect(myAndroidProject, null);
     assertSame(aVariant, variant);
   }
 
   @Test
   public void getVariantToSelectWithoutVariants() {
     when(myAndroidProject.getVariants()).thenReturn(Collections.emptyList());
-    Variant variant = myVariantSelector.findVariantToSelect(myAndroidProject);
-    assertNull(variant);
+    when(myAndroidProject.getName()).thenReturn("project");
+    try {
+      AndroidGradleProjectResolver.findVariantToSelect(myAndroidProject, null);
+      fail();
+    } catch (AndroidSyncException err) {
+      // Expected
+      assertThat(err.getMessage()).isEqualTo("No variants found for 'project'. Check build files to ensure at least one variant exists.");
+    }
   }
 }
