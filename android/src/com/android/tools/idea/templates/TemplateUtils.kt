@@ -50,6 +50,7 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.psi.codeStyle.arrangement.engine.ArrangementEngine
 import org.jetbrains.android.uipreview.AndroidEditorSettings
+import org.jetbrains.kotlin.idea.core.util.toVirtualFile
 import org.w3c.dom.Element
 import org.w3c.dom.Node
 import java.io.File
@@ -412,7 +413,8 @@ object TemplateUtils {
     }
     val target = File(destination, relativePath)
     val toDir = checkedCreateDirectoryIfMissing(target.parentFile)
-    if (target.exists()) {
+    val targetVf = LocalFileSystem.getInstance().findFileByIoFile(target)
+    if (targetVf?.exists() == true) {
       return false
     }
     VfsUtilCore.copyFile(this, fileToCopy, toDir)
