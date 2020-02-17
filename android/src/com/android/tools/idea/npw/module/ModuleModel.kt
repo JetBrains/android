@@ -83,6 +83,7 @@ abstract class ModuleModel(
         projectTemplateDataBuilder.apply {
           setProjectDefaults(project)
           language = this@ModuleModel.language.value
+          bytecodeLevel = this@ModuleModel.bytecodeLevel.value
         }
         formFactor = this@ModuleModel.formFactor.get().toTemplateFormFactor()
         isNew = true
