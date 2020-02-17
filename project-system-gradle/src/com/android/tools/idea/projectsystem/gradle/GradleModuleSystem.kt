@@ -19,7 +19,6 @@ import com.android.SdkConstants
 import com.android.SdkConstants.ANNOTATIONS_LIB_ARTIFACT_ID
 import com.android.builder.model.AndroidLibrary
 import com.android.builder.model.BuildType
-import com.android.builder.model.SourceProvider
 import com.android.ide.common.gradle.model.GradleModelConverter
 import com.android.ide.common.gradle.model.IdeAndroidGradlePluginProjectFlags
 import com.android.ide.common.repository.GradleCoordinate
@@ -37,9 +36,8 @@ import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.model.AndroidManifestIndex
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.queryPackageNameFromManifestIndex
-import com.android.tools.idea.projectsystem.AndroidModulePaths
-import com.android.tools.idea.projectsystem.AndroidModulePathsImpl
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
+import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
 import com.android.tools.idea.projectsystem.CapabilityStatus
 import com.android.tools.idea.projectsystem.CapabilitySupported
 import com.android.tools.idea.projectsystem.ClassFileFinder
@@ -48,14 +46,14 @@ import com.android.tools.idea.projectsystem.DependencyType
 import com.android.tools.idea.projectsystem.ManifestOverrides
 import com.android.tools.idea.projectsystem.MergedManifestContributors
 import com.android.tools.idea.projectsystem.ModuleHierarchyProvider
-import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.projectsystem.SampleDataDirectoryProvider
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
+import com.android.tools.idea.projectsystem.buildNamedModuleTemplatesFor
 import com.android.tools.idea.projectsystem.getFlavorAndBuildTypeManifests
 import com.android.tools.idea.projectsystem.getFlavorAndBuildTypeManifestsOfLibs
-import com.android.tools.idea.projectsystem.getSourceProvidersForFile
+import com.android.tools.idea.projectsystem.getForFile
 import com.android.tools.idea.projectsystem.getTransitiveNavigationFiles
 import com.android.tools.idea.projectsystem.sourceProviders
 import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
@@ -65,8 +63,6 @@ import com.android.tools.idea.util.androidFacet
 import com.google.common.base.Predicate
 import com.google.common.base.Predicates
 import com.google.common.collect.ArrayListMultimap
-import com.google.common.collect.Iterables
-import com.google.common.collect.Lists
 import com.google.common.collect.Multimap
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
@@ -74,11 +70,9 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.IndexNotReadyException
-import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValue
@@ -86,10 +80,8 @@ import com.intellij.util.text.nullize
 import org.jetbrains.android.dom.manifest.cachedValueFromPrimaryManifest
 import org.jetbrains.android.dom.manifest.getPrimaryManifestXml
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.SourceProviderManager.Companion.getInstance
 import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.annotations.TestOnly
-import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes
 import java.io.File
 import java.util.ArrayDeque
 import java.util.Collections
@@ -210,9 +202,11 @@ class GradleModuleSystem(
   }
 
   override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> {
-    val facet = module.androidFacet ?: return listOf()
-    val sourceProviders = getSourceProviders(facet, targetDirectory)
-    return getModuleTemplates(module, sourceProviders)
+    val moduleRootDir = AndroidProjectRootUtil.getModuleDirPath(module)?.let { File(it) }
+    val sourceProviders = module.androidFacet?.sourceProviders ?: return listOf()
+    val selectedSourceProviders = targetDirectory?.let { sourceProviders.getForFile(targetDirectory) }
+                                  ?: sourceProviders.currentAndSomeFrequentlyUsedInactiveSourceProviders
+    return sourceProviders.buildNamedModuleTemplatesFor(moduleRootDir, selectedSourceProviders)
   }
 
   override fun canGeneratePngFromVectorGraphics(): CapabilityStatus {
@@ -713,50 +707,3 @@ private fun addAarManifests(lib: AndroidLibrary, result: MutableSet<File>, modul
     }
   }
 }
-
-/**
- * Convenience method to get [SourceProvider]s from the current project which can be used
- * to instantiate an instance of this class.
- */
-private fun getSourceProviders(androidFacet: AndroidFacet, targetDirectory: VirtualFile?): Collection<NamedIdeaSourceProvider> {
-  return targetDirectory?.let { androidFacet.getSourceProvidersForFile(targetDirectory) }
-         ?: getInstance(androidFacet).currentAndSomeFrequentlyUsedInactiveSourceProviders
-}
-
-/**
- * @param sourceProviders
- * @param androidFacet    from which we receive [SourceProvider]s.
- * @return a list of [NamedModuleTemplate]s created from each of `androidFacet`'s [SourceProvider]s.
- * In cases where the source provider returns multiple paths, we always take the first match.
- */
-private fun getModuleTemplates(
-  module: Module,
-  sourceProviders: Collection<NamedIdeaSourceProvider>
-): List<NamedModuleTemplate> {
-  val templates: MutableList<NamedModuleTemplate> = Lists.newArrayList()
-  for (sourceProvider in sourceProviders) {
-    val roots = ModuleRootManager.getInstance(module).contentRoots
-    val testRoots = ModuleRootManager.getInstance(module).getSourceRoots(JavaModuleSourceRootTypes.TESTS)
-
-    val paths = AndroidModulePathsImpl(
-      moduleRoot = if (roots.size > 0) VfsUtilCore.virtualToIoFile(roots[0]) else null,
-      manifestDirectory = sourceProvider.manifestDirectoryUrls.first().let { File(VfsUtilCore.urlToPath(it)) },
-      srcRoot = File(VfsUtilCore.urlToPath(Iterables.getFirst(sourceProvider.javaDirectoryUrls, null))),
-      unitTestRoot = when (testRoots.size) {
-        0 -> null
-        1 -> VfsUtilCore.virtualToIoFile(testRoots[0])
-        else -> VfsUtilCore.virtualToIoFile(testRoots[1])
-      },
-      testRoot = when (testRoots.size) {
-        0 -> null
-        1 -> null
-        else -> VfsUtilCore.virtualToIoFile(testRoots[0])
-      },
-      aidlRoot = File(VfsUtilCore.urlToPath(Iterables.getFirst(sourceProvider.aidlDirectoryUrls, null))),
-      resDirectories = sourceProvider.resDirectoryUrls.map { File(VfsUtilCore.urlToPath(it)) }
-    )
-    templates.add(NamedModuleTemplate(sourceProvider.name, paths))
-  }
-  return templates
-}
-

@@ -295,13 +295,11 @@ fun createMergedSourceProvider(scopeType: ScopeType, providers: List<NamedIdeaSo
  *
  * Returns `null` if none found.
  */
-fun AndroidFacet.getSourceProvidersForFile(targetFolder: VirtualFile?): List<NamedIdeaSourceProvider>? {
+fun SourceProviders.getForFile(targetFolder: VirtualFile?): List<NamedIdeaSourceProvider>? {
   return if (targetFolder != null) {
     // Add source providers that contain the file (if any) and any that have files under the given folder
-    SourceProviders.getInstance(this).currentAndSomeFrequentlyUsedInactiveSourceProviders
-      .filter { provider ->
-        provider.containsFile(targetFolder) || provider.isContainedBy(targetFolder)
-      }
+    currentAndSomeFrequentlyUsedInactiveSourceProviders
+      .filter { provider -> provider.containsFile(targetFolder) || provider.isContainedBy(targetFolder) }
       .takeUnless { it.isEmpty() }
   }
   else null
