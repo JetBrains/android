@@ -34,8 +34,7 @@ class WarningsRootNode(
   parent: ControllersAwareBuildAttributionNode
 ) : AbstractBuildAttributionNode(parent, "Warnings (${reportData.totalIssuesCount})") {
 
-  // TODO(mlazeba): change to new type when added and merged b/144767316
-  override val pageType = BuildAttributionUiEvent.Page.PageType.UNKNOWN_PAGE
+  override val pageType = BuildAttributionUiEvent.Page.PageType.WARNINGS_ROOT
   override val presentationIcon: Icon? = null
   override val issuesCountsSuffix: String? = null
   override val timeSuffix: String? = null
