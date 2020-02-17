@@ -30,7 +30,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
 import java.awt.Dimension
-import java.awt.Rectangle
 import java.awt.event.ComponentEvent
 import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
@@ -155,8 +154,6 @@ private class TestDesignSurface(project: Project, disposible: Disposable)
   override fun getSelectionAsTransferable(): ItemTransferable {
     return ItemTransferable(DnDTransferItem(0, ImmutableList.of()))
   }
-
-  private var factor: Float = 1f
 
   override fun getComponentRegistrar() = Consumer<NlComponent> {}
 
