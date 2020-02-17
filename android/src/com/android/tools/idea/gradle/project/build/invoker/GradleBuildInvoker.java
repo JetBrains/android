@@ -513,19 +513,13 @@ public class GradleBuildInvoker {
       return;
     }
     GradleTasksExecutor executor = myTaskExecutorFactory.create(request, myBuildStopper);
-    Runnable executeTasksTask = () -> {
-      getFileDocumentManager().saveAllDocuments();
-      executor.queue();
-    };
 
-    if (ApplicationManager.getApplication().isDispatchThread()) {
-      executeTasksTask.run();
-    }
-    else if (request.isWaitForCompletion()) {
+    ApplicationManager.getApplication().invokeAndWait(getFileDocumentManager()::saveAllDocuments);
+    if (request.isWaitForCompletion() && !ApplicationManager.getApplication().isDispatchThread()) {
       executor.queueAndWaitForCompletion();
     }
     else {
-      ApplicationManager.getApplication().invokeAndWait(executeTasksTask);
+      executor.queue();
     }
   }
 
