@@ -33,28 +33,20 @@ class RenderTaskLeakCheckRule : TestRule {
       @Throws(Throwable::class)
       override fun evaluate() {
         clearTrackedAllocations()
-        try {
-          base.evaluate()
+        base.evaluate()
+        if (notDisposedRenderTasks().count() != 0) {
+          // Give tasks the opportunity to complete the dispose
+          Thread.sleep(TimeUnit.SECONDS.toMillis(1))
         }
-        catch (t: Throwable) {
-          // Log the original failure before showing any potential leaks
-          t.printStackTrace(System.err)
-        }
-        finally {
-          if (notDisposedRenderTasks().count() != 0) {
-            // Give tasks the opportunity to complete the dispose
-            Thread.sleep(TimeUnit.SECONDS.toMillis(1))
-          }
 
-          notDisposedRenderTasks()
-            .forEach { stackTrace: List<StackTraceElement> ->
-              val stackTraceString = stackTrace.stream()
-                .map { element: StackTraceElement -> "\t\t" + element }
-                .collect(Collectors.joining("\n"))
-              throw IllegalStateException(
-                "Render task not released. Allocated at \n$stackTraceString")
-            }
-        }
+        notDisposedRenderTasks()
+          .forEach { stackTrace: List<StackTraceElement> ->
+            val stackTraceString = stackTrace.stream()
+              .map { element: StackTraceElement -> "\t\t" + element }
+              .collect(Collectors.joining("\n"))
+            throw IllegalStateException(
+              "Render task not released. Allocated at \n$stackTraceString")
+          }
       }
     }
   }
