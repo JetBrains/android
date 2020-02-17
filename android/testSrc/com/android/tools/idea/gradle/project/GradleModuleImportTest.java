@@ -44,6 +44,7 @@ import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.testFramework.ProjectRule;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
@@ -395,7 +396,7 @@ b/145809317 */
                 Project project = projectsStillOpen.iterator().next();
                 projectsStillOpen.clear();
                 throw new AssertionError("Test project is not disposed: " + project + ";\n created in: " +
-                                         PlatformTestCase.getCreationPlace(project));
+                                         ProjectRule.getCreationPlace(project));
               }
             }
           }
