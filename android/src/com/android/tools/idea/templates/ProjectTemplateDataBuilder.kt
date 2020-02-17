@@ -27,6 +27,7 @@ import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
+import com.android.tools.idea.wizard.template.BytecodeLevel
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.PackageName
 import com.android.tools.idea.wizard.template.ProjectTemplateData
@@ -55,6 +56,7 @@ class ProjectTemplateDataBuilder(private val isNewProject: Boolean) {
   var javaVersion: JavaVersion? = null
   var sdkDir: File? = null
   var language: Language? = null
+  var bytecodeLevel: BytecodeLevel? = null
   var kotlinVersion: String? = null
   var buildToolsVersion: Revision? = null
   var explicitBuildToolsVersion: Boolean? = null
@@ -150,7 +152,8 @@ class ProjectTemplateDataBuilder(private val isNewProject: Boolean) {
     includedFormFactorNames,
     debugKeyStoreSha1,
     overridePathCheck,
-    isNewProject
+    isNewProject,
+    bytecodeLevel!!
   )
 }
 

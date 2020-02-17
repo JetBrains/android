@@ -41,6 +41,7 @@ import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.wizard.model.WizardModel
+import com.android.tools.idea.wizard.template.BytecodeLevel
 import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.android.tools.idea.wizard.template.Recipe
 import com.android.tools.idea.wizard.template.TemplateData
@@ -85,6 +86,7 @@ interface ProjectModelData {
   var project: Project
   val isNewProject: Boolean
   val language: OptionalProperty<Language>
+  val bytecodeLevel: OptionalProperty<BytecodeLevel>
   val multiTemplateRenderer: MultiTemplateRenderer
   val projectTemplateDataBuilder: ProjectTemplateDataBuilder
 }
@@ -101,6 +103,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
   override lateinit var project: Project
   override val isNewProject = true
   override val language = OptionalValueProperty<Language>()
+  override val bytecodeLevel = OptionalValueProperty<BytecodeLevel>(getInitialBytecodeLevel())
   override val multiTemplateRenderer = MultiTemplateRenderer { renderer ->
     run {
       assert(!::project.isInitialized)
@@ -119,24 +122,21 @@ class NewProjectModel : WizardModel(), ProjectModelData {
   override val projectTemplateDataBuilder = ProjectTemplateDataBuilder(true)
 
   init {
-    packageName.addListener {
-      val androidPackage = packageName.get().substringBeforeLast('.')
-      if (AndroidUtils.isValidAndroidPackageName(androidPackage)) {
-        PropertiesComponent.getInstance().setValue(PROPERTIES_ANDROID_PACKAGE_KEY, androidPackage)
-      }
-    }
-
     applicationName.addConstraint(String::trim)
 
-    language.set(calculateInitialLanguage(PropertiesComponent.getInstance()))
+    language.set(calculateInitialLanguage(properties))
   }
 
-  private fun saveWizardState() {
-    // Set the property value
-    val props = PropertiesComponent.getInstance()
-    props.setValue(PROPERTIES_CPP_SUPPORT_KEY, enableCppSupport.get())
-    props.setValue(PROPERTIES_NPW_LANGUAGE_KEY, language.value.toString())
-    props.setValue(PROPERTIES_NPW_ASKED_LANGUAGE_KEY, true)
+  private fun saveWizardState() = with(properties){
+    setValue(PROPERTIES_CPP_SUPPORT_KEY, enableCppSupport.get())
+    setValue(PROPERTIES_NPW_LANGUAGE_KEY, language.value.toString())
+    setValue(PROPERTIES_NPW_ASKED_LANGUAGE_KEY, true)
+    setValue(PROPERTIES_BYTECODE_LEVEL_KEY, bytecodeLevel.value.toString())
+
+    val androidPackage = packageName.get().substringBeforeLast('.')
+    if (AndroidUtils.isValidAndroidPackageName(androidPackage)) {
+      setValue(PROPERTIES_ANDROID_PACKAGE_KEY, androidPackage)
+    }
   }
 
   override fun handleFinished() {
@@ -172,6 +172,8 @@ class NewProjectModel : WizardModel(), ProjectModelData {
     }
     multiTemplateRenderer.requestRender(ProjectTemplateRenderer())
     ProjectUtil.updateLastProjectLocation(projectLocation)
+
+    saveWizardState()
   }
 
   private inner class ProjectTemplateRenderer : MultiTemplateRenderer.TemplateRenderer {
@@ -183,6 +185,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
 
         setProjectDefaults(project)
         language = this@NewProjectModel.language.value
+        bytecodeLevel = this@NewProjectModel.bytecodeLevel.value
       }
     }
 
@@ -207,8 +210,6 @@ class NewProjectModel : WizardModel(), ProjectModelData {
       catch (e: IOException) {
         logger.warn("Failed to update Gradle wrapper permissions", e)
       }
-
-      saveWizardState()
     }
 
     private fun performCreateProject(dryRun: Boolean) {
@@ -305,6 +306,11 @@ class NewProjectModel : WizardModel(), ProjectModelData {
         else -> EXAMPLE_DOMAIN
       }
 
+    fun getInitialBytecodeLevel(): BytecodeLevel {
+      val savedValue = properties.getValue(PROPERTIES_BYTECODE_LEVEL_KEY)
+      return BytecodeLevel.values().firstOrNull { it.toString() == savedValue } ?: BytecodeLevel.default
+    }
+
     /**
      * Tries to get a valid package suggestion for the specifies Project using the saved user domain.
      */
@@ -362,4 +368,8 @@ class NewProjectModel : WizardModel(), ProjectModelData {
     }
   }
 }
-private val log = logger<NewProjectModel>()
+
+// this is used both by new project and new module UI
+internal const val PROPERTIES_BYTECODE_LEVEL_KEY = "SAVED_BYTECODE_LEVEL"
+
+internal val properties get() = PropertiesComponent.getInstance()
