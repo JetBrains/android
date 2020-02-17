@@ -61,7 +61,6 @@ fun buildGradle(
   }
 
   return """
-apply plugin: "com.android.dynamic-feature"
 
 $androidConfigBlock
 

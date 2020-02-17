@@ -90,6 +90,7 @@ fun RecipeExecutor.generateDynamicFeatureModule(
   }
   save(exampleUnitTest, unitTestOut.resolve("ExampleUnitTest.${ktOrJavaExt}"))
 
+  applyPlugin("com.android.dynamic-feature")
   addDependency("junit:junit:4.12", "testCompile")
 
   val supportsImprovedTestDeps = GradleVersion.parse(agpVersion).compareIgnoringQualifiers("3.0.0") >= 0

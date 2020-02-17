@@ -37,6 +37,7 @@ fun RecipeExecutor.generatePureLibrary(
   addIncludeToSettings(moduleData.name)
 
   save(buildGradle("JavaVersion.VERSION_1_7"), moduleOut.resolve(FN_BUILD_GRADLE))
+  applyPlugin("java-library")
   save(
     if (language == Language.Kotlin) placeholderKt(packageName, className) else placeholderJava(packageName, className),
     srcOut.resolve("$className.${language.extension}")
