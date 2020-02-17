@@ -144,6 +144,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myCustomEventVisualizationEnabled = false;
 
   /**
+   * Whether native memory sampling via heapprofd is enabled.
+   */
+  private boolean myNativeMemorySampleEnabled = false;
+
+  /**
    * List of custom CPU profiling configurations.
    */
   private final List<ProfilingConfiguration> myCustomProfilingConfigurations = new ArrayList<>();
@@ -268,6 +273,9 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       public boolean isLiveAllocationsSamplingEnabled() {
         return myLiveAllocationsSamplingEnabled;
       }
+
+      @Override
+      public boolean isNativeMemorySampleEnabled() { return myNativeMemorySampleEnabled; }
 
       @Override
       public boolean isMemorySnapshotEnabled() {
@@ -435,6 +443,10 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void enableLiveAllocationsSampling(boolean enabled) {
     myLiveAllocationsSamplingEnabled = enabled;
+  }
+
+  public void enableNativeMemorySampling(boolean enabled) {
+    myNativeMemorySampleEnabled = enabled;
   }
 
   public void enableCpuCaptureStage(boolean enabled) { myIsCaptureStageEnabled = enabled; }
