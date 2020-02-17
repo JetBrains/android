@@ -101,14 +101,14 @@ class RenderTemplateModel private constructor(
   val hasActivity: Boolean get() = newTemplate != Template.NoActivity
 
   public override fun handleFinished() {
-    multiTemplateRenderer.requestRender(FreeMarkerTemplateRenderer())
+    multiTemplateRenderer.requestRender(TemplateRenderer())
   }
 
   public override fun handleSkipped() {
     multiTemplateRenderer.skipRender()
   }
 
-  private inner class FreeMarkerTemplateRenderer : MultiTemplateRenderer.TemplateRenderer {
+  private inner class TemplateRenderer : MultiTemplateRenderer.TemplateRenderer {
     private var renderSuccess: Boolean = false
 
     @WorkerThread
