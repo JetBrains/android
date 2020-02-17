@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync.idea.data.service
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.sync.idea.computeSdkReloadingAsNeeded
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL
-import com.android.tools.idea.gradle.project.sync.issues.registerSyncIssues
 import com.android.tools.idea.gradle.project.sync.setup.Facets.removeAllFacets
 import com.android.tools.idea.gradle.project.sync.setup.post.MemorySettingsPostSyncChecker
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectStructureUsageTracker
@@ -76,8 +75,6 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
         if (sdkToUse != null) {
           modelsProvider.getModifiableRootModel(module).sdk = sdkToUse
         }
-        // Ensure sync issues can be reported.
-        module.registerSyncIssues(androidModel.androidProject.syncIssues)
 
         // Create the Android facet and attache to the module.
         val androidFacet = modelsProvider.getModifiableFacetModel(module).getFacetByType(AndroidFacet.ID)

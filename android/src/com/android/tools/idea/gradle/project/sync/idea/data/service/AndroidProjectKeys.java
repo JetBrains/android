@@ -23,7 +23,7 @@ import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel;
-import com.android.tools.idea.gradle.project.sync.idea.data.model.SyncIssuesModel;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData;
 import com.intellij.openapi.externalSystem.model.Key;
 import org.jetbrains.annotations.NotNull;
 
@@ -67,11 +67,11 @@ public final class AndroidProjectKeys {
   public static final Key<JavaModuleModel> JAVA_MODULE_MODEL = Key.create(JavaModuleModel.class, NDK_MODEL.getProcessingWeight() + 10);
 
   @NotNull
-  public static final Key<SyncIssuesModel> SYNC_ISSUES = Key.create(SyncIssuesModel.class, JAVA_MODULE_MODEL.getProcessingWeight() + 10);
+  public static final Key<SyncIssueData> SYNC_ISSUE = Key.create(SyncIssueData.class, JAVA_MODULE_MODEL.getProcessingWeight() + 10);
 
   @NotNull
   public static final Key<ProjectCleanupModel>
-    PROJECT_CLEANUP_MODEL = Key.create(ProjectCleanupModel.class, SYNC_ISSUES.getProcessingWeight() + 10);
+    PROJECT_CLEANUP_MODEL = Key.create(ProjectCleanupModel.class, SYNC_ISSUE.getProcessingWeight() + 10);
 
   private AndroidProjectKeys() {
   }

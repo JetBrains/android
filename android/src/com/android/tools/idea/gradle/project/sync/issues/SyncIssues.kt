@@ -17,78 +17,63 @@
 package com.android.tools.idea.gradle.project.sync.issues
 
 import com.android.builder.model.SyncIssue
-import com.google.common.collect.ImmutableList
-import com.intellij.openapi.diagnostic.Logger
+import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.SYNC_ISSUE
+import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
+import com.intellij.openapi.externalSystem.model.DataNode
+import com.intellij.openapi.externalSystem.model.Key
+import com.intellij.openapi.externalSystem.model.ProjectKeys
+import com.intellij.openapi.externalSystem.model.project.ModuleData
+import com.intellij.openapi.externalSystem.model.project.ProjectData
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider
+import com.intellij.openapi.externalSystem.service.project.manage.AbstractProjectDataService
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.find
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findProjectData
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.module.ModuleServiceManager
 import com.intellij.openapi.project.Project
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
-
-private val LOGGER = Logger.getInstance(SyncIssueRegistry::class.java)
-
-/**
- * A project based component that stores a map from modules to sync issues. These are registered during sync (module setup) and are reported
- * shortly afterward. The register is cleared at the start of each sync.
- *
- * [SyncIssue]s should not be read until this object has been sealed (it is sealed at the end of sync) as there still may be additional
- * [SyncIssue]s that have not been reported, attempting to do so will log an error.
- *
- * Likewise once this object is sealed any attempt to register additional issues will also log an error. These errors will be converted
- * into exception at a later date.
- */
-internal open class SyncIssueRegistry<Component> : Sealable by BaseSealable() {
-  private val lock = ReentrantLock()
-  private val syncIssueList = mutableListOf<SyncIssue>()
-
-  fun register(syncIssues: Collection<SyncIssue>) {
-    lock.withLock {
-      if (checkSeal()) LOGGER.warn("Attempted to add more sync issues when the SyncIssueRegistry was sealed!", IllegalStateException())
-      syncIssueList.addAll(syncIssues)
-    }
-  }
-
-  fun get(): List<SyncIssue> {
-    return lock.withLock {
-      if (!checkSeal()) LOGGER.warn("Attempted to read sync issues before the SyncIssuesRegister was sealed!", IllegalStateException())
-      ImmutableList.copyOf(syncIssueList)
-    }
-  }
-
-  fun unsealAndClear() {
-    lock.withLock {
-      unseal()
-      syncIssueList.clear()
-    }
-  }
-}
-
-internal class ModuleSyncIssueRegistry : SyncIssueRegistry<Module>()
-private fun Module.syncIssueRegistry() = ModuleServiceManager.getService(this, ModuleSyncIssueRegistry::class.java)!!
+import org.jetbrains.plugins.gradle.util.GradleConstants
 
 @JvmName("forModule")
-fun Module.syncIssues() = syncIssueRegistry().get()
-fun Module.registerSyncIssues(issues: Collection<SyncIssue>) = syncIssueRegistry().register(issues)
-
-@JvmName("byModule")
-fun Project.getSyncIssuesByModule() = ModuleManager.getInstance(this).modules.associateBy({ module -> module }, Module::syncIssues)
-
-/**
- * Seals all [SyncIssueRegistry]s for this project.
- */
-@JvmName("seal")
-fun Project.sealSyncIssues() {
-  ModuleManager.getInstance(this).modules.forEach { module ->
-    module.syncIssueRegistry().also { it.seal() }
-  }
+fun Module.syncIssues() : List<SyncIssueData> {
+  val linkedProjectPath = ExternalSystemApiUtil.getExternalRootProjectPath(this) ?: return emptyList()
+  val projectDataNode = findProjectData(project, GradleConstants.SYSTEM_ID, linkedProjectPath) ?: return emptyList()
+  val moduleDataNode = find(projectDataNode, ProjectKeys.MODULE) { node ->
+    node.data.moduleName == name
+  } ?: return emptyList()
+  return findAll(moduleDataNode, SYNC_ISSUE).map { dataNode -> dataNode.data }
 }
 
-/**
- * Clears and unseals all of the [SyncIssueRegistry]s for this project.
- */
-fun Project.clearSyncIssues() {
-  ModuleManager.getInstance(this).modules.forEach { module ->
-    module.syncIssueRegistry().also { it.unsealAndClear() }
+class SyncIssueData(
+  val message: String,
+  val data: String?,
+  val multiLineMessage: List<String>?,
+  val severity: Int,
+  val type: Int
+)
+
+class SyncIssueDataService : AbstractProjectDataService<SyncIssueData, Void>() {
+  override fun importData(toImport: Collection<DataNode<SyncIssueData>>,
+                          projectData: ProjectData?,
+                          project: Project,
+                          modelsProvider: IdeModifiableModelsProvider) {
+    val moduleToSyncIssueMap : MutableMap<Module, List<SyncIssue>> = mutableMapOf()
+    ExternalSystemApiUtil.groupBy(toImport, ModuleData::class.java).entrySet().forEach { (moduleNode, syncIssues) ->
+      val module = modelsProvider.findIdeModule(moduleNode.data) ?: return@forEach
+      // TODO: Make the reporter handle SyncIssueData instead, but for now to just use an adapter.
+      val mappedSyncIssues : List<SyncIssue> = syncIssues.map { node -> object : SyncIssue {
+        override fun getSeverity(): Int = node.data.severity
+        override fun getType(): Int = node.data.type
+        override fun getData(): String? = node.data.data
+        override fun getMessage(): String = node.data.message
+        override fun getMultiLineMessage(): List<String>? = node.data.multiLineMessage
+      }}
+      moduleToSyncIssueMap[module] = mappedSyncIssues
+    }
+    SyncIssuesReporter.getInstance().report(moduleToSyncIssueMap)
+  }
+
+  override fun getTargetDataKey(): Key<SyncIssueData> {
+    return SYNC_ISSUE
   }
 }

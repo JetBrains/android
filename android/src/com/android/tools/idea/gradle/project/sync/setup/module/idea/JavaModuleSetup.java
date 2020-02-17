@@ -33,11 +33,4 @@ public class JavaModuleSetup extends BaseSetup<JavaModuleSetupStep, JavaModuleMo
   JavaModuleSetup(@NotNull JavaModuleSetupStep... setupSteps) {
     super(setupSteps);
   }
-
-  @Override
-  protected void beforeSetup(@NotNull ModuleSetupContext context, @Nullable JavaModuleModel model) {
-    if (model != null) {
-      SyncIssues.registerSyncIssues(context.getModule(), model.getSyncIssues());
-    }
-  }
 }

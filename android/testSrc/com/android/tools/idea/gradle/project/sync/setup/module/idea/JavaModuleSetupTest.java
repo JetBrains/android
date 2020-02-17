@@ -26,6 +26,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
@@ -64,14 +65,5 @@ public class JavaModuleSetupTest extends PlatformTestCase {
 
     verify(mySetupStep1, times(1)).setUpModule(myContext, myJavaModel);
     verify(mySetupStep2, times(1)).setUpModule(myContext, myJavaModel);
-  }
-
-  public void testSetUpAndroidModuleRegistersSyncIssues() {
-    SyncIssue syncIssue = mock(SyncIssue.class);
-    when(myJavaModel.getSyncIssues()).thenReturn(ImmutableList.of(syncIssue));
-
-    myModuleSetup.setUpModule(myContext, myJavaModel);
-    SyncIssues.seal(myProject);
-    assertThat(SyncIssues.forModule(myModule)).containsExactly(syncIssue);
   }
 }
