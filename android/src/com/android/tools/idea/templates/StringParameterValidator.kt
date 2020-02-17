@@ -21,7 +21,8 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.tools.idea.npw.assetstudio.resourceExists
-import com.android.tools.idea.projectsystem.getSourceProvidersForFile
+import com.android.tools.idea.projectsystem.getForFile
+import com.android.tools.idea.projectsystem.sourceProviders
 import com.android.tools.idea.res.IdeResourceNameValidator
 import com.android.tools.idea.res.ResourceFolderRegistry
 import com.android.tools.idea.util.androidFacet
@@ -164,7 +165,7 @@ fun StringParameter.validateStringType(
         val modulePath: @SystemIndependent String = AndroidRootUtil.getModuleDirPath(module) ?: return false
         val file = File(FileUtil.toSystemDependentName(modulePath), value)
         val vFile = VfsUtil.findFileByIoFile(file, true)
-        facet.getSourceProvidersForFile(vFile) != null
+        facet.sourceProviders.getForFile(vFile) != null
       }
       NONEMPTY, ID, STRING, URI_AUTHORITY, API_LEVEL -> false
       UNIQUE, EXISTS -> false // not applicable

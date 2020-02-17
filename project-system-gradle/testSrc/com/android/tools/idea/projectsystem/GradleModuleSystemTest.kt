@@ -32,7 +32,6 @@ import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.util.androidFacet
-import com.google.common.collect.MoreCollectors
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VfsUtil
@@ -368,7 +367,7 @@ class GradleModuleSystemTest : AndroidTestCase() {
       TestCase.assertNotNull(mainFlavorSourceProvider)
       val javaMainSrcFile = moduleFile!!.findFileByRelativePath("src/main/java/com/example/projectwithappandlib/")
       TestCase.assertNotNull(javaMainSrcFile)
-      var providers: Collection<NamedIdeaSourceProvider?>? = facet.getSourceProvidersForFile(javaMainSrcFile)
+      var providers: Collection<NamedIdeaSourceProvider?>? = facet.sourceProviders.getForFile(javaMainSrcFile)
       TestCase.assertNotNull(providers)
       TestCase.assertEquals(1, providers!!.size)
       var actualProvider = providers.iterator().next()
@@ -379,7 +378,7 @@ class GradleModuleSystemTest : AndroidTestCase() {
           .single { it: NamedIdeaSourceProvider -> it.name.equals("paid", ignoreCase = true) }
       val javaSrcFile = moduleFile.findFileByRelativePath("src/paid/java/com/example/projectwithappandlib/app/paid")
       TestCase.assertNotNull(javaSrcFile)
-      providers = facet.getSourceProvidersForFile(javaSrcFile)
+      providers = facet.sourceProviders.getForFile(javaSrcFile)
       TestCase.assertNotNull(providers)
       TestCase.assertEquals(1, providers!!.size)
       actualProvider = providers.iterator().next()
