@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser.files;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
+import com.android.tools.idea.Projects;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
@@ -29,6 +30,9 @@ import com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement;
 import com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.configurations.ConfigurationsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.ElementState;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslGlobalValue;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
@@ -58,6 +62,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -68,6 +73,7 @@ import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
  * Provides Gradle specific abstraction over a {@link GroovyFile}.
  */
 public abstract class GradleDslFile extends GradlePropertiesDslElement {
+  @NotNull private final ElementList myGlobalProperties = new ElementList();
   @NotNull private final VirtualFile myFile;
   @NotNull private final Project myProject;
   @NotNull private final Set<GradleDslFile> myChildModuleDslFiles = Sets.newHashSet();
@@ -129,6 +135,34 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
       myGradleDslParser = new GradleDslParser.Adapter();
       myGradleDslWriter = new GradleDslWriter.Adapter();
     }
+    populateGlobalProperties();
+  }
+
+  private void populateGlobalProperties() {
+    GradleDslElement rootDir = new GradleDslGlobalValue(this, Projects.getBaseDirPath(myProject).getPath(), "rootDir");
+    myGlobalProperties.addElement(rootDir, ElementState.DEFAULT, false);
+    GradleDslElement projectDir = new GradleDslGlobalValue(this, getDirectoryPath().getPath(), "projectDir");
+    myGlobalProperties.addElement(projectDir, ElementState.DEFAULT, false);
+  }
+
+  @Override
+  protected GradleDslElement getElementWhere(@NotNull Predicate<ElementList.ElementItem> predicate) {
+    GradleDslElement result = super.getElementWhere(predicate);
+    if (result == null) {
+      result = myGlobalProperties.getElementWhere(predicate);
+    }
+    return result;
+  }
+
+  @Override
+  protected GradleDslElement getElementBeforeChildWhere(Predicate<ElementList.ElementItem> predicate,
+                                                        @NotNull GradleDslElement element,
+                                                        boolean includeSelf) {
+    GradleDslElement result = super.getElementBeforeChildWhere(predicate, element, includeSelf);
+    if (result == null) {
+      result = myGlobalProperties.getElementBeforeChildWhere(predicate, element, includeSelf);
+    }
+    return result;
   }
 
   /**
