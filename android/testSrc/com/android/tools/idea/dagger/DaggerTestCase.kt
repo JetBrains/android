@@ -41,6 +41,14 @@ abstract class DaggerTestCase : JavaCodeInsightFixtureTestCase() {
     myFixture.addClass(
       // language=JAVA
       """
+      package dagger;
+
+      public @interface Binds {}
+      """.trimIndent()
+    )
+    myFixture.addClass(
+      // language=JAVA
+      """
       package javax.inject;
 
       public @interface Inject {}

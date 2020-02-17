@@ -32,6 +32,7 @@ import org.jetbrains.kotlin.psi.KtProperty
 
 const val DAGGER_MODULE_ANNOTATION = "dagger.Module"
 const val DAGGER_PROVIDES_ANNOTATION = "dagger.Provides"
+const val DAGGER_BINDS_ANNOTATION = "dagger.Binds"
 const val INJECT_ANNOTATION = "javax.inject.Inject"
 
 /**
@@ -45,9 +46,10 @@ private fun getDaggerModules(scope: GlobalSearchScope): Query<PsiClass> {
 /**
  * Returns all Dagger providers (@Provide/@Binds-annotated methods, @Inject-annotated constructors) for given [type] within given [scope].
  *
- * TODO: add @Binds functions and constructors.
+ * TODO: add @Inject-annotated constructors.
  */
-fun getDaggerProvidersForType(type: PsiType, scope: GlobalSearchScope): Collection<PsiMethod> = getDaggerProvidesMethodsForType(type, scope)
+fun getDaggerProvidersForType(type: PsiType, scope: GlobalSearchScope): Collection<PsiMethod> =
+  getDaggerProvidesMethodsForType(type, scope) + getDaggerBindsMethodsForType(type, scope)
 
 /**
  * True if PsiMethod belongs to a class annotated with @Module.
@@ -60,6 +62,13 @@ private val PsiMethod.isInDaggerModule: Boolean
  */
 private fun getDaggerProvidesMethodsForType(type: PsiType, scope: GlobalSearchScope): Collection<PsiMethod> {
   return getMethodsWithAnnotation(DAGGER_PROVIDES_ANNOTATION, scope).filter { it.returnType == type && it.isInDaggerModule }
+}
+
+/**
+ * Returns all @Binds-annotated methods that return given [type] within [scope].
+ */
+private fun getDaggerBindsMethodsForType(type: PsiType, scope: GlobalSearchScope): Collection<PsiMethod> {
+  return getMethodsWithAnnotation(DAGGER_BINDS_ANNOTATION, scope).filter { it.returnType == type && it.isInDaggerModule }
 }
 
 /**
@@ -81,15 +90,29 @@ private val PsiField.isInjected get() = hasAnnotation(INJECT_ANNOTATION)
 private val KtProperty.isInjected get() = findAnnotation(FqName(INJECT_ANNOTATION)) != null
 
 /**
- * True if PsiElement is Dagger provider i.e @Provides-annotated method.
- *
- * TODO: Add @Binds-annotated methods and @Inject-annotated constructor.
+ * True if PsiElement is @Provide-annotated method.
  */
-val PsiElement?.isDaggerProvider: Boolean
+private val PsiElement?.isProvidesMethod: Boolean
   get() {
-    return this is PsiMethod && hasAnnotation(DAGGER_PROVIDES_ANNOTATION) ||
+    return this is PsiMethod && (hasAnnotation(DAGGER_PROVIDES_ANNOTATION)) ||
            this is KtFunction && findAnnotation(FqName(DAGGER_PROVIDES_ANNOTATION)) != null
   }
+
+/**
+ * True if PsiElement is Binds-annotated method.
+ */
+private val PsiElement?.isBindsMethod: Boolean
+  get() {
+    return this is PsiMethod && (hasAnnotation(DAGGER_BINDS_ANNOTATION)) ||
+           this is KtFunction && findAnnotation(FqName(DAGGER_BINDS_ANNOTATION)) != null
+  }
+
+/**
+ * True if PsiElement is Dagger provider i.e @Provides/@Binds-annotated method or @Inject-annotated constructor.
+ *
+ * TODO: Add @Inject-annotated constructor.
+ */
+val PsiElement?.isDaggerProvider get() = isProvidesMethod || isBindsMethod
 
 /**
  * True if PsiElement is Dagger consumer i.e @Inject-annotated field,

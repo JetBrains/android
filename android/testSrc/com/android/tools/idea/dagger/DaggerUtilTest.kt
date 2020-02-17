@@ -109,6 +109,42 @@ class DaggerUtilTest : DaggerTestCase() {
     assertThat(myFixture.moveCaret("notProv|ider").parentOfType<KtFunction>().isDaggerProvider).isFalse()
   }
 
+  fun testIsProvider_bindsMethod() {
+    myFixture.configureByText(
+      //language=JAVA
+      JavaFileType.INSTANCE,
+      """
+        import dagger.Binds;
+
+        abstract class MyClass {
+          @Binds abstract String bindsMethod() {}
+          abstract String notBindsMethod() {}
+        }
+      """.trimIndent()
+    )
+
+    assertThat(myFixture.moveCaret("bindsMet|hod").parentOfType<PsiMethod>().isDaggerProvider).isTrue()
+    assertThat(myFixture.moveCaret("notBindsMet|hod").parentOfType<PsiMethod>().isDaggerProvider).isFalse()
+  }
+
+  fun testIsProvider_kotlin_bindsMethod() {
+    myFixture.configureByText(
+      //language=kotlin
+      KotlinFileType.INSTANCE,
+      """
+        import dagger.Binds
+
+        abstract class MyClass {
+          @Binds abstract fun bindsMethod() {}
+          fun notBindsMethod() {}
+        }
+      """.trimIndent()
+    )
+
+    assertThat(myFixture.moveCaret("bindsMet|hod").parentOfType<KtFunction>().isDaggerProvider).isTrue()
+    assertThat(myFixture.moveCaret("notBindsMet|hod").parentOfType<PsiMethod>().isDaggerProvider).isFalse()
+  }
+
   fun testGetDaggerProviders_providesMethod() {
     // JAVA provider.
     myFixture.configureByText(
@@ -219,6 +255,127 @@ class DaggerUtilTest : DaggerTestCase() {
         }
       """.trimIndent()
     )
+    type = (myFixture.moveCaret("injected|String").parentOfType<KtProperty>()?.toUElement() as? KotlinUField)?.getType()
+    assume().that(type).isNotNull()
+    scope = myFixture.module.getModuleSystem().getResolveScope(kotlinFile.virtualFile)
+    providers = getDaggerProvidersForType(type!!, scope)
+    assertThat(providers).hasSize(1)
+    assertThat(providers.first().toString()).isEqualTo(provider.toString())
+  }
+
+  fun testGetDaggerProviders_bindsMethod() {
+    myFixture.configureByText(
+      //language=JAVA
+      JavaFileType.INSTANCE,
+      """
+        import dagger.Binds;
+        import dagger.Module;
+
+        @Module
+        abstract class MyClass {
+          @Binds abstract String bindsMethod() {}
+        }
+      """.trimIndent()
+    )
+
+    val provider = myFixture.moveCaret("bindsMet|hod").parentOfType<PsiMethod>()
+
+    // Consumer in JAVA.
+    val file = myFixture.configureByText(
+      //language=JAVA
+      JavaFileType.INSTANCE,
+      """
+        import javax.inject.Inject;
+
+        class MyClass {
+          @Inject String injectedString;
+        }
+      """.trimIndent()
+    )
+
+    var type = myFixture.moveCaret("injected|String").parentOfType<PsiField>()?.type
+    assume().that(type).isNotNull()
+    var scope = myFixture.module.getModuleSystem().getResolveScope(file.virtualFile)
+    var providers = getDaggerProvidersForType(type!!, scope)
+    assertThat(providers).hasSize(1)
+    assertThat(providers.first()).isEqualTo(provider)
+
+    // Consumer in kotlin.
+    val kotlinFile = myFixture.configureByText(
+      KotlinFileType.INSTANCE,
+      //language=kotlin
+      """
+        import javax.inject.Inject
+
+        class MyClass {
+          @Inject val injectedString:String
+        }
+      """.trimIndent()
+    )
+
+    type = (myFixture.moveCaret("injected|String").parentOfType<KtProperty>()?.toUElement() as? KotlinUField)?.getType()
+    assume().that(type).isNotNull()
+    scope = myFixture.module.getModuleSystem().getResolveScope(kotlinFile.virtualFile)
+    providers = getDaggerProvidersForType(type!!, scope)
+    assertThat(providers).hasSize(1)
+    assertThat(providers.first()).isEqualTo(provider)
+  }
+
+  fun testGetDaggerProviders_kotlin_bindsMethod() {
+    myFixture.configureByText(
+      //language=kotlin
+      KotlinFileType.INSTANCE,
+      """
+        import dagger.Binds
+        import dagger.Module
+
+        @Module
+        abstract class MyClass {
+          @Binds abstract fun bindsMethod():String {}
+          fun notBindsMethod():String {}
+        }
+      """.trimIndent()
+    )
+
+    val provider = myFixture.moveCaret("bindsMeth|od").parentOfType<KtFunction>()?.toLightElements()?.first()
+
+    assume().that(provider).isNotNull()
+    // We will compare with string representation, because ide returns different instances of light class.
+    assume().that(provider.toString()).isNotEmpty()
+
+    // Consumer in JAVA.
+    val file = myFixture.configureByText(
+      //language=JAVA
+      JavaFileType.INSTANCE,
+      """
+        import javax.inject.Inject;
+
+        class MyClass {
+          @Inject String injectedString;
+        }
+      """.trimIndent()
+    )
+
+    var type = myFixture.moveCaret("injected|String").parentOfType<PsiField>()?.type
+    assume().that(type).isNotNull()
+    var scope = myFixture.module.getModuleSystem().getResolveScope(file.virtualFile)
+    var providers = getDaggerProvidersForType(type!!, scope)
+    assertThat(providers).hasSize(1)
+    assertThat(providers.first().toString()).isEqualTo(provider.toString())
+
+    // Consumer in kotlin.
+    val kotlinFile = myFixture.configureByText(
+      KotlinFileType.INSTANCE,
+      //language=kotlin
+      """
+        import javax.inject.Inject
+
+        class MyClass {
+          @Inject val injectedString:String
+        }
+      """.trimIndent()
+    )
+
     type = (myFixture.moveCaret("injected|String").parentOfType<KtProperty>()?.toUElement() as? KotlinUField)?.getType()
     assume().that(type).isNotNull()
     scope = myFixture.module.getModuleSystem().getResolveScope(kotlinFile.virtualFile)

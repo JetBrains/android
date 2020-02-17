@@ -111,6 +111,97 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     )
   }
 
+
+  fun testBinds() {
+    myFixture.addClass(
+      //language=JAVA
+      """
+        package myExample;
+
+        import dagger.Binds;
+        import dagger.Module;
+
+        @Module
+        abstract class MyModule {
+          @Binds abstract String bindsMethod(String s) {}
+        }
+      """.trimIndent()
+    )
+
+    myFixture.configureByText(
+      //language=JAVA
+      JavaFileType.INSTANCE,
+      """
+        package myExample;
+
+        import javax.inject.Inject;
+
+        class MyClass {
+          @Inject String ${caret}injectedString;
+        }
+      """.trimIndent()
+    )
+
+    val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
+    assertThat(presentation).contains(
+      """
+      | Found usages (1 usage)
+      |  Provided by Dagger (1 usage)
+      |   ${module.name} (1 usage)
+      |    myExample (1 usage)
+      |     MyModule (1 usage)
+      |      bindsMethod(String) (1 usage)
+      |       8@Binds abstract String bindsMethod(String s) {}
+      """.trimMargin()
+    )
+  }
+
+  fun testBindsFromKotlin() {
+    myFixture.addFileToProject(
+      "MyClass.kt",
+      //language=kotlin
+      """
+        package example
+
+        import dagger.Binds
+        import dagger.Module
+
+        @Module
+        abstract class MyModule {
+          @Binds abstract fun bindsMethod(s: String):String {}
+          @Binds abstract fun bindsMethodInt(i: Int):Int {}
+        }
+      """.trimIndent()
+    )
+
+    myFixture.configureByText(
+      //language=JAVA
+      JavaFileType.INSTANCE,
+      """
+        package example;
+
+        import javax.inject.Inject;
+
+        class MyClass {
+          @Inject String ${caret}injectedString;
+        }
+      """.trimIndent()
+    )
+
+    val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
+    assertThat(presentation).contains(
+      """
+      | Found usages (1 usage)
+      |  Provided by Dagger (1 usage)
+      |   ${module.name} (1 usage)
+      |     (1 usage)
+      |     MyClass.kt (1 usage)
+      |      MyModule (1 usage)
+      |       8@Binds abstract fun bindsMethod(s: String):String {}
+      """.trimMargin()
+    )
+  }
+
   // TODO(): uncomment after fixing https://youtrack.jetbrains.com/issue/KT-36657
   //fun testProvidersKotlin() {
   //  myFixture.addClass(
@@ -145,7 +236,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
   //        |    myExample (1 usage)
   //        |     MyModule (1 usage)
   //        |      provider() (1 usage)
-  //        |       6@Provides String provider() {}
+  //        |       8@Provides String provider() {}
   //        """.trimMargin()
   //    )
   //}
