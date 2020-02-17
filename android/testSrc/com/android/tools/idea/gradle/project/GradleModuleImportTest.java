@@ -15,6 +15,16 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.getDefaultPhysicalPathFromGradlePath;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.collect.Iterables.concat;
+import static com.google.common.collect.Iterables.contains;
+import static com.google.common.collect.Iterables.transform;
+import static com.google.common.io.Files.createTempDir;
+import static com.google.common.io.Files.write;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.util.PathUtil.toSystemIndependentName;
+
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
@@ -30,27 +40,24 @@ import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.project.impl.ProjectManagerImpl;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.testFramework.ProjectRule;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
-import org.jetbrains.android.AndroidTestBase;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.*;
-
-import static com.android.tools.idea.gradle.util.GradleUtil.getDefaultPhysicalPathFromGradlePath;
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.google.common.collect.Iterables.*;
-import static com.google.common.io.Files.createTempDir;
-import static com.google.common.io.Files.write;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static com.intellij.util.PathUtil.toSystemIndependentName;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Set;
+import org.jetbrains.android.AndroidTestBase;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Tests for {@link GradleModuleImporter#importModules(Object, Map, Project, GradleSyncListener)}.
@@ -287,7 +294,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
     VirtualFile project1 = createGradleProjectToImport(dir, module(1));
     VirtualFile project2 = createGradleProjectToImport(dir, module(2), module(1));
     assert project1 != null && project2 != null : "Something wrong with the setup";
-    configureTopLevelProject(dir, Arrays.asList(module(1), module(2)), Collections.<String>emptySet());
+    configureTopLevelProject(dir, Arrays.asList(module(1), module(2)), Collections.emptySet());
 
     Map<String, VirtualFile> projects = moduleListToMap(GradleModuleImporter.getRelatedProjects(project2, getProject()));
     assertEquals(2, projects.size());
@@ -301,7 +308,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
   public void testMissingRequiredProjects() throws IOException {
     VirtualFile project2 = createGradleProjectToImport(dir, module(2), module(1));
     assert project2 != null : "Something wrong with the setup";
-    configureTopLevelProject(dir, Arrays.asList(module(1), module(2)), Collections.<String>emptySet());
+    configureTopLevelProject(dir, Arrays.asList(module(1), module(2)), Collections.emptySet());
 
     Map<String, VirtualFile> projects = moduleListToMap(GradleModuleImporter.getRelatedProjects(project2, getProject()));
     assertEquals(2, projects.size());
@@ -329,7 +336,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
     VirtualFile project1 = createGradleProjectToImport(dir, module(1));
     VirtualFile project2 = createGradleProjectToImport(dir, module(2), module(1));
     VirtualFile project3 = createGradleProjectToImport(dir, module(3), module(2));
-    configureTopLevelProject(dir, Arrays.asList(module(1), module(2), module(3)), Collections.<String>emptySet());
+    configureTopLevelProject(dir, Arrays.asList(module(1), module(2), module(3)), Collections.emptySet());
 
     Map<String, VirtualFile> projects = moduleListToMap(GradleModuleImporter.getRelatedProjects(project3, getProject()));
     assertEquals(3, projects.size());
@@ -345,7 +352,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
     VirtualFile project1 = createGradleProjectToImport(dir, module(1), module(3));
     VirtualFile project2 = createGradleProjectToImport(dir, module(2), module(1));
     VirtualFile project3 = createGradleProjectToImport(dir, module(3), module(2));
-    configureTopLevelProject(dir, Arrays.asList(module(1), module(2), module(3)), Collections.<String>emptySet());
+    configureTopLevelProject(dir, Arrays.asList(module(1), module(2), module(3)), Collections.emptySet());
 
     Map<String, VirtualFile> projects = moduleListToMap(GradleModuleImporter.getRelatedProjects(project3, getProject()));
     assertEquals(3, projects.size());
@@ -379,7 +386,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
                 Project project = projectsStillOpen.iterator().next();
                 projectsStillOpen.clear();
                 throw new AssertionError("Test project is not disposed: " + project + ";\n created in: " +
-                                         HeavyPlatformTestCase.getCreationPlace(project));
+                                         ProjectRule.getCreationPlace(project));
               }
             }
           }
