@@ -26,6 +26,7 @@ import static com.android.tools.idea.gradle.project.sync.idea.data.service.Andro
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.JAVA_MODULE_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.PROJECT_CLEANUP_MODEL;
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.SYNC_ISSUE;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.ANDROID_HOME_JVM_ARG;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.variant.view.BuildVariantUpdater.MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI;
@@ -81,6 +82,7 @@ import com.android.tools.idea.gradle.project.sync.idea.issues.AgpUpgradeRequired
 import com.android.tools.idea.gradle.project.sync.idea.issues.AndroidSyncException;
 import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidExtraModelProvider;
 import com.android.tools.idea.gradle.project.sync.idea.svs.VariantGroup;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData;
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.GradlePluginUpgrade;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -265,6 +267,19 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     if (androidProject != null) {
       Variant selectedVariant = findVariantToSelect(androidProject, variantGroup);
       Collection<SyncIssue> syncIssues = findSyncIssues(androidProject, projectSyncIssues);
+
+      // Add the SyncIssues as DataNodes to the project data tree. While we could just re-use the
+      // SyncIssues in AndroidModuleModel this allows us to remove sync issues from the IDE side model in the future.
+      syncIssues.forEach((syncIssue) -> {
+        SyncIssueData issueData = new SyncIssueData(
+          syncIssue.getMessage(),
+          syncIssue.getData(),
+          syncIssue.getMultiLineMessage(),
+          syncIssue.getSeverity(),
+          syncIssue.getType()
+        );
+        moduleNode.createChild(SYNC_ISSUE, issueData);
+      });
 
       AndroidModuleModel androidModel = AndroidModuleModel.create(
         moduleName,
