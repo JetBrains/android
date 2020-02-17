@@ -36,16 +36,21 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.IdeFocusManager
+import com.intellij.ui.BrowserHyperlinkListener
 import com.intellij.ui.UIBundle
 import com.intellij.ui.tabs.TabInfo
 import com.intellij.ui.tabs.UiDecorator
 import com.intellij.ui.tabs.impl.JBEditorTabs
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
+import java.awt.GridBagLayout
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
+import javax.swing.JEditorPane
 import javax.swing.JPanel
+import javax.swing.text.html.HTMLDocument
 
 @UiThread
 class DatabaseInspectorViewImpl(
@@ -54,6 +59,7 @@ class DatabaseInspectorViewImpl(
 ) : DatabaseInspectorView {
   val listeners = mutableListOf<DatabaseInspectorView.Listener>()
 
+  private val centerPanel = JPanel(BorderLayout())
   private val leftPanelView = LeftPanelView(this)
   private val viewContext = SqliteViewContext(leftPanelView.component)
   private val workBench: WorkBench<SqliteViewContext> = WorkBench(project, "Sqlite", null, parentDisposable)
@@ -65,19 +71,16 @@ class DatabaseInspectorViewImpl(
   private val openTabs = mutableMapOf<TabId, TabInfo>()
 
   init {
-    val panel = JPanel(BorderLayout())
-    val centerPanel = JPanel(BorderLayout())
-    panel.add(centerPanel, BorderLayout.CENTER)
+    workBench.init(centerPanel, viewContext, listOf(createToolWindowDefinition()), false)
 
-    workBench.init(panel, viewContext, listOf(createToolWindowDefinition()), false)
+    setUpEmptyStatePanel()
 
+    tabs.name = "right-panel-tabs-panel"
     tabs.apply {
       isTabDraggingEnabled = true
       setUiDecorator { UiDecorator.UiDecoration(null, JBUI.insets(4, 10)) }
       addTabMouseListener(TabMouseListener())
     }
-
-    centerPanel.add(tabs)
 
     setUpLogTab()
   }
@@ -110,6 +113,11 @@ class DatabaseInspectorViewImpl(
 
   override fun addDatabaseSchema(database: SqliteDatabase, schema: SqliteSchema, index: Int) {
     leftPanelView.addDatabaseSchema(database, schema, index)
+
+    centerPanel.removeAll()
+    centerPanel.layout = BorderLayout()
+    centerPanel.add(tabs, BorderLayout.CENTER)
+    centerPanel.revalidate()
   }
 
   override fun updateDatabaseSchema(database: SqliteDatabase, diffOperations: List<SchemaDiffOperation>) {
@@ -146,6 +154,28 @@ class DatabaseInspectorViewImpl(
   }
 
   override fun reportSyncProgress(message: String) {
+  }
+
+  private fun setUpEmptyStatePanel() {
+    // TODO(b/150307735) replace URL with relevant website.
+    val editorPane = JEditorPane(
+      "text/html",
+      "<h2>Database Inspector</h2>" +
+      "Select a process to begin inspecting." +
+      "<p><a href=\"https://developer.android.com/studio\">Learn more</a></p>"
+    )
+    val document = editorPane.document as HTMLDocument
+    document.styleSheet.addRule(
+      "body { text-align: center; font-family: ${UIUtil.getLabelFont()}; font-size: ${UIUtil.getLabelFont().size} pt; }"
+    )
+    document.styleSheet.addRule("h2 { font-weight: normal; }")
+    editorPane.name = "right-panel-empty-state"
+    editorPane.isOpaque = false
+    editorPane.isEditable = false
+    editorPane.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE)
+
+    centerPanel.layout = GridBagLayout()
+    centerPanel.add(editorPane)
   }
 
   private fun createSqliteExplorerTab(tableId: TabId, tableName: String, tabContent: JComponent): TabInfo {

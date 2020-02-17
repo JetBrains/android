@@ -226,6 +226,33 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     assertTreeContainsNodes(tree, mapOf(Pair(database, listOf(table2))))
   }
 
+  fun testEmptyStateIsShownInitially() {
+    // Prepare
+    val emptyStateRightPanel = TreeWalker(view.component).descendants().first { it.name == "right-panel-empty-state" }
+
+    // Assert
+    assertTrue(emptyStateRightPanel.isVisible)
+  }
+
+  fun testEmptyStateIsHiddenAfterOpeningADatabase() {
+    // Prepare
+    val emptyStateRightPanelBeforeAddingDb = TreeWalker(view.component).descendants().first { it.name == "right-panel-empty-state" }
+    val tabsPanelBeforeAddingDb = TreeWalker(view.component).descendants().firstOrNull { it.name == "right-panel-tabs-panel" }
+    val database = FileSqliteDatabase("name", mock(DatabaseConnection::class.java), mock(VirtualFile::class.java))
+
+    // Act
+    view.addDatabaseSchema(database, SqliteSchema(emptyList()), 0)
+
+    // Assert
+    val emptyStateRightPanelAfterAddingDb = TreeWalker(view.component).descendants().firstOrNull { it.name == "right-panel-empty-state" }
+    val tabsPanelAfterAddingDb = TreeWalker(view.component).descendants().first { it.name == "right-panel-tabs-panel" }
+
+    assertNotNull(emptyStateRightPanelBeforeAddingDb)
+    assertNull(tabsPanelBeforeAddingDb)
+    assertNull(emptyStateRightPanelAfterAddingDb)
+    assertNotNull(tabsPanelAfterAddingDb)
+  }
+
   private fun assertTreeContainsNodes(tree: Tree, databases: Map<SqliteDatabase, List<SqliteTable>>) {
     val root = tree.model.root
     assertEquals(databases.size, tree.model.getChildCount(root))
