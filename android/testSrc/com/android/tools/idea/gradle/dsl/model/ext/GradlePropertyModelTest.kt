@@ -123,6 +123,7 @@ import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_RENA
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_RENAME_LIST_VALUE_THROWS
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_RENAME_LIST_VALUE_THROWS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_RENAME_MAP_PROPERTY_AND_KEYS
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_RENAME_MAP_PROPERTY_AND_KEYS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_RESOLVE_AND_SET_VARIABLES_IN_PARENT_MODULE
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_RESOLVE_VARIABLES_IN_PARENT_MODULE_SUB
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_RESOLVE_VARIABLES_IN_PROPERTIES_FILE
@@ -194,7 +195,6 @@ import com.google.common.collect.ImmutableMap
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.UsefulTestCase
-import junit.framework.TestCase
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.instanceOf
 import org.hamcrest.MatcherAssert.assertThat
@@ -339,7 +339,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     val buildModel = gradleBuildModel
     val extModel = buildModel.ext()
 
-    fun findProperty(name: String): GradlePropertyModel {
+    fun findVariable(name: String): GradlePropertyModel {
       return when {
         isGroovy -> extModel.findProperty(name)
         else -> buildModel.declaredProperties.find { it.name == name }!!
@@ -354,7 +354,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
 
     run {
-      val propertyModel = findProperty("prop1")
+      val propertyModel = findVariable("prop1")
       assertEquals(STRING, propertyModel.valueType)
       assertEquals(VARIABLE, propertyModel.propertyType)
       assertEquals("value", propertyModel.getValue(STRING_TYPE))
@@ -364,7 +364,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
 
     run {
-      val propertyModel = findProperty("prop2")
+      val propertyModel = findVariable("prop2")
       assertEquals(INTEGER, propertyModel.valueType)
       assertEquals(VARIABLE, propertyModel.propertyType)
       assertEquals(25, propertyModel.getValue(INTEGER_TYPE))
@@ -374,7 +374,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
 
     run {
-      val propertyModel = findProperty("prop3")
+      val propertyModel = findVariable("prop3")
       assertEquals(BOOLEAN, propertyModel.valueType)
       assertEquals(VARIABLE, propertyModel.propertyType)
       assertEquals(true, propertyModel.getValue(BOOLEAN_TYPE))
@@ -384,7 +384,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
 
     run {
-      val propertyModel = findProperty("prop4")
+      val propertyModel = findVariable("prop4")
       assertEquals(MAP, propertyModel.valueType)
       assertEquals(VARIABLE, propertyModel.propertyType)
       assertEquals("prop4", propertyModel.name)
@@ -396,7 +396,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
 
     run {
-      val propertyModel = findProperty("prop5")
+      val propertyModel = findVariable("prop5")
       assertEquals(LIST, propertyModel.valueType)
       assertEquals(VARIABLE, propertyModel.propertyType)
       assertEquals("prop5", propertyModel.name)
@@ -427,7 +427,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
 
     run {
-      val propertyModel = findProperty("prop6")
+      val propertyModel = findVariable("prop6")
       assertEquals(BigDecimal("25.3"), propertyModel.toBigDecimal())
       assertEquals(BIG_DECIMAL, propertyModel.valueType)
       assertEquals(VARIABLE, propertyModel.propertyType)
@@ -505,6 +505,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testGetVariables() {
+    assumeTrue("no ext block in KotlinScript", isGroovy)
     writeToBuildFile(GRADLE_PROPERTY_MODEL_GET_VARIABLES)
 
     val extModel = gradleBuildModel.ext()
@@ -1247,6 +1248,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testSetBothStringTypes() {
+    assumeTrue("only one String type in KotlinScript", isGroovy)
     writeToBuildFile(GRADLE_PROPERTY_MODEL_SET_BOTH_STRING_TYPES)
     val buildModel = gradleBuildModel
 
@@ -1282,6 +1284,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testSetGarbageReference() {
+    assumeTrue("relies on Groovy-specific Psi insertion behaviour with malformed input", isGroovy);
     writeToBuildFile(GRADLE_PROPERTY_MODEL_SET_GARBAGE_REFERENCE)
     val buildModel = gradleBuildModel
 
@@ -2916,17 +2919,25 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     writeToBuildFile(GRADLE_PROPERTY_MODEL_RENAME_MAP_PROPERTY_AND_KEYS)
 
     val buildModel = gradleBuildModel
+
+    fun findVariable(name: String): GradlePropertyModel {
+      return when {
+        isGroovy -> buildModel.ext().findProperty(name)
+        else -> buildModel.declaredProperties.find { it.name == name }!!
+      }
+    }
+
     run {
-      val firstMapModel = buildModel.ext().findProperty("map1")
-      verifyMapProperty(firstMapModel, mapOf("key1" to "a", "key2" to "b", "key3" to "c"), "map1", "ext.map1")
+      val firstMapModel = findVariable("map1")
+      verifyMapProperty(firstMapModel, mapOf("key1" to "a", "key2" to "b", "key3" to "c"), "map1")
       val secondMapModel = buildModel.ext().findProperty("map2")
-      verifyMapProperty(secondMapModel, mapOf("key4" to 4), "map2", "ext.map2")
+      verifyMapProperty(secondMapModel, mapOf("key4" to 4), "map2")
 
       // Rename the keys
       val firstKeyModel = firstMapModel.getMapValue("key2")
-      verifyPropertyModel(firstKeyModel, STRING_TYPE, "b", STRING, DERIVED, 0, "key2", "ext.map1.key2")
+      verifyPropertyModel(firstKeyModel, STRING_TYPE, "b", STRING, DERIVED, 0, "key2")
       val secondKeyModel = secondMapModel.getMapValue("key4")
-      verifyPropertyModel(secondKeyModel, INTEGER_TYPE, 4, INTEGER, DERIVED, 0, "key4", "ext.map2.key4")
+      verifyPropertyModel(secondKeyModel, INTEGER_TYPE, 4, INTEGER, DERIVED, 0, "key4")
 
       firstKeyModel.rename("newKey1")
       secondKeyModel.rename("newKey2")
@@ -2935,25 +2946,26 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       firstMapModel.rename("newMap1")
       secondMapModel.rename("newMap2")
 
-      verifyMapProperty(firstMapModel, mapOf("key1" to "a", "newKey1" to "b", "key3" to "c"), "newMap1", "ext.newMap1")
-      verifyMapProperty(secondMapModel, mapOf("newKey2" to 4), "newMap2", "ext.newMap2")
-      verifyPropertyModel(firstKeyModel, STRING_TYPE, "b", STRING, DERIVED, 0, "newKey1", "ext.newMap1.newKey1")
-      verifyPropertyModel(secondKeyModel, INTEGER_TYPE, 4, INTEGER, DERIVED, 0, "newKey2", "ext.newMap2.newKey2")
+      verifyMapProperty(firstMapModel, mapOf("key1" to "a", "newKey1" to "b", "key3" to "c"), "newMap1")
+      verifyMapProperty(secondMapModel, mapOf("newKey2" to 4), "newMap2")
+      verifyPropertyModel(firstKeyModel, STRING_TYPE, "b", STRING, DERIVED, 0, "newKey1")
+      verifyPropertyModel(secondKeyModel, INTEGER_TYPE, 4, INTEGER, DERIVED, 0, "newKey2")
     }
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, GRADLE_PROPERTY_MODEL_RENAME_MAP_PROPERTY_AND_KEYS_EXPECTED)
 
     run {
-      val firstMapModel = buildModel.ext().findProperty("newMap1")
-      verifyMapProperty(firstMapModel, mapOf("key1" to "a", "newKey1" to "b", "key3" to "c"), "newMap1", "ext.newMap1")
+      val firstMapModel = findVariable("newMap1")
+      verifyMapProperty(firstMapModel, mapOf("key1" to "a", "newKey1" to "b", "key3" to "c"), "newMap1")
       val secondMapModel = buildModel.ext().findProperty("newMap2")
-      verifyMapProperty(secondMapModel, mapOf("newKey2" to 4), "newMap2", "ext.newMap2")
+      verifyMapProperty(secondMapModel, mapOf("newKey2" to 4), "newMap2")
 
       // Rename the keys
       val firstKeyModel = firstMapModel.getMapValue("newKey1")
-      verifyPropertyModel(firstKeyModel, STRING_TYPE, "b", STRING, DERIVED, 0, "newKey1", "ext.newMap1.newKey1")
+      verifyPropertyModel(firstKeyModel, STRING_TYPE, "b", STRING, DERIVED, 0, "newKey1")
       val secondKeyModel = secondMapModel.getMapValue("newKey2")
-      verifyPropertyModel(secondKeyModel, INTEGER_TYPE, 4, INTEGER, DERIVED, 0, "newKey2", "ext.newMap2.newKey2")
+      verifyPropertyModel(secondKeyModel, INTEGER_TYPE, 4, INTEGER, DERIVED, 0, "newKey2")
     }
   }
 

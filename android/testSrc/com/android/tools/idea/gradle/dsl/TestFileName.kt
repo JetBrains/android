@@ -914,6 +914,7 @@ enum class TestFileName(val path: String) {
   GRADLE_PROPERTY_MODEL_RENAME("gradlePropertyModel/rename"),
   GRADLE_PROPERTY_MODEL_RENAME_EXPECTED("gradlePropertyModel/renameExpected"),
   GRADLE_PROPERTY_MODEL_RENAME_MAP_PROPERTY_AND_KEYS("gradlePropertyModel/renameMapPropertyAndKeys"),
+  GRADLE_PROPERTY_MODEL_RENAME_MAP_PROPERTY_AND_KEYS_EXPECTED("gradlePropertyModel/renameMapPropertyAndKeysExpected"),
   GRADLE_PROPERTY_MODEL_RENAME_LIST_VALUE_THROWS("gradlePropertyModel/renameListValueThrows"),
   GRADLE_PROPERTY_MODEL_RENAME_LIST_VALUE_THROWS_EXPECTED("gradlePropertyModel/renameListValueThrowsExpected"),
   GRADLE_PROPERTY_MODEL_GET_DECLARED_PROPERTIES("gradlePropertyModel/getDeclaredProperties"),
