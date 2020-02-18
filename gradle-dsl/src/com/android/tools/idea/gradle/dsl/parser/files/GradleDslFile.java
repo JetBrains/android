@@ -32,6 +32,7 @@ import com.android.tools.idea.gradle.dsl.parser.configurations.ConfigurationsDsl
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.ElementState;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementEnum;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslGlobalValue;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
@@ -59,8 +60,12 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -143,6 +148,14 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
     myGlobalProperties.addElement(rootDir, ElementState.DEFAULT, false);
     GradleDslElement projectDir = new GradleDslGlobalValue(this, getDirectoryPath().getPath(), "projectDir");
     myGlobalProperties.addElement(projectDir, ElementState.DEFAULT, false);
+
+    // org.gradle.api.JavaVersion
+    ImmutableMap.Builder<String,String> builder = ImmutableMap.builder();
+    Arrays.asList("1_1", "1_2", "1_3", "1_4", "1_5", "1_6", "1_7", "1_8", "1_9", "1_10", "11", "12", "13", "HIGHER")
+      .forEach(s -> builder.put("VERSION_" + s, "JavaVersion.VERSION_" + s));
+    Map<String,String> javaVersionValues = builder.build();
+    GradleDslElement javaVersion = new GradleDslElementEnum(this, GradleNameElement.fake("JavaVersion"), javaVersionValues);
+    myGlobalProperties.addElement(javaVersion, ElementState.DEFAULT, false);
   }
 
   @Override

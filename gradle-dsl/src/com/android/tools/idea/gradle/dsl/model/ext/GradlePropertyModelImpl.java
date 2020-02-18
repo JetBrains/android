@@ -645,7 +645,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
    * extract custom types.
    */
   @Nullable
-  GradleDslElement getElement() {
+  public GradleDslElement getElement() {
     return getTransform().transform(myElement);
   }
 
