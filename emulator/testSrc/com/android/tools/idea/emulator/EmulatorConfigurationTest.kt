@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.emulator
 
-import com.android.emulator.EntryList
+import com.android.emulator.control.EntryList
 import com.android.tools.idea.protobuf.TextFormat
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
