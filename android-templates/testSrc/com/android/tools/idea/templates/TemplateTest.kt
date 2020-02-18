@@ -326,8 +326,6 @@ open class TemplateTest : AndroidGradleTestCase() {
     checkCreateTemplate("Fragment (Blank)", withKotlin)
   }
 
-  // TODO(b/149007070): uncomment when the bug is fixed
-  /*
   @TemplateCheck
   fun testNewSettingsFragment() {
     checkCreateTemplate("Settings Fragment")
@@ -337,7 +335,6 @@ open class TemplateTest : AndroidGradleTestCase() {
   fun testNewSettingsFragmentWithKotlin() {
     checkCreateTemplate("Settings Fragment", withKotlin)
   }
-  */
 
   @TemplateCheck
   fun testNewViewModelFragment() {
