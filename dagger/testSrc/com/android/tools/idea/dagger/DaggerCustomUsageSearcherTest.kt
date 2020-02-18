@@ -111,6 +111,84 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     )
   }
 
+  fun testInjectedConstructor() {
+    myFixture.addClass(
+      //language=JAVA
+      """
+        package myExample;
+
+        import javax.inject.Inject;
+
+        public class MyProvider {
+          @Inject public MyProvider() {}
+        }
+      """.trimIndent()
+    )
+
+    myFixture.configureByText(
+      //language=JAVA
+      JavaFileType.INSTANCE,
+      """
+        package myExample;
+
+        import javax.inject.Inject;
+
+        class MyClass {
+          @Inject MyProvider ${caret}injectedString;
+        }
+      """.trimIndent()
+    )
+
+    val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
+    assertThat(presentation).contains(
+      """
+      | Found usages (1 usage)
+      |  Provided by Dagger (1 usage)
+      |   ${module.name} (1 usage)
+      |    myExample (1 usage)
+      |     MyProvider (1 usage)
+      |      MyProvider() (1 usage)
+      |       6@Inject public MyProvider() {}
+      """.trimMargin()
+    )
+  }
+
+  fun testInjectedConstructor_kotlin() {
+    myFixture.addFileToProject(
+      "MyProvider.kt",
+      //language=kotlin
+      """
+        import javax.inject.Inject
+
+        class MyProvider @Inject constructor()
+      """.trimIndent()
+    )
+
+    myFixture.configureByText(
+      //language=JAVA
+      JavaFileType.INSTANCE,
+      """
+        import javax.inject.Inject;
+
+        class MyClass {
+          @Inject MyProvider ${caret}injectedString;
+        }
+      """.trimIndent()
+    )
+
+    val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
+    assertThat(presentation).contains(
+      """
+      | Found usages (1 usage)
+      |  Provided by Dagger (1 usage)
+      |   ${module.name} (1 usage)
+      |     (1 usage)
+      |     MyProvider.kt (1 usage)
+      |      MyProvider (1 usage)
+      |       3class MyProvider @Inject constructor()
+      """.trimMargin()
+    )
+  }
 
   fun testBinds() {
     myFixture.addClass(
