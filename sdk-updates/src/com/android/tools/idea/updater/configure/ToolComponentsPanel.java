@@ -16,7 +16,7 @@
 package com.android.tools.idea.updater.configure;
 
 import static com.android.repository.util.RepoPackageUtilKt.getRepoPackagePrefix;
-
+import static com.android.tools.idea.avdmanager.HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated;
 import com.android.SdkConstants;
 import com.android.repository.Revision;
 import com.android.repository.api.RepoPackage;
@@ -32,7 +32,6 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.dualView.TreeTableView;
 import com.intellij.ui.treeStructure.treetable.ListTreeTableModelOnColumns;
 import com.intellij.ui.treeStructure.treetable.TreeColumnInfo;
@@ -195,7 +194,7 @@ public class ToolComponentsPanel {
       // We don't want to show the patcher in the UI
       return true;
     }
-    if (SystemInfo.isChromeOS && CHROME_OS_INCOMPATIBLE_PATHS.contains(path)) {
+    if (isChromeOSAndIsNotHWAccelerated() && CHROME_OS_INCOMPATIBLE_PATHS.contains(path)) {
       return true;
     }
     return false;

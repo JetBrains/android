@@ -17,6 +17,7 @@ package com.android.tools.idea.welcome.wizard
 
 import com.android.repository.api.RemotePackage
 import com.android.sdklib.repository.AndroidSdkHandler
+import com.android.tools.idea.avdmanager.HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
@@ -26,7 +27,7 @@ import com.android.tools.idea.welcome.install.getInitialSdkLocation
 import com.android.tools.idea.welcome.wizard.ConfigureInstallationModel.InstallationType.CUSTOM
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.SystemInfo
+import com.intellij.openapi.util.SystemInfo.isLinux
 import com.intellij.openapi.wm.WelcomeScreen
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame
 import org.jetbrains.android.util.AndroidBundle.message
@@ -89,8 +90,8 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode) : Welcom
       // if (mode == FirstRunWizardMode.MISSING_SDK) {
       addStep(MissingSdkAlertStep())
       // TODO(qumeric): addStep(SdkComponentsStep())
-      // TODO(q   umeric): addStep(InstallSummaryStep())
-      if (SystemInfo.isLinux && !SystemInfo.isChromeOS) { // && mode == FirstRunWizardMode.NEW_INSTALL
+      // TODO(qumeric): addStep(InstallSummaryStep())
+      if (isLinux && !isChromeOSAndIsNotHWAccelerated()) { // && mode == FirstRunWizardMode.NEW_INSTALL
         addStep(LinuxHaxmInfoStep()) // FIXME(qumeric): only if needed
       }
       // if (mode != INSTALL_HANDOFF) {

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.welcome.wizard.deprecated;
 
+import static com.android.tools.idea.avdmanager.HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoManager;
 import com.android.repository.impl.meta.TypeDetails;
@@ -63,7 +64,6 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import java.io.File;
 import java.io.IOException;
@@ -189,7 +189,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     myState.put(WizardConstants.KEY_SDK_INSTALL_LOCATION, location.getAbsolutePath());
     myState.put(WizardConstants.KEY_JDK_LOCATION, EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath().getPath());
 
-    myComponentTree = createComponentTree(myMode, myState, !SystemInfo.isChromeOS && myMode.shouldCreateAvd());
+    myComponentTree = createComponentTree(myMode, myState, !isChromeOSAndIsNotHWAccelerated() && myMode.shouldCreateAvd());
     myComponentTree.init(myProgressStep);
 
     myComponentsStep = new SdkComponentsStep(
