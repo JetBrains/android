@@ -286,6 +286,57 @@ public class MlkitLightClassTest extends AndroidTestCase {
                           "}");
   }
 
+  public void testCompleteInnerInputClassWithoutOuterClass() {
+    PsiFile activityFile = myFixture.addFileToProject(
+      "/src/p1/p2/MainActivity.java",
+      // language=java
+      "package p1.p2;\n" +
+      "\n" +
+      "import android.app.Activity;\n" +
+      "import android.os.Bundle;\n" +
+      "\n" +
+      "public class MainActivity extends Activity {\n" +
+      "    @Override\n" +
+      "    protected void onCreate(Bundle savedInstanceState) {\n" +
+      "        super.onCreate(savedInstanceState);\n" +
+      "        Inpu<caret>;\n" +
+      "    }\n" +
+      "}"
+    );
+
+    myFixture.configureFromExistingVirtualFile(activityFile.getVirtualFile());
+    LookupElement[] elements = myFixture.complete(CompletionType.BASIC);
+
+    // Find position of "Inputs"
+    int lookupPosition = -1;
+    for(int i = 0; i < elements.length; i++) {
+      if (elements[i].toString().equals("Inputs")) {
+        lookupPosition = i;
+        break;
+      }
+    }
+    assertThat(lookupPosition).isGreaterThan(-1);
+
+    myFixture.getLookup().setCurrentItem(elements[lookupPosition]);
+    myFixture.finishLookup(Lookup.NORMAL_SELECT_CHAR);
+    myFixture.checkResult("package p1.p2;\n" +
+                          "\n" +
+                          "import android.app.Activity;\n" +
+                          "import android.os.Bundle;\n" +
+                          "\n" +
+                          "import p1.p2.ml.MyModel;\n" +
+                          "\n" +
+                          "public class MainActivity extends Activity {\n" +
+                          "    @Override\n" +
+                          "    protected void onCreate(Bundle savedInstanceState) {\n" +
+                          "        super.onCreate(savedInstanceState);\n" +
+                          "        MyModel.Inputs;\n" +
+                          "    }\n" +
+                          "}");
+  }
+
+
+
   public void testCompleteModelClass() {
     PsiFile activityFile = myFixture.addFileToProject(
       "/src/p1/p2/MainActivity.java",
