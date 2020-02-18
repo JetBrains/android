@@ -123,6 +123,7 @@ import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.FAKE;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assume.assumeTrue;
 
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
@@ -668,6 +669,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveDependencyWhenMultiple() throws IOException {
+    assumeTrue("No multiple dependency configuration form in KotlinScript", isGroovy());
     writeToBuildFile(ARTIFACT_DEPENDENCY_REMOVE_WHEN_MULTIPLE);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -1549,6 +1551,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetSingleReferenceCompactMethod() throws IOException {
+    assumeTrue("no distinct method form of dependency configuation in KotlinScript", isGroovy());
     // Properties from within method calls are derived.
     runSetFullSingleReferenceTest(ARTIFACT_DEPENDENCY_SET_SINGLE_REFERENCE_COMPACT_METHOD, DERIVED, "0");
   }

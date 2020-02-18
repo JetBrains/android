@@ -689,10 +689,16 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
 
   public static void verifyMapProperty(@Nullable GradlePropertyModel model,
                                        @NotNull Map<String, Object> expectedValues,
-                                       @NotNull String name,
-                                       @NotNull String fullName) {
+                                       @NotNull String name) {
     verifyMapProperty(model, expectedValues);
     assertEquals(name, model.getName());
+  }
+
+  public static void verifyMapProperty(@Nullable GradlePropertyModel model,
+                                       @NotNull Map<String, Object> expectedValues,
+                                       @NotNull String name,
+                                       @NotNull String fullName) {
+    verifyMapProperty(model, expectedValues, name);
     assertEquals(fullName, model.getFullyQualifiedName());
   }
 
