@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.intellij.java.refactoring.JavaRefactoringBundle;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.CommandProcessor;
@@ -47,7 +48,6 @@ import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.impl.migration.PsiMigrationManager;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.refactoring.BaseRefactoringProcessor;
-import com.intellij.refactoring.RefactoringBundle;
 import com.intellij.refactoring.listeners.RefactoringEventData;
 import com.intellij.refactoring.util.RefactoringUIUtil;
 import com.intellij.usageView.UsageInfo;
@@ -535,7 +535,7 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
   protected boolean preprocessUsages(@NotNull Ref<UsageInfo[]> refUsages) {
     if (refUsages.get().length == 0) {
       if (!ApplicationManager.getApplication().isUnitTestMode()) {
-        Messages.showInfoMessage(myProject, RefactoringBundle.message("migration.no.usages.found.in.the.project"),
+        Messages.showInfoMessage(myProject, JavaRefactoringBundle.message("migration.no.usages.found.in.the.project"),
                                  AndroidBundle.message("android.refactoring.migratetoappcompat"));
       }
       return false;
