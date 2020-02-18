@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.actions;
 
+import static com.android.tools.idea.avdmanager.HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdListDialog;
 import com.intellij.openapi.actionSystem.ActionPlaces;
@@ -23,9 +24,7 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
-import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -56,7 +55,7 @@ public class RunAndroidAvdManagerAction extends DumbAwareAction {
         break;
     }
 
-    if (SystemInfo.isChromeOS) {
+    if (isChromeOSAndIsNotHWAccelerated()) {
       presentation.setVisible(false);
       return;
     }
@@ -70,7 +69,7 @@ public class RunAndroidAvdManagerAction extends DumbAwareAction {
   }
 
   public void openAvdManager(@Nullable Project project) {
-    if (SystemInfo.isChromeOS) {
+    if (isChromeOSAndIsNotHWAccelerated()) {
       return;
     }
 

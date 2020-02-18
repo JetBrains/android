@@ -19,9 +19,9 @@ import com.android.SdkConstants
 import com.android.repository.api.ProgressIndicatorAdapter
 import com.android.repository.io.FileOpUtils
 import com.android.sdklib.repository.AndroidSdkHandler
+import com.android.tools.idea.avdmanager.HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.openapi.util.SystemInfo
 
 /**
  * Android SDK installable component.
@@ -41,11 +41,11 @@ class AndroidSdk(store: ScopedStateStore, installUpdates: Boolean) : Installable
     get() = sdkHandler!!.getLatestRemotePackageForPrefix(SdkConstants.FD_BUILD_TOOLS, false, object : ProgressIndicatorAdapter() {})?.path
 
   override val requiredSdkPackages: Collection<String>
-    get() = getRequiredSdkPackages(SystemInfo.isChromeOS)
+    get() = getRequiredSdkPackages(isChromeOSAndIsNotHWAccelerated())
 
   @VisibleForTesting
-  fun getRequiredSdkPackages(chromeOs: Boolean): Collection<String> = sequence {
-    yield(SdkConstants.FD_EMULATOR.takeIf { !chromeOs })
+  fun getRequiredSdkPackages(isChromeOSAndIsNotHWAccelerated: Boolean): Collection<String> = sequence {
+    yield(SdkConstants.FD_EMULATOR.takeIf { !isChromeOSAndIsNotHWAccelerated })
     yield(SdkConstants.FD_PLATFORM_TOOLS)
     yield(latestCompatibleBuildToolsPath)
   }.filterNotNull().toList()
