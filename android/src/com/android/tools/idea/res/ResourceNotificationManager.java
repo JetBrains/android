@@ -52,7 +52,6 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlText;
 import com.intellij.psi.xml.XmlToken;
 import com.intellij.util.messages.MessageBusConnection;
-import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -423,19 +422,13 @@ public class ResourceNotificationManager {
     // ---- Implements ResourceFolderManager.ResourceFolderListener ----
 
     @Override
-    public void mainResourceFoldersChanged(@NotNull AndroidFacet facet,
-                                           @NotNull List<? extends VirtualFile> folders,
-                                           @NotNull Collection<? extends VirtualFile> added,
-                                           @NotNull Collection<? extends VirtualFile> removed) {
+    public void mainResourceFoldersChanged(@NotNull AndroidFacet facet, @NotNull List<? extends VirtualFile> folders) {
       myModificationCount++;
       notice(Reason.GRADLE_SYNC);
     }
 
     @Override
-    public void testResourceFoldersChanged(@NotNull AndroidFacet facet,
-                                           @NotNull List<? extends VirtualFile> folders,
-                                           @NotNull Collection<? extends VirtualFile> added,
-                                           @NotNull Collection<? extends VirtualFile> removed) {
+    public void testResourceFoldersChanged(@NotNull AndroidFacet facet, @NotNull List<? extends VirtualFile> folders) {
       myModificationCount++;
       notice(Reason.GRADLE_SYNC);
     }
