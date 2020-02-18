@@ -78,13 +78,14 @@ public final class GradleProjectImporter {
    * storage to force their re-import.
    */
   @Nullable
-  public Project importProjectCore(@NotNull VirtualFile projectFolder) {
-    Project newProject;
+  public Project importProjectCore(@NotNull VirtualFile projectFolder, @Nullable Project newProject) {
     File projectFolderPath = virtualToIoFile(projectFolder);
     try {
       setUpLocalProperties(projectFolderPath);
-      String projectName = projectFolder.getName();
-      newProject = createProject(projectName, projectFolderPath);
+      if (newProject == null) {
+        String projectName = projectFolder.getName();
+        newProject = createProject(projectName, projectFolderPath);
+      }
       importProjectNoSync(new Request(newProject));
     }
     catch (Throwable e) {
