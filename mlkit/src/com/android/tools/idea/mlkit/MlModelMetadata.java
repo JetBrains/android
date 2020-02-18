@@ -16,9 +16,9 @@
 package com.android.tools.idea.mlkit;
 
 import com.android.tools.mlkit.MetadataExtractor;
-import com.android.tools.mlkit.ModelData;
+import com.android.tools.mlkit.ModelInfo;
 import com.android.tools.mlkit.ModelParsingException;
-import com.android.tools.mlkit.Param;
+import com.android.tools.mlkit.TensorInfo;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -37,7 +37,7 @@ public class MlModelMetadata {
   public final String myClassName;
 
   @Nullable
-  private ModelData myModelData;
+  private ModelInfo myModelData;
 
   private static final Logger LOG = Logger.getInstance(MlModelMetadata.class);
 
@@ -60,7 +60,7 @@ public class MlModelMetadata {
 
     try {
       if (byteBuffer != null) {
-        myModelData = ModelData.buildFrom(new MetadataExtractor(byteBuffer));
+        myModelData = ModelInfo.buildFrom(new MetadataExtractor(byteBuffer));
       }
     }
     catch (ModelParsingException e) {
@@ -73,7 +73,7 @@ public class MlModelMetadata {
   }
 
   @NotNull
-  public List<Param> getInputParams() {
+  public List<TensorInfo> getInputTensorInfos() {
     if (isValidModel()) {
       return myModelData.getInputs();
     }
@@ -82,7 +82,7 @@ public class MlModelMetadata {
   }
 
   @NotNull
-  public List<Param> getOutputParams() {
+  public List<TensorInfo> getOutputTensorInfos() {
     if (isValidModel()) {
       return myModelData.getOutputs();
     }

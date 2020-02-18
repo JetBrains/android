@@ -20,7 +20,7 @@ import static com.intellij.psi.CommonClassNames.JAVA_UTIL_MAP;
 import com.android.tools.idea.mlkit.MlkitModuleService;
 import com.android.tools.idea.mlkit.MlkitUtils;
 import com.android.tools.mlkit.MlkitNames;
-import com.android.tools.mlkit.Param;
+import com.android.tools.mlkit.TensorInfo;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -55,7 +55,7 @@ public class MlkitOutputLightClass extends AndroidLightClassBase {
   private final String qualifiedName;
   private final CachedValue<PsiMethod[]> myMethodCache;
 
-  public MlkitOutputLightClass(@NotNull Module module, @NotNull List<Param> params, @NotNull PsiClass containingClass) {
+  public MlkitOutputLightClass(@NotNull Module module, @NotNull List<TensorInfo> tensorInfos, @NotNull PsiClass containingClass) {
     super(PsiManager.getInstance(module.getProject()),
           ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL));
     this.qualifiedName = String.join(".", containingClass.getQualifiedName(), MlkitNames.OUTPUTS);
@@ -67,9 +67,9 @@ public class MlkitOutputLightClass extends AndroidLightClassBase {
     ModificationTracker modificationTracker = new MlkitModuleService.ModelFileModificationTracker(module);
     myMethodCache = CachedValuesManager.getManager(getProject()).createCachedValue(
       () -> {
-        PsiMethod[] methods = new PsiMethod[params.size()];
+        PsiMethod[] methods = new PsiMethod[tensorInfos.size()];
         for (int i = 0; i < methods.length; i++) {
-          methods[i] = buildGetterMethod(params.get(i));
+          methods[i] = buildGetterMethod(tensorInfos.get(i));
         }
 
         return CachedValueProvider.Result.create(methods, modificationTracker);
@@ -94,20 +94,20 @@ public class MlkitOutputLightClass extends AndroidLightClassBase {
     return myMethodCache.getValue();
   }
 
-  private PsiMethod buildGetterMethod(Param param) {
+  private PsiMethod buildGetterMethod(TensorInfo tensorInfo) {
     Project project = getProject();
     GlobalSearchScope scope = getResolveScope();
     PsiType returnType;
-    if (param.getFileType() == Param.FileType.TENSOR_AXIS_LABELS) {
+    if (tensorInfo.getFileType() == TensorInfo.FileType.TENSOR_AXIS_LABELS) {
       final PsiClass mapClass = JavaPsiFacade.getInstance(project).findClass(JAVA_UTIL_MAP, scope);
       final PsiType key = PsiType.getJavaLangString(PsiManager.getInstance(getProject()), scope);
       final PsiType value = PsiType.getTypeByName(CommonClassNames.JAVA_LANG_FLOAT, project, scope);
       returnType = PsiElementFactory.getInstance(project).createType(mapClass, key, value);
     } else {
-      returnType = PsiType.getTypeByName(CodeUtils.getTypeQualifiedName(param), project, scope);
+      returnType = PsiType.getTypeByName(CodeUtils.getTypeQualifiedName(tensorInfo), project, scope);
     }
 
-    return new LightMethodBuilder(myManager, PropertyUtilBase.suggestGetterName(param.getName(), returnType))
+    return new LightMethodBuilder(myManager, PropertyUtilBase.suggestGetterName(tensorInfo.getName(), returnType))
       .setMethodReturnType(returnType)
       .addModifiers(PsiModifier.PUBLIC, PsiModifier.FINAL)
       .setContainingClass(this);

@@ -16,7 +16,7 @@
 package com.android.tools.idea.mlkit.lightpsi;
 
 import com.android.tools.mlkit.MlkitNames;
-import com.android.tools.mlkit.Param;
+import com.android.tools.mlkit.TensorInfo;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiClass;
@@ -38,13 +38,13 @@ import org.jetbrains.annotations.Nullable;
 public class MlkitLabelLightClass extends AndroidLightClassBase {
   private final PsiClass containingClass;
   private final String qualifiedName;
-  private final Param param;
+  private final TensorInfo tensorInfo;
   private final PsiMethod[] myMethods;
 
-  public MlkitLabelLightClass(@NotNull Module module, @NotNull Param param, @NotNull PsiClass containingClass) {
+  public MlkitLabelLightClass(@NotNull Module module, @NotNull TensorInfo tensorInfo, @NotNull PsiClass containingClass) {
     super(PsiManager.getInstance(module.getProject()),
           ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL));
-    this.param = param;
+    this.tensorInfo = tensorInfo;
     this.qualifiedName = String.join(".", containingClass.getQualifiedName(), MlkitNames.LABEL);
     this.containingClass = containingClass;
 

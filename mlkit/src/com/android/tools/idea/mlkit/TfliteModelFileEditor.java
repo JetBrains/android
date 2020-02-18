@@ -22,8 +22,8 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncUtil;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.mlkit.MetadataExtractor;
+import com.android.tools.mlkit.ModelInfo;
 import com.android.tools.mlkit.MlkitNames;
-import com.android.tools.mlkit.ModelData;
 import com.android.tools.mlkit.ModelParsingException;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.openapi.diagnostic.Logger;
@@ -107,8 +107,8 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     contentPanel.add(addDepButton);
 
     try {
-      ModelData modelData = ModelData.buildFrom(new MetadataExtractor(ByteBuffer.wrap(file.contentsToByteArray())));
-      addModelSummarySection(contentPanel, modelData);
+      ModelInfo modelInfo = ModelInfo.buildFrom(new MetadataExtractor(ByteBuffer.wrap(file.contentsToByteArray())));
+      addModelSummarySection(contentPanel, modelInfo);
 
       PsiClass modelClass = MlkitModuleService.getInstance(myModule)
         .getOrCreateLightModelClass(new MlModelMetadata(file.getUrl(), MlkitUtils.computeModelClassName(file.getUrl())));
@@ -132,29 +132,29 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
            !MlkitUtils.getMissingDependencies(myModule, myFile).isEmpty();
   }
 
-  private static void addModelSummarySection(@NotNull JPanel contentPanel, @NotNull ModelData modelData) {
+  private static void addModelSummarySection(@NotNull JPanel contentPanel, @NotNull ModelInfo modelInfo) {
     // TODO(b/148866418): make table collapsible.
     String modelHtml = "<h2>Model</h2>\n" +
                        "<table>\n" +
                        "<tr>\n" +
                        "<td>Name</td>\n" +
-                       "<td>" + modelData.getModelName() + "</td>\n" +
+                       "<td>" + modelInfo.getModelName() + "</td>\n" +
                        "</tr>\n" +
                        "<tr>\n" +
                        "<td>Description</td>\n" +
-                       "<td>" + modelData.getModelDescription() + "</td>\n" +
+                       "<td>" + modelInfo.getModelDescription() + "</td>\n" +
                        "</tr>\n" +
                        "<tr>\n" +
                        "<td>Version</td>\n" +
-                       "<td>" + modelData.getModelVersion() + "</td>\n" +
+                       "<td>" + modelInfo.getModelVersion() + "</td>\n" +
                        "</tr>\n" +
                        "<tr>\n" +
                        "<td>Author</td>\n" +
-                       "<td>" + modelData.getModelAuthor() + "</td>\n" +
+                       "<td>" + modelInfo.getModelAuthor() + "</td>\n" +
                        "</tr>\n" +
                        "<tr>\n" +
                        "<td>License</td>\n" +
-                       "<td>" + modelData.getModelLicense() + "</td>\n" +
+                       "<td>" + modelInfo.getModelLicense() + "</td>\n" +
                        "</tr>\n" +
                        "</table>\n";
 
