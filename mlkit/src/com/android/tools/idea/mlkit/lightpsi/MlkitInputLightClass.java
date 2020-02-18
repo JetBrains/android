@@ -16,7 +16,6 @@
 package com.android.tools.idea.mlkit.lightpsi;
 
 import com.android.tools.idea.mlkit.MlkitModuleService;
-import com.android.tools.idea.mlkit.MlkitUtils;
 import com.android.tools.mlkit.MlkitNames;
 import com.android.tools.mlkit.Param;
 import com.google.common.collect.ImmutableSet;
@@ -47,10 +46,10 @@ public class MlkitInputLightClass extends AndroidLightClassBase {
   private final String qualifiedName;
   private final CachedValue<PsiMethod[]> myMethodCache;
 
-  public MlkitInputLightClass(@NotNull Module module, List<Param> params, PsiClass containingClass) {
+  public MlkitInputLightClass(@NotNull Module module, @NotNull List<Param> params, @NotNull PsiClass containingClass) {
     super(PsiManager.getInstance(module.getProject()),
           ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL));
-    this.qualifiedName = String.join(".", MlkitUtils.computeModelPackageName(module), containingClass.getName(), MlkitNames.INPUTS);
+    this.qualifiedName = String.join(".", containingClass.getQualifiedName(), MlkitNames.INPUTS);
     this.containingClass = containingClass;
 
     setModuleInfo(module, false);

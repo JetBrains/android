@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.mlkit.lightpsi;
 
-import com.android.tools.idea.mlkit.MlkitUtils;
 import com.android.tools.mlkit.MlkitNames;
 import com.android.tools.mlkit.Param;
 import com.google.common.collect.ImmutableSet;
@@ -26,8 +25,6 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiType;
 import com.intellij.psi.impl.light.LightMethodBuilder;
-import java.util.ArrayList;
-import java.util.List;
 import org.jetbrains.android.augment.AndroidLightClassBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -43,12 +40,11 @@ public class MlkitLabelLightClass extends AndroidLightClassBase {
   private final Param param;
   private final PsiMethod[] myMethods;
 
-
-  public MlkitLabelLightClass(@NotNull Module module, Param param, PsiClass containingClass) {
+  public MlkitLabelLightClass(@NotNull Module module, @NotNull Param param, @NotNull PsiClass containingClass) {
     super(PsiManager.getInstance(module.getProject()),
           ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL));
     this.param = param;
-    this.qualifiedName = String.join(".", MlkitUtils.computeModelPackageName(module), containingClass.getName(), MlkitNames.LABEL);
+    this.qualifiedName = String.join(".", containingClass.getQualifiedName(), MlkitNames.LABEL);
     this.containingClass = containingClass;
 
     setModuleInfo(module, false);
