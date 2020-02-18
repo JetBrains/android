@@ -28,6 +28,7 @@ import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.psi.CommonClassNames;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementFactory;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiMethod;
@@ -116,5 +117,11 @@ public class MlkitOutputLightClass extends AndroidLightClassBase {
   @Override
   public PsiClass getContainingClass() {
     return containingClass;
+  }
+
+  @NotNull
+  @Override
+  public PsiElement getNavigationElement() {
+    return containingClass.getNavigationElement();
   }
 }

@@ -20,6 +20,7 @@ import com.android.tools.mlkit.Param;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifier;
@@ -83,5 +84,11 @@ public class MlkitLabelLightClass extends AndroidLightClassBase {
   @Override
   public PsiClass getContainingClass() {
     return containingClass;
+  }
+
+  @NotNull
+  @Override
+  public PsiElement getNavigationElement() {
+    return containingClass.getNavigationElement();
   }
 }
