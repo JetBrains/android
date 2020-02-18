@@ -26,9 +26,11 @@ import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.Recommended
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.AndroidGradleTests;
 import com.intellij.execution.configurations.ConfigurationFactory;
+import com.intellij.idea.Bombed;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.ExtensionTestUtil;
 import java.io.File;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -71,6 +73,7 @@ public class AndroidRunConfigurationGradleTest extends AndroidGradleTestCase {
     assertThat(errors).isEmpty();
   }
 
+  @Bombed(year = 2020, month= Calendar.DECEMBER, day = 30, user = "Andrei.Kuznetsov", description = "This test does not work on Java 11")
   public void testErrorIfGradlePluginVersionIsOutdated() throws Exception {
     File projectSourceRoot = resolveTestDataPath(SIMPLE_APPLICATION_PRE30);
     File projectRoot = new File(toSystemDependentName(getProject().getBasePath()));
