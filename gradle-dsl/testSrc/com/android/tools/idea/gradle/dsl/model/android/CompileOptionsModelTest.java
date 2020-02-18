@@ -164,7 +164,7 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
 
     CompileOptionsModel compileOptions = android.compileOptions();
     assertEquals(LanguageLevel.JDK_1_6, compileOptions.sourceCompatibility().toLanguageLevel());
-    assertEquals(GradlePropertyModel.ValueType.REFERENCE, compileOptions.sourceCompatibility().getValueType());
+    assertEquals(GradlePropertyModel.ValueType.CUSTOM, compileOptions.sourceCompatibility().getValueType());
     assertNull(compileOptions.targetCompatibility().toLanguageLevel());
     assertEquals(GradlePropertyModel.ValueType.STRING, compileOptions.targetCompatibility().getValueType());
 
@@ -179,7 +179,7 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
 
     compileOptions = android.compileOptions();
     assertEquals(LanguageLevel.JDK_1_8, compileOptions.sourceCompatibility().toLanguageLevel());
-    assertEquals(GradlePropertyModel.ValueType.REFERENCE, compileOptions.sourceCompatibility().getValueType());
+    assertEquals(GradlePropertyModel.ValueType.CUSTOM, compileOptions.sourceCompatibility().getValueType());
     assertEquals(LanguageLevel.JDK_1_9, compileOptions.targetCompatibility().toLanguageLevel());
     assertEquals(GradlePropertyModel.ValueType.STRING, compileOptions.targetCompatibility().getValueType());
   }
