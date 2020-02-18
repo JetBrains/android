@@ -95,7 +95,7 @@ public class NewModuleTest {
       .clickFinish()
       .waitForGradleProjectSyncToFinish();
     String gradleFileContents = guiTest.getProjectFileText("mylib/build.gradle");
-    assertThat(gradleFileContents).contains("apply plugin: 'kotlin'");
+    assertThat(gradleFileContents).contains("id 'kotlin'");
     assertAbout(file()).that(guiTest.getProjectPath("mylib/src/main/java/my/test/MyClass.kt")).isFile();
   }
 
@@ -110,7 +110,7 @@ public class NewModuleTest {
       .waitForGradleProjectSyncToFinish();
 
     String gradleFileContents = guiTest.getProjectFileText("somelibrary/build.gradle");
-    assertThat(gradleFileContents).contains("apply plugin: 'com.android.library'");
+    assertThat(gradleFileContents).contains("id 'com.android.library'");
     assertThat(gradleFileContents).contains("consumerProguardFiles");
     assertAbout(file()).that(guiTest.getProjectPath("somelibrary/.gitignore")).isFile();
   }
