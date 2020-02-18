@@ -73,7 +73,7 @@ class ExecutionEnvironmentExtTest {
 
     `when`(mockProject.getService(eq(ExecutionManager::class.java))).thenReturn(mockExecutionManager)
 
-    `when`(mockProject.getComponent(eq(DebuggerManager::class.java))).thenReturn(mockDebugManager)
+    `when`(mockProject.getService(eq(DebuggerManager::class.java))).thenReturn(mockDebugManager)
     `when`(mockDebugManager.sessions).thenReturn(listOf())
   }
 
