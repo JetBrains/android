@@ -33,6 +33,43 @@ import org.jetbrains.uast.toUElement
 
 class DaggerUtilTest : DaggerTestCase() {
 
+  private fun getProvidersForInjectedField_kotlin(fieldType: String): Collection<PsiMethod> {
+    val kotlinFile = myFixture.configureByText(
+      KotlinFileType.INSTANCE,
+      //language=kotlin
+      """
+        import javax.inject.Inject
+
+        class MyClass {
+          @Inject val injectedField:${fieldType}
+        }
+      """.trimIndent()
+    )
+
+    val type = (myFixture.moveCaret("injectedF|ield").parentOfType<KtProperty>()?.toUElement() as? KotlinUField)?.getType()
+    assume().that(type).isNotNull()
+    val scope = myFixture.module.getModuleSystem().getResolveScope(kotlinFile.virtualFile)
+    return getDaggerProvidersForType(type!!, scope)
+  }
+
+  private fun getProvidersForInjectedField(fieldType: String): Collection<PsiMethod> {
+    val file = myFixture.configureByText(
+      //language=JAVA
+      JavaFileType.INSTANCE,
+      """
+        import javax.inject.Inject;
+
+        class MyClass {
+          @Inject ${fieldType} injectedField;
+        }
+      """.trimIndent()
+    )
+    val type = myFixture.moveCaret("injected|Field").parentOfType<PsiField>()?.type
+    assume().that(type).isNotNull()
+    val scope = myFixture.module.getModuleSystem().getResolveScope(file.virtualFile)
+    return getDaggerProvidersForType(type!!, scope)
+  }
+
   fun testIsConsumerForInjectField() {
     myFixture.configureByText(
       //language=JAVA
@@ -109,6 +146,53 @@ class DaggerUtilTest : DaggerTestCase() {
     assertThat(myFixture.moveCaret("notProv|ider").parentOfType<KtFunction>().isDaggerProvider).isFalse()
   }
 
+  fun testIsProvider_injectedConstructor() {
+    myFixture.configureByText(
+      //language=JAVA
+      JavaFileType.INSTANCE,
+      """
+        import javax.inject.Inject;
+
+        public class MyClass {
+          @Inject public MyClass() {}
+          public MyClass(String s) {}
+        }
+      """.trimIndent()
+    )
+
+    assertThat(myFixture.moveCaret("public MyCl|ass()").parentOfType<PsiMethod>().isDaggerProvider).isTrue()
+    assertThat(myFixture.moveCaret("public MyCl|ass(String s)").parentOfType<PsiMethod>().isDaggerProvider).isFalse()
+  }
+
+  fun testIsProvider_kotlin_injectedConstructor() {
+    myFixture.configureByText(
+      //language=kotlin
+      KotlinFileType.INSTANCE,
+      """
+        import javax.inject.Inject
+
+        class MyClass @Inject constructor()
+      """.trimIndent()
+    )
+
+    assertThat(myFixture.moveCaret("construc|tor").parentOfType<KtFunction>().isDaggerProvider).isTrue()
+
+
+    myFixture.configureByText(
+      //language=kotlin
+      KotlinFileType.INSTANCE,
+      """
+        import javax.inject.Inject
+
+        class MyClass(s: String) {
+          @Inject constructor()
+        }
+      """.trimIndent()
+    )
+
+    assertThat(myFixture.moveCaret("construc|tor").parentOfType<KtFunction>().isDaggerProvider).isTrue()
+  }
+
   fun testIsProvider_bindsMethod() {
     myFixture.configureByText(
       //language=JAVA
@@ -164,40 +248,12 @@ class DaggerUtilTest : DaggerTestCase() {
     val provider = myFixture.moveCaret("provide|r").parentOfType<PsiMethod>()
 
     // Consumer in JAVA.
-    val file = myFixture.configureByText(
-      //language=JAVA
-      JavaFileType.INSTANCE,
-      """
-        import javax.inject.Inject;
-
-        class MyClass {
-          @Inject String injectedString;
-        }
-      """.trimIndent()
-    )
-    var type = myFixture.moveCaret("injected|String").parentOfType<PsiField>()?.type
-    assume().that(type).isNotNull()
-    var scope = myFixture.module.getModuleSystem().getResolveScope(file.virtualFile)
-    var providers = getDaggerProvidersForType(type!!, scope)
+    var providers = getProvidersForInjectedField("String")
     assertThat(providers).hasSize(1)
     assertThat(providers.first()).isEqualTo(provider)
 
     // Consumer in kotlin.
-    val kotlinFile = myFixture.configureByText(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
-        import javax.inject.Inject
-
-        class MyClass {
-          @Inject val injectedString:String
-        }
-      """.trimIndent()
-    )
-    type = (myFixture.moveCaret("injected|String").parentOfType<KtProperty>()?.toUElement() as? KotlinUField)?.getType()
-    assume().that(type).isNotNull()
-    scope = myFixture.module.getModuleSystem().getResolveScope(kotlinFile.virtualFile)
-    providers = getDaggerProvidersForType(type!!, scope)
+    providers = getProvidersForInjectedField_kotlin("String")
     assertThat(providers).hasSize(1)
     assertThat(providers.first()).isEqualTo(provider)
   }
@@ -225,40 +281,12 @@ class DaggerUtilTest : DaggerTestCase() {
     assume().that(provider.toString()).isEqualTo("KtUltraLightMethodForSourceDeclaration:provider")
 
     // Consumer in JAVA.
-    val file = myFixture.configureByText(
-      //language=JAVA
-      JavaFileType.INSTANCE,
-      """
-        import javax.inject.Inject;
-
-        class MyClass {
-          @Inject String injectedString;
-        }
-      """.trimIndent()
-    )
-    var type = myFixture.moveCaret("injected|String").parentOfType<PsiField>()?.type
-    assume().that(type).isNotNull()
-    var scope = myFixture.module.getModuleSystem().getResolveScope(file.virtualFile)
-    var providers = getDaggerProvidersForType(type!!, scope)
+    var providers = getProvidersForInjectedField("String")
     assertThat(providers).hasSize(1)
     assertThat(providers.first().toString()).isEqualTo(provider.toString())
 
     // Consumer in kotlin.
-    val kotlinFile = myFixture.configureByText(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
-        import javax.inject.Inject
-
-        class MyClass {
-          @Inject val injectedString:String
-        }
-      """.trimIndent()
-    )
-    type = (myFixture.moveCaret("injected|String").parentOfType<KtProperty>()?.toUElement() as? KotlinUField)?.getType()
-    assume().that(type).isNotNull()
-    scope = myFixture.module.getModuleSystem().getResolveScope(kotlinFile.virtualFile)
-    providers = getDaggerProvidersForType(type!!, scope)
+    providers = getProvidersForInjectedField_kotlin("String")
     assertThat(providers).hasSize(1)
     assertThat(providers.first().toString()).isEqualTo(provider.toString())
   }
@@ -281,42 +309,12 @@ class DaggerUtilTest : DaggerTestCase() {
     val provider = myFixture.moveCaret("bindsMet|hod").parentOfType<PsiMethod>()
 
     // Consumer in JAVA.
-    val file = myFixture.configureByText(
-      //language=JAVA
-      JavaFileType.INSTANCE,
-      """
-        import javax.inject.Inject;
-
-        class MyClass {
-          @Inject String injectedString;
-        }
-      """.trimIndent()
-    )
-
-    var type = myFixture.moveCaret("injected|String").parentOfType<PsiField>()?.type
-    assume().that(type).isNotNull()
-    var scope = myFixture.module.getModuleSystem().getResolveScope(file.virtualFile)
-    var providers = getDaggerProvidersForType(type!!, scope)
+    var providers = getProvidersForInjectedField("String")
     assertThat(providers).hasSize(1)
     assertThat(providers.first()).isEqualTo(provider)
 
     // Consumer in kotlin.
-    val kotlinFile = myFixture.configureByText(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
-        import javax.inject.Inject
-
-        class MyClass {
-          @Inject val injectedString:String
-        }
-      """.trimIndent()
-    )
-
-    type = (myFixture.moveCaret("injected|String").parentOfType<KtProperty>()?.toUElement() as? KotlinUField)?.getType()
-    assume().that(type).isNotNull()
-    scope = myFixture.module.getModuleSystem().getResolveScope(kotlinFile.virtualFile)
-    providers = getDaggerProvidersForType(type!!, scope)
+    providers = getProvidersForInjectedField_kotlin("String")
     assertThat(providers).hasSize(1)
     assertThat(providers.first()).isEqualTo(provider)
   }
@@ -344,42 +342,66 @@ class DaggerUtilTest : DaggerTestCase() {
     assume().that(provider.toString()).isNotEmpty()
 
     // Consumer in JAVA.
-    val file = myFixture.configureByText(
+    var providers = getProvidersForInjectedField("String")
+    assertThat(providers).hasSize(1)
+    assertThat(providers.first().toString()).isEqualTo(provider.toString())
+
+    // Consumer in kotlin.
+    providers = getProvidersForInjectedField_kotlin("String")
+    assertThat(providers).hasSize(1)
+    assertThat(providers.first().toString()).isEqualTo(provider.toString())
+  }
+
+  fun testGetDaggerProviders_injectedConstructor() {
+    myFixture.configureByText(
       //language=JAVA
       JavaFileType.INSTANCE,
       """
         import javax.inject.Inject;
 
-        class MyClass {
-          @Inject String injectedString;
+        public class MyClassWithInjectedConstructor {
+          @Inject public MyClassWithInjectedConstructor() {}
         }
       """.trimIndent()
     )
 
-    var type = myFixture.moveCaret("injected|String").parentOfType<PsiField>()?.type
-    assume().that(type).isNotNull()
-    var scope = myFixture.module.getModuleSystem().getResolveScope(file.virtualFile)
-    var providers = getDaggerProvidersForType(type!!, scope)
+    val provider = myFixture.moveCaret("MyClassWithInjectedConstru|ctor()").parentOfType<PsiMethod>()
+
+    // Consumer in JAVA.
+    var providers = getProvidersForInjectedField("MyClassWithInjectedConstructor")
+    assertThat(providers).hasSize(1)
+    assertThat(providers.first()).isEqualTo(provider)
+
+    // Consumer in kotlin.
+    providers = getProvidersForInjectedField_kotlin("MyClassWithInjectedConstructor")
+    assertThat(providers).hasSize(1)
+    assertThat(providers.first()).isEqualTo(provider)
+  }
+
+  fun testGetDaggerProviders_kotlin_injectedConstructor() {
+    myFixture.configureByText(
+      //language=kotlin
+      KotlinFileType.INSTANCE,
+      """
+        import javax.inject.Inject
+
+        class MyClassWithInjectedConstructor @Inject constructor()
+      """.trimIndent()
+    )
+
+    val provider = myFixture.moveCaret("construct|or()").parentOfType<KtFunction>()?.toLightElements()?.first()
+
+    assume().that(provider).isNotNull()
+    // We will compare with string representation, because ide returns different instances of light class.
+    assume().that(provider.toString()).isNotEmpty()
+
+    // Consumer in JAVA.
+    var providers = getProvidersForInjectedField("MyClassWithInjectedConstructor")
     assertThat(providers).hasSize(1)
     assertThat(providers.first().toString()).isEqualTo(provider.toString())
 
     // Consumer in kotlin.
-    val kotlinFile = myFixture.configureByText(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
-        import javax.inject.Inject
-
-        class MyClass {
-          @Inject val injectedString:String
-        }
-      """.trimIndent()
-    )
-
-    type = (myFixture.moveCaret("injected|String").parentOfType<KtProperty>()?.toUElement() as? KotlinUField)?.getType()
-    assume().that(type).isNotNull()
-    scope = myFixture.module.getModuleSystem().getResolveScope(kotlinFile.virtualFile)
-    providers = getDaggerProvidersForType(type!!, scope)
+    providers = getProvidersForInjectedField_kotlin("MyClassWithInjectedConstructor")
     assertThat(providers).hasSize(1)
     assertThat(providers.first().toString()).isEqualTo(provider.toString())
   }

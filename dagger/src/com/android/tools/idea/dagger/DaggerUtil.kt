@@ -17,9 +17,11 @@ package com.android.tools.idea.dagger
 
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiClassType
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
+import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.PsiType
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.searches.AnnotatedElementsSearch
@@ -27,6 +29,8 @@ import com.intellij.util.EmptyQuery
 import com.intellij.util.Query
 import org.jetbrains.kotlin.idea.util.findAnnotation
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.psi.KtAnnotated
+import org.jetbrains.kotlin.psi.KtConstructor
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtProperty
 
@@ -45,12 +49,21 @@ private fun getDaggerModules(scope: GlobalSearchScope): Query<PsiClass> {
 
 /**
  * Returns all Dagger providers (@Provide/@Binds-annotated methods, @Inject-annotated constructors) for given [type] within given [scope].
- *
- * TODO: add @Inject-annotated constructors.
  */
 fun getDaggerProvidersForType(type: PsiType, scope: GlobalSearchScope): Collection<PsiMethod> {
-  return getDaggerProvidesMethodsForType(type, scope) + getDaggerBindsMethodsForType(type, scope)
+  return getDaggerProvidesMethodsForType(type, scope) +
+         getDaggerBindsMethodsForType(type, scope) +
+         getDaggerInjectedConstructorsForType(type, scope)
 }
+
+/**
+ * Returns all @Inject-annotated constructors for given [type] within [scope].
+ */
+private fun getDaggerInjectedConstructorsForType(type: PsiType, scope: GlobalSearchScope): Collection<PsiMethod> {
+  val clazz = (type as? PsiClassType)?.resolve() ?: return emptyList()
+  return clazz.constructors.filter { it.isInjected }
+}
+
 /**
  * True if PsiMethod belongs to a class annotated with @Module.
  */
@@ -80,9 +93,9 @@ private fun getMethodsWithAnnotation(annotationName: String, scope: GlobalSearch
 }
 
 /**
- * True if PsiField has @Inject annotation.
+ * True if PsiModifierListOwner has @Inject annotation.
  */
-private val PsiField.isInjected get() = hasAnnotation(INJECT_ANNOTATION)
+private val PsiModifierListOwner.isInjected get() = hasAnnotation(INJECT_ANNOTATION)
 
 /**
  * True if KtProperty has @Inject annotation.
@@ -108,11 +121,16 @@ private val PsiElement?.isBindsMethod: Boolean
   }
 
 /**
- * True if PsiElement is Dagger provider i.e @Provides/@Binds-annotated method or @Inject-annotated constructor.
- *
- * TODO: Add @Inject-annotated constructor.
+ * True if PsiElement is @Inject-annotated constructor.
  */
-val PsiElement?.isDaggerProvider get() = isProvidesMethod || isBindsMethod
+private val PsiElement?.isInjectedConstructor: Boolean
+  get() = this is PsiMethod && isConstructor && isInjected ||
+          this is KtConstructor<*> && (this as? KtAnnotated)?.findAnnotation(FqName(INJECT_ANNOTATION)) != null
+
+/**
+ * True if PsiElement is Dagger provider i.e @Provides/@Binds-annotated method or @Inject-annotated constructor.
+ */
+val PsiElement?.isDaggerProvider get() = isProvidesMethod || isBindsMethod || isInjectedConstructor
 
 /**
  * True if PsiElement is Dagger consumer i.e @Inject-annotated field,
