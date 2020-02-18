@@ -843,7 +843,10 @@ public class RenderTask {
       return CompletableFuture.completedFuture(false);
     }
 
-    return runAsyncRenderAction(() -> myRenderSession.executeCallbacks(System.nanoTime()));
+    return runAsyncRenderAction(() -> {
+      myRenderSession.setSystemTimeNanos(System.nanoTime());
+      return myRenderSession.executeCallbacks(System.nanoTime());
+    });
   }
 
   /**
