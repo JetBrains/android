@@ -67,7 +67,7 @@ public class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAw
     // The object that needs to be created is the content manager of the execution manager for this project.
     RunContentManager.getInstance(project);
 
-    toolWindow.setAvailable(true, null);
+    toolWindow.setAvailable(true);
     toolWindow.setToHideOnEmptyContent(true);
 
     LogcatPanel logcatPanel = new LogcatPanel(project, toolWindow);
