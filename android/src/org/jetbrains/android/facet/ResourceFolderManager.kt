@@ -40,10 +40,7 @@ import com.intellij.util.messages.Topic
  * editing the gradle files or after a delayed project initialization), and it also provides some state caching between IDE sessions such
  * that before the gradle initialization is done, it returns the folder set as it was before the IDE exited.
  */
-class ResourceFolderManager(
-  val module: Module,
-  private val buildVariantUpdater: BuildVariantUpdater
-) : ModificationTracker, Disposable {
+class ResourceFolderManager(val module: Module) : ModificationTracker, Disposable {
 
   companion object {
     private val FOLDERS_KEY = Key.create<Folders>(ResourceFolderManager::class.qualifiedName!!)
@@ -64,17 +61,13 @@ class ResourceFolderManager(
     /** The resource folders in this project has changed  */
     fun mainResourceFoldersChanged(
       facet: AndroidFacet,
-      folders: List<VirtualFile>,
-      added: Collection<VirtualFile>,
-      removed: Collection<VirtualFile>
+      folders: List<VirtualFile>
     )
 
     /** The resource folders in this project has changed  */
     fun testResourceFoldersChanged(
       facet: AndroidFacet,
-      folders: List<VirtualFile>,
-      added: Collection<VirtualFile>,
-      removed: Collection<VirtualFile>
+      folders: List<VirtualFile>
     )
   }
 
@@ -85,26 +78,26 @@ class ResourceFolderManager(
 
   init {
     AndroidProjectRootListener.ensureSubscribed(module.project)
-    buildVariantUpdater.addSelectionChangeListener(listener)
+    BuildVariantUpdater.getInstance(module.project).addSelectionChangeListener(listener)
   }
 
   override fun getModificationCount() = generation
 
   override fun dispose() {
-    buildVariantUpdater.removeSelectionChangeListener(listener)
+    BuildVariantUpdater.getInstance(module.project).removeSelectionChangeListener(listener)
   }
 
   /**
    * Returns main (production) resource directories, in increasing precedence order.
    *
-   * @see SourceProviders.currentSourceProviders
+   * @see com.android.tools.idea.projectsystem.SourceProviders.currentSourceProviders
    */
   val folders get() = mainAndTestFolders.main
 
   /**
    * Returns test resource directories, in the overlay order.
    *
-   * @see SourceProviders.currentTestSourceProviders
+   * @see com.android.tools.idea.projectsystem.SourceProviders.currentAndroidTestSourceProviders
    */
   val testFolders get() = mainAndTestFolders.test
 
@@ -141,22 +134,14 @@ class ResourceFolderManager(
     before: Folders,
     after: Folders,
     filesToCheck: Folders.() -> List<VirtualFile>,
-    callback: ResourceFolderListener.(AndroidFacet, List<VirtualFile>, Collection<VirtualFile>, Collection<VirtualFile>) -> Unit
+    callback: ResourceFolderListener.(AndroidFacet, List<VirtualFile>) -> Unit
   ) {
     val filesBefore = before.filesToCheck()
     val filesAfter = after.filesToCheck()
     if (filesBefore != filesAfter) {
       generation++
-      val added = HashSet<VirtualFile>(after.main.size)
-      added.addAll(after.main)
-      added.removeAll(before.main)
-
-      val removed = HashSet<VirtualFile>(before.main.size)
-      removed.addAll(before.main)
-      removed.removeAll(after.main)
-
       val facet = module.androidFacet ?: return
-      module.messageBus.syncPublisher(TOPIC).callback(facet, after.filesToCheck(), added, removed)
+      module.messageBus.syncPublisher(TOPIC).callback(facet, after.filesToCheck())
     }
   }
 
@@ -173,7 +158,7 @@ class ResourceFolderManager(
   }
 
   private fun readFromFacetState(facet: AndroidFacet): Folders {
-    val state = facet.configuration.state ?: return emptyFolders
+    val state = facet.configuration.state
     val mainFolders = state.RES_FOLDERS_RELATIVE_PATH
     return if (mainFolders != null) {
       // We have state saved in the facet.
