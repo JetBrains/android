@@ -15,9 +15,11 @@
  */
 package com.android.emulator
 
+import com.android.emulator.snapshot.SnapshotOuterClass.Image
+import com.android.emulator.snapshot.SnapshotOuterClass.Snapshot
 import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import org.junit.Test
+import org.junit.rules.TemporaryFolder
 import java.io.File
 import java.io.FileOutputStream
 import kotlin.test.assertEquals
@@ -43,7 +45,7 @@ class SnapshotProtoParserTest {
     }
 
     // Create a snapshot protobuf without any images
-    val builder = SnapshotOuterClass.Snapshot.newBuilder()
+    val builder = Snapshot.newBuilder()
 
     val noImageFile = temporaryFolder.newFile(noImageName)
     val oStreamNoImage = FileOutputStream(noImageFile)
@@ -56,7 +58,7 @@ class SnapshotProtoParserTest {
     }
 
     // Add an image to the protobuf--then it should be valid
-    val imageBuilder = SnapshotOuterClass.Image.newBuilder()
+    val imageBuilder = Image.newBuilder()
     val anImage = imageBuilder.build()
     builder.addImages(anImage)
     builder.setCreationTime(arbitraryDateTime)

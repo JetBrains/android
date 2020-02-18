@@ -10,7 +10,6 @@ iml_module(
     srcs = [
         "resources",
         "src",
-        "gen",
     ],
     bundle_data = [
         "//tools/adt/idea/android/annotations",
@@ -149,6 +148,7 @@ iml_module(
         "//tools/analytics-library/crash:analytics-crash[module]",
         "//tools/idea/.idea/libraries:aapt-proto",
         "//tools/adt/idea/android/lib:pepk",
+        "//tools/idea/.idea/libraries:emulator-proto",
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/deploy:intellij.android.deploy[module]",
@@ -386,6 +386,7 @@ iml_module(
         "//tools/idea/.idea/libraries:commons-io",
         "//tools/idea/.idea/libraries:aapt-proto",
         "//tools/adt/idea/android/lib:pepk[test]",
+        "//tools/idea/.idea/libraries:emulator-proto",
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
         "//tools/idea/.idea/libraries:jimfs[test]",
