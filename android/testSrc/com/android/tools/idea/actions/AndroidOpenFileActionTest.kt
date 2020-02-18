@@ -20,8 +20,6 @@ import com.android.tools.idea.ui.validation.validators.PathValidator
 import com.intellij.mock.MockVirtualFile
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.vfs.newvfs.impl.StubVirtualFile
-import com.intellij.testFramework.PlatformTestCase
 import junit.framework.TestCase
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.`when`
@@ -32,7 +30,7 @@ import kotlin.properties.Delegates
 /**
  * Tests for [AndroidOpenFileAction]
  */
-class AndroidOpenFileActionTest : PlatformTestCase() {
+class AndroidOpenFileActionTest : TestCase() {
 
   fun testSelectableFiles() {
     val descriptor = mock(FileChooserDescriptor::class.java)
