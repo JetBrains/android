@@ -91,6 +91,10 @@ final class ModifyDeviceSetDialogTable extends JBTable {
       return;
     }
 
+    if (getColumnCount() == 0) {
+      return;
+    }
+
     setSelectedAndIconColumnMaxWidthsToFit();
   }
 
