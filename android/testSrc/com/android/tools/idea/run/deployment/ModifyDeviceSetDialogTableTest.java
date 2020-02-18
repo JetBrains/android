@@ -31,11 +31,20 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class ModifyDeviceSetDialogTableTest {
-  private ModifyDeviceSetDialogTable table;
+  private ModifyDeviceSetDialogTable myTable;
 
   @Before
   public void initTable() {
-    table = new ModifyDeviceSetDialogTable();
+    myTable = new ModifyDeviceSetDialogTable();
+  }
+
+  @Test
+  public void setModelDoesntThrowAssertionErrorWhenColumnCountEqualsZero() {
+    // Arrange
+    TableModel model = new ModifyDeviceSetDialogTableModel(Collections.emptyList(), myTable);
+
+    // Act
+    myTable.setModel(model);
   }
 
   @Test
@@ -47,10 +56,10 @@ public final class ModifyDeviceSetDialogTableTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    TableModel model = new ModifyDeviceSetDialogTableModel(Collections.singletonList(device), table);
+    TableModel model = new ModifyDeviceSetDialogTableModel(Collections.singletonList(device), myTable);
 
     // Act
-    table.setModel(model);
+    myTable.setModel(model);
 
     // Assert
     // @formatter:off
@@ -59,7 +68,7 @@ public final class ModifyDeviceSetDialogTableTest {
       Arrays.asList(false, device.getIcon(), "LGE Nexus 5X"));
     // @formatter:on
 
-    assertEquals(data, table.getData());
+    assertEquals(data, myTable.getData());
   }
 
   @Test
@@ -77,10 +86,10 @@ public final class ModifyDeviceSetDialogTableTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    TableModel model = new ModifyDeviceSetDialogTableModel(Arrays.asList(device1, device2), table);
+    TableModel model = new ModifyDeviceSetDialogTableModel(Arrays.asList(device1, device2), myTable);
 
     // Act
-    table.setModel(model);
+    myTable.setModel(model);
 
     // Assert
     // @formatter:off
@@ -90,7 +99,7 @@ public final class ModifyDeviceSetDialogTableTest {
       Arrays.asList(false, device2.getIcon(), "LGE Nexus 5X", "00fff9d2279fa602"));
     // @formatter:on
 
-    assertEquals(data, table.getData());
+    assertEquals(data, myTable.getData());
   }
 
   @Test
@@ -103,10 +112,10 @@ public final class ModifyDeviceSetDialogTableTest {
       .setSnapshot(Snapshot.quickboot(FileSystems.getDefault()))
       .build();
 
-    TableModel model = new ModifyDeviceSetDialogTableModel(Collections.singletonList(device), table);
+    TableModel model = new ModifyDeviceSetDialogTableModel(Collections.singletonList(device), myTable);
 
     // Act
-    table.setModel(model);
+    myTable.setModel(model);
 
     // Assert
     // @formatter:off
@@ -115,7 +124,7 @@ public final class ModifyDeviceSetDialogTableTest {
       Arrays.asList(false, device.getIcon(), "Pixel 3 API 29", "Quickboot"));
     // @formatter:on
 
-    assertEquals(data, table.getData());
+    assertEquals(data, myTable.getData());
   }
 
   @Test
@@ -128,10 +137,10 @@ public final class ModifyDeviceSetDialogTableTest {
       .setSnapshot(new Snapshot(Paths.get("snap_2019-09-27_15-48-09"), "Snapshot"))
       .build();
 
-    TableModel model = new ModifyDeviceSetDialogTableModel(Collections.singletonList(device), table);
+    TableModel model = new ModifyDeviceSetDialogTableModel(Collections.singletonList(device), myTable);
 
     // Act
-    table.setModel(model);
+    myTable.setModel(model);
 
     // Assert
     // @formatter:off
@@ -140,7 +149,7 @@ public final class ModifyDeviceSetDialogTableTest {
       Arrays.asList(false, device.getIcon(), "Pixel 3 API 29", "Snapshot"));
     // @formatter:on
 
-    assertEquals(data, table.getData());
+    assertEquals(data, myTable.getData());
   }
 
   @Test
@@ -153,10 +162,10 @@ public final class ModifyDeviceSetDialogTableTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    TableModel model = new ModifyDeviceSetDialogTableModel(Collections.singletonList(device), table);
+    TableModel model = new ModifyDeviceSetDialogTableModel(Collections.singletonList(device), myTable);
 
     // Act
-    table.setModel(model);
+    myTable.setModel(model);
 
     // Assert
     // @formatter:off
@@ -165,6 +174,6 @@ public final class ModifyDeviceSetDialogTableTest {
       Arrays.asList(false, device.getIcon(), "Pixel 3 API 29", "Missing system image"));
     // @formatter:on
 
-    assertEquals(data, table.getData());
+    assertEquals(data, myTable.getData());
   }
 }
