@@ -63,7 +63,7 @@ public abstract class CaptureEditorLightToolWindowManager extends LightToolWindo
     content.setPreferredFocusableComponent(getFocusedComponent());
     contentManager.addContent(content);
     contentManager.setSelectedContent(content, true);
-    myToolWindow.setAvailable(false, null);
+    myToolWindow.setAvailable(false);
   }
 
   @NotNull
