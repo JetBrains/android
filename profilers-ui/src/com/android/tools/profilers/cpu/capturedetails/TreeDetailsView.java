@@ -362,7 +362,7 @@ public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureD
 
     DoubleValueCellRendererWithSparkline(Function<CpuTreeNode, Double> getter, boolean showPercentage, int alignment) {
       super(getter, showPercentage, alignment);
-      mySparkLineColor = ProfilerColors.CPU_CAPTURE_SPARKLINE;
+      mySparkLineColor = ProfilerColors.CAPTURE_SPARKLINE;
       myPercentage = Double.NEGATIVE_INFINITY;
     }
 
@@ -379,7 +379,7 @@ public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureD
       if (node != null) {
         myPercentage = getGetter().apply(node) / getNode(tree.getModel().getRoot()).getGlobalTotal();
       }
-      mySparkLineColor = selected ? ProfilerColors.CPU_CAPTURE_SPARKLINE_SELECTED : ProfilerColors.CPU_CAPTURE_SPARKLINE;
+      mySparkLineColor = selected ? ProfilerColors.CAPTURE_SPARKLINE_SELECTED : ProfilerColors.CAPTURE_SPARKLINE;
     }
 
     @Override
