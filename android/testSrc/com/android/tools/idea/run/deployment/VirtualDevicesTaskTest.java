@@ -18,8 +18,8 @@ package com.android.tools.idea.run.deployment;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-import com.android.emulator.SnapshotOuterClass;
-import com.android.emulator.SnapshotOuterClass.Image;
+import com.android.emulator.snapshot.SnapshotOuterClass;
+import com.android.emulator.snapshot.SnapshotOuterClass.Image;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import java.nio.file.FileSystem;

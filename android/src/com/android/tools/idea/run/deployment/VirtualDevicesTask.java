@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.android.emulator.SnapshotOuterClass;
+import com.android.emulator.snapshot.SnapshotOuterClass;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.run.AndroidDevice;
