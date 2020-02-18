@@ -23,6 +23,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifier;
@@ -100,5 +101,11 @@ public class MlkitInputLightClass extends AndroidLightClassBase {
   @Override
   public PsiClass getContainingClass() {
     return containingClass;
+  }
+
+  @NotNull
+  @Override
+  public PsiElement getNavigationElement() {
+    return containingClass.getNavigationElement();
   }
 }
