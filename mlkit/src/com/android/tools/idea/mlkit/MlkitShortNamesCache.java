@@ -16,6 +16,7 @@
 package com.android.tools.idea.mlkit;
 
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.mlkit.MlkitNames;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
@@ -27,6 +28,7 @@ import com.intellij.util.ArrayUtil;
 import com.intellij.util.Processor;
 import com.intellij.util.indexing.FileBasedIndex;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,13 +48,38 @@ public class MlkitShortNamesCache extends PsiShortNamesCache {
   @Override
   public PsiClass[] getClassesByName(@NotNull String name, @NotNull GlobalSearchScope scope) {
     if (StudioFlags.MLKIT_LIGHT_CLASSES.get()) {
+      List<PsiClass> lightClassList = new ArrayList<>();
       Map<VirtualFile, MlModelMetadata> modelFileMap = new HashMap<>();
-      FileBasedIndex.getInstance().processValues(MlModelFileIndex.INDEX_ID, name, null, (file, value) -> {
-        modelFileMap.put(file, value);
-        return true;
-      }, scope.intersectWith(MlModelFilesSearchScope.inProject(myProject)));
+      FileBasedIndex index = FileBasedIndex.getInstance();
+      GlobalSearchScope mlkitScope = scope.intersectWith(MlModelFilesSearchScope.inProject(myProject));
+      if (MlkitNames.INPUTS.equals(name) || MlkitNames.OUTPUTS.equals(name)) {
+        // Handle inner class, so need to go through all models
+        index.processAllKeys(MlModelFileIndex.INDEX_ID, key -> {
+          index.processValues(MlModelFileIndex.INDEX_ID, key, null, (file, value) -> {
+            modelFileMap.put(file, value);
+            return true;
+          }, mlkitScope);
+          return true;
+        }, mlkitScope, null);
 
-      return MlkitUtils.getLightModelClasses(myProject, modelFileMap);
+        PsiClass[] lightClasses = MlkitUtils.getLightModelClasses(myProject, modelFileMap);
+        for (PsiClass lightClass : lightClasses) {
+          for (PsiClass innerClass : lightClass.getInnerClasses()) {
+            if (innerClass.getName().equals(name)) {
+              lightClassList.add(innerClass);
+            }
+          }
+        }
+      }
+      else {
+        index.processValues(MlModelFileIndex.INDEX_ID, name, null, (file, value) -> {
+          modelFileMap.put(file, value);
+          return true;
+        }, mlkitScope);
+        lightClassList.addAll(Arrays.asList(MlkitUtils.getLightModelClasses(myProject, modelFileMap)));
+      }
+
+      return lightClassList.toArray(PsiClass.EMPTY_ARRAY);
     }
 
     return PsiClass.EMPTY_ARRAY;
@@ -67,6 +94,12 @@ public class MlkitShortNamesCache extends PsiShortNamesCache {
         classNameList.add(key);
         return true;
       }, myProject);
+
+      if (!classNameList.isEmpty()) {
+        classNameList.add(MlkitNames.INPUTS);
+        classNameList.add(MlkitNames.OUTPUTS);
+      }
+
       return ArrayUtil.toStringArray(classNameList);
     }
 
