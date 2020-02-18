@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.deployment;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.run.AndroidDevice;
 import java.nio.file.FileSystems;
@@ -39,9 +40,45 @@ public final class ModifyDeviceSetDialogTableTest {
   }
 
   @Test
+  public void getSelectedDevices() {
+    // Arrange
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel 3 API 29")
+      .setKey(new Key("Pixel_3_API_29"))
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    myTable.setModel(new ModifyDeviceSetDialogTableModel(Collections.singletonList(device)));
+
+    // Act
+    myTable.setSelected(true, 0);
+
+    // Assert
+    assertEquals(Collections.singletonList(device), myTable.getSelectedDevices());
+  }
+
+  @Test
+  public void setSelectedDevices() {
+    // Arrange
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel 3 API 29")
+      .setKey(new Key("Pixel_3_API_29"))
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    myTable.setModel(new ModifyDeviceSetDialogTableModel(Collections.singletonList(device)));
+
+    // Act
+    myTable.setSelectedDevices(Collections.singleton(new Key("Pixel_3_API_29")));
+
+    // Assert
+    assertTrue(myTable.isSelected(0));
+  }
+
+  @Test
   public void setModelDoesntThrowAssertionErrorWhenColumnCountEqualsZero() {
     // Arrange
-    TableModel model = new ModifyDeviceSetDialogTableModel(Collections.emptyList(), myTable);
+    TableModel model = new ModifyDeviceSetDialogTableModel(Collections.emptyList());
 
     // Act
     myTable.setModel(model);
@@ -56,7 +93,7 @@ public final class ModifyDeviceSetDialogTableTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    TableModel model = new ModifyDeviceSetDialogTableModel(Collections.singletonList(device), myTable);
+    TableModel model = new ModifyDeviceSetDialogTableModel(Collections.singletonList(device));
 
     // Act
     myTable.setModel(model);
@@ -86,7 +123,7 @@ public final class ModifyDeviceSetDialogTableTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    TableModel model = new ModifyDeviceSetDialogTableModel(Arrays.asList(device1, device2), myTable);
+    TableModel model = new ModifyDeviceSetDialogTableModel(Arrays.asList(device1, device2));
 
     // Act
     myTable.setModel(model);
@@ -112,7 +149,7 @@ public final class ModifyDeviceSetDialogTableTest {
       .setSnapshot(Snapshot.quickboot(FileSystems.getDefault()))
       .build();
 
-    TableModel model = new ModifyDeviceSetDialogTableModel(Collections.singletonList(device), myTable);
+    TableModel model = new ModifyDeviceSetDialogTableModel(Collections.singletonList(device));
 
     // Act
     myTable.setModel(model);
@@ -137,7 +174,7 @@ public final class ModifyDeviceSetDialogTableTest {
       .setSnapshot(new Snapshot(Paths.get("snap_2019-09-27_15-48-09"), "Snapshot"))
       .build();
 
-    TableModel model = new ModifyDeviceSetDialogTableModel(Collections.singletonList(device), myTable);
+    TableModel model = new ModifyDeviceSetDialogTableModel(Collections.singletonList(device));
 
     // Act
     myTable.setModel(model);
@@ -162,7 +199,7 @@ public final class ModifyDeviceSetDialogTableTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    TableModel model = new ModifyDeviceSetDialogTableModel(Collections.singletonList(device), myTable);
+    TableModel model = new ModifyDeviceSetDialogTableModel(Collections.singletonList(device));
 
     // Act
     myTable.setModel(model);
