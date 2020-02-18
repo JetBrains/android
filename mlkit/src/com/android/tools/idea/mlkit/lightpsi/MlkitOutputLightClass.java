@@ -54,10 +54,10 @@ public class MlkitOutputLightClass extends AndroidLightClassBase {
   private final String qualifiedName;
   private final CachedValue<PsiMethod[]> myMethodCache;
 
-  public MlkitOutputLightClass(@NotNull Module module, List<Param> params, PsiClass containingClass) {
+  public MlkitOutputLightClass(@NotNull Module module, @NotNull List<Param> params, @NotNull PsiClass containingClass) {
     super(PsiManager.getInstance(module.getProject()),
           ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL));
-    this.qualifiedName = String.join(".", MlkitUtils.computeModelPackageName(module), containingClass.getName(), MlkitNames.OUTPUTS);
+    this.qualifiedName = String.join(".", containingClass.getQualifiedName(), MlkitNames.OUTPUTS);
     this.containingClass = containingClass;
 
     setModuleInfo(module, false);
