@@ -677,8 +677,10 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   public void setShowDecorations(boolean enabled) {
-    useShowDecorations = enabled;
-    forceReinflate(); // Showing decorations changes the XML content of the render so requires re-inflation
+    if (useShowDecorations != enabled) {
+      useShowDecorations = enabled;
+      forceReinflate(); // Showing decorations changes the XML content of the render so requires re-inflation
+    }
   }
 
   public boolean isShowingDecorations() {
