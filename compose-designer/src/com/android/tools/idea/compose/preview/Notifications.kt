@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.gradle.project.build.BuildStatus
 import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
@@ -63,7 +64,7 @@ class ComposePreviewNotificationProvider : EditorNotifications.Provider<EditorNo
       return null
     }
 
-    val status = GradleBuildState.getInstance(project)?.summary?.status
+    val status = GradleBuildState.getInstance(project).summary?.status
     val lastBuildSuccessful = status == BuildStatus.SKIPPED || status == BuildStatus.SUCCESS
 
     // Check if the project has compiled correctly
