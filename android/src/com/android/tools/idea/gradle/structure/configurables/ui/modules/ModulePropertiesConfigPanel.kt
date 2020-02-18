@@ -31,7 +31,7 @@ class ModulePropertiesConfigPanel(module: PsAndroidModule, context: PsContext) :
     module.parent,
     module,
     module,
-    androidModulePropertiesModel()
+    androidModulePropertiesModel(context, module)
   ),
   ModelPanel<PsAndroidModule> {
 
