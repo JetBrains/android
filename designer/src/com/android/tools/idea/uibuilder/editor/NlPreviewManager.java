@@ -294,16 +294,16 @@ public class NlPreviewManager implements ProjectComponent {
         final boolean hideForNonLayoutFiles = settings.getGlobalState().isHideForNonLayoutFiles();
 
         if (activeEditor == null) {
-          myToolWindow.setAvailable(!hideForNonLayoutFiles, null);
+          myToolWindow.setAvailable(!hideForNonLayoutFiles);
           return;
         }
 
         if (!myToolWindowForm.setNextEditor(newEditor)) {
-          myToolWindow.setAvailable(!hideForNonLayoutFiles, null);
+          myToolWindow.setAvailable(!hideForNonLayoutFiles);
           return;
         }
 
-        myToolWindow.setAvailable(true, null);
+        myToolWindow.setAvailable(true);
         // If user is using Visualization Tool, don't force switch to Preview.
         final boolean visible = AndroidEditorSettings.getInstance().getGlobalState().isVisible()
                                 && !VisualizationManager.getInstance(myProject).isWindowVisible();

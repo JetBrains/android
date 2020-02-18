@@ -28,11 +28,11 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.wm.ToolWindowAnchor;
+import javax.swing.Icon;
+import javax.swing.JComponent;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 public class AnalysisResultsManager extends CaptureEditorLightToolWindowManager {
   private final AnalysisResultsContent myContent;
@@ -54,7 +54,7 @@ public class AnalysisResultsManager extends CaptureEditorLightToolWindowManager 
     myContent.update(designer);
 
     if (designer == null) {
-      myToolWindow.setAvailable(false, null);
+      myToolWindow.setAvailable(false);
     }
     else {
       DesignerEditorPanelFacade activeDesigner = getActiveDesigner();
@@ -64,7 +64,7 @@ public class AnalysisResultsManager extends CaptureEditorLightToolWindowManager 
         activeDesigner.putClientProperty(getComponentName(), myContent);
       }
       myToolWindow.setIcon(getIcon());
-      myToolWindow.setAvailable(true, null);
+      myToolWindow.setAvailable(true);
       myToolWindow.show(null);
     }
   }

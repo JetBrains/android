@@ -277,16 +277,16 @@ public class VisualizationManager implements ProjectComponent {
         }
 
         if (newEditor == null) {
-          myToolWindow.setAvailable(false, null);
+          myToolWindow.setAvailable(false);
           return;
         }
 
         if (!myToolWindowForm.setNextEditor(newEditor)) {
-          myToolWindow.setAvailable(false, null);
+          myToolWindow.setAvailable(false);
           return;
         }
 
-        myToolWindow.setAvailable(true, null);
+        myToolWindow.setAvailable(true);
         // If user is using Preview Form, don't force switch to Visualization Tool.
         final boolean visible = VisualizationToolSettings.getInstance().getGlobalState().isVisible()
                                 && !NlPreviewManager.getInstance(myProject).isWindowVisible();

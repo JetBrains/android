@@ -53,7 +53,7 @@ public class LayersManager extends NlAbstractWindowManager {
     super.updateToolWindow(designer);
 
     if (designer == null) {
-      myToolWindow.setAvailable(false, null);
+      myToolWindow.setAvailable(false);
       if (myLayersPanel != null) {
         myLayersPanel.setImage(null);
       }
@@ -64,7 +64,7 @@ public class LayersManager extends NlAbstractWindowManager {
         createWindowContent(myLayersPanel, myLayersPanel, null);
       }
       myLayersPanel.setImage(getImage(designer));
-      myToolWindow.setAvailable(true, null);
+      myToolWindow.setAvailable(true);
       myToolWindow.show(null);
     }
   }
