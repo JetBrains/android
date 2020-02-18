@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.emulator
 
-import com.android.emulator.EntryList
+import com.android.emulator.control.EntryList
 import java.lang.Boolean.parseBoolean
 import java.nio.file.Path
 import java.nio.file.Paths
