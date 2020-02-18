@@ -26,7 +26,6 @@ import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.sdklib.IAndroidTarget;
@@ -40,7 +39,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.Computable;
 import com.intellij.testFramework.PlatformTestCase;
-import com.intellij.testFramework.JavaProjectTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
 import java.io.File;
 import java.io.IOException;
@@ -49,13 +47,12 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
-import org.mockito.Mock;
 
 /**
  * Tests for {@link IdeSdks}.
  */
 public class IdeSdksTest extends PlatformTestCase {
-  @Mock private IdeInfo myIdeInfo;
+  private IdeInfo myIdeInfo;
 
   private File myAndroidSdkPath;
   private EmbeddedDistributionPaths myEmbeddedDistributionPaths;
@@ -65,7 +62,7 @@ public class IdeSdksTest extends PlatformTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    when(myIdeInfo.isAndroidStudio()).thenReturn(true);
+    myIdeInfo = IdeInfo.getInstance();
 
     AndroidTestCaseHelper.removeExistingAndroidSdks();
     myAndroidSdkPath = getSdk();
@@ -166,8 +163,9 @@ public class IdeSdksTest extends PlatformTestCase {
   }
 
   public void testUseEmbeddedJdk() {
-    when(myIdeInfo.isAndroidStudio()).thenReturn(true);
-
+    if (!myIdeInfo.isAndroidStudio()) {
+      return; // Idea does not have embedded JDK. Skip this test.
+    }
     ApplicationManager.getApplication().runWriteAction(() -> myIdeSdks.setUseEmbeddedJdk());
 
     // The path of the JDK should be the same as the embedded one.
@@ -243,5 +241,4 @@ public class IdeSdksTest extends PlatformTestCase {
     assertThat(myIdeSdks.setUseEnvVariableJdk(true)).isTrue();
     assertThat(myIdeSdks.isUsingEnvVariableJdk()).isTrue();
   }
-
 }
