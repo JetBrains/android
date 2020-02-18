@@ -26,6 +26,8 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.psi.PsiDocumentManager;
+import com.intellij.testFramework.PlatformTestUtil;
 import java.util.List;
 
 /** Tests for {@link ModuleResourceRepository} based on {@link AndroidGradleTestCase}. */
@@ -52,9 +54,8 @@ public class ModuleResourceRepositoryGradleTest extends AndroidGradleTestCase {
 
   /**
    * Checks that test res folders created between syncs are picked up by ResourceFolderManager and handled by ModuleResourceRepository.
-   * TODO(b/148880283): Once fixed re-enable.
    */
-  public void /*testTest*/Folders() throws Exception {
+  public void testTestFolders() throws Exception {
     loadSimpleApplication();
     LocalResourceRepository repository = ModuleResourceRepository.forTestResources(myAndroidFacet, RES_AUTO);
     if (repository instanceof Disposable) {
@@ -70,6 +71,8 @@ public class ModuleResourceRepositoryGradleTest extends AndroidGradleTestCase {
       "<resources>\n" +
       "  <string name=\"test_res\">test res value</string>\n" +
       "</resources>");
+    PsiDocumentManager.getInstance(getProject()).commitAllDocuments();
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
 
     List<ResourceItem> newResources = repository.getAllResources();
     assertThat(newResources).hasSize(1);
