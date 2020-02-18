@@ -25,6 +25,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PSD_CHANGES
 import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.ide.IdeEventQueue
+import com.intellij.ide.JavaUiBundle
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
@@ -37,7 +38,6 @@ import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.options.SearchableConfigurable
 import com.intellij.openapi.options.newEditor.SettingsDialog
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ProjectBundle
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.ui.MasterDetailsComponent
 import com.intellij.openapi.ui.MessageType
@@ -209,7 +209,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
   override fun enableSearch(option: String): Runnable? = null
 
   @Nls
-  override fun getDisplayName(): String = if (isDefaultProject) "Default Project Structure" else ProjectBundle.message("project.settings.display.name")
+  override fun getDisplayName(): String = if (isDefaultProject) "Default Project Structure" else JavaUiBundle.message("project.settings.display.name")
 
   override fun getHelpTopic(): String? = mySelectedConfigurable?.helpTopic
 
