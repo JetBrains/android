@@ -15,12 +15,8 @@
  */
 package com.android.tools.idea.mlkit.lightpsi;
 
-import com.android.tools.mlkit.Param;
-import com.intellij.openapi.module.Module;
-import com.intellij.psi.PsiClass;
-import org.jetbrains.android.augment.AndroidLightClassBase;
+import com.android.tools.mlkit.TensorInfo;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Utility method to generate light class.
@@ -31,17 +27,18 @@ public class CodeUtils {
    * Get qualified type name based on {@link Param}
    */
   @NotNull
-  public static String getTypeQualifiedName(@NotNull Param param) {
-    if (param.getSource() == Param.Source.INPUT) {
-      if (param.getContentType() == Param.ContentType.IMAGE) {
+  public static String getTypeQualifiedName(@NotNull TensorInfo tensorInfo) {
+    if (tensorInfo.getSource() == TensorInfo.Source.INPUT) {
+      if (tensorInfo.getContentType() == TensorInfo.ContentType.IMAGE) {
         return ClassNames.BITMAP;
-      } else {
+      }
+      else {
         return ClassNames.BYTE_BUFFER;
       }
-    } else {
+    }
+    else {
       //TODO(jackqdyulei): support more type after API is finalized
       return ClassNames.BYTE_BUFFER;
     }
-
   }
 }

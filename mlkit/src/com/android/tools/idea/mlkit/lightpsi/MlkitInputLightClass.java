@@ -17,7 +17,7 @@ package com.android.tools.idea.mlkit.lightpsi;
 
 import com.android.tools.idea.mlkit.MlkitModuleService;
 import com.android.tools.mlkit.MlkitNames;
-import com.android.tools.mlkit.Param;
+import com.android.tools.mlkit.TensorInfo;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.ModificationTracker;
@@ -47,7 +47,7 @@ public class MlkitInputLightClass extends AndroidLightClassBase {
   private final String qualifiedName;
   private final CachedValue<PsiMethod[]> myMethodCache;
 
-  public MlkitInputLightClass(@NotNull Module module, @NotNull List<Param> params, @NotNull PsiClass containingClass) {
+  public MlkitInputLightClass(@NotNull Module module, @NotNull List<TensorInfo> tensorInfos, @NotNull PsiClass containingClass) {
     super(PsiManager.getInstance(module.getProject()),
           ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL));
     this.qualifiedName = String.join(".", containingClass.getQualifiedName(), MlkitNames.INPUTS);
@@ -59,9 +59,9 @@ public class MlkitInputLightClass extends AndroidLightClassBase {
     ModificationTracker modificationTracker = new MlkitModuleService.ModelFileModificationTracker(module);
     myMethodCache = CachedValuesManager.getManager(getProject()).createCachedValue(
       () -> {
-        PsiMethod[] methods = new PsiMethod[params.size()];
+        PsiMethod[] methods = new PsiMethod[tensorInfos.size()];
         for (int i = 0; i < methods.length; i++) {
-          methods[i] = buildLoadMethod(params.get(i));
+          methods[i] = buildLoadMethod(tensorInfos.get(i));
         }
 
         return CachedValueProvider.Result.create(methods, modificationTracker);
@@ -86,13 +86,13 @@ public class MlkitInputLightClass extends AndroidLightClassBase {
     return myMethodCache.getValue();
   }
 
-  private PsiMethod buildLoadMethod(Param param) {
-    PsiType paramType = PsiType.getTypeByName(CodeUtils.getTypeQualifiedName(param), getProject(), getResolveScope());
+  private PsiMethod buildLoadMethod(TensorInfo tensorInfo) {
+    PsiType paramType = PsiType.getTypeByName(CodeUtils.getTypeQualifiedName(tensorInfo), getProject(), getResolveScope());
 
-    String methodName = "load" + StringUtil.capitalizeWithJavaBeanConvention(StringUtil.sanitizeJavaIdentifier(param.getName()));
+    String methodName = "load" + StringUtil.capitalizeWithJavaBeanConvention(StringUtil.sanitizeJavaIdentifier(tensorInfo.getName()));
     return new LightMethodBuilder(myManager, methodName)
       .addModifiers(PsiModifier.PUBLIC, PsiModifier.FINAL)
-      .addParameter(param.getName(), paramType)
+      .addParameter(tensorInfo.getName(), paramType)
       .setMethodReturnType(PsiType.VOID)
       .setContainingClass(this);
   }

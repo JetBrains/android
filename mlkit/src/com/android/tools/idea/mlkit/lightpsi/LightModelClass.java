@@ -18,7 +18,7 @@ package com.android.tools.idea.mlkit.lightpsi;
 import com.android.SdkConstants;
 import com.android.tools.idea.mlkit.LightModelClassConfig;
 import com.android.tools.mlkit.MlkitNames;
-import com.android.tools.mlkit.Param;
+import com.android.tools.mlkit.TensorInfo;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.fileTypes.StdFileTypes;
@@ -98,12 +98,12 @@ public class LightModelClass extends AndroidLightClassBase {
         methods[1] = buildCreateInputsMethod();
 
         //Build inner class
-        List<Param> inputParams = myClassConfig.myModelMetadata.getInputParams();
-        List<Param> outputParams = myClassConfig.myModelMetadata.getOutputParams();
+        List<TensorInfo> inputTensorInfos = myClassConfig.myModelMetadata.getInputTensorInfos();
+        List<TensorInfo> outputTensorInfos = myClassConfig.myModelMetadata.getOutputTensorInfos();
 
         Map<String, PsiClass> innerClassMap = new HashMap<>();
-        MlkitInputLightClass mlkitInputClass = new MlkitInputLightClass(module, inputParams, this);
-        MlkitOutputLightClass mlkitOutputClass = new MlkitOutputLightClass(module, outputParams, this);
+        MlkitInputLightClass mlkitInputClass = new MlkitInputLightClass(module, inputTensorInfos, this);
+        MlkitOutputLightClass mlkitOutputClass = new MlkitOutputLightClass(module, outputTensorInfos, this);
         innerClassMap.putIfAbsent(mlkitOutputClass.getName(), mlkitOutputClass);
         innerClassMap.putIfAbsent(mlkitInputClass.getName(), mlkitInputClass);
 
