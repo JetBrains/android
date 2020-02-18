@@ -67,7 +67,7 @@ public class AndroidProfilerProgramRunner extends AndroidBaseProgramRunner {
       // First unset the last run app info, showing the tool window can trigger the profiler to start profiling using the stale info.
       // The most current run app info will be set in AndroidProfilerToolWindowLaunchTask instead.
       project.putUserData(AndroidProfilerToolWindow.LAST_RUN_APP_INFO, null);
-      window.setAvailable(true, null);
+      window.setAvailable(true);
       window.show(null);
     }
 

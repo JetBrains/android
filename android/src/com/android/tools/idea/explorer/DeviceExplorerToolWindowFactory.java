@@ -42,7 +42,7 @@ public final class DeviceExplorerToolWindowFactory implements DumbAware, ToolWin
   @Override
   public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
     toolWindow.setIcon(StudioIcons.Shell.ToolWindows.DEVICE_EXPLORER);
-    toolWindow.setAvailable(true, null);
+    toolWindow.setAvailable(true);
     toolWindow.setToHideOnEmptyContent(true);
     toolWindow.setTitle(TOOL_WINDOW_ID);
 

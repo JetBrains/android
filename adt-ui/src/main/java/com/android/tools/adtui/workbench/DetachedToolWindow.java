@@ -59,7 +59,7 @@ final class DetachedToolWindow<T> implements ToolWindowCallback, Disposable {
     updateState(correspondingWindow);
     myContent.setToolContext(correspondingWindow.getContext());
     myContent.registerCallbacks(this);
-    myToolWindow.setAvailable(true, null);
+    myToolWindow.setAvailable(true);
     myToolWindow.setType(toToolWindowType(correspondingWindow), null);
     myToolWindow.setSplitMode(correspondingWindow.isSplit(), null);
     myToolWindow.show(null);
@@ -67,7 +67,7 @@ final class DetachedToolWindow<T> implements ToolWindowCallback, Disposable {
 
   public void hide() {
     myContent.setToolContext(null);
-    myToolWindow.setAvailable(false, null);
+    myToolWindow.setAvailable(false);
   }
 
   @Override
@@ -165,7 +165,7 @@ final class DetachedToolWindow<T> implements ToolWindowCallback, Disposable {
     @Override
     public void actionPerformed(@NotNull AnActionEvent event) {
       if (myCorrespondingToolWindow != null) {
-        myToolWindow.setAvailable(false, null);
+        myToolWindow.setAvailable(false);
         updateSettingsInAttachedToolWindow();
         myCorrespondingToolWindow.setLeft(mySide.isLeft());
         myCorrespondingToolWindow.setPropertyAndUpdate(DETACHED, false);

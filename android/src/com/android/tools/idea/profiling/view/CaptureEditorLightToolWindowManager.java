@@ -26,10 +26,10 @@ import com.intellij.openapi.wm.ex.ToolWindowEx;
 import com.intellij.openapi.wm.impl.content.ToolWindowContentUi;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
+import javax.swing.Icon;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 public abstract class CaptureEditorLightToolWindowManager extends LightToolWindowManager {
   protected CaptureEditorLightToolWindowManager(@NotNull Project project) {
@@ -63,7 +63,7 @@ public abstract class CaptureEditorLightToolWindowManager extends LightToolWindo
     content.setPreferredFocusableComponent(getFocusedComponent());
     contentManager.addContent(content);
     contentManager.setSelectedContent(content, true);
-    myToolWindow.setAvailable(false, null);
+    myToolWindow.setAvailable(false);
   }
 
   @NotNull
