@@ -56,6 +56,7 @@ import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.UIUtilities;
 import icons.StudioIcons;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
@@ -64,6 +65,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.function.ToLongFunction;
 import java.util.stream.Collectors;
 import javax.swing.JComponent;
@@ -180,15 +182,36 @@ final class MemoryClassifierView extends AspectObserver {
   /**
    * Make right-aligned, descending column displaying integer property with custom order for non-ClassSet values
    */
-  private static AttributeColumn<ClassifierSet> makeColumn(String name,
-                                                           ToLongFunction<ClassifierSet> prop,
-                                                           Comparator<ClassifierSet> comp) {
+  private AttributeColumn<ClassifierSet> makeColumn(@NotNull String name,
+                                                    @NotNull ToLongFunction<ClassifierSet> prop,
+                                                    @NotNull Comparator<ClassifierSet> comp) {
+
+    Function<MemoryObjectTreeNode<ClassifierSet>, String> textGetter = node ->
+      NumberFormatter.formatInteger(prop.applyAsLong(node.getAdapter()));
+    final ColoredTreeCellRenderer renderer;
+    if (myStage.getStudioProfilers().getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled()) {
+      // Progress-bar style background that reflects percentage contribution
+      renderer = new PercentColumnRenderer<>(
+        textGetter, v -> null, SwingConstants.RIGHT,
+        node -> {
+          MemoryObjectTreeNode<ClassifierSet> parent = node.myParent;
+          if (parent == null) {
+            return 0;
+          } else {
+            long myVal = prop.applyAsLong(node.getAdapter());
+            long parentVal = prop.applyAsLong(parent.getAdapter());
+            return parentVal == 0 ? 0 : (int)(myVal * 100 / parentVal);
+          }
+        }
+      );
+    } else {
+      // Legacy renderer
+      renderer = new SimpleColumnRenderer<>(textGetter, v -> null, SwingConstants.RIGHT);
+    }
+
     return new AttributeColumn<>(
       name,
-      () -> new SimpleColumnRenderer<ClassifierSet>(
-        value -> NumberFormatter.formatInteger(prop.applyAsLong(value.getAdapter())),
-        v -> null,
-        SwingConstants.RIGHT),
+      () -> renderer,
       SwingConstants.RIGHT,
       SimpleColumnRenderer.DEFAULT_COLUMN_WIDTH,
       SortOrder.DESCENDING,
@@ -199,7 +222,7 @@ final class MemoryClassifierView extends AspectObserver {
   /**
    * Make right-aligned, descending column displaying integer property
    */
-  private static AttributeColumn<ClassifierSet> makeColumn(String name, ToLongFunction<ClassifierSet> prop) {
+  private AttributeColumn<ClassifierSet> makeColumn(String name, ToLongFunction<ClassifierSet> prop) {
     return makeColumn(name, prop, Comparator.comparingLong(prop));
   }
 
