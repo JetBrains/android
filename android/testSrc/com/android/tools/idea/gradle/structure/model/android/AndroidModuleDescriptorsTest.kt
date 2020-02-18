@@ -86,13 +86,16 @@ class AndroidModuleDescriptorsTest : AndroidGradleTestCase() {
 
     appModule.compileSdkVersion = "25".asParsed()
     appModule.viewBindingEnabled = true.asParsed()
+    appModule.includeDependenciesInfoInApk = false.asParsed()
     appModule.buildToolsVersion = ParsedValue.Set.Parsed(dslText = DslText.Reference("varProGuardFiles[0]"), value = null)
 
     fun verifyValues(appModule: PsAndroidModule) {
       val compileSdkVersion = AndroidModuleDescriptors.compileSdkVersion.bind(appModule).getValue()
       val viewBindingEnabled = AndroidModuleDescriptors.viewBindingEnabled.bind(appModule).getValue()
+      val includeDependenciesInfoInApk = AndroidModuleDescriptors.includeDependenciesInfoInApk.bind(appModule).getValue()
       assertThat(compileSdkVersion.parsedValue.asTestValue(), equalTo("25"))
       assertThat(viewBindingEnabled.parsedValue.asTestValue(), equalTo(true))
+      assertThat(includeDependenciesInfoInApk.parsedValue.asTestValue(), equalTo(false))
       assertThat(appModule.parsedModel?.android()?.compileSdkVersion()?.getValue(OBJECT_TYPE), equalTo<Any>(25))
       assertThat(appModule.parsedModel?.android()?.viewBinding()?.enabled()?.getValue(OBJECT_TYPE), equalTo<Any>(true))
     }
