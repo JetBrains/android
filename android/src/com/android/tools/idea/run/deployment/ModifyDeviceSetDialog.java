@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
@@ -27,11 +28,14 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Group;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.event.TableModelEvent;
+import javax.swing.table.TableModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,12 +45,27 @@ final class ModifyDeviceSetDialog extends DialogWrapper {
   @NotNull
   private final Project myProject;
 
+  @NotNull
+  private final TableModel myTableModel;
+
   @Nullable
   private ModifyDeviceSetDialogTable myTable;
 
   ModifyDeviceSetDialog(@NotNull Project project) {
+    this(project, newModifyDeviceSetDialogTableModel(project));
+  }
+
+  @NotNull
+  private static TableModel newModifyDeviceSetDialogTableModel(@NotNull Project project) {
+    return new ModifyDeviceSetDialogTableModel(ServiceManager.getService(project, AsyncDevicesGetter.class).get());
+  }
+
+  @VisibleForTesting
+  ModifyDeviceSetDialog(@NotNull Project project, @NotNull TableModel tableModel) {
     super(project);
+
     myProject = project;
+    myTableModel = tableModel;
 
     initTable();
     init();
@@ -54,12 +73,16 @@ final class ModifyDeviceSetDialog extends DialogWrapper {
   }
 
   private void initTable() {
-    List<Device> devices = ServiceManager.getService(myProject, AsyncDevicesGetter.class).get();
+    myTableModel.addTableModelListener(event -> {
+      if (event.getType() == TableModelEvent.UPDATE && event.getColumn() == ModifyDeviceSetDialogTableModel.SELECTED_MODEL_COLUMN_INDEX) {
+        assert myTable != null;
+        getOKAction().setEnabled(IntStream.range(0, myTable.getRowCount()).anyMatch(myTable::isSelected));
+      }
+    });
 
     myTable = new ModifyDeviceSetDialogTable();
-    myTable.setModel(new ModifyDeviceSetDialogTableModel(devices, myTable));
-    myTable.getSelectionModel().addListSelectionListener(event -> getOKAction().setEnabled(myTable.getSelectedRowCount() != 0));
 
+    myTable.setModel(myTableModel);
     myTable.setSelectedDevices(getSelectedKeys(myProject));
   }
 
@@ -96,6 +119,12 @@ final class ModifyDeviceSetDialog extends DialogWrapper {
   @NotNull
   @Override
   public JComponent getPreferredFocusedComponent() {
+    return getTable();
+  }
+
+  @NotNull
+  @VisibleForTesting
+  ModifyDeviceSetDialogTable getTable() {
     assert myTable != null;
     return myTable;
   }
