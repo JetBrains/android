@@ -71,8 +71,8 @@ class AddBenchmarkModuleTest {
     }
 
     guiTest.getProjectFileText("benchmark/build.gradle").run {
-      assertThat(this).contains("""apply plugin: 'com.android.library'""")
-      assertThat(this).contains("""apply plugin: 'androidx.benchmark'""")
+      assertThat(this).contains("""id 'com.android.library'""")
+      assertThat(this).contains("""id 'androidx.benchmark'""")
       assertThat(this).contains("""testBuildType = "release"""")
       assertThat(this).contains("""testInstrumentationRunner 'androidx.benchmark.junit4.AndroidBenchmarkRunner'""")
       assertThat(this).contains("""androidTestImplementation 'androidx.benchmark:benchmark-junit4:""")
@@ -120,8 +120,8 @@ class AddBenchmarkModuleTest {
     }
 
     guiTest.getProjectFileText("benchmark/build.gradle").run {
-      assertThat(this).contains("""apply plugin: 'com.android.library'""")
-      assertThat(this).contains("""apply plugin: 'androidx.benchmark'""")
+      assertThat(this).contains("""id 'com.android.library'""")
+      assertThat(this).contains("""id 'androidx.benchmark'""")
       assertThat(this).contains("""testBuildType = "release"""")
       assertThat(this).contains("""testInstrumentationRunner 'androidx.benchmark.junit4.AndroidBenchmarkRunner'""")
       assertThat(this).contains("""androidTestImplementation 'androidx.benchmark:benchmark-junit4:""")
