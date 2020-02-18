@@ -50,6 +50,7 @@ import com.intellij.build.events.BuildEvent;
 import com.intellij.build.events.FinishBuildEvent;
 import com.intellij.execution.BeforeRunTask;
 import com.intellij.execution.RunManagerEx;
+import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.impl.RunManagerImpl;
@@ -122,7 +123,9 @@ public class PostSyncProjectSetupTest extends PlatformTestCase {
     ConfigurationFactory configurationFactory = AndroidJUnitConfigurationType.getInstance().getConfigurationFactories()[0];
     Project project = getProject();
     AndroidJUnitConfiguration jUnitConfiguration = new AndroidJUnitConfiguration(project, configurationFactory);
-    myRunManager.addConfiguration(myRunManager.createConfiguration(jUnitConfiguration, configurationFactory), true);
+    RunnerAndConfigurationSettings settings = myRunManager.createConfiguration(jUnitConfiguration, configurationFactory);
+    settings.storeInDotIdeaFolder();
+    myRunManager.addConfiguration(settings);
 
     List<RunConfiguration> junitRunConfigurations = myRunManager.getConfigurationsList(AndroidJUnitConfigurationType.getInstance());
     for (RunConfiguration runConfiguration : junitRunConfigurations) {
