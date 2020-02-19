@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.naveditor.editor;
 
-import static com.android.tools.idea.uibuilder.actions.LayoutEditorHelpAssistantActionKt.NAV_EDITOR_BUNDLE_ID;
+import static com.android.tools.idea.naveditor.actions.NavEditorHelpAssistantActionKt.NAV_EDITOR_BUNDLE_ID;
 
 import com.android.tools.idea.common.actions.IssueNotificationAction;
 import com.android.tools.idea.common.editor.ToolbarActionGroups;
