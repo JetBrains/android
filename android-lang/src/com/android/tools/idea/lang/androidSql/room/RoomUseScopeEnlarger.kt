@@ -15,17 +15,17 @@
  */
 package com.android.tools.idea.lang.androidSql.room
 
-import com.android.tools.idea.projectsystem.getModuleSystem
-import com.intellij.openapi.module.ModuleUtil
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
+import com.intellij.psi.impl.ResolveScopeManager
 import com.intellij.psi.search.SearchScope
 import com.intellij.psi.search.UseScopeEnlarger
 import org.jetbrains.kotlin.psi.KtProperty
-import com.android.tools.idea.projectsystem.getResolveScope
 
 /**
- * Extends a search scope for PsiField/KtProperty in the project with Room.
+ * Extends a use scope for PsiField/KtProperty that defines a Room column.
+ *
+ * Returns a use scope of containing file of the given PsiField/KtProperty.
  *
  * We need to extend useScope [com.intellij.psi.search.PsiSearchHelper.getUseScope] for a private PsiField/KtProperty because they
  * can be used in a Room query in any file of the module (default useScope doesn't include all files in the module for
@@ -33,8 +33,11 @@ import com.android.tools.idea.projectsystem.getResolveScope
  */
 class RoomUseScopeEnlarger : UseScopeEnlarger() {
   override fun getAdditionalUseScope(element: PsiElement): SearchScope? {
-    if (RoomDependencyChecker.getInstance(element.project).isRoomPresent() && (element is PsiField || element is KtProperty)) {
-      return ModuleUtil.findModuleForPsiElement(element)?.getModuleSystem()?.getResolveScope(element)
+    if (RoomDependencyChecker.getInstance(element.project).isRoomPresent() &&
+        (element is PsiField || element is KtProperty) &&
+        element.definesRoomSchema &&
+        element.containingFile != null) {
+      return ResolveScopeManager.getElementUseScope(element.containingFile)
     }
     return null
   }
