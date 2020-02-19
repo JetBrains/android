@@ -485,7 +485,6 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
           "org.gradle.api.plugins.JavaBasePlugin$Inject",
           "org.gradle.api.plugins.JvmEcosystemPlugin",
           "com.android.build.gradle.AppPlugin",
-          "org.gradle.plugins.ide.idea.IdeaPlugin",
           "com.android.build.gradle.internal.plugins.AppPlugin",
           "com.android.build.gradle.internal.plugins.VersionCheckPlugin"
         ));
