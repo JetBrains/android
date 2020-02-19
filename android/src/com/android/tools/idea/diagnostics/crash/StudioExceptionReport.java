@@ -23,6 +23,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.intellij.diagnostic.IdeErrorsDialog;
+import com.intellij.execution.filters.CompositeFilter;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.idea.IdeaLogger;
@@ -41,6 +42,7 @@ public class StudioExceptionReport extends BaseStudioReport {
    */
   private static final ImmutableList<Class<? extends Throwable>> THROWABLE_CLASSES_TO_TRACK_MESSAGES =
     ImmutableList.of(
+      CompositeFilter.ApplyFilterException.class, // See b/146355865.
       LinkageError.class,
       ReflectiveOperationException.class,
       ArrayIndexOutOfBoundsException.class,
