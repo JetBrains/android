@@ -7,8 +7,13 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.codeInsight.completion.CompletionContributor;
 import com.intellij.codeInsight.completion.CompletionParameters;
+import com.intellij.codeInsight.completion.CompletionResult;
 import com.intellij.codeInsight.completion.CompletionResultSet;
+import com.intellij.codeInsight.lookup.LookupElement;
+import com.intellij.codeInsight.lookup.LookupElementDecorator;
+import com.intellij.codeInsight.lookup.LookupElementPresentation;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiDocCommentOwner;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiExpression;
 import com.intellij.psi.PsiField;
@@ -16,8 +21,10 @@ import com.intellij.psi.PsiReferenceExpression;
 import java.util.Objects;
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.inspections.AndroidDeprecationInspection;
 import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Eugene.Kudelevsky
@@ -50,7 +57,30 @@ public class AndroidJavaCompletionContributor extends CompletionContributor {
       });
     }
 
-    // Filter out private resources when completing R.type.name expressions, if any
+    boolean filterPrivateResources = shouldFilterPrivateResources(position, facet);
+    ResourceVisibilityLookup lookup = filterPrivateResources ? getResourcesLookup(facet) : null;
+
+    resultSet.runRemainingContributors(parameters, result -> {
+      CompletionResult modifiedResult = result;
+      if (filterPrivateResources) {
+        if (lookup != null && isForPrivateResource(modifiedResult, lookup)) {
+          modifiedResult = null;
+        }
+      }
+
+      if (modifiedResult != null) {
+        modifiedResult = fixDeprecationPresentation(modifiedResult, parameters);
+      }
+
+      if (modifiedResult != null) {
+        resultSet.passResult(modifiedResult);
+      }
+    });
+  }
+
+  private static boolean shouldFilterPrivateResources(PsiElement position, AndroidFacet facet) {
+    boolean filterPrivateResources = false;
+    // Filter out private resources when completing R.type.name expressions, if any.
     if (position.getParent() instanceof PsiReferenceExpression) {
       PsiReferenceExpression ref = (PsiReferenceExpression)position.getParent();
       if (ref.getQualifierExpression() != null &&
@@ -61,7 +91,6 @@ public class AndroidJavaCompletionContributor extends CompletionContributor {
           if (R_CLASS.equals(ref3.getReferenceName())) {
             // We do the filtering only on the R class of this module, users who explicitly reference other R classes are assumed to know
             // what they're doing.
-            boolean filterPrivateResources = false;
             PsiExpression qualifierExpression = ref3.getQualifierExpression();
             if (qualifierExpression == null) {
               filterPrivateResources = true;
@@ -73,41 +102,62 @@ public class AndroidJavaCompletionContributor extends CompletionContributor {
                 filterPrivateResources = true;
               }
             }
-
-            if (filterPrivateResources) {
-              filterPrivateResources(parameters, resultSet, facet);
-            }
           }
         }
       }
     }
+    return filterPrivateResources;
   }
 
-  public void filterPrivateResources(@NotNull CompletionParameters parameters,
-                                     @NotNull final CompletionResultSet resultSet,
-                                     AndroidFacet facet) {
-    final ResourceVisibilityLookup lookup = ResourceRepositoryManager.getInstance(facet).getResourceVisibility();
-    if (lookup.isEmpty()) {
-      return;
-    }
-    resultSet.runRemainingContributors(parameters, result -> {
-      final Object obj = result.getLookupElement().getObject();
-
-      if (obj instanceof PsiField) {
-        PsiField field = (PsiField)obj;
-        PsiClass containingClass = field.getContainingClass();
-        if (containingClass != null) {
-          PsiClass rClass = containingClass.getContainingClass();
-          if (rClass != null && R_CLASS.equals(rClass.getName())) {
-            ResourceType type = ResourceType.fromClassName(containingClass.getName());
-            if (type != null && lookup.isPrivate(type, field.getName())) {
-              return;
-            }
+  @NotNull
+  public static CompletionResult fixDeprecationPresentation(@NotNull CompletionResult result,
+                                                            @NotNull CompletionParameters parameters) {
+    Object obj = result.getLookupElement().getObject();
+    if (obj instanceof PsiDocCommentOwner) {
+      PsiDocCommentOwner docCommentOwner = (PsiDocCommentOwner)obj;
+      if (docCommentOwner.isDeprecated()) {
+        for (AndroidDeprecationInspection.DeprecationFilter filter : AndroidDeprecationInspection.getFilters()) {
+          if (filter.isExcluded(docCommentOwner, parameters.getPosition(), null)) {
+            result = result.withLookupElement(new NonDeprecatedDecorator(result.getLookupElement()));
           }
         }
       }
-      resultSet.passResult(result);
-    });
+    }
+    return result;
+  }
+
+  @Nullable
+  private static ResourceVisibilityLookup getResourcesLookup(AndroidFacet facet) {
+    ResourceVisibilityLookup lookup = ResourceRepositoryManager.getInstance(facet).getResourceVisibility();
+    if (lookup.isEmpty()) {
+      return null;
+    }
+    return lookup;
+  }
+
+  public static boolean isForPrivateResource(@NotNull CompletionResult result, @NotNull ResourceVisibilityLookup lookup) {
+    Object obj = result.getLookupElement().getObject();
+    if (!(obj instanceof PsiField)) {
+      return false;
+    }
+
+    PsiField psiField = (PsiField)obj;
+    PsiClass containingClass = psiField.getContainingClass();
+    if (containingClass != null) {
+      PsiClass rClass = containingClass.getContainingClass();
+      if (rClass != null && R_CLASS.equals(rClass.getName())) {
+        String resourceTypeName = containingClass.getName();
+        if (resourceTypeName == null) {
+          return false;
+        }
+
+        ResourceType type = ResourceType.fromClassName(containingClass.getName());
+        if (type != null && lookup.isPrivate(type, psiField.getName())) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   private static boolean isAllowedInAndroid(@NotNull String qName) {
@@ -117,5 +167,23 @@ public class AndroidJavaCompletionContributor extends CompletionContributor {
       }
     }
     return true;
+  }
+
+  /**
+   * Wrapper around a {@link LookupElement} that removes the deprecation strikeout. It's used when we we are in a code branch specific to
+   * an old SDK where a given {@link PsiElement} was not yet deprecated.
+   *
+   * @see AndroidDeprecationInspection.DeprecationFilter
+   */
+  private static class NonDeprecatedDecorator extends LookupElementDecorator<LookupElement> {
+    protected NonDeprecatedDecorator(@NotNull LookupElement delegate) {
+      super(delegate);
+    }
+
+    @Override
+    public void renderElement(LookupElementPresentation presentation) {
+      super.renderElement(presentation);
+      presentation.setStrikeout(false);
+    }
   }
 }
