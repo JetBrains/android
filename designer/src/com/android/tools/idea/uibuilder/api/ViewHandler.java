@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
-import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
-import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
+import static com.android.tools.idea.uibuilder.api.actions.ViewActionUtils.getToggleSizeActions;
 import static com.android.tools.idea.uibuilder.api.actions.ViewActionUtils.getViewOptionsAction;
-import static com.android.tools.idea.uibuilder.api.actions.ViewActionsKt.withRank;
 
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.AndroidCoordinate;
@@ -36,7 +34,6 @@ import com.android.tools.idea.uibuilder.api.actions.ViewActionPresentation;
 import com.android.tools.idea.uibuilder.model.FillPolicy;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import icons.StudioIcons;
 import java.util.EnumSet;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -109,7 +106,9 @@ public class ViewHandler extends StructurePaneComponentHandler implements Target
    *                {@link DirectViewAction}, {@link ToggleViewAction}, {@link ToggleViewActionGroup}, etc.
    */
   public void addToolbarActions(@NotNull List<ViewAction> actions) {
-    addDefaultViewActions(actions, 100);
+    actions.add(getViewOptionsAction());
+    actions.addAll(getToggleSizeActions());
+    // TODO: Gravity, etc
   }
 
   /**
@@ -139,16 +138,6 @@ public class ViewHandler extends StructurePaneComponentHandler implements Target
     addToolbarActions(nestedActions);
     actions.add(new ViewActionMenu(label, null, nestedActions));
   }
-
-  protected void addDefaultViewActions(@NotNull List<ViewAction> actions, int startRank) {
-    actions.add(withRank(new ToggleSizeViewAction("Toggle Width", ATTR_LAYOUT_WIDTH, StudioIcons.LayoutEditor.Toolbar.EXPAND_HORIZONTAL,
-                                         StudioIcons.LayoutEditor.Toolbar.CENTER_HORIZONTAL), startRank));
-    actions.add(withRank(new ToggleSizeViewAction("Toggle Height", ATTR_LAYOUT_HEIGHT, StudioIcons.LayoutEditor.Toolbar.EXPAND_VERTICAL,
-                                         StudioIcons.LayoutEditor.Toolbar.CENTER_VERTICAL), startRank + 20));
-    actions.add(getViewOptionsAction());
-    // TODO: Gravity, etc
-  }
-
 
   /**
    * Handles a double click on the component in the component tree
