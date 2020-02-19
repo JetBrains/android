@@ -88,16 +88,7 @@ class LayoutInspectorSettingsTest {
   }
 
   private class MyMockToolWindow(project: Project) : ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
-    var available = true
     var visible = true
-
-    override fun setAvailable(available: Boolean, runnable: Runnable?) {
-      this.available = available
-    }
-
-    override fun isAvailable(): Boolean {
-      return available
-    }
 
     override fun show(runnable: Runnable?) {
       visible = true
