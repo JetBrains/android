@@ -19,10 +19,10 @@ import com.android.tools.idea.projectsystem.SourceProviders;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Streams;
-import com.intellij.ide.IdeBundle;
 import com.intellij.ide.IdeView;
 import com.intellij.ide.actions.CreateFromTemplateAction;
 import com.intellij.ide.fileTemplates.FileTemplate;
+import com.intellij.java.JavaBundle;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -115,7 +115,7 @@ public final class CreateClassAction extends AnAction {
           assert p != null;
 
           String packageDirectoryQualifiedName = p.getQualifiedName();
-          return IdeBundle.message("progress.creating.class", StringUtil.getQualifiedName(packageDirectoryQualifiedName, name));
+          return JavaBundle.message("progress.creating.class", StringUtil.getQualifiedName(packageDirectoryQualifiedName, name));
         }
       });
 
