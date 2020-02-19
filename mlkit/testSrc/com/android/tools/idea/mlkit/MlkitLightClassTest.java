@@ -50,12 +50,6 @@ public class MlkitLightClassTest extends AndroidTestCase {
     myFixture.setTestDataPath(new File(getModulePath("mlkit"), "testData").getPath());
     myModelVirtualFile = myFixture.copyFileToProject("my_model.tflite", "/assets/my_model.tflite");
     PsiTestUtil.addSourceContentToRoots(myModule, myModelVirtualFile.getParent());
-
-    PsiFile imageFile = myFixture.addFileToProject(
-      "src/com/google/firebase/ml/vision/common/FirebaseVisionImage.java",
-      "package com.google.firebase.ml.vision.common;\n" +
-      "public class FirebaseVisionImage {}\n");
-    myFixture.allowTreeAccessForFile(imageFile.getVirtualFile());
   }
 
   @Override
@@ -181,7 +175,6 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "import android.app.Activity;\n" +
       "import android.os.Bundle;\n" +
       "import p1.p2.ml.MyModel;\n" +
-      "import com.google.firebase.ml.vision.common.FirebaseVisionImage;\n" +
       "\n" +
       "public class MainActivity extends Activity {\n" +
       "    @Override\n" +
@@ -201,7 +194,6 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "import android.app.Activity;\n" +
       "import android.os.Bundle;\n" +
       "import p1.p2.ml.MyModel;\n" +
-      "import com.google.firebase.ml.vision.common.FirebaseVisionImage;\n" +
       "\n" +
       "public class MainActivity extends Activity {\n" +
       "    @Override\n" +
@@ -222,7 +214,6 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "import android.app.Activity;\n" +
       "import android.os.Bundle;\n" +
       "import p1.p2.ml.MyModel;\n" +
-      "import com.google.firebase.ml.vision.common.FirebaseVisionImage;\n" +
       "\n" +
       "public class MainActivity extends Activity {\n" +
       "    @Override\n" +
@@ -242,7 +233,6 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "import android.app.Activity;\n" +
       "import android.os.Bundle;\n" +
       "import p1.p2.ml.MyModel;\n" +
-      "import com.google.firebase.ml.vision.common.FirebaseVisionImage;\n" +
       "\n" +
       "public class MainActivity extends Activity {\n" +
       "    @Override\n" +
@@ -262,7 +252,6 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "\n" +
       "import android.app.Activity;\n" +
       "import android.os.Bundle;\n" +
-      "import com.google.firebase.ml.vision.common.FirebaseVisionImage;\n" +
       "\n" +
       "public class MainActivity extends Activity {\n" +
       "    @Override\n" +
@@ -285,7 +274,6 @@ public class MlkitLightClassTest extends AndroidTestCase {
                           "\n" +
                           "import android.app.Activity;\n" +
                           "import android.os.Bundle;\n" +
-                          "import com.google.firebase.ml.vision.common.FirebaseVisionImage;\n" +
                           "\n" +
                           "import p1.p2.ml.MyModel;\n" +
                           "\n" +
@@ -306,7 +294,6 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "\n" +
       "import android.app.Activity;\n" +
       "import android.os.Bundle;\n" +
-      "import com.google.firebase.ml.vision.common.FirebaseVisionImage;\n" +
       "\n" +
       "public class MainActivity extends Activity {\n" +
       "    @Override\n" +
@@ -328,7 +315,6 @@ public class MlkitLightClassTest extends AndroidTestCase {
                           "\n" +
                           "import android.app.Activity;\n" +
                           "import android.os.Bundle;\n" +
-                          "import com.google.firebase.ml.vision.common.FirebaseVisionImage;\n" +
                           "\n" +
                           "import p1.p2.ml.MyModel;\n" +
                           "\n" +
