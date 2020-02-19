@@ -299,6 +299,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       public boolean isUnifiedPipelineEnabled() {
         return myEventsPipelineEnabled;
       }
+
+      @Override
+      public boolean isSeparateHeapDumpUiEnabled() {
+        return false;
+      }
     };
   }
 
