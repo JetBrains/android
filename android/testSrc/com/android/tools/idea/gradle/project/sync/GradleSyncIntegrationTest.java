@@ -132,6 +132,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.compiler.ModuleSourceAutogenerating;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -849,8 +850,21 @@ b/137231583 */
 
     // Verify that ContentRootData DataNode is created for buildSrc module.
     Collection<DataNode<ContentRootData>> contentRootData = ExternalSystemApiUtil.findAll(moduleData, ProjectKeys.CONTENT_ROOT);
-    assertThat(contentRootData).hasSize(1);
-    assertThat(contentRootData.iterator().next().getData().getRootPath()).isEqualTo(buildSrcDir.getPath());
+    if (isModulePerSourceSet()) {
+      String buildSrcDirPath = buildSrcDir.getPath();
+      assertThat(ContainerUtil.map(contentRootData, e -> e.getData().getRootPath())).containsExactly(
+        buildSrcDirPath,
+        buildSrcDirPath + "/src/main/java",
+        buildSrcDirPath + "/src/main/groovy",
+        buildSrcDirPath + "/src/main/resources",
+        buildSrcDirPath + "/src/test/java",
+        buildSrcDirPath + "/src/test/groovy",
+        buildSrcDirPath + "/src/test/resources"
+      );
+    } else {
+      assertThat(contentRootData).hasSize(1);
+      assertThat(contentRootData.iterator().next().getData().getRootPath()).isEqualTo(buildSrcDir.getPath());
+    }
   }
 
   public void testViewBindingOptionsAreCorrectlyVisibleFromIDE() throws Exception {
@@ -898,5 +912,9 @@ b/137231583 */
             .map(it -> it.getArtifacts())
             .flatMap(Collection::stream)
             .collect(toList());
+  }
+
+  private boolean isModulePerSourceSet() {
+    return !IdeInfo.getInstance().isAndroidStudio();
   }
 }
