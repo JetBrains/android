@@ -175,8 +175,7 @@ class AppInspectionDiscoveryHost(
           TransportStreamEventListener(
             eventKind = Common.Event.Kind.PROCESS,
             executor = executor,
-            filter = { it.process.hasProcessStarted() },
-            isTransient = true
+            filter = { it.process.hasProcessStarted() }
           ) {
             val process = it.process.processStarted.process
             addProcess(streamChannel, process)
@@ -186,8 +185,7 @@ class AppInspectionDiscoveryHost(
           TransportStreamEventListener(
             eventKind = Common.Event.Kind.PROCESS,
             executor = executor,
-            filter = { !it.process.hasProcessStarted() },
-            isTransient = true
+            filter = { !it.process.hasProcessStarted() }
           ) {
             removeProcess(it.groupId)
           }
