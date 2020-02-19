@@ -60,13 +60,13 @@ iml_module(
         "no_test_windows",  # b/135665870
     ],
     test_class = "com.android.tools.idea.mlkit.MlkitTestSuite",
-    test_data = glob(["testData/**"]) + [
+    test_data = [
         "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/tools/common/mlkit/testData",
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/android/testData",
         "//tools/idea/java/mockJDK-1.7",
     ],
-    test_resources = ["testData"],
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/.idea/libraries:delight-rhino-sandbox",
