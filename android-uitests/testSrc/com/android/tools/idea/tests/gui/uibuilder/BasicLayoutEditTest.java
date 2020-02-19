@@ -42,7 +42,7 @@ public class BasicLayoutEditTest {
    *   1. Create a new project
    *   2. Open the layout xml file
    *   3. Switch to design view
-   *   4. Drag and drop components TableRow, Button
+   *   4. Drag and drop components TextView, Button
    *   5. Switch back to Text view
    *   Verification:
    *   1. The added component shows up in the xml
@@ -60,7 +60,7 @@ public class BasicLayoutEditTest {
     assertThat(editorFixture.canInteractWithSurface()).isTrue();
 
     editorFixture
-      .dragComponentToSurface("Containers", "Spinner")
+      .dragComponentToSurface("Common", "TextView")
       .waitForRenderToFinish()
       .dragComponentToSurface("Buttons", "Button")
       .waitForRenderToFinish();
@@ -69,7 +69,7 @@ public class BasicLayoutEditTest {
                                        .getEditor()
                                        .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
                                        .getCurrentFileContents();
-    assertThat(layoutFileContents).contains("<Spinner");
+    assertThat(layoutFileContents).contains("<TextView");
     assertThat(layoutFileContents).contains("<Button");
   }
 }
