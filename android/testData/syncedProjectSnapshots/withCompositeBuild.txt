@@ -29,8 +29,8 @@ PROJECT             : testWithCompositeBuild
     MODULE              : TestCompositeLib1-app
         - ModuleGroupPath   : TestCompositeLib1
         - ModuleGroupPath   : app
-        ExternalModuleGroup : com.test.composite1
-        ExternalModuleVersion         : 1.0
+        ExternalModuleGroup : TestCompositeLib1
+        ExternalModuleVersion         : unspecified
         LinkedProjectId     : TestCompositeLib1:app
         LinkedProjectPath   : <PROJECT>/TestCompositeLib1/app
         RootProjectPath     : <PROJECT>
