@@ -136,6 +136,18 @@ internal class AppInspectorConnection(
     }
   }
 
+  private fun sendCancellationCommand(commandId: Int) {
+    val cancellationCommand = AppInspectionCommand.newBuilder()
+      .setInspectorId(inspectorId)
+      .setCancellationCommand(
+        AppInspection.CancellationCommand.newBuilder()
+          .setCancelledCommandId(commandId)
+          .build()
+      )
+      .build()
+    transport.executeCommand(cancellationCommand)
+  }
+
   override fun sendRawCommand(rawData: ByteArray): ListenableFuture<ByteArray> {
     if (isDisposed.get()) {
       return Futures.immediateFailedFuture(IllegalStateException(connectionClosedMessage))
@@ -149,6 +161,15 @@ internal class AppInspectorConnection(
         .build()
     val commandId = transport.executeCommand(appInspectionCommand)
     pendingCommands[commandId] = settableFuture
+
+    settableFuture.addListener(
+      Runnable {
+        if (settableFuture.isCancelled) {
+          sendCancellationCommand(commandId)
+        }
+      },
+      MoreExecutors.directExecutor()
+    )
 
     // cleanup() might have gotten called from a different thread, so we double-check if connection is disposed by now.
     // if it is disposed, then there is a race between pendingCommands.clear / future completion in cleanup method and
@@ -177,8 +198,7 @@ internal class AppInspectorConnection(
       pendingCommands.clear()
       if (disposeResponse == null) {
         disposeFuture.setException(RuntimeException(futureExceptionMessage))
-      }
-      else {
+      } else {
         disposeFuture.set(Unit)
       }
       clientEventListener.onDispose()
