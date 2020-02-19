@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.emulator
 
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.project.DumbAware
 
 /**
- * Simulates pressing the Power button on a Android virtual device.
+ * Simulates pressing the Volume Down button on an Android virtual device.
  */
-class EmulatorVolumeDownAction : AnAction(), DumbAware {
+class EmulatorVolumeDownAction : AbstractEmulatorAction() {
 
-  override fun actionPerformed(e: AnActionEvent) {
-    TODO("not implemented")
+  override fun actionPerformed(event: AnActionEvent) {
+    val emulatorController: EmulatorController = getEmulatorController(event) ?: return
+    emulatorController.sendKey(createHardwareKeyEvent("AudioVolumeDown"))
   }
 }
