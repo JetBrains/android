@@ -46,7 +46,6 @@ import com.intellij.execution.impl.EditConfigurationsDialog;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
@@ -78,7 +77,6 @@ import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -289,6 +287,11 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
       @Override
       public boolean isCustomEventVisualizationEnabled() {
         return StudioFlags.PROFILER_CUSTOM_EVENT_VISUALIZATION.get();
+      }
+
+      @Override
+      public boolean isSeparateHeapDumpUiEnabled() {
+        return StudioFlags.PROFILER_HEAPDUMP_SEPARATE.get();
       }
     };
   }

@@ -34,6 +34,7 @@ public interface FeatureConfig {
   boolean isCustomEventVisualizationEnabled();
   boolean isStartupCpuProfilingEnabled();
   boolean isUnifiedPipelineEnabled();
+  boolean isSeparateHeapDumpUiEnabled();
   // Add new features alphabetically instead of at the end of the list
   // This reduces the chance of having to deal with an annoying merge conflict.
 }
