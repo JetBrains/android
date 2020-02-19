@@ -47,6 +47,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.execution.ExecutionBundle;
+import com.intellij.execution.JUnitBundle;
 import com.intellij.execution.JavaExecutionUtil;
 import com.intellij.execution.ProgramRunnerUtil;
 import com.intellij.execution.configurations.ConfigurationFactory;
@@ -171,7 +172,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     else if (TESTING_TYPE == TEST_METHOD) {
       return ProgramRunnerUtil.shortenName(METHOD_NAME, 2) + "()";
     }
-    return ExecutionBundle.message("all.tests.scope.presentable.text");
+    return JUnitBundle.message("all.tests.scope.presentable.text");
   }
 
   @NotNull
@@ -191,14 +192,14 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       case TEST_ALL_IN_PACKAGE:
         final PsiPackage testPackage = facade.findPackage(PACKAGE_NAME);
         if (testPackage == null) {
-          errors.add(ValidationError.warning(ExecutionBundle.message("package.does.not.exist.error.message", PACKAGE_NAME)));
+          errors.add(ValidationError.warning(JUnitBundle.message("package.does.not.exist.error.message", PACKAGE_NAME)));
         }
         break;
       case TEST_CLASS:
         PsiClass testClass = null;
         try {
           testClass =
-            getConfigurationModule().checkModuleAndClassName(CLASS_NAME, ExecutionBundle.message("no.test.class.specified.error.text"));
+            getConfigurationModule().checkModuleAndClassName(CLASS_NAME, JUnitBundle.message("no.test.class.specified.error.text"));
         }
         catch (RuntimeConfigurationException e) {
           errors.add(ValidationError.fromException(e));
@@ -262,7 +263,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     JavaRunConfigurationModule configurationModule = getConfigurationModule();
     final PsiClass testClass;
     try {
-      testClass = configurationModule.checkModuleAndClassName(CLASS_NAME, ExecutionBundle.message("no.test.class.specified.error.text"));
+      testClass = configurationModule.checkModuleAndClassName(CLASS_NAME, JUnitBundle.message("no.test.class.specified.error.text"));
     }
     catch (RuntimeConfigurationException e) {
       // We can't proceed without a test class.
@@ -273,7 +274,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       errors.add(ValidationError.warning(ExecutionBundle.message("class.isnt.test.class.error.message", CLASS_NAME)));
     }
     if (isEmptyOrSpaces(METHOD_NAME)) {
-      errors.add(ValidationError.fatal(ExecutionBundle.message("method.name.not.specified.error.message")));
+      errors.add(ValidationError.fatal(JUnitBundle.message("method.name.not.specified.error.message")));
     }
     final JUnitUtil.TestMethodFilter filter = new JUnitUtil.TestMethodFilter(testClass);
     boolean found = false;
@@ -283,14 +284,14 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       if (JUnitUtil.isTestAnnotated(method)) testAnnotated = true;
     }
     if (!found) {
-      errors.add(ValidationError.warning(ExecutionBundle.message("test.method.doesnt.exist.error.message", METHOD_NAME)));
+      errors.add(ValidationError.warning(JUnitBundle.message("test.method.doesnt.exist.error.message", METHOD_NAME)));
     }
 
     if (!AnnotationUtil.isAnnotated(testClass, JUnitUtil.RUN_WITH, CHECK_HIERARCHY) && !testAnnotated) {
       try {
         final PsiClass testCaseClass = JUnitUtil.getTestCaseClass(configurationModule.getModule());
         if (!testClass.isInheritor(testCaseClass, true)) {
-          errors.add(ValidationError.fatal(ExecutionBundle.message("class.isnt.inheritor.of.testcase.error.message", CLASS_NAME)));
+          errors.add(ValidationError.fatal(JUnitBundle.message("class.isnt.inheritor.of.testcase.error.message", CLASS_NAME)));
         }
       }
       catch (JUnitUtil.NoJUnitException e) {
