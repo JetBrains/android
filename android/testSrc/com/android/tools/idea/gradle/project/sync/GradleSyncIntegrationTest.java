@@ -164,6 +164,8 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
 
     GradleProjectSettings projectSettings = new GradleProjectSettings();
     projectSettings.setDistributionType(DEFAULT_WRAPPED);
+    String externalProjectPath = toCanonicalPath(project.getBasePath());
+    projectSettings.setExternalProjectPath(externalProjectPath);
     GradleSettings.getInstance(project).setLinkedProjectsSettings(singletonList(projectSettings));
   }
 
