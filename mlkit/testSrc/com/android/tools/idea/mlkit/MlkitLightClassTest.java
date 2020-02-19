@@ -17,9 +17,9 @@ package com.android.tools.idea.mlkit;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.testing.AndroidTestUtils;
-import com.google.common.collect.Iterables;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.lookup.Lookup;
 import com.intellij.codeInsight.lookup.LookupElement;
@@ -35,13 +35,11 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.testFramework.PsiTestUtil;
 import com.intellij.testFramework.VfsTestUtil;
-import java.io.File;
 import java.util.List;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
 public class MlkitLightClassTest extends AndroidTestCase {
-  private VirtualFile myModelVirtualFile;
 
   @Override
   public void setUp() throws Exception {
@@ -50,9 +48,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
     StudioFlags.MLKIT_LIGHT_CLASSES.override(true);
 
     // Pull in tflite model, which has image(i.e. name: image1) as input tensor and labels as output tensor
-    myFixture.setTestDataPath(new File(getModulePath("mlkit"), "testData").getPath());
-    myModelVirtualFile = myFixture.copyFileToProject("my_model.tflite", "/assets/my_model.tflite");
-    PsiTestUtil.addSourceContentToRoots(myModule, myModelVirtualFile.getParent());
+    myFixture.setTestDataPath(TestUtils.getWorkspaceFile("prebuilts/tools/common/mlkit/testData").getPath());
   }
 
   @Override
@@ -70,6 +66,9 @@ public class MlkitLightClassTest extends AndroidTestCase {
   }
 
   public void testHighlighting_java() {
+    VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/assets/my_model.tflite");
+    PsiTestUtil.addSourceContentToRoots(myModule, modelVirtualFile.getParent());
+
     PsiFile activityFile = myFixture.addFileToProject(
       "/src/p1/p2/MainActivity.java",
       // language=java
@@ -104,7 +103,48 @@ public class MlkitLightClassTest extends AndroidTestCase {
     myFixture.checkHighlighting();
   }
 
+  public void testHighlighting_modelWithoutMetadata_java() {
+    VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_no_metadata.tflite", "/assets/my_plain_model.tflite");
+    PsiTestUtil.addSourceContentToRoots(myModule, modelVirtualFile.getParent());
+    PsiFile activityFile = myFixture.addFileToProject(
+      "/src/p1/p2/MainActivity.java",
+      // language=java
+      "package p1.p2;\n" +
+      "\n" +
+      "import android.app.Activity;\n" +
+      "import android.os.Bundle;\n" +
+      "import p1.p2.ml.MyPlainModel;\n" +
+      "import java.lang.String;\n" +
+      "import java.lang.Float;\n" +
+      "import java.util.Map;\n" +
+      "import android.graphics.Bitmap;\n" +
+      "import java.nio.ByteBuffer;\n" +
+      "import java.io.IOException;\n" +
+      "\n" +
+      "public class MainActivity extends Activity {\n" +
+      "    @Override\n" +
+      "    protected void onCreate(Bundle savedInstanceState) {\n" +
+      "        super.onCreate(savedInstanceState);\n" +
+      "        try {\n" +
+      "            MyPlainModel myModel = new MyPlainModel(this);\n" +
+      "            ByteBuffer byteBuffer = null;\n" +
+      "            MyPlainModel.Inputs inputs = myModel.createInputs();\n" +
+      "            inputs.loadInputFeature0(byteBuffer);\n" +
+      "            MyPlainModel.Outputs output = myModel.run(inputs);\n" +
+      "            ByteBuffer data0 = output.getOutputFeature0();\n" +
+      "        } catch (IOException e) {};\n" +
+      "    }\n" +
+      "}"
+    );
+
+    myFixture.configureFromExistingVirtualFile(activityFile.getVirtualFile());
+    myFixture.checkHighlighting();
+  }
+
   public void testHighlighting_kotlin() {
+    VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/assets/my_model.tflite");
+    PsiTestUtil.addSourceContentToRoots(myModule, modelVirtualFile.getParent());
+
     PsiFile activityFile = myFixture.addFileToProject(
       "/src/p1/p2/MainActivity.kt",
       // language=kotlin
@@ -134,7 +174,43 @@ public class MlkitLightClassTest extends AndroidTestCase {
     myFixture.checkHighlighting();
   }
 
+  public void testHighlighting_modelWithoutMetadata_kotlin() {
+    VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_no_metadata.tflite", "/assets/my_plain_model.tflite");
+    PsiTestUtil.addSourceContentToRoots(myModule, modelVirtualFile.getParent());
+
+    PsiFile activityFile = myFixture.addFileToProject(
+      "/src/p1/p2/MainActivity.kt",
+      // language=kotlin
+      "package p1.p2\n" +
+      "\n" +
+      "import android.app.Activity\n" +
+      "import android.os.Bundle\n" +
+      "import p1.p2.ml.MyPlainModel\n" +
+      "import android.util.Log\n" +
+      "import java.nio.ByteBuffer;\n" +
+      "\n" +
+      "class MainActivity : Activity() {\n" +
+      "    override fun onCreate(savedInstanceState: Bundle?) {\n" +
+      "        super.onCreate(savedInstanceState)\n" +
+      "        val inputFeature: ByteBuffer? = null\n" +
+      "        val mymodel = MyPlainModel(this)\n" +
+      "        val inputs = mymodel.createInputs()\n" +
+      "        inputs.loadInputFeature0(inputFeature)\n" +
+      "        val outputs = mymodel.run(inputs)\n" +
+      "        val outputFeature = outputs.outputFeature0\n" +
+      "        Log.d(\"TAG\", outputFeature.toString())\n" +
+      "    }\n" +
+      "}"
+    );
+
+    myFixture.configureFromExistingVirtualFile(activityFile.getVirtualFile());
+    myFixture.checkHighlighting();
+  }
+
   public void testLightModelClassNavigation() {
+    VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/assets/my_model.tflite");
+    PsiTestUtil.addSourceContentToRoots(myModule, modelVirtualFile.getParent());
+
     // Below is the workaround to make MockFileDocumentManagerImpl#getDocument return a non-null value for a model file, so the non-null
     // document assertion in TestEditorManagerImpl#doOpenTextEditor could pass.
     BinaryFileTypeDecompilers.getInstance().getPoint().registerExtension(
@@ -165,11 +241,14 @@ public class MlkitLightClassTest extends AndroidTestCase {
     );
 
     AndroidTestUtils.goToElementAtCaret(myFixture);
-    assertThat(FileEditorManagerEx.getInstanceEx(myFixture.getProject()).getCurrentFile()).isEqualTo(myModelVirtualFile);
+    assertThat(FileEditorManagerEx.getInstanceEx(myFixture.getProject()).getCurrentFile()).isEqualTo(modelVirtualFile);
   }
 
 
   public void testCompleteRunMethod() {
+    VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/assets/my_model.tflite");
+    PsiTestUtil.addSourceContentToRoots(myModule, modelVirtualFile.getParent());
+
     PsiFile activityFile = myFixture.addFileToProject(
       "/src/p1/p2/MainActivity.java",
       // language=java
@@ -209,6 +288,9 @@ public class MlkitLightClassTest extends AndroidTestCase {
   }
 
   public void testCompleteCreateInputsMethod() {
+    VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/assets/my_model.tflite");
+    PsiTestUtil.addSourceContentToRoots(myModule, modelVirtualFile.getParent());
+
     PsiFile activityFile = myFixture.addFileToProject(
       "/src/p1/p2/MainActivity.java",
       // language=java
@@ -248,6 +330,9 @@ public class MlkitLightClassTest extends AndroidTestCase {
   }
 
   public void testCompleteInnerClass() {
+    VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/assets/my_model.tflite");
+    PsiTestUtil.addSourceContentToRoots(myModule, modelVirtualFile.getParent());
+
     PsiFile activityFile = myFixture.addFileToProject(
       "/src/p1/p2/MainActivity.java",
       // language=java
@@ -290,6 +375,9 @@ public class MlkitLightClassTest extends AndroidTestCase {
   }
 
   public void testCompleteInnerInputClassWithoutOuterClass() {
+    VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/assets/my_model.tflite");
+    PsiTestUtil.addSourceContentToRoots(myModule, modelVirtualFile.getParent());
+
     PsiFile activityFile = myFixture.addFileToProject(
       "/src/p1/p2/MainActivity.java",
       // language=java
@@ -312,7 +400,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
 
     // Find position of "Inputs"
     int lookupPosition = -1;
-    for(int i = 0; i < elements.length; i++) {
+    for (int i = 0; i < elements.length; i++) {
       if (elements[i].toString().equals("Inputs")) {
         lookupPosition = i;
         break;
@@ -339,8 +427,10 @@ public class MlkitLightClassTest extends AndroidTestCase {
   }
 
 
-
   public void testCompleteModelClass() {
+    VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/assets/my_model.tflite");
+    PsiTestUtil.addSourceContentToRoots(myModule, modelVirtualFile.getParent());
+
     PsiFile activityFile = myFixture.addFileToProject(
       "/src/p1/p2/MainActivity.java",
       // language=java
@@ -382,16 +472,23 @@ public class MlkitLightClassTest extends AndroidTestCase {
   }
 
   public void testModuleService() {
+    VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/assets/my_model.tflite");
+    PsiTestUtil.addSourceContentToRoots(myModule, modelVirtualFile.getParent());
+    myFixture.copyFileToProject("mobilenet_quant_no_metadata.tflite", "/assets/my_plain_model.tflite");
+
     MlkitModuleService mlkitService = MlkitModuleService.getInstance(myModule);
     List<PsiClass> lightClasses = mlkitService.getLightModelClassList();
-    assertThat(lightClasses).hasSize(1);
-    PsiClass lightClass = Iterables.getOnlyElement(lightClasses);
-    assertThat(lightClass.getName()).isEqualTo("MyModel");
-    assertThat(ModuleUtilCore.findModuleForPsiElement(lightClass)).isEqualTo(myModule);
+    assertThat(lightClasses).hasSize(2);
+    assertThat(lightClasses.get(0).getName()).isEqualTo("MyModel");
+    assertThat(lightClasses.get(1).getName()).isEqualTo("MyPlainModel");
+    assertThat(ModuleUtilCore.findModuleForPsiElement(lightClasses.get(0))).isEqualTo(myModule);
   }
 
   public void testBrokenFiles() {
+    VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/assets/my_model.tflite");
     VfsTestUtil.createFile(ProjectUtil.guessModuleDir(myModule), "assets/broken.tflite", new byte[]{1, 2, 3});
+    PsiTestUtil.addSourceContentToRoots(myModule, modelVirtualFile.getParent());
+
     assertThat(myFixture.getJavaFacade().findClass("p1.p2.ml.MyModel", GlobalSearchScope.projectScope(getProject())))
       .named("Class for valid model")
       .isNotNull();
