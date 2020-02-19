@@ -146,12 +146,7 @@ abstract class SplitEditor<P : FileEditor>(textEditor: TextEditor,
       }
 
       if (state) {
-        if (this == showPreviewAction) {
-          component.requestFocusInWindow()
-        }
-        else {
-          editor.contentComponent.requestFocusInWindow()
-        }
+        preferredFocusedComponent?.requestFocusInWindow()
       }
     }
 
