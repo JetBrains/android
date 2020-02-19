@@ -251,7 +251,7 @@ public class AndroidDeprecationInspection extends BaseJavaBatchLocalInspectionTo
 
         List<LocalQuickFix> fixes = new ArrayList<LocalQuickFix>(4);
         String symbolName = HighlightMessageUtil.getSymbolName(methodName, PsiSubstitutor.EMPTY);
-        for (DeprecationFilter filter : getExtensions()) {
+        for (DeprecationFilter filter : getFilters()) {
           if (filter.isExcluded(superMethod, methodName, symbolName)) {
             return;
           }
@@ -304,7 +304,7 @@ public class AndroidDeprecationInspection extends BaseJavaBatchLocalInspectionTo
     String description = JavaErrorMessages.message("deprecated.symbol", symbolName);
 
     List<LocalQuickFix> fixes = new ArrayList<LocalQuickFix>(4);
-    for (DeprecationFilter filter : getExtensions()) {
+    for (DeprecationFilter filter : getFilters()) {
       if (filter.isExcluded(refElement, elementToHighlight, symbolName)) {
         return;
       }
@@ -324,7 +324,7 @@ public class AndroidDeprecationInspection extends BaseJavaBatchLocalInspectionTo
   //  https://android-review.googlesource.com/149601 )
 
   @NotNull
-  private static DeprecationFilter[] getExtensions() {
+  public static DeprecationFilter[] getFilters() {
     // Replace with actual extension lookup later:
     //return DeprecationFilter.EP_NAME.getExtensions();
     return DEPRECATION_FILTERS;
