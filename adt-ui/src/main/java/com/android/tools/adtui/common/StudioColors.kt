@@ -66,6 +66,13 @@ val canvasTooltipBackground = JBColor.namedColor("Canvas.Tooltip.background", JB
 val primaryContentBackground = JBColor.namedColor("Content.background", JBColor(0xffffff, 0x2b2b2b))
 
 /**
+ * Color for textual content that are clickable
+ *
+ * Example: text color of "Leak" button
+ */
+val clickableTextColor = JBColor.namedColor("Content.clickable", JBColor(0x268bd2, 0x268bd2))
+
+/**
  * Background color for an active selection.
  *
  * Example: selected track in a track group.
