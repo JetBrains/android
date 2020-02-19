@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.actions.analytics
+package com.android.tools.idea.common.assistant
 
 import com.android.tools.analytics.UsageTracker.log
 import com.google.common.annotations.VisibleForTesting
