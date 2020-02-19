@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
 import static com.android.tools.idea.gradle.project.sync.ModuleDependenciesSubject.moduleDependencies;
-import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
 import static com.android.tools.idea.gradle.util.ContentEntries.findChildContentEntries;
 import static com.android.tools.idea.io.FilePaths.getJarFromJarUrl;
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
@@ -80,7 +79,6 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
-import com.android.tools.idea.gradle.project.sync.idea.issues.AndroidSyncException;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult;
 import com.android.tools.idea.gradle.task.AndroidGradleTaskManager;
@@ -91,6 +89,7 @@ import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.testing.BuildEnvironment;
 import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.TestGradleSyncListener;
+import com.android.utils.FileUtils;
 import com.google.common.collect.Lists;
 import com.intellij.build.SyncViewManager;
 import com.intellij.build.events.BuildEvent;
@@ -825,7 +824,8 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     Collection<DataNode<ContentRootData>> contentRootData = ExternalSystemApiUtil.findAll(moduleData, ProjectKeys.CONTENT_ROOT);
     assertThat(contentRootData).hasSize(1);
     File buildSrcDir = new File(getProject().getBasePath(), "buildSrc");
-    assertThat(contentRootData.iterator().next().getData().getRootPath()).isEqualTo(buildSrcDir.getPath());
+    assertThat(contentRootData.iterator().next().getData().getRootPath())
+            .isEqualTo(FileUtils.toSystemIndependentPath(buildSrcDir.getPath()));
 
     // Verify that buildSrc/lib1 has dependency on buildSrc/lib2.
     Module lib1Module = getModule(getName() + "_lib1");

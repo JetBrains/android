@@ -47,17 +47,17 @@ public class LibraryFilePathsTest extends AndroidGradleTestCase {
     LibraryFilePaths libraryFilePaths = LibraryFilePaths.getInstance(getProject());
     libraryFilePaths.populate(createArtifacts());
     assertThat(libraryFilePaths.findJavadocJarPath("Gradle: junit:junit:4.12@jar", new File("dummy")).getPath())
-      .isEqualTo("/cache/junit-javadoc.jar");
+      .isEqualTo(new File("/cache/junit-javadoc.jar").getPath());
     assertThat(libraryFilePaths.findSourceJarPath("Gradle: junit:junit:4.12@jar", new File("dummy")).getPath())
-      .isEqualTo("/cache/junit-sources.jar");
+      .isEqualTo(new File("/cache/junit-sources.jar").getPath());
     assertThat(libraryFilePaths.findPomPathForLibrary("Gradle: junit:junit:4.12@jar", new File("dummy")).getPath())
-      .isEqualTo("/cache/junit.pom");
+      .isEqualTo(new File("/cache/junit.pom").getPath());
     assertThat(libraryFilePaths.findJavadocJarPath("Gradle: androidx.fragment:fragment:1.0.0@aar", new File("dummy")).getPath())
-      .isEqualTo("/cache/fragment-javadoc.jar");
+      .isEqualTo(new File("/cache/fragment-javadoc.jar").getPath());
     assertThat(libraryFilePaths.findSourceJarPath("Gradle: androidx.fragment:fragment:1.0.0@aar", new File("dummy")).getPath())
-      .isEqualTo("/cache/fragment-sources.jar");
+      .isEqualTo(new File("/cache/fragment-sources.jar").getPath());
     assertThat(libraryFilePaths.findPomPathForLibrary("Gradle: androidx.fragment:fragment:1.0.0@aar", new File("dummy")).getPath())
-      .isEqualTo("/cache/fragment.pom");
+      .isEqualTo(new File("/cache/fragment.pom").getPath());
   }
 
   @NotNull
