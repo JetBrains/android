@@ -35,7 +35,7 @@ internal fun buildQueryCommand(sqliteStatement: SqliteStatement, databaseConnect
   return SqliteInspectorProtocol.Command.newBuilder().setQuery(queryBuilder).build()
 }
 
-internal fun SqliteInspectorProtocol.CellValue.toSqliteColumnValue(): SqliteColumnValue {
+internal fun SqliteInspectorProtocol.CellValue.toSqliteColumnValue(columnName: String): SqliteColumnValue {
   return when (valueCase) {
     SqliteInspectorProtocol.CellValue.ValueCase.STRING_VALUE ->
       SqliteColumnValue(columnName, stringValue)

@@ -59,7 +59,6 @@ class LiveSqliteResultSetTest : LightPlatformTestCase() {
   fun testRowCountReturnsCorrectNumberOfRows() {
     // Prepare
     val rowCountCellValue = SqliteInspectorProtocol.CellValue.newBuilder()
-      .setColumnName("COUNT(*)")
       .setIntValue(12345)
       .build()
 
@@ -67,8 +66,10 @@ class LiveSqliteResultSetTest : LightPlatformTestCase() {
       .addValues(rowCountCellValue)
       .build()
 
+    val columnNames = listOf("COUNT(*)")
+
     val cursor = SqliteInspectorProtocol.Response.newBuilder()
-      .setQuery(SqliteInspectorProtocol.QueryResponse.newBuilder().addRows(row))
+      .setQuery(SqliteInspectorProtocol.QueryResponse.newBuilder().addAllColumnNames(columnNames).addRows(row))
       .build()
 
     val mockMessenger = Mockito.mock(AppInspectorClient.CommandMessenger::class.java)
@@ -115,7 +116,6 @@ class LiveSqliteResultSetTest : LightPlatformTestCase() {
   fun testGetRowBatchReturnsCorrectListOfRows() {
     // Prepare
     val cellValueString = SqliteInspectorProtocol.CellValue.newBuilder()
-      .setColumnName("column1")
       .setStringValue("a string")
       .build()
 
@@ -125,8 +125,10 @@ class LiveSqliteResultSetTest : LightPlatformTestCase() {
       .addValues(cellValueString)
       .build()
 
+    val columnNames = listOf("column1", "column2", "column3")
+
     val cursor = SqliteInspectorProtocol.Response.newBuilder()
-      .setQuery(SqliteInspectorProtocol.QueryResponse.newBuilder().addRows(row))
+      .setQuery(SqliteInspectorProtocol.QueryResponse.newBuilder().addAllColumnNames(columnNames).addRows(row))
       .build()
 
     val mockMessenger = Mockito.mock(AppInspectorClient.CommandMessenger::class.java)
