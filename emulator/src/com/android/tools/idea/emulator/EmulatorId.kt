@@ -15,15 +15,12 @@
  */
 package com.android.tools.idea.emulator
 
-import com.intellij.openapi.actionSystem.AnActionEvent
-
 /**
- * Simulates pressing the Power button on an Android virtual device.
+ * Identifying information for a running Emulator.
  */
-class EmulatorHomeAction : AbstractEmulatorAction() {
-
-  override fun actionPerformed(event: AnActionEvent) {
-    val emulatorController: EmulatorController = getEmulatorController(event) ?: return
-    emulatorController.sendKey(createHardwareKeyEvent("Home"))
+data class EmulatorId(val grpcPort: Int, val grpcCertificate: String, val avdId: String, val avdName: String,
+                      val serialPort: Int, val adbPort: Int, val registrationFileName: String) {
+  override fun toString(): String {
+    return "$avdId @ $grpcPort"
   }
 }

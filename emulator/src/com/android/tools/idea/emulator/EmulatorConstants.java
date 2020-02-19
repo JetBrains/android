@@ -13,17 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.emulator
+package com.android.tools.idea.emulator;
 
-import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataKey;
 
 /**
- * Simulates pressing the Power button on an Android virtual device.
+ * Constants used by the classes in this package.
  */
-class EmulatorHomeAction : AbstractEmulatorAction() {
+class EmulatorConstants {
+  public static final DataKey<EmulatorController> EMULATOR_CONTROLLER_KEY = DataKey.create("emulator");
 
-  override fun actionPerformed(event: AnActionEvent) {
-    val emulatorController: EmulatorController = getEmulatorController(event) ?: return
-    emulatorController.sendKey(createHardwareKeyEvent("Home"))
-  }
+  public static final String EMULATOR_TOOLBAR_ID = "EmulatorToolbar";
 }

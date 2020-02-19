@@ -15,15 +15,18 @@
  */
 package com.android.tools.idea.emulator
 
-import com.intellij.openapi.actionSystem.AnActionEvent
+import io.grpc.stub.StreamObserver
 
 /**
- * Simulates pressing the Power button on an Android virtual device.
+ * A [StreamObserver] that ignores outcome of the gRPC call.
  */
-class EmulatorHomeAction : AbstractEmulatorAction() {
+open class DummyStreamObserver<T> : StreamObserver<T> {
+  override fun onNext(response: T) {
+  }
 
-  override fun actionPerformed(event: AnActionEvent) {
-    val emulatorController: EmulatorController = getEmulatorController(event) ?: return
-    emulatorController.sendKey(createHardwareKeyEvent("Home"))
+  override fun onError(t: Throwable) {
+  }
+
+  override fun onCompleted() {
   }
 }

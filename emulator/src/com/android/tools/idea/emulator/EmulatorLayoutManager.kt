@@ -21,7 +21,7 @@ import java.awt.Dimension
 import java.awt.LayoutManager
 import javax.swing.JPanel
 
-class EmulatorLayoutManager(private val myEmulatorPanel: JPanel) : LayoutManager {
+class EmulatorLayoutManager(private val emulatorPanel: JPanel) : LayoutManager {
   override fun addLayoutComponent(name: String, comp: Component) {}
 
   override fun removeLayoutComponent(comp: Component) {}
@@ -29,7 +29,7 @@ class EmulatorLayoutManager(private val myEmulatorPanel: JPanel) : LayoutManager
   override fun preferredLayoutSize(parent: Container): Dimension {
     val parentWidth = (parent.width - MARGIN * 2).coerceAtLeast(0)
     val parentHeight = (parent.height - MARGIN * 2).coerceAtLeast(0)
-    val preferredSize = myEmulatorPanel.preferredSize
+    val preferredSize = emulatorPanel.preferredSize
     if (preferredSize.height == 0 || parentHeight == 0) {
       return minimumLayoutSize(parent)
     }
@@ -66,8 +66,8 @@ class EmulatorLayoutManager(private val myEmulatorPanel: JPanel) : LayoutManager
     val parentWidth = parent.width
     val parentHeight = parent.height
     val preferredSize = preferredLayoutSize(parent)
-    myEmulatorPanel.size = preferredSize
-    myEmulatorPanel.setLocation((parentWidth - preferredSize.width) / 2, (parentHeight - preferredSize.height) / 2)
+    emulatorPanel.size = preferredSize
+    emulatorPanel.setLocation((parentWidth - preferredSize.width) / 2, (parentHeight - preferredSize.height) / 2)
   }
 
   companion object {
