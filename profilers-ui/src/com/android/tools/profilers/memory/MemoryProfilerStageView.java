@@ -17,21 +17,16 @@ package com.android.tools.profilers.memory;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS;
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_VERTICAL_BORDERS;
-import static com.android.tools.profilers.ProfilerLayout.FILTER_TEXT_FIELD_TRIGGER_DELAY_MS;
-import static com.android.tools.profilers.ProfilerLayout.FILTER_TEXT_FIELD_WIDTH;
-import static com.android.tools.profilers.ProfilerLayout.FILTER_TEXT_HISTORY_SIZE;
 import static com.android.tools.profilers.ProfilerLayout.MARKER_LENGTH;
 import static com.android.tools.profilers.ProfilerLayout.MONITOR_BORDER;
 import static com.android.tools.profilers.ProfilerLayout.MONITOR_LABEL_PADDING;
 import static com.android.tools.profilers.ProfilerLayout.PROFILER_LEGEND_RIGHT_PADDING;
 import static com.android.tools.profilers.ProfilerLayout.PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER;
 import static com.android.tools.profilers.ProfilerLayout.PROFILING_INSTRUCTIONS_ICON_PADDING;
-import static com.android.tools.profilers.ProfilerLayout.TOOLBAR_ICON_BORDER;
 import static com.android.tools.profilers.ProfilerLayout.Y_AXIS_TOP_MARGIN;
 import static com.android.tools.profilers.ProfilerLayout.createToolbarLayout;
 
 import com.android.tools.adtui.AxisComponent;
-import com.android.tools.adtui.FilterComponent;
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
 import com.android.tools.adtui.RangeSelectionComponent;
@@ -42,7 +37,6 @@ import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.flat.FlatSeparator;
 import com.android.tools.adtui.instructions.IconInstruction;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.NewRowInstruction;
@@ -54,7 +48,6 @@ import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.adtui.stdui.CommonButton;
-import com.android.tools.adtui.stdui.CommonToggleButton;
 import com.android.tools.profilers.ContextMenuInstaller;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.JComboBoxView;
@@ -94,7 +87,6 @@ import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.IconUtil;
 import com.intellij.util.PlatformIcons;
-import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.UIUtilities;
@@ -128,11 +120,6 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   private static final String RECORD_TEXT = "Record";
   private static final String STOP_TEXT = "Stop";
 
-  @NotNull private final MemoryCaptureView myCaptureView = new MemoryCaptureView(getStage(), getIdeComponents());
-  @NotNull private final MemoryHeapView myHeapView = new MemoryHeapView(getStage());
-  @NotNull private final MemoryClassifierView myClassifierView = new MemoryClassifierView(getStage(), getIdeComponents());
-  @NotNull private final MemoryClassGrouping myClassGrouping = new MemoryClassGrouping(getStage());
-  @NotNull private final MemoryInstanceFilterView myInstanceFilterView = new MemoryInstanceFilterView(getStage());
   @NotNull private final MemoryClassSetView myClassSetView = new MemoryClassSetView(getStage(), getIdeComponents());
   @NotNull private final MemoryInstanceDetailsView myInstanceDetailsView = new MemoryInstanceDetailsView(getStage(), getIdeComponents());
   @Nullable private RangeSelectionComponent myRangeSelectionComponent;
@@ -140,7 +127,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
   @NotNull private final JBSplitter myMainSplitter = new JBSplitter(false);
   @NotNull private final JBSplitter myChartCaptureSplitter = new JBSplitter(true);
-  @NotNull private final JPanel myCapturePanel;
+  @NotNull private final CapturePanel myCapturePanel;
   @Nullable private LoadingPanel myCaptureLoadingPanel;
   @NotNull private final JBSplitter myInstanceDetailsSplitter = new JBSplitter(true);
 
@@ -153,7 +140,6 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @NotNull private ProfilerAction myAllocationAction;
   @NotNull private ProfilerAction myStopAllocationAction;
   @NotNull private final JLabel myCaptureElapsedTime;
-  @NotNull private final JLabel myCaptureInfoMessage;
   @NotNull private final JLabel myAllocationSamplingRateLabel;
 
   @NotNull private DurationDataRenderer<GcDurationData> myGcDurationDataRenderer;
@@ -180,12 +166,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       myChartCaptureSplitter.setFirstComponent(buildMonitorUi());
     }
 
-    myCaptureInfoMessage = new JLabel(StudioIcons.Common.WARNING);
-    myCaptureInfoMessage.setBorder(TOOLBAR_ICON_BORDER);
-    // preset the minimize size of the info to only show the icon, so the text can be truncated when the user resizes the vertical splitter.
-    myCaptureInfoMessage.setMinimumSize(myCaptureInfoMessage.getPreferredSize());
-    myCaptureInfoMessage.setVisible(false);
-    myCapturePanel = buildCaptureUi();
+    myCapturePanel = new CapturePanel(this);
     myInstanceDetailsSplitter.setOpaque(true);
     myInstanceDetailsSplitter.setFirstComponent(myClassSetView.getComponent());
     myInstanceDetailsSplitter.setSecondComponent(myInstanceDetailsView.getComponent());
@@ -265,8 +246,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, this::captureObjectChanged)
       .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, this::captureObjectFinishedLoading)
       .onChange(MemoryProfilerAspect.TRACKING_ENABLED, this::allocationTrackingChanged)
-      .onChange(MemoryProfilerAspect.CURRENT_CAPTURE_ELAPSED_TIME, this::updateCaptureElapsedTime)
-      .onChange(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS, this::updateCaptureInfoMessage);
+      .onChange(MemoryProfilerAspect.CURRENT_CAPTURE_ELAPSED_TIME, this::updateCaptureElapsedTime);
 
     captureObjectChanged();
     allocationTrackingChanged();
@@ -373,31 +353,31 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @VisibleForTesting
   @NotNull
   public JPanel getCapturePanel() {
-    return myCapturePanel;
+    return myCapturePanel.getComponent();
   }
 
   @VisibleForTesting
   @NotNull
   MemoryCaptureView getCaptureView() {
-    return myCaptureView;
+    return myCapturePanel.getCaptureView();
   }
 
   @VisibleForTesting
   @NotNull
   MemoryHeapView getHeapView() {
-    return myHeapView;
+    return myCapturePanel.getHeapView();
   }
 
   @VisibleForTesting
   @NotNull
   MemoryClassGrouping getClassGrouping() {
-    return myClassGrouping;
+    return myCapturePanel.getClassGrouping();
   }
 
   @VisibleForTesting
   @NotNull
   MemoryClassifierView getClassifierView() {
-    return myClassifierView;
+    return myCapturePanel.getClassifierView();
   }
 
   @VisibleForTesting
@@ -427,7 +407,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @VisibleForTesting
   @NotNull
   JLabel getCaptureInfoMessage() {
-    return myCaptureInfoMessage;
+    return myCapturePanel.getCaptureInfoMessage();
   }
 
   private void allocationTrackingChanged() {
@@ -449,20 +429,6 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     if (getStage().isTrackingAllocations() && !getStage().useLiveAllocationTracking()) {
       long elapsedTimeUs = TimeUnit.NANOSECONDS.toMicros(getStage().getAllocationTrackingElapsedTimeNs());
       myCaptureElapsedTime.setText(TimeFormatter.getSemiSimplifiedClockString(elapsedTimeUs));
-    }
-  }
-
-  private void updateCaptureInfoMessage() {
-    CaptureObject capture = getStage().getSelectedCapture();
-    String infoMessage = capture == null ? null : capture.getInfoMessage();
-
-    if (infoMessage != null) {
-      myCaptureInfoMessage.setVisible(true);
-      myCaptureInfoMessage.setText(infoMessage);
-      myCaptureInfoMessage.setToolTipText(infoMessage);
-    }
-    else {
-      myCaptureInfoMessage.setVisible(false);
     }
   }
 
@@ -781,47 +747,6 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     parent.add(panel, new TabularLayout.Constraint(0, 0));
   }
 
-  @NotNull
-  private JPanel buildCaptureUi() {
-    JPanel capturePanel = new JPanel(new BorderLayout());
-
-    JPanel toolbar = new JPanel(createToolbarLayout());
-    toolbar.add(myCaptureView.getComponent());
-    toolbar.add(myHeapView.getComponent());
-    toolbar.add(myClassGrouping.getComponent());
-    toolbar.add(myInstanceFilterView.getFilterToolbar());
-    if (getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isLiveAllocationsSamplingEnabled()) {
-      toolbar.add(myCaptureInfoMessage);
-    }
-
-    JPanel headingPanel = new JPanel(new TabularLayout("Fit,*,Fit"));
-    JPanel buttonToolbar = new JPanel(createToolbarLayout());
-    buttonToolbar.setBorder(new JBEmptyBorder(3, 0, 0, 0));
-    if (!getStage().isMemoryCaptureOnly()) {
-      buttonToolbar.add(getSelectionTimeLabel());
-    }
-    CommonToggleButton button = FilterComponent.createFilterToggleButton();
-    buttonToolbar.add(new FlatSeparator());
-    buttonToolbar.add(button);
-    FilterComponent filterComponent =
-      new FilterComponent(FILTER_TEXT_FIELD_WIDTH, FILTER_TEXT_HISTORY_SIZE, FILTER_TEXT_FIELD_TRIGGER_DELAY_MS);
-
-    filterComponent.getModel().setFilterHandler(getStage().getFilterHandler());
-    headingPanel.add(filterComponent, new TabularLayout.Constraint(2, 0, 3));
-    filterComponent.setVisible(false);
-    filterComponent.setBorder(new JBEmptyBorder(0, 4, 0, 0));
-    FilterComponent.configureKeyBindingAndFocusBehaviors(capturePanel, filterComponent, button);
-
-    // Add the right side toolbar so that it is on top of the truncated |myCaptureInfoMessage|.
-    headingPanel.add(buttonToolbar, new TabularLayout.Constraint(0, 2));
-    headingPanel.add(toolbar, new TabularLayout.Constraint(0, 0));
-    headingPanel.add(myInstanceFilterView.getFilterDescription(), new TabularLayout.Constraint(1, 0, 3));
-
-    capturePanel.add(headingPanel, BorderLayout.PAGE_START);
-    capturePanel.add(myClassifierView.getComponent(), BorderLayout.CENTER);
-    return capturePanel;
-  }
-
   private void captureObjectChanged() {
     // Forcefully ends the previous loading operation if it is still ongoing.
     stopLoadingUi();
@@ -862,7 +787,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     }
 
     stopLoadingUi();
-    myChartCaptureSplitter.setSecondComponent(myCapturePanel);
+    myChartCaptureSplitter.setSecondComponent(myCapturePanel.getComponent());
   }
 
   private void stopLoadingUi() {
