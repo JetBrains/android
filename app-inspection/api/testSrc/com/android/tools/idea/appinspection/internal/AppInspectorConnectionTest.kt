@@ -23,6 +23,7 @@ import com.android.tools.idea.appinspection.test.ASYNC_TIMEOUT_MS
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createRawAppInspectionEvent
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID
+import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler
@@ -335,5 +336,33 @@ class AppInspectorConnectionTest {
     assertThat(listener.rawEvents).hasSize(2)
     assertThat(listener.rawEvents[0]).isEqualTo(firstEventData)
     assertThat(listener.rawEvents[1]).isEqualTo(secondEventData)
+  }
+
+  @Test
+  fun cancelRawCommandSendsCancellationCommand() {
+    val messenger = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
+
+    val cancelledLatch = CountDownLatch(1)
+    var toBeCancelledCommandId: Int? = null
+    var cancelledCommandId: Int? = null
+
+    // Override App Inspection command handler to not respond to any commands, so the test can have control over timing of events.
+    transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, object : CommandHandler(timer) {
+      override fun handleCommand(command: Commands.Command, events: MutableList<Event>) {
+        if (command.appInspectionCommand.hasRawInspectorCommand()) {
+          toBeCancelledCommandId = command.appInspectionCommand.commandId
+        } else if (command.appInspectionCommand.hasCancellationCommand()) {
+          cancelledCommandId = command.appInspectionCommand.cancellationCommand.cancelledCommandId
+          cancelledLatch.countDown()
+        }
+      }
+    })
+
+    messenger.sendRawCommand(ByteString.copyFromUtf8("Blah").toByteArray()).cancel(false)
+
+    cancelledLatch.await()
+
+    assertThat(toBeCancelledCommandId).isNotNull()
+    assertThat(toBeCancelledCommandId).isEqualTo(cancelledCommandId)
   }
 }
