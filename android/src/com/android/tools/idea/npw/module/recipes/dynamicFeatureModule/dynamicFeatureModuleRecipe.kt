@@ -18,22 +18,16 @@ package com.android.tools.idea.npw.module.recipes.dynamicFeatureModule
 import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
 import com.android.SdkConstants.FN_BUILD_GRADLE
 import com.android.ide.common.repository.GradleVersion
-import com.android.repository.Revision.parseRevision
-import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.needsExplicitBuildToolsVersion
 import com.android.tools.idea.npw.dynamicapp.DeviceFeatureModel
 import com.android.tools.idea.npw.dynamicapp.DownloadInstallKind
 import com.android.tools.idea.npw.model.NewProjectModel
 import com.android.tools.idea.npw.module.recipes.addKotlinIfNeeded
 import com.android.tools.idea.npw.module.recipes.addTestDependencies
 import com.android.tools.idea.npw.module.recipes.addTests
-import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleUnitTestJava
-import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleUnitTestKt
+import com.android.tools.idea.npw.module.recipes.androidModule.buildGradle
 import com.android.tools.idea.npw.module.recipes.createDefaultDirectories
 import com.android.tools.idea.npw.module.recipes.dynamicFeatureModule.res.values.stringsXml
-import com.android.tools.idea.npw.module.recipes.dynamicFeatureModule.test.exampleInstrumentedTestJava
-import com.android.tools.idea.npw.module.recipes.dynamicFeatureModule.test.exampleInstrumentedTestKt
 import com.android.tools.idea.npw.module.recipes.gitignore
-import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 
@@ -65,16 +59,19 @@ fun RecipeExecutor.generateDynamicFeatureModule(
 
   val buildToolsVersion = projectData.buildToolsVersion
   save(buildGradle(
-    baseFeature.name,
-    agpVersion,
+    false, // TODO(qumeric): change it
     false,
+    true,
+    packageName,
     buildApi.apiString,
-    needsExplicitBuildToolsVersion(GradleVersion.parse(projectData.gradlePluginVersion), parseRevision(buildToolsVersion)),
     buildToolsVersion,
     minApi.apiString,
     targetApi.apiString,
-    useAndroidX
-    ), moduleOut.resolve(FN_BUILD_GRADLE))
+    useAndroidX,
+    agpVersion,
+    baseFeatureName = baseFeature.name,
+    formFactorNames = projectData.includedFormFactorNames
+  ), moduleOut.resolve(FN_BUILD_GRADLE))
 
   applyPlugin("com.android.dynamic-feature")
   addKotlinIfNeeded(projectData)
