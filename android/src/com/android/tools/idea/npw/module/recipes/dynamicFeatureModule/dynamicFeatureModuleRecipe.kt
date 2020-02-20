@@ -101,10 +101,6 @@ fun RecipeExecutor.generateDynamicFeatureModule(
     addDependency("com.android.support:support-annotations:${appCompatVersion}.+", "androidTestCompile")
   }
 
-  if (language == Language.Kotlin && useAndroidX) {
-    addDependency("androidx.core:core-ktx:+")
-  }
-
   addDynamicFeature(moduleData.name, baseFeature.dir)
   if (isInstantModule) {
     mergeXml(baseAndroidManifestXml(), baseFeature.dir.resolve("src/main/AndroidManifest.xml"))
