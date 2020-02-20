@@ -22,9 +22,11 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncUtil;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.mlkit.MetadataExtractor;
-import com.android.tools.mlkit.ModelInfo;
 import com.android.tools.mlkit.MlkitNames;
+import com.android.tools.mlkit.ModelInfo;
 import com.android.tools.mlkit.ModelParsingException;
+import com.android.tools.mlkit.SubGraphInfo;
+import com.android.tools.mlkit.TensorInfo;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -44,6 +46,8 @@ import java.awt.Component;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -108,14 +112,20 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
 
     try {
       ModelInfo modelInfo = ModelInfo.buildFrom(new MetadataExtractor(ByteBuffer.wrap(file.contentsToByteArray())));
-      addModelSummarySection(contentPanel, modelInfo);
+      addModelSection(contentPanel, modelInfo);
+      addTensorsSection(contentPanel, modelInfo);
+      if (modelInfo.isMetadataExisted()) {
+        addSubgraphSection(contentPanel, modelInfo.getSubGraphInfos().get(0));
+      }
 
       PsiClass modelClass = MlkitModuleService.getInstance(myModule)
         .getOrCreateLightModelClass(new MlModelMetadata(file.getUrl(), MlkitUtils.computeModelClassName(file.getUrl())));
       addSampleCodeSection(contentPanel, modelClass);
-    } catch (IOException e) {
+    }
+    catch (IOException e) {
       Logger.getInstance(TfliteModelFileEditor.class).error(e);
-    } catch (ModelParsingException e) {
+    }
+    catch (ModelParsingException e) {
       Logger.getInstance(TfliteModelFileEditor.class).warn(e);
       // TODO(deanzhou): show warning message in panel
     }
@@ -132,47 +142,93 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
            !MlkitUtils.getMissingDependencies(myModule, myFile).isEmpty();
   }
 
-  private static void addModelSummarySection(@NotNull JPanel contentPanel, @NotNull ModelInfo modelInfo) {
-    // TODO(b/148866418): make table collapsible.
-    String modelHtml = "<h2>Model</h2>\n" +
-                       "<table>\n" +
-                       "<tr>\n" +
-                       "<td>Name</td>\n" +
-                       "<td>" + modelInfo.getModelName() + "</td>\n" +
-                       "</tr>\n" +
-                       "<tr>\n" +
-                       "<td>Description</td>\n" +
-                       "<td>" + modelInfo.getModelDescription() + "</td>\n" +
-                       "</tr>\n" +
-                       "<tr>\n" +
-                       "<td>Version</td>\n" +
-                       "<td>" + modelInfo.getModelVersion() + "</td>\n" +
-                       "</tr>\n" +
-                       "<tr>\n" +
-                       "<td>Author</td>\n" +
-                       "<td>" + modelInfo.getModelAuthor() + "</td>\n" +
-                       "</tr>\n" +
-                       "<tr>\n" +
-                       "<td>License</td>\n" +
-                       "<td>" + modelInfo.getModelLicense() + "</td>\n" +
-                       "</tr>\n" +
-                       "</table>\n";
-
+  private static JTextPane createPaneFromHtml(@NotNull String html) {
     JTextPane modelPane = new JTextPane();
     modelPane.setAlignmentX(Component.LEFT_ALIGNMENT);
-    setHtml(modelPane, modelHtml);
-    contentPanel.add(modelPane);
+    setHtml(modelPane, html);
+
+    return modelPane;
+  }
+
+  @NotNull
+  private static String createHtmlRow(@NotNull String[] row, boolean useHeaderCells) {
+    StringBuilder htmlRow = new StringBuilder();
+    htmlRow.append("<tr>\n");
+    for (String value : row) {
+      htmlRow.append(useHeaderCells ? "<th>" + value + "</th>\n" : "<td>" + value + "</td>\n");
+    }
+    htmlRow.append("</tr>\n");
+
+    return htmlRow.toString();
+  }
+
+  private static void addModelSection(@NotNull JPanel contentPanel, @NotNull ModelInfo modelInfo) {
+    // TODO(b/148866418): make table collapsible.
+    List<String[]> table = new ArrayList<>();
+    table.add(new String[]{"Name", modelInfo.getModelName()});
+    table.add(new String[]{"Description", modelInfo.getModelDescription()});
+    table.add(new String[]{"Version", modelInfo.getModelVersion()});
+    table.add(new String[]{"Author", modelInfo.getModelAuthor()});
+    table.add(new String[]{"License", modelInfo.getModelLicense()});
+
+    contentPanel.add(createPaneFromTable(table, "Model", false));
   }
 
   private static void addSampleCodeSection(@NotNull JPanel contentPanel, @NotNull PsiClass modelClass) {
     // TODO(b/148866418): make table collapsible.
-    String modelHtml = "<h2>Sample Code</h2>\n" +
-                       "<code>" + buildSampleCode(modelClass) + "</code>";
+    String sampleCodeHtml = "<h2>Sample Code</h2>\n" +
+                            "<code>" + buildSampleCode(modelClass) + "</code>";
 
-    JTextPane modelPane = new JTextPane();
-    modelPane.setAlignmentX(Component.LEFT_ALIGNMENT);
-    setHtml(modelPane, modelHtml);
-    contentPanel.add(modelPane);
+    contentPanel.add(createPaneFromHtml(sampleCodeHtml));
+  }
+
+  private static void addSubgraphSection(@NotNull JPanel contentPanel, @NotNull SubGraphInfo subGraphInfo) {
+    // TODO(b/148866418): make table collapsible.
+    List<String[]> table = new ArrayList<>();
+    table.add(new String[]{"Name", subGraphInfo.getName()});
+    table.add(new String[]{"Description", subGraphInfo.getDescription()});
+
+    contentPanel.add(createPaneFromTable(table, "Subgraph", false));
+  }
+
+  private static void addTensorsSection(@NotNull JPanel contentPanel, @NotNull ModelInfo modelInfo) {
+    // TODO(b/148866418): make table collapsible.
+    List<String[]> table = new ArrayList<>();
+    table.add(new String[]{"Name", "Type", "Description", "Shape", "Mean / Std", "Min / Max"});
+    table.add(new String[]{"inputs"});
+    for (TensorInfo tensorInfo : modelInfo.getInputs()) {
+      table.add(getTensorsRow(tensorInfo));
+    }
+    table.add(new String[]{"outputs"});
+    for (TensorInfo tensorInfo : modelInfo.getOutputs()) {
+      table.add(getTensorsRow(tensorInfo));
+    }
+
+    contentPanel.add(createPaneFromTable(table, "Tensors", true));
+  }
+
+  @NotNull
+  private static JTextPane createPaneFromTable(@NotNull List<String[]> table, @NotNull String title, @NotNull boolean useHeaderCells) {
+    StringBuilder htmlBuilder = new StringBuilder("<h2>" + title + "</h2>");
+    if (!table.isEmpty()) {
+      htmlBuilder.append("<table>\n").append(createHtmlRow(table.get(0), useHeaderCells));
+      for (String[] row : table.subList(1, table.size())) {
+        htmlBuilder.append(createHtmlRow(row, false));
+      }
+      htmlBuilder.append("</table>\n");
+    }
+
+    return createPaneFromHtml(htmlBuilder.toString());
+  }
+
+  @NotNull
+  private static String[] getTensorsRow(@NotNull TensorInfo tensorInfo) {
+    MetadataExtractor.NormalizationParams params = tensorInfo.getNormalizationParams();
+    String meanStdRow = params != null ? Arrays.toString(params.getMean()) + "/" + Arrays.toString(params.getStd()) : "";
+    String minMaxRow = params != null ? Arrays.toString(params.getMin()) + "/" + Arrays.toString(params.getMax()) : "";
+
+    return new String[]{tensorInfo.getName(), tensorInfo.getContentType().toString(), tensorInfo.getDescription(),
+      Arrays.toString(tensorInfo.getShape()), meanStdRow, minMaxRow};
   }
 
   private static void setHtml(@NotNull JEditorPane pane, @NotNull String bodyContent) {
