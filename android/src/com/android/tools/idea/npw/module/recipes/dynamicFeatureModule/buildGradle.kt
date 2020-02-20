@@ -49,24 +49,12 @@ fun buildGradle(
     hasTests = true
   )
 
-  val supportsImprovedTestDeps = GradleVersion.parse(agpVersion).compareIgnoringQualifiers("3.0.0") >= 0
-
-  val testDepsBlock = renderIf(!supportsImprovedTestDeps) {
-    """
-      ${getConfigurationName("androidTestCompile", agpVersion)}("${resolveDependency(RepositoryUrlManager.get(),
-                                                                                     "com.android.support.test.espresso:espresso-core:+")}", {
-        exclude group: "com.android.support", module: "support-annotations"
-      })
-      """
-  }
-
   return """
 ${emptyPluginsBlock()}
 
 $androidConfigBlock
 
 dependencies {
-    $testDepsBlock
     implementation project("${baseFeatureName}")
 }
 """
