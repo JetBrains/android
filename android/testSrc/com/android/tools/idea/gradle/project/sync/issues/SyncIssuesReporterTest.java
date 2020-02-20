@@ -46,6 +46,7 @@ import com.android.annotations.Nullable;
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.TestModuleUtil;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -90,7 +91,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
 
     SyncIssuesReporter reporter = new SyncIssuesReporter(myStrategy1, myStrategy2);
 
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
     VirtualFile buildFile = getGradleBuildFile(appModule);
     reporter.report(ImmutableMap.of(appModule, Lists.newArrayList(mySyncIssue)));
 
@@ -114,7 +115,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
 
     SyncIssuesReporter reporter = new SyncIssuesReporter(myStrategy1, myStrategy2);
 
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
     VirtualFile buildFile = getGradleBuildFile(appModule);
     reporter.report(ImmutableMap.of(appModule, Lists.newArrayList(mySyncIssue)));
 
@@ -179,8 +180,8 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
 
     SyncIssuesReporter reporter = new SyncIssuesReporter(myStrategy1, myStrategy2);
 
-    Module appModule = myModules.getModule("app");
-    Module libModule = myModules.getModule("lib");
+    Module appModule = TestModuleUtil.findAppModule(getProject());
+    Module libModule = TestModuleUtil.findModule(getProject(), "lib");
     VirtualFile buildFile = getGradleBuildFile(appModule);
     reporter.report(ImmutableMap.of(appModule, Lists.newArrayList(mySyncIssue), libModule, Lists.newArrayList(syncIssue2)));
 
@@ -203,7 +204,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     mySyncMessagesStub.removeAllMessages();
 
     SyncIssuesReporter reporter = SyncIssuesReporter.getInstance();
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
 
     BaseSyncIssuesReporter strategy = reporter.getDefaultMessageFactory();
     assertThat(strategy).isInstanceOf(UnhandledIssuesReporter.class);
@@ -278,7 +279,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
 
     SyncIssuesReporter reporter = new SyncIssuesReporter(myStrategy1, myStrategy2);
 
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
     reporter.report(ImmutableMap.of(appModule, ImmutableList.of(mySyncIssue, syncIssue2, syncIssue3)));
 
     InOrder inOrder = inOrder(myStrategy1, myStrategy2);

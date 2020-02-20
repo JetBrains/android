@@ -23,6 +23,7 @@ import com.android.resources.ResourceType
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.findAppModule
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiDocumentManager
@@ -60,7 +61,7 @@ class NamespacesIntegrationTest : AndroidGradleTestCase() {
   fun testResolver() {
     loadProject(TestProjectPaths.NAMESPACES)
     val layout = VfsUtil.findRelativeFile(myFixture.project.baseDir, "app", "src", "main", "res", "layout", "simple_strings.xml")!!
-    val resourceResolver = ConfigurationManager.getOrCreateInstance(myModules.appModule).getConfiguration(layout).resourceResolver
+    val resourceResolver = ConfigurationManager.getOrCreateInstance(project.findAppModule()).getConfiguration(layout).resourceResolver
     val appNs = ResourceRepositoryManager.getInstance(myAndroidFacet).namespace
 
     fun check(reference: String, resolvesTo: String) {

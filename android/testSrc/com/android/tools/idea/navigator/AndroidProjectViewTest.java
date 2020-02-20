@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
 import com.android.tools.idea.navigator.nodes.android.BuildScriptTreeStructureProvider;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.TestModuleUtil;
 import com.android.tools.idea.testing.TestProjectPaths;
 import com.android.utils.FileUtils;
 import com.google.common.collect.ImmutableList;
@@ -44,7 +45,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.projectView.TestProjectTreeStructure;
 import com.intellij.psi.PsiDirectory;
@@ -337,7 +337,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     loadSimpleApplication();
 
     // Create BuildConfig.java in one of the generated source folders.
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
     AndroidModuleModel androidModel = AndroidModuleModel.get(appModule);
     assertNotNull(androidModel);
     Collection<File> generatedFolders = androidModel.getMainArtifact().getGeneratedSourceFolders();
@@ -378,7 +378,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
       StandardCharsets.UTF_8);
     requestSyncAndWait();
 
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
     AndroidModuleModel androidModel = AndroidModuleModel.get(appModule);
     File generatedResourcesFolder = androidModel.getMainArtifact()
       .getGeneratedResourceFolders()

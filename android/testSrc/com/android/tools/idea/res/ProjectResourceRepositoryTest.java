@@ -24,7 +24,7 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.testing.Modules;
+import com.android.tools.idea.testing.TestModuleUtil;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
@@ -36,9 +36,7 @@ import com.intellij.openapi.roots.ModuleOrderEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.roots.OrderEntry;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -189,10 +187,9 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     Collection<VirtualFile> originalDirs = resources.getResourceDirs();
     assertNotEmpty(originalDirs);
 
-    Modules modules = new Modules(getProject());
     // Now remove one of the modules, which should automatically cause the repo to have different roots.
     WriteCommandAction.runWriteCommandAction(
-      getProject(), () -> removeModuleDependency(myModule, modules.getModule("plib2").getName()));
+      getProject(), () -> removeModuleDependency(myModule, TestModuleUtil.findModule(getProject(), "plib2").getName()));
     assertEquals(originalChildren.size() - 1, resources.getChildren().size());
     assertEquals(originalDirs.size() - 1, resources.getResourceDirs().size());
   }
@@ -228,13 +225,6 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     assertHasExactResourceTypes(resources, typesWithoutRes3);
   }
 
-  private static void refreshForVfs(Collection<String> freshFileUrls) {
-    for (String fileUrl : freshFileUrls) {
-      VirtualFile virtualFile = VirtualFileManager.getInstance().refreshAndFindFileByUrl(fileUrl);
-      VfsUtil.markDirtyAndRefresh(false, true, true, virtualFile);
-    }
-  }
-
   @Override
   protected void configureAdditionalModules(@NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
                                             @NotNull List<MyAdditionalModuleData> modules) {
@@ -259,14 +249,13 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
   }
 
   // Regression test for https://code.google.com/p/android/issues/detail?id=65140
-  public void testDependencies() throws Exception {
+  public void testDependencies() {
     myFixture.copyFileToProject(LAYOUT, "res/layout/layout1.xml");
 
-    Modules modules = new Modules(getProject());
-    Module lib1 = modules.getModule("lib1");
-    Module lib2 = modules.getModule("lib2");
-    Module sharedLib = modules.getModule("sharedlib");
-    Module app = modules.getAppModule();
+    Module lib1 = TestModuleUtil.findModule(getProject(), "lib1");
+    Module lib2 = TestModuleUtil.findModule(getProject(), "lib2");
+    Module sharedLib = TestModuleUtil.findModule(getProject(), "sharedlib");
+    Module app = TestModuleUtil.findAppModule(getProject());
 
     assertNotNull(lib1);
     assertNotNull(lib2);
@@ -357,10 +346,9 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
 
   // Regression test for https://issuetracker.google.com/issues/68799367
   public void testResourceOverride() {
-    Modules modules = new Modules(getProject());
-    Module lib1 = modules.getModule("level1");
-    Module lib2 = modules.getModule("level2");
-    Module app = modules.getAppModule();
+    Module lib1 = TestModuleUtil.findModule(getProject(), "level1");
+    Module lib2 = TestModuleUtil.findModule(getProject(), "level2");
+    Module app = TestModuleUtil.findAppModule(getProject());
 
     assertNotNull(lib1);
     assertNotNull(lib2);

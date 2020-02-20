@@ -22,6 +22,7 @@ import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.TestModuleUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.List;
@@ -44,7 +45,7 @@ public abstract class IdeAndroidProjectIntegrationTestCase extends AndroidGradle
 
   @Nullable
   protected IdeAndroidProject getAndroidProjectInApp() {
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
     AndroidModuleModel androidModel = AndroidModuleModel.get(appModule);
     return androidModel != null ? androidModel.getAndroidProject() : null;
   }

@@ -53,7 +53,6 @@ class AndroidGradleProjectRule : NamedExternalResource() {
   private class DelegateGradleTestCase : AndroidGradleTestCase() {
     val fixture: CodeInsightTestFixture get() = myFixture
     val androidFacet: AndroidFacet get() = myAndroidFacet
-    val modules: Modules get() = myModules
 
     fun invokeTasks(project: Project, vararg tasks: String): GradleInvocationResult {
       return AndroidGradleTestCase.invokeGradleTasks(project, *tasks)
@@ -69,7 +68,8 @@ class AndroidGradleProjectRule : NamedExternalResource() {
   val fixture: CodeInsightTestFixture get() = delegateTestCase.fixture
   val project: Project get() = fixture.project
   val androidFacet: AndroidFacet get() = delegateTestCase.androidFacet
-  val modules: Modules get() = delegateTestCase.modules
+
+  fun getModule(name: String) = project.findModule(name)
 
   override fun before(description: Description) {
     delegateTestCase.name = description.methodName ?: description.displayName

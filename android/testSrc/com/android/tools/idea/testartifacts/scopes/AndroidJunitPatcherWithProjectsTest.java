@@ -20,6 +20,7 @@ import static com.android.tools.idea.testing.TestProjectPaths.SYNC_MULTIPROJECT;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.TestModuleUtil;
 import com.intellij.execution.JUnitPatcher;
 import com.intellij.execution.configurations.JavaParameters;
 import com.intellij.openapi.module.Module;
@@ -34,7 +35,7 @@ public class AndroidJunitPatcherWithProjectsTest extends AndroidGradleTestCase {
     loadProject(SYNC_MULTIPROJECT);
     JUnitPatcher myPatcher = new AndroidJunitPatcher();
 
-    Module module1 = ModuleManager.getInstance(myFixture.getProject()).findModuleByName("module1");
+    Module module1 = TestModuleUtil.findModule(getProject(), "module1");
     JavaParameters parameters = new JavaParameters();
     parameters.configureByModule(module1, JavaParameters.CLASSES_AND_TESTS);
 
@@ -66,7 +67,7 @@ public class AndroidJunitPatcherWithProjectsTest extends AndroidGradleTestCase {
   private void testJavaLibResources(@NotNull String moduleToTest) throws Exception {
     JUnitPatcher myPatcher = new AndroidJunitPatcher();
 
-    Module module = ModuleManager.getInstance(getProject()).findModuleByName(moduleToTest);
+    Module module = TestModuleUtil.findModule(getProject(), moduleToTest);
     JavaParameters parameters = new JavaParameters();
     parameters.configureByModule(module, JavaParameters.CLASSES_AND_TESTS);
 
@@ -94,7 +95,7 @@ public class AndroidJunitPatcherWithProjectsTest extends AndroidGradleTestCase {
     Files.createDirectories(kotlinMainClasses.toPath());
     Files.createDirectories(kotlinTestClasses.toPath());
 
-    Module module = ModuleManager.getInstance(getProject()).findModuleByName(moduleToTest);
+    Module module = TestModuleUtil.findModule(getProject(), moduleToTest);
     JavaParameters parameters = new JavaParameters();
     parameters.configureByModule(module, JavaParameters.CLASSES_AND_TESTS);
 

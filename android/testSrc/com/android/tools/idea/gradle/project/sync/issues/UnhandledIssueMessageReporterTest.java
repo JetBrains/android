@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.issues;
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.TestModuleUtil;
 import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.GradleSyncIssue;
@@ -61,7 +62,7 @@ public class UnhandledIssueMessageReporterTest extends AndroidGradleTestCase {
     loadSimpleApplication();
     mySyncMessagesStub.removeAllMessages();
 
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
 
     String text = "Hello World!";
     String expectedText =
@@ -96,7 +97,7 @@ public class UnhandledIssueMessageReporterTest extends AndroidGradleTestCase {
     loadSimpleApplication();
     mySyncMessagesStub.removeAllMessages();
 
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
 
     String text = "Hello World!";
     String expectedText = text + "\nAffected Modules: app";

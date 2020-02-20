@@ -39,7 +39,7 @@ import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
-import com.android.tools.idea.testing.Modules;
+import com.android.tools.idea.testing.TestModuleUtil;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
@@ -101,7 +101,6 @@ import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 
 public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameImpl> {
   @NotNull private final GradleProjectEventListener myGradleProjectEventListener;
-  @NotNull private final Modules myModules;
 
   private EditorFixture myEditor;
   private boolean myIsClosed;
@@ -114,7 +113,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   private IdeFrameFixture(@NotNull Robot robot, @NotNull IdeFrameImpl target) {
     super(IdeFrameFixture.class, robot, target);
     Project project = getProject();
-    myModules = new Modules(project);
 
     Disposable disposable = new NoOpDisposable();
     Disposer.register(project, disposable);
@@ -155,11 +153,11 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public Module getModule(@NotNull String name) {
-    return myModules.getModule(name);
+    return TestModuleUtil.findModule(getProject(), name);
   }
 
   public boolean hasModule(@NotNull String name) {
-    return myModules.hasModule(name);
+    return TestModuleUtil.hasModule(getProject(), name);
   }
 
   @NotNull

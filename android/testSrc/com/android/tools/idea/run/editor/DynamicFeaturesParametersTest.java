@@ -23,7 +23,9 @@ import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.adtui.swing.laf.HeadlessTableUI;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.testing.AndroidGradleProjectRule;
+import com.android.tools.idea.testing.TestModuleUtil;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.module.Module;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -175,8 +177,9 @@ public class DynamicFeaturesParametersTest {
   private DynamicFeaturesParameters loadParametersForDynamicApp() {
     projectRule.load(DYNAMIC_APP);
 
+    Module appModule = TestModuleUtil.findAppModule(projectRule.getProject());
     DynamicFeaturesParameters parameters = new DynamicFeaturesParameters();
-    parameters.setActiveModule(projectRule.getModules().getModule("app"), DynamicFeaturesParameters.AvailableDeployTypes.INSTALLED_ONLY);
+    parameters.setActiveModule(appModule, DynamicFeaturesParameters.AvailableDeployTypes.INSTALLED_ONLY);
 
     return parameters;
   }

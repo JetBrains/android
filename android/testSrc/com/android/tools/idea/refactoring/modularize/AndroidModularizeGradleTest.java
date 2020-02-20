@@ -18,6 +18,7 @@ package com.android.tools.idea.refactoring.modularize;
 import static com.android.tools.idea.testing.TestProjectPaths.MOVE_WITH_RESOURCES;
 
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.TestModuleUtil;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
@@ -40,7 +41,7 @@ public class AndroidModularizeGradleTest extends AndroidGradleTestCase {
       JavaPsiFacade.getInstance(project).findClass("google.MainActivity", GlobalSearchScope.allScope(project));
     DataContext context = dataId -> {
       if (LangDataKeys.TARGET_MODULE.is(dataId)) {
-        return ModuleManager.getInstance(project).findModuleByName("library");
+        return TestModuleUtil.findModule(getProject(), "library");
       }
       return null;
     };
