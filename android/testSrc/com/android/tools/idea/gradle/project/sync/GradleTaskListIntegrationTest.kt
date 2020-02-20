@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync
 
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.findAppModule
 import com.google.common.truth.Truth
 import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
@@ -47,7 +48,7 @@ class GradleTaskListIntegrationTest : AndroidGradleTestCase() {
     GradleExperimentalSettings.getInstance().SKIP_GRADLE_TASKS_LIST = true
     loadSimpleApplication()
 
-    val moduleData = GradleUtil.findGradleModuleData(myModules.appModule)
+    val moduleData = GradleUtil.findGradleModuleData(project.findAppModule())
     TestCase.assertNotNull(moduleData)
 
     // Verify that no TaskData DataNode is being created.
@@ -59,7 +60,7 @@ class GradleTaskListIntegrationTest : AndroidGradleTestCase() {
     GradleExperimentalSettings.getInstance().SKIP_GRADLE_TASKS_LIST = false
     loadSimpleApplication()
 
-    val moduleData = GradleUtil.findGradleModuleData(myModules.appModule)
+    val moduleData = GradleUtil.findGradleModuleData(project.findAppModule())
     TestCase.assertNotNull(moduleData)
 
     // Verify that TaskData DataNode is not empty.

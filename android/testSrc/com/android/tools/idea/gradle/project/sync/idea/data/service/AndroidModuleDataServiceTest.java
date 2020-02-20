@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.ProjectFiles;
+import com.android.tools.idea.testing.TestModuleUtil;
 import com.intellij.facet.FacetManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
@@ -79,7 +80,7 @@ public class AndroidModuleDataServiceTest extends AndroidGradleTestCase {
 
   public void testImportData() throws Exception {
     loadSimpleApplication();
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
 
     AndroidModuleModel androidModel = AndroidModuleModel.get(appModule);
     assertNotNull(androidModel);

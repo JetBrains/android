@@ -17,8 +17,8 @@ package com.android.tools.idea.layoutinspector.util
 
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
+import com.android.tools.idea.testing.findModule
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.runInEdtAndGet
 import org.jetbrains.android.dom.manifest.Manifest
@@ -38,7 +38,7 @@ class ConfigurationBuilder(private val strings: TestStringTable) {
   }
 
   private fun getAppPackageName(project: Project): String {
-    val module = ModuleManager.getInstance(project)?.findModuleByName("app") ?: return defaultPackageName
+    val module = project.findModule("app") ?: return defaultPackageName
     val facet = AndroidFacet.getInstance(module)
     return Manifest.getMainManifest(facet)?.`package`?.value ?: defaultPackageName
   }

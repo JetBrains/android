@@ -21,6 +21,7 @@ import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.TestModuleUtil;
 import org.junit.Before;
 
 public class InstantAppsTest extends AndroidGradleTestCase {
@@ -33,7 +34,7 @@ public class InstantAppsTest extends AndroidGradleTestCase {
   public void testFindBaseFeatureWithInstantApp() throws Exception {
     // Use a plugin version that supports instant app
     loadProject(INSTANT_APP, "instant-app", null, "3.5.0");
-    assertEquals(myModules.getModule("feature"), findBaseFeature(myAndroidFacet));
+    assertEquals(TestModuleUtil.findModule(getProject(), "feature"), findBaseFeature(myAndroidFacet));
   }
 
   public void testFindBaseFeatureWithoutInstantApp() throws Exception {

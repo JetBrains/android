@@ -37,6 +37,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.ModuleDependency;
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.TestModuleUtil;
 import com.google.common.collect.ImmutableCollection;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -187,7 +188,7 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
 
   public void testProjectWithSharedTestFolder() throws Exception {
     loadProject(SHARED_TEST_FOLDER);
-    Module module = myModules.getAppModule();
+    Module module = TestModuleUtil.findAppModule(getProject());
     TestArtifactSearchScopes scopes = TestArtifactSearchScopes.getInstance(module);
     assertNotNull(scopes);
 
@@ -201,7 +202,7 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
 
   public void testResolvedScopeForTestOnlyModuleProject() throws Exception {
     loadProject(TEST_ONLY_MODULE);
-    Module testModule = getModule("test");
+    Module testModule = TestModuleUtil.findModule(getProject(), "test");
     TestArtifactSearchScopes testArtifactSearchScopes = TestArtifactSearchScopes.getInstance(testModule);
     assertNotNull(testArtifactSearchScopes);
 
@@ -224,7 +225,7 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
   @NotNull
   private GradleTestArtifactSearchScopes loadMultiProjectAndGetTestScopesForModule(String moduleName) throws Exception {
     loadProject(SYNC_MULTIPROJECT);
-    Module module1 = myModules.getModule(moduleName);
+    Module module1 = TestModuleUtil.findModule(getProject(), moduleName);
     GradleTestArtifactSearchScopes testArtifactSearchScopes = GradleTestArtifactSearchScopes.getInstance(module1);
     assertNotNull(testArtifactSearchScopes);
     return testArtifactSearchScopes;
@@ -232,7 +233,7 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
 
   public void testMergeSubmoduleDependencies() throws Exception {
     loadProject(TEST_ARTIFACTS_MULTIDEPENDENCIES);
-    Module module = myModules.getModule("module1");
+    Module module = TestModuleUtil.findModule(getProject(), "module1");
     GradleTestArtifactSearchScopes scopes = GradleTestArtifactSearchScopes.getInstance(module);
     scopes.resolveDependencies();
   }
@@ -250,8 +251,8 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
 
     // verify scope of test-util
     // implementation project(':lib')
-    Module testUtilModule = myModules.getModule("test-util");
-    Module libModule = myModules.getModule("lib");
+    Module testUtilModule = TestModuleUtil.findModule(getProject(), "test-util");
+    Module libModule = TestModuleUtil.findModule(getProject(), "lib");
 
     GradleTestArtifactSearchScopes scopes = GradleTestArtifactSearchScopes.getInstance(testUtilModule);
     scopes.resolveDependencies();

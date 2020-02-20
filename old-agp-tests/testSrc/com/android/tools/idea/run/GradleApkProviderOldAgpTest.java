@@ -41,6 +41,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.testing.TestModuleUtil;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.module.Module;
@@ -167,7 +168,7 @@ public class GradleApkProviderOldAgpTest extends GradleApkProviderTestCase {
   public void testOutputModelForDynamicFeatureInstrumentedTest() throws Exception {
     loadProject(DYNAMIC_APP, "feature1", null, "3.5.0");
     // Get base-app Android Facet
-    Module baseModule = myModules.getAppModule();
+    Module baseModule = TestModuleUtil.findAppModule(getProject());
     AndroidFacet baseAndroidFacet = AndroidFacet.getInstance(baseModule);
 
     // Create temporary directory with list of apk files

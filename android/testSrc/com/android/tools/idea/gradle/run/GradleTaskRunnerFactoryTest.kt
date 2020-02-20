@@ -24,7 +24,8 @@ import com.android.tools.idea.testing.AndroidModuleDependency
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.JavaModuleModelBuilder
-import com.android.tools.idea.testing.Modules
+import com.android.tools.idea.testing.findAppModule
+import com.android.tools.idea.testing.findModule
 import com.android.tools.idea.testing.setupTestProjectFromAndroidModel
 import com.google.common.truth.Truth
 import com.intellij.execution.configurations.JavaRunConfigurationModule
@@ -41,18 +42,12 @@ import java.io.File
  */
 class GradleTaskRunnerFactoryTest : HeavyPlatformTestCase() {
   private val projectDir get() = File(project.basePath!!)
-  private lateinit var myModules: Modules
-
-  override fun setUp() {
-    super.setUp()
-    myModules = Modules(project)
-  }
 
   fun testCreateTaskRunnerWithAndroidRunConfigurationBaseAndAGP3Dot5() {
     setupTestProjectFromAndroidModel(project, projectDir, androidModule(":app", "3.5.0"))
     val taskRunnerFactory = GradleTaskRunnerFactory(project)
     val configurationModule = Mockito.mock(JavaRunConfigurationModule::class.java)
-    `when`(configurationModule.module).thenReturn(myModules.appModule)
+    `when`(configurationModule.module).thenReturn(project.findAppModule())
     val configuration = Mockito.mock(AndroidRunConfigurationBase::class.java)
     `when`(configuration.configurationModule).thenReturn(configurationModule)
     val taskRunner = taskRunnerFactory.createTaskRunner(configuration)
@@ -64,7 +59,7 @@ class GradleTaskRunnerFactoryTest : HeavyPlatformTestCase() {
     setupTestProjectFromAndroidModel(project, projectDir, androidModule(":app", "2.3.0"))
     val taskRunnerFactory = GradleTaskRunnerFactory(project)
     val configurationModule = Mockito.mock(JavaRunConfigurationModule::class.java)
-    `when`(configurationModule.module).thenReturn(myModules.appModule)
+    `when`(configurationModule.module).thenReturn(project.findAppModule())
     val configuration = Mockito.mock(AndroidRunConfigurationBase::class.java)
     `when`(configuration.configurationModule).thenReturn(configurationModule)
     val taskRunner = taskRunnerFactory.createTaskRunner(configuration)
@@ -90,7 +85,7 @@ class GradleTaskRunnerFactoryTest : HeavyPlatformTestCase() {
     val taskRunnerFactory = GradleTaskRunnerFactory(project)
     val configuration = Mockito.mock(AndroidTestRunConfiguration::class.java)
     val configurationModule = Mockito.mock(JavaRunConfigurationModule::class.java)
-    `when`(configurationModule.module).thenReturn(myModules.getModule("app"))
+    `when`(configurationModule.module).thenReturn(project.findAppModule())
     `when`(configuration.configurationModule).thenReturn(configurationModule)
 
     val taskRunner = taskRunnerFactory.createTaskRunner(configuration)
@@ -116,7 +111,7 @@ class GradleTaskRunnerFactoryTest : HeavyPlatformTestCase() {
     val taskRunnerFactory = GradleTaskRunnerFactory(project)
 
     val configurationModule = Mockito.mock(JavaRunConfigurationModule::class.java)
-    `when`(configurationModule.module).thenReturn(myModules.getModule("feature1"))
+    `when`(configurationModule.module).thenReturn(project.findModule("feature1"))
     val configuration = Mockito.mock(AndroidTestRunConfiguration::class.java)
     `when`(configuration.configurationModule).thenReturn(configurationModule)
     val taskRunner = taskRunnerFactory.createTaskRunner(configuration)
@@ -141,7 +136,7 @@ class GradleTaskRunnerFactoryTest : HeavyPlatformTestCase() {
     val taskRunnerFactory = GradleTaskRunnerFactory(project)
 
     val configurationModule = Mockito.mock(JavaRunConfigurationModule::class.java)
-    `when`(configurationModule.module).thenReturn(myModules.appModule)
+    `when`(configurationModule.module).thenReturn(project.findAppModule())
     val configuration = Mockito.mock(AndroidRunConfiguration::class.java)
     `when`(configuration.configurationModule).thenReturn(configurationModule)
     val taskRunner = taskRunnerFactory.createTaskRunner(configuration)

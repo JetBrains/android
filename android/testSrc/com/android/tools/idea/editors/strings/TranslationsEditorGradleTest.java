@@ -21,6 +21,7 @@ import com.android.testutils.TestUtils;
 import com.android.tools.idea.io.TestFileUtils;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.testing.AndroidGradleProjectRule;
+import com.android.tools.idea.testing.TestModuleUtil;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -63,7 +64,7 @@ public final class TranslationsEditorGradleTest {
 
     TestFileUtils.writeFileAndRefreshVfs(debugRes.resolve(Paths.get("values-ab", "strings.xml")), debugContents);
 
-    Module module = myRule.getModules().getAppModule();
+    Module module = TestModuleUtil.findAppModule(myRule.getProject());
     StringResourceEditor stringResourceEditor = new StringResourceEditor(StringsVirtualFile.getStringsVirtualFile(module));
     Disposer.register(module, stringResourceEditor);
     StringResourceViewPanel panel = stringResourceEditor.getPanel();

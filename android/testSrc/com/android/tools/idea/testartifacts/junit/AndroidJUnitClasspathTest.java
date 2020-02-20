@@ -18,6 +18,7 @@ package com.android.tools.idea.testartifacts.junit;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.TestModuleUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.roots.CompilerModuleExtension;
@@ -27,7 +28,7 @@ public class AndroidJUnitClasspathTest extends AndroidGradleTestCase {
   // See bug http://b.android.com/233410
   public void testRightPaths() throws Exception {
     loadSimpleApplication();
-    Module module = ModuleManager.getInstance(myFixture.getProject()).findModuleByName("app");
+    Module module = TestModuleUtil.findModule(getProject(), "app");
     Module[] modulesToCompile = {module};
 
     GradleInvocationResult invocationResult =

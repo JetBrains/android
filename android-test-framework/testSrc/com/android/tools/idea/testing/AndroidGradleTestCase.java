@@ -92,7 +92,6 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   private static final Logger LOG = Logger.getInstance(AndroidGradleTestCase.class);
 
   protected AndroidFacet myAndroidFacet;
-  protected Modules myModules;
 
   public AndroidGradleTestCase() {
   }
@@ -163,11 +162,9 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     LocalFileSystem.getInstance().refreshAndFindFileByPath(project.getBasePath());
     AndroidGradleTests.setUpSdks(fixture, getSdk());
     myFixture = fixture;
-    myModules = new Modules(project);
   }
 
   public void tearDownFixture() {
-    myModules = null;
     myAndroidFacet = null;
     if (myFixture != null) {
       try {
@@ -205,7 +202,6 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
         PlatformTestCase.closeAndDisposeProjectAndCheckThatNoOpenProjects(openProjects[0]);
       }
       myAndroidFacet = null;
-      myModules = null;
     }
     finally {
       try {
@@ -379,7 +375,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   @NotNull
   protected Module getModule(@NotNull String moduleName) {
-    return myModules.getModule(moduleName);
+    return TestModuleUtil.findModule(getProject(), moduleName);
   }
 
   protected void requestSyncAndWait(@NotNull GradleSyncInvoker.Request request) throws Exception {

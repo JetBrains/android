@@ -15,19 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
-import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder;
-import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
-import com.google.common.collect.ListMultimap;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
-import com.intellij.util.containers.ContainerUtil;
-import java.nio.file.Path;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.sync.ModuleDependenciesSubject.moduleDependencies;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE;
@@ -36,9 +23,20 @@ import static com.android.tools.idea.testing.TestProjectPaths.COMPOSITE_BUILD;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static java.util.Arrays.asList;
-import static java.util.stream.Collectors.toList;
+
+import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder;
+import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
+import com.android.tools.idea.testing.TestModuleUtil;
+import com.google.common.collect.ListMultimap;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
+import com.intellij.util.containers.ContainerUtil;
+import java.io.File;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Integration test with composite build.
@@ -89,7 +87,7 @@ public class GradleSyncWithCompositeBuildTest extends GradleSyncIntegrationTestC
     loadProject(COMPOSITE_BUILD);
     String projectName = getProject().getName();
     String rootAppModuleName = projectName + "-app";
-    Module rootAppModule = myModules.getModule(rootAppModuleName);
+    Module rootAppModule = TestModuleUtil.findModule(getProject(), rootAppModuleName);
     // Verify that app module has dependency on direct and transitive lib modules.
     assertAbout(moduleDependencies()).that(rootAppModule).hasDependency(projectName + "-lib", COMPILE, false);
     assertAbout(moduleDependencies()).that(rootAppModule).hasDependency("TestCompositeLib1-lib", COMPILE, false);
@@ -101,7 +99,7 @@ public class GradleSyncWithCompositeBuildTest extends GradleSyncIntegrationTestC
   public void testModuleDependenciesWithIncludedAppModule() throws Exception {
     loadProject(COMPOSITE_BUILD);
     String appModuleName = "TestCompositeLib1-app";
-    Module appModule = myModules.getModule(appModuleName);
+    Module appModule = TestModuleUtil.findModule(getProject(), appModuleName);
     // Verify that app module has dependency on direct and transitive lib modules.
     assertAbout(moduleDependencies()).that(appModule).hasDependency("TestCompositeLib1-lib", COMPILE, false);
     assertAbout(moduleDependencies()).that(appModule).hasDependency("composite2", COMPILE, false);
@@ -112,9 +110,9 @@ public class GradleSyncWithCompositeBuildTest extends GradleSyncIntegrationTestC
   public void testGetAssembleTasks() throws Exception {
     loadProject(COMPOSITE_BUILD);
     Module[] modules = new Module[]{
-      myModules.getModule("TestCompositeLib1-app"),
-      myModules.getModule("TestCompositeLib3-app"),
-      myModules.getModule(getProject().getName() + "-app")};
+      TestModuleUtil.findModule(getProject(), "TestCompositeLib1-app"),
+      TestModuleUtil.findModule(getProject(), "TestCompositeLib3-app"),
+      TestModuleUtil.findModule(getProject(), getProject().getName() + "-app")};
     ListMultimap<Path, String> tasksPerProject = GradleTaskFinder.getInstance().findTasksToExecute(modules, ASSEMBLE, TestCompileType.ALL);
     // Verify that each included project has task list.
     assertThat(tasksPerProject.asMap()).hasSize(3);
@@ -131,11 +129,11 @@ public class GradleSyncWithCompositeBuildTest extends GradleSyncIntegrationTestC
   public void testGetSourceGenerationTasks() throws Exception {
     loadProject(COMPOSITE_BUILD);
     Module[] modules = new Module[]{
-      myModules.getModule("TestCompositeLib1-app"),
-      myModules.getModule("composite2"),
-      myModules.getModule("TestCompositeLib3-lib"),
-      myModules.getModule("composite4"),
-      myModules.getModule(getProject().getName() + "-app")};
+      TestModuleUtil.findModule(getProject(), "TestCompositeLib1-app"),
+      TestModuleUtil.findModule(getProject(), "composite2"),
+      TestModuleUtil.findModule(getProject(), "TestCompositeLib3-lib"),
+      TestModuleUtil.findModule(getProject(), "composite4"),
+      TestModuleUtil.findModule(getProject(), getProject().getName() + "-app")};
     ListMultimap<Path, String> tasksPerProject =
       GradleTaskFinder.getInstance().findTasksToExecute(modules, SOURCE_GEN, TestCompileType.ALL);
 

@@ -89,6 +89,7 @@ import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.testing.BuildEnvironment;
 import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.TestGradleSyncListener;
+import com.android.tools.idea.testing.TestModuleUtil;
 import com.android.utils.FileUtils;
 import com.google.common.collect.Lists;
 import com.intellij.build.SyncViewManager;
@@ -203,7 +204,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     // Sync must be successful.
     loadProject(NESTED_MODULE);
 
-    Module rootModule = myModules.getModule(getName());
+    Module rootModule = TestModuleUtil.findModule(getProject(), getProject().getName());
     GradleFacet gradleFacet = GradleFacet.getInstance(rootModule);
     // The root module should be considered a Java module.
     assertNotNull(gradleFacet);
@@ -216,7 +217,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
   public void testNdkProjectSync() throws Exception {
     loadProject(HELLO_JNI);
 
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
     NdkFacet ndkFacet = NdkFacet.getInstance(appModule);
     assertNotNull(ndkFacet);
 
@@ -293,7 +294,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
 
   public void testModuleJavaLanguageLevel() throws Exception {
     loadProject(TRANSITIVE_DEPENDENCIES);
-    Module library1Module = myModules.getModule("library1");
+    Module library1Module = TestModuleUtil.findModule(getProject(), "library1");
     LanguageLevel javaLanguageLevel = getJavaLanguageLevel(library1Module);
     assertEquals(JDK_1_7, javaLanguageLevel);
   }
@@ -326,7 +327,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
   public void testJarsFolderInExplodedAarIsExcluded() throws Exception {
     loadSimpleApplication();
 
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
     AndroidModuleModel androidModel = AndroidModuleModel.get(appModule);
     assertNotNull(androidModel);
     Collection<SyncIssue> issues = androidModel.getSyncIssues();
@@ -380,7 +381,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
   public void testLegacySourceGenerationIsDisabled() throws Exception {
     loadSimpleApplication();
 
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
     AndroidFacet facet = AndroidFacet.getInstance(appModule);
     assertNotNull(facet);
 
@@ -425,7 +426,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
     request.forceCreateDirs = true;
     AndroidGradleTests.importProject(project, request);
-    Module app = myModules.getAppModule();
+    Module app = TestModuleUtil.findAppModule(getProject());
 
     // Now we have to make sure that if project import was successful, the build folder has included source folders.
     File[] sourceFolderPaths = ApplicationManager.getApplication().runReadAction(
@@ -604,7 +605,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     assertSize(2, modules);
     for (Module module : modules) {
       GradleFacet gradleFacet = GradleFacet.getInstance(module);
-      if (module.getName().equals("app")) {
+      if (module.getName().contains("app")) {
         assertThat(gradleFacet).isNotNull();
         Collection<String> plugins = gradleFacet.getGradleModuleModel().getGradlePlugins();
         // The main project module will not contain a list of plugins
@@ -835,8 +836,9 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
   public void testViewBindingOptionsAreCorrectlyVisibleFromIDE() throws Exception {
     loadSimpleApplication();
 
+    Module appModule = TestModuleUtil.findAppModule(getProject());
     // Default option value should be false.
-    assertFalse(AndroidModuleModel.get(myModules.getAppModule()).getAndroidProject().getViewBindingOptions().isEnabled());
+    assertFalse(AndroidModuleModel.get(appModule).getAndroidProject().getViewBindingOptions().isEnabled());
 
     // Change the option in the build file and re-sync
     File appBuildFile = getBuildFilePath("app");
@@ -844,23 +846,24 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     requestSyncAndWait();
 
     // Check that the new option is visible from the IDE.
-    assertTrue(AndroidModuleModel.get(myModules.getAppModule()).getAndroidProject().getViewBindingOptions().isEnabled());
+    assertTrue(AndroidModuleModel.get(appModule).getAndroidProject().getViewBindingOptions().isEnabled());
   }
 
   public void testDependenciesInfoOptionsAreCorrectlyVisibleFromIDE() throws Exception {
     loadSimpleApplication();
 
+    Module appModule = TestModuleUtil.findAppModule(getProject());
     // Default option value should be true (at least at the moment)
-    assertTrue(AndroidModuleModel.get(myModules.getAppModule()).getAndroidProject().getDependenciesInfo().getIncludeInApk());
-    assertTrue(AndroidModuleModel.get(myModules.getAppModule()).getAndroidProject().getDependenciesInfo().getIncludeInBundle());
+    assertTrue(AndroidModuleModel.get(appModule).getAndroidProject().getDependenciesInfo().getIncludeInApk());
+    assertTrue(AndroidModuleModel.get(appModule).getAndroidProject().getDependenciesInfo().getIncludeInBundle());
 
     // explicitly set the option
     File appBuildFile = getBuildFilePath("app");
     appendToFile(appBuildFile, "\nandroid { dependenciesInfo { includeInApk false\nincludeInBundle false } }");
     requestSyncAndWait();
 
-    assertFalse(AndroidModuleModel.get(myModules.getAppModule()).getAndroidProject().getDependenciesInfo().getIncludeInApk());
-    assertFalse(AndroidModuleModel.get(myModules.getAppModule()).getAndroidProject().getDependenciesInfo().getIncludeInBundle());
+    assertFalse(AndroidModuleModel.get(appModule).getAndroidProject().getDependenciesInfo().getIncludeInApk());
+    assertFalse(AndroidModuleModel.get(appModule).getAndroidProject().getDependenciesInfo().getIncludeInBundle());
   }
 
   public void testProjectSyncIssuesAreCorrectlyReported() throws Exception {

@@ -30,6 +30,8 @@ import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.JavaModuleModelBuilder
+import com.android.tools.idea.testing.findAppModule
+import com.android.tools.idea.testing.findModule
 import com.android.tools.idea.testing.setupTestProjectFromAndroidModel
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.Lists
@@ -68,7 +70,7 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
         )
       )
     )
-    myModule = ModuleManager.getInstance(project).findModuleByName("app")
+    myModule = project.findAppModule()
   }
 
   fun testSingleOutputFromPostBuildModelForApk() {
