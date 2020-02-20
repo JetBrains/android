@@ -41,7 +41,6 @@ fun buildGradle(
   useAndroidX: Boolean,
   gradlePluginVersion: GradlePluginVersion,
   includeCppSupport: Boolean = false,
-  // TODO(qumeric): do something better
   cppFlags: String = "",
   isCompose: Boolean = false,
   baseFeatureName: String = "base",
@@ -71,6 +70,16 @@ fun buildGradle(
     addLintOptions = addLintOptions
   )
 
+  if (isDynamicFeature) {
+    return """
+$androidConfigBlock
+
+dependencies {
+    implementation project("${baseFeatureName}")
+}
+"""
+  }
+
   val composeDependenciesBlock = renderIf(isCompose) { "kotlinPlugin \"androidx.compose:compose-compiler:+\"" }
 
   val oldTestDependenciesBlock = renderIf(!supportsImprovedTestDeps) {
@@ -83,8 +92,7 @@ fun buildGradle(
     """
   }
 
-  val dynamicFeatureBlock = when {
-    isDynamicFeature -> """implementation project (":${baseFeatureName}")"""
+  val wearProjectBlock = when {
     !wearProjectName.isBlank() && formFactorNames.has(FormFactor.Mobile) && formFactorNames.has(FormFactor.Wear) ->
       """wearApp project (":${wearProjectName}")"""
     else -> ""
@@ -94,7 +102,7 @@ fun buildGradle(
   dependencies {
     $composeDependenciesBlock
     $oldTestDependenciesBlock
-    $dynamicFeatureBlock
+    $wearProjectBlock
   }
   """
 
