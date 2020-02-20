@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.debug;
 
-import com.intellij.debugger.DebuggerBundle;
+import com.intellij.debugger.JavaDebuggerBundle;
 import com.intellij.debugger.DebuggerContext;
 import com.intellij.debugger.engine.DebuggerManagerThreadImpl;
 import com.intellij.debugger.engine.evaluation.CodeFragmentKind;
@@ -120,7 +120,7 @@ public class ArrayMapRendererBase extends NodeRendererImpl {
   public String calcLabel(ValueDescriptor descriptor, EvaluationContext evaluationContext, DescriptorLabelListener listener)
     throws EvaluateException {
     if (!(descriptor.getValue() instanceof ObjectReference)) {
-      return DebuggerBundle.message("label.undefined");
+      return JavaDebuggerBundle.message("label.undefined");
     }
 
     ObjectReference ref = (ObjectReference)descriptor.getValue();
