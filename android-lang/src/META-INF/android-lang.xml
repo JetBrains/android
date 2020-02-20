@@ -105,7 +105,8 @@
                      displayName="'?' used as parameter in a Room query."/>
 
     <!-- Multidex keep files support -->
-    <fileTypeFactory implementation="com.android.tools.idea.lang.multiDexKeep.MultiDexKeepFileTypeFactory"/>
+    <fileType name="MultiDexKeep" implementationClass="com.android.tools.idea.lang.multiDexKeep.MultiDexKeepFileType"
+              fileNames="multidex-config.txt" language="MultiDexKeep" fieldName="INSTANCE"/>
     <lang.parserDefinition language="MultiDexKeep" implementationClass="com.android.tools.idea.lang.multiDexKeep.MultiDexKeepParserDefinition"/>
 
   </extensions>
