@@ -2,9 +2,30 @@ PROJECT             : testSyncKotlinProject
     LanguageLevel       : 8 - Lambdas, type annotations etc.
     PROJECT_JDK         : 1.8
         Version             : java version "<JDK_VERSION>"
-    MODULE              : app
-        - ModuleGroupPath   : testSyncKotlinProject
-        - ModuleGroupPath   : app
+    MODULE              : testSyncKotlinProject
+        ExternalModuleGroup :
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId     : testSyncKotlinProject
+        LinkedProjectPath   : <PROJECT>
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testSyncKotlinProject [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testSyncKotlinProject [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/testSyncKotlinProject.iml
+        ModuleTypeName      : JAVA_MODULE
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            Buildable           : false
+            BuildFolderPath     : <PROJECT>/build [-]
+        CONENT_ENTRY        : file://<PROJECT>
+            EXCLUDE_FOLDER      : file://<PROJECT>/.gradle
+            EXCLUDE_FOLDER      : file://<PROJECT>/build [-]
+        JDK                 : <NAME_CUT> JavaSDK
+        *isInherited        : true
+        ORDER_ENTRY         : <Module source>
+    MODULE              : testSyncKotlinProject.app
         ExternalModuleGroup : testSyncKotlinProject
         ExternalModuleVersion         : unspecified
         LinkedProjectId     : :app
@@ -15,7 +36,7 @@ PROJECT             : testSyncKotlinProject
             compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/app/app.iml
+        ModuleFile          : <PROJECT>/.idea/modules/app/testSyncKotlinProject.app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -633,10 +654,8 @@ PROJECT             : testSyncKotlinProject
             IsExported          : false
             Name                : Gradle: org.jetbrains:annotations:13.0 [=]
             *CLASSES            : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
-        ORDER_ENTRY         : contentLib
-    MODULE              : awesomeandroidlibrary
-        - ModuleGroupPath   : testSyncKotlinProject
-        - ModuleGroupPath   : awesomeandroidlibrary
+        ORDER_ENTRY         : testSyncKotlinProject.contentLib
+    MODULE              : testSyncKotlinProject.awesomeandroidlibrary
         ExternalModuleGroup : testSyncKotlinProject
         ExternalModuleVersion         : unspecified
         LinkedProjectId     : :awesomeandroidlibrary
@@ -647,7 +666,7 @@ PROJECT             : testSyncKotlinProject
             compilerTestOutputPath        : file://<PROJECT>/awesomeandroidlibrary/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/awesomeandroidlibrary/awesomeandroidlibrary.iml
+        ModuleFile          : <PROJECT>/.idea/modules/awesomeandroidlibrary/testSyncKotlinProject.awesomeandroidlibrary.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -1204,9 +1223,7 @@ PROJECT             : testSyncKotlinProject
             IsExported          : false
             Name                : Gradle: org.jetbrains:annotations:13.0 [=]
             *CLASSES            : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
-    MODULE              : contentLib
-        - ModuleGroupPath   : testSyncKotlinProject
-        - ModuleGroupPath   : contentLib
+    MODULE              : testSyncKotlinProject.contentLib
         ExternalModuleGroup : testSyncKotlinProject
         ExternalModuleVersion         : unspecified
         LinkedProjectId     : :contentLib
@@ -1217,7 +1234,7 @@ PROJECT             : testSyncKotlinProject
             compilerTestOutputPath        : file://<PROJECT>/contentLib/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/contentLib/contentLib.iml
+        ModuleFile          : <PROJECT>/.idea/modules/contentLib/testSyncKotlinProject.contentLib.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
@@ -1348,27 +1365,3 @@ PROJECT             : testSyncKotlinProject
             IsExported          : false
             Name                : Gradle: org.jetbrains:annotations:13.0 [=]
             *CLASSES            : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
-    MODULE              : testSyncKotlinProject
-        - ModuleGroupPath   : testSyncKotlinProject
-        ExternalModuleGroup :
-        ExternalModuleVersion         : unspecified
-        LinkedProjectId     : testSyncKotlinProject
-        LinkedProjectPath   : <PROJECT>
-        RootProjectPath     : <PROJECT>
-        COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testSyncKotlinProject [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testSyncKotlinProject [-]
-            isCompilerPathInherited       : true
-            isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/testSyncKotlinProject.iml
-        ModuleTypeName      : JAVA_MODULE
-        FACET               : Java-Gradle
-            TypeId              : java-gradle
-            Buildable           : false
-            BuildFolderPath     : <PROJECT>/build [-]
-        CONENT_ENTRY        : file://<PROJECT>
-            EXCLUDE_FOLDER      : file://<PROJECT>/.gradle
-            EXCLUDE_FOLDER      : file://<PROJECT>/build [-]
-        JDK                 : <NAME_CUT> JavaSDK
-        *isInherited        : true
-        ORDER_ENTRY         : <Module source>

@@ -1,4 +1,5 @@
-MODULE: app
+MODULE: testSimpleApplication
+MODULE: testSimpleApplication.app
     by Facet:
         main (IDEA)
             ScopeType: MAIN
@@ -658,4 +659,3 @@ MODULE: app
                     file://./app/src/androidTestDebug/shaders
                 MlModelsDirectoryUrls:
                     file://./app/src/androidTestDebug/ml
-MODULE: testSimpleApplication

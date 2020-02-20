@@ -2,9 +2,30 @@ PROJECT             : testSwitchingVariants_simpleApplication
     LanguageLevel       : 8 - Lambdas, type annotations etc.
     PROJECT_JDK         : 1.8
         Version             : java version "<JDK_VERSION>"
-    MODULE              : app
-        - ModuleGroupPath   : testSwitchingVariants_simpleApplication
-        - ModuleGroupPath   : app
+    MODULE              : testSwitchingVariants_simpleApplication
+        ExternalModuleGroup :
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId     : testSwitchingVariants_simpleApplication
+        LinkedProjectPath   : <PROJECT>
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testSwitchingVariants_simpleApplication [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testSwitchingVariants_simpleApplication [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/testSwitchingVariants_simpleApplication.iml
+        ModuleTypeName      : JAVA_MODULE
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            Buildable           : false
+            BuildFolderPath     : <PROJECT>/build [-]
+        CONENT_ENTRY        : file://<PROJECT>
+            EXCLUDE_FOLDER      : file://<PROJECT>/.gradle
+            EXCLUDE_FOLDER      : file://<PROJECT>/build [-]
+        JDK                 : <NAME_CUT> JavaSDK
+        *isInherited        : true
+        ORDER_ENTRY         : <Module source>
+    MODULE              : testSwitchingVariants_simpleApplication.app
         ExternalModuleGroup : testSwitchingVariants_simpleApplication
         ExternalModuleVersion         : unspecified
         LinkedProjectId     : :app
@@ -15,7 +36,7 @@ PROJECT             : testSwitchingVariants_simpleApplication
             compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/releaseUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/app/app.iml
+        ModuleFile          : <PROJECT>/.idea/modules/app/testSwitchingVariants_simpleApplication.app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -406,27 +427,3 @@ PROJECT             : testSwitchingVariants_simpleApplication
             IsExported          : false
             Name                : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
             *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar!/
-    MODULE              : testSwitchingVariants_simpleApplication
-        - ModuleGroupPath   : testSwitchingVariants_simpleApplication
-        ExternalModuleGroup :
-        ExternalModuleVersion         : unspecified
-        LinkedProjectId     : testSwitchingVariants_simpleApplication
-        LinkedProjectPath   : <PROJECT>
-        RootProjectPath     : <PROJECT>
-        COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testSwitchingVariants_simpleApplication [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testSwitchingVariants_simpleApplication [-]
-            isCompilerPathInherited       : true
-            isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/testSwitchingVariants_simpleApplication.iml
-        ModuleTypeName      : JAVA_MODULE
-        FACET               : Java-Gradle
-            TypeId              : java-gradle
-            Buildable           : false
-            BuildFolderPath     : <PROJECT>/build [-]
-        CONENT_ENTRY        : file://<PROJECT>
-            EXCLUDE_FOLDER      : file://<PROJECT>/.gradle
-            EXCLUDE_FOLDER      : file://<PROJECT>/build [-]
-        JDK                 : <NAME_CUT> JavaSDK
-        *isInherited        : true
-        ORDER_ENTRY         : <Module source>

@@ -2,9 +2,30 @@ PROJECT             : testWithBuildSrc
     LanguageLevel       : 8 - Lambdas, type annotations etc.
     PROJECT_JDK         : 1.8
         Version             : java version "<JDK_VERSION>"
-    MODULE              : app
-        - ModuleGroupPath   : testWithBuildSrc
-        - ModuleGroupPath   : app
+    MODULE              : testWithBuildSrc
+        ExternalModuleGroup :
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId     : testWithBuildSrc
+        LinkedProjectPath   : <PROJECT>
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testWithBuildSrc [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testWithBuildSrc [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/testWithBuildSrc.iml
+        ModuleTypeName      : JAVA_MODULE
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            Buildable           : false
+            BuildFolderPath     : <PROJECT>/build [-]
+        CONENT_ENTRY        : file://<PROJECT>
+            EXCLUDE_FOLDER      : file://<PROJECT>/.gradle
+            EXCLUDE_FOLDER      : file://<PROJECT>/build [-]
+        JDK                 : <NAME_CUT> JavaSDK
+        *isInherited        : true
+        ORDER_ENTRY         : <Module source>
+    MODULE              : testWithBuildSrc.app
         ExternalModuleGroup : testWithBuildSrc
         ExternalModuleVersion         : unspecified
         LinkedProjectId     : :app
@@ -15,7 +36,7 @@ PROJECT             : testWithBuildSrc
             compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/app/app.iml
+        ModuleFile          : <PROJECT>/.idea/modules/app/testWithBuildSrc.app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -526,33 +547,7 @@ PROJECT             : testWithBuildSrc
             IsExported          : false
             Name                : Gradle: org.hamcrest:hamcrest-library:1.3 [=]
             *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar!/
-    MODULE              : testWithBuildSrc
-        - ModuleGroupPath   : testWithBuildSrc
-        ExternalModuleGroup :
-        ExternalModuleVersion         : unspecified
-        LinkedProjectId     : testWithBuildSrc
-        LinkedProjectPath   : <PROJECT>
-        RootProjectPath     : <PROJECT>
-        COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testWithBuildSrc [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testWithBuildSrc [-]
-            isCompilerPathInherited       : true
-            isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/testWithBuildSrc.iml
-        ModuleTypeName      : JAVA_MODULE
-        FACET               : Java-Gradle
-            TypeId              : java-gradle
-            Buildable           : false
-            BuildFolderPath     : <PROJECT>/build [-]
-        CONENT_ENTRY        : file://<PROJECT>
-            EXCLUDE_FOLDER      : file://<PROJECT>/.gradle
-            EXCLUDE_FOLDER      : file://<PROJECT>/build [-]
-        JDK                 : <NAME_CUT> JavaSDK
-        *isInherited        : true
-        ORDER_ENTRY         : <Module source>
-    MODULE              : testWithBuildSrc_buildSrc
-        - ModuleGroupPath   : testWithBuildSrc
-        - ModuleGroupPath   : testWithBuildSrc_buildSrc
+    MODULE              : testWithBuildSrc.buildSrc
         ExternalModuleGroup :
         ExternalModuleVersion         : unspecified
         LinkedProjectId     : testWithBuildSrc:buildSrc
@@ -563,7 +558,7 @@ PROJECT             : testWithBuildSrc
             compilerTestOutputPath        : file://<PROJECT>/buildSrc/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/testWithBuildSrc_buildSrc.iml
+        ModuleFile          : <PROJECT>/.idea/modules/testWithBuildSrc.buildSrc.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
@@ -640,20 +635,17 @@ PROJECT             : testWithBuildSrc
             IsExported          : false
             Name                : Gradle: kotlin-stdlib-jdk8-<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar!/
-        LIBRARY             : Gradle: testWithBuildSrc_buildSrc.buildSrc
+        LIBRARY             : Gradle: testWithBuildSrc.buildSrc.buildSrc
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : true
-            Name                : Gradle: testWithBuildSrc_buildSrc.buildSrc [=]
+            Name                : Gradle: testWithBuildSrc.buildSrc.buildSrc [=]
             *CLASSES            : jar://<PROJECT>/buildSrc/build/libs/buildSrc.jar!/
-        ORDER_ENTRY         : testWithBuildSrc_lib1
-        ORDER_ENTRY         : testWithBuildSrc_lib2
-        ORDER_ENTRY         : testWithBuildSrc_lib2
-    MODULE              : testWithBuildSrc_lib1
-        - ModuleGroupPath   : testWithBuildSrc
-        - ModuleGroupPath   : buildSrc
-        - ModuleGroupPath   : lib1
+        ORDER_ENTRY         : testWithBuildSrc.buildSrc.lib1
+        ORDER_ENTRY         : testWithBuildSrc.buildSrc.lib2
+        ORDER_ENTRY         : testWithBuildSrc.buildSrc.lib2
+    MODULE              : testWithBuildSrc.buildSrc.lib1
         ExternalModuleGroup : buildSrc
         ExternalModuleVersion         : unspecified
         LinkedProjectId     : testWithBuildSrc:buildSrc:lib1
@@ -664,7 +656,7 @@ PROJECT             : testWithBuildSrc
             compilerTestOutputPath        : file://<PROJECT>/buildSrc/lib1/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/lib1/testWithBuildSrc_lib1.iml
+        ModuleFile          : <PROJECT>/.idea/modules/lib1/testWithBuildSrc.buildSrc.lib1.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
@@ -683,18 +675,15 @@ PROJECT             : testWithBuildSrc
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
-        LIBRARY             : Gradle: testWithBuildSrc_lib1.lib1
+        LIBRARY             : Gradle: testWithBuildSrc.buildSrc.lib1.lib1
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : true
-            Name                : Gradle: testWithBuildSrc_lib1.lib1 [=]
+            Name                : Gradle: testWithBuildSrc.buildSrc.lib1.lib1 [=]
             *CLASSES            : jar://<PROJECT>/buildSrc/lib1/build/libs/lib1.jar!/
-        ORDER_ENTRY         : testWithBuildSrc_lib2
-    MODULE              : testWithBuildSrc_lib2
-        - ModuleGroupPath   : testWithBuildSrc
-        - ModuleGroupPath   : buildSrc
-        - ModuleGroupPath   : lib2
+        ORDER_ENTRY         : testWithBuildSrc.buildSrc.lib2
+    MODULE              : testWithBuildSrc.buildSrc.lib2
         ExternalModuleGroup : buildSrc
         ExternalModuleVersion         : unspecified
         LinkedProjectId     : testWithBuildSrc:buildSrc:lib2
@@ -705,7 +694,7 @@ PROJECT             : testWithBuildSrc
             compilerTestOutputPath        : file://<PROJECT>/buildSrc/lib2/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/lib2/testWithBuildSrc_lib2.iml
+        ModuleFile          : <PROJECT>/.idea/modules/lib2/testWithBuildSrc.buildSrc.lib2.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
@@ -724,10 +713,10 @@ PROJECT             : testWithBuildSrc
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
-        LIBRARY             : Gradle: testWithBuildSrc_lib2.lib2
+        LIBRARY             : Gradle: testWithBuildSrc.buildSrc.lib2.lib2
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : true
-            Name                : Gradle: testWithBuildSrc_lib2.lib2 [=]
+            Name                : Gradle: testWithBuildSrc.buildSrc.lib2.lib2 [=]
             *CLASSES            : jar://<PROJECT>/buildSrc/lib2/build/libs/lib2.jar!/

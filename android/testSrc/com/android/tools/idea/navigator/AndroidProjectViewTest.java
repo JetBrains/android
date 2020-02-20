@@ -152,14 +152,14 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
                       "    strings.xml\n" +
                       " Gradle Scripts\n" +
                       "  build.gradle (Project: testProjectView)\n" +
-                      "  build.gradle (Module: app)\n" +
-                      "  sonar.gradle (Module: app)\n" +
-                      "  build.gradle (Module: empty)\n" +
-                      "  build.gradle (Module: javamodule)\n" +
-                      "  build.gradle (Module: lib)\n" +
+                      "  build.gradle (Module: testProjectView.app)\n" +
+                      "  sonar.gradle (Module: testProjectView.app)\n" +
+                      "  build.gradle (Module: testProjectView.empty)\n" +
+                      "  build.gradle (Module: testProjectView.javamodule)\n" +
+                      "  build.gradle (Module: testProjectView.lib)\n" +
                       "  gradle-wrapper.properties (Gradle Version)\n" +
-                      "  proguard-rules.pro (ProGuard Rules for app)\n" +
-                      "  proguard.cfg (ProGuard Rules for lib)\n" +
+                      "  proguard-rules.pro (ProGuard Rules for testProjectView.app)\n" +
+                      "  proguard.cfg (ProGuard Rules for testProjectView.lib)\n" +
                       "  gradle.properties (Project Properties)\n" +
                       "  settings.gradle (Project Settings)\n" +
                       "  local.properties (SDK Location)\n";
@@ -280,8 +280,8 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     String expected = projectName + "\n" +
                       " Gradle Scripts\n" +
                       "  build.gradle (Project: " + projectName +  ")\n" +
-                      "  build.gradle.kts (Module: app)\n" +
-                      "  build.gradle.kts (Module: lib)\n" +
+                      "  build.gradle.kts (Module: testKotlinBuildScriptStructure.app)\n" +
+                      "  build.gradle.kts (Module: testKotlinBuildScriptStructure.lib)\n" +
                       "  build.gradle.kts (Project: " + projectName + ")\n" +
                       "  gradle-wrapper.properties (Gradle Version)\n" +
                       "  gradle.properties (Project Properties)\n" +

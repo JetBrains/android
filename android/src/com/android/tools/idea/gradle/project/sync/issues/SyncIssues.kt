@@ -38,7 +38,7 @@ fun Module.syncIssues() : List<SyncIssueData> {
   val linkedProjectPath = ExternalSystemApiUtil.getExternalRootProjectPath(this) ?: return emptyList()
   val projectDataNode = findProjectData(project, GradleConstants.SYSTEM_ID, linkedProjectPath) ?: return emptyList()
   val moduleDataNode = find(projectDataNode, ProjectKeys.MODULE) { node ->
-    node.data.moduleName == name
+    node.data.internalName == name
   } ?: return emptyList()
   return findAll(moduleDataNode, SYNC_ISSUE).map { dataNode -> dataNode.data }
 }

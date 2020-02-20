@@ -2,9 +2,30 @@ PROJECT             : testPsdDependencyDeleteModule
     LanguageLevel       : 8 - Lambdas, type annotations etc.
     PROJECT_JDK         : 1.8
         Version             : java version "<JDK_VERSION>"
-    MODULE              : app
-        - ModuleGroupPath   : testPsdDependencyDeleteModule
-        - ModuleGroupPath   : app
+    MODULE              : testPsdDependencyDeleteModule
+        ExternalModuleGroup :
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId     : testPsdDependencyDeleteModule
+        LinkedProjectPath   : <PROJECT>
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyDeleteModule [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyDeleteModule [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/testPsdDependencyDeleteModule.iml
+        ModuleTypeName      : JAVA_MODULE
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            Buildable           : false
+            BuildFolderPath     : <PROJECT>/build [-]
+        CONENT_ENTRY        : file://<PROJECT>
+            EXCLUDE_FOLDER      : file://<PROJECT>/.gradle
+            EXCLUDE_FOLDER      : file://<PROJECT>/build [-]
+        JDK                 : <NAME_CUT> JavaSDK
+        *isInherited        : true
+        ORDER_ENTRY         : <Module source>
+    MODULE              : testPsdDependencyDeleteModule.app
         ExternalModuleGroup : testPsdDependencyDeleteModule
         ExternalModuleVersion         : unspecified
         LinkedProjectId     : :app
@@ -15,7 +36,7 @@ PROJECT             : testPsdDependencyDeleteModule
             compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/freeDebugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/app/app.iml
+        ModuleFile          : <PROJECT>/.idea/modules/app/testPsdDependencyDeleteModule.app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -468,10 +489,8 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/jars/classes.jar!/
-        ORDER_ENTRY         : mainModule
-    MODULE              : jModuleK
-        - ModuleGroupPath   : testPsdDependencyDeleteModule
-        - ModuleGroupPath   : jModuleK
+        ORDER_ENTRY         : testPsdDependencyDeleteModule.mainModule
+    MODULE              : testPsdDependencyDeleteModule.jModuleK
         ExternalModuleGroup : testPsdDependencyDeleteModule
         ExternalModuleVersion         : unspecified
         LinkedProjectId     : :jModuleK
@@ -482,7 +501,7 @@ PROJECT             : testPsdDependencyDeleteModule
             compilerTestOutputPath        : file://<PROJECT>/jModuleK/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/jModuleK/jModuleK.iml
+        ModuleFile          : <PROJECT>/.idea/modules/jModuleK/testPsdDependencyDeleteModule.jModuleK.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
@@ -550,10 +569,8 @@ PROJECT             : testPsdDependencyDeleteModule
             IsExported          : false
             Name                : Gradle: jarlib-1.1 [=]
             *CLASSES            : jar://<PROJECT>/jModuleK/libs/jarlib-1.1.jar!/
-        ORDER_ENTRY         : jModuleL
-    MODULE              : jModuleL
-        - ModuleGroupPath   : testPsdDependencyDeleteModule
-        - ModuleGroupPath   : jModuleL
+        ORDER_ENTRY         : testPsdDependencyDeleteModule.jModuleL
+    MODULE              : testPsdDependencyDeleteModule.jModuleL
         ExternalModuleGroup : testPsdDependencyDeleteModule
         ExternalModuleVersion         : unspecified
         LinkedProjectId     : :jModuleL
@@ -564,7 +581,7 @@ PROJECT             : testPsdDependencyDeleteModule
             compilerTestOutputPath        : file://<PROJECT>/jModuleL/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/jModuleL/jModuleL.iml
+        ModuleFile          : <PROJECT>/.idea/modules/jModuleL/testPsdDependencyDeleteModule.jModuleL.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
@@ -597,9 +614,7 @@ PROJECT             : testPsdDependencyDeleteModule
             IsExported          : false
             Name                : Gradle: com.example.jlib:lib4:1.0 [=]
             *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
-    MODULE              : jModuleM
-        - ModuleGroupPath   : testPsdDependencyDeleteModule
-        - ModuleGroupPath   : jModuleM
+    MODULE              : testPsdDependencyDeleteModule.jModuleM
         ExternalModuleGroup : testPsdDependencyDeleteModule
         ExternalModuleVersion         : unspecified
         LinkedProjectId     : :jModuleM
@@ -610,7 +625,7 @@ PROJECT             : testPsdDependencyDeleteModule
             compilerTestOutputPath        : file://<PROJECT>/jModuleM/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/jModuleM/jModuleM.iml
+        ModuleFile          : <PROJECT>/.idea/modules/jModuleM/testPsdDependencyDeleteModule.jModuleM.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
@@ -643,9 +658,7 @@ PROJECT             : testPsdDependencyDeleteModule
             IsExported          : false
             Name                : Gradle: com.example.jlib:lib4:0.9.1 [=]
             *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.9.1/lib4-0.9.1.jar!/
-    MODULE              : jModuleZ
-        - ModuleGroupPath   : testPsdDependencyDeleteModule
-        - ModuleGroupPath   : jModuleZ
+    MODULE              : testPsdDependencyDeleteModule.jModuleZ
         ExternalModuleGroup : testPsdDependencyDeleteModule
         ExternalModuleVersion         : unspecified
         LinkedProjectId     : :jModuleZ
@@ -656,7 +669,7 @@ PROJECT             : testPsdDependencyDeleteModule
             compilerTestOutputPath        : file://<PROJECT>/jModuleZ/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/jModuleZ/jModuleZ.iml
+        ModuleFile          : <PROJECT>/.idea/modules/jModuleZ/testPsdDependencyDeleteModule.jModuleZ.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
@@ -738,12 +751,47 @@ PROJECT             : testPsdDependencyDeleteModule
             IsExported          : false
             Name                : Gradle: libsam2-1.1 [=]
             *CLASSES            : jar://<PROJECT>/lib/libsam2-1.1.jar!/
-        ORDER_ENTRY         : jModuleK
-        ORDER_ENTRY         : jModuleL
-        ORDER_ENTRY         : nestedZ
-    MODULE              : mainModule
-        - ModuleGroupPath   : testPsdDependencyDeleteModule
-        - ModuleGroupPath   : mainModule
+        ORDER_ENTRY         : testPsdDependencyDeleteModule.jModuleK
+        ORDER_ENTRY         : testPsdDependencyDeleteModule.jModuleL
+        ORDER_ENTRY         : testPsdDependencyDeleteModule.jModuleZ.nestedZ
+    MODULE              : testPsdDependencyDeleteModule.jModuleZ.nestedZ
+        ExternalModuleGroup : testPsdDependencyDeleteModule.jModuleZ
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId     : :jModuleZ:nestedZ
+        LinkedProjectPath   : <PROJECT>/jModuleZ/nestedZ
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/jModuleZ/nestedZ/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/jModuleZ/nestedZ/build/classes/java/test [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/jModuleZ/nestedZ/testPsdDependencyDeleteModule.jModuleZ.nestedZ.iml
+        ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            GradlePath          : :jModuleZ:nestedZ
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            Buildable           : true
+            BuildFolderPath     : <PROJECT>/jModuleZ/nestedZ/build [-]
+        CONENT_ENTRY        : file://<PROJECT>/jModuleZ/nestedZ
+            JavaSource          : file://<PROJECT>/jModuleZ/nestedZ/src/main/java
+            JavaResource        : file://<PROJECT>/jModuleZ/nestedZ/src/main/resources
+            JavaSource (test)   : file://<PROJECT>/jModuleZ/nestedZ/src/test/java
+            JavaResource (test) : file://<PROJECT>/jModuleZ/nestedZ/src/test/resources
+            EXCLUDE_FOLDER      : file://<PROJECT>/jModuleZ/nestedZ/.gradle [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/jModuleZ/nestedZ/build [-]
+        JDK                 : <NAME_CUT> JavaSDK
+        *isInherited        : true
+        ORDER_ENTRY         : <Module source>
+        LIBRARY             : Gradle: com.example.jlib:lib4:0.6
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: com.example.jlib:lib4:0.6 [=]
+            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.6/lib4-0.6.jar!/
+    MODULE              : testPsdDependencyDeleteModule.mainModule
         ExternalModuleGroup : testPsdDependencyDeleteModule
         ExternalModuleVersion         : unspecified
         LinkedProjectId     : :mainModule
@@ -754,7 +802,7 @@ PROJECT             : testPsdDependencyDeleteModule
             compilerTestOutputPath        : file://<PROJECT>/mainModule/build/intermediates/javac/freeDebugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/mainModule/mainModule.iml
+        ModuleFile          : <PROJECT>/.idea/modules/mainModule/testPsdDependencyDeleteModule.mainModule.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -1239,9 +1287,7 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-1.0/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-1.0/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-1.0/jars/classes.jar!/
-    MODULE              : moduleA
-        - ModuleGroupPath   : testPsdDependencyDeleteModule
-        - ModuleGroupPath   : moduleA
+    MODULE              : testPsdDependencyDeleteModule.moduleA
         ExternalModuleGroup : testPsdDependencyDeleteModule
         ExternalModuleVersion         : unspecified
         LinkedProjectId     : :moduleA
@@ -1252,7 +1298,7 @@ PROJECT             : testPsdDependencyDeleteModule
             compilerTestOutputPath        : file://<PROJECT>/moduleA/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/moduleA/moduleA.iml
+        ModuleFile          : <PROJECT>/.idea/modules/moduleA/testPsdDependencyDeleteModule.moduleA.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -1655,9 +1701,7 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/jars/classes.jar!/
-    MODULE              : moduleC
-        - ModuleGroupPath   : testPsdDependencyDeleteModule
-        - ModuleGroupPath   : moduleC
+    MODULE              : testPsdDependencyDeleteModule.moduleC
         ExternalModuleGroup : testPsdDependencyDeleteModule
         ExternalModuleVersion         : unspecified
         LinkedProjectId     : :moduleC
@@ -1668,7 +1712,7 @@ PROJECT             : testPsdDependencyDeleteModule
             compilerTestOutputPath        : file://<PROJECT>/moduleC/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/moduleC/moduleC.iml
+        ModuleFile          : <PROJECT>/.idea/modules/moduleC/testPsdDependencyDeleteModule.moduleC.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -2057,9 +2101,7 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/jars/classes.jar!/
-    MODULE              : moduleFlavor
-        - ModuleGroupPath   : testPsdDependencyDeleteModule
-        - ModuleGroupPath   : moduleFlavor
+    MODULE              : testPsdDependencyDeleteModule.moduleFlavor
         ExternalModuleGroup : testPsdDependencyDeleteModule
         ExternalModuleVersion         : unspecified
         LinkedProjectId     : :moduleFlavor
@@ -2070,7 +2112,7 @@ PROJECT             : testPsdDependencyDeleteModule
             compilerTestOutputPath        : file://<PROJECT>/moduleFlavor/build/intermediates/javac/freeDebugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/moduleFlavor/moduleFlavor.iml
+        ModuleFile          : <PROJECT>/.idea/modules/moduleFlavor/testPsdDependencyDeleteModule.moduleFlavor.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -2254,9 +2296,7 @@ PROJECT             : testPsdDependencyDeleteModule
             HomePath            : <ANDROID_SDK>
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
-    MODULE              : modulePlus
-        - ModuleGroupPath   : testPsdDependencyDeleteModule
-        - ModuleGroupPath   : modulePlus
+    MODULE              : testPsdDependencyDeleteModule.modulePlus
         ExternalModuleGroup : testPsdDependencyDeleteModule
         ExternalModuleVersion         : unspecified
         LinkedProjectId     : :modulePlus
@@ -2267,7 +2307,7 @@ PROJECT             : testPsdDependencyDeleteModule
             compilerTestOutputPath        : file://<PROJECT>/modulePlus/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/modulePlus/modulePlus.iml
+        ModuleFile          : <PROJECT>/.idea/modules/modulePlus/testPsdDependencyDeleteModule.modulePlus.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -2688,68 +2728,4 @@ PROJECT             : testPsdDependencyDeleteModule
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-0.9.1/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-0.9.1/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-0.9.1/jars/classes.jar!/
-        ORDER_ENTRY         : jModuleK
-    MODULE              : nestedZ
-        - ModuleGroupPath   : testPsdDependencyDeleteModule
-        - ModuleGroupPath   : jModuleZ
-        - ModuleGroupPath   : nestedZ
-        ExternalModuleGroup : testPsdDependencyDeleteModule.jModuleZ
-        ExternalModuleVersion         : unspecified
-        LinkedProjectId     : :jModuleZ:nestedZ
-        LinkedProjectPath   : <PROJECT>/jModuleZ/nestedZ
-        RootProjectPath     : <PROJECT>
-        COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/jModuleZ/nestedZ/build/classes/java/main [-]
-            compilerTestOutputPath        : file://<PROJECT>/jModuleZ/nestedZ/build/classes/java/test [-]
-            isCompilerPathInherited       : false
-            isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/jModuleZ/nestedZ/nestedZ.iml
-        ModuleTypeName      : JAVA_MODULE
-        FACET               : Android-Gradle
-            TypeId              : android-gradle
-            GradlePath          : :jModuleZ:nestedZ
-        FACET               : Java-Gradle
-            TypeId              : java-gradle
-            Buildable           : true
-            BuildFolderPath     : <PROJECT>/jModuleZ/nestedZ/build [-]
-        CONENT_ENTRY        : file://<PROJECT>/jModuleZ/nestedZ
-            JavaSource          : file://<PROJECT>/jModuleZ/nestedZ/src/main/java
-            JavaResource        : file://<PROJECT>/jModuleZ/nestedZ/src/main/resources
-            JavaSource (test)   : file://<PROJECT>/jModuleZ/nestedZ/src/test/java
-            JavaResource (test) : file://<PROJECT>/jModuleZ/nestedZ/src/test/resources
-            EXCLUDE_FOLDER      : file://<PROJECT>/jModuleZ/nestedZ/.gradle [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/jModuleZ/nestedZ/build [-]
-        JDK                 : <NAME_CUT> JavaSDK
-        *isInherited        : true
-        ORDER_ENTRY         : <Module source>
-        LIBRARY             : Gradle: com.example.jlib:lib4:0.6
-            LibraryLevel        : project
-            IsModuleLevel       : false
-            Scope               : Compile
-            IsExported          : false
-            Name                : Gradle: com.example.jlib:lib4:0.6 [=]
-            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.6/lib4-0.6.jar!/
-    MODULE              : testPsdDependencyDeleteModule
-        - ModuleGroupPath   : testPsdDependencyDeleteModule
-        ExternalModuleGroup :
-        ExternalModuleVersion         : unspecified
-        LinkedProjectId     : testPsdDependencyDeleteModule
-        LinkedProjectPath   : <PROJECT>
-        RootProjectPath     : <PROJECT>
-        COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyDeleteModule [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyDeleteModule [-]
-            isCompilerPathInherited       : true
-            isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/testPsdDependencyDeleteModule.iml
-        ModuleTypeName      : JAVA_MODULE
-        FACET               : Java-Gradle
-            TypeId              : java-gradle
-            Buildable           : false
-            BuildFolderPath     : <PROJECT>/build [-]
-        CONENT_ENTRY        : file://<PROJECT>
-            EXCLUDE_FOLDER      : file://<PROJECT>/.gradle
-            EXCLUDE_FOLDER      : file://<PROJECT>/build [-]
-        JDK                 : <NAME_CUT> JavaSDK
-        *isInherited        : true
-        ORDER_ENTRY         : <Module source>
+        ORDER_ENTRY         : testPsdDependencyDeleteModule.jModuleK
