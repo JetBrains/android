@@ -70,6 +70,7 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
+import org.jetbrains.android.AndroidTempDirTestFixture;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -143,8 +144,10 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   public void setUpFixture() throws Exception {
+    AndroidTempDirTestFixture tempDirFixture = new AndroidTempDirTestFixture(getName());
     TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder =
-      IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName(), true /* .idea directory based project */);
+      IdeaTestFixtureFactory.getFixtureFactory()
+        .createFixtureBuilder(getName(), tempDirFixture.getProjectDir().getParentFile().toPath(), true);
     IdeaProjectTestFixture projectFixture = projectBuilder.getFixture();
     setUpFixture(projectFixture);
   }
