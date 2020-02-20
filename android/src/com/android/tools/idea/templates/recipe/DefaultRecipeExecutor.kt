@@ -220,30 +220,31 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
   /**
    * Add a library dependency into the project.
    */
-  override fun addDependency(mavenCoordinate: String, configuration: String, minRev: String?, moduleDir: File?) {
+  override fun addDependency(mavenCoordinate: String, configuration: String, minRev: String?, moduleDir: File?, toBase: Boolean) {
     // Translate from "compile" to "implementation" based on the parameter map context
     val newConfiguration = GradleUtil.mapConfigurationName(configuration, projectTemplateData.gradlePluginVersion, false)
-    referencesExecutor.addDependency(newConfiguration, mavenCoordinate, minRev)
+    referencesExecutor.addDependency(newConfiguration, mavenCoordinate, minRev, moduleDir, toBase)
 
     val baseFeature = context.moduleTemplateData?.baseFeature
 
-    val buildModel =
-      if (moduleDir != null) {
-        projectBuildModel?.getModuleBuildModel(moduleDir) ?: return
+    val buildModel = when {
+      moduleDir != null -> {
+        projectBuildModel?.getModuleBuildModel(moduleDir)
       }
-      else if (baseFeature == null) {
+      baseFeature == null || !toBase -> {
         moduleGradleBuildModel
       }
-      else {
+      else -> {
         projectBuildModel?.getModuleBuildModel(baseFeature.dir)
-      } ?: return
+      }
+    } ?: return
 
     var resolvedConfiguration = GradleUtil.mapConfigurationName(configuration, projectTemplateData.gradlePluginVersion, false)
     val resolvedMavenCoordinate = resolveDependency(repositoryUrlManager, convertToAndroidX(mavenCoordinate), minRev)
 
     // If a Library (e.g. Google Maps) Manifest references its own resources, it needs to be added to the Base, otherwise aapt2 will fail
     // during linking. Since we don't know the libraries Manifest references, we declare this libraries in the base as "api" dependencies.
-    if (baseFeature != null && resolvedConfiguration == GRADLE_IMPLEMENTATION_CONFIGURATION) {
+    if (baseFeature != null && toBase && resolvedConfiguration == GRADLE_IMPLEMENTATION_CONFIGURATION) {
         resolvedConfiguration = GRADLE_API_CONFIGURATION
     } else if (buildModel.getDependencyConfiguration(resolvedMavenCoordinate) != null) {
       return
