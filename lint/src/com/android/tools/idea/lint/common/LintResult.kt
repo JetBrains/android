@@ -45,7 +45,7 @@ data class LintBatchResult(val project: Project,
     return issues
   }
 }
-class LintEditorResult internal constructor(private val myModule: Module,
+class LintEditorResult constructor(private val myModule: Module,
                                             val mainFile: VirtualFile,
                                             val mainFileContent: String,
                                             private val myIssues: Set<Issue>) : LintResult() {
