@@ -195,4 +195,8 @@ public interface CaptureObject extends MemoryObject {
   default void addInstanceFilter(@NotNull CaptureObjectInstanceFilter filter, @NotNull Executor analyzeJoiner) {}
 
   default void removeInstanceFilter(@NotNull CaptureObjectInstanceFilter filter, @NotNull Executor analyzeJoiner) {}
+
+  default void setSingleFilter(@NotNull CaptureObjectInstanceFilter filter, @NotNull Executor analyzeJoiner) {}
+
+  default void removeAllFilters(@NotNull Executor analyzeJoiner) {}
 }
