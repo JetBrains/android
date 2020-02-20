@@ -2,9 +2,30 @@ PROJECT             : testSyncWithKotlinDsl
     LanguageLevel       : 8 - Lambdas, type annotations etc.
     PROJECT_JDK         : 1.8
         Version             : java version "<JDK_VERSION>"
-    MODULE              : app
-        - ModuleGroupPath   : testSyncWithKotlinDsl
-        - ModuleGroupPath   : app
+    MODULE              : testSyncWithKotlinDsl
+        ExternalModuleGroup :
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId     : testSyncWithKotlinDsl
+        LinkedProjectPath   : <PROJECT>
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testSyncWithKotlinDsl [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testSyncWithKotlinDsl [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/testSyncWithKotlinDsl.iml
+        ModuleTypeName      : JAVA_MODULE
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            Buildable           : false
+            BuildFolderPath     : <PROJECT>/build [-]
+        CONENT_ENTRY        : file://<PROJECT>
+            EXCLUDE_FOLDER      : file://<PROJECT>/.gradle
+            EXCLUDE_FOLDER      : file://<PROJECT>/build [-]
+        JDK                 : <NAME_CUT> JavaSDK
+        *isInherited        : true
+        ORDER_ENTRY         : <Module source>
+    MODULE              : testSyncWithKotlinDsl.app
         ExternalModuleGroup : testSyncWithKotlinDsl
         ExternalModuleVersion         : unspecified
         LinkedProjectId     : :app
@@ -15,7 +36,7 @@ PROJECT             : testSyncWithKotlinDsl
             compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/app/app.iml
+        ModuleFile          : <PROJECT>/.idea/modules/app/testSyncWithKotlinDsl.app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -464,10 +485,8 @@ PROJECT             : testSyncWithKotlinDsl
             IsExported          : false
             Name                : Gradle: org.jetbrains:annotations:13.0 [=]
             *CLASSES            : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
-        ORDER_ENTRY         : lib
-    MODULE              : lib
-        - ModuleGroupPath   : testSyncWithKotlinDsl
-        - ModuleGroupPath   : lib
+        ORDER_ENTRY         : testSyncWithKotlinDsl.lib
+    MODULE              : testSyncWithKotlinDsl.lib
         ExternalModuleGroup : testSyncWithKotlinDsl
         ExternalModuleVersion         : unspecified
         LinkedProjectId     : :lib
@@ -478,7 +497,7 @@ PROJECT             : testSyncWithKotlinDsl
             compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/lib/lib.iml
+        ModuleFile          : <PROJECT>/.idea/modules/lib/testSyncWithKotlinDsl.lib.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -642,27 +661,3 @@ PROJECT             : testSyncWithKotlinDsl
             IsExported          : false
             Name                : Gradle: org.jetbrains:annotations:13.0 [=]
             *CLASSES            : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
-    MODULE              : testSyncWithKotlinDsl
-        - ModuleGroupPath   : testSyncWithKotlinDsl
-        ExternalModuleGroup :
-        ExternalModuleVersion         : unspecified
-        LinkedProjectId     : testSyncWithKotlinDsl
-        LinkedProjectPath   : <PROJECT>
-        RootProjectPath     : <PROJECT>
-        COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testSyncWithKotlinDsl [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testSyncWithKotlinDsl [-]
-            isCompilerPathInherited       : true
-            isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/testSyncWithKotlinDsl.iml
-        ModuleTypeName      : JAVA_MODULE
-        FACET               : Java-Gradle
-            TypeId              : java-gradle
-            Buildable           : false
-            BuildFolderPath     : <PROJECT>/build [-]
-        CONENT_ENTRY        : file://<PROJECT>
-            EXCLUDE_FOLDER      : file://<PROJECT>/.gradle
-            EXCLUDE_FOLDER      : file://<PROJECT>/build [-]
-        JDK                 : <NAME_CUT> JavaSDK
-        *isInherited        : true
-        ORDER_ENTRY         : <Module source>

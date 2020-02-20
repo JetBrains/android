@@ -44,6 +44,7 @@ import com.android.tools.idea.testing.TestProjectPaths.VARIANT_SPECIFIC_DEPENDEN
 import com.android.tools.idea.testing.assertAreEqualToSnapshots
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.android.tools.idea.testing.fileUnderGradleRoot
+import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.openGradleProject
 import com.android.tools.idea.testing.reopenGradleProject
@@ -317,9 +318,9 @@ abstract class GradleSyncProjectComparisonTest(
 
     fun testSwitchingVariants_simpleApplication() {
       val debugBefore = importSyncAndDumpProject(SIMPLE_APPLICATION)
-      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, "app", "release", true)
+      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, project.findAppModule().name, "release", true)
       val release = project.saveAndDump()
-      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, "app", "debug", true)
+      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, project.findAppModule().name, "debug", true)
       val debugAfter = project.saveAndDump()
       assertAreEqualToSnapshots(
         debugBefore to ".debug",
@@ -350,7 +351,7 @@ abstract class GradleSyncProjectComparisonTest(
         project.saveAndDump()
       }
       val release = reopenGradleProject("project") { project ->
-        BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, "app", "release", true)
+        BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, project.findAppModule().name, "release", true)
         PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
         project.saveAndDump()
       }
@@ -369,7 +370,7 @@ abstract class GradleSyncProjectComparisonTest(
         project.saveAndDump()
       }
       val release = reopenGradleProject("project") { project ->
-        BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, "app", "release", true)
+        BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, project.findAppModule().name, "release", true)
         PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
         runWriteAction {
           // Modify the project build file to ensure the project is synced when opened.
@@ -393,10 +394,10 @@ abstract class GradleSyncProjectComparisonTest(
     fun testSwitchingVariants_variantSpecificDependencies() {
       val freeDebugBefore = importSyncAndDumpProject(VARIANT_SPECIFIC_DEPENDENCIES)
 
-      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, "app", "paidDebug", true)
+      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, project.findAppModule().name, "paidDebug", true)
       val paidDebug = project.saveAndDump()
 
-      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, "app", "freeDebug", true)
+      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, project.findAppModule().name, "freeDebug", true)
       val freeDebugAfter = project.saveAndDump()
 
       assertAreEqualToSnapshots(

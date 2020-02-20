@@ -1,5 +1,5 @@
 MODULE: TestCompositeLib1
-MODULE: TestCompositeLib1-app
+MODULE: TestCompositeLib1.app
     by Facet:
         main (IDEA)
             ScopeType: MAIN
@@ -659,7 +659,7 @@ MODULE: TestCompositeLib1-app
                     file://./TestCompositeLib1/app/src/androidTestDebug/shaders
                 MlModelsDirectoryUrls:
                     file://./TestCompositeLib1/app/src/androidTestDebug/ml
-MODULE: TestCompositeLib1-lib
+MODULE: TestCompositeLib1.lib
     by Facet:
         main (IDEA)
             ScopeType: MAIN
@@ -1320,7 +1320,7 @@ MODULE: TestCompositeLib1-lib
                 MlModelsDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/androidTestDebug/ml
 MODULE: TestCompositeLib3
-MODULE: TestCompositeLib3-app
+MODULE: TestCompositeLib3.app
     by Facet:
         main (IDEA)
             ScopeType: MAIN
@@ -1980,7 +1980,7 @@ MODULE: TestCompositeLib3-app
                     file://./TestCompositeLib3/app/src/androidTestDebug/shaders
                 MlModelsDirectoryUrls:
                     file://./TestCompositeLib3/app/src/androidTestDebug/ml
-MODULE: TestCompositeLib3-lib
+MODULE: TestCompositeLib3.lib
     by Facet:
         main (IDEA)
             ScopeType: MAIN
@@ -2643,7 +2643,7 @@ MODULE: TestCompositeLib3-lib
 MODULE: composite2
 MODULE: composite4
 MODULE: testCompositeBuild
-MODULE: testCompositeBuild-app
+MODULE: testCompositeBuild.app
     by Facet:
         main (IDEA)
             ScopeType: MAIN
@@ -3303,7 +3303,7 @@ MODULE: testCompositeBuild-app
                     file://./app/src/androidTestDebug/shaders
                 MlModelsDirectoryUrls:
                     file://./app/src/androidTestDebug/ml
-MODULE: testCompositeBuild-lib
+MODULE: testCompositeBuild.lib
     by Facet:
         main (IDEA)
             ScopeType: MAIN

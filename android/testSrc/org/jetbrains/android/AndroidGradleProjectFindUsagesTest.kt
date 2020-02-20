@@ -47,13 +47,13 @@ class AndroidGradleProjectFindUsagesTest : AndroidGradleTestCase() {
                  "    abc_tint_default.xml (1 usage)\n" +
                  "     1<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                  "  Resource reference in code (2 usages)\n" +
-                 "   app (1 usage)\n" +
+                 "   testResourceDefinedInAar.app (1 usage)\n" +
                  "    com.example.google.androidx (1 usage)\n" +
                  "     MainActivity.kt (1 usage)\n" +
                  "      MainActivity (1 usage)\n" +
                  "       onCreate (1 usage)\n" +
                  "        12val color = R.color.abc_tint_default\n" +
-                 "   library (1 usage)\n" +
+                 "   testResourceDefinedInAar.library (1 usage)\n" +
                  "    google.mylibrary (1 usage)\n" +
                  "     Library (1 usage)\n" +
                  "      foo() (1 usage)\n" +

@@ -2,9 +2,30 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
     LanguageLevel       : 8 - Lambdas, type annotations etc.
     PROJECT_JDK         : 1.8
         Version             : java version "<JDK_VERSION>"
-    MODULE              : app
-        - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack
-        - ModuleGroupPath   : app
+    MODULE              : testPsdDependencyAndroidToJavaModuleAndBack
+        ExternalModuleGroup :
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId     : testPsdDependencyAndroidToJavaModuleAndBack
+        LinkedProjectPath   : <PROJECT>
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyAndroidToJavaModuleAndBack [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyAndroidToJavaModuleAndBack [-]
+            isCompilerPathInherited       : true
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/testPsdDependencyAndroidToJavaModuleAndBack.iml
+        ModuleTypeName      : JAVA_MODULE
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            Buildable           : false
+            BuildFolderPath     : <PROJECT>/build [-]
+        CONENT_ENTRY        : file://<PROJECT>
+            EXCLUDE_FOLDER      : file://<PROJECT>/.gradle
+            EXCLUDE_FOLDER      : file://<PROJECT>/build [-]
+        JDK                 : <NAME_CUT> JavaSDK
+        *isInherited        : true
+        ORDER_ENTRY         : <Module source>
+    MODULE              : testPsdDependencyAndroidToJavaModuleAndBack.app
         ExternalModuleGroup : testPsdDependencyAndroidToJavaModuleAndBack
         ExternalModuleVersion         : unspecified
         LinkedProjectId     : :app
@@ -15,7 +36,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/freeDebugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/app/app.iml
+        ModuleFile          : <PROJECT>/.idea/modules/app/testPsdDependencyAndroidToJavaModuleAndBack.app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -468,10 +489,8 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/jars/classes.jar!/
-        ORDER_ENTRY         : mainModule
-    MODULE              : jModuleK
-        - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack
-        - ModuleGroupPath   : jModuleK
+        ORDER_ENTRY         : testPsdDependencyAndroidToJavaModuleAndBack.mainModule
+    MODULE              : testPsdDependencyAndroidToJavaModuleAndBack.jModuleK
         ExternalModuleGroup : testPsdDependencyAndroidToJavaModuleAndBack
         ExternalModuleVersion         : unspecified
         LinkedProjectId     : :jModuleK
@@ -482,7 +501,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             compilerTestOutputPath        : file://<PROJECT>/jModuleK/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/jModuleK/jModuleK.iml
+        ModuleFile          : <PROJECT>/.idea/modules/jModuleK/testPsdDependencyAndroidToJavaModuleAndBack.jModuleK.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
@@ -550,10 +569,8 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             IsExported          : false
             Name                : Gradle: jarlib-1.1 [=]
             *CLASSES            : jar://<PROJECT>/jModuleK/libs/jarlib-1.1.jar!/
-        ORDER_ENTRY         : jModuleL
-    MODULE              : jModuleL
-        - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack
-        - ModuleGroupPath   : jModuleL
+        ORDER_ENTRY         : testPsdDependencyAndroidToJavaModuleAndBack.jModuleL
+    MODULE              : testPsdDependencyAndroidToJavaModuleAndBack.jModuleL
         ExternalModuleGroup : testPsdDependencyAndroidToJavaModuleAndBack
         ExternalModuleVersion         : unspecified
         LinkedProjectId     : :jModuleL
@@ -564,7 +581,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             compilerTestOutputPath        : file://<PROJECT>/jModuleL/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/jModuleL/jModuleL.iml
+        ModuleFile          : <PROJECT>/.idea/modules/jModuleL/testPsdDependencyAndroidToJavaModuleAndBack.jModuleL.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
@@ -597,9 +614,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             IsExported          : false
             Name                : Gradle: com.example.jlib:lib4:1.0 [=]
             *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
-    MODULE              : jModuleM
-        - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack
-        - ModuleGroupPath   : jModuleM
+    MODULE              : testPsdDependencyAndroidToJavaModuleAndBack.jModuleM
         ExternalModuleGroup : testPsdDependencyAndroidToJavaModuleAndBack
         ExternalModuleVersion         : unspecified
         LinkedProjectId     : :jModuleM
@@ -610,7 +625,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             compilerTestOutputPath        : file://<PROJECT>/jModuleM/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/jModuleM/jModuleM.iml
+        ModuleFile          : <PROJECT>/.idea/modules/jModuleM/testPsdDependencyAndroidToJavaModuleAndBack.jModuleM.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
@@ -643,9 +658,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             IsExported          : false
             Name                : Gradle: com.example.jlib:lib4:0.9.1 [=]
             *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.9.1/lib4-0.9.1.jar!/
-    MODULE              : jModuleZ
-        - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack
-        - ModuleGroupPath   : jModuleZ
+    MODULE              : testPsdDependencyAndroidToJavaModuleAndBack.jModuleZ
         ExternalModuleGroup : testPsdDependencyAndroidToJavaModuleAndBack
         ExternalModuleVersion         : unspecified
         LinkedProjectId     : :jModuleZ
@@ -656,7 +669,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             compilerTestOutputPath        : file://<PROJECT>/jModuleZ/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/jModuleZ/jModuleZ.iml
+        ModuleFile          : <PROJECT>/.idea/modules/jModuleZ/testPsdDependencyAndroidToJavaModuleAndBack.jModuleZ.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
@@ -738,12 +751,47 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             IsExported          : false
             Name                : Gradle: libsam2-1.1 [=]
             *CLASSES            : jar://<PROJECT>/lib/libsam2-1.1.jar!/
-        ORDER_ENTRY         : jModuleK
-        ORDER_ENTRY         : jModuleL
-        ORDER_ENTRY         : nestedZ
-    MODULE              : mainModule
-        - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack
-        - ModuleGroupPath   : mainModule
+        ORDER_ENTRY         : testPsdDependencyAndroidToJavaModuleAndBack.jModuleK
+        ORDER_ENTRY         : testPsdDependencyAndroidToJavaModuleAndBack.jModuleL
+        ORDER_ENTRY         : testPsdDependencyAndroidToJavaModuleAndBack.jModuleZ.nestedZ
+    MODULE              : testPsdDependencyAndroidToJavaModuleAndBack.jModuleZ.nestedZ
+        ExternalModuleGroup : testPsdDependencyAndroidToJavaModuleAndBack.jModuleZ
+        ExternalModuleVersion         : unspecified
+        LinkedProjectId     : :jModuleZ:nestedZ
+        LinkedProjectPath   : <PROJECT>/jModuleZ/nestedZ
+        RootProjectPath     : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/jModuleZ/nestedZ/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/jModuleZ/nestedZ/build/classes/java/test [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput     : true
+        ModuleFile          : <PROJECT>/.idea/modules/jModuleZ/nestedZ/testPsdDependencyAndroidToJavaModuleAndBack.jModuleZ.nestedZ.iml
+        ModuleTypeName      : JAVA_MODULE
+        FACET               : Android-Gradle
+            TypeId              : android-gradle
+            GradlePath          : :jModuleZ:nestedZ
+        FACET               : Java-Gradle
+            TypeId              : java-gradle
+            Buildable           : true
+            BuildFolderPath     : <PROJECT>/jModuleZ/nestedZ/build [-]
+        CONENT_ENTRY        : file://<PROJECT>/jModuleZ/nestedZ
+            JavaSource          : file://<PROJECT>/jModuleZ/nestedZ/src/main/java
+            JavaResource        : file://<PROJECT>/jModuleZ/nestedZ/src/main/resources
+            JavaSource (test)   : file://<PROJECT>/jModuleZ/nestedZ/src/test/java
+            JavaResource (test) : file://<PROJECT>/jModuleZ/nestedZ/src/test/resources
+            EXCLUDE_FOLDER      : file://<PROJECT>/jModuleZ/nestedZ/.gradle [-]
+            EXCLUDE_FOLDER      : file://<PROJECT>/jModuleZ/nestedZ/build [-]
+        JDK                 : <NAME_CUT> JavaSDK
+        *isInherited        : true
+        ORDER_ENTRY         : <Module source>
+        LIBRARY             : Gradle: com.example.jlib:lib4:0.6
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: com.example.jlib:lib4:0.6 [=]
+            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.6/lib4-0.6.jar!/
+    MODULE              : testPsdDependencyAndroidToJavaModuleAndBack.mainModule
         ExternalModuleGroup : testPsdDependencyAndroidToJavaModuleAndBack
         ExternalModuleVersion         : unspecified
         LinkedProjectId     : :mainModule
@@ -754,7 +802,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             compilerTestOutputPath        : file://<PROJECT>/mainModule/build/intermediates/javac/freeDebugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/mainModule/mainModule.iml
+        ModuleFile          : <PROJECT>/.idea/modules/mainModule/testPsdDependencyAndroidToJavaModuleAndBack.mainModule.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -1239,9 +1287,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-1.0/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-1.0/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-1.0/jars/classes.jar!/
-    MODULE              : moduleA
-        - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack
-        - ModuleGroupPath   : moduleA
+    MODULE              : testPsdDependencyAndroidToJavaModuleAndBack.moduleA
         ExternalModuleGroup : testPsdDependencyAndroidToJavaModuleAndBack
         ExternalModuleVersion         : unspecified
         LinkedProjectId     : :moduleA
@@ -1252,7 +1298,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             compilerTestOutputPath        : file://<PROJECT>/moduleA/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/moduleA/moduleA.iml
+        ModuleFile          : <PROJECT>/.idea/modules/moduleA/testPsdDependencyAndroidToJavaModuleAndBack.moduleA.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -1655,9 +1701,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/jars/classes.jar!/
-    MODULE              : moduleB
-        - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack
-        - ModuleGroupPath   : moduleB
+    MODULE              : testPsdDependencyAndroidToJavaModuleAndBack.moduleB
         ExternalModuleGroup : testPsdDependencyAndroidToJavaModuleAndBack
         ExternalModuleVersion         : unspecified
         LinkedProjectId     : :moduleB
@@ -1668,7 +1712,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             compilerTestOutputPath        : file://<PROJECT>/moduleB/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/moduleB/moduleB.iml
+        ModuleFile          : <PROJECT>/.idea/modules/moduleB/testPsdDependencyAndroidToJavaModuleAndBack.moduleB.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -2064,10 +2108,8 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/jars/classes.jar!/
-        ORDER_ENTRY         : jModuleL
-    MODULE              : moduleC
-        - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack
-        - ModuleGroupPath   : moduleC
+        ORDER_ENTRY         : testPsdDependencyAndroidToJavaModuleAndBack.jModuleL
+    MODULE              : testPsdDependencyAndroidToJavaModuleAndBack.moduleC
         ExternalModuleGroup : testPsdDependencyAndroidToJavaModuleAndBack
         ExternalModuleVersion         : unspecified
         LinkedProjectId     : :moduleC
@@ -2078,7 +2120,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             compilerTestOutputPath        : file://<PROJECT>/moduleC/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/moduleC/moduleC.iml
+        ModuleFile          : <PROJECT>/.idea/modules/moduleC/testPsdDependencyAndroidToJavaModuleAndBack.moduleC.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -2467,9 +2509,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/jars/classes.jar!/
-    MODULE              : moduleFlavor
-        - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack
-        - ModuleGroupPath   : moduleFlavor
+    MODULE              : testPsdDependencyAndroidToJavaModuleAndBack.moduleFlavor
         ExternalModuleGroup : testPsdDependencyAndroidToJavaModuleAndBack
         ExternalModuleVersion         : unspecified
         LinkedProjectId     : :moduleFlavor
@@ -2480,7 +2520,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             compilerTestOutputPath        : file://<PROJECT>/moduleFlavor/build/intermediates/javac/freeDebugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/moduleFlavor/moduleFlavor.iml
+        ModuleFile          : <PROJECT>/.idea/modules/moduleFlavor/testPsdDependencyAndroidToJavaModuleAndBack.moduleFlavor.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -2664,9 +2704,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             HomePath            : <ANDROID_SDK>
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
-    MODULE              : modulePlus
-        - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack
-        - ModuleGroupPath   : modulePlus
+    MODULE              : testPsdDependencyAndroidToJavaModuleAndBack.modulePlus
         ExternalModuleGroup : testPsdDependencyAndroidToJavaModuleAndBack
         ExternalModuleVersion         : unspecified
         LinkedProjectId     : :modulePlus
@@ -2677,7 +2715,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             compilerTestOutputPath        : file://<PROJECT>/modulePlus/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/modulePlus/modulePlus.iml
+        ModuleFile          : <PROJECT>/.idea/modules/modulePlus/testPsdDependencyAndroidToJavaModuleAndBack.modulePlus.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -3098,68 +3136,4 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-0.9.1/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-0.9.1/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-0.9.1/jars/classes.jar!/
-        ORDER_ENTRY         : jModuleK
-    MODULE              : nestedZ
-        - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack
-        - ModuleGroupPath   : jModuleZ
-        - ModuleGroupPath   : nestedZ
-        ExternalModuleGroup : testPsdDependencyAndroidToJavaModuleAndBack.jModuleZ
-        ExternalModuleVersion         : unspecified
-        LinkedProjectId     : :jModuleZ:nestedZ
-        LinkedProjectPath   : <PROJECT>/jModuleZ/nestedZ
-        RootProjectPath     : <PROJECT>
-        COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/jModuleZ/nestedZ/build/classes/java/main [-]
-            compilerTestOutputPath        : file://<PROJECT>/jModuleZ/nestedZ/build/classes/java/test [-]
-            isCompilerPathInherited       : false
-            isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/jModuleZ/nestedZ/nestedZ.iml
-        ModuleTypeName      : JAVA_MODULE
-        FACET               : Android-Gradle
-            TypeId              : android-gradle
-            GradlePath          : :jModuleZ:nestedZ
-        FACET               : Java-Gradle
-            TypeId              : java-gradle
-            Buildable           : true
-            BuildFolderPath     : <PROJECT>/jModuleZ/nestedZ/build [-]
-        CONENT_ENTRY        : file://<PROJECT>/jModuleZ/nestedZ
-            JavaSource          : file://<PROJECT>/jModuleZ/nestedZ/src/main/java
-            JavaResource        : file://<PROJECT>/jModuleZ/nestedZ/src/main/resources
-            JavaSource (test)   : file://<PROJECT>/jModuleZ/nestedZ/src/test/java
-            JavaResource (test) : file://<PROJECT>/jModuleZ/nestedZ/src/test/resources
-            EXCLUDE_FOLDER      : file://<PROJECT>/jModuleZ/nestedZ/.gradle [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/jModuleZ/nestedZ/build [-]
-        JDK                 : <NAME_CUT> JavaSDK
-        *isInherited        : true
-        ORDER_ENTRY         : <Module source>
-        LIBRARY             : Gradle: com.example.jlib:lib4:0.6
-            LibraryLevel        : project
-            IsModuleLevel       : false
-            Scope               : Compile
-            IsExported          : false
-            Name                : Gradle: com.example.jlib:lib4:0.6 [=]
-            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.6/lib4-0.6.jar!/
-    MODULE              : testPsdDependencyAndroidToJavaModuleAndBack
-        - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack
-        ExternalModuleGroup :
-        ExternalModuleVersion         : unspecified
-        LinkedProjectId     : testPsdDependencyAndroidToJavaModuleAndBack
-        LinkedProjectPath   : <PROJECT>
-        RootProjectPath     : <PROJECT>
-        COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/testPsdDependencyAndroidToJavaModuleAndBack [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testPsdDependencyAndroidToJavaModuleAndBack [-]
-            isCompilerPathInherited       : true
-            isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/testPsdDependencyAndroidToJavaModuleAndBack.iml
-        ModuleTypeName      : JAVA_MODULE
-        FACET               : Java-Gradle
-            TypeId              : java-gradle
-            Buildable           : false
-            BuildFolderPath     : <PROJECT>/build [-]
-        CONENT_ENTRY        : file://<PROJECT>
-            EXCLUDE_FOLDER      : file://<PROJECT>/.gradle
-            EXCLUDE_FOLDER      : file://<PROJECT>/build [-]
-        JDK                 : <NAME_CUT> JavaSDK
-        *isInherited        : true
-        ORDER_ENTRY         : <Module source>
+        ORDER_ENTRY         : testPsdDependencyAndroidToJavaModuleAndBack.jModuleK

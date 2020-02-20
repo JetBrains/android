@@ -3,7 +3,6 @@ PROJECT             : testLoadPlainJavaProject
     PROJECT_JDK         : 1.8
         Version             : java version "<JDK_VERSION>"
     MODULE              : testLoadPlainJavaProject
-        - ModuleGroupPath   : testLoadPlainJavaProject
         ExternalModuleGroup :
         ExternalModuleVersion         : 1.0
         LinkedProjectId     : testLoadPlainJavaProject

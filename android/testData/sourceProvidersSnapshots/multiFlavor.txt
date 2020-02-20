@@ -1,5 +1,5 @@
 MODULE: MultiFlavor
-MODULE: app
+MODULE: MultiFlavor.app
     by Facet:
         main (IDEA)
             ScopeType: MAIN

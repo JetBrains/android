@@ -3,7 +3,6 @@ PROJECT             : testWithCompositeBuild
     PROJECT_JDK         : 1.8
         Version             : java version "<JDK_VERSION>"
     MODULE              : TestCompositeLib1
-        - ModuleGroupPath   : TestCompositeLib1
         ExternalModuleGroup : com.test.composite1
         ExternalModuleVersion         : 1.0
         LinkedProjectId     : TestCompositeLib1
@@ -26,9 +25,7 @@ PROJECT             : testWithCompositeBuild
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
-    MODULE              : TestCompositeLib1-app
-        - ModuleGroupPath   : TestCompositeLib1
-        - ModuleGroupPath   : app
+    MODULE              : TestCompositeLib1.app
         ExternalModuleGroup : TestCompositeLib1
         ExternalModuleVersion         : unspecified
         LinkedProjectId     : TestCompositeLib1:app
@@ -39,7 +36,7 @@ PROJECT             : testWithCompositeBuild
             compilerTestOutputPath        : file://<PROJECT>/TestCompositeLib1/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/TestCompositeLib1/app/TestCompositeLib1-app.iml
+        ModuleFile          : <PROJECT>/.idea/modules/TestCompositeLib1/app/TestCompositeLib1.app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -526,13 +523,11 @@ PROJECT             : testWithCompositeBuild
             IsExported          : false
             Name                : Gradle: org.jetbrains:annotations:13.0 [=]
             *CLASSES            : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
-        ORDER_ENTRY         : TestCompositeLib1-lib
-        ORDER_ENTRY         : TestCompositeLib3-lib
+        ORDER_ENTRY         : TestCompositeLib1.lib
+        ORDER_ENTRY         : TestCompositeLib3.lib
         ORDER_ENTRY         : composite2
         ORDER_ENTRY         : composite4
-    MODULE              : TestCompositeLib1-lib
-        - ModuleGroupPath   : TestCompositeLib1
-        - ModuleGroupPath   : lib
+    MODULE              : TestCompositeLib1.lib
         ExternalModuleGroup : com.test.composite1
         ExternalModuleVersion         : 1.0
         LinkedProjectId     : TestCompositeLib1:lib
@@ -543,7 +538,7 @@ PROJECT             : testWithCompositeBuild
             compilerTestOutputPath        : file://<PROJECT>/TestCompositeLib1/lib/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/TestCompositeLib1/lib/TestCompositeLib1-lib.iml
+        ModuleFile          : <PROJECT>/.idea/modules/TestCompositeLib1/lib/TestCompositeLib1.lib.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -1014,11 +1009,10 @@ PROJECT             : testWithCompositeBuild
             IsExported          : false
             Name                : Gradle: org.jetbrains:annotations:13.0 [=]
             *CLASSES            : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
-        ORDER_ENTRY         : TestCompositeLib3-lib
+        ORDER_ENTRY         : TestCompositeLib3.lib
         ORDER_ENTRY         : composite2
         ORDER_ENTRY         : composite4
     MODULE              : TestCompositeLib3
-        - ModuleGroupPath   : TestCompositeLib3
         ExternalModuleGroup :
         ExternalModuleVersion         : unspecified
         LinkedProjectId     : TestCompositeLib3
@@ -1041,9 +1035,7 @@ PROJECT             : testWithCompositeBuild
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
-    MODULE              : TestCompositeLib3-app
-        - ModuleGroupPath   : TestCompositeLib3
-        - ModuleGroupPath   : app
+    MODULE              : TestCompositeLib3.app
         ExternalModuleGroup : TestCompositeLib3
         ExternalModuleVersion         : unspecified
         LinkedProjectId     : TestCompositeLib3:app
@@ -1054,7 +1046,7 @@ PROJECT             : testWithCompositeBuild
             compilerTestOutputPath        : file://<PROJECT>/TestCompositeLib3/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/TestCompositeLib3/app/TestCompositeLib3-app.iml
+        ModuleFile          : <PROJECT>/.idea/modules/TestCompositeLib3/app/TestCompositeLib3.app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -1541,11 +1533,9 @@ PROJECT             : testWithCompositeBuild
             IsExported          : false
             Name                : Gradle: org.jetbrains:annotations:13.0 [=]
             *CLASSES            : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
-        ORDER_ENTRY         : TestCompositeLib3-lib
+        ORDER_ENTRY         : TestCompositeLib3.lib
         ORDER_ENTRY         : composite4
-    MODULE              : TestCompositeLib3-lib
-        - ModuleGroupPath   : TestCompositeLib3
-        - ModuleGroupPath   : lib
+    MODULE              : TestCompositeLib3.lib
         ExternalModuleGroup : com.test.composite3
         ExternalModuleVersion         : 1.0
         LinkedProjectId     : TestCompositeLib3:lib
@@ -1556,7 +1546,7 @@ PROJECT             : testWithCompositeBuild
             compilerTestOutputPath        : file://<PROJECT>/TestCompositeLib3/lib/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/TestCompositeLib3/lib/TestCompositeLib3-lib.iml
+        ModuleFile          : <PROJECT>/.idea/modules/TestCompositeLib3/lib/TestCompositeLib3.lib.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -1947,7 +1937,6 @@ PROJECT             : testWithCompositeBuild
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/jars/classes.jar!/
         ORDER_ENTRY         : composite4
     MODULE              : composite2
-        - ModuleGroupPath   : composite2
         ExternalModuleGroup : com.test.composite2
         ExternalModuleVersion         : 1.0
         LinkedProjectId     : composite2
@@ -1978,7 +1967,6 @@ PROJECT             : testWithCompositeBuild
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
     MODULE              : composite4
-        - ModuleGroupPath   : composite4
         ExternalModuleGroup : com.test.composite4
         ExternalModuleVersion         : 1.0
         LinkedProjectId     : composite4
@@ -2009,7 +1997,6 @@ PROJECT             : testWithCompositeBuild
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
     MODULE              : testWithCompositeBuild
-        - ModuleGroupPath   : testWithCompositeBuild
         ExternalModuleGroup :
         ExternalModuleVersion         : unspecified
         LinkedProjectId     : testWithCompositeBuild
@@ -2032,9 +2019,7 @@ PROJECT             : testWithCompositeBuild
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
-    MODULE              : testWithCompositeBuild-app
-        - ModuleGroupPath   : testWithCompositeBuild
-        - ModuleGroupPath   : app
+    MODULE              : testWithCompositeBuild.app
         ExternalModuleGroup : testWithCompositeBuild
         ExternalModuleVersion         : unspecified
         LinkedProjectId     : :app
@@ -2045,7 +2030,7 @@ PROJECT             : testWithCompositeBuild
             compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/app/testWithCompositeBuild-app.iml
+        ModuleFile          : <PROJECT>/.idea/modules/app/testWithCompositeBuild.app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
@@ -2532,14 +2517,12 @@ PROJECT             : testWithCompositeBuild
             IsExported          : false
             Name                : Gradle: org.jetbrains:annotations:13.0 [=]
             *CLASSES            : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
-        ORDER_ENTRY         : TestCompositeLib1-lib
-        ORDER_ENTRY         : TestCompositeLib3-lib
+        ORDER_ENTRY         : TestCompositeLib1.lib
+        ORDER_ENTRY         : TestCompositeLib3.lib
         ORDER_ENTRY         : composite2
         ORDER_ENTRY         : composite4
-        ORDER_ENTRY         : testWithCompositeBuild-lib
-    MODULE              : testWithCompositeBuild-lib
-        - ModuleGroupPath   : testWithCompositeBuild
-        - ModuleGroupPath   : lib
+        ORDER_ENTRY         : testWithCompositeBuild.lib
+    MODULE              : testWithCompositeBuild.lib
         ExternalModuleGroup : com.test.composite
         ExternalModuleVersion         : 1.0
         LinkedProjectId     : :lib
@@ -2550,7 +2533,7 @@ PROJECT             : testWithCompositeBuild
             compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/lib/testWithCompositeBuild-lib.iml
+        ModuleFile          : <PROJECT>/.idea/modules/lib/testWithCompositeBuild.lib.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android

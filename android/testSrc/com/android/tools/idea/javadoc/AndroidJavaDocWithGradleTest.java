@@ -57,18 +57,18 @@ public class AndroidJavaDocWithGradleTest extends AndroidGradleTestCase {
                  "<html><body><table>" +
                  "<tr><th valign=\"top\">Flavor/Library</th>" +
                  "<th valign=\"top\">Configuration</th>" +
-                 "<th valign=\"top\">Value</th></tr><tr><td valign=\"top\"><b>main (app)</b></td>" +
+                 "<th valign=\"top\">Value</th></tr><tr><td valign=\"top\"><b>main (testResource.app)</b></td>" +
                  "<td valign=\"top\">Default</td><td valign=\"top\">" +
                  "<table style=\"background-color:rgb(18,52,86);width:200px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"100\">" +
                  "<td align=\"center\" valign=\"middle\" height=\"100\" style=\"color:white\">#123456</td></tr></table><BR/>" +
                  "@color/libColor => #123456<BR/></td></tr>" +
-                 "<tr><td valign=\"top\">paid (app)</td>" +
+                 "<tr><td valign=\"top\">paid (testResource.app)</td>" +
                  "<td valign=\"top\">Default</td>" +
                  "<td valign=\"top\"><s>" +
                  "<table style=\"background-color:rgb(101,67,33);width:200px;text-align:center;vertical-align:middle;\" border=\"0\">" +
                  "<tr height=\"100\"><td align=\"center\" valign=\"middle\" height=\"100\" style=\"color:white\">#654321</td></tr>" +
                  "</table></s></td></tr>" +
-                 "<tr><td valign=\"top\"><b>main (lib)</b></td>" +
+                 "<tr><td valign=\"top\"><b>main (testResource.lib)</b></td>" +
                  "<td valign=\"top\">Default</td>" +
                  "<td valign=\"top\"><s>" +
                  "<table style=\"background-color:rgb(0,0,0);width:200px;text-align:center;vertical-align:middle;\" border=\"0\">" +

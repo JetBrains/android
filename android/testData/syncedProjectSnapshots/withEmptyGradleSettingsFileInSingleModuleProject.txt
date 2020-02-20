@@ -3,7 +3,6 @@ PROJECT             : testWithEmptyGradleSettingsFileInSingleModuleProject
     PROJECT_JDK         : 1.8
         Version             : java version "<JDK_VERSION>"
     MODULE              : testWithEmptyGradleSettingsFileInSingleModuleProject
-        - ModuleGroupPath   : testWithEmptyGradleSettingsFileInSingleModuleProject
         ExternalModuleGroup :
         ExternalModuleVersion         : unspecified
         LinkedProjectId     : testWithEmptyGradleSettingsFileInSingleModuleProject
