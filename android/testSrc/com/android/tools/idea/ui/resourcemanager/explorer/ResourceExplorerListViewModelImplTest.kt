@@ -47,6 +47,7 @@ import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
@@ -111,7 +112,7 @@ class ResourceExplorerListViewModelImplTest {
     assertTrue(renderLatch.await(1, TimeUnit.SECONDS))
   }
 
-
+  @Ignore("b/149867299")
   @Test
   fun getDrawablePreviewAndRefresh() {
     var latch = CountDownLatch(1)
