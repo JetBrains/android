@@ -49,7 +49,6 @@ fun buildGradle(
     hasTests = true
   )
 
-
   val supportsImprovedTestDeps = GradleVersion.parse(agpVersion).compareIgnoringQualifiers("3.0.0") >= 0
 
   val testDepsBlock = renderIf(!supportsImprovedTestDeps) {
