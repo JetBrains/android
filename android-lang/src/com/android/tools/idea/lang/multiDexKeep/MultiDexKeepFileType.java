@@ -34,7 +34,7 @@ public class MultiDexKeepFileType extends LanguageFileType {
   @NotNull
   @Override
   public String getName() {
-    return "MultiDexKeep file";
+    return "MultiDexKeep";
   }
 
   @NotNull
