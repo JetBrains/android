@@ -44,7 +44,7 @@ final class GameToolsStarter implements ApplicationStarter {
   }
 
   @Override
-  public int getModalityState() {
+  public int getRequiredModality() {
     return ANY_MODALITY;
   }
 }
