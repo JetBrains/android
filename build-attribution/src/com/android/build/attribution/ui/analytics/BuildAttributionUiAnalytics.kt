@@ -25,13 +25,19 @@ import com.intellij.openapi.util.Disposer
 
 class BuildAttributionUiAnalytics(private val project: Project) {
 
+  enum class TabOpenEventSource {
+    WNA_BUTTON,
+    BUILD_OUTPUT_LINK,
+    TAB_HEADER
+  }
+
   private val unknownPage: BuildAttributionUiEvent.Page = BuildAttributionUiEvent.Page.newBuilder()
     .setPageType(BuildAttributionUiEvent.Page.PageType.UNKNOWN_PAGE)
     .build()
   private var currentPage: BuildAttributionUiEvent.Page = unknownPage
 
   private var nodeLinkClickRegistered = false
-  private var buildOutputLinkClickRegistered = false
+  private var tabOpenEventSource: TabOpenEventSource = TabOpenEventSource.TAB_HEADER
 
   private var buildAttributionReportSessionId: String? = null
 
@@ -55,13 +61,14 @@ class BuildAttributionUiAnalytics(private val project: Project) {
 
   /**
    * Called when "Build Analyzer" tab becomes selected in Build toolwindow.
-   * If [registerBuildOutputLinkClick] was called just before this call then this event will be reported as opened from build output link.
+   * If [registerOpenEventSource] was called just before this call then this event will be reported using provided there value.
    */
   fun tabOpened() {
-    val eventType = if (buildOutputLinkClickRegistered)
-      BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_BUILD_OUTPUT_LINK
-    else
-      BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_TAB_CLICK
+    val eventType = when (tabOpenEventSource) {
+      TabOpenEventSource.WNA_BUTTON -> BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_WNA_BUTTON
+      TabOpenEventSource.BUILD_OUTPUT_LINK -> BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_BUILD_OUTPUT_LINK
+      TabOpenEventSource.TAB_HEADER -> BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_TAB_CLICK
+    }
     doLog(newUiEventBuilderWithPage().setEventType(eventType))
   }
 
@@ -95,11 +102,11 @@ class BuildAttributionUiAnalytics(private val project: Project) {
   }
 
   /**
-   * Registers that build output window was clicked so next [tabOpened] call should report it's event as opened with link.
+   * Registers what action was clicked to open Build Analyzer tab so next [tabOpened] call should report it's event as opened using that action.
    * This state will be cleared with any next event sent.
    */
-  fun registerBuildOutputLinkClick() {
-    buildOutputLinkClickRegistered = true
+  fun registerOpenEventSource(eventSource: TabOpenEventSource) {
+    tabOpenEventSource = eventSource
   }
 
   /**
@@ -156,8 +163,8 @@ class BuildAttributionUiAnalytics(private val project: Project) {
         .withProjectId(project)
         .setBuildAttributionUiEvent(uiEvent)
     )
-    //Clear up state booleans
-    buildOutputLinkClickRegistered = false
+    //Clear up state variables
+    tabOpenEventSource = TabOpenEventSource.TAB_HEADER
     nodeLinkClickRegistered = false
   }
 

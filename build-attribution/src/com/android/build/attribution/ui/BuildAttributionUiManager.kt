@@ -16,6 +16,8 @@
 package com.android.build.attribution.ui
 
 import com.android.annotations.concurrency.UiThread
+import com.android.build.attribution.BuildAttributionStateReporter
+import com.android.build.attribution.BuildAttributionStateReporterImpl
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.controllers.TaskIssueReporterImpl
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
@@ -34,22 +36,34 @@ import com.intellij.ui.content.impl.ContentImpl
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.BorderLayout
 
+interface BuildAttributionUiManager {
+  fun showNewReport(reportUiData: BuildAttributionReportUiData, buildSessionId: String)
+  fun openTab(eventSource: BuildAttributionUiAnalytics.TabOpenEventSource)
+  fun hasDataToShow(): Boolean
+  val stateReporter: BuildAttributionStateReporter
+
+  companion object {
+    fun getInstance(project: Project): BuildAttributionUiManager {
+      return ServiceManager.getService(project, BuildAttributionUiManager::class.java)
+    }
+  }
+}
+
 /**
  * This class is responsible for creating, opening and properly disposing of Build attribution UI.
  */
-class BuildAttributionUiManager(
+class BuildAttributionUiManagerImpl(
   private val project: Project
-) {
+) : BuildAttributionUiManager {
 
-  private val buildContentManager: BuildContentManager by lazy {
-    ServiceManager.getService(project, BuildContentManager::class.java)
-  }
 
   @VisibleForTesting
   var buildAttributionTreeView: BuildAttributionTreeView? = null
 
   @VisibleForTesting
   var buildContent: Content? = null
+
+  override val stateReporter: BuildAttributionStateReporterImpl by lazy { BuildAttributionStateReporterImpl(project, this) }
 
   private var contentManager: ContentManager? = null
 
@@ -72,11 +86,12 @@ class BuildAttributionUiManager(
   private lateinit var reportUiData: BuildAttributionReportUiData
 
 
-  fun showNewReport(reportUiData: BuildAttributionReportUiData, buildSessionId: String) {
+  override fun showNewReport(reportUiData: BuildAttributionReportUiData, buildSessionId: String) {
     this.reportUiData = reportUiData
     ApplicationManager.getApplication().invokeLater {
       uiAnalytics.newReportSessionId(buildSessionId)
       updateReportUI()
+      stateReporter.setStateDataExist()
     }
   }
 
@@ -112,7 +127,7 @@ class BuildAttributionUiManager(
         Disposer.register(content, view)
         // When tab is getting closed (and disposed) we want to release the reference on the view.
         Disposer.register(content, Disposable { onContentClosed() })
-        buildContentManager.addContent(content)
+        ServiceManager.getService(project, BuildContentManager::class.java).addContent(content)
         uiAnalytics.tabCreated()
         contentManager = content.manager
         contentManager?.addContentManagerListener(contentManagerListener)
@@ -128,14 +143,18 @@ class BuildAttributionUiManager(
     buildContent = null
   }
 
-  fun openTab() {
-    ApplicationManager.getApplication().invokeLater {
-      if (buildContent?.isValid != true) {
-        createNewView()
-        createNewTab()
+  override fun openTab(eventSource: BuildAttributionUiAnalytics.TabOpenEventSource) {
+    if (hasDataToShow()) {
+      ApplicationManager.getApplication().invokeLater {
+        if (buildContent?.isValid != true) {
+          createNewView()
+          createNewTab()
+        }
+        uiAnalytics.registerOpenEventSource(eventSource)
+        contentManager!!.setSelectedContent(buildContent!!, true, true)
       }
-      uiAnalytics.registerBuildOutputLinkClick()
-      contentManager!!.setSelectedContent(buildContent!!, true, true)
     }
   }
+
+  override fun hasDataToShow(): Boolean = this::reportUiData.isInitialized
 }

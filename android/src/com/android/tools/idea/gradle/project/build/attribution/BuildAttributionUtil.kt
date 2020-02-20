@@ -29,7 +29,11 @@ private val minimumSupportedAgpVersion = GradleVersion.tryParseAndroidGradlePlug
 
 fun isBuildAttributionEnabledForProject(project: Project): Boolean {
   return StudioFlags.BUILD_ATTRIBUTION_ENABLED.get()
-         && ProjectStructure.getInstance(project).androidPluginVersions.allVersions.all { it.higherOrEqualToMinimal() }
+         && isAgpVersionHigherOrEqualToMinimal(project)
+}
+
+fun isAgpVersionHigherOrEqualToMinimal(project: Project): Boolean {
+  return ProjectStructure.getInstance(project).androidPluginVersions.allVersions.all { it.higherOrEqualToMinimal() }
 }
 
 private fun GradleVersion.higherOrEqualToMinimal() = compareTo(minimumSupportedAgpVersion) >= 0

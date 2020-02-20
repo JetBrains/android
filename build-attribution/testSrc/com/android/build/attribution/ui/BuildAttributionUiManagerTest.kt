@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui
 
+import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
 import com.android.build.attribution.ui.data.builder.AbstractBuildAttributionReportBuilderTest
 import com.android.build.attribution.ui.data.builder.BuildAttributionReportBuilder
@@ -42,7 +43,7 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
 
   private val tracker = TestUsageTracker(VirtualTimeScheduler())
 
-  private lateinit var buildAttributionUiManager: BuildAttributionUiManager
+  private lateinit var buildAttributionUiManager: BuildAttributionUiManagerImpl
   private lateinit var reportUiData: BuildAttributionReportUiData
   private lateinit var buildSessionId: String
 
@@ -58,7 +59,7 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
       ContentImpl(JPanel(), BuildContentManagerImpl.Build, true)
     )
 
-    buildAttributionUiManager = BuildAttributionUiManager(project)
+    buildAttributionUiManager = BuildAttributionUiManagerImpl(project)
     reportUiData = BuildAttributionReportBuilder(AbstractBuildAttributionReportBuilderTest.MockResultsProvider(), 0).build()
     buildSessionId = UUID.randomUUID().toString()
   }
@@ -285,7 +286,7 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
   }
 
   private fun openBuildAnalyzerTabFromAction() {
-    buildAttributionUiManager.openTab()
+    buildAttributionUiManager.openTab(BuildAttributionUiAnalytics.TabOpenEventSource.BUILD_OUTPUT_LINK)
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
   }
 

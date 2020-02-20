@@ -21,10 +21,12 @@ import com.android.build.attribution.analyzers.BuildEventsAnalyzersWrapper
 import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.ui.BuildAttributionUiManager
+import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.data.builder.BuildAttributionReportBuilder
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import org.gradle.tooling.events.ProgressEvent
 import java.io.File
@@ -38,10 +40,10 @@ class BuildAttributionManagerImpl(
 
   @get:VisibleForTesting
   val analyzersProxy = BuildEventsAnalyzersProxy(BuildAttributionWarningsFilter.getInstance(project), taskContainer, pluginContainer)
-  private val analyzersWrapper = BuildEventsAnalyzersWrapper(analyzersProxy.getBuildEventsAnalyzers(),
-                                                             analyzersProxy.getBuildAttributionReportAnalyzers())
-
-  private val uiManager = BuildAttributionUiManager(project)
+  private val analyzersWrapper = BuildEventsAnalyzersWrapper(
+    analyzersProxy.getBuildEventsAnalyzers(),
+    analyzersProxy.getBuildAttributionReportAnalyzers()
+  )
 
   override fun onBuildStart() {
     analyzersWrapper.onBuildStart()
@@ -62,7 +64,8 @@ class BuildAttributionManagerImpl(
 
       analyticsManager.logAnalyzersData(analyzersProxy)
 
-      uiManager.showNewReport(BuildAttributionReportBuilder(analyzersProxy, buildFinishedTimestamp).build(), buildSessionId)
+      BuildAttributionUiManager.getInstance(project).showNewReport(
+        BuildAttributionReportBuilder(analyzersProxy, buildFinishedTimestamp).build(), buildSessionId)
     }
   }
 
@@ -76,5 +79,6 @@ class BuildAttributionManagerImpl(
     analyzersWrapper.receiveEvent(event)
   }
 
-  override fun openResultsTab() = uiManager.openTab()
+  override fun openResultsTab() = BuildAttributionUiManager.getInstance(project)
+    .openTab(BuildAttributionUiAnalytics.TabOpenEventSource.BUILD_OUTPUT_LINK)
 }
