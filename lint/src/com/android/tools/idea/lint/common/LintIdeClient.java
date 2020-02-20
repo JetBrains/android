@@ -485,7 +485,7 @@ public class LintIdeClient extends LintClient implements Disposable {
 
   @Nullable
   protected Module getModule() {
-    return null;
+    return myLintResult.getModule();
   }
 
   @Override
