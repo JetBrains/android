@@ -23,13 +23,20 @@ import com.android.build.attribution.ui.data.TaskIssueReportGenerator
 import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.tools.idea.actions.SendFeedbackAction
 import com.android.tools.idea.gradle.project.ProjectStructure
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 
-class TaskIssueReporter(
+interface TaskIssueReporter {
+  fun reportIssue(taskIssue: TaskIssueUiData)
+}
+
+class TaskIssueReporterImpl(
   reportData: BuildAttributionReportUiData,
   private val project: Project,
   private val analytics: BuildAttributionUiAnalytics
-) {
+) : TaskIssueReporter {
 
   private val generator = TaskIssueReportGenerator(
     reportData,
@@ -38,7 +45,17 @@ class TaskIssueReporter(
   )
 
   @UiThread
-  fun reportIssue(taskIssue: TaskIssueUiData) {
-    BuildAttributionIssueReportingDialog(project, analytics, taskIssue.task.pluginName, generator.generateReportText(taskIssue)).show()
+  override fun reportIssue(taskIssue: TaskIssueUiData) {
+    val task = object : Task.Modal(project, "Collecting Data", false) {
+      override fun run(indicator: ProgressIndicator) {
+        indicator.text = "Collecting Feedback Information"
+        indicator.isIndeterminate = true
+        val reportText = generator.generateReportText(taskIssue)
+        ApplicationManager.getApplication().invokeLater {
+          BuildAttributionIssueReportingDialog(project, analytics, taskIssue.task.pluginName, reportText).show()
+        }
+      }
+    }
+    task.queue()
   }
 }

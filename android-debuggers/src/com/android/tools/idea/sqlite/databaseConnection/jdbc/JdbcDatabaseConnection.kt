@@ -19,7 +19,7 @@ import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
-import com.android.tools.idea.sqlite.databaseConnection.ImmediateSqliteResultSet
+import com.android.tools.idea.sqlite.databaseConnection.EmptySqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteSchema
@@ -90,7 +90,10 @@ class JdbcDatabaseConnection(
             columnName,
             SqliteAffinity.fromTypename(columnType),
             colNotNull == "0",
-            colPk == "1"
+            // The number in table_info for primary key is an integer that corresponds
+            // to the position of the column in the primary key constraint.
+            // Or 0 if the column is not in the primary key.
+            colPk.toInt() > 0
           )
         }.toList()
       }
@@ -111,7 +114,7 @@ class JdbcDatabaseConnection(
             JdbcSqliteResultSet(this, connection, sqliteStatement)
           }
           else {
-            ImmediateSqliteResultSet(emptyList())
+            EmptySqliteResultSet()
           }
         } finally {
           resultSet?.close()

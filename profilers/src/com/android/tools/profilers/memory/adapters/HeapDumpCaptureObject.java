@@ -210,14 +210,11 @@ public class HeapDumpCaptureObject implements CaptureObject {
     }
 
     InMemoryBuffer buffer = new InMemoryBuffer(response.getContents().asReadOnlyByteBuffer());
-    Snapshot snapshot;
+
     NativeRegistryPostProcessor nativeRegistryPostProcessor = new NativeRegistryPostProcessor();
-    if (myProguardMap != null) {
-      snapshot = Snapshot.createSnapshot(buffer, myProguardMap, Collections.singletonList(nativeRegistryPostProcessor));
-    }
-    else {
-      snapshot = Snapshot.createSnapshot(buffer, new ProguardMap(), Collections.singletonList(nativeRegistryPostProcessor));
-    }
+    Snapshot snapshot = Snapshot.createSnapshot(buffer,
+                                                myProguardMap != null ? myProguardMap : new ProguardMap(),
+                                                Collections.singletonList(nativeRegistryPostProcessor));
     snapshot.computeDominators();
     myHasNativeAllocations = nativeRegistryPostProcessor.getHasNativeAllocations();
     mySnapshot = snapshot;
@@ -265,12 +262,7 @@ public class HeapDumpCaptureObject implements CaptureObject {
       });
     }
     heapSets.forEach((key, value) -> {
-      if ("default".equals(key.getName())) {
-        if (heapSets.size() == 1 || key.getInstancesCount() > 0) {
-          myHeapSets.put(key.getId(), value);
-        }
-      }
-      else {
+      if (!"default".equals(key.getName()) || heapSets.size() == 1 || key.getInstancesCount() > 0) {
         myHeapSets.put(key.getId(), value);
       }
     });
@@ -315,11 +307,7 @@ public class HeapDumpCaptureObject implements CaptureObject {
 
   @Nullable
   public InstanceObject findInstanceObject(@NotNull Instance instance) {
-    if (mySnapshot == null) {
-      return null;
-    }
-
-    return myInstanceIndex.get(instance.getId());
+    return mySnapshot == null ? null : myInstanceIndex.get(instance.getId());
   }
 
   @NotNull
@@ -328,16 +316,12 @@ public class HeapDumpCaptureObject implements CaptureObject {
     ClassDb.ClassEntry classEntry = classObj.getSuperClassObj() != null ?
                                     myClassDb.registerClass(classObj.getId(), classObj.getSuperClassObj().getId(), className) :
                                     myClassDb.registerClass(classObj.getId(), className);
-    InstanceObject classObject;
-    if (javaLangClass == null) {
-      // Handle java.lang.Class which is a special case. All its instances are other classes, so wee need to create an InstanceObject for it
-      // first for all classes to reference.
-      classObject = new HeapDumpInstanceObject(this, classObj, classEntry, ValueObject.ValueType.CLASS);
-    }
-    else {
-      classObject = new HeapDumpInstanceObject(this, classObj, javaLangClass.getClassEntry(), ValueObject.ValueType.CLASS);
-    }
-    return classObject;
+    // Handle java.lang.Class which is a special case. All its instances are other classes, so wee need to create an InstanceObject for it
+    // first for all classes to reference.
+    return new HeapDumpInstanceObject(this,
+                                      classObj,
+                                      javaLangClass == null ? classEntry : javaLangClass.getClassEntry(),
+                                      ValueObject.ValueType.CLASS);
   }
 
   @NotNull
@@ -363,55 +347,43 @@ public class HeapDumpCaptureObject implements CaptureObject {
 
     myCurrentInstanceFilters.add(filterToAdd);
     myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_HEAP_UPDATING);
-    myExecutorService.submit(() -> {
+    myExecutorService.execute(() -> {
       // Run the analyzers on the currently existing InstanceObjects in the HeapSets.
-      Set<InstanceObject> currentMatchedInstances = new HashSet<>();
-      for (HeapSet heap : myHeapSets.values()) {
-        currentMatchedInstances.addAll(heap.getInstancesStream().collect(Collectors.toSet()));
-      }
-
-      Set<InstanceObject> matchedInstancesFinal = filterToAdd.filter(currentMatchedInstances, myClassDb);
-      analyzeJoiner.execute(() -> {
-        for (HeapSet heap : myHeapSets.values()) {
-          heap.clearClassifierSets();
-        }
-
-        matchedInstancesFinal.forEach(instance -> myHeapSets.get(instance.getHeapId()).addDeltaInstanceObject(instance));
-        myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_HEAP_UPDATED);
-        myStage.refreshSelectedHeap();
-      });
+      Set<InstanceObject> currentInstances =
+        myHeapSets.values().stream().flatMap(HeapSet::getInstancesStream).collect(Collectors.toSet());
+      refreshInstances(filterToAdd.filter(currentInstances, myClassDb), analyzeJoiner);
     });
   }
 
   @Override
   public void removeInstanceFilter(@NotNull CaptureObjectInstanceFilter filterToRemove, @NotNull Executor analyzeJoiner) {
-    // Filter is not set in the first place so othing needs to be done.
+    // Filter is not set in the first place so nothing needs to be done.
     if (!myCurrentInstanceFilters.contains(filterToRemove)) {
       return;
     }
 
     myCurrentInstanceFilters.remove(filterToRemove);
     myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_HEAP_UPDATING);
-    myExecutorService.submit(() -> {
-      // Run the remaining analyzers on the full instance set, since we don't know the the instances that have been removed from the
+    myExecutorService.execute(() -> {
+      // Run the remaining analyzers on the full instance set, since we don't know that the instances that have been removed from the
       // HeapSets using the filter that we are removing.
       Set<InstanceObject> allInstances = new HashSet<>(myInstanceIndex.size());
-      myInstanceIndex.forEachValue(instance -> allInstances.add(instance));
+      myInstanceIndex.forEachValue(allInstances::add);
       Set<InstanceObject> matchedInstances = allInstances;
       for (CaptureObjectInstanceFilter filter : myCurrentInstanceFilters) {
         matchedInstances = filter.filter(matchedInstances, myClassDb);
       }
 
-      Set<InstanceObject> matchedInstancesFinal = matchedInstances;
-      analyzeJoiner.execute(() -> {
-        for (HeapSet heap : myHeapSets.values()) {
-          heap.clearClassifierSets();
-        }
+      refreshInstances(matchedInstances, analyzeJoiner);
+    });
+  }
 
-        matchedInstancesFinal.forEach(instance -> myHeapSets.get(instance.getHeapId()).addDeltaInstanceObject(instance));
-        myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_HEAP_UPDATED);
-        myStage.refreshSelectedHeap();
-      });
+  private void refreshInstances(@NotNull Set<InstanceObject> instances, @NotNull Executor executor) {
+    executor.execute(() -> {
+      myHeapSets.values().forEach(HeapSet::clearClassifierSets);
+      instances.forEach(inst -> myHeapSets.get(inst.getHeapId()).addDeltaInstanceObject(inst));
+      myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_HEAP_UPDATED);
+      myStage.refreshSelectedHeap();
     });
   }
 }

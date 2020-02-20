@@ -22,6 +22,7 @@ import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
+import com.android.ide.common.gradle.model.IdeVariantBuildInformation;
 import com.android.sdklib.BuildToolInfo;
 import com.android.tools.idea.gradle.actions.GoToApkLocationTask;
 import com.android.tools.idea.gradle.actions.GoToBundleLocationTask;
@@ -59,6 +60,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.GuiUtils;
+import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -66,6 +68,8 @@ import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import javax.swing.JComponent;
 import org.jetbrains.android.AndroidCommonBundle;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
@@ -269,29 +273,64 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
 
   @VisibleForTesting
   @NotNull
-  public static File getApkLocation(@NotNull String apkFolderPath, @NotNull String buildType) {
+  static File getApkLocation(@NotNull String apkFolderPath, @NotNull String buildType) {
     return new File(apkFolderPath, buildType);
   }
 
   @VisibleForTesting
   @NotNull
-  public static List<String> getGradleTasks(@NotNull String gradleProjectPath,
-                                            @NotNull AndroidModuleModel androidModuleModel,
-                                            @NotNull List<String> buildVariants,
-                                            @NotNull String targetType) {
-    List<String> gradleTasks = Lists.newArrayListWithExpectedSize(buildVariants.size());
-    Variant selectedVariant = androidModuleModel.getSelectedVariant();
-    String selectedTaskName = getTaskName(selectedVariant, targetType);
-    String selectedVariantName = selectedVariant.getName();
-    if (selectedTaskName == null) {
-      getLog().warn("Could not get tasks for target " + targetType + " on variant " + selectedVariantName);
-      return Collections.emptyList();
+  static List<String> getGradleTasks(@NotNull String gradleProjectPath,
+                                     @NotNull AndroidModuleModel androidModuleModel,
+                                     @NotNull List<String> buildVariants,
+                                     @NotNull String targetType) {
+    List<String> taskNames;
+    if (androidModuleModel.getFeatures().isBuildOutputFileSupported()) {
+      taskNames = getTaskNamesFromBuildInformation(androidModuleModel, buildVariants, targetType);
     }
+    else {
+      Variant selectedVariant = androidModuleModel.getSelectedVariant();
+      String selectedTaskName = getTaskName(selectedVariant, targetType);
+      if (selectedTaskName == null) {
+        getLog().warn("Could not get tasks for target " + targetType + " on variant " + selectedVariant.getName());
+        return Collections.emptyList();
+      }
+      taskNames = getTaskNamesFromSelectedVariant(buildVariants, selectedVariant.getName(), selectedTaskName);
+    }
+    return ContainerUtil.map(taskNames, name -> GradleTaskFinder.getInstance().createBuildTask(gradleProjectPath, name));
+  }
 
+  @NotNull
+  private static List<String> getTaskNamesFromBuildInformation(@NotNull AndroidModuleModel androidModuleModel,
+                                                               @NotNull List<String> buildVariants,
+                                                               @NotNull String targetType) {
+    List<String> taskNames = Lists.newArrayListWithExpectedSize(buildVariants.size());
+    Map<String, IdeVariantBuildInformation> buildInformationByVariantName =
+      androidModuleModel.getAndroidProject().getVariantsBuildInformation().stream()
+        .collect(Collectors.toMap(x -> x.getVariantName(), x -> x));
+
+    for (String variantName : buildVariants) {
+      IdeVariantBuildInformation buildInformation = buildInformationByVariantName.get(variantName);
+      if (buildInformation == null) {
+        getLog().warn("Could not get tasks for target " + targetType + " on variant " + variantName);
+      }
+      else {
+        String taskName = targetType.equals(BUNDLE) ? buildInformation.getBundleTaskName() : buildInformation.getAssembleTaskName();
+        taskNames.add(taskName);
+      }
+    }
+    return taskNames;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  static List<String> getTaskNamesFromSelectedVariant(@NotNull List<String> buildVariants,
+                                                      @NotNull String selectedVariantName,
+                                                      @NotNull String selectedTaskName) {
+    List<String> gradleTasks = Lists.newArrayListWithExpectedSize(buildVariants.size());
     for (String variantName : buildVariants) {
       String taskName = replaceVariantFromTask(selectedTaskName, selectedVariantName, variantName);
       if (taskName != null) {
-        gradleTasks.add(GradleTaskFinder.getInstance().createBuildTask(gradleProjectPath, taskName));
+        gradleTasks.add(taskName);
       }
       else {
         getLog().warn("Could not replace variant " + selectedVariantName + " with " + variantName + " for task " + selectedTaskName + ".");
@@ -300,8 +339,9 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     return gradleTasks;
   }
 
+  @VisibleForTesting
   @Nullable
-  public static String replaceVariantFromTask(@NotNull String task, @NotNull String oldVariant, @NotNull String newVariant) {
+  static String replaceVariantFromTask(@NotNull String task, @NotNull String oldVariant, @NotNull String newVariant) {
     oldVariant = decapitalize(oldVariant);
     if (task.indexOf(oldVariant) == 1) {
       // it has the pattern ":variantName[suffix]".

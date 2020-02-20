@@ -21,10 +21,12 @@ import com.android.tools.idea.material.icons.BundledMetadataUrlProvider
 import com.android.tools.idea.material.icons.MaterialIconsCopyHandler
 import com.android.tools.idea.material.icons.MaterialIconsDownloader
 import com.android.tools.idea.material.icons.MaterialIconsMetadata
+import com.android.tools.idea.material.icons.MaterialIconsMetadataDownloadCacheService
 import com.android.tools.idea.material.icons.MaterialIconsMetadataDownloadService
 import com.android.tools.idea.material.icons.MaterialIconsMetadataUrlProvider
 import com.android.tools.idea.material.icons.MaterialIconsUrlProvider
 import com.android.tools.idea.material.icons.MaterialIconsUtils.getIconsSdkTargetPath
+import com.android.tools.idea.material.icons.MaterialIconsUtils.getMetadata
 import com.android.tools.idea.material.icons.MaterialIconsUtils.hasMetadataFileInSdkPath
 import com.android.tools.idea.material.icons.MaterialVdIcons
 import com.android.tools.idea.material.icons.MaterialVdIconsLoader
@@ -33,6 +35,7 @@ import com.android.tools.idea.material.icons.SdkMetadataUrlProvider
 import com.android.tools.idea.npw.assetstudio.MaterialVdIconsProvider.Status
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.EdtExecutorService
@@ -96,7 +99,7 @@ class MaterialVdIconsProvider {
         }
         else -> {
           loadMaterialVdIcons(
-            metadata, metadataUrl, iconsUrlProvider ?: getIconsUrlProvider(), refreshUiCallback, parentDisposable)
+            metadata, iconsUrlProvider ?: getIconsUrlProvider(), refreshUiCallback, parentDisposable)
         }
       }
     }
@@ -104,7 +107,6 @@ class MaterialVdIconsProvider {
 }
 
 private fun loadMaterialVdIcons(metadata: MaterialIconsMetadata,
-                                metadataUrl: URL,
                                 iconsUrlProvider: MaterialIconsUrlProvider,
                                 refreshUiCallback: (MaterialVdIcons, Status) -> Unit,
                                 parentDisposable: Disposable) {
@@ -137,7 +139,7 @@ private fun loadMaterialVdIcons(metadata: MaterialIconsMetadata,
           }
           if (StudioFlags.ASSET_DOWNLOAD_MATERIAL_ICONS.get()) {
             // Then, download the most recent metadata file and any new icons.
-            downloadMetadataAndIcons(metadataUrl, metadata, backgroundExecutor)
+            downloadMetadataAndIcons(metadata, backgroundExecutor)
           }
         }
       }
@@ -149,7 +151,8 @@ private fun loadMaterialVdIcons(metadata: MaterialIconsMetadata,
 private fun getMetadataUrlProvider(): MaterialIconsMetadataUrlProvider {
   return if (hasMetadataFileInSdkPath()) {
     SdkMetadataUrlProvider()
-  } else {
+  }
+  else {
     BundledMetadataUrlProvider()
   }
 }
@@ -157,7 +160,8 @@ private fun getMetadataUrlProvider(): MaterialIconsMetadataUrlProvider {
 private fun getIconsUrlProvider(): MaterialIconsUrlProvider {
   return if (hasMetadataFileInSdkPath()) {
     SdkMaterialIconsUrlProvider()
-  } else {
+  }
+  else {
     BundledIconsUrlProvider()
   }
 }
@@ -177,19 +181,16 @@ private fun copyBundledIcons(metadata: MaterialIconsMetadata, icons: MaterialVdI
   }
 }
 
-private fun downloadMetadataAndIcons(metadataUrl: URL, existingMetadata: MaterialIconsMetadata, executor: ExecutorService) {
+private fun downloadMetadataAndIcons(existingMetadata: MaterialIconsMetadata, executor: ExecutorService) {
   val targetPath = getIconsSdkTargetPath()
   if (targetPath == null) {
     LOG.warn("No Android Sdk folder, can't download any material icons.")
     return
   }
-  MaterialIconsMetadataDownloadService(targetPath, metadataUrl) { newMetadata ->
-    executor.submit {
-      if (newMetadata != null) {
-        MaterialIconsDownloader(existingMetadata, newMetadata).downloadTo(targetPath)
-      }
-    }
-  }.refresh(null, null)
+  ApplicationManager.getApplication().getService(MaterialIconsMetadataDownloadCacheService::class.java).getMetadata().whenCompleteAsync(
+    BiConsumer { newMetadata, _ ->
+      MaterialIconsDownloader(existingMetadata, newMetadata).downloadTo(targetPath)
+    }, executor)
 }
 
 /**
@@ -205,17 +206,3 @@ private fun createBackgroundExecutor() = ThreadPoolExecutor(
     "${MaterialVdIconsProvider::class.java.simpleName}-backgroundMaterialIconsTasks-%d"
   ).build()
 )
-
-/**
- * @see [MaterialIconsMetadata.parse]
- * @return The [MaterialIconsMetadata] parsed from the URL provided.
- */
-private fun getMetadata(url: URL): MaterialIconsMetadata? {
-  try {
-    return MaterialIconsMetadata.parse(BufferedReader(InputStreamReader(url.openStream())))
-  }
-  catch (e: Exception) {
-    LOG.error("Error obtaining metadata file", e)
-    return null
-  }
-}

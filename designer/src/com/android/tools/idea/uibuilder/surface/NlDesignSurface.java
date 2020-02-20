@@ -38,9 +38,8 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.common.surface.InteractionHandler;
-import com.android.tools.idea.common.surface.Layer;
-import com.android.tools.idea.common.surface.SceneLayer;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.common.surface.SceneViewLayoutManager;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.rendering.RenderErrorModelFactory;
@@ -58,7 +57,10 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
+import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager;
+import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager;
 import com.android.utils.ImmutableCollectors;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
@@ -68,9 +70,11 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.update.Update;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -91,6 +95,47 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   private static final double DEFAULT_MIN_SCALE = 0.1;
   private static final double DEFAULT_MAX_SCALE = 10;
+
+  private static class NlDesignSurfaceSceneViewLayoutManager extends SceneViewLayoutManager {
+    private final NlDesignSurface myDesignSurface;
+    private final SurfaceLayoutManager myLayoutManager;
+
+    NlDesignSurfaceSceneViewLayoutManager(@NotNull NlDesignSurface surface, @NotNull SurfaceLayoutManager surfaceLayoutManager) {
+      myDesignSurface = surface;
+      myLayoutManager = surfaceLayoutManager;
+    }
+
+    @Override
+    public void layoutSceneViews(@NotNull Collection<? extends SceneView> sceneViews) {
+      Dimension extentSize = myDesignSurface.getExtentSize();
+      int availableWidth = extentSize.width;
+      int availableHeight = extentSize.height;
+      myLayoutManager.layout(sceneViews, availableWidth, availableHeight, myDesignSurface.isCanvasResizing());
+    }
+
+    @Override
+    public Dimension preferredLayoutSize(Container parent) {
+      Dimension extentSize = myDesignSurface.getExtentSize();
+      int availableWidth = extentSize.width;
+      int availableHeight = extentSize.height;
+      Dimension dimension = myLayoutManager.getRequiredSize(myDesignSurface.getSceneViews(), availableWidth, availableHeight, null);
+
+      if (dimension.width >= 0 && dimension.height >= 0) {
+        dimension.setSize(dimension.width + 2 * DEFAULT_SCREEN_OFFSET_X, dimension.height + 2 * DEFAULT_SCREEN_OFFSET_Y);
+      }
+      else {
+        // The layout manager returned an invalid layout
+        dimension.setSize(0, 0);
+      }
+
+      dimension.setSize(
+        Math.max(myDesignSurface.myScrollableViewMinSize.width, dimension.width),
+        Math.max(myDesignSurface.myScrollableViewMinSize.height, dimension.height)
+      );
+
+      return dimension;
+    }
+  }
 
   public static class Builder {
     private final Project myProject;
@@ -312,7 +357,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   private boolean myShowModelNames = false;
   private boolean myMockupVisible;
   private MockupEditor myMockupEditor;
-  private boolean myCentered;
   private final boolean myIsInPreview;
   private ShapeMenuAction.AdaptiveIconShape myAdaptiveIconShape = ShapeMenuAction.AdaptiveIconShape.getDefaultShape();
   private final RenderListener myRenderListener = this::modelRendered;
@@ -334,6 +378,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   private boolean myIsRenderingSynchronously = false;
   private boolean myIsAnimationScrubbing = false;
 
+  private final Dimension myScrollableViewMinSize = new Dimension();
+
   private NlDesignSurface(@NotNull Project project,
                           @NotNull Disposable parentDisposable,
                           boolean isInPreview,
@@ -348,7 +394,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                           double minScale,
                           double maxScale,
                           @NotNull ZoomType onChangeZoom) {
-    super(project, parentDisposable, actionManagerProvider, interactionHandlerProvider, defaultSurfaceState, isEditable, onChangeZoom);
+    super(project, parentDisposable, actionManagerProvider, interactionHandlerProvider, defaultSurfaceState, isEditable, onChangeZoom,
+          (surface) -> new NlDesignSurfaceSceneViewLayoutManager((NlDesignSurface)surface, layoutManager));
     myAnalyticsManager = new NlAnalyticsManager(this);
     myAccessoryPanel.setSurface(this);
     myIsInPreview = isInPreview;
@@ -431,6 +478,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
    */
   public void setResizeMode(boolean isResizing) {
     myIsCanvasResizing = isResizing;
+    // When in resize mode, allow the scrollable surface autoscroll so it follow the mouse.
+    myScrollPane.setAutoscrolls(isResizing);
   }
 
   /**
@@ -460,7 +509,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   }
 
   public void setScreenMode(@NotNull SceneMode sceneMode, boolean setAsDefault) {
-
     if (setAsDefault) {
       SceneMode.Companion.savePreferredMode(sceneMode);
     }
@@ -475,9 +523,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       }
       if (!contentResizeSkipped()) {
         zoomToFit();
+        revalidateScrollArea();
       }
-      layoutContent();
-      updateScrolledAreaSize();
     }
   }
 
@@ -502,13 +549,10 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
    * @param value if true, force painting
    */
   public void forceLayersPaint(boolean value) {
-    for (Layer layer : getLayers()) {
-      if (layer instanceof SceneLayer) {
-        SceneLayer sceneLayer = (SceneLayer)layer;
-        sceneLayer.setTemporaryShow(value);
-        repaint();
-      }
+    for (SceneView view : getSceneViews()) {
+      view.setForceLayersRepaint(value);
     }
+    repaint();
   }
 
   @Override
@@ -525,17 +569,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     return view;
   }
 
-  @NotNull
-  @Override
-  public Rectangle getRenderableBoundsForInvisibleComponents(@NotNull SceneView sceneView, @Nullable Rectangle rectangle) {
-    return myLayoutManager.getRenderableBoundsForInvisibleComponents(sceneView,
-                                                                     getSceneViews(),
-                                                                     myScrollPane.getWidth(),
-                                                                     myScrollPane.getHeight(),
-                                                                     myScrollPane.getViewport().getViewRect(),
-                                                                     rectangle);
-  }
-
   /**
    * Return the ScreenView under the given position
    *
@@ -544,38 +577,31 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @Nullable
   @Override
   public SceneView getHoverSceneView(@SwingCoordinate int x, @SwingCoordinate int y) {
-    List<SceneView> sceneViews = getSceneViews();
+    Collection<SceneView> sceneViews = getSceneViews();
     for (SceneView view : sceneViews) {
-      if (view.getX() <= x && x <= (view.getX() + view.getSize().width) && view.getY() <= y && y <= (view.getY() + view.getSize().height)) {
+      if (view.getX() <= x && x <= (view.getX() + view.getScaledContentSize().width) && view.getY() <= y && y <= (view.getY() + view.getScaledContentSize().height)) {
         return view;
       }
     }
     return null;
   }
 
+  @Override
   @NotNull
-  private ImmutableList<SceneView> getSceneViews() {
+  protected ImmutableCollection<SceneView> getSceneViews() {
     ImmutableList.Builder<SceneView> builder = new ImmutableList.Builder<>();
+
+    // Add all primary SceneViews
+    builder.addAll(super.getSceneViews());
+
+    // Add secondary SceneViews
     for (SceneManager manager : getSceneManagers()) {
-      SceneView view = manager.getSceneView();
-      builder.add(view);
       SceneView secondarySceneView = ((LayoutlibSceneManager)manager).getSecondarySceneView();
       if (secondarySceneView != null) {
         builder.add(secondarySceneView);
       }
     }
     return builder.build();
-  }
-
-  @Override
-  public Dimension getScrolledAreaSize() {
-    List<SceneView> sceneViews = getSceneViews();
-    Dimension dimension = myLayoutManager.getRequiredSize(sceneViews, myScrollPane.getWidth(), myScrollPane.getHeight(), null);
-    if (dimension.width <= 0 || dimension.height <= 0) {
-      return null;
-    }
-    dimension.setSize(dimension.width + 2 * DEFAULT_SCREEN_OFFSET_X, dimension.height + 2 * DEFAULT_SCREEN_OFFSET_Y);
-    return dimension;
   }
 
   public void setAdaptiveIconShape(@NotNull ShapeMenuAction.AdaptiveIconShape adaptiveIconShape) {
@@ -604,10 +630,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     showInspectorAccessoryPanel(show);
   }
 
-  public void setCentered(boolean centered) {
-    myCentered = centered;
-  }
-
   @Override
   public float getScreenScalingFactor() {
     return JBUIScale.sysScale(this);
@@ -617,16 +639,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @Override
   public ActionManager<NlDesignSurface> getActionManager() {
     return (ActionManager<NlDesignSurface>)super.getActionManager();
-  }
-
-  @Override
-  public void layoutContent() {
-    int availableWidth = myScrollPane.getWidth();
-    int availableHeight = myScrollPane.getHeight();
-    myLayoutManager.layout(getSceneViews(), availableWidth, availableHeight, myIsCanvasResizing);
-
-    revalidate();
-    repaint();
   }
 
   @Override
@@ -653,8 +665,9 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @NotNull
   @Override
   protected Dimension getPreferredContentSize(@SwingCoordinate int availableWidth, @SwingCoordinate int availableHeight) {
-    List<SceneView> sceneViews = getSceneViews();
-    return myLayoutManager.getPreferredSize(sceneViews, myScrollPane.getWidth(), myScrollPane.getHeight(), null);
+    Collection<SceneView> sceneViews = getSceneViews();
+    Dimension extent = getExtentSize();
+    return myLayoutManager.getPreferredSize(sceneViews, extent.width, extent.height, null);
   }
 
   @Override
@@ -756,8 +769,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   private void modelRendered() {
     updateErrorDisplay();
-    repaint();
-    layoutContent();
+    revalidateScrollArea();
   }
 
   @NotNull
@@ -832,7 +844,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       return;
     }
 
-    @SwingCoordinate Dimension swingViewportSize = getScrollPane().getViewport().getExtentSize();
+    @SwingCoordinate Dimension swingViewportSize = getExtentSize();
     @SwingCoordinate int targetSwingX = (int)areaToCenter.getCenterX();
     @SwingCoordinate int targetSwingY = (int)areaToCenter.getCenterY();
     // Center to position.
@@ -893,6 +905,14 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   }
 
   public boolean isInAnimationScrubbing() { return myIsAnimationScrubbing; }
+
+  /**
+   * Sets the min size allowed for the scrollable surface. This is useful in cases where we have an interaction that needs
+   * to extend the available space.
+   */
+  public void setScrollableViewMinSize(@NotNull Dimension dimension) {
+    myScrollableViewMinSize.setSize(dimension);
+  }
 
   @Override
   public Object getData(@NotNull String dataId) {

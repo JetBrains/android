@@ -26,20 +26,11 @@ import org.jetbrains.annotations.Nullable;
 
 public class JavaModuleSetup extends BaseSetup<JavaModuleSetupStep, JavaModuleModel> {
   public JavaModuleSetup() {
-    this(new CheckAndroidModuleWithoutVariantsStep(), new JavaFacetModuleSetupStep(), new ContentRootsModuleSetupStep(),
-         new ArtifactsByConfigurationModuleSetupStep(), new CompilerOutputModuleSetupStep(),
-         new JavaLanguageLevelModuleSetupStep());
+    this(new JavaFacetModuleSetupStep(), new ArtifactsByConfigurationModuleSetupStep(), new CompilerOutputModuleSetupStep());
   }
 
   @VisibleForTesting
   JavaModuleSetup(@NotNull JavaModuleSetupStep... setupSteps) {
     super(setupSteps);
-  }
-
-  @Override
-  protected void beforeSetup(@NotNull ModuleSetupContext context, @Nullable JavaModuleModel model) {
-    if (model != null) {
-      SyncIssues.registerSyncIssues(context.getModule(), model.getSyncIssues());
-    }
   }
 }

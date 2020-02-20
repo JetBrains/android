@@ -17,14 +17,14 @@ package com.android.tools.idea.appinspection.internal
 
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.idea.transport.TransportClient
+import com.android.tools.idea.transport.manager.TransportStreamEventListener
 import com.android.tools.idea.transport.poller.TransportEventListener
-import com.android.tools.idea.transport.poller.TransportEventPoller
+import com.android.tools.idea.transport.manager.TransportStreamChannel
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport
 import com.google.common.annotations.VisibleForTesting
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -35,7 +35,7 @@ class AppInspectionTransport(
   val stream: Common.Stream,
   val process: Common.Process,
   val executorService: ExecutorService,
-  val poller: TransportEventPoller = TransportEventPoller.createPoller(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100))
+  private val streamChannel: TransportStreamChannel
 ) {
 
   companion object {
@@ -59,25 +59,34 @@ class AppInspectionTransport(
 
   /**
    * Creates a new [TransportEventListener] given the provided filtering criteria.
+   *
+   * See [TransportStreamEventListener] for more details about what these parameters are.
    */
-  fun createEventListener(
+  fun createStreamEventListener(
     filter: (Common.Event) -> Boolean = { true },
     eventKind: Common.Event.Kind,
     startTimeNs: () -> Long = { Long.MIN_VALUE },
-    callback: (Common.Event) -> Boolean
-  ) = TransportEventListener(eventKind = eventKind,
-                             executor = executorService,
-                             startTime = startTimeNs,
-                             streamId = stream::getStreamId,
-                             filter = filter,
-                             processId = process::getPid,
-                             callback = callback)
+    isTransient: Boolean = false,
+    callback: (Common.Event) -> Unit
+  ) = TransportStreamEventListener(
+    eventKind = eventKind,
+    executor = executorService,
+    startTime = startTimeNs,
+    filter = filter,
+    processId = process::getPid,
+    isTransient = isTransient,
+    callback = callback
+  )
 
   /**
    * Registers the given listener with poller.
    */
-  fun registerEventListener(listener: TransportEventListener) {
-    poller.registerListener(listener)
+  fun registerEventListener(streamEventListener: TransportStreamEventListener) {
+    streamChannel.registerStreamEventListener(streamEventListener)
+  }
+
+  fun unregisterEventListener(streamEventListener: TransportStreamEventListener) {
+    streamChannel.unregisterStreamEventListener(streamEventListener)
   }
 
   fun executeCommand(appInspectionCommand: AppInspection.AppInspectionCommand): Int {
@@ -85,8 +94,11 @@ class AppInspectionTransport(
       .setType(Commands.Command.CommandType.APP_INSPECTION)
       .setStreamId(stream.streamId)
       .setPid(process.pid)
-      .setAppInspectionCommand(appInspectionCommand.toBuilder().setCommandId(
-        generateNextCommandId()).build())
+      .setAppInspectionCommand(
+        appInspectionCommand.toBuilder().setCommandId(
+          generateNextCommandId()
+        ).build()
+      )
     executorService.submit { client.transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(command).build()) }
     return command.appInspectionCommand.commandId
   }

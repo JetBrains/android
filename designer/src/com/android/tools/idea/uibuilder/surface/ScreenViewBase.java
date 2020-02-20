@@ -31,6 +31,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.awt.Insets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,16 +52,18 @@ abstract class ScreenViewBase extends SceneView {
     myLabelFont = createLabelFont();
   }
 
+  @NotNull
   @Override
-  public int getNameLabelHeight() {
+  public Insets getMargin() {
     if (getSurface().isShowModelNames()) {
       Graphics graphics = getSurface().getGraphics();
       if (graphics != null) {
         FontMetrics metrics = graphics.getFontMetrics(myLabelFont);
-        return metrics.getHeight() + NlConstants.NAME_LABEL_BOTTOM_MARGIN_PX;
+        //noinspection UseDPIAwareInsets, this margin is not scaled
+        return new Insets(metrics.getHeight() + NlConstants.NAME_LABEL_BOTTOM_MARGIN_PX, 0, 0, 0);
       }
     }
-    return 0;
+    return NO_MARGIN;
   }
 
   @NotNull
@@ -76,7 +79,7 @@ abstract class ScreenViewBase extends SceneView {
    */
   @Override
   @NotNull
-  public Dimension getPreferredSize(@Nullable Dimension dimension) {
+  public Dimension getContentSize(@Nullable Dimension dimension) {
     if (dimension == null) {
       dimension = new Dimension();
     }

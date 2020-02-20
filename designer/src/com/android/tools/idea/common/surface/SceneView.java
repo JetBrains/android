@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.surface;
 
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.resources.ScreenRound;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
@@ -30,7 +31,11 @@ import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.idea.configurations.Configuration;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.util.ui.JBUI;
 import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.Insets;
 import java.awt.Shape;
 import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
@@ -42,8 +47,12 @@ import org.jetbrains.annotations.Nullable;
  * View of a {@link Scene} used in a {@link DesignSurface}.
  */
 public abstract class SceneView {
+  protected static final Insets NO_MARGIN = JBUI.emptyInsets();
+
   @NotNull private final DesignSurface mySurface;
   @NotNull private final SceneManager myManager;
+  private final Object myLayersCacheLock = new Object();
+  @GuardedBy("myLayersCacheLock")
   private ImmutableList<Layer> myLayersCache;
   @SwingCoordinate private int x;
   @SwingCoordinate private int y;
@@ -65,60 +74,72 @@ public abstract class SceneView {
    * If Layers are not exist, they will be created by {@link #createLayers()}. This should happen only once.
    */
   @NotNull
-  public final ImmutableList<Layer> getLayers() {
-    if (myLayersCache == null) {
-      myLayersCache = createLayers();
+  private ImmutableList<Layer> getLayers() {
+    if (Disposer.isDisposed(mySurface)) {
+      // Do not try to re-create the layers for a disposed surface
+      return ImmutableList.of();
     }
-    return myLayersCache;
+    synchronized (myLayersCacheLock) {
+      if (myLayersCache == null) {
+        myLayersCache = createLayers();
+      }
+      return myLayersCache;
+    }
   }
 
   @NotNull
-  public Scene getScene() {
-    return myManager.getScene();
+  public final Scene getScene() {
+    return getSceneManager().getScene();
   }
 
   /**
-   * Returns the current size of the view. This is the same as {@link #getPreferredSize()} but accounts for the current zoom level.
+   * Returns the current size of the view content, excluding margins. This is the same as {@link #getContentSize()} but accounts for the
+   * current zoom level
    *
    * @param dimension optional existing {@link Dimension} instance to be reused. If not null, the values will be set and this instance
    *                  returned.
    */
   @NotNull
   @SwingCoordinate
-  public Dimension getSize(@Nullable Dimension dimension) {
+  public final Dimension getScaledContentSize(@Nullable Dimension dimension) {
     if (dimension == null) {
       dimension = new Dimension();
     }
 
-    Dimension preferred = getPreferredSize(dimension);
+    Dimension contentSize = getContentSize(dimension);
     double scale = getScale();
 
-    dimension.setSize((int)(scale * preferred.width), (int)(scale * preferred.height));
+    dimension.setSize((int)(scale * contentSize.width), (int)(scale * contentSize.height));
     return dimension;
   }
 
   @NotNull
-  public Dimension getPreferredSize() {
-    return getPreferredSize(null);
+  @AndroidDpCoordinate
+  public final Dimension getContentSize() {
+    return getContentSize(null);
   }
 
   /**
-   * Returns the current size of the view. This is the same as {@link #getPreferredSize()} but accounts for the current zoom level.
+   * Returns the current size of the view content, excluding margins. This is the same as {@link #getContentSize()} but accounts for the
+   * current zoom level.
    */
   @NotNull
   @SwingCoordinate
-  public Dimension getSize() {
-    return getSize(null);
+  public final Dimension getScaledContentSize() {
+    return getScaledContentSize(null);
   }
 
   /**
-   * Get the height of the name label which displays the name on the top of SceneView.
-   * The value is sum of text height and space between text and SceneView.
+   * Returns the margin requested by this {@link SceneView}
    */
-  abstract public int getNameLabelHeight();
+  @NotNull
+  public Insets getMargin() {
+    return NO_MARGIN;
+  }
 
   @NotNull
-  abstract public Dimension getPreferredSize(@Nullable Dimension dimension);
+  @AndroidDpCoordinate
+  abstract public Dimension getContentSize(@Nullable Dimension dimension);
 
   @NotNull
   public Configuration getConfiguration() {
@@ -154,7 +175,7 @@ public abstract class SceneView {
       return null;
     }
 
-    Dimension size = getSize();
+    Dimension size = getScaledContentSize();
 
     int chin = screen.getChin();
     int originX = getX();
@@ -185,7 +206,7 @@ public abstract class SceneView {
     return getSceneManager().getSceneScalingFactor();
   }
 
-  public void setLocation(@SwingCoordinate int screenX, @SwingCoordinate int screenY) {
+  public final void setLocation(@SwingCoordinate int screenX, @SwingCoordinate int screenY) {
     x = screenX;
     y = screenY;
   }
@@ -233,6 +254,78 @@ public abstract class SceneView {
    * Called when {@link DesignSurface#updateUI()} is called.
    */
   public void updateUI() {
+  }
+
+  /**
+   * Called by the surface when the {@link SceneView} needs to be painted
+   * @param graphics
+   */
+  final void paint(@NotNull Graphics2D graphics) {
+    for (Layer layer : getLayers()) {
+      if (layer.isVisible()) {
+        layer.paint(graphics);
+      }
+    }
+  }
+
+  /**
+   * Called when a drag operation starts on the {@link DesignSurface}
+   */
+  final void onDragStart() {
+    for (Layer layer : getLayers()) {
+      if (layer instanceof SceneLayer) {
+        SceneLayer sceneLayer = (SceneLayer)layer;
+        if (sceneLayer.isShowOnHover()) {
+          sceneLayer.setShowOnHover(true);
+        }
+      }
+    }
+  }
+
+  /**
+   * Called when a drag operation ends on the {@link DesignSurface}
+   */
+  final void onDragEnd() {
+    for (Layer layer : getLayers()) {
+      if (layer instanceof SceneLayer) {
+        SceneLayer sceneLayer = (SceneLayer)layer;
+        if (sceneLayer.isShowOnHover()) {
+          sceneLayer.setShowOnHover(false);
+        }
+      }
+    }
+  }
+
+  public void dispose() {
+    synchronized (myLayersCacheLock) {
+      if (myLayersCache != null) {
+        // TODO(b/148936113)
+        myLayersCache.forEach(Disposer::dispose);
+      }
+    }
+  }
+
+  /**
+   * Called by the {@link DesignSurface} on mouse hover. The coordinates might be outside of the boundaries of this {@link SceneView}
+   */
+  final void onHover(@SwingCoordinate int mouseX, @SwingCoordinate int mouseY) {
+    for (Layer layer : getLayers()) {
+      layer.onHover(mouseX, mouseY);
+    }
+  }
+
+  /**
+   * Set the ConstraintsLayer and SceneLayer layers to paint, even if they are set to paint only on mouse hover
+   *
+   * @param value if true, force painting
+   */
+  public final void setForceLayersRepaint(boolean value) {
+    for (Layer layer : getLayers()) {
+      if (layer instanceof SceneLayer) {
+        SceneLayer sceneLayer = (SceneLayer)layer;
+        sceneLayer.setTemporaryShow(value);
+      }
+    }
   }
 
   /**

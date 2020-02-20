@@ -145,6 +145,9 @@ public class WhatsNewSidePanelAction extends OpenAssistSidePanelAction {
         if (window == null) {
           return;
         }
+        if (!WhatsNewBundleCreator.BUNDLE_ID.equals(window.getHelpId())) {
+          return;
+        }
         if (isOpen && !window.isVisible()) {
           fireClosedEvent(myProject);
           isOpen = false;

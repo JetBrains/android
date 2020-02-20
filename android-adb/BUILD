@@ -32,7 +32,6 @@ iml_module(
     test_class = "com.android.tools.idea.adb.AndroidAdbTestSuite",
     test_data = [
         "//prebuilts/studio/sdk:platform-tools",
-        "//tools/idea:platform-build-info",
     ],
     # do not sort: must match IML order
     test_runtime_deps = [

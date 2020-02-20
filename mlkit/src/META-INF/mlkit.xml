@@ -24,6 +24,7 @@
     <java.elementFinder implementation="com.android.tools.idea.mlkit.MlkitClassFinder" id="mlkit.MlkitClassFinder"
                         order="first, before java"/>
     <resolveScopeEnlarger implementation="com.android.tools.idea.mlkit.MlkitResolveScopeEnlarger"/>
+    <problemFileHighlightFilter implementation="com.android.tools.idea.mlkit.MlModelProblemFileHighlightFilter"/>
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin">

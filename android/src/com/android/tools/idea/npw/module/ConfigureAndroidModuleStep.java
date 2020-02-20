@@ -18,7 +18,6 @@ package com.android.tools.idea.npw.module;
 import static com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt;
 import static com.android.tools.idea.npw.model.NewProjectModel.nameToJavaPackage;
 import static com.android.tools.idea.npw.platform.AndroidVersionsInfoKt.getSdkManagerLocalPath;
-import static com.android.tools.idea.templates.TemplateAttributes.ATTR_INCLUDE_FORM_FACTOR;
 import static org.jetbrains.android.refactoring.MigrateToAndroidxUtil.isAndroidx;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
@@ -62,7 +61,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -70,8 +68,6 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
-
 
 public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewAndroidModuleModel> {
   private final AndroidVersionsInfo myAndroidVersionsInfo = new AndroidVersionsInfo();
@@ -153,7 +149,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewAndroidMo
                                        value -> Validator.Result.fromNullableMessage(WizardUtils.validatePackageName(value)));
 
     myRenderModel =
-      RenderTemplateModel.fromModuleModel(moduleModel, null, message("android.wizard.activity.add", myFormFactor.id));
+      RenderTemplateModel.fromModuleModel(moduleModel, message("android.wizard.activity.add", myFormFactor.id));
 
     myBindings.bind(model.getAndroidSdkInfo(), new SelectedItemProperty<>(myApiLevelCombo));
     myValidatorPanel.registerValidator(model.getAndroidSdkInfo(), value -> {
@@ -178,7 +174,8 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewAndroidMo
   @Override
   protected Collection<? extends ModelWizardStep> createDependentSteps() {
     // Note: MultiTemplateRenderer needs that all Models constructed (ie myRenderModel) are inside a Step, so handleSkipped() is called
-    ChooseActivityTypeStep chooseActivityStep = new ChooseActivityTypeStep(getModel(), myRenderModel, myFormFactor, Lists.newArrayList());
+    ChooseActivityTypeStep chooseActivityStep =
+      new ChooseActivityTypeStep(myRenderModel, myFormFactor, Lists.newArrayList(), getModel().getAndroidSdkInfo());
     chooseActivityStep.setShouldShow(!getModel().isLibrary());
 
     LicenseAgreementStep licenseAgreementStep =
@@ -208,7 +205,6 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewAndroidMo
   @Override
   protected void onProceeding() {
     NewAndroidModuleModel moduleModel = getModel();
-    moduleModel.getModuleTemplateValues().put(myFormFactor.id + ATTR_INCLUDE_FORM_FACTOR, true);
 
     // At this point, the validator panel should have no errors, and the user has typed a valid Module Name
     getModel().getModuleName().set(myModuleName.getText());
@@ -233,12 +229,6 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewAndroidMo
   @Override
   protected JComponent getPreferredFocusComponent() {
     return myAppName;
-  }
-
-  @TestOnly
-  @NotNull
-  RenderTemplateModel getRenderModel() {
-    return myRenderModel;
   }
 
   private void createUIComponents() {

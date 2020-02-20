@@ -62,7 +62,7 @@ abstract class AbstractBuildAttributionNode protected constructor(
 
     presentation.addText(" $nodeName", SimpleTextAttributes.REGULAR_ATTRIBUTES)
 
-    if (issuesCountsSuffix != null) presentation.addText(" ${issuesCountsSuffix}", SimpleTextAttributes.GRAYED_ATTRIBUTES)
+    if (issuesCountsSuffix?.isNotBlank() == true) presentation.addText(" ${issuesCountsSuffix}", SimpleTextAttributes.GRAYED_ATTRIBUTES)
 
     return presentation
   }

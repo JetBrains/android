@@ -18,12 +18,20 @@ package com.android.tools.idea.uibuilder.fixtures;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.fixtures.ComponentFixture;
 import com.android.tools.idea.common.fixtures.KeyEventBuilder;
+import com.android.tools.idea.common.fixtures.MouseEventBuilder;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Interaction;
+import com.android.tools.idea.common.surface.InteractionInformation;
+import com.android.tools.idea.common.surface.InteractionNonInputEvent;
+import com.android.tools.idea.common.surface.KeyPressedEvent;
+import com.android.tools.idea.common.surface.KeyReleasedEvent;
+import com.android.tools.idea.common.surface.MouseDraggedEvent;
+import com.android.tools.idea.common.surface.MouseReleasedEvent;
 import com.android.tools.idea.uibuilder.model.SegmentType;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import java.awt.event.MouseEvent;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -128,7 +136,7 @@ public class ResizeFixture {
     }
     DesignSurface surface = myScreen.getSurface();
     KeyEvent event = new KeyEventBuilder(keyCode, keyChar).withSource(surface).build();
-    myInteraction.keyPressed(event);
+    myInteraction.update(new KeyPressedEvent(event, new InteractionInformation(myCurrentX, myCurrentY, myModifiers)));
     return this;
   }
 
@@ -147,23 +155,28 @@ public class ResizeFixture {
     }
     DesignSurface surface = myScreen.getSurface();
     KeyEvent event = new KeyEventBuilder(keyCode, keyChar).withSource(surface).build();
-    myInteraction.keyReleased(event);
+    myInteraction.update(new KeyReleasedEvent(event, new InteractionInformation(myCurrentX, myCurrentY, myModifiers)));
     return this;
   }
 
   private void moveTo(@SwingCoordinate int x, @SwingCoordinate int y) {
     myCurrentX = x;
     myCurrentY = y;
-    myInteraction.update(myCurrentX, myCurrentY, myModifiers);
+    myInteraction.update(new MouseDraggedEvent(createMouseEvent(), new InteractionInformation(myCurrentX, myCurrentY, myModifiers)));
   }
 
   public ComponentFixture release() {
-    myInteraction.end(myCurrentX, myCurrentY, myModifiers);
+    myInteraction.commit(new MouseReleasedEvent(createMouseEvent(), new InteractionInformation(myCurrentX, myCurrentY, myModifiers)));
     return myComponentFixture;
   }
 
   public ComponentFixture cancel() {
-    myInteraction.cancel(myCurrentX, myCurrentY, myModifiers);
+    myInteraction.commit(new InteractionNonInputEvent(new InteractionInformation(myCurrentX, myCurrentY, myModifiers)));
     return myComponentFixture;
+  }
+
+  @NotNull
+  private MouseEvent createMouseEvent() {
+    return new MouseEventBuilder(myCurrentX, myCurrentY).withMask(myModifiers).build();
   }
 }

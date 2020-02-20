@@ -66,9 +66,11 @@ internal val RESOLVER_LOG = Logger.getInstance(AndroidGradleProjectResolver::cla
 
 typealias SourcesPath = File?
 typealias JavadocPath = File?
+typealias SampleSourcePath = File?
 typealias ArtifactId = String
 typealias ArtifactPath = File
-data class AdditionalArtifactsPaths(val sources: SourcesPath, val javadoc: JavadocPath)
+
+data class AdditionalArtifactsPaths(val sources: SourcesPath, val javadoc: JavadocPath, val sampleSources: SampleSourcePath)
 
 /**
  * Sets up the [LibraryDependencyData] and [ModuleDependencyData] on the receiving [ModuleData] node.
@@ -248,7 +250,8 @@ private fun computeModuleIdForLibraryTarget(
   if (projectData == null) {
     return library.projectPath
   }
-  if (library.buildId == projectData.linkedExternalProjectPath ||
+  val libraryBuildId = library.buildId?.let { toSystemIndependentName(it) }
+  if (libraryBuildId == projectData.linkedExternalProjectPath ||
       compositeData == null) {
     return GradleProjectResolverUtil.getModuleId(library.projectPath, projectData.externalName)
   }
@@ -257,7 +260,7 @@ private fun computeModuleIdForLibraryTarget(
   // module in an included build. We now need to find the name of the root Gradle build that the module
   // belongs to in order to construct the module ID.
   val projectName = compositeData.compositeParticipants.firstOrNull {
-    it.rootPath == library.buildId
+    it.rootPath == libraryBuildId
   }?.rootProjectName ?: return GradleProjectResolverUtil.getModuleId(library.projectPath, projectData.externalName)
 
   return if (library.projectPath == ":") projectName else projectName + library.projectPath
@@ -306,9 +309,10 @@ private fun setupAndroidDependenciesForArtifact(
     }
 
     // Add the JavaDoc and sources location if we have them.
-    additionalArtifactsMapper(stripExtension(libraryName), library.artifact)?.also { (sources, javadocs) ->
+    additionalArtifactsMapper(stripExtension(libraryName), library.artifact)?.also { (sources, javadocs, sampleSources) ->
       sources?.also { libraryData.addPath(SOURCE, it.absolutePath) }
       javadocs?.also { libraryData.addPath(DOC, it.absolutePath) }
+      sampleSources?.also { libraryData.addPath(SOURCE, it.absolutePath) }
     }
 
     // It may be possible that we have local sources not obtained by Gradle. We look for those here.

@@ -53,8 +53,6 @@ fun buildGradle(
   }
 
   return """
-apply plugin: 'com.android.library'
-apply plugin: 'androidx.benchmark'
 
 android {
     compileSdkVersion ${buildApiString.toIntOrNull() ?: "\"$buildApiString\""}

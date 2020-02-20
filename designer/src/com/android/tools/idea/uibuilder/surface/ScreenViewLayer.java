@@ -148,7 +148,7 @@ public class ScreenViewLayer extends Layer {
 
   @Override
   public void paint(@NotNull Graphics2D graphics2D) {
-    myScreenView.getSize(myScreenViewSize);
+    myScreenView.getScaledContentSize(myScreenViewSize);
     // Calculate the portion of the screen view that it's visible
     myScreenViewVisibleRect.setBounds(myScreenView.getX(), myScreenView.getY(),
                                       myScreenViewSize.width, myScreenViewSize.height);

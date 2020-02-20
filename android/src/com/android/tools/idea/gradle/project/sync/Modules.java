@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import com.android.utils.FileUtils;
 import java.io.File;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
 import org.jetbrains.annotations.NotNull;
@@ -48,10 +49,10 @@ public final class Modules {
    *
    * @param rootProjectFolderPath path to project root folder.
    * @param gradlePath            Gradle path of a module.
-   * @return a unique identifier for a module, i.e. project folder path + Gradle path.
+   * @return a unique identifier for a module, i.e. system-dependent project folder path + Gradle path.
    */
   @NotNull
   public static String createUniqueModuleId(@NotNull String rootProjectFolderPath, @NotNull String gradlePath) {
-    return rootProjectFolderPath + ':' + gradlePath;
+    return FileUtils.toSystemDependentPath(rootProjectFolderPath) + ':' + gradlePath;
   }
 }

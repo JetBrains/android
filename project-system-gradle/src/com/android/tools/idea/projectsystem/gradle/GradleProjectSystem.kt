@@ -21,7 +21,8 @@ import com.android.tools.apk.analyzer.AaptInvoker
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModelHandler
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.gradle.util.DynamicAppUtils.getOutputFileOrFolderFromListingFile
+import com.android.tools.idea.gradle.util.OutputType
+import com.android.tools.idea.gradle.util.getOutputFileOrFolderFromListingFile
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.model.AndroidManifestIndex
 import com.android.tools.idea.model.logManifestIndexQueryError
@@ -39,7 +40,6 @@ import com.android.tools.idea.res.AndroidManifestClassPsiElementFinder
 import com.android.tools.idea.res.AndroidResourceClassPsiElementFinder
 import com.android.tools.idea.res.ProjectLightResourceClassService
 import com.android.tools.idea.sdk.AndroidSdks
-import com.android.tools.idea.templates.GradleFilePsiMerger
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
@@ -84,7 +84,7 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
       .flatMap { androidModel ->
         @Suppress("DEPRECATION")
         if (androidModel.features.isBuildOutputFileSupported) {
-          sequenceOf(getOutputFileOrFolderFromListingFile(androidModel.selectedVariant.mainArtifact.assembleTaskOutputListingFile))
+          sequenceOf(getOutputFileOrFolderFromListingFile(androidModel, androidModel.selectedVariant.name, OutputType.Apk, false))
         }
         else {
           androidModel.selectedVariant.mainArtifact.outputs.asSequence().map { it.mainOutputFile.outputFile }
@@ -97,10 +97,6 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
 
   override fun buildProject() {
     GradleProjectBuilder.getInstance(project).compileJava()
-  }
-
-  override fun mergeBuildFiles(dependencies: String, destinationContents: String, supportLibVersionFilter: String?): String {
-    return GradleFilePsiMerger.mergeGradleFiles(dependencies, destinationContents, project, supportLibVersionFilter)
   }
 
   override fun getModuleSystem(module: Module): AndroidModuleSystem {
@@ -161,7 +157,7 @@ fun createSourceProvidersFromModel(model: AndroidModuleModel): SourceProviders {
     currentSourceProviders = @Suppress("DEPRECATION") model.activeSourceProviders.map { it.toIdeaSourceProvider() },
     currentUnitTestSourceProviders = @Suppress("DEPRECATION") model.unitTestSourceProviders.map { it.toIdeaSourceProvider() },
     currentAndroidTestSourceProviders = @Suppress("DEPRECATION") model.androidTestSourceProviders.map { it.toIdeaSourceProvider() },
-    allSourceProviders = @Suppress("DEPRECATION") model.allSourceProviders.map { it.toIdeaSourceProvider() },
+    currentAndSomeFrequentlyUsedInactiveSourceProviders = @Suppress("DEPRECATION") model.allSourceProviders.map { it.toIdeaSourceProvider() },
     mainAndFlavorSourceProviders =
     (model as? AndroidModuleModel)?.let { androidModuleModel ->
       listOf(model.defaultSourceProvider.toIdeaSourceProvider()) +

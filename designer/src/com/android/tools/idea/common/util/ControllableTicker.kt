@@ -27,7 +27,8 @@ import java.util.concurrent.TimeUnit
  */
 class ControllableTicker(
   private val onTick: () -> Unit,
-  private val period: Duration
+  private val period: Duration,
+  private val executorProvider: () -> ScheduledExecutorService = { Executors.newScheduledThreadPool(1) }
 ) : Disposable {
   private var executor: ScheduledExecutorService? = null
 
@@ -36,7 +37,7 @@ class ControllableTicker(
     if (executor != null) {
       return
     }
-    executor = Executors.newScheduledThreadPool(1)
+    executor = executorProvider()
     executor?.scheduleAtFixedRate(onTick, 0, period.toNanos(), TimeUnit.NANOSECONDS)
   }
 

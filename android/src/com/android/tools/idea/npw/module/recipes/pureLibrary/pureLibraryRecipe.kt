@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.module.recipes.pureLibrary
 
 import com.android.SdkConstants.FN_BUILD_GRADLE
 import com.android.SdkConstants.LIBS_FOLDER
+import com.android.tools.idea.npw.module.recipes.addKotlinDependencies
 import com.android.tools.idea.npw.module.recipes.gitignore
 import com.android.tools.idea.npw.module.recipes.pureLibrary.src.placeholderJava
 import com.android.tools.idea.npw.module.recipes.pureLibrary.src.placeholderKt
@@ -35,8 +36,8 @@ fun RecipeExecutor.generatePureLibrary(
 
   addIncludeToSettings(moduleData.name)
 
-  // TODO(qumeric): set proper Java version?
-  save(buildGradle(language, "1.7", projectData.gradlePluginVersion), moduleOut.resolve(FN_BUILD_GRADLE))
+  save(buildGradle("JavaVersion.VERSION_1_7"), moduleOut.resolve(FN_BUILD_GRADLE))
+  applyPlugin("java-library")
   save(
     if (language == Language.Kotlin) placeholderKt(packageName, className) else placeholderJava(packageName, className),
     srcOut.resolve("$className.${language.extension}")
@@ -49,6 +50,8 @@ fun RecipeExecutor.generatePureLibrary(
 
   if (language == Language.Kotlin) {
     setKotlinVersion(projectData.kotlinVersion)
+    addKotlinDependencies(androidX = false)
+    applyPlugin("kotlin")
   }
 
   createDirectory(moduleOut.resolve(LIBS_FOLDER))

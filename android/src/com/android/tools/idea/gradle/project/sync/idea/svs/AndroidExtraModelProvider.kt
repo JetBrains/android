@@ -105,7 +105,13 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
     }
 
     // AdditionalClassiferArtifactsModel must be requested after AndroidProject and Variant model since it requires the library list in dependency model.
-    getAdditionalClassifierArtifactsModel(controller, androidModules, syncActionOptions.cachedLibraries, consumer)
+    getAdditionalClassifierArtifactsModel(
+      controller,
+      androidModules,
+      syncActionOptions.cachedLibraries,
+      consumer,
+      syncActionOptions.downloadAndroidxUISamplesSources
+    )
   }
 
   private fun populateProjectSyncIssues(

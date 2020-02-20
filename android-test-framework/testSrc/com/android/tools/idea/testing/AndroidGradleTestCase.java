@@ -253,7 +253,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   /**
    * @return a collection of absolute paths to additional local repositories required by the test.
    */
-  protected Collection<File> getAdditionalRepos() {
+  public Collection<File> getAdditionalRepos() {
     return ImmutableList.of();
   }
 

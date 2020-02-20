@@ -17,6 +17,7 @@ package com.android.tools.idea.common.surface
 
 import java.awt.Cursor
 import java.awt.dnd.DropTargetDragEvent
+import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import java.awt.event.MouseWheelEvent
 import java.util.EnumMap
@@ -66,4 +67,8 @@ class SwitchingInteractionHandler<T : Enum<T>>(private val handlers: EnumMap<T, 
 
   override fun getCursorWhenNoInteraction(mouseX: Int, mouseY: Int, modifiersEx: Int): Cursor? =
     handlers[selected]!!.getCursorWhenNoInteraction(mouseX, mouseY, modifiersEx)
+
+  override fun keyPressedWithoutInteraction(keyEvent: KeyEvent) = handlers[selected]!!.keyPressedWithoutInteraction(keyEvent)
+
+  override fun keyReleasedWithoutInteraction(keyEvent: KeyEvent) = handlers[selected]!!.keyReleasedWithoutInteraction(keyEvent)
 }

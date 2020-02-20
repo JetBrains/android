@@ -34,16 +34,19 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.AnnotationOrderRootType
+import com.intellij.openapi.roots.CompilerModuleExtension
 import com.intellij.openapi.roots.ContentEntry
 import com.intellij.openapi.roots.ExcludeFolder
 import com.intellij.openapi.roots.InheritedJdkOrderEntry
 import com.intellij.openapi.roots.JavadocOrderRootType
 import com.intellij.openapi.roots.JdkOrderEntry
+import com.intellij.openapi.roots.LanguageLevelProjectExtension
 import com.intellij.openapi.roots.LibraryOrderEntry
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.ModuleRootModel
 import com.intellij.openapi.roots.OrderEntry
 import com.intellij.openapi.roots.OrderRootType
+import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.roots.SourceFolder
 import com.intellij.openapi.roots.libraries.Library
 import com.intellij.openapi.util.io.FileUtil
@@ -54,6 +57,7 @@ import org.jetbrains.android.facet.AndroidFacetProperties
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
 import org.jetbrains.kotlin.config.CompilerSettings
 import org.jetbrains.kotlin.idea.facet.KotlinFacetConfiguration
+import org.jetbrains.kotlin.idea.util.projectStructure.version
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
 import java.lang.Math.max
@@ -177,6 +181,12 @@ class ProjectDumper(
     println("<PROJECT>     <== ${currentRootDirectory}")
     head("PROJECT") { project.name }
     nest {
+      val languageLevelExtension = LanguageLevelProjectExtension.getInstance(project)
+      prop("LanguageLevel" ) { languageLevelExtension.languageLevel.presentableText }
+      head("PROJECT_JDK") { ProjectRootManager.getInstance(project).projectSdk?.name }
+      nest {
+        prop("Version") { ProjectRootManager.getInstance(project).projectSdk?.versionString?.replaceJdkVersion() }
+      }
       ModuleManager.getInstance(project).modules.sortedBy { it.name }.forEach { dump(it) }
     }
   }
@@ -212,6 +222,10 @@ private fun ProjectDumper.dump(module: Module) {
     prop("LinkedProjectPath") { externalPropertyManager.getLinkedProjectPath()?.toPrintablePath() }
     prop("RootProjectPath") { externalPropertyManager.getRootProjectPath()?.toPrintablePath() }
     prop("IsMavenized") { externalPropertyManager.isMavenized().takeIf { it }?.toString() }
+    val compilerModuleExtension = CompilerModuleExtension.getInstance(module)
+    if (compilerModuleExtension != null) {
+      dump(compilerModuleExtension)
+    }
 
     prop("ModuleFile") { moduleFile }
     prop("ModuleTypeName") { module.moduleTypeName }
@@ -267,20 +281,22 @@ private fun ProjectDumper.dump(library: Library, matchingName: String) {
   val orderRootTypes = OrderRootType.getAllPersistentTypes().toList() + OrderRootType.DOCUMENTATION
   orderRootTypes.forEach { type ->
     library
-        .getUrls(type)
-        .filter { file ->
-          !file.toPrintablePath().contains("<M2>") ||
-          (type != OrderRootType.DOCUMENTATION &&
-           type != OrderRootType.SOURCES &&
-           type != JavadocOrderRootType.getInstance())
-        }
-        .filter { file ->
-          !file.toPrintablePath().contains("<USER_M2>") || type != AnnotationOrderRootType.getInstance()
-        }
-        .forEach { file ->
-          // TODO(b/124659827): Include source and JavaDocs artifacts when available.
-          prop("*" + type.name()) { file.toPrintablePath().replaceMatchingVersion(androidVersion) }
-        }
+      .getUrls(type)
+      .filter { file ->
+        !file.toPrintablePath().contains("<M2>") ||
+        (type != OrderRootType.DOCUMENTATION &&
+         type != OrderRootType.SOURCES &&
+         type != JavadocOrderRootType.getInstance())
+      }
+      .filter { file ->
+        !file.toPrintablePath().contains("<USER_M2>") || type != AnnotationOrderRootType.getInstance()
+      }
+      .map { file -> file.toPrintablePath().replaceMatchingVersion(androidVersion) }
+      .sorted()
+      .forEach { printerPath ->
+        // TODO(b/124659827): Include source and JavaDocs artifacts when available.
+        prop("*" + type.name()) { printerPath }
+      }
   }
 }
 
@@ -463,6 +479,16 @@ private fun ProjectDumper.dump(compilerSettings: CompilerSettings) {
     prop("outputDirectoryForJsLibraryFiles") { compilerSettings.outputDirectoryForJsLibraryFiles }
     prop("scriptTemplates") { compilerSettings.scriptTemplates.nullize() }
     prop("scriptTemplatesClasspath") { compilerSettings.scriptTemplatesClasspath.nullize() }
+  }
+}
+
+private fun ProjectDumper.dump(compilerModuleExtension: CompilerModuleExtension) {
+  head("COMPILER_MODULE_EXTENSION") { null }
+  nest {
+    prop("compilerSourceOutputPath") { compilerModuleExtension.compilerOutputUrl?.toPrintablePath() }
+    prop("compilerTestOutputPath") { compilerModuleExtension.compilerOutputUrlForTests?.toPrintablePath() }
+    prop("isCompilerPathInherited") { compilerModuleExtension.isCompilerOutputPathInherited.toString() }
+    prop("isExcludeOutput") { compilerModuleExtension.isExcludeOutput.toString() }
   }
 }
 

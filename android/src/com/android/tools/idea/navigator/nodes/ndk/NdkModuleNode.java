@@ -39,6 +39,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -82,7 +83,9 @@ public class NdkModuleNode extends AndroidViewModuleNode {
     NdkVariant variant = ndkModel.getSelectedVariant();
     Multimap<String, NativeArtifact> nativeLibraries = HashMultimap.create();
     for (NativeArtifact artifact : variant.getArtifacts()) {
-      String artifactOutputFileName = artifact.getOutputFile().getName();
+      File file = artifact.getOutputFile();
+      if (file == null) continue;
+      String artifactOutputFileName = file.getName();
       nativeLibraries.put(artifactOutputFileName, artifact);
     }
     if (!ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT.get()) {
@@ -168,7 +171,9 @@ public class NdkModuleNode extends AndroidViewModuleNode {
     NdkVariant variant = model.getSelectedVariant();
     Multimap<String, NativeArtifact> nativeLibraries = HashMultimap.create();
     for (NativeArtifact artifact : variant.getArtifacts()) {
-      String artifactOutputFileName = artifact.getOutputFile().getName();
+      File outputFile = artifact.getOutputFile();
+      if (outputFile == null) continue;
+      String artifactOutputFileName = outputFile.getName();
       nativeLibraries.put(artifactOutputFileName, artifact);
     }
 

@@ -47,6 +47,7 @@ import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.common.surface.SingleSceneViewLayoutManager;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.configurations.ConfigurationStateManager;
@@ -110,7 +111,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import javax.swing.JViewport;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
@@ -162,7 +162,7 @@ public class NavDesignSurface extends DesignSurface {
    */
   public NavDesignSurface(@NotNull Project project, @Nullable DesignerEditorPanel editorPanel, @NotNull Disposable parentDisposable) {
     super(project, parentDisposable, surface -> new NavActionManager((NavDesignSurface)surface), NavInteractionHandler::new,
-          getDefaultSurfaceState(), true);
+          getDefaultSurfaceState(), true, (surface) -> new SingleSceneViewLayoutManager());
     setBackground(JBColor.white);
 
     // TODO: add nav-specific issues
@@ -231,17 +231,6 @@ public class NavDesignSurface extends DesignSurface {
   public CompletableFuture<Void> forceUserRequestedRefresh() {
     // Ignored for nav editor
     return CompletableFuture.completedFuture(null);
-  }
-
-  @NotNull
-  @Override
-  public Rectangle getRenderableBoundsForInvisibleComponents(@NotNull SceneView sceneView, @Nullable Rectangle rectangle) {
-    Rectangle viewRect = myScrollPane.getViewport().getViewRect();
-    if (rectangle == null) {
-      rectangle = new Rectangle();
-    }
-    rectangle.setBounds(viewRect);
-    return rectangle;
   }
 
   @NotNull
@@ -415,11 +404,6 @@ public class NavDesignSurface extends DesignSurface {
   }
 
   @Override
-  public void layoutContent() {
-    requestRender();
-  }
-
-  @Override
   @NotNull
   public ItemTransferable getSelectionAsTransferable() {
     NlModel model = getModel();
@@ -469,18 +453,6 @@ public class NavDesignSurface extends DesignSurface {
     zoomToFit();
     currentNavigation.getModel().notifyModified(NlModel.ChangeType.UPDATE_HIERARCHY);
     repaint();
-  }
-
-  @Nullable
-  @Override
-  public Dimension getScrolledAreaSize() {
-    Dimension dimension = new Dimension();
-    SceneView view = getFocusedSceneView();
-    if (view == null) {
-      dimension.setSize(0, 0);
-      return dimension;
-    }
-    return view.getSize(dimension);
   }
 
   @Override
@@ -609,24 +581,28 @@ public class NavDesignSurface extends DesignSurface {
   public boolean zoom(@NotNull ZoomType type, @SwingCoordinate int x, @SwingCoordinate int y) {
     boolean scaled = super.zoom(type, x, y);
 
+    if (scaled) {
+      // The padding around the nav editor is calculated when NavSceneManager.requestLayout is called. If we have changed the scale
+      // we need to re-calculate the bounding box.
+      NavSceneManager sceneManager = getSceneManager();
+
+      if (sceneManager != null) {
+        sceneManager.layout(false);
+        // If the Scene size has changed, we might need to resize the viewport dimensions. Ask the scroll panel to revalidate.
+        validateScrollArea();
+      }
+    }
+
     if (type == ZoomType.FIT || type == ZoomType.FIT_INTO) {
       // The navigation design surface differs from the other design surfaces in that there are
       // still scroll bars visible after doing a zoom to fit. As a result we need to explicitly
       // center the viewport.
-      JViewport viewport = getScrollPane().getViewport();
+      Dimension visibleSize = getExtentSize();
+      Dimension size = getViewSize();
 
-      Rectangle bounds = viewport.getViewRect();
-      Dimension size = viewport.getViewSize();
-
-      viewport.setViewPosition(new Point((size.width - bounds.width) / 2, (size.height - bounds.height) / 2));
+      setScrollPosition((size.width - visibleSize.width) / 2, (size.height - visibleSize.height) / 2);
     }
     return scaled;
-  }
-
-  @NotNull
-  @SwingCoordinate
-  public Dimension getExtentSize() {
-    return getScrollPane().getViewport().getExtentSize();
   }
 
   @Override
@@ -641,7 +617,7 @@ public class NavDesignSurface extends DesignSurface {
       NavSceneManagerKt.getBoundingBox(list.stream().map(nlComponent -> scene.getSceneComponent(nlComponent))
                                          .filter(sceneComponent -> sceneComponent != null)
                                          .collect(Collectors.toList()));
-    @SwingCoordinate Dimension swingViewportSize = getScrollPane().getViewport().getExtentSize();
+    @SwingCoordinate Dimension swingViewportSize = getExtentSize();
 
     @SwingCoordinate int swingStartCenterXInViewport =
       Coordinates.getSwingX(view, (int)selectionBounds.getCenterX()) - getScrollPosition().x;

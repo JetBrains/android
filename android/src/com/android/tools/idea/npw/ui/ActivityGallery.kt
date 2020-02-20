@@ -21,38 +21,11 @@
 
 package com.android.tools.idea.npw.ui
 
-import com.android.tools.idea.npw.template.TemplateHandle
 import com.android.tools.idea.wizard.template.Template
 import com.intellij.openapi.util.IconLoader
 import icons.AndroidIcons
-import org.jetbrains.android.util.AndroidBundle.message
-import java.io.File
 
 val cppIcon: TemplateIcon get() = TemplateIcon(AndroidIcons.Wizards.CppConfiguration)
-
-/**
- * Return the image associated with the current template, if it specifies one, or null otherwise.
- */
-fun getTemplateIcon(templateHandle: TemplateHandle?): TemplateIcon? {
-  val thumb = templateHandle?.metadata?.thumbnailPath
-  if (thumb == null || thumb.isEmpty()) {
-    return TemplateIcon(AndroidIcons.Wizards.NoActivity)
-  }
-
-  val file = File(templateHandle.rootPath, thumb.replace('/', File.separatorChar))
-  val icon = IconLoader.findIcon(file.toURI().toURL()) ?: return null
-  return TemplateIcon(icon)
-}
-
-fun getTemplateImageLabel(templateHandle: TemplateHandle?): String = when (templateHandle) {
-  null -> message("android.wizard.gallery.item.add.no.activity")
-  else -> templateHandle.metadata.title ?: ""
-}
-
-fun getTemplateDescription(templateHandle: TemplateHandle?): String = when (templateHandle) {
-  null -> message("android.wizard.gallery.item.add.no.activity.desc")
-  else -> templateHandle.metadata.description ?: ""
-}
 
 fun getTemplateIcon(template: Template): TemplateIcon? {
   if (template == Template.NoActivity) {

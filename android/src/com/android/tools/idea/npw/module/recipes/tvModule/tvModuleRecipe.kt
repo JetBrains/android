@@ -24,10 +24,11 @@ import com.android.tools.idea.wizard.template.RecipeExecutor
 
 fun RecipeExecutor.generateTvModule(
   data: ModuleTemplateData,
-  appTitle: String
+  appTitle: String,
+  useKts: Boolean
 ) {
   generateCommonModule(
-    data, appTitle,
+    data, appTitle, useKts,
     generateManifest(data.packageName, !data.isLibrary, hasRoundIcon = false),
     iconsGenerationStyle = IconsGenerationStyle.MIPMAP_SQUARE_ONLY,
     stylesXml = basicStylesXml("@style/Theme.Leanback"), colorsXml = null

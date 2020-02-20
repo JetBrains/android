@@ -29,12 +29,11 @@ import javax.swing.text.JTextComponent;
 
 
 public class ConfigureBasicActivityStepFixture<W extends AbstractWizardFixture> extends AbstractWizardStepFixture<ConfigureBasicActivityStepFixture, W> {
-
   /**
    * This is the list of labels used to find the right text input field.
    * There is no really good way to access this fields programmatically, as they are defined on the template files.
-   * For example see: tools/base/templates/activities/BasicActivity/template.xml
    */
+  // TODO(qumeric): probably there is a way to access them programmatically now.
   public enum ActivityTextField {
     NAME("Activity Name"),
     LAYOUT("Layout Name"),

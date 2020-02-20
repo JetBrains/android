@@ -15,92 +15,71 @@
  */
 package com.android.tools.idea.templates.recipe
 
+import com.android.tools.idea.wizard.template.SourceSetType
+import com.android.tools.idea.wizard.template.findResource
+import com.intellij.openapi.vfs.VfsUtil
+import com.android.tools.idea.wizard.template.RecipeExecutor
 import java.io.File
-import java.io.IOException
 
 /**
- * [RecipeExecutor] that collects references as a result of executing instructions in a [Recipe].
+ * [RecipeExecutor] that collects references as a result of executing instructions in a recipe.
  */
-internal class FindReferencesRecipeExecutor(private val myContext: RenderingContext) : RecipeExecutor {
+internal class FindReferencesRecipeExecutor(private val context: RenderingContext) : RecipeExecutor {
+  override fun hasDependency(mavenCoordinate: String, moduleDir: File?): Boolean = false
+
+  override fun save(source: String, to: File, trimVertical: Boolean, squishEmptyLines: Boolean, commitDocument: Boolean) {
+    addTargetFile(to)
+  }
+
+  override fun mergeXml(source: String, to: File) {
+    addTargetFile(to)
+  }
+
+  override fun open(file: File) {
+    context.filesToOpen.add(resolveTargetFile(file))
+  }
+
   override fun copy(from: File, to: File) {
-    if (from.isDirectory) {
-      throw RuntimeException("Directories not supported for Find References")
+    val sourceUrl = findResource(context.templateData.javaClass, from)
+    val sourceFile = VfsUtil.findFileByURL(sourceUrl) ?: error("$from ($sourceUrl)")
+    if (sourceFile.isDirectory) {
+      return
     }
-    addSourceFile(from)
     addTargetFile(to)
   }
 
-  override fun instantiate(from: File, to: File) {
-    addSourceFile(from)
-    addTargetFile(to)
-  }
-
-  override fun merge(from: File, to: File) {
-    addSourceFile(from)
-    addTargetFile(to)
-  }
-
-  override fun addGlobalVariable(id: String, value: Any) {
-    myContext.paramMap[id] = value
-  }
-
-  override fun mkDir(at: File) {}
-
-  override fun addFilesToOpen(file: File) {
-    myContext.filesToOpen.add(resolveTargetFile(file))
-  }
+  override fun createDirectory(at: File) {}
 
   override fun applyPlugin(plugin: String) {
-    myContext.plugins.add(plugin)
+    context.plugins.add(plugin)
   }
 
-  override fun addSourceSet(type: String, name: String, dir: String) {}
-
-  override fun setExtVar(name: String, value: String) {}
-
-  override fun addClasspath(mavenUrl: String) {
-    myContext.classpathEntries.add(mavenUrl)
+  override fun addClasspathDependency(mavenCoordinate: String) {
+    context.classpathEntries.add(mavenCoordinate)
   }
 
-  override fun addDependency(configuration: String, mavenUrl: String) {
-    myContext.dependencies.put(configuration, mavenUrl)
+  override fun addDependency(mavenCoordinate: String, configuration: String, minRev: String?, moduleDir: File?) {
+    context.dependencies.put(configuration, mavenCoordinate)
   }
 
-  override fun addModuleDependency(configuration: String, moduleName: String, toModule: String) {}
-
-  override fun addDynamicFeature(name: String, toModule: String) {}
-
-  override fun updateAndSync() {}
-
-  override fun pushFolder(folder: String) {}
-
-  override fun popFolder() {}
-
-  override fun addIncludeToSettings(moduleName: String?) {}
-
-  override fun setBuildFeature(name: String, value: String) {}
-
-  override fun requireJavaVersion(version: String, kotlinSupport: String) {}
-
-  fun addSourceFile(file: File) {
-    myContext.sourceFiles.add(resolveSourceFile(file))
-  }
+  override fun addModuleDependency(configuration: String, moduleName: String, toModule: File) {}
 
   fun addTargetFile(file: File) {
-    myContext.targetFiles.add(resolveTargetFile(file))
+    context.targetFiles.add(resolveTargetFile(file))
   }
 
-  private fun resolveSourceFile(file: File): File {
-    if (file.isAbsolute) {
-      return file
-    }
-    try {
-      return myContext.loader.getSourceFile(file)
-    }
-    catch (e: IOException) {
-      throw RuntimeException(e)
-    }
+  private fun resolveTargetFile(file: File): File = if (file.isAbsolute) file else File(context.outputRoot, file.path)
+
+  override fun addSourceSet(type: SourceSetType, name: String, dir: File) {
   }
 
-  private fun resolveTargetFile(file: File): File = if (file.isAbsolute) file else File(myContext.outputRoot, file.path)
+  override fun setExtVar(name: String, value: Any) {
+  }
+
+  override fun addIncludeToSettings(moduleName: String) {}
+
+  override fun setBuildFeature(name: String, value: Boolean) {}
+
+  override fun requireJavaVersion(version: String, kotlinSupport: Boolean) {}
+  override fun addDynamicFeature(name: String, toModule: File) {}
 }

@@ -282,13 +282,24 @@ public class GradleSyncInvoker {
     public boolean useCachedGradleModels;
     public boolean forceFullVariantsSync;
     public boolean skipPreSyncChecks;
+    @TestOnly
+    public boolean forceCreateDirs;
+
     // Perform a variant-only sync if not null.
     @Nullable public VariantOnlySyncOptions variantOnlySyncOptions;
 
     @VisibleForTesting
     @NotNull
+    public static Request testRequest(boolean forceCreateDirs) {
+      Request request = new Request(TRIGGER_TEST_REQUESTED);
+      request.forceCreateDirs = forceCreateDirs;
+      return request;
+    }
+
+    @VisibleForTesting
+    @NotNull
     public static Request testRequest() {
-      return new Request(TRIGGER_TEST_REQUESTED);
+      return testRequest(false);
     }
 
     public Request(@NotNull GradleSyncStats.Trigger trigger) {
@@ -314,6 +325,7 @@ public class GradleSyncInvoker {
              useCachedGradleModels == request.useCachedGradleModels &&
              forceFullVariantsSync == request.forceFullVariantsSync &&
              skipPreSyncChecks == request.skipPreSyncChecks &&
+             forceCreateDirs == request.forceCreateDirs &&
              Objects.equals(variantOnlySyncOptions, request.variantOnlySyncOptions);
     }
 
@@ -321,7 +333,7 @@ public class GradleSyncInvoker {
     public int hashCode() {
       return Objects
         .hash(trigger, runInBackground, useCachedGradleModels,
-              forceFullVariantsSync, skipPreSyncChecks, variantOnlySyncOptions);
+              forceFullVariantsSync, skipPreSyncChecks, forceCreateDirs, variantOnlySyncOptions);
     }
 
     @Override
@@ -332,6 +344,7 @@ public class GradleSyncInvoker {
              ", useCachedGradleModels=" + useCachedGradleModels +
              ", forceFullVariantsSync=" + forceFullVariantsSync +
              ", skipPreSyncChecks=" + skipPreSyncChecks +
+             ", forceCreateDirs=" + forceCreateDirs +
              ", variantOnlySyncOptions=" + variantOnlySyncOptions +
              '}';
     }

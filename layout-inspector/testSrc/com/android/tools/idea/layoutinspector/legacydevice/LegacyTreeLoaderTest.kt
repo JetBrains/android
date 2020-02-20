@@ -19,7 +19,7 @@ import com.android.ddmlib.ByteBufferUtil
 import com.android.ddmlib.FakeClientBuilder
 import com.android.ddmlib.HandleViewDebug.CHUNK_VULW
 import com.android.ddmlib.JdwpPacket
-import com.android.tools.idea.layoutinspector.FakeAdbRule
+import com.android.ddmlib.testing.FakeAdbRule
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project

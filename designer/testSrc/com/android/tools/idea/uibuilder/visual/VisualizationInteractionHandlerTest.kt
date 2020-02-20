@@ -38,8 +38,8 @@ class VisualizationInteractionHandlerTest : SceneTest() {
     // Return SceneView when hover on it, null otherwise.
     val view = sceneManager.sceneView
     `when`(surface.getHoverSceneView(anyInt(), anyInt())).thenReturn(null)
-    val xMatcher = intThat { view.x <= it && it <= view.x + view.size.width }
-    val yMatcher = intThat { view.y <= it && it <= view.y + view.size.height }
+    val xMatcher = intThat { view.x <= it && it <= view.x + view.scaledContentSize.width }
+    val yMatcher = intThat { view.y <= it && it <= view.y + view.scaledContentSize.height }
 
     `when`(surface.getHoverSceneView(xMatcher, yMatcher)).thenReturn(view)
   }
@@ -51,7 +51,7 @@ class VisualizationInteractionHandlerTest : SceneTest() {
 
     val view = surface.sceneManager!!.sceneView
 
-    interactionHandler.hoverWhenNoInteraction(view.x + view.size.width / 2, view.y + view.size.height / 2, 0)
+    interactionHandler.hoverWhenNoInteraction(view.x + view.scaledContentSize.width / 2, view.y + view.scaledContentSize.height / 2, 0)
     Mockito.verify(surface).setDesignToolTip(tooltips)
 
     interactionHandler.hoverWhenNoInteraction(view.x - 100, view.y - 100, 0)
@@ -64,7 +64,7 @@ class VisualizationInteractionHandlerTest : SceneTest() {
     val handler = VisualizationInteractionHandler(myModel.surface) { Mockito.mock(VisualizationModelsProvider::class.java) }
     val file = myModel.virtualFile
     val view = myModel.surface.sceneManager?.sceneView!!
-    handler.doubleClick(view.x + view.size.width, view.y + view.size.height, 0)
+    handler.doubleClick(view.x + view.scaledContentSize.width, view.y + view.scaledContentSize.height, 0)
     Mockito.verify(navigationManager).pushFile(file, file)
   }
 
@@ -78,7 +78,7 @@ class VisualizationInteractionHandlerTest : SceneTest() {
     }) }
 
     val view = surface.sceneManager!!.sceneView
-    val mouseEvent = MouseEventBuilder(view.x + view.size.width * 2, view.y + view.size.height * 2).build()
+    val mouseEvent = MouseEventBuilder(view.x + view.scaledContentSize.width * 2, view.y + view.scaledContentSize.height * 2).build()
 
     val popupMenuListener = Mockito.mock(ActionPopupMenuListener::class.java)
     (ActionManager.getInstance() as ActionManagerEx).addActionPopupMenuListener(popupMenuListener, testRootDisposable)

@@ -421,8 +421,8 @@ b/144931471 */
     when(mySyncIssue.getData()).thenReturn("com.google.guava:guava:19.0");
 
     List<SyncIssue> syncIssues = ImmutableList.of(mySyncIssue);
-    OpenFileHyperlink link = myReporter.createModuleLink(getProject(), appModule, buildModel, syncIssues, appFile);
-    assertThat(link.getLineNumber()).isEqualTo(28);
+    OpenFileHyperlink link = myReporter.createModuleLink(getProject(), appModule, syncIssues, appFile);
+    assertThat(link.getLineNumber()).isEqualTo(-1);
     assertThat(link.getFilePath()).isEqualTo(appFile.getPath());
   }
 

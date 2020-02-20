@@ -16,14 +16,14 @@
 package com.android.tools.idea.mlkit.lightpsi;
 
 import com.android.tools.idea.mlkit.MlkitModuleService;
-import com.android.tools.idea.mlkit.MlkitUtils;
 import com.android.tools.mlkit.MlkitNames;
-import com.android.tools.mlkit.Param;
+import com.android.tools.mlkit.TensorInfo;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifier;
@@ -47,10 +47,10 @@ public class MlkitInputLightClass extends AndroidLightClassBase {
   private final String qualifiedName;
   private final CachedValue<PsiMethod[]> myMethodCache;
 
-  public MlkitInputLightClass(@NotNull Module module, List<Param> params, PsiClass containingClass) {
+  public MlkitInputLightClass(@NotNull Module module, @NotNull List<TensorInfo> tensorInfos, @NotNull PsiClass containingClass) {
     super(PsiManager.getInstance(module.getProject()),
           ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL));
-    this.qualifiedName = String.join(".", MlkitUtils.computeModelPackageName(module), containingClass.getName(), MlkitNames.INPUTS);
+    this.qualifiedName = String.join(".", containingClass.getQualifiedName(), MlkitNames.INPUTS);
     this.containingClass = containingClass;
 
     setModuleInfo(module, false);
@@ -59,9 +59,9 @@ public class MlkitInputLightClass extends AndroidLightClassBase {
     ModificationTracker modificationTracker = new MlkitModuleService.ModelFileModificationTracker(module);
     myMethodCache = CachedValuesManager.getManager(getProject()).createCachedValue(
       () -> {
-        PsiMethod[] methods = new PsiMethod[params.size()];
+        PsiMethod[] methods = new PsiMethod[tensorInfos.size()];
         for (int i = 0; i < methods.length; i++) {
-          methods[i] = buildLoadMethod(params.get(i));
+          methods[i] = buildLoadMethod(tensorInfos.get(i));
         }
 
         return CachedValueProvider.Result.create(methods, modificationTracker);
@@ -86,13 +86,13 @@ public class MlkitInputLightClass extends AndroidLightClassBase {
     return myMethodCache.getValue();
   }
 
-  private PsiMethod buildLoadMethod(Param param) {
-    PsiType paramType = PsiType.getTypeByName(CodeUtils.getTypeQualifiedName(param), getProject(), getResolveScope());
+  private PsiMethod buildLoadMethod(TensorInfo tensorInfo) {
+    PsiType paramType = PsiType.getTypeByName(CodeUtils.getTypeQualifiedName(tensorInfo), getProject(), getResolveScope());
 
-    String methodName = "load" + StringUtil.capitalizeWithJavaBeanConvention(StringUtil.sanitizeJavaIdentifier(param.getName()));
+    String methodName = "load" + StringUtil.capitalizeWithJavaBeanConvention(StringUtil.sanitizeJavaIdentifier(tensorInfo.getName()));
     return new LightMethodBuilder(myManager, methodName)
       .addModifiers(PsiModifier.PUBLIC, PsiModifier.FINAL)
-      .addParameter(param.getName(), paramType)
+      .addParameter(tensorInfo.getName(), paramType)
       .setMethodReturnType(PsiType.VOID)
       .setContainingClass(this);
   }
@@ -101,5 +101,11 @@ public class MlkitInputLightClass extends AndroidLightClassBase {
   @Override
   public PsiClass getContainingClass() {
     return containingClass;
+  }
+
+  @NotNull
+  @Override
+  public PsiElement getNavigationElement() {
+    return containingClass.getNavigationElement();
   }
 }

@@ -26,7 +26,6 @@ import com.android.manifmerger.MergingReport
 import com.android.manifmerger.XmlDocument
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.templates.recipe.RenderingContext
-import com.android.tools.idea.templates.recipe.RenderingContext2
 import com.android.utils.StdLogger
 import com.android.utils.XmlUtils
 import com.google.common.base.Charsets
@@ -59,20 +58,11 @@ private const val MERGE_ATTR_STRATEGY = "templateMergeStrategy"
 private const val MERGE_ATTR_STRATEGY_REPLACE = "replace"
 private const val MERGE_ATTR_STRATEGY_PRESERVE = "preserve"
 
-data class RenderingContextAdapter(
-  val project: Project,
-  val moduleRoot: File?,
-  val warningsToAdd: MutableCollection<String>
-) {
-  constructor(c: RenderingContext): this(c.project, c.moduleRoot, c.warnings)
-  constructor(c2: RenderingContext2): this(c2.project, c2.moduleRoot, c2.warnings)
-}
-
 /**
  * Merges sourceXml into targetXml/targetFile (targetXml is the contents of targetFile).
  * @return the resulting xml if it still needs to be written to targetFile or null if the file has already been/doesn't need to be updated.
  */
-fun mergeXml(context: RenderingContextAdapter, sourceXml: String, targetXml: String, targetFile: File): String {
+fun mergeXml(context: RenderingContext, sourceXml: String, targetXml: String, targetFile: File): String {
   val fileName = targetFile.name
   var errors: String? = null
 
@@ -99,13 +89,13 @@ fun mergeXml(context: RenderingContextAdapter, sourceXml: String, targetXml: Str
     val parentFolderName = targetFile.parentFile.name
     val folderType = ResourceFolderType.getFolderType(parentFolderName)
     // mergeResourceFile handles the file updates itself
-    return mergeResourceFile(context.project, context.warningsToAdd, targetXml, sourceXml, fileName, folderType)
+    return mergeResourceFile(context.project, context.warnings, targetXml, sourceXml, fileName, folderType)
   }
 
   return (if (fileName == FN_ANDROID_MANIFEST_XML) mergeManifest() else mergePlainXml())
          ?: // Just insert into file along with comment, using the "standard" conflict syntax that many tools and editors recognize.
          wrapWithMergeConflict(targetXml, sourceXml).also {
-           context.warningsToAdd.add(
+           context.warnings.add(
              "Merge conflict for: ${targetFile.name}\nThis file must be fixed by hand. Errors encountered during the merge:\n\n$errors")
          }
 }

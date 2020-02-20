@@ -31,6 +31,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.search.PsiShortNamesCache;
+import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -74,7 +75,9 @@ public class LayoutViewClassUtils {
       for (PsiClass aClass : classes) {
         final String qualifiedName = aClass.getQualifiedName();
 
-        if (qualifiedName != null && !IdeResourcesUtil.isClassPackageNeeded(qualifiedName, baseClass, apiLevel) && aClass.isInheritor(baseClass, true)) {
+        if (qualifiedName != null &&
+            !IdeResourcesUtil.isClassPackageNeeded(qualifiedName, baseClass, apiLevel) &&
+            InheritanceUtil.isInheritorOrSelf(aClass, baseClass, true)) {
           return aClass;
         }
       }
@@ -84,11 +87,18 @@ public class LayoutViewClassUtils {
         name, ProjectSystemUtil.getModuleSystem(module).getResolveScope(ScopeType.MAIN));
 
       for (PsiClass aClass : classes) {
-        if (aClass.isInheritor(baseClass, true)) {
+        if (InheritanceUtil.isInheritorOrSelf(aClass, baseClass, true)) {
           return aClass;
         }
       }
     }
+    return null;
+  }
+
+  @Nullable
+  public static PsiClass findVisibleClassByTagName(@NotNull AndroidFacet facet, @NotNull String name, @NotNull String baseClassQName) {
+    PsiClass aClass = findClassByTagName(facet, name, baseClassQName);
+    if (aClass != null && isViewClassVisibleAsTag(aClass)) return aClass;
     return null;
   }
 
@@ -105,8 +115,8 @@ public class LayoutViewClassUtils {
       return false; // not public
     }
     boolean isPublic = modifierList.hasModifierProperty(PsiModifier.PUBLIC);
-    boolean isRestricted = modifierList.findAnnotation(RESTRICT_TO_ANNOTATION.oldName()) != null ||
-                           modifierList.findAnnotation(RESTRICT_TO_ANNOTATION.newName()) != null;
+    boolean isRestricted = modifierList.hasAnnotation(RESTRICT_TO_ANNOTATION.oldName()) ||
+                           modifierList.hasAnnotation(RESTRICT_TO_ANNOTATION.newName());
     return isPublic && !isRestricted;
   }
 }

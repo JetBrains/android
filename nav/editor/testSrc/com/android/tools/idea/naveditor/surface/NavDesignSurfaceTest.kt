@@ -27,9 +27,9 @@ import com.android.tools.idea.common.scene.inlineDrawRect
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.common.surface.InteractionManager
-import com.android.tools.idea.common.surface.Layer
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.analytics.NavLogEvent
@@ -46,7 +46,6 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Computable
-import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.util.indexing.UnindexedFilesUpdater
@@ -74,8 +73,6 @@ import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing.JComponent
-import javax.swing.JScrollPane
-import javax.swing.JViewport
 import kotlin.test.assertNotEquals
 
 /**
@@ -123,23 +120,6 @@ class NavDesignSurfaceTest : NavTestCase() {
     LayoutTestCase.assertFalse(surface.isSkipContentResize)
     surface.setScale(1.23, 100, 100)
     LayoutTestCase.assertTrue(surface.isSkipContentResize)
-  }
-
-  fun testLayers() {
-    val droppedLayers: ImmutableList<Layer>
-
-    val surface = NavDesignSurface(project, myRootDisposable)
-    assertEmpty(surface.myLayers)
-
-    val model = model("nav.xml") { navigation("root") }
-    surface.model = model
-    assertEquals(1, surface.myLayers.size)
-
-    droppedLayers = ImmutableList.copyOf(surface.myLayers)
-    surface.model = null
-    assertEmpty(surface.myLayers)
-    // Make sure all dropped layers are disposed.
-    assertEmpty(droppedLayers.filter { layer -> !Disposer.isDisposed(layer) })
   }
 
   fun testComponentActivated() {
@@ -268,19 +248,16 @@ class NavDesignSurfaceTest : NavTestCase() {
   }
 
   fun testScrollToCenter() {
-    val model = model("nav.xml") {
-      navigation("root") {
-        fragment("fragment1")
-        fragment("fragment2")
-        fragment("fragment3")
-      }
-    }
+    val model = NavModelBuilderUtil.model(name = "nav.xml", facet = myFacet, fixture = myFixture,
+                                          extentSize = Dimension(1000, 1000),
+                                          f = {
+                                            navigation("root") {
+                                              fragment("fragment1")
+                                              fragment("fragment2")
+                                              fragment("fragment3")
+                                            }
+                                          }).build()
     val surface = model.surface as NavDesignSurface
-    val viewport = mock(JViewport::class.java)
-    val scrollPane = mock(JScrollPane::class.java)
-    `when`(surface.scrollPane).thenReturn(scrollPane)
-    `when`(scrollPane.viewport).thenReturn(viewport)
-    `when`(viewport.extentSize).thenReturn(Dimension(1000, 1000))
     val view = NavView(surface, surface.sceneManager!!)
     `when`<SceneView>(surface.focusedSceneView).thenReturn(view)
     `when`(surface.scrollDurationMs).thenReturn(1)
@@ -301,11 +278,13 @@ class NavDesignSurfaceTest : NavTestCase() {
     surface.scene!!.getSceneComponent(f2)!!.setPosition(100, 100)
     surface.scene!!.getSceneComponent(f3)!!.setPosition(200, 200)
     (surface.sceneManager as NavSceneManager).layout(false)
+    surface.zoomToFit()
 
-    verifyScroll(ImmutableList.of(f2), surface, scheduleRef, scrollPosition, -12, 14)
-    verifyScroll(ImmutableList.of(f1, f2), surface, scheduleRef, scrollPosition, -37, -11)
-    verifyScroll(ImmutableList.of(f1, f3), surface, scheduleRef, scrollPosition, -12, 14)
-    verifyScroll(ImmutableList.of(f3), surface, scheduleRef, scrollPosition, 38, 64)
+    // Scroll pane is centered at 500, 500 so the values below are the absolute positions of the new locations
+    verifyScroll(ImmutableList.of(f2), surface, scheduleRef, scrollPosition, 488, 514)
+    verifyScroll(ImmutableList.of(f1, f2), surface, scheduleRef, scrollPosition, 463, 489)
+    verifyScroll(ImmutableList.of(f1, f3), surface, scheduleRef, scrollPosition, 488, 514)
+    verifyScroll(ImmutableList.of(f3), surface, scheduleRef, scrollPosition, 538, 564)
   }
 
   private fun verifyScroll(

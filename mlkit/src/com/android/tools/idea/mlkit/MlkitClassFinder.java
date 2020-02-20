@@ -16,22 +16,21 @@
 package com.android.tools.idea.mlkit;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.mlkit.lightpsi.LightModelClass;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.AndroidLightPackage;
 import com.android.tools.mlkit.MlkitNames;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElementFinder;
 import com.intellij.psi.PsiPackage;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.indexing.FileBasedIndex;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import org.jetbrains.android.facet.AndroidFacet;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,30 +58,26 @@ public class MlkitClassFinder extends PsiElementFinder {
       return PsiClass.EMPTY_ARRAY;
     }
 
-    List<PsiClass> lightClassList = new ArrayList<>();
+    Map<VirtualFile, MlModelMetadata> modelFileMap = new HashMap<>();
     String className = computeDataKey(qualifiedName);
     FileBasedIndex.getInstance().processValues(MlModelFileIndex.INDEX_ID, className, null, (file, value) -> {
-      Module module = ModuleUtilCore.findModuleForFile(file, myProject);
-      if (module != null && AndroidFacet.getInstance(module) != null && value.isValidModel()) {
-        LightModelClass lightModelClass = MlkitModuleService.getInstance(module).getOrCreateLightModelClass(value);
-        if (lightModelClass == null) {
-          return true;
-        }
+      modelFileMap.put(file, value);
+      return true;
+    }, scope.intersectWith(MlModelFilesSearchScope.inProject(myProject)));
 
-        if (lightModelClass.getQualifiedName().equals(qualifiedName)) {
-          lightClassList.add(lightModelClass);
-        }
-        else {
-          for (PsiClass innerClass : lightModelClass.getInnerClasses()) {
-            if (qualifiedName.equals(innerClass.getQualifiedName())) {
-              lightClassList.add(innerClass);
-            }
+    List<PsiClass> lightClassList = new ArrayList<>();
+    for (PsiClass lightModelClass : MlkitUtils.getLightModelClasses(myProject, modelFileMap)) {
+      if (qualifiedName.equals(lightModelClass.getQualifiedName())) {
+        lightClassList.add(lightModelClass);
+      }
+      else {
+        for (PsiClass innerClass : lightModelClass.getInnerClasses()) {
+          if (qualifiedName.equals(innerClass.getQualifiedName())) {
+            lightClassList.add(innerClass);
           }
         }
       }
-
-      return true;
-    }, scope);
+    }
 
     return lightClassList.toArray(PsiClass.EMPTY_ARRAY);
   }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.navigator.nodes.android;
 
+import static com.android.tools.idea.projectsystem.SourceProvidersKt.containsFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
@@ -44,7 +45,6 @@ import java.util.Set;
 import javax.swing.Icon;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidSourceType;
-import org.jetbrains.android.facet.IdeaSourceProviderUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -119,7 +119,7 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
     AndroidFacet androidFacet = getValue();
     assert androidFacet != null;
     for (NamedIdeaSourceProvider provider : AndroidProjectViewPane.getSourceProviders(androidFacet)) {
-      if (IdeaSourceProviderUtil.containsFile(provider, virtualFile)) {
+      if (containsFile(provider, virtualFile)) {
         return provider;
       }
     }

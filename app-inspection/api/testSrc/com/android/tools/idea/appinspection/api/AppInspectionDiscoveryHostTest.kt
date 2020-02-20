@@ -26,7 +26,6 @@ import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.Timeout
@@ -70,8 +69,7 @@ class AppInspectionDiscoveryHostTest {
     transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, ATTACH_HANDLER)
   }
 
-  @Before
-  fun setup() {
+  private fun advanceTimer() {
     // Advance timer before each test so the transport pipeline does not consider new events of same timestamp as duplicate events.
     // The consequence of not doing this is transport pipeline will stop supplying process started or stopped events.
     timer.currentTimeNs += 1
@@ -88,6 +86,7 @@ class AppInspectionDiscoveryHostTest {
       ),
       AppInspectionTestUtils.TestTransportJarCopier
     )
+    advanceTimer()
   }
 
   private fun removeFakeProcess() {
@@ -96,6 +95,7 @@ class AppInspectionDiscoveryHostTest {
     // Despite the confusing name, this triggers a process end event.
     transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_OFFLINE_PROCESS)
     transportService.addDevice(FakeTransportService.FAKE_OFFLINE_DEVICE)
+    advanceTimer()
   }
 
   @Test
@@ -174,5 +174,41 @@ class AppInspectionDiscoveryHostTest {
     processDisconnectLatch.await()
 
     assertThat(discoveryHost.processData.processIdMap).doesNotContainKey(FakeTransportService.FAKE_PROCESS.pid)
+  }
+
+  @Test
+  fun processReconnects() {
+    // Setup
+    val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
+    val discoveryHost = AppInspectionDiscoveryHost(executor, TransportClient(grpcServerRule.name))
+
+    val firstProcessLatch = CountDownLatch(1)
+    val secondProcessLatch = CountDownLatch(1)
+    val processDisconnectLatch = CountDownLatch(1)
+    discoveryHost.addProcessListener(executor, object : AppInspectionDiscoveryHost.AppInspectionProcessListener {
+      override fun onProcessConnected(descriptor: TransportProcessDescriptor) {
+        if (firstProcessLatch.count > 0) {
+          firstProcessLatch.countDown()
+        } else {
+          secondProcessLatch.countDown()
+        }
+      }
+
+      override fun onProcessDisconnected(descriptor: TransportProcessDescriptor) {
+        processDisconnectLatch.countDown()
+      }
+    })
+
+    // Wait for process to connect.
+    launchFakeProcess(discoveryHost)
+    firstProcessLatch.await()
+
+    // Wait for process to disconnect.
+    removeFakeProcess()
+    processDisconnectLatch.await()
+
+    // Wait for it to connect again.
+    launchFakeProcess(discoveryHost)
+    secondProcessLatch.await()
   }
 }

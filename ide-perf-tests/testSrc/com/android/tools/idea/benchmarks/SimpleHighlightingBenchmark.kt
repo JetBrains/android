@@ -30,6 +30,14 @@ class SimpleHighlightingBenchmark {
   @get:Rule
   val gradleRule = AndroidGradleProjectRule()
 
+  companion object {
+    // Note: metadata for this benchmark is uploaded by IdeBenchmarkTestSuite.
+    val benchmark = Benchmark.Builder("Highlighting simpleApplication")
+      .setDescription("Syntax highlighting benchmark for a simple application.")
+      .setProject(EDITOR_PERFGATE_PROJECT_NAME)
+      .build()
+  }
+
   @Test
   fun simpleProjectHighlighting() {
     disableExpensivePlatformAssertions(gradleRule.fixture)
@@ -48,13 +56,6 @@ class SimpleHighlightingBenchmark {
       val javaFile = projectDir.findFileByRelativePath("app/src/main/java/google/simpleapplication/MyActivity.java")!!
       fixture.openFileInEditor(javaFile)
 
-      // Setup for Perfgate.
-      val benchmark = Benchmark.Builder("Highlighting simpleApplication")
-        .setDescription("Syntax highlighting benchmark for a simple application.")
-        .setProject(EDITOR_PERFGATE_PROJECT_NAME)
-        .build()
-      val metric = Metric("highlighting_latency")
-
       // Measure.
       val samplesMs = measureTimeMs(
         warmupIterations = 10,
@@ -72,6 +73,7 @@ class SimpleHighlightingBenchmark {
       println("Recorded samples: $samplesStr")
 
       // Save Perfgate data.
+      val metric = Metric("highlighting_latency")
       metric.addSamples(benchmark, *samplesMs.toTypedArray())
       metric.commit()
     }

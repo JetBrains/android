@@ -28,6 +28,7 @@ import com.android.tools.lint.client.api.GradleVisitor;
 import com.android.tools.lint.client.api.IssueRegistry;
 import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.client.api.LintDriver;
+import com.android.tools.lint.client.api.LintRequest;
 import com.android.tools.lint.client.api.UastParser;
 import com.android.tools.lint.client.api.XmlParser;
 import com.android.tools.lint.detector.api.Context;
@@ -80,6 +81,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -106,6 +108,32 @@ public class LintIdeClient extends LintClient implements Disposable {
     myLintResult = lintResult;
   }
 
+  public LintDriver createDriver(@NonNull LintRequest request) {
+    return createDriver(request, LintIdeSupport.get().getIssueRegistry());
+  }
+
+  public LintDriver createDriver(@NonNull LintRequest request, @NonNull IssueRegistry registry) {
+    LintDriver driver = new LintDriver(registry, this, request);
+
+    Collection<com.android.tools.lint.detector.api.Project> projects = request.getProjects();
+    if (projects != null && !projects.isEmpty()) {
+      com.android.tools.lint.detector.api.Project main = request.getMainProject(projects.iterator().next());
+      IdeAndroidProject model = main.getGradleProjectModel();
+      if (model != null) {
+        try {
+          IdeLintOptions lintOptions = model.getLintOptions();
+          driver.setCheckTestSources(lintOptions.isCheckTestSources());
+          driver.setCheckDependencies(lintOptions.isCheckDependencies());
+        }
+        catch (Exception e) {
+          LOG.error(e);
+        }
+      }
+    }
+
+    return driver;
+  }
+
   /**
    * Returns an {@link ApiLookup} service.
    *
@@ -114,7 +142,7 @@ public class LintIdeClient extends LintClient implements Disposable {
    */
   @Nullable
   public static ApiLookup getApiLookup(@NotNull Project project) {
-    return ApiLookup.get(LintIdeSupport.get().createClient(project, new LintResult()));
+    return ApiLookup.get(LintIdeSupport.get().createClient(project, new LintIgnoredResult()));
   }
 
   @Override
@@ -320,6 +348,9 @@ public class LintIdeClient extends LintClient implements Disposable {
     }
     else if (myLintResult instanceof LintBatchResult) {
       report((LintBatchResult)myLintResult, context, issue, severity, location, message, format, extraData);
+    }
+    else if (myLintResult instanceof LintIgnoredResult) {
+      // Ignore
     }
     else {
       assert false : message;

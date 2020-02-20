@@ -24,10 +24,11 @@ import com.android.tools.idea.wizard.template.renderIf
 
 fun RecipeExecutor.generateThingsModule(
   data: ModuleTemplateData,
-  appTitle: String
+  appTitle: String,
+  useKts: Boolean
 ) {
   generateCommonModule(
-    data, appTitle,
+    data, appTitle, useKts,
     generateThingsManifest(data.packageName, !data.isLibrary),
     true,
     iconsGenerationStyle = IconsGenerationStyle.NONE,

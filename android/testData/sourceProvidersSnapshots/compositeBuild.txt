@@ -384,7 +384,7 @@ MODULE: TestCompositeLib1-app
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/app/src/androidTest/shaders
                     file://./TestCompositeLib1/app/src/androidTestDebug/shaders
-        AllIdeaSourceProviders:
+        CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -995,7 +995,7 @@ MODULE: TestCompositeLib1-lib
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/androidTest/shaders
                     file://./TestCompositeLib1/lib/src/androidTestDebug/shaders
-        AllIdeaSourceProviders:
+        CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1607,7 +1607,7 @@ MODULE: TestCompositeLib3-app
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/app/src/androidTest/shaders
                     file://./TestCompositeLib3/app/src/androidTestDebug/shaders
-        AllIdeaSourceProviders:
+        CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -2218,7 +2218,7 @@ MODULE: TestCompositeLib3-lib
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/androidTest/shaders
                     file://./TestCompositeLib3/lib/src/androidTestDebug/shaders
-        AllIdeaSourceProviders:
+        CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -2832,7 +2832,7 @@ MODULE: testCompositeBuild-app
                 ShadersDirectoryUrls:
                     file://./app/src/androidTest/shaders
                     file://./app/src/androidTestDebug/shaders
-        AllIdeaSourceProviders:
+        CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -3443,7 +3443,7 @@ MODULE: testCompositeBuild-lib
                 ShadersDirectoryUrls:
                     file://./lib/src/androidTest/shaders
                     file://./lib/src/androidTestDebug/shaders
-        AllIdeaSourceProviders:
+        CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:

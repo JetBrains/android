@@ -28,9 +28,10 @@ interface AndroidModulePaths {
   /**
    * @param packageName package name of the new component. May affect resulting source directory (e.g., appended to source root).
    * For "com.google.foo.Bar", this would be "com.google.foo", and the resulting source directory *might* be
-   * "src/main/java/com/google/foo/".
-   * null if no transformation is required on the source root.
-   * @return the target directory in which to place a new Android component.
+   * "src/main/java/com/google/foo/". `null` means no transformation is required on the source root.
+   *
+   * @return the target directory in which to place a new Android component or `null` if the current selection does not support source
+   * directories.
    */
   fun getSrcDirectory(packageName: String?): File?
 
@@ -57,3 +58,23 @@ interface AndroidModulePaths {
 
   val manifestDirectory: File?
 }
+
+data class AndroidModulePathsImpl(
+  override val moduleRoot: File?,
+  override val manifestDirectory: File?,
+  private val srcRoot: File?,
+  private val unitTestRoot: File?,
+  private val testRoot: File?,
+  private val aidlRoot: File?,
+  override val resDirectories: List<File>
+) : AndroidModulePaths {
+  override fun getSrcDirectory(packageName: String?): File? = srcRoot?.appendPackageToRoot(packageName)
+  override fun getTestDirectory(packageName: String?): File? = testRoot?.appendPackageToRoot(packageName)
+  override fun getUnitTestDirectory(packageName: String?): File? = unitTestRoot?.appendPackageToRoot(packageName)
+  override fun getAidlDirectory(packageName: String?): File? = aidlRoot?.appendPackageToRoot(packageName)
+}
+
+private fun File.appendPackageToRoot(packageName: String?): File? {
+  return File(this, (packageName ?: return this).replace('.', File.separatorChar))
+}
+

@@ -18,6 +18,7 @@ package com.android.tools.idea.model
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_DEBUGGABLE
 import com.android.SdkConstants.ATTR_ENABLED
+import com.android.SdkConstants.ATTR_EXPORTED
 import com.android.SdkConstants.ATTR_MIN_SDK_VERSION
 import com.android.SdkConstants.ATTR_NAME
 import com.android.SdkConstants.ATTR_PACKAGE
@@ -72,7 +73,6 @@ import com.intellij.util.io.IOUtil.writeUTF
 import com.intellij.util.io.KeyDescriptor
 import com.intellij.util.text.CharArrayUtil
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.utils.addIfNotNull
 import org.kxml2.io.KXmlParser
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParser.END_DOCUMENT
@@ -86,6 +86,8 @@ import java.io.InputStreamReader
 import java.io.Reader
 import java.util.Objects
 import java.util.stream.Stream
+
+private val LOG = Logger.getInstance(AndroidManifestIndex::class.java)
 
 /**
  * A file-based index which maps each AndroidManifest.xml to a single entry, <key: package name, value: structured
@@ -103,7 +105,6 @@ import java.util.stream.Stream
  */
 class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawText>() {
   companion object {
-    private val LOG = Logger.getInstance(AndroidManifestIndex::class.java)
     @JvmField
     val NAME: ID<String, AndroidManifestRawText> = ID.create(::NAME.qualifiedName)
 
@@ -225,7 +226,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
 
   override fun getValueExternalizer() = AndroidManifestRawText.Externalizer
   override fun getName() = NAME
-  override fun getVersion() = 5
+  override fun getVersion() = 7
   override fun getIndexer() = Indexer
   override fun getInputFilter() = InputFilter
 
@@ -250,7 +251,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
           when {
             parser.eventType != START_TAG -> parser.next()
             parser.name == TAG_MANIFEST -> return parser.parseManifestTag()
-            else -> parser.skipSubTree()
+            else -> parser.skipSubTreeWithExceptionCaught()
           }
         }
       }
@@ -290,6 +291,26 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
       }
     }
 
+    /**
+     * This is a copy of the KXmlPullParser implementation, except that it catches pull parser exceptions and returns
+     * them as an invalid status code so that we can retain whatever information we've already computed.
+     */
+    private fun KXmlParser.skipSubTreeWithExceptionCaught() {
+      require(START_TAG, null, null)
+      var level = 1
+      var eventType = START_TAG
+
+      while (level > 0 && eventType != END_DOCUMENT) {
+        eventType = nextWithExceptionCaught()
+        if (eventType == END_TAG) {
+          --level
+        }
+        else if (eventType == START_TAG) {
+          ++level
+        }
+      }
+    }
+
     private fun KXmlParser.parseManifestTag(): AndroidManifestRawText {
       require(START_TAG, null, TAG_MANIFEST)
       val activities = hashSetOf<ActivityRawText>()
@@ -313,28 +334,28 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
               when (name) {
                 TAG_ACTIVITY -> activities.add(parseActivityTag())
                 TAG_ACTIVITY_ALIAS -> activityAliases.add(parseActivityAliasTag())
-                else -> skipSubTree()
+                else -> skipSubTreeWithExceptionCaught()
               }
             }
           }
           TAG_PERMISSION -> {
             androidName?.let(customPermissionNames::add)
-            skipSubTree()
+            skipSubTreeWithExceptionCaught()
           }
           TAG_PERMISSION_GROUP -> {
             androidName?.let(customPermissionGroupNames::add)
-            skipSubTree()
+            skipSubTreeWithExceptionCaught()
           }
           TAG_USES_PERMISSION, TAG_USES_PERMISSION_SDK_23, TAG_USES_PERMISSION_SDK_M -> {
             androidName?.let(usedPermissionNames::add)
-            skipSubTree()
+            skipSubTreeWithExceptionCaught()
           }
           TAG_USES_SDK -> {
             minSdkLevel = getAttributeValue(ANDROID_URI, ATTR_MIN_SDK_VERSION)
             targetSdkLevel = getAttributeValue(ANDROID_URI, ATTR_TARGET_SDK_VERSION)
-            skipSubTree()
+            skipSubTreeWithExceptionCaught()
           }
-          else -> skipSubTree()
+          else -> skipSubTreeWithExceptionCaught()
         }
       }
 
@@ -357,18 +378,20 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
       require(START_TAG, null, TAG_ACTIVITY)
       val activityName: String? = androidName
       val enabled: String? = getAttributeValue(ANDROID_URI, ATTR_ENABLED)
+      val exported: String? = getAttributeValue(ANDROID_URI, ATTR_EXPORTED)
       val intentFilters = hashSetOf<IntentFilterRawText>()
       processChildTags {
         if (name == TAG_INTENT_FILTER) {
           intentFilters.add(parseIntentFilterTag())
         }
         else {
-          skipSubTree()
+          skipSubTreeWithExceptionCaught()
         }
       }
       return ActivityRawText(
         name = activityName,
         enabled = enabled,
+        exported = exported,
         intentFilters = intentFilters.toSet()
       )
     }
@@ -378,19 +401,21 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
       val aliasName = androidName
       val targetActivity = getAttributeValue(ANDROID_URI, ATTR_TARGET_ACTIVITY)
       val enabled = getAttributeValue(ANDROID_URI, ATTR_ENABLED)
+      val exported: String? = getAttributeValue(ANDROID_URI, ATTR_EXPORTED)
       val intentFilters = hashSetOf<IntentFilterRawText>()
       processChildTags {
         if (name == TAG_INTENT_FILTER) {
           intentFilters.add(parseIntentFilterTag())
         }
         else {
-          skipSubTree()
+          skipSubTreeWithExceptionCaught()
         }
       }
       return ActivityAliasRawText(
         name = aliasName,
         targetActivity = targetActivity,
         enabled = enabled,
+        exported = exported,
         intentFilters = intentFilters.toSet()
       )
     }
@@ -404,7 +429,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
           TAG_ACTION -> androidName?.let(actionNames::add)
           TAG_CATEGORY -> androidName?.let(categoryNames::add)
         }
-        skipSubTree()
+        skipSubTreeWithExceptionCaught()
       }
       return IntentFilterRawText(
         actionNames = actionNames.toSet(),
@@ -427,28 +452,48 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
  * [processChildTag] must also consume each child tag for which it is called,
  * moving the parser to the child's end tag. In order to make this actually
  * process just the children of the current tag, [processChildTag] should consume
- * the subtree of each child (e.g. by calling [KXmlParser.skipSubTree] or recursively calling
- * [processChildTags]).
+ * the subtree of each child (e.g. by calling [KXmlParser.skipSubTreeWithExceptionCaught]
+ * or recursively calling [processChildTags]).
  */
 private inline fun KXmlParser.processChildTags(crossinline processChildTag: KXmlParser.() -> Unit) {
   require(START_TAG, null, null)
   val parentName = name
   val parentDepth = depth
-  while (next() != END_DOCUMENT) {
+  var eventType = nextWithExceptionCaught()
+  while (eventType != END_DOCUMENT) {
     when (eventType) {
       START_TAG -> {
-        check(parentDepth + 1 == depth) {
-          "Child start tag depth mismatch: expected ${parentDepth + 1}, got $depth for tag \"$name\" (child of \"$parentName\")."
+        if (parentDepth + 1 != depth) {
+          LOG.warn("Child start tag depth mismatch: expected ${parentDepth + 1}, got $depth for tag \"$name\" (child of \"$parentName\").")
+          return
         }
         processChildTag()
       }
       END_TAG -> {
-        check(parentDepth == depth) {
-          "Parent end tag depth mismatch: expected $parentDepth, got $depth for tag \"$name\"."
+        if (parentDepth != depth) {
+          LOG.warn("Parent end tag depth mismatch: expected $parentDepth, got $depth for tag \"$name\".")
         }
         return
       }
     }
+    eventType = nextWithExceptionCaught()
+  }
+}
+
+private val ERROR_TAG get() = -1
+
+private fun KXmlParser.nextWithExceptionCaught(): Int {
+  try {
+    return next()
+  }
+  catch (e: XmlPullParserException) {
+    LOG.warn(e.message)
+
+    if (this.eventType == END_TAG) {
+      return END_TAG
+    }
+
+    return ERROR_TAG
   }
 }
 
@@ -524,7 +569,12 @@ data class AndroidManifestRawText(
  *
  * @see AndroidManifestRawText
  */
-data class ActivityRawText(val name: String?, val enabled: String?, val intentFilters: Set<IntentFilterRawText>) {
+data class ActivityRawText(
+  val name: String?,
+  val enabled: String?,
+  val exported: String?,
+  val intentFilters: Set<IntentFilterRawText>
+) {
   /**
    * Singleton responsible for serializing/de-serializing [ActivityRawText]s to/from disk.
    *
@@ -538,6 +588,7 @@ data class ActivityRawText(val name: String?, val enabled: String?, val intentFi
       value.apply {
         writeNullable(out, name) { writeUTF(out, it) }
         writeNullable(out, enabled) { writeUTF(out, it) }
+        writeNullable(out, exported) { writeUTF(out, it) }
         writeSeq(out, intentFilters) { IntentFilterRawText.Externalizer.save(out, it) }
       }
     }
@@ -545,6 +596,7 @@ data class ActivityRawText(val name: String?, val enabled: String?, val intentFi
     override fun read(`in`: DataInput) = ActivityRawText(
       name = readNullable(`in`) { readUTF(`in`) },
       enabled = readNullable(`in`) { readUTF(`in`) },
+      exported = readNullable(`in`) { readUTF(`in`) },
       intentFilters = readSeq(`in`) { IntentFilterRawText.Externalizer.read(`in`) }.toSet()
     )
   }
@@ -560,6 +612,7 @@ data class ActivityAliasRawText(
   val name: String?,
   val targetActivity: String?,
   val enabled: String?,
+  val exported: String?,
   val intentFilters: Set<IntentFilterRawText>
 ) {
   /**
@@ -576,6 +629,7 @@ data class ActivityAliasRawText(
         writeNullable(out, name) { writeUTF(out, it) }
         writeNullable(out, targetActivity) { writeUTF(out, it) }
         writeNullable(out, enabled) { writeUTF(out, it) }
+        writeNullable(out, exported) { writeUTF(out, it) }
         writeSeq(out, intentFilters) { IntentFilterRawText.Externalizer.save(out, it) }
       }
     }
@@ -584,6 +638,7 @@ data class ActivityAliasRawText(
       name = readNullable(`in`) { readUTF(`in`) },
       targetActivity = readNullable(`in`) { readUTF(`in`) },
       enabled = readNullable(`in`) { readUTF(`in`) },
+      exported = readNullable(`in`) { readUTF(`in`) },
       intentFilters = readSeq(`in`) { IntentFilterRawText.Externalizer.read(`in`) }.toSet()
     )
   }

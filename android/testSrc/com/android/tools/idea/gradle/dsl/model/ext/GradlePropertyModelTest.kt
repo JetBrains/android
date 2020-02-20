@@ -33,11 +33,15 @@ import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_APPL
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_APPLICATION_CYCLE_APPLIED
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_AS_TYPE
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_CHANGE_PROPERTY_TYPE_TO_LITERAL
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_CHANGE_PROPERTY_TYPE_TO_LITERAL_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_CHANGE_PROPERTY_TYPE_TO_REFERENCE
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_CHANGE_PROPERTY_TYPE_TO_REFERENCE_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_CHECK_SETTING_DELETED_MODEL
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_CONVERT_TO_EMPTY_LIST
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_CREATE_AND_DELETE_LIST_TO_EMPTY
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_CREATE_AND_DELETE_LIST_TO_EMPTY_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_CREATE_AND_DELETE_MAP_TO_EMPTY
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_CREATE_AND_DELETE_MAP_TO_EMPTY_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_CREATE_AND_DELETE_PLACE_HOLDERS_TO_EMPTY
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_CREATE_AND_DELETE_PLACE_HOLDERS_TO_EMPTY_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DEEP_DEPENDENCIES
@@ -65,10 +69,13 @@ import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELE
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_TO_EMPTY_MAP_FOR_KTS_ARRAY_EXPRESSION
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_VARIABLE
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_VARIABLE_DEPENDENCY
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_VARIABLE_DEPENDENCY_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_VARIABLE_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DEPENDENCIES_IN_MAP
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DEPENDENCY_BASIC_CYCLE
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DEPENDENCY_BASIC_CYCLE_REFERENCE
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DEPENDENCY_CHANGED_UPDATES_VALUE
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DEPENDENCY_CHANGED_UPDATES_VALUE_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DEPENDENCY_NO_CYCLE
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DEPENDENCY_NO_CYCLE4_DEPTH
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DEPENDENCY_TWICE
@@ -105,14 +112,18 @@ import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_PROP
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_PROPERTY_VARIABLE_DEPENDENCY
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_QUOTES_IN_STRING
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_QUOTES_WITHIN_QUOTES
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_QUOTES_WITHIN_QUOTES_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_REFERENCE_LIST_DEPENDENCY
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_REFERENCE_MAP_DEPENDENCY
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_REFERENCE_PROPERTY_DEPENDENCY
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_REFERENCE_TO_RETURN_OBJECT
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_REFERENCE_VARIABLE_DEPENDENCY
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_RENAME
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_RENAME_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_RENAME_LIST_VALUE_THROWS
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_RENAME_LIST_VALUE_THROWS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_RENAME_MAP_PROPERTY_AND_KEYS
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_RENAME_MAP_PROPERTY_AND_KEYS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_RESOLVE_AND_SET_VARIABLES_IN_PARENT_MODULE
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_RESOLVE_VARIABLES_IN_PARENT_MODULE_SUB
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_RESOLVE_VARIABLES_IN_PROPERTIES_FILE
@@ -134,6 +145,7 @@ import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_SET_
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_SET_NEW_VALUE_IN_MAP_FOR_ARRAY_EXPRESSION
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_SET_REFERENCE_VALUE
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_SET_REFERENCE_WITH_MODEL
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_SET_REFERENCE_WITH_MODEL_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_SET_TO_LIST_VALUES
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_SET_UNKNOWN_VALUE_TYPE
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_SET_VALUE_IN_MAP
@@ -183,7 +195,6 @@ import com.google.common.collect.ImmutableMap
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.UsefulTestCase
-import junit.framework.TestCase
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.instanceOf
 import org.hamcrest.MatcherAssert.assertThat
@@ -195,7 +206,7 @@ import java.math.BigDecimal
 
 class GradlePropertyModelTest : GradleFileModelTestCase() {
   @Test
-  fun testPropertyFromScratch() {
+  fun testPropertiesFromScratch() {
     writeToBuildFile(GRADLE_PROPERTY_MODEL_PROPERTIES_FROM_SCRATCH)
 
     val buildModel = gradleBuildModel
@@ -205,26 +216,27 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     extModel.findProperty("prop1").setValue(ReferenceTo("newProp"))
 
     applyChangesAndReparse(buildModel)
-
-    // We don't have to cast extra properties when declaring extra properties so the cast is not necessary.
-    //TODO(karimai): ugly, we shouldn't cast when the applyContext is an extra property.
     verifyFileContents(myBuildFile, GRADLE_PROPERTY_MODEL_PROPERTIES_FROM_SCRATCH_EXPECTED)
   }
 
   @Test
-  fun testPropertyFromScratchArrayExpression() {
+  fun testPropertiesFromScratchArrayExpression() {
     writeToBuildFile(GRADLE_PROPERTY_MODEL_PROPERTIES_FROM_SCRATCH_ARRAY_EXPRESSION)
 
     val buildModel = gradleBuildModel
-    val extModel = buildModel.ext()
+    var extModel = buildModel.ext()
 
     extModel.findProperty("ext.newProp").setValue(123)
     extModel.findProperty("ext.prop1").setValue(ReferenceTo("newProp"))
     extModel.findProperty("prop2").setValue(ReferenceTo("ext.newProp"))
 
     applyChangesAndReparse(buildModel)
-
     verifyFileContents(myBuildFile, GRADLE_PROPERTY_MODEL_PROPERTIES_FROM_SCRATCH_ARRAY_EXPRESSION_EXPECTED)
+
+    extModel = buildModel.ext()
+    assertThat(extModel.findProperty("newProp").getValue(INTEGER_TYPE), equalTo(123))
+    assertThat(extModel.findProperty("prop1").resolve().getValue(INTEGER_TYPE), equalTo(123))
+    assertThat(extModel.findProperty("prop2").resolve().getValue(INTEGER_TYPE), equalTo(123))
   }
 
   @Test
@@ -324,44 +336,59 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
   fun testVariables() {
     writeToBuildFile(GRADLE_PROPERTY_MODEL_VARIABLES)
 
-    val extModel = gradleBuildModel.ext()
+    val buildModel = gradleBuildModel
+    val extModel = buildModel.ext()
+
+    fun findVariable(name: String): GradlePropertyModel {
+      return when {
+        isGroovy -> extModel.findProperty(name)
+        else -> buildModel.declaredProperties.find { it.name == name }!!
+      }
+    }
+
+    fun assertMaybeExtFQN(expected: String, actual: String) {
+      when {
+        isGroovy -> assertEquals("ext.${expected}", actual)
+        else -> assertEquals(expected, actual)
+      }
+    }
 
     run {
-      val propertyModel = extModel.findProperty("prop1")
+      val propertyModel = findVariable("prop1")
       assertEquals(STRING, propertyModel.valueType)
       assertEquals(VARIABLE, propertyModel.propertyType)
       assertEquals("value", propertyModel.getValue(STRING_TYPE))
       assertEquals("value", propertyModel.getRawValue(STRING_TYPE))
       assertEquals("prop1", propertyModel.name)
-      assertEquals("ext.prop1", propertyModel.fullyQualifiedName)
+      assertMaybeExtFQN("prop1", propertyModel.fullyQualifiedName)
     }
 
     run {
-      val propertyModel = extModel.findProperty("prop2")
+      val propertyModel = findVariable("prop2")
       assertEquals(INTEGER, propertyModel.valueType)
       assertEquals(VARIABLE, propertyModel.propertyType)
       assertEquals(25, propertyModel.getValue(INTEGER_TYPE))
       assertEquals(25, propertyModel.getRawValue(INTEGER_TYPE))
       assertEquals("prop2", propertyModel.name)
-      assertEquals("ext.prop2", propertyModel.fullyQualifiedName)
+      assertMaybeExtFQN("prop2", propertyModel.fullyQualifiedName)
     }
 
     run {
-      val propertyModel = extModel.findProperty("prop3")
+      val propertyModel = findVariable("prop3")
       assertEquals(BOOLEAN, propertyModel.valueType)
       assertEquals(VARIABLE, propertyModel.propertyType)
       assertEquals(true, propertyModel.getValue(BOOLEAN_TYPE))
       assertEquals(true, propertyModel.getRawValue(BOOLEAN_TYPE))
       assertEquals("prop3", propertyModel.name)
-      assertEquals("ext.prop3", propertyModel.fullyQualifiedName)
+      assertMaybeExtFQN("prop3", propertyModel.fullyQualifiedName)
     }
 
     run {
-      val propertyModel = extModel.findProperty("prop4")
+      val propertyModel = findVariable("prop4")
       assertEquals(MAP, propertyModel.valueType)
       assertEquals(VARIABLE, propertyModel.propertyType)
       assertEquals("prop4", propertyModel.name)
-      assertEquals("ext.prop4", propertyModel.fullyQualifiedName)
+      assertMaybeExtFQN("prop4", propertyModel.fullyQualifiedName)
       val value = propertyModel.getValue(MAP_TYPE)!!["key"]!!
       assertEquals("val", value.getValue(STRING_TYPE))
       assertEquals(DERIVED, value.propertyType)
@@ -369,11 +396,11 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
 
     run {
-      val propertyModel = extModel.findProperty("prop5")
+      val propertyModel = findVariable("prop5")
       assertEquals(LIST, propertyModel.valueType)
       assertEquals(VARIABLE, propertyModel.propertyType)
       assertEquals("prop5", propertyModel.name)
-      assertEquals("ext.prop5", propertyModel.fullyQualifiedName)
+      assertMaybeExtFQN("prop5", propertyModel.fullyQualifiedName)
       val list = propertyModel.getValue(LIST_TYPE)!!
       assertSize(3, list)
 
@@ -400,12 +427,12 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
 
     run {
-      val propertyModel = extModel.findProperty("prop6")
+      val propertyModel = findVariable("prop6")
       assertEquals(BigDecimal("25.3"), propertyModel.toBigDecimal())
       assertEquals(BIG_DECIMAL, propertyModel.valueType)
       assertEquals(VARIABLE, propertyModel.propertyType)
       assertEquals("prop6", propertyModel.name)
-      assertEquals("ext.prop6", propertyModel.fullyQualifiedName)
+      assertMaybeExtFQN("prop6", propertyModel.fullyQualifiedName)
     }
   }
 
@@ -469,15 +496,16 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     assertSize(3, properties)
 
     verifyPropertyModel(properties[0], STRING_TYPE, "var1", REFERENCE, REGULAR, 1, "prop1", "ext.prop1")
-    verifyPropertyModel(properties[0].dependencies[0], STRING_TYPE, "Value1", STRING, VARIABLE, 0, "var1", "ext.var1")
+    verifyPropertyModel(properties[0].dependencies[0], STRING_TYPE, "Value1", STRING, VARIABLE, 0, "var1")
     verifyPropertyModel(properties[1], STRING_TYPE, "Cool Value2", STRING, REGULAR, 1, "prop2", "ext.prop2")
-    verifyPropertyModel(properties[1].dependencies[0], STRING_TYPE, "Value2", STRING, VARIABLE, 0, "var2", "ext.var2")
+    verifyPropertyModel(properties[1].dependencies[0], STRING_TYPE, "Value2", STRING, VARIABLE, 0, "var2")
     verifyPropertyModel(properties[2], STRING_TYPE, "Nice Value3", STRING, REGULAR, 1, "prop3", "ext.prop3")
-    verifyPropertyModel(properties[2].dependencies[0], STRING_TYPE, "Value3", STRING, VARIABLE, 0, "var3", "ext.var3")
+    verifyPropertyModel(properties[2].dependencies[0], STRING_TYPE, "Value3", STRING, VARIABLE, 0, "var3")
   }
 
   @Test
   fun testGetVariables() {
+    assumeTrue("no ext block in KotlinScript", isGroovy)
     writeToBuildFile(GRADLE_PROPERTY_MODEL_GET_VARIABLES)
 
     val extModel = gradleBuildModel.ext()
@@ -494,30 +522,38 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
   fun testAsType() {
     writeToBuildFile(GRADLE_PROPERTY_MODEL_AS_TYPE)
 
-    val extModel = gradleBuildModel.ext()
+    val buildModel = gradleBuildModel
+    val extModel = buildModel.ext()
+
+    fun findProperty(name: String): GradlePropertyModel {
+      return when {
+        isGroovy -> extModel.findProperty(name)
+        else -> buildModel.declaredProperties.find { it.name == name }!!
+      }
+    }
 
     run {
-      val stringModel = extModel.findProperty("prop1")
+      val stringModel = findProperty("prop1")
       assertEquals("value", stringModel.valueAsString())
       assertNull(stringModel.toInt())
       assertNull(stringModel.toBoolean())
       assertNull(stringModel.toList())
       assertNull(stringModel.toMap())
-      val intModel = extModel.findProperty("prop2")
+      val intModel = findProperty("prop2")
       assertEquals(25, intModel.toInt())
       assertEquals("25", intModel.valueAsString())
       assertNull(intModel.toBoolean())
       assertNull(intModel.toMap())
       assertNull(intModel.toList())
-      val boolModel = extModel.findProperty("prop3")
+      val boolModel = findProperty("prop3")
       assertEquals(true, boolModel.toBoolean())
       assertEquals("true", boolModel.valueAsString())
       assertNull(boolModel.toInt())
-      val mapModel = extModel.findProperty("prop4")
+      val mapModel = findProperty("prop4")
       assertNotNull(mapModel.toMap())
       assertNull(mapModel.toInt())
       assertNull(mapModel.toList())
-      val listModel = extModel.findProperty("prop5")
+      val listModel = findProperty("prop5")
       assertNotNull(listModel.toList())
       assertNull(listModel.toBoolean())
       assertNull(listModel.toMap())
@@ -618,6 +654,8 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
 
     applyChangesAndReparse(buildModel)
+    // TODO(b/148198247): we need type decorators on the empty list in KotlinScript
+    verifyFileContents(myBuildFile, GRADLE_PROPERTY_MODEL_CREATE_AND_DELETE_LIST_TO_EMPTY_EXPECTED)
 
     run {
       val propertyModel = extModel.findProperty("prop2")
@@ -672,6 +710,8 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
 
     applyChangesAndReparse(buildModel)
+    // TODO(b/148198247): we need type decorators on the empty map in KotlinScript
+    verifyFileContents(myBuildFile, GRADLE_PROPERTY_MODEL_CREATE_AND_DELETE_MAP_TO_EMPTY_EXPECTED)
 
     run {
       val propertyModel = extModel.findProperty("prop2")
@@ -759,8 +799,12 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
   fun testVariableDependency() {
     writeToBuildFile(GRADLE_PROPERTY_MODEL_VARIABLE_DEPENDENCY)
 
-    val extModel = gradleBuildModel.ext()
-    val propertyModel = extModel.findProperty("prop2")
+    val buildModel = gradleBuildModel
+    val extModel = buildModel.ext()
+    val propertyModel = when {
+      isGroovy -> extModel.findProperty("prop2")
+      else -> buildModel.declaredProperties.find { it.name == "prop2" }!!
+    }
     assertEquals("\${prop1} world!", propertyModel.getRawValue(STRING_TYPE))
     assertEquals("hello world!", propertyModel.getValue(STRING_TYPE))
     assertEquals(STRING, propertyModel.valueType)
@@ -799,9 +843,13 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
   fun testVariablePropertyDependency() {
     writeToBuildFile(GRADLE_PROPERTY_MODEL_VARIABLE_PROPERTY_DEPENDENCY)
 
-    val extModel = gradleBuildModel.ext()
-    val propertyModel = extModel.findProperty("prop2")
-    assertEquals("\${prop1} world!", propertyModel.getRawValue(STRING_TYPE))
+    val buildModel = gradleBuildModel
+    val extModel = buildModel.ext()
+    val propertyModel = when {
+      isGroovy -> extModel.findProperty("prop2")
+      else -> buildModel.declaredProperties.find { it.name == "prop2" }!!
+    }
+    assertEquals(if (isGroovy) "\${prop1} world!" else "\${extra[\"prop1\"]} world!", propertyModel.getRawValue(STRING_TYPE))
     assertEquals("hello world!", propertyModel.getValue(STRING_TYPE))
     assertEquals(STRING, propertyModel.valueType)
     assertEquals(VARIABLE, propertyModel.propertyType)
@@ -817,6 +865,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testMultipleDependenciesWithFullyQualifiedName() {
+    assumeTrue("b/148939007", isGroovy)
     writeToBuildFile(GRADLE_PROPERTY_MODEL_MULTIPLE_DEPENDENCIES_WITH_FULLY_QUALIFIED_NAME)
 
     val extModel = gradleBuildModel.ext()
@@ -849,12 +898,13 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testMultipleTypeDependenciesWithFullyQualifiedName() {
+    assumeTrue("b/148939007", isGroovy)
     writeToBuildFile(GRADLE_PROPERTY_MODEL_MULTIPLE_TYPE_DEPENDENCIES_WITH_FULLY_QUALIFIED_NAME)
 
     val extModel = gradleBuildModel.ext()
     val propertyModel = extModel.findProperty("prop2")
     assertEquals("true and value1", propertyModel.getValue(STRING_TYPE))
-    assertEquals("\${prop1} and \${project.ext.prop1}", propertyModel.getRawValue(STRING_TYPE))
+    assertEquals(if (isGroovy) "\${prop1} and \${project.ext.prop1}" else "\${prop1} and \${project.extra[\"prop1\"]}", propertyModel.getRawValue(STRING_TYPE))
 
     // Check the dependencies are correct
     val deps = propertyModel.dependencies
@@ -873,7 +923,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       val value = deps[1]
       assertEquals("prop1", value.name)
       assertEquals("value1", value.getValue(STRING_TYPE))
-      assertEquals("ext.prop1", value.fullyQualifiedName)
+      assertEquals(if (isGroovy) "ext.prop1" else "prop1", value.fullyQualifiedName)
       assertEquals(STRING, value.valueType)
       assertEquals(REGULAR, value.propertyType)
     }
@@ -885,7 +935,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     val propertyModel = gradleBuildModel.ext().findProperty("prop4")
     assertEquals("3", propertyModel.getValue(STRING_TYPE))
-    assertEquals("${'$'}{prop3.key[0][2]}", propertyModel.getRawValue(STRING_TYPE))
+    assertEquals(if (isGroovy) "${'$'}{prop3.key[0][2]}" else "\${prop3[\"key\"][0][2]}", propertyModel.getRawValue(STRING_TYPE))
     assertEquals(REGULAR, propertyModel.propertyType)
     assertEquals(STRING, propertyModel.valueType)
 
@@ -902,7 +952,10 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
   fun testNestedMapVariableInjection() {
     writeToBuildFile(GRADLE_PROPERTY_MODEL_NESTED_MAP_VARIABLE_INJECTION)
 
-    val propertyModel = gradleBuildModel.ext().findProperty("prop3")
+    val propertyModel = when {
+      isGroovy -> gradleBuildModel.ext().findProperty("prop3")
+      else -> gradleBuildModel.declaredProperties.find { it.name == "prop3" }!!
+    }
     assertEquals(STRING, propertyModel.valueType)
     assertEquals(VARIABLE, propertyModel.propertyType)
     assertEquals("valuetrue", propertyModel.getValue(STRING_TYPE))
@@ -950,7 +1003,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     val extModel = gradleBuildModel.ext()
     val propertyModel = extModel.findProperty("prop2")
     assertEquals("value", propertyModel.getValue(STRING_TYPE))
-    assertEquals("\${prop1.key}", propertyModel.getRawValue(STRING_TYPE))
+    assertEquals(if (isGroovy) "\${prop1.key}" else "\${prop1[\"key\"]}", propertyModel.getRawValue(STRING_TYPE))
 
     val deps = propertyModel.dependencies
     val value = deps[0]
@@ -1195,6 +1248,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testSetBothStringTypes() {
+    assumeTrue("only one String type in KotlinScript", isGroovy)
     writeToBuildFile(GRADLE_PROPERTY_MODEL_SET_BOTH_STRING_TYPES)
     val buildModel = gradleBuildModel
 
@@ -1230,6 +1284,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testSetGarbageReference() {
+    assumeTrue("relies on Groovy-specific Psi insertion behaviour with malformed input", isGroovy);
     writeToBuildFile(GRADLE_PROPERTY_MODEL_SET_GARBAGE_REFERENCE)
     val buildModel = gradleBuildModel
 
@@ -1264,20 +1319,24 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
       // Set prop2 to refer to prop1
       propertyModel.setValue(ReferenceTo(otherModel))
-      verifyPropertyModel(propertyModel, STRING_TYPE, "ext.prop1", REFERENCE, REGULAR, 1)
+      // TODO(b/148938992): in KotlinScript when we set the value, the explicit cast is included in the reference, whereas when we parse
+      //  (see below) the cast is excluded.  Possibly this is all at the wrong level of abstraction anyway :-(
+      verifyPropertyModel(propertyModel, STRING_TYPE, if (isGroovy) "ext.prop1" else "extra[\"prop1\"] as String", REFERENCE, REGULAR, 1)
     }
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, GRADLE_PROPERTY_MODEL_SET_REFERENCE_WITH_MODEL_EXPECTED)
 
     // Check the value
     run {
       val propertyModel = buildModel.ext().findProperty("prop2")
-      verifyPropertyModel(propertyModel, STRING_TYPE, "ext.prop1", REFERENCE, REGULAR, 1)
+      verifyPropertyModel(propertyModel, STRING_TYPE, if (isGroovy) "ext.prop1" else "extra[\"prop1\"]", REFERENCE, REGULAR, 1)
     }
   }
 
   @Test
   fun testQuotesWithinQuotes() {
+    assumeTrue("b/148939103", isGroovy)
     writeToBuildFile(GRADLE_PROPERTY_MODEL_QUOTES_WITHIN_QUOTES)
     val buildModel = gradleBuildModel
 
@@ -1295,8 +1354,9 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, GRADLE_PROPERTY_MODEL_QUOTES_WITHIN_QUOTES_EXPECTED)
 
-    // Check its correct after a reparse.
+    // Check it's correct after a reparse.
     run {
       val propertyModel = buildModel.ext().findProperty("prop1")
       verifyPropertyModel(propertyModel, STRING_TYPE, "\"Come and see!\" I looked", STRING, REGULAR, 0)
@@ -1344,6 +1404,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, GRADLE_PROPERTY_MODEL_CHANGE_PROPERTY_TYPE_TO_REFERENCE_EXPECTED)
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop2")
@@ -1374,6 +1435,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, GRADLE_PROPERTY_MODEL_CHANGE_PROPERTY_TYPE_TO_LITERAL_EXPECTED)
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop2")
@@ -1412,6 +1474,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
       // Apply, reparse and check again.
       applyChangesAndReparse(buildModel)
+      verifyFileContents(myBuildFile, GRADLE_PROPERTY_MODEL_DEPENDENCY_CHANGED_UPDATES_VALUE_EXPECTED)
 
       val propertyModel3 = buildModel.ext().findProperty("prop1")
       verifyPropertyModel(propertyModel3, STRING_TYPE, newValue, STRING, REGULAR, 0)
@@ -1489,6 +1552,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, "")
 
     // Check everything has been deleted
     run {
@@ -1504,15 +1568,24 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     // Delete the property
     run {
-      val propertyModel = buildModel.ext().findProperty("prop1")
+      val propertyModel = when {
+        isGroovy -> buildModel.ext().findProperty("prop1")
+        else -> buildModel.declaredProperties.find { it.name == "prop1" }!!
+      }
       propertyModel.delete()
     }
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, GRADLE_PROPERTY_MODEL_DELETE_VARIABLE_EXPECTED)
 
     // Check everything has been deleted
     run {
-      val propertyModel = buildModel.ext().findProperty("prop1")
+      val propertyModel = when {
+        isGroovy -> buildModel.ext().findProperty("prop1")
+        // TODO(b/148938436): how can we get a model for a variable not-yet-defined at toplevel?  For now we can return without losing
+        //  too much, but this is a more general question
+        else -> buildModel.declaredProperties.find { it.name == "prop1" } ?: return
+      }
       assertEquals(NONE, propertyModel.valueType)
     }
   }
@@ -1578,8 +1651,6 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testDeleteVariableDependency() {
-    // This test is Groovy specific as it declares variables inside extra block.
-    assumeTrue(isGroovy)
     writeToBuildFile(GRADLE_PROPERTY_MODEL_DELETE_VARIABLE_DEPENDENCY)
     val buildModel = gradleBuildModel
 
@@ -1599,6 +1670,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, GRADLE_PROPERTY_MODEL_DELETE_VARIABLE_DEPENDENCY_EXPECTED)
 
     run {
       val firstPropertyModel = buildModel.ext().findProperty("prop2")
@@ -2288,7 +2360,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       verifyPropertyModel(list[3], STRING_TYPE, "4", STRING, DERIVED, 0, "3", "ext.prop1[3]")
       verifyPropertyModel(list[4], INTEGER_TYPE, 5, INTEGER, DERIVED, 0, "4", "ext.prop1[4]")
       verifyPropertyModel(list[5], STRING_TYPE, "six", REFERENCE, DERIVED, 1, "5", "ext.prop1[5]")
-      verifyPropertyModel(list[5].dependencies[0], INTEGER_TYPE, 6, INTEGER, VARIABLE, 0, "six", "ext.six")
+      verifyPropertyModel(list[5].dependencies[0], INTEGER_TYPE, 6, INTEGER, VARIABLE, 0, "six")
 
       // Delete some elements
       list[1].delete()
@@ -2740,7 +2812,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     }
   }
 
-  @Ignore
+  @Ignore("b/148924977")
   @Test
   fun testApplicationCycle() {
     writeToNewProjectFile("a", GRADLE_PROPERTY_MODEL_APPLICATION_CYCLE_APPLIED)
@@ -2821,23 +2893,24 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       val propertyModel = buildModel.ext().findProperty("prop1")
       verifyPropertyModel(propertyModel, STRING_TYPE, "hello ${'$'}{var2}", STRING, REGULAR, 1, "prop1", "ext.prop1")
       val varModel = propertyModel.dependencies[0]
-      verifyPropertyModel(varModel, STRING_TYPE, "hello", STRING, VARIABLE, 0, "var1", "ext.var1")
+      verifyPropertyModel(varModel, STRING_TYPE, "hello", STRING, VARIABLE, 0, "var1")
 
       // Rename the properties.
-      propertyModel.rename("prop2")
+      propertyModel.rename(if (isGroovy) "prop2" else "ext.prop2")
       varModel.rename("var2")
 
       verifyPropertyModel(propertyModel, STRING_TYPE, "${'$'}{var1} hello", STRING, REGULAR, 1, "prop2", "ext.prop2")
-      verifyPropertyModel(varModel, STRING_TYPE, "hello", STRING, VARIABLE, 0, "var2", "ext.var2")
+      verifyPropertyModel(varModel, STRING_TYPE, "hello", STRING, VARIABLE, 0, "var2")
     }
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, GRADLE_PROPERTY_MODEL_RENAME_EXPECTED)
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop2")
       val varModel = propertyModel.dependencies[0]
       verifyPropertyModel(propertyModel, STRING_TYPE, "${'$'}{var1} hello", STRING, REGULAR, 1, "prop2", "ext.prop2")
-      verifyPropertyModel(varModel, STRING_TYPE, "hello", STRING, VARIABLE, 0, "var2", "ext.var2")
+      verifyPropertyModel(varModel, STRING_TYPE, "hello", STRING, VARIABLE, 0, "var2")
     }
   }
 
@@ -2846,17 +2919,25 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     writeToBuildFile(GRADLE_PROPERTY_MODEL_RENAME_MAP_PROPERTY_AND_KEYS)
 
     val buildModel = gradleBuildModel
+
+    fun findVariable(name: String): GradlePropertyModel {
+      return when {
+        isGroovy -> buildModel.ext().findProperty(name)
+        else -> buildModel.declaredProperties.find { it.name == name }!!
+      }
+    }
+
     run {
-      val firstMapModel = buildModel.ext().findProperty("map1")
-      verifyMapProperty(firstMapModel, mapOf("key1" to "a", "key2" to "b", "key3" to "c"), "map1", "ext.map1")
+      val firstMapModel = findVariable("map1")
+      verifyMapProperty(firstMapModel, mapOf("key1" to "a", "key2" to "b", "key3" to "c"), "map1")
       val secondMapModel = buildModel.ext().findProperty("map2")
-      verifyMapProperty(secondMapModel, mapOf("key4" to 4), "map2", "ext.map2")
+      verifyMapProperty(secondMapModel, mapOf("key4" to 4), "map2")
 
       // Rename the keys
       val firstKeyModel = firstMapModel.getMapValue("key2")
-      verifyPropertyModel(firstKeyModel, STRING_TYPE, "b", STRING, DERIVED, 0, "key2", "ext.map1.key2")
+      verifyPropertyModel(firstKeyModel, STRING_TYPE, "b", STRING, DERIVED, 0, "key2")
       val secondKeyModel = secondMapModel.getMapValue("key4")
-      verifyPropertyModel(secondKeyModel, INTEGER_TYPE, 4, INTEGER, DERIVED, 0, "key4", "ext.map2.key4")
+      verifyPropertyModel(secondKeyModel, INTEGER_TYPE, 4, INTEGER, DERIVED, 0, "key4")
 
       firstKeyModel.rename("newKey1")
       secondKeyModel.rename("newKey2")
@@ -2865,25 +2946,26 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       firstMapModel.rename("newMap1")
       secondMapModel.rename("newMap2")
 
-      verifyMapProperty(firstMapModel, mapOf("key1" to "a", "newKey1" to "b", "key3" to "c"), "newMap1", "ext.newMap1")
-      verifyMapProperty(secondMapModel, mapOf("newKey2" to 4), "newMap2", "ext.newMap2")
-      verifyPropertyModel(firstKeyModel, STRING_TYPE, "b", STRING, DERIVED, 0, "newKey1", "ext.newMap1.newKey1")
-      verifyPropertyModel(secondKeyModel, INTEGER_TYPE, 4, INTEGER, DERIVED, 0, "newKey2", "ext.newMap2.newKey2")
+      verifyMapProperty(firstMapModel, mapOf("key1" to "a", "newKey1" to "b", "key3" to "c"), "newMap1")
+      verifyMapProperty(secondMapModel, mapOf("newKey2" to 4), "newMap2")
+      verifyPropertyModel(firstKeyModel, STRING_TYPE, "b", STRING, DERIVED, 0, "newKey1")
+      verifyPropertyModel(secondKeyModel, INTEGER_TYPE, 4, INTEGER, DERIVED, 0, "newKey2")
     }
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, GRADLE_PROPERTY_MODEL_RENAME_MAP_PROPERTY_AND_KEYS_EXPECTED)
 
     run {
-      val firstMapModel = buildModel.ext().findProperty("newMap1")
-      verifyMapProperty(firstMapModel, mapOf("key1" to "a", "newKey1" to "b", "key3" to "c"), "newMap1", "ext.newMap1")
+      val firstMapModel = findVariable("newMap1")
+      verifyMapProperty(firstMapModel, mapOf("key1" to "a", "newKey1" to "b", "key3" to "c"), "newMap1")
       val secondMapModel = buildModel.ext().findProperty("newMap2")
-      verifyMapProperty(secondMapModel, mapOf("newKey2" to 4), "newMap2", "ext.newMap2")
+      verifyMapProperty(secondMapModel, mapOf("newKey2" to 4), "newMap2")
 
       // Rename the keys
       val firstKeyModel = firstMapModel.getMapValue("newKey1")
-      verifyPropertyModel(firstKeyModel, STRING_TYPE, "b", STRING, DERIVED, 0, "newKey1", "ext.newMap1.newKey1")
+      verifyPropertyModel(firstKeyModel, STRING_TYPE, "b", STRING, DERIVED, 0, "newKey1")
       val secondKeyModel = secondMapModel.getMapValue("newKey2")
-      verifyPropertyModel(secondKeyModel, INTEGER_TYPE, 4, INTEGER, DERIVED, 0, "newKey2", "ext.newMap2.newKey2")
+      verifyPropertyModel(secondKeyModel, INTEGER_TYPE, 4, INTEGER, DERIVED, 0, "newKey2")
     }
   }
 
@@ -2893,10 +2975,13 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
 
     val buildModel = gradleBuildModel
     run {
-      val firstListModel = buildModel.ext().findProperty("list1")
-      verifyListProperty(firstListModel, listOf(1, 2, 3, 4), VARIABLE, 0, "list1", "ext.list1")
+      val firstListModel = when {
+        isGroovy -> buildModel.ext().findProperty("list1")
+        else -> buildModel.declaredProperties.find { it.name == "list1" }!!
+      }
+      verifyListProperty(firstListModel, listOf(1, 2, 3, 4), VARIABLE, 0, "list1")
       val secondListModel = buildModel.ext().findProperty("list2")
-      verifyListProperty(secondListModel, listOf("a", "b", "c", "d"), REGULAR, 0, "list2", "ext.list2")
+      verifyListProperty(secondListModel, listOf("a", "b", "c", "d"), REGULAR, 0, "list2")
 
       val listItem = secondListModel.getListValue("b")!!
       try {
@@ -2910,17 +2995,21 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       firstListModel.rename("varList")
       secondListModel.rename("propertyList")
 
-      verifyListProperty(firstListModel, listOf(1, 2, 3, 4), VARIABLE, 0, "varList", "ext.varList")
-      verifyListProperty(secondListModel, listOf("a", "b", "c", "d"), REGULAR, 0, "propertyList", "ext.propertyList")
+      verifyListProperty(firstListModel, listOf(1, 2, 3, 4), VARIABLE, 0, "varList")
+      verifyListProperty(secondListModel, listOf("a", "b", "c", "d"), REGULAR, 0, "propertyList")
     }
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, GRADLE_PROPERTY_MODEL_RENAME_LIST_VALUE_THROWS_EXPECTED)
 
     run {
-      val firstListModel = buildModel.ext().findProperty("varList")
-      verifyListProperty(firstListModel, listOf(1, 2, 3, 4), VARIABLE, 0, "varList", "ext.varList")
+      val firstListModel = when {
+        isGroovy -> buildModel.ext().findProperty("varList")
+        else -> buildModel.declaredProperties.find { it.name == "varList" }!!
+      }
+      verifyListProperty(firstListModel, listOf(1, 2, 3, 4), VARIABLE, 0, "varList")
       val secondListModel = buildModel.ext().findProperty("propertyList")
-      verifyListProperty(secondListModel, listOf("a", "b", "c", "d"), REGULAR, 0, "propertyList", "ext.propertyList")
+      verifyListProperty(secondListModel, listOf("a", "b", "c", "d"), REGULAR, 0, "propertyList")
     }
   }
 
@@ -2929,21 +3018,29 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     writeToBuildFile(GRADLE_PROPERTY_MODEL_GET_DECLARED_PROPERTIES)
 
     val buildModel = gradleBuildModel
+    val topProperties = buildModel.declaredProperties
     val extProperties = buildModel.ext().declaredProperties
     val androidProperties = buildModel.android().declaredProperties
     val debugProperties = buildModel.android().buildTypes()[0].declaredProperties
 
-    assertSize(2, extProperties)
+    assertSize(1, extProperties)
     assertSize(3, androidProperties)
     assertSize(2, debugProperties)
+    // TODO(b/148938436): I would have expected 5 here (3 for android, 1 for ext, and one for the top-level variable) but the implementation
+    //  of declaredProperties on GradleBuildModelImpl has includeProperties = false, whereas on GradleDslBlockModel it uses
+    //  includeProperties = true.
+    assertSize(4, topProperties)
 
     verifyPropertyModel(extProperties[0], STRING_TYPE, "property", STRING, REGULAR, 0, "prop1")
-    verifyPropertyModel(extProperties[1], STRING_TYPE, "value", STRING, VARIABLE, 0, "var")
     verifyPropertyModel(androidProperties[0], STRING_TYPE, "Spooky", STRING, VARIABLE, 0, "outerVar")
-    verifyPropertyModel(androidProperties[1], STRING_TYPE, "sneaky", REFERENCE, VARIABLE, 0, "var")
+    verifyPropertyModel(androidProperties[1], STRING_TYPE, "sneaky", REFERENCE, VARIABLE, 0, "innerVar")
     verifyPropertyModel(androidProperties[2], BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 0, BuildTypeModelImpl.MINIFY_ENABLED)
-    verifyPropertyModel(debugProperties[0], STRING_TYPE, "sneaky", REFERENCE, VARIABLE, 0, "var")
+    verifyPropertyModel(debugProperties[0], STRING_TYPE, "sneaky", REFERENCE, VARIABLE, 0, "innerVar")
     verifyPropertyModel(debugProperties[1], BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 0, BuildTypeModelImpl.MINIFY_ENABLED)
+    verifyPropertyModel(topProperties[0], STRING_TYPE, "value", STRING, VARIABLE, 0, "topVar")
+    verifyPropertyModel(topProperties[1], STRING_TYPE, "Spooky", STRING, VARIABLE, 0, "outerVar")
+    verifyPropertyModel(topProperties[2], STRING_TYPE, "sneaky", REFERENCE, VARIABLE, 0, "innerVar")
+    verifyPropertyModel(topProperties[3], STRING_TYPE, "property", STRING, REGULAR, 0, "prop1")
   }
 
   @Test
@@ -3015,8 +3112,15 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
 
     val buildModel = gradleBuildModel
 
+    fun findProperty(name: String): GradlePropertyModel {
+      return when {
+        isGroovy || type == REGULAR -> buildModel.ext().findProperty(name)
+        else -> buildModel.declaredProperties.find { it.name == name }!!
+      }
+    }
+
     run {
-      val propertyModel = buildModel.ext().findProperty("prop1")
+      val propertyModel = findProperty("prop1")
       verifyPropertyModel(propertyModel, STRING_TYPE, "value", STRING, type, 0)
       val oldGradleFile = propertyModel.gradleFile
 
@@ -3024,40 +3128,40 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       propertyModel.setValue(stringValue)
       verifyPropertyModel(propertyModel, STRING_TYPE, stringValue, STRING, type, 0)
       applyChangesAndReparse(buildModel)
-      val newStringModel = buildModel.ext().findProperty("prop1")
+      val newStringModel = findProperty("prop1")
       verifyPropertyModel(newStringModel, STRING_TYPE, stringValue, STRING, type, 0)
       assertEquals(oldGradleFile, newStringModel.gradleFile)
     }
 
     run {
-      val propertyModel = buildModel.ext().findProperty("prop1")
+      val propertyModel = findProperty("prop1")
       val intValue = 26
       propertyModel.setValue(intValue)
       verifyPropertyModel(propertyModel, INTEGER_TYPE, intValue, INTEGER, type, 0)
       applyChangesAndReparse(buildModel)
-      val newIntModel = buildModel.ext().findProperty("prop1")
+      val newIntModel = findProperty("prop1")
       verifyPropertyModel(newIntModel, INTEGER_TYPE, intValue, INTEGER, type, 0)
     }
 
     run {
-      val propertyModel = buildModel.ext().findProperty("prop1")
+      val propertyModel = findProperty("prop1")
       val boolValue = true
       propertyModel.setValue(boolValue)
       verifyPropertyModel(propertyModel, BOOLEAN_TYPE, boolValue, BOOLEAN, type, 0)
       applyChangesAndReparse(buildModel)
-      val newBooleanModel = buildModel.ext().findProperty("prop1")
+      val newBooleanModel = findProperty("prop1")
       verifyPropertyModel(newBooleanModel, BOOLEAN_TYPE, boolValue, BOOLEAN, type, 0)
     }
 
     run {
-      val propertyModel = buildModel.ext().findProperty("prop1")
+      val propertyModel = findProperty("prop1")
       val refValue = "\"${'$'}{prop2}\""
       propertyModel.setValue(refValue)
       // Resolved value and dependencies are only updated after the model has been applied and re-parsed.
       verifyPropertyModel(propertyModel, STRING_TYPE, "ref", STRING, type, 1)
       assertEquals("${'$'}{prop2}", propertyModel.getRawValue(STRING_TYPE))
       applyChangesAndReparse(buildModel)
-      val newRefModel = buildModel.ext().findProperty("prop1")
+      val newRefModel = findProperty("prop1")
       verifyPropertyModel(newRefModel, STRING_TYPE, "ref", STRING, type, 1)
       assertEquals("${'$'}{prop2}", newRefModel.getRawValue(STRING_TYPE))
     }
@@ -3114,14 +3218,13 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
 
   @Test
   fun testAddVariableCycle() {
-    assumeTrue(isGroovy())
     writeToBuildFile("")
 
     val buildModel = gradleBuildModel
-    val newProperty = buildModel.ext().findProperty("var")
-    newProperty.setValue(ReferenceTo("var"))
+    val newProperty = buildModel.ext().findProperty("var1")
+    newProperty.setValue(ReferenceTo("var1"))
 
-    verifyPropertyModel(newProperty, STRING_TYPE, "var", REFERENCE, REGULAR, 0)
+    verifyPropertyModel(newProperty, STRING_TYPE, "var1", REFERENCE, REGULAR, 0)
   }
 
   /**

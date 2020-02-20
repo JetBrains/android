@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.appinspection.ide.ui
 
+import com.android.tools.idea.appinspection.ide.AppInspectionHostService
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import javax.swing.JComponent
 
 class AppInspectionToolWindow(window: ToolWindow, project: Project) : Disposable {
-  private val appInspectionView = AppInspectionView()
+  private val appInspectionView = AppInspectionView(AppInspectionHostService.instance.discoveryHost)
   val component: JComponent = appInspectionView.component
 
   override fun dispose() {

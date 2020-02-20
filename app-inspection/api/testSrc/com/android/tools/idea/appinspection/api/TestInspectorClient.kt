@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.appinspection.api
 
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+
 internal class TestInspectorClient(
   messenger: CommandMessenger,
   override val eventListener: EventListener = object : EventListener {}

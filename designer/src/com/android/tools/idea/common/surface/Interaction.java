@@ -19,7 +19,6 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.event.KeyEvent;
 import java.util.Collections;
 import java.util.List;
 
@@ -90,7 +89,9 @@ public abstract class Interaction implements Interaction2 {
    * @param x           The most recent mouse x coordinate applicable to this interaction
    * @param y           The most recent mouse y coordinate applicable to this interaction
    * @param modifiersEx The initial AWT mask for the interaction, if known, otherwise 0.
+   * @deprecated Use {@link #begin(InteractionEvent)} instead
    */
+  @Deprecated
   public void begin(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx) {
     myStartX = x;
     myStartY = y;
@@ -103,19 +104,10 @@ public abstract class Interaction implements Interaction2 {
    * @param x           The most recent mouse x coordinate applicable to this interaction
    * @param y           The most recent mouse y coordinate applicable to this interaction
    * @param modifiersEx current modifier key mask
+   * @deprecated Use {@link #update(InteractionEvent)} instead
    */
+  @Deprecated
   public void update(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx) {
-  }
-
-  /**
-   * Handles scrolling interactions.
-   * @param x         The most recent mouse x coordinate applicable to this
-   *                  interaction
-   * @param y         The most recent mouse y coordinate applicable to this
-   *                  interaction
-   * @param scrollAmount Number of units to scroll.
-   */
-  public void scroll(@SwingCoordinate int x, @SwingCoordinate int y, int scrollAmount) {
   }
 
   /**
@@ -125,7 +117,9 @@ public abstract class Interaction implements Interaction2 {
    * @param x           The most recent mouse x coordinate applicable to this interaction
    * @param y           The most recent mouse y coordinate applicable to this interaction
    * @param modifiersEx current modifier key masks
+   * @deprecated Use {@link #commit(InteractionEvent)} instead.
    */
+  @Deprecated
   public void end(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx) {
   }
 
@@ -136,28 +130,9 @@ public abstract class Interaction implements Interaction2 {
    * @param x           The most recent mouse x coordinate applicable to this interaction
    * @param y           The most recent mouse y coordinate applicable to this interaction
    * @param modifiersEx current modifier key masks
+   * @deprecated Use {@link #cancel(InteractionEvent)} instead.
    */
+  @Deprecated
   public void cancel(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx) {
-  }
-
-  /**
-   * Handles a key press during the interaction. May be called repeatedly when the
-   * user is holding the key for several seconds.
-   *
-   * @param event The AWT event for the key press,
-   * @return true if this interaction consumed the key press, otherwise return false
-   */
-  public boolean keyPressed(@NotNull KeyEvent event) {
-    return false;
-  }
-
-  /**
-   * Handles a key release during the interaction.
-   *
-   * @param event The AWT event for the key release,
-   * @return true if this interaction consumed the key press, otherwise return false
-   */
-  public boolean keyReleased(@NotNull KeyEvent event) {
-    return false;
   }
 }

@@ -29,19 +29,19 @@ class MockSqliteResultSet(size: Int = 100) : SqliteResultSet {
     SqliteColumn("id", SqliteAffinity.INTEGER, true, false),
     SqliteColumn(RowIdName.ROWID.stringName, SqliteAffinity.INTEGER, true, false)
   )
-  private val rows = mutableListOf<SqliteRow>()
+  val rows = mutableListOf<SqliteRow>()
 
   val invocations = mutableListOf<List<SqliteRow>>()
 
   init {
     for (i in 0 until size) {
-      rows.add(SqliteRow(listOf(SqliteColumnValue(_columns[0], i), SqliteColumnValue(_columns[1], i))))
+      rows.add(SqliteRow(listOf(SqliteColumnValue(_columns[0].name, i), SqliteColumnValue(_columns[1].name, i))))
     }
   }
 
   override val columns: ListenableFuture<List<SqliteColumn>> get() = Futures.immediateFuture(_columns)
 
-  override val rowCount: ListenableFuture<Int> get() = Futures.immediateFuture(rows.size)
+  override val totalRowCount: ListenableFuture<Int> get() = Futures.immediateFuture(rows.size)
 
   override fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<List<SqliteRow>> {
     assert(rowOffset >= 0)
@@ -55,5 +55,13 @@ class MockSqliteResultSet(size: Int = 100) : SqliteResultSet {
   }
 
   override fun dispose() {
+  }
+
+  fun insertRowAtIndex(index: Int, value: Int) {
+    rows.add(index, SqliteRow(listOf(SqliteColumnValue(_columns[0].name, value), SqliteColumnValue(_columns[1].name, value))))
+  }
+
+  fun deleteRowAtIndex(index: Int) {
+    rows.removeAt(index)
   }
 }

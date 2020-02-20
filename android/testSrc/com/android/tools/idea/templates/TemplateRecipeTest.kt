@@ -15,89 +15,47 @@
  */
 package com.android.tools.idea.templates
 
+import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
+import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-
 import java.io.File
-
-import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
 
 class TemplateRecipeTest {
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
 
-  @Rule
-  @JvmField
+  @get:Rule
   var tmpFolderRule = TemporaryFolder()
 
   @Test
-  fun toolsBuildVersionInTemplates() {
-    val recipeExecutor = RenderingContext.Builder
-      .newContext(tmpFolderRule.root, projectRule.project)
-      .withOutputRoot(tmpFolderRule.root)
-      .withModuleRoot(tmpFolderRule.root)
-      .build()
-      .recipeExecutor
-
-    runWriteCommandAction(projectRule.project) {
-      recipeExecutor.addDependency("testCompile", "junit:junit:4.12")
-      recipeExecutor.updateAndSync()
-    }
-  }
-
-  @Test
-  @Throws(Exception::class)
   fun fileAlreadyExistWarning() {
-    val renderingContext = RenderingContext.Builder
-      .newContext(tmpFolderRule.root, projectRule.project)
-      .withOutputRoot(tmpFolderRule.root)
-      .withModuleRoot(tmpFolderRule.root)
-      .build()
+    val renderingContext = RenderingContext(
+      projectRule.project,
+      projectRule.module,
+      "file already exists test",
+      getDummyModuleTemplateDataBuilder(projectRule.project).build(),
+      tmpFolderRule.root,
+      tmpFolderRule.root,
+      true,
+      true
+    )
 
     runWriteCommandAction(projectRule.project) {
-      val vfFrom = projectRule.project.baseDir.findOrCreateChildData(this, "childFrom")
-      val from = File(vfFrom.path)
-
       val vfTo = projectRule.project.baseDir.findOrCreateChildData(this, "childTo")
-      val to = File(vfTo.path)
-
-      vfFrom.getOutputStream(this).use { os -> os.write('a'.toInt()) }
-
       vfTo.getOutputStream(this).use { os -> os.write('b'.toInt()) }
 
-      renderingContext.recipeExecutor.instantiate(from, to)
+      val to = File(vfTo.path)
+      val recipeExecutor = DefaultRecipeExecutor(renderingContext)
+      recipeExecutor.save("something", to)
       val warnings = renderingContext.warnings.toTypedArray()
 
       Truth.assertThat(warnings).isNotEmpty()
       Truth.assertThat(warnings[0]).contains(to.path)
-    }
-  }
-
-  @Test
-  fun addGlobalVariable() {
-    val context = RenderingContext.Builder
-      .newContext(tmpFolderRule.root, projectRule.project)
-      .withOutputRoot(tmpFolderRule.root)
-      .withModuleRoot(tmpFolderRule.root)
-      .build()
-
-    runWriteCommandAction(projectRule.project) {
-      val recipeExecutor = context.recipeExecutor
-      val stringKey = "stringKey"
-      val value1 = "value1"
-      val booleanKey = "booleanKey"
-      val intKey = "intKey"
-      recipeExecutor.addGlobalVariable(stringKey, value1)
-      recipeExecutor.addGlobalVariable(booleanKey, true)
-      recipeExecutor.addGlobalVariable(intKey, 1)
-
-      Truth.assertThat(context.paramMap[stringKey]).isEqualTo(value1)
-      Truth.assertThat(context.paramMap[booleanKey]).isEqualTo(true)
-      Truth.assertThat(context.paramMap[intKey]).isEqualTo(1)
     }
   }
 }

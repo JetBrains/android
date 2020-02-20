@@ -47,17 +47,17 @@ public class LibraryFilePathsTest extends AndroidGradleTestCase {
     LibraryFilePaths libraryFilePaths = LibraryFilePaths.getInstance(getProject());
     libraryFilePaths.populate(createArtifacts());
     assertThat(libraryFilePaths.findJavadocJarPath("Gradle: junit:junit:4.12@jar", new File("dummy")).getPath())
-      .isEqualTo("/cache/junit-javadoc.jar");
+      .isEqualTo(new File("/cache/junit-javadoc.jar").getPath());
     assertThat(libraryFilePaths.findSourceJarPath("Gradle: junit:junit:4.12@jar", new File("dummy")).getPath())
-      .isEqualTo("/cache/junit-sources.jar");
+      .isEqualTo(new File("/cache/junit-sources.jar").getPath());
     assertThat(libraryFilePaths.findPomPathForLibrary("Gradle: junit:junit:4.12@jar", new File("dummy")).getPath())
-      .isEqualTo("/cache/junit.pom");
+      .isEqualTo(new File("/cache/junit.pom").getPath());
     assertThat(libraryFilePaths.findJavadocJarPath("Gradle: androidx.fragment:fragment:1.0.0@aar", new File("dummy")).getPath())
-      .isEqualTo("/cache/fragment-javadoc.jar");
+      .isEqualTo(new File("/cache/fragment-javadoc.jar").getPath());
     assertThat(libraryFilePaths.findSourceJarPath("Gradle: androidx.fragment:fragment:1.0.0@aar", new File("dummy")).getPath())
-      .isEqualTo("/cache/fragment-sources.jar");
+      .isEqualTo(new File("/cache/fragment-sources.jar").getPath());
     assertThat(libraryFilePaths.findPomPathForLibrary("Gradle: androidx.fragment:fragment:1.0.0@aar", new File("dummy")).getPath())
-      .isEqualTo("/cache/fragment.pom");
+      .isEqualTo(new File("/cache/fragment.pom").getPath());
   }
 
   @NotNull
@@ -67,9 +67,11 @@ public class LibraryFilePathsTest extends AndroidGradleTestCase {
       @Override
       public Collection<AdditionalClassifierArtifacts> getArtifacts() {
         return Arrays
-          .asList(createArtifact("junit", "junit", "4.12", "/cache/junit-javadoc.jar", "/cache/junit-sources.jar", "/cache/junit.pom"),
+          .asList(createArtifact("junit", "junit", "4.12", "/cache/junit-javadoc.jar", "/cache/junit-sources.jar", "/cache/junit.pom",
+                                 "/cache/junit-" + AdditionalClassifierArtifactsModel.SAMPLE_SOURCE_CLASSIFIER + ".jar"),
                   createArtifact("androidx.fragment", "fragment", "1.0.0", "/cache/fragment-javadoc.jar",
-                                 "/cache/fragment-sources.jar", "/cache/fragment.pom"));
+                                 "/cache/fragment-sources.jar", "/cache/fragment.pom",
+                                 "/cache/fragment-" + AdditionalClassifierArtifactsModel.SAMPLE_SOURCE_CLASSIFIER + ".jar"));
       }
 
       @Nullable
@@ -86,7 +88,8 @@ public class LibraryFilePathsTest extends AndroidGradleTestCase {
                                                               @NotNull String version,
                                                               @NotNull String javadoc,
                                                               @NotNull String sources,
-                                                              @NotNull String pom) {
+                                                              @NotNull String pom,
+                                                              @NotNull String sampleSource) {
     return new AdditionalClassifierArtifacts() {
       @NotNull
       @Override
@@ -122,6 +125,12 @@ public class LibraryFilePathsTest extends AndroidGradleTestCase {
       @Override
       public File getJavadoc() {
         return new File(javadoc);
+      }
+
+      @Nullable
+      @Override
+      public File getSampleSources() {
+        return new File(sampleSource);
       }
 
       @Nullable

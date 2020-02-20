@@ -15,8 +15,8 @@
   ~ limitations under the License.
   -->
 <tutorialBundle
-    name="Navigation Editor Help Assistant"
-    resourceRoot="/bundle/connection"
+    name="Navigation Editor Help"
+    resourceRoot="/"
     stepByStep="true">
   <welcome>
     <![CDATA[ - Navigation Editor Help!! .]]>
@@ -28,14 +28,83 @@
     </description>
     <tutorial
         key="analytics-layouteditor-naveditor"
-        label="Guide to Navigation Editor."
-        remoteLink="https://developer.android.com/guide/navigation/navigation-getting-started"
-        remoteLinkLabel="View Navigation Editor Guide.">
+        label="Navigation Editor."
+        remoteLink="https://developer.android.com/guide/navigation"
+        remoteLinkLabel="View Navigation Editor Guide."
+        hasLocalHTMLPaths="true">
       <description>
         <![CDATA[This guide helps you be Navigation Editor master.]]>
       </description>
 
-      <step label="Navigation Editor Step">
+      <step label="Navigation Editor">
+        <stepElement>
+            <section>
+        <![CDATA[
+              <h1>Navigation Editor</h1>
+              <p> The Navigation Editor is a visual designer for navigation resource files. It allows developers view and edit the contents of their navigation file, and visualize the paths that a user may take through an app.
+
+              <a href="https://developer.android.com/guide/navigation">Navigation resource</a> files contain information about different content areas of your app, as well as the transitions between them.
+              </p>
+               ]]>
+            </section>
+        </stepElement>
+        <stepElement>
+          <section>
+        <![CDATA[
+            <p>
+              <h1>Design Surface</h1>
+              The design surface provides a visual representation of a navigation resource file of an app.
+              <a href="https://developer.android.com/guide/navigation/navigation-create-destinations">Destinations</a> are represented by rectangular preview images of the underlying layout files, while <a href="https://developer.android.com/guide/navigation/navigation-getting-started#connect">actions</a> are represented as lines connecting the destinations.
+            </p>
+            <p><div align="center"><img src="/image1.png" /></div></p>
+            ]]>
+          </section>
+        </stepElement>
+        <stepElement>
+          <section>
+            <![CDATA[
+            <p>
+              <h1>Adding Destinations</h1>
+              To add a new destination to your navigation graph, click on the Add Destination toolbar button and select a destination from the list of available destinations.
+
+            </p>
+            <p><div align="center"><img src="/image2.png" /></div></p>
+            <p>Once you have selected a destination, it should appear on the design surface for your navigation graph. </p>
+            ]]>
+          </section>
+        </stepElement>
+        <stepElement>
+          <section>
+            <![CDATA[
+            <p>
+              <h1>Adding Actions</h1>
+              To create an action connecting two existing destinations, hover over the source destination, then hold the left mouse button down. Drag the mouse over the target destination. While dragging, a blue line should appear connecting the source destination and the mouse.
+
+            </p>
+            <p><div align="center"><img src="/image3.png" /></div></p>
+            <p>After reaching the target destination with the mouse, create the action by releasing the mouse button. The new action should now appear connecting the two destinations. </p>
+            <p><div align="center"><img src="/image4.png" /></div></p>
+            ]]>
+          </section>
+        </stepElement>
+        <stepElement>
+          <section>
+            <![CDATA[
+            <p>
+              <h1>Hosting Navigation graphs</h1>
+              In order to surface a navigation graph to the user when the app is running, the app must host the navigation graph in a special component called the
+              <a href="https://developer.android.com/guide/navigation/navigation-programmatic">NavHostFragment</a>. To add a NavHostFragment to a layout file, open the layout file in the layout editor, and drag a NavHostFragment onto the design surface from the “Containers” tab:
+            </p>
+
+            <p><div align="center"><img src="/image5.png" /></div></p>
+            <p>A resource picker should be displayed showing all the navigation graphs contained in your app. Select the navigation graph that you want to host from the navigation graph:</p>
+
+            <p>After reaching the target destination with the mouse, create the action by releasing the mouse button. The new action should now appear connecting the two destinations. </p>
+            <p><div align="center"><img src="/image6.png" /></div></p>
+            <p>The NavHostFragment will be created on the design surface and a preview of the navigation graph’s start destination will be displayed.</p>
+            ]]>
+          </section>
+        </stepElement>
 
         <!-- This is where you add tutorial. Section can take html format thru CDATA -->
         <!--        <stepElement>-->

@@ -19,24 +19,17 @@ import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedPr
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider
 import com.android.tools.idea.npw.module.ModuleGalleryEntry
-import com.android.tools.idea.templates.Template.CATEGORY_APPLICATION
-import com.android.tools.idea.templates.TemplateManager
 import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.intellij.openapi.project.Project
 import icons.AndroidIcons
 import org.jetbrains.android.util.AndroidBundle.message
-import java.io.File
 import javax.swing.Icon
-
-const val DYNAMIC_FEATURE_TEMPLATE = "Dynamic Feature Module"
-const val INSTANT_DYNAMIC_FEATURE_TEMPLATE = "Instant Dynamic Feature Module"
 
 class NewDynamicAppModuleDescriptionProvider : ModuleDescriptionProvider {
   override fun getDescriptions(project: Project): Collection<ModuleGalleryEntry> =
     listOf(FeatureTemplateGalleryEntry(), InstantFeatureTemplateGalleryEntry())
 
   private class FeatureTemplateGalleryEntry : ModuleGalleryEntry {
-    override val templateFile: File = TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, DYNAMIC_FEATURE_TEMPLATE)!!
     override val icon: Icon = AndroidIcons.Wizards.DynamicFeatureModule
     override val name: String = message("android.wizard.module.new.dynamic.module")
     override val description: String = message("android.wizard.module.new.dynamic.module.description")
@@ -44,12 +37,11 @@ class NewDynamicAppModuleDescriptionProvider : ModuleDescriptionProvider {
     override fun toString() = name
     override fun createStep(project: Project, projectSyncInvoker: ProjectSyncInvoker, moduleParent: String?): SkippableWizardStep<*> {
       val basePackage = getSuggestedProjectPackage()
-      return ConfigureDynamicModuleStep(DynamicFeatureModel(project, templateFile, projectSyncInvoker, false), basePackage)
+      return ConfigureDynamicModuleStep(DynamicFeatureModel(project, projectSyncInvoker, false, name, description), basePackage)
     }
   }
 
   private class InstantFeatureTemplateGalleryEntry : ModuleGalleryEntry {
-    override val templateFile: File = TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, INSTANT_DYNAMIC_FEATURE_TEMPLATE)!!
     override val icon: Icon = AndroidIcons.Wizards.InstantDynamicFeatureModule
     override val name: String = message("android.wizard.module.new.dynamic.module.instant")
     override val description: String = message("android.wizard.module.new.dynamic.module.instant.description")
@@ -57,7 +49,7 @@ class NewDynamicAppModuleDescriptionProvider : ModuleDescriptionProvider {
     override fun toString() = name
     override fun createStep(project: Project, projectSyncInvoker: ProjectSyncInvoker, moduleParent: String?): SkippableWizardStep<*> {
       val basePackage = getSuggestedProjectPackage()
-      return ConfigureDynamicModuleStep(DynamicFeatureModel(project, templateFile, projectSyncInvoker, true), basePackage)
+      return ConfigureDynamicModuleStep(DynamicFeatureModel(project, projectSyncInvoker, true, name, description), basePackage)
     }
   }
 }

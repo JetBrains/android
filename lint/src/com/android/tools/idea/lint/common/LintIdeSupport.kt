@@ -122,7 +122,7 @@ abstract class LintIdeSupport {
   /**
    * Creates a lint client
    */
-  open fun createClient(project: Project, lintResult: LintResult = LintResult()): LintIdeClient {
+  open fun createClient(project: Project, lintResult: LintResult = LintIgnoredResult()): LintIdeClient {
     return LintIdeClient(project, lintResult)
   }
 

@@ -67,5 +67,6 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/idea/platform/lang-api:intellij.platform.lang[module]",
         "//tools/idea/platform/external-system-api:intellij.platform.externalSystem[module]",
+        "//tools/idea/.idea/libraries:truth[test]",
     ],
 )

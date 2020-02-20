@@ -60,6 +60,7 @@ iml_module(
         "//tools/adt/idea/android-transport:intellij.android.transport[module]",
         "//tools/idea/.idea/libraries:sqlite-inspector-proto",
         "//tools/idea/.idea/libraries:kotlinx-coroutines-guava",
+        "//tools/adt/idea/app-inspection/inspector/api:intellij.android.app-inspection.inspector.api[module]",
     ],
 )
 
@@ -69,8 +70,6 @@ iml_module(
     iml_files = ["intellij.android.debuggers.tests.iml"],
     test_class = "com.android.tools.idea.debuggers.AndroidDebuggersTestSuite",
     test_data = [
-        "//tools/idea:platform-build-info",
-        "//tools/idea/java/jdkAnnotations",
     ],
     # do not sort: must match IML order
     test_runtime_deps = [
@@ -126,5 +125,6 @@ iml_module(
         "//tools/adt/idea/app-inspection/api:intellij.android.app-inspection.api[module]",
         "//tools/adt/idea/android-transport:intellij.android.transport[module]",
         "//tools/idea/.idea/libraries:sqlite-inspector-proto",
+        "//tools/adt/idea/app-inspection/inspector/api:intellij.android.app-inspection.inspector.api[module]",
     ],
 )

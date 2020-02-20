@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.assetstudio.ui;
 
+import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.getNewAndroidModuleTemplateImage;
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.toUpperCamelCase;
 import static com.android.tools.idea.npw.assetstudio.LauncherIconGenerator.DEFAULT_FOREGROUND_COLOR;
 
@@ -57,13 +58,10 @@ import com.android.tools.idea.observable.ui.SelectedRadioButtonProperty;
 import com.android.tools.idea.observable.ui.SliderValueProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.observable.ui.VisibleProperty;
-import com.android.tools.idea.templates.Template;
-import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColorPanel;
 import com.intellij.ui.SimpleListCellRenderer;
@@ -101,8 +99,8 @@ import org.jetbrains.annotations.Nullable;
 public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, ConfigureIconView, PersistentStateComponent<PersistentState> {
   private static final boolean HIDE_INAPPLICABLE_CONTROLS = false; // TODO Decide on hiding or disabling.
 
-  private static final File DEFAULT_FOREGROUND_IMAGE = getTemplateImage("drawable-v24", "ic_launcher_foreground.xml");
-  private static final File DEFAULT_BACKGROUND_IMAGE = getTemplateImage("drawable", "ic_launcher_background.xml");
+  private static final File DEFAULT_FOREGROUND_IMAGE = getNewAndroidModuleTemplateImage("drawable-v24", "ic_launcher_foreground.xml");
+  private static final File DEFAULT_BACKGROUND_IMAGE = getNewAndroidModuleTemplateImage("drawable", "ic_launcher_background.xml");
   private static final ForegroundAssetType DEFAULT_FOREGROUND_ASSET_TYPE = ForegroundAssetType.IMAGE;
   private static final BackgroundAssetType DEFAULT_BACKGROUND_ASSET_TYPE = BackgroundAssetType.IMAGE;
   private static final Density DEFAULT_PREVIEW_DENSITY = Density.XHIGH;
@@ -473,15 +471,6 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
 
   private void createUIComponents() {
     // TODO: place custom component creation code here
-  }
-
-  /**
-   * Returns a file pointing to a resource inside template.
-   */
-  @NotNull
-  private static File getTemplateImage(@NotNull String resourceDir, @NotNull String fileName) {
-    String path = FileUtil.join(Template.CATEGORY_PROJECTS, "NewAndroidModule", "root", "res", resourceDir, fileName);
-    return new File(TemplateManager.getTemplateRootFolder(), path);
   }
 
   private void initializeListenersAndBindings() {

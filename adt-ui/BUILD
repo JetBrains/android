@@ -9,7 +9,6 @@ iml_module(
     resources = ["resources"],
     test_class = "com.android.tools.adtui.AdtUiTestSuite",
     test_data = [
-        "//tools/idea:platform-build-info",
     ],
     test_resources = ["src/test/resources"],
     # do not sort: must match IML order

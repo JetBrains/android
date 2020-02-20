@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
 import static com.android.tools.idea.gradle.project.sync.ModuleDependenciesSubject.moduleDependencies;
-import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
 import static com.android.tools.idea.gradle.util.ContentEntries.findChildContentEntries;
 import static com.android.tools.idea.io.FilePaths.getJarFromJarUrl;
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
@@ -80,7 +79,6 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
-import com.android.tools.idea.gradle.project.sync.idea.issues.AndroidSyncException;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult;
 import com.android.tools.idea.gradle.task.AndroidGradleTaskManager;
@@ -91,6 +89,7 @@ import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.testing.BuildEnvironment;
 import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.TestGradleSyncListener;
+import com.android.utils.FileUtils;
 import com.google.common.collect.Lists;
 import com.intellij.build.SyncViewManager;
 import com.intellij.build.events.BuildEvent;
@@ -422,11 +421,13 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     File centralBuildParentDirPath = centralBuildDirPath.getParentFile();
     delete(centralBuildParentDirPath);
 
-    importProject();
+    Project project = getProject();
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
+    request.forceCreateDirs = true;
+    AndroidGradleTests.importProject(project, request);
     Module app = myModules.getAppModule();
 
-    // Now we have to make sure that if project import was successful, the build folder (with custom path) is excluded in the IDE (to
-    // prevent unnecessary file indexing, which decreases performance.)
+    // Now we have to make sure that if project import was successful, the build folder has included source folders.
     File[] sourceFolderPaths = ApplicationManager.getApplication().runReadAction(
       (Computable<File[]>)() -> {
         ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(app);
@@ -823,7 +824,8 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     Collection<DataNode<ContentRootData>> contentRootData = ExternalSystemApiUtil.findAll(moduleData, ProjectKeys.CONTENT_ROOT);
     assertThat(contentRootData).hasSize(1);
     File buildSrcDir = new File(getProject().getBasePath(), "buildSrc");
-    assertThat(contentRootData.iterator().next().getData().getRootPath()).isEqualTo(buildSrcDir.getPath());
+    assertThat(contentRootData.iterator().next().getData().getRootPath())
+            .isEqualTo(FileUtils.toSystemIndependentPath(buildSrcDir.getPath()));
 
     // Verify that buildSrc/lib1 has dependency on buildSrc/lib2.
     Module lib1Module = getModule(getName() + "_lib1");
@@ -843,6 +845,22 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
 
     // Check that the new option is visible from the IDE.
     assertTrue(AndroidModuleModel.get(myModules.getAppModule()).getAndroidProject().getViewBindingOptions().isEnabled());
+  }
+
+  public void testDependenciesInfoOptionsAreCorrectlyVisibleFromIDE() throws Exception {
+    loadSimpleApplication();
+
+    // Default option value should be true (at least at the moment)
+    assertTrue(AndroidModuleModel.get(myModules.getAppModule()).getAndroidProject().getDependenciesInfo().getIncludeInApk());
+    assertTrue(AndroidModuleModel.get(myModules.getAppModule()).getAndroidProject().getDependenciesInfo().getIncludeInBundle());
+
+    // explicitly set the option
+    File appBuildFile = getBuildFilePath("app");
+    appendToFile(appBuildFile, "\nandroid { dependenciesInfo { includeInApk false\nincludeInBundle false } }");
+    requestSyncAndWait();
+
+    assertFalse(AndroidModuleModel.get(myModules.getAppModule()).getAndroidProject().getDependenciesInfo().getIncludeInApk());
+    assertFalse(AndroidModuleModel.get(myModules.getAppModule()).getAndroidProject().getDependenciesInfo().getIncludeInBundle());
   }
 
   public void testProjectSyncIssuesAreCorrectlyReported() throws Exception {
@@ -879,13 +897,13 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
 
     ArgumentCaptor<BuildEvent> eventCaptor = ArgumentCaptor.forClass(BuildEvent.class);
     // FinishBuildEvents are not consumed immediately by AbstractOutputMessageDispatcher.onEvent(), thus we need to allow some timeout
-    verify(viewManager, timeout(1000).atLeast(2)).onEvent(any(), eventCaptor.capture());
+    verify(viewManager, timeout(1000).times(3)).onEvent(any(), eventCaptor.capture());
 
     List<BuildEvent> events = eventCaptor.getAllValues();
-    assertThat(events).hasSize(2);
+    assertThat(events).hasSize(3);
     assertThat(events.get(0)).isInstanceOf(StartBuildEvent.class);
-    assertThat(events.get(1)).isInstanceOf(FinishBuildEvent.class);
-    FinishBuildEvent event = (FinishBuildEvent)events.get(1);
+    assertThat(events.get(2)).isInstanceOf(FinishBuildEvent.class);
+    FinishBuildEvent event = (FinishBuildEvent)events.get(2);
     FailureResult failureResult = (FailureResult)event.getResult();
     assertThat(failureResult.getFailures()).isNotEmpty();
     assertThat(failureResult.getFailures().get(0).getMessage()).isEqualTo("Fake sync error");

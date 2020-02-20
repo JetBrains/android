@@ -198,10 +198,6 @@ class TestProjectSystem @JvmOverloads constructor(
     TODO("not implemented")
   }
 
-  override fun mergeBuildFiles(dependencies: String, destinationContents: String, supportLibVersionFilter: String?): String {
-    TODO("not implemented")
-  }
-
   override fun getPsiElementFinders() = emptyList<PsiElementFinder>()
 
   override fun getLightResourceClassService(): LightResourceClassService {

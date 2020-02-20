@@ -242,7 +242,7 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
   @Override
   public String moduleWithDirectory(@NotNull File moduleDir) {
     for (String modulePath : modulePaths()) {
-      if (filesEqual(moduleDir, moduleDirectory(modulePath))) {
+      if (filesEqual(moduleDir, moduleDirectoryNoCheck(modulePath))) {
         return modulePath;
       }
     }

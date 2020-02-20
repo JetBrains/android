@@ -68,7 +68,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
       """
       package android.support.v7.widget;
 
-      import android.widget.ViewGroup;
+      import android.view.ViewGroup;
 
       public class RecyclerView extends ViewGroup {
         public abstract static class LayoutManager {
@@ -87,7 +87,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     """
       package androidx.recyclerview.widget;
 
-      import android.widget.ViewGroup;
+      import android.view.ViewGroup;
 
       public class RecyclerView extends ViewGroup {
         public abstract static class LayoutManager {

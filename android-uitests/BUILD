@@ -30,12 +30,9 @@ COMMON_DATA = [
     "//tools/adt/idea/adt-ui/lib/libwebp",
     "//tools/base/build-system:studio_repo.zip",
     "//tools/base/build-system:gradle-distrib",
-    "//tools/base/templates",
     "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
     "//tools/data-binding:data_binding_runtime.zip",
     "//tools/idea/bin:log.xml",
-    "//tools/idea/java/jdkAnnotations",
-    "//tools/idea:platform-build-info",
     "//tools/vendor/google/testing/display:xvfb",
 ]
 
@@ -131,6 +128,14 @@ iml_module(
         "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
         "//prebuilts/studio/layoutlib/data:layoutlib_native[test]",
+        "//tools/adt/idea/layout-inspector:intellij.android.layout-inspector[module, test]",
+        "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module, test]",
+        "//tools/adt/idea/android-transport:intellij.android.transport[module, test]",
+        "//tools/idea/.idea/libraries:transport-proto[test]",
+        "//tools/idea/.idea/libraries:protobuf[test]",
+        "//tools/idea/.idea/libraries:layoutinspector-proto[test]",
+        "//tools/idea/.idea/libraries:studio-proto[test]",
+        "//tools/idea/.idea/libraries:studio-grpc[test]",
     ],
 )
 
@@ -324,7 +329,7 @@ java_test(
     name = "AndroidProfilerTest",
     data = COMMON_DATA + glob(["testData/MinimalMinSdk26Apk/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.profiler.AndroidProfilerTest"],
-    tags = COMMON_TAGS + ["manual"],  # flaky: b/140095413
+    tags = COMMON_TAGS,
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
@@ -818,8 +823,6 @@ java_test(
         "no-remote",
         "requires-fakeroot",
         "qa_sanity",
-        "qa_sanity_unreliable",  # b/148179655
-        "qa_unreliable",  # b/148179655
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],

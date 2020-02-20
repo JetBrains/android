@@ -19,4 +19,5 @@ class ClassNames {
   public static String BITMAP = "android.graphics.Bitmap";
   public static String BYTE_BUFFER = "java.nio.ByteBuffer";
   public static String CONTEXT = "android.content.Context";
+  public static String IO_EXCEPTION = "java.io.IOException";
 }

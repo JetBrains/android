@@ -18,11 +18,16 @@ package com.android.tools.profilers.memory;
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
 import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
 import static com.android.tools.profilers.ProfilerLayout.TABLE_ROW_BORDER;
+import static com.android.tools.profilers.memory.SimpleColumnRenderer.compareOn;
+import static com.android.tools.profilers.memory.SimpleColumnRenderer.makeConditionalGetter;
+import static com.android.tools.profilers.memory.SimpleColumnRenderer.makeConditionalTextGetter;
+import static com.android.tools.profilers.memory.SimpleColumnRenderer.makeIntColumn;
+import static com.android.tools.profilers.memory.SimpleColumnRenderer.makeSizeColumn;
+import static com.android.tools.profilers.memory.SimpleColumnRenderer.onSubclass;
 
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.adtui.model.formatter.NumberFormatter;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.adtui.stdui.StandardColors;
@@ -56,6 +61,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.function.LongFunction;
 import java.util.stream.Stream;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
@@ -75,11 +81,8 @@ import org.jetbrains.annotations.Nullable;
 
 final class MemoryClassSetView extends AspectObserver {
   private static final int LABEL_COLUMN_WIDTH = 500;
-  private static final int DEFAULT_COLUMN_WIDTH = 80;
 
   @NotNull private final MemoryProfilerStage myStage;
-
-  @NotNull private final StreamingTimeline myTimeline;
 
   @NotNull private final ContextMenuInstaller myContextMenuInstaller;
 
@@ -107,7 +110,6 @@ final class MemoryClassSetView extends AspectObserver {
 
   MemoryClassSetView(@NotNull MemoryProfilerStage stage, @NotNull IdeProfilerComponents ideProfilerComponents) {
     myStage = stage;
-    myTimeline = myStage.getTimeline();
     myContextMenuInstaller = ideProfilerComponents.createContextMenuInstaller();
 
     myStage.getAspect().addDependency(this)
@@ -117,6 +119,9 @@ final class MemoryClassSetView extends AspectObserver {
       .onChange(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS, this::refreshAllInstances)
       .onChange(MemoryProfilerAspect.CURRENT_FIELD_PATH, this::refreshFieldPath);
 
+    LongFunction<String> timeFormatter = t ->
+      TimeFormatter.getSemiSimplifiedClockString(stage.getTimeline().convertToRelativeTimeUs(t));
+
     myAttributeColumns.put(
       InstanceAttribute.LABEL,
       new AttributeColumn<>(
@@ -125,120 +130,56 @@ final class MemoryClassSetView extends AspectObserver {
         SwingConstants.LEFT,
         LABEL_COLUMN_WIDTH,
         SortOrder.ASCENDING,
-        Comparator.comparing(o -> {
-          if (!(o.getAdapter() instanceof ValueObject)) {
-            return "";
-          }
-
-          ValueObject valueObject = (ValueObject)o.getAdapter();
-          String comparisonString = valueObject.getName();
-          if (!comparisonString.isEmpty()) {
-            return comparisonString;
-          }
-          return valueObject.getValueText();
-        })));
+        Comparator.comparing(onSubclass(ValueObject.class,
+                                        o -> o.getName().isEmpty() ? o.getValueText() : o.getName(),
+                                        o -> ""))));
     myAttributeColumns.put(
       InstanceAttribute.DEPTH,
-      new AttributeColumn<>(
-        "Depth",
-        () -> new SimpleColumnRenderer<>(value -> {
-          MemoryObject node = value.getAdapter();
-          if (node instanceof ValueObject) {
-            ValueObject valueObject = (ValueObject)node;
-            if (valueObject.getDepth() >= 0 && valueObject.getDepth() < Integer.MAX_VALUE) {
-              return NumberFormatter.formatInteger(valueObject.getDepth());
-            }
-          }
-          return "";
-        }, value -> null, SwingConstants.RIGHT),
-        SwingConstants.RIGHT,
-        DEFAULT_COLUMN_WIDTH,
-        SortOrder.ASCENDING,
-        Comparator.comparingInt(o -> ((ValueObject)o.getAdapter()).getDepth())));
+      makeIntColumn("Depth",
+                    ValueObject.class,
+                    ValueObject::getDepth,
+                    d -> 0 <= d && d < Integer.MAX_VALUE,
+                    NumberFormatter::formatInteger,
+                    SortOrder.ASCENDING));
     myAttributeColumns.put(
       InstanceAttribute.ALLOCATION_TIME,
       new AttributeColumn<>(
         "Alloc Time",
-        () -> new SimpleColumnRenderer<>(value -> {
-          MemoryObject node = value.getAdapter();
-          if (node instanceof InstanceObject) {
-            InstanceObject instanceObject = (InstanceObject)node;
-            if (instanceObject.getAllocTime() > Long.MIN_VALUE) {
-              return TimeFormatter.getSemiSimplifiedClockString(myTimeline.convertToRelativeTimeUs(instanceObject.getAllocTime()));
-            }
-          }
-          return "";
-        }, value -> null, value -> {
-          MemoryObject node = value.getAdapter();
-          if (node instanceof InstanceObject) {
-            InstanceObject instanceObject = (InstanceObject)node;
-            Range selectionRange = myStage.getRangeSelectionModel().getSelectionRange();
-            long startTimeStamp = TimeUnit.MICROSECONDS.toNanos((long)selectionRange.getMin());
-            long endTimeStamp = TimeUnit.MICROSECONDS.toNanos((long)selectionRange.getMax());
-            if (instanceObject.getAllocTime() >= startTimeStamp && instanceObject.getAllocTime() < endTimeStamp) {
-              return SimpleTextAttributes.REGULAR_ATTRIBUTES;
-            }
-          }
-          return SimpleTextAttributes.GRAY_ITALIC_ATTRIBUTES;
-        }, SwingConstants.RIGHT),
+        () -> new SimpleColumnRenderer<>(
+          makeConditionalTextGetter(InstanceObject.class, InstanceObject::getAllocTime,
+                                    t -> t > Long.MIN_VALUE,
+                                    timeFormatter),
+          value -> null,
+          makeConditionalGetter(InstanceObject.class, InstanceObject::getAllocTime,
+                                t -> {
+                                  Range selectionRange = myStage.getRangeSelectionModel().getSelectionRange();
+                                  return t >= TimeUnit.MICROSECONDS.toNanos((long)selectionRange.getMin()) &&
+                                         t <  TimeUnit.MICROSECONDS.toNanos((long)selectionRange.getMax());
+                                },
+                                t -> SimpleTextAttributes.REGULAR_ATTRIBUTES,
+                                SimpleTextAttributes.GRAY_ITALIC_ATTRIBUTES),
+          SwingConstants.RIGHT),
         SwingConstants.RIGHT,
-        DEFAULT_COLUMN_WIDTH,
+        SimpleColumnRenderer.DEFAULT_COLUMN_WIDTH,
         SortOrder.ASCENDING,
-        Comparator.comparingLong(o -> ((InstanceObject)o.getAdapter()).getAllocTime())));
+        compareOn(InstanceObject.class, InstanceObject::getAllocTime)));
     myAttributeColumns.put(
       InstanceAttribute.DEALLOCATION_TIME,
-      new AttributeColumn<>(
-        "Dealloc Time",
-        () -> new SimpleColumnRenderer<>(value -> {
-          MemoryObject node = value.getAdapter();
-          if (node instanceof InstanceObject) {
-            InstanceObject instanceObject = (InstanceObject)node;
-            if (instanceObject.getDeallocTime() < Long.MAX_VALUE) {
-              return TimeFormatter.getSemiSimplifiedClockString(myTimeline.convertToRelativeTimeUs(instanceObject.getDeallocTime()));
-            }
-          }
-          return "";
-        }, value -> null, SwingConstants.RIGHT),
-        SwingConstants.RIGHT,
-        DEFAULT_COLUMN_WIDTH,
-        SortOrder.DESCENDING,
-        Comparator.comparingLong(o -> ((InstanceObject)o.getAdapter()).getDeallocTime())));
+      makeIntColumn("Dealloc Time",
+                    InstanceObject.class,
+                    InstanceObject::getDeallocTime,
+                    t -> t < Long.MAX_VALUE,
+                    timeFormatter,
+                    SortOrder.DESCENDING));
     myAttributeColumns.put(
       InstanceAttribute.NATIVE_SIZE,
-      new AttributeColumn<>(
-        "Native Size",
-        () -> new SimpleColumnRenderer<>(value -> {
-          MemoryObject node = value.getAdapter();
-          return node instanceof ValueObject ? NumberFormatter.formatInteger(((ValueObject)node).getNativeSize()) : "";
-        }, value -> null, SwingConstants.RIGHT),
-        SwingConstants.RIGHT,
-        DEFAULT_COLUMN_WIDTH,
-        SortOrder.DESCENDING,
-        Comparator.comparingLong(o -> ((ValueObject)o.getAdapter()).getNativeSize())));
+      makeSizeColumn("Native Size", ValueObject::getNativeSize));
     myAttributeColumns.put(
       InstanceAttribute.SHALLOW_SIZE,
-      new AttributeColumn<>(
-        "Shallow Size",
-        () -> new SimpleColumnRenderer<>(value -> {
-          MemoryObject node = value.getAdapter();
-          return node instanceof ValueObject ? NumberFormatter.formatInteger(((ValueObject)node).getShallowSize()) : "";
-        }, value -> null, SwingConstants.RIGHT),
-        SwingConstants.RIGHT,
-        DEFAULT_COLUMN_WIDTH,
-        SortOrder.DESCENDING,
-        Comparator.comparingInt(o -> ((ValueObject)o.getAdapter()).getShallowSize())));
+      makeSizeColumn("Shallow Size", ValueObject::getShallowSize));
     myAttributeColumns.put(
       InstanceAttribute.RETAINED_SIZE,
-      new AttributeColumn<>(
-        "Retained Size",
-        () -> new SimpleColumnRenderer<>(value -> {
-          MemoryObject node = value.getAdapter();
-          return node instanceof ValueObject ? NumberFormatter.formatInteger(((ValueObject)node).getRetainedSize()) : "";
-        }, value -> null, SwingConstants.RIGHT),
-        SwingConstants.RIGHT,
-        DEFAULT_COLUMN_WIDTH,
-        SortOrder.DESCENDING,
-        Comparator.comparingLong(o -> ((ValueObject)o.getAdapter()).getRetainedSize())));
+      makeSizeColumn("Retained Size", ValueObject::getRetainedSize));
 
     JPanel headingPanel = new JPanel(new BorderLayout());
     JLabel instanceViewLabel = new JLabel("Instance View");

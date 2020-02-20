@@ -16,12 +16,20 @@
 package com.android.tools.idea.databinding
 
 import com.android.tools.idea.databinding.util.DataBindingUtil
+import com.android.ide.common.repository.GradleVersion
+import com.android.tools.idea.projectsystem.EP_NAME
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId.ANDROIDX_DATA_BINDING_LIB
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId.DATA_BINDING_LIB
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
+import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.PsiType
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import com.intellij.testFramework.runInEdtAndWait
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -41,6 +49,24 @@ class DataBindingUtilTest {
   @Before
   fun setUp() {
     projectRule.fixture.testDataPath = TestDataPaths.TEST_DATA_ROOT + "/databinding"
+  }
+
+  @Test
+  fun getDataBindingMode() {
+    val projectSystem = TestProjectSystem(projectRule.project)
+    runInEdtAndWait {
+      projectSystem.useInTests()
+    }
+    val facet = projectRule.module.androidFacet!!
+    assertThat(DataBindingUtil.getDataBindingMode(facet)).isEqualTo(DataBindingMode.NONE)
+
+    projectSystem.addDependency(DATA_BINDING_LIB, facet.module, GradleVersion(1, 1))
+    projectSystem.emulateSync(SyncResult.SUCCESS)
+    assertThat(DataBindingUtil.getDataBindingMode(facet)).isEqualTo(DataBindingMode.SUPPORT)
+
+    projectSystem.addDependency(ANDROIDX_DATA_BINDING_LIB, facet.module, GradleVersion(1, 1))
+    projectSystem.emulateSync(SyncResult.SUCCESS)
+    assertThat(DataBindingUtil.getDataBindingMode(facet)).isEqualTo(DataBindingMode.ANDROIDX)
   }
 
   @Test

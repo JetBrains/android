@@ -9,7 +9,6 @@ iml_module(
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.tests.gui.framework.GuiTestFrameworkTestSuite",
     test_data = [
-        "//tools/idea:platform-build-info",
     ],
     # do not sort: must match IML order
     test_runtime_deps = [
@@ -79,6 +78,7 @@ iml_module(
         "//tools/adt/idea/nav/editor:intellij.android.nav.editor[module, test]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
         "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
+        "//tools/adt/idea/layout-inspector:intellij.android.layout-inspector[module, test]",
     ],
 )
 

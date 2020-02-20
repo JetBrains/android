@@ -26,8 +26,8 @@ import static com.android.tools.idea.gradle.project.sync.idea.data.service.Andro
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.JAVA_MODULE_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.PROJECT_CLEANUP_MODEL;
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.SYNC_ISSUE;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.ANDROID_HOME_JVM_ARG;
-import static com.android.tools.idea.gradle.util.GradleBuilds.BUILD_SRC_FOLDER_NAME;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.variant.view.BuildVariantUpdater.MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI;
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
@@ -40,6 +40,7 @@ import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isI
 import static com.intellij.util.ExceptionUtil.getRootCause;
 import static com.intellij.util.PathUtil.getJarPathForClass;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
 
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidLibrary;
@@ -61,6 +62,7 @@ import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import com.android.repository.Revision;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.LibraryFilePaths;
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -75,10 +77,12 @@ import com.android.tools.idea.gradle.project.sync.SyncActionOptions;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel;
+import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys;
 import com.android.tools.idea.gradle.project.sync.idea.issues.AgpUpgradeRequiredException;
 import com.android.tools.idea.gradle.project.sync.idea.issues.AndroidSyncException;
 import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidExtraModelProvider;
 import com.android.tools.idea.gradle.project.sync.idea.svs.VariantGroup;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData;
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.GradlePluginUpgrade;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -98,6 +102,7 @@ import com.intellij.openapi.externalSystem.model.project.LibraryDependencyData;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ModuleDependencyData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.externalSystem.util.Order;
 import com.intellij.openapi.project.Project;
@@ -128,6 +133,7 @@ import org.jetbrains.kotlin.kapt.idea.KaptSourceSetModel;
 import org.jetbrains.plugins.gradle.model.Build;
 import org.jetbrains.plugins.gradle.model.BuildScriptClasspathModel;
 import org.jetbrains.plugins.gradle.model.ExternalProject;
+import org.jetbrains.plugins.gradle.model.ExternalSourceSet;
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
@@ -206,18 +212,33 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     }
 
     DataNode<ModuleData> moduleDataNode = nextResolver.createModule(gradleModule, projectDataNode);
+
+    createAndAttachModelsToDataNode(moduleDataNode, gradleModule, androidProject);
+
     if (androidProject != null) {
       moduleDataNode.getData().setSourceCompatibility(androidProject.getJavaCompileOptions().getSourceCompatibility());
       moduleDataNode.getData().setTargetCompatibility(androidProject.getJavaCompileOptions().getTargetCompatibility());
+      CompilerOutputUtilKt.setupCompilerOutputPaths(moduleDataNode);
+    } else {
+      // Workaround BaseGradleProjectResolverExtension since the IdeaJavaLanguageSettings doesn't contain any information.
+      // For this we set the language level based on the "main" source set of the module.
+      // TODO: Remove once we have switched to module per source set. The base resolver should handle that correctly.
+      ExternalProject externalProject = resolverCtx.getExtraProject(gradleModule, ExternalProject.class);
+      if (externalProject != null) {
+        // main should always exist, if it doesn't other things will fail before this.
+        ExternalSourceSet externalSourceSet = externalProject.getSourceSets().get("main");
+        if (externalSourceSet != null) {
+          moduleDataNode.getData().setSourceCompatibility(externalSourceSet.getSourceCompatibility());
+          moduleDataNode.getData().setTargetCompatibility(externalSourceSet.getTargetCompatibility());
+        }
+      }
     }
-
-    createAndAttachModelsToDataNode(moduleDataNode, gradleModule, androidProject);
 
     return moduleDataNode;
   }
 
   /**
-   * Creates and attached the following models to the moduleNode depending on the type of module:
+   * Creates and attaches the following models to the moduleNode depending on the type of module:
    * <ul>
    *   <li>AndroidModuleModel</li>
    *   <li>NdkModuleModel</li>
@@ -225,8 +246,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
    *   <li>JavaModuleModel</li>
    * </ul>
    *
-   * @param moduleNode the module node to attach the models to
-   * @param gradleModule the module in question
+   * @param moduleNode     the module node to attach the models to
+   * @param gradleModule   the module in question
    * @param androidProject the android project obtained from this module (null is none found)
    */
   private void createAndAttachModelsToDataNode(@NotNull DataNode<ModuleData> moduleNode,
@@ -246,6 +267,19 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     if (androidProject != null) {
       Variant selectedVariant = findVariantToSelect(androidProject, variantGroup);
       Collection<SyncIssue> syncIssues = findSyncIssues(androidProject, projectSyncIssues);
+
+      // Add the SyncIssues as DataNodes to the project data tree. While we could just re-use the
+      // SyncIssues in AndroidModuleModel this allows us to remove sync issues from the IDE side model in the future.
+      syncIssues.forEach((syncIssue) -> {
+        SyncIssueData issueData = new SyncIssueData(
+          syncIssue.getMessage(),
+          syncIssue.getData(),
+          syncIssue.getMultiLineMessage(),
+          syncIssue.getSeverity(),
+          syncIssue.getType()
+        );
+        moduleNode.createChild(SYNC_ISSUE, issueData);
+      });
 
       AndroidModuleModel androidModel = AndroidModuleModel.create(
         moduleName,
@@ -288,7 +322,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         !hasArtifacts(gradleModule)) {
       // This is just a root folder for a group of Gradle projects. We don't set an IdeaGradleProject so the JPS builder won't try to
       // compile it using Gradle. We still need to create the module to display files inside it.
-      createJavaProject(gradleModule, moduleNode, emptyList(), false, false);
+      createJavaProject(gradleModule, moduleNode, emptyList(), false);
       return;
     }
 
@@ -322,7 +356,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         gradleModule,
         moduleNode,
         ImmutableList.of(),
-        false,
         gradlePluginList.contains("org.gradle.api.plugins.JavaPlugin")
       );
     }
@@ -425,10 +458,9 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   @Override
   public void populateModuleContentRoots(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
-    // TODO: Remove this when we switch to correct content entry handling
-    if (!isAndroidGradleProject() || BUILD_SRC_FOLDER_NAME.equals(gradleModule.getGradleProject().getName())) {
-      nextResolver.populateModuleContentRoots(gradleModule, ideModule);
-    }
+    nextResolver.populateModuleContentRoots(gradleModule, ideModule);
+    
+    ContentRootUtilKt.setupAndroidContentEntries(ideModule);
   }
 
   private boolean hasArtifacts(@NotNull IdeaModule gradleModule) {
@@ -439,10 +471,9 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   private void createJavaProject(@NotNull IdeaModule gradleModule,
                                  @NotNull DataNode<ModuleData> ideModule,
                                  @NotNull Collection<SyncIssue> syncIssues,
-                                 boolean androidProjectWithoutVariants,
                                  boolean isBuildable) {
     ExternalProject externalProject = resolverCtx.getExtraProject(gradleModule, ExternalProject.class);
-    JavaModuleModel javaModuleModel = myIdeaJavaModuleModelFactory.create(gradleModule, syncIssues, externalProject, androidProjectWithoutVariants, isBuildable);
+    JavaModuleModel javaModuleModel = myIdeaJavaModuleModelFactory.create(gradleModule, syncIssues, externalProject, isBuildable);
     ideModule.createChild(JAVA_MODULE_MODEL, javaModuleModel);
   }
 
@@ -504,7 +535,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       if (artifacts == null) {
         return null;
       }
-      return new AdditionalArtifactsPaths(artifacts.getSources(), artifacts.getJavadoc());
+      return new AdditionalArtifactsPaths(artifacts.getSources(), artifacts.getJavadoc(), artifacts.getSampleSources());
     });
   }
 
@@ -652,7 +683,11 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     if (isInProcessMode(GRADLE_SYSTEM_ID)) {
       List<Pair<String, String>> args = new ArrayList<>();
 
-      if (!IdeInfo.getInstance().isAndroidStudio()) {
+      if (IdeInfo.getInstance().isAndroidStudio()) {
+        // Inject javaagent args.
+        TraceSyncUtil.addTraceJvmArgs(args);
+      }
+      else {
         LocalProperties localProperties = getLocalProperties();
         if (localProperties.getAndroidSdkPath() == null) {
           File androidHomePath = IdeSdks.getInstance().getAndroidSdkPath();
@@ -754,7 +789,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     SelectedVariants selectedVariants = null;
     boolean isSingleVariantSync = false;
     boolean shouldGenerateSources = false;
-    Collection<String> cachedLibraries = null;
+    Collection<String> cachedLibraries = emptySet();
     String moduleWithVariantSwitched = null;
 
     if (project != null) {
@@ -768,11 +803,13 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       cachedLibraries = LibraryFilePaths.getInstance(project).retrieveCachedLibs();
     }
 
-    SyncActionOptions options = new SyncActionOptions();
-    options.setModuleIdWithVariantSwitched(moduleWithVariantSwitched);
-    options.setSingleVariantSyncEnabled(isSingleVariantSync);
-    options.setSelectedVariants(selectedVariants);
-    options.setCachedLibraries(cachedLibraries);
+    SyncActionOptions options = new SyncActionOptions(
+      selectedVariants,
+      moduleWithVariantSwitched,
+      isSingleVariantSync,
+      cachedLibraries,
+      StudioFlags.SAMPLES_SUPPORT_ENABLED.get()
+    );
     return new AndroidExtraModelProvider(options);
   }
 

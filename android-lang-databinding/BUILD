@@ -79,10 +79,7 @@ iml_module(
         "//tools/adt/idea/android-lang-databinding/testData",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system:studio_repo.zip",
-        "//tools/base/templates",
         "//tools/data-binding:data_binding_runtime.zip",
-        "//tools/idea:platform-build-info",
-        "//tools/idea/java/jdkAnnotations",
         "//tools/idea/java/mockJDK-1.7",
     ],
     # do not sort: must match IML order

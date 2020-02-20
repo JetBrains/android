@@ -17,9 +17,9 @@ package com.android.tools.idea.appinspection.ide
 
 import com.android.tools.idea.appinspection.api.AppInspectionDiscovery
 import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
+import com.android.tools.idea.transport.manager.TransportStreamManager
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.TransportService
-import com.android.tools.idea.transport.poller.TransportEventPoller
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.util.concurrency.AppExecutorUtil
@@ -37,9 +37,9 @@ internal class AppInspectionHostService : Disposable {
   }
 
   private val client = TransportClient(TransportService.CHANNEL_NAME)
-  private val poller = TransportEventPoller.createPoller(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100))
+  private val streamManager = TransportStreamManager.createManager(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100))
 
-  val discoveryHost = AppInspectionDiscoveryHost(AppExecutorUtil.getAppScheduledExecutorService(), client, poller)
+  val discoveryHost = AppInspectionDiscoveryHost(AppExecutorUtil.getAppScheduledExecutorService(), client, streamManager)
 
   companion object {
     val instance: AppInspectionHostService
@@ -47,7 +47,7 @@ internal class AppInspectionHostService : Disposable {
   }
 
   override fun dispose() {
-    TransportEventPoller.stopPoller(poller)
+    TransportStreamManager.unregisterManager(streamManager)
   }
 }
 

@@ -29,6 +29,7 @@ import com.android.tools.idea.wizard.template.has
 import com.android.tools.idea.wizard.template.renderIf
 
 fun buildGradle(
+  isKts: Boolean,
   isLibraryProject: Boolean,
   isDynamicFeature: Boolean,
   packageName: String,
@@ -51,12 +52,6 @@ fun buildGradle(
   val explicitBuildToolsVersion = needsExplicitBuildToolsVersion(GradleVersion.parse(gradlePluginVersion), parseRevision(buildToolsVersion))
   val supportsImprovedTestDeps = supportsImprovedTestDeps(gradlePluginVersion)
   val isApplicationProject = !isLibraryProject
-  val pluginsBlock = "    " + when {
-    isLibraryProject -> "apply plugin: 'com.android.library'"
-    isDynamicFeature -> "apply plugin: 'com.android.dynamic-feature'"
-    else -> "apply plugin: 'com.android.application'"
-  }
-
 
   val androidConfigBlock = androidConfig(
     buildApiString,
@@ -102,10 +97,42 @@ fun buildGradle(
   }
   """
 
-  return """
-    $pluginsBlock
+  val allBlocks =
+    """
+
     $androidConfigBlock
     $dependenciesBlock
-  """
+    """
+
+  return if (isKts) {
+    allBlocks
+      .split("\n").joinToString("\n") {
+        it.replace("'", "\"")
+          .toKtsFunction("compileSdkVersion")
+          .toKtsProperty("applicationId")
+          .toKtsFunction("minSdkVersion")
+          .toKtsFunction("targetSdkVersion")
+          .toKtsProperty("versionCode")
+          .toKtsProperty("versionName")
+          .toKtsProperty("testInstrumentationRunner")
+          .toKtsProperty("minifyEnabled")
+          .toKtsFunction("proguardFiles")
+          .toKtsFunction("wearApp")
+          .replace("minifyEnabled", "isMinifyEnabled")
+          .replace("release {", "getByName(\"release\") {")
+      }
+  }
+  else {
+    allBlocks
+  }
 }
+
+private fun String.toKtsFunction(funcName: String): String = if (this.contains("$funcName ")) {
+  this.replace("$funcName ", "$funcName(") + ")"
+}
+else {
+  this
+}
+
+private fun String.toKtsProperty(funcName: String): String = this.replace("$funcName ", "$funcName = ")
 

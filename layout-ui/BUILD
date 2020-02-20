@@ -7,7 +7,6 @@ iml_module(
     iml_files = ["intellij.android.layout-ui.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     test_class = "com.android.tools.LayoutUiTestSuite",
-    test_data = ["//tools/idea:platform-build-info"],
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/xml/dom-openapi:intellij.xml.dom",

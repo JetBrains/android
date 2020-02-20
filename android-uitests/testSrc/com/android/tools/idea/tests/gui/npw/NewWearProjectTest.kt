@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.npw
 
+import com.android.sdklib.AndroidVersion
+import com.android.tools.idea.npw.FormFactor
 import com.google.common.truth.Truth.assertThat
 
-import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
@@ -73,13 +74,13 @@ class NewWearProjectTest {
     guiTest.welcomeFrame()
       .createNewProject()
       .chooseAndroidProjectStep
-      .selectWearTab()
+      .selectTab(FormFactor.WEAR)
       .chooseActivity(activityName)
       .wizard()
       .clickNext()
       .configureNewAndroidProjectStep
       .setSourceLanguage(language)
-      .selectMinimumSdkApi(FormFactor.WEAR, 28)
+      .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
       .setPairWithPhoneApp(pairWithPhone)
       .wizard()
       .clickFinish()

@@ -47,7 +47,7 @@ public class GradleWrapperTest extends PlatformTestCase {
 
     Properties properties = getProperties(wrapperFilePath);
     String distributionUrl = properties.getProperty("distributionUrl");
-    assertEquals("https://services.gradle.org/distributions/gradle-1.6-all.zip", distributionUrl);
+    assertEquals("https://services.gradle.org/distributions/gradle-1.6-bin.zip", distributionUrl);
   }
 
   public void testUpdateDistributionUrlLeavesGradleWrapperAloneAll() throws IOException {
@@ -66,7 +66,7 @@ public class GradleWrapperTest extends PlatformTestCase {
 
     Properties properties = getProperties(wrapperFilePath);
     String distributionUrl = properties.getProperty("distributionUrl");
-    assertEquals("https://services.gradle.org/distributions/gradle-1.9-all.zip", distributionUrl);
+    assertEquals("https://services.gradle.org/distributions/gradle-1.9-bin.zip", distributionUrl);
   }
 
 
@@ -105,7 +105,7 @@ public class GradleWrapperTest extends PlatformTestCase {
 
     Properties properties = getProperties(wrapperFilePath);
     String distributionUrl = properties.getProperty("distributionUrl");
-    assertEquals("https://services.gradle.org/distributions/gradle-1.6-all.zip", distributionUrl);
+    assertEquals("https://services.gradle.org/distributions/gradle-1.6-bin.zip", distributionUrl);
   }
 
   public void testUpdateDistributionUrlUpgradeGradleWrapper() throws IOException {
@@ -122,11 +122,11 @@ public class GradleWrapperTest extends PlatformTestCase {
           Charsets.UTF_8);
 
     GradleWrapper gradlewrapper = GradleWrapper.get(wrapperFilePath);
-    gradlewrapper.updateDistributionUrlAndDisplayFailure("5.1.1");
+    gradlewrapper.updateDistributionUrlAndDisplayFailure("6.1.1");
 
     Properties properties = getProperties(wrapperFilePath);
     String distributionUrl = properties.getProperty("distributionUrl");
-    assertEquals("https://services.gradle.org/distributions/gradle-5.1.1-all.zip", distributionUrl);
+    assertEquals("https://services.gradle.org/distributions/gradle-6.1.1-bin.zip", distributionUrl);
   }
 
   public void testGetPropertiesFilePath() {
@@ -171,7 +171,7 @@ public class GradleWrapperTest extends PlatformTestCase {
     Properties gradleProperties = getProperties(new File(projectWrapperFolderPath, FN_GRADLE_WRAPPER_PROPERTIES));
     String distributionUrl = gradleProperties.getProperty(DISTRIBUTION_URL_PROPERTY);
     String folderName = GradleWrapper.isSnapshot(gradleVersion) ? "distributions-snapshots" : "distributions";
-    assertEquals("https://services.gradle.org/" + folderName + "/gradle-" + gradleVersion + "-all.zip", distributionUrl);
+    assertEquals("https://services.gradle.org/" + folderName + "/gradle-" + gradleVersion + "-bin.zip", distributionUrl);
   }
 
   public void testGetDistributionUrlWithBinReleaseVersion() {

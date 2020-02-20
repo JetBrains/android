@@ -13,7 +13,6 @@ iml_module(
     resources = ["resources"],
     test_class = "com.android.tools.idea.smali.SmaliTestSuite",
     test_data = [
-        "//tools/idea:platform-build-info",
     ],
     # do not sort: must match IML order
     test_runtime_deps = [

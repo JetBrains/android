@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.templates
 
+import com.android.annotations.concurrency.UiThread
+import com.android.ide.common.repository.GradleCoordinate
+import com.android.ide.common.repository.GradleCoordinate.parseCoordinateString
 import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.util.GradleUtil.isGradleScript
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.utils.usLocaleCapitalize
 import com.google.common.base.CaseFormat
@@ -40,17 +41,21 @@ import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileVisitor
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.psi.codeStyle.arrangement.engine.ArrangementEngine
 import org.jetbrains.android.uipreview.AndroidEditorSettings
+import org.jetbrains.kotlin.idea.core.util.toVirtualFile
 import org.w3c.dom.Element
 import org.w3c.dom.Node
 import java.io.File
 import java.io.IOException
+import java.security.InvalidParameterException
 import java.util.regex.Pattern
 import kotlin.math.max
 
@@ -183,13 +188,6 @@ object TemplateUtils {
                                    psiElement: PsiElement? = null,
                                    keepDocumentLocked: Boolean = false) {
     ApplicationManager.getApplication().assertWriteAccessAllowed()
-
-    // TODO(qumeric): remove when the flag will be removed
-    if (isGradleScript(virtualFile) && !StudioFlags.NPW_NEW_MODULE_TEMPLATES.get()) {
-      // Do not format Gradle files. Otherwise we get spurious "Gradle files have changed since last project sync" warnings that make UI
-      // tests flaky.
-      return
-    }
 
     val document = FileDocumentManager.getInstance().getDocument(virtualFile)
                    ?: return // The file could be a binary file with no editing support...
@@ -380,9 +378,66 @@ object TemplateUtils {
   }
 
   /**
+   * [VfsUtil.copyDirectory] messes up the undo stack, most likely by trying to create a directory even if it already exists.
+   * This is an undo-friendly replacement.
+   *
+   * Note: this method should be run inside write action.
+   */
+  @JvmStatic
+  @JvmOverloads
+  @UiThread
+  fun copyDirectory(src: VirtualFile, dest: File, copyFile: (file: VirtualFile, src: VirtualFile, destination: File) -> Boolean = ::copyFile) {
+    VfsUtilCore.visitChildrenRecursively(src, object : VirtualFileVisitor<Any>() {
+      override fun visitFile(file: VirtualFile): Boolean {
+        try {
+          return copyFile(file, src, dest)
+        }
+        catch (e: IOException) {
+          throw VisitorException(e)
+        }
+      }
+    }, IOException::class.java)!!
+  }
+
+  /**
+   * Copies a file or a directory. Returns true if it was copied, otherwise false.
+   */
+  @JvmStatic
+  @UiThread
+  private fun copyFile(fileToCopy: VirtualFile, parent: VirtualFile, destination: File): Boolean {
+    val relativePath = VfsUtilCore.getRelativePath(fileToCopy, parent, File.separatorChar)
+    check(relativePath != null) { "${fileToCopy.path} is not a child of $parent" }
+    if (fileToCopy.isDirectory) {
+      checkedCreateDirectoryIfMissing(File(destination, relativePath))
+      return true
+    }
+    val target = File(destination, relativePath)
+    val toDir = checkedCreateDirectoryIfMissing(target.parentFile)
+    val targetVf = LocalFileSystem.getInstance().findFileByIoFile(target)
+    if (targetVf?.exists() == true) {
+      return false
+    }
+    VfsUtilCore.copyFile(this, fileToCopy, toDir)
+    return true
+  }
+
+  /**
    * Returns true iff the given file has the given extension (with or without .)
    */
   @JvmStatic
   fun hasExtension(file: File, extension: String): Boolean =
     Files.getFileExtension(file.name).equals(extension.trimStart { it == '.' }, ignoreCase = true)
 }
+
+fun resolveDependency(repo: RepositoryUrlManager, dependency: String, minRev: String? = null): String {
+  // If we can't parse the dependency, just return it back
+  val coordinate = parseCoordinateString(dependency) ?: throw InvalidParameterException("Invalid dependency: $dependency")
+
+  val minCoordinate = if (minRev == null) coordinate else GradleCoordinate(coordinate.groupId, coordinate.artifactId, minRev)
+
+  // If we cannot resolve the dependency on the repo, return the at least the min requested
+  val resolved = repo.resolveDynamicCoordinate(coordinate, null, null) ?: return minCoordinate.toString()
+
+  return maxOf(resolved, minCoordinate, GradleCoordinate.COMPARE_PLUS_LOWER).toString()
+}
+

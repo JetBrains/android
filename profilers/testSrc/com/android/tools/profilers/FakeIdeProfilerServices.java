@@ -20,6 +20,7 @@ import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.FakeTracePreProcessor;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.TracePreProcessor;
+import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.android.tools.profilers.stacktrace.FakeCodeNavigator;
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer;
@@ -380,6 +381,12 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   @Override
   public List<String> getNativeSymbolsDirectories() {
     return Collections.singletonList(FAKE_SYMBOL_DIR);
+  }
+
+  @NotNull
+  @Override
+  public TraceProcessorService getTraceProcessorService() {
+    return new FakeTraceProcessorService();
   }
 
   @Nullable

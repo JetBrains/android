@@ -117,7 +117,6 @@ public class NlPreviewForm implements Disposable, CaretListener {
       .setIsPreview(true)
       .build();
     Disposer.register(this, mySurface);
-    mySurface.setCentered(true);
     mySurface.setScreenMode(SceneMode.RENDER, false);
     mySurface.setName(PREVIEW_DESIGN_SURFACE);
 
@@ -469,7 +468,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
         mySurface.zoomToFit();
       }
       else {
-        mySurface.updateScrolledAreaSize();
+        mySurface.revalidateScrollArea();
       }
       setEditor(myPendingEditor);
       myPendingEditor = null;

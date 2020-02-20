@@ -609,18 +609,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   @Override
   @NotNull
-  public DataBindingMode getDataBindingMode() {
-    if (dependsOn(this, ANDROIDX_DATA_BINDING_LIB_ARTIFACT)) {
-      return DataBindingMode.ANDROIDX;
-    }
-    if (dependsOn(this, DATA_BINDING_LIB_ARTIFACT)) {
-      return DataBindingMode.SUPPORT;
-    }
-    return DataBindingMode.NONE;
-  }
-
-  @Override
-  @NotNull
   public ClassJarProvider getClassJarProvider() {
     return new AndroidGradleClassJarProvider();
   }

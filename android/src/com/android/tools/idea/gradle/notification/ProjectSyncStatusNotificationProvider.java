@@ -76,6 +76,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
 
   /** The values are disposable notification panels created last for the editors. */
   @NotNull private static final ConcurrentMap<FileEditor, Disposable> ourDisposablePanels = new ConcurrentHashMap<>();
+  @NotNull private static final Object ourDisposablePanelRegistrationLock = new Object();
 
   @NotNull private final GradleProjectInfo myProjectInfo;
   @NotNull private final GradleSyncState mySyncState;
@@ -110,19 +111,24 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
 
   private static void registerDisposablePanel(@NotNull FileEditor editor, @Nullable NotificationPanel panel) {
     Disposable newDisposablePanel = panel instanceof Disposable ? (Disposable)panel : null;
-    Disposable oldDisposablePanel =
-        newDisposablePanel == null ? ourDisposablePanels.remove(editor) : ourDisposablePanels.put(editor, newDisposablePanel);
-    if (oldDisposablePanel != null) {
-      Disposer.dispose(oldDisposablePanel);
-    }
-    if (newDisposablePanel != null) {
-      try {
-        Disposer.register(newDisposablePanel, () -> ourDisposablePanels.remove(editor, newDisposablePanel));
-        Disposer.register(editor, newDisposablePanel);
+
+    // The synchronized block below is intended to prevent disposal of the panel
+    // before it is registered with the Disposer.
+    synchronized (ourDisposablePanelRegistrationLock) {
+      Disposable oldDisposablePanel =
+          newDisposablePanel == null ? ourDisposablePanels.remove(editor) : ourDisposablePanels.put(editor, newDisposablePanel);
+      if (oldDisposablePanel != null) {
+        Disposer.dispose(oldDisposablePanel);
       }
-      catch (Throwable t) {
-        Disposer.dispose(newDisposablePanel);
-        throw t;
+      if (newDisposablePanel != null) {
+        try {
+          Disposer.register(newDisposablePanel, () -> ourDisposablePanels.remove(editor, newDisposablePanel));
+          Disposer.register(editor, newDisposablePanel);
+        }
+        catch (Throwable t) {
+          Disposer.dispose(newDisposablePanel);
+          throw t;
+        }
       }
     }
   }
@@ -273,6 +279,10 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
       }
       createActionLabel("Sync Now",
                         () -> GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_USER_STALE_CHANGES));
+      createActionLabel("Ignore these changes", () -> {
+        GradleFiles.getInstance(project).removeChangedFiles();
+        this.setVisible(false);
+      });
     }
   }
 

@@ -16,7 +16,7 @@
 
 package com.android.tools.idea.avdmanager;
 
-import com.android.emulator.SnapshotOuterClass;
+import com.android.emulator.snapshot.SnapshotOuterClass;
 import com.android.repository.api.RepoManager;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.impl.meta.TypeDetails;

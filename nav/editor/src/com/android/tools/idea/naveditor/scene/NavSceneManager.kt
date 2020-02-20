@@ -53,7 +53,6 @@ import com.android.tools.idea.naveditor.scene.targets.NavScreenTargetProvider
 import com.android.tools.idea.naveditor.scene.targets.NavigationTargetProvider
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.surface.NavView
-import com.android.tools.idea.rendering.RenderSettings
 import com.android.tools.idea.rendering.parsers.TagSnapshot
 import com.intellij.openapi.command.undo.BasicUndoableAction
 import com.intellij.openapi.command.undo.UndoManager
@@ -63,6 +62,7 @@ import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import java.awt.Rectangle
 import java.util.concurrent.CompletableFuture
+import kotlin.math.max
 import kotlin.streams.toList
 
 @NavCoordinate
@@ -113,11 +113,7 @@ open class NavSceneManager(
 
   override fun getDesignSurface() = super.getDesignSurface() as NavDesignSurface
 
-  override fun doCreateSceneView(): NavView {
-    val navView = NavView(designSurface, this)
-    designSurface.layeredPane.preferredSize = navView.preferredSize
-    return navView
-  }
+  override fun doCreateSceneView(): NavView = NavView(designSurface, this)
 
   override fun updateFromComponent(sceneComponent: SceneComponent) {
     super.updateFromComponent(sceneComponent)
@@ -206,12 +202,12 @@ open class NavSceneManager(
     else {
       @NavCoordinate val panLimit = Coordinates.getAndroidDimension(designSurface, PAN_LIMIT)
       rootBounds = getBoundingBox(root)
-      rootBounds.grow(extentWidth - panLimit, extentHeight - panLimit)
+      rootBounds.grow(max(0, extentWidth - panLimit), max(0, extentHeight - panLimit))
     }
 
     root.setPosition(rootBounds.x, rootBounds.y)
     root.setSize(rootBounds.width, rootBounds.height)
-    designSurface.updateScrolledAreaSize()
+    scene.needsRebuildList()
 
     designSurface.focusedSceneView?.let {
       @SwingCoordinate val deltaX = Coordinates.getSwingDimension(it, root.drawX - (prevRootBounds?.x ?: 0))
@@ -362,8 +358,6 @@ open class NavSceneManager(
     var bounds: Rectangle? = scene.root?.fillDrawRect(0, null)
 
     updateRootBounds(bounds)
-    designSurface.updateScrolledAreaSize()
-    scene.needsRebuildList()
 
     return CompletableFuture.completedFuture(null)
   }

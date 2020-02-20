@@ -20,6 +20,8 @@ import com.android.tools.idea.assistant.AssistantBundleCreator
 import com.android.tools.idea.assistant.OpenAssistSidePanelAction
 import com.android.tools.idea.assistant.datamodel.TutorialBundleData
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.uibuilder.actions.analytics.LayoutEditorHelpActionListener
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.application.ApplicationManager
@@ -43,9 +45,10 @@ open class LayoutEditorHelpAssistantAction : OpenAssistSidePanelAction() {
 
   companion object {
     const val BUNDLE_ID = "LayoutEditor.HelpAssistant"
+    val listener = LayoutEditorHelpActionListener()
   }
 
-  private enum class Type {
+  enum class Type {
     NONE,
     CONSTRAINT_LAYOUT,
     MOTION_LAYOUT,
@@ -54,7 +57,7 @@ open class LayoutEditorHelpAssistantAction : OpenAssistSidePanelAction() {
 
   private val ONLY_FULL: Boolean = true // for now redirect to a single help content
   private var tagName: String = ""
-  private var type = Type.NONE
+  @VisibleForTesting var type = Type.NONE
 
   override fun update(e: AnActionEvent) {
     updateInternalVariables(e)
@@ -62,14 +65,20 @@ open class LayoutEditorHelpAssistantAction : OpenAssistSidePanelAction() {
   }
 
   override fun actionPerformed(event: AnActionEvent) {
+    listener.register(event.project)
+
     when (type) {
-      Type.CONSTRAINT_LAYOUT -> openWindow(constraintLayoutHelpPanelBundle.bundleId, event.project!!)
-      Type.MOTION_LAYOUT -> openWindow(motionLayoutHelpPanelBundle.bundleId, event.project!!)
-      Type.FULL -> openWindow(fullHelpPanelBundle.bundleId, event.project!!)
+      Type.CONSTRAINT_LAYOUT -> {
+        openWindow(constraintLayoutHelpPanelBundle.bundleId, event.project!!)
+      }
+      Type.MOTION_LAYOUT -> {
+        openWindow(motionLayoutHelpPanelBundle.bundleId, event.project!!)
+      }
+      Type.FULL -> {
+        openWindow(fullHelpPanelBundle.bundleId, event.project!!)
+      }
       Type.NONE -> Unit
     }
-
-    // TODO: Tracker - add the event kind for assistant usage.
   }
 
   private fun updateInternalVariables(e: AnActionEvent) {
@@ -153,14 +162,19 @@ open class LayoutEditorHelpAssistantAction : OpenAssistSidePanelAction() {
   }
 }
 
+const val NAV_EDITOR_BUNDLE_ID = "LayoutEditor.HelpAssistant.NavEditor"
+const val MOTION_EDITOR_BUNDLE_ID = "LayoutEditor.HelpAssistant.MotionLayout"
+const val CONSTRAINT_LAYOUT_BUNDLE_ID = "LayoutEditor.HelpAssistant.ConstraintLayout"
+const val FULL_HELP_BUNDLE_ID = "LayoutEditor.HelpAssistant.Full"
+
 private val motionLayoutHelpPanelBundle =
-  HelpPanelBundle("LayoutEditor.HelpAssistant.MotionLayout", "/motionlayout_help_assistance_bundle.xml")
+  HelpPanelBundle(MOTION_EDITOR_BUNDLE_ID, "/motionlayout_help_assistance_bundle.xml")
 
 private val constraintLayoutHelpPanelBundle =
-  HelpPanelBundle("LayoutEditor.HelpAssistant.ConstraintLayout", "/constraintlayout_help_assistance_bundle.xml")
+  HelpPanelBundle(CONSTRAINT_LAYOUT_BUNDLE_ID, "/constraintlayout_help_assistance_bundle.xml")
 
 private val fullHelpPanelBundle =
-  HelpPanelBundle("LayoutEditor.HelpAssistant.Full", "/layout_editor_help_assistance_bundle.xml")
+  HelpPanelBundle(FULL_HELP_BUNDLE_ID, "/layout_editor_help_assistance_bundle.xml")
 
 class MotionLayoutPanelAssistantBundleCreator :
   LayoutEditorHelpPanelAssistantBundleCreatorBase(motionLayoutHelpPanelBundle)

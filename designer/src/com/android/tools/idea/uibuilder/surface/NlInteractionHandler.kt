@@ -85,7 +85,7 @@ class NlInteractionHandler(private val surface: DesignSurface): InteractionHandl
   }
 
   private fun isInResizeZone(sceneView: SceneView, @SwingCoordinate mouseX: Int, @SwingCoordinate mouseY: Int): Boolean {
-    val size = sceneView.size
+    val size = sceneView.scaledContentSize
     // Check if the mouse position is at the bottom-right corner of sceneView.
     val resizeZone = Rectangle(sceneView.x + size.width,
                                sceneView.y + size.height,
@@ -188,7 +188,7 @@ class NlInteractionHandler(private val surface: DesignSurface): InteractionHandl
 
     if ((surface as NlDesignSurface).navigationHandler?.handleNavigate(sceneView,
                                                                        sceneComponent,
-                                                                       androidX, androidY,
+                                                                       x, y,
                                                                        needsFocusEditor) != true) {
       navigateToComponent(sceneComponent.nlComponent, needsFocusEditor)
     }

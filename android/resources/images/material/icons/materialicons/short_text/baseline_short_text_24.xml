@@ -4,11 +4,7 @@
     android:viewportWidth="24"
     android:viewportHeight="24"
     android:tint="?attr/colorControlNormal">
-  <group>
-    <clip-path android:pathData="M0,0h24v24H0V0z M 0,0"/>
-    <path
-        android:fillColor="@android:color/white"
-        android:pathData="M4,9h16v2L4,11zM4,13h10v2L4,15z"/>
-  </group>
+  <path
+      android:fillColor="@android:color/white"
+      android:pathData="M4,9h16v2H4V9zM4,13h10v2H4V13z"/>
 </vector>
-

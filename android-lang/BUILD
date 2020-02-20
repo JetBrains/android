@@ -88,10 +88,7 @@ iml_module(
     test_data = glob(["testData/**"]) + [
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/annotations",
-        "//tools/base/templates",
         "//tools/adt/idea/android/testData",
-        "//tools/idea:platform-build-info",
-        "//tools/idea/java/jdkAnnotations",
         "//tools/idea/java/mockJDK-1.7",
     ],
     # do not sort: must match IML order

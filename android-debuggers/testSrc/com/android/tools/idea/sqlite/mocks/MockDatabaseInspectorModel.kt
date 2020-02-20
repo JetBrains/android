@@ -20,7 +20,7 @@ import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import java.util.TreeMap
 
-class MockDatabaseInspectorModel : DatabaseInspectorController.Model {
+open class MockDatabaseInspectorModel : DatabaseInspectorController.Model {
   private val listeners = mutableListOf<DatabaseInspectorController.Model.Listener>()
 
   override val openDatabases: TreeMap<SqliteDatabase, SqliteSchema> = TreeMap(

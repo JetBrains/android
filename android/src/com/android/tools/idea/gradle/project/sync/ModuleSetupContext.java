@@ -35,6 +35,7 @@ import java.util.List;
 
 public class ModuleSetupContext {
   public static final Key<ModuleFinder> MODULES_BY_GRADLE_PATH_KEY = Key.create("gradle.sync.modules.by.gradle.path");
+  public static final Key<Boolean> FORCE_CREATE_DIRS_KEY = new Key<>("FORCE_CREATE_DIRS");
 
   @NotNull private final Module myModule;
   @NotNull private final IdeModifiableModelsProvider myIdeModelsProvider;

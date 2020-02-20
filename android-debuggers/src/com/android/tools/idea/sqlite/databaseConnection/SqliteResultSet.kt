@@ -17,6 +17,8 @@ package com.android.tools.idea.sqlite.databaseConnection
 
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteRow
+import com.android.tools.idea.sqlite.model.SqliteStatement
+import com.android.tools.idea.sqlite.model.transform
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
 
@@ -30,8 +32,20 @@ import com.intellij.openapi.Disposable
  * the result set.
  */
 interface SqliteResultSet : Disposable {
+  // TODO(b/149286475): make sure that this works for statements that end with a comment.
+  //  eg SELECT COUNT(*) FROM (select * from tab /*a comment*/)
+  fun SqliteStatement.toRowCountStatement() = this.transform { "SELECT COUNT(*) FROM ($it)" }
+  fun SqliteStatement.toSelectLimitOffset(rowOffset: Int, rowBatchSize: Int) = this.transform {
+    "SELECT * FROM ($it) LIMIT $rowOffset, $rowBatchSize"
+  }
+
   val columns: ListenableFuture<List<SqliteColumn>>
-  val rowCount: ListenableFuture<Int>
+
+  /**
+   * Returns the total amount of rows available to this result set.
+   * This number is obtained by running a `SELECT COUNT(*) FROM (sqliteStatement)`, sqliteStatement can be anything.
+   */
+  val totalRowCount: ListenableFuture<Int>
 
   /**
    * Returns a list of [SqliteRow]s.
@@ -39,4 +53,12 @@ interface SqliteResultSet : Disposable {
    * @param rowBatchSize The maximum amount of rows returned. Must be > 0
    */
   fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<List<SqliteRow>>
+}
+
+/**
+ * Checks that [rowOffset] is >= 0 and [rowBatchSize] is > 0.
+ */
+internal fun checkOffsetAndSize(rowOffset: Int, rowBatchSize: Int) {
+  require(rowOffset >= 0) { "Offset must be >= 0." }
+  require(rowBatchSize > 0) { "Row batch size must be > 0." }
 }

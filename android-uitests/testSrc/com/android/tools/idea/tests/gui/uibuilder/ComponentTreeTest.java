@@ -15,21 +15,17 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
-import static com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixtureUtilKt.countAllSceneComponents;
-import static com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixtureUtilKt.getSceneComponentAt;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import com.android.tools.idea.tests.gui.framework.fixture.ResourcePickerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.DesignSurfaceFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.util.WizardUtils;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
@@ -138,18 +134,18 @@ public final class ComponentTreeTest {
       fail(e.getMessage());
     }
 
-    NlEditorFixture layoutEditor = editor.getLayoutEditor(false);
+    NlEditorFixture layoutEditor = editor.getLayoutEditor(false, true);
     layoutEditor.waitForRenderToFinish();
 
     JTreeFixture tree = layoutEditor.getComponentTree();
-    DesignSurfaceFixture surface = layoutEditor.getSurface();
-    assertEquals("Initial components count unexpected", 2, countAllSceneComponents(layoutEditor));
-    Point rootCenter = getSceneComponentAt(layoutEditor, 0).getMidPoint();
-    Point childLocation = getSceneComponentAt(layoutEditor, 1).getMidPoint();
+    DesignSurfaceFixture<? extends DesignSurfaceFixture, ? extends DesignSurface> surface = layoutEditor.getSurface();
+    assertEquals("Initial components count unexpected", 2, surface.getAllSceneViews().get(0).countSceneComponents());
+
+    Point childLocation = surface.getAllSceneViews().get(0).findSceneComponentByTagName("TextView").getMidPoint();
     tree.drag(1);
-    surface.drop(rootCenter);
+    surface.drop(surface.getAllSceneViews().get(0).getMidPoint());
     layoutEditor.waitForRenderToFinish();
-    assertEquals("Components count after drag unexpected", 2, countAllSceneComponents(layoutEditor));
-    assertNotEquals(childLocation, getSceneComponentAt(layoutEditor, 1).getMidPoint());
+    assertEquals("Components count after drag unexpected", 2, surface.getAllSceneViews().get(0).countSceneComponents());
+    assertNotEquals(childLocation, surface.getAllSceneViews().get(0).findSceneComponentByTagName("TextView").getMidPoint());
   }
 }

@@ -29,7 +29,6 @@ import com.android.tools.idea.npw.platform.Language.JAVA
 import com.android.tools.idea.npw.platform.Language.KOTLIN
 import com.android.tools.idea.npw.project.DomainToPackageExpression
 import com.android.tools.idea.npw.project.setGradleWrapperExecutable
-import com.android.tools.idea.npw.template.TemplateValueInjector
 import com.android.tools.idea.observable.core.BoolProperty
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.OptionalProperty
@@ -38,17 +37,9 @@ import com.android.tools.idea.observable.core.StringProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.templates.ProjectTemplateDataBuilder
-import com.android.tools.idea.templates.Template
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_ANDROIDX_SUPPORT
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_APP_TITLE
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_CPP_FLAGS
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_CPP_SUPPORT
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_NEW_PROJECT
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_TOP_OUT
-import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor2
-import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor2
-import com.android.tools.idea.templates.recipe.RenderingContext2
-import com.android.tools.idea.wizard.WizardConstants
+import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
+import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor
+import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.wizard.model.WizardModel
 import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.android.tools.idea.wizard.template.Recipe
@@ -93,7 +84,6 @@ interface ProjectModelData {
   val cppFlags: StringProperty
   var project: Project
   val isNewProject: Boolean
-  val projectTemplateValues: MutableMap<String, Any>
   val language: OptionalProperty<Language>
   val multiTemplateRenderer: MultiTemplateRenderer
   val projectTemplateDataBuilder: ProjectTemplateDataBuilder
@@ -110,7 +100,6 @@ class NewProjectModel : WizardModel(), ProjectModelData {
   override val cppFlags = StringValueProperty()
   override lateinit var project: Project
   override val isNewProject = true
-  override val projectTemplateValues = mutableMapOf<String, Any>()
   override val language = OptionalValueProperty<Language>()
   override val multiTemplateRenderer = MultiTemplateRenderer { renderer ->
     run {
@@ -186,25 +175,8 @@ class NewProjectModel : WizardModel(), ProjectModelData {
   }
 
   private inner class ProjectTemplateRenderer : MultiTemplateRenderer.TemplateRenderer {
-    lateinit var projectTemplate: Template
     @WorkerThread
     override fun init() {
-      projectTemplate = Template.createFromName(Template.CATEGORY_PROJECTS, WizardConstants.PROJECT_TEMPLATE_NAME)
-      // Cpp Apps attributes are needed to generate the Module and to generate the Render Template files (activity and layout)
-      projectTemplateValues[ATTR_CPP_SUPPORT] = enableCppSupport.get()
-      projectTemplateValues[ATTR_CPP_FLAGS] = cppFlags.get()
-      projectTemplateValues[ATTR_TOP_OUT] = project.basePath ?: ""
-      projectTemplateValues[ATTR_IS_NEW_PROJECT] = true
-      projectTemplateValues[ATTR_APP_TITLE] = applicationName.get()
-
-      if (useAppCompat.get()) {
-        projectTemplateValues[ATTR_ANDROIDX_SUPPORT] = false
-      }
-
-      TemplateValueInjector(projectTemplateValues)
-        .setProjectDefaults(project, isNewProject)
-        .setLanguage(language.value)
-
       projectTemplateDataBuilder.apply {
         topOut = File(project.basePath ?: "")
         androidXSupport = !useAppCompat.get()
@@ -240,7 +212,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
     }
 
     private fun performCreateProject(dryRun: Boolean) {
-      val context = RenderingContext2(
+      val context = RenderingContext(
         project,
         null,
         "New Project",
@@ -249,7 +221,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
         dryRun = dryRun,
         moduleRoot = null
       )
-      val executor = if (dryRun) FindReferencesRecipeExecutor2(context) else DefaultRecipeExecutor2(context)
+      val executor = if (dryRun) FindReferencesRecipeExecutor(context) else DefaultRecipeExecutor(context)
       val recipe: Recipe = { data: TemplateData ->
         androidProjectRecipe(data as ProjectTemplateData, applicationName.get(), language.value, !useAppCompat.get(), useGradleKts.get())
       }

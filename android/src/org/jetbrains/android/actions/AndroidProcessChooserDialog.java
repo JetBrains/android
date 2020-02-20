@@ -197,19 +197,22 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
       }
     };
 
-    myCellRenderer = new MyProcessTreeCellRenderer(treeSpeedSearch, DeviceRenderer.shouldShowSerialNumbers(getDeviceList()),
-                                                   new DeviceNamePropertiesFetcher(new FutureCallback<DeviceNameProperties>() {
-                                                     @Override
-                                                     public void onSuccess(@Nullable DeviceNameProperties result) {
-                                                       updateTree();
-                                                     }
+    FutureCallback<DeviceNameProperties> callback = new FutureCallback<DeviceNameProperties>() {
+      @Override
+      public void onSuccess(@Nullable DeviceNameProperties properties) {
+        updateTree();
+      }
 
-                                                     @Override
-                                                     public void onFailure(@NotNull Throwable t) {
-                                                       Logger.getInstance(AndroidProcessChooserDialog.class)
-                                                         .warn("Error retrieving device name properties", t);
-                                                     }
-                                                   }, getDisposable()));
+      @Override
+      public void onFailure(@NotNull Throwable throwable) {
+        Logger.getInstance(AndroidProcessChooserDialog.class).warn("Error retrieving device name properties", throwable);
+      }
+    };
+
+    DeviceNamePropertiesProvider provider = new DeviceNamePropertiesFetcher(callback, getDisposable());
+    boolean showSerialNumbers = DeviceRenderer.shouldShowSerialNumbers(getDeviceList(), provider);
+
+    myCellRenderer = new MyProcessTreeCellRenderer(treeSpeedSearch, showSerialNumbers, provider);
     myProcessTree.setCellRenderer(myCellRenderer);
 
     new DoubleClickListener() {
@@ -508,7 +511,8 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
       pathToSelect = firstTreePath;
     }
 
-    myCellRenderer.setShowSerial(DeviceRenderer.shouldShowSerialNumbers(Arrays.asList(devices)));
+    DeviceNamePropertiesProvider provider = myCellRenderer.getDeviceNamePropertiesProvider();
+    myCellRenderer.setShowSerial(DeviceRenderer.shouldShowSerialNumbers(Arrays.asList(devices), provider));
 
     UIUtil.invokeLaterIfNeeded(() -> {
       myProcessTree.setModel(model);
@@ -679,6 +683,11 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
 
     public void setShowSerial(boolean showSerial) {
       myShowSerial = showSerial;
+    }
+
+    @NotNull
+    private DeviceNamePropertiesProvider getDeviceNamePropertiesProvider() {
+      return myDeviceNamePropertiesProvider;
     }
 
     @Override

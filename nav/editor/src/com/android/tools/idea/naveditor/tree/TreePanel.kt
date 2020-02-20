@@ -27,8 +27,8 @@ import com.android.tools.idea.common.model.SelectionListener
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.naveditor.model.isAction
 import com.android.tools.idea.naveditor.model.isDestination
-import com.android.tools.idea.naveditor.model.isNavigation
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.ide.DataManager
 import com.intellij.openapi.application.ApplicationManager
 import icons.StudioIcons
 import javax.swing.Icon
@@ -52,7 +52,7 @@ class TreePanel : ToolContent<DesignSurface> {
       .withDoubleClick { activateComponent() }
       .withExpandableRoot()
       .withInvokeLaterOption { ApplicationManager.getApplication().invokeLater(it) }
-      .withComponentName( "navComponentTree")
+      .withComponentName("navComponentTree")
 
     val (tree, model, selectionModel) = builder.build()
     componentTree = tree
@@ -70,9 +70,10 @@ class TreePanel : ToolContent<DesignSurface> {
   override fun setToolContext(toolContext: DesignSurface?) {
     designSurface?.let {
       it.selectionModel?.removeListener(contextSelectionListener)
-      it.model?.removeListener(modelListener)
-
+      it.models.firstOrNull()?.removeListener(modelListener)
+      DataManager.removeDataProvider(componentTree)
     }
+
     designSurface = toolContext
 
     designSurface?.let {
@@ -81,6 +82,7 @@ class TreePanel : ToolContent<DesignSurface> {
         model.addListener(modelListener)
         update(model)
       }
+      DataManager.registerDataProvider(componentTree, it)
     }
   }
 
@@ -115,7 +117,7 @@ class TreePanel : ToolContent<DesignSurface> {
 
     override fun idOf(node: NlComponent) = node.id
 
-    override fun textValueOf(node: NlComponent) = null
+    override fun textValueOf(node: NlComponent): String? = null
 
     override fun iconOf(node: NlComponent): Icon = node.mixin?.icon ?: StudioIcons.LayoutEditor.Palette.UNKNOWN_VIEW
 

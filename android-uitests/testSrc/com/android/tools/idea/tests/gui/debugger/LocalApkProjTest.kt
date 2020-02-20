@@ -175,7 +175,7 @@ class LocalApkProjTest {
 
     // NOTE: This step generates the ~/ApkProjects/app-x86-debug directory.
     chooseApkFile.select(apkFile)
-      .clickOk()
+      .clickOkAndWaitToClose()
 
     guiTest.waitForBackgroundTasks()
   }

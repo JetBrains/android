@@ -69,15 +69,14 @@ class AppInspectionTargetTest {
   fun launchInspectorReturnsCorrectConnection() {
     val target = appInspectionRule.launchTarget().get()
 
-    // Don't let command handler reply to any commands. We'll manually add events.
-    val latch = CountDownLatch(1)
+    // We set the App Inspection command handler to not do anything with commands, because the test will manually insert responses. This is
+    // done to better control the timing of events.
+    val commandsExecutedLatch = CountDownLatch(2)
     transportService.setCommandHandler(
       Commands.Command.CommandType.APP_INSPECTION,
       object : CommandHandler(timer) {
         override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
-          if (command.hasAppInspectionCommand() && command.appInspectionCommand.inspectorId == "connects_successfully") {
-            latch.countDown()
-          }
+          commandsExecutedLatch.countDown()
         }
       })
 
@@ -97,8 +96,8 @@ class AppInspectionTargetTest {
         TestInspectorClient(commandMessenger)
       }
 
-      // Wait for command to be sent.
-      latch.await()
+      // Wait for launch inspector commands to be executed. Otherwise, target may not be in a testable state.
+      commandsExecutedLatch.await()
 
       // Manually generate correct response to the command.
       appInspectionRule.addAppInspectionResponse(

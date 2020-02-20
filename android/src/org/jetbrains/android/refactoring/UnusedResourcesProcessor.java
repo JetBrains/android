@@ -289,7 +289,7 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
       LintIdeClient client = LintIdeSupport.get().createBatchClient(lintResult);
       LintRequest request = new LintIdeRequest(client, myProject, null, Arrays.asList(myModules), false);
       request.setScope(Scope.ALL);
-      LintDriver lint = new LintDriver(new AndroidLintIdeIssueRegistry(), client, request);
+      LintDriver lint = client.createDriver(request, new AndroidLintIdeIssueRegistry());
       lint.analyze();
     }
     finally {

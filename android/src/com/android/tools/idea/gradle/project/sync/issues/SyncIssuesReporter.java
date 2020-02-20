@@ -61,15 +61,9 @@ public class SyncIssuesReporter {
     myDefaultMessageFactory = new UnhandledIssuesReporter();
   }
 
-  public void report(@NotNull Project project) {
-    SyncIssues.seal(project);
-    report(SyncIssues.byModule(project));
-  }
-
   /**
    * Reports all sync errors for the provided collection of modules.
    */
-  @VisibleForTesting
   public void report(@NotNull Map<Module, List<SyncIssue>> issuesByModules) {
     if (issuesByModules.isEmpty()) {
       return;

@@ -161,20 +161,14 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
 
     ResourceFolderListener resourceFolderListener = new ResourceFolderListener() {
       @Override
-      public void mainResourceFoldersChanged(@NotNull AndroidFacet facet,
-                                             @NotNull List<? extends VirtualFile> folders,
-                                             @NotNull Collection<? extends VirtualFile> added,
-                                             @NotNull Collection<? extends VirtualFile> removed) {
+      public void mainResourceFoldersChanged(@NotNull AndroidFacet facet, @NotNull List<? extends VirtualFile> folders) {
         if (mySourceSet == SourceSet.MAIN) {
           updateRoots(folders);
         }
       }
 
       @Override
-      public void testResourceFoldersChanged(@NotNull AndroidFacet facet,
-                                             @NotNull List<? extends VirtualFile> folders,
-                                             @NotNull Collection<? extends VirtualFile> added,
-                                             @NotNull Collection<? extends VirtualFile> removed) {
+      public void testResourceFoldersChanged(@NotNull AndroidFacet facet, @NotNull List<? extends VirtualFile> folders) {
         if (mySourceSet == SourceSet.TEST) {
           updateRoots(folders);
         }

@@ -23,7 +23,6 @@ import com.android.tools.idea.assistant.datamodel.StepElementType;
 import com.android.tools.idea.assistant.datamodel.TutorialBundleData;
 import com.android.tools.idea.assistant.datamodel.TutorialData;
 import com.android.tools.idea.assistant.view.UIUtils;
-import com.android.tools.idea.templates.recipe.Recipe;
 import com.android.utils.FileUtils;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -699,9 +698,6 @@ public class DefaultTutorialBundle implements TutorialBundleData {
 
     @XmlAttribute(name = "highlighted") private boolean myHighlighted;
 
-    @XmlElement(name = "recipe", type = Recipe.class)
-    private Recipe myRecipe;
-
     @Override
     @NotNull
     public String getLabel() {
@@ -730,11 +726,6 @@ public class DefaultTutorialBundle implements TutorialBundleData {
     }
 
     @Override
-    public Recipe getRecipe() {
-      return myRecipe;
-    }
-
-    @Override
     public String toString() {
       return "Action{" +
              "myLabel='" + myLabel + "'" +
@@ -743,16 +734,7 @@ public class DefaultTutorialBundle implements TutorialBundleData {
              ", mySuccessMessage='" + mySuccessMessage + "'" +
              ", myEditAction='" + myEditAction + "'" +
              ", myHighlighted='" + myHighlighted + "'" +
-             ", myRecipe='" + myRecipe + "'" +
              '}';
-    }
-
-    @SuppressWarnings("unused")
-    private void afterUnmarshal(Unmarshaller u, Object parent) {
-      if (myRecipe != null) {
-        // Only a subset of instructions will be applied if this instruction is not added at the end.
-        myRecipe.addUpdateAndSyncGradleInstruction();
-      }
     }
 
     @Override

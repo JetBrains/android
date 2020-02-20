@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.cpu.atrace;
 
-import com.android.annotations.NonNull;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.cpu.CpuCapture;
@@ -24,26 +23,24 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import trebuchet.model.ProcessModel;
 
 public class AtraceCpuCapture extends CpuCapture {
-  @NonNull
+  @NotNull
   private final Map<Integer, List<SeriesData<CpuProfilerStage.ThreadState>>> myThreadStateDataSeries;
 
-  @NonNull
+  @NotNull
   private final Map<Integer, List<SeriesData<CpuThreadSliceInfo>>> myCpuThreadSliceInfoStates;
 
-  @NonNull
+  @NotNull
   private final List<SeriesData<Long>> myCpuUtilizationSeries;
 
   private final int myRenderThreadId;
   private final boolean myIsMissingData;
 
-  @NonNull
+  @NotNull
   private final AtraceFrameManager myFrameManager;
 
-  public AtraceCpuCapture(@NonNull AtraceParser parser, @NonNull AtraceFrameManager frameManager, long traceId) {
+  public AtraceCpuCapture(@NotNull AtraceParser parser, @NotNull AtraceFrameManager frameManager, long traceId) {
     super(parser, traceId, Cpu.CpuTraceType.ATRACE);
 
     myThreadStateDataSeries = parser.getThreadStateDataSeries();
@@ -102,6 +99,7 @@ public class AtraceCpuCapture extends CpuCapture {
   /**
    * @return Data series of frame perf classes sorted by frame start time.
    */
+  @NotNull
   public List<SeriesData<AtraceFrame>> getFrames(AtraceFrame.FrameThread threadType) {
     return myFrameManager.getFrames(threadType);
   }

@@ -68,7 +68,7 @@ class ConstraintSetPanel extends JPanel {
   private MTag mSelectedTag; // the Primary selection
   private MTag[] mMultiSelectedTag; // the list if you are supporting multi-select
   MotionEditorSelector mListeners;
-  private static boolean DEBUG = false;
+  private static boolean DEBUG = true;
   ArrayList<MTag> mParent; // mParent.get(0) is the direct parent
   MTag mConstraintSet; // The currently displayed constraintSet
   ArrayList<MTag> mDisplayedRows = new ArrayList<>();
@@ -382,7 +382,13 @@ class ConstraintSetPanel extends JPanel {
         String cset_id = Utils.stripID(mConstraintSet.getAttributeValue("id"));
         MTag[] sets = mConstraintSet.getChildTags("Constraint");
         String derived = mConstraintSet.getAttributeValue("deriveConstraintsFrom");
+        if (DEBUG) {
+          for (int i = 0; i < sets.length; i++) {
+            MTag set = sets[i];
+            Debug.log(i+" "+set.getTagName() + " "+ set.getTreeId());
+          }
 
+        }
         for (int i = 0; i < sets.length; i++) {
           MTag constraint = sets[i];
           Object[] row = new Object[4];

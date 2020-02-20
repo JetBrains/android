@@ -54,6 +54,7 @@ import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -175,7 +176,7 @@ public class GradleFiles {
     }
   }
 
-  private void removeChangedFiles() {
+  public void removeChangedFiles() {
     synchronized (myLock) {
       myChangedFiles.clear();
       myChangedExternalFiles.clear();
@@ -422,6 +423,11 @@ public class GradleFiles {
     }
   }
 
+  public void resetChangedFilesState() {
+    scheduleUpdateFileHashes();
+    removeChangedFiles();
+  }
+
   /**
    * Listens for GradleSync events in order to clear the files that have changed and update the
    * file hashes for each of the gradle build files.
@@ -436,9 +442,7 @@ public class GradleFiles {
       if (!project.isInitialized() && project.equals(myProject)) {
         return;
       }
-
-      scheduleUpdateFileHashes();
-      removeChangedFiles();
+      resetChangedFilesState();
     }
   }
 
@@ -539,7 +543,7 @@ public class GradleFiles {
 
       boolean foundChange = false;
       for (PsiElement element : elements) {
-        if (element == null || element instanceof PsiWhiteSpace) {
+        if (element == null || element instanceof PsiWhiteSpace || element instanceof PsiComment) {
           continue;
         }
 

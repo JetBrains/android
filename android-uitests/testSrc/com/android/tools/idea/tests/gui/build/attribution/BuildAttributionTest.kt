@@ -126,7 +126,7 @@ class BuildAttributionTest {
     // Move to Dummy plugin node using keyboard
     selectedNextNodeWithKeyStroke()
     requireOpenedPagePathAndHeader(
-      " Plugins with tasks determining this build's duration 2 warnings/ com.android.application ",
+      " Plugins with tasks determining this build's duration 2 warnings/ com.android.application",
       "com.android.application"
     )
     selectedNextNodeWithKeyStroke()

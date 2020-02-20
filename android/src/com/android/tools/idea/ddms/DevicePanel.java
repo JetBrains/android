@@ -16,13 +16,13 @@
 
 package com.android.tools.idea.ddms;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.ClientCellRenderer.ClientComparator;
 import com.android.tools.idea.ddms.DeviceRenderer.DeviceComboBoxRenderer;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.FutureCallback;
 import com.intellij.openapi.Disposable;
@@ -37,14 +37,17 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.NullableLazyValue;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.accessibility.AccessibleContextUtil;
+import java.awt.Component;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.IntStream;
+import javax.swing.JComboBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.*;
-import java.util.List;
-import java.util.stream.IntStream;
 
 public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, AndroidDebugBridge.IDebugBridgeChangeListener,
                                     AndroidDebugBridge.IClientChangeListener, Disposable {
@@ -54,6 +57,10 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
   @Nullable private AndroidDebugBridge myBridge;
 
   @NotNull private final Project myProject;
+
+  @NotNull
+  private final DeviceNamePropertiesProvider myProvider;
+
   @NotNull private final Map<String, String> myPreferredClients;
   private boolean myIgnoringActionEvents;
 
@@ -77,6 +84,7 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
               @NotNull DeviceComboBox deviceComboBox,
               @NotNull ComboBox<Client> processComboBox) {
     myProject = project;
+    myProvider = new DeviceNamePropertiesFetcher(myProject);
     myDeviceContext = deviceContext;
     myPreferredClients = new HashMap<>();
 
@@ -213,10 +221,10 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
 
   @Override
   public void dispose() {
-      AndroidDebugBridge.removeDeviceChangeListener(this);
-      AndroidDebugBridge.removeClientChangeListener(this);
-      AndroidDebugBridge.removeDebugBridgeChangeListener(this);
-      myBridge = null;
+    AndroidDebugBridge.removeDeviceChangeListener(this);
+    AndroidDebugBridge.removeClientChangeListener(this);
+    AndroidDebugBridge.removeDebugBridgeChangeListener(this);
+    myBridge = null;
 
     if (myDeviceCombo != null) {
       Disposer.dispose(myDeviceCombo);
@@ -289,12 +297,12 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
     List<IDevice> devices = Arrays.asList(myBridge.getDevices());
     devices.forEach(device -> myDeviceCombo.addItem(device));
 
-    myDeviceCombo.setSerialNumbersVisible(DeviceRenderer.shouldShowSerialNumbers(devices));
+    myDeviceCombo.setSerialNumbersVisible(DeviceRenderer.shouldShowSerialNumbers(devices, myProvider));
 
     Optional<IDevice> optionalDevice = IntStream.range(0, myDeviceCombo.getItemCount())
-                                                .mapToObj(i -> myDeviceCombo.getItemAt(i))
-                                                .filter(device -> equals(device, selectedDevice))
-                                                .findFirst();
+      .mapToObj(i -> myDeviceCombo.getItemAt(i))
+      .filter(device -> equals(device, selectedDevice))
+      .findFirst();
 
     if (optionalDevice.isPresent()) {
       IDevice device = optionalDevice.get();
@@ -370,7 +378,6 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
       clients.sort(new ClientComparator());
 
       for (Client client : clients) {
-        //noinspection unchecked
         myProcessComboBox.addItem(client);
       }
       myProcessComboBox.setSelectedItem(toSelect);
@@ -385,7 +392,7 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
   }
 
   @VisibleForTesting
-  void setIgnoringActionEvents(boolean ignoringActionEvents) {
+  void setIgnoringActionEvents(@SuppressWarnings("SameParameterValue") boolean ignoringActionEvents) {
     myIgnoringActionEvents = ignoringActionEvents;
   }
 
@@ -396,7 +403,8 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
   }
 
   @VisibleForTesting
-  void putPreferredClient(@NotNull String device, @NotNull String client) {
+  void putPreferredClient(@SuppressWarnings("SameParameterValue") @NotNull String device,
+                          @SuppressWarnings("SameParameterValue") @NotNull String client) {
     myPreferredClients.put(device, client);
   }
 }
