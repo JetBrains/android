@@ -223,10 +223,18 @@ fun RecipeExecutor.addTests(
   )
 }
 
+/**
+ * Plugin block placeholder. Used to introduce an extra space at the bottom of the block.
+ */
+fun emptyPluginsBlock() = """
+plugins {
+}
+"""
+
 fun basicStylesXml(parent: String) = """
 <resources>
     <style name="AppTheme" parent="$parent" />
-</resources> 
+</resources>
 """
 
 fun supportsImprovedTestDeps(agpVersion: GradlePluginVersion) =

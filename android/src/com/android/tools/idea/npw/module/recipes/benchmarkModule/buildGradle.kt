@@ -17,6 +17,7 @@
 package com.android.tools.idea.npw.module.recipes.benchmarkModule
 
 import com.android.ide.common.repository.GradleVersion
+import com.android.tools.idea.npw.module.recipes.emptyPluginsBlock
 import com.android.tools.idea.wizard.template.GradlePluginVersion
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.renderIf
@@ -53,6 +54,7 @@ fun buildGradle(
   }
 
   return """
+${emptyPluginsBlock()}
 
 android {
     compileSdkVersion ${buildApiString.toIntOrNull() ?: "\"$buildApiString\""}
