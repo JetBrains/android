@@ -42,11 +42,13 @@ import com.android.tools.idea.testing.AndroidGradleTests;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
+import com.intellij.idea.Bombed;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.ServiceContainerUtil;
 import java.io.File;
 import java.io.IOException;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
@@ -57,6 +59,8 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings;
 /**
  * Integration test for Gradle Sync with old versions of Android plugin.
  */
+@Bombed(year = 2021, month = Calendar.MAY, day = 20, user = "Andrei.Kuznetsov",
+  description = "Gradle 2.6 is too old to run on Java11.")
 public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase {
   private TestSettings myTestSettings;
 
