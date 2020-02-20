@@ -27,6 +27,9 @@ import com.android.tools.adtui.model.event.UserEvent;
 import com.android.tools.adtui.model.trackgroup.TrackGroupModel;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.android.tools.idea.protobuf.ByteString;
+import com.android.tools.idea.transport.EventStreamServer;
+import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.ProfilerTrackRendererType;
 import com.android.tools.profilers.Stage;
@@ -52,6 +55,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -284,6 +288,37 @@ public class CpuCaptureStage extends Stage<Timeline> {
     myMinimapModel = new CpuCaptureMinimapModel(getStudioProfilers(), capture, myTrackGroupTimeline.getViewRange());
     initTrackGroupList(myMinimapModel.getRangeSelectionModel().getSelectionRange(), capture);
     addCpuAnalysisModel(new CpuFullTraceAnalysisModel(capture, myMinimapModel.getRangeSelectionModel().getSelectionRange()));
+    if (getStudioProfilers().getSession().getPid() == 0) {
+      // For an imported traces we need to insert a CPU_TRACE event into the database. This is used by the Sessions' panel to display the
+      // correct trace type associated with the imported file.
+      insertImportedTraceEvent(capture);
+    }
+  }
+
+  private void insertImportedTraceEvent(@NotNull CpuCapture capture) {
+    Cpu.CpuTraceInfo importedTraceInfo = Cpu.CpuTraceInfo.newBuilder()
+      .setTraceId(CpuCaptureParser.IMPORTED_TRACE_ID)
+      .setFromTimestamp(TimeUnit.MICROSECONDS.toNanos((long)capture.getRange().getMin()))
+      .setToTimestamp(TimeUnit.MICROSECONDS.toNanos((long)capture.getRange().getMax()))
+      .setConfiguration(
+        Cpu.CpuTraceConfiguration
+          .newBuilder()
+          .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder().setTraceType(capture.getType())))
+      .build();
+    // TODO(b/141560550): add test when we can mock TransportService#registerStreamServer.
+    EventStreamServer streamServer =
+      getStudioProfilers().getSessionsManager().getEventStreamServer(getStudioProfilers().getSession().getStreamId());
+    if (streamServer != null) {
+      streamServer.getEventDeque().offer(
+        Common.Event.newBuilder()
+          .setGroupId(importedTraceInfo.getTraceId())
+          .setTimestamp(importedTraceInfo.getToTimestamp())
+          .setIsEnded(true)
+          .setKind(Common.Event.Kind.CPU_TRACE)
+          .setCpuTrace(
+            Cpu.CpuTraceData.newBuilder().setTraceEnded(Cpu.CpuTraceData.TraceEnded.newBuilder().setTraceInfo(importedTraceInfo)))
+          .build());
+    }
   }
 
   /**
