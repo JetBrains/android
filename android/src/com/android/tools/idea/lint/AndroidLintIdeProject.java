@@ -44,7 +44,6 @@ import com.android.tools.idea.lint.common.LintIdeProject;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.projectsystem.IdeaSourceProvider;
-import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.detector.api.Project;
@@ -71,7 +70,6 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetProperties;
 import org.jetbrains.android.facet.AndroidRootUtil;
@@ -645,7 +643,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
     public List<File> getAssetFolders() {
       if (assetFolders == null) {
         assetFolders = Lists.newArrayList();
-        for (IdeaSourceProvider provider : SourceProviderManager.getInstance(myFacet).getAllSourceProviders()) {
+        for (IdeaSourceProvider provider : SourceProviderManager.getInstance(myFacet).getCurrentAndSomeFrequentlyUsedInactiveSourceProviders()) {
           Collection<VirtualFile> dirs = provider.getAssetsDirectories();
           for (VirtualFile dir : dirs) {
             assetFolders.add(VfsUtilCore.virtualToIoFile(dir));

@@ -17,25 +17,32 @@ package com.android.tools.idea.gradle.util;
 
 import static com.android.SdkConstants.FD_GRADLE_WRAPPER;
 import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
+import static com.android.SdkConstants.FN_GRADLE_WRAPPER_UNIX;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.tools.idea.util.PropertiesFiles.savePropertiesToFile;
-import static com.intellij.openapi.util.io.FileUtil.copyDirContent;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtilRt.extensionEquals;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByURL;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_SHA_256_SUM;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.templates.TemplateManager;
+import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.util.PropertiesFiles;
+import com.android.tools.idea.wizard.template.TemplateData;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
+import com.google.common.io.Resources;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.WriteAction;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -93,27 +100,29 @@ public final class GradleWrapper {
   public static GradleWrapper create(@NotNull File projectPath, @NotNull String gradleVersion) throws IOException {
     File wrapperFolderPath = new File(projectPath, FD_GRADLE_WRAPPER);
     if (!wrapperFolderPath.isDirectory()) {
-      File srcFolderPath = new File(TemplateManager.getTemplateRootFolder(), FD_GRADLE_WRAPPER);
-      if (!srcFolderPath.exists()) {
-        for (File root : TemplateManager.getExtraTemplateRootFolders()) {
-          srcFolderPath = new File(root, FD_GRADLE_WRAPPER);
-          if (srcFolderPath.exists()) {
-            break;
-          }
-          else {
-            srcFolderPath = null;
-          }
-        }
+      VirtualFile wrapperVf = getWrapperLocation();
+      ApplicationManager.getApplication().invokeAndWait(() -> WriteAction.run(() -> TemplateUtils.copyDirectory(wrapperVf, projectPath)));
+      File gradlewDest = new File(projectPath, FN_GRADLE_WRAPPER_UNIX);
+      boolean madeExecutable = gradlewDest.setExecutable(true);
+      if (!madeExecutable) {
+        Logger.getInstance(GradleWrapper.class).warn("Unable to make gradlew executable");
       }
-      if (srcFolderPath == null) {
-        return null;
-      }
-      copyDirContent(srcFolderPath, projectPath);
     }
     File propertiesFilePath = getDefaultPropertiesFilePath(projectPath);
     GradleWrapper gradleWrapper = get(propertiesFilePath);
     gradleWrapper.updateDistributionUrl(gradleVersion);
     return gradleWrapper;
+  }
+
+  @NotNull
+  public static VirtualFile getWrapperLocation() {
+    File resource = new File("templates/project/wrapper");
+    String resourceName = "/" + resource.getPath().replace('\\', '/');
+    URL wrapperUrl = Resources.getResource(TemplateData.class, resourceName);
+    VirtualFile wrapperVf = findFileByURL(wrapperUrl);
+    assert wrapperVf != null;
+    wrapperVf.refresh(false, true);
+    return wrapperVf;
   }
 
   private GradleWrapper(@NotNull File propertiesFilePath, @Nullable Project project) {
@@ -173,7 +182,7 @@ public final class GradleWrapper {
    */
   public boolean updateDistributionUrl(@NotNull String gradleVersion) throws IOException {
     Properties properties = getProperties();
-    String distributionUrl = getDistributionUrl(gradleVersion, false);
+    String distributionUrl = getDistributionUrl(gradleVersion, true);
     String property = properties.getProperty(DISTRIBUTION_URL_PROPERTY);
     if (property != null && (property.equals(distributionUrl) || property.equals(getDistributionUrl(gradleVersion, true)))) {
       return false;

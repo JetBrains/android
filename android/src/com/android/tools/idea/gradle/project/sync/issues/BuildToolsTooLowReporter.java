@@ -52,20 +52,6 @@ class BuildToolsTooLowReporter extends SimpleDeduplicatingSyncIssueReporter {
     return TYPE_BUILD_TOOLS_TOO_LOW;
   }
 
-  @Override
-  @NotNull
-  protected OpenFileHyperlink createModuleLink(@NotNull Project project,
-                                               @NotNull Module module,
-                                               @NotNull ProjectBuildModel projectBuildModel,
-                                               @NotNull List<SyncIssue> syncIssues,
-                                               @NotNull VirtualFile buildFile) {
-    GradleBuildModel buildModel = projectBuildModel.getModuleBuildModel(buildFile);
-    PsiElement element = buildModel.android().buildToolsVersion().getPsiElement();
-    int lineNumber = getLineNumberForElement(project, element);
-
-    return new OpenFileHyperlink(buildFile.getPath(), module.getName(), lineNumber, -1);
-  }
-
   @NotNull
   @Override
   protected Object getDeduplicationKey(@NotNull SyncIssue issue) {

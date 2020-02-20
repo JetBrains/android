@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.ide.common.util.PathString
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.projectsystem.isManifestFile
 import com.android.tools.idea.util.LazyFileListenerSubscriber
 import com.android.tools.idea.util.PoliteAndroidVirtualFileListener
 import com.android.tools.idea.util.listenUntilNextSync
@@ -39,7 +40,6 @@ import com.intellij.psi.PsiDocumentManager
 import com.intellij.util.containers.TreeTraversal
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.SourceProviderManager
-import org.jetbrains.android.facet.isManifestFile
 
 /**
  * A project-wide listener that determines which modules' merged manifests are affected by VFS
@@ -72,7 +72,7 @@ class MergedManifestModificationListener(
    * @see [MergedManifestModificationTracker]
    */
   override fun isRelevant(file: VirtualFile, facet: AndroidFacet): Boolean {
-    if (file.name == SdkConstants.FN_ANDROID_MANIFEST_XML) return isManifestFile(facet, file)
+    if (file.name == SdkConstants.FN_ANDROID_MANIFEST_XML) return facet.isManifestFile(file)
 
     if (!file.isDirectory) {
       return false

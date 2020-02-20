@@ -15,16 +15,22 @@
  */
 package com.android.tools.idea.run.activity;
 
+import static com.android.tools.idea.model.AndroidManifestIndexQueryUtils.queryActivitiesFromManifestIndex;
+
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.model.ActivitiesAndAliases;
+import com.android.tools.idea.model.AndroidManifestIndex;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.intellij.execution.JavaExecutionUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.ProjectScope;
+import com.intellij.util.Function;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
@@ -59,6 +65,11 @@ public class SpecificActivityLocator extends ActivityLocator {
     return myActivityName;
   }
 
+  /**
+   * Try to query from {@link AndroidManifestIndex} if {@link AndroidManifestIndex#indexEnabled}
+   * Else it falls back to the original paths that we get from MergedManifestSnapshot
+   * @throws ActivityLocatorException if the specified activity is invalid
+   */
   @Override
   public void validate() throws ActivityLocatorException {
     if (myActivityName == null || myActivityName.isEmpty()) {
@@ -73,33 +84,74 @@ public class SpecificActivityLocator extends ActivityLocator {
     Project project = module.getProject();
     final JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
     PsiClass activityClass = facade.findClass(AndroidUtils.ACTIVITY_BASE_CLASS_NAME, ProjectScope.getAllScope(project));
+
     if (activityClass == null) {
       throw new ActivityLocatorException(AndroidBundle.message("cant.find.activity.class.error"));
     }
 
-    PsiClass c = JavaExecutionUtil.findMainClass(project, myActivityName, mySearchScope);
+    PsiClass specifiedActivityClass = JavaExecutionUtil.findMainClass(project, myActivityName, mySearchScope);
+
+    if (AndroidManifestIndex.indexEnabled()) {
+      validateBasedOnManifestIndex(activityClass, specifiedActivityClass);
+      return;
+    }
+
+    validateBasedOnMergedManifestSnapshot(activityClass, specifiedActivityClass);
+  }
+
+  private void validateBasedOnManifestIndex(@NotNull PsiClass activityClass, @Nullable PsiClass specifiedActivityClass)
+    throws ActivityLocatorException {
+    if (DumbService.isDumb(myFacet.getModule().getProject())) {
+      return;
+    }
+
+    ActivitiesAndAliases activityWrappers = queryActivitiesFromManifestIndex(myFacet);
+
+    validateHelper(activityClass, specifiedActivityClass, activityWrappers::findActivityByName, activityWrappers::findAliasByName);
+
+  }
+
+  private void validateBasedOnMergedManifestSnapshot(@NotNull PsiClass activityClass, @Nullable PsiClass specifiedActivityClass)
+    throws ActivityLocatorException {
     // If we're on EDT, use a potentially stale manifest to prevent blocking the UI while recomputing a fresh manifest.
     boolean onEdt = ApplicationManager.getApplication().isDispatchThread() && !ApplicationManager.getApplication().isUnitTestMode();
     MergedManifestSnapshot manifest = getMergedManifest(myFacet, onEdt);
-    Element element;
-    if (c == null || !c.isInheritor(activityClass, true)) {
-      element = manifest == null ? null : manifest.findActivityAlias(myActivityName);
-      if (element == null) {
+    if (manifest == null) return;
+
+    validateHelper(activityClass, specifiedActivityClass, name -> {
+      Element element = manifest.findActivity(name);
+      if (element == null) return null;
+      return DefaultActivityLocator.ActivityWrapper.get(element);
+    }, name -> {
+      Element element = manifest.findActivityAlias(name);
+      if (element == null) return null;
+      return DefaultActivityLocator.ActivityWrapper.get(element);
+    });
+  }
+
+  private void validateHelper(@NotNull PsiClass activityClass,
+                              @Nullable PsiClass specifiedActivityClass,
+                              Function<String, DefaultActivityLocator.ActivityWrapper> getActivity,
+                              Function<String, DefaultActivityLocator.ActivityWrapper> getAlias)
+    throws ActivityLocatorException {
+    DefaultActivityLocator.ActivityWrapper specifiedActivity;
+    if (specifiedActivityClass == null || !specifiedActivityClass.isInheritor(activityClass, true)) {
+      specifiedActivity = getAlias.fun(myActivityName);
+      if (specifiedActivity == null) {
         throw new ActivityLocatorException(AndroidBundle.message("not.activity.subclass.error", myActivityName));
       }
     }
     else {
       // check whether activity is declared in the manifest
-      element = manifest == null ? null : manifest.findActivity(ActivityLocatorUtils.getQualifiedActivityName(c));
-      if (element == null) {
-        throw new ActivityLocatorException(AndroidBundle.message("activity.not.declared.in.manifest", c.getName()));
+      String qualifiedActivityName = ActivityLocatorUtils.getQualifiedActivityName(specifiedActivityClass);
+      specifiedActivity = getActivity.fun(qualifiedActivityName);
+      if (specifiedActivity == null) {
+        throw new ActivityLocatorException(AndroidBundle.message("activity.not.declared.in.manifest", specifiedActivityClass.getName()));
       }
     }
 
-    DefaultActivityLocator.ActivityWrapper activity = DefaultActivityLocator.ActivityWrapper.get(element);
-
     // if the activity is not explicitly exported, and it doesn't have an intent filter, then it cannot be launched
-    if (!activity.isLogicallyExported()) {
+    if (!specifiedActivity.isLogicallyExported()) {
       throw new ActivityLocatorException(AndroidBundle.message("specific.activity.not.launchable.error"));
     }
   }

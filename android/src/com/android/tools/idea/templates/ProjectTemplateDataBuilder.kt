@@ -49,7 +49,7 @@ val log: Logger get() = logger<ProjectTemplateDataBuilder>()
  *
  * Extracts information from various data sources.
  */
-class ProjectTemplateDataBuilder(private val isNew: Boolean) {
+class ProjectTemplateDataBuilder(private val isNewProject: Boolean) {
   var androidXSupport: Boolean? = null
   var gradlePluginVersion: GradleVersion? = null
   var javaVersion: JavaVersion? = null
@@ -69,7 +69,7 @@ class ProjectTemplateDataBuilder(private val isNew: Boolean) {
     gradlePluginVersion = determineGradlePluginVersion(project)
     javaVersion = determineJavaVersion(project)
     // If we create a new project, then we have a checkbox for androidX support
-    if (!isNew) {
+    if (!isNewProject) {
       androidXSupport = project.isAndroidx()
     }
   }
@@ -128,7 +128,7 @@ class ProjectTemplateDataBuilder(private val isNew: Boolean) {
   /** Find the most appropriated Gradle Plugin version for the specified project. */
   private fun determineGradlePluginVersion(project: Project?): GradleVersion {
     val defaultGradleVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
-    if (project == null || isNew) {
+    if (project == null || isNewProject) {
       return defaultGradleVersion
     }
 
@@ -149,7 +149,8 @@ class ProjectTemplateDataBuilder(private val isNew: Boolean) {
     applicationPackage,
     includedFormFactorNames,
     debugKeyStoreSha1,
-    overridePathCheck
+    overridePathCheck,
+    isNewProject
   )
 }
 

@@ -19,6 +19,8 @@ import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.common.surface.InteractionEvent;
+import com.android.tools.idea.common.surface.KeyPressedEvent;
+import com.android.tools.idea.common.surface.KeyReleasedEvent;
 import com.android.tools.idea.common.surface.MouseDraggedEvent;
 import com.android.tools.idea.common.surface.MousePressedEvent;
 import com.android.tools.idea.common.surface.MouseReleasedEvent;
@@ -87,6 +89,12 @@ public class SceneInteraction extends Interaction {
       int mouseY = mouseEvent.getY();
       mySceneView.getContext().setMouseLocation(mouseX, mouseY);
       update(mouseX, mouseY, mouseEvent.getModifiersEx());
+    }
+    else if (event instanceof KeyPressedEvent || event instanceof KeyReleasedEvent) {
+      // Since holding some of these keys might change some visuals, repaint.
+      Scene scene = mySceneView.getScene();
+      scene.needsRebuildList();
+      scene.repaint();
     }
   }
 

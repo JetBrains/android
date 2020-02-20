@@ -36,9 +36,7 @@ import com.android.tools.idea.npw.model.NewProjectModel;
 import com.android.tools.idea.npw.module.AndroidApiLevelComboBox;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.platform.Language;
-import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.npw.template.components.LanguageComboProvider;
-import com.android.tools.idea.npw.ui.ActivityGallery;
 import com.android.tools.idea.npw.ui.TemplateIcon;
 import com.android.tools.idea.npw.validator.ModuleValidator;
 import com.android.tools.idea.observable.BindingsManager;
@@ -66,16 +64,16 @@ import com.intellij.ui.ContextHelpLabel;
 import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
+import icons.AndroidIcons;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.Icon;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import org.jetbrains.annotations.NotNull;
@@ -215,7 +213,12 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
 
     myAndroidVersionsInfo.loadRemoteTargetVersions(MOBILE, LOWEST_ACTIVE_API, items -> myApiLevelCombo.init(MOBILE, items));
 
-    setTemplateThumbnail(new TemplateHandle(Objects.requireNonNull(getModel().getTemplateFile())));
+    Icon icon = getModel().isInstant() ? AndroidIcons.Wizards.InstantDynamicFeatureModule : AndroidIcons.Wizards.DynamicFeatureModule;
+    TemplateIcon templateIcon = new TemplateIcon(icon);
+    templateIcon.setHeight(256);
+    myTemplateIconTitle.setIcon(templateIcon);
+    myTemplateIconTitle.setText("<html><center>" + getModel().templateName + "</center></html>");
+    myTemplateIconDetail.setText("<html><center>" + getModel().templateDescription + "</center></html>");
   }
 
   @Override
@@ -246,16 +249,6 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
   @Override
   protected ObservableBool canGoForward() {
     return myValidatorPanel.hasErrors().not();
-  }
-
-  private void setTemplateThumbnail(@Nullable TemplateHandle templateHandle) {
-    TemplateIcon icon = ActivityGallery.getTemplateIcon(templateHandle);
-    if (icon != null) {
-      icon.setHeight(256);
-      myTemplateIconTitle.setIcon(icon);
-    }
-    myTemplateIconTitle.setText("<html><center>" + ActivityGallery.getTemplateImageLabel(templateHandle) + "</center></html>");
-    myTemplateIconDetail.setText("<html><center>" + ActivityGallery.getTemplateDescription(templateHandle) + "</center></html>");
   }
 
   private void createUIComponents() {

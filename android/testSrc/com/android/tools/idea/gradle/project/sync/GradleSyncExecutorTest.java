@@ -17,8 +17,6 @@ package com.android.tools.idea.gradle.project.sync;
 
 import static com.android.builder.model.SyncIssue.TYPE_MISSING_SDK_PACKAGE;
 import static com.android.builder.model.SyncIssue.TYPE_SDK_NOT_SET;
-import static com.android.tools.idea.gradle.project.sync.setup.module.android.AndroidModuleDependenciesSetupTest.getLibraryTableModeCount;
-import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.android.tools.idea.testing.TestProjectPaths.NEW_SYNC_KOTLIN_TEST;
 import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES;
 import static com.google.common.truth.Truth.assertThat;
@@ -30,12 +28,12 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
-import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -88,17 +86,6 @@ public class GradleSyncExecutorTest extends GradleSyncIntegrationTestCase {
     assertContainsJavaModels(javalib1);
   }
 
-  public void testLibrariesAndProjectRootsAreNotRecreatedOnSync() throws Exception {
-    loadSimpleApplication();
-
-    long libraryTableModCount = getLibraryTableModeCount(getProject());
-
-    // Sync again
-    requestSyncAndWait();
-
-    assertEquals(libraryTableModCount, getLibraryTableModeCount(getProject()));
-  }
-
   // Ignored until ag/129043402 is fixed. This causes a IllegalStateException in AndroidUnitTest.java within the AndroidGradlePlugin.
   public void /*test*/MissingSdkPackageGiveCorrectError() throws Exception {
     prepareProjectForImport(NEW_SYNC_KOTLIN_TEST);
@@ -111,9 +98,9 @@ public class GradleSyncExecutorTest extends GradleSyncIntegrationTestCase {
     String failure = requestSyncAndGetExpectedFailure(request -> request.skipPreSyncChecks = true);
     assertThat(failure).contains("Sync issues found!");
 
-    Collection<SyncIssue> syncIssues = SyncIssues.forModule(getModule("app"));
+    Collection<SyncIssueData> syncIssues = SyncIssues.forModule(getModule("app"));
     assertThat(syncIssues).hasSize(2);
-    SyncIssue syncIssue = syncIssues.iterator().next();
+    SyncIssueData syncIssue = syncIssues.iterator().next();
     assertThat(syncIssue.getType()).isAnyOf(TYPE_SDK_NOT_SET, TYPE_MISSING_SDK_PACKAGE);
     syncIssue = syncIssues.iterator().next();
     assertThat(syncIssue.getType()).isAnyOf(TYPE_SDK_NOT_SET, TYPE_MISSING_SDK_PACKAGE);

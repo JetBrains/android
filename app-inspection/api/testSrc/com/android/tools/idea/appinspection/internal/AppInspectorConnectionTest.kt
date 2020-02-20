@@ -22,7 +22,6 @@ import com.android.tools.idea.appinspection.api.TestInspectorCommandHandler
 import com.android.tools.idea.appinspection.test.ASYNC_TIMEOUT_MS
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createRawAppInspectionEvent
-import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createRawEvent
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
@@ -43,7 +42,7 @@ import java.util.concurrent.TimeUnit
 
 class AppInspectorConnectionTest {
   private val timer = FakeTimer()
-  private val transportService = FakeTransportService(timer)
+  private val transportService = FakeTransportService(timer, false)
 
   private val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("AppInspectorConnectionTest", transportService, transportService)!!
   private val appInspectionRule = AppInspectionServiceRule(timer, transportService, grpcServerRule)
@@ -210,7 +209,6 @@ class AppInspectorConnectionTest {
       Event.newBuilder()
         .setKind(PROCESS)
         .setIsEnded(true)
-        .setTimestamp(timer.currentTimeNs)
         .build()
     )
 
@@ -280,30 +278,6 @@ class AppInspectorConnectionTest {
   }
 
   @Test
-  fun receiveEventsInChronologicalOrder() {
-    val latch = CountDownLatch(2)
-    val listener = object : AppInspectionServiceRule.TestInspectorEventListener() {
-      override fun onRawEvent(eventData: ByteArray) {
-        super.onRawEvent(eventData)
-        latch.countDown()
-      }
-    }
-
-    appInspectionRule.addEvent(createRawEvent(ByteString.copyFromUtf8("second"), 3))
-    appInspectionRule.addEvent(createRawEvent(ByteString.copyFromUtf8("first"), 2))
-
-    appInspectionRule.launchInspectorConnection(
-      inspectorId = INSPECTOR_ID,
-      eventListener = listener
-    )
-
-    latch.await()
-
-    assertThat(String(listener.rawEvents[0])).isEqualTo("first")
-    assertThat(String(listener.rawEvents[1])).isEqualTo("second")
-  }
-
-  @Test
   fun connectionDoesNotReceiveStaleEvents() {
     val latch = CountDownLatch(1)
     val staleEventData = byteArrayOf(0x12, 0x15)
@@ -362,5 +336,33 @@ class AppInspectorConnectionTest {
     assertThat(listener.rawEvents).hasSize(2)
     assertThat(listener.rawEvents[0]).isEqualTo(firstEventData)
     assertThat(listener.rawEvents[1]).isEqualTo(secondEventData)
+  }
+
+  @Test
+  fun cancelRawCommandSendsCancellationCommand() {
+    val messenger = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
+
+    val cancelledLatch = CountDownLatch(1)
+    var toBeCancelledCommandId: Int? = null
+    var cancelledCommandId: Int? = null
+
+    // Override App Inspection command handler to not respond to any commands, so the test can have control over timing of events.
+    transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, object : CommandHandler(timer) {
+      override fun handleCommand(command: Commands.Command, events: MutableList<Event>) {
+        if (command.appInspectionCommand.hasRawInspectorCommand()) {
+          toBeCancelledCommandId = command.appInspectionCommand.commandId
+        } else if (command.appInspectionCommand.hasCancellationCommand()) {
+          cancelledCommandId = command.appInspectionCommand.cancellationCommand.cancelledCommandId
+          cancelledLatch.countDown()
+        }
+      }
+    })
+
+    messenger.sendRawCommand(ByteString.copyFromUtf8("Blah").toByteArray()).cancel(false)
+
+    cancelledLatch.await()
+
+    assertThat(toBeCancelledCommandId).isNotNull()
+    assertThat(toBeCancelledCommandId).isEqualTo(cancelledCommandId)
   }
 }

@@ -18,11 +18,11 @@ package com.android.tools.idea.databinding.finders
 import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.databinding.module.ModuleDataBinding
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClass
 import com.intellij.psi.ResolveScopeEnlarger
@@ -54,31 +54,39 @@ class BindingScopeEnlarger : ResolveScopeEnlarger() {
     val module = facet.module
     val project = module.project
     return CachedValuesManager.getManager(project).getCachedValue(module) {
-      val lightClasses = mutableListOf<PsiClass>()
-
-      val moduleDataBinding = ModuleDataBinding.getInstance(facet)
-
-      if (DataBindingUtil.isDataBindingEnabled(facet)) {
-        moduleDataBinding.lightBrClass?.let { lightClasses.add(it) }
-        moduleDataBinding.lightDataBindingComponentClass?.let { lightClasses.add(it) }
-      }
-
-      lightClasses.addAll(BindingClassFinder.findAllBindingClasses(facet))
-
-      // Light classes don't exist on disk, so you have to use their view provider to get a
-      // corresponding virtual file. This same virtual file should be used by finders to verify
-      // that classes they are returning belong to the current scope.
-      val virtualFiles = lightClasses.map { it.containingFile!!.viewProvider.virtualFile }
-      val localScope = GlobalSearchScope.filesWithoutLibrariesScope(project, virtualFiles)
-
-      val scopeIncludingDeps = ModuleRootManager.getInstance(module)
-        .getDependencies(false)
+      val localScope = facet.getLocalBindingScope()
+      val scopeIncludingDeps = module.getModuleSystem()
+        .getResourceModuleDependencies()
         .mapNotNull { module -> module.androidFacet }
-        .mapNotNull { facet -> getAdditionalResolveScope(facet) }
+        .map(AndroidFacet::getLocalBindingScope)
         .fold(localScope) { scopeAccum, depScope -> scopeAccum.union(depScope) }
 
       CachedValueProvider.Result.create(scopeIncludingDeps, PsiModificationTracker.MODIFICATION_COUNT)
     }
+  }
+}
+
+private fun AndroidFacet.getLocalBindingScope(): GlobalSearchScope {
+  val module = module
+  val project = module.project
+  return CachedValuesManager.getManager(project).getCachedValue(module) {
+    val lightClasses = mutableListOf<PsiClass>()
+
+    val moduleDataBinding = ModuleDataBinding.getInstance(this)
+
+    if (DataBindingUtil.isDataBindingEnabled(this)) {
+      moduleDataBinding.lightBrClass?.let { lightClasses.add(it) }
+      moduleDataBinding.lightDataBindingComponentClass?.let { lightClasses.add(it) }
+    }
+
+    lightClasses.addAll(BindingClassFinder.findAllBindingClasses(this))
+
+    // Light classes don't exist on disk, so you have to use their view provider to get a
+    // corresponding virtual file. This same virtual file should be used by finders to verify
+    // that classes they are returning belong to the current scope.
+    val virtualFiles = lightClasses.map { it.containingFile!!.viewProvider.virtualFile }
+    val localScope = GlobalSearchScope.filesWithoutLibrariesScope(project, virtualFiles)
+    CachedValueProvider.Result.create(localScope, PsiModificationTracker.MODIFICATION_COUNT)
   }
 }
 

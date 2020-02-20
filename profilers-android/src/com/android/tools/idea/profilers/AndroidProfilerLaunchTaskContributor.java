@@ -409,9 +409,8 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
             window.setShowStripeButton(true);
 
             String deviceName = AndroidProfilerToolWindow.getDeviceDisplayName(device);
-            AndroidProfilerToolWindow.PreferredProcessInfo preferredProcessInfo =
-              new AndroidProfilerToolWindow.PreferredProcessInfo(deviceName, myTargetProcessName,
-                                                                 p -> p.getStartTimestampNs() >= currentDeviceTimeNs);
+            PreferredProcessInfo preferredProcessInfo =
+              new PreferredProcessInfo(deviceName, myTargetProcessName, p -> p.getStartTimestampNs() >= currentDeviceTimeNs);
             // If the window is currently not shown, either if the users click on Run/Debug or if they manually collapse/hide the window,
             // then we shouldn't start profiling the launched app.
             boolean profileStarted = false;

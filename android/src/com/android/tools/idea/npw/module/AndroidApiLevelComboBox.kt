@@ -18,7 +18,6 @@ package com.android.tools.idea.npw.module
 import com.android.sdklib.repository.targets.AddonTarget
 import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo.VersionItem
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_MIN_API
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.application.ApplicationManager
 import java.awt.event.ItemEvent
@@ -36,7 +35,7 @@ class AndroidApiLevelComboBox : JComboBox<VersionItem?>() {
   fun init(ff: FormFactor, items: List<VersionItem>) {
     ApplicationManager.getApplication().assertIsDispatchThread()
     formFactor = ff
-    name = ff.id + ".minSdk" // Name used for testing
+    name = "minSdkComboBox" // Name used for testing
 
     val selectedItem = selectedItem
     removeItemListener(itemListener)
@@ -74,4 +73,4 @@ class AndroidApiLevelComboBox : JComboBox<VersionItem?>() {
   }
 }
 
-fun getPropertiesComponentMinSdkKey(formFactor: FormFactor): String = formFactor.id + ATTR_MIN_API
+fun getPropertiesComponentMinSdkKey(formFactor: FormFactor): String = formFactor.id + "minApi"

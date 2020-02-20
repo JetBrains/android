@@ -56,7 +56,8 @@ object NavModelBuilderUtil {
             facet: AndroidFacet,
             fixture: JavaCodeInsightTestFixture,
             f: () -> ComponentDescriptor,
-            path: String = "navigation"): ModelBuilder {
+            path: String = "navigation",
+            extentSize: Dimension = Dimension(500, 500)): ModelBuilder {
     val managerFactory = Function<SyncNlModel, SceneManager> { model ->
       val surface = model.surface as NavDesignSurface
 
@@ -68,7 +69,7 @@ object NavModelBuilderUtil {
       }
 
       `when`<NlComponent>(surface.currentNavigation).then { model.components[0] }
-      `when`(surface.extentSize).thenReturn(Dimension(500, 500))
+      `when`(surface.extentSize).thenReturn(extentSize)
       `when`(surface.scrollPosition).thenAnswer { Point(0, 0) }
 
       val sceneView = mock(SceneView::class.java)

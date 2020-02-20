@@ -61,11 +61,6 @@ public final class StudioFlags {
   //region New Project Wizard
   private static final FlagGroup NPW = new FlagGroup(FLAGS, "npw", "New Project Wizard");
 
-  public static final Flag<Boolean> NPW_DUMP_TEMPLATE_VARS = Flag.create(
-    NPW, "dump.template.vars", "Dump template variables to a scratch file",
-    "Dump the variables used in creating a template to a scrach file that is opened after creating the project.",
-    false);
-
   public static final Flag<Boolean> NPW_FIRST_RUN_WIZARD = Flag.create(
     NPW, "first.run.wizard", "Show new Welcome Wizard",
     "Show new version of the Welcome Wizard when Studio starts",
@@ -79,16 +74,6 @@ public final class StudioFlags {
   public static final Flag<Boolean> NPW_SHOW_JDK_STEP = Flag.create(
     NPW, "first.run.jdk.step", "Show JDK setup step",
     "Show JDK Setup Step in Welcome Wizard",
-    true);
-
-  public static final Flag<Boolean> NPW_NEW_MODULE_TEMPLATES = Flag.create(
-    NPW, "new.module.templates", "Use new module templates",
-    "Use the new Kotlin-based template system for module templates over the old Freemarker system when it is available.",
-    true);
-
-  public static final Flag<Boolean> NPW_NEW_ACTIVITY_TEMPLATES = Flag.create(
-    NPW, "new.activity.templates", "Use new activity templates",
-    "Use the new Kotlin-based template system for activity templates over the old Freemarker system when it is available .",
     true);
 
   public static final Flag<Boolean> NPW_SHOW_FRAGMENT_GALLERY = Flag.create(
@@ -178,6 +163,36 @@ public final class StudioFlags {
     PROFILER, "custom.event.visualization", "Enable Profiler Custom Event Visualization",
     "When enabled, profiler will track and display events defined through developer APIs",
     false);
+
+  public static final Flag<Boolean> PROFILER_MEMORY_COLOR_BARS_BY_PERCENTAGE = Flag.create(
+    PROFILER, "memory.ui.bars.color", "Indicate class's percentage contribution",
+    "In classifier view, paint the statistics for each class by their relative contributions to the whole",
+    false);
+
+  public static final Flag<Boolean> PROFILER_MEMORY_HEAP_DUMP_SEPARATE = Flag.create(
+    PROFILER, "memory.ui.heapdump.separate", "Show heap dump in its own page",
+    "Show heap dump in a separate frame that takes up the entire window",
+    false);
+
+  public static final Flag<Boolean> PROFILER_MEMORY_FIELDS_IN_DETAIL_VIEW = Flag.create(
+    PROFILER, "memory.ui.details.fields", "Show instance fields in detail view",
+    "Show an instance's fields in the detail view. The class-set view only shows the list of instances.",
+    false);
+
+  public static final Flag<Boolean> PROFILER_SUMMARY_STATS = Flag.create(
+    PROFILER, "memory.ui.stats", "Show summary statistics",
+    "Show summary statistics on the top",
+    false);
+
+  public static final Flag<Boolean> PROFILER_LEAKS_ALWAYS = Flag.create(
+    PROFILER, "memory.ui.leaks.always", "Always detect Activity/Fragment leak check",
+    "Always check for Activity/Fragment leaks and display warnings if they exist",
+    false);
+
+  public static final Flag<Boolean> PROFILER_NEW_TOOLBAR = Flag.create(
+    PROFILER, "memory.ui.toolbar.new", "Show all filtering tools in toolbar",
+    "Show all filters such as \"Leaks\", \"Projects\", and custom search in toolbar",
+    false);
   //endregion
 
   //region ML Kit
@@ -188,7 +203,8 @@ public final class StudioFlags {
     false);
   public static final Flag<Boolean> MLKIT_LIGHT_CLASSES = Flag.create(
     MLKIT, "lightclasses", "Enable light model classes generation",
-    "When enabled, light model classes will be generated for each recognized TFLite model file.",
+    "When enabled, light model classes will be generated for each recognized TFLite model file. Please invalidates file " +
+    "caches after enabling (File -> Invalidate Caches...) in order to reindex model files.",
     false);
   //endregion
 
@@ -261,6 +277,11 @@ public final class StudioFlags {
     "Log in the IDEA log the messages coming from Java and native code of Layoutlib Native.",
     false);
 
+  public static final Flag<Boolean> NELE_SCENEVIEW_TOP_TOOLBAR = Flag.create(
+    NELE, "sceneview.top.toolbar", "Enable the per SceneView top toolbar.",
+    "Enable the per SceneView top toolbar that displays the SceneView contextual actions.",
+    false);
+
   private static final FlagGroup ASSISTANT = new FlagGroup(FLAGS, "assistant", "Assistants");
   public static final Flag<Boolean> CONNECTION_ASSISTANT_ENABLED = Flag.create(
     ASSISTANT, "connection.enabled", "Enable the connection assistant",
@@ -280,7 +301,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_NAV_EDITOR_ASSISTANT = Flag.create(
     ASSISTANT, "layout.editor.help.naveditor", "Display Help for Navigation Editor",
     "If enabled, the assistant panel will display helpful guide on using the Navigation Editor.",
-    false);
+    true);
 
   public static final Flag<Boolean> NELE_NEW_PROPERTY_PANEL = Flag.create(
     NELE, "new.property", "Enable the new Property Panel",
@@ -342,6 +363,13 @@ public final class StudioFlags {
     "When you right click recycler view in layout editor, you can now see \"Generate Adapter\" " +
     "that takes you through setup wizard",
     false);
+
+  public static final Flag<Boolean> NELE_CUSTOM_SHORTCUT_KEYMAP = Flag.create(
+    NELE, "custom.shortcut.keymap", "Design Tool Custom Shortcut",
+    "Make the shortcuts of design tools configurable. The shortcut keymap can be changed in Preferences -> Keymap -> Android Design" +
+    " Tools",
+    true
+  );
   //endregion
 
   //region Navigation Editor
@@ -358,6 +386,11 @@ public final class StudioFlags {
     NAV_EDITOR, "dynamic.support", "Support for Dynamic Feature Modules",
     "Support for Dynamic Feature Modules",
     true);
+
+  public static final Flag<Boolean> NAV_SAFE_ARGS_SUPPORT = Flag.create(
+    NAV_EDITOR, "safe.args.enabled", "Enable support for Safe Args",
+    "Generate in-memory Safe Args classes if the current module is using the feature.",
+    false);
   //endregion
 
   //region Resource Manager
@@ -582,7 +615,10 @@ public final class StudioFlags {
 
   public enum LayoutXmlMode {
     DEFAULT,
-    NO_DOM_EXTENDER
+    /** Don't run AndroidDomExtender at all, to see how other parts of the XML stack work. */
+    NO_DOM_EXTENDER,
+    /** Don't use TagToClassMapper when computing tag attributes in AttributeProcessingUtil. */
+    ATTRIBUTES_FROM_STYLEABLES,
   }
 
   public static final Flag<LayoutXmlMode> LAYOUT_XML_MODE = Flag.create(
@@ -748,7 +784,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOSE_PREVIEW_RUN_CONFIGURATION = Flag.create(
     COMPOSE, "preview.run.configuration", "Enable running Compose Previews on device/emulator",
     "If enabled, it will be possible to create run configurations that launch a Compose Preview directly to the device/emulator.",
-    false);
+    true);
 
   public static final Flag<Boolean> COMPOSE_EDITOR_SUPPORT = Flag.create(
     COMPOSE, "editor",

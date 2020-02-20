@@ -17,48 +17,39 @@ package com.android.tools.idea.material.icons
 
 import com.android.tools.idea.downloads.DownloadService
 import com.android.tools.idea.material.icons.MaterialIconsUtils.METADATA_FILE_NAME
-import com.intellij.openapi.diagnostic.Logger
-import java.io.BufferedReader
 import java.io.File
-import java.io.InputStreamReader
 import java.net.URL
 
-private const val METADATA_URL = "http://fonts.google.com/metadata/icons"
+private const val METADATA_DOWNLOAD_URL = "http://fonts.google.com/metadata/icons"
 private const val EXISTING_METADATA_FILE_NAME = METADATA_FILE_NAME
 private const val DOWNLOADED_METADATA_FILE_NAME = "icons_metadata_temp.txt"
 
-private val LOG = Logger.getInstance(MaterialIconsMetadataDownloadService::class.java)
-
 /**
- * Downloads the most recent Metadata for Material Icons from [METADATA_URL].
- *
- * TODO(141628234): Wrap in application service, so that it doesn't download the metadata file every time
+ * Downloads the most recent Metadata for Material Icons from [METADATA_DOWNLOAD_URL].
  *
  * @param sdkTargetPath File path where the metadata file will be downloaded
  * @param existingMetadataUrl URL for existing metadata to use as fallback
- * @param metadataLoadedCallback Callback called when download is finished
  */
 class MaterialIconsMetadataDownloadService(
   sdkTargetPath: File,
-  existingMetadataUrl: URL,
-  private val metadataLoadedCallback: (MaterialIconsMetadata?) -> Unit
+  existingMetadataUrl: URL
 ) : DownloadService(
   "Material Icons Metadata Downloader",
-  METADATA_URL,
+  METADATA_DOWNLOAD_URL,
   existingMetadataUrl,
   sdkTargetPath,
   DOWNLOADED_METADATA_FILE_NAME,
   EXISTING_METADATA_FILE_NAME
 ) {
 
+  @Volatile
+  private var latestMetadataUrl: URL = existingMetadataUrl
+
+  fun getLatestMetadataUrl(): URL {
+    return latestMetadataUrl
+  }
+
   override fun loadFromFile(url: URL) {
-    try {
-      val reader = BufferedReader(InputStreamReader(url.openStream()))
-      metadataLoadedCallback(MaterialIconsMetadata.parse(reader))
-    }
-    catch (e: Exception) {
-      LOG.error("Failed to parse downloaded metadata file.", e)
-      metadataLoadedCallback(null)
-    }
+    latestMetadataUrl = url
   }
 }

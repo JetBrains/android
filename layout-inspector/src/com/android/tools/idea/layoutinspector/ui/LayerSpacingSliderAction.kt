@@ -21,11 +21,8 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
-import com.intellij.openapi.application.ApplicationManager
+import com.intellij.util.ui.JBUI
 import java.awt.FlowLayout
-import java.awt.event.ComponentAdapter
-import java.awt.event.ComponentEvent
-import java.awt.event.ComponentListener
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -44,7 +41,7 @@ object LayerSpacingSliderAction : AnAction(), CustomComponentAction {
   }
 
   override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
-    val panel = JPanel(FlowLayout())
+    val panel = JPanel(FlowLayout(FlowLayout.CENTER, JBUI.scale(5), 0))
     panel.add(JLabel("Layer Spacing:"))
     val slider = JSlider(JSlider.HORIZONTAL, 0, MAX_LAYER_SPACING, INITIAL_LAYER_SPACING)
     slider.addChangeListener {

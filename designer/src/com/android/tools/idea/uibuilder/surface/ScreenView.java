@@ -68,7 +68,7 @@ public class ScreenView extends ScreenViewBase {
 
   @NotNull
   @Override
-  public Dimension getPreferredSize(@Nullable Dimension dimension) {
+  public Dimension getContentSize(@Nullable Dimension dimension) {
     if (myUseImageSize) {
       RenderResult result = getSceneManager().getRenderResult();
       if (result != null && result.hasImage()) {
@@ -81,7 +81,7 @@ public class ScreenView extends ScreenViewBase {
         return dimension;
       }
     }
-    return super.getPreferredSize(dimension);
+    return super.getContentSize(dimension);
   }
 
   @NotNull
@@ -91,9 +91,6 @@ public class ScreenView extends ScreenViewBase {
 
     if (myHasBorderLayer) {
       builder.add(new BorderLayer(this));
-    }
-    if (getSurface().isShowModelNames()) {
-      builder.add(new ModelNameLayer(this));
     }
     builder.add(new ScreenViewLayer(this));
 

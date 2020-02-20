@@ -31,16 +31,15 @@ import com.android.tools.idea.naveditor.scene.HEADER_TEXT_PADDING
 import com.android.tools.idea.naveditor.scene.NavColors.SUBDUED_TEXT
 import com.android.tools.idea.naveditor.scene.makeDrawImageCommand
 import com.android.tools.idea.naveditor.scene.scaledFont
-import com.google.common.annotations.VisibleForTesting
 import icons.StudioIcons.NavEditor.Surface.DEEPLINK
 import icons.StudioIcons.NavEditor.Surface.START_DESTINATION
 import java.awt.Font
 
-class DrawHeader(@VisibleForTesting val rectangle: SwingRectangle,
-                 @VisibleForTesting val scale: Scale,
-                 @VisibleForTesting val text: String,
-                 @VisibleForTesting val isStart: Boolean,
-                 @VisibleForTesting val hasDeepLink: Boolean) : CompositeDrawCommand(COMPONENT_LEVEL) {
+class DrawHeader(private val rectangle: SwingRectangle,
+                 private val scale: Scale,
+                 private val text: String,
+                 private val isStart: Boolean,
+                 private val hasDeepLink: Boolean) : CompositeDrawCommand(COMPONENT_LEVEL) {
 
   constructor(serialized: String) : this(parse(serialized, 5))
 

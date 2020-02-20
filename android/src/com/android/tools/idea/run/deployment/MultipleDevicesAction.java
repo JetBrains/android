@@ -25,7 +25,6 @@ import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import java.util.Collection;
 import java.util.function.Function;
@@ -43,23 +42,21 @@ final class MultipleDevicesAction extends AnAction {
   private final Function<Project, RunnerAndConfigurationSettings> myGetSelectedConfiguration;
 
   @NotNull
-  private final Function<Project, Collection<Device>> myGetDevices;
+  private final Function<Project, Collection<Device>> myGetSelectedDevices;
 
   MultipleDevicesAction(@NotNull DeviceAndSnapshotComboBoxAction comboBoxAction) {
-    this(comboBoxAction,
-         project -> RunManager.getInstance(project).getSelectedConfiguration(),
-         project -> ServiceManager.getService(project, AsyncDevicesGetter.class).get());
+    this(comboBoxAction, project -> RunManager.getInstance(project).getSelectedConfiguration(), ModifyDeviceSetDialog::getSelectedDevices);
   }
 
   @VisibleForTesting
   MultipleDevicesAction(@NotNull DeviceAndSnapshotComboBoxAction comboBoxAction,
                         @NotNull Function<Project, RunnerAndConfigurationSettings> getSelectedConfiguration,
-                        @NotNull Function<Project, Collection<Device>> getDevices) {
+                        @NotNull Function<Project, Collection<Device>> getSelectedDevices) {
     super("Multiple Devices");
 
     myComboBoxAction = comboBoxAction;
     myGetSelectedConfiguration = getSelectedConfiguration;
-    myGetDevices = getDevices;
+    myGetSelectedDevices = getSelectedDevices;
   }
 
   @Override
@@ -84,7 +81,7 @@ final class MultipleDevicesAction extends AnAction {
       return;
     }
 
-    if (myGetDevices.apply(project).isEmpty()) {
+    if (myGetSelectedDevices.apply(project).isEmpty()) {
       presentation.setEnabled(false);
       return;
     }

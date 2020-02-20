@@ -18,32 +18,26 @@ package com.android.tools.idea.appinspection.ide.model
 import com.android.tools.adtui.model.stdui.DefaultCommonComboBoxModel
 import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
 import com.android.tools.idea.appinspection.api.TransportProcessDescriptor
-import com.android.tools.idea.appinspection.ide.AppInspectionHostService
-import com.google.common.annotations.VisibleForTesting
 import com.intellij.util.concurrency.AppExecutorUtil
 
 //TODO(b/148546243): separate view and model code into independent modules.
-class AppInspectionProcessesComboBoxModel private constructor() : DefaultCommonComboBoxModel<TransportProcessDescriptor>("") {
+class AppInspectionProcessesComboBoxModel(appInspectionDiscoveryHost: AppInspectionDiscoveryHost)
+  : DefaultCommonComboBoxModel<TransportProcessDescriptor>("") {
   override var editable = false
 
-  companion object {
-    fun newInstance() = newInstance(AppInspectionHostService.instance.discoveryHost)
+  init {
+    appInspectionDiscoveryHost.addProcessListener(
+      AppExecutorUtil.getAppScheduledExecutorService(),
+      object : AppInspectionDiscoveryHost.AppInspectionProcessListener {
+        override fun onProcessConnected(descriptor: TransportProcessDescriptor) {
+          addElement(descriptor)
+          selectedItem = descriptor
+        }
 
-    @VisibleForTesting
-    fun newInstance(discoveryHost: AppInspectionDiscoveryHost): AppInspectionProcessesComboBoxModel {
-      val model = AppInspectionProcessesComboBoxModel()
-      discoveryHost.addProcessListener(
-        AppExecutorUtil.getAppScheduledExecutorService(),
-        object : AppInspectionDiscoveryHost.AppInspectionProcessListener {
-          override fun onProcessConnected(descriptor: TransportProcessDescriptor) {
-            model.addElement(descriptor)
-          }
-          override fun onProcessDisconnected(descriptor: TransportProcessDescriptor) {
-            model.removeElement(descriptor)
-          }
-        })
-      return model
-    }
+        override fun onProcessDisconnected(descriptor: TransportProcessDescriptor) {
+          removeElement(descriptor)
+        }
+      })
   }
 
   override fun getSelectedItem() = super.getSelectedItem() ?: "No Inspection Target Available"

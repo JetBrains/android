@@ -38,27 +38,6 @@ public class DeprecatedConfigurationReporter extends SimpleDeduplicatingSyncIssu
 
   @Override
   @NotNull
-  protected OpenFileHyperlink createModuleLink(@NotNull Project project,
-                                               @NotNull Module module,
-                                               @NotNull ProjectBuildModel projectBuildModel,
-                                               @NotNull List<SyncIssue> syncIssues,
-                                               @NotNull VirtualFile buildFile) {
-    assert !syncIssues.isEmpty();
-    String config = extractConfigurationName(syncIssues.get(0));
-    GradleBuildModel buildModel = projectBuildModel.getModuleBuildModel(buildFile);
-    // Find first configuration matching 'config' so we can jump to it
-    DependencyModel dependencyModel =
-      buildModel.dependencies().all().stream().filter(model -> model.configurationName().equals(config)).findFirst().orElse(null);
-    if (dependencyModel == null) {
-      return super.createModuleLink(project, module, projectBuildModel, syncIssues, buildFile);
-    }
-    int lineNumber = getLineNumberForElement(project, dependencyModel.getPsiElement());
-
-    return new OpenFileHyperlink(buildFile.getPath(), module.getName(), lineNumber, -1);
-  }
-
-  @Override
-  @NotNull
   protected String getDeduplicationKey(@NotNull SyncIssue issue) {
     String config = extractConfigurationName(issue);
     return (config != null) ? config : issue.toString();

@@ -31,6 +31,8 @@ import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import junit.framework.TestCase.assertFalse
 import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.fixture.JPopupMenuFixture
+import org.fest.swing.timing.Wait
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -39,6 +41,7 @@ import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
 import java.awt.datatransfer.UnsupportedFlavorException
+import java.awt.event.KeyEvent
 import java.util.concurrent.TimeUnit
 import javax.swing.JMenuItem
 
@@ -67,7 +70,6 @@ class ComposePreviewTest {
   }
 
   @Test
-  @RunIn(TestGroup.UNRELIABLE) // b/148000568
   @Throws(Exception::class)
   fun testCopyPreviewImage() {
     val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
@@ -140,6 +142,10 @@ class ComposePreviewTest {
 
     assertFalse(composePreview.hasRenderErrors())
 
+    // Verify that the element rendered correctly by checking it's not empty
+    val previewElementRender = composePreview.designSurface.scene.sceneComponents.single()
+    assertTrue(previewElementRender.width > 10 && previewElementRender.height > 10)
+
     val editor = fixture.editor
 
     // Now let's make a change on the source code and check that the notification displays
@@ -155,6 +161,76 @@ class ComposePreviewTest {
     // Undo modifications and close editor to return to the initial state
     editor.select("(${modification})")
     editor.invokeAction(EditorFixture.EditorAction.BACK_SPACE)
+    editor.close()
+  }
+
+  @Test
+  @RunIn(TestGroup.UNRELIABLE) // b/149464002
+  @Throws(Exception::class)
+  fun testRemoveExistingPreview() {
+    val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
+    val composePreview = openComposePreview(fixture)
+
+    composePreview
+      .waitForRenderToFinish()
+      .getNotificationsFixture()
+      .assertNoNotifications()
+
+    assertFalse(composePreview.hasRenderErrors())
+
+    val editor = fixture.editor
+    editor.select("(@Preview)")
+    editor.invokeAction(EditorFixture.EditorAction.BACK_SPACE)
+    guiTest.ideFrame().invokeMenuPath("Code", "Optimize Imports") // This will remove the Preview import
+    composePreview
+      .designSurface
+      .waitUntilNotShowing(Wait.seconds(10));
+
+    editor.close()
+  }
+
+  @Test
+  @RunIn(TestGroup.UNRELIABLE) // b/149464527
+  @Throws(Exception::class)
+  fun testAddAdditionalPreview() {
+    val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
+    val composePreview = openComposePreview(fixture)
+
+    composePreview
+      .waitForRenderToFinish()
+      .getNotificationsFixture()
+      .assertNoNotifications()
+
+    assertFalse(composePreview.hasRenderErrors())
+    assertEquals(1, composePreview.designSurface.allSceneViews.count())
+
+    val editor = fixture.editor
+    editor.invokeAction(EditorFixture.EditorAction.TEXT_END)
+      .pressAndReleaseKeys(KeyEvent.VK_ENTER)
+      // The closing braces are not needed since they are added by the editor automatically
+      .typeText("""
+        @Preview(name = "Second")
+        @Composable
+        fun SecondPreview() {
+          MaterialTheme {
+            Text(text = "A second preview")
+      """.trimIndent())
+
+    composePreview
+      .getNotificationsFixture()
+      .waitForNotificationContains("out of date")
+
+    composePreview
+      .findActionButtonByText("Build  Refresh")
+      .waitUntilEnabledAndShowing()
+      .click()
+
+    fixture.waitForBuildToFinish(BuildMode.ASSEMBLE)
+    composePreview.waitForRenderToFinish()
+
+    // Check the new preview has been added
+    assertEquals(2, composePreview.designSurface.allSceneViews.count())
+
     editor.close()
   }
 }

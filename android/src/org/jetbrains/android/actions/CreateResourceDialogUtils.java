@@ -18,9 +18,7 @@ package org.jetbrains.android.actions;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
-import com.android.tools.idea.projectsystem.IdeaSourceProvider;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
-import com.android.tools.idea.ui.ApiComboBoxItem;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -42,6 +40,8 @@ import java.util.Collection;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import org.jetbrains.android.actions.widgets.SourceSetCellRenderer;
+import org.jetbrains.android.actions.widgets.SourceSetItem;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.facet.SourceProviderManager;
@@ -57,38 +57,46 @@ public class CreateResourceDialogUtils {
   private static final Logger LOG = Logger.getInstance(ExternalSystemUtil.class);
 
   @Nullable
-  public static IdeaSourceProvider getSourceProvider(@Nullable JComboBox combo) {
-    if (combo != null && combo.isVisible()) {
-      Object selectedItem = combo.getSelectedItem();
-      if (selectedItem instanceof ApiComboBoxItem) {
-        return (IdeaSourceProvider)((ApiComboBoxItem)selectedItem).getData();
-      }
+  private static String getResourceUrl(@NotNull JComboBox combo) {
+    SourceSetItem comboItem = (SourceSetItem)combo.getSelectedItem();
+    if (comboItem != null) {
+      return comboItem.getResDirUrl();
     }
-
     return null;
   }
 
+  /**
+   * Tries to find or create the resource directory given by the Source Set {@link JComboBox}.
+   * <p>
+   * If either operation fails it will try to find the main Source Set resource directory.
+   *
+   * @param combo  The ComboBox used for Source Set selection, must hold items of type {@link SourceSetItem}.
+   * @param module The desired selected {@link Module}, must be the same that was used to populate the Source Set ComboBox.
+   * @return The {@link PsiDirectory} corresponding to an Android 'res' directory.
+   */
   @Nullable
-  public static PsiDirectory getResourceDirectory(@Nullable IdeaSourceProvider sourceProvider, @NotNull Module module) {
+  public static PsiDirectory getOrCreateResourceDirectory(@NotNull JComboBox combo, @NotNull Module module) {
+    String resDirUrl = getResourceUrl(combo);
     ApplicationManager.getApplication().assertReadAccessAllowed();
-    if (sourceProvider != null) {
-      final PsiManager manager = PsiManager.getInstance(module.getProject());
-      for (String fileUrl : sourceProvider.getResDirectoryUrls()) {
-        VirtualFile virtualFile = VirtualFileManager.getInstance().findFileByUrl(fileUrl);
-        if (virtualFile == null) {
-          try {
-            virtualFile = VfsUtil.createDirectories(VfsUtilCore.urlToPath(fileUrl));
-          }
-          catch (IOException ex) {
-            LOG.warn(ex);
-          }
+    final PsiManager manager = PsiManager.getInstance(module.getProject());
+    VirtualFile virtualFile = null;
+    if (resDirUrl != null) {
+      // Find the VirtualFile for the resource directory
+      virtualFile = VirtualFileManager.getInstance().findFileByUrl(resDirUrl);
+      if (virtualFile == null) {
+        try {
+          // Try to create the VirtualFile for the resource directory
+          virtualFile = VfsUtil.createDirectories(VfsUtilCore.urlToPath(resDirUrl));
         }
-        if (virtualFile != null) {
-          PsiDirectory dir = manager.findDirectory(virtualFile);
-          if (dir != null) {
-            return dir;
-          }
+        catch (IOException ex) {
+          LOG.warn(ex);
         }
+      }
+    }
+    if (virtualFile != null) {
+      PsiDirectory dir = manager.findDirectory(virtualFile);
+      if (dir != null) {
+        return dir;
       }
     }
 
@@ -104,25 +112,33 @@ public class CreateResourceDialogUtils {
     return null;
   }
 
-  public static void updateSourceSetCombo(@NotNull JComponent label, @NotNull JComboBox combo, @Nullable AndroidFacet facet) {
-    // Ideally, if we're in the Project View and you select a file under main/res, we already know that
-    // the resource folder is "res" and we pass it in here -- and we shouldn't ask the user for a source set.
-    // However, in the Android Project view there is only a single "res" node, shared by multiple possible source
-    // sets, so we *always* want to ask for the target source set there. We don't have a way to know which view
-    // we're in here, so we default to always including the source set combo (if it's a Gradle project that is.)
-    // TODO: Give an option for each 'res' directory within each source set. Eg: main/res1, main/res2.
+  public static void updateSourceSetCombo(@NotNull JComponent label,
+                                          @NotNull JComboBox combo,
+                                          @Nullable AndroidFacet facet,
+                                          @Nullable PsiDirectory resDirectory) {
+    if (resDirectory != null) {
+      // No need of the source set combo if we already know the target res directory.
+      // This should only happen when invoking the dialog from the project view under an specific res/ directory.
+      label.setVisible(false);
+      combo.setVisible(false);
+      return;
+    }
     if (facet != null && AndroidModel.isRequired(facet) && AndroidModel.get(facet) != null) {
-      Collection<NamedIdeaSourceProvider> providers = SourceProviderManager.getInstance(facet).getAllSourceProviders();
-      DefaultComboBoxModel model = new DefaultComboBoxModel();
+      Collection<NamedIdeaSourceProvider> providers = SourceProviderManager.getInstance(facet).getCurrentAndSomeFrequentlyUsedInactiveSourceProviders();
+      DefaultComboBoxModel<SourceSetItem> model = new DefaultComboBoxModel<SourceSetItem>();
       for (NamedIdeaSourceProvider sourceProvider : providers) {
-        //noinspection unchecked
-        model.addElement(new ApiComboBoxItem(sourceProvider, sourceProvider.getName(), 0, 0));
+        for (String resDirUrl : sourceProvider.getResDirectoryUrls()) {
+          // In gradle, each source provider may have multiple res directories, so we create an element for each one of them.
+          model.addElement(SourceSetItem.create(sourceProvider, facet.getModule(), resDirUrl));
+        }
       }
       combo.setModel(model);
+      combo.setRenderer(new SourceSetCellRenderer());
 
       label.setVisible(true);
       combo.setVisible(true);
-    } else {
+    }
+    else {
       label.setVisible(false);
       combo.setVisible(false);
     }

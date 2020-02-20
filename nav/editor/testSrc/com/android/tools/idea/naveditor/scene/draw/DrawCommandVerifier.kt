@@ -159,7 +159,6 @@ fun verifyDrawNavScreen(inOrder: InOrder, g: Graphics2D, rectangle: Rectangle2D.
 }
 
 fun verifyDrawNavScreenImage(inOrder: InOrder, g: Graphics2D, rectangle: Rectangle2D.Float, image: BufferedImage) {
-  inOrder.verify(g).create()
   inOrder.verify(g).setRenderingHints(any())
   inOrder.verify(g).clip(argThat(ShapeArgumentMatcher(rectangle)))
   inOrder.verify(g).drawImage(eq(image), eq(rectangle.x.toInt()), eq(rectangle.y.toInt()), anyInt(), anyInt(), eq(null))
@@ -167,7 +166,6 @@ fun verifyDrawNavScreenImage(inOrder: InOrder, g: Graphics2D, rectangle: Rectang
 }
 
 fun verifyDrawNavScreenLoading(inOrder: InOrder, g: Graphics2D, rectangle: Rectangle2D.Float) {
-  inOrder.verify(g).create()
   inOrder.verify(g).setRenderingHints(any())
   inOrder.verify(g).clip(argThat(ShapeArgumentMatcher(rectangle)))
   inOrder.verify(g).color = PLACEHOLDER_FILL
@@ -180,7 +178,6 @@ fun verifyDrawNavScreenLoading(inOrder: InOrder, g: Graphics2D, rectangle: Recta
 }
 
 fun verifyDrawNavScreenPreviewUnavailable(inOrder: InOrder, g: Graphics2D, rectangle: Rectangle2D.Float) {
-  inOrder.verify(g).create()
   inOrder.verify(g).setRenderingHints(any())
   inOrder.verify(g).clip(argThat(ShapeArgumentMatcher(rectangle)))
   inOrder.verify(g).color = PLACEHOLDER_FILL
@@ -206,7 +203,6 @@ fun verifyDrawPlaceholder(inOrder: InOrder, g: Graphics2D, rectangle: Rectangle2
 }
 
 fun verifyFillShape(inOrder: InOrder, g: Graphics2D, shape: Shape, color: Color) {
-  inOrder.verify(g).create()
   inOrder.verify(g).setRenderingHints(any())
   inOrder.verify(g).color = color
   inOrder.verify(g).fill(argThat(ShapeArgumentMatcher(shape)))
@@ -214,7 +210,6 @@ fun verifyFillShape(inOrder: InOrder, g: Graphics2D, shape: Shape, color: Color)
 }
 
 fun verifyDrawShape(inOrder: InOrder, g: Graphics2D, shape: Shape, color: Color, stroke: Stroke) {
-  inOrder.verify(g).create()
   inOrder.verify(g).setRenderingHints(any())
   inOrder.verify(g).color = color
   inOrder.verify(g).stroke = argThat(StrokeArgumentMatcher(stroke))
@@ -223,7 +218,6 @@ fun verifyDrawShape(inOrder: InOrder, g: Graphics2D, shape: Shape, color: Color,
 }
 
 fun verifyDrawTruncatedText(inOrder: InOrder, g: Graphics2D, text: String, color: Color) {
-  inOrder.verify(g).create()
   inOrder.verify(g).getFontMetrics(any())
   inOrder.verify(g).color = color
   inOrder.verify(g).font = any()
@@ -253,7 +247,6 @@ fun verifyDrawHorizontalAction(inOrder: InOrder, g: Graphics2D, rectangle: Recta
 }
 
 fun verifyDrawIcon(inOrder: InOrder, g: Graphics2D, rectangle: Rectangle2D.Float? = null) {
-  inOrder.verify(g).create()
   inOrder.verify(g).setRenderingHints(any())
   if (rectangle == null) {
     inOrder.verify(g).drawImage(any(), anyInt(), anyInt(), anyInt(), anyInt(), eq(null))
@@ -267,7 +260,6 @@ fun verifyDrawIcon(inOrder: InOrder, g: Graphics2D, rectangle: Rectangle2D.Float
 
 
 fun verifyDrawLineToMouse(inOrder: InOrder, g: Graphics2D, center: Point2D.Float, mouseX: Int, mouseY: Int) {
-  inOrder.verify(g).create()
   inOrder.verify(g).color = LINE_TO_MOUSE_COLOR
   inOrder.verify(g).stroke = argThat(StrokeArgumentMatcher(LINE_TO_MOUSE_STROKE))
   val line = Line2D.Float(center.x, center.y, mouseX.toFloat(), mouseY.toFloat())

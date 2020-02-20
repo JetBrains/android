@@ -91,12 +91,21 @@ fun switchVariant(
     findAllRecursively(moduleNode, ProjectKeys.MODULE_DEPENDENCY).forEach { node ->
       node.clear(true)
     }
+    findAllRecursively(moduleNode, ProjectKeys.CONTENT_ROOT).forEach { node ->
+      node.clear(true)
+    }
 
     // Now we need to recreate these nodes using the information from the new variant.
+    moduleNode.setupCompilerOutputPaths(newVariant)
     val libraryFilePaths = LibraryFilePaths.getInstance(project)
     moduleNode.setupAndroidDependenciesForModule({ id: String -> moduleIdToDataMap[id] }, { id, path ->
-      AdditionalArtifactsPaths(libraryFilePaths.findSourceJarPath(id, path), libraryFilePaths.findJavadocJarPath(id, path))
+      AdditionalArtifactsPaths(
+        libraryFilePaths.findSourceJarPath(id, path),
+        libraryFilePaths.findJavadocJarPath(id, path),
+        libraryFilePaths.findSampleSourcesJarPath(id, path)
+      )
     }, newVariant)
+    moduleNode.setupAndroidContentEntries(newVariant)
   }
 
   ProjectDataManager.getInstance().importData(projectDataNode, project, false)

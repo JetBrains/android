@@ -223,6 +223,13 @@ public class EditorFixture {
   }
 
   /**
+   * Wait for the editor to become active.
+   */
+  public void waitForFileToActivate() {
+    Wait.seconds(10).expecting("File editor is active").until(() -> getCurrentFile() != null);
+  }
+
+  /**
    * Type the given text into the editor
    *
    * @param text the text to type at the current editor position
@@ -272,6 +279,14 @@ public class EditorFixture {
   public EditorFixture pressAndReleaseKey(@NotNull KeyPressInfo keypress) {
     getFocusedEditor();
     robot.pressAndReleaseKey(keypress.keyCode(), keypress.modifiers());
+
+    return this;
+  }
+
+  @NotNull
+  public EditorFixture pressAndReleaseKeys(@NotNull int keys) {
+    getFocusedEditor();
+    robot.pressAndReleaseKeys(keys);
 
     return this;
   }
@@ -978,6 +993,7 @@ public class EditorFixture {
     TOGGLE_LINE_BREAKPOINT("ToggleLineBreakpoint"),
     UNDO("$Undo"),
     CLOSE_ALL("CloseAllEditors"),
+    TEXT_END("EditorTextEnd")
     ;
 
     /** The {@code id} of an action mapped to a keyboard shortcut in, for example, {@code $default.xml}. */

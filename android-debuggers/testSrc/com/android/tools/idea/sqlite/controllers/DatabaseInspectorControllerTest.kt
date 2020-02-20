@@ -22,8 +22,8 @@ import com.android.tools.idea.device.fs.DownloadProgress
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
+import com.android.tools.idea.sqlite.databaseConnection.EmptySqliteResultSet
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
-import com.android.tools.idea.sqlite.databaseConnection.ImmediateSqliteResultSet
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorModel
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorView
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorViewsFactory
@@ -56,6 +56,7 @@ import org.mockito.Mockito.`when`
 import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
+import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import java.util.concurrent.Executor
 import javax.swing.JComponent
@@ -85,6 +86,8 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   private lateinit var tempDirTestFixture: TempDirTestFixture
 
+  private lateinit var mockDatabaseInspectorModel: MockDatabaseInspectorModel
+
   override fun setUp() {
     super.setUp()
 
@@ -102,9 +105,11 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     edtDispatcher = edtExecutor.asCoroutineDispatcher()
     taskExecutor = SameThreadExecutor.INSTANCE
 
+    mockDatabaseInspectorModel = spy(MockDatabaseInspectorModel())
+
     sqliteController = DatabaseInspectorControllerImpl(
       project,
-      MockDatabaseInspectorModel(),
+      mockDatabaseInspectorModel,
       mockViewFactory,
       edtExecutor,
       taskExecutor
@@ -404,7 +409,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(schema))
     `when`(mockDatabaseConnection.execute(SqliteStatement("INSERT")))
       .thenReturn(Futures.immediateFuture(
-        ImmediateSqliteResultSet(emptyList())))
+        EmptySqliteResultSet()))
 
     runDispatching {
       sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
@@ -448,5 +453,24 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     // Assert
     orderVerifier.verify(mockSqliteView).reportSyncProgress(any(String::class.java))
+  }
+
+  fun testRefreshAllOpenDatabasesSchemaActionInvokedUpdatesSchemas() {
+    // Prepare
+    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
+
+    // Act
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase2))
+    }
+    mockSqliteView.viewListeners.first().refreshAllOpenDatabasesSchemaActionInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    verify(mockDatabaseInspectorModel, times(2)).add(sqliteDatabase1, testSqliteSchema1)
+    verify(mockDatabaseInspectorModel, times(2)).add(sqliteDatabase2, testSqliteSchema1)
+    verify(mockSqliteView).updateDatabase(sqliteDatabase1, testSqliteSchema1.tables)
+    verify(mockSqliteView).updateDatabase(sqliteDatabase2, testSqliteSchema1.tables)
   }
 }

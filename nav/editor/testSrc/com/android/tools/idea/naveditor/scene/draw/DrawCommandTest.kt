@@ -254,17 +254,19 @@ class DrawCommandTest : NavTestCase() {
   }
 
   private fun verifyDrawCommand(command: DrawCommand, verifier: (InOrder, Graphics2D) -> Unit) {
+    val root = mock(Graphics2D::class.java)
+
     val graphics = mock(Graphics2D::class.java)
-    `when`(graphics.create()).thenReturn(graphics)
+    `when`(root.create()).thenReturn(graphics)
 
     val metrics = mock(FontMetrics::class.java)
     `when`(graphics.fontMetrics).thenReturn(metrics)
     `when`(graphics.getFontMetrics(any())).thenReturn(metrics)
 
     val inOrder = inOrder(graphics)
-
-    command.paint(graphics, context)
+    command.paint(root, context)
     verifier(inOrder, graphics)
+
     verifyNoMoreInteractions(graphics)
   }
 

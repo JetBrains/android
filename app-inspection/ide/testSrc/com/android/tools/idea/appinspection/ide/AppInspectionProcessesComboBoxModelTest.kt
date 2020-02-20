@@ -18,8 +18,8 @@ package com.android.tools.idea.appinspection.ide
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
 import com.android.tools.idea.appinspection.api.LaunchedProcessDescriptor
-import com.android.tools.idea.appinspection.api.TransportProcessDescriptor
 import com.android.tools.idea.appinspection.api.TestInspectorCommandHandler
+import com.android.tools.idea.appinspection.api.TransportProcessDescriptor
 import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessesComboBoxModel
 import com.android.tools.idea.appinspection.test.ASYNC_TIMEOUT_MS
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils
@@ -67,14 +67,15 @@ class AppInspectionProcessesComboBoxModelTest {
   }
 
   @Test
-  fun contentUpdatedProperlyAfterAppInspectionTargetAddedAndRemoved() {
+  fun addsAndRemovesProcess_comboBoxModelUpdatesProperly() {
     val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
     val discoveryHost = AppInspectionDiscoveryHost(executor, TransportClient(grpcServerRule.name))
 
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, TestInspectorCommandHandler(timer))
     val addedLatch = CountDownLatch(1)
     val removedLatch = CountDownLatch(1)
-    val model = AppInspectionProcessesComboBoxModel.newInstance(discoveryHost)
+
+    val model = AppInspectionProcessesComboBoxModel(discoveryHost)
     model.addListDataListener(object : ListDataListener {
       override fun contentsChanged(e: ListDataEvent?) {}
 

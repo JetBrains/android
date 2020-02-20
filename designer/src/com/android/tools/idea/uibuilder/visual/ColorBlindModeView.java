@@ -22,13 +22,11 @@ import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.BorderLayer;
 import com.android.tools.idea.uibuilder.surface.DiagnosticsLayer;
-import com.android.tools.idea.uibuilder.surface.ModelNameLayer;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.uibuilder.surface.ScreenViewLayer;
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode;
 import com.google.common.collect.ImmutableList;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,10 +44,6 @@ public class ColorBlindModeView extends ScreenView {
   protected ImmutableList<Layer> createLayers() {
 
     ImmutableList.Builder<Layer> builder = ImmutableList.builder();
-
-    if (getSurface().isShowModelNames()) {
-      builder.add(new ModelNameLayer(this));
-    }
 
     // Always has border in visualization tool.
     builder.add(new BorderLayer(this));

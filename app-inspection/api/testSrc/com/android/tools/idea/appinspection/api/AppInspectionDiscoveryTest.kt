@@ -74,20 +74,20 @@ class AppInspectionDiscoveryTest {
   @Test
   fun attachToProcessNotifiesListener() {
     val discovery =
-      AppInspectionDiscovery(appInspectionServiceRule.executorService, appInspectionServiceRule.client, appInspectionServiceRule.poller)
+      AppInspectionDiscovery(appInspectionServiceRule.executorService, appInspectionServiceRule.client)
 
     val targetReadyLatch = CountDownLatch(1)
     discovery.addTargetListener(appInspectionServiceRule.executorService) {
       targetReadyLatch.countDown()
     }
 
-    discovery.attachToProcess(FAKE_PROCESS, AppInspectionTestUtils.TestTransportJarCopier)
+    discovery.attachToProcess(FAKE_PROCESS, appInspectionServiceRule.streamChannel, AppInspectionTestUtils.TestTransportJarCopier)
   }
 
   @Test
   fun targetIsCached() {
     val discovery =
-      AppInspectionDiscovery(appInspectionServiceRule.executorService, appInspectionServiceRule.client, appInspectionServiceRule.poller)
+      AppInspectionDiscovery(appInspectionServiceRule.executorService, appInspectionServiceRule.client)
 
     var target: AppInspectionTarget? = null
     val targetReadyLatch = CountDownLatch(1)
@@ -97,10 +97,12 @@ class AppInspectionDiscoveryTest {
     }
 
     // Attach to the process.
-    val target2 = discovery.attachToProcess(FAKE_PROCESS, AppInspectionTestUtils.TestTransportJarCopier).get()
+    val target2 =
+      discovery.attachToProcess(FAKE_PROCESS, appInspectionServiceRule.streamChannel, AppInspectionTestUtils.TestTransportJarCopier).get()
 
     // Attach to the same process again.
-    val target3 = discovery.attachToProcess(FAKE_PROCESS, AppInspectionTestUtils.TestTransportJarCopier).get()
+    val target3 =
+      discovery.attachToProcess(FAKE_PROCESS, appInspectionServiceRule.streamChannel, AppInspectionTestUtils.TestTransportJarCopier).get()
 
     targetReadyLatch.await()
 
@@ -111,14 +113,14 @@ class AppInspectionDiscoveryTest {
   @Test
   fun newListenerReceivesExistingTargets() {
     val discovery =
-      AppInspectionDiscovery(appInspectionServiceRule.executorService, appInspectionServiceRule.client, appInspectionServiceRule.poller)
+      AppInspectionDiscovery(appInspectionServiceRule.executorService, appInspectionServiceRule.client)
 
     val targetReadyLatch = CountDownLatch(1)
     discovery.addTargetListener(appInspectionServiceRule.executorService) {
       targetReadyLatch.countDown()
     }
 
-    discovery.attachToProcess(FAKE_PROCESS, AppInspectionTestUtils.TestTransportJarCopier)
+    discovery.attachToProcess(FAKE_PROCESS, appInspectionServiceRule.streamChannel, AppInspectionTestUtils.TestTransportJarCopier)
 
     targetReadyLatch.await()
 
@@ -134,7 +136,7 @@ class AppInspectionDiscoveryTest {
   fun terminatedTargetIsRemovedFromCache() {
     // Setup
     val discovery =
-      AppInspectionDiscovery(appInspectionServiceRule.executorService, appInspectionServiceRule.client, appInspectionServiceRule.poller)
+      AppInspectionDiscovery(appInspectionServiceRule.executorService, appInspectionServiceRule.client)
 
     // Wait for 1st target to be ready
     val targetTerminatedLatch = CountDownLatch(1)
@@ -143,10 +145,8 @@ class AppInspectionDiscoveryTest {
         targetTerminatedLatch.countDown()
       }
     }
-    val firstTarget = discovery.attachToProcess(
-      FAKE_PROCESS,
-      AppInspectionTestUtils.TestTransportJarCopier
-    )
+    val firstTarget =
+      discovery.attachToProcess(FAKE_PROCESS, appInspectionServiceRule.streamChannel, AppInspectionTestUtils.TestTransportJarCopier)
 
     // Fake process ended event
     transportService.addEventToStream(
@@ -163,10 +163,8 @@ class AppInspectionDiscoveryTest {
     // Wait
     targetTerminatedLatch.await()
 
-    val secondTarget = discovery.attachToProcess(
-      FAKE_PROCESS,
-      AppInspectionTestUtils.TestTransportJarCopier
-    ).get()
+    val secondTarget =
+      discovery.attachToProcess(FAKE_PROCESS, appInspectionServiceRule.streamChannel, AppInspectionTestUtils.TestTransportJarCopier).get()
 
     // Verify first target was removed from discovery's internal cache, therefore the second target is newly created.
     assertThat(firstTarget).isNotSameAs(secondTarget)

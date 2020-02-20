@@ -33,7 +33,7 @@ public class CanvasResizeLayer extends Layer {
   @Override
   public void onHover(@SwingCoordinate int x, @SwingCoordinate int y) {
     boolean oldHovering = myIsHovering;
-    Dimension size = myScreenView.getSize();
+    Dimension size = myScreenView.getScaledContentSize();
     Rectangle resizeZone =
       new Rectangle(myScreenView.getX() + size.width, myScreenView.getY() + size.height, RESIZING_HOVERING_SIZE, RESIZING_HOVERING_SIZE);
     myIsHovering = resizeZone.contains(x, y);
@@ -44,7 +44,7 @@ public class CanvasResizeLayer extends Layer {
 
   @Override
   public void paint(@NotNull Graphics2D g2d) {
-    Dimension size = myScreenView.getSize();
+    Dimension size = myScreenView.getScaledContentSize();
     int x = myScreenView.getX();
     int y = myScreenView.getY();
 

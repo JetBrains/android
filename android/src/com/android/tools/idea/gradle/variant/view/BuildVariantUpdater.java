@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.variant.view;
 
+import static com.android.tools.idea.gradle.project.sync.ModuleSetupContext.FORCE_CREATE_DIRS_KEY;
 import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
 import static com.android.tools.idea.gradle.util.BatchUpdatesUtil.finishBatchUpdate;
 import static com.android.tools.idea.gradle.util.BatchUpdatesUtil.startBatchUpdate;
@@ -36,11 +37,8 @@ import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.VariantOnlySyncOptions;
 import com.android.tools.idea.gradle.project.sync.idea.VariantSwitcher;
-import com.android.tools.idea.gradle.project.sync.setup.module.android.AndroidVariantChangeModuleSetup;
-import com.android.tools.idea.gradle.project.sync.setup.module.ndk.NdkVariantChangeModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.Application;
@@ -74,10 +72,7 @@ import org.jetbrains.annotations.Nullable;
 public class BuildVariantUpdater {
   @NotNull public static final Key<String> MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI =
     new Key<>("module.with.build.variant.switched.from.ui");
-  @NotNull private final ModuleSetupContext.Factory myModuleSetupContextFactory;
   @NotNull private final IdeModifiableModelsProviderFactory myModifiableModelsProviderFactory;
-  @NotNull private final AndroidVariantChangeModuleSetup myAndroidModuleSetupSteps;
-  @NotNull private final NdkVariantChangeModuleSetup myNdkModuleSetupSteps;
   @NotNull private final List<BuildVariantView.BuildVariantSelectionChangeListener> mySelectionChangeListeners =
     ContainerUtil.createLockFreeCopyOnWriteList();
 
@@ -89,20 +84,13 @@ public class BuildVariantUpdater {
   // called by IDEA.
   @SuppressWarnings("unused")
   BuildVariantUpdater() {
-    this(new ModuleSetupContext.Factory(), new IdeModifiableModelsProviderFactory(), new AndroidVariantChangeModuleSetup(),
-         new NdkVariantChangeModuleSetup());
+    this(new IdeModifiableModelsProviderFactory());
   }
 
   @NonInjectable
   @VisibleForTesting
-  BuildVariantUpdater(@NotNull ModuleSetupContext.Factory moduleSetupContextFactory,
-                      @NotNull IdeModifiableModelsProviderFactory modifiableModelsProviderFactory,
-                      @NotNull AndroidVariantChangeModuleSetup androidModuleSetup,
-                      @NotNull NdkVariantChangeModuleSetup ndkModuleSetup) {
-    myModuleSetupContextFactory = moduleSetupContextFactory;
+  BuildVariantUpdater(@NotNull IdeModifiableModelsProviderFactory modifiableModelsProviderFactory) {
     myModifiableModelsProviderFactory = modifiableModelsProviderFactory;
-    myAndroidModuleSetupSteps = androidModuleSetup;
-    myNdkModuleSetupSteps = ndkModuleSetup;
   }
 
   /**
@@ -118,6 +106,23 @@ public class BuildVariantUpdater {
    */
   public void removeSelectionChangeListener(@NotNull BuildVariantView.BuildVariantSelectionChangeListener listener) {
     mySelectionChangeListeners.remove(listener);
+  }
+
+  public boolean updateSelectedBuildVariant(@NotNull Project project,
+                                            @NotNull String moduleName,
+                                            @NotNull String selectedBuildVariant,
+                                            boolean forceCreateDirs) {
+    if (forceCreateDirs) {
+      project.putUserData(FORCE_CREATE_DIRS_KEY, true);
+    }
+    try {
+      return updateSelectedBuildVariant(project, moduleName, selectedBuildVariant);
+    }
+    finally {
+      if (forceCreateDirs) {
+        project.putUserData(FORCE_CREATE_DIRS_KEY, null);
+      }
+    }
   }
 
   /**
@@ -667,31 +672,11 @@ public class BuildVariantUpdater {
   }
 
   private IdeModifiableModelsProvider setUpModule(@NotNull Module module, @NotNull AndroidModuleModel androidModel) {
-    IdeModifiableModelsProvider modelsProvider = myModifiableModelsProviderFactory.create(module.getProject());
-    ModuleSetupContext context = myModuleSetupContextFactory.create(module, modelsProvider);
-    try {
-      myAndroidModuleSetupSteps.setUpModule(context, androidModel);
-    }
-    catch (Throwable t) {
-      modelsProvider.dispose();
-      //noinspection ConstantConditions
-      rethrowAllAsUnchecked(t);
-    }
-    return modelsProvider;
+    return myModifiableModelsProviderFactory.create(module.getProject());
   }
 
   private IdeModifiableModelsProvider setUpModule(@NotNull Module module, @NotNull NdkModuleModel ndkModuleModel) {
-    IdeModifiableModelsProvider modelsProvider = myModifiableModelsProviderFactory.create(module.getProject());
-    ModuleSetupContext context = myModuleSetupContextFactory.create(module, modelsProvider);
-    try {
-      myNdkModuleSetupSteps.setUpModule(context, ndkModuleModel);
-    }
-    catch (Throwable t) {
-      modelsProvider.dispose();
-      //noinspection ConstantConditions
-      rethrowAllAsUnchecked(t);
-    }
-    return modelsProvider;
+    return myModifiableModelsProviderFactory.create(module.getProject());
   }
 
   @Nullable

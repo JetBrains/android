@@ -33,14 +33,22 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.inspections.AbstractKotlinInspection
 import org.jetbrains.kotlin.idea.quickfix.RenameIdentifierFix
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtPsiUtil
 import org.jetbrains.kotlin.psi.KtVisitorVoid
 import org.jetbrains.kotlin.resolve.jvm.checkers.isValidDalvikIdentifier
+import org.jetbrains.plugins.gradle.util.GradleConstants.KOTLIN_DSL_SCRIPT_EXTENSION
 import java.io.File
 
+/**
+ * Inspection to mark identifiers in Kotlin files as errors if that identifier is not supported by the dex format as a SimpleName.
+ *
+ * This should only be run on sources which will end up being run on the Android Runtime / Dalvik: build and unit test sources can use
+ * all identifiers permitted by the JVM.
+ */
 class IllegalIdentifierInspection : AbstractKotlinInspection() {
     private class JunitPaths(val paths: List<File>, val generationId: Long) {
         companion object : Key<JunitPaths>("AndroidModuleJunitPaths")
@@ -60,7 +68,7 @@ class IllegalIdentifierInspection : AbstractKotlinInspection() {
                 if (unquotedName.isEmpty()) return
 
                 if (!isValidDalvikIdentifier(unquotedName) && checkAndroidFacet(element)) {
-                    if (element.isInUnitTests()) {
+                    if (element.isInUnitTests() || element.isInBuildKtsFile()) {
                         return
                     }
 
@@ -71,6 +79,10 @@ class IllegalIdentifierInspection : AbstractKotlinInspection() {
                         RenameIdentifierFix()
                     )
                 }
+            }
+
+            private fun PsiElement.isInBuildKtsFile(): Boolean {
+                return language == KotlinLanguage.INSTANCE && (containingFile?.name?.endsWith(KOTLIN_DSL_SCRIPT_EXTENSION) ?: false)
             }
 
             private fun PsiElement.isInUnitTests(): Boolean {

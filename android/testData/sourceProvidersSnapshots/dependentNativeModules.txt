@@ -375,7 +375,7 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/androidTest/shaders
                     file://./app/src/androidTestDebug/shaders
-        AllIdeaSourceProviders:
+        CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -966,7 +966,7 @@ MODULE: lib1
                 ShadersDirectoryUrls:
                     file://./lib1/src/androidTest/shaders
                     file://./lib1/src/androidTestDebug/shaders
-        AllIdeaSourceProviders:
+        CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1553,7 +1553,7 @@ MODULE: lib2
                 ShadersDirectoryUrls:
                     file://./lib2/src/androidTest/shaders
                     file://./lib2/src/androidTestDebug/shaders
-        AllIdeaSourceProviders:
+        CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -2140,7 +2140,7 @@ MODULE: lib3
                 ShadersDirectoryUrls:
                     file://./lib3/src/androidTest/shaders
                     file://./lib3/src/androidTestDebug/shaders
-        AllIdeaSourceProviders:
+        CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:

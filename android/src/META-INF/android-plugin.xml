@@ -344,8 +344,8 @@
     <externalSystemTaskNotificationListener implementation="com.android.tools.idea.gradle.AndroidGradleImportTaskNotificationListener"/>
     <externalSystemNotificationExtension implementation="com.android.tools.idea.gradle.project.sync.idea.notification.GradleNotificationExtension"/>
     <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.GradleModuleModelDataService" />
-    <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.SyncIssueDataService" />
-    <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidModuleModelDataService" />
+    <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.issues.SyncIssueDataService" />
+    <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidModuleDataService" />
     <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.NdkModuleModelDataService" />
     <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.JavaModuleModelDataService" />
     <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.ProjectCleanupDataService" />
@@ -424,6 +424,7 @@
     <applicationService serviceImplementation="com.android.tools.idea.diagnostics.crash.StudioCrashReporter" />
     <applicationService serviceInterface="com.android.tools.idea.fonts.DownloadableFontCacheService"
                         serviceImplementation="com.android.tools.idea.fonts.DownloadableFontCacheServiceImpl" />
+    <applicationService serviceImplementation="com.android.tools.idea.material.icons.MaterialIconsMetadataDownloadCacheService"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder"/>
     <applicationService serviceImplementation="com.android.tools.idea.concurrency.AndroidIoManager"/>
 
@@ -687,7 +688,6 @@
     <projectService serviceImplementation="com.android.tools.idea.res.AndroidProjectRootListener"/>
     <projectService serviceImplementation="com.android.tools.idea.res.ResourceFolderRegistry"/>
     <projectService serviceImplementation="com.android.tools.idea.res.SampleDataListener$Subscriber"/>
-    <projectService serviceImplementation="com.android.tools.idea.structure.services.DeveloperServices" />
     <projectService serviceImplementation="com.android.tools.idea.npw.assetstudio.wizard.GenerateIconsModel$StateStorage" />
     <projectService serviceImplementation="com.android.tools.idea.rendering.RenderSettings" />
     <projectService serviceImplementation="com.android.tools.idea.gradle.dsl.api.ProjectBuildModelHandler" />
@@ -872,12 +872,8 @@
     <extensionPoint qualifiedName="com.android.captureType" interface="com.android.tools.idea.profiling.capture.CaptureType"/>
     <extensionPoint qualifiedName="com.android.gradle.sync.syncErrorHandler"
                     interface="com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler"/>
-    <extensionPoint qualifiedName="com.android.tools.idea.structure.services.developerServiceCreators"
-                    interface="com.android.tools.idea.structure.services.DeveloperServiceCreators"/>
     <extensionPoint qualifiedName="com.android.ide.sdkEventListener"
                     interface="com.android.tools.idea.sdk.IdeSdks$AndroidSdkEventListener"/>
-    <extensionPoint qualifiedName="com.android.ide.developerServiceBuildSystemOperations"
-                    interface="com.android.tools.idea.structure.services.DeveloperServiceBuildSystemOperations"/>
     <extensionPoint qualifiedName="com.android.run.deployTargetProvider" interface="com.android.tools.idea.run.editor.DeployTargetProvider" />
     <extensionPoint qualifiedName="com.android.run.deviceNameRenderer"
                     interface="com.android.tools.idea.ddms.DeviceNameRendererEx"/>
@@ -934,13 +930,11 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.android.gradle.sync">
-    <postSyncProjectSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.project.ProjectJdkSetupStep"/>
     <postSyncProjectSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.project.MissingPlatformsSetupStep"/>
     <postSyncProjectSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.project.ExpiredPreviewBuildSetupStep"/>
     <postSyncProjectSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.project.IgnoredBuildScriptSetupStep"/>
     <postSyncProjectSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.project.GradleKtsBuildFilesWarningStep"/>
 
-    <postSyncProjectCleanupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.cleanup.ProjectStructureCleanupStep"/>
     <postSyncProjectCleanupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.cleanup.SdksCleanupStep"/>
 
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.OldAndroidPluginErrorHandler"/>
@@ -978,7 +972,6 @@
 
   <extensions defaultExtensionNs="com.android.ide">
     <sdkEventListener implementation="com.android.tools.idea.gradle.sdk.GradleAndroidSdkEventListener"/>
-    <developerServiceBuildSystemOperations implementation="com.android.tools.idea.gradle.structure.services.GradleOperations"/>
     <androidConfigurableContributor
         implementation="com.android.tools.idea.gradle.structure.configurables.GradleAndroidConfigurableContributor"/>
 
@@ -1040,6 +1033,7 @@
                              displayName="Memory Settings"
                              provider="com.android.tools.idea.memorysettings.MemorySettingsConfigurableProvider"
                              id="memory.settings"/>
+    <codeCompletionConfigurable instance="org.jetbrains.android.compose.ComposeCodeCompletionConfigurable"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.wizard.template">

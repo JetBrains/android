@@ -24,8 +24,8 @@ import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceFileDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.MoveFilesOrDirectoriesDialogFixture
-import com.android.tools.idea.tests.gui.framework.fixture.ResourcePickerDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.ResourceExplorerFixture
+import com.android.tools.idea.tests.gui.framework.fixture.ResourcePickerDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.AssetStudioWizardFixture
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.openPsd
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectDependenciesConfigurable
@@ -36,7 +36,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.IOException
-import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 
 /**
@@ -162,7 +161,8 @@ class QrScanningCujTest {
     ide.editor
       // play-services-vision uses AndroidX, so we need to add the following property (see bug 130286699). Eventually, all the dependencies
       // used in this test project should be upgraded to AndroidX.
-      .newFile(Paths.get("gradle.properties"), "android.useAndroidX=true")
+      .open("gradle.properties")
+      .enterText("android.useAndroidX=true\n")
       .open("app/build.gradle")
       .moveBetween("dependencies {\n", "")
       .typeText("    implementation 'com.google.android.gms:play-services-vision:+'\n")

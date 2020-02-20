@@ -57,6 +57,10 @@
     <applicationService serviceImplementation="com.android.tools.idea.common.model.NlDependencyManager"/>
   </extensions>
 
+  <extensions defaultExtensionNs="com.intellij">
+    <keymapExtension implementation="com.android.tools.idea.DesignerKeymapExtension"/>
+  </extensions>
+
   <project-components>
     <component>
       <implementation-class>com.android.tools.idea.uibuilder.handlers.ViewHandlerManager</implementation-class>
@@ -115,9 +119,44 @@
     </action>
   </actions>
 
+  <!-- The design tool actions which the shortcuts are configurable. -->
+  <!-- The action ids should be listed in com.android.tools.idea.actions.DesignerActions.kt file  -->
+  <actions>
+    <!-- Shared actions across all design tools-->
+    <group id="Android.Designer.CommonActions"> <!-- Keymap group for Preferences -> Keymap -> Android Design Tools -->
+      <action id="Android.Designer.ForceRefreshPreview"
+              class="com.android.tools.idea.common.actions.RefreshRenderAction"
+              text="Force Refresh Layout"
+              description="Refresh preview(s)">
+        <keyboard-shortcut keymap="$default" first-keystroke="R"/>
+      </action>
+    </group>
+
+    <group id="Android.Designer.ToolsActions"/> <!-- Keymap group for Preferences -> Keymap -> Android Design Tools -> [Tool_Name] -->
+
+    <!-- Layout Editor specific actions -->
+    <group id="Android.Designer.LayoutEditorActions" text="Layout Editor">
+      <action id="Android.Designer.ToggleDeviceOrientation"
+              icon="StudioIcons.LayoutEditor.Toolbar.ROTATE_BUTTON"
+              class="com.android.tools.idea.common.actions.ToggleDeviceOrientationAction"
+              text="Toggle Device Orientation"
+              description="Toggle the preview orientation between portrait and landscape">
+        <keyboard-shortcut keymap="$default" first-keystroke="O"/>
+      </action>
+
+      <!-- TODO (b/149212539): Migrate other shortcuts of Layout Editor -->
+
+      <add-to-group group-id="Android.Designer.ToolsActions"/>
+    </group>
+
+    <!-- TODO: add shortcuts and group for nav editor, multi-preview, custom view, compose, and split editor -->
+
+  </actions>
+
   <extensions defaultExtensionNs="com.android.tools.idea.assistant">
     <assistantBundleCreator implementation="com.android.tools.idea.uibuilder.actions.MotionLayoutPanelAssistantBundleCreator"/>
     <assistantBundleCreator implementation="com.android.tools.idea.uibuilder.actions.ConstraintLayoutPanelAssistantBundleCreator"/>
     <assistantBundleCreator implementation="com.android.tools.idea.uibuilder.actions.LayoutEditorPanelAssistantBundleCreator"/>
+    <navlistener implementation="com.android.tools.idea.uibuilder.actions.analytics.AssistantPanelNavListener" />
   </extensions>
 </idea-plugin>

@@ -22,6 +22,7 @@ import com.android.builder.model.AndroidLibrary
 import com.android.builder.model.AndroidProject
 import com.android.builder.model.BuildTypeContainer
 import com.android.builder.model.Dependencies
+import com.android.builder.model.DependenciesInfo
 import com.android.builder.model.JavaArtifact
 import com.android.builder.model.JavaLibrary
 import com.android.builder.model.ProductFlavorContainer
@@ -38,6 +39,7 @@ import com.android.ide.common.gradle.model.stubs.AndroidProjectStub
 import com.android.ide.common.gradle.model.stubs.ApiVersionStub
 import com.android.ide.common.gradle.model.stubs.BuildTypeContainerStub
 import com.android.ide.common.gradle.model.stubs.BuildTypeStub
+import com.android.ide.common.gradle.model.stubs.DependenciesInfoStub
 import com.android.ide.common.gradle.model.stubs.DependenciesStub
 import com.android.ide.common.gradle.model.stubs.DependencyGraphsStub
 import com.android.ide.common.gradle.model.stubs.InstantRunStub
@@ -70,6 +72,8 @@ import com.android.tools.idea.gradle.project.sync.idea.switchVariant
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup
 import com.android.tools.idea.gradle.util.GradleProjects
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
+import com.android.tools.idea.io.FilePaths
+import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.sdk.IdeSdks
@@ -78,6 +82,7 @@ import com.android.utils.appendCapitalized
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.TruthJUnit.assume
 import com.intellij.externalSystem.JavaProjectData
+import com.intellij.ide.impl.ProjectUtil
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ProjectKeys
@@ -91,7 +96,14 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.StdModuleTypes.JAVA
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.text.nullize
+import org.jetbrains.android.AndroidTestBase
+import org.jetbrains.annotations.SystemDependent
+import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.kotlin.idea.util.application.runWriteAction
 import org.jetbrains.plugins.gradle.model.ExternalProject
 import org.jetbrains.plugins.gradle.model.ExternalSourceSet
@@ -167,6 +179,7 @@ interface AndroidProjectStubBuilder {
   val releaseBuildType: BuildTypeContainer?
   val dynamicFeatures: List<String>
   val viewBindingOptions: ViewBindingOptions
+  val dependenciesInfo: DependenciesInfo
   val supportsBundleTask: Boolean
   fun androidModuleDependencies(variant: String): List<AndroidModuleDependency>?
   fun mainArtifact(variant: String): AndroidArtifact
@@ -198,6 +211,7 @@ data class AndroidProjectBuilder(
   val releaseBuildType: AndroidProjectStubBuilder.() -> BuildTypeContainerStub? = { buildReleaseBuildTypeStub() },
   val dynamicFeatures: AndroidProjectStubBuilder.() -> List<String> = { emptyList() },
   val viewBindingOptions: AndroidProjectStubBuilder.() -> ViewBindingOptionsStub = { buildViewBindingOptions() },
+  val dependenciesInfo: AndroidProjectStubBuilder.() -> DependenciesInfoStub = { buildDependenciesInfo() },
   val supportsBundleTask: AndroidProjectStubBuilder.() -> Boolean = { true },
   val mainArtifactStub: AndroidProjectStubBuilder.(variant: String) -> AndroidArtifactStub = { variant -> buildMainArtifactStub(variant) },
   val androidTestArtifactStub: AndroidProjectStubBuilder.(variant: String) -> AndroidArtifactStub =
@@ -289,6 +303,7 @@ data class AndroidProjectBuilder(
       override val releaseBuildType: BuildTypeContainer? = releaseBuildType()
       override val dynamicFeatures: List<String> = dynamicFeatures()
       override val viewBindingOptions: ViewBindingOptions = viewBindingOptions()
+      override val dependenciesInfo: DependenciesInfo = dependenciesInfo()
       override val supportsBundleTask: Boolean = supportsBundleTask()
       override fun androidModuleDependencies(variant: String): List<AndroidModuleDependency> = androidModuleDependencyList(variant)
       override fun mainArtifact(variant: String): AndroidArtifact = mainArtifactStub(variant)
@@ -393,6 +408,7 @@ fun AndroidProjectStubBuilder.buildReleaseBuildTypeStub() = releaseSourceProvide
 }
 
 fun AndroidProjectStubBuilder.buildViewBindingOptions() = ViewBindingOptionsStub()
+fun AndroidProjectStubBuilder.buildDependenciesInfo() = DependenciesInfoStub()
 
 fun AndroidProjectStubBuilder.buildMainArtifactStub(
   variant: String,
@@ -572,6 +588,7 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): AndroidProjectStub {
     AaptOptionsStub(),
     dynamicFeatures,
     viewBindingOptions,
+    dependenciesInfo,
     buildPath,
     null,
     1,
@@ -840,8 +857,7 @@ private fun createJavaModuleDataNode(
         null,
         null,
         null,
-        buildable,
-        false
+        buildable
       ),
       null
     )
@@ -877,3 +893,76 @@ private fun createGradleModuleDataNode(
  */
 fun Project.gradleModule(gradlePath: String): Module? =
   ModuleManager.getInstance(this).modules.singleOrNull { GradleProjects.getGradleModulePath(it) == gradlePath }
+
+/**
+ * Finds a file by the [path] relative to the corresponding Gradle project root.
+ */
+fun Module.fileUnderGradleRoot(path: @SystemIndependent String): VirtualFile? =
+  VirtualFileManager.getInstance().findFileByUrl("${FilePaths.pathToIdeaUrl(File(AndroidProjectRootUtil.getModuleDirPath(this)!!))}/$path")
+
+/**
+ * See implementing classes for usage examples.
+ */
+interface GradleSnapshotComparisonTest : SnapshotComparisonTest {
+  /**
+   * The base testData directory to be used in tests.
+   */
+  fun getBaseTestPath(): @SystemDependent String = FileUtil.getTempDirectory()
+
+  /**
+   * The base testData directory to be used in tests.
+   */
+  fun getBaseTestDataPath(): @SystemDependent String = AndroidTestBase.getTestDataPath()
+
+  /**
+   * The collection of additional repositories to be added to the Gradle project.
+   */
+  fun getAdditionalRepos(): Collection<File>
+}
+
+/**
+ * Opens a test project created from a [testProjectPath] under the given [name].
+ */
+fun GradleSnapshotComparisonTest.openGradleProject(testProjectPath: String, name: String): Project {
+  if (name == this.getName()) throw IllegalArgumentException("Additional projects cannot be opened under the test name: $name")
+  val srcPath = File(getBaseTestDataPath(), FileUtil.toSystemDependentName(testProjectPath))
+  val projectPath = File(FileUtil.toSystemDependentName(getBaseTestPath() + "/" + name))
+
+  AndroidGradleTests.validateGradleProjectSource(srcPath)
+  AndroidGradleTests.prepareProjectForImportCore(srcPath, projectPath) { projectRoot ->
+    AndroidGradleTests.defaultPatchPreparedProject(projectRoot, null, null, *getAdditionalRepos().toTypedArray())
+  }
+
+  val project = ProjectUtil.openOrImport(projectPath.absolutePath, null, true)!!
+  PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+  return project
+}
+
+/**
+ * Opens a test project created from a [testProjectPath] under the given [name], runs a test [action] and then closes and disposes
+ * the project.
+ */
+fun <T> GradleSnapshotComparisonTest.openGradleProject(testProjectPath: String, name: String, action: (Project) -> T): T {
+  val project = openGradleProject(testProjectPath, name)
+  try {
+    return action(project)
+  }
+  finally {
+    ProjectUtil.closeAndDispose(project)
+  }
+}
+
+/**
+ * Re-opens a test project previously opened under the given [name], runs a test [action] and then closes and disposes the project.
+ */
+fun <T> GradleSnapshotComparisonTest.reopenGradleProject(name: String, action: (Project) -> T): T {
+  val projectPath = File(FileUtil.toSystemDependentName(getBaseTestPath() + "/" + name))
+  val project = ProjectUtil.openProject(projectPath.absolutePath, null, true)!!
+  PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+  try {
+    return action(project)
+  }
+  finally {
+    ProjectUtil.closeAndDispose(project)
+  }
+}

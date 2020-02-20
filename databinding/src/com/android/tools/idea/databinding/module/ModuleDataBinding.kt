@@ -28,12 +28,11 @@ import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.databinding.psiclass.LightBrClass
 import com.android.tools.idea.databinding.psiclass.LightDataBindingComponentClass
 import com.android.tools.idea.databinding.util.DataBindingUtil
-import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
+import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.res.ResourceRepositoryManager
-import com.android.tools.idea.util.androidFacet
-import com.intellij.facet.Facet
-import com.intellij.facet.FacetManager
-import com.intellij.facet.FacetManagerAdapter
+import com.android.tools.idea.util.dependsOn
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleServiceManager
 import com.intellij.openapi.util.Key
@@ -73,19 +72,25 @@ class ModuleDataBinding private constructor(private val module: Module) {
     }
 
   init {
-    fun syncModeWithFacetConfiguration() {
-      dataBindingMode = module.androidFacet?.let(AndroidModel::get)?.dataBindingMode ?: return
+    fun syncModeWithDependencies() {
+      dataBindingMode = determineDataBindingMode(module)
     }
 
     val connection = module.messageBus.connect(module)
-    connection.subscribe(FacetManager.FACETS_TOPIC, object : FacetManagerAdapter() {
-      override fun facetConfigurationChanged(facet: Facet<*>) {
-        if (facet.module === module) {
-          syncModeWithFacetConfiguration()
-        }
+    connection.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : ProjectSystemSyncManager.SyncResultListener {
+      override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
+        syncModeWithDependencies()
       }
     })
-    syncModeWithFacetConfiguration()
+    syncModeWithDependencies()
+  }
+
+  private fun determineDataBindingMode(module: Module): DataBindingMode {
+    return when {
+      module.dependsOn(GoogleMavenArtifactId.ANDROIDX_DATA_BINDING_LIB) -> DataBindingMode.ANDROIDX
+      module.dependsOn(GoogleMavenArtifactId.DATA_BINDING_LIB) -> DataBindingMode.SUPPORT
+      else -> DataBindingMode.NONE
+    }
   }
 
   @GuardedBy("lock")

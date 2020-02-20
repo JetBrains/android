@@ -16,13 +16,19 @@
 package com.android.tools.idea.material.icons
 
 import com.android.tools.idea.sdk.AndroidSdks
+import com.intellij.openapi.diagnostic.Logger
+import java.io.BufferedReader
 import java.io.File
+import java.io.InputStreamReader
+import java.net.URL
 import java.util.Locale
 
 /**
  * Set of common functions and values used when reading/writing Material Icons files.
  */
 internal object MaterialIconsUtils {
+  private val LOG = Logger.getInstance(javaClass)
+
   /**
    * The path where the bundled material icons are stored.
    */
@@ -59,5 +65,19 @@ internal object MaterialIconsUtils {
   fun hasMetadataFileInSdkPath(): Boolean {
     val iconsSdkPath = getIconsSdkTargetPath()
     return iconsSdkPath != null && iconsSdkPath.resolve(METADATA_FILE_NAME).exists()
+  }
+
+  /**
+   * @see [MaterialIconsMetadata.parse]
+   * @return The [MaterialIconsMetadata] parsed from the URL provided.
+   */
+  fun getMetadata(url: URL): MaterialIconsMetadata? {
+    try {
+      return MaterialIconsMetadata.parse(BufferedReader(InputStreamReader(url.openStream())))
+    }
+    catch (e: Exception) {
+      LOG.error("Error obtaining metadata file", e)
+      return null
+    }
   }
 }

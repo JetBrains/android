@@ -41,9 +41,6 @@ public class BlueprintView extends ScreenView {
     if (hasBorderLayer()) {
       builder.add(new BorderLayer(this));
     }
-    if (getSurface().isShowModelNames()) {
-      builder.add(new ModelNameLayer(this));
-    }
     builder.add(new MockupLayer(this));
     if (!myIsSecondary) {
       builder.add(new CanvasResizeLayer(getSurface(), this));

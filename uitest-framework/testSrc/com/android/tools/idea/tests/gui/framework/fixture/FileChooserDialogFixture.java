@@ -22,6 +22,8 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ui.AsyncProcessIcon;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
+import org.fest.swing.edt.GuiQuery;
+import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
@@ -66,6 +68,22 @@ public class FileChooserDialogFixture extends IdeaDialogFixture<FileChooserDialo
   @NotNull
   public FileChooserDialogFixture clickOk() {
     findAndClickOkButton(this);
+    return this;
+  }
+
+  @NotNull
+  public FileChooserDialogFixture clickOkAndWaitToClose() {
+    JButton button = GuiTests.waitUntilShowingAndEnabled(robot(), target(), Matchers.byText(JButton.class, "OK"));
+
+    Wait.seconds(5).expecting("OK button clicked && disappear").until(() -> {
+      if (button.isEnabled() && button.isShowing()) {
+        GuiTask.execute(() -> button.doClick());
+        return GuiQuery.getNonNull(() -> !target().isShowing());
+      } else {
+        return false;
+      }
+    });
+
     return this;
   }
 }

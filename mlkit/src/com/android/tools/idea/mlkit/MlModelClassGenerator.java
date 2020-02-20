@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.mlkit;
 
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.mlkit.MlkitNames;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
@@ -29,12 +31,11 @@ public class MlModelClassGenerator {
 
   @Nullable
   public static LightModelClassConfig generateLightModelClass(@NotNull Module module, @NotNull MlModelMetadata modelMetadata) {
-    // TODO(b/144867508): placeholder for now, implement it with parsing the given model file.
-    String packageName = MlkitUtils.computeModelPackageName(module);
-    if (packageName == null) {
+    String modulePackageName = ProjectSystemUtil.getModuleSystem(module).getPackageName();
+    if (modulePackageName == null) {
       LOG.warn("No valid packageName for module:" + module.getName());
       return null;
     }
-    return new LightModelClassConfig(modelMetadata, packageName);
+    return new LightModelClassConfig(modelMetadata, modulePackageName + MlkitNames.PACKAGE_SUFFIX);
   }
 }

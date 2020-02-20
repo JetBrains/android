@@ -53,8 +53,8 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlInteractionHandler
 import com.android.tools.idea.uibuilder.surface.SceneMode
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
-import com.intellij.ide.util.PsiNavigationSupport
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -63,7 +63,6 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.UserDataHolderEx
-import com.intellij.pom.Navigatable
 import com.intellij.problems.WolfTheProblemSolver
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
@@ -467,7 +466,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                          modelUpdater)
         }
 
-        navigationHandler.setDefaultLocation(model, psiFile, previewElement.previewElementDefinitionPsi?.element?.textOffset ?: 0)
+        val offset = ReadAction.compute<Int, Throwable> {
+          previewElement.previewElementDefinitionPsi?.element?.textOffset ?: 0
+        }
+
+        navigationHandler.setDefaultLocation(model, psiFile, offset)
 
         previewElement.configuration.applyTo(model.configuration)
 

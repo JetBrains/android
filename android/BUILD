@@ -10,7 +10,6 @@ iml_module(
     srcs = [
         "resources",
         "src",
-        "gen",
     ],
     bundle_data = [
         "//tools/adt/idea/android/annotations",
@@ -149,6 +148,7 @@ iml_module(
         "//tools/analytics-library/crash:analytics-crash[module]",
         "//tools/idea/.idea/libraries:aapt-proto",
         "//tools/adt/idea/android/lib:pepk",
+        "//tools/idea/.idea/libraries:emulator-proto",
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/deploy:intellij.android.deploy[module]",
@@ -211,7 +211,7 @@ iml_module(
             "test_filter": "com.android.tools.idea.imports",
         },
         "run": {
-            "shard_count": 2,
+            "shard_count": 5,
             "test_filter": "com.android.tools.idea.run",
         },
         "npw.assetstudio": {
@@ -274,11 +274,8 @@ iml_module(
         "//tools/adt/idea/artwork:device-art-resources",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system:studio_repo.zip",
-        "//tools/base/templates",
         "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
         "//tools/data-binding:data_binding_runtime.zip",
-        "//tools/idea:platform-build-info",
-        "//tools/idea/java/jdkAnnotations",
         "//tools/idea/java/mockJDK-1.7",
     ],
     test_resources = ["testResources"],
@@ -389,6 +386,7 @@ iml_module(
         "//tools/idea/.idea/libraries:commons-io",
         "//tools/idea/.idea/libraries:aapt-proto",
         "//tools/adt/idea/android/lib:pepk[test]",
+        "//tools/idea/.idea/libraries:emulator-proto",
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
         "//tools/idea/.idea/libraries:jimfs[test]",
@@ -418,7 +416,10 @@ filegroup(
             "//tools/base/profiler/app:perfa_okhttp.dex",
             "//tools/base/profiler/transform:profilers-transform.jar",
         ],
-    }) + ["//tools/base/profiler:perfetto-protos"],
+    }) + [
+        "//tools/base/profiler:perfetto-protos",
+        "//tools/base/profiler/native/trace_processor_daemon:traceprocessor_protos",
+    ],
     visibility = ["//visibility:public"],
 )
 
@@ -495,14 +496,16 @@ filegroup(
         ":deploy-artifacts",
         ":layout-inspector-artifacts",
         ":profiler-artifacts",
-        ":transport-artifacts",
         ":sqlite-inspector-artifacts",
+        ":transport-artifacts",
         "//tools/adt/idea/swingp:swing-instrumenter_deploy.jarjar.jar",
         "//tools/analytics-library/protos/src/main/proto:studio.proto",
         "//tools/base/bazel:studio-grpc",
         "//tools/base/bazel:studio-proto",
         "//tools/base/build-system:gradle-api_neverlink",  # Provided when run in Gradle.
         "//tools/base/ddmlib:am-instrumentation-data-proto",
+        "//tools/base/emulator/proto:emulator_java_proto",
+        "//tools/base/game-tools/protos:game-tools-protos",
         "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
         "//tools/base/tracer:trace_agent",
     ] + select({

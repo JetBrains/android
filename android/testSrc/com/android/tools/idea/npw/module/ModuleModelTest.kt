@@ -19,8 +19,6 @@ import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.npw.java.NewLibraryModuleModel
 import com.android.tools.idea.npw.model.MultiTemplateRenderer
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
-import com.android.tools.idea.templates.Template
-import com.android.tools.idea.templates.TemplateManager
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.AndroidGradleTestCase.invokeGradle
 import com.intellij.openapi.module.ModuleManager

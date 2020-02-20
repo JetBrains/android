@@ -76,7 +76,7 @@ public class NlEditorTest {
       .open("app/src/main/res/layout/empty_absolute.xml", EditorFixture.Tab.DESIGN);
     NlEditorFixture layout = editor.getLayoutEditor(true);
     DesignSurface surface = (DesignSurface)layout.getSurface().target();
-    Dimension screenViewSize = surface.getFocusedSceneView().getSize();
+    Dimension screenViewSize = surface.getFocusedSceneView().getScaledContentSize();
     // Drag components to areas that are safe to click (not out of bounds) and that not overlap to prevent them from overlapping each
     // other and interfering with clicking.
     // We use the middle point and put the components in midpoint +/- 25% of the screen view size.
@@ -92,6 +92,7 @@ public class NlEditorTest {
     // Find and click the checkBox
     NlComponentFixture checkBox = layout.findView("CheckBox", 0);
     checkBox.getSceneComponent().click();
+    assertEquals("CheckBox", layout.getSelection().get(0).getTagName());
 
     // It should be selected now
     assertEquals(3, layout.getAllComponents().size()); // 3 = root layout + the 2 widgets added

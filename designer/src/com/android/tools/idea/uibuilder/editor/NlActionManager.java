@@ -222,7 +222,9 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     }
     group.add(createRefactoringMenu());
 
-    group.add(new MockupEditAction(mySurface));
+    if (StudioFlags.NELE_MOCKUP_EDITOR.get()) {
+      group.add(new MockupEditAction(mySurface));
+    }
     if (leafComponent != null && StudioFlags.NELE_MOCKUP_EDITOR.get() && Mockup.hasMockupAttribute(leafComponent)) {
       group.add(new MockupDeleteAction(leafComponent));
     }

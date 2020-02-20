@@ -53,7 +53,7 @@ public final class NavigationViewSceneView extends ScreenView {
    */
   @NotNull
   @Override
-  public Dimension getPreferredSize(@Nullable Dimension size) {
+  public Dimension getContentSize(@Nullable Dimension size) {
     if (size == null) {
       size = new Dimension();
     }
@@ -92,7 +92,7 @@ public final class NavigationViewSceneView extends ScreenView {
   @NotNull
   @Override
   public Shape getScreenShape() {
-    Dimension size = getSize();
+    Dimension size = getScaledContentSize();
     return new Rectangle(getX(), getY(), size.width, size.height);
   }
 }

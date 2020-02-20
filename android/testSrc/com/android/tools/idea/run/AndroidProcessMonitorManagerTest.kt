@@ -90,6 +90,17 @@ class AndroidProcessMonitorManagerTest {
   }
 
   @Test
+  fun isAssociated() {
+    val nonAssociatedDevice = createMockDevice(28)
+    val associatedDevice = createMockDevice(29)
+
+    monitorManager.add(associatedDevice)
+
+    assertThat(monitorManager.isAssociated(nonAssociatedDevice)).isFalse()
+    assertThat(monitorManager.isAssociated(associatedDevice)).isTrue()
+  }
+
+  @Test
   fun processNotFoundOnSingleDevice() {
     val device = createMockDevice(28)
     monitorManager.add(device)

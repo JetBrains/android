@@ -37,8 +37,8 @@ abstract class BitmapPopupEvaluator extends CustomPopupFullValueEvaluator<Buffer
 
   @Nullable
   public BufferedImage getImage(EvaluationContextImpl evaluationContext, Value value) {
-    try {
-      return BitmapDecoder.getBitmap(new BitmapEvaluatorProvider(value, evaluationContext));
+    try (BitmapEvaluatorProvider dataProvider = new BitmapEvaluatorProvider(value, evaluationContext)) {
+      return BitmapDecoder.getBitmap(dataProvider);
     }
     catch (EvaluateException e) {
       myError = "Error while evaluating expression: " + e.getMessage();

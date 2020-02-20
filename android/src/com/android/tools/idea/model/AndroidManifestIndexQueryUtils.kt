@@ -86,8 +86,29 @@ fun AndroidFacet.queryActivitiesFromManifestIndex() = queryManifestIndex { overr
     activityWrappers.addAll(getActivities(manifest, overrides))
     activityAliasWrappers.addAll(getActivityAliases(manifest, overrides))
   }
-  activityWrappers.addAll(activityAliasWrappers)
-  activityWrappers
+  ActivitiesAndAliases(activityWrappers, activityAliasWrappers)
+}
+
+data class ActivitiesAndAliases(
+  private val activities: List<DefaultActivityLocator.ActivityWrapper>,
+  private val aliases: List<DefaultActivityLocator.ActivityWrapper>
+) {
+  fun getJoined() : List<DefaultActivityLocator.ActivityWrapper> {
+    val joined = arrayListOf<DefaultActivityLocator.ActivityWrapper>()
+    joined.addAll(activities)
+    joined.addAll(aliases)
+    return joined
+  }
+
+  fun findActivityByName(name : String?) : DefaultActivityLocator.ActivityWrapper? {
+    name ?: return null
+    return activities.find { it.qualifiedName == name }
+  }
+
+  fun findAliasByName(name : String?) : DefaultActivityLocator.ActivityWrapper? {
+    name ?: return null
+    return aliases.find { it.qualifiedName == name }
+  }
 }
 
 /**

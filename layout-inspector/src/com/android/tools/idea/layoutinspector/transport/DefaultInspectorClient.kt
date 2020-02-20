@@ -54,7 +54,6 @@ import com.intellij.openapi.project.ProjectManagerListener
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.ui.components.dialog
 import com.intellij.ui.layout.panel
-import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.ui.UIUtil
 import io.grpc.Status
@@ -303,9 +302,7 @@ class DefaultInspectorClient(
         execute(LayoutInspectorCommand.Type.START)
       }
       // TODO: verify that capture started successfully
-      attachListener?.let { transportPoller.unregisterListener(it) }
-      attachListener = null
-      false
+      true // Remove the listener after this callback
     }
     attachListener?.let { transportPoller.registerListener(it) }
 
@@ -437,7 +434,7 @@ class DefaultInspectorClient(
             reportUnableToResetGlobalSettings()
           }
         }
-      }, EdtExecutorService.getInstance())
+      }, MoreExecutors.directExecutor())
     }
   }
 

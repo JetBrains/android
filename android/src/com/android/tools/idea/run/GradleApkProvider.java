@@ -19,6 +19,7 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
+import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutputListingFile;
 import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
 
 import com.android.build.OutputFile;
@@ -49,6 +50,7 @@ import com.android.tools.idea.gradle.run.PostBuildModelProvider;
 import com.android.tools.idea.gradle.structure.AndroidProjectSettingsService;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.util.OutputType;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.common.annotations.VisibleForTesting;
@@ -304,7 +306,7 @@ public class GradleApkProvider implements ApkProvider {
     AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
     assert androidModel != null;
     if (androidModel.getFeatures().isBuildOutputFileSupported()) {
-      return getApkFromBuildOutputFile(variant, device, fromTestArtifact);
+      return getApkFromBuildOutputFile(androidModel, device, fromTestArtifact);
     }
     if (androidModel.getFeatures().isPostBuildSyncSupported()) {
       return getApkFromPostBuildSync(variant, device, facet, fromTestArtifact);
@@ -313,12 +315,12 @@ public class GradleApkProvider implements ApkProvider {
   }
 
   @NotNull
-  File getApkFromBuildOutputFile(@NotNull IdeVariant variant,
+  File getApkFromBuildOutputFile(@NotNull AndroidModuleModel androidModel,
                                  @NotNull IDevice device,
                                  boolean fromTestArtifact) throws ApkProvisionException {
-    IdeAndroidArtifact artifact = fromTestArtifact ? variant.getAndroidTestArtifact() : variant.getMainArtifact();
-    assert artifact != null;
-    String outputFile = artifact.getAssembleTaskOutputListingFile();
+    IdeVariant variant = androidModel.getSelectedVariant();
+    String outputFile = getOutputListingFile(androidModel, variant.getName(), OutputType.Apk, fromTestArtifact);
+    assert outputFile != null;
     GenericBuiltArtifacts builtArtifacts = GenericBuiltArtifactsLoader.loadFromFile(new File(outputFile), new LogWrapper(getLogger()));
     assert builtArtifacts != null;
     return myBestOutputFinder.findBestOutput(variant, device, builtArtifacts);

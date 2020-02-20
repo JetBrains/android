@@ -11,8 +11,6 @@ iml_module(
     test_data = [
         "//tools/adt/idea/adt-ui/lib/libwebp",
         "//tools/adt/idea/artwork:device-art-resources",
-        "//tools/idea:platform-build-info",
-        "//tools/idea/java/jdkAnnotations",
     ],
     # do not sort: must match IML order
     test_runtime_deps = [

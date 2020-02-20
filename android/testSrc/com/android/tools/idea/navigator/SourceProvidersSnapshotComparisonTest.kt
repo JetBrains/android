@@ -246,7 +246,7 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
                 nest("Sources:") { sourceProviderManager.sources.dump("Sources") }
                 nest("UnitTestSources:") { sourceProviderManager.unitTestSources.dump("UnitTestSources") }
                 nest("AndroidTestSources:") { sourceProviderManager.androidTestSources.dump("AndroidTestSources") }
-                nest("AllIdeaSourceProviders:") { sourceProviderManager.allSourceProviders.sortedBy { it.adjustedName() }.forEach { it.dump() } }
+                nest("CurrentAndSomeFrequentlyUsedInactiveSourceProviders:") { sourceProviderManager.currentAndSomeFrequentlyUsedInactiveSourceProviders.sortedBy { it.adjustedName() }.forEach { it.dump() } }
                 nest("CurrentSourceProviders:") { sourceProviderManager.currentSourceProviders.forEach { it.dump() } }
                 nest("CurrentUnitTestSourceProviders:") { sourceProviderManager.currentUnitTestSourceProviders.forEach { it.dump() } }
                 nest("CurrentAndroidTestSourceProviders:") { sourceProviderManager.currentAndroidTestSourceProviders.forEach { it.dump() } }

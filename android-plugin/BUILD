@@ -66,5 +66,6 @@ iml_module(
         "//tools/base/wizard/template-impl:studio.intellij.android.wizardTemplate.impl[module]",
         "//tools/adt/idea/build-attribution:intellij.android.build-attribution[module]",
         "//tools/adt/idea/lint:intellij.lint[module]",
+        "//tools/adt/idea/nav/safeargs:intellij.android.nav.safeargs[module]",
     ],
 )

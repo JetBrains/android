@@ -17,7 +17,7 @@ package com.android.build.attribution.ui
 
 import com.android.annotations.concurrency.UiThread
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
-import com.android.build.attribution.ui.controllers.TaskIssueReporter
+import com.android.build.attribution.ui.controllers.TaskIssueReporterImpl
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.build.BuildContentManager
@@ -90,7 +90,7 @@ class BuildAttributionUiManager(
 
   private fun createNewView() {
     buildAttributionTreeView?.let { treeView -> Disposer.dispose(treeView) }
-    val issueReporter = TaskIssueReporter(reportUiData, project, uiAnalytics)
+    val issueReporter = TaskIssueReporterImpl(reportUiData, project, uiAnalytics)
     buildAttributionTreeView = BuildAttributionTreeView(reportUiData, issueReporter, uiAnalytics)
       .also { newView -> newView.setInitialSelection() }
   }

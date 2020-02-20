@@ -32,8 +32,6 @@ iml_module(
         "//prebuilts/studio/layoutlib/data/res",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/testData",
-        "//tools/idea:platform-build-info",
-        "//tools/idea/java/jdkAnnotations",
     ],
     # do not sort: must match IML order
     test_runtime_deps = [

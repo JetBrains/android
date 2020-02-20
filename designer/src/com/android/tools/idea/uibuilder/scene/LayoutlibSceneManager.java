@@ -43,7 +43,6 @@ import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.scene.TemporarySceneComponent;
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.configurations.Configuration;
@@ -372,13 +371,24 @@ public class LayoutlibSceneManager extends SceneManager {
     SceneMode mode = getDesignSurface().getSceneMode();
 
     SceneView primarySceneView = mode.createPrimarySceneView(getDesignSurface(), this);
-
     mySecondarySceneView = mode.createSecondarySceneView(getDesignSurface(), this);
 
     getDesignSurface().updateErrorDisplay();
-    getDesignSurface().getLayeredPane().setPreferredSize(primarySceneView.getPreferredSize());
 
     return primarySceneView;
+  }
+
+  @NotNull
+  @Override
+  public List<SceneView> getSceneViews() {
+    ImmutableList.Builder<SceneView> builder = ImmutableList.<SceneView>builder()
+      .addAll(super.getSceneViews());
+
+    if (mySecondarySceneView != null) {
+      builder.add(mySecondarySceneView);
+    }
+
+    return builder.build();
   }
 
   private SceneView createSceneViewsForMenu() {
@@ -395,19 +405,7 @@ public class LayoutlibSceneManager extends SceneManager {
     }
 
     getDesignSurface().updateErrorDisplay();
-    getDesignSurface().getLayeredPane().setPreferredSize(sceneView.getPreferredSize());
     return sceneView;
-  }
-
-  @NotNull
-  @Override
-  public ImmutableList<Layer> getLayers() {
-    ImmutableList.Builder<Layer> builder = new ImmutableList.Builder<>();
-    builder.addAll(super.getLayers());
-    if (mySecondarySceneView != null) {
-      builder.addAll(mySecondarySceneView.getLayers());
-    }
-    return builder.build();
   }
 
   @Nullable
@@ -691,8 +689,10 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   public void setShowDecorations(boolean enabled) {
-    useShowDecorations = enabled;
-    forceReinflate(); // Showing decorations changes the XML content of the render so requires re-inflation
+    if (useShowDecorations != enabled) {
+      useShowDecorations = enabled;
+      forceReinflate(); // Showing decorations changes the XML content of the render so requires re-inflation
+    }
   }
 
   public boolean isShowingDecorations() {

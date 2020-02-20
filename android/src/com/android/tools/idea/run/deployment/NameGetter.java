@@ -30,7 +30,7 @@ final class NameGetter implements Function<ConnectedDevice, String> {
   private final DeviceNamePropertiesProvider myProvider;
 
   NameGetter(@NotNull Disposable parent) {
-    myProvider = new DeviceNamePropertiesFetcher(new DefaultCallback<>(), parent);
+    myProvider = new DeviceNamePropertiesFetcher(parent);
   }
 
   @NotNull

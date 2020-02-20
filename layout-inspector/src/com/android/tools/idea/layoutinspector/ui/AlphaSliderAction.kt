@@ -24,6 +24,7 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.ui.ComponentUtil
+import com.intellij.util.ui.JBUI
 import java.awt.FlowLayout
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
@@ -43,7 +44,7 @@ object AlphaSliderAction : AnAction(), CustomComponentAction {
   }
 
   override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
-    val panel = JPanel(FlowLayout())
+    val panel = JPanel(FlowLayout(FlowLayout.CENTER, JBUI.scale(5), 0))
     panel.add(JLabel("Overlay Alpha:"))
     val slider = JSlider(JSlider.HORIZONTAL, 0, 100, INITIAL_ALPHA_PERCENT)
     slider.addChangeListener {

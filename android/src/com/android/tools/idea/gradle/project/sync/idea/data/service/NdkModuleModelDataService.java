@@ -16,12 +16,15 @@
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL;
+import static com.android.tools.idea.gradle.project.sync.setup.Facets.removeAllFacets;
 
+import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.ndk.NdkModuleCleanupStep;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -34,20 +37,17 @@ import org.jetbrains.annotations.NotNull;
 public class NdkModuleModelDataService extends ModuleModelDataService<NdkModuleModel> {
   @NotNull private final ModuleSetupContext.Factory myModuleSetupContextFactory;
   @NotNull private final NdkModuleSetup myModuleSetup;
-  @NotNull private final NdkModuleCleanupStep myCleanupStep;
 
   @SuppressWarnings("unused") // Instantiated by IDEA
   public NdkModuleModelDataService() {
-    this(new ModuleSetupContext.Factory(), new NdkModuleSetup(), new NdkModuleCleanupStep());
+    this(new ModuleSetupContext.Factory(), new NdkModuleSetup());
   }
 
   @VisibleForTesting
   NdkModuleModelDataService(@NotNull ModuleSetupContext.Factory moduleSetupContextFactory,
-                            @NotNull NdkModuleSetup moduleSetup,
-                            @NotNull NdkModuleCleanupStep cleanupStep) {
+                            @NotNull NdkModuleSetup moduleSetup) {
     myModuleSetupContextFactory = moduleSetupContextFactory;
     myModuleSetup = moduleSetup;
-    myCleanupStep = cleanupStep;
   }
 
   @Override
@@ -68,13 +68,8 @@ public class NdkModuleModelDataService extends ModuleModelDataService<NdkModuleM
         myModuleSetup.setUpModule(context, ndkModuleModel);
       }
       else {
-        onModelNotFound(module, modelsProvider);
-      }
+        ModifiableFacetModel facetModel = modelsProvider.getModifiableFacetModel(module);
+        removeAllFacets(facetModel, NdkFacet.getFacetTypeId());      }
     }
-  }
-
-  @Override
-  protected void onModelNotFound(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
-    myCleanupStep.cleanUpModule(module, modelsProvider);
   }
 }

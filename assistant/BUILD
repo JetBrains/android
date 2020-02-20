@@ -51,6 +51,7 @@ iml_module(
         "//tools/idea/plugins/groovy/groovy-psi:intellij.groovy.psi[module]",
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module]",
         "//tools/idea/platform/lang-api:intellij.platform.lang[module]",
+        "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module]",
     ],
 )
 
@@ -65,9 +66,6 @@ iml_module(
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/android/testData",
-        "//tools/base/templates",
-        "//tools/idea:platform-build-info",
-        "//tools/idea/java/jdkAnnotations",
     ],
     # do not sort: must match IML order
     test_runtime_deps = [

@@ -65,7 +65,7 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
     <manifest xmlns:android='http://schemas.android.com/apk/res/android' 
       package='com.example' android:debuggable="false" android:enabled='true'>
       <application android:theme='@style/Theme.AppCompat'>
-        <activity android:name='.EnabledActivity' android:enabled='true'>
+        <activity android:name='.EnabledActivity' android:enabled='true' android:exported='true'>
           <intent-filter>
             <action android:name='android.intent.action.MAIN'/>
             <category android:name='android.intent.category.DEFAULT'/>
@@ -73,7 +73,7 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
         </activity>
         <activity android:name='.DisabledActivity' android:enabled='false'>
         </activity>
-        <activity-alias android:name='.EnabledAlias' android:enabled='true' android:targetActivity='.DisabledActivity'>
+        <activity-alias android:name='.EnabledAlias' android:enabled='true' android:targetActivity='.DisabledActivity' android:exported='true'>
         </activity-alias>
         <activity-alias android:name='.DisabledAlias' android:enabled='false' android:targetActivity='.EnabledActivity'>
         </activity-alias>
@@ -83,7 +83,7 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
 
     updateManifest(myModule, FN_ANDROID_MANIFEST_XML, manifestContent)
 
-    val activities = myFacet.queryActivitiesFromManifestIndex()
+    val activities = myFacet.queryActivitiesFromManifestIndex().getJoined()
 
     val mainIntentFilter = IntentFilterRawText(
       actionNames = setOf("android.intent.action.MAIN"),
@@ -99,6 +99,7 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
       IndexedActivityWrapper(
         name = ".EnabledActivity",
         enabled = "true",
+        exported = "true",
         intentFilters = setOf(mainIntentFilter),
         overrides = overrides,
         resolvedPackage = "com.example"
@@ -106,6 +107,7 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
       IndexedActivityWrapper(
         name = ".DisabledActivity",
         enabled = "false",
+        exported = null,
         intentFilters = emptySet(),
         overrides = overrides,
         resolvedPackage = "com.example"
@@ -113,6 +115,7 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
       IndexedActivityWrapper(
         name = ".EnabledAlias",
         enabled = "true",
+        exported = "true",
         intentFilters = emptySet(),
         overrides = overrides,
         resolvedPackage = "com.example"
@@ -120,6 +123,7 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
       IndexedActivityWrapper(
         name = ".DisabledAlias",
         enabled = "false",
+        exported = null,
         intentFilters = emptySet(),
         overrides = overrides,
         resolvedPackage = "com.example"

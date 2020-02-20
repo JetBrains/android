@@ -15,19 +15,17 @@
  */
 package com.android.tools.idea.mlkit.lightpsi;
 
-import com.android.tools.idea.mlkit.MlkitUtils;
 import com.android.tools.mlkit.MlkitNames;
-import com.android.tools.mlkit.Param;
+import com.android.tools.mlkit.TensorInfo;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiType;
 import com.intellij.psi.impl.light.LightMethodBuilder;
-import java.util.ArrayList;
-import java.util.List;
 import org.jetbrains.android.augment.AndroidLightClassBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,15 +38,14 @@ import org.jetbrains.annotations.Nullable;
 public class MlkitLabelLightClass extends AndroidLightClassBase {
   private final PsiClass containingClass;
   private final String qualifiedName;
-  private final Param param;
+  private final TensorInfo tensorInfo;
   private final PsiMethod[] myMethods;
 
-
-  public MlkitLabelLightClass(@NotNull Module module, Param param, PsiClass containingClass) {
+  public MlkitLabelLightClass(@NotNull Module module, @NotNull TensorInfo tensorInfo, @NotNull PsiClass containingClass) {
     super(PsiManager.getInstance(module.getProject()),
           ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL));
-    this.param = param;
-    this.qualifiedName = String.join(".", MlkitUtils.computeModelPackageName(module), containingClass.getName(), MlkitNames.LABEL);
+    this.tensorInfo = tensorInfo;
+    this.qualifiedName = String.join(".", containingClass.getQualifiedName(), MlkitNames.LABEL);
     this.containingClass = containingClass;
 
     setModuleInfo(module, false);
@@ -87,5 +84,11 @@ public class MlkitLabelLightClass extends AndroidLightClassBase {
   @Override
   public PsiClass getContainingClass() {
     return containingClass;
+  }
+
+  @NotNull
+  @Override
+  public PsiElement getNavigationElement() {
+    return containingClass.getNavigationElement();
   }
 }

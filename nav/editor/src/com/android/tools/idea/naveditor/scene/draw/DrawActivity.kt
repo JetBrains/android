@@ -40,7 +40,6 @@ import com.android.tools.idea.naveditor.scene.NavColors.COMPONENT_BACKGROUND
 import com.android.tools.idea.naveditor.scene.RefinableImage
 import com.android.tools.idea.naveditor.scene.createDrawImageCommand
 import com.android.tools.idea.naveditor.scene.scaledFont
-import com.google.common.annotations.VisibleForTesting
 import java.awt.Color
 import java.awt.Font
 
@@ -48,13 +47,13 @@ private val ACTIVITY_ARC_SIZE = scaledAndroidLength(12f)
 private val ACTIVITY_BORDER_WIDTH = scaledSwingLength(1f)
 private val ACTIVITY_BORDER_STROKE = SwingStroke(ACTIVITY_BORDER_WIDTH)
 
-class DrawActivity(@VisibleForTesting val rectangle: SwingRectangle,
-                   @VisibleForTesting val imageRectangle: SwingRectangle,
-                   @VisibleForTesting val scale: Scale,
-                   @VisibleForTesting val frameColor: Color,
-                   @VisibleForTesting val frameThickness: SwingLength,
-                   @VisibleForTesting val textColor: Color,
-                   @VisibleForTesting val image: RefinableImage? = null) : CompositeDrawCommand(COMPONENT_LEVEL) {
+class DrawActivity(private val rectangle: SwingRectangle,
+                   private val imageRectangle: SwingRectangle,
+                   private val scale: Scale,
+                   private val frameColor: Color,
+                   private val frameThickness: SwingLength,
+                   private val textColor: Color,
+                   private val image: RefinableImage? = null) : CompositeDrawCommand(COMPONENT_LEVEL) {
 
   constructor(serialized: String) : this(parse(serialized, 6))
 

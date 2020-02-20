@@ -30,7 +30,6 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
-import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.gradle.project.BuildSettings;
@@ -45,7 +44,6 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.util.Disposer;
 import java.awt.Point;
 import java.util.stream.Collectors;
-import javax.swing.JViewport;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;
 
@@ -57,6 +55,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     super.setUp();
 
     mySurface = NlDesignSurface.build(getProject(), getTestRootDisposable());
+    mySurface.setSize(1000, 1000);
   }
 
   @Override
@@ -68,39 +67,6 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     finally {
       super.tearDown();
     }
-  }
-
-  public void testLayers() {
-    ImmutableList<Layer> droppedLayers;
-
-    assertEmpty(mySurface.myLayers);
-    ModelBuilder modelBuilder = model("absolute.xml",
-                                      component(ABSOLUTE_LAYOUT)
-                                        .withBounds(0, 0, 1000, 1000)
-                                        .matchParentWidth()
-                                        .matchParentHeight());
-    NlModel model = modelBuilder.build();
-    mySurface.setModel(model);
-    mySurface.setScreenMode(SceneMode.RENDER, false);
-    assertEquals(5, mySurface.myLayers.size());
-
-    droppedLayers = ImmutableList.copyOf(mySurface.myLayers);
-    mySurface.setScreenMode(SceneMode.BLUEPRINT, false);
-    assertEquals(5, mySurface.myLayers.size());
-    // Make sure all dropped layers are disposed.
-    assertEmpty(droppedLayers.stream().filter(Disposer::isDisposed).collect(Collectors.toList()));
-
-    droppedLayers = ImmutableList.copyOf(mySurface.myLayers);
-    mySurface.setScreenMode(SceneMode.RENDER_AND_BLUEPRINT, false);
-    assertEquals(9, mySurface.myLayers.size());
-    // Make sure all dropped layers are disposed.
-    assertEmpty(droppedLayers.stream().filter(Disposer::isDisposed).collect(Collectors.toList()));
-
-    droppedLayers = ImmutableList.copyOf(mySurface.myLayers);
-    mySurface.setModel(null);
-    assertEmpty(mySurface.myLayers);
-    // Make sure all dropped layers are disposed.
-    assertEmpty(droppedLayers.stream().filter(layer -> !Disposer.isDisposed(layer)).collect(Collectors.toList()));
   }
 
   public void testScreenMode() {
@@ -123,9 +89,9 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     assertEquals(SceneMode.Companion.loadPreferredMode(), SceneMode.Companion.getDEFAULT_SCREEN_MODE());
 
     // Test next() function
-    assertEquals(SceneMode.RENDER.next(), SceneMode.BLUEPRINT);
-    assertEquals(SceneMode.BLUEPRINT.next(), SceneMode.RENDER_AND_BLUEPRINT);
-    assertEquals(SceneMode.RENDER_AND_BLUEPRINT.next(), SceneMode.RENDER);
+    assertEquals(SceneMode.BLUEPRINT, SceneMode.RENDER.next());
+    assertEquals(SceneMode.RENDER_AND_BLUEPRINT, SceneMode.BLUEPRINT.next());
+    assertEquals(SceneMode.RENDER, SceneMode.RENDER_AND_BLUEPRINT.next());
   }
 
   public void testEmptyRenderSuccess() {
@@ -452,35 +418,34 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
       ))
       .build();
     mySurface.setModel(model);
-    mySurface.getScrollPane().setSize(1000, 1000);
+    mySurface.setScrollViewSizeAndValidate(1000, 1000);
     mySurface.zoomToFit();
     double origScale = mySurface.getScale();
     assertEquals(origScale, mySurface.getMinScale());
 
     SceneView view = mySurface.getFocusedSceneView();
-    JViewport viewport = mySurface.getScrollPane().getViewport();
-    assertEquals(new Point(-122, -122), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
+    assertEquals(new Point(-122, -122), Coordinates.getAndroidCoordinate(view, mySurface.getScrollPosition()));
 
     mySurface.zoom(ZoomType.IN);
     double scale = mySurface.getScale();
     assertTrue(scale > origScale);
-    assertEquals(new Point(8, 8), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
+    assertEquals(new Point(8, 8), Coordinates.getAndroidCoordinate(view, mySurface.getScrollPosition()));
 
     mySurface.zoom(ZoomType.IN, 100, 100);
     assertTrue(mySurface.getScale() > scale);
-    assertEquals(new Point(12, 12), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
+    assertEquals(new Point(12, 12), Coordinates.getAndroidCoordinate(view, mySurface.getScrollPosition()));
 
     mySurface.zoom(ZoomType.OUT, 100, 100);
-    assertEquals(new Point(7, 7), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
+    assertEquals(new Point(7, 7), Coordinates.getAndroidCoordinate(view, mySurface.getScrollPosition()));
     mySurface.zoom(ZoomType.OUT);
-    assertEquals(new Point(-122, -122), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
+    assertEquals(new Point(-122, -122), Coordinates.getAndroidCoordinate(view, mySurface.getScrollPosition()));
     mySurface.zoom(ZoomType.OUT);
 
     assertEquals(mySurface.getScale(), origScale);
     mySurface.zoom(ZoomType.OUT);
     assertEquals(mySurface.getScale(), origScale);
 
-    mySurface.getScrollPane().setSize(2000, 2000);
+    mySurface.setScrollViewSizeAndValidate(2000, 2000);
     assertEquals(1.0, mySurface.getMinScale());
 
     mySurface.setScale(1.099, 0, 0);
@@ -506,35 +471,34 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     model.setConfiguration(config);
     mySurface.setModel(model);
     assertEquals(2.f, mySurface.getSceneManager(model).getSceneScalingFactor());
-    mySurface.getScrollPane().setSize(1000, 1000);
+    mySurface.setScrollViewSizeAndValidate(1000, 1000);
     mySurface.zoomToFit();
     double origScale = mySurface.getScale();
     assertEquals(origScale, mySurface.getMinScale());
 
     SceneView view = mySurface.getFocusedSceneView();
-    JViewport viewport = mySurface.getScrollPane().getViewport();
-    assertEquals(new Point(-122, -122), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
+    assertEquals(new Point(-122, -122), Coordinates.getAndroidCoordinate(view, mySurface.getScrollPosition()));
 
     mySurface.zoom(ZoomType.IN);
     double scale = mySurface.getScale();
     assertTrue(scale > origScale);
-    assertEquals(new Point(-44, -44), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
+    assertEquals(new Point(-44, -44), Coordinates.getAndroidCoordinate(view, mySurface.getScrollPosition()));
 
     mySurface.zoom(ZoomType.IN, 100, 100);
     assertTrue(mySurface.getScale() > scale);
-    assertEquals(new Point(-29, -29), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
+    assertEquals(new Point(-29, -29), Coordinates.getAndroidCoordinate(view, mySurface.getScrollPosition()));
 
     mySurface.zoom(ZoomType.OUT, 100, 100);
-    assertEquals(new Point(-43, -43), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
+    assertEquals(new Point(-43, -43), Coordinates.getAndroidCoordinate(view, mySurface.getScrollPosition()));
     mySurface.zoom(ZoomType.OUT);
-    assertEquals(new Point(-122, -122), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
+    assertEquals(new Point(-122, -122), Coordinates.getAndroidCoordinate(view, mySurface.getScrollPosition()));
     mySurface.zoom(ZoomType.OUT);
 
     assertEquals(mySurface.getScale(), origScale);
     mySurface.zoom(ZoomType.OUT);
     assertEquals(mySurface.getScale(), origScale);
 
-    mySurface.getScrollPane().setSize(2000, 2000);
+    mySurface.setScrollViewSizeAndValidate(2000, 2000);
     assertEquals(1.0, mySurface.getMinScale());
 
     mySurface.setScale(1.099, 0, 0);
@@ -642,12 +606,12 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     surface.setBounds(0, 0, 1000, 1000);
     surface.validate();
     surface.getLayout().layoutContainer(surface);
-    surface.updateScrolledAreaSize();
+    surface.validateScrollArea();
     surface.zoomToFit();
     assertEquals(0.5, surface.getScale(), 0.1);
 
     surface.setBounds(0, 0, 1, 1);
-    surface.updateScrolledAreaSize();
+    surface.revalidateScrollArea();
     surface.validate();
     surface.getLayout().layoutContainer(surface);
     surface.zoomToFit();

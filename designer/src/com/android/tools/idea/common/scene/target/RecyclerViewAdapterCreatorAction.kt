@@ -64,8 +64,8 @@ class RecyclerViewAdapterCreatorAction @JvmOverloads constructor(
     assert(moduleTemplates.isNotEmpty())
 
     val renderModel = fromFacet(
-      facet, null, initialPackageSuggestion, moduleTemplates[0],
-      commandName, projectSyncInvoker, true)
+      facet, initialPackageSuggestion, moduleTemplates[0], commandName,
+      projectSyncInvoker, true)
 
     // Remove ".xml" from the name.
     currentRecyclerViewLayout = component.model.file.name
@@ -75,9 +75,7 @@ class RecyclerViewAdapterCreatorAction @JvmOverloads constructor(
       recyclerViewAdapterNoFragmentTemplate,
       recyclerViewAdapterFragmentTemplate)
 
-    val moduleModel = NewAndroidModuleModel(project, null, projectSyncInvoker, moduleTemplates[0], false, null)
-    val chooseTypeStep: SkippableWizardStep<*> = ChooseCustomFragmentTemplatesStep(
-      moduleModel, renderModel, targetDirectory, template)
+    val chooseTypeStep: SkippableWizardStep<*> = ChooseCustomFragmentTemplatesStep(renderModel, targetDirectory, template)
 
     val wizardBuilder = ModelWizard.Builder().apply {
       addStep(chooseTypeStep)

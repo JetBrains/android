@@ -50,7 +50,6 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
         .setDefaultSurfaceState(AndroidEditorSettings.getInstance().globalState.preferredDrawableSurfaceState())
         .build()
         .apply {
-          setCentered(true)
           setScreenMode(SceneMode.RENDER, false)
         }
     }

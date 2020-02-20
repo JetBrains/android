@@ -329,8 +329,8 @@ public class InteractionManagerTest extends LayoutTestCase {
     InteractionManager manager = setupLinearLayoutCursorTest();
     DesignSurface surface = manager.getSurface();
     ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
-    manager.updateCursor(screenView.getX() + screenView.getSize().width,
-                         screenView.getY() + screenView.getSize().height,
+    manager.updateCursor(screenView.getX() + screenView.getScaledContentSize().width,
+                         screenView.getY() + screenView.getScaledContentSize().height,
                          0);
     Mockito.verify(surface).setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
   }
@@ -407,8 +407,8 @@ public class InteractionManagerTest extends LayoutTestCase {
     InteractionManager manager = setupConstraintLayoutCursorTest();
     DesignSurface surface = manager.getSurface();
     ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
-    manager.updateCursor(screenView.getX() + screenView.getSize().width,
-                         screenView.getY() + screenView.getSize().height,
+    manager.updateCursor(screenView.getX() + screenView.getScaledContentSize().width,
+                         screenView.getY() + screenView.getScaledContentSize().height,
                          0);
     Mockito.verify(surface).setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
   }

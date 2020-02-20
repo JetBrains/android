@@ -106,6 +106,7 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="emulator-proto" level="project" />
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="jimfs" level="project" />

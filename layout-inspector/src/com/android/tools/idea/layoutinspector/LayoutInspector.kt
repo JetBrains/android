@@ -15,20 +15,20 @@
  */
 package com.android.tools.idea.layoutinspector
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.legacydevice.LegacyClient
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.transport.DisconnectedClient
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.android.tools.profiler.proto.Common
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.Messages
 import java.util.concurrent.atomic.AtomicLong
 
-// TODO: Set this to false before turning the dynamic layout inspector on by default
-private const val DEBUG = true
+@VisibleForTesting
+const val SHOW_ERROR_MESSAGES_IN_DIALOG = false
 
 class LayoutInspector(val layoutInspectorModel: InspectorModel) {
   var currentClient: InspectorClient = DisconnectedClient
@@ -53,7 +53,7 @@ class LayoutInspector(val layoutInspectorModel: InspectorModel) {
   }
 
   private fun registerClientListeners(client: InspectorClient) {
-    client.register(Common.Event.EventGroupIds.LAYOUT_INSPECTOR_ERROR, ::showError)
+    client.register(Common.Event.EventGroupIds.LAYOUT_INSPECTOR_ERROR, ::logError)
     client.register(Common.Event.EventGroupIds.COMPONENT_TREE) { event ->
       // TODO: maybe find a better place to do this?
       currentClient = client
@@ -79,7 +79,7 @@ class LayoutInspector(val layoutInspectorModel: InspectorModel) {
     }
   }
 
-  private fun showError(event: Any) {
+  private fun logError(event: Any) {
     val error = when (event) {
       is LayoutInspectorProto.LayoutInspectorEvent -> event.errorMessage
       is String -> event
@@ -89,7 +89,7 @@ class LayoutInspector(val layoutInspectorModel: InspectorModel) {
     Logger.getInstance(LayoutInspector::class.java.canonicalName).warn(error)
 
     @Suppress("ConstantConditionIf")
-    if (DEBUG) {
+    if (SHOW_ERROR_MESSAGES_IN_DIALOG) {
       ApplicationManager.getApplication().invokeLater {
         Messages.showErrorDialog(layoutInspectorModel.project, error, "Inspector Error")
       }

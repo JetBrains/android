@@ -17,9 +17,9 @@ package com.android.tools.idea.sqlite
 
 import androidx.sqlite.inspection.SqliteInspectorProtocol
 import com.android.tools.idea.appinspection.api.AppInspectionTarget
-import com.android.tools.idea.appinspection.api.AppInspectorClient
-import com.android.tools.idea.appinspection.api.AppInspectorJar
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.appinspection.ide.AppInspectionClientsService
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.ListenableFuture
@@ -38,7 +38,9 @@ class DatabaseInspectorClient private constructor(
   companion object {
     private const val inspectorId = "androidx.sqlite.inspection"
     private val inspectorJar =
-      AppInspectorJar("sqlite-inspection.jar", developmentDirectory = "../../prebuilts/tools/common/app-inspection/androidx/sqlite/")
+      AppInspectorJar("sqlite-inspection.jar",
+                      developmentDirectory = "../../prebuilts/tools/common/app-inspection/androidx/sqlite/",
+                      releaseDirectory = "plugins/android/resources/app-inspection/")
 
     /**
      * Starts listening for the creation of new connections to a device.

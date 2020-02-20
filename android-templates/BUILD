@@ -15,13 +15,9 @@ iml_module(
         "//prebuilts/studio/sdk:ndk",
         "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/tools/common/kotlin-plugin:Kotlin/kotlinc/build.txt",
-        "//tools/adt/idea/android-templates/testData",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system:studio_repo.zip",
-        "//tools/base/templates",
         "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
-        "//tools/idea:platform-build-info",
-        "//tools/idea/java/jdkAnnotations",
     ],
     # do not sort: must match IML order
     test_runtime_deps = [

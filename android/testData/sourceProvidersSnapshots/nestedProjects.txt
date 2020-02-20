@@ -932,7 +932,7 @@ MODULE: app
                     file://./app/src/androidTestBasicBar/shaders
                     file://./app/src/androidTestDebug/shaders
                     file://./app/src/androidTestBasicBarDebug/shaders
-        AllIdeaSourceProviders:
+        CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1945,7 +1945,7 @@ MODULE: deep2
                 ShadersDirectoryUrls:
                     file://./nested2/trans/deep2/src/androidTest/shaders
                     file://./nested2/trans/deep2/src/androidTestDebug/shaders
-        AllIdeaSourceProviders:
+        CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -2524,7 +2524,7 @@ MODULE: dyn_feature
                 ShadersDirectoryUrls:
                     file://./dyn_feature/src/androidTest/shaders
                     file://./dyn_feature/src/androidTestDebug/shaders
-        AllIdeaSourceProviders:
+        CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -3112,7 +3112,7 @@ MODULE: lib
                 ShadersDirectoryUrls:
                     file://./lib/src/androidTest/shaders
                     file://./lib/src/androidTestDebug/shaders
-        AllIdeaSourceProviders:
+        CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -3699,7 +3699,7 @@ MODULE: nested1
                 ShadersDirectoryUrls:
                     file://./nested1/src/androidTest/shaders
                     file://./nested1/src/androidTestDebug/shaders
-        AllIdeaSourceProviders:
+        CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -4278,7 +4278,7 @@ MODULE: nested1-deep
                 ShadersDirectoryUrls:
                     file://./nested1/deep/src/androidTest/shaders
                     file://./nested1/deep/src/androidTestDebug/shaders
-        AllIdeaSourceProviders:
+        CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -5124,7 +5124,7 @@ MODULE: nested2
                     file://./nested2/src/androidTestBasic/shaders
                     file://./nested2/src/androidTestDebug/shaders
                     file://./nested2/src/androidTestBasicDebug/shaders
-        AllIdeaSourceProviders:
+        CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -5901,7 +5901,7 @@ MODULE: nested2-deep
                 ShadersDirectoryUrls:
                     file://./nested2/deep/src/androidTest/shaders
                     file://./nested2/deep/src/androidTestDebug/shaders
-        AllIdeaSourceProviders:
+        CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:

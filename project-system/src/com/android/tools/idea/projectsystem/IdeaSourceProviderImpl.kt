@@ -92,6 +92,8 @@ class NamedIdeaSourceProviderImpl(
     val fileManager = VirtualFileManager.getInstance()
     return fileUrls.mapNotNull { fileManager.findFileByUrl(it) }
   }
+
+  override fun toString(): String = "$name($scopeType)"
 }
 
 /**

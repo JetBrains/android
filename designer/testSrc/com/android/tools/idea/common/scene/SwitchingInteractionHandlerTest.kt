@@ -19,12 +19,10 @@ import com.android.tools.idea.common.surface.Interaction
 import com.android.tools.idea.common.surface.InteractionHandler
 import com.android.tools.idea.common.surface.SwitchingInteractionHandler
 import com.google.common.truth.Truth.assertThat
-import com.intellij.util.containers.enumMapOf
 import org.junit.Test
-import org.mockito.Mockito
-import org.mockito.Mockito.never
 import java.awt.Cursor
 import java.awt.dnd.DropTargetDragEvent
+import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import java.awt.event.MouseWheelEvent
 import java.util.EnumMap
@@ -49,6 +47,8 @@ class SwitchingInteractionHandlerTest {
     override fun hoverWhenNoInteraction(mouseX: Int, mouseY: Int, modifiersEx: Int) { }
     override fun popupMenuTrigger(mouseEvent: MouseEvent) { }
     override fun getCursorWhenNoInteraction(mouseX: Int, mouseY: Int, modifiersEx: Int): Cursor? = null
+    override fun keyPressedWithoutInteraction(keyEvent: KeyEvent): Interaction? = null
+    override fun keyReleasedWithoutInteraction(keyEvent: KeyEvent) { }
   }
 
   @Test

@@ -16,6 +16,7 @@ package com.android.tools.idea.naveditor.editor
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
+import com.android.sdklib.SdkVersionInfo
 import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.idea.actions.CREATED_FILES
 import com.android.tools.idea.actions.NewAndroidComponentAction
@@ -338,7 +339,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
         shouldOpenFiles = false
       }
     } else {
-      NewAndroidComponentAction("Fragment", "Fragment (Blank)", 7).apply {
+      NewAndroidComponentAction("Fragment", "Fragment (Blank)", SdkVersionInfo.LOWEST_ACTIVE_API).apply {
         shouldOpenFiles = false
       }
     }

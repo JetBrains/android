@@ -23,8 +23,8 @@ import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.FileSubject
 import com.android.tools.idea.testing.FileSubject.file
+import com.android.tools.idea.testing.GradleSnapshotComparisonTest
 import com.android.tools.idea.testing.IdeComponents
-import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.TestProjectPaths.BASIC
 import com.android.tools.idea.testing.TestProjectPaths.CENTRAL_BUILD_DIRECTORY
@@ -42,15 +42,21 @@ import com.android.tools.idea.testing.TestProjectPaths.TWO_JARS
 import com.android.tools.idea.testing.TestProjectPaths.VARIANT_SPECIFIC_DEPENDENCIES
 import com.android.tools.idea.testing.assertAreEqualToSnapshots
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
+import com.android.tools.idea.testing.fileUnderGradleRoot
+import com.android.tools.idea.testing.gradleModule
+import com.android.tools.idea.testing.openGradleProject
+import com.android.tools.idea.testing.reopenGradleProject
 import com.android.tools.idea.testing.saveAndDump
 import com.google.common.truth.Truth.assertAbout
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.WriteAction.run
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.io.FileUtil.delete
 import com.intellij.openapi.util.io.FileUtil.join
 import com.intellij.openapi.util.io.FileUtil.writeToFile
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.PathUtil.toSystemDependentName
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED
@@ -79,10 +85,13 @@ bazel test //tools/adt/idea/android:intellij.android.core.tests_tests  --test_sh
  */
 abstract class GradleSyncProjectComparisonTest(
   private val singleVariantSync: Boolean = false
-) : GradleSyncIntegrationTestCase(), SnapshotComparisonTest {
+) : GradleSyncIntegrationTestCase(), GradleSnapshotComparisonTest {
   override fun useSingleVariantSyncInfrastructure(): Boolean = singleVariantSync
 
-  class FullVariantGradleSyncProjectComparisonTest : GradleSyncProjectComparisonTestCase()
+  class FullVariantGradleSyncProjectComparisonTest : GradleSyncProjectComparisonTestCase() {
+    // TODO(b/135453395): Re-enable after variant switching from cache is fixed.
+    override fun testSwitchingVariantsWithReopenAndResync_simpleApplication() = Unit
+  }
 
   class SingleVariantGradleSyncProjectComparisonTest :
     GradleSyncProjectComparisonTestCase(singleVariantSync = true) {
@@ -143,7 +152,8 @@ abstract class GradleSyncProjectComparisonTest(
 
     fun testExternalSourceSets() {
       val projectRootPath = prepareProjectForImport(NON_STANDARD_SOURCE_SETS)
-      AndroidGradleTests.importProject(project, GradleSyncInvoker.Request.testRequest())
+      val request = GradleSyncInvoker.Request.testRequest(true);
+      AndroidGradleTests.importProject(project, request)
 
       val text = project.saveAndDump(
         mapOf("EXTERNAL_SOURCE_SET" to File(projectRootPath.parentFile, "externalRoot"),
@@ -300,9 +310,9 @@ abstract class GradleSyncProjectComparisonTest(
 
     fun testSwitchingVariants_simpleApplication() {
       val debugBefore = importSyncAndDumpProject(SIMPLE_APPLICATION)
-      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, "app", "release")
+      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, "app", "release", true)
       val release = project.saveAndDump()
-      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, "app", "debug")
+      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, "app", "debug", true)
       val debugAfter = project.saveAndDump()
       assertAreEqualToSnapshots(
         debugBefore to ".debug",
@@ -311,14 +321,58 @@ abstract class GradleSyncProjectComparisonTest(
       )
     }
 
+    fun testSwitchingVariantsWithReopen_simpleApplication() {
+      val debugBefore = openGradleProject(SIMPLE_APPLICATION, "project") { project ->
+        project.saveAndDump()
+      }
+      val release = reopenGradleProject("project") { project ->
+        BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, "app", "release", true)
+        PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+        project.saveAndDump()
+      }
+      val reopenedRelease = reopenGradleProject("project") { project ->
+        project.saveAndDump()
+      }
+      assertAreEqualToSnapshots(
+        debugBefore to ".debug",
+        release to ".release",
+        reopenedRelease to ".release"
+      )
+    }
+
+    open fun testSwitchingVariantsWithReopenAndResync_simpleApplication() {
+      val debugBefore = openGradleProject(SIMPLE_APPLICATION, "project") { project ->
+        project.saveAndDump()
+      }
+      val release = reopenGradleProject("project") { project ->
+        BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, "app", "release", true)
+        PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+        runWriteAction {
+          // Modify the project build file to ensure the project is synced when opened.
+          project.gradleModule(":")!!.fileUnderGradleRoot("build.gradle")!!.also { file ->
+            file.setBinaryContent((String(file.contentsToByteArray()) + " // ").toByteArray())
+          }
+        }
+        project.saveAndDump()
+      }
+      val reopenedRelease = reopenGradleProject("project") { project ->
+        project.saveAndDump()
+      }
+      assertAreEqualToSnapshots(
+        debugBefore to ".debug",
+        release to ".release",
+        reopenedRelease to ".release"
+      )
+    }
+
     // TODO(b/135453395): This test illustrates that variant switching does not remove dependencies.
     fun testSwitchingVariants_variantSpecificDependencies() {
       val freeDebugBefore = importSyncAndDumpProject(VARIANT_SPECIFIC_DEPENDENCIES)
 
-      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, "app", "paidDebug")
+      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, "app", "paidDebug", true)
       val paidDebug = project.saveAndDump()
 
-      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, "app", "freeDebug")
+      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, "app", "freeDebug", true)
       val freeDebugAfter = project.saveAndDump()
 
       assertAreEqualToSnapshots(
@@ -356,7 +410,8 @@ abstract class GradleSyncProjectComparisonTest(
   protected fun importSyncAndDumpProject(projectDir: String, patch: ((projectRootPath: File) -> Unit)? = null): String {
     val projectRootPath = prepareProjectForImport(projectDir)
     patch?.invoke(projectRootPath)
-    AndroidGradleTests.importProject(project, GradleSyncInvoker.Request.testRequest())
+    // In order to display all the information we are interested in we need to force creation of missing content roots.
+    AndroidGradleTests.importProject(project, GradleSyncInvoker.Request.testRequest(true))
     return project.saveAndDump()
   }
 

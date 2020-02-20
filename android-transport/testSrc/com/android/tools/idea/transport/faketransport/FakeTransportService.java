@@ -83,6 +83,7 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
   @GuardedBy("myStreamEvents")
   private final Map<Long, List<Common.Event>> myStreamEvents;
   private final Map<Command.CommandType, CommandHandler> myCommandHandlers;
+  private final Map<Long, Integer> myEventPositionMarkMap;
   private final FakeTimer myTimer;
   private boolean myThrowErrorOnGetDevices;
   private Common.AgentData myAgentStatus;
@@ -101,6 +102,7 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
     myCache = new HashMap<>();
     myStreamEvents = new HashMap<>();
     myCommandHandlers = new HashMap<>();
+    myEventPositionMarkMap = new HashMap<>();
     myTimer = timer;
     if (connected) {
       addDevice(FAKE_DEVICE);
@@ -331,6 +333,26 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
     // getListForStream - is guarded by lock, but we add to resulting array  => should be behind lock too
     synchronized (myStreamEvents) {
       getListForStream(streamId).add(event);
+    }
+  }
+
+  /**
+   * Remember a position in the event list for the specified stream.
+   */
+  public void saveEventPositionMark(long streamId) {
+    synchronized (myStreamEvents) {
+      myEventPositionMarkMap.put(streamId, getListForStream(streamId).size());
+    }
+  }
+
+  /**
+   * Remove all events added added after the previously saved mark in the events for the specified stream.
+   */
+  public void revertToEventPositionMark(long streamId) {
+    synchronized (myStreamEvents) {
+      int mark = myEventPositionMarkMap.getOrDefault(streamId, 0);
+      List<Common.Event> events = getListForStream(streamId);
+      events.subList(mark, events.size()).clear();
     }
   }
 

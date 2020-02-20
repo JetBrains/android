@@ -18,6 +18,7 @@ package com.android.tools.idea.common.surface
 import com.android.tools.idea.uibuilder.surface.ScreenView
 import java.awt.Cursor
 import java.awt.dnd.DropTargetDragEvent
+import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import java.awt.event.MouseWheelEvent
 
@@ -48,4 +49,8 @@ class LayoutlibInteractionHandler(private val surface: DesignSurface) : Interact
   override fun popupMenuTrigger(mouseEvent: MouseEvent) { }
 
   override fun getCursorWhenNoInteraction(mouseX: Int, mouseY: Int, modifiersEx: Int): Cursor? = surface.scene?.mouseCursor
+
+  override fun keyPressedWithoutInteraction(keyEvent: KeyEvent): Interaction? = null
+
+  override fun keyReleasedWithoutInteraction(keyEvent: KeyEvent) { }
 }

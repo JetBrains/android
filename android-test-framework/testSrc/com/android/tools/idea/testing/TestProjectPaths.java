@@ -8,6 +8,7 @@ public final class TestProjectPaths {
   public static final String API_DEPENDENCY = "projects/apiDependency";
   public static final String APK_SAN_ANGELES = "projects/apk/sanAngeles";
   public static final String APP_WITH_BUILDSRC = "projects/appWithBuildSrc";
+  public static final String APP_WITH_LIB_WITH_SAMPLES = "projects/appWithLibWithSamples";
   public static final String BASIC = "projects/basic";
   public static final String BUDDY_APKS = "projects/buddyApks";
   public static final String CENTRAL_BUILD_DIRECTORY = "projects/centralBuildDirectory";
@@ -76,6 +77,7 @@ public final class TestProjectPaths {
   public static final String PSD_SAMPLE_REPO = "projects/psdSampleRepo";
   public static final String PSD_UPGRADE = "projects/psdUpgrade";
   public static final String PSD_VARIANT_COLLISIONS = "projects/psdVariantCollisions";
+  public static final String REPO_FOR_SAMPLES_ARTIFACT_TEST = "projects/repoForSamplesArtifactTest";
   public static final String PURE_JAVA_PROJECT = "projects/pureJavaProject";
   public static final String RUN_CONFIG_ACTIVITY = "projects/runConfig/activity";
   public static final String RUN_CONFIG_ALIAS = "projects/runConfig/alias";
@@ -98,6 +100,7 @@ public final class TestProjectPaths {
   public static final String SIMPLE_APP_WITH_OLDER_SUPPORT_LIB = "projects/simpleAppWithOlderSupportLib";
   public static final String SPLIT_BUILD_FILES = "projects/splitBuildFiles";
   public static final String SYNC_MULTIPROJECT = "projects/sync/multiproject";
+  public static final String TEST_ARTIFACTS_ILLEGAL_IDENTIFIERS = "projects/testArtifacts/illegalIdentifiers";
   public static final String TEST_ARTIFACTS_KOTLIN = "projects/testArtifacts/kotlin";
   public static final String TEST_ARTIFACTS_MULTIDEPENDENCIES = "projects/testArtifacts/multidependencies";
   public static final String TEST_ARTIFACTS_MULTIPROJECT = "projects/testArtifacts/multiproject";

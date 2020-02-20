@@ -928,7 +928,7 @@ MODULE: app
                     file://./app/src/androidTestFirstAbcSecondAbc/shaders
                     file://./app/src/androidTestDebug/shaders
                     file://./app/src/androidTestFirstAbcSecondAbcDebug/shaders
-        AllIdeaSourceProviders:
+        CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:

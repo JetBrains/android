@@ -62,6 +62,7 @@ import static com.android.SdkConstants.GRAVITY_VALUE_RIGHT;
 import static com.android.SdkConstants.GRAVITY_VALUE_START;
 import static com.android.SdkConstants.VALUE_FALSE;
 import static com.android.SdkConstants.VALUE_TRUE;
+import static com.android.tools.idea.projectsystem.SourceProvidersKt.getManifestFiles;
 import static com.android.tools.idea.refactoring.rtl.RtlRefactoringUsageInfo.RtlRefactoringType.LAYOUT_FILE_ATTRIBUTE;
 import static com.android.tools.idea.refactoring.rtl.RtlRefactoringUsageInfo.RtlRefactoringType.MANIFEST_SUPPORTS_RTL;
 import static com.android.tools.idea.refactoring.rtl.RtlRefactoringUsageInfo.RtlRefactoringType.MANIFEST_TARGET_SDK;
@@ -104,7 +105,6 @@ import java.util.Map;
 import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.IdeaSourceProviderUtil;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
@@ -216,7 +216,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
       if (facet == null || facet.getConfiguration().isLibraryProject()) {
         continue;
       }
-      for (VirtualFile manifestFile : IdeaSourceProviderUtil.getManifestFiles(facet)) {
+      for (VirtualFile manifestFile : getManifestFiles(facet)) {
         XmlFile manifestPsiFile = (XmlFile)PsiManager.getInstance(myProject).findFile(manifestFile);
         try {
           if (manifestPsiFile == null) {

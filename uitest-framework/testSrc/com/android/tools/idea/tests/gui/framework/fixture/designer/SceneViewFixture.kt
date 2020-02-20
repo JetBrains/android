@@ -37,10 +37,12 @@ import org.fest.swing.timing.Wait
 import java.awt.Point
 import javax.swing.JComponent
 import javax.swing.JMenuItem
-import javax.swing.SwingUtilities
 
 private const val TIMEOUT_FOR_SCENE_COMPONENT_ANIMATION_SECONDS = 5L
 private val MINIMUM_ANCHOR_GAP = JBUI.scale(6) * 2 // Based on DrawAnchor.java
+
+private fun SceneView.convertToViewport(@SwingCoordinate x: Int, @SwingCoordinate y: Int): Point =
+  scene.designSurface.getCoordinatesOnViewport(Point(x, y))
 
 class SceneComponentFixture internal constructor(
   private val robot: Robot,
@@ -63,8 +65,8 @@ class SceneComponentFixture internal constructor(
 
   val midPoint: Point
     get() =
-      convertToViewport(Coordinates.getSwingXDip(sceneView, sceneComponent.centerX),
-                        Coordinates.getSwingYDip(sceneView, sceneComponent.centerY))
+      sceneView.convertToViewport(Coordinates.getSwingXDip(sceneView, sceneComponent.centerX),
+                                  Coordinates.getSwingYDip(sceneView, sceneComponent.centerY))
 
   /**
    * Returns the top center point in panel coordinates
@@ -78,7 +80,7 @@ class SceneComponentFixture internal constructor(
         topY = Coordinates.getSwingYDip(sceneView,
                                         sceneComponent.centerY - MINIMUM_ANCHOR_GAP)
       }
-      return convertToViewport(midX, topY)
+      return sceneView.convertToViewport(midX, topY)
     }
 
   /**
@@ -94,7 +96,7 @@ class SceneComponentFixture internal constructor(
         rightX = Coordinates.getSwingXDip(sceneView,
                                           sceneComponent.centerX + MINIMUM_ANCHOR_GAP)
       }
-      return convertToViewport(rightX, midY)
+      return sceneView.convertToViewport(rightX, midY)
     }
 
   /**
@@ -109,7 +111,7 @@ class SceneComponentFixture internal constructor(
         leftX = Coordinates.getSwingXDip(sceneView,
                                          sceneComponent.centerX - MINIMUM_ANCHOR_GAP)
       }
-      return convertToViewport(leftX, midY)
+      return sceneView.convertToViewport(leftX, midY)
     }
 
   /**
@@ -117,8 +119,8 @@ class SceneComponentFixture internal constructor(
    */
   val rightBottomPoint: Point
     get() =
-      convertToViewport(Coordinates.getSwingXDip(sceneView, sceneComponent.drawX + sceneComponent.drawWidth),
-                        Coordinates.getSwingYDip(sceneView, sceneComponent.drawY + sceneComponent.drawHeight))
+      sceneView.convertToViewport(Coordinates.getSwingXDip(sceneView, sceneComponent.drawX + sceneComponent.drawWidth),
+                                  Coordinates.getSwingYDip(sceneView, sceneComponent.drawY + sceneComponent.drawHeight))
 
   /**
    * Returns the bottom center point in panel coordinates
@@ -133,7 +135,7 @@ class SceneComponentFixture internal constructor(
       bottomY = Coordinates.getSwingYDip(sceneView,
                                          sceneComponent.centerY + MINIMUM_ANCHOR_GAP)
     }
-    return convertToViewport(midX, bottomY)
+    return sceneView.convertToViewport(midX, bottomY)
   }
 
   val children: List<SceneComponentFixture>
@@ -194,10 +196,6 @@ class SceneComponentFixture internal constructor(
                                        })
     return JPopupMenuFixture(robot, menu)
   }
-
-  private fun convertToViewport(@SwingCoordinate x: Int, @SwingCoordinate y: Int): Point =
-    SwingUtilities.convertPoint(sceneComponent.scene.designSurface.layeredPane, x, y,
-                                sceneComponent.scene.designSurface.scrollPane.viewport)
 }
 
 class SceneFixture(private val robot: Robot, private val scene: Scene) {
@@ -220,7 +218,13 @@ class SceneFixture(private val robot: Robot, private val scene: Scene) {
 class SceneViewFixture(private val robot: Robot, private val sceneView: SceneView) {
   private val componentDriver = ComponentDriver<DesignSurface>(robot)
 
-  fun findSceneComponentByNlComponent(component: NlComponent): SceneComponentFixture? {
-    return SceneComponentFixture(robot, componentDriver, sceneView.scene.getSceneComponent(component) ?: return null)
-  }
+  val midPoint: Point
+    get() = Point((sceneView.x + sceneView.x + sceneView.scaledContentSize.width) / 2,
+                  (sceneView.y + sceneView.y + sceneView.scaledContentSize.height) / 2)
+
+
+  fun findSceneComponentByTagName(tagName: String): SceneComponentFixture =
+    SceneComponentFixture(robot, componentDriver, sceneView.scene.sceneComponents.single { tagName == it.nlComponent.tagName })
+
+  fun countSceneComponents(): Int = sceneView.scene.sceneComponents.size
 }

@@ -288,6 +288,12 @@ class DatabaseInspectorControllerImpl(
         view.reportSyncProgress("")
       }
     }
+
+    override fun refreshAllOpenDatabasesSchemaActionInvoked() {
+      scope.launch(uiThread) {
+        model.openDatabases.keys.forEach { updateDatabaseSchema(it) }
+      }
+    }
   }
 
   inner class SqliteEvaluatorControllerListenerImpl : SqliteEvaluatorController.Listener {

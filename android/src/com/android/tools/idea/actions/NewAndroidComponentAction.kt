@@ -16,7 +16,6 @@
 package com.android.tools.idea.actions
 
 import com.android.AndroidProjectTypes
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.npw.model.ProjectSyncInvoker.DefaultProjectSyncInvoker
@@ -24,16 +23,14 @@ import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.fromFacet
 import com.android.tools.idea.npw.project.getModuleTemplates
 import com.android.tools.idea.npw.project.getPackageForApplication
 import com.android.tools.idea.npw.project.getPackageForPath
-import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep
 import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep2
-import com.android.tools.idea.npw.template.TemplateHandle
 import com.android.tools.idea.npw.template.TemplateResolver
-import com.android.tools.idea.templates.TemplateManager
-import com.android.tools.idea.templates.TemplateMetadata.TemplateConstraint
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
 import com.android.tools.idea.ui.wizard.WizardUtils
 import com.android.tools.idea.ui.wizard.WizardUtils.COMPOSE_MIN_AGP_VERSION
 import com.android.tools.idea.wizard.model.ModelWizard
+import com.android.tools.idea.wizard.template.Category
+import com.android.tools.idea.wizard.template.TemplateConstraint
 import com.android.tools.idea.wizard.template.WizardUiContext
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -51,28 +48,34 @@ import java.io.File
 import java.util.EnumSet
 
 // These categories will be using a new wizard
-@JvmField
-val NEW_WIZARD_CATEGORIES = setOf("Activity", "Google", TemplateManager.CATEGORY_AUTOMOTIVE, TemplateManager.CATEGORY_COMPOSE)
-@JvmField
-val FRAGMENT_CATEGORY = setOf("Fragment")
+val NEW_WIZARD_CATEGORIES = setOf(Category.Activity, Category.Google, Category.Automotive, Category.Compose)
+val FRAGMENT_CATEGORY = setOf(Category.Fragment)
 @JvmField
 val CREATED_FILES = DataKey.create<MutableList<File>>("CreatedFiles")
 
 /**
  * An action to launch a wizard to create a component from a template.
  */
+// TODO(qumeric): consider accepting [Template] instead?
 data class NewAndroidComponentAction @JvmOverloads constructor(
-  private val templateCategory: String,
+  private val category: Category,
   private val templateName: String,
   private val minSdkApi: Int,
   private val minBuildSdkApi: Int = minSdkApi,
-  private val templateConstraints: EnumSet<TemplateConstraint> = EnumSet.noneOf(TemplateConstraint::class.java),
-  private val templateFile: File? = TemplateManager.getInstance().getTemplateFile(templateCategory, templateName)
+  private val templateConstraints: Collection<TemplateConstraint> = setOf()
 ) : AnAction(templateName, AndroidBundle.message("android.wizard.action.new.component", templateName), null) {
+
+  @Deprecated("Please use the main constructor")
+  constructor(
+    category: String,
+    templateName: String,
+    minSdkApi: Int
+  ): this(Category.values().find { it.name == category }!!, templateName, minSdkApi)
+
   var shouldOpenFiles = true
 
   private val isActivityTemplate: Boolean
-    get() = NEW_WIZARD_CATEGORIES.contains(templateCategory)
+    get() = NEW_WIZARD_CATEGORIES.contains(category)
 
   init {
     templatePresentation.icon = if (isActivityTemplate) AndroidIcons.Activity else StudioIcons.Shell.Filetree.ANDROID_FILE
@@ -94,11 +97,11 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
         presentation.text = AndroidBundle.message("android.wizard.action.requires.minbuildsdk", templateName, minBuildSdkApi)
         presentation.isEnabled = false
       }
-      templateConstraints.contains(TemplateConstraint.ANDROIDX) && !useAndroidX(module) -> {
+      templateConstraints.contains(TemplateConstraint.AndroidX) && !useAndroidX(module) -> {
         presentation.text = AndroidBundle.message("android.wizard.action.requires.androidx", templateName)
         presentation.isEnabled = false
       }
-      !WizardUtils.hasComposeMinAgpVersion(module.project, templateCategory) -> {
+      !WizardUtils.hasComposeMinAgpVersion(module.project, category) -> {
         presentation.text = AndroidBundle.message("android.wizard.action.requires.new.agp", templateName, COMPOSE_MIN_AGP_VERSION)
         presentation.isEnabled = false
       }
@@ -129,19 +132,14 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
     val initialPackageSuggestion =
       if (targetDirectory == null) facet.getPackageForApplication() else facet.getPackageForPath(moduleTemplates, targetDirectory)
     val templateModel = fromFacet(
-      facet, TemplateHandle(templateFile!!), initialPackageSuggestion, moduleTemplates[0], "New $activityDescription",
-      DefaultProjectSyncInvoker(), shouldOpenFiles
+      facet, initialPackageSuggestion, moduleTemplates[0], "New $activityDescription", DefaultProjectSyncInvoker(),
+      shouldOpenFiles
     )
     val newActivity = TemplateResolver.getAllTemplates()
       .filter { WizardUiContext.MenuEntry in it.uiContexts }
       .find { it.name == templateName }
 
-    val useNewActivity = StudioFlags.NPW_NEW_ACTIVITY_TEMPLATES.get() && newActivity != null
-
-    if (useNewActivity) {
-      templateModel.templateHandle = null
-      templateModel.newTemplate = newActivity!!
-    }
+    templateModel.newTemplate = newActivity!!
 
     val dialogTitle = AndroidBundle.message(
       if (isActivityTemplate) "android.wizard.new.activity.title" else "android.wizard.new.component.title"
@@ -150,9 +148,7 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
       if (isActivityTemplate) "android.wizard.config.activity.title" else "android.wizard.config.component.title"
     )
     val wizardBuilder = ModelWizard.Builder().apply {
-      addStep(if (useNewActivity) ConfigureTemplateParametersStep2(templateModel, stepTitle, moduleTemplates)
-              else ConfigureTemplateParametersStep(templateModel, stepTitle, moduleTemplates)
-      )
+      addStep(ConfigureTemplateParametersStep2(templateModel, stepTitle, moduleTemplates))
     }
     StudioWizardDialogBuilder(wizardBuilder.build(), dialogTitle).setProject(module.project).build().show()
     e.dataContext.getData(CREATED_FILES)?.addAll(templateModel.createdFiles)

@@ -20,4 +20,3 @@
       android:fillColor="@android:color/white"
       android:pathData="M16,17H8c-0.55,0 -1,0.45 -1,1c0,0.55 0.45,1 1,1h1c1.1,0 2,0.9 2,2v1h2v-1c0,-1.1 0.9,-2 2,-2h1c0.55,0 1,-0.45 1,-1C17,17.45 16.55,17 16,17z"/>
 </vector>
-

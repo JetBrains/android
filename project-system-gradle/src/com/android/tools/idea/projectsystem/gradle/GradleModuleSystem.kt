@@ -30,7 +30,6 @@ import com.android.projectmodel.Library
 import com.android.repository.io.FileOpUtils
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModelHandler
-import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.gradle.util.GradleUtil
@@ -38,6 +37,7 @@ import com.android.tools.idea.model.AndroidManifestIndex
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.queryPackageNameFromManifestIndex
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
+import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
 import com.android.tools.idea.projectsystem.CapabilityStatus
 import com.android.tools.idea.projectsystem.CapabilitySupported
 import com.android.tools.idea.projectsystem.ClassFileFinder
@@ -50,8 +50,10 @@ import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.projectsystem.SampleDataDirectoryProvider
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
+import com.android.tools.idea.projectsystem.buildNamedModuleTemplatesFor
 import com.android.tools.idea.projectsystem.getFlavorAndBuildTypeManifests
 import com.android.tools.idea.projectsystem.getFlavorAndBuildTypeManifestsOfLibs
+import com.android.tools.idea.projectsystem.getForFile
 import com.android.tools.idea.projectsystem.getTransitiveNavigationFiles
 import com.android.tools.idea.projectsystem.sourceProviders
 import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
@@ -154,7 +156,8 @@ class GradleModuleSystem(
 
   override fun getResourceModuleDependencies() = AndroidUtils.getAllAndroidDependencies(module, true).map(AndroidFacet::getModule)
 
-  override fun getDirectResourceModuleDependents(): List<Module> = ModuleManager.getInstance(module.project).getModuleDependentModules(module)
+  override fun getDirectResourceModuleDependents(): List<Module> = ModuleManager.getInstance(module.project).getModuleDependentModules(
+    module)
 
   override fun getResolvedLibraryDependencies(): Collection<Library> {
     // TODO: b/129297171 When this bug is resolved we may not need getResolvedLibraryDependencies(Module)
@@ -199,7 +202,11 @@ class GradleModuleSystem(
   }
 
   override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> {
-    return GradleAndroidModuleTemplate.getModuleTemplates(module, targetDirectory)
+    val moduleRootDir = AndroidProjectRootUtil.getModuleDirPath(module)?.let { File(it) }
+    val sourceProviders = module.androidFacet?.sourceProviders ?: return listOf()
+    val selectedSourceProviders = targetDirectory?.let { sourceProviders.getForFile(targetDirectory) }
+                                  ?: sourceProviders.currentAndSomeFrequentlyUsedInactiveSourceProviders
+    return sourceProviders.buildNamedModuleTemplatesFor(moduleRootDir, selectedSourceProviders)
   }
 
   override fun canGeneratePngFromVectorGraphics(): CapabilityStatus {

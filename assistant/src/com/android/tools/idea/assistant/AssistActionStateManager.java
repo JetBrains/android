@@ -17,7 +17,6 @@ package com.android.tools.idea.assistant;
 
 import com.android.tools.idea.assistant.datamodel.ActionData;
 import com.android.tools.idea.assistant.view.StatefulButtonMessage;
-import com.android.tools.idea.structure.services.DeveloperService;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.module.Module;
@@ -32,10 +31,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Extension point to add state to action buttons. State should generally be based off of data available from a {@link DeveloperService}
- * instance or from an independent source. You _may_ get the containing project from the DeveloperService instance in order to instantiate a
- * project scoped service but this is generally discouraged. Please reach out to the Android Studio team about adding capabilities before
- * directly accessing the Project object.
+ * Extension point to add state to action buttons. State should generally be based off of data available from a from an independent source.
  */
 public abstract class AssistActionStateManager {
   public static ExtensionPointName<AssistActionStateManager> EP_NAME =

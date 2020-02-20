@@ -17,20 +17,16 @@ package com.android.tools.idea.common.surface;
 
 import static java.awt.event.MouseWheelEvent.WHEEL_UNIT_SCROLL;
 
-import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.idea.uibuilder.surface.PanInteraction;
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.actions.ZoomType;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.adtui.ui.AdtUiCursors;
-import com.android.tools.idea.common.model.Coordinates;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.SelectionModel;
-import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.model.NlDropEvent;
 import com.android.tools.idea.uibuilder.surface.DragDropInteraction;
+import com.android.tools.idea.uibuilder.surface.PanInteraction;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
@@ -215,14 +211,14 @@ public class InteractionManager implements Disposable {
     if (myIsListening) {
       return;
     }
-    JComponent layeredPane = mySurface.getLayeredPane();
+    JComponent layeredPane = mySurface.getInteractionPane();
     layeredPane.addMouseMotionListener(myListener);
     layeredPane.addMouseWheelListener(myListener);
     layeredPane.addMouseListener(myListener);
     layeredPane.addKeyListener(myListener);
 
     if (!ApplicationManager.getApplication().isHeadlessEnvironment()) {
-      myDropTarget = new DropTarget(mySurface.getLayeredPane(), DnDConstants.ACTION_COPY_OR_MOVE, myListener, true, null);
+      myDropTarget = new DropTarget(mySurface.getInteractionPane(), DnDConstants.ACTION_COPY_OR_MOVE, myListener, true, null);
     }
     myHoverTimer.addActionListener(myListener);
     myIsListening = true;
@@ -237,7 +233,7 @@ public class InteractionManager implements Disposable {
     if (!myIsListening) {
       return;
     }
-    JComponent layeredPane = mySurface.getLayeredPane();
+    JComponent layeredPane = mySurface.getInteractionPane();
     layeredPane.removeMouseMotionListener(myListener);
     layeredPane.removeMouseWheelListener(myListener);
     layeredPane.removeMouseListener(myListener);
@@ -270,11 +266,11 @@ public class InteractionManager implements Disposable {
   }
 
   /**
-   * Returns the currently active overlays, if any
+   * Returns any active overlays that need to be drawn.
    */
-  @Nullable
-  public List<Layer> getLayers() {
-    return myLayers;
+  @NotNull
+  List<Layer> getLayers() {
+    return myLayers != null ? myLayers : ImmutableList.of();
   }
 
   /**
@@ -394,7 +390,7 @@ public class InteractionManager implements Disposable {
     @Override
     public void mousePressed(@NotNull MouseEvent event) {
       if (event.getID() == MouseEvent.MOUSE_PRESSED) {
-        mySurface.getLayeredPane().requestFocusInWindow();
+        mySurface.getInteractionPane().requestFocusInWindow();
       }
 
       myIsInteractionCanceled = false;
@@ -528,7 +524,7 @@ public class InteractionManager implements Disposable {
         myLastModifiersEx = modifiersEx;
         myCurrentInteraction.update(new MouseDraggedEvent(event, getInteractionInformation()));
         updateCursor(x, y, modifiersEx);
-        mySurface.getLayeredPane().scrollRectToVisible(
+        mySurface.getInteractionPane().scrollRectToVisible(
           new Rectangle(x - NlConstants.DEFAULT_SCREEN_OFFSET_X, y - NlConstants.DEFAULT_SCREEN_OFFSET_Y,
                         2 * NlConstants.DEFAULT_SCREEN_OFFSET_X, 2 * NlConstants.DEFAULT_SCREEN_OFFSET_Y));
         mySurface.repaint();
@@ -584,50 +580,22 @@ public class InteractionManager implements Disposable {
 
       myLastModifiersEx = modifiersEx;
 
-      Scene scene = mySurface.getScene();
-      if (scene != null) {
-        // TODO: Make it so this step is only done when necessary. i.e Move to ConstraintSceneInteraction.keyPressed().
-        // Since holding some of these keys might change some visuals, repaint.
-        scene.needsRebuildList();
-        scene.repaint();
-      }
-
       // Give interactions a first chance to see and consume the key press
       if (myCurrentInteraction != null) {
         // unless it's "Escape", which cancels the interaction
         if (keyCode == KeyEvent.VK_ESCAPE) {
           finishInteraction(new KeyPressedEvent(event, getInteractionInformation()), true);
           myIsInteractionCanceled = true;
-          return;
         }
-
-        if (myCurrentInteraction.keyPressed(event)) {
-          return;
+        else {
+          myCurrentInteraction.update(new KeyPressedEvent(event, getInteractionInformation()));
         }
-      }
-
-      if (isPanningKeyboardKey(event)) {
-        // TODO (b/142953949): Replace this by startInteraction with PanInteraction.
-        setPanning(new KeyPressedEvent(event, getInteractionInformation()), true);
         return;
       }
 
-      // The below shortcuts only apply without modifier keys.
-      // (Zooming with "+" *may* require modifier keys, since on some keyboards you press for
-      // example Shift+= to create the + key.
-      if (event.isAltDown() || event.isMetaDown() || event.isShiftDown() || event.isControlDown()) {
-        return;
-      }
-
-      if (keyCode == KeyEvent.VK_DELETE || keyCode == KeyEvent.VK_BACK_SPACE) {
-        SceneView sceneView = mySurface.getSceneView(myLastMouseX, myLastMouseY);
-        if (sceneView != null) {
-          SelectionModel model = sceneView.getSelectionModel();
-          if (!model.isEmpty() && !ConstraintComponentUtilities.clearSelectedConstraint(mySurface)) {
-            List<NlComponent> selection = model.getSelection();
-            sceneView.getModel().delete(selection);
-          }
-        }
+      Interaction interaction = myInteractionHandler.keyPressedWithoutInteraction(event);
+      if (interaction != null) {
+        startInteraction(new KeyPressedEvent(event, getInteractionInformation()), interaction);
       }
     }
 
@@ -635,22 +603,19 @@ public class InteractionManager implements Disposable {
     public void keyReleased(KeyEvent event) {
       myLastModifiersEx = event.getModifiersEx();
 
-      Scene scene = mySurface.getScene();
-      if (scene != null) {
-        // TODO: Make it so this step is only done when necessary. i.e Move to ConstraintSceneInteraction.keyReleased().
-        // Since holding some of these keys might change some visuals, repaint.
-        scene.needsRebuildList();
-        scene.repaint();
-      }
       if (myCurrentInteraction != null) {
-        myCurrentInteraction.update(new KeyReleasedEvent(event, getInteractionInformation()));
+        if (myCurrentInteraction instanceof PanInteraction && event.getKeyCode() == DesignSurfaceShortcut.PAN.getKeyCode()) {
+          // TODO (b/142953949): this should be handled by PanInteraction itself.
+          setPanning(new KeyReleasedEvent(event, getInteractionInformation()), false);
+          updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
+        }
+        else {
+          myCurrentInteraction.update(new KeyReleasedEvent(event, getInteractionInformation()));
+        }
+        return;
       }
 
-      if (isPanningKeyboardKey(event)) {
-        // TODO (b/142953949): this should be handled by PanInteraction itself.
-        setPanning(new KeyReleasedEvent(event, getInteractionInformation()), false);
-        updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
-      }
+      myInteractionHandler.keyReleasedWithoutInteraction(event);
     }
 
     // ---- Implements DropTargetListener ----
@@ -718,11 +683,9 @@ public class InteractionManager implements Disposable {
       int x = myLastMouseX; // initiate the drag from the mousePress location, not the point we've dragged to
       int y = myLastMouseY;
 
-      // TODO: find the correct tooltip? to show
-
       // TODO (b/142953949): Should layer be hovered when action performed?
-      for (Layer layer : mySurface.getLayers()) {
-        layer.onHover(x, y);
+      for (SceneView sceneView : mySurface.getSceneViews()) {
+        sceneView.onHover(x, y);
       }
     }
 
@@ -766,21 +729,6 @@ public class InteractionManager implements Disposable {
         // Start a scroll interaction and a timer to bundle all the scroll events
         startInteraction(new MouseWheelMovedEvent(e, getInteractionInformation()), scrollInteraction);
         myScrollEndTimer.addActionListener(myScrollEndListener);
-      }
-      else {
-        // TODO: Remove below code after StudioFlags.NELE_NEW_INTERACTION_INTERFACE is removed.
-        SceneView sceneView = mySurface.getSceneView(x, y);
-        if (sceneView == null) {
-          e.getComponent().getParent().dispatchEvent(e);
-          return;
-        }
-
-        final NlComponent component = Coordinates.findComponent(sceneView, x, y);
-        if (component == null) {
-          // There is no component consuming the scroll
-          e.getComponent().getParent().dispatchEvent(e);
-          return;
-        }
       }
 
       boolean isScrollInteraction = myCurrentInteraction instanceof ScrollInteraction;
@@ -827,10 +775,6 @@ public class InteractionManager implements Disposable {
       return true;
     }
     return false;
-  }
-
-  private static boolean isPanningKeyboardKey(@NotNull KeyEvent event) {
-    return event.getKeyCode() == DesignSurfaceShortcut.PAN.getKeyCode();
   }
 
   /**

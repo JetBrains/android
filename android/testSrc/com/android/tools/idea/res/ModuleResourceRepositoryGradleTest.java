@@ -26,6 +26,8 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.psi.PsiDocumentManager;
+import com.intellij.testFramework.PlatformTestUtil;
 import java.util.List;
 
 /** Tests for {@link ModuleResourceRepository} based on {@link AndroidGradleTestCase}. */
@@ -69,6 +71,8 @@ public class ModuleResourceRepositoryGradleTest extends AndroidGradleTestCase {
       "<resources>\n" +
       "  <string name=\"test_res\">test res value</string>\n" +
       "</resources>");
+    PsiDocumentManager.getInstance(getProject()).commitAllDocuments();
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
 
     List<ResourceItem> newResources = repository.getAllResources();
     assertThat(newResources).hasSize(1);

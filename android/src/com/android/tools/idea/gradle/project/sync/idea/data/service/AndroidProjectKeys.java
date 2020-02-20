@@ -23,7 +23,7 @@ import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel;
-import com.android.tools.idea.gradle.project.sync.idea.data.model.SyncIssuesModel;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData;
 import com.intellij.openapi.externalSystem.model.Key;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
  * <ol>
  * <li>{@link GradleModuleModelDataService}</li>
  * <li>{@link NdkModuleModelDataService}</li>
- * <li>{@link AndroidModuleModelDataService}</li>
+ * <li>{@link AndroidModuleDataService}</li>
  * <li>{@link JavaModuleModelDataService}</li>
  * <li>{@link ProjectCleanupDataService}</li>
  * </ol>
@@ -42,7 +42,7 @@ import org.jetbrains.annotations.NotNull;
  * each project module. This path is necessary when setting up inter-module dependencies.
  * <br/>
  * The reason for having {@link NdkModuleModelDataService} before
- * {@link AndroidModuleModelDataService} is to give more precedence to the jni sources reported in
+ * {@link AndroidModuleDataService} is to give more precedence to the jni sources reported in
  * {@link NdkModuleModel} than the ones reported in {@link AndroidModuleModel}. This is required because for a hybrid module,
  * both the models can contain jni sources information when using the latest Gradle plugin, but only {@link AndroidModuleModel} is provided
  * with the older plugin versions. Due to that we always use the information in {@link NdkModuleModel} when available and
@@ -67,11 +67,11 @@ public final class AndroidProjectKeys {
   public static final Key<JavaModuleModel> JAVA_MODULE_MODEL = Key.create(JavaModuleModel.class, NDK_MODEL.getProcessingWeight() + 10);
 
   @NotNull
-  public static final Key<SyncIssuesModel> SYNC_ISSUES = Key.create(SyncIssuesModel.class, JAVA_MODULE_MODEL.getProcessingWeight() + 10);
+  public static final Key<SyncIssueData> SYNC_ISSUE = Key.create(SyncIssueData.class, JAVA_MODULE_MODEL.getProcessingWeight() + 10);
 
   @NotNull
   public static final Key<ProjectCleanupModel>
-    PROJECT_CLEANUP_MODEL = Key.create(ProjectCleanupModel.class, SYNC_ISSUES.getProcessingWeight() + 10);
+    PROJECT_CLEANUP_MODEL = Key.create(ProjectCleanupModel.class, SYNC_ISSUE.getProcessingWeight() + 10);
 
   private AndroidProjectKeys() {
   }

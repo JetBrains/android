@@ -384,7 +384,7 @@ MODULE: android_library
                 ShadersDirectoryUrls:
                     file://./libs/android_library/src/androidTest/shaders
                     file://./libs/android_library/src/androidTestDebug/shaders
-        AllIdeaSourceProviders:
+        CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -995,7 +995,7 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/androidTest/shaders
                     file://./app/src/androidTestDebug/shaders
-        AllIdeaSourceProviders:
+        CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1590,7 +1590,7 @@ MODULE: dynamicfeature
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature/src/androidTest/shaders
                     file://./features/dynamicfeature/src/androidTestDebug/shaders
-        AllIdeaSourceProviders:
+        CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -2169,7 +2169,7 @@ MODULE: dynamicfeature2
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature2/src/androidTest/shaders
                     file://./features/dynamicfeature2/src/androidTestDebug/shaders
-        AllIdeaSourceProviders:
+        CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:

@@ -20,10 +20,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A model that downloads Sources and Javadoc for given MavenCoordinates, and returns the list of
+ * A model that downloads Sources, samples and Javadoc for given MavenCoordinates, and returns the list of
  * resolved artifacts.
  */
 public interface AdditionalClassifierArtifactsModel {
+  String SAMPLE_SOURCE_CLASSIFIER = "samplessources";
   /**
    * Returns the list of resolved artifacts.
    */

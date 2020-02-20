@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite.databaseConnection.jdbc
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
+import com.android.tools.idea.sqlite.databaseConnection.checkOffsetAndSize
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteColumnValue
@@ -62,8 +63,8 @@ class JdbcSqliteResultSet(
     check(!Disposer.isDisposed(this)) { "ResultSet has already been closed." }
     check(!connection.isClosed) { "The connection has been closed." }
 
-    val countQuery = "SELECT COUNT(*) FROM (${sqliteStatement.sqliteStatementText})"
-    connection.resolvePreparedStatement(SqliteStatement(countQuery, sqliteStatement.parametersValues)).use { preparedStatement ->
+    val newStatement = sqliteStatement.toRowCountStatement()
+    connection.resolvePreparedStatement(newStatement).use { preparedStatement ->
       preparedStatement.executeQuery().use {
         it.next()
         val count = it.getInt(1)
@@ -78,18 +79,17 @@ class JdbcSqliteResultSet(
 
   override val columns get() = service.sequentialTaskExecutor.executeAsync { _columns }
 
-  override val rowCount get() = service.sequentialTaskExecutor.executeAsync { _rowCount }
+  override val totalRowCount get() = service.sequentialTaskExecutor.executeAsync { _rowCount }
 
   override fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<List<SqliteRow>> {
-    require(rowOffset >= 0) { "Offset must be >= 0." }
-    require(rowBatchSize > 0) { "Row batch size must be > 0." }
+    checkOffsetAndSize(rowOffset, rowBatchSize)
 
     return service.sequentialTaskExecutor.executeAsync {
       check(!Disposer.isDisposed(this)) { "ResultSet has already been closed." }
       check(!connection.isClosed) { "The connection has been closed." }
 
-      val limitOffsetQuery = "SELECT * FROM (${sqliteStatement.sqliteStatementText}) LIMIT $rowOffset, $rowBatchSize"
-      connection.resolvePreparedStatement(SqliteStatement(limitOffsetQuery, sqliteStatement.parametersValues)).use { preparedStatement ->
+      val newStatement = sqliteStatement.toSelectLimitOffset(rowOffset, rowBatchSize)
+      connection.resolvePreparedStatement(newStatement).use { preparedStatement ->
         preparedStatement.executeQuery().use {
           val rows = ArrayList<SqliteRow>()
           while (it.next()) {
@@ -106,7 +106,7 @@ class JdbcSqliteResultSet(
 
   @WorkerThread
   private fun createCurrentRow(resultSet: ResultSet): SqliteRow {
-    return SqliteRow(_columns.mapIndexed { i, column -> SqliteColumnValue(column, resultSet.getObject(i + 1)) })
+    return SqliteRow(_columns.mapIndexed { i, column -> SqliteColumnValue(column.name, resultSet.getObject(i + 1)) })
   }
 
   override fun dispose() {

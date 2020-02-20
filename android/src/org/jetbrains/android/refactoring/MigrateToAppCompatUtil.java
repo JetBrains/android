@@ -32,7 +32,6 @@ import com.android.tools.idea.lint.common.LintProblemData;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.lint.checks.AppCompatCustomViewDetector;
-import com.android.tools.lint.client.api.LintDriver;
 import com.android.tools.lint.client.api.LintRequest;
 import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.LintFix;
@@ -215,7 +214,7 @@ class MigrateToAppCompatUtil {
         }
       };
       request.setScope(Scope.JAVA_FILE_SCOPE);
-      new LintDriver(new AndroidLintIdeIssueRegistry(), client, request).analyze();
+      client.createDriver(request, new AndroidLintIdeIssueRegistry()).analyze();
     }
     finally {
       AppCompatCustomViewDetector.ISSUE.setEnabledByDefault(detectorWasEnabled);

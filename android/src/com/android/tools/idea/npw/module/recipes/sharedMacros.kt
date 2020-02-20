@@ -85,7 +85,6 @@ fun proguardConfig(
     """
   }
 
-
 fun androidConfig(
   buildApiString: String,
   explicitBuildToolsVersion: Boolean,
@@ -137,7 +136,6 @@ fun androidConfig(
       """
   }
 
-  // TODO(qumeric): add compileOptions
   return """
     android {
     compileSdkVersion ${buildApiString.toIntOrNull() ?: "\"$buildApiString\""}

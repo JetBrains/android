@@ -22,6 +22,10 @@ import com.intellij.psi.PsiFile
 import icons.StudioIcons
 import org.jetbrains.android.facet.AndroidFacet
 
+private const val MAX_CUSTOM_CONFIGURATION_NUMBER = 12
+private const val ENABLED_TEXT = "Add configuration"
+private const val DISABLED_TEXT = "Cannot add more than $MAX_CUSTOM_CONFIGURATION_NUMBER configurations"
+
 /**
  * Action for adding custom configuration into the given [CustomModelsProvider].
  * For now the implementation is showing [CustomConfigurationAttributeCreationPalette] as a popup dialog and add the configuration picked from it.
@@ -29,7 +33,16 @@ import org.jetbrains.android.facet.AndroidFacet
 class AddCustomConfigurationAction(private val file: PsiFile,
                                    private val facet: AndroidFacet,
                                    private val provider: CustomModelsProvider)
-  : AnAction("Add Configuration", "Adding a custom configuration", StudioIcons.NavEditor.Toolbar.ADD_DESTINATION) {
+  : AnAction(StudioIcons.NavEditor.Toolbar.ADD_DESTINATION) {
+
+  init {
+    templatePresentation.text = getDisplayText()
+    templatePresentation.description = "Adding a custom configuration"
+  }
+
+  private fun getDisplayText() = if (provider.configurationAttributes.size < MAX_CUSTOM_CONFIGURATION_NUMBER) ENABLED_TEXT else DISABLED_TEXT
+
+  private fun isEnabled() = provider.configurationAttributes.size < MAX_CUSTOM_CONFIGURATION_NUMBER
 
   override fun actionPerformed(e: AnActionEvent) {
     val dialog = LightCalloutPopup()
@@ -43,5 +56,10 @@ class AddCustomConfigurationAction(private val file: PsiFile,
     location.translate(owner.width / 2, owner.height)
 
     dialog.show(content, null, location)
+  }
+
+  override fun update(e: AnActionEvent) {
+    e.presentation.text = getDisplayText()
+    e.presentation.isEnabled = isEnabled()
   }
 }

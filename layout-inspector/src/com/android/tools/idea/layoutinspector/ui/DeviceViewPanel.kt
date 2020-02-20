@@ -31,11 +31,13 @@ import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspec
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ex.CheckboxAction
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
 import org.jetbrains.annotations.TestOnly
@@ -147,6 +149,7 @@ class DeviceViewPanel(
   private val layeredPane = JLayeredPane()
   private val deviceViewPanelActionsToolbar: DeviceViewPanelActionsToolbar
   private val viewportLayoutManager = MyViewportLayoutManager(scrollPane.viewport) { contentPanel.model.layerSpacing }
+  private val actionToolbar: ActionToolbar
 
   init {
     scrollPane.viewport.layout = viewportLayoutManager
@@ -178,9 +181,15 @@ class DeviceViewPanel(
     keyboardListeners.forEach { contentPanel.addKeyListener(it) }
 
     scrollPane.border = JBUI.Borders.empty()
-    val toolbarComponent = createToolbar()
+    actionToolbar = createToolbar()
+    val toolbarComponent = createToolbarPanel(actionToolbar)
     add(toolbarComponent, BorderLayout.NORTH)
     add(layeredPane, BorderLayout.CENTER)
+    contentPanel.model.modificationListeners.add {
+      ApplicationManager.getApplication().invokeLater {
+        actionToolbar.updateActionsImmediately()
+      }
+    }
 
     deviceViewPanelActionsToolbar = DeviceViewPanelActionsToolbar(this, disposableParent)
 
@@ -277,11 +286,7 @@ class DeviceViewPanel(
   override val isPannable: Boolean
     get() = contentPanel.width > scrollPane.viewport.width || contentPanel.height > scrollPane.viewport.height
 
-  private fun createToolbar(): JComponent {
-    val panel = AdtPrimaryPanel(BorderLayout())
-    panel.border = BorderFactory.createMatteBorder(0, 0, 1, 0, com.android.tools.adtui.common.border)!!
-
-    val leftPanel = AdtPrimaryPanel(BorderLayout())
+  private fun createToolbar(): ActionToolbar {
     val leftGroup = DefaultActionGroup()
     leftGroup.add(SelectProcessAction(layoutInspector))
     leftGroup.add(Separator.getInstance())
@@ -297,6 +302,14 @@ class DeviceViewPanel(
     ActionToolbarUtil.makeToolbarNavigable(actionToolbar)
     actionToolbar.component.name = DEVICE_VIEW_ACTION_TOOLBAR_NAME
     actionToolbar.setTargetComponent(this)
+    return actionToolbar
+  }
+
+  private fun createToolbarPanel(actionToolbar: ActionToolbar): JComponent {
+    val panel = AdtPrimaryPanel(BorderLayout())
+    panel.border = BorderFactory.createMatteBorder(0, 0, 1, 0, com.android.tools.adtui.common.border)!!
+
+    val leftPanel = AdtPrimaryPanel(BorderLayout())
     leftPanel.add(actionToolbar.component, BorderLayout.CENTER)
     panel.add(leftPanel, BorderLayout.CENTER)
     return panel

@@ -207,6 +207,7 @@ public class ModelBuilder {
 
       SceneManager sceneManager = myManagerFactory.apply(model);
       when(surface.getSceneManager()).thenReturn(sceneManager);
+      when(surface.getSceneManagers()).thenReturn(ImmutableList.of(sceneManager));
       when(surface.getSceneView(anyInt(), anyInt())).thenCallRealMethod();
       when(surface.getFocusedSceneView()).thenReturn(sceneManager.getSceneView());
       if (myDevice != null) {
@@ -235,11 +236,11 @@ public class ModelBuilder {
   public static DesignSurface createSurface(Disposable disposableParent,
                                             Class<? extends DesignSurface> surfaceClass,
                                             Function<DesignSurface, InteractionHandler> interactionProviderCreator) {
-    JComponent layeredPane = new JPanel();
     DesignSurface surface = mock(surfaceClass);
     Disposer.register(disposableParent, surface);
     List<DesignSurfaceListener> listeners = new ArrayList<>();
-    when(surface.getLayeredPane()).thenReturn(layeredPane);
+    when(surface.getLayeredPane()).thenReturn(new JPanel());
+    when(surface.getInteractionPane()).thenReturn(new JPanel());
     SelectionModel selectionModel = new SelectionModel();
     when(surface.getSelectionModel()).thenReturn(selectionModel);
     when(surface.getSize()).thenReturn(new Dimension(1000, 1000));

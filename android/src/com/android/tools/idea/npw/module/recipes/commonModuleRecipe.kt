@@ -18,6 +18,7 @@ package com.android.tools.idea.npw.module.recipes
 import com.android.SdkConstants
 import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
 import com.android.SdkConstants.FN_BUILD_GRADLE
+import com.android.SdkConstants.FN_BUILD_GRADLE_KTS
 import com.android.tools.idea.npw.module.recipes.androidModule.buildGradle
 import com.android.tools.idea.npw.module.recipes.androidModule.cMakeListsTxt
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleColors
@@ -36,6 +37,7 @@ enum class IconsGenerationStyle {
 fun RecipeExecutor.generateCommonModule(
   data: ModuleTemplateData,
   appTitle: String?, // may be null only for libraries
+  useKts: Boolean,
   manifestXml: String,
   generateTests: Boolean = false,
   includeCppSupport: Boolean = false,
@@ -51,17 +53,19 @@ fun RecipeExecutor.generateCommonModule(
   val isLibraryProject = data.isLibrary
   val packageName = data.packageName
   val apis = data.apis
-  val buildApi = apis.buildApi!!
   val targetApi = apis.targetApi
   val minApi = apis.minApiLevel
 
   createDefaultDirectories(moduleOut, srcOut)
   addIncludeToSettings(data.name)
 
+  val buildFile = if (useKts) FN_BUILD_GRADLE_KTS else FN_BUILD_GRADLE
+
   save(
     buildGradle(
+      useKts,
       isLibraryProject,
-      data.baseFeature != null,
+      data.isDynamic,
       packageName,
       apis.buildApiString!!,
       projectData.buildToolsVersion,
@@ -75,9 +79,15 @@ fun RecipeExecutor.generateCommonModule(
       formFactorNames = projectData.includedFormFactorNames,
       addLintOptions = addLintOptions
     ),
-    moduleOut.resolve(FN_BUILD_GRADLE)
+    moduleOut.resolve(buildFile)
   )
 
+  // Note: com.android.* needs to be applied before kotlin
+  when {
+    isLibraryProject -> applyPlugin("com.android.library")
+    data.isDynamic -> applyPlugin("com.android.dynamic-feature")
+    else -> applyPlugin("com.android.application")
+  }
   addKotlinIfNeeded(projectData)
 
   save(manifestXml, manifestOut.resolve(FN_ANDROID_MANIFEST_XML))

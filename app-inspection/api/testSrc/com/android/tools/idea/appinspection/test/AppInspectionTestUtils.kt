@@ -17,9 +17,8 @@ package com.android.tools.idea.appinspection.test
 
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
-import com.android.tools.idea.appinspection.api.AppInspectorJar
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.protobuf.ByteString
-import com.android.tools.profiler.proto.Common
 
 /**
  * The amount of time tests will wait for async calls and events to trigger. It is used primarily in asserting latches and futures.
@@ -40,14 +39,15 @@ object AppInspectionTestUtils {
   /**
    * Creates a successful service response proto.
    */
-  fun createSuccessfulServiceResponse(commandId: Int): AppInspection.AppInspectionResponse = AppInspection.AppInspectionResponse.newBuilder()
-    .setCommandId(commandId)
-    .setStatus(AppInspection.AppInspectionResponse.Status.SUCCESS)
-    .setServiceResponse(
-      AppInspection.ServiceResponse.newBuilder()
-        .build()
-    )
-    .build()
+  fun createSuccessfulServiceResponse(commandId: Int): AppInspection.AppInspectionResponse =
+    AppInspection.AppInspectionResponse.newBuilder()
+      .setCommandId(commandId)
+      .setStatus(AppInspection.AppInspectionResponse.Status.SUCCESS)
+      .setServiceResponse(
+        AppInspection.ServiceResponse.newBuilder()
+          .build()
+      )
+      .build()
 
   /**
    * Creates an [AppInspectionEvent] with the provided [data] and inspector [name].
@@ -63,17 +63,6 @@ object AppInspectionTestUtils {
         .build()
     )
     .build()
-
-  /**
-   * Creates an [Common.Event] with a raw app inspection event with the provided [data].
-   */
-  fun createRawEvent(data: ByteString, ts: Long): Common.Event =
-    Common.Event.newBuilder()
-      .setKind(Common.Event.Kind.APP_INSPECTION_EVENT)
-      .setTimestamp(ts)
-      .setIsEnded(true)
-      .setAppInspectionEvent(createRawAppInspectionEvent(data.toByteArray(), name = "test.inspector"))
-      .build()
 
   /**
    * Keeps track of the copied jar so tests could verify the operation happened.

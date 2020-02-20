@@ -20,12 +20,19 @@ import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.sqlLanguage.SqliteSchemaContext
 import com.android.tools.idea.sqlite.ui.tableView.TableView
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CustomShortcutSet
 import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiManager
 import com.intellij.ui.LanguageTextField
 import java.awt.BorderLayout
+import java.awt.event.InputEvent
+import java.awt.event.KeyEvent
 import java.util.ArrayList
 import javax.swing.JComponent
+import javax.swing.KeyStroke
 
 /**
  * @see SqliteEvaluatorView
@@ -52,6 +59,12 @@ class SqliteEvaluatorViewImpl(
     }
 
     evaluatorPanel.databaseComboBox.addActionListener { setSchemaFromSelectedItem() }
+
+    DumbAwareAction.create { e: AnActionEvent ->
+      listeners.forEach {
+        it.evaluateSqlActionInvoked((evaluatorPanel.databaseComboBox.selectedItem as ComboBoxItem).database, editorTextField.text)
+      }
+    }.registerCustomShortcutSet(CustomShortcutSet(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.META_DOWN_MASK)), editorTextField)
   }
 
   private fun setSchemaFromSelectedItem() {
@@ -59,6 +72,8 @@ class SqliteEvaluatorViewImpl(
     val database = (evaluatorPanel.databaseComboBox.selectedItem as ComboBoxItem).database
     val schema = schemaProvider.getSchema(database)
     FileDocumentManager.getInstance().getFile(editorTextField.document)?.putUserData(SqliteSchemaContext.SQLITE_SCHEMA_KEY, schema)
+    // since the schema has changed we need to drop psi caches to re-run reference resolution and highlighting in the editor text field.
+    PsiManager.getInstance(project).dropPsiCaches()
   }
 
   override fun addDatabase(database: SqliteDatabase, index: Int) {
@@ -67,7 +82,7 @@ class SqliteEvaluatorViewImpl(
   }
 
   override fun selectDatabase(database: SqliteDatabase) {
-    evaluatorPanel.databaseComboBox.selectedItem = database
+    evaluatorPanel.databaseComboBox.selectedItem = ComboBoxItem(database, database.name)
   }
 
   override fun removeDatabase(index: Int) {

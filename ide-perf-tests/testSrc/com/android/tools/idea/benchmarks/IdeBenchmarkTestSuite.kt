@@ -16,6 +16,7 @@
 package com.android.tools.idea.benchmarks
 
 import com.android.testutils.JarTestSuiteRunner
+import com.android.tools.perflogger.PerfData
 import com.android.tools.tests.GradleDaemonsRule
 import com.android.tools.tests.IdeaTestSuiteBase
 import org.junit.ClassRule
@@ -46,6 +47,13 @@ class IdeBenchmarkTestSuite : IdeaTestSuiteBase() {
 
         unzipIntoOfflineMavenRepo("tools/base/build-system/studio_repo.zip")
         unzipIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.zip")
+
+        // Write Perfgate metadata (e.g. benchmark descriptions).
+        val perfData = PerfData()
+        perfData.addBenchmark(SimpleHighlightingBenchmark.benchmark)
+        perfData.addBenchmark(FullProjectBenchmark.highlightingBenchmark)
+        perfData.addBenchmark(FullProjectBenchmark.layoutCompletionBenchmark)
+        perfData.commit()
       }
       catch (e: Throwable) {
         System.err.println("ERROR: Failed to initialize test suite, tests will likely fail following this error")

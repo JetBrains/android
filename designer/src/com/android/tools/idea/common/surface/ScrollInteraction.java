@@ -18,20 +18,18 @@ package com.android.tools.idea.common.surface;
 import static java.awt.event.MouseWheelEvent.WHEEL_UNIT_SCROLL;
 
 import com.android.annotations.NonNull;
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.ScrollHandler;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.event.MouseWheelEvent;
-import javax.swing.JScrollPane;
-import javax.swing.JViewport;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -120,10 +118,8 @@ public class ScrollInteraction extends Interaction {
       }
 
       if (!canScroll(scrollAmount)) {
-        JScrollPane scrollPane = surface.getScrollPane();
-        JViewport viewport = scrollPane.getViewport();
-        Dimension extentSize = viewport.getExtentSize();
-        Dimension viewSize = viewport.getViewSize();
+        Dimension extentSize = surface.getExtentSize();
+        Dimension viewSize = surface.getViewSize();
         if (viewSize.width > extentSize.width || viewSize.height > extentSize.height) {
           mouseWheelEvent.getComponent().getParent().dispatchEvent(mouseWheelEvent);
           return;
@@ -133,8 +129,7 @@ public class ScrollInteraction extends Interaction {
     }
   }
 
-  @Override
-  public void scroll(@SwingCoordinate int x, @SwingCoordinate int y, int scrollAmount) {
+  private void scroll(@SwingCoordinate int x, @SwingCoordinate int y, int scrollAmount) {
     short currentScrollSign = (short)(scrollAmount < 0 ? -1 : 0);
 
     if (myLastScrollSign != currentScrollSign) {
