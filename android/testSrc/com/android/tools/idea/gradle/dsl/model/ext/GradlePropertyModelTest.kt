@@ -191,6 +191,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.VARIABLE
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl
+import com.android.tools.idea.gradle.dsl.model.notifications.CircularApplication
 import com.google.common.collect.ImmutableMap
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.PlatformTestUtil
@@ -199,7 +200,6 @@ import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.instanceOf
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assume.assumeTrue
-import org.junit.Ignore
 import org.junit.Test
 import java.io.File
 import java.math.BigDecimal
@@ -1284,7 +1284,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testSetGarbageReference() {
-    assumeTrue("relies on Groovy-specific Psi insertion behaviour with malformed input", isGroovy);
+    assumeTrue("relies on Groovy-specific Psi insertion behaviour with malformed input", isGroovy)
     writeToBuildFile(GRADLE_PROPERTY_MODEL_SET_GARBAGE_REFERENCE)
     val buildModel = gradleBuildModel
 
@@ -2812,7 +2812,6 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     }
   }
 
-  @Ignore("b/148924977")
   @Test
   fun testApplicationCycle() {
     writeToNewProjectFile("a", GRADLE_PROPERTY_MODEL_APPLICATION_CYCLE_APPLIED)
@@ -2821,6 +2820,12 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     // Make sure we don't blow up.
     val buildModel = gradleBuildModel
 
+    // Make sure that we have detected the circularity somewhere.
+    val circularApplications = gradleBuildModel.notifications
+      .flatMap { e -> e.component2().filterIsInstance(CircularApplication::class.java) }
+    assertTrue(circularApplications.isNotEmpty())
+
+    // Somewhat arbitrary assertion about the state of the parse after the circularity has been detected.
     run {
       val properties = buildModel.ext().inScopeProperties
       assertSize(2, properties.values)
