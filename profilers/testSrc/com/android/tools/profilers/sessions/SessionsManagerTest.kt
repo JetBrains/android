@@ -22,6 +22,7 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profiler.proto.Memory
 import com.android.tools.profiler.proto.Memory.AllocationsInfo
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo
 import com.android.tools.profiler.proto.MemoryProfiler
@@ -35,12 +36,13 @@ import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact
 import com.android.tools.profilers.cpu.FakeCpuService
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
+import com.android.tools.profilers.memory.HeapProfdSessionArtifact
 import com.android.tools.profilers.memory.HprofSessionArtifact
 import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact
 import com.android.tools.profilers.network.FakeNetworkService
-import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
 import org.junit.Assume
+import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -352,6 +354,45 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
     assertThat(SessionsManager.isSessionAlive(myManager.profilingSession)).isFalse()
   }
 
+  /**
+   * Note: This test does not use the global manager because it needs to set the native memory sampling flag to enabled.
+   * Note: This test only runs on the unified pipeline.
+   */
+  @Test
+  fun testNativeHeapArtifacts() {
+    assumeTrue(useUnifiedEvents)
+    ideProfilerServices.enableNativeMemorySampling(true)
+    val profiler = StudioProfilers(
+      ProfilerClient(myGrpcChannel.name),
+      ideProfilerServices,
+      myTimer
+    )
+    val manager = profiler.sessionsManager
+    val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
+    val process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
+
+    val session1Timestamp = 1L
+    myTimer.currentTimeNs = session1Timestamp
+    manager.beginSession(1, device, process1)
+    manager.update()
+    manager.endCurrentSession()
+    manager.update()
+    val session1 = manager.selectedSession
+
+    val nativeHeapTimestamp = 30L
+    val nativeHeapInfo = Memory.MemoryNativeSampleData.newBuilder().setStartTime(nativeHeapTimestamp).setEndTime(
+      nativeHeapTimestamp + 1).build()
+    val nativeHeapData = ProfilersTestData.generateMemoryNativeSampleData(nativeHeapTimestamp, nativeHeapTimestamp + 1, nativeHeapInfo)
+    myTransportService.addEventToStream(device.deviceId, nativeHeapData.setPid(session1.pid).build())
+    manager.update()
+
+    // The Hprof and CPU capture artifacts are now included and sorted in ascending order
+    val sessionItems = manager.sessionArtifacts
+    assertThat(sessionItems).hasSize(2)
+    assertThat(sessionItems[0]).isInstanceOf(SessionItem::class.java)
+    assertThat(sessionItems[1]).isInstanceOf(HeapProfdSessionArtifact::class.java)
+  }
+
   @Test
   fun testSessionArtifactsUpToDate() {
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
@@ -460,16 +501,16 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
 
   @Test
   fun testImportedSessionOnlyProcessedWhenEnded() {
-    Assume.assumeTrue(ideProfilerServices.featureConfig.isUnifiedPipelineEnabled)
+    assumeTrue(ideProfilerServices.featureConfig.isUnifiedPipelineEnabled)
 
     myTransportService.addEventToStream(1, ProfilersTestData.generateSessionStartEvent(1, 1, 1,
                                                                                        Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE).build())
     myManager.update()
-    Truth.assertThat(myManager.sessionArtifacts.size).isEqualTo(0)
+    assertThat(myManager.sessionArtifacts.size).isEqualTo(0)
 
     myTransportService.addEventToStream(1, ProfilersTestData.generateSessionEndEvent(1, 1, 2).build())
     myManager.update()
-    Truth.assertThat(myManager.sessionArtifacts.size).isEqualTo(1)
+    assertThat(myManager.sessionArtifacts.size).isEqualTo(1)
   }
 
   @Test
@@ -489,13 +530,13 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
     if (useUnifiedEvents) {
       myTransportService.addEventToStream(1, ProfilersTestData.generateSessionStartEvent(1, 1, session1Timestamp,
                                                                                          Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE).build())
-      myTransportService.addEventToStream(1, ProfilersTestData.generateSessionEndEvent(1, 1, session1Timestamp).build());
+      myTransportService.addEventToStream(1, ProfilersTestData.generateSessionEndEvent(1, 1, session1Timestamp).build())
       val heapDumpEvent = ProfilersTestData.generateMemoryHeapDumpData(session1Timestamp, session1Timestamp, heapDumpInfo)
       myTransportService.addEventToStream(1, heapDumpEvent.build())
 
       myTransportService.addEventToStream(2, ProfilersTestData.generateSessionStartEvent(2, 2, session2Timestamp,
                                                                                          Common.SessionData.SessionStarted.SessionType.CPU_CAPTURE).build())
-      myTransportService.addEventToStream(2, ProfilersTestData.generateSessionEndEvent(2, 2, session2Timestamp).build());
+      myTransportService.addEventToStream(2, ProfilersTestData.generateSessionEndEvent(2, 2, session2Timestamp).build())
       val cpuTrace = Common.Event.newBuilder()
         .setGroupId(session2Timestamp)
         .setKind(Common.Event.Kind.CPU_TRACE)
@@ -514,11 +555,11 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
     }
     myManager.update()
 
-    Truth.assertThat(myManager.sessionArtifacts.size).isEqualTo(2)
+    assertThat(myManager.sessionArtifacts.size).isEqualTo(2)
     val cpuTraceSessionItem = myManager.sessionArtifacts[0] as SessionItem
-    Truth.assertThat(cpuTraceSessionItem.sessionMetaData.type).isEqualTo(Common.SessionMetaData.SessionType.CPU_CAPTURE)
+    assertThat(cpuTraceSessionItem.sessionMetaData.type).isEqualTo(Common.SessionMetaData.SessionType.CPU_CAPTURE)
     val hprofSessionItem = myManager.sessionArtifacts[1] as SessionItem
-    Truth.assertThat(hprofSessionItem.sessionMetaData.type).isEqualTo(Common.SessionMetaData.SessionType.MEMORY_CAPTURE)
+    assertThat(hprofSessionItem.sessionMetaData.type).isEqualTo(Common.SessionMetaData.SessionType.MEMORY_CAPTURE)
   }
 
   @Test
@@ -631,7 +672,7 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
 
   @Test
   fun testGetAllSessions() {
-    Assume.assumeTrue(ideProfilerServices.featureConfig.isUnifiedPipelineEnabled)
+    assumeTrue(ideProfilerServices.featureConfig.isUnifiedPipelineEnabled)
     val device1 = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process1 = Common.Process.newBuilder().setDeviceId(1).setPid(10).setState(Common.Process.State.ALIVE).build()
     val device2 = Common.Device.newBuilder().setDeviceId(2).setState(Common.Device.State.ONLINE).build()
