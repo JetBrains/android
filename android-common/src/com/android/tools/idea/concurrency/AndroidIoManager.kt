@@ -16,8 +16,8 @@
 package com.android.tools.idea.concurrency
 
 import com.intellij.openapi.components.ServiceManager
-import com.intellij.openapi.project.CacheUpdateRunner
 import com.intellij.util.concurrency.AppExecutorUtil.createBoundedApplicationPoolExecutor
+import com.intellij.util.indexing.UnindexedFilesUpdater
 import java.util.concurrent.ExecutorService
 
 class AndroidIoManager {
@@ -33,7 +33,7 @@ class AndroidIoManager {
    *
    * First approximation based on what indexing is using.
    */
-  private val threadCount = CacheUpdateRunner.indexingThreadCount()
+  private val threadCount = UnindexedFilesUpdater.getIndexingThreadsNumber()
 
   private val boundedExecutor = createBoundedApplicationPoolExecutor(NAME, threadCount)
 
