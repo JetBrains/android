@@ -42,7 +42,7 @@ class LegacyCpuTraceCommandHandlerTest {
   private val myService = FakeTransportService(myTimer)
   @get:Rule
   var myGrpcChannel = FakeGrpcChannel("LegacyCpuTraceCommandHandlerTest", myService)
-  val channel = InProcessChannelBuilder.forName(myGrpcChannel.name).usePlaintext(true).directExecutor().build()
+  val channel = InProcessChannelBuilder.forName(myGrpcChannel.name).usePlaintext().directExecutor().build()
 
   @Test
   fun testStartStopWorkflow() {

@@ -27,12 +27,16 @@ import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Memory.AllocationsInfo;
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportHeapDumpRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.ImportHeapDumpResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.ListDumpInfosRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.ListHeapDumpInfosResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryStartRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryStartResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryStopRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryStopResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
 import com.android.tools.profiler.proto.Transport;
@@ -104,7 +108,9 @@ public class MemoryProfiler extends StudioProfiler {
 
   @Override
   public void startProfiling(Common.Session session) {
-    myProfilers.getClient().getMemoryClient().startMonitoringApp(MemoryStartRequest.newBuilder().setSession(session).build());
+    // TODO(b/150503095)
+    MemoryStartResponse response =
+        myProfilers.getClient().getMemoryClient().startMonitoringApp(MemoryStartRequest.newBuilder().setSession(session).build());
   }
 
   @Override
@@ -117,7 +123,9 @@ public class MemoryProfiler extends StudioProfiler {
       getLogger().info(e);
     }
 
-    myProfilers.getClient().getMemoryClient().stopMonitoringApp(MemoryStopRequest.newBuilder().setSession(session).build());
+    // TODO(b/150503095)
+    MemoryStopResponse response =
+        myProfilers.getClient().getMemoryClient().stopMonitoringApp(MemoryStopRequest.newBuilder().setSession(session).build());
   }
 
   /**
@@ -204,7 +212,9 @@ public class MemoryProfiler extends StudioProfiler {
         .setData(ByteString.copyFrom(bytes))
         .setInfo(heapDumpInfo)
         .build();
-      myProfilers.getClient().getMemoryClient().importHeapDump(heapDumpRequest);
+      // TODO(b/150503095)
+      ImportHeapDumpResponse response =
+          myProfilers.getClient().getMemoryClient().importHeapDump(heapDumpRequest);
 
       // Select the new session
       sessionsManager.update();
@@ -300,7 +310,8 @@ public class MemoryProfiler extends StudioProfiler {
         .setInfo(info)
         .setData(ByteString.copyFrom(bytes))
         .build();
-      myProfilers.getClient().getMemoryClient().importLegacyAllocations(request);
+      // TODO(b/150503095)
+      ImportLegacyAllocationsResponse response = myProfilers.getClient().getMemoryClient().importLegacyAllocations(request);
 
       // Select the new session
       sessionsManager.update();

@@ -46,7 +46,9 @@ import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Memory.AllocationsInfo;
 import com.android.tools.profiler.proto.Memory.MemoryAllocSamplingData;
 import com.android.tools.profiler.proto.MemoryProfiler.ForceGarbageCollectionRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.ForceGarbageCollectionResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.SetAllocationSamplingRateRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.SetAllocationSamplingRateResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpResponse;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
@@ -458,7 +460,8 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
 
   public void forceGarbageCollection() {
     if (getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
-      getStudioProfilers().getClient().getTransportClient().execute(
+      // TODO(b/150503095)
+      Transport.ExecuteResponse response = getStudioProfilers().getClient().getTransportClient().execute(
         Transport.ExecuteRequest.newBuilder()
           .setCommand(Commands.Command.newBuilder()
                         .setStreamId(mySessionData.getStreamId())
@@ -467,7 +470,9 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
           .build());
     }
     else {
-      myClient.forceGarbageCollection(ForceGarbageCollectionRequest.newBuilder().setSession(mySessionData).build());
+      // TODO(b/150503095)
+      ForceGarbageCollectionResponse response =
+          myClient.forceGarbageCollection(ForceGarbageCollectionRequest.newBuilder().setSession(mySessionData).build());
     }
   }
 
@@ -770,7 +775,8 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
       MemoryAllocSamplingData samplingRate = MemoryAllocSamplingData.newBuilder().setSamplingNumInterval(mode.getValue()).build();
 
       if (getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
-        getStudioProfilers().getClient().getTransportClient().execute(
+        // TODO(b/150503095)
+        Transport.ExecuteResponse response = getStudioProfilers().getClient().getTransportClient().execute(
           Transport.ExecuteRequest.newBuilder().setCommand(Commands.Command.newBuilder()
                                                              .setStreamId(mySessionData.getStreamId())
                                                              .setPid(mySessionData.getPid())
@@ -779,10 +785,12 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
             .build());
       }
       else {
-        getStudioProfilers().getClient().getMemoryClient().setAllocationSamplingRate(SetAllocationSamplingRateRequest.newBuilder()
-                                                                                       .setSession(mySessionData)
-                                                                                       .setSamplingRate(samplingRate)
-                                                                                       .build());
+        // TODO(b/150503095)
+        SetAllocationSamplingRateResponse response =
+            getStudioProfilers().getClient().getMemoryClient().setAllocationSamplingRate(SetAllocationSamplingRateRequest.newBuilder()
+                                                                                         .setSession(mySessionData)
+                                                                                         .setSamplingRate(samplingRate)
+                                                                                         .build());
       }
     }
     catch (StatusRuntimeException e) {

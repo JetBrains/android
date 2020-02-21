@@ -201,7 +201,8 @@ class DefaultInspectorClient(
       .setStreamId(selectedStream.streamId)
       .setPid(selectedProcess.pid)
       .build()
-    client.transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(transportCommand).build())
+    // TODO(b/150503095)
+    val response = client.transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(transportCommand).build())
 
     when (command.type) {
       LayoutInspectorCommand.Type.STOP -> isCapturing = false
@@ -314,7 +315,8 @@ class DefaultInspectorClient(
     }
     attachListener?.let { transportPoller.registerListener(it) }
 
-    client.transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(attachCommand).build())
+    // TODO(b/150503095)
+    val response = client.transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(attachCommand).build())
   }
 
   /**

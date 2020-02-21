@@ -276,8 +276,8 @@ private class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
 
     channel = NettyChannelBuilder
       .forAddress("localhost", localPort)
-      .usePlaintext(true)
-      .maxMessageSize(512 * 1024 * 1024 - 1)
+      .usePlaintext()
+      .maxInboundMessageSize(512 * 1024 * 1024 - 1)
       .build()
     client = SkiaParserServiceGrpc.newBlockingStub(channel)
 

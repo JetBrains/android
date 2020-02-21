@@ -30,7 +30,7 @@ import java.io.File
 class TraceProcessorDaemonClient(optionalChannel: Channel? = null) {
   // TODO(b/149379691): Use a port picker to select an available port, pass it down to the daemon as an argument and use it here.
   private val channel: Channel by lazy {
-    optionalChannel ?: ManagedChannelBuilder.forAddress("localhost", 20204).usePlaintext(true).build() }
+    optionalChannel ?: ManagedChannelBuilder.forAddress("localhost", 20204).usePlaintext().build() }
   private val stub: TraceProcessorServiceGrpc.TraceProcessorServiceBlockingStub by lazy {
     TraceProcessorServiceGrpc.newBlockingStub(channel)
   }
