@@ -45,6 +45,7 @@ import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsResponse;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact;
+import com.android.tools.profilers.memory.HeapProfdSessionArtifact;
 import com.android.tools.profilers.memory.HprofSessionArtifact;
 import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact;
 import com.google.common.collect.Lists;
@@ -62,7 +63,6 @@ import java.util.Map;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -157,6 +157,9 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     myArtifactsFetchers.add(HprofSessionArtifact::getSessionArtifacts);
     myArtifactsFetchers.add(LegacyAllocationsSessionArtifact::getSessionArtifacts);
     myArtifactsFetchers.add(CpuCaptureSessionArtifact::getSessionArtifacts);
+    if (profilers.getIdeServices().getFeatureConfig().isNativeMemorySampleEnabled()) {
+      myArtifactsFetchers.add(HeapProfdSessionArtifact::getSessionArtifacts);
+    }
   }
 
   @NotNull
@@ -555,8 +558,8 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     myStreamIdToStreamServerMap.put(stream.getStreamId(), streamServer);
     streamServer.getByteCacheMap().putAll(byteCacheMap);
     BlockingDeque<Event> deque = streamServer.getEventDeque();
-    for (int i = 0; i < events.length; i++) {
-      deque.offer(events[i]);
+    for (Event event : events) {
+      deque.offer(event);
     }
     // inserts the pair of Session begin + end events.
     deque.offer(Common.Event.newBuilder()
