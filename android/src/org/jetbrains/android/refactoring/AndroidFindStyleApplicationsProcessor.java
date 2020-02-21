@@ -35,18 +35,17 @@ import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.refactoring.BaseRefactoringProcessor;
-import com.intellij.refactoring.ui.UsageViewDescriptorAdapter;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.usageView.UsageViewBundle;
 import com.intellij.usageView.UsageViewDescriptor;
-import java.util.HashMap;
-import java.util.HashSet;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -94,7 +93,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
   @NotNull
   @Override
   protected UsageViewDescriptor createUsageViewDescriptor(@NotNull UsageInfo[] usages) {
-    return new UsageViewDescriptorAdapter() {
+    return new UsageViewDescriptor() {
       @NotNull
       @Override
       public PsiElement[] getElements() {

@@ -10,22 +10,20 @@ import com.intellij.psi.PsiField;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.refactoring.BaseRefactoringProcessor;
-import com.intellij.refactoring.ui.UsageViewDescriptorAdapter;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.usageView.UsageViewBundle;
 import com.intellij.usageView.UsageViewDescriptor;
-import java.util.HashSet;
 import com.intellij.util.containers.MultiMap;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.android.dom.resources.ResourceNameConverter;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Eugene.Kudelevsky
@@ -57,7 +55,7 @@ class AndroidInlineAllStyleUsagesProcessor extends BaseRefactoringProcessor {
   @NotNull
   @Override
   protected UsageViewDescriptor createUsageViewDescriptor(@NotNull UsageInfo[] usages) {
-    return new UsageViewDescriptorAdapter() {
+    return new UsageViewDescriptor() {
       @NotNull
       @Override
       public PsiElement[] getElements() {
