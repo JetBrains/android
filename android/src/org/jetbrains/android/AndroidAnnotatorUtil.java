@@ -28,19 +28,13 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;
-import com.android.tools.adtui.LightCalloutPopup;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.res.FileResourceReader;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.IdeResourcesUtil;
+import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
-import com.android.tools.idea.ui.resourcechooser.HorizontalTabbedPanelBuilder;
-import com.android.tools.idea.ui.resourcechooser.ColorResourcePicker;
-import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerBuilder;
-import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialColorPaletteProvider;
-import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialGraphicalColorPipetteProvider;
+import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
 import com.android.utils.HashCodes;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -73,7 +67,6 @@ import java.awt.MouseInfo;
 import java.util.List;
 import java.util.Objects;
 import javax.swing.Icon;
-import javax.swing.JComponent;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -353,36 +346,20 @@ public class AndroidAnnotatorUtil {
     }
 
     private void openColorPicker(@Nullable Color currentColor) {
-      LightCalloutPopup dialog = new LightCalloutPopup();
-      JComponent colorPicker = new ColorPickerBuilder()
-          .setOriginalColor(currentColor)
-          .addSaturationBrightnessComponent()
-          .addColorAdjustPanel(new MaterialGraphicalColorPipetteProvider())
-          .addColorValuePanel().withFocus()
-          .addSeparator()
-          .addCustomComponent(MaterialColorPaletteProvider.INSTANCE)
-          .addColorPickerListener((color, source) -> setColorToAttribute(color))
-          .focusWhenDisplay(true)
-          .setFocusCycleRoot(true)
-          .build();
-
-      JComponent popupContent;
-      if (StudioFlags.NELE_RESOURCE_POPUP_PICKER.get() && myConfiguration != null) {
-        // Use tabbed panel instead.
-        ColorResourcePicker resourcePicker = new ColorResourcePicker(myConfiguration, myResourceReference);
-        // TODO: Use relative resource url instead.
-        resourcePicker.addColorResourcePickerListener(resource -> setColorStringAttribute(resource.getResourceUrl().toString()));
-        popupContent = new HorizontalTabbedPanelBuilder()
-          .addTab("Resources", resourcePicker)
-          .addTab("Custom", colorPicker)
-          .setDefaultPage(myResourceReference != null ? 0 : 1)
-          .build();
-      }
-      else {
-        popupContent = colorPicker;
-      }
-
-      dialog.show(popupContent, null, MouseInfo.getPointerInfo().getLocation());
+      ResourceChooserHelperKt.createAndShowColorPickerPopup(
+        currentColor,
+        myResourceReference,
+        myConfiguration,
+        null,
+        MouseInfo.getPointerInfo().getLocation(),
+        color -> {
+          setColorToAttribute(color);
+          return null;
+        },
+        resourceString -> {
+          setColorStringAttribute(resourceString);
+          return null;
+        });
     }
 
     private void setColorToAttribute(@NotNull Color color) {
