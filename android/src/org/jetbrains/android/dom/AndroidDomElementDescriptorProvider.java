@@ -110,6 +110,7 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
     }
     else if (domElement instanceof XmlResourceElement) {
       AndroidFacet facet = AndroidFacet.getInstance(domElement);
+      if (facet == null) return null;
       AndroidXmlResourcesUtil.PreferenceSource preferenceSource = AndroidXmlResourcesUtil.PreferenceSource.getPreferencesSource(tag, facet);
       className = preferenceSource.getQualifiedBaseClass();
     }
