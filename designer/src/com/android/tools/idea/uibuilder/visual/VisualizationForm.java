@@ -139,7 +139,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
         sceneManager.setQuality(0.0f);
         return sceneManager;
       })
-      .setActionManagerProvider((surface) -> new VisualizationActionManager((NlDesignSurface) surface))
+      .setActionManagerProvider((surface) -> new VisualizationActionManager((NlDesignSurface) surface, () -> myCurrentModelsProvider))
       .setInteractionHandlerProvider((surface) -> new VisualizationInteractionHandler(surface, () -> myCurrentModelsProvider ))
       .setLayoutManager(new GridSurfaceLayoutManager(DEFAULT_SCREEN_OFFSET_X,
                                                      DEFAULT_SCREEN_OFFSET_Y,

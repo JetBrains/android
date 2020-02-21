@@ -32,6 +32,7 @@ import java.awt.LayoutManager
 import java.awt.Rectangle
 import javax.swing.Box
 import javax.swing.BoxLayout
+import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
@@ -126,7 +127,7 @@ private data class LayoutData private constructor(
  * per every [SceneView] available. This panel will be positioned on the coordinates of the [SceneView] and can be
  * used to paint Swing elements on top of the [SceneView].
  */
-private class SceneViewPeerPanel(val sceneView: SceneView) : JPanel() {
+private class SceneViewPeerPanel(val sceneView: SceneView, sceneViewToolbar: JComponent?) : JPanel() {
   /**
    * Contains cached layout data that can be used by this panel to verify when it's been invalidated
    * without having to explicitly call [revalidate]
@@ -142,20 +143,6 @@ private class SceneViewPeerPanel(val sceneView: SceneView) : JPanel() {
   }
 
   /**
-   * This panel contains the toolbar with the [SceneView] contextual actions
-   */
-  private val sceneViewToolbar = JPanel(BorderLayout()).apply {
-    isOpaque = false
-
-    if (StudioFlags.NELE_SCENEVIEW_TOP_TOOLBAR.get()) {
-      // For now, we just display a mock toolbar. This will be replaced in the future with SceneView the toolbar.
-      add(ClickableLabel(null, StudioIcons.Common.CLOSE, SwingConstants.LEADING).apply {
-        verticalAlignment = JLabel.CENTER
-      }, BorderLayout.LINE_END)
-    }
-  }
-
-  /**
    * This panel wraps both the label and the toolbar and puts them left aligned (label) and right
    * aligned (the toolbar).
    */
@@ -163,8 +150,10 @@ private class SceneViewPeerPanel(val sceneView: SceneView) : JPanel() {
     layout = BoxLayout(this, BoxLayout.LINE_AXIS)
     isOpaque = false
     add(modelNameLabel)
-    add(Box.createHorizontalGlue())
-    add(sceneViewToolbar)
+    if (sceneViewToolbar != null) {
+      add(Box.createHorizontalGlue())
+      add(sceneViewToolbar)
+    }
   }
 
   init {
@@ -284,7 +273,14 @@ internal class SceneViewPanel(private val interactionLayersProvider: () -> List<
       .any { sceneView == it.sceneView }
 
     if (!alreadyAdded) {
-      add(SceneViewPeerPanel(sceneView))
+      val toolbar = if (StudioFlags.NELE_SCENEVIEW_TOP_TOOLBAR.get()) {
+        sceneView.surface.actionManager.getSceneViewContextToolbar(sceneView)
+      }
+      else {
+        null
+      }
+
+      add(SceneViewPeerPanel(sceneView, toolbar))
     }
   }
 

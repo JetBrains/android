@@ -44,6 +44,7 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.SceneMode
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -356,7 +357,8 @@ class CustomViewPreviewRepresentation(
                        customPreviewXml,
                        config,
                        surface.componentRegistrar,
-                       BiFunction { project, _ -> AndroidPsiUtils.getPsiFileSafely(project, customPreviewXml) as XmlFile })
+                       BiFunction { project, _ -> AndroidPsiUtils.getPsiFileSafely(project, customPreviewXml) as XmlFile },
+                       DataContext.EMPTY_CONTEXT)
       } else {
         // We want to deactivate the surface so that configuration changes do not trigger scene repaint.
         surface.deactivate()
