@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run;
 
+import static com.android.tools.idea.testing.TestModuleUtil.*;
 import static com.android.tools.idea.testing.TestProjectPaths.BUDDY_APKS;
 import static com.android.tools.idea.testing.TestProjectPaths.DYNAMIC_APP;
 import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_ACTIVITY;
@@ -28,6 +29,7 @@ import com.android.ddmlib.IDevice;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.testing.TestModuleUtil;
 import com.google.common.collect.Iterables;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
@@ -139,7 +141,9 @@ public class GradleApkProviderTest extends GradleApkProviderTestCase {
     assertThat(ContainerUtil.map(apkInfo.getFiles(), x -> x.getApkFile().getName()))
       .containsExactly("app-debug.apk", "feature1-debug.apk", "dependsOnFeature1-debug.apk");
     assertThat(ContainerUtil.map(apkInfo.getFiles(), x -> x.getModuleName()))
-      .containsExactly("app", "feature1", "dependsOnFeature1");
+      .containsExactly(findModule(getProject(), "app").getName(),
+                       findModule(getProject(), "feature1").getName(),
+                       findModule(getProject(), "dependsOnFeature1").getName());
   }
 
   public void testOutputModelForDynamicFeatureInstrumentedTest() throws Exception {
@@ -163,7 +167,9 @@ public class GradleApkProviderTest extends GradleApkProviderTestCase {
     assertThat(ContainerUtil.map(mainApkInfo.getFiles(), x -> x.getApkFile().getName()))
       .containsExactly("app-debug.apk", "feature1-debug.apk", "dependsOnFeature1-debug.apk");
     assertThat(ContainerUtil.map(mainApkInfo.getFiles(), x -> x.getModuleName()))
-      .containsExactly("app", "feature1", "dependsOnFeature1");
+      .containsExactly(findModule(getProject(), "app").getName(),
+                       findModule(getProject(), "feature1").getName(),
+                       findModule(getProject(), "dependsOnFeature1").getName());
 
     assertThat(testApkInfo.getFiles().size()).isEqualTo(1);
     assertThat(ContainerUtil.map(testApkInfo.getFiles(), x -> x.getApkFile().getName()))

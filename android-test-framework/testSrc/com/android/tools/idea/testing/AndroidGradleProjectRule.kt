@@ -65,6 +65,9 @@ class AndroidGradleProjectRule : NamedExternalResource() {
   fun gradleModule(gradlePath: String): Module = findGradleModule(gradlePath) ?: gradleModuleNotFound(gradlePath)
   fun findGradleModule(gradlePath: String): Module? = project.gradleModule(gradlePath)
 
+  fun getModule(moduleName: String) = delegateTestCase.getModule(moduleName);
+  fun hasModule(moduleName: String) = delegateTestCase.hasModule(moduleName);
+
   override fun before(description: Description) {
     delegateTestCase.name = description.methodName ?: description.displayName
     delegateTestCase.setUp()

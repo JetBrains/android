@@ -26,6 +26,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP_WITH_DYNAMIC_FEATURES
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APP_WITH_OLDER_SUPPORT_LIB
 import com.android.tools.idea.testing.findAppModule
+import com.android.tools.idea.testing.findModule
 import com.google.common.truth.Truth.assertThat
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API as LATEST_API
 
@@ -198,7 +199,10 @@ class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
     loadProject(INSTANT_APP_WITH_DYNAMIC_FEATURES)
     val moduleSystem = project.findAppModule().getModuleSystem()
     val dynamicFeatureModuleNames = moduleSystem.getDynamicFeatureModules().map { it.name }
-    assertThat(dynamicFeatureModuleNames).containsExactly("dynamicfeature", "instantdynamicfeature").inOrder()
+    assertThat(dynamicFeatureModuleNames).containsExactly(
+      project.findModule("dynamicfeature").getName(),
+      project.findModule("instantdynamicfeature").getName()
+    ).inOrder()
   }
 
   private fun isSameArtifact(first: GradleCoordinate?, second: GradleCoordinate?) =

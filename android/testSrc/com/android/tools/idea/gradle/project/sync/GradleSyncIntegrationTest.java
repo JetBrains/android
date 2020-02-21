@@ -390,7 +390,8 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
       fail("Shouldn't be able to construct a source generator for Gradle projects");
     }
     catch (IllegalArgumentException e) {
-      assertEquals("app is built by an external build system and should not require the IDE to generate sources", e.getMessage());
+      assertEquals(TestModuleUtil.findAppModule(getProject()).getName() +
+                   " is built by an external build system and should not require the IDE to generate sources", e.getMessage());
     }
   }
 
@@ -816,7 +817,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     loadProject(APP_WITH_BUILDSRC);
 
     // Verify that buildSrc modules exists.
-    Module buildSrcModule = getModule(getName() + "_buildSrc");
+    Module buildSrcModule = getModule("buildSrc");
     assertNotNull(buildSrcModule);
     DataNode<ModuleData> moduleData = GradleUtil.findGradleModuleData(buildSrcModule);
     assertNotNull(moduleData);
@@ -829,8 +830,8 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
             .isEqualTo(FileUtils.toSystemIndependentPath(buildSrcDir.getPath()));
 
     // Verify that buildSrc/lib1 has dependency on buildSrc/lib2.
-    Module lib1Module = getModule(getName() + "_lib1");
-    assertAbout(moduleDependencies()).that(lib1Module).hasDependency(getName() + "_lib2", DependencyScope.COMPILE, false);
+    Module lib1Module = getModule("lib1");
+    assertAbout(moduleDependencies()).that(lib1Module).hasDependency(getModule("lib2").getName(), DependencyScope.COMPILE, false);
   }
 
   public void testViewBindingOptionsAreCorrectlyVisibleFromIDE() throws Exception {
@@ -877,7 +878,9 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     String expectedFailure = requestSyncAndGetExpectedFailure();
 
     assertThat(expectedFailure).isEqualTo("setup project failed: Sync issues found!\n" +
-                                          "Module 'app':\nRequested NDK version 'i am a good version' could not be parsed\n");
+                                          "Module '" +
+                                          TestModuleUtil.findAppModule(getProject()).getName() +
+                                          "':\nRequested NDK version 'i am a good version' could not be parsed\n");
   }
 
   public void testKaptIsEnabled() throws Exception {
