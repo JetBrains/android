@@ -48,9 +48,9 @@ private fun getDaggerModules(scope: GlobalSearchScope): Query<PsiClass> {
  *
  * TODO: add @Inject-annotated constructors.
  */
-fun getDaggerProvidersForType(type: PsiType, scope: GlobalSearchScope): Collection<PsiMethod> =
-  getDaggerProvidesMethodsForType(type, scope) + getDaggerBindsMethodsForType(type, scope)
-
+fun getDaggerProvidersForType(type: PsiType, scope: GlobalSearchScope): Collection<PsiMethod> {
+  return getDaggerProvidesMethodsForType(type, scope) + getDaggerBindsMethodsForType(type, scope)
+}
 /**
  * True if PsiMethod belongs to a class annotated with @Module.
  */
