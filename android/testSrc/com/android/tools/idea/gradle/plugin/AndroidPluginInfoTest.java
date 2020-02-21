@@ -19,6 +19,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.BuildEnvironment;
 
+import com.android.tools.idea.testing.TestModuleUtil;
 import java.io.File;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
@@ -33,7 +34,7 @@ public class AndroidPluginInfoTest extends AndroidGradleTestCase {
     AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.find(getProject());
     assertNotNull(androidPluginInfo);
     assertNotNull(androidPluginInfo.getModule());
-    assertEquals("app", androidPluginInfo.getModule().getName());
+    assertEquals(TestModuleUtil.findAppModule(getProject()), androidPluginInfo.getModule());
     assertNull(androidPluginInfo.getPluginBuildFile());
 
     GradleVersion pluginVersion = androidPluginInfo.getPluginVersion();
@@ -46,7 +47,7 @@ public class AndroidPluginInfoTest extends AndroidGradleTestCase {
     AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.findFromBuildFiles(getProject());
     assertNotNull(androidPluginInfo);
     assertNotNull(androidPluginInfo.getModule());
-    assertEquals("app", androidPluginInfo.getModule().getName());
+    assertEquals(TestModuleUtil.findAppModule(getProject()), androidPluginInfo.getModule());
     assertNotNull(androidPluginInfo.getPluginBuildFile());
     assertEquals(new File(getProjectFolderPath(), FN_BUILD_GRADLE),
                  new File(androidPluginInfo.getPluginBuildFile().getPath()));
@@ -61,7 +62,7 @@ public class AndroidPluginInfoTest extends AndroidGradleTestCase {
     AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.findFromBuildFiles(getProject());
     assertNotNull(androidPluginInfo);
     assertNotNull(androidPluginInfo.getModule());
-    assertEquals("app", androidPluginInfo.getModule().getName());
+    assertEquals(TestModuleUtil.findAppModule(getProject()), androidPluginInfo.getModule());
     assertNotNull(androidPluginInfo.getPluginBuildFile());
     assertEquals(new File(new File(getProjectFolderPath(), "app"), FN_BUILD_GRADLE),
                  new File(androidPluginInfo.getPluginBuildFile().getPath()));
@@ -77,7 +78,7 @@ public class AndroidPluginInfoTest extends AndroidGradleTestCase {
     AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.findFromModel(getProject());
     assertNotNull(androidPluginInfo);
     assertNotNull(androidPluginInfo.getModule());
-    assertEquals("app", androidPluginInfo.getModule().getName());
+    assertEquals(TestModuleUtil.findAppModule(getProject()), androidPluginInfo.getModule());
     assertNull(androidPluginInfo.getPluginBuildFile());
 
     GradleVersion pluginVersion = androidPluginInfo.getPluginVersion();
