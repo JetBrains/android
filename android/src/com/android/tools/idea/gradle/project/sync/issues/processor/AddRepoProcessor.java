@@ -26,7 +26,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.BaseRefactoringProcessor;
-import com.intellij.refactoring.ui.UsageViewDescriptorAdapter;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.usageView.UsageViewDescriptor;
 import java.util.ArrayList;
@@ -70,7 +69,7 @@ public class AddRepoProcessor extends BaseRefactoringProcessor {
   @NotNull
   @Override
   protected UsageViewDescriptor createUsageViewDescriptor(@NotNull UsageInfo[] usages) {
-    return new UsageViewDescriptorAdapter() {
+    return new UsageViewDescriptor() {
       @Override
       public String getCodeReferencesText(int usagesCount, int filesCount) {
         return String.format(Locale.US, "File%s to add %s repository to (%d file%s found)", (filesCount == 1 ? "" : "s"),

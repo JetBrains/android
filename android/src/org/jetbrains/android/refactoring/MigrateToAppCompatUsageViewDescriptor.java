@@ -17,11 +17,11 @@ package org.jetbrains.android.refactoring;
 
 import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.RefactoringBundle;
-import com.intellij.refactoring.ui.UsageViewDescriptorAdapter;
 import com.intellij.usageView.UsageViewBundle;
+import com.intellij.usageView.UsageViewDescriptor;
 import org.jetbrains.annotations.NotNull;
 
-class MigrateToAppCompatUsageViewDescriptor extends UsageViewDescriptorAdapter {
+class MigrateToAppCompatUsageViewDescriptor implements UsageViewDescriptor {
   private final PsiElement[] myElements;
 
   MigrateToAppCompatUsageViewDescriptor(PsiElement[] elements) {
