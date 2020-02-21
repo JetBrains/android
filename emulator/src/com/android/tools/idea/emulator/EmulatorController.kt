@@ -83,10 +83,10 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   @Slow
   fun connect() {
     state = State.CONNECTING
-    channel = NettyChannelBuilder
+    val channel = NettyChannelBuilder
       .forAddress("localhost", emulatorId.grpcPort)
-      .usePlaintext(true) // TODO: Add proper authentication.
-      .maxMessageSize(16 * 1024 * 1024)
+      .usePlaintext() // TODO(sprigogin): Add proper authentication.
+      .maxInboundMessageSize(16 * 1024 * 1024)
       .build()
     emulatorController = EmulatorControllerGrpc.newStub(channel)
     fetchConfiguration()
