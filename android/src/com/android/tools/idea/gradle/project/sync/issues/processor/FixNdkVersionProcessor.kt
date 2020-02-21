@@ -24,7 +24,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.refactoring.BaseRefactoringProcessor
-import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewBundle
 import com.intellij.usageView.UsageViewDescriptor
@@ -42,7 +41,7 @@ class FixNdkVersionProcessor(
    * Produce usage display information.
    */
   public override fun createUsageViewDescriptor(usages: Array<UsageInfo>): UsageViewDescriptor {
-    return object : UsageViewDescriptorAdapter() {
+    return object : UsageViewDescriptor {
       override fun getCodeReferencesText(usagesCount: Int, filesCount: Int): String {
         return "Values to update " + UsageViewBundle.getReferencesString(usagesCount, filesCount)
       }

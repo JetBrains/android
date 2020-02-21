@@ -31,7 +31,6 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.xml.XmlElement;
 import com.intellij.refactoring.BaseRefactoringProcessor;
-import com.intellij.refactoring.ui.UsageViewDescriptorAdapter;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.usageView.UsageViewBundle;
 import com.intellij.usageView.UsageViewDescriptor;
@@ -58,7 +57,7 @@ public class RemoveSdkFromManifestProcessor extends BaseRefactoringProcessor {
   @NotNull
   @Override
   public UsageViewDescriptor createUsageViewDescriptor(@NotNull UsageInfo[] usages) {
-    return new UsageViewDescriptorAdapter() {
+    return new UsageViewDescriptor() {
       @Override
       public String getCodeReferencesText(int usagesCount, int filesCount) {
         return String.format("Propert%s to move/remove %s", usagesCount > 1 ? "ies" : "y",

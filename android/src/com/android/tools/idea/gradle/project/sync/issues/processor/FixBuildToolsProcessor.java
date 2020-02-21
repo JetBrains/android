@@ -27,7 +27,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.BaseRefactoringProcessor;
-import com.intellij.refactoring.ui.UsageViewDescriptorAdapter;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.usageView.UsageViewBundle;
 import com.intellij.usageView.UsageViewDescriptor;
@@ -58,7 +57,7 @@ public class FixBuildToolsProcessor extends BaseRefactoringProcessor {
   @NotNull
   @Override
   public UsageViewDescriptor createUsageViewDescriptor(@NotNull UsageInfo[] usages) {
-    return new UsageViewDescriptorAdapter() {
+    return new UsageViewDescriptor() {
       @Override
       public String getCodeReferencesText(int usagesCount, int filesCount) {
         return "Values to " + (myRemoveBuildTools ? "remove " : "update ") + UsageViewBundle.getReferencesString(usagesCount, filesCount);
