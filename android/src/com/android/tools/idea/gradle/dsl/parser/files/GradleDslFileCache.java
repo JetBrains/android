@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.parser.files;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.CIRCULAR_APPLICATION;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleSettingsFile;
 import static com.intellij.internal.psiView.stubtree.StubViewerPsiBasedTree.LOG;
 
@@ -58,12 +59,22 @@ public class GradleDslFileCache {
                                               @NotNull String name,
                                               @NotNull BuildModelContext context,
                                               boolean isApplied) {
+    // TODO(xof): investigate whether (as I suspect) this cache will be wrong for an applied file included from various places in the build
     GradleDslFile dslFile = myParsedBuildFiles.get(file.getUrl());
     if (dslFile == null) {
-      myParsingStack.push(file);
-      dslFile = context.parseBuildFile(myProject, file, name, isApplied);
-      myParsingStack.pop();
-      myParsedBuildFiles.put(file.getUrl(), dslFile);
+      if (!myParsingStack.contains(file)) {
+        myParsingStack.push(file);
+        dslFile = context.parseBuildFile(myProject, file, name, isApplied);
+        myParsingStack.pop();
+        myParsedBuildFiles.put(file.getUrl(), dslFile);
+      }
+      else {
+        // create a dummy GradleBuildFile.  (It'll get overwritten in the cache anyway when popping from the stack)
+        dslFile = new GradleBuildFile(file, myProject, name, context);
+        // produce a notification.  Arguably notifying on a dslFile which won't end up in the cache is dubious, but we don't actually have
+        // anywhere else at this point.
+        dslFile.notification(CIRCULAR_APPLICATION);
+      }
     }
     else if (!(dslFile instanceof GradleBuildFile)) {
       throw new IllegalStateException("Found wrong type for build file in cache!");
