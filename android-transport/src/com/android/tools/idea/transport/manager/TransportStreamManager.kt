@@ -21,7 +21,6 @@ import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest
 import com.android.tools.profiler.proto.Transport.GetEventGroupsResponse
 import com.android.tools.profiler.proto.TransportServiceGrpc
 import org.jetbrains.kotlin.utils.ThreadSafe
-import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executor
 
 /**
@@ -82,6 +81,7 @@ class TransportStreamManager private constructor(private val poller: TransportPo
             }
           } else {
             streams.remove(streamId)?.let { channel ->
+              channel.cleanUp()
               streamListeners.forEach { it.value.execute { it.key.onStreamDisconnected(channel) } }
             }
           }
@@ -123,22 +123,45 @@ class TransportStreamManager private constructor(private val poller: TransportPo
  * Represents the transport channel of a stream, which is a device or emulator. It automatically associates user provided
  * [TransportStreamEventListener] with the stream and creates a new [StreamEventPollingTask] and adds it to poller for execution.
  */
+@ThreadSafe
 class TransportStreamChannel(val stream: Common.Stream, val poller: TransportPoller) {
 
-  private val listeners = ConcurrentHashMap<TransportStreamEventListener, StreamEventPollingTask>()
+  private val listenersLock = Any()
+
+  @GuardedBy("listenersLock")
+  private val listeners = mutableMapOf<TransportStreamEventListener, StreamEventPollingTask>()
+
+  @GuardedBy("listenersLock")
+  private var isClosed = false
 
   /**
-   * Once a [TransportStreamEventListener] is added, a [StreamEventPollingTask] will be created based on it and added to the poller for execution.
+   * Once a [TransportStreamEventListener] is added, a [StreamEventPollingTask] will be created based on it and added to the poller for
+   * execution. Throws an [IllegalStateException] if channel is closed.
    */
   fun registerStreamEventListener(streamEventListener: TransportStreamEventListener) {
-    StreamEventPollingTask(stream.streamId, streamEventListener)
-      .also {
-        poller.registerPollingTask(it)
-        listeners[streamEventListener] = it
-      }
+    synchronized(listenersLock) {
+      if (isClosed) throw IllegalStateException("Stream channel is closed.")
+      StreamEventPollingTask(stream.streamId, streamEventListener)
+        .also {
+          poller.registerPollingTask(it)
+          listeners[streamEventListener] = it
+        }
+    }
   }
 
   fun unregisterStreamEventListener(streamEventListener: TransportStreamEventListener) {
-    listeners.remove(streamEventListener)?.let { poller.unregisterPollingTask(it) }
+    synchronized(listenersLock) {
+      listeners.remove(streamEventListener)?.let { poller.unregisterPollingTask(it) }
+    }
+  }
+
+  internal fun cleanUp() {
+    synchronized(listenersLock) {
+      if (!isClosed) {
+        isClosed = true
+        listeners.values.forEach { poller.unregisterPollingTask(it) }
+        listeners.clear()
+      }
+    }
   }
 }

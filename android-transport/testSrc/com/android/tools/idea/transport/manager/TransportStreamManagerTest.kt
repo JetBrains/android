@@ -22,9 +22,11 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
+import com.intellij.testFramework.UsefulTestCase.assertThrows
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.Timeout
+import java.lang.IllegalStateException
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
@@ -226,5 +228,38 @@ class TransportStreamManagerTest {
 
     // Await to see if both processes are picked up
     processLatch.await()
+  }
+
+  @Test
+  fun registerListenerWithDeadChannel() {
+    val manager =
+      TransportStreamManager
+        .createManager(TransportClient(grpcServerRule.name).transportStub, TimeUnit.MILLISECONDS.toNanos(100))
+
+    val streamReadyLatch = CountDownLatch(1)
+    val streamDeadLatch = CountDownLatch(1)
+    var stream: TransportStreamChannel? = null
+    manager.addStreamListener(object : TransportStreamListener {
+      override fun onStreamConnected(streamChannel: TransportStreamChannel) {
+        assertThat(streamChannel.stream.device).isEqualTo(FakeTransportService.FAKE_DEVICE)
+        stream = streamChannel
+        streamReadyLatch.countDown()
+      }
+
+      override fun onStreamDisconnected(streamChannel: TransportStreamChannel) {
+        streamDeadLatch.countDown()
+      }
+    }, MoreExecutors.directExecutor())
+
+    transportService.addDevice(FakeTransportService.FAKE_DEVICE)
+    streamReadyLatch.await()
+
+    timer.currentTimeNs += 1
+    transportService.addDevice(FakeTransportService.FAKE_OFFLINE_DEVICE)
+    streamDeadLatch.await()
+
+    assertThrows<IllegalStateException>(IllegalStateException::class.java) {
+      stream!!.registerStreamEventListener(TransportStreamEventListener(Common.Event.Kind.PROCESS, MoreExecutors.directExecutor()) {})
+    }
   }
 }
