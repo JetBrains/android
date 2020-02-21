@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler.updateUsageTracker
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
@@ -28,10 +29,18 @@ import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import java.util.concurrent.CompletableFuture
 
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.CACHED_DEPENDENCY_NOT_FOUND
+
 class CachedDependencyNotFoundIssueChecker: GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val message = issueData.error.message ?: return null
     if (!message.startsWith("No cached version of ") || !message.contains("available for offline mode.")) return null
+
+    // Log metrics.
+    ApplicationManager.getApplication().invokeLater {
+      updateUsageTracker(issueData.projectPath, CACHED_DEPENDENCY_NOT_FOUND)
+    }
+
     val id = "CACHED_DEPENDENCY_NOT_FOUND"
     return object : BuildIssue {
       override val title: String = "Cached dependency not found"
