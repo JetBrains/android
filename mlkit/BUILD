@@ -50,6 +50,14 @@ iml_module(
         "//tools/idea/platform/lang-api:intellij.platform.lang[module]",
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
+        "//tools/adt/idea/wizard-model:intellij.android.wizard.model[module]",
+        "//tools/adt/idea/observable:intellij.android.observable[module]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
+        "//tools/adt/idea/observable-ui:intellij.android.observable.ui[module]",
+        "//tools/adt/idea/wizard:intellij.android.wizard[module]",
+        "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module]",
+        "//tools/adt/idea/artwork:intellij.android.artwork[module]",
+        "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module]",
     ],
 )
 

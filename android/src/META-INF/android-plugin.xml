@@ -897,6 +897,8 @@
     <extensionPoint qualifiedName="org.jetbrains.android.uipreview.viewLoaderExtension"
                     interface="org.jetbrains.android.uipreview.ViewLoaderExtension"
                     area="IDEA_PROJECT"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.templates.additionalTemplateActionsProvider"
+                    interface="com.android.tools.idea.templates.AdditionalTemplateActionsProvider"/>
     <extensionPoint qualifiedName="com.android.tools.idea.ui.guiTestingStatusProvider"
                     interface="com.android.tools.idea.ui.GuiTestingStatusProvider" />
     <extensionPoint qualifiedName="com.android.tools.gradleModelProvider"
