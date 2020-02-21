@@ -26,6 +26,7 @@ import com.intellij.build.output.BuildOutputParser
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.io.isWritable
 import java.io.IOException
+import java.nio.file.InvalidPathException
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.function.Consumer
@@ -75,6 +76,7 @@ private val ndkBuildAbiAnnouncementPattern = Regex("\\[(arm64-v8a|armeabi-v7a|x8
  */
 private val diagnosticMessagePattern = Regex(
   "((?:[A-Z]:)?[^\\s][^:]+):(\\d+):(\\d+): (${ClangDiagnosticClass.values().joinToString("|") { it.tag }}): (.*)")
+
 /**
  * For files included by another file, clang outputs the including files. For example, assuming common.h is included by feature.h, which
  * is further included by feature.cpp. Clang would print:
@@ -125,9 +127,15 @@ class ClangOutputParser : BuildOutputParser {
 
     var workingDir: Path? = null
     var abi: String? = null
+
     /** Resolves a string path against the working directory, if available. */
-    fun resolveAgainstWorkingDir(s: String): Path {
-      val path = workingDir?.resolve(s) ?: Paths.get(s)
+    fun resolveAgainstWorkingDir(s: String): Path? {
+      val path: Path = try {
+        workingDir?.resolve(s) ?: Paths.get(s)
+      }
+      catch (e: InvalidPathException) {
+        return null
+      }
       try {
         return path.toRealPath()
       }
@@ -173,7 +181,8 @@ class ClangOutputParser : BuildOutputParser {
       val fileInclusionMatch = fileInclusionPattern.matchEntire(line)
       if (fileInclusionMatch != null) {
         val (pathString, lineString) = fileInclusionMatch.capturedRegexGroupValues
-        currentInclusion.add(LineInFile(resolveAgainstWorkingDir(pathString), lineString.toInt()))
+        val path = resolveAgainstWorkingDir(pathString) ?: continue
+        currentInclusion.add(LineInFile(path, lineString.toInt()))
         continue
       }
 
@@ -181,7 +190,7 @@ class ClangOutputParser : BuildOutputParser {
       val compilerMessageGroup = compilerMessageGroup(gradleProject, variant, abi)
       if (diagnosticMessageMatch != null) {
         val (pathString, lineString, colString, diagnosticClassString, diagnosticMessage) = diagnosticMessageMatch.capturedRegexGroupValues
-        val path = resolveAgainstWorkingDir(pathString)
+        val path = resolveAgainstWorkingDir(pathString) ?: continue
         if (!currentInclusion.isEmpty()) {
           inclusionContextMap[path] = currentInclusion.toList()
           currentInclusion.clear()
@@ -210,7 +219,7 @@ class ClangOutputParser : BuildOutputParser {
       val soFilePath = message?.indexOf(": open: Invalid argument")?.takeIf { it != -1 }?.let {
         resolveAgainstWorkingDir(message.substring(0, it))
       }
-      val path = resolveAgainstWorkingDir(pathString!!)
+      val path = resolveAgainstWorkingDir(pathString!!) ?: continue
       val lineNumber = optionalLineNumber?.toInt()
       val diagnosticClass = optionalDiagnosticClassString?.let(::fromTag) ?: ClangDiagnosticClass.ERROR
       val diagnosticMessage = message!!
