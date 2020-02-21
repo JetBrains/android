@@ -28,10 +28,13 @@ import com.intellij.openapi.fileTypes.BinaryFileDecompiler;
 import com.intellij.openapi.fileTypes.BinaryFileTypeDecompilers;
 import com.intellij.openapi.fileTypes.FileTypeExtensionPoint;
 import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.testFramework.PsiTestUtil;
+import com.intellij.testFramework.VfsTestUtil;
 import java.io.File;
 import java.util.List;
 import org.jetbrains.android.AndroidTestCase;
@@ -385,5 +388,15 @@ public class MlkitLightClassTest extends AndroidTestCase {
     PsiClass lightClass = Iterables.getOnlyElement(lightClasses);
     assertThat(lightClass.getName()).isEqualTo("MyModel");
     assertThat(ModuleUtilCore.findModuleForPsiElement(lightClass)).isEqualTo(myModule);
+  }
+
+  public void testBrokenFiles() {
+    VfsTestUtil.createFile(ProjectUtil.guessModuleDir(myModule), "assets/broken.tflite", new byte[]{1, 2, 3});
+    assertThat(myFixture.getJavaFacade().findClass("p1.p2.ml.MyModel", GlobalSearchScope.projectScope(getProject())))
+      .named("Class for valid model")
+      .isNotNull();
+    assertThat(myFixture.getJavaFacade().findClass("p1.p2.ml.Broken", GlobalSearchScope.projectScope(getProject())))
+      .named("Class for invalid model")
+      .isNull();
   }
 }

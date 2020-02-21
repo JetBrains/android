@@ -16,6 +16,8 @@
 package com.android.tools.idea.mlkit;
 
 import com.android.tools.idea.flags.StudioFlags;
+import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.util.indexing.DataIndexer;
 import com.intellij.util.indexing.FileBasedIndex;
@@ -30,7 +32,6 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
@@ -39,6 +40,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class MlModelFileIndex extends FileBasedIndexExtension<String, MlModelMetadata> {
   public static final ID<String, MlModelMetadata> INDEX_ID = ID.create("MlModelFileIndex");
+  private static final Logger LOG = Logger.getInstance(MlModelMetadata.class);
 
   @NotNull
   @Override
@@ -49,9 +51,14 @@ public class MlModelFileIndex extends FileBasedIndexExtension<String, MlModelMet
       public Map<String, MlModelMetadata> map(@NotNull FileContent inputData) {
         String fileUrl = inputData.getFile().getUrl();
         String className = MlkitUtils.computeModelClassName(fileUrl);
-        Map<String, MlModelMetadata> map = new HashMap<>();
-        map.put(className, new MlModelMetadata(fileUrl, className));
-        return map;
+        try {
+          MlModelMetadata modelMetadata = new MlModelMetadata(fileUrl, className);
+          return ImmutableMap.of(className, modelMetadata);
+        }
+        catch (Exception e) {
+          LOG.warn("Failed to index " + fileUrl, e);
+          return Collections.emptyMap();
+        }
       }
     };
   }
