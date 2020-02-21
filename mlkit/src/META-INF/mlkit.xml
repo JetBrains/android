@@ -32,4 +32,8 @@
     <resolveScopeEnlarger implementation="com.android.tools.idea.mlkit.MlkitResolveScopeEnlarger$MlkitKotlinResolveScopeEnlarger"/>
   </extensions>
 
+  <extensions defaultExtensionNs="com.android.tools.idea.templates">
+    <additionalTemplateActionsProvider implementation="com.android.tools.idea.mlkit.importmodel.ImportMlModelActionsProvider"/>
+  </extensions>
+
 </idea-plugin>
