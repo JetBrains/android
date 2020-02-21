@@ -15,20 +15,18 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues.processor
 
-import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_NDK_INSTALLED
-
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_NDK_INSTALLED
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.refactoring.BaseRefactoringProcessor
-import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewBundle
 import com.intellij.usageView.UsageViewDescriptor
-import java.util.ArrayList
+import java.util.*
 
 /**
  * Tool to rewrite build.gradle file to add or update android.ndkVersion section.
@@ -42,7 +40,7 @@ class FixNdkVersionProcessor(
    * Produce usage display information.
    */
   public override fun createUsageViewDescriptor(usages: Array<UsageInfo>): UsageViewDescriptor {
-    return object : UsageViewDescriptorAdapter() {
+    return object : UsageViewDescriptor {
       override fun getCodeReferencesText(usagesCount: Int, filesCount: Int): String {
         return "Values to update " + UsageViewBundle.getReferencesString(usagesCount, filesCount)
       }
