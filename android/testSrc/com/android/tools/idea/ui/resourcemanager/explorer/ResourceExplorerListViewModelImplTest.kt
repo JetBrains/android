@@ -86,6 +86,7 @@ class ResourceExplorerListViewModelImplTest {
     Disposer.dispose(disposable)
   }
 
+  @Ignore("b/149867299")
   @Test
   fun refreshDrawablePreviews() {
     var renderLatch = CountDownLatch(1)
