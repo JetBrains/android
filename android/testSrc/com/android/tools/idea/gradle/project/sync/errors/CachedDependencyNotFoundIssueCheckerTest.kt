@@ -18,12 +18,11 @@ package com.android.tools.idea.gradle.project.sync.errors
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
-import org.jetbrains.plugins.gradle.settings.GradleSettings
 
 class CachedDependencyNotFoundIssueCheckerTest : AndroidGradleTestCase() {
   private val cachedDependencyNotFoundIssueChecker = CachedDependencyNotFoundIssueChecker()
 
-  fun testHandleError() {
+  fun testCheckIssue() {
     val expectedNotificationMessage = "No cached version of dependency, available for offline mode."
     val error = "$expectedNotificationMessage\nExtra error message."
 
