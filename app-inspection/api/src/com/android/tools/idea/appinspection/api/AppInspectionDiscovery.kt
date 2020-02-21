@@ -91,10 +91,11 @@ class AppInspectionDiscoveryHost(
 
   private val streamIdMap = ConcurrentHashMap<Long, TransportStreamChannel>()
 
-  @VisibleForTesting
-  internal class ProcessData {
+  private data class StreamProcessIdPair(val streamId: Long, val pid: Int)
+
+  private class ProcessData {
     @GuardedBy("processData")
-    val processIdMap = mutableMapOf<Long, TransportProcessDescriptor>()
+    val processesMap = mutableMapOf<StreamProcessIdPair, TransportProcessDescriptor>()
 
     @GuardedBy("processData")
     val launchedProcesses = mutableMapOf<ProcessDescriptor, AppInspectionJarCopier>()
@@ -106,8 +107,7 @@ class AppInspectionDiscoveryHost(
     val processListeners = mutableMapOf<ProcessListener, Executor>()
   }
 
-  @VisibleForTesting
-  internal val processData: ProcessData = ProcessData()
+  private val processData: ProcessData = ProcessData()
 
   init {
     registerListenersForDiscovery()
@@ -137,7 +137,7 @@ class AppInspectionDiscoveryHost(
   fun addLaunchedProcess(launchedProcessDescriptor: LaunchedProcessDescriptor) {
     synchronized(processData) {
       processData.launchedProcesses[launchedProcessDescriptor] = launchedProcessDescriptor.jarCopier
-      processData.processIdMap.values.find { it.equals(launchedProcessDescriptor) }
+      processData.processesMap.values.find { it.equals(launchedProcessDescriptor) }
         ?.let { addInspectableProcess(it, launchedProcessDescriptor.jarCopier) }
     }
   }
@@ -180,7 +180,7 @@ class AppInspectionDiscoveryHost(
             executor = executor,
             filter = { !it.process.hasProcessStarted() }
           ) {
-            removeProcess(it.groupId)
+            removeProcess(streamChannel.stream.streamId, it.groupId.toInt())
           }
         )
       }
@@ -198,7 +198,7 @@ class AppInspectionDiscoveryHost(
    */
   private fun addProcess(streamChannel: TransportStreamChannel, process: Common.Process) {
     synchronized(processData) {
-      processData.processIdMap.computeIfAbsent(process.pid.toLong()) {
+      processData.processesMap.computeIfAbsent(StreamProcessIdPair(streamChannel.stream.streamId, process.pid)) {
         val descriptor = TransportProcessDescriptor(streamChannel, process)
         descriptor.getLaunchedAppCopier()?.let {
           addInspectableProcess(descriptor, it)
@@ -228,9 +228,9 @@ class AppInspectionDiscoveryHost(
   /**
    * Removes a process from internal cache. This function is called when a process goes offline.
    */
-  private fun removeProcess(processId: Long) {
+  private fun removeProcess(streamId: Long, processId: Int) {
     synchronized(processData) {
-      processData.processIdMap.remove(processId)?.let {
+      processData.processesMap.remove(StreamProcessIdPair(streamId, processId))?.let {
         processData.launchedProcesses.remove(it)
         if (processData.inspectableProcesses.remove<ProcessDescriptor>(it)) {
           processData.processListeners.forEach { (listener, executor) -> executor.execute { listener.onProcessDisconnected(it) } }
