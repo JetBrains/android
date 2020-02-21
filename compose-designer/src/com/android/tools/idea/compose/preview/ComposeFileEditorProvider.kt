@@ -34,6 +34,7 @@ import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditor
@@ -48,6 +49,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
+
+internal val COMPOSE_PREVIEW_MANAGER = DataKey.create<ComposePreviewManager>("ComposePreview.Manager")
 
 /**
  * Returns a list of all [ComposePreviewManager]s related to the current context (which is implied to be bound to a particular file).

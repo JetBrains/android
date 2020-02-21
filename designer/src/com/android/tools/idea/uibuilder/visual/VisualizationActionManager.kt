@@ -19,15 +19,21 @@ import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomOutAction
 import com.android.tools.adtui.actions.ZoomShortcut
 import com.android.tools.adtui.actions.ZoomToFitAction
+import com.android.tools.adtui.stdui.CommonButton
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.uibuilder.editor.NlActionManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import icons.StudioIcons
+import java.awt.BorderLayout
 import javax.swing.JComponent
+import javax.swing.JLabel
+import javax.swing.JPanel
 
-class VisualizationActionManager(surface: NlDesignSurface) : NlActionManager(surface) {
+class VisualizationActionManager(surface: NlDesignSurface,
+                                 private val visualizationModelsProvider: () -> VisualizationModelsProvider) : NlActionManager(surface) {
   private val zoomInAction: AnAction = ZoomShortcut.ZOOM_IN.registerForAction(ZoomInAction, surface, surface)
   private val zoomOutAction: AnAction = ZoomShortcut.ZOOM_OUT.registerForAction(ZoomOutAction, surface, surface)
   private val zoomToFitAction: AnAction = ZoomShortcut.ZOOM_FIT.registerForAction(ZoomToFitAction, surface, surface)
@@ -43,4 +49,25 @@ class VisualizationActionManager(surface: NlDesignSurface) : NlActionManager(sur
   }
 
   override fun getToolbarActions(component: NlComponent?, newSelection: List<NlComponent>) = DefaultActionGroup()
+
+  override fun getSceneViewContextToolbar(sceneView: SceneView): JComponent? {
+    val model = sceneView.scene.sceneManager.model
+    val visualizationModel = visualizationModelsProvider() as? CustomModelsProvider ?: return null
+    return if (sceneView.scene.sceneManager.model.dataContext.getData(IS_CUSTOM_MODEL) == true) {
+      JPanel(BorderLayout()).apply {
+        // For now, we just display a mock toolbar. This will be replaced in the future with SceneView the toolbar.
+        add(CommonButton(StudioIcons.Common.CLOSE).apply {
+          verticalAlignment = JLabel.CENTER
+          isRolloverEnabled = true
+
+          addActionListener {
+            visualizationModel.removeCustomConfigurationAttributes(model)
+          }
+        }, BorderLayout.LINE_END)
+      }
+    }
+    else {
+      null
+    }
+  }
 }

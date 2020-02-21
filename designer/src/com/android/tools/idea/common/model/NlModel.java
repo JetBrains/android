@@ -51,6 +51,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -135,6 +136,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   @NotNull private final NlModelUpdaterInterface myModelUpdater;
 
+  @NotNull private final DataContext myDataContext;
+
   @Slow
   @NotNull
   public static NlModel create(@Nullable Disposable parent,
@@ -164,7 +167,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                                @NotNull VirtualFile file,
                                @NotNull Configuration configuration,
                                @NotNull Consumer<NlComponent> componentRegistrar) {
-    return new NlModel(parent, modelDisplayName, facet, file, configuration, componentRegistrar);
+    return new NlModel(parent, modelDisplayName, facet, file, configuration, componentRegistrar, DataContext.EMPTY_CONTEXT);
   }
 
   @Slow
@@ -175,8 +178,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                                @NotNull VirtualFile file,
                                @NotNull Configuration configuration,
                                @NotNull Consumer<NlComponent> componentRegistrar,
-                               @Nullable NlModelUpdaterInterface modelUpdater) {
-    return new NlModel(parent, modelDisplayName, facet, file, configuration, componentRegistrar, NlModel::getDefaultXmlFile, modelUpdater);
+                               @Nullable NlModelUpdaterInterface modelUpdater,
+                               @NotNull DataContext dataContext) {
+    return new NlModel(parent, modelDisplayName, facet, file, configuration, componentRegistrar, NlModel::getDefaultXmlFile, modelUpdater,
+                       dataContext);
   }
 
   @Slow
@@ -187,8 +192,9 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                                @NotNull VirtualFile file,
                                @NotNull Configuration configuration,
                                @NotNull Consumer<NlComponent> componentRegistrar,
-                               @NotNull BiFunction<Project, VirtualFile, XmlFile> xmlFileProvider) {
-    return new NlModel(parent, modelDisplayName, facet, file, configuration, componentRegistrar, xmlFileProvider, null);
+                               @NotNull BiFunction<Project, VirtualFile, XmlFile> xmlFileProvider,
+                               @NotNull DataContext dataContext) {
+    return new NlModel(parent, modelDisplayName, facet, file, configuration, componentRegistrar, xmlFileProvider, null, dataContext);
   }
 
   protected NlModel(@Nullable Disposable parent,
@@ -196,8 +202,9 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                     @NotNull AndroidFacet facet,
                     @NotNull VirtualFile file,
                     @NotNull Configuration configuration,
-                    @NotNull Consumer<NlComponent> componentRegistrar) {
-    this(parent, modelDisplayName, facet, file, configuration, componentRegistrar, NlModel::getDefaultXmlFile, null);
+                    @NotNull Consumer<NlComponent> componentRegistrar,
+                    @NotNull DataContext dataContext) {
+    this(parent, modelDisplayName, facet, file, configuration, componentRegistrar, NlModel::getDefaultXmlFile, null, dataContext);
   }
 
   @VisibleForTesting
@@ -208,7 +215,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                     @NotNull Configuration configuration,
                     @NotNull Consumer<NlComponent> componentRegistrar,
                     @NotNull BiFunction<Project, VirtualFile, XmlFile> xmlFileProvider,
-                    @Nullable NlModelUpdaterInterface modelUpdater) {
+                    @Nullable NlModelUpdaterInterface modelUpdater,
+                    @NotNull DataContext dataContext) {
     myFacet = facet;
     myXmlFileProvider = xmlFileProvider;
     myModelDisplayName = modelDisplayName;
@@ -229,6 +237,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     } else {
       myModelUpdater = modelUpdater;
     }
+    myDataContext = dataContext;
   }
 
   /**
@@ -1020,5 +1029,14 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   public void resetLastChange() {
     myModificationTrigger = null;
+  }
+
+  /**
+   * Returns the {@link DataContext} associated to this model. The {@link DataContext} allows storing information that is specific to this
+   * model but is not part of it. For example, context information about how the model should be represented in a specific surface.
+   */
+  @NotNull
+  public final DataContext getDataContext() {
+    return myDataContext;
   }
 }

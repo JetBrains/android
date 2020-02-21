@@ -29,6 +29,7 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelper
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
@@ -52,6 +53,13 @@ data class CustomConfigurationAttribute(var name: String = "",
                                         var theme: String? = null,
                                         var uiMode: UiMode? = null,
                                         var nightMode: NightMode? = null)
+
+private object CustomModelDataContext: DataContext {
+  override fun getData(dataId: String): Any? = when (dataId) {
+    IS_CUSTOM_MODEL.name -> true
+    else -> false
+  }
+}
 
 /**
  * This class provides the [NlModel]s with custom [Configuration] for [VisualizationForm].<br>
@@ -103,7 +111,9 @@ class CustomModelsProvider(private val configurationSetListener: ConfigurationSe
                               facet,
                               currentFile,
                               currentFileConfig,
-                              Consumer<NlComponent> { NlComponentHelper.registerComponent(it) }))
+                              Consumer { NlComponentHelper.registerComponent(it) },
+                              null,
+                              DataContext.EMPTY_CONTEXT))
 
     // Custom Configurations
     for (attributes in configurationAttributes) {
@@ -121,7 +131,9 @@ class CustomModelsProvider(private val configurationSetListener: ConfigurationSe
                                  facet,
                                  betterFile,
                                  config,
-                                 Consumer<NlComponent> { NlComponentHelper.registerComponent(it) })
+                                 Consumer { NlComponentHelper.registerComponent(it) },
+                                 null,
+                                 CustomModelDataContext)
       models.add(model)
       Disposer.register(model, config)
       configurationToConfigurationAttributesMap[config] = attributes

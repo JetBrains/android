@@ -21,6 +21,7 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -57,7 +58,7 @@ public class SyncNlModel extends NlModel {
   }
 
   private SyncNlModel(@NotNull DesignSurface surface, @Nullable Disposable parent, @Nullable String displayName, @NotNull AndroidFacet facet, @NotNull VirtualFile file, @NotNull Configuration configuration) {
-    super(parent, displayName, facet, file, configuration, surface.getComponentRegistrar());
+    super(parent, displayName, facet, file, configuration, surface.getComponentRegistrar(), DataContext.EMPTY_CONTEXT);
     mySurface = surface;
   }
 

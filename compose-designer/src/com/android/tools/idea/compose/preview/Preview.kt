@@ -53,6 +53,7 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlInteractionHandler
 import com.android.tools.idea.uibuilder.surface.SceneMode
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
@@ -239,6 +240,15 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * even with errors, we can display additional information about the state of the preview.
    */
   private var hasRenderedAtLeastOnce = false
+
+  private inner class ModelDataContext: DataContext {
+    override fun getData(dataId: String): Any? = if (dataId == COMPOSE_PREVIEW_MANAGER.name) {
+      this@ComposePreviewRepresentation
+    }
+    else {
+      null
+    }
+  }
 
   /**
    * Callback called after refresh has happened
@@ -463,7 +473,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                          file,
                          configuration,
                          surface.componentRegistrar,
-                         modelUpdater)
+                         modelUpdater,
+                         ModelDataContext())
         }
 
         val offset = ReadAction.compute<Int, Throwable> {
