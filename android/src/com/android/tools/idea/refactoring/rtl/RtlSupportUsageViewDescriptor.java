@@ -43,12 +43,6 @@ public class RtlSupportUsageViewDescriptor implements UsageViewDescriptor {
     return String.format("RTL References in code %1$s", UsageViewBundle.getReferencesString(usagesCount, filesCount));
   }
 
-  @Nullable
-  @Override
-  public String getCommentReferencesText(int usagesCount, int filesCount) {
-    return null;
-  }
-
   public String getInfo() {
     return AndroidBundle.message("android.refactoring.rtl.addsupport.dialog.apply.button.text");
   }
