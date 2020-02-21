@@ -25,7 +25,9 @@ import com.android.tools.profilers.ProfilerLayout.FILTER_TEXT_FIELD_WIDTH
 import com.android.tools.profilers.ProfilerLayout.FILTER_TEXT_HISTORY_SIZE
 import com.android.tools.profilers.ProfilerLayout.TOOLBAR_ICON_BORDER
 import com.android.tools.profilers.ProfilerLayout.createToolbarLayout
+import com.android.tools.profilers.memory.adapters.CaptureObject
 import com.android.tools.profilers.memory.adapters.ClassifierSet
+import com.android.tools.profilers.memory.adapters.instancefilters.ActivityFragmentLeakInstanceFilter
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBEmptyBorder
 import icons.StudioIcons
@@ -73,7 +75,6 @@ internal class CapturePanel(stageView: MemoryProfilerStageView): AspectObserver(
     if (myStage.studioProfilers.ideServices.featureConfig.isSeparateHeapDumpUiEnabled)
       CapturePanelUi(stageView.stage, heapView, classGrouping, classifierView, filterComponent, captureInfoMessage)
     else LegacyCapturePanelUi(stageView, captureView, heapView, classGrouping, classifierView, filterComponent, captureInfoMessage)
-
 }
 
 private class LegacyCapturePanelUi(stageView: MemoryProfilerStageView,
@@ -127,10 +128,11 @@ private class CapturePanelUi(private val myStage: MemoryProfilerStage,
                              captureInfoMessage: JLabel)
       : JPanel(BorderLayout()) {
   private val myObserver = AspectObserver()
+  private val myInstanceFilterMenu = MemoryInstanceFilterMenu(myStage)
 
   init {
     val toolbar = JPanel(createToolbarLayout()).apply {
-      add(MemoryInstanceFilterMenu(myStage).component)
+      add(myInstanceFilterMenu.component)
       add(heapView.component)
       add(classGrouping.component)
       add(filterComponent)
@@ -192,16 +194,32 @@ private class CapturePanelUi(private val myStage: MemoryProfilerStage,
     alignmentX = Component.LEFT_ALIGNMENT
   }
 
-  private fun showLeaks() {} // TODO(b/149595994) implement always-filtering
+  private fun showLeaks() {
+    val filter = myStage.selectedCapture!!.findLeakFilter()
+    if (filter != null) {
+      myInstanceFilterMenu.component.selectedItem = filter
+    }
+  }
 
   private fun countClasses() = // count distinct class Ids across all heap sets
     myStage.selectedCapture!!.heapSets.stream().flatMap {hs ->
       hs.instancesStream.map{it.classEntry.classId}
     }.collect(Collectors.toSet()).size.toLong()
 
-  private fun countLeaks(): Int? = null // no support for always-filtering for now
+  private fun countLeaks(): Int? {
+    val captureObject = myStage.selectedCapture!!
+    return captureObject.findLeakFilter()
+      ?.filter(captureObject.instances.collect(Collectors.toSet()), captureObject.classDatabase)
+      ?.size
+  }
 
   private fun setLabelSumBy(label: StatLabel, prop: (ClassifierSet) -> Long) {
     label.intContent = myStage.selectedCapture!!.heapSets.fold(0L){sum, heapSet -> sum+prop(heapSet)}
+  }
+
+  private companion object {
+    fun CaptureObject.findLeakFilter() =
+      (supportedInstanceFilters.find { it is ActivityFragmentLeakInstanceFilter })
+        as ActivityFragmentLeakInstanceFilter?
   }
 }
