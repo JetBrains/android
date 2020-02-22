@@ -15,12 +15,8 @@
  */
 package com.android.tools.idea.common.actions;
 
-import com.android.tools.idea.actions.DesignerActions;
-import com.android.tools.idea.actions.DesignerDataKeys;
-import com.android.tools.idea.common.editor.DesignerEditorPanel;
 import com.android.tools.idea.common.error.IssueModel;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ToggleAction;
@@ -37,48 +33,33 @@ public class IssueNotificationAction extends ToggleAction {
   public static final String NO_ISSUE = "No Issue";
   public static final String SHOW_ISSUE = "Show Warnings and Errors";
   private static final Icon DISABLED_ICON = IconUtil.desaturate(StudioIcons.Common.ERROR);
+  @NotNull private final DesignSurface mySurface;
 
-  private IssueNotificationAction() {
-  }
-
-  @NotNull
-  public static IssueNotificationAction getInstance() {
-    return (IssueNotificationAction) ActionManager.getInstance().getAction(DesignerActions.ACTION_TOGGLE_ISSUE_PANEL);
+  public IssueNotificationAction(@NotNull DesignSurface surface) {
+    super(NO_ISSUE, NO_ISSUE, null);
+    mySurface = surface;
   }
 
   @Override
   public void update(@NotNull AnActionEvent event) {
     super.update(event);
-    DesignerEditorPanel editorPanel = event.getData(DesignerDataKeys.DESIGN_EDITOR);
     Presentation presentation = event.getPresentation();
-    if (editorPanel == null) {
-      event.getPresentation().setEnabled(false);
-      presentation.setDescription("Toggle visibility of issue panel");
-      presentation.setIcon(DISABLED_ICON);
-    }
-    else {
-      event.getPresentation().setEnabled(true);
-      IssueModel issueModel = editorPanel.getSurface().getIssueModel();
-      int markerCount = issueModel.getIssueCount();
-      presentation.setDescription(markerCount == 0 ? NO_ISSUE : SHOW_ISSUE);
-      presentation.setIcon(getIssueTypeIcon(issueModel));
-    }
+    IssueModel issueModel = mySurface.getIssueModel();
+    int markerCount = issueModel.getIssueCount();
+    presentation.setText(markerCount == 0 ? NO_ISSUE : SHOW_ISSUE);
+    presentation.setDescription(markerCount == 0 ? NO_ISSUE : SHOW_ISSUE);
+    presentation.setIcon(getIssueTypeIcon(issueModel));
   }
 
   @Override
   public boolean isSelected(@NotNull AnActionEvent e) {
-    DesignerEditorPanel editorPanel = e.getData(DesignerDataKeys.DESIGN_EDITOR);
-    return editorPanel != null && !editorPanel.getSurface().getIssuePanel().isMinimized();
+    return !mySurface.getIssuePanel().isMinimized();
   }
 
   @Override
   public void setSelected(@NotNull AnActionEvent e, boolean state) {
-    DesignerEditorPanel editorPanel = e.getData(DesignerDataKeys.DESIGN_EDITOR);
-    if (editorPanel != null) {
-      DesignSurface surface = editorPanel.getSurface();
-      surface.getAnalyticsManager().trackShowIssuePanel();
-      surface.setShowIssuePanel(state);
-    }
+    mySurface.getAnalyticsManager().trackShowIssuePanel();
+    mySurface.setShowIssuePanel(state);
   }
 
   @NotNull

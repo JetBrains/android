@@ -37,6 +37,7 @@ import javax.swing.KeyStroke
  * @See KeyEvent
  */
 enum class DesignSurfaceShortcut(val keyCode: Int, private val keyChar: Char? = null) {
+  TOGGLE_ISSUE_PANEL(KeyEvent.VK_E),
   NEXT_DEVICE(KeyEvent.VK_D),
   DESIGN_MODE(KeyEvent.VK_B),
 
