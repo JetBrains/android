@@ -26,6 +26,7 @@ import static java.awt.event.InputEvent.META_DOWN_MASK;
 import com.android.tools.adtui.flat.FlatComboBox;
 import com.android.tools.adtui.flat.FlatSeparator;
 import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.adtui.model.Timeline;
 import com.android.tools.adtui.model.ViewBinder;
@@ -379,12 +380,13 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myZoomToSelection = new CommonButton(StudioIcons.Common.ZOOM_SELECT);
     myZoomToSelection.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Common.ZOOM_SELECT));
     myZoomToSelection.addActionListener(
-      event -> myStageView.getStage().getTimeline().frameViewToRange(myStageView.getZoomToSelectionRange())
+      event -> myStageView.getStage().getTimeline().frameViewToRange(myStageView.getStage().getTimeline().getSelectionRange())
     );
     myZoomToSelectionAction = new ProfilerAction.Builder("Zoom to Selection")
       .setContainerComponent(mySplitter)
       .setActionRunnable(() -> myZoomToSelection.doClick(0))
-      .setEnableBooleanSupplier(() -> myStageView != null && myStageView.shouldEnableZoomToSelection())
+      .setEnableBooleanSupplier(() -> myStageView != null && !myStageView.getStage().getTimeline().getSelectionRange().isEmpty())
+      .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_M, 0))
       .build();
     myZoomToSelection.setToolTipText(myZoomToSelectionAction.getDefaultToolTipText());
     rightToolbar.add(myZoomToSelection);
@@ -514,7 +516,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
       myStageView.getStage().getTimeline().getSelectionRange().removeDependencies(this);
     }
     myStageView = myBinder.build(this, stage);
-    myStageView.addTimelineControlUpdater(() -> {
+    myStageView.getStage().getTimeline().getSelectionRange().addDependency(this).onChange(Range.Aspect.RANGE, () -> {
       myZoomToSelection.setEnabled(myZoomToSelectionAction.isEnabled());
       myDeselectAllToolbar.setVisible(myStageView.shouldShowDeselectAllLabel());
     });
