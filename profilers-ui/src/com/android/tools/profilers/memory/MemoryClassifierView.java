@@ -131,15 +131,15 @@ final class MemoryClassifierView extends AspectObserver {
     myLoadingPanel.setLoadingText("");
 
     myStage.getAspect().addDependency(this)
-           .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, this::loadCapture)
-           .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, this::refreshCapture)
-           .onChange(MemoryProfilerAspect.CURRENT_HEAP, this::refreshHeapSet)
-           .onChange(MemoryProfilerAspect.CURRENT_HEAP_UPDATING, this::startHeapLoadingUi)
-           .onChange(MemoryProfilerAspect.CURRENT_HEAP_UPDATED, this::stopHeapLoadingUi)
-           .onChange(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS, this::refreshTree)
-           .onChange(MemoryProfilerAspect.CURRENT_CLASS, this::refreshClassSet)
-           .onChange(MemoryProfilerAspect.CLASS_GROUPING, this::refreshGrouping)
-           .onChange(MemoryProfilerAspect.CURRENT_FILTER, this::refreshFilter);
+      .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, this::loadCapture)
+      .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, this::refreshCapture)
+      .onChange(MemoryProfilerAspect.CURRENT_HEAP, this::refreshHeapSet)
+      .onChange(MemoryProfilerAspect.CURRENT_HEAP_UPDATING, this::startHeapLoadingUi)
+      .onChange(MemoryProfilerAspect.CURRENT_HEAP_UPDATED, this::stopHeapLoadingUi)
+      .onChange(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS, this::refreshTree)
+      .onChange(MemoryProfilerAspect.CURRENT_CLASS, this::refreshClassSet)
+      .onChange(MemoryProfilerAspect.CLASS_GROUPING, this::refreshGrouping)
+      .onChange(MemoryProfilerAspect.CURRENT_FILTER, this::refreshFilter);
 
     myAttributeColumns.put(
       ClassifierAttribute.LABEL,
@@ -483,11 +483,16 @@ final class MemoryClassifierView extends AspectObserver {
    * Refreshes the view based on the "group by" selection from the user.
    */
   private void refreshGrouping() {
-    assert myCaptureObject != null && myTree != null;
+    HeapSet heapSet = myStage.getSelectedHeapSet();
+    // This gets called when a capture is loading, or we change the profiler configuration.
+    // During a loading capture we adjust which configurations are available and reset set the selection to the first one.
+    // This triggers this callback to be fired before we have a heapset. In this scenario we just early exit.
+    if (heapSet == null || myCaptureObject == null || myTree == null) {
+      return;
+    }
 
     Comparator<MemoryObjectTreeNode<ClassifierSet>> comparator = myTreeRoot == null ? myInitialComparator : myTreeRoot.getComparator();
-    HeapSet heapSet = myStage.getSelectedHeapSet();
-    assert heapSet != null;
+
     heapSet.setClassGrouping(myStage.getConfiguration().getClassGrouping());
     myTreeRoot = new MemoryClassifierTreeNode(heapSet);
     myTreeRoot.expandNode(); // Expand it once to get all the children, since we won't display the tree root (HeapSet) by default.
@@ -506,10 +511,15 @@ final class MemoryClassifierView extends AspectObserver {
         headerName = "Class Name";
         break;
       case ARRANGE_BY_CALLSTACK:
+      case NATIVE_ARRANGE_BY_CALLSTACK:
         headerName = "Callstack Name";
         break;
       case ARRANGE_BY_PACKAGE:
         headerName = "Package Name";
+        break;
+      case NATIVE_ARRANGE_BY_ALLOCATION_METHOD:
+        headerName = "Allocation function";
+        break;
     }
     assert myTableColumnModel != null;
     myTableColumnModel.getColumn(0).setHeaderValue(headerName);

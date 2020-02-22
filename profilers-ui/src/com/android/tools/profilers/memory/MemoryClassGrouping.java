@@ -19,10 +19,9 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profilers.ProfilerCombobox;
 import com.android.tools.profilers.ProfilerComboboxCellRenderer;
 import com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping;
-import com.intellij.ui.EnumComboBoxModel;
+import javax.swing.JComboBox;
+import javax.swing.JList;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 public class MemoryClassGrouping extends AspectObserver {
   @NotNull private final MemoryProfilerStage myStage;
@@ -32,7 +31,7 @@ public class MemoryClassGrouping extends AspectObserver {
     myStage = stage;
 
     myStage.getAspect().addDependency(this).onChange(MemoryProfilerAspect.CLASS_GROUPING, this::groupingChanged);
-    myComboBox = new ProfilerCombobox<>(new EnumComboBoxModel<>(ClassGrouping.class));
+    myComboBox = new ProfilerCombobox<>(myStage.getClassGroupingModel());
     myComboBox.setRenderer(new ProfilerComboboxCellRenderer<ClassGrouping>() {
       @Override
       protected void customizeCellRenderer(@NotNull JList<? extends ClassGrouping> list,

@@ -37,6 +37,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.stream.Stream;
 
+import static com.google.common.truth.Truth.assertThat;
 import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertEquals;
 
@@ -162,6 +163,16 @@ public class CaptureObjectLoaderTest {
 
     myLoader.stop();
     doneLatch.await();
+  }
+
+  @Test
+  public void testDefaultSupportedClassifiers() {
+    TestCaptureObject capture = new TestCaptureObject(new CountDownLatch(1), true, false);
+    assertThat(capture.isGroupingSupported(MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CLASS)).isTrue();
+    assertThat(capture.isGroupingSupported(MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CALLSTACK)).isTrue();
+    assertThat(capture.isGroupingSupported(MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE)).isTrue();
+    assertThat(capture.isGroupingSupported(MemoryProfilerConfiguration.ClassGrouping.NATIVE_ARRANGE_BY_ALLOCATION_METHOD)).isFalse();
+    assertThat(capture.isGroupingSupported(MemoryProfilerConfiguration.ClassGrouping.NATIVE_ARRANGE_BY_CALLSTACK)).isFalse();
   }
 
   private static class TestCaptureObject implements CaptureObject {
