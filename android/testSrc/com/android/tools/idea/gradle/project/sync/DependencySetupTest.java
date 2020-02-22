@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync;
 
 import static com.android.tools.idea.gradle.project.sync.LibraryDependenciesSubject.libraryDependencies;
 import static com.android.tools.idea.gradle.project.sync.ModuleDependenciesSubject.moduleDependencies;
-import static com.android.tools.idea.gradle.util.GradleUtil.getAndroidProject;
 import static com.android.tools.idea.testing.TestProjectPaths.LOCAL_AARS_AS_MODULES;
 import static com.android.tools.idea.testing.TestProjectPaths.LOCAL_JARS_AS_MODULES;
 import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES;
@@ -140,7 +139,8 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
     // When AAR files are exposed as artifacts, they don't have an AndroidProject model.
     AndroidFacet androidFacet = AndroidFacet.getInstance(localAarModule);
     assertNull(androidFacet);
-    assertNull(getAndroidProject(localAarModule));
+    AndroidModuleModel gradleModel = AndroidModuleModel.get(localAarModule);
+    assertNull(gradleModel);
 
     // Should not expose the AAR as library, instead it should use the "exploded AAR".
     assertAbout(libraryDependencies()).that(localAarModule).doesNotHaveDependencies();
