@@ -37,7 +37,7 @@ public class ApplyChangesAction extends BaseAction {
 
   public static final String ID = "android.deploy.ApplyChanges";
 
-  public static final String NAME = "Apply Changes and Restart Activity";
+  public static final String NAME = "&Apply Changes and Restart Activity";
 
   private static final Shortcut SHORTCUT =
     new KeyboardShortcut(KeyStroke.getKeyStroke(SystemInfo.isMac ? "control meta R" : "control F10"), null);
