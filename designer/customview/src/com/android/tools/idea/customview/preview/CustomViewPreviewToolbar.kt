@@ -21,7 +21,6 @@ import com.android.tools.idea.common.editor.SeamlessTextEditorWithPreview
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.surface.DesignSurface
 import com.intellij.openapi.actionSystem.ActionGroup
-import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -32,7 +31,7 @@ import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import icons.StudioIcons
 
-internal class CustomViewPreviewToolbar(surface: DesignSurface) : ToolbarActionGroups(surface) {
+internal class CustomViewPreviewToolbar(private val surface: DesignSurface) : ToolbarActionGroups(surface) {
 
   private class CustomViewOption(val viewName: String) : AnAction(viewName) {
     override fun actionPerformed(e: AnActionEvent) {
@@ -86,7 +85,7 @@ internal class CustomViewPreviewToolbar(surface: DesignSurface) : ToolbarActionG
   }
 
   override fun getNorthEastGroup(): ActionGroup = DefaultActionGroup().apply {
-    add(IssueNotificationAction.getInstance())
+    add(IssueNotificationAction(surface))
   }
 }
 
