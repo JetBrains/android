@@ -301,7 +301,7 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
     if (getModule() == null) {
       return null;
     }
-    return String.format("%1$s (Android)", getModule().getName());
+    return String.format("%1$s (Android)", super.toTestString(printInfo));
   }
 
   @Override

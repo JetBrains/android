@@ -26,11 +26,13 @@ import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Queryable;
 import com.intellij.ui.SimpleTextAttributes;
 import java.util.Collection;
 import java.util.Objects;
 import kotlin.collections.CollectionsKt;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Specialization of {@link ProjectViewModuleNode} for Android view.
@@ -78,6 +80,13 @@ public abstract class AndroidViewModuleNode extends ProjectViewModuleNode {
       ModuleNodeUtils
         .createChildModuleNodes(Objects.requireNonNull(getProject()), moduleSystem.getSubmodules(), myProjectViewPane, getSettings()),
       getModuleChildren());
+  }
+
+  @Nullable
+  @Override
+  public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
+    Module value = getValue();
+    return (value != null) ? getDisplayNameForModule(value) : "null";
   }
 
   @Override
