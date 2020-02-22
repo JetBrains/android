@@ -263,7 +263,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
     Module[] modules = ModuleManager.getInstance(project).getModules();
 
-    myAndroidFacet = AndroidGradleTests.findAndroidFacetForTests(modules, chosenModuleName);
+    myAndroidFacet = AndroidGradleTests.findAndroidFacetForTests(project, modules, chosenModuleName);
   }
 
   protected void patchPreparedProject(@NotNull File projectRoot,
