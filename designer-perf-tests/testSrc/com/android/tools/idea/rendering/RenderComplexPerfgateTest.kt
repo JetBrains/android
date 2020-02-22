@@ -60,7 +60,7 @@ class RenderComplexPerfgateTest {
     gradleRule.fixture.testDataPath = baseTestPath
     gradleRule.load(PERFGATE_COMPLEX_LAYOUT)
     gradleRule.requestSyncAndWait()
-    facet = gradleRule.androidFacet
+    facet = gradleRule.androidFacet(":app")
     val xmlPath = "$baseTestPath/projects/perfgateComplexLayout/app/src/main/res/layout/activity_main.xml"
     layoutFile = LocalFileSystem.getInstance().findFileByPath(xmlPath)!!
     layoutConfiguration = RenderTestUtil.getConfiguration(facet.module, layoutFile)
