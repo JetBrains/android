@@ -33,14 +33,16 @@ import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute;
-import com.android.tools.profilers.memory.adapters.ClassSet;
-import com.android.tools.profilers.memory.adapters.ClassifierSet;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
 import com.android.tools.profilers.memory.adapters.FieldObject;
-import com.android.tools.profilers.memory.adapters.HeapSet;
+import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
-import com.android.tools.profilers.memory.adapters.MethodSet;
-import com.android.tools.profilers.memory.adapters.PackageSet;
-import com.android.tools.profilers.memory.adapters.ThreadSet;
+import com.android.tools.profilers.memory.adapters.classifiers.MethodSet;
+import com.android.tools.profilers.memory.adapters.classifiers.NativeAllocationMethodSet;
+import com.android.tools.profilers.memory.adapters.classifiers.NativeCallStackSet;
+import com.android.tools.profilers.memory.adapters.classifiers.PackageSet;
+import com.android.tools.profilers.memory.adapters.classifiers.ThreadSet;
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
@@ -124,7 +126,7 @@ final class MemoryClassifierView extends AspectObserver {
 
   @Nullable private Comparator<MemoryObjectTreeNode<ClassifierSet>> myInitialComparator;
 
-  public MemoryClassifierView(@NotNull MemoryProfilerStage stage, @NotNull IdeProfilerComponents ideProfilerComponents) {
+  MemoryClassifierView(@NotNull MemoryProfilerStage stage, @NotNull IdeProfilerComponents ideProfilerComponents) {
     myStage = stage;
     myContextMenuInstaller = ideProfilerComponents.createContextMenuInstaller();
     myLoadingPanel = ideProfilerComponents.createLoadingPanel(HEAP_UPDATING_DELAY_MS);
@@ -613,7 +615,8 @@ final class MemoryClassifierView extends AspectObserver {
   }
 
   @NotNull
-  private ColoredTreeCellRenderer getNameColumnRenderer() {
+  @VisibleForTesting
+  ColoredTreeCellRenderer getNameColumnRenderer() {
     return new ColoredTreeCellRenderer() {
       @Override
       public void customizeCellRenderer(@NotNull JTree tree,
@@ -673,6 +676,18 @@ final class MemoryClassifierView extends AspectObserver {
           ClassifierSet set = (ClassifierSet)node.getAdapter();
           setIcon(set.hasStackInfo() ? StudioIcons.Profiler.Overlays.PACKAGE_STACK : PlatformIcons.PACKAGE_ICON);
           String name = set.getName() + " heap";
+          append(name, SimpleTextAttributes.REGULAR_ATTRIBUTES, name);
+        }
+        else if (node.getAdapter() instanceof NativeCallStackSet) {
+          ClassifierSet set = (ClassifierSet)node.getAdapter();
+          setIcon(StudioIcons.Profiler.Overlays.METHOD_STACK);
+          String name = set.getName();
+          append(name, SimpleTextAttributes.REGULAR_ATTRIBUTES, name);
+        }
+        else if (node.getAdapter() instanceof NativeAllocationMethodSet) {
+          ClassifierSet set = (ClassifierSet)node.getAdapter();
+          setIcon(StudioIcons.Profiler.Overlays.ARRAY_STACK);
+          String name = set.getName();
           append(name, SimpleTextAttributes.REGULAR_ATTRIBUTES, name);
         }
 

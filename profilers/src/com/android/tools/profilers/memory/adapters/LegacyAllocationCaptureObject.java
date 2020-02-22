@@ -24,6 +24,7 @@ import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.memory.LegacyAllocationConverter;
+import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Collection;
