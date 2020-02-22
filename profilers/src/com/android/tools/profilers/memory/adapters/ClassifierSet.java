@@ -48,6 +48,8 @@ public abstract class ClassifierSet implements MemoryObject {
   private int mySnapshotObjectCount = 0;
   private int myDeltaAllocations = 0;
   private int myDeltaDeallocations = 0;
+  private long myDeltaAllocationsSize = 0;
+  private long myDeltaDeallocationsSize = 0;
   // TODO switch to tracking both delta and total for all native/shallow and retained sizes.
   private long myTotalNativeSize = 0L;
   private long myTotalShallowSize = 0L;
@@ -120,6 +122,18 @@ public abstract class ClassifierSet implements MemoryObject {
 
   final public int getFilterMatchCount() {
     return myFilterMatchCount;
+  }
+
+  final public long getAllocationSize() {
+    return myDeltaAllocationsSize;
+  }
+
+  final public long getDeallocationSize() {
+    return myDeltaDeallocationsSize;
+  }
+
+  final public long getTotalRemainingSize() {
+    return getAllocationSize() - getDeallocationSize();
   }
 
   /**
@@ -211,10 +225,12 @@ public abstract class ClassifierSet implements MemoryObject {
     }
 
     if (isAllocation) {
-      myDeltaAllocations++;
+      myDeltaAllocations += instanceObject.getInstanceCount();
+      myDeltaAllocationsSize += instanceObject.getShallowSize();
     }
     else {
-      myDeltaDeallocations++;
+      myDeltaDeallocations += instanceObject.getInstanceCount();
+      myDeltaDeallocationsSize += instanceObject.getShallowSize();
     }
 
     // TODO update deltas instead.

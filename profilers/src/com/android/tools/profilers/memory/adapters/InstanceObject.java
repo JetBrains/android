@@ -65,6 +65,12 @@ public interface InstanceObject extends ValueObject {
   }
 
   /**
+   * For sampled recordings that aggregate more than one sample this helper keeps totals correct.
+   * eg, malloc(int) being called X times in a loop, this should return X
+   */
+  default int getInstanceCount() { return 1; }
+
+  /**
    * @return The callstack proto associated with the Instance's allocation event.
    */
   @Nullable
