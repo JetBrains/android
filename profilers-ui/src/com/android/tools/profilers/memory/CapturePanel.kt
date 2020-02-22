@@ -26,20 +26,17 @@ import com.android.tools.profilers.ProfilerLayout.FILTER_TEXT_HISTORY_SIZE
 import com.android.tools.profilers.ProfilerLayout.TOOLBAR_ICON_BORDER
 import com.android.tools.profilers.ProfilerLayout.createToolbarLayout
 import com.android.tools.profilers.memory.adapters.CaptureObject
-import com.android.tools.profilers.memory.adapters.ClassifierSet
+import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet
 import com.android.tools.profilers.memory.adapters.instancefilters.ActivityFragmentLeakInstanceFilter
-import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBEmptyBorder
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.FlowLayout
 import java.util.stream.Collectors
-import javax.swing.BorderFactory
 import javax.swing.BoxLayout
 import javax.swing.JLabel
 import javax.swing.JPanel
-import javax.swing.SwingConstants
 
 internal class CapturePanel(stageView: MemoryProfilerStageView): AspectObserver() {
   private val myStage = stageView.stage
