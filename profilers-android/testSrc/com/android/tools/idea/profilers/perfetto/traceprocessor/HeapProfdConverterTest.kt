@@ -76,7 +76,7 @@ class HeapProfdConverterTest {
     val instances = nativeHeapSet.instancesStream.toList()
     // Frame 1 -> Frame1A
     assertThat(instances[0].name).isEqualTo("Frame 1A")
-    assertThat(instances[0].callStackDepth).isEqualTo(2)
+    assertThat(instances[0].callStackDepth).isEqualTo(1)
     assertThat(instances[0].allocationCallStack).isNotNull()
     assertThat(instances[0].allocationCallStack!!.fullStack.getFrames(0).methodName).isEqualTo("Frame 1")
     // Frame 1

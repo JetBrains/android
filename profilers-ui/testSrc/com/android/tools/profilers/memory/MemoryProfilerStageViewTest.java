@@ -24,11 +24,13 @@ import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findChi
 import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findDescendantClassSetNodeWithInstance;
 import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.getRootClassifierSet;
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assume.assumeTrue;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
+import com.android.tools.adtui.flat.FlatSeparator;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.idea.protobuf.ByteString;
@@ -66,6 +68,7 @@ import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.io.FileUtil;
 import icons.StudioIcons;
 import java.awt.Component;
@@ -205,7 +208,6 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     assertThat(stageView.getClassGrouping().getComponent().getSelectedItem()).isEqualTo(ARRANGE_BY_PACKAGE);
     myAspectObserver.assertAndResetCounts(0, 0, 0, 1, 0, 1, 0, 0);
 
-    //noinspection unchecked
     MemoryObjectTreeNode<ClassifierSet> memoryClassRoot = getRootClassifierSet(classifierTree);
     MemoryObjectTreeNode<ClassSet> targetSet = findChildClassSetNodeWithClassName(memoryClassRoot, dummyClassName1);
     classifierTree.setSelectionPath(new TreePath(new Object[]{memoryClassRoot, targetSet}));
@@ -426,6 +428,99 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     assertThat(items[8]).isEqualTo(ContextMenuItem.SEPARATOR);
     assertThat(items[9].getText()).isEqualTo(StudioProfilersView.ZOOM_IN);
     assertThat(items[10].getText()).isEqualTo(StudioProfilersView.ZOOM_OUT);
+  }
+
+
+  @Test
+  public void testNativeAllocationContextMenu() {
+    assumeTrue(myUnifiedPipeline);
+    myIdeProfilerServices.enableNativeMemorySampling(true);
+    int deviceId = "Test".hashCode();
+    // Setup Q Device.
+    Common.Device device = Common.Device.newBuilder()
+      .setDeviceId(deviceId)
+      .setFeatureLevel(AndroidVersion.VersionCodes.Q)
+      .setSerial("Test")
+      .setState(Common.Device.State.ONLINE)
+      .build();
+    myTransportService.addDevice(device);
+    // Adding AllocationSamplingRateEvent to make getStage().useLiveAllocationTracking() return true;
+    myTransportService.addEventToStream(
+      deviceId, ProfilersTestData.generateMemoryAllocSamplingData(FAKE_PROCESS.getPid(), 0, 0).build());
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new devices to be picked up
+    myProfilers.setProcess(device, null);
+
+    // Clear the pre-setup context menu items.
+    MemoryProfilerStageView stageView = (MemoryProfilerStageView)myProfilersView.getStageView();
+    FakeIdeProfilerComponents ideProfilerComponents = (FakeIdeProfilerComponents)stageView.getIdeComponents();
+    ideProfilerComponents.clearContextMenuItems();
+    // Create a new stage to reinitialize the context menu items.
+    new MemoryProfilerStageView(myProfilersView, myStage);
+
+    // Validate items are as expected.
+    ContextMenuItem[] items = ideProfilerComponents.getAllContextMenuItems().toArray(new ContextMenuItem[0]);
+    assertThat(items.length).isEqualTo(13);
+    assertThat(items[0].getText()).isEqualTo("Export...");
+    assertThat(items[1]).isEqualTo(ContextMenuItem.SEPARATOR);
+    assertThat(items[2].getText()).isEqualTo(MemoryProfilerStageView.RECORD_NATIVE_TEXT);
+    assertThat(items[3].getText()).isEqualTo(MemoryProfilerStageView.STOP_NATIVE_TEXT);
+    assertThat(items[4].getText()).isEqualTo("Force garbage collection");
+    assertThat(items[5]).isEqualTo(ContextMenuItem.SEPARATOR);
+    assertThat(items[6].getText()).isEqualTo("Dump Java heap");
+    assertThat(items[7]).isEqualTo(ContextMenuItem.SEPARATOR);
+    assertThat(items[8].getText()).isEqualTo(StudioProfilersView.ATTACH_LIVE);
+    assertThat(items[9].getText()).isEqualTo(StudioProfilersView.DETACH_LIVE);
+    assertThat(items[10]).isEqualTo(ContextMenuItem.SEPARATOR);
+    assertThat(items[11].getText()).isEqualTo(StudioProfilersView.ZOOM_IN);
+    assertThat(items[12].getText()).isEqualTo(StudioProfilersView.ZOOM_OUT);
+  }
+
+  @Test
+  public void testToolbarForNativeAllocations() {
+    assumeTrue(myUnifiedPipeline);
+    myIdeProfilerServices.enableNativeMemorySampling(true);
+    MemoryProfilerStageView view1 = new MemoryProfilerStageView(myProfilersView, myStage);
+    JPanel toolbar = (JPanel)view1.getToolbar().getComponent(0);
+    // Test toolbar configuration for pre-O.
+    assertThat(toolbar.getComponents()).asList().containsExactly(
+      view1.getGarbageCollectionButtion(),
+      view1.getHeapDumpButton(),
+      view1.getAllocationButton(),
+      view1.getAllocationCaptureElaspedTimeLabel()
+    );
+
+    // Test toolbar configuration for O+;
+    // Adding AllocationSamplingRateEvent to make getStage().useLiveAllocationTracking() return true;
+    if (myUnifiedPipeline) {
+      myTransportService.addEventToStream(
+        FAKE_DEVICE_ID, ProfilersTestData.generateMemoryAllocSamplingData(FAKE_PROCESS.getPid(), 0, 0).build());
+    }
+    else {
+      myService.setMemoryData(MemoryData.newBuilder().addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()).build());
+    }
+    Common.Device device = Common.Device.newBuilder()
+      .setDeviceId("Test".hashCode())
+      .setFeatureLevel(AndroidVersion.VersionCodes.Q)
+      .setSerial("Test")
+      .setState(Common.Device.State.ONLINE)
+      .build();
+    myTransportService.addDevice(device);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new devices to be picked up
+    myProfilers.setProcess(device, null);
+    MemoryProfilerStageView view2 = new MemoryProfilerStageView(myProfilersView, myStage);
+    toolbar = (JPanel)view2.getToolbar().getComponent(0);
+
+    // The separator is not exposed as such we assume its position and validate its existence.
+    assertThat(toolbar.getComponent(4)).isInstanceOf(FlatSeparator.class);
+    assertThat(toolbar.getComponents()).asList().containsExactly(
+      view2.getGarbageCollectionButtion(),
+      view2.getHeapDumpButton(),
+      view2.getAllocationSamplingRateLabel(),
+      view2.getAllocationSamplingRateDropDown(),
+      toolbar.getComponent(4), // FlatSeparator
+      view2.getNativeAllocationButton(),
+      view2.getAllocationCaptureElaspedTimeLabel()
+    );
   }
 
   @Test
@@ -679,7 +774,26 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     assertThat(stageView.getCaptureInfoMessage().isVisible()).isFalse();
   }
 
-  private void validateRegion(Rectangle2D.Float rect, float xStart, float yStart, float width, float height) {
+  @Test
+  public void buttonTextChangesWhenAllocationTrackingChanges() {
+    assumeTrue(myUnifiedPipeline);
+    MemoryProfilerStageView stageView = (MemoryProfilerStageView)myProfilersView.getStageView();
+    assertThat(stageView.getNativeAllocationButton().getText()).isEqualTo(MemoryProfilerStageView.RECORD_NATIVE_TEXT);
+    assertThat(stageView.getNativeAllocationButton().getDisabledIcon())
+      .isEqualTo(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.RECORD));
+    myStage.toggleNativeAllocationTracking();
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(stageView.getNativeAllocationButton().getText()).isEqualTo(MemoryProfilerStageView.STOP_NATIVE_TEXT);
+    assertThat(stageView.getNativeAllocationButton().getDisabledIcon())
+      .isEqualTo(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.STOP_RECORDING));
+    myStage.toggleNativeAllocationTracking();
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(stageView.getNativeAllocationButton().getText()).isEqualTo(MemoryProfilerStageView.RECORD_NATIVE_TEXT);
+    assertThat(stageView.getNativeAllocationButton().getDisabledIcon())
+      .isEqualTo(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.RECORD));
+  }
+
+  private static void validateRegion(Rectangle2D.Float rect, float xStart, float yStart, float width, float height) {
     final float EPSILON = 1e-6f;
     assertThat(rect.x).isWithin(EPSILON).of(xStart);
     assertThat(rect.y).isWithin(EPSILON).of(yStart);
