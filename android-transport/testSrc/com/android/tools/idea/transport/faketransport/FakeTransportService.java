@@ -28,6 +28,7 @@ import com.android.tools.idea.transport.faketransport.commands.EndSession;
 import com.android.tools.idea.transport.faketransport.commands.HeapDump;
 import com.android.tools.idea.transport.faketransport.commands.MemoryAllocSampling;
 import com.android.tools.idea.transport.faketransport.commands.MemoryAllocTracking;
+import com.android.tools.idea.transport.faketransport.commands.MemoryNativeSampling;
 import com.android.tools.idea.transport.faketransport.commands.StartCpuTrace;
 import com.android.tools.idea.transport.faketransport.commands.StopCpuTrace;
 import com.android.tools.profiler.proto.Commands.Command;
@@ -122,6 +123,9 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
     MemoryAllocTracking allocTrackingHandler = new MemoryAllocTracking(myTimer);
     setCommandHandler(Command.CommandType.START_ALLOC_TRACKING, allocTrackingHandler);
     setCommandHandler(Command.CommandType.STOP_ALLOC_TRACKING, allocTrackingHandler);
+    MemoryNativeSampling nativeSampling = new MemoryNativeSampling(myTimer);
+    setCommandHandler(Command.CommandType.START_NATIVE_HEAP_SAMPLE, nativeSampling);
+    setCommandHandler(Command.CommandType.STOP_NATIVE_HEAP_SAMPLE, nativeSampling);
     setCommandHandler(Command.CommandType.MEMORY_ALLOC_SAMPLING, new MemoryAllocSampling(myTimer));
     setCommandHandler(Command.CommandType.HEAP_DUMP, new HeapDump(myTimer));
   }
