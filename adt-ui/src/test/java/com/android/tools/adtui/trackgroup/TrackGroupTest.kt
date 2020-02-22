@@ -15,7 +15,10 @@
  */
 package com.android.tools.adtui.trackgroup
 
-import com.android.tools.adtui.model.MultiSelectionModel
+import com.android.tools.adtui.BoxSelectionComponent
+import com.android.tools.adtui.TreeWalker
+import com.android.tools.adtui.model.Range
+import com.android.tools.adtui.model.RangeSelectionModel
 import com.android.tools.adtui.model.trackgroup.StringSelectable
 import com.android.tools.adtui.model.trackgroup.TestTrackRendererType
 import com.android.tools.adtui.model.trackgroup.TrackGroupModel
@@ -27,6 +30,9 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
+import java.awt.BorderLayout
+import java.awt.Component
+import javax.swing.JPanel
 
 @RunsInEdt
 class TrackGroupTest {
@@ -147,5 +153,23 @@ class TrackGroupTest {
 
     assertThat(trackGroupModel[0].isCollapsed).isTrue()
     assertThat(trackGroupModel[1].isCollapsed).isTrue()
+  }
+
+  @Test
+  fun supportsBoxSelection() {
+    val rangeSelectionModel = RangeSelectionModel(Range(), Range(0.0, 10.0))
+    val trackGroupModel = TrackGroupModel.newBuilder().setTitle("Group").setRangeSelectionModel(rangeSelectionModel).build()
+    trackGroupModel.addTrackModel(TrackModel.newBuilder("text", TestTrackRendererType.STRING, "Bar"))
+    val trackGroup = TrackGroup(trackGroupModel, TRACK_RENDERER_FACTORY)
+    trackGroup.component.setBounds(0, 0, 500, 100)
+    val treeWalker = TreeWalker(trackGroup.component)
+    treeWalker.descendantStream().forEach(Component::doLayout)
+    val boxComponent = treeWalker.descendants().filterIsInstance(BoxSelectionComponent::class.java).first()
+    val boxUi = FakeUi(boxComponent)
+
+    assertThat(rangeSelectionModel.selectionRange.isEmpty).isTrue()
+    boxUi.mouse.drag(0, 0, 100, 10)
+    assertThat(rangeSelectionModel.selectionRange.isEmpty).isFalse()
+    assertThat(trackGroup.trackList.selectedIndices.asList()).containsExactly(0)
   }
 }

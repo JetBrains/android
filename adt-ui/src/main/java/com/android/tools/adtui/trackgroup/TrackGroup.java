@@ -15,10 +15,12 @@
  */
 package com.android.tools.adtui.trackgroup;
 
+import com.android.tools.adtui.BoxSelectionComponent;
 import com.android.tools.adtui.DragAndDropList;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.StudioColorsKt;
+import com.android.tools.adtui.event.DelegateMouseEventHandler;
 import com.android.tools.adtui.flat.FlatSeparator;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.stdui.CommonAction;
@@ -149,6 +151,13 @@ public class TrackGroup extends AspectObserver {
     myOverlay.addMouseMotionListener(mouseEventHandler);
 
     myComponent = new JPanel(new TabularLayout(Track.COL_SIZES, "Fit,Fit"));
+    if (groupModel.getRangeSelectionModel() != null) {
+      BoxSelectionComponent boxSelection = new BoxSelectionComponent(groupModel.getRangeSelectionModel(), myTrackList);
+      DelegateMouseEventHandler.delegateTo(myOverlay)
+        .installListenerOn(boxSelection)
+        .installMotionListenerOn(boxSelection);
+      myComponent.add(boxSelection, new TabularLayout.Constraint(1, 1));
+    }
     myComponent.add(myOverlay, new TabularLayout.Constraint(1, 1));
     myComponent.add(titlePanel, new TabularLayout.Constraint(0, 0, 1, 2));
     myComponent.add(myTrackList, new TabularLayout.Constraint(1, 0, 1, 2));

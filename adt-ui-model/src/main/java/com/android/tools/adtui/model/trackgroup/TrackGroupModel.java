@@ -17,6 +17,7 @@ package com.android.tools.adtui.model.trackgroup;
 
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.DragAndDropListModel;
+import com.android.tools.adtui.model.RangeSelectionModel;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,6 +36,7 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
   private final boolean myCollapsedInitially;
   private final boolean myHideHeader;
   private final boolean myTrackSelectable;
+  @Nullable private final RangeSelectionModel myRangeSelectionModel;
 
   private final AspectObserver myObserver = new AspectObserver();
 
@@ -47,6 +49,7 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
     myCollapsedInitially = builder.myCollapsedInitially;
     myHideHeader = builder.myHideHeader;
     myTrackSelectable = builder.myTrackSelectable;
+    myRangeSelectionModel = builder.myRangeSelectionModel;
   }
 
   /**
@@ -100,6 +103,14 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
     return myTrackSelectable;
   }
 
+  /**
+   * @return model for box selection. Null if box selection is not supported.
+   */
+  @Nullable
+  public RangeSelectionModel getRangeSelectionModel() {
+    return myRangeSelectionModel;
+  }
+
   public static Builder newBuilder() {
     return new Builder();
   }
@@ -110,6 +121,7 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
     private boolean myCollapsedInitially;
     private boolean myHideHeader;
     private boolean myTrackSelectable;
+    @Nullable private RangeSelectionModel myRangeSelectionModel;
 
     private Builder() {
       myTitle = "";
@@ -147,6 +159,11 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
 
     public Builder setTrackSelectable(boolean trackSelectable) {
       myTrackSelectable = trackSelectable;
+      return this;
+    }
+
+    public Builder setRangeSelectionModel(RangeSelectionModel rangeSelectionModel) {
+      myRangeSelectionModel = rangeSelectionModel;
       return this;
     }
 

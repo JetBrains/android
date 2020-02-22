@@ -108,6 +108,7 @@ class CpuCaptureStageTest {
     val threadsTrackGroup = stage.trackGroupModels[0]
     assertThat(threadsTrackGroup.title).isEqualTo("Threads (1)")
     assertThat(threadsTrackGroup.size).isEqualTo(1)
+    assertThat(threadsTrackGroup.rangeSelectionModel).isNotNull()
   }
 
   @Test
