@@ -54,7 +54,7 @@ public class DataBindingScopeTest {
     myProjectRule.getFixture().setTestDataPath(TestDataPaths.TEST_DATA_ROOT);
     myProjectRule.load(PROJECT_WITH_DATA_BINDING_AND_SIMPLE_LIB);
     Project project = myProjectRule.getProject();
-    AndroidFacet facet = myProjectRule.getAndroidFacet();
+    AndroidFacet facet = myProjectRule.androidFacet(":app");
     JavaCodeInsightTestFixture fixture = (JavaCodeInsightTestFixture)myProjectRule.getFixture();
 
     GradleSyncState syncState = GradleSyncState.getInstance(project);

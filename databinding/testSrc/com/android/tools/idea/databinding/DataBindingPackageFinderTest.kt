@@ -66,7 +66,7 @@ class DataBindingPackageFinderTest {
     UIUtil.dispatchAllInvocationEvents()
 
     val context = fixture.findClass("com.android.example.viewbinding.MainActivity")
-    assertThat(projectRule.androidFacet.isViewBindingEnabled()).isTrue()
+    assertThat(projectRule.androidFacet(":app").isViewBindingEnabled()).isTrue()
     assertThat(fixture.findClass("com.android.example.viewbinding.databinding.ActivityMainBinding", context)).isInstanceOf(
       LightBindingClass::class.java)
     assertThat(fixture.findPackage("com.android.example.viewbinding.databinding")).isNotNull()
@@ -83,7 +83,7 @@ class DataBindingPackageFinderTest {
     UIUtil.dispatchAllInvocationEvents()
 
     val context = fixture.findClass("com.android.example.appwithdatabinding.MainActivity")
-    assertThat(ModuleDataBinding.getInstance(projectRule.androidFacet).dataBindingMode).isEqualTo(DataBindingMode.ANDROIDX)
+    assertThat(ModuleDataBinding.getInstance(projectRule.androidFacet(":app")).dataBindingMode).isEqualTo(DataBindingMode.ANDROIDX)
     assertThat(fixture.findClass("com.android.example.appwithdatabinding.databinding.ActivityMainBinding", context)).isInstanceOf(
       LightBindingClass::class.java)
     assertThat(fixture.findPackage("com.android.example.appwithdatabinding.databinding")).isNotNull()

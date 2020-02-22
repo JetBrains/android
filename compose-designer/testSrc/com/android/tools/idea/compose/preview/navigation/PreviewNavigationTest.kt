@@ -74,7 +74,7 @@ class PreviewNavigationTest {
   fun testComposableNavigation() {
     val project = projectRule.project
 
-    renderPreviewElementForResult(projectRule.androidFacet,
+    renderPreviewElementForResult(projectRule.androidFacet(":app"),
                                   PreviewElement.forTesting("google.simpleapplication.MainActivityKt.TwoElementsPreview"))
       .thenAccept { renderResult ->
         val rootView = renderResult!!.rootViews.single()!!

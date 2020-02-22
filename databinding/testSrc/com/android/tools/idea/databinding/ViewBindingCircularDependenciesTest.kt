@@ -50,7 +50,7 @@ class ViewBindingCircularDependenciesTest {
     projectRule.load(PROJECT_WITH_CIRCULAR_DEPENDENCIES)
 
     val project = projectRule.project
-    val facet = projectRule.androidFacet
+    val facet = projectRule.androidFacet(":app")
     val fixture = projectRule.fixture as JavaCodeInsightTestFixture
 
     val syncState = GradleSyncState.getInstance(project)
