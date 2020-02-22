@@ -94,6 +94,7 @@ import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
+import com.intellij.openapi.externalSystem.model.project.ModuleSdkData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.externalSystem.util.Order;
@@ -195,11 +196,18 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       throw new IllegalStateException(msg);
     }
     if (isAndroidGradleProject()) {
-      return doCreateModule(gradleModule, projectDataNode);
+      DataNode<ModuleData> moduleNode = doCreateModule(gradleModule, projectDataNode);
+      populateModuleSdk(moduleNode);
+      return moduleNode;
     }
     else {
       return nextResolver.createModule(gradleModule, projectDataNode);
     }
+  }
+
+  private static void populateModuleSdk(@NotNull DataNode<ModuleData> moduleNode) {
+    ModuleSdkData moduleSdkData = new ModuleSdkData(null);
+    moduleNode.createChild(ModuleSdkData.KEY, moduleSdkData);
   }
 
   // A copy from BaseGradleProjectResolverExtension.
