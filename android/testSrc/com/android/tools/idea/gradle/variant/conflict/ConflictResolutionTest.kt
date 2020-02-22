@@ -37,7 +37,7 @@ class ConflictResolutionTest : ConflictsTestCase() {
     )
 
     val appModule = project.findAppModule()
-    val libModule = project.findModule("lib")!!
+    val libModule = project.findModule("lib")
 
     assume().that(AndroidModuleModel.get(appModule)!!.selectedVariant.name).isEqualTo("release")
     assume().that(AndroidModuleModel.get(libModule)!!.selectedVariant.name).isEqualTo("debug")

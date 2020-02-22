@@ -38,7 +38,7 @@ class ConfigurationBuilder(private val strings: TestStringTable) {
   }
 
   private fun getAppPackageName(project: Project): String {
-    val module = project.findModule("app") ?: return defaultPackageName
+    val module = project.findModule("app")
     val facet = AndroidFacet.getInstance(module)
     return Manifest.getMainManifest(facet)?.`package`?.value ?: defaultPackageName
   }

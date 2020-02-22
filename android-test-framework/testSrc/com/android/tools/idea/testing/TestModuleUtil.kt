@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 @file:JvmName("TestModuleUtil")
+
 package com.android.tools.idea.testing
 
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
-import junit.framework.Assert.assertNotNull
 import org.jetbrains.kotlin.idea.util.application.runReadAction
+import org.junit.AssumptionViolatedException
 
-fun Project.findAppModule() = findModule("app")!!
+fun Project.findAppModule(): Module = findModule("app")
 
-fun Project.findModule(name: String) = runReadAction {
-  val module = ModuleManager.getInstance(this).findModuleByName(name)
-  assertNotNull("Unable to find module with name '$name'", module.toString())
-  module
-}
+fun Project.findModule(name: String): Module = runReadAction {
+  ModuleManager.getInstance(this).findModuleByName(name)
+} ?: throw AssumptionViolatedException("Unable to find module with name '$name'")
 
-fun Project.hasModule(name: String) = findModule(name) != null
+fun Project.hasModule(name: String): Boolean = runReadAction {
+  ModuleManager.getInstance(this).findModuleByName(name)
+} != null
