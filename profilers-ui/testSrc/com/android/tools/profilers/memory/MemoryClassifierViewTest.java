@@ -19,6 +19,8 @@ import static com.android.tools.profiler.proto.Memory.AllocationStack;
 import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CALLSTACK;
 import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CLASS;
 import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE;
+import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.NATIVE_ARRANGE_BY_ALLOCATION_METHOD;
+import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.NATIVE_ARRANGE_BY_CALLSTACK;
 import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findChildClassSetNodeWithClassName;
 import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findChildClassSetWithName;
 import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findChildWithName;
@@ -51,6 +53,8 @@ import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.LiveAllocationCaptureObject;
 import com.android.tools.profilers.memory.adapters.MemoryObject;
 import com.android.tools.profilers.memory.adapters.MethodSet;
+import com.android.tools.profilers.memory.adapters.PackageSet;
+import com.android.tools.profilers.memory.adapters.ThreadSet;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.util.containers.ImmutableList;
@@ -1115,6 +1119,26 @@ public class MemoryClassifierViewTest {
     assertThat(myStage.getSelectedInstanceObject()).isNull();
   }
 
+  @Test
+  public void testClassifierHeaders() {
+    CaptureObject captureObject = new FakeCaptureObject.Builder().build();
+    myStage
+      .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObject)),
+                             null);
+    myStage.selectHeapSet(new FakeHeapSet());
+    TableColumnModel tableColumnModel = myClassifierView.getTableColumnModel();
+    myStage.getConfiguration().setClassGrouping(ARRANGE_BY_CLASS);
+    assertThat(tableColumnModel.getColumn(0).getHeaderValue()).isEqualTo("Class Name");
+    myStage.getConfiguration().setClassGrouping(ARRANGE_BY_CALLSTACK);
+    assertThat(tableColumnModel.getColumn(0).getHeaderValue()).isEqualTo("Callstack Name");
+    myStage.getConfiguration().setClassGrouping(ARRANGE_BY_PACKAGE);
+    assertThat(tableColumnModel.getColumn(0).getHeaderValue()).isEqualTo("Package Name");
+    myStage.getConfiguration().setClassGrouping(NATIVE_ARRANGE_BY_ALLOCATION_METHOD);
+    assertThat(tableColumnModel.getColumn(0).getHeaderValue()).isEqualTo("Allocation function");
+    myStage.getConfiguration().setClassGrouping(NATIVE_ARRANGE_BY_CALLSTACK);
+    assertThat(tableColumnModel.getColumn(0).getHeaderValue()).isEqualTo("Callstack Name");
+  }
+
   private static int countClassSets(@NotNull MemoryObjectTreeNode<ClassifierSet> node) {
     int classSetCount = 0;
     for (MemoryObjectTreeNode<ClassifierSet> child : node.getChildren()) {
@@ -1126,6 +1150,19 @@ public class MemoryClassifierViewTest {
       }
     }
     return classSetCount;
+  }
+
+  private class FakeHeapSet extends HeapSet {
+    public FakeHeapSet() {
+      super(new FakeCaptureObject.Builder().build(), "Fake Heap", 0);
+    }
+
+    @NotNull
+    @Override
+    public Classifier createSubClassifier() {
+      // Support all classifier sets returning a default.
+      return ClassSet.createDefaultClassifier();
+    }
   }
 
   private static boolean verifyMethodSet(@NotNull MethodSet methodSet, @NotNull String className, @NotNull String methodName) {

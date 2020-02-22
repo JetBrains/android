@@ -24,7 +24,9 @@ public class MemoryProfilerConfiguration {
   public enum ClassGrouping {
     ARRANGE_BY_CLASS("Arrange by class"),
     ARRANGE_BY_PACKAGE("Arrange by package"),
-    ARRANGE_BY_CALLSTACK("Arrange by callstack");
+    ARRANGE_BY_CALLSTACK("Arrange by callstack"),
+    NATIVE_ARRANGE_BY_ALLOCATION_METHOD("Arrange by allocation method"),
+    NATIVE_ARRANGE_BY_CALLSTACK("Arrange by callstack");
 
     @NotNull
     String myLabel;
