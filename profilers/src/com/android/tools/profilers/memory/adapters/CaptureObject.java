@@ -15,26 +15,25 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
+import static javax.swing.SortOrder.ASCENDING;
+import static javax.swing.SortOrder.DESCENDING;
+
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
-import java.util.Collections;
-import java.util.Set;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.stream.Stream;
-
-import static javax.swing.SortOrder.ASCENDING;
-import static javax.swing.SortOrder.DESCENDING;
+import javax.swing.SortOrder;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface CaptureObject extends MemoryObject {
   String DEFAULT_HEAP_NAME = "default";
@@ -61,7 +60,10 @@ public interface CaptureObject extends MemoryObject {
     TOTAL_COUNT(3, DESCENDING),
     NATIVE_SIZE(4, DESCENDING),
     SHALLOW_SIZE(5, DESCENDING),
-    RETAINED_SIZE(6, DESCENDING);
+    RETAINED_SIZE(6, DESCENDING),
+    ALLOCATIONS_SIZE(7, DESCENDING),
+    DEALLOCATIONS_SIZE(8, DESCENDING),
+    REMAINING_SIZE(9, DESCENDING);
 
     private final int myWeight;
 
