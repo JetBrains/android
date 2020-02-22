@@ -19,17 +19,16 @@ import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Classifies {@link InstanceObject}s based on their allocation's heap ID.
  */
 public class HeapSet extends ClassifierSet {
   @NotNull private final CaptureObject myCaptureObject;
-  @NotNull private ClassGrouping myClassGrouping = ClassGrouping.ARRANGE_BY_CLASS;
+  @NotNull protected ClassGrouping myClassGrouping = ClassGrouping.ARRANGE_BY_CLASS;
   private final int myId;
   @NotNull private Filter myFilter;
 
