@@ -529,7 +529,7 @@ class GradleModuleSystem(
   override val isRClassTransitive: Boolean get() = readFromAgpFlags { it.transitiveRClasses } ?: true
 
   override fun getDynamicFeatureModules(): List<Module> {
-    val project = GradleUtil.getAndroidProject(module) ?: return emptyList()
+    val project = AndroidModuleModel.get(module)?.androidProject ?: return emptyList()
     return DynamicAppUtils.getDependentFeatureModulesForBase(module.project, project)
   }
 

@@ -214,18 +214,6 @@ public final class GradleUtil {
     }
   }
 
-  @Nullable
-  public static IdeAndroidProject getAndroidProject(@NotNull Module module) {
-    AndroidModuleModel gradleModel = AndroidModuleModel.get(module);
-    return gradleModel != null ? gradleModel.getAndroidProject() : null;
-  }
-
-  @Nullable
-  public static NativeAndroidProject getNativeAndroidProject(@NotNull Module module) {
-    NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
-    return ndkModuleModel != null ? ndkModuleModel.getAndroidProject() : null;
-  }
-
   /**
    * Returns the Gradle "logical" path (using colons as separators) if the given module represents a Gradle project or sub-project.
    *
