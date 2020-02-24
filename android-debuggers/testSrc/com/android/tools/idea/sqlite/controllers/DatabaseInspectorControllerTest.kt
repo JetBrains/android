@@ -742,6 +742,32 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     )
   }
 
+  fun testWhenSchemaDiffFailsViewIsRecreated() {
+    // Prepare
+    val sqliteDatabase = FileSqliteDatabase("db", mockDatabaseConnection, sqliteFile)
+    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
+
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase))
+    }
+
+    `when`(mockSqliteView.updateDatabaseSchema(
+      sqliteDatabase,
+      listOf(AddTable(IndexedSqliteTable(testSqliteTable, 0), emptyList())))
+    ).thenThrow(IllegalStateException::class.java)
+
+    // Act
+    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(SqliteSchema(listOf(testSqliteTable))))
+
+    runDispatching {
+      mockSqliteView.viewListeners.first().refreshAllOpenDatabasesSchemaActionInvoked()
+    }
+
+    // Verify
+    verify(mockSqliteView).removeDatabaseSchema(sqliteDatabase)
+    verify(mockSqliteView).addDatabaseSchema(sqliteDatabase, SqliteSchema(listOf(testSqliteTable)), 0)
+  }
+
   private fun getJdbcDatabaseConnection(sqliteFile: VirtualFile, executor: FutureCallbackExecutor): ListenableFuture<DatabaseConnection> {
     return executor.executeAsync {
       val url = "jdbc:sqlite:${sqliteFile.path}"
