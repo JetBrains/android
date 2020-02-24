@@ -211,7 +211,7 @@ public class GradleApkProviderOldAgpTest extends GradleApkProviderTestCase {
   }
 
   public void testGetApksForTestBuddyApks() throws Exception {
-    loadProject(BUDDY_APKS, "test", null, "3.5.0");
+    loadProject(BUDDY_APKS, "app", null, "3.5.0");
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), true);
     Collection<ApkInfo> apks = provider.getApks(mock(IDevice.class));
     assertThat(Iterables.transform(apks, ApkInfo::getApplicationId))
