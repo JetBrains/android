@@ -44,7 +44,7 @@ import one.util.streamex.StreamEx;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * FindUsages tests for Android resources.
+ * FindUsages tests for Android resources. Tests that require Gradle projects are at {@link AndroidGradleProjectFindUsagesTest}.
  */
 public abstract class AndroidFindUsagesTest extends AndroidTestCase {
   private static final String BASE_PATH = "/findUsages/";
