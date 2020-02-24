@@ -224,7 +224,14 @@ class DatabaseInspectorControllerImpl(
       }
     }
 
-    view.updateDatabaseSchema(database, diffOperations)
+    try {
+      view.updateDatabaseSchema(database, diffOperations)
+    } catch (e: Exception) {
+      view.removeDatabaseSchema(database)
+
+      val index = model.getSortedIndexOf(database)
+      view.addDatabaseSchema(database, newSchema, index)
+    }
   }
 
   private fun openNewEvaluatorTab(): SqliteEvaluatorController {
