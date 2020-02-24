@@ -76,7 +76,7 @@ iml_module(
     tags = [
         "no_test_windows",  # b/135665870
     ],
-    test_class = "com.android.tools.idea.dagger.AndroidDaggerTestSuite",
+    test_class = "com.android.tools.tests.AndroidDaggerTestSuite",
     test_data = [
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/testData",
