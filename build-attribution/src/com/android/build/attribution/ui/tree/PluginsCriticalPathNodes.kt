@@ -311,7 +311,7 @@ private class PluginIssueTypeRootNode(
   }
 
   override fun createComponent(): AbstractBuildAttributionInfoPanel = object : AbstractBuildAttributionInfoPanel() {
-    override fun createHeader(): JComponent = headerLabel(pluginUiData.name)
+    override fun createHeader(): JComponent = headerLabel("${pluginUiData.name} ${issuesGroup.type.uiName}")
 
     override fun createBody(): JComponent = createIssueTypeListPanel(issuesGroup, this@PluginIssueTypeRootNode)
   }
