@@ -29,6 +29,7 @@ import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.io.File;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,13 +38,19 @@ public class GradleModelSource extends GradleModelProvider {
   @NotNull
   @Override
   public ProjectBuildModel getProjectModel(@NotNull Project project) {
-    return ProjectBuildModelImpl.get(project);
+    VirtualFile file = getGradleBuildFile(getBaseDirPath(project));
+    return new ProjectBuildModelImpl(project, file);
   }
 
   @Override
   @Nullable
   public ProjectBuildModel getProjectModel(@NotNull Project hostProject, @NotNull String compositeRoot) {
-    return ProjectBuildModelImpl.get(hostProject, compositeRoot);
+    VirtualFile file = getGradleBuildFile(new File(compositeRoot));
+    if (file == null) {
+      return null;
+    }
+
+    return new ProjectBuildModelImpl(hostProject, file);
   }
 
   @Nullable
