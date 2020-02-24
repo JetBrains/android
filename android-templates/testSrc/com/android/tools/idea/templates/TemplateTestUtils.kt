@@ -232,7 +232,7 @@ internal fun getDefaultModuleState(project: Project): ModuleTemplateDataBuilder 
     formFactor = FormFactor.Mobile // FIXME
     themesData = ThemesData()
     apis = ApiTemplateData(
-      minApi = SdkVersionInfo.LOWEST_ACTIVE_API.toString(),
+      minApi = AndroidVersion.VersionCodes.M.toString(),
       minApiLevel = AndroidVersion.VersionCodes.M,
       buildApi = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
       buildApiString = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
