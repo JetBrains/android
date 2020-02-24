@@ -38,7 +38,7 @@ fun RecipeExecutor.generateAndroidModule(
   val projectData = data.projectTemplateData
   val formFactorNames = projectData.includedFormFactorNames
   requireJavaVersion(javaVersion, data.projectTemplateData.language == Language.Kotlin)
-  addDependency("com.android.support:appcompat-v7:${data.apis.buildApi}.+")
+  addDependency("com.android.support:appcompat-v7:${data.apis.appCompatVersion}.+")
   // TODO(qumeric): currently only works for a new project
   if (formFactorNames.has(FormFactor.Mobile) && formFactorNames.has(FormFactor.Wear)) {
     addDependency("com.google.android.gms:play-services-wearable:+", "compile")
