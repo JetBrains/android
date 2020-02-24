@@ -23,7 +23,6 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
 import com.intellij.openapi.diagnostic.ControlFlowException;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -98,27 +97,6 @@ public interface GradleBuildModel extends GradleFileModel {
   static GradleBuildModel parseBuildFile(@NotNull VirtualFile file, @NotNull Project project) {
     return GradleModelProvider.get().parseBuildFile(file, project);
   }
-
-  /**
-   * Obtains an instance of {@link GradleBuildModel} by parsing the given file.
-   * Care should be taken when calling this method repeatedly since it runs over the whole PSI tree in order to build the model.
-   * @deprecated Use {@link ProjectBuildModel#getModuleBuildModel(Module)} instead.
-   */
-  @Deprecated
-  @NotNull
-  static GradleBuildModel parseBuildFile(@NotNull VirtualFile file,
-                                         @NotNull Project project,
-                                         @NotNull String moduleName) {
-    return GradleModelProvider.get().parseBuildFile(file, project, moduleName);
-  }
-
-  /**
-   * DO NOT USE. Use {#plugins()} instead. This method is required to keep plugin compatibility with the android plugin 3.1 and below.
-   * This method may be removed in the future.
-   */
-  @Deprecated
-  @NotNull
-  List<GradleNotNullValue<String>> appliedPlugins();
 
   @NotNull
   List<PluginModel> plugins();

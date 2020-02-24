@@ -43,7 +43,6 @@ import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl;
 import com.android.tools.idea.gradle.dsl.model.build.BuildScriptModelImpl;
 import com.android.tools.idea.gradle.dsl.model.configurations.ConfigurationsModelImpl;
@@ -70,13 +69,10 @@ import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
 import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement;
 import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement;
-import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiElement;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -130,52 +126,6 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
                                                 @NotNull Project project,
                                                 @NotNull String moduleName) {
     return new GradleBuildModelImpl(BuildModelContext.create(project).getOrCreateBuildFile(file, moduleName, false));
-  }
-
-  @Deprecated
-  @NotNull
-  @Override
-  public List<GradleNotNullValue<String>> appliedPlugins() {
-    return plugins().stream().map(plugin -> new GradleNotNullValue<String>() {
-      @NotNull
-      @Override
-      public VirtualFile getFile() {
-        return plugin.name().getGradleFile();
-      }
-
-      @NotNull
-      @Override
-      public String getPropertyName() {
-        return plugin.name().getName();
-      }
-
-      @Nullable
-      @Override
-      public String getDslText() {
-        return ApplicationManager.getApplication().runReadAction((Computable<String>)() -> {
-          PsiElement e = plugin.name().getPsiElement();
-          return e == null ? null : e.getText();
-        });
-      }
-
-      @NotNull
-      @Override
-      public Map<String, GradleNotNullValue<Object>> getResolvedVariables() {
-        return ImmutableMap.of();
-      }
-
-      @NotNull
-      @Override
-      public String value() {
-        return plugin.name().forceString();
-      }
-
-      @Nullable
-      @Override
-      public PsiElement getPsiElement() {
-        return plugin.name().getPsiElement();
-      }
-    }).collect(Collectors.toList());
   }
 
   /**
