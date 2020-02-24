@@ -16,19 +16,15 @@
 package com.android.tools.idea.gradle.dsl.model;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl.populateSiblingDslFileWithGradlePropertiesFile;
-import static com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl.populateWithParentModuleSubProjectsProperties;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleSettingsFile;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
-import com.android.tools.idea.gradle.dsl.parser.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
@@ -69,18 +65,7 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
    */
   private ProjectBuildModelImpl(@NotNull Project project, @Nullable VirtualFile file) {
     myBuildModelContext = BuildModelContext.create(project);
-
-    // First parse the main project build file.
-    myProjectBuildFile = file != null ? new GradleBuildFile(file, project, project.getName(), myBuildModelContext) : null;
-    if (myProjectBuildFile != null) {
-      myBuildModelContext.setRootProjectFile(myProjectBuildFile);
-      ApplicationManager.getApplication().runReadAction(() -> {
-        populateWithParentModuleSubProjectsProperties(myProjectBuildFile, myBuildModelContext);
-        populateSiblingDslFileWithGradlePropertiesFile(myProjectBuildFile, myBuildModelContext);
-        myProjectBuildFile.parse();
-      });
-      myBuildModelContext.putBuildFile(file.getUrl(), myProjectBuildFile);
-    }
+    myProjectBuildFile = myBuildModelContext.parseProjectBuildFile(project, file);
   }
 
 

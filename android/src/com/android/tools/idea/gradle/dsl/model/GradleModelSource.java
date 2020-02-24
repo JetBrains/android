@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.api;
+package com.android.tools.idea.gradle.dsl.model;
 
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleModelProvider;
+import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl;
-import com.android.tools.idea.gradle.dsl.model.GradleSettingsModelImpl;
-import com.android.tools.idea.gradle.dsl.model.ProjectBuildModelImpl;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpecImpl;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.intellij.openapi.module.Module;
@@ -45,25 +49,27 @@ public class GradleModelSource extends GradleModelProvider {
   @Nullable
   @Override
   public GradleBuildModel getBuildModel(@NotNull Project project) {
-    return GradleBuildModelImpl.get(project);
+    VirtualFile file = getGradleBuildFile(getBaseDirPath(project));
+    return file != null ? internalCreateBuildModel(file, project, project.getName()) : null;
   }
 
   @Nullable
   @Override
   public GradleBuildModel getBuildModel(@NotNull Module module) {
-    return GradleBuildModelImpl.get(module);
+    VirtualFile file = getGradleBuildFile(module);
+    return file != null ? internalCreateBuildModel(file, module.getProject(), module.getName()) : null;
   }
 
   @NotNull
   @Override
   public GradleBuildModel parseBuildFile(@NotNull VirtualFile file, @NotNull Project project) {
-    return GradleBuildModelImpl.parseBuildFile(file, project);
+    return internalCreateBuildModel(file, project, "<Unknown>");
   }
 
   @NotNull
   @Override
   public GradleBuildModel parseBuildFile(@NotNull VirtualFile file, @NotNull Project project, @NotNull String moduleName) {
-    return GradleBuildModelImpl.parseBuildFile(file, project, moduleName);
+    return internalCreateBuildModel(file, project, moduleName);
   }
 
   @Nullable
@@ -110,5 +116,12 @@ public class GradleModelSource extends GradleModelProvider {
   @Override
   public ArtifactDependencySpec getArtifactDependencySpec(@NotNull GoogleMavenArtifactId artifactId, @Nullable String version) {
     return new ArtifactDependencySpecImpl(artifactId, version);
+  }
+
+  @NotNull
+  private static GradleBuildModel internalCreateBuildModel(@NotNull VirtualFile file,
+                                                          @NotNull Project project,
+                                                          @NotNull String moduleName) {
+    return new GradleBuildModelImpl(BuildModelContext.create(project).getOrCreateBuildFile(file, moduleName, false));
   }
 }
