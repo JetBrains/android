@@ -25,6 +25,7 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
+import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiType
 import com.intellij.usageView.UsageInfo
 import com.intellij.usages.Usage
@@ -33,6 +34,8 @@ import com.intellij.usages.impl.rules.UsageType
 import com.intellij.usages.impl.rules.UsageTypeProvider
 import com.intellij.util.Processor
 import org.jetbrains.kotlin.asJava.LightClassUtil
+import org.jetbrains.kotlin.asJava.toLightElements
+import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
 
 private val PROVIDED_BY_DAGGER = UsageType("Provided by Dagger")
@@ -52,6 +55,7 @@ class DaggerUsageTypeProvider : UsageTypeProvider {
 }
 
 private fun KtProperty.getPsiType() = LightClassUtil.getLightClassBackingField(this)?.getType()
+private fun KtParameter.getPsiType() = toLightElements().filterIsInstance(PsiParameter::class.java).firstOrNull()?.type
 
 /**
  * Adds custom usages to a find usages window.
@@ -82,11 +86,14 @@ class DaggerCustomUsageSearcher : CustomUsageSearcher() {
    */
   @WorkerThread
   private fun processProviders(element: PsiElement, processor: Processor<Usage>) {
-    val type: PsiType = when (element) {
-      is PsiField -> element.type
-      is KtProperty -> element.getPsiType()
-      else -> null
-    } ?: return
+    val type: PsiType =
+      when (element) {
+        is PsiField -> element.type
+        is KtProperty -> element.getPsiType()
+        is PsiParameter -> element.type
+        is KtParameter -> element.getPsiType()
+        else -> null
+      } ?: return
 
     val scope = ModuleUtil.findModuleForPsiElement(element)?.getModuleSystem()?.getResolveScope(element) ?: return
 

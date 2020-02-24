@@ -280,7 +280,80 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     )
   }
 
-  // TODO(): uncomment after fixing https://youtrack.jetbrains.com/issue/KT-36657
+  fun testBinds_for_param() {
+    myFixture.addFileToProject(
+      "MyClass.kt",
+      //language=kotlin
+      """
+        package example
+
+        import dagger.Binds
+        import dagger.Module
+
+        @Module
+        abstract class MyModule {
+          @Binds abstract fun bindsMethod(s: String):String {}
+          @Binds abstract fun bindsMethodInt(i: Int):Int {}
+        }
+      """.trimIndent()
+    )
+
+    // JAVA consumer
+    myFixture.configureByText(
+      //language=JAVA
+      JavaFileType.INSTANCE,
+      """
+        package example;
+
+        import javax.inject.Inject;
+
+        class MyClass {
+          @Inject MyClass(String ${caret}str) {}
+        }
+      """.trimIndent()
+    )
+
+    val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
+    assertThat(presentation).contains(
+      """
+      | Found usages (1 usage)
+      |  Provided by Dagger (1 usage)
+      |   ${module.name} (1 usage)
+      |     (1 usage)
+      |     MyClass.kt (1 usage)
+      |      MyModule (1 usage)
+      |       8@Binds abstract fun bindsMethod(s: String):String {}
+      """.trimMargin()
+    )
+
+    // TODO(b/150134125): uncomment
+    //
+    //// kotlin consumer
+    //myFixture.configureByText(
+    //  //language=kotlin
+    //  KotlinFileType.INSTANCE,
+    //  """
+    //    import javax.inject.Inject
+    //
+    //    class MyClass @Inject constructor(${caret}strKotlin: String)
+    //  """.trimIndent()
+    //)
+    //
+    //presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
+    //assertThat(presentation).contains(
+    //  """
+    //  | Found usages (1 usage)
+    //  |  Provided by Dagger (1 usage)
+    //  |   ${module.name} (1 usage)
+    //  |     (1 usage)
+    //  |     MyClass.kt (1 usage)
+    //  |      MyModule (1 usage)
+    //  |       8@Binds abstract fun bindsMethod(s: String):String {}
+    //  """.trimMargin()
+    //)
+  }
+
+  // TODO(b/150134125): uncomment
   //fun testProvidersKotlin() {
   //  myFixture.addClass(
   //    //language=JAVA

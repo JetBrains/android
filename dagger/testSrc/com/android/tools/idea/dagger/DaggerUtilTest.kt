@@ -21,12 +21,15 @@ import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.TruthJUnit.assume
 import com.intellij.ide.highlighter.JavaFileType
+import com.intellij.openapi.module.ModuleUtil
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
+import com.intellij.psi.PsiParameter
 import com.intellij.psi.util.parentOfType
 import org.jetbrains.kotlin.asJava.toLightElements
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.psi.KtFunction
+import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.uast.kotlin.KotlinUField
 import org.jetbrains.uast.toUElement
@@ -104,6 +107,41 @@ class DaggerUtilTest : DaggerTestCase() {
 
     assertThat(myFixture.moveCaret("injected|String").parentOfType<KtProperty>().isDaggerConsumer).isTrue()
     assertThat(myFixture.moveCaret("notInjected|String").parentOfType<KtProperty>().isDaggerConsumer).isFalse()
+  }
+
+  fun testIsConsumer_injectedConstructorParam() {
+    myFixture.configureByText(
+      //language=JAVA
+      JavaFileType.INSTANCE,
+      """
+        import javax.inject.Inject;
+
+        public class MyClass {
+          @Inject public MyClass(String consumer) {}
+          public MyClass(int notConsumer) {}
+        }
+      """.trimIndent()
+    )
+
+    assertThat(myFixture.moveCaret("consum|er").parentOfType<PsiParameter>().isDaggerConsumer).isTrue()
+    assertThat(myFixture.moveCaret("notConsum|er").parentOfType<PsiParameter>().isDaggerConsumer).isFalse()
+  }
+
+  fun testIsConsumer_injectedConstructorParam_kotlin() {
+    myFixture.configureByText(
+      KotlinFileType.INSTANCE,
+      //language=kotlin
+      """
+        import javax.inject.Inject
+
+        class MyClass @Inject constructor(consumer:String) {
+          constructor(notConsumer: Int)
+        }
+      """.trimIndent()
+    )
+
+    assertThat(myFixture.moveCaret("consum|er").parentOfType<KtParameter>().isDaggerConsumer).isTrue()
+    assertThat(myFixture.moveCaret("notConsum|er").parentOfType<KtParameter>().isDaggerConsumer).isFalse()
   }
 
   fun testIsProvider_providesMethod() {
@@ -404,5 +442,43 @@ class DaggerUtilTest : DaggerTestCase() {
     providers = getProvidersForInjectedField_kotlin("MyClassWithInjectedConstructor")
     assertThat(providers).hasSize(1)
     assertThat(providers.first().toString()).isEqualTo(provider.toString())
+  }
+
+  fun testGetDaggerProviders_for_param() {
+    // JAVA provider.
+    myFixture.configureByText(
+      //language=JAVA
+      JavaFileType.INSTANCE,
+      """
+        import dagger.Provides;
+        import dagger.Module;
+
+        @Module
+        class MyClass {
+          @Provides String provider() {}
+        }
+      """.trimIndent()
+    )
+
+    val provider = myFixture.moveCaret("provide|r").parentOfType<PsiMethod>()
+
+    // Consumer in Kotlin.
+    myFixture.configureByText(
+      KotlinFileType.INSTANCE,
+      //language=kotlin
+      """
+        import javax.inject.Inject
+
+        class MyClass @Inject constructor(consumer:String)
+      """.trimIndent()
+    )
+
+    val element = myFixture.moveCaret("consum|er")
+    val type = (element.parentOfType<KtParameter>()?.toUElement() as? PsiParameter)?.type
+    assume().that(type).isNotNull()
+    val scope = ModuleUtil.findModuleForPsiElement(element)?.getModuleSystem()?.getResolveScope(element)
+    val providers = getDaggerProvidersForType(type!!, scope!!)
+    assertThat(providers).hasSize(1)
+    assertThat(providers.first()).isEqualTo(provider)
   }
 }
