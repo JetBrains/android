@@ -19,8 +19,7 @@ import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleSettingsFile;
 import static com.intellij.internal.psiView.stubtree.StubViewerPsiBasedTree.LOG;
 
-import com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl;
-import com.android.tools.idea.gradle.dsl.parser.BuildModelContext;
+import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
 import com.google.common.base.Charsets;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -62,7 +61,7 @@ public class GradleDslFileCache {
     GradleDslFile dslFile = myParsedBuildFiles.get(file.getUrl());
     if (dslFile == null) {
       myParsingStack.push(file);
-      dslFile = GradleBuildModelImpl.parseBuildFile(file, myProject, name, context, isApplied);
+      dslFile = context.parseBuildFile(myProject, file, name, isApplied);
       myParsingStack.pop();
       myParsedBuildFiles.put(file.getUrl(), dslFile);
     }

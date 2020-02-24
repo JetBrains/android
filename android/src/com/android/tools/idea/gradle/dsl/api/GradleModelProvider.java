@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.api;
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
+import com.android.tools.idea.gradle.dsl.model.GradleModelSource;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
