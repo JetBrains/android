@@ -25,7 +25,6 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_ADD_PL
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_APPLIED_KOTLIN_PLUGIN;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_APPLIED_PLUGINS_BLOCK;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_APPLIED_PLUGINS_BLOCK_WITH_REPEATED_PLUGINS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_APPLIED_PLUGIN_COMPATIBILITY;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_APPLY_PLUGINS_FROM_PLUGINS_BLOCK;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_APPLY_PLUGIN_AT_START;
 import static com.android.tools.idea.gradle.dsl.TestFileName.APPLY_PLUGIN_APPLY_PLUGIN_AT_START_EXPECTED;
@@ -61,9 +60,7 @@ import static org.junit.Assume.assumeTrue;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
 import com.google.common.collect.ImmutableList;
-import com.intellij.psi.PsiElement;
 import java.util.List;
 import org.junit.Test;
 
@@ -435,25 +432,5 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     writeToBuildFile(APPLY_PLUGIN_PLUGINS_UNSUPPORTED_SYNTAX);
     GradleBuildModel buildModel = getGradleBuildModel();
     verifyPlugins(ImmutableList.of("com.android.library"), buildModel.plugins());
-  }
-
-  @SuppressWarnings("deprecation")
-  @Test
-  public void testAppliedPluginCompatibility() throws Exception {
-    writeToBuildFile(APPLY_PLUGIN_APPLIED_PLUGIN_COMPATIBILITY);
-    GradleBuildModel buildModel = getGradleBuildModel();
-
-    List<GradleNotNullValue<String>> plugins = buildModel.appliedPlugins();
-    assertSize(2, plugins);
-
-    GradleNotNullValue<String> first = plugins.get(0);
-    assertEquals("com.android.application", first.value());
-    assertEquals("plugin", first.getPropertyName());
-    // TODO(b/142539688): this is the only reference in the Android Studio project to getDslText().  However, the commit message associated
-    //  with this line indicates that this test was introduced along with a restoration of the functionality for the benefit of the
-    //  RenderCore asset plugin.  In a multilingual world, testing the raw DslText is unsound, and we shouldn't provide such a direct
-    //  access to it either.
-    assertEquals("plugin: 'com.android.application'", first.getDslText());
-    assertEquals(myBuildFile, first.getFile());
   }
 }
