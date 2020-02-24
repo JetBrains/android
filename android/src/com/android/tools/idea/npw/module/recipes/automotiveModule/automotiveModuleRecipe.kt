@@ -35,5 +35,5 @@ fun RecipeExecutor.generateAutomotiveModule(
     generateManifest(data.packageName, !data.isLibrary, usesFeatureBlock = usesFeatureBlock),
     true
   )
-  addDependency("com.android.support:appcompat-v7:${data.apis.buildApi}.+")
+  addDependency("com.android.support:appcompat-v7:${data.apis.appCompatVersion}.+")
 }

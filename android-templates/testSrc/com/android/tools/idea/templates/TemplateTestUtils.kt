@@ -234,7 +234,7 @@ internal fun getDefaultModuleState(project: Project): ModuleTemplateDataBuilder 
     apis = ApiTemplateData(
       minApi = AndroidVersion.VersionCodes.M.toString(),
       minApiLevel = AndroidVersion.VersionCodes.M,
-      buildApi = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
+      appCompatVersion = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.coerceAtMost(AndroidVersion.VersionCodes.P),
       buildApiString = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
       targetApi = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
     )

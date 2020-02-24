@@ -123,7 +123,7 @@ class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateD
     apis = ApiTemplateData(
       minSdkVersion.apiString,
       minSdkVersion.featureLevel,
-      target?.version?.featureLevel?.coerceIfNeeded(facet.module.project),
+      target?.version?.featureLevel?.coerceIfNeeded(facet.module.project) ?: P,
       moduleInfo.targetSdkVersion.apiLevel,
       moduleInfo.targetSdkVersion.codename,
       target?.version?.toApiString(),
@@ -281,7 +281,7 @@ fun getDummyModuleTemplateDataBuilder(project: Project): ModuleTemplateDataBuild
     apis = ApiTemplateData(
       minApi = SdkVersionInfo.LOWEST_ACTIVE_API.toString(),
       minApiLevel = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
-      buildApi = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
+      appCompatVersion = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.coerceAtMost(P),
       buildApiString = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
       targetApi = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
     )
