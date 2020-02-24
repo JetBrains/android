@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.api;
 
-import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
-import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.configurations.ConfigurationsModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
@@ -55,10 +53,6 @@ public interface GradleBuildModel extends GradleFileModel {
       }
       Logger logger = Logger.getInstance(ProjectBuildModel.class);
       logger.error(e);
-
-      // Since this would have caused an IDE crash we still want to report any exceptions for monitoring.
-      StudioCrashReporter reporter = StudioCrashReporter.getInstance();
-      reporter.submit(new StudioExceptionReport.Builder().setThrowable(e, false).build());
       return null;
     }
   }
