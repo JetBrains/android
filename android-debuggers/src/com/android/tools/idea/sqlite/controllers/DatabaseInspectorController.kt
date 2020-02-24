@@ -350,7 +350,7 @@ class DatabaseInspectorControllerImpl(
   inner class SqliteEvaluatorControllerListenerImpl : SqliteEvaluatorController.Listener {
     private val scope = AndroidCoroutineScope(this@DatabaseInspectorControllerImpl)
 
-    override fun onSchemaUpdated(database: SqliteDatabase) {
+    override fun onSqliteStatementExecuted(database: SqliteDatabase) {
       scope.launch(uiThread) {
         updateDatabaseSchema(database)
       }

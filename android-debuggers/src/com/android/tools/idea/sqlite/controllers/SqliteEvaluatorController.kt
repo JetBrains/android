@@ -107,11 +107,12 @@ class SqliteEvaluatorController(
           } else {
             view.tableView.resetView()
             view.tableView.setEditable(false)
-            listeners.forEach { it.onSchemaUpdated(database) }
           }
 
           settableFuture.set(Unit)
         }
+
+        listeners.forEach { it.onSqliteStatementExecuted(database) }
       }
 
       override fun onFailure(t: Throwable) {
@@ -145,6 +146,10 @@ class SqliteEvaluatorController(
   }
 
   interface Listener {
-    fun onSchemaUpdated(database: SqliteDatabase)
+    /**
+     * Called when an user-defined SQLite statement is successfully executed
+     * @param database The database on which the statement was executed.
+     * */
+    fun onSqliteStatementExecuted(database: SqliteDatabase)
   }
 }

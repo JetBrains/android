@@ -21,14 +21,13 @@ import com.android.testutils.MockitoKt.refEq
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
-import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.databaseConnection.EmptySqliteResultSet
+import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.mocks.MockSqliteEvaluatorView
 import com.android.tools.idea.sqlite.mocks.MockSqliteResultSet
 import com.android.tools.idea.sqlite.model.LiveSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabase
-import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.google.common.util.concurrent.Futures
@@ -223,6 +222,27 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
 
     // Assert
     verify(sqliteEvaluatorView.tableView).showTableRowBatch(mockSqliteResultSet.rows)
+  }
+
+  fun testUpdateSchemaIsCalledEveryTimeAUserDefinedStatementIsExecuted() {
+    // Prepare
+    val emptyResultSet = MockSqliteResultSet(0)
+    val nonEmptyResultSet = MockSqliteResultSet(10)
+
+    val mockListener = mock(SqliteEvaluatorController.Listener::class.java)
+
+    sqliteEvaluatorController.setUp()
+    sqliteEvaluatorController.addListener(mockListener)
+
+    // Act
+    `when`(databaseConnection.execute(SqliteStatement("SELECT"))).thenReturn(Futures.immediateFuture(nonEmptyResultSet))
+    pumpEventsAndWaitForFuture(sqliteEvaluatorController.evaluateSqlStatement(sqliteDatabase, SqliteStatement("SELECT")))
+
+    `when`(databaseConnection.execute(SqliteStatement("SELECT"))).thenReturn(Futures.immediateFuture(emptyResultSet))
+    pumpEventsAndWaitForFuture(sqliteEvaluatorController.evaluateSqlStatement(sqliteDatabase, SqliteStatement("SELECT")))
+
+    // Assert
+    verify(mockListener, times(2)).onSqliteStatementExecuted(sqliteDatabase)
   }
 
   private fun evaluateSqlActionSuccess(action: String) {
