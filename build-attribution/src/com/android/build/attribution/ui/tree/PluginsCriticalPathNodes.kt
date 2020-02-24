@@ -270,7 +270,7 @@ private class PluginIssuesRootNode(
             "No warnings detected for this build."
           else
             "$totalWarningsCount ${StringUtil.pluralize("warning", totalWarningsCount)} " +
-            "of the following ${StringUtil.pluralize("type", children.size)} were detected for this build."
+            "of the following ${if (children.size == 1) "type was" else "types were"} detected for this build:"
         )
       )
       children.forEach {
