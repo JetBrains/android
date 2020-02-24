@@ -44,6 +44,9 @@ internal class CapturePanel(stageView: MemoryProfilerStageView): AspectObserver(
   val captureView = MemoryCaptureView(stageView.stage, stageView.ideComponents) // TODO: remove after full migration. Only needed for legacy tests
   val classGrouping = MemoryClassGrouping(myStage)
   val classifierView = MemoryClassifierView(myStage, stageView.ideComponents)
+  val classSetView = MemoryClassSetView(myStage, stageView.ideComponents)
+  val instanceDetailsView = MemoryInstanceDetailsView(myStage, stageView.ideComponents)
+
   val captureInfoMessage = JLabel(StudioIcons.Common.WARNING).apply {
     border = TOOLBAR_ICON_BORDER
     // preset the minimize size of the info to only show the icon, so the text can be truncated when the user resizes the vertical splitter.
