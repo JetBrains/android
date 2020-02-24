@@ -54,7 +54,7 @@ fun RecipeExecutor.generateCommonModule(
   val packageName = data.packageName
   val apis = data.apis
   val targetApi = apis.targetApi
-  val minApi = apis.minApiLevel
+  val minApi = apis.minApi
 
   createDefaultDirectories(moduleOut, srcOut)
   addIncludeToSettings(data.name)
@@ -70,7 +70,7 @@ fun RecipeExecutor.generateCommonModule(
       apis.buildApiString!!,
       projectData.buildToolsVersion,
       minApi,
-      targetApi,
+      apis.targetApiString ?: targetApi.toString(),
       useAndroidX,
       agpVersion,
       includeCppSupport,

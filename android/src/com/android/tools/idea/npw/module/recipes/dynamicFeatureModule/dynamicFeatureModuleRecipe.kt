@@ -42,7 +42,7 @@ fun RecipeExecutor.generateDynamicFeatureModule(
 ) {
   val (projectData, srcOut, resOut, manifestOut) = moduleData
   val apis = moduleData.apis
-  val (_, minApiLevel, buildApi, targetApi, _, buildApiString) = apis
+  val (minApi, _, buildApi, targetApi, targetApiString, buildApiString) = apis
   val useAndroidX = moduleData.projectTemplateData.androidXSupport
   val language = projectData.language
   val ktOrJavaExt = language.extension
@@ -68,8 +68,8 @@ fun RecipeExecutor.generateDynamicFeatureModule(
     buildApiString!!,
     needsExplicitBuildToolsVersion(GradleVersion.parse(projectData.gradlePluginVersion), parseRevision(buildToolsVersion)),
     buildToolsVersion,
-    minApiLevel,
-    targetApi,
+    minApi,
+    targetApiString ?: targetApi.toString(),
     useAndroidX
     ), moduleOut.resolve("build.gradle"))
   save(

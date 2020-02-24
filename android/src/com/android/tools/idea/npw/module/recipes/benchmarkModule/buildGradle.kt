@@ -66,7 +66,7 @@ android {
     $kotlinOptionsBlock
 
     defaultConfig {
-        minSdkVersion $minApi
+        minSdkVersion ${minApi.toIntOrNull() ?: "\"$minApi\""}
         targetSdkVersion ${targetApiString.toIntOrNull() ?: "\"$targetApiString\""}
         versionCode 1
         versionName "1.0"
