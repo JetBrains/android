@@ -21,6 +21,7 @@ import com.intellij.psi.PsiClassType
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
+import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.PsiType
 import com.intellij.psi.search.GlobalSearchScope
@@ -32,6 +33,7 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtConstructor
 import org.jetbrains.kotlin.psi.KtFunction
+import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
 
 const val DAGGER_MODULE_ANNOTATION = "dagger.Module"
@@ -133,10 +135,12 @@ private val PsiElement?.isInjectedConstructor: Boolean
 val PsiElement?.isDaggerProvider get() = isProvidesMethod || isBindsMethod || isInjectedConstructor
 
 /**
- * True if PsiElement is Dagger consumer i.e @Inject-annotated field,
- * param of @Inject-annotated method or param of Dagger provider, see [isDaggerProvider].
- *
- * TODO: Add support for params.
+ * True if PsiElement is Dagger consumer i.e @Inject-annotated field or param of Dagger provider, see [isDaggerProvider].
  */
 val PsiElement?.isDaggerConsumer: Boolean
-  get() = this is PsiField && isInjected || this is KtProperty && isInjected
+  get() {
+    return this is PsiField && isInjected ||
+           this is KtProperty && isInjected ||
+           this is PsiParameter && declarationScope.isDaggerProvider ||
+           this is KtParameter && this.ownerFunction.isDaggerProvider
+  }
