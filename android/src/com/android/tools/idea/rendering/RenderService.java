@@ -39,7 +39,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
@@ -53,14 +52,7 @@ import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.maven.AndroidMavenUtil;
@@ -75,59 +67,31 @@ import org.jetbrains.annotations.TestOnly;
  * The {@link RenderService} provides rendering and layout information for Android layouts. This is a wrapper around the layout library.
  */
 public class RenderService implements Disposable {
-  /** Number of ms that we will wait for the rendering thread to return before timing out */
-  private static final long DEFAULT_RENDER_THREAD_TIMEOUT_MS = Long.getLong("layoutlib.thread.timeout",
-                                                                            TimeUnit.SECONDS.toMillis(
-                                                                              ApplicationManager.getApplication().isUnitTestMode()
-                                                                              ? 60
-                                                                              : 6));
-  @VisibleForTesting
-  public static long ourRenderThreadTimeoutMs = DEFAULT_RENDER_THREAD_TIMEOUT_MS;
-  private static final AtomicReference<Thread> ourRenderingThread = new AtomicReference<>();
-  private static ExecutorService ourRenderingExecutor;
-  private static final AtomicInteger ourTimeoutExceptionCounter = new AtomicInteger(0);
+  private static RenderExecutor ourExecutor;
 
   /**
    * {@link Key} used to keep the RenderService instance project association. They key is also used as synchronization object to guard the
    * access to the new instances.
    */
   private static final Key<RenderService> KEY = Key.create(RenderService.class.getName());
-  private static boolean isFirstCall = true;
 
   static {
-    innerInitializeRenderExecutor();
+    ourExecutor = new RenderExecutor();
     // Register the executor to be shutdown on close
     ShutDownTracker.getInstance().registerShutdownTask(RenderService::shutdownRenderExecutor);
   }
 
   private final Project myProject;
 
-  private static void innerInitializeRenderExecutor() {
-    ourRenderingExecutor = new ThreadPoolExecutor(1, 1,
-                             0, TimeUnit.MILLISECONDS,
-                             new LinkedBlockingQueue<>(),
-                             (Runnable r) -> {
-                               Thread renderingThread = new Thread(null, r, "Layoutlib Render Thread");
-                               renderingThread.setDaemon(true);
-                               ourRenderingThread.set(renderingThread);
-
-                               return renderingThread;
-                             });
-  }
-
   @TestOnly
   public static void initializeRenderExecutor() {
     assert ApplicationManager.getApplication().isUnitTestMode(); // Only to be called from unit testszs
 
-    innerInitializeRenderExecutor();
+    ourExecutor = new RenderExecutor();
   }
 
   private static void shutdownRenderExecutor() {
-    ourRenderingExecutor.shutdownNow();
-    Thread currentThread = ourRenderingThread.getAndSet(null);
-    if (currentThread != null) {
-      currentThread.interrupt();
-    }
+    ourExecutor.shutdown();
   }
 
   /**
@@ -138,16 +102,7 @@ public class RenderService implements Disposable {
   public static void shutdownRenderExecutor(@SuppressWarnings("SameParameterValue") long timeoutSeconds) {
     assert ApplicationManager.getApplication().isUnitTestMode(); // Only to be called from unit tests
 
-    if (timeoutSeconds > 0) {
-      try {
-        ourRenderingExecutor.awaitTermination(timeoutSeconds, TimeUnit.SECONDS);
-      }
-      catch (InterruptedException ignored) {
-        Logger.getInstance(RenderService.class).warn("The RenderExecutor does not shutdown after " + timeoutSeconds + " seconds");
-      }
-    }
-
-    shutdownRenderExecutor();
+    ourExecutor.shutdown(timeoutSeconds);
   }
 
   private static final String JDK_INSTALL_URL = "https://developer.android.com/preview/setup-sdk.html#java8";
@@ -273,37 +228,7 @@ public class RenderService implements Disposable {
    * method.
    */
   public static <T> T runRenderAction(@NotNull Callable<T> callable) throws Exception {
-    try {
-      // If the number of timeouts exceeds a certain threshold, stop waiting so the caller doesn't block. We try to submit a task that
-      // clean-up the timeout counter instead. If it goes through, it means the queue is free.
-      if (ourTimeoutExceptionCounter.get() > 3) {
-        ourRenderingExecutor.submit(() -> ourTimeoutExceptionCounter.set(0)).get(50, TimeUnit.MILLISECONDS);
-      }
-      long timeout = ourRenderThreadTimeoutMs;
-      if (isFirstCall) {
-        // The initial call might be significantly slower since there is a lot of initialization done on the resource management side.
-        // This covers that case.
-        isFirstCall = false;
-        timeout *= 2;
-      }
-      T result = ourRenderingExecutor.submit(callable).get(timeout, TimeUnit.MILLISECONDS);
-      // The executor seems to be taking tasks so reset the counter
-      ourTimeoutExceptionCounter.set(0);
-
-      return result;
-    }
-    catch (TimeoutException e) {
-      ourTimeoutExceptionCounter.incrementAndGet();
-
-      Thread renderingThread = ourRenderingThread.get();
-      TimeoutException timeoutException = new TimeoutException("Preview timed out while rendering the layout.\n" +
-                                                               "This typically happens when there is an infinite loop or unbounded recursion in one of the custom views.");
-      if (renderingThread != null) {
-        timeoutException.setStackTrace(renderingThread.getStackTrace());
-      }
-
-      throw timeoutException;
-    }
+    return ourExecutor.runAction(callable);
   }
 
   /**
@@ -314,7 +239,7 @@ public class RenderService implements Disposable {
    */
   @NotNull
   public static <T> CompletableFuture<T> runAsyncRenderAction(@NotNull Supplier<T> callable) {
-    return CompletableFuture.supplyAsync(callable, ourRenderingExecutor);
+    return ourExecutor.runAsyncAction(callable);
   }
 
   /**
@@ -324,7 +249,7 @@ public class RenderService implements Disposable {
    * This method will run the passed action asynchronously
    */
   public static void runAsyncRenderAction(@NotNull Runnable runnable) {
-    ourRenderingExecutor.submit(runnable);
+    ourExecutor.runAsyncAction(runnable);
   }
 
   /**
