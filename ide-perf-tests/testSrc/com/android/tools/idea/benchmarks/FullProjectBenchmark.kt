@@ -28,7 +28,6 @@ import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.module.ModuleUtilCore
-import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
@@ -203,10 +202,15 @@ abstract class FullProjectBenchmark {
     language: Language,
     completionType: String
   ) {
-    println("File_Name,Lookup_Element_Count,Time")
-    samples.forEach {
-      println("${it.fileName},${it.completionCount},${it.sample.sampleData}")
-    }
+    writeCsv(
+      samples,
+      projectName,
+      completionBenchmark,
+      resultName = completionType,
+      columns = listOf("fileName", "completionCount", "time"),
+      values = { listOf(fileName, completionCount, sample.sampleData) }
+    )
+
     val metric =  Metric("${projectName}_${language.displayName}_${completionType}")
     metric.addSamples(completionBenchmark, *samples.map { it.sample }.toTypedArray())
     metric.commit()
@@ -275,6 +279,30 @@ abstract class FullProjectBenchmark {
     return LayoutCompletionSample(fastPathSample, mediumPathSample, slowPathSample)
   }
 
+  private fun <T> writeCsv(
+    samples: List<T>,
+    projectName: String,
+    benchmark: Benchmark,
+    resultName: String?,
+    columns: List<String>,
+    values: (T).() -> List<Any>
+  ) {
+    val outputsDir = System.getenv("TEST_UNDECLARED_OUTPUTS_DIR")
+    if (outputsDir != null) {
+      val fileName = listOfNotNull(projectName, benchmark.name, resultName).joinToString("_") { it.replace(' ', '_') } + ".csv"
+      val resultsFile = File(outputsDir, fileName)
+
+      resultsFile.printWriter().use { writer ->
+        writer.println(columns.joinToString(separator = ","))
+        for (sample in samples) {
+          writer.println(sample.values().joinToString(separator = ","))
+        }
+      }
+
+      println("Results written to ${resultsFile}")
+    }
+  }
+
   private fun commitLayoutCompletionSamplesToBenchmark(
     samples: List<LayoutCompletionSample>,
     projectName: String,
@@ -289,13 +317,22 @@ abstract class FullProjectBenchmark {
       ===
       Project: $projectName
       Benchmark name: ${layoutCompletionBenchmark.name}
+      Completion type: $completionType
       Average Slow time: ${slowSamples.map { it.sampleData }.average()} ms
       Average Medium time: ${mediumSamples.map { it.sampleData }.average()} ms
       Average Fast time: ${fastSamples.map { it.sampleData }.average()} ms
       ===
     """.trimIndent())
-    println("Fast_path_time,Medium_path_time,Slow_path_time")
-    samples.forEach { println("${it.fastPathTime.sampleData},${it.mediumPathTime.sampleData},${it.slowPathTime.sampleData}") }
+
+    writeCsv(
+      samples,
+      projectName,
+      layoutCompletionBenchmark,
+      resultName = completionType,
+      columns = listOf("fastPathTime", "mediumPathTime", "slowPathTime"),
+      values = { listOf(fastPathTime.sampleData, mediumPathTime.sampleData, slowPathTime.sampleData) }
+    )
+
     val slowPathMetric =  Metric("${projectName}_${completionType}_Slow_Path")
     slowPathMetric.addSamples(layoutCompletionBenchmark, *slowSamples.toTypedArray())
     slowPathMetric.commit()
@@ -432,6 +469,15 @@ abstract class FullProjectBenchmark {
     for ((fileName, timeMs) in timePerFile) {
       println("$timeMs ms --- ${fileName}")
     }
+
+    writeCsv(
+      timePerFile,
+      projectName,
+      highlightingBenchmark,
+      resultName = fileType.name,
+      columns = listOf("fileName", "time"),
+      values = { toList() }
+    )
 
     // Perfgate.
     val metric = Metric("${projectName}_${fileType.description}")
