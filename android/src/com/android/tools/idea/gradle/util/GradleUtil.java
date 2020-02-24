@@ -242,25 +242,6 @@ public final class GradleUtil {
     return false;
   }
 
-  /**
-   * @return list of the module dependencies in the given variant. This method checks dependencies in the main and test (as currently selected
-   * in the UI) artifacts. The returned list does not contain any duplicates.
-   */
-  @NotNull
-  public static List<Library> getModuleDependencies(@NotNull IdeVariant variant) {
-    List<Library> libraries = Lists.newArrayList();
-
-    IdeAndroidArtifact mainArtifact = variant.getMainArtifact();
-    IdeDependencies dependencies = mainArtifact.getLevel2Dependencies();
-    libraries.addAll(dependencies.getModuleDependencies());
-
-    for (IdeBaseArtifact testArtifact : variant.getTestArtifacts()) {
-      dependencies = testArtifact.getLevel2Dependencies();
-      libraries.addAll(dependencies.getModuleDependencies());
-    }
-    return libraries.stream().distinct().collect(Collectors.toList());
-  }
-
   @Nullable
   public static Module findModuleByGradlePath(@NotNull Project project, @NotNull String gradlePath) {
     ModuleManager moduleManager = ModuleManager.getInstance(project);
