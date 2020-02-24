@@ -109,20 +109,28 @@ public class TaskIssueInfoPanel extends JBPanel {
   protected JComponent createRecommendation() {
     JPanel panel = new JPanel(new VerticalLayout(5));
     panel.add(new JBLabel("Recommendation").withFont(JBFont.label().asBold()));
-    if (myTaskData.getSourceType() == PluginSourceType.BUILD_SRC) {
-      panel.add(new JBLabel(myIssue.getBuildSrcRecommendation()));
-    }
-    else {
-      HyperlinkLabel recommendationLabel = new HyperlinkLabel();
-      recommendationLabel.addHyperlinkListener(e -> {
-        myAnalytics.bugReportLinkClicked();
-        myIssueReporter.reportIssue(myIssue);
-      });
-      recommendationLabel.setHyperlinkText("Consider filing a bug to report this issue to the plugin developer. ", "Generate report.", "");
-
-      panel.add(recommendationLabel);
+    // Have to add empty 2px left border in order to align text with the following HyperlinkLabel.
+    JLabel recommendation = createRecommendationTextLabel();
+    recommendation.setBorder(JBUI.Borders.emptyLeft(2));
+    panel.add(recommendation);
+    if (myTaskData.getSourceType() != PluginSourceType.BUILD_SRC) {
+      panel.add(createReportLinkLabel());
     }
     return panel;
+  }
+
+  private JLabel createRecommendationTextLabel() {
+    return new JBLabel(myIssue.getBuildSrcRecommendation());
+  }
+
+  private HyperlinkLabel createReportLinkLabel() {
+    HyperlinkLabel recommendationLabel = new HyperlinkLabel();
+    recommendationLabel.addHyperlinkListener(e -> {
+      myAnalytics.bugReportLinkClicked();
+      myIssueReporter.reportIssue(myIssue);
+    });
+    recommendationLabel.setHyperlinkText("Consider filing a bug to report this issue to the plugin developer. ", "Generate report.", "");
+    return recommendationLabel;
   }
 
   protected JComponent createTaskInfo() {
