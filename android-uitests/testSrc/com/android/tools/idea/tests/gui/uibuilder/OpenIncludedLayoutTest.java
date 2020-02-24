@@ -47,7 +47,7 @@ public class OpenIncludedLayoutTest {
     EditorFixture editor = ideFrame.getEditor()
       .open(OUTER_XML, EditorFixture.Tab.DESIGN);
 
-    NlEditorFixture layoutEditor = editor.getLayoutEditor(true);
+    NlEditorFixture layoutEditor = editor.getLayoutEditor();
     layoutEditor.waitForRenderToFinish();
     JTreeFixture tree = layoutEditor.getComponentTree();
     tree.click();
@@ -66,7 +66,7 @@ public class OpenIncludedLayoutTest {
     EditorFixture editor = ideFrame.getEditor()
       .open(OUTER_XML, EditorFixture.Tab.DESIGN);
 
-    NlEditorFixture layoutEditor = editor.getLayoutEditor(true);
+    NlEditorFixture layoutEditor = editor.getLayoutEditor();
     layoutEditor.waitForRenderToFinish();
     layoutEditor.getAllComponents()
       .stream()

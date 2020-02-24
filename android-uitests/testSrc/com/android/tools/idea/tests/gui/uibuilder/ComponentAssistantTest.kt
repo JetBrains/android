@@ -42,7 +42,7 @@ class ComponentAssistantTest {
     val layout = guiTest.importSimpleApplication()
       .editor
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
-      .getLayoutEditor(true)
+      .getLayoutEditor()
 
     layout.dragComponentToSurface("Containers", "RecyclerView")
     MessagesFixture.findByTitle(guiTest.robot(), "Add Project Dependency").clickOk()
@@ -87,7 +87,7 @@ class ComponentAssistantTest {
     val layout = guiTest.importSimpleApplication()
       .editor
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
-      .getLayoutEditor(true)
+      .getLayoutEditor()
 
     layout.dragComponentToSurface("Text", "TextView")
     layout.findView("TextView", 1)

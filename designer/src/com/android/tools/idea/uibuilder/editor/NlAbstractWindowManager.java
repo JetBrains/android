@@ -31,10 +31,10 @@ import com.intellij.openapi.wm.ex.ToolWindowEx;
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
+import javax.swing.Icon;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 public abstract class NlAbstractWindowManager extends LightToolWindowManager {
 
@@ -100,18 +100,15 @@ public abstract class NlAbstractWindowManager extends LightToolWindowManager {
     };
   }
 
-  @Nullable
-  protected static DesignSurface getDesignSurface(@NotNull DesignerEditorPanelFacade designer) {
+  @NotNull
+  protected static DesignSurface getDesignSurface(@Nullable DesignerEditorPanelFacade designer) {
     if (designer instanceof DesignerEditorPanel) {
       DesignerEditorPanel editor = (DesignerEditorPanel)designer;
       return editor.getSurface();
-    } else if (designer instanceof NlPreviewForm) {
-      NlPreviewForm form = (NlPreviewForm)designer;
-      return form.hasFile() ? form.getSurface() : null;
     }
 
-    // Unexpected facade
-    throw new RuntimeException(designer.getClass().getName());
+    String facadeName = designer == null ? "null" : designer.getClass().getName();
+    throw new IllegalStateException(String.format("Unexpected designer facade found: %s", facadeName));
   }
 
   protected void createWindowContent(@NotNull JComponent contentPane, @NotNull JComponent focusedComponent, @Nullable AnAction[] actions) {

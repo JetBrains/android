@@ -62,7 +62,7 @@ public class CreateBaselineConnectionTest {
       .open("app/src/main/res/layout/constraint.xml", EditorFixture.Tab.DESIGN);
 
     NlEditorFixture design = editor
-      .getLayoutEditor(false)
+      .getLayoutEditor()
       .showOnlyDesignView()
       .waitForRenderToFinish()
       .dragComponentToSurface("Buttons", "Button")

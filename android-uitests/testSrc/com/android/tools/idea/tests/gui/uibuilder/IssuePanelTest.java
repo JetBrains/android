@@ -79,7 +79,7 @@ public class IssuePanelTest {
     EditorFixture editor = myGuiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest")
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
-    NlEditorFixture layoutEditor = editor.getLayoutEditor(true);
+    NlEditorFixture layoutEditor = editor.getLayoutEditor();
 
     NlComponentFixture textView = layoutEditor
       .showOnlyDesignView()
@@ -124,7 +124,7 @@ public class IssuePanelTest {
     editor.enterText("<fragment android:layout_width=\"match_parent\" android:layout_height=\"match_parent\"/>\n");
     editor.switchToTab("Design");
 
-    NlEditorFixture layout = editor.getLayoutEditor(false);
+    NlEditorFixture layout = editor.getLayoutEditor();
     layout.waitForRenderToFinish();
     layout.getRhsConfigToolbar().clickIssuePanelButton();
     IssuePanelFixture panelFixture = layout.getIssuePanel();
@@ -146,7 +146,7 @@ public class IssuePanelTest {
     EditorFixture editor = myGuiTest.ideFrame().getEditor();
     editor.open("app/src/main/res/layout/fragment_empty.xml", EditorFixture.Tab.DESIGN);
 
-    NlEditorFixture layout = editor.getLayoutEditor(false);
+    NlEditorFixture layout = editor.getLayoutEditor();
     layout.waitForRenderToFinish();
     layout.getRhsConfigToolbar().clickIssuePanelButton();
     IssuePanelFixture panelFixture = layout.getIssuePanel();

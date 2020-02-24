@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.visual;
 
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.android.tools.idea.uibuilder.editor.NlPreviewManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -64,10 +63,6 @@ import org.jetbrains.annotations.Nullable;
  * the window is gone.
  * <p>
  * The visualization tool use {@link NlDesignSurface} for rendering previews.
- * <p>
- * This class is inspired by {@link NlPreviewManager}.<br>
- * Most of the codes are copied from {@link NlPreviewManager} instead of sharing, because {@link NlPreviewManager} is being
- * removed after we enable split editor.
  */
 public class VisualizationManager implements ProjectComponent {
   /**
@@ -283,10 +278,7 @@ public class VisualizationManager implements ProjectComponent {
         }
 
         myToolWindow.setAvailable(true, null);
-        // If user is using Preview Form, don't force switch to Visualization Tool.
-        final boolean visible = VisualizationToolSettings.getInstance().getGlobalState().isVisible()
-                                && !NlPreviewManager.getInstance(myProject).isWindowVisible();
-        if (visible && !myToolWindow.isVisible()) {
+        if (VisualizationToolSettings.getInstance().getGlobalState().isVisible() && !myToolWindow.isVisible()) {
           Runnable restoreFocus = null;
           if (myToolWindow.getType() == ToolWindowType.WINDOWED) {
             // Ugly hack: Fix for b/68148499
@@ -389,10 +381,6 @@ public class VisualizationManager implements ProjectComponent {
 
     @Override
     public void selectionChanged(@NotNull FileEditorManagerEvent event) {
-      if (NlPreviewManager.getInstance(myProject).isWindowVisible()) {
-        // User is using preview, don't switch to VisualizationWindow.
-        return;
-      }
       FileEditor editorForLayout = null;
       FileEditor newEditor = event.getNewEditor();
       if (newEditor != null) {

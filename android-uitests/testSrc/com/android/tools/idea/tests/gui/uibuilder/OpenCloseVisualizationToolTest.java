@@ -17,8 +17,6 @@ package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.After;
 import org.junit.Before;
@@ -35,13 +33,11 @@ public class OpenCloseVisualizationToolTest {
   @Before
   public void setUp() {
     StudioFlags.NELE_VISUALIZATION.override(true);
-    StudioFlags.NELE_SPLIT_EDITOR.override(true);
   }
 
   @After
   public void tearDown() {
     StudioFlags.NELE_VISUALIZATION.clearOverride();
-    StudioFlags.NELE_SPLIT_EDITOR.clearOverride();
   }
 
   /**

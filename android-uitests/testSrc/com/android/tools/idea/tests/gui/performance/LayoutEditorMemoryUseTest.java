@@ -177,9 +177,9 @@ public class LayoutEditorMemoryUseTest {
     };
 
     // First file on design mode
-    fixture.getEditor().open(layoutFilePaths[0], EditorFixture.Tab.DESIGN).getLayoutEditor(true).waitForRenderToFinish();
+    fixture.getEditor().open(layoutFilePaths[0], EditorFixture.Tab.DESIGN).getLayoutEditor().waitForRenderToFinish();
     // Second file on design mode, then switch to text mode
-    fixture.getEditor().open(layoutFilePaths[1], EditorFixture.Tab.DESIGN).getLayoutEditor(true).waitForRenderToFinish();
+    fixture.getEditor().open(layoutFilePaths[1], EditorFixture.Tab.DESIGN).getLayoutEditor().waitForRenderToFinish();
     fixture.getEditor().selectEditorTab(EditorFixture.Tab.EDITOR);
     // Third file on text mode
     fixture.getEditor().open(layoutFilePaths[2], EditorFixture.Tab.EDITOR);

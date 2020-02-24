@@ -243,11 +243,6 @@ public final class StudioFlags {
     "If enabled, the surface displays some debug information to diagnose performance",
     false);
 
-  public static final Flag<Boolean> NELE_SPLIT_EDITOR = Flag.create(
-    NELE, "split.layout.editor", "Enable design editors and XML side-by-side view.",
-    "Enable this flag to display the design editors side-by-side with their text representation.",
-    true);
-
   public static final Flag<Boolean> NELE_RESOURCE_POPUP_PICKER = Flag.create(
     NELE, "show.resource.popup.picker", "Enable popup  resource picker in layout editor.",
     "Show the popup picker for resource picking or attribute customization in layout editor.",

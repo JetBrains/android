@@ -57,7 +57,7 @@ public class NlEditorTest {
     EditorFixture editor = guiTest.ideFrame().getEditor();
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
 
-    NlEditorFixture layout = editor.getLayoutEditor(false);
+    NlEditorFixture layout = editor.getLayoutEditor();
     layout.waitForRenderToFinish();
 
     // Find and click the first text view
@@ -74,7 +74,7 @@ public class NlEditorTest {
     IdeFrameFixture ideFrame = guiTest.ideFrame();
     EditorFixture editor = ideFrame.getEditor()
       .open("app/src/main/res/layout/empty_absolute.xml", EditorFixture.Tab.DESIGN);
-    NlEditorFixture layout = editor.getLayoutEditor(true);
+    NlEditorFixture layout = editor.getLayoutEditor();
     DesignSurface surface = (DesignSurface)layout.getSurface().target();
     Dimension screenViewSize = surface.getFocusedSceneView().getScaledContentSize();
     // Drag components to areas that are safe to click (not out of bounds) and that not overlap to prevent them from overlapping each
@@ -116,7 +116,7 @@ public class NlEditorTest {
     EditorFixture editor = ideFrame.getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
 
-    NlEditorFixture nele = editor.getLayoutEditor(true);
+    NlEditorFixture nele = editor.getLayoutEditor();
     nele.waitForRenderToFinish();
 
     // Test zoom in with mouse wheel
@@ -147,7 +147,7 @@ public class NlEditorTest {
     guiTest.importSimpleApplication()
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
-      .getLayoutEditor(true)
+      .getLayoutEditor()
       .dragComponentToSurface("Text", "TextInputLayout");
     MessagesFixture.findByTitle(guiTest.robot(), "Add Project Dependency").clickOk();
     IdeFrameFixture ideFrame = guiTest.ideFrame();
@@ -177,7 +177,7 @@ public class NlEditorTest {
       IdeFrameFixture ideFrame = guiTest.ideFrame();
       EditorFixture editor = ideFrame.getEditor()
         .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
-      NlEditorFixture layout = editor.getLayoutEditor(true)
+      NlEditorFixture layout = editor.getLayoutEditor()
         .waitForRenderToFinish();
 
       // Test click on a suggestion
@@ -223,7 +223,7 @@ public class NlEditorTest {
       IdeFrameFixture ideFrame = guiTest.ideFrame();
       EditorFixture editor = ideFrame.getEditor()
         .open("app/src/main/res/layout/absolute.xml", EditorFixture.Tab.DESIGN);
-      NlEditorFixture layout = editor.getLayoutEditor(true).waitForRenderToFinish();
+      NlEditorFixture layout = editor.getLayoutEditor().waitForRenderToFinish();
 
       // Right click on AbsoluteLayout in the component tree
       NlComponentFixture root = layout.findView("AbsoluteLayout", 0);
@@ -323,10 +323,10 @@ public class NlEditorTest {
       guiTest.importSimpleApplication();
       IdeFrameFixture ideFrame = guiTest.ideFrame();
       EditorFixture editor = ideFrame.getEditor().open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
-      editor.getLayoutEditor(true).waitForRenderToFinish();
+      editor.getLayoutEditor().waitForRenderToFinish();
       editor.switchToTab("Text");
       ideFrame.getEditor().open("app/src/main/res/layout/absolute.xml", EditorFixture.Tab.DESIGN);
-      editor.getLayoutEditor(true).waitForRenderToFinish();
+      editor.getLayoutEditor().waitForRenderToFinish();
       editor.switchToTab("Text");
 
       // Switch to the previous layout and verify we are still editing the text.
@@ -351,7 +351,7 @@ public class NlEditorTest {
     EditorFixture editor = ideFrame.getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
 
-    NlEditorFixture nlEditorFixture = editor.getLayoutEditor(true);
+    NlEditorFixture nlEditorFixture = editor.getLayoutEditor();
     nlEditorFixture.rightClick();
     nlEditorFixture.invokeContextMenuAction("Go to XML");
     assertThat(editor.getSelectedTab()).isEqualTo("Text");
@@ -363,7 +363,7 @@ public class NlEditorTest {
     NlEditorFixture layoutEditor = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest")
       .getEditor()
       .open("app/src/main/res/layout/scroll.xml", EditorFixture.Tab.DESIGN)
-      .getLayoutEditor(true);
+      .getLayoutEditor();
     Point surfacePosition = layoutEditor
       .waitForRenderToFinish()
       .showOnlyDesignView()

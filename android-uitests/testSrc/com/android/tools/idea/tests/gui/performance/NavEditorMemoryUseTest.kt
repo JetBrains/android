@@ -39,7 +39,7 @@ class NavEditorMemoryUseTest {
     runWithBleak {
       ideFrame.editor
         .open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN)
-        .getLayoutEditor(true)
+        .getLayoutEditor()
         .waitForRenderToFinish()
       ideFrame.editor.close()
     }

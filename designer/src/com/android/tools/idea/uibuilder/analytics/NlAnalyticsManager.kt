@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.analytics
 
 import com.android.tools.idea.common.analytics.DesignerAnalyticsManager
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.SceneMode
 import com.android.tools.idea.uibuilder.type.DrawableFileType
@@ -42,13 +41,6 @@ class NlAnalyticsManager(surface: DesignSurface) : DesignerAnalyticsManager(surf
       SceneMode.RESIZABLE_PREVIEW -> LayoutEditorState.Surfaces.SCREEN_SURFACE
       SceneMode.VISUALIZATION -> LayoutEditorState.Surfaces.SCREEN_SURFACE
       SceneMode.COLOR_BLIND -> LayoutEditorState.Surfaces.SCREEN_SURFACE
-    }
-
-  override val surfaceMode
-    get() = if (StudioFlags.NELE_SPLIT_EDITOR.get()) {
-      super.surfaceMode
-    } else {
-      if (nlSurface.isPreviewSurface) LayoutEditorState.Mode.PREVIEW_MODE else LayoutEditorState.Mode.DESIGN_MODE
     }
 
   override
