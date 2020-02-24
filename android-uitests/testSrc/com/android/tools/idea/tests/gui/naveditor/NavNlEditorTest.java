@@ -62,7 +62,7 @@ public class NavNlEditorTest {
     // Open file as XML and switch to design tab, wait for successful render
     EditorFixture editor = frame.getEditor();
     editor.open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN);
-    NlEditorFixture layout = editor.getLayoutEditor(true).waitForRenderToFinish();
+    NlEditorFixture layout = editor.getLayoutEditor().waitForRenderToFinish();
 
     SceneComponentFixture screen = ((NavDesignSurfaceFixture)layout.getSurface()).findDestination("first_screen");
     screen.click();
@@ -84,7 +84,7 @@ public class NavNlEditorTest {
       .waitForGradleProjectSyncToFinish()
       .getEditor()
       .open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN)
-      .getLayoutEditor(true);
+      .getLayoutEditor();
 
     AddDestinationMenuFixture menuFixture = layout
       .waitForRenderToFinish()
@@ -124,7 +124,7 @@ public class NavNlEditorTest {
       .waitForGradleProjectSyncToFinish()
       .getEditor()
       .open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN)
-      .getLayoutEditor(true);
+      .getLayoutEditor();
 
     AddDestinationMenuFixture menuFixture = navEditor
       .waitForRenderToFinish()
@@ -155,7 +155,7 @@ public class NavNlEditorTest {
         .waitForGradleProjectSyncToFinish()
         .getEditor()
         .open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN)
-        .getLayoutEditor(true);
+        .getLayoutEditor();
 
       AddDestinationMenuFixture menuFixture = layout
         .waitForRenderToFinish()
@@ -195,7 +195,7 @@ public class NavNlEditorTest {
         .waitForGradleProjectSyncToFinish()
         .getEditor()
         .open(file, EditorFixture.Tab.DESIGN)
-        .getLayoutEditor(true);
+        .getLayoutEditor();
 
       layout
         .waitForRenderToFinish()
@@ -220,7 +220,7 @@ public class NavNlEditorTest {
         .getEditor()
         // Open the file again in case build.gradle is open after gradle sync
         .open(file, EditorFixture.Tab.DESIGN)
-        .getLayoutEditor(true)
+        .getLayoutEditor()
         .waitForRenderToFinish()
         .getNavSurface()
         .findDestination("testSingleVariantSync")
@@ -246,7 +246,7 @@ public class NavNlEditorTest {
         .waitForGradleProjectSyncToFinish()
         .getEditor()
         .open(file, EditorFixture.Tab.DESIGN)
-        .getLayoutEditor(true);
+        .getLayoutEditor();
 
       layout
         .waitForRenderToFinish()
@@ -269,7 +269,7 @@ public class NavNlEditorTest {
         .getEditor()
         // Open the file again in case build.gradle is open after gradle sync
         .open(file, EditorFixture.Tab.DESIGN)
-        .getLayoutEditor(true)
+        .getLayoutEditor()
         .waitForRenderToFinish()
         .getAllComponents().stream()
         .filter(component -> "testCreateAndCancelFragment".equals(component.getComponent().getId()))
@@ -313,7 +313,7 @@ public class NavNlEditorTest {
       .clickOk()
       .waitForGradleProjectSyncToFinish()
       .getEditor()
-      .getLayoutEditor(false)
+      .getLayoutEditor()
       .waitForRenderToFinish()
       .assertCanInteractWithSurface();
 
@@ -342,7 +342,7 @@ public class NavNlEditorTest {
     assertFalse(guiTest
                   .ideFrame()
                   .getEditor()
-                  .getLayoutEditor(false, false)
+                  .getLayoutEditor(false)
                   .canInteractWithSurface());
 
     guiTest.ideFrame()
@@ -355,7 +355,7 @@ public class NavNlEditorTest {
       .waitForGradleProjectSyncToFinish()
       .getEditor()
       .open("app/src/main/res/navigation/nav.xml")
-      .getLayoutEditor(true)
+      .getLayoutEditor()
       .waitForRenderToFinish()
       .assertCanInteractWithSurface();
   }
@@ -367,7 +367,7 @@ public class NavNlEditorTest {
       .waitForGradleProjectSyncToFinish()
       .getEditor()
       .open("app/src/main/res/navigation/empty_navigation.xml", EditorFixture.Tab.DESIGN)
-      .getLayoutEditor(true);
+      .getLayoutEditor();
 
     NavDesignSurfaceFixture fixture = layout
       .waitForRenderToFinish()

@@ -17,7 +17,6 @@ package com.android.tools.idea.common.editor
 
 import com.android.testutils.MockitoKt.any
 import com.android.tools.idea.common.analytics.CommonUsageTracker
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent
@@ -43,7 +42,6 @@ class DesignToolsSplitEditorTest : AndroidTestCase() {
 
   override fun setUp() {
     super.setUp()
-    StudioFlags.NELE_SPLIT_EDITOR.override(true)
     val panel = mock(DesignerEditorPanel::class.java)
     `when`(panel.surface).thenReturn(NlDesignSurface.build(project, testRootDisposable))
     designerEditor = mock(DesignerEditor::class.java)
@@ -139,10 +137,5 @@ class DesignToolsSplitEditorTest : AndroidTestCase() {
 
     dispatcher.dispatchKeyEvent(KeyEvent(splitEditor.component, KeyEvent.KEY_PRESSED, 0, modifiers, KeyEvent.VK_RIGHT))
     assertThat(splitEditor.isSplitMode()).isTrue()
-  }
-
-  override fun tearDown() {
-    super.tearDown()
-    StudioFlags.NELE_SPLIT_EDITOR.clearOverride()
   }
 }

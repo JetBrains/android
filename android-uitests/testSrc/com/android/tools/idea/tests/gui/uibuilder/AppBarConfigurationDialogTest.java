@@ -42,7 +42,7 @@ public class AppBarConfigurationDialogTest {
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
 
-    editor.getLayoutEditor(true)
+    editor.getLayoutEditor()
       .dragComponentToSurface("Containers", "AppBarLayout");
 
     MessagesFixture dependencyDialog = MessagesFixture.findByTitle(guiTest.robot(), "Add Project Dependency");
@@ -57,7 +57,7 @@ public class AppBarConfigurationDialogTest {
 
     // Now repeat the same process but ADD the dependency.
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
-      .getLayoutEditor(true)
+      .getLayoutEditor()
       .dragComponentToSurface("Containers", "AppBarLayout");
     dependencyDialog = MessagesFixture.findByTitle(guiTest.robot(), "Add Project Dependency");
     dependencyDialog.clickOk();
@@ -81,7 +81,7 @@ public class AppBarConfigurationDialogTest {
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
 
-    editor.getLayoutEditor(true)
+    editor.getLayoutEditor()
       .dragComponentToSurface("Containers", "AppBarLayout");
 
     MessagesFixture dependencyDialog = MessagesFixture.findByTitle(guiTest.robot(), "Add Project Dependency");

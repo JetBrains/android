@@ -20,10 +20,8 @@ import static org.junit.Assert.assertEquals;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceFileDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.intellij.lang.annotations.Language;
 import org.junit.Rule;
@@ -47,7 +45,7 @@ public final class GridLayoutTest {
       .setRootElement("GridLayout")
       .clickOk()
       .getEditor()
-      .getLayoutEditor(false)
+      .getLayoutEditor()
       .waitForRenderToFinish()
       .showOnlyDesignView()
       .dragComponentToSurface("Text", "TextView");

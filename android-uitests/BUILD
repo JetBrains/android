@@ -1245,31 +1245,6 @@ java_test(
 
 # fast test
 java_test(
-    name = "LayoutPreviewRenderTest",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib:build.prop",
-        "//prebuilts/studio/layoutlib/data/fonts",
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-        "//prebuilts/studio/layoutlib/data/icu",
-        "//prebuilts/studio/layoutlib/data:native_libs",
-        "//prebuilts/studio/sdk:platforms/android-23",
-        "//prebuilts/studio/sdk:platforms/android-24",
-        "//prebuilts/studio/sdk:platforms/android-25",
-        "//tools/adt/idea/android/lib:androidWidgets",
-    ] + glob([
-        "testData/LayoutTest/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.LayoutPreviewRenderTest"],
-    tags = COMMON_TAGS + [
-        "qa_fast",
-        "no-remote",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-# fast test
-java_test(
     name = "ThemeEditorTest",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:build.prop",

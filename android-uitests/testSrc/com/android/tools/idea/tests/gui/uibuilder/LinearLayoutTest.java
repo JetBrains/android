@@ -156,7 +156,7 @@ public final class LinearLayoutTest {
 
   @NotNull
   private JTreeFixture getComponentTree() {
-    NlEditorFixture editor = myGuiTest.ideFrame().getEditor().getLayoutEditor(false);
+    NlEditorFixture editor = myGuiTest.ideFrame().getEditor().getLayoutEditor();
     editor.waitForRenderToFinish();
 
     JTreeFixture treeFixture = editor.getComponentTree();
@@ -180,7 +180,7 @@ public final class LinearLayoutTest {
 
     NlEditorFixture layoutEditor = myGuiTest.ideFrame().getEditor()
       .newFile(myNewLayoutPath, layout)
-      .getLayoutEditor(true);
+      .getLayoutEditor();
     layoutEditor.getAllComponents().get(0).getSceneComponent().click(); // Make sure the Linear layout has focus
     assertEquals("LinearLayout (horizontal)", getComponentTree().valueAt(0));
     layoutEditor.getComponentToolbar().getButtonByIcon(StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_VERT).click();

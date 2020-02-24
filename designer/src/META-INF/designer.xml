@@ -66,10 +66,6 @@
       <implementation-class>com.android.tools.idea.uibuilder.handlers.ViewHandlerManager</implementation-class>
     </component>
     <component>
-      <implementation-class>com.android.tools.idea.uibuilder.editor.NlPreviewManager</implementation-class>
-      <headless-implementation-class/>
-    </component>
-    <component>
       <implementation-class>com.android.tools.idea.uibuilder.visual.VisualizationManager</implementation-class>
       <headless-implementation-class/>
     </component>

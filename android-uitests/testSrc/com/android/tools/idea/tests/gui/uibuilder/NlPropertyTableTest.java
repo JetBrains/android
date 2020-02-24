@@ -81,7 +81,7 @@ public class NlPropertyTableTest {
   public void testScrollWhenNavigating() {
     NlEditorFixture layout = myFrame.getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
-      .getLayoutEditor(true)
+      .getLayoutEditor()
       .waitForRenderToFinish();
 
     layout.findView("TextView", 0).getSceneComponent().click();
@@ -137,7 +137,7 @@ public class NlPropertyTableTest {
 
     NlEditorFixture layout = myFrame.getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
-      .getLayoutEditor(true)
+      .getLayoutEditor()
       .waitForRenderToFinish();
 
     NlComponentFixture textView = layout.findView("TextView", 0);
@@ -173,7 +173,7 @@ public class NlPropertyTableTest {
 
     NlEditorFixture layout = myFrame.getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
-      .getLayoutEditor(true)
+      .getLayoutEditor()
       .waitForRenderToFinish();
 
     NlComponentFixture textView = layout.findView("TextView", 0);
@@ -200,7 +200,7 @@ public class NlPropertyTableTest {
   public void testNavigation() {
     NlEditorFixture layout = myFrame.getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
-      .getLayoutEditor(true)
+      .getLayoutEditor()
       .waitForRenderToFinish();
 
     layout.findView("TextView", 0).getSceneComponent().click();

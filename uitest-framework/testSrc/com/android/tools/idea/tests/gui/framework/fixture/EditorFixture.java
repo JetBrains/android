@@ -36,11 +36,8 @@ import com.android.tools.idea.editors.strings.StringResourceEditor;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.io.TestFileUtils;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlPreviewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.VisualizationFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.TranslationsEditorFixture;
-import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
-import com.android.tools.idea.uibuilder.editor.NlPreviewManager;
 import com.android.tools.idea.uibuilder.visual.VisualizationManager;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
@@ -211,7 +208,7 @@ public class EditorFixture {
   private Editor getSelectedTextEditor() {
     FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
     Editor editor = manager.getSelectedTextEditor();
-    if (StudioFlags.NELE_SPLIT_EDITOR.get() && editor == null) {
+    if (editor == null) {
       // When using the split editor, we need to retrieve its text editor.
       FileEditor selectedEditor = manager.getSelectedEditor();
       if (selectedEditor instanceof TextEditorWithPreview) {
@@ -409,7 +406,7 @@ public class EditorFixture {
         assertNotNull("Can't switch to tab " + tabName + " when no file is open in the editor", currentFile);
         FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
         for (FileEditor editor : manager.getAllEditors(currentFile)) {
-          if (StudioFlags.NELE_SPLIT_EDITOR.get() && editor instanceof TextEditorWithPreview) {
+          if (editor instanceof TextEditorWithPreview) {
             boolean consumedBySplitEditor = selectSplitEditorTab(tab, (TextEditorWithPreview)editor);
             if (consumedBySplitEditor) {
               return true;
@@ -531,16 +528,14 @@ public class EditorFixture {
 
     Editor editor = GuiQuery.get(() -> {
       FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
-      if (StudioFlags.NELE_SPLIT_EDITOR.get()) {
-        FileEditor selectedEditor = manager.getSelectedEditor();
-        if (selectedEditor instanceof SplitEditor) {
-          SplitEditor splitEditor = (SplitEditor)selectedEditor;
-          if (splitEditor.isTextMode()) {
-            return splitEditor.getEditor();
-          }
-          else {
-            return null;
-          }
+      FileEditor selectedEditor = manager.getSelectedEditor();
+      if (selectedEditor instanceof SplitEditor) {
+        SplitEditor splitEditor = (SplitEditor)selectedEditor;
+        if (splitEditor.isTextMode()) {
+          return splitEditor.getEditor();
+        }
+        else {
+          return null;
         }
       }
       return manager.getSelectedTextEditor();
@@ -746,22 +741,18 @@ public class EditorFixture {
   }
 
   /**
-   * Returns a fixture around the layout editor, <b>if</b> the currently edited file
-   * is a layout file and it is currently showing the layout editor tab or the parameter
-   * requests that it be opened if necessary
+   * Returns a fixture around the layout editor, <b>if</b> the currently edited file is a layout file and it is currently showing the layout
+   * editor tab or the parameter requests that it be opened if necessary.
    *
-   * @param switchToTabIfNecessary if true, switch to the design tab if it is not already showing
    * @param waitForSurfaceToLoad if true, this method will block until the surface is fully ready.
    *                             See {@link NlEditorFixture#waitForSurfaceToLoad()}
    * @throws IllegalStateException if there is no selected editor or it is not a {@link NlEditor}
    */
   @NotNull
-  public NlEditorFixture getLayoutEditor(boolean switchToTabIfNecessary, boolean waitForSurfaceToLoad) {
-    if (switchToTabIfNecessary || StudioFlags.NELE_SPLIT_EDITOR.get()) {
-      // When using the split editor, we don't display the preview if we're in text-only mode. Therefore, in order to get the component
-      // tree, we need to switch mode to make sure it's available..
-      selectEditorTab(Tab.DESIGN);
-    }
+  public NlEditorFixture getLayoutEditor(boolean waitForSurfaceToLoad) {
+    // We don't display the design surface if the split editor is in text-only mode. Therefore, in order to get the component tree, we need
+    // to switch mode to make sure it's available..
+    selectEditorTab(Tab.DESIGN);
 
     // Wait for the editor to do any initializations
     robot.waitForIdle();
@@ -771,11 +762,9 @@ public class EditorFixture {
         FileEditor[] editors = FileEditorManager.getInstance(myFrame.getProject()).getSelectedEditors();
         checkState(editors.length > 0, "no selected editors");
         FileEditor selected = editors[0];
-        if (StudioFlags.NELE_SPLIT_EDITOR.get()) {
-          // When using split editor, we need to get the DesignerEditor since it's a TextEditorWithPreview containing a TextEditor as well.
-          checkState(selected instanceof DesignToolsSplitEditor, "invalid editor selected");
-          selected = ((DesignToolsSplitEditor)selected).getDesignerEditor();
-        }
+        // We need to get the DesignerEditor since the split editor is a TextEditorWithPreview containing a TextEditor as well.
+        checkState(selected instanceof DesignToolsSplitEditor, "invalid editor selected");
+        selected = ((DesignToolsSplitEditor)selected).getDesignerEditor();
         checkState(selected instanceof DesignerEditor, "not a %s: %s", DesignerEditor.class.getSimpleName(), selected);
         return new NlEditorFixture(myFrame.robot(), (DesignerEditor)selected);
       });
@@ -788,61 +777,14 @@ public class EditorFixture {
   }
 
   /**
-   * Returns a fixture around the layout editor, <b>if</b> the currently edited file
-   * is a layout file and it is currently showing the layout editor tab or the parameter
-   * requests that it be opened if necessary
+   * Returns a fixture around the layout editor, <b>if</b> the currently edited file is a layout file and it is currently showing the layout
+   * editor tab or the parameter requests that it be opened if necessary.
    *
-   * @param switchToTabIfNecessary if true, switch to the design tab if it is not already showing
    * @throws IllegalStateException if there is no selected editor or it is not a {@link NlEditor}
    */
   @NotNull
-  public NlEditorFixture getLayoutEditor(boolean switchToTabIfNecessary) {
-    return getLayoutEditor(switchToTabIfNecessary, true);
-  }
-
-  /**
-   * Returns a fixture around the layout preview window, <b>if</b> the currently edited file
-   * is a layout file and it the XML editor tab of the layout is currently showing.
-   *
-   * @param switchToTabIfNecessary if true, switch to the editor tab if it is not already showing
-   * @return a layout preview fixture, or null if the current file is not a layout file or the
-   * wrong tab is showing
-   */
-  @NotNull
-  public NlPreviewFixture getLayoutPreview(boolean switchToTabIfNecessary) {
-    if (switchToTabIfNecessary) {
-      selectEditorTab(Tab.EDITOR);
-    }
-
-    if (!isPreviewShowing()) {
-      myFrame.invokeMenuPath("View", "Tool Windows", "Preview");
-    }
-
-    Wait.seconds(10).expecting("Preview window to be visible")
-      .until(() -> NlPreviewManager.getInstance(myFrame.getProject()).getPreviewForm().getSurface().isShowing());
-
-    return new NlPreviewFixture(myFrame.getProject(), myFrame.robot());
-  }
-
-  private boolean isPreviewShowing() {
-    return GuiQuery.getNonNull(
-      () -> NlPreviewManager.getInstance(myFrame.getProject()).getPreviewForm().getSurface().isShowing());
-  }
-
-  public boolean isPreviewVisible() {
-    return NlPreviewManager.getInstance(myFrame.getProject()).isPreviewVisible();
-  }
-
-  public boolean isPreviewShowing(@NotNull String fileName) {
-    return GuiQuery.getNonNull(() -> {
-      NlPreviewForm preview = NlPreviewManager.getInstance(myFrame.getProject()).getPreviewForm();
-      return preview.getSurface().isShowing() && getCurrentFileName().equals(preview.getFileName());
-    });
-  }
-
-  public int getPreviewUpdateCount() {
-    return GuiQuery.getNonNull(
-      () -> NlPreviewManager.getInstance(myFrame.getProject()).getUpdateCount());
+  public NlEditorFixture getLayoutEditor() {
+    return getLayoutEditor(true);
   }
 
   /**
@@ -904,50 +846,33 @@ public class EditorFixture {
 
   @NotNull
   public String getSelectedTab() {
-    if (StudioFlags.NELE_SPLIT_EDITOR.get()) {
-      FileEditor[] selectedEditors = FileEditorManager.getInstance(myFrame.getProject()).getSelectedEditors();
-      if (selectedEditors.length > 0) {
-        FileEditor editor = selectedEditors[0];
-        if (editor instanceof TextEditorWithPreview) {
-          TextEditorWithPreview editorWithText = (TextEditorWithPreview)editor;
-          if (editorWithText.getPreferredFocusedComponent() == editorWithText.getTextEditor().getPreferredFocusedComponent()) {
-            // The equivalent to the "Text" tab in the split editor is when we're in text-only mode.
-            return "Text";
-          }
+    FileEditor[] selectedEditors = FileEditorManager.getInstance(myFrame.getProject()).getSelectedEditors();
+    if (selectedEditors.length > 0) {
+      FileEditor editor = selectedEditors[0];
+      if (editor instanceof TextEditorWithPreview) {
+        TextEditorWithPreview editorWithText = (TextEditorWithPreview)editor;
+        if (editorWithText.getPreferredFocusedComponent() == editorWithText.getTextEditor().getPreferredFocusedComponent()) {
+          // The equivalent to the "Text" tab in the split editor is when we're in text-only mode.
+          return "Text";
         }
-        if (editor instanceof DesignToolsSplitEditor) {
-          DesignToolsSplitEditor editorWithDesigner = (DesignToolsSplitEditor)editor;
-          if (editorWithDesigner.getPreferredFocusedComponent() == editorWithDesigner.getDesignerEditor().getPreferredFocusedComponent()) {
-            // The equivalent to the "Design" tab in the split editor is when we're in preview-only mode.
-            return "Design";
-          }
+      }
+      if (editor instanceof DesignToolsSplitEditor) {
+        DesignToolsSplitEditor editorWithDesigner = (DesignToolsSplitEditor)editor;
+        if (editorWithDesigner.getPreferredFocusedComponent() == editorWithDesigner.getDesignerEditor().getPreferredFocusedComponent()) {
+          // The equivalent to the "Design" tab in the split editor is when we're in preview-only mode.
+          return "Design";
         }
       }
     }
-
-    return robot.finder().find(
-      new GenericTypeMatcher<JBEditorTabs>(JBEditorTabs.class) {
-        @Override
-        protected boolean isMatching(@NotNull JBEditorTabs component) {
-          for (TabInfo tabInfo : component.getTabs()) {
-            String text = tabInfo.getText();
-            if (!("Design".equals(text)
-                  || "Text".equals(text))) {
-              return false;
-            }
-          }
-          return true;
-        }
-      }
-    ).getSelectedInfo().getText();
+    throw new IllegalStateException("Couldn't get the selected tab name.");
   }
 
   /**
-   * Switch to an open tab
+   * Switch to an open tab.
    */
-  public EditorFixture switchToTab(@NotNull String tabName) {
-    if (StudioFlags.NELE_SPLIT_EDITOR.get() && (tabName.equals("Design") || tabName.equals("Text"))) {
-      // In split editor we don't have clickable tab labels. Instead, we have IntelliJ actions that need to be clicked to switch editor type
+  public void switchToTab(@NotNull String tabName) {
+    if (tabName.equals("Design") || tabName.equals("Text")) {
+      // The split editor doesn't have clickable tab labels. Instead, it has IntelliJ actions that need to be clicked to switch editor type.
       FileEditor[] selectedEditors = FileEditorManager.getInstance(myFrame.getProject()).getSelectedEditors();
       checkState(selectedEditors.length > 0, "no selected editors");
       FileEditor selected = selectedEditors[0];
@@ -965,7 +890,6 @@ public class EditorFixture {
       });
       robot.click(tab);
     }
-    return this;
   }
 
   @NotNull

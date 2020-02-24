@@ -32,7 +32,6 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
-import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -79,10 +78,6 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Form of layout visualization which offers multiple previews for different devices in the same time. It provides a
  * convenient way to user to preview the layout in different devices.
- * <p>
- * This class is inspired by {@link NlPreviewForm}.<br>
- * Most of the codes are copied from {@link NlPreviewForm} instead of sharing, because {@link NlPreviewForm} is being
- * removed after we enable split editor.
  */
 public class VisualizationForm implements Disposable, ConfigurationSetListener, PanZoomListener {
 
