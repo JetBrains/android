@@ -9,6 +9,7 @@ import com.android.ide.common.resources.ValueResourceNameValidator;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
@@ -16,6 +17,7 @@ import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.LocalQuickFixProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
@@ -36,8 +38,6 @@ import org.jetbrains.android.dom.converters.AndroidResourceReferenceBase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
-import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
-import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -80,16 +80,23 @@ public class ResourceNameConverter extends ResolvingConverter<String> implements
       return null;
     }
 
-    final AndroidFacet facet = AndroidFacet.getInstance(tag);
-    if (facet != null) {
-      LocalResourceManager resourceManager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
-      ResourceFolderType fileResType = resourceManager.getFileResourceFolderType(tag.getContainingFile());
-      if (ResourceFolderType.VALUES == fileResType) {
-        ResourceType type = IdeResourcesUtil.getResourceTypeForResourceTag(tag);
-        if (type != null) {
-          // TODO(lukeegan): Refactor this to accept other namespaces so that framework resources appear in FindUsages
-          return new ResourceReferencePsiElement(new ResourceReference(ResourceNamespace.TODO(), type, s), context.getPsiManager(), false);
-        }
+    ResourceNamespace namespace = IdeResourcesUtil.getResourceNamespace(element);
+    if (namespace == null) {
+      return null;
+    }
+    PsiFile file = tag.getContainingFile();
+    if (file == null) {
+      return null;
+    }
+    PsiDirectory directory = file.getParent();
+    if (directory == null) {
+      return null;
+    }
+    ResourceFolderType resType = ResourceFolderType.getFolderType(directory.getName());
+    if (ResourceFolderType.VALUES == resType) {
+      ResourceType type = IdeResourcesUtil.getResourceTypeForResourceTag(tag);
+      if (type != null) {
+        return new ResourceReferencePsiElement(new ResourceReference(namespace, type, s), context.getPsiManager(), false);
       }
     }
     return null;
