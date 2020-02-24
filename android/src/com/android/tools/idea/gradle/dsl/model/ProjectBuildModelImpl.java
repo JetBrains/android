@@ -43,27 +43,11 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
   @NotNull private final BuildModelContext myBuildModelContext;
   @Nullable private final GradleBuildFile myProjectBuildFile;
 
-  @NotNull
-  public static ProjectBuildModel get(@NotNull Project project) {
-    VirtualFile file = getGradleBuildFile(getBaseDirPath(project));
-    return new ProjectBuildModelImpl(project, file);
-  }
-
-  @Nullable
-  public static ProjectBuildModel get(@NotNull Project hostProject, @NotNull String compositeRoot) {
-    VirtualFile file = getGradleBuildFile(new File(compositeRoot));
-    if (file == null) {
-      return null;
-    }
-
-    return new ProjectBuildModelImpl(hostProject, file);
-  }
-
   /**
    * @param project the project this model should be built for
    * @param file the file contain the projects main build.gradle
    */
-  private ProjectBuildModelImpl(@NotNull Project project, @Nullable VirtualFile file) {
+  ProjectBuildModelImpl(@NotNull Project project, @Nullable VirtualFile file) {
     myBuildModelContext = BuildModelContext.create(project);
     myProjectBuildFile = myBuildModelContext.parseProjectBuildFile(project, file);
   }
