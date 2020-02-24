@@ -95,6 +95,12 @@ public class GradleVersions {
     return null;
   }
 
+  @NotNull
+  public GradleVersion getGradleVersionOrDefault(@NotNull Project project, GradleVersion defaultVersion) {
+    GradleVersion gradleVersion = getGradleVersion(project);
+    return gradleVersion == null ? defaultVersion : gradleVersion;
+  }
+
   /**
    * Attempts to figure out the Gradle version of the given distribution.
    *

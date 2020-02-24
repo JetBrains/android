@@ -27,6 +27,7 @@ import static org.mockito.Mockito.when;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.builder.model.SyncIssue;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenRepositoryHyperlink;
@@ -207,7 +208,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
     // Add Google repository
     GradleBuildModel buildModel = GradleBuildModel.get(appModule);
     Project project = getProject();
-    buildModel.repositories().addGoogleMavenRepository(project);
+    buildModel.repositories().addGoogleMavenRepository(new GradleVersion(4, 0));
     runWriteCommandAction(project, buildModel::applyChanges);
 
     when(mySyncIssue.getData()).thenReturn("com.android.support:appcompat-v7:24.1.1");

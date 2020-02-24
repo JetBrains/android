@@ -198,16 +198,6 @@ public class RepositoriesModelImpl extends GradleDslBlockModel implements Reposi
   }
 
   @Override
-  public void addGoogleMavenRepository(@NotNull Project project) {
-    if (GradleVersions.getInstance().isGradle4OrNewer(project)) {
-      addRepositoryByMethodName(GOOGLE_METHOD_NAME);
-    }
-    else {
-      addMavenRepositoryByUrl(GOOGLE_DEFAULT_REPO_URL, GOOGLE_DEFAULT_REPO_NAME);
-    }
-  }
-
-  @Override
   public void addGoogleMavenRepository(@NotNull GradleVersion gradleVersion) {
     if (gradleVersion.compareIgnoringQualifiers("4.0") >= 0) {
       addRepositoryByMethodName(GOOGLE_METHOD_NAME);

@@ -33,6 +33,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.util.BuildFileProcessor;
+import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
@@ -169,7 +170,8 @@ public class AndroidPluginVersionUpdater {
             }
             else {
               // Gradle version will *not* change, use project version
-              buildModel.buildscript().repositories().addGoogleMavenRepository(myProject);
+              buildModel.buildscript().repositories().addGoogleMavenRepository(
+                GradleVersions.getInstance().getGradleVersionOrDefault(myProject, new GradleVersion(1, 0)));
             }
           }
           modelsToUpdate.add(buildModel);
