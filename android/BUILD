@@ -180,7 +180,8 @@ iml_module(
         "gradle": {
             "shard_count": 10,
             "data": ["//prebuilts/studio/sdk:ndk"],
-            "tags": ["no_windows"],  # WIP: many sync errors with dependencies, but some others related to paths, etc.
+            # WIP: many sync errors with dependencies, but some others related to paths, etc.
+            "tags": ["no_windows"],
             "test_filter": "com.android.tools.idea.gradle",
         },
         "gradle.structure": {
@@ -203,7 +204,8 @@ iml_module(
         "navigator": {
             "shard_count": 2,
             "data": ["//prebuilts/studio/sdk:ndk"],
-            "tags": ["no_windows"],  # testDependentNativeModules (ag/9872410)
+            # testDependentNativeModules (ag/9872410)
+            "tags": ["no_windows"],
             "test_filter": "com.android.tools.idea.navigator",
         },
         "imports": {
@@ -216,7 +218,8 @@ iml_module(
         },
         "npw.assetstudio": {
             "test_filter": "com.android.tools.idea.npw.assetstudio.ui",
-            "tags": ["no_windows"],  # leaks, json exceptions (b/147453294)
+            # leaks, json exceptions (b/147453294)
+            "tags": ["no_windows"],
         },
         "templates": {
             "shard_count": 3,
