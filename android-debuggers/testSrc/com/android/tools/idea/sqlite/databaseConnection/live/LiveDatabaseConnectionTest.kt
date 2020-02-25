@@ -34,6 +34,7 @@ import com.intellij.testFramework.PlatformTestCase
 import org.jetbrains.ide.PooledThreadExecutor
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
 
 class LiveDatabaseConnectionTest : PlatformTestCase() {
   private val taskExecutor: FutureCallbackExecutor = FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE)
@@ -168,6 +169,36 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
     assertEquals(sqliteRows[0].values[2].value, SqliteValue.StringValue(ByteString.copyFrom("a blob".toByteArray()).toStringUtf8()))
     assertEquals(sqliteRows[0].values[3].value, SqliteValue.StringValue(1.toString()))
     assertEquals(sqliteRows[0].values[4].value, SqliteValue.NullValue)
+  }
+
+  fun testExecuteStatementWithParameters() {
+    // Prepare
+    val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
+    val sqliteStatement = SqliteStatement("fake query", listOf(SqliteValue.StringValue("1"), SqliteValue.NullValue))
+
+    val cursor = Response.newBuilder()
+      .setQuery(QueryResponse.newBuilder())
+      .build()
+
+    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(cursor.toByteArray()))
+
+    liveDatabaseConnection = LiveDatabaseConnection(mockMessenger, 1, taskExecutor)
+
+    // Act
+    pumpEventsAndWaitForFuture(liveDatabaseConnection.execute(sqliteStatement))!!
+
+    // Assert
+    val param1 = SqliteInspectorProtocol.QueryParameterValue.newBuilder().setStringValue("1").build()
+    val paramNull = SqliteInspectorProtocol.QueryParameterValue.newBuilder().build()
+
+    val queryBuilder = SqliteInspectorProtocol.QueryCommand.newBuilder()
+      .setQuery(sqliteStatement.sqliteStatementText)
+      .addAllQueryParameterValues(listOf(param1, paramNull))
+      .setDatabaseId(1)
+
+    val queryCommand = SqliteInspectorProtocol.Command.newBuilder().setQuery(queryBuilder).build()
+    
+    verify(mockMessenger).sendRawCommand(queryCommand.toByteArray())
   }
 
   fun testReturnsEmptyResultSetForEmptyResponse() {
