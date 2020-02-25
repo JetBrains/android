@@ -33,7 +33,7 @@ public class CodeSwapAction extends BaseAction {
 
   public static final String ID = "android.deploy.CodeSwap";
 
-  public static final String NAME = "Apply Code Chang&es";
+  public static final String NAME = "Apply Cod&e Changes";
 
   // TODO: Control Alt F10 is almost always going to get your xserver to send you to
   //       your 10th virtual console.....
