@@ -214,7 +214,8 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
       MyMoveAction moveUpAction = new MyMoveAction(MOVE_UP, -1, IconUtil.getMoveUpIcon());
       MyMoveAction moveDownAction = new MyMoveAction(MOVE_DOWN, 1, IconUtil.getMoveUpIcon());
 
-      ToolbarDecorator toolbarDecorator = ToolbarDecorator.createDecorator(myConfigurations).setAsUsualTopToolbar()
+      ToolbarDecorator toolbarDecorator = ToolbarDecorator.createDecorator(myConfigurations)
+        .setAsUsualTopToolbar()
         .setMoveUpAction(moveUpAction).setMoveUpActionUpdater(moveUpAction).setMoveUpActionName(MOVE_UP)
         .setMoveDownAction(moveDownAction).setMoveDownActionUpdater(moveDownAction).setMoveDownActionName(MOVE_DOWN)
         .setRemoveAction(removeAction).setRemoveActionUpdater(removeAction).setRemoveActionName(REMOVE)
