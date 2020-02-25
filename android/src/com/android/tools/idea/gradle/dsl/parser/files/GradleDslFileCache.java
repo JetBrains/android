@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.files;
 
-import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.CIRCULAR_APPLICATION;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleSettingsFile;
 import static com.intellij.internal.psiView.stubtree.StubViewerPsiBasedTree.LOG;
 
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
@@ -93,20 +91,6 @@ public class GradleDslFileCache {
   @Nullable
   public VirtualFile getCurrentParsingRoot() {
     return myParsingStack.isEmpty() ? null : myParsingStack.getLast();
-  }
-
-  @Nullable
-  public GradleSettingsFile getSettingsFile(@NotNull Project project) {
-    VirtualFile file = getGradleSettingsFile(getBaseDirPath(project));
-    if (file == null) {
-      return null;
-    }
-
-    GradleDslFile dslFile = myParsedBuildFiles.get(file.getUrl());
-    if (dslFile != null && !(dslFile instanceof GradleSettingsFile)) {
-      throw new IllegalStateException("Found wrong type for settings file in cache!");
-    }
-    return (GradleSettingsFile)dslFile;
   }
 
   @NotNull
