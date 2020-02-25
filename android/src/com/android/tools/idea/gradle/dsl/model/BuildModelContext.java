@@ -140,11 +140,6 @@ public final class BuildModelContext {
     return getOrCreateBuildFile(file, file.getName(), isApplied);
   }
 
-  @Nullable
-  public GradleSettingsFile getSettingsFile(@NotNull Project project) {
-    return myFileCache.getSettingsFile(project);
-  }
-
   @NotNull
   public GradleSettingsFile getOrCreateSettingsFile(@NotNull VirtualFile settingsFile) {
     return myFileCache.getOrCreateSettingsFile(settingsFile, this);
