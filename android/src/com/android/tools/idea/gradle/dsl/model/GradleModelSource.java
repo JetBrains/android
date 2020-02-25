@@ -17,11 +17,13 @@ package com.android.tools.idea.gradle.dsl.model;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleSettingsFile;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleModelProvider;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -78,13 +80,14 @@ public class GradleModelSource extends GradleModelProvider {
   @Nullable
   @Override
   public GradleSettingsModel getSettingsModel(@NotNull Project project) {
-    return GradleSettingsModelImpl.get(project);
+    VirtualFile file = getGradleSettingsFile(getBaseDirPath(project));
+    return file != null ? parseSettingsFile(file, project, "settings") : null;
   }
 
   @NotNull
   @Override
   public GradleSettingsModel getSettingsModel(@NotNull VirtualFile settingsFile, @NotNull Project hostProject) {
-    return GradleSettingsModelImpl.get(settingsFile, hostProject);
+    return parseSettingsFile(settingsFile, hostProject, "settings");
   }
 
   @NotNull
@@ -92,5 +95,16 @@ public class GradleModelSource extends GradleModelProvider {
                                                           @NotNull Project project,
                                                           @NotNull String moduleName) {
     return new GradleBuildModelImpl(BuildModelContext.create(project).getOrCreateBuildFile(file, moduleName, false));
+  }
+
+  /**
+   * This method is left here to ensure that when needed we can construct a settings model with only the virtual file.
+   * In most cases {@link GradleSettingsModel}s should be obtained from the {@link ProjectBuildModel}.
+   */
+  @NotNull
+  private static GradleSettingsModel parseSettingsFile(@NotNull VirtualFile file, @NotNull Project project, @NotNull String moduleName) {
+    GradleSettingsFile settingsFile = new GradleSettingsFile(file, project, moduleName, BuildModelContext.create(project));
+    settingsFile.parse();
+    return new GradleSettingsModelImpl(settingsFile);
   }
 }

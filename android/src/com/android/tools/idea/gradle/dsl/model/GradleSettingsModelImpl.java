@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
-import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.FILE_CONSTRUCTOR_NAME;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.FILE_METHOD_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.include.IncludeDslElement.INCLUDE;
 import static com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement.BUILD_FILE_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement.PROJECT_DIR;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleSettingsFile;
 import static com.android.utils.BuildScriptUtil.findGradleBuildFile;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -29,7 +27,6 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
@@ -40,7 +37,6 @@ import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
 import com.android.tools.idea.gradle.dsl.parser.include.IncludeDslElement;
 import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
@@ -49,34 +45,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class GradleSettingsModelImpl extends GradleFileModelImpl implements GradleSettingsModel {
-  private static final String INCLUDE_BUILD = "includeBuild";
-
-  /**
-   * @deprecated Use {@link ProjectBuildModel#getProjectSettingsModel()} instead.
-   */
-  @Deprecated
-  @Nullable
-  public static GradleSettingsModel get(@NotNull Project project) {
-    VirtualFile file = getGradleSettingsFile(getBaseDirPath(project));
-    return file != null ? parseBuildFile(file, project, "settings") : null;
-  }
-
-  @NotNull
-  public static GradleSettingsModel get(@NotNull VirtualFile settingsFile, @NotNull Project hostProject) {
-    return parseBuildFile(settingsFile, hostProject, "settings");
-  }
-
-  /**
-   * This method is left here to ensure that when needed we can construct a settings model with only the virtual file.
-   * In most cases {@link GradleSettingsModel}s should be obtained from the {@link ProjectBuildModel}.
-   */
-  @NotNull
-  private static GradleSettingsModel parseBuildFile(@NotNull VirtualFile file, @NotNull Project project, @NotNull String moduleName) {
-    GradleSettingsFile settingsFile = new GradleSettingsFile(file, project, moduleName, BuildModelContext.create(project));
-    settingsFile.parse();
-    return new GradleSettingsModelImpl(settingsFile);
-  }
-
   public GradleSettingsModelImpl(@NotNull GradleSettingsFile parsedModel) {
     super(parsedModel);
   }
