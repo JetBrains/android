@@ -21,6 +21,7 @@ import com.android.tools.idea.common.surface.layout.findAllScanlines
 import com.android.tools.idea.common.surface.layout.findLargerScanline
 import com.android.tools.idea.common.surface.layout.findSmallerScanline
 import com.android.tools.idea.flags.StudioFlags
+import com.google.common.annotations.VisibleForTesting
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Component
@@ -127,7 +128,8 @@ private data class LayoutData private constructor(
  * per every [SceneView] available. This panel will be positioned on the coordinates of the [SceneView] and can be
  * used to paint Swing elements on top of the [SceneView].
  */
-private class SceneViewPeerPanel(val sceneView: SceneView, sceneViewToolbar: JComponent?) : JPanel() {
+@VisibleForTesting
+class SceneViewPeerPanel(val sceneView: SceneView, val sceneViewToolbar: JComponent?) : JPanel() {
   /**
    * Contains cached layout data that can be used by this panel to verify when it's been invalidated
    * without having to explicitly call [revalidate]
@@ -146,7 +148,8 @@ private class SceneViewPeerPanel(val sceneView: SceneView, sceneViewToolbar: JCo
    * This panel wraps both the label and the toolbar and puts them left aligned (label) and right
    * aligned (the toolbar).
    */
-  private val sceneViewTopPanel = JPanel().apply {
+  @VisibleForTesting
+  val sceneViewTopPanel = JPanel().apply {
     layout = BoxLayout(this, BoxLayout.LINE_AXIS)
     isOpaque = false
     add(modelNameLabel)

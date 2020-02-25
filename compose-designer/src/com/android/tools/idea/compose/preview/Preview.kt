@@ -94,6 +94,20 @@ private val REFRESHING_STATUS = ComposePreviewManager.Status(hasRuntimeErrors = 
                                                              isRefreshing = true)
 
 /**
+ * [NlModel] associated preview data
+ *
+ * @param previewElement the [PreviewElement] associated to this model
+ */
+private class ModelDataContext(private val composePreviewManager: ComposePreviewManager,
+                               private val previewElement: PreviewElement) : DataContext {
+  override fun getData(dataId: String): Any? = when (dataId) {
+    COMPOSE_PREVIEW_MANAGER.name -> composePreviewManager
+    COMPOSE_PREVIEW_ELEMENT.name -> previewElement
+    else -> null
+  }
+}
+
+/**
  * Sets up the given [sceneManager] with the right values to work on the Compose Preview. Currently, this
  * will configure if the preview elements will be displayed with "full device size" or simply containing the
  * previewed components (shrink mode).
@@ -115,11 +129,13 @@ private fun configureLayoutlibSceneManager(sceneManager: LayoutlibSceneManager, 
  */
 private fun configureExistingModel(existingModel: NlModel,
                                    displayName: String,
+                                   newDataContext: ModelDataContext,
                                    fileContents: String,
                                    surface: NlDesignSurface): NlModel {
   existingModel.updateFileContentBlocking(fileContents)
   // Reconfigure the model by setting the new display name and applying the configuration values
   existingModel.modelDisplayName = displayName
+  existingModel.dataContext = newDataContext
   configureLayoutlibSceneManager(surface.getSceneManager(existingModel) as LayoutlibSceneManager,
                                  RenderSettings.getProjectSettings(existingModel.project).showDecorations)
 
@@ -143,7 +159,17 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   private val project = psiFile.project
   private val psiFilePointer = SmartPointerManager.createPointer(psiFile)
 
-  private val previewProvider = GroupNameFilteredPreviewProvider(previewProvider)
+  /**
+   * Filter to be applied for the preview to display a single [PreviewElement]. Used in interactive mode to focus on a
+   * single element.
+   */
+  private val singleElementFilteredProvider = SinglePreviewElementFilteredPreviewProvider(previewProvider)
+
+  /**
+   * Filter to be applied for the group filtering. This allows multiple [PreviewElement]s belonging to the same group
+   */
+  private val groupNameFilteredProvider = GroupNameFilteredPreviewProvider(singleElementFilteredProvider)
+  private val previewProvider = groupNameFilteredProvider as PreviewElementProvider
 
   /**
    * A [UniqueTaskCoroutineLauncher] used to run the image rendering. This ensures that only one image rendering is running at time.
@@ -152,11 +178,17 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   override var groupNameFilter: String? by Delegates.observable(null as String?) { _, oldValue, newValue ->
     if (oldValue != newValue) {
-      this.previewProvider.groupName = newValue
+      this.groupNameFilteredProvider.groupName = newValue
       refresh()
     }
   }
-  override val availableGroups: Set<String> get() = previewProvider.availableGroups
+  override val availableGroups: Set<String> get() = groupNameFilteredProvider.availableGroups
+  override var singlePreviewElementFqnFocus: String? by Delegates.observable(null as String?) { _, oldValue, newValue ->
+    if (oldValue != newValue) {
+      this.singleElementFilteredProvider.composableMethodFqn = newValue
+      refresh()
+    }
+  }
 
   private enum class InteractionMode {
     DEFAULT,
@@ -207,7 +239,8 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       }
       if (value) {
         ticker.start()
-      } else {
+      }
+      else {
         ticker.stop()
       }
     }
@@ -240,15 +273,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * even with errors, we can display additional information about the state of the preview.
    */
   private var hasRenderedAtLeastOnce = false
-
-  private inner class ModelDataContext: DataContext {
-    override fun getData(dataId: String): Any? = if (dataId == COMPOSE_PREVIEW_MANAGER.name) {
-      this@ComposePreviewRepresentation
-    }
-    else {
-      null
-    }
-  }
 
   /**
    * Callback called after refresh has happened
@@ -290,11 +314,13 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   }
 
   private val ticker = ControllableTicker({
-    surface.models.map { surface.getSceneManager(it) }.filterIsInstance<LayoutlibSceneManager>().forEach {
-      it.executeCallbacks().thenRun(
-        Runnable { it.requestRender() })
-    }
-  }, Duration.ofMillis(30))
+                                            surface.models.map {
+                                              surface.getSceneManager(it)
+                                            }.filterIsInstance<LayoutlibSceneManager>().forEach {
+                                              it.executeCallbacks().thenRun(
+                                                Runnable { it.requestRender() })
+                                            }
+                                          }, Duration.ofMillis(30))
 
   init {
     Disposer.register(this, ticker)
@@ -327,7 +353,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     setupChangeListener(
       project,
       psiFile,
-      { if (isAutoBuildEnabled) requestBuildForSurface(surface) else ApplicationManager.getApplication().invokeLater { refresh() } },
+      {
+        if (isAutoBuildEnabled && !hasSyntaxErrors()) requestBuildForSurface(surface)
+        else ApplicationManager.getApplication().invokeLater { refresh() }
+      },
       this)
 
     // When the preview is opened we must trigger an initial refresh. We wait for the project to be smart and synched to do it.
@@ -338,19 +367,19 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   override val component = workbench
 
-  override fun dispose() { }
+  override fun dispose() {}
 
   override var isAutoBuildEnabled: Boolean = COMPOSE_PREVIEW_AUTO_BUILD.get()
     get() = COMPOSE_PREVIEW_AUTO_BUILD.get() && field
 
   private fun hasErrorsAndNeedsBuild(): Boolean = !hasRenderedAtLeastOnce || surface.models.asSequence()
-      .mapNotNull { surface.getSceneManager(it) }
-      .filterIsInstance<LayoutlibSceneManager>()
-      .mapNotNull { it.renderResult?.logger?.brokenClasses?.values }
-      .flatten()
-      .any {
-        it is ReflectiveOperationException && it.stackTrace.any { ex -> COMPOSE_VIEW_ADAPTER == ex.className }
-      }
+    .mapNotNull { surface.getSceneManager(it) }
+    .filterIsInstance<LayoutlibSceneManager>()
+    .mapNotNull { it.renderResult?.logger?.brokenClasses?.values }
+    .flatten()
+    .any {
+      it is ReflectiveOperationException && it.stackTrace.any { ex -> COMPOSE_VIEW_ADAPTER == ex.className }
+    }
 
   private fun hasSyntaxErrors(): Boolean = WolfTheProblemSolver.getInstance(project).isProblemFile(psiFilePointer.virtualFile)
 
@@ -461,7 +490,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
         val model = if (existingModels.isNotEmpty()) {
           LOG.debug("Re-using model")
-          configureExistingModel(existingModels.pop(), previewElement.displaySettings.name, fileContents, surface)
+          configureExistingModel(existingModels.pop(),
+                                 previewElement.displaySettings.name,
+                                 ModelDataContext(this, previewElement),
+                                 fileContents, surface)
         }
         else {
           LOG.debug("No models to reuse were found. New model.")
@@ -472,7 +504,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
             .withModelDisplayName(previewElement.displaySettings.name)
             .withModelUpdater(modelUpdater)
             .withComponentRegistrar(surface.componentRegistrar)
-            .withDataContext(ModelDataContext())
+            .withDataContext(ModelDataContext(this, previewElement))
             .build()
         }
 
@@ -600,7 +632,11 @@ internal class PreviewEditor(psiFile: PsiFile, val representation: ComposePrevie
 
   override fun getName(): String = "Compose Preview"
 
-  fun registerShortcuts(applicableTo: JComponent) { representation.registerShortcuts(applicableTo) }
+  fun registerShortcuts(applicableTo: JComponent) {
+    representation.registerShortcuts(applicableTo)
+  }
 
-  fun updateNotifications() { representation.updateNotifications(this@PreviewEditor) }
+  fun updateNotifications() {
+    representation.updateNotifications(this@PreviewEditor)
+  }
 }

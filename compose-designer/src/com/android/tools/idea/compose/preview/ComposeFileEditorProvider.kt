@@ -50,7 +50,9 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 
-internal val COMPOSE_PREVIEW_MANAGER = DataKey.create<ComposePreviewManager>("ComposePreview.Manager")
+private const val PREFIX = "ComposePreview"
+internal val COMPOSE_PREVIEW_MANAGER = DataKey.create<ComposePreviewManager>("$PREFIX.Manager")
+internal val COMPOSE_PREVIEW_ELEMENT = DataKey.create<PreviewElement>("$PREFIX.PreviewElement")
 
 /**
  * Returns a list of all [ComposePreviewManager]s related to the current context (which is implied to be bound to a particular file).

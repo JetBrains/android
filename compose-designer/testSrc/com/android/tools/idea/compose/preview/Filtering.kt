@@ -20,7 +20,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThat
 import org.junit.Test
 
-class GroupNameFilteredPreviewProviderTest {
+class Filtering {
   @Test
   fun testGroupFiltering() {
     val groupPreviewProvider = GroupNameFilteredPreviewProvider(StaticPreviewProvider(listOf(
@@ -47,5 +47,27 @@ class GroupNameFilteredPreviewProviderTest {
     assertEquals("PreviewMethod3", groupPreviewProvider.previewElements.map { it.displaySettings.name }.single())
 
     groupPreviewProvider.groupName = null
+  }
+
+  @Test
+  fun testSingleElementFiltering() {
+    val singleElementProvider = SinglePreviewElementFilteredPreviewProvider(StaticPreviewProvider(listOf(
+      PreviewElement.forTesting("com.sample.preview.TestClass.PreviewMethod1", "PreviewMethod1", "GroupA"),
+      PreviewElement.forTesting("com.sample.preview.TestClass.PreviewMethod2", "PreviewMethod2", "GroupA"),
+      PreviewElement.forTesting("com.sample.preview.TestClass.PreviewMethod3", "PreviewMethod3", "GroupB"),
+      PreviewElement.forTesting("com.sample.preview.TestClass.PreviewMethod4", "PreviewMethod4")
+    )))
+
+    // No filtering at all
+    assertEquals(4, singleElementProvider.previewElements.size)
+
+    // An invalid group should return all the items
+    singleElementProvider.composableMethodFqn = "com.notvalid.NotValid"
+    assertEquals(4, singleElementProvider.previewElements.size)
+
+    singleElementProvider.composableMethodFqn = "com.sample.preview.TestClass.PreviewMethod3"
+    assertEquals("PreviewMethod3", singleElementProvider.previewElements.single().displaySettings.name)
+    singleElementProvider.composableMethodFqn = "com.sample.preview.TestClass.PreviewMethod1"
+    assertEquals("PreviewMethod1", singleElementProvider.previewElements.single().displaySettings.name)
   }
 }
