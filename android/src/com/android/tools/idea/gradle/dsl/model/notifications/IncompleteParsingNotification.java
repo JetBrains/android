@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model.notifications;
 
 import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
-import com.android.tools.pixelprobe.util.Strings;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 
@@ -49,6 +49,6 @@ public final class IncompleteParsingNotification implements BuildModelNotificati
 
   @NotNull
   public String toString() {
-    return "Found the following unknown element types while parsing: " + Strings.join(myUnknownElementNames, ", ");
+    return "Found the following unknown element types while parsing: " + StringUtil.join(myUnknownElementNames, ", ");
   }
 }
