@@ -752,6 +752,11 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
       exception = exception.getCause();
     }
 
+    if (exception instanceof StackOverflowError) {
+      // StackOverflowError exceptions can have very large stack traces, limit the size when needed
+      exception = summarizeStackOverFlowException((StackOverflowError)exception);
+    }
+
     if (myBrokenClasses == null) {
       myBrokenClasses = new HashMap<>();
     }
