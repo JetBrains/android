@@ -30,6 +30,10 @@ interface ParametersBindingDialogView {
   fun removeListener(listener: Listener)
 
   interface Listener {
-    fun bindingCompletedInvoked(parameters: Map<String, Any>)
+    /**
+     * This method is called when the user has assigned a value to each parameter.
+     * @param parameters A map where each name of a parameter is mapped to the value assigned to it.
+     */
+    fun bindingCompletedInvoked(parameters: Map<String, String?>)
   }
 }

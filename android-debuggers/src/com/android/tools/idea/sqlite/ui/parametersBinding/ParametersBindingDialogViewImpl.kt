@@ -17,29 +17,29 @@ package com.android.tools.idea.sqlite.ui.parametersBinding
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.ui.components.JBCheckBox
+import com.intellij.ui.components.JBTextField
 import java.awt.BorderLayout
 import javax.swing.BoxLayout
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
-import javax.swing.JTextField
 
 /**
  * @see ParametersBindingDialogView
  */
-// TODO(b/143340815) this UI doesn't handle well SQLite statements that contain positional templates instead of named templates.
 class ParametersBindingDialogViewImpl(
   project: Project,
   canBeParent: Boolean
 ) : DialogWrapper(project, canBeParent), ParametersBindingDialogView {
 
-  private val panel = JPanel()
+  val component = JPanel()
   private val namedParameterResolutionPanels = mutableListOf<NamedParameterResolutionPanel>()
 
   private val listeners = mutableListOf<ParametersBindingDialogView.Listener>()
 
   init {
-    panel.layout = BoxLayout(panel, BoxLayout.Y_AXIS)
+    component.layout = BoxLayout(component, BoxLayout.Y_AXIS)
 
     isModal = false
     title = "Parameters Resolution"
@@ -53,7 +53,7 @@ class ParametersBindingDialogViewImpl(
     parametersNames.forEach {
       val namedParameterResolutionPanel = NamedParameterResolutionPanel(it)
       namedParameterResolutionPanels.add(namedParameterResolutionPanel)
-      panel.add(namedParameterResolutionPanel.panel)
+      component.add(namedParameterResolutionPanel.panel)
     }
   }
 
@@ -65,9 +65,9 @@ class ParametersBindingDialogViewImpl(
     listeners.remove(listener)
   }
 
-  override fun createCenterPanel() = panel
+  override fun createCenterPanel() = component
 
-  override fun doOKAction() {
+  public override fun doOKAction() {
     val parametersNameValueMap = namedParameterResolutionPanels.map { it.namedParameter to it.getVariableValue() }.toMap()
     listeners.forEach { it.bindingCompletedInvoked(parametersNameValueMap) }
 
@@ -80,16 +80,21 @@ class ParametersBindingDialogViewImpl(
 
   private inner class NamedParameterResolutionPanel(val namedParameter: String) {
     private val namedParameterLabel = JLabel(namedParameter)
-    val namedParameterValueTextField = JTextField()
+    private val isNullCheckBox = JBCheckBox("Is null")
+    val namedParameterValueTextField = JBTextField()
     val panel = JPanel(BorderLayout())
 
     init {
       panel.add(namedParameterLabel, BorderLayout.WEST)
       panel.add(namedParameterValueTextField, BorderLayout.CENTER)
+      panel.add(isNullCheckBox, BorderLayout.EAST)
+
+      namedParameterValueTextField.name = "value-text-field"
+      isNullCheckBox.name = "null-check-box"
     }
 
-    fun getVariableValue() : String {
-      return namedParameterValueTextField.text
+    fun getVariableValue() : String? {
+      return if (isNullCheckBox.isSelected) null else namedParameterValueTextField.text
     }
   }
 }

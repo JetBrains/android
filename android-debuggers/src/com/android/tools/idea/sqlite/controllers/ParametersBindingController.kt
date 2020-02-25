@@ -48,8 +48,8 @@ class ParametersBindingController(
   }
 
   private inner class ParametersBindingViewListenerImpl : ParametersBindingDialogView.Listener {
-    override fun bindingCompletedInvoked(parameters: Map<String, Any>) {
-      val parametersValues = parametersNames.map { parameters[it] ?: error("Missing parameter") }
+    override fun bindingCompletedInvoked(parameters: Map<String, String?>) {
+      val parametersValues = parametersNames.map { parameters[it] }
       runStatement(SqliteStatement(sqliteStatement, parametersValues))
     }
   }

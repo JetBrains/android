@@ -98,6 +98,18 @@ class ParametersBindingControllerTest : PlatformTestCase() {
     assertContainsElements(ranStatements, listOf(SqliteStatement("select * from Foo", listOf("1", "2"))))
   }
 
+  fun testSupportsNull() {
+    // Prepare
+
+    // Act
+    controller.setUp()
+    val listener = view.listeners.first()
+    listener.bindingCompletedInvoked(mapOf("param1" to null, "param2" to "null"))
+
+    // Assert
+    assertContainsElements(ranStatements, listOf(SqliteStatement("select * from Foo", listOf(null, "null"))))
+  }
+
   fun testRunStatementWithRepeatedNamedParameter() {
     // Prepare
     controller = ParametersBindingController(
