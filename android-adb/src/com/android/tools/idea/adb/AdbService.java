@@ -27,6 +27,7 @@ import com.google.common.io.Files;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.components.ServiceManager;
@@ -34,7 +35,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerListener;
-import com.intellij.util.messages.MessageBusConnection;
 import java.io.File;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -84,9 +84,9 @@ public class AdbService implements Disposable, AdbOptionsService.AdbOptionsListe
     DdmPreferences.setTimeOut(TIMEOUT);
 
     Log.addLogger(new AdbLogOutput.SystemLogRedirecter());
-
+    Application application = ApplicationManager.getApplication();
     AdbOptionsService.getInstance().addListener(this);
-    ApplicationManager.getApplication().getMessageBus().connect().subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {
+    application.getMessageBus().connect().subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {
       @Override
       public void projectClosed(@NotNull Project project) {
         // Ideally, android projects counts should be used here.
@@ -94,7 +94,7 @@ public class AdbService implements Disposable, AdbOptionsService.AdbOptionsListe
         // So, we only check if all projects are closed. If yes, terminate adb.
         if (ProjectManager.getInstance().getOpenProjects().length == 0) {
           LOG.info("Ddmlib can be terminated as no projects");
-          terminateDdmlib();
+          application.executeOnPooledThread(() -> terminateDdmlib());
         }
       }
     });
