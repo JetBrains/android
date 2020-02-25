@@ -16,6 +16,7 @@
 package com.android.tools.idea.mlkit;
 
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.mlkit.lightpsi.LightModelClass;
 import com.android.tools.mlkit.MlkitNames;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -52,7 +53,7 @@ public class MlkitShortNamesCache extends PsiShortNamesCache {
       Map<VirtualFile, MlModelMetadata> modelFileMap = new HashMap<>();
       FileBasedIndex index = FileBasedIndex.getInstance();
       GlobalSearchScope mlkitScope = scope.intersectWith(MlModelFilesSearchScope.inProject(myProject));
-      if (MlkitNames.INPUTS.equals(name) || MlkitNames.OUTPUTS.equals(name)) {
+      if (LightModelClass.getInnerClassNames().stream().anyMatch(value -> name.equals(value))) {
         // Handle inner class, so need to go through all models
         index.processAllKeys(MlModelFileIndex.INDEX_ID, key -> {
           index.processValues(MlModelFileIndex.INDEX_ID, key, null, (file, value) -> {
@@ -96,8 +97,7 @@ public class MlkitShortNamesCache extends PsiShortNamesCache {
       }, myProject);
 
       if (!classNameList.isEmpty()) {
-        classNameList.add(MlkitNames.INPUTS);
-        classNameList.add(MlkitNames.OUTPUTS);
+        classNameList.addAll(LightModelClass.getInnerClassNames());
       }
 
       return ArrayUtil.toStringArray(classNameList);

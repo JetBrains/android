@@ -30,15 +30,17 @@ public class CodeUtils {
   public static String getTypeQualifiedName(@NotNull TensorInfo tensorInfo) {
     if (tensorInfo.getSource() == TensorInfo.Source.INPUT) {
       if (tensorInfo.getContentType() == TensorInfo.ContentType.IMAGE) {
-        return ClassNames.BITMAP;
+        return ClassNames.TENSOR_IMAGE;
       }
       else {
-        return ClassNames.BYTE_BUFFER;
+        return ClassNames.TENSOR_BUFFER;
       }
     }
     else {
-      //TODO(jackqdyulei): support more type after API is finalized
-      return ClassNames.BYTE_BUFFER;
+      if (tensorInfo.getFileType() == TensorInfo.FileType.TENSOR_AXIS_LABELS) {
+        return ClassNames.TENSOR_LABEL;
+      }
+      return ClassNames.TENSOR_BUFFER;
     }
   }
 }
