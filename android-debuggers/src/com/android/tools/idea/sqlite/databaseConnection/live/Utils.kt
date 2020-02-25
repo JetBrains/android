@@ -37,15 +37,12 @@ internal fun buildQueryCommand(sqliteStatement: SqliteStatement, databaseConnect
 
 internal fun SqliteInspectorProtocol.CellValue.toSqliteColumnValue(columnName: String): SqliteColumnValue {
   return when (valueCase) {
-    SqliteInspectorProtocol.CellValue.ValueCase.STRING_VALUE ->
-      SqliteColumnValue(columnName, stringValue)
-    SqliteInspectorProtocol.CellValue.ValueCase.FLOAT_VALUE ->
-      SqliteColumnValue(columnName, floatValue)
-    SqliteInspectorProtocol.CellValue.ValueCase.BLOB_VALUE ->
-      SqliteColumnValue(columnName, blobValue)
-    SqliteInspectorProtocol.CellValue.ValueCase.INT_VALUE ->
-      SqliteColumnValue(columnName, intValue)
-    else -> SqliteColumnValue(columnName, "null")
+    SqliteInspectorProtocol.CellValue.ValueCase.STRING_VALUE -> SqliteColumnValue(columnName, stringValue)
+    SqliteInspectorProtocol.CellValue.ValueCase.FLOAT_VALUE -> SqliteColumnValue(columnName, floatValue)
+    SqliteInspectorProtocol.CellValue.ValueCase.BLOB_VALUE -> SqliteColumnValue(columnName, blobValue)
+    SqliteInspectorProtocol.CellValue.ValueCase.INT_VALUE -> SqliteColumnValue(columnName, intValue)
+    SqliteInspectorProtocol.CellValue.ValueCase.VALUE_NOT_SET-> SqliteColumnValue(columnName, null)
+    null -> error("value is null")
   }
 }
 

@@ -166,7 +166,7 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
     assertEquals(sqliteRows[0].values[1].value, 1f)
     assertEquals(sqliteRows[0].values[2].value, ByteString.copyFrom("a blob".toByteArray()))
     assertEquals(sqliteRows[0].values[3].value, 1)
-    assertEquals(sqliteRows[0].values[4].value, "null")
+    assertEquals(sqliteRows[0].values[4].value, null)
   }
 
   fun testReturnsEmptyResultSetForEmptyResponse() {
