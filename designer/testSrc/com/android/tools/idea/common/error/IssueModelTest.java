@@ -15,11 +15,17 @@
  */
 package com.android.tools.idea.common.error;
 
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.uibuilder.error.RenderIssueProvider;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.lang.annotation.HighlightSeverity;
@@ -31,8 +37,6 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 public class IssueModelTest {
   private IssueModel myIssueModel;
@@ -121,6 +125,36 @@ public class IssueModelTest {
     assertEquals(6, myIssueModel.getIssueCount());
     assertEquals(4, myIssueModel.getErrorCount());
     assertEquals(2, myIssueModel.getWarningCount());
+  }
+
+  @Test
+  public void limitMaxNumberOfIssues() {
+    IssueModel limitedIssueModel = new IssueModel(MoreExecutors.directExecutor(), 5);
+    assertFalse(limitedIssueModel.hasIssues());
+    limitedIssueModel.addIssueProvider(new RenderIssueProvider(
+      createRenderErrorModel(
+        MockIssueFactory.createRenderIssue(HighlightSeverity.ERROR),
+        MockIssueFactory.createRenderIssue(HighlightSeverity.ERROR),
+        MockIssueFactory.createRenderIssue(HighlightSeverity.WARNING))));
+    assertEquals(3, limitedIssueModel.getIssueCount());
+    assertEquals(2, limitedIssueModel.getErrorCount());
+    assertEquals(1, limitedIssueModel.getWarningCount());
+    limitedIssueModel.addIssueProvider(new RenderIssueProvider(
+      createRenderErrorModel(
+        MockIssueFactory.createRenderIssue(HighlightSeverity.ERROR),
+        MockIssueFactory.createRenderIssue(HighlightSeverity.ERROR),
+        MockIssueFactory.createRenderIssue(HighlightSeverity.ERROR),
+        MockIssueFactory.createRenderIssue(HighlightSeverity.ERROR),
+        MockIssueFactory.createRenderIssue(HighlightSeverity.WARNING))));
+
+    assertEquals(6, limitedIssueModel.getIssueCount());
+    assertEquals(4, limitedIssueModel.getErrorCount());
+    assertEquals(1, limitedIssueModel.getWarningCount());
+    Issue issue = Iterables.getLast(limitedIssueModel.getIssues());
+    assertEquals("Too many issues found. 3 not shown.", issue.getSummary());
+    assertEquals("Too many issues were found in this preview, not all of them will be shown in this panel.\n" +
+                 "3 were found and not displayed.", issue.getDescription());
+    assertEquals(HighlightSeverity.WEAK_WARNING, issue.getSeverity());
   }
 
   @Test
