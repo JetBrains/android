@@ -21,7 +21,8 @@ import com.android.SdkConstants.FD_UNIT_TEST
 import com.android.sdklib.AndroidTargetHash
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.AndroidVersion.VersionCodes.P
-import com.android.sdklib.SdkVersionInfo
+import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API
+import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
 import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
@@ -33,6 +34,7 @@ import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.projectsystem.AndroidModulePaths
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.template.ApiTemplateData
+import com.android.tools.idea.wizard.template.ApiVersion
 import com.android.tools.idea.wizard.template.BaseFeature
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.ModuleTemplateData
@@ -40,7 +42,6 @@ import com.android.tools.idea.wizard.template.PackageName
 import com.android.tools.idea.wizard.template.ThemesData
 import com.intellij.openapi.module.Module
 import com.android.tools.idea.wizard.template.ThemeData
-import com.android.tools.idea.wizard.template.Version
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
@@ -118,16 +119,18 @@ class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateD
 
     val target = AndroidPlatform.getInstance(facet.module)?.target
     val moduleInfo = AndroidModuleInfo.getInstance(facet)
+    val targetSdkVersion = moduleInfo.targetSdkVersion
+    val buildSdkVersion = moduleInfo.buildSdkVersion ?: targetSdkVersion
     val minSdkVersion = moduleInfo.minSdkVersion
 
     apis = ApiTemplateData(
-      minSdkVersion.apiString,
-      minSdkVersion.featureLevel,
-      target?.version?.featureLevel?.coerceIfNeeded(facet.module.project) ?: P,
-      moduleInfo.targetSdkVersion.apiLevel,
-      moduleInfo.targetSdkVersion.codename,
-      target?.version?.toApiString(),
-      if (target?.version?.isPreview == true) target.revision else 0
+      buildApi = ApiVersion(buildSdkVersion.featureLevel, buildSdkVersion.apiString),
+      targetApi = ApiVersion(targetSdkVersion.featureLevel, targetSdkVersion.apiString),
+      minApi = ApiVersion(minSdkVersion.featureLevel, minSdkVersion.apiString),
+      // The highest supported/recommended appCompact version is P(28)
+      appCompatVersion = targetSdkVersion.featureLevel.coerceAtMost(P),
+      // Note: target is null for a non-preview release, see VersionItem.getAndroidTarget()
+      buildApiRevision = if (target?.version?.isPreview == true) target.revision else 0
     )
 
     isNew = false
@@ -177,14 +180,13 @@ class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateD
     themesData = ThemesData() // New modules always have a theme (unless its a library, but it will have no activity)
 
     apis = ApiTemplateData(
-      buildVersion.minApiLevelStr,
-      buildVersion.minApiLevel,
-      buildVersion.buildApiLevel.coerceIfNeeded(project),
-      buildVersion.targetApiLevel,
-      buildVersion.targetApiLevelStr,
-      buildVersion.buildApiLevelStr,
-      // Note here that the target is null for a non-preview release, see VersionItem.getAndroidTarget()
-      buildVersion.androidTarget?.revision ?: 0
+      buildApi = ApiVersion(buildVersion.buildApiLevel, buildVersion.buildApiLevelStr),
+      targetApi = ApiVersion(buildVersion.targetApiLevel, buildVersion.targetApiLevelStr),
+      minApi = ApiVersion(buildVersion.minApiLevel, buildVersion.minApiLevelStr),
+      // The highest supported/recommended appCompact version is P(28)
+      appCompatVersion = buildVersion.buildApiLevel.coerceAtMost(P),
+      // Note: target is null for a non-preview release, see VersionItem.getAndroidTarget()
+      buildApiRevision = buildVersion.androidTarget?.revision ?: 0
     )
   }
 
@@ -221,12 +223,6 @@ class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateD
       )
     }
   }
-
-  private fun Version.coerceIfNeeded(project: Project, isNewProject: Boolean = false) =
-    if (project.hasAndroidxSupport(isNewProject))
-      this
-    else
-      this.coerceAtMost(P) // The highest supported/recommended appCompact version is P(28)
 
   fun build() = ModuleTemplateData(
     projectTemplateDataBuilder.build(),
@@ -279,11 +275,12 @@ fun getDummyModuleTemplateDataBuilder(project: Project): ModuleTemplateDataBuild
     formFactor = FormFactor.Mobile
     themesData = ThemesData()
     apis = ApiTemplateData(
-      minApi = SdkVersionInfo.LOWEST_ACTIVE_API.toString(),
-      minApiLevel = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
-      appCompatVersion = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.coerceAtMost(P),
-      buildApiString = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
-      targetApi = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
+      buildApi = ApiVersion(HIGHEST_KNOWN_STABLE_API, HIGHEST_KNOWN_STABLE_API.toString()),
+      targetApi = ApiVersion(HIGHEST_KNOWN_STABLE_API, HIGHEST_KNOWN_STABLE_API.toString()),
+      minApi = ApiVersion(LOWEST_ACTIVE_API, LOWEST_ACTIVE_API.toString()),
+      // The highest supported/recommended appCompact version is P(28)
+      appCompatVersion = HIGHEST_KNOWN_STABLE_API.coerceAtMost(P),
+      buildApiRevision = null
     )
   }
 }

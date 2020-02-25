@@ -37,7 +37,7 @@ fun RecipeExecutor.generateBenchmarkModule(
   val packageName = moduleData.packageName
   val moduleOut = moduleData.rootDir
   val buildToolsVersion = projectData.buildToolsVersion
-  val (minApi, _, buildApi, targetApi, targetApiString, buildApiString) = moduleData.apis
+  val (buildApi, targetApi,  minApi) = moduleData.apis
   val language = projectData.language
 
   val repoUrlManager = RepositoryUrlManager.get()
@@ -51,10 +51,10 @@ fun RecipeExecutor.generateBenchmarkModule(
 
   val bg = buildGradle(
     needsExplicitBuildToolsVersion(GradleVersion.parse(projectData.gradlePluginVersion), Revision.parseRevision(buildToolsVersion)),
-    buildApiString ?: buildApi.toString(),
+    buildApi.apiString,
     buildToolsVersion,
-    minApi,
-    targetApiString ?: targetApi.toString(),
+    minApi.apiString,
+    targetApi.apiString,
     language,
     projectData.gradlePluginVersion
   )
