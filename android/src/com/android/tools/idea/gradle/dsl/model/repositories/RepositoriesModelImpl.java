@@ -24,9 +24,7 @@ import com.android.tools.idea.gradle.dsl.parser.repositories.FlatDirRepositoryDs
 import com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
-import com.android.tools.idea.gradle.util.GradleVersions;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import java.util.Arrays;
 import org.jetbrains.annotations.NotNull;
