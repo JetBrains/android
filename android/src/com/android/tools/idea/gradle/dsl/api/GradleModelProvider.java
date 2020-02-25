@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.api;
 
 import com.android.tools.idea.gradle.dsl.model.GradleModelSource;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -26,7 +27,7 @@ public abstract class GradleModelProvider {
 
   @NotNull
   public static GradleModelProvider getInstance() {
-    return new GradleModelSource();
+    return ApplicationManager.getApplication().getService(GradleModelProvider.class);
   }
 
   @NotNull
