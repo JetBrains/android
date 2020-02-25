@@ -32,6 +32,8 @@ import com.android.tools.idea.projectsystem.AndroidProjectRootUtil;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import org.jetbrains.annotations.NotNull;
@@ -148,5 +150,14 @@ public final class GradleModelSource extends GradleModelProvider {
     public @SystemIndependent String getGradleProjectRootPath(@NotNull Module module) {
       return AndroidProjectRootUtil.getModuleDirPath(module);
     }
+
+    @Nullable
+    @Override
+    public @SystemIndependent String getGradleProjectRootPath(@NotNull Project project) {
+      VirtualFile projectDir = ProjectUtil.guessProjectDir(project);
+      if (projectDir == null) return null;
+      return projectDir.getPath();
+    }
+
   }
 }

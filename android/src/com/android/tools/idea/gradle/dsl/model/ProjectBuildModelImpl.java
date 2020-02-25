@@ -23,8 +23,6 @@ import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.util.ArrayList;
@@ -88,14 +86,19 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
   @Override
   @Nullable
   public GradleSettingsModel getProjectSettingsModel() {
-    VirtualFile virtualFile = null;
+    VirtualFile virtualFile = getProjectSettingsFile();
+    if (virtualFile == null) return null;
+
+    GradleSettingsFile settingsFile = myBuildModelContext.getOrCreateSettingsFile(virtualFile);
+    return new GradleSettingsModelImpl(settingsFile);
+  }
+
+  @Nullable
+  private VirtualFile getProjectSettingsFile() {
+    VirtualFile virtualFile;
     // If we don't have a root build file, guess the location of the settings file from the project.
     if (myProjectBuildFile == null) {
-      VirtualFile projectDir = ProjectUtil.guessProjectDir(myBuildModelContext.getProject());
-      if (projectDir != null) {
-        File ioFile = VfsUtilCore.virtualToIoFile(projectDir);
-        virtualFile = myBuildModelContext.getGradleSettingsFile(ioFile);
-      }
+      virtualFile = myBuildModelContext.getProjectSettingsFile();
     } else {
       virtualFile = myProjectBuildFile.tryToFindSettingsFile();
     }
@@ -103,9 +106,7 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
     if (virtualFile == null) {
       return null;
     }
-
-    GradleSettingsFile settingsFile = myBuildModelContext.getOrCreateSettingsFile(virtualFile);
-    return new GradleSettingsModelImpl(settingsFile);
+    return virtualFile;
   }
 
   @Override
