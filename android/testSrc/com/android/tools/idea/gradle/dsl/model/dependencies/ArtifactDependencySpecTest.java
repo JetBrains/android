@@ -29,7 +29,7 @@ import org.junit.Test;
  * Tests for {@link ArtifactDependencySpecImpl}.
  */
 public class ArtifactDependencySpecTest {
-  private ArtifactDependencySpec myDependency;
+  private ArtifactDependencySpecImpl myDependency;
 
   @Before
   public void setUp() {

@@ -63,16 +63,6 @@ public interface ArtifactDependencySpec {
   @Nullable
   String getExtension();
 
-  void setName(@NotNull String name);
-
-  void setGroup(@Nullable String group);
-
-  void setVersion(@Nullable String version);
-
-  void setClassifier(@Nullable String classifer);
-
-  void setExtension(@Nullable String extension);
-
   @Override
   boolean equals(Object o);
 
