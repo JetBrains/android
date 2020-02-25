@@ -25,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 public abstract class GradleModelProvider {
 
   @NotNull
-  public static GradleModelProvider get() {
+  public static GradleModelProvider getInstance() {
     return new GradleModelSource();
   }
 

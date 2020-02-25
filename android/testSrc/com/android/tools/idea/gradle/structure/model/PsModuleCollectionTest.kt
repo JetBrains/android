@@ -96,7 +96,7 @@ class PsModuleCollectionTest : DependencyTestCase() {
     // Make sure we have correctly patched the build file.
     assertThat(
         GradleModelProvider
-            .get()
+            .getInstance()
             .getProjectModel(resolvedProject)
             .getModuleBuildModel(File(resolvedProject.basePath, "app"))
             ?.plugins()

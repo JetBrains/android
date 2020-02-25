@@ -67,7 +67,7 @@ public interface GradleBuildModel extends GradleFileModel {
   @Deprecated
   @Nullable
   static GradleBuildModel get(@NotNull Project project) {
-    return tryOrLog(() -> GradleModelProvider.get().getBuildModel(project));
+    return tryOrLog(() -> GradleModelProvider.getInstance().getBuildModel(project));
   }
 
   /**
@@ -78,7 +78,7 @@ public interface GradleBuildModel extends GradleFileModel {
   @Deprecated
   @Nullable
   static GradleBuildModel get(@NotNull Module module) {
-    return tryOrLog(() -> GradleModelProvider.get().getBuildModel(module));
+    return tryOrLog(() -> GradleModelProvider.getInstance().getBuildModel(module));
   }
 
   /**
@@ -89,7 +89,7 @@ public interface GradleBuildModel extends GradleFileModel {
   @Deprecated
   @NotNull
   static GradleBuildModel parseBuildFile(@NotNull VirtualFile file, @NotNull Project project) {
-    return GradleModelProvider.get().parseBuildFile(file, project);
+    return GradleModelProvider.getInstance().parseBuildFile(file, project);
   }
 
   @NotNull
