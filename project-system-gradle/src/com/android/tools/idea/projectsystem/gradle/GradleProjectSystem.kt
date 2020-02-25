@@ -18,7 +18,6 @@ package com.android.tools.idea.projectsystem.gradle
 import com.android.AndroidProjectTypes.PROJECT_TYPE_APP
 import com.android.builder.model.SourceProvider
 import com.android.tools.apk.analyzer.AaptInvoker
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModelHandler
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.util.OutputType
