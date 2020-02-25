@@ -383,6 +383,22 @@ public class MemoryProfiler extends StudioProfiler {
     }
   }
 
+  public static void saveHeapProfdSampleToFile(@NotNull ProfilerClient client,
+                                               @NotNull Common.Session session,
+                                               @NotNull Memory.MemoryNativeSampleData info,
+                                               @NotNull OutputStream outputStream) {
+    Transport.BytesResponse response = client.getTransportClient()
+      .getBytes(Transport.BytesRequest.newBuilder().setStreamId(session.getStreamId()).setId(Long.toString(info.getStartTime())).build());
+    if (response.getContents() != ByteString.EMPTY) {
+      try {
+        response.getContents().writeTo(outputStream);
+      }
+      catch (IOException exception) {
+        getLogger().warn("Failed to export native allocation records:\n" + exception);
+      }
+    }
+  }
+
   /**
    * Generate a default name for a memory capture to be exported. The name suggested is based on the current timestamp and the capture type.
    */
