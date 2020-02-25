@@ -39,6 +39,7 @@ import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiParameter;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
@@ -243,28 +244,27 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   private static String buildSampleCode(@NotNull PsiClass modelClass) {
     StringBuilder stringBuilder = new StringBuilder();
     String modelClassName = modelClass.getName();
-    stringBuilder.append(String.format("%s model = new %s(context);<br>", modelClassName, modelClassName));
-    stringBuilder.append(String.format("%s.%s inputs = model.createInputs();<br>", modelClassName, MlkitNames.INPUTS));
+    stringBuilder.append(String.format("%s model = %s.newInstance(context);<br>", modelClassName, modelClassName));
 
-    PsiClass inputsClass = getInnerClass(modelClass, MlkitNames.INPUTS);
-    if (inputsClass != null) {
-      for (PsiMethod psiMethod : inputsClass.getMethods()) {
-        stringBuilder.append(String.format("inputs.%s(/* parameter */);<br>", psiMethod.getName()));
+    PsiMethod processMethod = modelClass.findMethodsByName("process", false)[0];
+    if (processMethod != null && processMethod.getReturnType() != null) {
+      stringBuilder
+        .append(String.format("<br>%s.%s outputs = model.%s(", modelClassName, processMethod.getReturnType().getPresentableText(),
+                              processMethod.getName()));
+      for (PsiParameter parameter : processMethod.getParameterList().getParameters()) {
+        stringBuilder.append(parameter.getType().getPresentableText() + " " + parameter.getName() + ",");
       }
-    }
+      stringBuilder.deleteCharAt(stringBuilder.length() - 1);
 
-    stringBuilder.append(String.format("<br>%s.%s outputs = model.run(inputs);<br><br>", modelClassName, MlkitNames.OUTPUTS));
+      stringBuilder.append(");<br><br>");
+    }
 
     int index = 1;
     PsiClass outputsClass = getInnerClass(modelClass, MlkitNames.OUTPUTS);
     if (outputsClass != null) {
       for (PsiMethod psiMethod : outputsClass.getMethods()) {
-        // Convert html escape characters.
-        String returnType = psiMethod.getReturnType().getPresentableText()
-          .replace("<", "&lt;")
-          .replace(">", "&gt;");
         stringBuilder.append(
-          String.format("%s %s = outputs.%s();<br>", returnType, "data" + index, psiMethod.getName()));
+          String.format("%s %s = outputs.%s();<br>", psiMethod.getReturnType().getPresentableText(), "data" + index, psiMethod.getName()));
         index++;
       }
     }
