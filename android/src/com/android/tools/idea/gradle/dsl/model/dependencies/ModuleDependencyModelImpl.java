@@ -36,7 +36,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
-import static com.android.tools.idea.gradle.util.GradleUtil.getPathSegments;
+import static com.google.common.base.Splitter.on;
 
 public class ModuleDependencyModelImpl extends DependencyModelImpl implements
                                                                    ModuleDependencyModel {
@@ -94,7 +94,7 @@ public class ModuleDependencyModelImpl extends DependencyModelImpl implements
   @Override
   @NotNull
   public String name() {
-    List<String> pathSegments = getPathSegments(path().forceString());
+    List<String> pathSegments = on(GRADLE_PATH_SEPARATOR).omitEmptyStrings().splitToList(path().forceString());
     int segmentCount = pathSegments.size();
     return segmentCount > 0 ? pathSegments.get(segmentCount - 1) : "";
   }
