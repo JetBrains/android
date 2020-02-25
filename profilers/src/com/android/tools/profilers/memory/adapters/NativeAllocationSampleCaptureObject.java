@@ -20,6 +20,7 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.ProfilerClient;
+import com.android.tools.profilers.memory.MemoryProfiler;
 import com.android.tools.profilers.memory.MemoryProfilerConfiguration;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
@@ -60,6 +61,7 @@ public final class NativeAllocationSampleCaptureObject implements CaptureObject 
 
   boolean myIsLoadingError = false;
   boolean myIsDoneLoading = false;
+  private final Memory.MemoryNativeSampleData myInfo;
 
   public NativeAllocationSampleCaptureObject(@NotNull ProfilerClient client,
                                              @NotNull Common.Session session,
@@ -68,6 +70,7 @@ public final class NativeAllocationSampleCaptureObject implements CaptureObject 
     myClassDb = new ClassDb();
     myClient = client;
     mySession = session;
+    myInfo = info;
     myStartTimeNs = info.getStartTime();
     myEndTimeNs = info.getEndTime();
     myStage = stage;
@@ -96,7 +99,7 @@ public final class NativeAllocationSampleCaptureObject implements CaptureObject 
 
   @Override
   public void saveToFile(@NotNull OutputStream outputStream) {
-    // TODO (b/149541949): Export native allocations.
+    MemoryProfiler.saveHeapProfdSampleToFile(myClient, mySession, myInfo, outputStream);
   }
 
   @NotNull
