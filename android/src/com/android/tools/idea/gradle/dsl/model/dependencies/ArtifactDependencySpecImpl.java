@@ -17,18 +17,14 @@ package com.android.tools.idea.gradle.dsl.model.dependencies;
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
-import com.intellij.util.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.google.common.base.Strings.emptyToNull;
@@ -158,10 +154,6 @@ public class ArtifactDependencySpecImpl implements ArtifactDependencySpec {
                                           dependency.version().toString(),
                                           dependency.classifier().toString(),
                                           dependency.extension().toString());
-  }
-
-  public ArtifactDependencySpecImpl(@NotNull GoogleMavenArtifactId artifactId, @Nullable String version) {
-    this(artifactId.getMavenArtifactId(), artifactId.getMavenGroupId(), version, null, null);
   }
 
   public ArtifactDependencySpecImpl(@NotNull String name, @Nullable String group, @Nullable String version) {
