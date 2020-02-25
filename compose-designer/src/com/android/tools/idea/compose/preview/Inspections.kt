@@ -72,6 +72,12 @@ abstract class BasePreviewAnnotationInspection : AbstractKotlinInspection() {
           isPreviewFile = isPreviewFile || PREVIEW_ANNOTATION_FQN == importDirective.importedFqName?.asString()
         }
 
+        override fun visitAnnotationEntry(annotationEntry: KtAnnotationEntry) {
+          super.visitAnnotationEntry(annotationEntry)
+
+          isPreviewFile = isPreviewFile || PREVIEW_ANNOTATION_FQN == annotationEntry.getQualifiedName()
+        }
+
         override fun visitNamedFunction(function: KtNamedFunction) {
           super.visitNamedFunction(function)
 

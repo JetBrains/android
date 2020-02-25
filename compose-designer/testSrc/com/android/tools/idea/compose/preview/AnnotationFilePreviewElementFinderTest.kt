@@ -73,10 +73,18 @@ class AnnotationFilePreviewElementFinderTest : ComposeLightJavaCodeInsightFixtur
         fun NoComposablePreview() {
 
         }
+
+        @Composable
+        @androidx.ui.tooling.preview.Preview(name = "FQN")
+        fun FullyQualifiedAnnotationPreview() {
+
+        }
       """.trimIndent()).toUElement() as UFile
 
+    assertTrue(AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.sourcePsi.virtualFile))
+
     val elements = AnnotationFilePreviewElementFinder.findPreviewMethods(composeTest)
-    assertEquals(4, elements.size)
+    assertEquals(5, elements.size)
     elements[1].let {
       assertEquals("preview2", it.displaySettings.name)
       assertEquals("groupA", it.displaySettings.group)
@@ -121,6 +129,32 @@ class AnnotationFilePreviewElementFinderTest : ComposeLightJavaCodeInsightFixtur
 
     elements[3].let {
       assertEquals("Preview with parameters", it.displaySettings.name)
+    }
+
+    elements[4].let {
+      assertEquals("FQN", it.displaySettings.name)
+    }
+  }
+
+  fun testFindPreviewAnnotationsWithoutImport() {
+    val composeTest = myFixture.addFileToProject(
+      "src/Test.kt",
+      // language=kotlin
+      """
+        import androidx.compose.Composable
+
+        @Composable
+        @androidx.ui.tooling.preview.Preview
+        fun Preview1() {
+        }
+      """.trimIndent()).toUElement() as UFile
+
+    assertTrue(AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.sourcePsi.virtualFile))
+
+    val elements = AnnotationFilePreviewElementFinder.findPreviewMethods(composeTest)
+    elements.single().let {
+      assertEquals("TestKt.Preview1",
+                   it.composableMethodFqn)
     }
   }
 
