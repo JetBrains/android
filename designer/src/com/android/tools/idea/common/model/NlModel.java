@@ -35,12 +35,10 @@ import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.common.type.DesignerEditorFileTypeKt;
 import com.android.tools.idea.common.util.XmlTagUtil;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.common.actions.RefreshRenderAction;
 import com.android.tools.idea.rendering.RenderUtils;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.IdeResourcesUtil;
+import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
 import com.android.tools.idea.res.ResourceRepositoryManager;
@@ -138,63 +136,26 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   @NotNull private final DataContext myDataContext;
 
-  @Slow
   @NotNull
-  public static NlModel create(@Nullable Disposable parent,
-                               @Nullable String modelDisplayName,
-                               @NotNull AndroidFacet facet,
-                               @NotNull VirtualFile file,
-                               @NotNull ConfigurationManager configurationManager,
-                               @NotNull Consumer<NlComponent> componentRegistrar) {
-    return create(parent, modelDisplayName, facet, file, configurationManager.getConfiguration(file), componentRegistrar);
+  public static NlModelBuilder builder(@NotNull AndroidFacet facet, @NotNull VirtualFile file, @NotNull Configuration configuration) {
+    return new NlModelBuilder(facet, file, configuration);
   }
 
+  /**
+   * Method called by the NlModelBuilder to instantiate a new NlModel
+   */
   @Slow
   @NotNull
-  public static NlModel create(@Nullable Disposable parent,
-                               @Nullable String modelDisplayName,
-                               @NotNull AndroidFacet facet,
-                               @NotNull VirtualFile file,
-                               @NotNull Consumer<NlComponent> componentRegistrar) {
-    return create(parent, modelDisplayName, facet, file, ConfigurationManager.getOrCreateInstance(facet), componentRegistrar);
-  }
-
-  @Slow
-  @NotNull
-  public static NlModel create(@Nullable Disposable parent,
-                               @Nullable String modelDisplayName,
-                               @NotNull AndroidFacet facet,
-                               @NotNull VirtualFile file,
-                               @NotNull Configuration configuration,
-                               @NotNull Consumer<NlComponent> componentRegistrar) {
-    return new NlModel(parent, modelDisplayName, facet, file, configuration, componentRegistrar, DataContext.EMPTY_CONTEXT);
-  }
-
-  @Slow
-  @NotNull
-  public static NlModel create(@Nullable Disposable parent,
-                               @Nullable String modelDisplayName,
-                               @NotNull AndroidFacet facet,
-                               @NotNull VirtualFile file,
-                               @NotNull Configuration configuration,
-                               @NotNull Consumer<NlComponent> componentRegistrar,
-                               @Nullable NlModelUpdaterInterface modelUpdater,
-                               @NotNull DataContext dataContext) {
-    return new NlModel(parent, modelDisplayName, facet, file, configuration, componentRegistrar, NlModel::getDefaultXmlFile, modelUpdater,
-                       dataContext);
-  }
-
-  @Slow
-  @NotNull
-  public static NlModel create(@Nullable Disposable parent,
-                               @Nullable String modelDisplayName,
-                               @NotNull AndroidFacet facet,
-                               @NotNull VirtualFile file,
-                               @NotNull Configuration configuration,
-                               @NotNull Consumer<NlComponent> componentRegistrar,
-                               @NotNull BiFunction<Project, VirtualFile, XmlFile> xmlFileProvider,
-                               @NotNull DataContext dataContext) {
-    return new NlModel(parent, modelDisplayName, facet, file, configuration, componentRegistrar, xmlFileProvider, null, dataContext);
+  static NlModel create(@Nullable Disposable parent,
+                        @Nullable String modelDisplayName,
+                        @NotNull AndroidFacet facet,
+                        @NotNull VirtualFile file,
+                        @NotNull Configuration configuration,
+                        @NotNull Consumer<NlComponent> componentRegistrar,
+                        @NotNull BiFunction<Project, VirtualFile, XmlFile> xmlFileProvider,
+                        @Nullable NlModelUpdaterInterface modelUpdater,
+                        @NotNull DataContext dataContext) {
+    return new NlModel(parent, modelDisplayName, facet, file, configuration, componentRegistrar, xmlFileProvider, modelUpdater, dataContext);
   }
 
   protected NlModel(@Nullable Disposable parent,
@@ -307,7 +268,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     return myFile;
   }
 
-  /** Returns the {@code XmlFile} PSI representation of {@code virtualFile} in {@code project}. */
+  /**
+   * Returns the {@code XmlFile} PSI representation of {@code virtualFile} in {@code project}.
+   * @deprecated Use {@link NlModelBuilder} and do not use this method.
+   */
   @NotNull
   private static XmlFile getDefaultXmlFile(Project project, VirtualFile virtualFile) {
     XmlFile file = (XmlFile)AndroidPsiUtils.getPsiFileSafely(project, virtualFile);

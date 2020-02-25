@@ -32,12 +32,14 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.utils.SdkUtils;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import java.awt.Rectangle;
@@ -138,7 +140,11 @@ public class IncludeTagCreator extends SimpleViewCreator {
     LayoutlibSceneManager manager = (LayoutlibSceneManager)surface.getSceneManager();
 
     if (manager != null) {
-      NlModel model = NlModel.create(newFile.getProject(), null, facet, newFile.getVirtualFile(), surface.getComponentRegistrar());
+      VirtualFile virtualFile = newFile.getVirtualFile();
+      NlModel model = NlModel.builder(facet, virtualFile, ConfigurationManager.getOrCreateInstance(facet).getConfiguration(virtualFile))
+        .withParentDisposable(newFile.getProject())
+        .withComponentRegistrar(surface.getComponentRegistrar())
+        .build();
       manager.addRenderListener(new RenderListener() {
         @Override
         public void onRenderCompleted() {

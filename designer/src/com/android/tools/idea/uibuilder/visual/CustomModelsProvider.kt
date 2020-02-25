@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.visual
 import com.android.resources.NightMode
 import com.android.resources.ScreenOrientation
 import com.android.resources.UiMode
-import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.type.typeOf
 import com.android.tools.idea.configurations.Configuration
@@ -106,14 +105,11 @@ class CustomModelsProvider(private val configurationSetListener: ConfigurationSe
     val models = mutableListOf<NlModel>()
 
     // Default layout file. (Based on current configuration in Layout Editor)
-    models.add(NlModel.create(parentDisposable,
-                              "Default (Current File)",
-                              facet,
-                              currentFile,
-                              currentFileConfig,
-                              Consumer { NlComponentHelper.registerComponent(it) },
-                              null,
-                              DataContext.EMPTY_CONTEXT))
+    models.add(NlModel.builder(facet, currentFile, currentFileConfig)
+      .withParentDisposable(parentDisposable)
+      .withModelDisplayName("Default (Current File)")
+      .withComponentRegistrar(Consumer { NlComponentHelper.registerComponent(it) })
+      .build())
 
     // Custom Configurations
     for (attributes in configurationAttributes) {
@@ -126,14 +122,12 @@ class CustomModelsProvider(private val configurationSetListener: ConfigurationSe
                                                            config.locale,
                                                            config.target) ?: currentFile
 
-      val model = NlModel.create(parentDisposable,
-                                 customConfig.name,
-                                 facet,
-                                 betterFile,
-                                 config,
-                                 Consumer { NlComponentHelper.registerComponent(it) },
-                                 null,
-                                 CustomModelDataContext)
+      val model = NlModel.builder(facet, betterFile, config)
+        .withParentDisposable(parentDisposable)
+        .withModelDisplayName(customConfig.name)
+        .withComponentRegistrar(Consumer { NlComponentHelper.registerComponent(it) })
+        .withDataContext(CustomModelDataContext)
+        .build()
       models.add(model)
       Disposer.register(model, config)
       configurationToConfigurationAttributesMap[config] = attributes
