@@ -22,7 +22,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.List;
-import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 
 public interface GradleSettingsModel extends GradleFileModel {
   /**
@@ -72,12 +71,4 @@ public interface GradleSettingsModel extends GradleFileModel {
 
   @Nullable
   File buildFile(@NotNull String modulePath);
-
-  /**
-   * If models are available you might want to use {@link GradleProjectSettings#getCompositeBuild()} instead.
-   *
-   * @return files representing the root folders of the included builds
-   */
-  @NotNull
-  List<VirtualFile> includedBuilds();
 }

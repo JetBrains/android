@@ -86,11 +86,6 @@ class CompositeProjectBuildModelTest : GradleFileModelTestCase() {
     // Check applied property in composite subModule
     val appName = compositeModel.getModuleBuildModel(compositeSub.findChild("build.gradle")!!).android().defaultConfig().applicationId()
     verifyPropertyModel(appName, "android.defaultConfig.${ProductFlavorModelImpl.APPLICATION_ID}", "Super cool app", compositeSub.findChild("build.gradle")!!.path)
-
-    // Check included builds are correct in the main modules settings file
-    val includedBuilds = mainModel.projectSettingsModel!!.includedBuilds()
-    assertSize(1, includedBuilds)
-    assertEquals(compositeRoot.path, includedBuilds[0].path)
   }
 
   @Test
