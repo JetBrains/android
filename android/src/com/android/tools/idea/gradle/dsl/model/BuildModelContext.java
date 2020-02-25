@@ -64,6 +64,9 @@ public final class BuildModelContext {
 
     @Nullable
     @SystemIndependent String getGradleProjectRootPath(@NotNull Module module);
+
+    @Nullable
+    @SystemIndependent String getGradleProjectRootPath(@NotNull Project project);
   }
 
   @NotNull
@@ -333,5 +336,12 @@ public final class BuildModelContext {
     File gradleSettingsFilePath = BuildScriptUtil.findGradleSettingsFile(dirPath);
     VirtualFile result = findFileByIoFile(gradleSettingsFilePath, false);
     return (result != null && result.isValid()) ? result : null;
+  }
+
+  @Nullable
+  public VirtualFile getProjectSettingsFile() {
+    @SystemIndependent String rootPath = myResolvedConfigurationFileLocationProvider.getGradleProjectRootPath(getProject());
+    if (rootPath == null) return null;
+    return getGradleSettingsFile(new File(toSystemDependentName(rootPath)));
   }
 }
