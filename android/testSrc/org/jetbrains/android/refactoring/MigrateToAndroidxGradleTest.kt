@@ -24,6 +24,7 @@ import com.google.common.truth.Truth
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.TextEditor
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
@@ -103,6 +104,7 @@ private fun String.replaceCompileSdkWith(version: String, isGroovy: Boolean) =
 
   fun testMigrationRefactoringKts() {
     loadProject(MIGRATE_TO_ANDROID_X_KTS)
+    Registry.get("platform.random.idempotence.check.rate").setValue(1, getTestRootDisposable())
     val activityMain = "app/src/main/res/layout/activity_main.xml"
     val mainBuildScript = "build.gradle.kts"
     val appBuildScript = "app/build.gradle.kts"
