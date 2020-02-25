@@ -15,21 +15,21 @@
  */
 package com.android.tools.idea.gradle.dsl.api.dependencies;
 
-import com.android.tools.idea.gradle.dsl.api.GradleModelProvider;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpecImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface ArtifactDependencySpec {
   @Nullable
   static ArtifactDependencySpec create(@NotNull String notation) {
-    return GradleModelProvider.get().getArtifactDependencySpec(notation);
+    return ArtifactDependencySpecImpl.create(notation);
   }
 
   @NotNull
   static ArtifactDependencySpec create(@NotNull String name,
                                        @Nullable String group,
                                        @Nullable String version) {
-    return GradleModelProvider.get().getArtifactDependencySpec(name, group, version);
+    return new ArtifactDependencySpecImpl(name, group, version);
   }
 
   @NotNull
@@ -38,7 +38,7 @@ public interface ArtifactDependencySpec {
                                        @Nullable String version,
                                        @Nullable String classifier,
                                        @Nullable String extension) {
-    return GradleModelProvider.get().getArtifactDependencySpec(name, group, version, classifier, extension);
+    return new ArtifactDependencySpecImpl(name, group, version, classifier, extension);
   }
 
   boolean equalsIgnoreVersion(Object o);

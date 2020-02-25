@@ -22,9 +22,6 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleModelProvider;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
-import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
-import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
-import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpecImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -88,28 +85,6 @@ public class GradleModelSource extends GradleModelProvider {
   @Override
   public GradleSettingsModel getSettingsModel(@NotNull VirtualFile settingsFile, @NotNull Project hostProject) {
     return GradleSettingsModelImpl.get(settingsFile, hostProject);
-  }
-
-  @NotNull
-  @Override
-  public ArtifactDependencySpec getArtifactDependencySpec(@NotNull String name, @Nullable String group, @Nullable String version) {
-    return new ArtifactDependencySpecImpl(name, group, version);
-  }
-
-  @NotNull
-  @Override
-  public ArtifactDependencySpec getArtifactDependencySpec(@NotNull String name,
-                                                          @Nullable String group,
-                                                          @Nullable String version,
-                                                          @Nullable String classifier,
-                                                          @Nullable String extension) {
-    return new ArtifactDependencySpecImpl(name, group, version, classifier, extension);
-  }
-
-  @Nullable
-  @Override
-  public ArtifactDependencySpec getArtifactDependencySpec(@NotNull String notation) {
-    return ArtifactDependencySpecImpl.create(notation);
   }
 
   @NotNull
