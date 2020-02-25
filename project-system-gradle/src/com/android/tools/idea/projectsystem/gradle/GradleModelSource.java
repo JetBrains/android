@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.model;
+package com.android.tools.idea.projectsystem.gradle;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
 
@@ -21,10 +21,15 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleModelProvider;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
+import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
+import com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl;
+import com.android.tools.idea.gradle.dsl.model.GradleSettingsModelImpl;
+import com.android.tools.idea.gradle.dsl.model.ProjectBuildModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.projectsystem.AndroidProjectRootUtil;
+import com.intellij.openapi.components.Service;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -33,7 +38,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.SystemIndependent;
 
-public class GradleModelSource extends GradleModelProvider {
+public final class GradleModelSource extends GradleModelProvider {
 
   private static final BuildModelContext.ResolvedConfigurationFileLocationProvider myResolvedConfigurationFileLocationProvider =
     new ResolvedConfigurationFileLocationProviderImpl();
