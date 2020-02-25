@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.model;
 
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement.SUBPROJECTS;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
@@ -33,6 +34,7 @@ import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFileCache;
 import com.android.tools.idea.gradle.dsl.parser.files.GradlePropertiesFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
+import com.android.utils.BuildScriptUtil;
 import com.google.common.collect.ClassToInstanceMap;
 import com.google.common.collect.MutableClassToInstanceMap;
 import com.intellij.openapi.application.ApplicationManager;
@@ -46,6 +48,7 @@ import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.SystemIndependent;
 
 /**
  * A context object used to hold information relevant to each unique instance of the project/build model.
@@ -54,10 +57,20 @@ import org.jetbrains.annotations.Nullable;
  * and {@link ProjectBuildModel#get(Project)}. This can be accessed from each of the {@link GradleDslFile}s.
  */
 public final class BuildModelContext {
+
+  public interface ResolvedConfigurationFileLocationProvider {
+    @Nullable
+    VirtualFile getGradleBuildFile(@NotNull Module module);
+
+    @Nullable
+    @SystemIndependent String getGradleProjectRootPath(@NotNull Module module);
+  }
+
   @NotNull
   private final Project myProject;
   @NotNull
   private final GradleDslFileCache myFileCache;
+  private final ResolvedConfigurationFileLocationProvider myResolvedConfigurationFileLocationProvider;
   @NotNull
   private final Map<GradleDslFile, ClassToInstanceMap<BuildModelNotification>> myNotifications = new HashMap<>();
   @NotNull
@@ -75,13 +88,16 @@ public final class BuildModelContext {
   }
 
   @NotNull
-  public static BuildModelContext create(@NotNull Project project) {
-    return new BuildModelContext(project);
+  public static BuildModelContext create(@NotNull Project project,
+                                         @NotNull ResolvedConfigurationFileLocationProvider resolvedConfigurationFileLocationProvider) {
+    return new BuildModelContext(project, resolvedConfigurationFileLocationProvider);
   }
 
-  private BuildModelContext(@NotNull Project project) {
+  private BuildModelContext(@NotNull Project project,
+                            ResolvedConfigurationFileLocationProvider resolvedConfigurationFileLocationProvider) {
     myProject = project;
     myFileCache = new GradleDslFileCache(project);
+    myResolvedConfigurationFileLocationProvider = resolvedConfigurationFileLocationProvider;
     myDependencyManager = DependencyManager.create();
     myRootProjectFile = null;
   }
@@ -153,7 +169,6 @@ public final class BuildModelContext {
   /**
    * Parses a build file and produces the {@link GradleBuildFile} that represents it.
    *
-   * @param context    the context that should be used for this parse
    * @param project    the project that the build file belongs to
    * @param file       the build file that should be parsed, this must be a gradle build file
    * @param moduleName the name of the module
@@ -270,5 +285,53 @@ public final class BuildModelContext {
         buildDslFile.setParsedElement(element);
       }
     }
+  }
+
+  @Nullable
+  public VirtualFile getGradleBuildFile(@NotNull Module module) {
+    VirtualFile result = myResolvedConfigurationFileLocationProvider.getGradleBuildFile(module);
+    if (result != null) return result;
+
+    @SystemIndependent String rootPath = myResolvedConfigurationFileLocationProvider.getGradleProjectRootPath(module);
+    if (rootPath == null) return null;
+    File moduleRoot = new File(toSystemDependentName(rootPath));
+    return getGradleBuildFile(moduleRoot);
+  }
+
+  /**
+   * Returns the build.gradle file that is expected right in the directory at the given path. For example, if the directory path is
+   * '~/myProject/myModule', this method will look for the file '~/myProject/myModule/build.gradle'. This method does not cause a VFS
+   * refresh of the file, this should be done by the caller if it is likely that the file has just been created on disk.
+   * <p>
+   * <b>Note:</b> Only use this method if you do <b>not</b> have a reference to a {@link Module}. Otherwise use
+   * {@link #getGradleBuildFile(Module)}.
+   * </p>
+   *
+   * @param dirPath the given directory path.
+   * @return the build.gradle file in the directory at the given path, or {@code null} if there is no build.gradle file in the given
+   * directory path.
+   */
+  @Nullable
+  public VirtualFile getGradleBuildFile(@NotNull File dirPath) {
+    File gradleBuildFilePath = BuildScriptUtil.findGradleBuildFile(dirPath);
+    VirtualFile result = findFileByIoFile(gradleBuildFilePath, false);
+    return (result != null && result.isValid()) ? result : null;
+  }
+
+  /**
+   * Returns the VirtualFile corresponding to the Gradle settings file for the given directory, this method will not attempt to refresh the
+   * file system which means it is safe to be called from a read action. If the most up to date information is needed then the caller
+   * should use {@link BuildScriptUtil#findGradleSettingsFile(File)} along with
+   * {@link com.intellij.openapi.vfs.VfsUtil#findFileByIoFile(File, boolean)}
+   * to ensure a refresh occurs.
+   *
+   * @param dirPath the path to find the Gradle settings file for.
+   * @return the VirtualFile representing the Gradle settings file or null if it was unable to be found or the file is invalid.
+   */
+  @Nullable
+  public VirtualFile getGradleSettingsFile(@NotNull File dirPath) {
+    File gradleSettingsFilePath = BuildScriptUtil.findGradleSettingsFile(dirPath);
+    VirtualFile result = findFileByIoFile(gradleSettingsFilePath, false);
+    return (result != null && result.isValid()) ? result : null;
   }
 }

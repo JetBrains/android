@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.files;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleSettingsFile;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
@@ -275,7 +274,7 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
 
     VirtualFile buildFileParent = getFile().getParent();
     while (buildFileParent != null) {
-      VirtualFile maybeSettingsFile = getGradleSettingsFile(virtualToIoFile(buildFileParent));
+      VirtualFile maybeSettingsFile = myBuildModelContext.getGradleSettingsFile(virtualToIoFile(buildFileParent));
       if (maybeSettingsFile != null) {
         return maybeSettingsFile;
       }
