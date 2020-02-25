@@ -73,7 +73,8 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
   }
 
   @NotNull
-  protected ArtifactDependencySpec getSpec() {
+  @Override
+  public ArtifactDependencySpec getSpec() {
     String name = name().toString();
     assert name != null;
     return new ArtifactDependencySpecImpl(name,
