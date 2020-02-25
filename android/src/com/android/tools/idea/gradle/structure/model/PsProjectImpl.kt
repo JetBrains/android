@@ -36,7 +36,7 @@ class PsProjectImpl(
   override val repositorySearchFactory: RepositorySearchFactory = CachingRepositorySearchFactory()
 ) : PsChildModel(), PsProject {
   override val descriptor by PsProjectDescriptors
-  override var parsedModel: ProjectBuildModel = GradleModelProvider.get().getProjectModel(ideProject); private set
+  override var parsedModel: ProjectBuildModel = GradleModelProvider.getInstance().getProjectModel(ideProject); private set
   @Suppress("RedundantModalityModifier")  // Kotlin compiler bug (KT-24833)?
   final override val buildScriptVariables: PsVariables
   @Suppress("RedundantModalityModifier")  // Kotlin compiler bug (KT-24833)?
@@ -104,7 +104,7 @@ class PsProjectImpl(
           isModified = false
         }
       }.execute()
-      parsedModel = GradleModelProvider.get().getProjectModel(ideProject)
+      parsedModel = GradleModelProvider.getInstance().getProjectModel(ideProject)
       variables.refresh()
       buildScriptVariables.refresh()
       internalResolvedModuleModels = null
@@ -130,7 +130,7 @@ class PsProjectImpl(
       }.execute()
     }
     if (runnable()) {
-      parsedModel = GradleModelProvider.get().getProjectModel(ideProject)
+      parsedModel = GradleModelProvider.getInstance().getProjectModel(ideProject)
       variables.refresh()
       internalResolvedModuleModels = null
       moduleCollection.refresh()

@@ -45,7 +45,7 @@ public interface ProjectBuildModel {
    */
   @NotNull
   static ProjectBuildModel get(@NotNull Project project) {
-    return GradleModelProvider.get().getProjectModel(project);
+    return GradleModelProvider.getInstance().getProjectModel(project);
   }
 
   /**
@@ -63,7 +63,7 @@ public interface ProjectBuildModel {
    */
   @Nullable
   static ProjectBuildModel getForCompositeBuild(@NotNull Project hostProject, @NotNull String includedBuildRoot) {
-    return GradleModelProvider.get().getProjectModel(hostProject, includedBuildRoot);
+    return GradleModelProvider.getInstance().getProjectModel(hostProject, includedBuildRoot);
   }
 
   /**

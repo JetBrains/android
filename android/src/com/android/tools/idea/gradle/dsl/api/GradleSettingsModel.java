@@ -31,7 +31,7 @@ public interface GradleSettingsModel extends GradleFileModel {
   @Deprecated
   @Nullable
   static GradleSettingsModel get(@NotNull Project project) {
-    return GradleModelProvider.get().getSettingsModel(project);
+    return GradleModelProvider.getInstance().getSettingsModel(project);
   }
 
   /**
@@ -41,7 +41,7 @@ public interface GradleSettingsModel extends GradleFileModel {
    */
   @NotNull
   static GradleSettingsModel get(@NotNull VirtualFile settingFile, @NotNull Project hostProject) {
-    return GradleModelProvider.get().getSettingsModel(settingFile, hostProject);
+    return GradleModelProvider.getInstance().getSettingsModel(settingFile, hostProject);
   }
 
   @NotNull
