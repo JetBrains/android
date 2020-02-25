@@ -54,7 +54,7 @@ class AnnotationFilePreviewElementFinderTest : ComposeLightJavaCodeInsightFixtur
         }
 
         @Composable
-        @Preview(name = "preview3", widthDp = 1, heightDp = 2, fontScale = 0.2f, showDecorations = true)
+        @Preview(name = "preview3", widthDp = 1, heightDp = 2, fontScale = 0.2f, showDecoration = true)
         fun Preview3() {
         }
 
@@ -94,7 +94,7 @@ class AnnotationFilePreviewElementFinderTest : ComposeLightJavaCodeInsightFixtur
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
       assertEquals(1f, it.configuration.fontScale)
       assertTrue(it.displaySettings.showBackground)
-      assertFalse(it.displaySettings.showDecorations)
+      assertFalse(it.displaySettings.showDecoration)
 
       assertMethodTextRange(composeTest, "Preview2", it.previewBodyPsi?.psiRange?.range!!)
       assertEquals("@Preview(name = \"preview2\", apiLevel = 12, group = \"groupA\", showBackground = true)",
@@ -108,10 +108,10 @@ class AnnotationFilePreviewElementFinderTest : ComposeLightJavaCodeInsightFixtur
       assertEquals(2, it.configuration.height)
       assertEquals(0.2f, it.configuration.fontScale)
       assertFalse(it.displaySettings.showBackground)
-      assertTrue(it.displaySettings.showDecorations)
+      assertTrue(it.displaySettings.showDecoration)
 
       assertMethodTextRange(composeTest, "Preview3", it.previewBodyPsi?.psiRange?.range!!)
-      assertEquals("@Preview(name = \"preview3\", widthDp = 1, heightDp = 2, fontScale = 0.2f, showDecorations = true)",
+      assertEquals("@Preview(name = \"preview3\", widthDp = 1, heightDp = 2, fontScale = 0.2f, showDecoration = true)",
                    it.previewElementDefinitionPsi?.element?.text)
     }
 
@@ -121,7 +121,7 @@ class AnnotationFilePreviewElementFinderTest : ComposeLightJavaCodeInsightFixtur
       assertEquals(UNDEFINED_DIMENSION, it.configuration.width)
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
       assertFalse(it.displaySettings.showBackground)
-      assertFalse(it.displaySettings.showDecorations)
+      assertFalse(it.displaySettings.showDecoration)
 
       assertMethodTextRange(composeTest, "Preview1", it.previewBodyPsi?.psiRange?.range!!)
       assertEquals("@Preview", it.previewElementDefinitionPsi?.element?.text)

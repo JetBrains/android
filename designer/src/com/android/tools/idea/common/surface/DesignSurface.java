@@ -511,9 +511,14 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @NotNull
   public final SceneManager addModelWithoutRender(@NotNull NlModel model) {
     SceneManager manager = addModel(model);
-    for (DesignSurfaceListener listener : ImmutableList.copyOf(myListeners)) {
-      listener.modelChanged(this, model);
-    }
+
+    EdtExecutorService.getInstance().execute(() -> {
+      for (DesignSurfaceListener listener : ImmutableList.copyOf(myListeners)) {
+        // TODO: The listeners have the expectation of the call happening in the EDT. We need
+        //       to address that.
+        listener.modelChanged(this, model);
+      }
+    });
     return manager;
   }
 

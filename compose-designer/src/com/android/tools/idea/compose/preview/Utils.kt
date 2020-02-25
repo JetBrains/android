@@ -229,14 +229,14 @@ private val nullConfiguration = PreviewConfiguration.cleanAndGet(null, null, nul
  *
  * @param name display name of this preview element
  * @param group name that allows multiple previews in separate groups
- * @param showDecorations when true, the system decorations (navigation and status bars) should be displayed as part of the render
+ * @param showDecoration when true, the system decorations (navigation and status bars) should be displayed as part of the render
  * @param showBackground when true, the preview will be rendered with the material background as background color by default
  * @param backgroundColor when [showBackground] is true, this is the background color to be used by the preview. If null, the default
  * activity background specified in the system theme will be used.
  */
 data class PreviewDisplaySettings(val name: String,
                                   val group: String?,
-                                  val showDecorations: Boolean,
+                                  val showDecoration: Boolean,
                                   val showBackground: Boolean,
                                   val backgroundColor: String?)
 

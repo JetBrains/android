@@ -131,7 +131,7 @@ class ComposeDocumentationProvider : DocumentationProviderEx() {
         name = "",
         group = null,
         showBackground = false,
-        showDecorations = false,
+        showDecoration = false,
         backgroundColor = null),
       previewElementDefinitionPsi = null,
       previewBodyPsi = null,

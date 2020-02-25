@@ -24,7 +24,7 @@ import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshAction
 import com.android.tools.idea.compose.preview.actions.GroupSwitchAction
 import com.android.tools.idea.compose.preview.actions.AnimatedPreviewEnabler
-import com.android.tools.idea.compose.preview.actions.ViewOptionsAction
+import com.android.tools.idea.compose.preview.actions.ToggleAutoBuildAction
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
@@ -71,8 +71,11 @@ private class ComposePreviewToolbar(private val surface: DesignSurface) :
   ToolbarActionGroups(surface) {
 
   override fun getNorthGroup(): ActionGroup = DefaultActionGroup(
-    listOf(GroupSwitchAction(), ViewOptionsAction(surface.project), ForceCompileAndRefreshAction(surface)) +
-    if (StudioFlags.COMPOSE_ANIMATED_PREVIEW.get()) listOf(AnimatedPreviewEnabler()) else emptyList()
+    listOfNotNull(
+      GroupSwitchAction(),
+      if (StudioFlags.COMPOSE_PREVIEW_AUTO_BUILD.get()) ToggleAutoBuildAction() else null,
+      ForceCompileAndRefreshAction(surface),
+      if (StudioFlags.COMPOSE_ANIMATED_PREVIEW.get()) AnimatedPreviewEnabler() else null)
   )
 
   override fun getNorthEastGroup(): ActionGroup = DefaultActionGroup().apply {

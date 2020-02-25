@@ -79,7 +79,6 @@ import java.awt.BorderLayout
 import java.time.Duration
 import java.util.EnumMap
 import java.util.function.Consumer
-import java.util.function.Supplier
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.OverlayLayout
@@ -130,14 +129,14 @@ private fun configureLayoutlibSceneManager(sceneManager: LayoutlibSceneManager, 
 private fun configureExistingModel(existingModel: NlModel,
                                    displayName: String,
                                    newDataContext: ModelDataContext,
+                                   showDecorations: Boolean,
                                    fileContents: String,
                                    surface: NlDesignSurface): NlModel {
   existingModel.updateFileContentBlocking(fileContents)
   // Reconfigure the model by setting the new display name and applying the configuration values
   existingModel.modelDisplayName = displayName
   existingModel.dataContext = newDataContext
-  configureLayoutlibSceneManager(surface.getSceneManager(existingModel) as LayoutlibSceneManager,
-                                 RenderSettings.getProjectSettings(existingModel.project).showDecorations)
+  configureLayoutlibSceneManager(surface.getSceneManager(existingModel) as LayoutlibSceneManager, showDecorations)
 
   return existingModel
 }
@@ -203,20 +202,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     .showModelNames()
     .setNavigationHandler(navigationHandler)
     .setDefaultSurfaceState(DesignSurface.State.SPLIT)
-    .setSceneManagerProvider { surface, model ->
-      val currentRenderSettings = RenderSettings.getProjectSettings(project)
-
-      val settingsProvider = Supplier {
-        // For the compose preview we always use live rendering enabled to make use of the image pool. Also
-        // we customize the quality setting and set it to the minimum for now to optimize for rendering speed.
-        // For now we just render at 70% quality to get a good balance of speed/memory vs rendering quality.
-        currentRenderSettings
-          .copy(quality = 0.7f)
-      }
-      // When showing decorations, show the full device size
-      configureLayoutlibSceneManager(LayoutlibSceneManager(model, surface),
-                                     showDecorations = currentRenderSettings.showDecorations)
-    }
     .setActionManagerProvider { surface -> PreviewSurfaceActionManager(surface) }
     .setInteractionHandlerProvider { surface ->
       val interactionHandlers = EnumMap<InteractionMode, InteractionHandler>(InteractionMode::class.java)
@@ -249,16 +234,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     }
 
   private val modelUpdater: NlModel.NlModelUpdaterInterface = DefaultModelUpdater()
-  private var savedIsShowingDecorations: Boolean by Delegates.observable(
-    RenderSettings.getProjectSettings(project).showDecorations) { _, oldValue, newValue ->
-    if (oldValue != newValue) {
-      // If the state changes, [DesignSurface.zoomToFit] will be called  to re-adjust the preview to the new content since the render sizes
-      // will be significantly different. This way, the user will see all the content when this changes.
-      launch(uiThread) {
-        surface.zoomToFit()
-      }
-    }
-  }
 
   /**
    * List of [PreviewElement] being rendered by this editor
@@ -493,7 +468,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           configureExistingModel(existingModels.pop(),
                                  previewElement.displaySettings.name,
                                  ModelDataContext(this, previewElement),
-                                 fileContents, surface)
+                                 previewElement.displaySettings.showDecoration,
+                                 fileContents,
+                                 surface)
         }
         else {
           LOG.debug("No models to reuse were found. New model.")
@@ -516,9 +493,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
         previewElement.configuration.applyTo(model.configuration)
 
-        model
+        model to previewElement
       }
-      .toList()
+      .toMap()
 
     // Remove and dispose pre-existing models that were not used.
     // This will happen if the user removes one or more previews.
@@ -526,9 +503,13 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     existingModels.forEach { surface.removeModel(it) }
     models
       .onEach {
+        val (model, previewElement) = it
         // We call addModel even though the model might not be new. If we try to add an existing model,
         // this will trigger a new render which is exactly what we want.
-        surface.addAndRenderModel(it).await()
+        configureLayoutlibSceneManager(surface.addModelWithoutRender(model) as LayoutlibSceneManager,
+                                       showDecorations = previewElement.displaySettings.showDecoration)
+          .requestRender()
+          .await()
       }.ifEmpty {
         showModalErrorMessage(message("panel.no.previews.defined"))
       }
@@ -557,7 +538,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
     previewElements = filePreviewElements
     hasRenderedAtLeastOnce = true
-    savedIsShowingDecorations = showDecorations
 
     withContext(uiThread) {
       surface.zoomToFit()
@@ -575,20 +555,22 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       isContentBeingRendered = true
       val filePreviewElements = previewProvider.previewElements
 
-      if (filePreviewElements == previewElements && savedIsShowingDecorations == RenderSettings.getProjectSettings(
-          project).showDecorations) {
+      if (filePreviewElements == previewElements) {
         LOG.debug("No updates on the PreviewElements, just refreshing the existing ones")
         // In this case, there are no new previews. We need to make sure that the surface is still correctly
         // configured and that we are showing the right size for components. For example, if the user switches on/off
         // decorations, that will not generate/remove new PreviewElements but will change the surface settings.
-        val showingDecorations = RenderSettings.getProjectSettings(project).showDecorations
         uniqueRefreshLauncher.launch {
           surface.models
-            .mapNotNull { surface.getSceneManager(it) }
-            .filterIsInstance<LayoutlibSceneManager>()
+            .mapNotNull {
+              val sceneManager = surface.getSceneManager(it) as? LayoutlibSceneManager ?: return@mapNotNull null
+              val previewElement = it.dataContext.getData(COMPOSE_PREVIEW_ELEMENT) ?: return@mapNotNull null
+              previewElement to sceneManager
+            }
             .forEach {
+              val (previewElement, sceneManager) = it
               // When showing decorations, show the full device size
-              configureLayoutlibSceneManager(it, showDecorations = showingDecorations)
+              configureLayoutlibSceneManager(sceneManager, showDecorations = previewElement.displaySettings.showDecoration)
             }
           surface.requestRender().await()
         }.join()
