@@ -48,10 +48,12 @@ import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.android.tools.profilers.stacktrace.StackTraceView;
 import com.google.common.annotations.VisibleForTesting;
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -60,6 +62,7 @@ import java.util.Map;
 import java.util.function.LongFunction;
 import javax.swing.Icon;
 import javax.swing.JComponent;
+import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTree;
 import javax.swing.SortOrder;
@@ -79,6 +82,7 @@ import org.jetbrains.annotations.Nullable;
  * for automatically hiding itself.
  */
 final class MemoryInstanceDetailsView extends AspectObserver {
+  private static final String TITLE_TAB_FIELDS = "Fields";
   private static final String TITLE_TAB_REFERENCES = "References";
   private static final String TITLE_TAB_ALLOCATION_CALLSTACK = "Allocation Call Stack";
   private static final String TITLE_TAB_DEALLOCATION_CALLSTACK = "Deallocation Call Stack";
@@ -230,6 +234,15 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       }
     }
 
+    // Populate fields
+    if (myStage.getStudioProfilers().getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled() &&
+        instance.getFieldCount() > 0) {
+      JTree fieldTree = buildFieldTree(instance);
+      JComponent fieldColumnTree = buildFieldColumnTree(fieldTree, capture, instance);
+      myTabsPanel.addTab(TITLE_TAB_FIELDS, fieldColumnTree);
+      hasContent = true;
+    }
+
     // Populate references
     myReferenceColumnTree = buildReferenceColumnTree(capture, instance);
     if (myReferenceColumnTree != null) {
@@ -267,6 +280,90 @@ final class MemoryInstanceDetailsView extends AspectObserver {
     myTabsPanel.setVisible(hasContent);
   }
 
+  private JComponent buildFieldColumnTree(@NotNull JTree tree, @NotNull CaptureObject captureObject, @NotNull InstanceObject instance) {
+    // Add the columns for the tree and take special care of the default sorted column.
+    List<InstanceAttribute> supportedAttributes = captureObject.getInstanceAttributes();
+    InstanceAttribute sortAttribute = Collections.max(supportedAttributes, Comparator.comparingInt(InstanceAttribute::getWeight));
+    ColumnTreeBuilder builder = new ColumnTreeBuilder(tree);
+    for (InstanceAttribute attribute : supportedAttributes) {
+      final AttributeColumn<MemoryObject> column = // TODO(philnguyen) refactor
+        attribute == InstanceAttribute.LABEL ?
+        new AttributeColumn<>(
+          "Instance",
+          ValueColumnRenderer::new,
+          SwingConstants.LEFT,
+          LABEL_COLUMN_WIDTH,
+          SortOrder.ASCENDING,
+          Comparator.comparing(onSubclass(ValueObject.class,
+                                          o -> o.getName().isEmpty() ? o.getValueText() : o.getName(),
+                                          o -> ""))) :
+        myAttributeColumns.get(attribute);
+      ColumnTreeBuilder.ColumnBuilder columnBuilder = column.getBuilder();
+      if (sortAttribute == attribute) {
+        columnBuilder.setInitialOrder(attribute.getSortOrder());
+      }
+      builder.addColumn(columnBuilder);
+    }
+    return builder
+      .setHoverColor(StandardColors.HOVER_COLOR)
+      .setBackground(ProfilerColors.DEFAULT_BACKGROUND)
+      .setBorder(DEFAULT_TOP_BORDER)
+      .setShowVerticalLines(true)
+      .setTableIntercellSpacing(new Dimension())
+      .build();
+  }
+
+  private JTree buildFieldTree(@NotNull InstanceObject instance) {
+    LazyMemoryObjectTreeNode<InstanceObject> fieldTreeRoot = new InstanceDetailsTreeNode(instance);
+    DefaultTreeModel fieldTreeModel = new DefaultTreeModel(fieldTreeRoot);
+    fieldTreeRoot.setTreeModel(fieldTreeModel);
+    fieldTreeRoot.expandNode();
+
+    // Use JTree instead of IJ's tree, because IJ's tree does not happen border's Insets.
+    JTree tree = new JTree();
+    int defaultFontHeight = tree.getFontMetrics(tree.getFont()).getHeight();
+    tree.setRowHeight(defaultFontHeight + ROW_HEIGHT_PADDING);
+    tree.setBorder(TABLE_ROW_BORDER);
+    tree.setRootVisible(false);
+    tree.setShowsRootHandles(true);
+    tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+
+    // Not all nodes have been populated during buildTree. Here we capture the TreeExpansionEvent to check whether any children
+    // under the expanded node need to be populated.
+    tree.addTreeExpansionListener(new TreeExpansionListener() {
+      @Override
+      public void treeExpanded(TreeExpansionEvent event) {
+        TreePath path = event.getPath();
+
+        assert path.getLastPathComponent() instanceof LazyMemoryObjectTreeNode;
+        LazyMemoryObjectTreeNode treeNode = (LazyMemoryObjectTreeNode)path.getLastPathComponent();
+        // children under root have already been expanded (check in case this gets called on the root)
+        if (treeNode != fieldTreeRoot) {
+          treeNode.expandNode();
+          fieldTreeModel.nodeStructureChanged(treeNode);
+        }
+      }
+
+      @Override
+      public void treeCollapsed(TreeExpansionEvent event) {
+        // No-op. TODO remove unseen children?
+      }
+    });
+
+    tree.addFocusListener(new FocusAdapter() {
+      @Override
+      public void focusGained(FocusEvent e) {
+        if (tree.getSelectionCount() == 0 && tree.getRowCount() != 0) {
+          tree.setSelectionRow(0);
+        }
+      }
+    });
+
+    tree.setModel(fieldTreeModel);
+
+    return tree;
+  }
+
   @Nullable
   private JComponent buildReferenceColumnTree(@NotNull CaptureObject captureObject, @NotNull InstanceObject instance) {
     if (instance.getReferences().isEmpty()) {
@@ -274,7 +371,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       return null;
     }
 
-    myReferenceTree = buildTree(instance);
+    myReferenceTree = buildReferenceTree(instance);
     ColumnTreeBuilder builder = new ColumnTreeBuilder(myReferenceTree);
     for (InstanceAttribute attribute : captureObject.getInstanceAttributes()) {
       ColumnTreeBuilder.ColumnBuilder column = myAttributeColumns.get(attribute).getBuilder();
@@ -302,7 +399,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
 
   @VisibleForTesting
   @NotNull
-  JTree buildTree(@NotNull InstanceObject instance) {
+  JTree buildReferenceTree(@NotNull InstanceObject instance) {
     Comparator<MemoryObjectTreeNode<ValueObject>> comparator = null;
     if (myReferenceTree != null && myReferenceTree.getModel() != null && myReferenceTree.getModel().getRoot() != null) {
       Object root = myReferenceTree.getModel().getRoot();
@@ -414,44 +511,5 @@ final class MemoryInstanceDetailsView extends AspectObserver {
     });
 
     return tree;
-  }
-
-  private static class ReferenceTreeNode extends LazyMemoryObjectTreeNode<ValueObject> {
-    @Nullable
-    private List<ReferenceObject> myReferenceObjects = null;
-
-    private ReferenceTreeNode(@NotNull ValueObject valueObject) {
-      super(valueObject, false);
-    }
-
-    @Override
-    public int computeChildrenCount() {
-      if (myReferenceObjects == null) {
-        if (getAdapter() instanceof InstanceObject) {
-          myReferenceObjects = ((InstanceObject)getAdapter()).getReferences();
-        }
-        else if (getAdapter() instanceof ReferenceObject) {
-          myReferenceObjects = ((ReferenceObject)getAdapter()).getReferenceInstance().getReferences();
-        }
-        else {
-          myReferenceObjects = Collections.emptyList();
-        }
-      }
-
-      return myReferenceObjects.size();
-    }
-
-    @Override
-    public void expandNode() {
-      getChildCount(); // ensure we grab all the references
-      assert myReferenceObjects != null;
-      if (myMemoizedChildrenCount != myChildren.size()) {
-        myReferenceObjects.forEach(reference -> {
-          ReferenceTreeNode node = new ReferenceTreeNode(reference);
-          node.setTreeModel(getTreeModel());
-          add(node);
-        });
-      }
-    }
   }
 }

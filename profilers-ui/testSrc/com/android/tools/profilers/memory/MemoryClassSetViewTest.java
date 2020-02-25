@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.memory;
 
-import static com.android.tools.profilers.memory.MemoryClassSetView.InstanceTreeNode;
 import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CALLSTACK;
 import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CLASS;
 import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE;
@@ -30,11 +29,11 @@ import com.android.tools.adtui.common.ColumnTreeTestInfo;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.formatter.NumberFormatter;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Memory.AllocationStack;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
-import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.StudioProfilers;
@@ -50,6 +49,7 @@ import com.android.tools.profilers.memory.adapters.FieldObject;
 import com.android.tools.profilers.memory.adapters.HeapSet;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.MemoryObject;
+import com.android.tools.profilers.memory.adapters.ValueObject;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.intellij.util.containers.ImmutableList;
 import java.util.ArrayList;
@@ -63,6 +63,7 @@ import java.util.function.Supplier;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
 import javax.swing.tree.TreePath;
+import kotlin.Triple;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
@@ -305,21 +306,30 @@ public class MemoryClassSetViewTest {
 
   @Test
   public void testInstanceTreeNodeExpansion() {
-    InstanceTreeNode instanceTreeNode0 = new InstanceTreeNode(myInstanceObjects.get(0));
-    InstanceTreeNode instanceTreeNode1 = new InstanceTreeNode(myInstanceObjects.get(1));
-    InstanceTreeNode instanceTreeNode2 = new InstanceTreeNode(myInstanceObjects.get(2));
-    assertThat(instanceTreeNode0.getBuiltChildren().size()).isEqualTo(0);
-    assertThat(instanceTreeNode1.getBuiltChildren().size()).isEqualTo(0);
-    assertThat(instanceTreeNode2.getBuiltChildren().size()).isEqualTo(0);
-    instanceTreeNode0.expandNode();
-    instanceTreeNode1.expandNode();
-    instanceTreeNode2.expandNode();
-    assertThat(instanceTreeNode0.getBuiltChildren().size()).isEqualTo(0);
-    assertThat(instanceTreeNode0.getBuiltChildren().stream().allMatch(node -> node.getAdapter() instanceof FieldObject)).isTrue();
-    assertThat(instanceTreeNode1.getBuiltChildren().size()).isEqualTo(1);
-    assertThat(instanceTreeNode1.getBuiltChildren().stream().allMatch(node -> node.getAdapter() instanceof FieldObject)).isTrue();
-    assertThat(instanceTreeNode2.getBuiltChildren().size()).isEqualTo(5);
-    assertThat(instanceTreeNode2.getBuiltChildren().stream().allMatch(node -> node.getAdapter() instanceof FieldObject)).isTrue();
+    InstanceDetailsTreeNode instanceTreeNode0 = new InstanceDetailsTreeNode(myInstanceObjects.get(0));
+    InstanceDetailsTreeNode instanceTreeNode1 = new InstanceDetailsTreeNode(myInstanceObjects.get(1));
+    InstanceDetailsTreeNode instanceTreeNode2 = new InstanceDetailsTreeNode(myInstanceObjects.get(2));
+    List<InstanceDetailsTreeNode> nodes = Arrays.asList(instanceTreeNode0, instanceTreeNode1, instanceTreeNode2);
+    nodes.forEach(n -> assertChildCount(n, 0));
+    nodes.forEach(LazyMemoryObjectTreeNode::expandNode);
+    assertChildCount(instanceTreeNode0, 0);
+    assertChildCount(instanceTreeNode1, 1);
+    assertChildCount(instanceTreeNode2, 5);
+    nodes.forEach(n -> assertThat(n.getBuiltChildren().stream().allMatch(c -> c.getAdapter() instanceof FieldObject)).isTrue());
+  }
+
+  @Test
+  public void testLeafNodeExpansion() {
+    myInstanceObjects.forEach(o -> {
+      LeafNode<InstanceObject> node = new LeafNode<>(o);
+      assertChildCount(node, 0);
+      node.expandNode();
+      assertChildCount(node, 0);
+    });
+  }
+
+  private static void assertChildCount(LazyMemoryObjectTreeNode<?> node, int count) {
+    assertThat(node.getBuiltChildren().size()).isEqualTo(count);
   }
 
   @Test

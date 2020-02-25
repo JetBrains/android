@@ -429,12 +429,13 @@ final class MemoryClassSetView extends AspectObserver {
         }
 
         myMemoizedChildrenCount = myClassSet.getInstancesCount();
-        Stream<InstanceObject> instances = myClassSet.getInstancesStream();
-        instances.forEach(subAdapter -> {
-          InstanceTreeNode child = new InstanceTreeNode(subAdapter);
-          child.setTreeModel(myTreeModel);
-          add(child);
-        });
+        myClassSet.getInstancesStream().forEach(subAdapter ->
+          InstanceNodeKt.addChild(
+            this,
+            subAdapter,
+            myStage.getStudioProfilers().getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled() ?
+            LeafNode::new :
+            InstanceDetailsTreeNode::new));
 
         if (myTreeModel != null) {
           myTreeModel.nodeChanged(this);
@@ -612,57 +613,5 @@ final class MemoryClassSetView extends AspectObserver {
         .forEach(child -> results.addAll(findLeafNodesForFieldPath(child, slice)));
     }
     return results;
-  }
-
-  static class InstanceTreeNode extends LazyMemoryObjectTreeNode<ValueObject> {
-    InstanceTreeNode(@NotNull InstanceObject adapter) {
-      super(adapter, true);
-    }
-
-    @Override
-    public int computeChildrenCount() {
-      return ((InstanceObject)getAdapter()).getFieldCount();
-    }
-
-    @Override
-    public void expandNode() {
-      if (myMemoizedChildrenCount == myChildren.size()) {
-        return;
-      }
-
-      List<FieldObject> fields = ((InstanceObject)getAdapter()).getFields();
-      myMemoizedChildrenCount = fields.size();
-      for (FieldObject field : fields) {
-        FieldTreeNode child = new FieldTreeNode(field);
-        child.setTreeModel(getTreeModel());
-        add(child);
-      }
-    }
-  }
-
-  static class FieldTreeNode extends LazyMemoryObjectTreeNode<FieldObject> {
-    FieldTreeNode(@NotNull FieldObject adapter) {
-      super(adapter, true);
-    }
-
-    @Override
-    public int computeChildrenCount() {
-      return getAdapter().getAsInstance() == null ? 0 : getAdapter().getAsInstance().getFieldCount();
-    }
-
-    @Override
-    public void expandNode() {
-      if (myMemoizedChildrenCount == myChildren.size() || getAdapter().getAsInstance() == null) {
-        return;
-      }
-
-      List<FieldObject> fields = getAdapter().getAsInstance().getFields();
-      myMemoizedChildrenCount = fields.size();
-      for (FieldObject field : fields) {
-        FieldTreeNode child = new FieldTreeNode(field);
-        child.setTreeModel(getTreeModel());
-        add(child);
-      }
-    }
   }
 }
