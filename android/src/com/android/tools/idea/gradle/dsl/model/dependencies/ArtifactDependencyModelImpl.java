@@ -295,7 +295,7 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
     @NotNull
     public ResolvedPropertyModel createModelFor(@NotNull String name,
                                                 @NotNull Function<ArtifactDependencySpec, String> getFunc,
-                                                @NotNull BiConsumer<ArtifactDependencySpec, String> setFunc,
+                                                @NotNull BiConsumer<ArtifactDependencySpecImpl, String> setFunc,
                                                 boolean canDelete) {
       GradleDslSimpleExpression element = mySetThrough ? resolveElement(myDslExpression) : myDslExpression;
       FakeElement fakeElement =
@@ -306,31 +306,31 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
     @Override
     @NotNull
     public ResolvedPropertyModel name() {
-      return createModelFor("name", ArtifactDependencySpec::getName, ArtifactDependencySpec::setName, false);
+      return createModelFor("name", ArtifactDependencySpec::getName, ArtifactDependencySpecImpl::setName, false);
     }
 
     @Override
     @NotNull
     public ResolvedPropertyModel group() {
-      return createModelFor("group", ArtifactDependencySpec::getGroup, ArtifactDependencySpec::setGroup, true);
+      return createModelFor("group", ArtifactDependencySpec::getGroup, ArtifactDependencySpecImpl::setGroup, true);
     }
 
     @Override
     @NotNull
     public ResolvedPropertyModel version() {
-      return createModelFor("version", ArtifactDependencySpec::getVersion, ArtifactDependencySpec::setVersion, true);
+      return createModelFor("version", ArtifactDependencySpec::getVersion, ArtifactDependencySpecImpl::setVersion, true);
     }
 
     @Override
     @NotNull
     public ResolvedPropertyModel classifier() {
-      return createModelFor("classifier", ArtifactDependencySpec::getClassifier, ArtifactDependencySpec::setClassifier, true);
+      return createModelFor("classifier", ArtifactDependencySpec::getClassifier, ArtifactDependencySpecImpl::setClassifier, true);
     }
 
     @Override
     @NotNull
     public ResolvedPropertyModel extension() {
-      return createModelFor("extension", ArtifactDependencySpec::getExtension, ArtifactDependencySpec::setExtension, true);
+      return createModelFor("extension", ArtifactDependencySpec::getExtension, ArtifactDependencySpecImpl::setExtension, true);
     }
 
     @NotNull

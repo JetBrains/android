@@ -39,7 +39,7 @@ public class ArtifactDependencySpecImpl implements ArtifactDependencySpec {
   @Nullable private String extension;
 
   @Nullable
-  public static ArtifactDependencySpec create(@NotNull String notation) {
+  public static ArtifactDependencySpecImpl create(@NotNull String notation) {
     // Example: org.gradle.test.classifiers:service:1.0:jdk15@jar where
     //   group: org.gradle.test.classifiers
     //   name: service
@@ -120,27 +120,22 @@ public class ArtifactDependencySpecImpl implements ArtifactDependencySpec {
     return extension;
   }
 
-  @Override
   public void setName(@NotNull String newName) {
     name = newName;
   }
 
-  @Override
   public void setGroup(@Nullable String newGroup) {
     group = newGroup;
   }
 
-  @Override
   public void setVersion(@Nullable String newVersion) {
     version = newVersion;
   }
 
-  @Override
   public void setClassifier(@Nullable String newClassifier) {
     classifier = newClassifier;
   }
 
-  @Override
   public void setExtension(@Nullable String newExtension) {
     extension = newExtension;
   }
