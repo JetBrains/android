@@ -35,18 +35,6 @@ import static com.google.common.base.Strings.emptyToNull;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class ArtifactDependencySpecImpl implements ArtifactDependencySpec {
-  // Map to allow iteration over each element in the ArtifactDependencySpec
-  static final Map<String, Function<ArtifactDependencySpec, String>> COMPONENT_MAP;
-
-  static {
-    COMPONENT_MAP = new LinkedHashMap<>();
-    COMPONENT_MAP.put("name", ArtifactDependencySpec::getName);
-    COMPONENT_MAP.put("group", ArtifactDependencySpec::getGroup);
-    COMPONENT_MAP.put("version", ArtifactDependencySpec::getVersion);
-    COMPONENT_MAP.put("ext", ArtifactDependencySpec::getExtension);
-    COMPONENT_MAP.put("classifier", ArtifactDependencySpec::getClassifier);
-  }
-
   @NotNull private String name;
 
   @Nullable private String group;
