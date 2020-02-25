@@ -73,7 +73,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   @NonNls private static final String PLUGIN = "plugin";
   @NonNls private static final String ID = "id";
 
-  GradleBuildModelImpl(@NotNull GradleBuildFile buildDslFile) {
+  public GradleBuildModelImpl(@NotNull GradleBuildFile buildDslFile) {
     super(buildDslFile);
   }
 
