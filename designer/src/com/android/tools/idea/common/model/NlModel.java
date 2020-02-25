@@ -134,7 +134,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   @NotNull private final NlModelUpdaterInterface myModelUpdater;
 
-  @NotNull private final DataContext myDataContext;
+  @NotNull private DataContext myDataContext;
 
   @NotNull
   public static NlModelBuilder builder(@NotNull AndroidFacet facet, @NotNull VirtualFile file, @NotNull Configuration configuration) {
@@ -1002,5 +1002,12 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   @NotNull
   public final DataContext getDataContext() {
     return myDataContext;
+  }
+
+  /**
+   * Updates the NlModel data context with the given one.
+   */
+  public final void setDataContext(@NotNull DataContext dataContext) {
+    myDataContext = dataContext;
   }
 }

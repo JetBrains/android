@@ -22,6 +22,7 @@ import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -64,7 +65,17 @@ internal class PreviewSurfaceActionManager(private val surface: DesignSurface) :
     // For now, we just display a mock toolbar. This will be replaced in the future with SceneView the toolbar.
     add(CommonToggleButton("Interactive", null).apply {
       addChangeListener {
-        sceneView.scene.sceneManager.model.dataContext.getData(COMPOSE_PREVIEW_MANAGER)?.isInteractive = isSelected
+        val modelDataContext = sceneView.scene.sceneManager.model.dataContext
+        val manager = modelDataContext.getData(COMPOSE_PREVIEW_MANAGER) ?: return@addChangeListener
+        val composableFqn = modelDataContext.getData(COMPOSE_PREVIEW_ELEMENT)?.composableMethodFqn ?: return@addChangeListener
+
+        manager.singlePreviewElementFqnFocus = if (isSelected) {
+          composableFqn
+        }
+        else {
+          null
+        }
+        manager.isInteractive = isSelected
       }
     }, BorderLayout.LINE_END)
     add(CommonButton(StudioIcons.Shell.Toolbar.RUN), BorderLayout.LINE_END)

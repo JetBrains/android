@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.compose
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
@@ -32,8 +33,10 @@ import junit.framework.TestCase.assertFalse
 import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.fixture.JPopupMenuFixture
 import org.fest.swing.timing.Wait
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -52,10 +55,20 @@ class ComposePreviewTest {
   @get:Rule
   val renderTaskLeakCheckRule = RenderTaskLeakCheckRule()
 
-  private fun openComposePreview(fixture: IdeFrameFixture): SplitEditorFixture {
+  @Before
+  fun setUp() {
+    StudioFlags.NELE_SCENEVIEW_TOP_TOOLBAR.override(true)
+  }
+
+  @After
+  fun tearDown() {
+    StudioFlags.NELE_SCENEVIEW_TOP_TOOLBAR.clearOverride()
+  }
+
+  private fun openComposePreview(fixture: IdeFrameFixture, fileName: String = "MainActivity.kt"): SplitEditorFixture {
     // Open the main compose activity and check that the preview is present
     val editor = fixture.editor
-    val file = "app/src/main/java/google/simpleapplication/MainActivity.kt"
+    val file = "app/src/main/java/google/simpleapplication/$fileName"
     editor.open(file)
 
     fixture.invokeMenuPath("Build", "Make Project")
@@ -232,5 +245,39 @@ class ComposePreviewTest {
     assertEquals(2, composePreview.designSurface.allSceneViews.count())
 
     editor.close()
+  }
+
+  @Test
+  @RunIn(TestGroup.UNRELIABLE) // b/148859613
+  @Throws(Exception::class)
+  fun testInteractiveSwitch() {
+    val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
+    val composePreview = openComposePreview(fixture, "MultipleComposePreviews.kt")
+
+    composePreview
+      .waitForRenderToFinish()
+      .getNotificationsFixture()
+      .assertNoNotifications()
+
+    assertFalse(composePreview.hasRenderErrors())
+
+    assertEquals(3, composePreview.designSurface
+      .allSceneViews
+      .size)
+
+    composePreview.designSurface
+      .allSceneViews
+      .first()
+      .toolbar()
+      .clickButtonByText("Interactive")
+
+    composePreview
+      .waitForRenderToFinish()
+
+    assertEquals(1, composePreview.designSurface
+      .allSceneViews
+      .size)
+
+    fixture.editor.close()
   }
 }
