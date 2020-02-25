@@ -268,4 +268,29 @@ class AppInspectionDiscoveryHostTest {
 
     latch.await()
   }
+
+  @Test
+  fun launchInspectableProcessCreatesTarget() {
+    // Setup
+    val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
+    val discoveryHost = AppInspectionDiscoveryHost(executor, TransportClient(grpcServerRule.name))
+
+    val targetReadyLatch = CountDownLatch(1)
+    lateinit var targetToVerify: AppInspectionTarget
+    discoveryHost.discovery.addTargetListener(MoreExecutors.directExecutor()) {
+      targetToVerify = it
+      targetReadyLatch.countDown()
+    }
+
+    // Launch the fake process
+    launchFakeProcess(discoveryHost)
+
+    // Wait to be notified of new AppInspectionTarget
+    targetReadyLatch.await()
+
+    // Verify
+    assertThat(targetToVerify.descriptor.info.manufacturer).isEqualTo(FakeTransportService.FAKE_DEVICE.manufacturer)
+    assertThat(targetToVerify.descriptor.info.model).isEqualTo(FakeTransportService.FAKE_DEVICE.model)
+    assertThat(targetToVerify.descriptor.info.processName).isEqualTo(FakeTransportService.FAKE_PROCESS_NAME)
+  }
 }

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.appinspection.api
 
-import com.android.tools.idea.transport.manager.TransportStreamChannel
 import com.android.tools.profiler.proto.Common
 
 data class ProcessInfo(
@@ -48,13 +47,13 @@ sealed class ProcessDescriptor {
  * processes running on device and can be matched with [LaunchedProcessDescriptor] supplied by AndroidLaunchTaskContributor.
  */
 internal class TransportProcessDescriptor(
-  val streamChannel: TransportStreamChannel,
+  val stream: Common.Stream,
   val process: Common.Process
 ) : ProcessDescriptor() {
   override val info = ProcessInfo(
-    streamChannel.stream.device.manufacturer,
-    streamChannel.stream.device.model,
-    streamChannel.stream.device.serial,
+    stream.device.manufacturer,
+    stream.device.model,
+    stream.device.serial,
     process.name
   )
 }

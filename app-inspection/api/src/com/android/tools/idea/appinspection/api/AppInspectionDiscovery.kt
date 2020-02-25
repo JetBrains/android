@@ -199,7 +199,7 @@ class AppInspectionDiscoveryHost(
   private fun addProcess(streamChannel: TransportStreamChannel, process: Common.Process) {
     synchronized(processData) {
       processData.processesMap.computeIfAbsent(StreamProcessIdPair(streamChannel.stream.streamId, process.pid)) {
-        val descriptor = TransportProcessDescriptor(streamChannel, process)
+        val descriptor = TransportProcessDescriptor(streamChannel.stream, process)
         descriptor.getLaunchedAppCopier()?.let {
           addInspectableProcess(descriptor, it)
         }
@@ -218,7 +218,7 @@ class AppInspectionDiscoveryHost(
   ) {
     if (!processData.inspectableProcesses.contains<ProcessDescriptor>(transportProcessDescriptor)) {
       val attachableProcess =
-        AttachableProcessDescriptor(transportProcessDescriptor.streamChannel.stream, transportProcessDescriptor.process, jarCopier)
+        AttachableProcessDescriptor(transportProcessDescriptor.stream, transportProcessDescriptor.process, jarCopier)
       processData.inspectableProcesses.add(attachableProcess)
       processData.processListeners.forEach { (listener, executor) -> executor.execute { listener.onProcessConnected(attachableProcess) } }
       attachToProcess(attachableProcess)
