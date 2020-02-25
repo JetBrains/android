@@ -46,9 +46,10 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
   /**
    * @param project the project this model should be built for
    * @param file the file contain the projects main build.gradle
+   * @param buildModelContext
    */
-  ProjectBuildModelImpl(@NotNull Project project, @Nullable VirtualFile file) {
-    myBuildModelContext = BuildModelContext.create(project);
+  ProjectBuildModelImpl(@NotNull Project project, @Nullable VirtualFile file, @NotNull BuildModelContext buildModelContext) {
+    myBuildModelContext = buildModelContext;
     myProjectBuildFile = myBuildModelContext.parseProjectBuildFile(project, file);
   }
 
