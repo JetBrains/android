@@ -204,7 +204,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
 
     val buildscriptDependencies = buildModel.buildscript().dependencies()
     val targetDependencyModel = buildscriptDependencies.artifacts(CLASSPATH_CONFIGURATION_NAME).firstOrNull {
-      toBeAddedDependency.equalsIgnoreVersion(ArtifactDependencySpec.create(it))
+      toBeAddedDependency.equalsIgnoreVersion(it.spec)
     }
     if (targetDependencyModel == null) {
       buildscriptDependencies.addArtifact(CLASSPATH_CONFIGURATION_NAME, toBeAddedDependency)

@@ -26,11 +26,6 @@ public interface ArtifactDependencySpec {
   }
 
   @NotNull
-  static ArtifactDependencySpec create(@NotNull ArtifactDependencyModel dependency) {
-    return GradleModelProvider.get().getArtifactDependencySpec(dependency);
-  }
-
-  @NotNull
   static ArtifactDependencySpec create(@NotNull String name,
                                        @Nullable String group,
                                        @Nullable String version) {

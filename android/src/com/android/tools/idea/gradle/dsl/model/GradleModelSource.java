@@ -106,12 +106,6 @@ public class GradleModelSource extends GradleModelProvider {
     return new ArtifactDependencySpecImpl(name, group, version, classifier, extension);
   }
 
-  @NotNull
-  @Override
-  public ArtifactDependencySpec getArtifactDependencySpec(@NotNull ArtifactDependencyModel dependency) {
-    return ArtifactDependencySpecImpl.create(dependency);
-  }
-
   @Nullable
   @Override
   public ArtifactDependencySpec getArtifactDependencySpec(@NotNull String notation) {
