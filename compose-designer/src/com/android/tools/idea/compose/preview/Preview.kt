@@ -467,14 +467,13 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           LOG.debug("No models to reuse were found. New model.")
           val file = ComposeAdapterLightVirtualFile("testFile.xml", fileContents)
           val configuration = Configuration.create(configurationManager, null, FolderConfiguration.createDefault())
-          NlModel.create(this@ComposePreviewRepresentation,
-                         previewElement.displaySettings.name,
-                         facet,
-                         file,
-                         configuration,
-                         surface.componentRegistrar,
-                         modelUpdater,
-                         ModelDataContext())
+          NlModel.builder(facet, file, configuration)
+            .withParentDisposable(this@ComposePreviewRepresentation)
+            .withModelDisplayName(previewElement.displaySettings.name)
+            .withModelUpdater(modelUpdater)
+            .withComponentRegistrar(surface.componentRegistrar)
+            .withDataContext(ModelDataContext())
+            .build()
         }
 
         val offset = ReadAction.compute<Int, Throwable> {

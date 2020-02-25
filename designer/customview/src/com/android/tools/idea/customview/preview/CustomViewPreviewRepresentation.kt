@@ -44,13 +44,10 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.SceneMode
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.ide.util.PropertiesComponent
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditor
-import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.UserDataHolderEx
@@ -64,7 +61,6 @@ import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.uipreview.ModuleClassLoaderManager
 import java.awt.BorderLayout
 import java.util.function.BiFunction
 import java.util.function.Consumer
@@ -351,14 +347,12 @@ class CustomViewPreviewRepresentation(
       val model = if (surface.models.isEmpty()) {
         val customPreviewXml = CustomViewLightVirtualFile("custom_preview.xml", fileContent)
         val config = Configuration.create(configurationManager, null, FolderConfiguration.createDefault())
-        NlModel.create(this@CustomViewPreviewRepresentation,
-                       className,
-                       facet,
-                       customPreviewXml,
-                       config,
-                       surface.componentRegistrar,
-                       BiFunction { project, _ -> AndroidPsiUtils.getPsiFileSafely(project, customPreviewXml) as XmlFile },
-                       DataContext.EMPTY_CONTEXT)
+        NlModel.builder(facet, customPreviewXml, config)
+          .withParentDisposable(this@CustomViewPreviewRepresentation)
+          .withModelDisplayName(className)
+          .withXmlProvider(BiFunction { project, _ -> AndroidPsiUtils.getPsiFileSafely(project, customPreviewXml) as XmlFile })
+          .withComponentRegistrar(surface.componentRegistrar)
+          .build()
       } else {
         // We want to deactivate the surface so that configuration changes do not trigger scene repaint.
         surface.deactivate()

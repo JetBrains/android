@@ -47,12 +47,11 @@ object LargeFontModelsProvider : VisualizationModelsProvider {
     val defaultConfig = configurationManager.getConfiguration(virtualFile)
 
     val models = mutableListOf<NlModel>()
-    models.add(NlModel.create(parentDisposable,
-                              "Default (100%)",
-                              facet,
-                              virtualFile,
-                              defaultConfig,
-                              Consumer<NlComponent> { NlComponentHelper.registerComponent(it) }))
+    models.add(NlModel.builder(facet, virtualFile, defaultConfig)
+                 .withParentDisposable(parentDisposable)
+                 .withModelDisplayName("Default (100%)")
+                 .withComponentRegistrar(Consumer<NlComponent> { NlComponentHelper.registerComponent(it) })
+                 .build())
 
     val smallerFontConfig = Configuration.create(defaultConfig, virtualFile)
     smallerFontConfig.fontScale = SCALE_SMALLER
@@ -61,26 +60,23 @@ object LargeFontModelsProvider : VisualizationModelsProvider {
     val largestFontConfig = Configuration.create(defaultConfig, virtualFile)
     largestFontConfig.fontScale = SCALE_LARGEST
 
-    models.add(NlModel.create(parentDisposable,
-                              "Small (85%)",
-                              facet,
-                              virtualFile,
-                              smallerFontConfig,
-                              Consumer<NlComponent> { NlComponentHelper.registerComponent(it) }))
+    models.add(NlModel.builder(facet, virtualFile, smallerFontConfig)
+                 .withParentDisposable(parentDisposable)
+                 .withModelDisplayName("Small (85%)")
+                 .withComponentRegistrar(Consumer<NlComponent> { NlComponentHelper.registerComponent(it) })
+                 .build())
 
-    models.add(NlModel.create(parentDisposable,
-                              "Large (115%)",
-                              facet,
-                              virtualFile,
-                              largerFontConfig,
-                              Consumer<NlComponent> { NlComponentHelper.registerComponent(it) }))
+    models.add(NlModel.builder(facet, virtualFile, largerFontConfig)
+                 .withParentDisposable(parentDisposable)
+                 .withModelDisplayName("Large (115%)")
+                 .withComponentRegistrar(Consumer<NlComponent> { NlComponentHelper.registerComponent(it) })
+                 .build())
 
-    models.add(NlModel.create(parentDisposable,
-                              "Largest (130%)",
-                              facet,
-                              virtualFile,
-                              largestFontConfig,
-                              Consumer<NlComponent> { NlComponentHelper.registerComponent(it) }))
+    models.add(NlModel.builder(facet, virtualFile, largestFontConfig)
+                 .withParentDisposable(parentDisposable)
+                 .withModelDisplayName("Largest (130%)")
+                 .withComponentRegistrar(Consumer<NlComponent> { NlComponentHelper.registerComponent(it) })
+                 .build())
     return models
   }
 }
