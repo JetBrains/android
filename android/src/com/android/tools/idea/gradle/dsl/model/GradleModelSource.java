@@ -25,7 +25,6 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpecImpl;
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -117,12 +116,6 @@ public class GradleModelSource extends GradleModelProvider {
   @Override
   public ArtifactDependencySpec getArtifactDependencySpec(@NotNull String notation) {
     return ArtifactDependencySpecImpl.create(notation);
-  }
-
-  @NotNull
-  @Override
-  public ArtifactDependencySpec getArtifactDependencySpec(@NotNull GoogleMavenArtifactId artifactId, @Nullable String version) {
-    return new ArtifactDependencySpecImpl(artifactId, version);
   }
 
   @NotNull

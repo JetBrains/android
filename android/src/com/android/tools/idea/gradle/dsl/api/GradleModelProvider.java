@@ -73,7 +73,4 @@ public abstract class GradleModelProvider {
 
   @Nullable
   public abstract ArtifactDependencySpec getArtifactDependencySpec(@NotNull String notation);
-
-  @NotNull
-  public abstract ArtifactDependencySpec getArtifactDependencySpec(@NotNull GoogleMavenArtifactId artifactId, @Nullable String version);
 }
