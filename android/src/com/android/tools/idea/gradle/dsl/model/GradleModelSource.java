@@ -37,7 +37,7 @@ public class GradleModelSource extends GradleModelProvider {
   @Override
   public ProjectBuildModel getProjectModel(@NotNull Project project) {
     VirtualFile file = getGradleBuildFile(getBaseDirPath(project));
-    return new ProjectBuildModelImpl(project, file);
+    return new ProjectBuildModelImpl(project, file, BuildModelContext.create(project));
   }
 
   @Override
@@ -48,7 +48,7 @@ public class GradleModelSource extends GradleModelProvider {
       return null;
     }
 
-    return new ProjectBuildModelImpl(hostProject, file);
+    return new ProjectBuildModelImpl(hostProject, file, BuildModelContext.create(hostProject));
   }
 
   @Nullable
