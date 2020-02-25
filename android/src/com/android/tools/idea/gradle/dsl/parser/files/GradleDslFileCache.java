@@ -16,10 +16,10 @@
 package com.android.tools.idea.gradle.dsl.parser.files;
 
 import static com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.CIRCULAR_APPLICATION;
-import static com.intellij.internal.psiView.stubtree.StubViewerPsiBasedTree.LOG;
 
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
 import com.google.common.base.Charsets;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.IOException;
@@ -115,8 +115,9 @@ public class GradleDslFileCache {
         Properties properties = getProperties(file);
         dslFile = new GradlePropertiesFile(properties, file, myProject, moduleName, context);
         myParsedBuildFiles.put(file.getUrl(), dslFile);
-      } catch (IOException e) {
-        LOG.warn("Failed to process properties file " + file.getPath(), e);
+      }
+      catch (IOException e) {
+        Logger.getInstance(GradleDslFileCache.class).warn("Failed to process properties file " + file.getPath(), e);
         return null;
       }
     }
