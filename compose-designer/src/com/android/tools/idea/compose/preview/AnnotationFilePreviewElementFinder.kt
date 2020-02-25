@@ -85,7 +85,7 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
         val composableMethod = "${uClass.qualifiedName}.${annotatedMethod.name}"
         val previewName = previewAnnotation.findDeclaredAttributeValue("name")?.evaluateString() ?: annotatedMethod.name
         val groupName = previewAnnotation.findDeclaredAttributeValue("group")?.evaluateString()
-        val showDecorations = previewAnnotation.findDeclaredAttributeValue("showDecorations")?.evaluate() as? Boolean ?: false
+        val showDecorations = previewAnnotation.findDeclaredAttributeValue("showDecoration")?.evaluate() as? Boolean ?: false
         val showBackground = previewAnnotation.findDeclaredAttributeValue("showBackground")?.evaluate() as? Boolean ?: false
 
         // If the same composable functions is found multiple times, only keep the first one. This usually will happen during
