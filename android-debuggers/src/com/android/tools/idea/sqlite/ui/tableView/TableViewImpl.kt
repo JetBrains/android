@@ -25,6 +25,7 @@ import com.intellij.openapi.editor.colors.EditorColors
 import com.intellij.openapi.editor.colors.EditorColorsManager
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.ColoredTableCellRenderer
+import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.JBTable
 import com.intellij.util.ui.JBUI
@@ -281,7 +282,11 @@ class TableViewImpl : TableView {
         background = primaryContentBackground
       }
 
-      append(value as String)
+      if (value == null) {
+        append("NULL", SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES)
+      } else {
+        append(value.toString())
+      }
     }
   }
 
@@ -317,15 +322,15 @@ class TableViewImpl : TableView {
 
     override fun getRowCount() = rows.size
 
-    override fun getValueAt(modelRowIndex: Int, modelColumnIndex: Int): String {
+    override fun getValueAt(modelRowIndex: Int, modelColumnIndex: Int): String? {
       return if (modelColumnIndex == 0) {
         (modelRowIndex + 1).toString()
       } else {
-        rows[modelRowIndex].values[modelColumnIndex - 1].value.toString()
+        rows[modelRowIndex].values[modelColumnIndex - 1].value?.toString()
       }
     }
 
-    override fun setValueAt(newValue: Any, modelRowIndex: Int, modelColumnIndex: Int) {
+    override fun setValueAt(newValue: Any?, modelRowIndex: Int, modelColumnIndex: Int) {
       assert(modelColumnIndex > 0) { "Setting value of column at index 0 is not allowed" }
 
       val row = rows[modelRowIndex]
