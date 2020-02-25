@@ -49,6 +49,7 @@ public class SpecificActivityConfigurable implements LaunchOptionConfigurable<Sp
 
   private JPanel myPanel;
   private ComponentWithBrowseButton<EditorTextField> myActivityField;
+  private JCheckBox mySkipActivityValidationCheckBox;
 
   public SpecificActivityConfigurable(@NotNull final Project project, @NotNull final LaunchOptionConfigurableContext context) {
     myProject = project;
@@ -118,10 +119,12 @@ public class SpecificActivityConfigurable implements LaunchOptionConfigurable<Sp
   @Override
   public void resetFrom(@NotNull SpecificActivityLaunch.State state) {
     myActivityField.getChildComponent().setText(StringUtil.notNullize(state.ACTIVITY_CLASS));
+    mySkipActivityValidationCheckBox.setSelected(state.SKIP_ACTIVITY_VALIDATION);
   }
 
   @Override
   public void applyTo(@NotNull SpecificActivityLaunch.State state) {
     state.ACTIVITY_CLASS = StringUtil.notNullize(myActivityField.getChildComponent().getText());
+    state.SKIP_ACTIVITY_VALIDATION = mySkipActivityValidationCheckBox.isSelected();
   }
 }
