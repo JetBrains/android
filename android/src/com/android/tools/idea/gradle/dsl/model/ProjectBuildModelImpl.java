@@ -15,10 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleSettingsFile;
-
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
@@ -63,14 +59,14 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
   @Override
   @Nullable
   public GradleBuildModel getModuleBuildModel(@NotNull Module module) {
-    VirtualFile file = getGradleBuildFile(module);
+    VirtualFile file = myBuildModelContext.getGradleBuildFile(module);
     return file == null ? null : getModuleBuildModel(file);
   }
 
   @Override
   @Nullable
   public GradleBuildModel getModuleBuildModel(@NotNull File modulePath) {
-    VirtualFile file = getGradleBuildFile(modulePath);
+    VirtualFile file = myBuildModelContext.getGradleBuildFile(modulePath);
     return file == null ? null : getModuleBuildModel(file);
   }
 
@@ -98,7 +94,7 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
       VirtualFile projectDir = ProjectUtil.guessProjectDir(myBuildModelContext.getProject());
       if (projectDir != null) {
         File ioFile = VfsUtilCore.virtualToIoFile(projectDir);
-        virtualFile = getGradleSettingsFile(ioFile);
+        virtualFile = myBuildModelContext.getGradleSettingsFile(ioFile);
       }
     } else {
       virtualFile = myProjectBuildFile.tryToFindSettingsFile();
@@ -158,7 +154,7 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
         return null;
       }
 
-      VirtualFile file = getGradleBuildFile(moduleDir);
+      VirtualFile file = myBuildModelContext.getGradleBuildFile(moduleDir);
       if (file == null) {
         return null;
       }

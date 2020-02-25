@@ -335,7 +335,7 @@ public final class GradleUtil {
   }
 
   @Nullable
-  private static GradleModuleModel getGradleModuleModel(Module module) {
+  public static GradleModuleModel getGradleModuleModel(Module module) {
     GradleFacet gradleFacet = GradleFacet.getInstance(module);
     if (gradleFacet == null) {
       return null;
