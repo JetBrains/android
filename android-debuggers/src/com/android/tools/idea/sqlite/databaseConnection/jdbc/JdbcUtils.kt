@@ -21,13 +21,21 @@ import com.android.tools.idea.sqlite.model.SqliteTable
 import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
+import java.sql.Types
 
 /**
  * Takes a [SqliteStatement] and returns a [PreparedStatement] by assigning values to parameters in the statement.
  */
 fun Connection.resolvePreparedStatement(sqliteStatement: SqliteStatement): PreparedStatement {
   val preparedStatement = prepareStatement(sqliteStatement.sqliteStatementText)
-  sqliteStatement.parametersValues.forEachIndexed { index, value -> preparedStatement.setString(index+1, value.toString()) }
+  sqliteStatement.parametersValues.forEachIndexed { index, value ->
+    if (value == null) {
+      preparedStatement.setNull(index+1, Types.VARCHAR)
+    }
+    else {
+      preparedStatement.setString(index+1, value.toString())
+    }
+  }
   return preparedStatement
 }
 

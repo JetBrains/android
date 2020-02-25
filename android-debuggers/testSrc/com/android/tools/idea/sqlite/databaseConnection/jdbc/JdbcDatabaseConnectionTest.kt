@@ -587,6 +587,32 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
     assertEmpty(columns)
   }
 
+  fun testInsertNullValueWorks() {
+    // Prepare
+    val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "tableName", listOf("c1"))
+    customConnection = pumpEventsAndWaitForFuture(
+      getSqliteJdbcService(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+    )
+
+    // Act
+    pumpEventsAndWaitForFuture(
+      customConnection!!.execute(SqliteStatement("CREATE TABLE t1 (c1 text, c2 text)"))
+    )
+
+    pumpEventsAndWaitForFuture(
+      customConnection!!.execute(SqliteStatement("INSERT INTO t1 (c1, c2) VALUES (?, ?)", listOf(null, "null")))
+    )
+
+    val resultSet = pumpEventsAndWaitForFuture(
+      customConnection!!.execute(SqliteStatement("SELECT * FROM t1"))
+    )
+
+    // Assert
+    val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10))
+    assertNull(rows.first().values[0].value)
+    assertEquals("null", rows.first().values[1].value)
+  }
+
   private fun SqliteResultSet.hasColumn(name: String, affinity: SqliteAffinity) : Boolean {
     return pumpEventsAndWaitForFuture(this.columns).find { it.name == name }?.affinity?.equals(affinity) ?: false
   }
