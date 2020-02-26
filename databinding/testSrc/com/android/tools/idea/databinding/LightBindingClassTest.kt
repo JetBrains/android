@@ -29,6 +29,8 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.NullableNotNullManager
 import com.intellij.lang.jvm.JvmModifier
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiField
@@ -637,5 +639,42 @@ class LightBindingClassTest {
 
     val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
     assertThat(binding.fields.map { field -> field.name }).containsExactly("testButton", "testText")
+  }
+
+  @Test
+  fun bindingCacheRecoversAfterExitingDumbMode() {
+    // language=XML
+    val dummyXml = """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <LinearLayout />
+      </layout>
+      """.trimIndent()
+
+    fixture.addFileToProject("res/layout/activity_first.xml", dummyXml)
+
+    // initialize app resources
+    ResourceRepositoryManager.getAppResources(facet)
+
+    assertThat(ModuleDataBinding.getInstance(facet).bindingLayoutGroups.map { group -> group.mainLayout.className })
+      .containsExactly("ActivityFirstBinding")
+
+    val dumbService = DumbService.getInstance(project) as DumbServiceImpl
+    dumbService.isDumb = true
+
+    // First, verify that dumb mode doesn't prevent us from accessing the previous cache
+    assertThat(ModuleDataBinding.getInstance(facet).bindingLayoutGroups.map { group -> group.mainLayout.className })
+      .containsExactly("ActivityFirstBinding")
+
+    // XML updates are ignored in dumb mode
+    fixture.addFileToProject("res/layout/activity_second.xml", dummyXml)
+    assertThat(ModuleDataBinding.getInstance(facet).bindingLayoutGroups.map { group -> group.mainLayout.className })
+      .containsExactly("ActivityFirstBinding")
+
+    // XML updates should catch up after dumb mode is exited (in other words, we didn't save a snapshot of the stale
+    // cache from before)
+    dumbService.isDumb = false
+    assertThat(ModuleDataBinding.getInstance(facet).bindingLayoutGroups.map { group -> group.mainLayout.className })
+      .containsExactly("ActivityFirstBinding", "ActivitySecondBinding")
   }
 }

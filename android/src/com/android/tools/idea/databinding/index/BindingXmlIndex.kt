@@ -21,10 +21,8 @@ import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.databinding.index.BindingLayoutType.DATA_BINDING_LAYOUT
 import com.android.tools.idea.databinding.index.BindingLayoutType.PLAIN_LAYOUT
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
@@ -66,12 +64,6 @@ class BindingXmlIndex : FileBasedIndexExtension<String, BindingXmlData>() {
     private fun getKeyForFile(file: VirtualFile) = FileBasedIndex.getFileId(file).toString()
 
     private fun getDataForFile(file: VirtualFile, scope: GlobalSearchScope): BindingXmlData? {
-      val project = scope.project ?: return null
-      if (DumbService.getInstance(project).isDumb) {
-        Logger.getInstance(BindingXmlIndex::class.java).info("BindingXmlIndex queried outside of smart mode.")
-        return null
-      }
-
       val index = FileBasedIndex.getInstance()
       return index.getValues(NAME, getKeyForFile(file), scope).firstOrNull()
     }
