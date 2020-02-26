@@ -161,7 +161,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     LoadingPanel loadingPanel = getProfilersView().getIdeProfilerComponents().createLoadingPanel(-1);
     loadingPanel.setLoadingText("Fetching results");
     myLayout = getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled() ?
-               new SeparateHeapDumpMemoryProfilerStageLayout(monitorUi, capturePanel, loadingPanel,
+               new SeparateHeapDumpMemoryProfilerStageLayout(monitorUi, capturePanel, loadingPanel, stage,
                                                              this::setUpToolbarForTimeline,
                                                              this::setUpToolbarForCapture,
                                                              this::setUpToolbarForLoading) :

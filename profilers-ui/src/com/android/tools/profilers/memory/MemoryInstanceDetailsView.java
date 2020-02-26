@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.memory;
 
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_BORDER_COLOR;
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
 import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
 import static com.android.tools.profilers.ProfilerLayout.TABLE_ROW_BORDER;
@@ -48,6 +49,9 @@ import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.android.tools.profilers.stacktrace.StackTraceView;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBPanel;
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
@@ -58,6 +62,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.LongFunction;
+import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JTabbedPane;
@@ -99,6 +104,10 @@ final class MemoryInstanceDetailsView extends AspectObserver {
 
   @Nullable private JTree myReferenceTree;
 
+  @NotNull private final JBLabel myTitle = new JBLabel();
+
+  @NotNull private final JBPanel myPanel = new JBPanel(new BorderLayout());
+
   @NotNull private final Map<InstanceAttribute, AttributeColumn> myAttributeColumns = new HashMap<>();
 
   @NotNull private final List<InstanceViewer> myInstanceViewers = new ArrayList<>();
@@ -114,6 +123,12 @@ final class MemoryInstanceDetailsView extends AspectObserver {
     myTabsPanel.addChangeListener(this::trackActiveTab);
     myAllocationStackTraceView = ideProfilerComponents.createStackView(stage.getAllocationStackTraceModel());
     myDeallocationStackTraceView = ideProfilerComponents.createStackView(stage.getDeallocationStackTraceModel());
+
+    myTitle.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, DEFAULT_BORDER_COLOR));
+    myPanel.add(myTabsPanel, BorderLayout.CENTER);
+    if (stage.getStudioProfilers().getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled()) {
+      myPanel.add(myTitle, BorderLayout.NORTH);
+    }
 
     myInstanceViewers.add(new BitmapViewer());
 
@@ -194,7 +209,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
 
   @NotNull
   JComponent getComponent() {
-    return myTabsPanel;
+    return myPanel;
   }
 
   @VisibleForTesting
@@ -217,10 +232,11 @@ final class MemoryInstanceDetailsView extends AspectObserver {
     if (capture == null || instance == null) {
       myReferenceTree = null;
       myReferenceColumnTree = null;
-      myTabsPanel.setVisible(false);
+      getComponent().setVisible(false);
       return;
     }
 
+    myTitle.setText("Instance details - " + (instance.getName().isEmpty() ? instance.getValueText() : instance.getName()));
     myTabsPanel.removeAll();
     boolean hasContent = false;
 
@@ -274,7 +290,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       }
     });
 
-    myTabsPanel.setVisible(hasContent);
+    getComponent().setVisible(hasContent);
   }
 
   private JComponent buildFieldColumnTree(@NotNull JTree tree, @NotNull CaptureObject captureObject, @NotNull InstanceObject instance) {
