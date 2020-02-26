@@ -180,15 +180,18 @@ final class MemoryClassSetView extends AspectObserver {
       InstanceAttribute.RETAINED_SIZE,
       makeSizeColumn("Retained Size", ValueObject::getRetainedSize));
 
-    JPanel headingPanel = new JPanel(new BorderLayout());
-    JLabel instanceViewLabel = new JLabel("Instance View");
-    instanceViewLabel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
-    headingPanel.add(instanceViewLabel, BorderLayout.WEST);
 
-    CloseButton closeButton = new CloseButton(e -> myStage.selectClassSet(null));
-    headingPanel.add(closeButton, BorderLayout.EAST);
+    if (!stage.getStudioProfilers().getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled()) {
+      JPanel headingPanel = new JPanel(new BorderLayout());
+      JLabel instanceViewLabel = new JLabel("Instance View");
+      instanceViewLabel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
+      headingPanel.add(instanceViewLabel, BorderLayout.WEST);
 
-    myInstancesPanel.add(headingPanel, BorderLayout.NORTH);
+      CloseButton closeButton = new CloseButton(e -> myStage.selectClassSet(null));
+      headingPanel.add(closeButton, BorderLayout.EAST);
+
+      myInstancesPanel.add(headingPanel, BorderLayout.NORTH);
+    }
     myInstancesPanel.setVisible(false);
   }
 

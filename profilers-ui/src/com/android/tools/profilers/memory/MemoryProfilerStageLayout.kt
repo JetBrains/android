@@ -15,12 +15,21 @@
  */
 package com.android.tools.profilers.memory
 
+import com.android.tools.adtui.common.AdtUiUtils.DEFAULT_BORDER_COLOR
+import com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS
 import com.android.tools.adtui.common.AdtUiUtils.DEFAULT_VERTICAL_BORDERS
+import com.android.tools.adtui.model.AspectObserver
+import com.android.tools.profilers.CloseButton
 import com.android.tools.profilers.ProfilerLayout.createToolbarLayout
 import com.android.tools.profilers.stacktrace.LoadingPanel
 import com.intellij.openapi.ui.Splitter
 import com.intellij.ui.JBSplitter
+import com.intellij.ui.components.JBLabel
+import com.intellij.ui.components.JBPanel
+import com.intellij.util.ui.JBEmptyBorder
+import java.awt.BorderLayout
 import java.awt.CardLayout
+import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JPanel
 
@@ -64,23 +73,36 @@ internal abstract class MemoryProfilerStageLayout(val capturePanel: CapturePanel
 internal class SeparateHeapDumpMemoryProfilerStageLayout(timelineView: JComponent?,
                                                          capturePanel: CapturePanel,
                                                          loadingPanel: LoadingPanel,
+                                                         private val myStage: MemoryProfilerStage,
                                                          private val myTimelineShowingCallback: Runnable,
                                                          private val myCaptureShowingCallback: Runnable,
                                                          private val myLoadingShowingCallback: Runnable)
       : MemoryProfilerStageLayout(capturePanel, loadingPanel) {
   private val myLayout = CardLayout()
+  private val myTitle = JBLabel().apply {
+    border = JBEmptyBorder(0, 5, 0, 0)
+  }
 
   private val instanceDetailsSplitter = JBSplitter(false).apply {
-    border = DEFAULT_VERTICAL_BORDERS
     isOpaque = true
     firstComponent = capturePanel.classSetView.component
     secondComponent = capturePanel.instanceDetailsView.component
   }
 
+  private val instanceDetailsWrapper = JBPanel<Nothing>(BorderLayout()).apply {
+    val headingPanel = JPanel(BorderLayout()).apply {
+      border = DEFAULT_HORIZONTAL_BORDERS
+      add(myTitle, BorderLayout.WEST)
+      add(CloseButton{ myStage.selectClassSet(null) }, BorderLayout.EAST)
+    }
+    add(headingPanel, BorderLayout.NORTH)
+    add(instanceDetailsSplitter, BorderLayout.CENTER)
+  }
+
   override val chartCaptureSplitter = JBSplitter(true).apply {
     border = DEFAULT_VERTICAL_BORDERS
     firstComponent = capturePanel.component
-    secondComponent = instanceDetailsSplitter
+    secondComponent = instanceDetailsWrapper
   }
 
   override val component = JPanel(myLayout).apply {
@@ -88,6 +110,14 @@ internal class SeparateHeapDumpMemoryProfilerStageLayout(timelineView: JComponen
     add(chartCaptureSplitter, CARD_CAPTURE)
     add(loadingPanel.component, CARD_LOADING)
     myLayout.show(this, CARD_TIMELINE)
+  }
+
+  private val myObserver = AspectObserver()
+
+  init {
+    myStage.aspect.addDependency(myObserver)
+      .onChange(MemoryProfilerAspect.CURRENT_CLASS, ::updateInstanceDetailsSplitter)
+    updateInstanceDetailsSplitter()
   }
 
   override fun showCaptureUi(isShown: Boolean) {
@@ -109,6 +139,14 @@ internal class SeparateHeapDumpMemoryProfilerStageLayout(timelineView: JComponen
 
   override val mainSplitter: Splitter
     get() = TODO("remove on full migration")
+
+  private fun updateInstanceDetailsSplitter() = when (val cs = myStage.selectedClassSet) {
+    null -> instanceDetailsWrapper.isVisible = false
+    else -> {
+      myTitle.text = "Instance List - " + cs.name
+      instanceDetailsWrapper.isVisible = true
+    }
+  }
 
   private companion object {
     const val CARD_TIMELINE = "timeline"
