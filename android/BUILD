@@ -407,6 +407,7 @@ iml_module(
         "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module, test]",
         "//tools/base/wizard/template-impl:studio.intellij.android.wizardTemplate.impl[module, test]",
         "//tools/adt/idea/lint:intellij.lint[module, test]",
+        "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
     ],
 )
 

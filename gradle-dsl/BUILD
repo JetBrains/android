@@ -39,6 +39,7 @@ iml_module(
         "//tools/idea/plugins/ui-designer-core:intellij.uiDesigner",
         "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/193.4:jar",
         "//tools/idea/.idea/libraries:precompiled_jshell-frontend",
+        "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
@@ -78,7 +79,6 @@ iml_module(
         "//tools/idea/plugins/ByteCodeViewer:intellij.java.byteCodeViewer",
         "//tools/idea/plugins/eclipse:intellij.eclipse",
         "//tools/idea/java/plugin:intellij.java.plugin",
-        "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/plugins/ui-designer-core:intellij.uiDesigner",
         "//tools/idea/.idea/libraries:precompiled_jshell-frontend",
     ],
@@ -100,6 +100,8 @@ iml_module(
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
         "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/193.4:jar",
+        "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
+        "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
     ],
     # do not sort: must match IML order
     deps = [
@@ -113,5 +115,7 @@ iml_module(
         "//tools/idea/java/java-psi-impl:intellij.java.psi.impl[module]",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
         "//tools/idea/platform/analysis-api:intellij.platform.analysis[module]",
+        "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/base/flags:studio.android.sdktools.flags[module]",
     ],
 )
