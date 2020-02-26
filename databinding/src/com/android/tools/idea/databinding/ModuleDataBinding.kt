@@ -31,8 +31,11 @@ import com.android.tools.idea.util.androidFacet
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetManager
 import com.intellij.facet.FacetManagerAdapter
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleServiceManager
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiManager
 import net.jcip.annotations.GuardedBy
@@ -175,12 +178,22 @@ class ModuleDataBinding private constructor(private val module: Module) {
     get() {
       val facet = AndroidFacet.getInstance(module) ?: return emptySet()
 
+      // This method is designed to occur only within a read action, so we know that dumb mode
+      // won't change on us in the middle of it.
+      ApplicationManager.getApplication().assertReadAccessAllowed()
+
+      // If we're called at a time before indexes are ready, BindingLayout.tryCreate below would
+      // fail with an exception. To prevent this, we abort early with what we have.
+      if (DumbService.isDumb(module.project)) {
+        Logger.getInstance(ModuleDataBinding::class.java).info(
+          "Binding classes may be temporarily stale due to indices not being accessible right now.")
+        return _bindingLayoutGroups
+      }
+
       synchronized(lock) {
         val moduleResources = ResourceRepositoryManager.getModuleResources(facet)
         val modificationCount = moduleResources.modificationCount
         if (modificationCount != lastResourcesModificationCount) {
-          lastResourcesModificationCount = modificationCount
-
           // Grab the latest snapshot of layout resources and group them by name
           val layoutResources = moduleResources.getResources(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT)
           val latestGroups = layoutResources.values()
@@ -208,6 +221,7 @@ class ModuleDataBinding private constructor(private val module: Module) {
               else -> currGroup
             }
             bindingLayoutGroups.add(groupToAdd)
+            lastResourcesModificationCount = modificationCount
           }
 
           _bindingLayoutGroups = bindingLayoutGroups
