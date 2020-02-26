@@ -100,6 +100,7 @@ class AppInspectionViewTest {
       LaunchedProcessDescriptor(
         FakeTransportService.FAKE_DEVICE.manufacturer,
         FakeTransportService.FAKE_DEVICE.model,
+        FakeTransportService.FAKE_DEVICE.serial,
         FakeTransportService.FAKE_PROCESS.name,
         AppInspectionTestUtils.TestTransportJarCopier
       )

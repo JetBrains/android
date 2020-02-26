@@ -25,6 +25,9 @@ data class ProcessInfo(
   /** The model of the device. */
   val model: String,
 
+  /** The serial number of the device. */
+  val serial: String,
+
   /** The name of the process running on the device. */
   val processName: String?
 )
@@ -48,7 +51,12 @@ internal class TransportProcessDescriptor(
   val streamChannel: TransportStreamChannel,
   val process: Common.Process
 ) : ProcessDescriptor() {
-  override val info = ProcessInfo(streamChannel.stream.device.manufacturer, streamChannel.stream.device.model, process.name)
+  override val info = ProcessInfo(
+    streamChannel.stream.device.manufacturer,
+    streamChannel.stream.device.model,
+    streamChannel.stream.device.serial,
+    process.name
+  )
 }
 
 
@@ -62,10 +70,11 @@ internal class TransportProcessDescriptor(
 class LaunchedProcessDescriptor(
   manufacturer: String,
   model: String,
+  serial: String,
   processName: String?,
   val jarCopier: AppInspectionJarCopier
 ) : ProcessDescriptor() {
-  override val info = ProcessInfo(manufacturer, model, processName)
+  override val info = ProcessInfo(manufacturer, model, serial, processName)
 }
 
 /**
@@ -79,5 +88,5 @@ internal class AttachableProcessDescriptor internal constructor(
   internal val process: Common.Process,
   internal val appInspectionJarCopier: AppInspectionJarCopier
 ) : ProcessDescriptor() {
-  override val info = ProcessInfo(stream.device.manufacturer, stream.device.model, process.name)
+  override val info = ProcessInfo(stream.device.manufacturer, stream.device.model, stream.device.serial, process.name)
 }
