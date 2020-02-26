@@ -41,6 +41,7 @@ import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.MethodSet;
 import com.android.tools.profilers.memory.adapters.PackageSet;
 import com.android.tools.profilers.memory.adapters.ThreadSet;
+import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.google.common.annotations.VisibleForTesting;
@@ -62,6 +63,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.ToLongFunction;
+import java.util.stream.Collectors;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTree;
@@ -86,6 +88,7 @@ final class MemoryClassifierView extends AspectObserver {
     "Select a valid range in the timeline where the Java memory is changing to view allocations and deallocations.";
   private static final String HELP_TIP_HEADER_EXPLICIT_CAPTURE = "Selected capture has no contents";
   private static final String HELP_TIP_DESCRIPTION_EXPLICIT_CAPTURE = "There are no allocations in the selected capture.";
+  private static final String HELP_TIP_HEADER_FILTER_NO_MATCH = "Selected filters have no match";
 
   @NotNull private final MemoryProfilerStage myStage;
 
@@ -347,25 +350,19 @@ final class MemoryClassifierView extends AspectObserver {
     builder.setTableIntercellSpacing(new Dimension());
     myColumnTree = builder.build();
 
-    if (myStage.getSelectedCapture().isExportable()) {
-      myHelpTipPanel = new InstructionsPanel.Builder(
-        new TextInstruction(UIUtilities.getFontMetrics(myClassifierPanel, ProfilerFonts.H3_FONT), HELP_TIP_HEADER_EXPLICIT_CAPTURE),
-        new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
-        new TextInstruction(UIUtilities.getFontMetrics(myClassifierPanel, ProfilerFonts.STANDARD_FONT),
-                            HELP_TIP_DESCRIPTION_EXPLICIT_CAPTURE))
-        .setColors(JBColor.foreground(), null)
-        .build();
-    }
-    else {
-      myHelpTipPanel = new InstructionsPanel.Builder(
-        new TextInstruction(UIUtilities.getFontMetrics(myClassifierPanel, ProfilerFonts.H3_FONT), HELP_TIP_HEADER_LIVE_ALLOCATION),
-        new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
-        new TextInstruction(UIUtilities.getFontMetrics(myClassifierPanel, ProfilerFonts.STANDARD_FONT),
-                            HELP_TIP_DESCRIPTION_LIVE_ALLOCATION))
-        .setColors(JBColor.foreground(), null)
-        .build();
-    }
+    myHelpTipPanel = myStage.getSelectedCapture().isExportable() ?
+                     makeInstructionsPanel(HELP_TIP_HEADER_EXPLICIT_CAPTURE, HELP_TIP_DESCRIPTION_EXPLICIT_CAPTURE) :
+                     makeInstructionsPanel(HELP_TIP_HEADER_LIVE_ALLOCATION, HELP_TIP_DESCRIPTION_LIVE_ALLOCATION);
     myPanel.add(myClassifierPanel, BorderLayout.CENTER);
+  }
+
+  private InstructionsPanel makeInstructionsPanel(String header, String desc) {
+    return new InstructionsPanel.Builder(
+      new TextInstruction(UIUtilities.getFontMetrics(myClassifierPanel, ProfilerFonts.H3_FONT), header),
+      new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
+      new TextInstruction(UIUtilities.getFontMetrics(myClassifierPanel, ProfilerFonts.STANDARD_FONT), desc))
+      .setColors(JBColor.foreground(), null)
+      .build();
   }
 
   private void startHeapLoadingUi() {
@@ -394,7 +391,17 @@ final class MemoryClassifierView extends AspectObserver {
     assert myTreeRoot != null && myColumnTree != null && myHelpTipPanel != null;
     myClassifierPanel.removeAll();
     if (myTreeRoot.getAdapter().isEmpty()) {
-      myClassifierPanel.add(myHelpTipPanel, BorderLayout.CENTER);
+      if (myCaptureObject != null && !myCaptureObject.getSelectedInstanceFilters().isEmpty()) {
+        List<String> filterNames = myCaptureObject.getSelectedInstanceFilters().stream()
+          .map(CaptureObjectInstanceFilter::getDisplayName)
+          .collect(Collectors.toList());
+        String msg = String.format("There are no allocations satisfying selected filter%s: %s",
+                                   filterNames.size() > 1 ? "s" : "",
+                                   String.join(", ", filterNames));
+        myClassifierPanel.add(makeInstructionsPanel(HELP_TIP_HEADER_FILTER_NO_MATCH, msg), BorderLayout.CENTER);
+      } else {
+        myClassifierPanel.add(myHelpTipPanel, BorderLayout.CENTER);
+      }
     }
     else {
       myClassifierPanel.add(myColumnTree, BorderLayout.CENTER);
