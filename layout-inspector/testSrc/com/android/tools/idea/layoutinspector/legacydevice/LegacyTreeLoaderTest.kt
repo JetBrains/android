@@ -16,17 +16,27 @@
 package com.android.tools.idea.layoutinspector.legacydevice
 
 import com.android.ddmlib.ByteBufferUtil
+import com.android.ddmlib.Client
 import com.android.ddmlib.FakeClientBuilder
+import com.android.ddmlib.HandleViewDebug
 import com.android.ddmlib.HandleViewDebug.CHUNK_VULW
+import com.android.ddmlib.HandleViewDebug.CHUNK_VURT
 import com.android.ddmlib.JdwpPacket
+import com.android.ddmlib.internal.ClientImpl
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatcher
+import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.argThat
+import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
 import java.nio.ByteBuffer
 
 class LegacyTreeLoaderTest {
@@ -116,8 +126,27 @@ DONE.
     val legacyClient = LegacyClient(mock(Project::class.java))
     legacyClient.selectedClient = ddmClient
 
-
     val result = LegacyTreeLoader.getAllWindowIds(null, legacyClient)
-    assertThat(result).containsExactly(window1.hashCode().toLong(), window2.hashCode().toLong())
+    assertThat(result).containsExactly(window1, window2)
+  }
+
+  @Test
+  fun testLoadComponentTree() {
+    val legacyClient = mock(LegacyClient::class.java)
+    val client = mock(ClientImpl::class.java)
+    `when`(legacyClient.selectedClient).thenReturn(client)
+    `when`(client.send(argThat { argument ->
+      argument?.payload?.int == CHUNK_VURT &&
+      argument.payload.getInt(8) == 1 /* VURT_DUMP_HIERARCHY */
+    }, any())).thenAnswer { invocation ->
+      invocation
+        .getArgument(1, HandleViewDebug.ViewDumpHandler::class.java)
+        .handleChunk(client, CHUNK_VURT, ByteBuffer.wrap(treeSample.toByteArray (Charsets.UTF_8)), true, 1)
+    }
+    val (viewNode, windowId) = LegacyTreeLoader.loadComponentTree(
+      LegacyEvent("window1", LegacyPropertiesProvider.Updater(), listOf("window1")),
+      mock(ResourceLookup::class.java), legacyClient)!!
+    assertThat(windowId).isEqualTo("window1")
+    assertThat(viewNode.drawId).isEqualTo(0x41673e3)
   }
 }
