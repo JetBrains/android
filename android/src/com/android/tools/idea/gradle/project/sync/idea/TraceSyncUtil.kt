@@ -22,38 +22,97 @@ import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.utils.FileUtils.writeToFile
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Strings.nullToEmpty
+import com.intellij.diagnostic.VMOptions.getCustomVMOptionsFileName
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.util.Pair
 import com.intellij.openapi.util.io.FileUtil
 import java.io.File
+import java.io.IOException
 import java.lang.System.currentTimeMillis
+import java.lang.management.ManagementFactory
+import java.nio.file.Files
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-private const val defaultTraceMethods = "Trace: com.android.build.gradle.internal.ide.ModelBuilder\n" +
+private const val defaultTraceMethods = "# GRADLE\n" +
+                                        "Trace: com.android.build.gradle.internal.ide.ModelBuilder\n" +
                                         "Trace: com.android.build.gradle.internal.ide.dependencies.ArtifactDependencyGraph\n" +
                                         "Trace: com.android.build.gradle.internal.tasks.factory.TaskAction\n" +
                                         "Trace: com.android.build.gradle.internal.tasks.factory.TaskAction2\n" +
                                         "Trace: org.gradle.api.internal.tasks.execution.SkipUpToDateTaskExecuter::execute\n" +
-                                        "Trace: org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter::execute\n"
+                                        "Trace: org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter::execute\n" +
+                                        "\n" +
+                                        "# IDEA\n" +
+                                        "Trace: com.android.tools.idea.gradle.project.sync.GradleSyncState::syncFailed\n" +
+                                        "Trace: com.android.tools.idea.gradle.project.sync.GradleSyncState::syncStarted\n" +
+                                        "Trace: com.android.tools.idea.gradle.project.sync.GradleSyncState::syncSucceeded\n" +
+                                        "Trace: com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver::populateProjectExtraModels\n" +
+                                        "Trace: com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver::populateModuleContentRoots\n" +
+                                        "Trace: com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver::populateModuleDependencies\n" +
+                                        "Trace: com.android.tools.idea.gradle.project.sync.idea.data.service.GradleModuleModelDataService::importData\n" +
+                                        "Trace: com.android.tools.idea.gradle.project.sync.idea.data.service.JavaModuleModelDataService::importData\n" +
+                                        "Trace: com.android.tools.idea.gradle.project.sync.idea.data.service.NdkModuleModelDataService::importData\n" +
+                                        "Trace: com.intellij.openapi.externalSystem.service.project.manage.ContentRootDataService::importData\n" +
+                                        "Trace: com.intellij.openapi.externalSystem.service.project.manage.LibraryDataService::importData\n" +
+                                        "Trace: com.intellij.openapi.externalSystem.service.project.manage.LibraryDependencyDataService::importData\n" +
+                                        "Trace: com.intellij.openapi.externalSystem.service.project.manage.ModuleDataService::importData\n" +
+                                        "Trace: com.intellij.openapi.externalSystem.service.project.manage.ModuleDependencyDataService::importData\n" +
+                                        "Trace: com.intellij.openapi.externalSystem.service.project.manage.ProjectDataServiceImpl::importData\n"
+
 
 /**
- * Add the trace jvm options to given args list.
- * This is no-op if trace is not enabled.
+ * Add the trace jvm options to given args list, only if Studio was launched with trace agent enabled.
  * The added jvm arg is in the format of "-javaagent:AGENT_JAR=TRACE_PROFILE".
  */
 fun addTraceJvmArgs(args: MutableList<Pair<String, String>>) {
-  val settings = GradleExperimentalSettings.getInstance()
-  if (!settings.TRACE_GRADLE_SYNC) {
-    return
-  }
-
-  getTraceMethods()?.let { traceMethods ->
-    val traceJvmArg = Pair("-javaagent:${findAgentJar()}", createTraceProfileFile(traceMethods))
-    RESOLVER_LOG.info("Trace jvm option: ${traceJvmArg.first}=${traceJvmArg.second}")
-    args.add(traceJvmArg)
+  val expectedKey = "-javaagent:${findAgentJar()}"
+  ManagementFactory.getRuntimeMXBean().inputArguments.firstOrNull {
+    it.startsWith(expectedKey)
+  }?.let {
+    val optionLine = it.split('=')
+    if (optionLine.size == 2) {
+      RESOLVER_LOG.info("Launch Gradle with trace jvm option: ${it}")
+      args.add(Pair(optionLine[0], optionLine[1]))
+    }
   }
 }
+
+/**
+ * Write/Remove javaagent in vm options file so that Studio will launch with trace agent enabled/disabled.
+ *
+ * The added/removed jvm arg is in the format of "-javaagent:AGENT_JAR=TRACE_PROFILE".
+ */
+@JvmOverloads
+fun updateTraceArgsInFile(vmOptionsFile: File = getVMOptionsFile()) {
+  val traceArgsPrefix = "-javaagent:${findAgentJar()}="
+  vmOptionsFile.createNewFile()
+
+  // Remove the original trace line.
+  val vmOptions = vmOptionsFile.readLines().filterNot { line ->
+    line.startsWith(traceArgsPrefix)
+  }.toMutableList()
+
+  if (GradleExperimentalSettings.getInstance().TRACE_GRADLE_SYNC) {
+    // Add new line.
+    getTraceMethods()?.let { traceMethods ->
+      vmOptions.add(traceArgsPrefix + createTraceProfileFile(traceMethods))
+    }
+  }
+
+  // Write back.
+  try {
+    val text = if (vmOptions.isEmpty()) "" else vmOptions.joinToString("\n").plus("\n")
+    Files.write(vmOptionsFile.toPath(), text.toByteArray())
+  }
+  catch (e: IOException) {
+    RESOLVER_LOG.error("Unable to write to vm options file from ${vmOptionsFile.path}.")
+  }
+}
+
+/**
+ * Returns the location of default vm options file. The file might not exist.
+ */
+private fun getVMOptionsFile(): File = File(PathManager.getBinPath(), getCustomVMOptionsFileName())
 
 /**
  * Returns defaultTraceMethods if DEFAULT profile is selected in settings, return file content if
@@ -94,7 +153,7 @@ fun findAgentJar(): String {
 /**
  * Create the trace profile.
  * Add output location to the top of trace profile, then append the given traceMethods.
- * The output directory will be idea log path, output file name contains suffix of timestamp to generate one output file per sync.
+ * The output directory will be idea log path, output file name contains suffix of timestamp to generate one output file per Studio session.
  */
 @VisibleForTesting
 fun createTraceProfileFile(traceMethods: String): String {
@@ -105,7 +164,6 @@ fun createTraceProfileFile(traceMethods: String): String {
   val profileContent = "Output: ${outputFilePath}\n${traceMethods}"
 
   val traceProfile: File = FileUtil.createTempFile("sync.trace", ".profile")
-  traceProfile.deleteOnExit()
   writeToFile(traceProfile, profileContent)
   RESOLVER_LOG.info("Trace output file: $outputFileName")
   return traceProfile.path
