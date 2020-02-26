@@ -547,7 +547,6 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
     }
 
     open fun applyChanges(gradleModel: GradleFileModel) {
-      gradleModel.applyChanges()
     }
 
     open fun mergeBuildFiles(
