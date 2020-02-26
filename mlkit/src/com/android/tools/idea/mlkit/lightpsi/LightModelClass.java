@@ -178,12 +178,13 @@ public class LightModelClass extends AndroidLightClassBase {
   @Override
   public PsiMethod[] getConstructors() {
     if (myConstructors == null) {
-      myConstructors = new PsiMethod[1];
-      myConstructors[0] = new LightMethodBuilder(this, JavaLanguage.INSTANCE)
-        .addParameter("context", PsiType.getTypeByName(ClassNames.CONTEXT, getProject(), getResolveScope()))
-        .setConstructor(true)
-        .addException(ClassNames.IO_EXCEPTION)
-        .addModifier(PsiModifier.PUBLIC);
+      myConstructors = new PsiMethod[] {
+        new LightMethodBuilder(this, JavaLanguage.INSTANCE)
+          .addParameter("context", PsiType.getTypeByName(ClassNames.CONTEXT, getProject(), getResolveScope()))
+          .setConstructor(true)
+          .addException(ClassNames.IO_EXCEPTION)
+          .addModifier(PsiModifier.PUBLIC)
+      };
     }
 
     return myConstructors;
