@@ -67,7 +67,7 @@ class DefaultPropertiesProvider(
   override val resultListeners = mutableListOf<(PropertiesProvider, ViewNode, PropertiesTable<InspectorPropertyItem>) -> Unit>()
 
   override fun requestProperties(view: ViewNode): Future<*> {
-    if (!client.isConnected) {
+    if (!client.isConnected || !view.hasProperties) {
       lastRequestedView = null
       firePropertiesProvided(view, PropertiesTable.emptyTable())
       return Futures.immediateFuture(null)

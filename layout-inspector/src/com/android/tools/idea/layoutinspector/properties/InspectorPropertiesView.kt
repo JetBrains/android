@@ -53,9 +53,9 @@ class InspectorPropertiesView(model: InspectorPropertiesModel) : PropertiesView<
 
   init {
     watermark = Watermark(WATERMARK_MESSAGE, WATERMARK_ACTION_MESSAGE, "")
-    main.builders.add(SelectedViewBuilder())
+    main.builders.add(SelectedViewBuilder(model))
     val tab = addTab("")
-    tab.builders.add(DimensionBuilder())
+    tab.builders.add(DimensionBuilder(model))
     tab.builders.add(InspectorTableBuilder("Declared Attributes", { it.group == PropertySection.DECLARED },
                                            model, enumSupportProvider, controlTypeProvider))
     tab.builders.add(InspectorTableBuilder("Layout", { it.group == PropertySection.LAYOUT },

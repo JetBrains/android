@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.properties
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.property.panel.api.InspectorBuilder
 import com.android.tools.property.panel.api.InspectorPanel
+import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.property.ptable2.PTable
 import com.android.tools.property.ptable2.PTableCellRenderer
@@ -47,10 +48,10 @@ private const val WIDTH = "width"
  * Currently displayed are: x, y, width, height where the position is relative to the top
  * left of the device.
  */
-class DimensionBuilder : InspectorBuilder<InspectorPropertyItem> {
+class DimensionBuilder(val model: InspectorPropertiesModel) : InspectorBuilder<InspectorPropertyItem> {
 
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<InspectorPropertyItem>) {
-    val view = properties.first?.view ?: return
+    val view = model.layoutInspector?.layoutInspectorModel?.selection ?: return
     val table = PTable.create(DimensionTableModel(view), null, RendererProvider())
     table.component.addFocusListener(object : FocusAdapter() {
       override fun focusGained(event: FocusEvent) {

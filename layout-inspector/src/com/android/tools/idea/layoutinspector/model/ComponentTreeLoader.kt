@@ -178,16 +178,28 @@ private class ComponentTreeLoaderImpl(
     if (isInterrupted) {
       throw InterruptedException()
     }
-    val qualifiedName = "${stringTable[view.packageName]}.${stringTable[view.className]}"
+    val qualifiedName = packagePrefix(stringTable[view.packageName]) + stringTable[view.className]
+    val methodName = packagePrefix(stringTable[view.composePackage]) + stringTable[view.composeInvocation]
+    val composeFileName = stringTable[view.composeFilename]
     val viewId = stringTable[view.viewId]
     val textValue = stringTable[view.textValue]
     val layout = stringTable[view.layout]
-    val node = ViewNode(view.drawId, qualifiedName, layout, view.x, view.y, view.width, view.height, viewId, textValue, view.layoutFlags)
+    val node = if (composeFileName.isEmpty()) {
+      ViewNode(view.drawId, qualifiedName, layout, view.x, view.y, view.width, view.height, viewId, textValue, view.layoutFlags)
+    }
+    else {
+      ComposeViewNode(view.drawId, qualifiedName, layout, view.x, view.y, view.width, view.height, viewId, textValue, view.layoutFlags,
+                      composeFileName, methodName, view.composeLineNumber)
+    }
     view.subViewList.map { loadView(it) }.forEach {
       node.children.add(it)
       it.parent = node
     }
     return node
+  }
+
+  private fun packagePrefix(packageName: String): String {
+    return if (packageName.isEmpty()) "" else "$packageName."
   }
 
   private class ComponentImageLoader(root: ViewNode, viewRoot: InspectorView) {

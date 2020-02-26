@@ -68,6 +68,8 @@ iml_module(
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
         "//tools/idea/.idea/libraries:protobuf",
+        "//tools/idea/platform/indexing-api:intellij.platform.indexing[module]",
+        "//tools/idea/platform/indexing-impl:intellij.platform.indexing.impl[module]",
     ],
 )
 

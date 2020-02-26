@@ -151,7 +151,7 @@ class InspectorModel(val project: Project) {
   fun notifyModified() = modificationListeners.forEach { it(root, root, false) }
 
   private class Updater(private val oldRoot: ViewNode, private val newRoot: ViewNode) {
-    private val oldNodes = oldRoot.flatten().associateBy { it.drawId }
+    private val oldNodes = oldRoot.flatten().asSequence().filter{ it.drawId != 0L }.associateBy { it.drawId }
 
     fun update(): Boolean {
       return update(oldRoot, oldRoot.parent, newRoot)
@@ -165,19 +165,27 @@ class InspectorModel(val project: Project) {
       oldNode.imageTop = newNode.imageTop
       oldNode.width = newNode.width
       oldNode.height = newNode.height
+      oldNode.qualifiedName = newNode.qualifiedName
+      oldNode.layout = newNode.layout
       oldNode.x = newNode.x
       oldNode.y = newNode.y
       oldNode.layoutFlags = newNode.layoutFlags
       oldNode.imageType = newNode.imageType
       oldNode.parent = parent
+      if (oldNode is ComposeViewNode && newNode is ComposeViewNode) {
+        oldNode.composeFilename = newNode.composeFilename
+        oldNode.composeMethod = newNode.composeMethod
+        oldNode.composeLineNumber = newNode.composeLineNumber
+      }
 
       oldNode.children.clear()
       for (newChild in newNode.children) {
         val oldChild = oldNodes[newChild.drawId]
-        if (oldChild != null) {
+        if (oldChild != null && oldChild.javaClass == newChild.javaClass) {
           modified = update(oldChild, oldNode, newChild) || modified
           oldNode.children.add(oldChild)
         } else {
+          modified = true
           oldNode.children.add(newChild)
           newChild.parent = oldNode
         }
