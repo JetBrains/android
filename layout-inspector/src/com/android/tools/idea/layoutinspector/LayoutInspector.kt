@@ -65,15 +65,15 @@ class LayoutInspector(val layoutInspectorModel: InspectorModel) {
   private fun loadComponentTree(event: Any) {
     val time = System.currentTimeMillis()
     val allIds = currentClient.treeLoader.getAllWindowIds(event, currentClient)
-    val root = currentClient.treeLoader.loadComponentTree(event, layoutInspectorModel.resourceLookup, currentClient)
-    if (root != null && allIds != null) {
+    val (root, rootId) = currentClient.treeLoader.loadComponentTree(event, layoutInspectorModel.resourceLookup, currentClient) ?: return
+    if (rootId != null && allIds != null) {
       ApplicationManager.getApplication().invokeLater {
         synchronized(latestLoadTime) {
           if (latestLoadTime.get() > time) {
             return@invokeLater
           }
           latestLoadTime.set(time)
-          layoutInspectorModel.update(root, root.drawId, allIds)
+          layoutInspectorModel.update(root, rootId, allIds)
         }
       }
     }
@@ -103,7 +103,7 @@ class LayoutInspector(val layoutInspectorModel: InspectorModel) {
     currentClient = DisconnectedClient
     val application = ApplicationManager.getApplication()
     application.invokeLater {
-      layoutInspectorModel.update(null, 0, listOf())
+      layoutInspectorModel.update(null, 0, listOf<Any>())
     }
   }
 }

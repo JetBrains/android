@@ -202,7 +202,7 @@ class InspectorModelTest {
     assertNotNull(model[VIEW3])
 
     // clear
-    model.update(null, 0, listOf())
+    model.update(null, 0, listOf<Any>())
     assertEmpty(model.root.children)
     assertTrue(model.isEmpty)
   }
