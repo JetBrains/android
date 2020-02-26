@@ -20,6 +20,9 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.Timeline;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profiler.proto.Cpu;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -34,7 +37,10 @@ public class BaseCpuCapture implements CpuCapture {
   private ClockType myClockType;
 
   @NotNull
-  private final Map<CpuThreadInfo, CaptureNode> myCaptureTrees;
+  private final Set<CpuThreadInfo> myAvailableThreads;
+
+  @NotNull
+  private final Map<Integer, CaptureNode> myThreadIdToNode;
 
   /**
    * The CPU capture has its own {@link Timeline} for the purpose of exposing a variety of {@link Range}s.
@@ -65,25 +71,37 @@ public class BaseCpuCapture implements CpuCapture {
     // Sometimes a capture may fail and return a file that is incomplete. This results in the parser not having any capture trees.
     // If this happens then we don't have any thread info to determine which is the main thread
     // so we throw an error and let the capture pipeline handle this and present a dialog to the user.
-    myCaptureTrees = parser.getCaptureTrees();
-    if (myCaptureTrees.isEmpty()) {
-      throw new IllegalStateException("Trace file contained no CPU data.");
+    Preconditions.checkState(!parser.getCaptureTrees().isEmpty(), "Trace file contained no CPU data.");
+
+    ImmutableSet.Builder<CpuThreadInfo> availableThreadsBuilder = ImmutableSet.builder();
+    ImmutableMap.Builder<Integer, CaptureNode> threadIdToNodesBuilder = ImmutableMap.builder();
+
+    Integer mainThreadId = null;
+    Integer longestThreadId = null;
+    Long longestThreadSpan = null;
+
+    for (Map.Entry<CpuThreadInfo, CaptureNode> entry : parser.getCaptureTrees().entrySet()) {
+      // Fill out DataStructures.
+      availableThreadsBuilder.add(entry.getKey());
+      threadIdToNodesBuilder.put(entry.getKey().getId(), entry.getValue());
+
+      // Try to find the main thread.
+      if (mainThreadId == null && entry.getKey().isMainThread()) {
+        mainThreadId = entry.getKey().getId();
+      } else if (longestThreadSpan == null || longestThreadSpan < entry.getValue().getDuration()) {
+        longestThreadId = entry.getKey().getId();
+        longestThreadSpan = entry.getValue().getDuration();
+      }
     }
 
-    // Try to find the main thread. If there is no actual main thread, we will fall back to the thread with the most information.
-    Map.Entry<CpuThreadInfo, CaptureNode> main = null;
-    for (Map.Entry<CpuThreadInfo, CaptureNode> entry : myCaptureTrees.entrySet()) {
-      if (entry.getKey().isMainThread()) {
-        main = entry;
-        break;
-      }
+    myAvailableThreads = availableThreadsBuilder.build();
+    myThreadIdToNode = threadIdToNodesBuilder.build();
 
-      if (main == null || main.getValue().getDuration() < entry.getValue().getDuration()) {
-        main = entry;
-      }
+    if (mainThreadId != null) {
+      myMainThreadId = mainThreadId;
+    } else {
+      myMainThreadId = longestThreadId;
     }
-
-    myMainThreadId = main.getKey().getId();
 
     // Set clock type
     CaptureNode mainNode = getCaptureNode(myMainThreadId);
@@ -105,23 +123,19 @@ public class BaseCpuCapture implements CpuCapture {
   @Override
   @Nullable
   public CaptureNode getCaptureNode(int threadId) {
-    return myCaptureTrees.entrySet().stream()
-      .filter(e -> e.getKey().getId() == threadId)
-      .findFirst()
-      .map(Map.Entry::getValue)
-      .orElse(null);
+    return myThreadIdToNode.get(threadId);
   }
 
   @Override
   @NotNull
   public Set<CpuThreadInfo> getThreads() {
-    return myCaptureTrees.keySet();
+    return myAvailableThreads;
   }
 
   @Override
   @NotNull
   public Collection<CaptureNode> getCaptureNodes() {
-    return myCaptureTrees.values();
+    return myThreadIdToNode.values();
   }
 
   @Override
