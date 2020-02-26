@@ -28,6 +28,8 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.wm.ToolWindowId
+import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentManager
 import com.intellij.ui.content.ContentManagerAdapter
@@ -36,9 +38,10 @@ import com.intellij.ui.content.impl.ContentImpl
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.BorderLayout
 
-interface BuildAttributionUiManager {
+interface BuildAttributionUiManager : Disposable {
   fun showNewReport(reportUiData: BuildAttributionReportUiData, buildSessionId: String)
   fun openTab(eventSource: BuildAttributionUiAnalytics.TabOpenEventSource)
+  fun requestOpenTabWhenDataReady(eventSource: BuildAttributionUiAnalytics.TabOpenEventSource)
   fun hasDataToShow(): Boolean
   val stateReporter: BuildAttributionStateReporter
 
@@ -67,6 +70,8 @@ class BuildAttributionUiManagerImpl(
 
   private var contentManager: ContentManager? = null
 
+  private var openRequest: OpenRequest = OpenRequest.NO_REQUEST
+
   private val contentManagerListener = object : ContentManagerAdapter() {
     override fun selectionChanged(event: ContentManagerEvent) {
       if (event.content !== buildContent) {
@@ -85,6 +90,19 @@ class BuildAttributionUiManagerImpl(
 
   private lateinit var reportUiData: BuildAttributionReportUiData
 
+  init {
+    Disposer.register(project, this)
+    project.messageBus.connect(this).subscribe(
+      BuildAttributionStateReporter.FEATURE_STATE_TOPIC,
+      object : BuildAttributionStateReporter.Notifier {
+        override fun stateUpdated(newState: BuildAttributionStateReporter.State) {
+          if (newState == BuildAttributionStateReporter.State.REPORT_DATA_READY && openRequest.shouldOpen) {
+            openTab(openRequest.eventSource)
+            openRequest = OpenRequest.NO_REQUEST
+          }
+        }
+      })
+  }
 
   override fun showNewReport(reportUiData: BuildAttributionReportUiData, buildSessionId: String) {
     this.reportUiData = reportUiData
@@ -123,7 +141,7 @@ class BuildAttributionUiManagerImpl(
     buildAttributionTreeView?.let { view ->
       buildContent = ContentImpl(BorderLayoutPanel(), "Build Analyzer", true).also { content ->
         content.component.add(view.component, BorderLayout.CENTER)
-        Disposer.register(project, content)
+        Disposer.register(this, content)
         Disposer.register(content, view)
         // When tab is getting closed (and disposed) we want to release the reference on the view.
         Disposer.register(content, Disposable { onContentClosed() })
@@ -137,6 +155,10 @@ class BuildAttributionUiManagerImpl(
 
   private fun onContentClosed() {
     uiAnalytics.tabClosed()
+    cleanUp()
+  }
+
+  private fun cleanUp() {
     contentManager?.removeContentManagerListener(contentManagerListener)
     contentManager = null
     buildAttributionTreeView = null
@@ -152,9 +174,31 @@ class BuildAttributionUiManagerImpl(
         }
         uiAnalytics.registerOpenEventSource(eventSource)
         contentManager!!.setSelectedContent(buildContent!!, true, true)
+        ToolWindowManager.getInstance(project).getToolWindow(ToolWindowId.BUILD).show {}
       }
     }
   }
 
+  override fun requestOpenTabWhenDataReady(eventSource: BuildAttributionUiAnalytics.TabOpenEventSource) {
+    if (stateReporter.currentState() == BuildAttributionStateReporter.State.REPORT_DATA_READY) {
+      openTab(eventSource)
+    }
+    else {
+      openRequest = OpenRequest.requestFrom(eventSource)
+    }
+  }
+
   override fun hasDataToShow(): Boolean = this::reportUiData.isInitialized
+
+  override fun dispose() = cleanUp()
+}
+
+private data class OpenRequest(
+  val shouldOpen: Boolean,
+  val eventSource: BuildAttributionUiAnalytics.TabOpenEventSource
+) {
+  companion object {
+    val NO_REQUEST = OpenRequest(false, BuildAttributionUiAnalytics.TabOpenEventSource.TAB_HEADER)
+    fun requestFrom(eventSource: BuildAttributionUiAnalytics.TabOpenEventSource) = OpenRequest(true, eventSource)
+  }
 }

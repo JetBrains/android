@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution
 
+import com.android.annotations.concurrency.UiThread
 import com.android.build.attribution.BuildAttributionStateReporter.State
 import com.android.build.attribution.BuildAttributionStateReporter.State.AGP_VERSION_LOW
 import com.android.build.attribution.BuildAttributionStateReporter.State.FEATURE_TURNED_OFF
@@ -47,6 +48,7 @@ interface BuildAttributionStateReporter : Disposable {
   fun currentState(): State
 
   interface Notifier {
+    @UiThread
     fun stateUpdated(newState: State)
   }
 
