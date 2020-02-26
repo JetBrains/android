@@ -52,5 +52,6 @@
     <orderEntry type="module" module-name="intellij.android.artwork" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.deploy" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.layout-inspector" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.gradle.dsl" />
   </component>
 </module>
