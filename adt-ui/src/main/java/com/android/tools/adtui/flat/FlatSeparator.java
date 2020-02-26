@@ -30,9 +30,14 @@ import java.awt.*;
 public class FlatSeparator extends JComponent {
   private final Dimension mySize;
 
-  public FlatSeparator() {
-    mySize = JBUI.size(6, 24);
+  public FlatSeparator(int width, int height) {
+    mySize = JBUI.size(width, height);
   }
+
+  public FlatSeparator() {
+    this(6, 24);
+  }
+
 
   @Override
   public Dimension getPreferredSize() {

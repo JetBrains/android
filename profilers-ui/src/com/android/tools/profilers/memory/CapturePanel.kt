@@ -143,7 +143,7 @@ internal class CapturePanel(stageView: MemoryProfilerStageView): AspectObserver(
 
     add(totalClassLabel)
     add(totalLeakLabel)
-    add(FlatSeparator())
+    add(FlatSeparator(6, 36))
     add(totalCountLabel)
     add(totalNativeSizeLabel)
     add(totalShallowSizeLabel)
