@@ -86,10 +86,8 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
   }
 
   private fun gotoDefinition() {
-    val resourceLookup = layoutInspector?.layoutInspectorModel?.resourceLookup ?: return
-    val node = componentTreeSelectionModel.currentSelection.singleOrNull() as? ViewNode ?: return
-    val location = resourceLookup.findFileLocation(node) ?: return
-    location.navigatable?.navigate(true)
+    val model = layoutInspector?.layoutInspectorModel ?: return
+    GotoDeclarationAction.findNavigatable(model)?.navigate(true)
   }
 
   @Suppress("UNUSED_PARAMETER")
