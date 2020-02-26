@@ -17,12 +17,9 @@ package com.android.tools.profilers.cpu.capturedetails;
 
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.VisualNodeCaptureNode;
-import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
-import com.android.tools.profilers.cpu.audits.RenderAuditModel;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -39,8 +36,7 @@ public abstract class CaptureDetails {
     TOP_DOWN(TopDown::new),
     BOTTOM_UP(BottomUp::new),
     CALL_CHART(CallChart::new),
-    FLAME_CHART(FlameChart::new),
-    RENDER_AUDIT(RenderAuditCaptureDetails::new);
+    FLAME_CHART(FlameChart::new);
 
     @NotNull
     private final CaptureDetailsBuilder myBuilder;
@@ -311,28 +307,6 @@ public abstract class CaptureDetails {
       }
 
       return node;
-    }
-  }
-
-  public static class RenderAuditCaptureDetails extends CaptureDetails {
-
-    private final RenderAuditModel myRenderAuditModel;
-
-    RenderAuditCaptureDetails(@NotNull Range range, @NotNull List<CaptureNode> nodes, @NotNull CpuCapture cpuCapture) {
-      super(cpuCapture);
-      // The Render Audit tab is only added in the CapturePane is the capture is an AtraceCpuCapture
-      assert cpuCapture.getType() == Cpu.CpuTraceType.ATRACE;
-      myRenderAuditModel = new RenderAuditModel(cpuCapture);
-    }
-
-    @Override
-    @NotNull
-    public Type getType() {
-      return Type.RENDER_AUDIT;
-    }
-
-    public RenderAuditModel getRenderAuditModel() {
-      return myRenderAuditModel;
     }
   }
 }
