@@ -70,7 +70,7 @@ public class CpuThreadStateDataSeries implements DataSeries<CpuProfilerStage.Thr
     if (response.getGroupsCount() == 1) {
       // Merges information from traces and samples:
       ArrayList<Double> captureTimes = new ArrayList<>(2);
-      if (mySelectedCapture != null && mySelectedCapture.getThreads().stream().anyMatch(t -> t.getId() == myThreadId)) {
+      if (mySelectedCapture != null && mySelectedCapture.containsThread(myThreadId)) {
         captureTimes.add(mySelectedCapture.getRange().getMin());
         captureTimes.add(mySelectedCapture.getRange().getMax());
       }
