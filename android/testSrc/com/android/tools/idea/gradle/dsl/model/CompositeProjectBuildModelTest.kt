@@ -59,8 +59,8 @@ class CompositeProjectBuildModelTest : GradleFileModelTestCase() {
   @Test
   fun testEnsureCompositeBuildProjectDoNotLeakProperties() {
     // Create both ProjectBuildModels
-    val mainModel = ProjectBuildModel.get(myProject)
-    val compositeModel = ProjectBuildModel.getForCompositeBuild(myProject, compositeRoot.path)
+    val mainModel = projectBuildModel
+    val compositeModel = getIncludedProjectBuildModel(compositeRoot.path)
     assertNotNull(compositeModel)
 
     // Check both models contain properties from the applied file
@@ -90,8 +90,8 @@ class CompositeProjectBuildModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testEnsureProjectBuildModelsProduceAllBuildModels() {
-    val mainModel = ProjectBuildModel.get(myProject)
-    val compositeModel = ProjectBuildModel.getForCompositeBuild(myProject, compositeRoot.path)
+    val mainModel = projectBuildModel
+    val compositeModel = getIncludedProjectBuildModel(compositeRoot.path)
 
     val mainBuildModels = mainModel.allIncludedBuildModels
     assertSize(2, mainBuildModels)

@@ -210,7 +210,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
   fun testParsingDependenciesMultiFile() {
     setupParentAndAppliedFiles()
 
-    val projectModel = ProjectBuildModel.get(myProject)
+    val projectModel = projectBuildModel
     val childModel = projectModel.getModuleBuildModel(mySubModule)!!
     val parentModel = projectModel.projectBuildModel!!
     val appliedModel = childModel.involvedFiles.filter { f -> f.virtualFile.name == "defaults.gradle" }[0] as GradleBuildModel
@@ -328,7 +328,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
   fun testAddPropertyMultiFile() {
     setupParentAndAppliedFiles()
 
-    val projectModel = ProjectBuildModel.get(myProject)
+    val projectModel = projectBuildModel
     val childModel = projectModel.getModuleBuildModel(mySubModule)!!
     val parentModel = projectModel.projectBuildModel!!
     val appliedModel = childModel.involvedFiles.filter { f -> f.virtualFile.name == "defaults.gradle" }[0] as GradleBuildModel
@@ -370,7 +370,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
   fun testRenameProperty() {
     setupParentAndAppliedFiles()
 
-    val projectModel = ProjectBuildModel.get(myProject)
+    val projectModel = projectBuildModel
     val childModel = projectModel.getModuleBuildModel(mySubModule)!!
     val parentModel = projectModel.projectBuildModel!!
     val appliedModel = childModel.involvedFiles.filter { f -> f.virtualFile.name == "defaults.gradle" }[0] as GradleBuildModel
@@ -468,7 +468,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
   fun testMapDependenciesWithReordering() {
     setupParentAndAppliedFiles()
 
-    val projectModel = ProjectBuildModel.get(myProject)
+    val projectModel = projectBuildModel
     val childModel = projectModel.getModuleBuildModel(mySubModule)!!
 
     run {
@@ -622,7 +622,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     writeToSubModuleBuildFile(PROPERTY_DEPENDENCY_ROOT_PROJECT_IN_APPLIED_FILES_SUB)
     writeToSettingsFile(subModuleSettingsText)
 
-    val projectModel = ProjectBuildModel.get(myProject)
+    val projectModel = projectBuildModel
     val childBuildModel = projectModel.getModuleBuildModel(mySubModule)!!
     val artModel = childBuildModel.dependencies().artifacts()[0]!!
 
@@ -634,7 +634,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
   fun testVariableInBuildscript() {
     writeToBuildFile(PROPERTY_DEPENDENCY_VARIABLE_IN_BUILDSCRIPT)
 
-    val pbm = ProjectBuildModel.get(myProject)
+    val pbm = projectBuildModel
     val buildModel = pbm.projectBuildModel!!
 
     assertSize(1, buildModel.ext().inScopeProperties.entries)
