@@ -554,10 +554,6 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     open fun mkDir(directory: File) {
       checkedCreateDirectoryIfMissing(directory)
     }
-
-    open fun applyChanges(gradleModel: GradleFileModel) {
-      gradleModel.applyChanges()
-    }
   }
 
   // TODO(qumeric): make private
@@ -577,8 +573,6 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     override fun mkDir(directory: File) {
       checkDirectoryIsWriteable(directory)
     }
-
-    override fun applyChanges(gradleModel: GradleFileModel) {}
   }
 }
 

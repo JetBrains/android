@@ -79,7 +79,6 @@ private fun Recipe.doRender(c: RenderingContext, e: RecipeExecutor): Boolean {
   try {
     writeCommandAction(c.project).withName(c.commandName).run<IOException> {
       this(e, c.templateData)
-      // Old recipe executor calls applyChanges after every BuildModel update. It is slow but correct.
       // TODO(qumeric): remove casting when the old executor will be deleted
       if (e is DefaultRecipeExecutor) {
         e.applyChanges()
