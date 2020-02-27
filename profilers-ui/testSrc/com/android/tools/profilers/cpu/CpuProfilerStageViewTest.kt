@@ -139,18 +139,24 @@ class CpuProfilerStageViewTest(newPipeline: Boolean) {
   @Test
   fun sparklineVisibilityChangesOnMouseStates() {
     val cpuProfilerStageView = CpuProfilerStageView(myProfilersView, myStage)
-    cpuProfilerStageView.stage.timeline.tooltipRange.set(0.0, 0.0)
+    cpuProfilerStageView.stage.timeline.apply {
+      tooltipRange.set(0.0, 0.0)
+      dataRange.set(0.0, 100.0)
+      viewRange.set(0.0, 100.0)
+      selectionRange.set(0.0, 10.0)
+    }
     val treeWalker = TreeWalker(cpuProfilerStageView.component)
     // Grab the tooltip component and give it dimensions to be visible.
     val tooltipComponent = treeWalker.descendants().filterIsInstance<RangeTooltipComponent>()[0]
-    tooltipComponent.setSize(10, 10)
+    tooltipComponent.setSize(100, 10)
     // Grab the overlay component and move the mouse to update the last position in the tooltip component.
     val overlayComponent = treeWalker.descendants().filterIsInstance<OverlayComponent>()[0]
     val overlayMouseUi = FakeUi(overlayComponent)
-    overlayComponent.setBounds(1, 1, 10, 10)
+    overlayComponent.setBounds(1, 1, 100, 10)
     overlayMouseUi.mouse.moveTo(0, 0)
     // Grab the selection component and move the mouse to set the mode to !MOVE.
     val selectionComponent = treeWalker.descendants().filterIsInstance<RangeSelectionComponent>()[0]
+    selectionComponent.setSize(100, 10)
     FakeUi(selectionComponent).mouse.moveTo(0, 0)
     val mockGraphics = Mockito.mock(Graphics2D::class.java)
     Mockito.`when`(mockGraphics.create()).thenReturn(mockGraphics)
@@ -158,7 +164,7 @@ class CpuProfilerStageViewTest(newPipeline: Boolean) {
     tooltipComponent.paint(mockGraphics)
     Mockito.verify(mockGraphics, Mockito.never()).draw(Mockito.any())
     // Enter the overlay component and paint again, this time we expect to draw the spark line.
-    overlayMouseUi.mouse.moveTo(5, 5)
+    overlayMouseUi.mouse.moveTo(50, 5)
     tooltipComponent.paint(mockGraphics)
     Mockito.verify(mockGraphics, Mockito.times(1)).draw(Mockito.any())
     // Exit the overlay component and paint a third time. We don't expect our draw count to increase because the spark line
