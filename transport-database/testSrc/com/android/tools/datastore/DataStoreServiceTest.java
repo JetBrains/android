@@ -293,12 +293,6 @@ public class DataStoreServiceTest extends DataStorePollerTest {
 
     @NotNull
     @Override
-    public ServerServiceDefinition bindService() {
-      return super.bindService();
-    }
-
-    @NotNull
-    @Override
     public List<BackingNamespace> getBackingNamespaces() {
       return myNamespaces;
     }
