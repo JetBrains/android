@@ -160,7 +160,7 @@ public class RangeSelectionComponentTest {
     assertThat(created[0]).isEqualTo(1);
 
     // Click outside the recently created selection, to create a new one.
-    ui.mouse.press(60, 0);
+    ui.mouse.press(70, 0);
     ui.mouse.dragDelta(10, 0);
     ui.mouse.release();
     assertThat(cleared[0]).isEqualTo(0);
@@ -211,9 +211,10 @@ public class RangeSelectionComponentTest {
   public void canDragSelectionToPan() {
     RangeSelectionModel model = new RangeSelectionModel(new Range(40, 50));
     RangeSelectionComponent component = new RangeSelectionComponent(model, new Range(0, 100));
+    component.setDragBarHeight(10);
     component.setSize(100, 100);
     FakeUi ui = new FakeUi(component);
-    ui.mouse.press(45, 15);
+    ui.mouse.press(45, 9);
     assertThat(model.getSelectionRange().getMin()).isWithin(DELTA).of(40);
     assertThat(model.getSelectionRange().getMax()).isWithin(DELTA).of(50);
     assertThat(component.getCursor()).isEqualTo(AdtUiCursors.GRABBING);
@@ -228,9 +229,10 @@ public class RangeSelectionComponentTest {
   public void canMakeNewSelectionInSelection() {
     RangeSelectionModel model = new RangeSelectionModel(new Range(40, 50));
     RangeSelectionComponent component = new RangeSelectionComponent(model, new Range(0, 100));
+    component.setDragBarHeight(20);
     component.setSize(100, 100);
     FakeUi ui = new FakeUi(component);
-    ui.mouse.press(45, 50);
+    ui.mouse.press(45, 21);
     assertThat(model.getSelectionRange().getMin()).isWithin(DELTA).of(45);
     assertThat(model.getSelectionRange().getMax()).isWithin(DELTA).of(45);
     assertThat(component.getCursor()).isEqualTo(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR));
@@ -238,7 +240,7 @@ public class RangeSelectionComponentTest {
     assertThat(model.getSelectionRange().getMin()).isWithin(DELTA).of(45);
     assertThat(model.getSelectionRange().getMax()).isWithin(DELTA).of(85);
     ui.mouse.release();
-    assertThat(component.getCursor()).isEqualTo(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR));
+    assertThat(component.getCursor()).isEqualTo(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR));
   }
 
   @Test
@@ -423,10 +425,10 @@ public class RangeSelectionComponentTest {
   }
 
   private static int getMinHandleX(RangeSelectionModel model) {
-    return (int)model.getSelectionRange().getMin() - (RangeSelectionComponent.HANDLE_WIDTH / 2);
+    return (int)(model.getSelectionRange().getMin() - (RangeSelectionComponent.HANDLE_HITBOX_WIDTH / 2));
   }
 
   private static int getMaxHandleX(RangeSelectionModel model) {
-    return (int)model.getSelectionRange().getMax() + (RangeSelectionComponent.HANDLE_WIDTH / 2);
+    return (int)(model.getSelectionRange().getMax() + (RangeSelectionComponent.HANDLE_HITBOX_WIDTH / 2));
   }
 }
