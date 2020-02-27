@@ -907,8 +907,8 @@
                     interface="com.android.tools.idea.lang.databinding.DataBindingCompletionSupport"/>
     <extensionPoint qualifiedName="com.android.tools.idea.lang.databinding.dataBindingExpressionSupport"
                     interface="com.android.tools.idea.lang.databinding.DataBindingExpressionSupport"/>
-    <extensionPoint qualifiedName="com.android.tools.idea.databinding.dataBindingSupport"
-                    interface="com.android.tools.idea.databinding.DataBindingSupport"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.databinding.layoutBindingSupport"
+                    interface="com.android.tools.idea.databinding.LayoutBindingSupport"/>
     <extensionPoint qualifiedName="com.android.tools.idea.wizard.template.wizardTemplateProvider"
                     interface="com.android.tools.idea.wizard.template.WizardTemplateProvider"/>
   </extensionPoints>

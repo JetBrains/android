@@ -43,6 +43,6 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea">
-    <databinding.dataBindingSupport implementation="com.android.tools.idea.databinding.DataBindingSupportImpl"/>
+    <databinding.layoutBindingSupport implementation="com.android.tools.idea.databinding.LayoutBindingSupportImpl"/>
   </extensions>
 </idea-plugin>
