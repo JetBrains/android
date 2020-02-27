@@ -42,7 +42,7 @@ class AndroidManifestIndexTest {
 <manifest xmlns:android='http://schemas.android.com/apk/res/android'
   package='com.example' android:enabled='true'>
   <application android:theme='@style/Theme.AppCompat' android:debuggable='true'>
-    <activity android:name='.EnabledActivity' android:enabled='true' android:exported='true'>
+    <activity android:name='.EnabledActivity' android:enabled='true' android:exported='true' android:theme='@style/AppTheme.NoActionBar'>
       <intent-filter>
         <action android:name='android.intent.action.MAIN'/>
         <category android:name='android.intent.category.DEFAULT'/>
@@ -55,6 +55,7 @@ class AndroidManifestIndexTest {
     <activity-alias android:name='.DisabledAlias' android:enabled='false' android:exported='true' android:targetActivity='.EnabledActivity'>
     </activity-alias>
   </application>
+  <uses-feature android:name="android.hardware.type.watch" android:required="true" android:glEsVersion="integer" />
   <uses-permission android:name='android.permission.SEND_SMS'/>
   <uses-permission-sdk-23 android:name='custom.permissions.NO_GROUP'/>
   <permission-group android:name='custom.permissions.CUSTOM_GROUP'/>
@@ -70,12 +71,13 @@ class AndroidManifestIndexTest {
           name = ".EnabledActivity",
           enabled = "true",
           exported = "true",
+          theme = "@style/AppTheme.NoActionBar",
           intentFilters = setOf(
             IntentFilterRawText(actionNames = setOf("android.intent.action.MAIN"),
                                 categoryNames = setOf("android.intent.category.DEFAULT"))
           )
         ),
-        ActivityRawText(name = ".DisabledActivity", enabled = "false", exported = "true", intentFilters = setOf())
+        ActivityRawText(name = ".DisabledActivity", enabled = "false", exported = "true", theme = null, intentFilters = setOf())
       ),
       activityAliases = setOf(
         ActivityAliasRawText(name = ".EnabledAlias", targetActivity = ".DisabledActivity",
@@ -91,6 +93,7 @@ class AndroidManifestIndexTest {
       minSdkLevel = "22",
       packageName = "com.example",
       usedPermissionNames = setOf("android.permission.SEND_SMS", "custom.permissions.NO_GROUP"),
+      usedFeatures = setOf(UsedFeatureRawText(name = "android.hardware.type.watch", required = "true")),
       targetSdkLevel = "28",
       theme = "@style/Theme.AppCompat")
     )
@@ -104,7 +107,7 @@ class AndroidManifestIndexTest {
 <manifest xmlns:android='http://schemas.android.com/apk/res/android'
   package='com.example' android:enabled='true'>
   <application android:theme='@style/Theme.AppCompat' android:debuggable='true'>
-    <activity android:name='.EnabledActivity' android:enabled='true'>
+    <activity android:name='.EnabledActivity' android:enabled='true' android:theme="@style/AppTheme.NoActionBar">
       <intent-filter>
         <action android:name='android.intent.action.MAIN'/>
         <category android:name='android.intent.category.DEFAULT'/>
@@ -122,6 +125,8 @@ class AndroidManifestIndexTest {
     <activity-alias android:name='.DisabledAlias' android:enabled='false' android:targetActivity='.EnabledActivity'>
     </activity-alias>
   </application>
+
+  <uses-feature android:name="android.hardware.type.watch" android:required="true" android:glEsVersion="integer" />
 
   <uses-permission-sdk-23 android:name='custom.permissions.NO_GROUP'/>
   <permission-group android:name='custom.permissions.CUSTOM_GROUP'/>
@@ -148,12 +153,13 @@ class AndroidManifestIndexTest {
           name = ".EnabledActivity",
           enabled = "true",
           exported = null,
+          theme = "@style/AppTheme.NoActionBar",
           intentFilters = setOf(
             IntentFilterRawText(actionNames = setOf("android.intent.action.MAIN"),
                                 categoryNames = setOf("android.intent.category.DEFAULT"))
           )
         ),
-        ActivityRawText(name = ".DisabledActivity", enabled = "false", exported = null, intentFilters = setOf())
+        ActivityRawText(name = ".DisabledActivity", enabled = "false", exported = null, theme = null, intentFilters = setOf())
       ),
       activityAliases = setOf(
         ActivityAliasRawText(name = ".EnabledAlias", targetActivity = ".DisabledActivity",
@@ -169,6 +175,7 @@ class AndroidManifestIndexTest {
       minSdkLevel = "22",
       packageName = "com.example",
       usedPermissionNames = setOf("android.permission.SEND_SMS", "custom.permissions.NO_GROUP"),
+      usedFeatures = setOf(UsedFeatureRawText(name = "android.hardware.type.watch", required = "true")),
       targetSdkLevel = "28",
       theme = "@style/Theme.AppCompat")
     )

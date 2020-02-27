@@ -89,8 +89,8 @@ fun androidConfig(
   buildApiString: String,
   explicitBuildToolsVersion: Boolean,
   buildToolsVersion: Revision,
-  minApi: Int,
-  targetApi: Int,
+  minApi: String,
+  targetApi: String,
   useAndroidX: Boolean,
   cppFlags: String,
   isLibraryProject: Boolean,
@@ -143,8 +143,8 @@ fun androidConfig(
 
     defaultConfig {
       $applicationIdBlock
-      minSdkVersion $minApi
-      targetSdkVersion $targetApi
+      minSdkVersion ${minApi.toIntOrNull() ?: "\"$minApi\""}
+      targetSdkVersion ${targetApi.toIntOrNull() ?: "\"$targetApi\""}
       versionCode 1
       versionName "1.0"
 
@@ -223,10 +223,18 @@ fun RecipeExecutor.addTests(
   )
 }
 
+/**
+ * Plugin block placeholder. Used to introduce an extra space at the bottom of the block.
+ */
+fun emptyPluginsBlock() = """
+plugins {
+}
+"""
+
 fun basicStylesXml(parent: String) = """
 <resources>
     <style name="AppTheme" parent="$parent" />
-</resources> 
+</resources>
 """
 
 fun supportsImprovedTestDeps(agpVersion: GradlePluginVersion) =

@@ -40,7 +40,7 @@ class HostPanelTest {
     val hostPanel = frame
       .editor
       .open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN)
-      .getLayoutEditor(true)
+      .getLayoutEditor()
       .waitForRenderToFinish()
       .hostPanel()
       .waitForHostList()
@@ -50,7 +50,7 @@ class HostPanelTest {
     frame
       .editor
       .open("app/src/main/res/layout/activity_main.xml")
-      .getLayoutEditor(true)
+      .getLayoutEditor()
       .dragComponentToSurface("Containers", "NavHostFragment")
 
     val dialog = ResourcePickerDialogFixture.find(guiTest.robot())
@@ -61,7 +61,7 @@ class HostPanelTest {
     frame
       .editor
       .open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN)
-      .getLayoutEditor(true)
+      .getLayoutEditor()
       .waitForRenderToFinish()
 
     assertThat(hostPanel.waitForHostList().components).isNotEmpty()
@@ -69,7 +69,7 @@ class HostPanelTest {
     val nlFixture = frame
       .editor
       .open("app/src/main/res/layout/activity_main.xml")
-      .getLayoutEditor(true)
+      .getLayoutEditor()
       .surface as NlDesignSurfaceFixture
 
     nlFixture.findView("fragment", 0).sceneComponent!!.click()
@@ -78,7 +78,7 @@ class HostPanelTest {
     frame
       .editor
       .open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN)
-      .getLayoutEditor(true)
+      .getLayoutEditor()
       .waitForRenderToFinish()
 
     assertThat(hostPanel.waitForHostList().components).isEmpty()

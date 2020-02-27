@@ -26,6 +26,7 @@ import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 import android.view.Gravity;
+import com.android.annotations.NonNull;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.layoutlib.bridge.MockView;
@@ -229,6 +230,15 @@ public class ViewLoader {
       }
     }
     return null;
+  }
+
+  /**
+   * Checks if a class with this name was loaded by this loader.
+   * @param name binary name of a class, see {@link ClassLoader}
+   * @return true if a class with this name was loaded, false otherwise
+   */
+  public boolean isClassLoaded(@NonNull String name) {
+    return myLoadedClasses.containsKey(name);
   }
 
   @NotNull

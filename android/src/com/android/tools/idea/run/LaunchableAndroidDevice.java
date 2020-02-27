@@ -31,6 +31,7 @@ import com.intellij.ide.ui.search.SearchUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.util.Function;
 import com.intellij.util.ThreeState;
 import icons.StudioIcons;
 import java.util.Collections;
@@ -38,6 +39,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -172,7 +174,8 @@ public final class LaunchableAndroidDevice implements AndroidDevice {
   @NotNull
   public LaunchCompatibility canRun(@NotNull AndroidVersion minSdkVersion,
                                     @NotNull IAndroidTarget projectTarget,
-                                    @NotNull EnumSet<IDevice.HardwareFeature> requiredFeatures,
+                                    @NotNull AndroidFacet facet,
+                                    Function<AndroidFacet, EnumSet<IDevice.HardwareFeature>> getRequiredHardwareFeatures,
                                     @Nullable Set<String> supportedAbis) {
     LaunchCompatibility compatibility = LaunchCompatibility.YES;
 
@@ -186,7 +189,8 @@ public final class LaunchableAndroidDevice implements AndroidDevice {
         compatibility = new LaunchCompatibility(ThreeState.NO, myAvdInfo.getErrorMessage());
       }
     }
-    return compatibility.combine(LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, requiredFeatures, supportedAbis, this));
+    return compatibility
+      .combine(LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, facet, getRequiredHardwareFeatures, supportedAbis, this));
   }
 
   @NotNull

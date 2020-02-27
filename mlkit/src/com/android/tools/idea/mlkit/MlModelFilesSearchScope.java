@@ -60,6 +60,6 @@ public class MlModelFilesSearchScope extends GlobalSearchScope {
     Module module = ModuleUtilCore.findModuleForFile(file, getProject());
     return module != null &&
            AndroidFacet.getInstance(module) != null &&
-           MlkitUtils.isMlModelFileInAssetsFolder(file);
+           MlkitUtils.isModelFileInMlModelsFolder(file);
   }
 }

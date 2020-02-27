@@ -25,6 +25,7 @@ import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.roots.ExternalProjectSystemRegistry;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -63,7 +64,7 @@ public class JavaFacetModuleSetupStep extends JavaModuleSetupStep {
     FacetManager facetManager = FacetManager.getInstance(module);
     ModifiableFacetModel model = modelsProvider.getModifiableFacetModel(module);
     facet = facetManager.createFacet(JavaFacet.getFacetType(), JavaFacet.getFacetName(), null);
-    model.addFacet(facet);
+    model.addFacet(facet, ExternalProjectSystemRegistry.getInstance().getExternalSource(module));
     return facet;
   }
 }

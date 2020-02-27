@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.findAppModule
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -39,7 +40,7 @@ class AndroidGradleClassJarProviderTest {
     // We use firebase-common because it includes a number of runtime aar dependencies that help us testing that they are correctly
     // included in the returned classpath.
     val mockitoDependency = GradleCoordinate("com.google.firebase", "firebase-common", "12.0.1")
-    val module = gradleProjectRule.modules.appModule
+    val module = gradleProjectRule.project.findAppModule()
 
     val dependencyManager = GradleDependencyManager.getInstance(gradleProjectRule.project)
     assertTrue(dependencyManager.addDependenciesAndSync(module, listOf(mockitoDependency), null))

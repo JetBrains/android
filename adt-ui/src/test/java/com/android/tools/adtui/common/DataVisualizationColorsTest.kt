@@ -122,4 +122,12 @@ class DataVisualizationColorsTest(private val isDarkMode: Boolean) {
     assertThat(DataVisualizationColors.getFontColor(0)).isEqualTo(JBColor(Color.BLACK, Color.BLACK))
     assertThat(DataVisualizationColors.getFontColor("Light Blue")).isEqualTo(JBColor(Color.WHITE, Color.WHITE))
   }
+
+  @Test
+  fun testGrayscaleColorConversion() {
+    val color = JBColor(0x545454, 0xCACACA)
+    val grayscaleColor = DataVisualizationColors.toGrayscale(color)
+    assertThat(grayscaleColor.red).isEqualTo(grayscaleColor.green)
+    assertThat(grayscaleColor.green).isEqualTo(grayscaleColor.blue)
+  }
 }

@@ -54,7 +54,7 @@ public class BasicLayoutEditTest {
     NlEditorFixture editorFixture = guiTest.importSimpleApplication()
                                            .getEditor()
                                            .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
-                                           .getLayoutEditor(false)
+                                           .getLayoutEditor()
                                            .waitForSurfaceToLoad();
 
     assertThat(editorFixture.canInteractWithSurface()).isTrue();

@@ -27,9 +27,9 @@ import static org.mockito.Mockito.when;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.builder.model.SyncIssue;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenRepositoryHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.ShowDependencyInProjectStructureHyperlink;
@@ -37,6 +37,7 @@ import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStu
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
+import com.android.tools.idea.testing.TestModuleUtil;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
@@ -94,7 +95,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
 
     when(mySyncIssue.getData()).thenReturn("com.google.guava:guava:19.0");
 
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
     VirtualFile buildFile = getGradleBuildFile(appModule);
     myReporter.report(mySyncIssue, appModule, buildFile, myUsageReporter);
 
@@ -129,7 +130,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
     loadSimpleApplication();
     mySyncMessagesStub.removeAllMessages();
 
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
 
     when(mySyncIssue.getData()).thenReturn("com.android.support.constraint:constraint-layout:+");
 
@@ -160,7 +161,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
     loadSimpleApplication();
     mySyncMessagesStub.removeAllMessages();
 
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
 
     when(mySyncIssue.getData()).thenReturn("com.android.support:appcompat-v7:24.1.1");
 
@@ -203,11 +204,11 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
     loadSimpleApplication();
     mySyncMessagesStub.removeAllMessages();
 
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
     // Add Google repository
     GradleBuildModel buildModel = GradleBuildModel.get(appModule);
     Project project = getProject();
-    buildModel.repositories().addGoogleMavenRepository(project);
+    buildModel.repositories().addGoogleMavenRepository(new GradleVersion(4, 0));
     runWriteCommandAction(project, buildModel::applyChanges);
 
     when(mySyncIssue.getData()).thenReturn("com.android.support:appcompat-v7:24.1.1");
@@ -251,7 +252,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
     loadSimpleApplication();
     mySyncMessagesStub.removeAllMessages();
 
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
     Module spyAppModule = spy(appModule);
     Project spyProject = spy(spyAppModule.getProject());
     when(spyAppModule.getProject()).thenReturn(spyProject);
@@ -300,7 +301,7 @@ b/144931471 */
     loadSimpleApplication();
     mySyncMessagesStub.removeAllMessages();
 
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
 
     when(mySyncIssue.getData()).thenReturn("com.google.android.gms:play-services:9.4.0");
 
@@ -340,8 +341,8 @@ b/144931471 */
     loadProject(DEPENDENT_MODULES);
     mySyncMessagesStub.removeAllMessages();
 
-    Module appModule = myModules.getAppModule();
-    Module libModule = myModules.getModule("lib");
+    Module appModule = TestModuleUtil.findAppModule(getProject());
+    Module libModule = TestModuleUtil.findModule(getProject(), "lib");
 
     List<SyncIssue> issues = ImmutableList.of(1, 2).stream().map((i) -> new SyncIssue() {
       @Override
@@ -412,11 +413,8 @@ b/144931471 */
 
   public void testGetModuleLink() throws Exception {
     loadSimpleApplication();
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
     VirtualFile appFile = getGradleBuildFile(appModule);
-
-    Project project = getProject();
-    ProjectBuildModel buildModel = ProjectBuildModel.get(project);
 
     when(mySyncIssue.getData()).thenReturn("com.google.guava:guava:19.0");
 
@@ -428,7 +426,7 @@ b/144931471 */
 
   public void testAndroidXGoogleHyperlink() throws Exception {
     loadSimpleApplication();
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
     VirtualFile appFile = getGradleBuildFile(appModule);
 
     when(mySyncIssue.getData()).thenReturn("androidx.room:room-compiler:2.0.0-alpha1");

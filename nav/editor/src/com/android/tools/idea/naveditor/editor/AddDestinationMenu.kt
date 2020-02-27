@@ -405,7 +405,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       }
       component.putClientProperty(NEW_DESTINATION_MARKER_PROPERTY, true)
       // explicitly update so the new SceneComponent is created
-      surface.sceneManager!!.update()
+      surface.sceneManager!!.requestRender()
     }, surface.model?.file)
 
     addDynamicDependency(destination)

@@ -15,16 +15,14 @@
  */
 package com.android.tools.idea.emulator
 
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.project.DumbAware
 
 /**
- * Simulates pressing the Power button on a Android virtual device.
+ * Simulates rotating the device counterclockwise by 90 degrees.
  */
-class EmulatorRotateLeftAction : AnAction(), DumbAware {
+class EmulatorRotateLeftAction : AbstractEmulatorAction() {
 
-  override fun actionPerformed(e: AnActionEvent) {
+  override fun actionPerformed(event: AnActionEvent) {
     TODO("not implemented")
   }
 }

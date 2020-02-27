@@ -29,6 +29,7 @@ import com.android.tools.idea.projectsystem.getSyncManager
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.caret
+import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.highlightedAs
 import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.testing.moveCaret
@@ -1452,7 +1453,7 @@ class NonTransitiveTestRClassesTest : TestRClassesTest() {
 
   fun testAppTestResources() {
     // Sanity check.
-    assertThat(myModules.appModule.getModuleSystem().isRClassTransitive).named("transitive flag").isFalse()
+    assertThat(project.findAppModule().getModuleSystem().isRClassTransitive).named("transitive flag").isFalse()
 
     val androidTest = createFile(
       project.guessProjectDir()!!,
@@ -1557,12 +1558,12 @@ class GeneratedResourcesTest : AndroidGradleTestCase() {
     requestSyncAndWait()
 
     AndroidProjectRootListener.ensureSubscribed(project)
-    assertThat(ResourceRepositoryManager.getAppResources(myModules.appModule)!!
+    assertThat(ResourceRepositoryManager.getAppResources(project.findAppModule())!!
                  .getResources(ResourceNamespace.RES_AUTO, ResourceType.RAW, "sample_raw_resource")).isEmpty()
 
     generateSources()
 
-    assertThat(ResourceRepositoryManager.getAppResources(myModules.appModule)!!
+    assertThat(ResourceRepositoryManager.getAppResources(project.findAppModule())!!
                  .getResources(ResourceNamespace.RES_AUTO, ResourceType.RAW, "sample_raw_resource")).isNotEmpty()
 
     myFixture.openFileInEditor(

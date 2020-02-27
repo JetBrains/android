@@ -27,7 +27,14 @@ import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactory
+import com.android.tools.idea.sqlite.ui.mainView.AddColumns
+import com.android.tools.idea.sqlite.ui.mainView.AddTable
 import com.android.tools.idea.sqlite.ui.mainView.DatabaseInspectorView
+import com.android.tools.idea.sqlite.ui.mainView.IndexedSqliteColumn
+import com.android.tools.idea.sqlite.ui.mainView.IndexedSqliteTable
+import com.android.tools.idea.sqlite.ui.mainView.RemoveColumns
+import com.android.tools.idea.sqlite.ui.mainView.RemoveTable
+import com.android.tools.idea.sqlite.ui.mainView.SchemaDiffOperation
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
@@ -171,16 +178,60 @@ class DatabaseInspectorControllerImpl(
   }
 
   private suspend fun updateDatabaseSchema(database: SqliteDatabase) {
+    val oldSchema = model.openDatabases[database] ?: return
     val newSchema = readDatabaseSchema(database)
     withContext(uiThread) {
-      updateExistingDatabaseSchemaView(database, newSchema)
-      model.add(database, newSchema)
+      if (oldSchema != newSchema) {
+        updateExistingDatabaseSchemaView(database, oldSchema, newSchema)
+        model.add(database, newSchema)
+      }
     }
   }
 
-  private fun updateExistingDatabaseSchemaView(database: SqliteDatabase, newSqliteSchema: SqliteSchema) {
-    val toAdd = newSqliteSchema.tables.sortedBy { it.name }
-    view.updateDatabase(database, toAdd)
+  private fun updateExistingDatabaseSchemaView(database: SqliteDatabase, oldSchema: SqliteSchema, newSchema: SqliteSchema) {
+    val diffOperations = mutableListOf<SchemaDiffOperation>()
+
+    oldSchema.tables.forEach { oldTable ->
+      val newTable = newSchema.tables.find { it.name == oldTable.name }
+      if (newTable == null) {
+        diffOperations.add(RemoveTable(oldTable.name))
+      }
+      else {
+        val columnsToRemove = oldTable.columns - newTable.columns
+        if (columnsToRemove.isNotEmpty()) {
+          diffOperations.add(RemoveColumns(oldTable.name, columnsToRemove, newTable))
+        }
+      }
+    }
+
+    newSchema.tables.sortedBy { it.name }.forEachIndexed { tableIndex, newTable ->
+      val indexedSqliteTable = IndexedSqliteTable(newTable, tableIndex)
+      val oldTable = oldSchema.tables.firstOrNull { it.name == newTable.name }
+      if (oldTable == null) {
+        val indexedColumnsToAdd = newTable.columns
+          .sortedBy { it.name }
+          .mapIndexed { colIndex, sqliteColumn -> IndexedSqliteColumn(sqliteColumn, colIndex) }
+
+        diffOperations.add(AddTable(indexedSqliteTable, indexedColumnsToAdd))
+      }
+      else if (oldTable != newTable) {
+        val indexedColumnsToAdd = newTable.columns
+          .sortedBy { it.name }
+          .mapIndexed { colIndex, sqliteColumn -> IndexedSqliteColumn(sqliteColumn, colIndex) }
+          .filterNot { oldTable.columns.contains(it.sqliteColumn) }
+
+        diffOperations.add(AddColumns(newTable.name, indexedColumnsToAdd, newTable))
+      }
+    }
+
+    try {
+      view.updateDatabaseSchema(database, diffOperations)
+    } catch (e: Exception) {
+      view.removeDatabaseSchema(database)
+
+      val index = model.getSortedIndexOf(database)
+      view.addDatabaseSchema(database, newSchema, index)
+    }
   }
 
   private fun openNewEvaluatorTab(): SqliteEvaluatorController {
@@ -299,7 +350,7 @@ class DatabaseInspectorControllerImpl(
   inner class SqliteEvaluatorControllerListenerImpl : SqliteEvaluatorController.Listener {
     private val scope = AndroidCoroutineScope(this@DatabaseInspectorControllerImpl)
 
-    override fun onSchemaUpdated(database: SqliteDatabase) {
+    override fun onSqliteStatementExecuted(database: SqliteDatabase) {
       scope.launch(uiThread) {
         updateDatabaseSchema(database)
       }

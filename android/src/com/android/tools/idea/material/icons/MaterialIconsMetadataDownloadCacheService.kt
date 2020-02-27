@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.material.icons
 
-import com.android.tools.idea.material.icons.MaterialIconsUtils.getIconsSdkTargetPath
 import com.android.tools.idea.material.icons.MaterialIconsUtils.getMetadata
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.Semaphore
 import java.io.File
@@ -49,8 +49,10 @@ class MaterialIconsMetadataDownloadCacheService {
       checkNotNull(SdkMetadataUrlProvider().getMetadataUrl() ?: BundledMetadataUrlProvider().getMetadataUrl())
 
     // Return the fallback URL for the metadata if there's no Sdk directory.
-    val downloadDir = getIconsSdkTargetPath() ?: return CompletableFuture.completedFuture(checkNotNull(getMetadata(fallbackMetadataURL)))
-
+    val downloadDir = File(FileUtil.getTempDirectory())
+    if (!downloadDir.isDirectory) {
+      return CompletableFuture.completedFuture(checkNotNull(getMetadata(fallbackMetadataURL)))
+    }
     return getDownloadService(downloadDir, fallbackMetadataURL).refreshAndGetMetadata(fallbackMetadataURL)
   }
 

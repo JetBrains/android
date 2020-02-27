@@ -26,7 +26,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiManager
-import com.intellij.ui.LanguageTextField
+import com.intellij.ui.EditorTextField
 import java.awt.BorderLayout
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
@@ -45,33 +45,38 @@ class SqliteEvaluatorViewImpl(
   private val evaluatorPanel = SqliteEvaluatorPanel()
   override val component: JComponent = evaluatorPanel.root
 
-  private val editorTextField = LanguageTextField(AndroidSqlLanguage.INSTANCE, project, "")
+  private val expandableEditor = ExpandableEditor(EditorTextField(project, AndroidSqlLanguage.INSTANCE.associatedFileType))
 
   private val listeners = ArrayList<SqliteEvaluatorView.Listener>()
 
   init {
-    evaluatorPanel.controlsContainer.add(editorTextField, BorderLayout.CENTER)
+    evaluatorPanel.controlsContainer.add(expandableEditor.editor, BorderLayout.CENTER)
     evaluatorPanel.root.add(tableView.component, BorderLayout.CENTER)
     evaluatorPanel.evaluateButton.addActionListener {
       listeners.forEach {
-        it.evaluateSqlActionInvoked((evaluatorPanel.databaseComboBox.selectedItem as ComboBoxItem).database, editorTextField.text)
+        it.evaluateSqlActionInvoked((evaluatorPanel.databaseComboBox.selectedItem as ComboBoxItem).database, expandableEditor.editor.text)
       }
     }
 
     evaluatorPanel.databaseComboBox.addActionListener { setSchemaFromSelectedItem() }
 
+    // TODO(b/149978362) consider replacing this with swing action.
     DumbAwareAction.create { e: AnActionEvent ->
       listeners.forEach {
-        it.evaluateSqlActionInvoked((evaluatorPanel.databaseComboBox.selectedItem as ComboBoxItem).database, editorTextField.text)
+        it.evaluateSqlActionInvoked((evaluatorPanel.databaseComboBox.selectedItem as ComboBoxItem).database, expandableEditor.editor.text)
       }
-    }.registerCustomShortcutSet(CustomShortcutSet(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.META_DOWN_MASK)), editorTextField)
+    }.registerCustomShortcutSet(
+      CustomShortcutSet(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.META_DOWN_MASK)),
+      expandableEditor.editor
+    )
   }
 
   private fun setSchemaFromSelectedItem() {
     if (evaluatorPanel.databaseComboBox.selectedIndex < 0) return
     val database = (evaluatorPanel.databaseComboBox.selectedItem as ComboBoxItem).database
     val schema = schemaProvider.getSchema(database)
-    FileDocumentManager.getInstance().getFile(editorTextField.document)?.putUserData(SqliteSchemaContext.SQLITE_SCHEMA_KEY, schema)
+
+    FileDocumentManager.getInstance().getFile(expandableEditor.editor.document)?.putUserData(SqliteSchemaContext.SQLITE_SCHEMA_KEY, schema)
     // since the schema has changed we need to drop psi caches to re-run reference resolution and highlighting in the editor text field.
     PsiManager.getInstance(project).dropPsiCaches()
   }
@@ -94,7 +99,7 @@ class SqliteEvaluatorViewImpl(
   }
 
   override fun getSqliteStatement(): String {
-    return editorTextField.text
+    return expandableEditor.editor.text
   }
 
   override fun addListener(listener: SqliteEvaluatorView.Listener) {
@@ -106,7 +111,7 @@ class SqliteEvaluatorViewImpl(
   }
 
   override fun showSqliteStatement(sqliteStatement: String) {
-    editorTextField.text = sqliteStatement
+    expandableEditor.editor.text = sqliteStatement
   }
 
   internal data class ComboBoxItem(val database: SqliteDatabase, val name: String) {

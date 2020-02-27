@@ -15,7 +15,9 @@
   -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
-     <customizableActionGroupProvider implementation="com.android.tools.idea.emulator.EmulatorCustomizableActionGroupProvider"/>
+    <applicationService serviceImplementation="com.android.tools.idea.emulator.RunningEmulatorCatalog"/>
+
+    <customizableActionGroupProvider implementation="com.android.tools.idea.emulator.EmulatorCustomizableActionGroupProvider"/>
   </extensions>
 
   <actions>
@@ -30,16 +32,16 @@
               icon="StudioIcons.Emulator.ROTATE_LEFT" text="Rotate Left" description="Rotate counterclockwise by 90 degrees"/>
       <action id="android.emulator.rotate.right" class="com.android.tools.idea.emulator.EmulatorRotateRightAction"
               icon="StudioIcons.Emulator.ROTATE_RIGHT" text="Rotate Left" description="Rotate clockwise by 90 degrees"/>
-      <action id="android.emulator.screenshot" class="com.android.tools.idea.emulator.EmulatorScreenshotAction"
-              icon="StudioIcons.Emulator.SCREENSHOT" text="Take Screenshot" description="Take screenshot"/>
-      <action id="android.emulator.zoom.in" class="com.android.tools.idea.emulator.EmulatorZoomInAction"
-              icon="StudioIcons.Emulator.ZOOM_IN" text="Enter Zoom Mode" description="Enter zoom mode"/>
       <action id="android.emulator.back" class="com.android.tools.idea.emulator.EmulatorBackAction"
               icon="StudioIcons.Emulator.BACK" text="Back" description="Press Back button"/>
       <action id="android.emulator.home" class="com.android.tools.idea.emulator.EmulatorHomeAction"
               icon="StudioIcons.Emulator.HOME" text="Home" description="Press Home button"/>
       <action id="android.emulator.overview" class="com.android.tools.idea.emulator.EmulatorOverviewAction"
               icon="StudioIcons.Emulator.OVERVIEW" text="Overview" description="Press Overview button"/>
+      <action id="android.emulator.screenshot" class="com.android.tools.idea.emulator.EmulatorScreenshotAction"
+              icon="StudioIcons.Emulator.SCREENSHOT" text="Take Screenshot" description="Take screenshot"/>
+      <action id="android.emulator.zoom.in" class="com.android.tools.idea.emulator.EmulatorZoomInAction"
+              icon="StudioIcons.Emulator.ZOOM_IN" text="Enter Zoom Mode" description="Enter zoom mode"/>
     </group>
   </actions>
 </idea-plugin>

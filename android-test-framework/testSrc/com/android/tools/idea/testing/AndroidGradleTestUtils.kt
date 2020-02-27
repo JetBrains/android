@@ -336,6 +336,7 @@ fun createAndroidProjectBuilderForDefaultTestProjectStructure(
         listOf(File(basePath, "res")),
         emptyList(),
         emptyList(),
+        emptyList(),
         emptyList())
     },
     androidTestSourceProvider = { null },

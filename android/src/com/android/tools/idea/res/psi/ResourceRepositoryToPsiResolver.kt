@@ -43,6 +43,7 @@ import com.intellij.util.containers.toArray
 import org.jetbrains.android.dom.resources.ResourceValue
 import org.jetbrains.android.facet.AndroidFacet
 import com.android.tools.idea.res.getDeclaringAttributeValue
+import com.intellij.psi.impl.ResolveScopeManager
 
 object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
   override fun getGotoDeclarationFileBasedTargets(resourceReference: ResourceReference, context: PsiElement): Array<PsiFile> {
@@ -180,7 +181,7 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
   @JvmStatic
   fun getResourceSearchScope(resourceReference: ResourceReference, context: PsiElement): SearchScope {
     val gotoDeclarationTargets = getGotoDeclarationTargets(resourceReference, context)
-    val allScopes = gotoDeclarationTargets.mapNotNull { ModuleUtilCore.findModuleForPsiElement(it)?.moduleWithDependentsScope }
+    val allScopes = gotoDeclarationTargets.map { ResolveScopeManager.getElementUseScope(it) }
     return if (allScopes.isEmpty()) {
       ProjectScope.getAllScope(context.project)
     }

@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.editor;
 
 import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.DESIGN_MODE;
 import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.NEXT_DEVICE;
-import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.TOGGLE_ISSUE_PANEL;
 
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.actions.BlueprintAndDesignModeAction;
@@ -125,7 +124,7 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
       return group;
     }
     addActionsWithSeparator(group, getZoomActionsWithShortcuts(mySurface, this));
-    group.add(TOGGLE_ISSUE_PANEL.registerForAction(new IssueNotificationAction(mySurface), mySurface, this));
+    group.add(IssueNotificationAction.getInstance());
     return group;
   }
 

@@ -27,6 +27,7 @@ public interface FeatureConfig {
   boolean isJniReferenceTrackingEnabled();
   boolean isLiveAllocationsEnabled();
   boolean isLiveAllocationsSamplingEnabled();
+  boolean isNativeMemorySampleEnabled(); // Added in 4.1.
   boolean isMemorySnapshotEnabled();
   boolean isPerfettoEnabled();
   boolean isPerformanceMonitoringEnabled();
@@ -34,6 +35,7 @@ public interface FeatureConfig {
   boolean isCustomEventVisualizationEnabled();
   boolean isStartupCpuProfilingEnabled();
   boolean isUnifiedPipelineEnabled();
+  boolean isSeparateHeapDumpUiEnabled();
   // Add new features alphabetically instead of at the end of the list
   // This reduces the chance of having to deal with an annoying merge conflict.
 }

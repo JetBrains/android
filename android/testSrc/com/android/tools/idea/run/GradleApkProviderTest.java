@@ -173,7 +173,7 @@ public class GradleApkProviderTest extends GradleApkProviderTestCase {
   }
 
   public void testGetApksForTestBuddyApks() throws Exception {
-    loadProject(BUDDY_APKS, "test");
+    loadProject(BUDDY_APKS, "app");
 
     // Run build task for main variant and android test variant.
     String taskName = AndroidModuleModel.get(myAndroidFacet).getSelectedVariant().getMainArtifact().getAssembleTaskName();

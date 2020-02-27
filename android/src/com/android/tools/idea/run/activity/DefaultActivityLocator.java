@@ -342,6 +342,14 @@ public class DefaultActivityLocator extends ActivityLocator {
      */
     public abstract boolean hasIntentFilter();
 
+    /**
+     * @return an overall theme for the activity.
+     */
+    @Nullable
+    public String getTheme() {
+      throw new UnsupportedOperationException("An activity theme name is not tracked");
+    }
+
     @Nullable
     public abstract String getQualifiedName();
 

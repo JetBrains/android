@@ -69,8 +69,10 @@ class LiveSqliteResultSet(
       check(!Disposer.isDisposed(this)) { "ResultSet has already been disposed." }
 
       val queryResponse = SqliteInspectorProtocol.Response.parseFrom(byteArray).query
+      val columnNames = queryResponse.columnNamesList
+
       val rows = queryResponse.rowsList.map {
-        val sqliteColumnValues = it.valuesList.map { cellValue -> cellValue.toSqliteColumnValue() }
+        val sqliteColumnValues = it.valuesList.mapIndexed { index, cellValue -> cellValue.toSqliteColumnValue(columnNames[index]) }
         SqliteRow(sqliteColumnValues)
       }
 

@@ -88,9 +88,14 @@ class PsResolvedJavaDependencyCollection(module: PsJavaModule)
     gradleModel
       ?.javaModuleDependencies
       ?.forEach { moduleDependency ->
-      parent.parent.findModuleByGradlePath(moduleDependency.moduleId.replaceBefore(':', "").substring(1))
-        ?.let { module -> addModule(module, moduleDependency.scope ?: "") }
-    }
+        // Replace the first colon in Windows path, otherwise the path is not removed properly from module ID for findModuleByGradlePath
+        val strippedModuleId = if (moduleDependency.moduleId[1] == ':' && moduleDependency.moduleId[2] == '\\')
+          moduleDependency.moduleId.replaceFirst(':', '_', false)
+        else
+          moduleDependency.moduleId
+        parent.parent.findModuleByGradlePath(strippedModuleId.replaceBefore(':', "").substring(1))
+          ?.let { module -> addModule(module, moduleDependency.scope ?: "") }
+      }
   }
 
   private fun addLibrary(library: JarLibraryDependency) {

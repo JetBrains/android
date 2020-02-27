@@ -253,8 +253,7 @@ private class PluginIssuesRootNode(
   private val pluginUiData: CriticalPathPluginUiData,
   private val parentNode: PluginNode
 ) : AbstractBuildAttributionNode(parentNode, "Warnings (${pluginUiData.warningCount})") {
-  //TODO mlazeba change to new type when added and merged b/144767316
-  override val pageType = BuildAttributionUiEvent.Page.PageType.UNKNOWN_PAGE
+  override val pageType = BuildAttributionUiEvent.Page.PageType.PLUGIN_WARNINGS_ROOT
   override val presentationIcon: Icon? = null
   override val issuesCountsSuffix: String? = null
   override val timeSuffix: String? = null
@@ -271,7 +270,7 @@ private class PluginIssuesRootNode(
             "No warnings detected for this build."
           else
             "$totalWarningsCount ${StringUtil.pluralize("warning", totalWarningsCount)} " +
-            "of the following ${StringUtil.pluralize("type", children.size)} were detected for this build."
+            "of the following ${if (children.size == 1) "type was" else "types were"} detected for this build:"
         )
       )
       children.forEach {
@@ -311,7 +310,7 @@ private class PluginIssueTypeRootNode(
   }
 
   override fun createComponent(): AbstractBuildAttributionInfoPanel = object : AbstractBuildAttributionInfoPanel() {
-    override fun createHeader(): JComponent = headerLabel(pluginUiData.name)
+    override fun createHeader(): JComponent = headerLabel("${pluginUiData.name} ${issuesGroup.type.uiName}")
 
     override fun createBody(): JComponent = createIssueTypeListPanel(issuesGroup, this@PluginIssueTypeRootNode)
   }

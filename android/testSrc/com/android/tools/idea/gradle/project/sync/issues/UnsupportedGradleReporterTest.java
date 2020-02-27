@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStu
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.TestModuleUtil;
 import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.GradleSyncIssue;
@@ -62,7 +63,7 @@ public class UnsupportedGradleReporterTest extends AndroidGradleTestCase {
     loadSimpleApplication();
     mySyncMessagesStub.removeAllMessages();
 
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
 
     String expectedText = "Hello World!";
     when(mySyncIssue.getMessage()).thenReturn(expectedText);

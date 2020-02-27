@@ -106,7 +106,7 @@ class DataBindingInspectionVerificationTest {
     projectRule.requestSyncAndWait()
 
     // Trigger resource repository initialization
-    ResourceRepositoryManager.getAppResources(projectRule.androidFacet)
+    ResourceRepositoryManager.getAppResources(projectRule.androidFacet(":app"))
 
     // Need to do this or else highlighting will fail with a
     // "Access to tree elements not allowed" error

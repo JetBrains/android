@@ -17,6 +17,8 @@ package com.android.tools.idea.gradle.variant.conflict
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.testing.JavaModuleModelBuilder.Companion.rootModuleBuilder
+import com.android.tools.idea.testing.findAppModule
+import com.android.tools.idea.testing.findModule
 import com.android.tools.idea.testing.setupTestProjectFromAndroidModel
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.TruthJUnit.assume
@@ -34,8 +36,8 @@ class ConflictResolutionTest : ConflictsTestCase() {
       libModuleBuilder()
     )
 
-    val appModule = ModuleManager.getInstance(project).findModuleByName("app")!!
-    val libModule = ModuleManager.getInstance(project).findModuleByName("lib")!!
+    val appModule = project.findAppModule()
+    val libModule = project.findModule("lib")
 
     assume().that(AndroidModuleModel.get(appModule)!!.selectedVariant.name).isEqualTo("release")
     assume().that(AndroidModuleModel.get(libModule)!!.selectedVariant.name).isEqualTo("debug")

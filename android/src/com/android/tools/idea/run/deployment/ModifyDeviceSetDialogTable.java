@@ -20,7 +20,6 @@ import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.JBUI;
 import java.awt.Component;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.OptionalInt;
@@ -36,26 +35,35 @@ final class ModifyDeviceSetDialogTable extends JBTable {
     getTableHeader().setResizingAllowed(false);
     setDefaultEditor(Boolean.class, new BooleanTableCellEditor());
     setRowHeight(JBUI.scale(30));
+    setRowSelectionAllowed(false);
   }
 
   @NotNull
   Collection<Device> getSelectedDevices() {
-    ModifyDeviceSetDialogTableModel model = (ModifyDeviceSetDialogTableModel)getModel();
-
-    return Arrays.stream(getSelectedRows())
-      .map(this::convertRowIndexToModel)
-      .mapToObj(model::getDeviceAt)
+    return IntStream.range(0, getRowCount())
+      .filter(this::isSelected)
+      .mapToObj(this::getDeviceAt)
       .collect(Collectors.toList());
   }
 
   void setSelectedDevices(@NotNull Collection<Key> keys) {
-    ModifyDeviceSetDialogTableModel model = (ModifyDeviceSetDialogTableModel)getModel();
+    IntStream.range(0, getRowCount())
+      .filter(viewRowIndex -> keys.contains(getDeviceAt(viewRowIndex).getKey()))
+      .forEach(viewRowIndex -> setSelected(true, viewRowIndex));
+  }
 
-    IntStream.range(0, getRowCount()).forEach(viewRowIndex -> {
-      if (keys.contains(model.getDeviceAt(convertRowIndexToModel(viewRowIndex)).getKey())) {
-        addRowSelectionInterval(viewRowIndex, viewRowIndex);
-      }
-    });
+  boolean isSelected(int viewRowIndex) {
+    return (boolean)dataModel.getValueAt(convertRowIndexToModel(viewRowIndex), ModifyDeviceSetDialogTableModel.SELECTED_MODEL_COLUMN_INDEX);
+  }
+
+  @VisibleForTesting
+  void setSelected(@SuppressWarnings("SameParameterValue") boolean selected, int viewRowIndex) {
+    dataModel.setValueAt(selected, convertRowIndexToModel(viewRowIndex), ModifyDeviceSetDialogTableModel.SELECTED_MODEL_COLUMN_INDEX);
+  }
+
+  @NotNull
+  private Device getDeviceAt(int viewRowIndex) {
+    return ((ModifyDeviceSetDialogTableModel)dataModel).getDeviceAt(convertRowIndexToModel(viewRowIndex));
   }
 
   @NotNull

@@ -23,10 +23,13 @@ import com.intellij.openapi.wm.ToolWindowContentUiType
 import com.intellij.openapi.wm.ToolWindowFactory
 import org.jetbrains.android.util.AndroidUtils
 
+/**
+ * [ToolWindowFactory] implementation for Emulator tool window.
+ */
 class EmulatorToolWindowFactory : ToolWindowFactory, DumbAware {
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     toolWindow.setDefaultContentUiType(ToolWindowContentUiType.COMBO)
-    EmulatorToolWindow(project)
+    EmulatorToolWindowManager(project)
   }
 
   // After restarting the IDE don't automatically unless visible.

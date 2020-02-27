@@ -35,12 +35,10 @@ import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.common.type.DesignerEditorFileTypeKt;
 import com.android.tools.idea.common.util.XmlTagUtil;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.common.actions.RefreshRenderAction;
 import com.android.tools.idea.rendering.RenderUtils;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.IdeResourcesUtil;
+import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
 import com.android.tools.idea.res.ResourceRepositoryManager;
@@ -51,6 +49,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -135,60 +134,28 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   @NotNull private final NlModelUpdaterInterface myModelUpdater;
 
-  @Slow
+  @NotNull private final DataContext myDataContext;
+
   @NotNull
-  public static NlModel create(@Nullable Disposable parent,
-                               @Nullable String modelDisplayName,
-                               @NotNull AndroidFacet facet,
-                               @NotNull VirtualFile file,
-                               @NotNull ConfigurationManager configurationManager,
-                               @NotNull Consumer<NlComponent> componentRegistrar) {
-    return create(parent, modelDisplayName, facet, file, configurationManager.getConfiguration(file), componentRegistrar);
+  public static NlModelBuilder builder(@NotNull AndroidFacet facet, @NotNull VirtualFile file, @NotNull Configuration configuration) {
+    return new NlModelBuilder(facet, file, configuration);
   }
 
+  /**
+   * Method called by the NlModelBuilder to instantiate a new NlModel
+   */
   @Slow
   @NotNull
-  public static NlModel create(@Nullable Disposable parent,
-                               @Nullable String modelDisplayName,
-                               @NotNull AndroidFacet facet,
-                               @NotNull VirtualFile file,
-                               @NotNull Consumer<NlComponent> componentRegistrar) {
-    return create(parent, modelDisplayName, facet, file, ConfigurationManager.getOrCreateInstance(facet), componentRegistrar);
-  }
-
-  @Slow
-  @NotNull
-  public static NlModel create(@Nullable Disposable parent,
-                               @Nullable String modelDisplayName,
-                               @NotNull AndroidFacet facet,
-                               @NotNull VirtualFile file,
-                               @NotNull Configuration configuration,
-                               @NotNull Consumer<NlComponent> componentRegistrar) {
-    return new NlModel(parent, modelDisplayName, facet, file, configuration, componentRegistrar);
-  }
-
-  @Slow
-  @NotNull
-  public static NlModel create(@Nullable Disposable parent,
-                               @Nullable String modelDisplayName,
-                               @NotNull AndroidFacet facet,
-                               @NotNull VirtualFile file,
-                               @NotNull Configuration configuration,
-                               @NotNull Consumer<NlComponent> componentRegistrar,
-                               @Nullable NlModelUpdaterInterface modelUpdater) {
-    return new NlModel(parent, modelDisplayName, facet, file, configuration, componentRegistrar, NlModel::getDefaultXmlFile, modelUpdater);
-  }
-
-  @Slow
-  @NotNull
-  public static NlModel create(@Nullable Disposable parent,
-                               @Nullable String modelDisplayName,
-                               @NotNull AndroidFacet facet,
-                               @NotNull VirtualFile file,
-                               @NotNull Configuration configuration,
-                               @NotNull Consumer<NlComponent> componentRegistrar,
-                               @NotNull BiFunction<Project, VirtualFile, XmlFile> xmlFileProvider) {
-    return new NlModel(parent, modelDisplayName, facet, file, configuration, componentRegistrar, xmlFileProvider, null);
+  static NlModel create(@Nullable Disposable parent,
+                        @Nullable String modelDisplayName,
+                        @NotNull AndroidFacet facet,
+                        @NotNull VirtualFile file,
+                        @NotNull Configuration configuration,
+                        @NotNull Consumer<NlComponent> componentRegistrar,
+                        @NotNull BiFunction<Project, VirtualFile, XmlFile> xmlFileProvider,
+                        @Nullable NlModelUpdaterInterface modelUpdater,
+                        @NotNull DataContext dataContext) {
+    return new NlModel(parent, modelDisplayName, facet, file, configuration, componentRegistrar, xmlFileProvider, modelUpdater, dataContext);
   }
 
   protected NlModel(@Nullable Disposable parent,
@@ -196,8 +163,9 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                     @NotNull AndroidFacet facet,
                     @NotNull VirtualFile file,
                     @NotNull Configuration configuration,
-                    @NotNull Consumer<NlComponent> componentRegistrar) {
-    this(parent, modelDisplayName, facet, file, configuration, componentRegistrar, NlModel::getDefaultXmlFile, null);
+                    @NotNull Consumer<NlComponent> componentRegistrar,
+                    @NotNull DataContext dataContext) {
+    this(parent, modelDisplayName, facet, file, configuration, componentRegistrar, NlModel::getDefaultXmlFile, null, dataContext);
   }
 
   @VisibleForTesting
@@ -208,7 +176,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                     @NotNull Configuration configuration,
                     @NotNull Consumer<NlComponent> componentRegistrar,
                     @NotNull BiFunction<Project, VirtualFile, XmlFile> xmlFileProvider,
-                    @Nullable NlModelUpdaterInterface modelUpdater) {
+                    @Nullable NlModelUpdaterInterface modelUpdater,
+                    @NotNull DataContext dataContext) {
     myFacet = facet;
     myXmlFileProvider = xmlFileProvider;
     myModelDisplayName = modelDisplayName;
@@ -229,6 +198,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     } else {
       myModelUpdater = modelUpdater;
     }
+    myDataContext = dataContext;
   }
 
   /**
@@ -298,7 +268,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     return myFile;
   }
 
-  /** Returns the {@code XmlFile} PSI representation of {@code virtualFile} in {@code project}. */
+  /**
+   * Returns the {@code XmlFile} PSI representation of {@code virtualFile} in {@code project}.
+   * @deprecated Use {@link NlModelBuilder} and do not use this method.
+   */
   @NotNull
   private static XmlFile getDefaultXmlFile(Project project, VirtualFile virtualFile) {
     XmlFile file = (XmlFile)AndroidPsiUtils.getPsiFileSafely(project, virtualFile);
@@ -1020,5 +993,14 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   public void resetLastChange() {
     myModificationTrigger = null;
+  }
+
+  /**
+   * Returns the {@link DataContext} associated to this model. The {@link DataContext} allows storing information that is specific to this
+   * model but is not part of it. For example, context information about how the model should be represented in a specific surface.
+   */
+  @NotNull
+  public final DataContext getDataContext() {
+    return myDataContext;
   }
 }

@@ -36,6 +36,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleWithNameAlreadyExists;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ExternalProjectSystemRegistry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -107,7 +108,7 @@ class TopLevelModuleFactory {
         if (gradleFacet == null) {
           // Add "gradle" facet, to avoid balloons about unsupported compilation of modules.
           gradleFacet = facetManager.createFacet(GradleFacet.getFacetType(), GradleFacet.getFacetName(), null);
-          facetModel.addFacet(gradleFacet);
+          facetModel.addFacet(gradleFacet, ExternalProjectSystemRegistry.getInstance().getExternalSource(module));
         }
         gradleFacet.getConfiguration().GRADLE_PROJECT_PATH = GRADLE_PATH_SEPARATOR;
       }

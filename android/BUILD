@@ -103,7 +103,6 @@ iml_module(
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
         "//tools/adt/idea/android/lib:spantable",
         "//tools/idea/.idea/libraries:jsr305",
-        "//prebuilts/tools/common/m2/repository/org/tinyjee/jgraphx/jgraphx/3.4.1.3:jar",
         "//prebuilts/tools/common/m2/repository/com/squareup/okio/okio/1.14.0:jar",
         "//prebuilts/tools/common/m2/repository/com/squareup/moshi/moshi/1.6.0:jar",
         "//tools/base/repository:studio.android.sdktools.repository[module]",
@@ -168,6 +167,7 @@ iml_module(
         "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module]",
         "//tools/idea/plugins/terminal:intellij.terminal[module]",
         "//tools/adt/idea/lint:intellij.lint[module]",
+        "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
     ],
 )
 
@@ -180,7 +180,8 @@ iml_module(
         "gradle": {
             "shard_count": 10,
             "data": ["//prebuilts/studio/sdk:ndk"],
-            "tags": ["no_windows"],  # WIP: many sync errors with dependencies, but some others related to paths, etc.
+            # WIP: many sync errors with dependencies, but some others related to paths, etc.
+            "tags": ["no_windows"],
             "test_filter": "com.android.tools.idea.gradle",
         },
         "gradle.structure": {
@@ -203,7 +204,8 @@ iml_module(
         "navigator": {
             "shard_count": 2,
             "data": ["//prebuilts/studio/sdk:ndk"],
-            "tags": ["no_windows"],  # testDependentNativeModules (ag/9872410)
+            # testDependentNativeModules (ag/9872410)
+            "tags": ["no_windows"],
             "test_filter": "com.android.tools.idea.navigator",
         },
         "imports": {
@@ -216,7 +218,8 @@ iml_module(
         },
         "npw.assetstudio": {
             "test_filter": "com.android.tools.idea.npw.assetstudio.ui",
-            "tags": ["no_windows"],  # leaks, json exceptions (b/147453294)
+            # leaks, json exceptions (b/147453294)
+            "tags": ["no_windows"],
         },
         "templates": {
             "shard_count": 3,
@@ -404,6 +407,7 @@ iml_module(
         "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module, test]",
         "//tools/base/wizard/template-impl:studio.intellij.android.wizardTemplate.impl[module, test]",
         "//tools/adt/idea/lint:intellij.lint[module, test]",
+        "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
     ],
 )
 

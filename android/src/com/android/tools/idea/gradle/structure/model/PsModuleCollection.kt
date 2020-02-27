@@ -162,7 +162,7 @@ class PsModuleCollection(parent: PsProjectImpl) : PsMutableCollectionBase<PsModu
   }
 }
 
-private fun Project.getModuleByGradlePath(gradlePath: String) =
+fun Project.getModuleByGradlePath(gradlePath: String) =
     ModuleManager
         .getInstance(this)  // Use ideProject to find the name of the module.
         .modules

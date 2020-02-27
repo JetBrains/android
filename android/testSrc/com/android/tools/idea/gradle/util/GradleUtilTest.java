@@ -37,6 +37,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Test;
@@ -201,34 +202,6 @@ public class GradleUtilTest {
   private boolean isRecognizedAsDataBindingBaseClass(@NotNull String path) {
     File dir = new File(myTempDir, FileUtils.toSystemDependentPath(path));
     return GradleUtil.isDataBindingGeneratedBaseClassesFolder(dir, myTempDir);
-  }
-
-  @Test
-  public void getModuleDependencies() {
-    // Create mock objects.
-    IdeVariant variant = mock(IdeVariant.class);
-    IdeAndroidArtifact mainArtifact = mock(IdeAndroidArtifact.class);
-    IdeBaseArtifact testArtifact = mock(IdeBaseArtifact.class);
-    Library dependency1 = mock(Library.class);
-    Library dependency2 = mock(Library.class);
-    IdeDependencies mainArtifactLevel2Dependencies = mock(IdeDependencies.class);
-    IdeDependencies testArtifactLevel2Dependencies = mock(IdeDependencies.class);
-
-    // Mock the main artifact calls.
-    when(variant.getMainArtifact()).thenReturn(mainArtifact);
-    when(mainArtifact.getLevel2Dependencies()).thenReturn(mainArtifactLevel2Dependencies);
-    when(mainArtifactLevel2Dependencies.getModuleDependencies()).thenReturn(Collections.singletonList(dependency1));
-
-    // Mock the test artifact calls.
-    when(variant.getTestArtifacts()).thenReturn(Collections.singletonList(testArtifact));
-    when(testArtifact.getLevel2Dependencies()).thenReturn(testArtifactLevel2Dependencies);
-    when(testArtifactLevel2Dependencies.getModuleDependencies()).thenReturn(Arrays.asList(dependency1, dependency2));
-
-    // Call the method being tested.
-    List<Library> dependencies = GradleUtil.getModuleDependencies(variant);
-
-    // Verify the result. Repeated dependency1 object should be added only once.
-    assertThat(dependencies).containsExactlyElementsIn(Arrays.asList(dependency1, dependency2));
   }
 
   @Test

@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.model;
 
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.IncludeSet;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.TestModuleUtil;
 import com.intellij.openapi.module.Module;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.Test;
@@ -27,7 +28,7 @@ import static com.google.common.truth.Truth.assertThat;
 public class NdkModuleModelTest extends AndroidGradleTestCase {
   public void testVariantAbiNames() throws Exception {
     loadProject(HELLO_JNI);
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
     NdkModuleModel ndkModuleModel = NdkModuleModel.get(appModule);
     assertNotNull(ndkModuleModel);
     // Verify that the name contains both of variant and abi.

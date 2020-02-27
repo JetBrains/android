@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.emulator
 
+import com.android.tools.idea.emulator.EmulatorConstants.EMULATOR_TOOLBAR_ID
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.ide.ui.customization.CustomizableActionGroupProvider
 
@@ -23,9 +24,5 @@ class EmulatorCustomizableActionGroupProvider : CustomizableActionGroupProvider(
     if (StudioFlags.EMBEDDED_EMULATOR_ENABLED.get()) {
       registrar.addCustomizableActionGroup(EMULATOR_TOOLBAR_ID, "Emulator Toolbar")
     }
-  }
-
-  companion object {
-    const val EMULATOR_TOOLBAR_ID = "EmulatorToolbar"
   }
 }

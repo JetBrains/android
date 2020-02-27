@@ -45,6 +45,7 @@ import static com.android.tools.idea.layoutlib.RenderParamsFlags.FLAG_KEY_XML_FI
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.android.annotations.NonNull;
 import com.android.builder.model.AaptOptions;
 import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.rendering.api.ActionBarCallback;
@@ -916,6 +917,11 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     catch (InconvertibleClassError e) {
       throw new ClassNotFoundException(name + " not found.", e);
     }
+  }
+
+  @Override
+  public boolean isClassLoaded(@NonNull String name) {
+    return myClassLoader.isClassLoaded(name);
   }
 
   @NotNull

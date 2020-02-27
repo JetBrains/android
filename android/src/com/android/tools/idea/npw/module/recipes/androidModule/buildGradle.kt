@@ -19,6 +19,7 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.repository.Revision.parseRevision
 import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.needsExplicitBuildToolsVersion
 import com.android.tools.idea.npw.module.recipes.androidConfig
+import com.android.tools.idea.npw.module.recipes.emptyPluginsBlock
 import com.android.tools.idea.npw.module.recipes.getConfigurationName
 import com.android.tools.idea.npw.module.recipes.supportsImprovedTestDeps
 import com.android.tools.idea.templates.RepositoryUrlManager
@@ -35,8 +36,8 @@ fun buildGradle(
   packageName: String,
   buildApiString: String,
   buildToolsVersion: String,
-  minApi: Int,
-  targetApi: Int,
+  minApi: String,
+  targetApi: String,
   useAndroidX: Boolean,
   gradlePluginVersion: GradlePluginVersion,
   includeCppSupport: Boolean = false,
@@ -99,7 +100,7 @@ fun buildGradle(
 
   val allBlocks =
     """
-
+    ${emptyPluginsBlock()}
     $androidConfigBlock
     $dependenciesBlock
     """

@@ -65,6 +65,7 @@ public class NamedModuleTemplateTest {
     assertThat(sourceProvider.getAssetsDirectories()).isEmpty();
     assertThat(sourceProvider.getJniLibsDirectories()).isEmpty();
     assertThat(sourceProvider.getShadersDirectories()).isEmpty();
+    assertThat(sourceProvider.getMlModelsDirectories()).isEmpty();
   }
 
   @Test
@@ -92,5 +93,6 @@ public class NamedModuleTemplateTest {
     assertThat(sourceProvider.getAssetsDirectories()).isEmpty();
     assertThat(sourceProvider.getJniLibsDirectories()).isEmpty();
     assertThat(sourceProvider.getShadersDirectories()).isEmpty();
+    assertThat(sourceProvider.getMlModelsDirectories()).isEmpty();
   }
 }

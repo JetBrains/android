@@ -219,7 +219,7 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
   }
 
   private fun findViewDataBindingClass(): ClassReader {
-    val model = AndroidModuleModel.get(projectRule.androidFacet)!!
+    val model = AndroidModuleModel.get(projectRule.androidFacet(":app"))!!
     val classJar = model.mainArtifact.dependencies.libraries.first { lib ->
       lib.name!!.startsWith(parameters.dataBindingLibArtifact)
     }.jarFile
@@ -241,10 +241,10 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
 
     val syncState = GradleSyncState.getInstance(projectRule.project)
     assertThat(syncState.isSyncNeeded().toBoolean()).isFalse()
-    assertThat(parameters.mode).isEqualTo(ModuleDataBinding.getInstance(projectRule.androidFacet).dataBindingMode)
+    assertThat(parameters.mode).isEqualTo(ModuleDataBinding.getInstance(projectRule.androidFacet(":app")).dataBindingMode)
 
     // trigger initialization
-    ResourceRepositoryManager.getModuleResources(projectRule.androidFacet)
+    ResourceRepositoryManager.getModuleResources(projectRule.androidFacet(":app"))
 
     val classesOut = File(projectRule.project.basePath, "/app/build/intermediates/javac//debug/classes")
 

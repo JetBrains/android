@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetupSte
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.roots.ExternalProjectSystemRegistry;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.gradle.project.sync.setup.Facets.findFacet;
@@ -40,7 +41,7 @@ public class NdkFacetModuleSetupStep extends NdkModuleSetupStep {
       ModifiableFacetModel model = ideModelsProvider.getModifiableFacetModel(module);
       NdkFacetType facetType = NdkFacet.getFacetType();
       facet = facetType.createFacet(module, NdkFacet.getFacetName(), facetType.createDefaultConfiguration(), null);
-      model.addFacet(facet);
+      model.addFacet(facet, ExternalProjectSystemRegistry.getInstance().getExternalSource(module));
     }
     configureFacet(facet, ndkModuleModel);
   }

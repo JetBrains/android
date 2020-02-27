@@ -30,6 +30,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.IndexNotReadyException;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.util.concurrency.SameThreadExecutor;
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
@@ -129,31 +130,6 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
    * {@link #getMinSdkVersion()}, but with preview platforms the minSdkVersion, targetSdkVersion
    * and compileSdkVersion are all coerced to the same preview platform value. This method
    * should be used by launch code for example or packaging code.
-   *
-   * @deprecated To avoid blocking on merged manifest computations (especially on the EDT since
-   * this freezes the UI), add a callback to the future returned by {@link #getRuntimeMinSdkVersion()}
-   * instead.
-   */
-  @Deprecated
-  @NotNull
-  public AndroidVersion getRuntimeMinSdkVersionSynchronously() {
-    AndroidFacet facet = getFacet();
-    AndroidModel androidModel = AndroidModel.get(facet);
-    if (androidModel != null) {
-      AndroidVersion minSdkVersion = androidModel.getRuntimeMinSdkVersion();
-      if (minSdkVersion != null) {
-        return minSdkVersion;
-      }
-      // Else: not specified in gradle files; fall back to manifest
-    }
-    return MergedManifestManager.getSnapshot(facet).getMinSdkVersion();
-  }
-
-  /**
-   * Returns the minSdkVersion that we pass to the runtime. This is normally the same as
-   * {@link #getMinSdkVersion()}, but with preview platforms the minSdkVersion, targetSdkVersion
-   * and compileSdkVersion are all coerced to the same preview platform value. This method
-   * should be used by launch code for example or packaging code.
    */
   @NotNull
   public ListenableFuture<AndroidVersion> getRuntimeMinSdkVersion() {
@@ -166,6 +142,14 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
       }
       // Else: not specified in gradle files; fall back to manifest
     }
+
+    Project project = facet.getModule().getProject();
+    if (AndroidManifestIndex.indexEnabled() && !DumbService.isDumb(project)) {
+      AndroidVersion minSdkVersion = DumbService.getInstance(project)
+        .runReadActionInSmartMode(() -> queryMinSdkAndTargetSdkFromManifestIndex(facet).getMinSdk());
+      return Futures.immediateFuture(minSdkVersion);
+    }
+
     return getFromMergedManifest(facet, MergedManifestSnapshot::getMinSdkVersion);
   }
 

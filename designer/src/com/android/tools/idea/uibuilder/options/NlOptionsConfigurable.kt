@@ -1,7 +1,6 @@
 package com.android.tools.idea.uibuilder.options
 
 import com.android.tools.idea.IdeInfo
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.options.SearchableConfigurable
@@ -34,9 +33,7 @@ class NlOptionsConfigurable : SearchableConfigurable, Configurable.NoScroll {
     }
   }
 
-  private val preferXmlEditor = JBCheckBox("Prefer XML editor")
   private val showLint = JBCheckBox("Show lint icons on design surface")
-  private val hideForNonLayoutFiles = JBCheckBox("Hide preview window when editing non-layout files")
   private val preferredDrawablesEditorMode = EditorModeComboBox()
   private val preferredEditorMode = EditorModeComboBox()
 
@@ -46,38 +43,26 @@ class NlOptionsConfigurable : SearchableConfigurable, Configurable.NoScroll {
 
   override fun createComponent() = panel {
     row { showLint() }
-    if (!StudioFlags.NELE_SPLIT_EDITOR.get()) {
-      row { preferXmlEditor() }
-      row { hideForNonLayoutFiles() }
-    }
-    else {
-      titledRow("Default Editor Mode") {
-        row("Drawables:") { preferredDrawablesEditorMode() }
-        row("Other Resources (e.g. Layout, Menu, Navigation):") { preferredEditorMode() }
-      }
+    titledRow("Default Editor Mode") {
+      row("Drawables:") { preferredDrawablesEditorMode() }
+      row("Other Resources (e.g. Layout, Menu, Navigation):") { preferredEditorMode() }
     }
   }
 
   override fun isModified() =
-    preferXmlEditor.isSelected != state.isPreferXmlEditor
-    || showLint.isSelected != state.isShowLint
-    || hideForNonLayoutFiles.isSelected != state.isHideForNonLayoutFiles
+    showLint.isSelected != state.isShowLint
     || preferredDrawablesEditorMode.selectedItem != state.preferredDrawableEditorMode
     || preferredEditorMode.selectedItem != state.preferredEditorMode
 
   @Throws(ConfigurationException::class)
   override fun apply() {
-    state.isPreferXmlEditor = preferXmlEditor.isSelected
     state.isShowLint = showLint.isSelected
-    state.isHideForNonLayoutFiles = hideForNonLayoutFiles.isSelected
     state.preferredDrawableEditorMode = preferredDrawablesEditorMode.selectedItem as AndroidEditorSettings.EditorMode
     state.preferredEditorMode = preferredEditorMode.selectedItem as AndroidEditorSettings.EditorMode
   }
 
   override fun reset() {
-    preferXmlEditor.isSelected = state.isPreferXmlEditor
     showLint.isSelected = state.isShowLint
-    hideForNonLayoutFiles.isSelected = state.isHideForNonLayoutFiles
 
     // Handle the case where preferredDrawableEditorMode and preferredEditorMode were not set for the first time yet.
     if (state.preferredDrawableEditorMode == null && state.preferredEditorMode == null) {

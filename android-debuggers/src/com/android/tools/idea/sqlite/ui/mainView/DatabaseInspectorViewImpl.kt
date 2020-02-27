@@ -25,7 +25,6 @@ import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.sqlite.controllers.TabId
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
-import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.ui.logtab.LogTabView
 import com.android.tools.idea.sqlite.ui.logtab.LogTabViewImpl
 import com.intellij.icons.AllIcons
@@ -113,8 +112,8 @@ class DatabaseInspectorViewImpl(
     leftPanelView.addDatabaseSchema(database, schema, index)
   }
 
-  override fun updateDatabase(database: SqliteDatabase, toAdd: List<SqliteTable>) {
-    leftPanelView.updateDatabase(database, toAdd)
+  override fun updateDatabaseSchema(database: SqliteDatabase, diffOperations: List<SchemaDiffOperation>) {
+    leftPanelView.updateDatabase(database, diffOperations)
   }
 
   override fun removeDatabaseSchema(database: SqliteDatabase) {

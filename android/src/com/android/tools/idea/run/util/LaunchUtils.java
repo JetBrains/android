@@ -17,13 +17,16 @@ package com.android.tools.idea.run.util;
 
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.VALUE_TRUE;
+import static com.android.tools.idea.model.AndroidManifestIndexQueryUtils.queryUsedFeaturesFromManifestIndex;
 
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.NullOutputReceiver;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.model.AndroidManifestIndex;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
+import com.android.tools.idea.model.UsedFeatureRawText;
 import com.android.tools.idea.run.activity.ActivityLocatorUtils;
 import com.android.tools.idea.run.activity.DefaultActivityLocator.ActivityWrapper;
 import com.android.utils.XmlUtils;
@@ -36,10 +39,12 @@ import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -110,14 +115,32 @@ public class LaunchUtils {
 
   /**
    * Returns whether the watch hardware feature is required for the given facet.
+   *
+   * First, we try to query from {@link AndroidManifestIndex}. And we fall back to {@link MergedManifestSnapshot}
+   * if necessary.
    */
   public static boolean isWatchFeatureRequired(@NotNull AndroidFacet facet) {
-    MergedManifestSnapshot mergedManifest = MergedManifestManager.getSnapshot(facet);
-    Element feature = mergedManifest.findUsedFeature(UsesFeature.HARDWARE_TYPE_WATCH);
-    return feature != null && isRequired(feature);
+    if (!AndroidManifestIndex.indexEnabled()) {
+      return isWatchFeatureRequiredFromSnapshot(facet);
+    }
+
+    Project project = facet.getModule().getProject();
+    Collection<UsedFeatureRawText> usedFeatures =
+      DumbService.getInstance(project).runReadActionInSmartMode(() -> queryUsedFeaturesFromManifestIndex(facet));
+
+    return usedFeatures.stream()
+      .anyMatch(feature -> UsesFeature.HARDWARE_TYPE_WATCH.equals(feature.getName()) &&
+                           (feature.getRequired() == null || VALUE_TRUE.equals(feature.getRequired())));
   }
 
-  private static boolean isRequired(@NotNull Element feature) {
+  private static boolean isWatchFeatureRequiredFromSnapshot(@NotNull AndroidFacet facet) {
+    MergedManifestSnapshot mergedManifest = MergedManifestManager.getSnapshot(facet);
+    Element feature = mergedManifest.findUsedFeature(UsesFeature.HARDWARE_TYPE_WATCH);
+
+    if (feature == null) {
+      return false;
+    }
+
     Attr requiredNode = feature.getAttributeNodeNS(ANDROID_URI, "required");
     if (requiredNode == null) { // unspecified => required
       return true;

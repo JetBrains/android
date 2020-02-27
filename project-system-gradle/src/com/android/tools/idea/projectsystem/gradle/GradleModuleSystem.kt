@@ -29,7 +29,6 @@ import com.android.manifmerger.ManifestSystemProperty
 import com.android.projectmodel.Library
 import com.android.repository.io.FileOpUtils
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModelHandler
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.gradle.util.GradleUtil
@@ -529,7 +528,7 @@ class GradleModuleSystem(
   override val isRClassTransitive: Boolean get() = readFromAgpFlags { it.transitiveRClasses } ?: true
 
   override fun getDynamicFeatureModules(): List<Module> {
-    val project = GradleUtil.getAndroidProject(module) ?: return emptyList()
+    val project = AndroidModuleModel.get(module)?.androidProject ?: return emptyList()
     return DynamicAppUtils.getDependentFeatureModulesForBase(module.project, project)
   }
 

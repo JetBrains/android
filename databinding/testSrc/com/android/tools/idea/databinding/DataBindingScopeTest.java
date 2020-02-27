@@ -26,6 +26,7 @@ import com.android.tools.idea.databinding.module.ModuleDataBinding;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.testing.AndroidGradleProjectRule;
+import com.android.tools.idea.testing.TestModuleUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -53,7 +54,7 @@ public class DataBindingScopeTest {
     myProjectRule.getFixture().setTestDataPath(TestDataPaths.TEST_DATA_ROOT);
     myProjectRule.load(PROJECT_WITH_DATA_BINDING_AND_SIMPLE_LIB);
     Project project = myProjectRule.getProject();
-    AndroidFacet facet = myProjectRule.getAndroidFacet();
+    AndroidFacet facet = myProjectRule.androidFacet(":app");
     JavaCodeInsightTestFixture fixture = (JavaCodeInsightTestFixture)myProjectRule.getFixture();
 
     GradleSyncState syncState = GradleSyncState.getInstance(project);
@@ -61,9 +62,9 @@ public class DataBindingScopeTest {
     assertSame(DataBindingMode.SUPPORT, ModuleDataBinding.getInstance(facet).getDataBindingMode());
 
     // app depends on lib depends on lib2
-    assertTrue(myProjectRule.getModules().hasModule("app"));
-    assertTrue(myProjectRule.getModules().hasModule("lib"));
-    assertTrue(myProjectRule.getModules().hasModule("lib2"));
+    assertTrue(TestModuleUtil.hasModule(project, "app"));
+    assertTrue(TestModuleUtil.hasModule(project, "lib"));
+    assertTrue(TestModuleUtil.hasModule(project, "lib2"));
 
     GlobalSearchScope appScope = fixture.findClass("com.android.example.appwithdatabinding.MainActivity").getResolveScope();
     GlobalSearchScope libScope = fixture.findClass("lib.Dummy").getResolveScope();

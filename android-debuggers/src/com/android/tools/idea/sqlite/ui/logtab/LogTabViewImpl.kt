@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.UiThread
 import com.intellij.execution.impl.ConsoleViewImpl
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import java.awt.BorderLayout
 import javax.swing.JPanel
 
@@ -30,6 +31,7 @@ class LogTabViewImpl(project: Project) : LogTabView {
 
   init {
     component.add(consoleView.component, BorderLayout.CENTER)
+    Disposer.register(project, consoleView)
   }
 
   override fun log(log: String) {

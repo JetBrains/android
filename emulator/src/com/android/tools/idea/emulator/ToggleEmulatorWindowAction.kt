@@ -20,11 +20,14 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.wm.ToolWindowManager
 
+/**
+ * Shows/hides Emulator tool window.
+ */
 class ToggleEmulatorWindowAction : AnAction("Toggle Emulator Window") {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
     val activateWindow = true
-    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(EmulatorToolWindow.ID)
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(EmulatorToolWindowManager.ID)
     if (toolWindow.isVisible) {
       toolWindow.hide(null)
     } else {
@@ -35,9 +38,9 @@ class ToggleEmulatorWindowAction : AnAction("Toggle Emulator Window") {
     }
   }
 
-  override fun update(e: AnActionEvent) {
+  override fun update(event: AnActionEvent) {
     val enabled = StudioFlags.EMBEDDED_EMULATOR_ENABLED.get()
-    e.presentation.isEnabled = enabled
-    e.presentation.isVisible = enabled
+    event.presentation.isEnabled = enabled
+    event.presentation.isVisible = enabled
   }
 }

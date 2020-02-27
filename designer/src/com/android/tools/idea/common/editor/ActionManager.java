@@ -18,6 +18,7 @@ package com.android.tools.idea.common.editor;
 import com.android.tools.adtui.stdui.KeyBindingKt;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.SceneView;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.ActionPopupMenu;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -112,4 +113,13 @@ public abstract class ActionManager<S extends DesignSurface> {
   @NotNull
   public abstract DefaultActionGroup getToolbarActions(@Nullable NlComponent component,
                                                        @NotNull List<NlComponent> newSelection);
+
+  /**
+   * Returns the context toolbar for a {@link SceneView}. This toolbar should contain actions
+   * that are specific to this {@link SceneView}. The method returns null if no toolbar is needed.
+   */
+  @Nullable
+  public JComponent getSceneViewContextToolbar(@NotNull SceneView sceneView) {
+    return null;
+  }
 }

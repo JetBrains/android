@@ -84,7 +84,7 @@ class ResourceExplorerTest {
 
     // 1. On a resource file, press "ctrl + shift + t" to open and select the resource in the resource manager.
     val showInResourceManagerKeyInfo = KeyPressInfo.keyCode(KeyEvent.VK_T).apply { modifiers(InputEvent.CTRL_MASK, InputEvent.SHIFT_MASK) }
-    val layoutEditor = ide.editor.getLayoutEditor(false)
+    val layoutEditor = ide.editor.getLayoutEditor()
     layoutEditor.waitForRenderToFinish().pressAndReleaseKey(showInResourceManagerKeyInfo).findResourceExplorer()
 
     // 2. Add a Drawable resource through the VectorAsset action.

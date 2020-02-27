@@ -97,7 +97,7 @@ class QrScanningCujTest {
 
     // Build layout from UI in the layout editor
     ide.editor
-      .getLayoutEditor(false)
+      .getLayoutEditor()
       .showOnlyDesignView().run {
         dragComponentToSurface("Common", "TextView")
           .findView("TextView", 0)
@@ -127,7 +127,7 @@ class QrScanningCujTest {
 
     // Add an image view to the layout
     ide.editor
-      .getLayoutEditor(false).run {
+      .getLayoutEditor().run {
         dragComponentToSurface("Common", "ImageView")
         ResourcePickerDialogFixture.find(robot()).run {
           resourceExplorer.searchField.setText("ic_qr")
@@ -196,7 +196,7 @@ class QrScanningCujTest {
 
     // Add an ImageView by dragging it from the palette in the preview, and select ic_flash_on_white_24dp as the source
     ide.editor
-      .getLayoutEditor(false).run {
+      .getLayoutEditor().run {
         dragComponentToSurface("Common", "ImageView")
         ResourcePickerDialogFixture.find(robot()).run {
           resourceExplorer.searchField.setText("ic_baseline_flash_on")

@@ -17,4 +17,8 @@
   <extensions defaultExtensionNs="com.android.project">
     <projectsystem implementation="com.android.tools.idea.projectsystem.gradle.GradleProjectSystemProvider"/>
   </extensions>
+  <extensions defaultExtensionNs="com.intellij">
+    <applicationService serviceInterface="com.android.tools.idea.gradle.dsl.api.GradleModelProvider"
+                        serviceImplementation="com.android.tools.idea.projectsystem.gradle.GradleModelSource"/>
+  </extensions>
 </idea-plugin>

@@ -24,7 +24,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import java.util.List;
 import java.util.function.Function;
 import javax.swing.Icon;
-import kotlin.collections.CollectionsKt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

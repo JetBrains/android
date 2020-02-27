@@ -15,6 +15,7 @@ package com.android.tools.idea.compose.preview
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import com.android.tools.idea.kotlin.getQualifiedName
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
@@ -22,6 +23,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.text.nullize
+import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UClass
@@ -57,8 +59,11 @@ private fun attributesToConfiguration(node: UAnnotation): PreviewConfiguration {
  */
 object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
   override fun hasPreviewMethods(project: Project, vFile: VirtualFile): Boolean = ReadAction.compute<Boolean, Throwable> {
-    PsiTreeUtil.findChildrenOfType(PsiManager.getInstance(project).findFile(vFile), KtImportDirective::class.java)
-      .any { PREVIEW_ANNOTATION_FQN == it.importedFqName?.asString() }
+    val psiFile = PsiManager.getInstance(project).findFile(vFile)
+    PsiTreeUtil.findChildrenOfType(psiFile, KtImportDirective::class.java)
+      .any { PREVIEW_ANNOTATION_FQN == it.importedFqName?.asString() } ||
+    PsiTreeUtil.findChildrenOfType(psiFile, KtAnnotationEntry::class.java)
+      .any { PREVIEW_ANNOTATION_FQN == it.getQualifiedName() }
   }
 
   /**

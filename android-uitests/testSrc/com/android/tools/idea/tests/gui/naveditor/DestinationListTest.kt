@@ -49,7 +49,7 @@ class DestinationListTest {
     // Open file as XML and switch to design tab, wait for successful render
     val editor = guiTest.ideFrame().editor
     editor.open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN)
-    val layout = editor.getLayoutEditor(true).waitForRenderToFinish()
+    val layout = editor.getLayoutEditor().waitForRenderToFinish()
 
     ApplicationManager.getApplication().invokeAndWait {
       UIUtil.dispatchAllInvocationEvents()
@@ -86,7 +86,7 @@ class DestinationListTest {
       .waitForGradleProjectSyncToFinish()
       .editor
       .open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN)
-      .getLayoutEditor(true)
+      .getLayoutEditor()
 
     editor
       .waitForRenderToFinish()

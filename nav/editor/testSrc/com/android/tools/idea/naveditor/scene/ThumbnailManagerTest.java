@@ -21,6 +21,7 @@ import com.android.tools.adtui.ImageUtils;
 import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.naveditor.NavTestCase;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.rendering.RenderService;
@@ -69,7 +70,11 @@ public class ThumbnailManagerTest extends NavTestCase {
     VirtualFile file = myFixture.findFileInTempDir("res/layout/activity_main.xml");
     XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(file);
 
-    NlModel model = NlModel.create(getMyRootDisposable(), null, myFacet, psiFile.getVirtualFile(), mySurface.getComponentRegistrar());
+    VirtualFile virtualFile = psiFile.getVirtualFile();
+    NlModel model = NlModel.builder(myFacet, virtualFile, ConfigurationManager.getOrCreateInstance(myFacet).getConfiguration(virtualFile))
+      .withParentDisposable(getMyRootDisposable())
+      .withComponentRegistrar(mySurface.getComponentRegistrar())
+      .build();
     RefinableImage imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200));
     BufferedImage image = imageFuture.getTerminalImage();
     imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200));
@@ -102,7 +107,11 @@ public class ThumbnailManagerTest extends NavTestCase {
     VirtualFile file = myFixture.findFileInTempDir("res/layout/activity_main.xml");
     XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(file);
 
-    NlModel model = NlModel.create(getMyRootDisposable(), null, myFacet, psiFile.getVirtualFile(), mySurface.getComponentRegistrar());
+    VirtualFile virtualFile = psiFile.getVirtualFile();
+    NlModel model = NlModel.builder(myFacet, virtualFile, ConfigurationManager.getOrCreateInstance(myFacet).getConfiguration(virtualFile))
+      .withParentDisposable(getMyRootDisposable())
+      .withComponentRegistrar(mySurface.getComponentRegistrar())
+      .build();
     Configuration configuration = model.getConfiguration();
     RefinableImage thumbnail = manager.getThumbnail(psiFile, configuration, new Dimension(100, 200));
     BufferedImage orig = thumbnail.getTerminalImage();
@@ -162,7 +171,11 @@ public class ThumbnailManagerTest extends NavTestCase {
     VirtualFile file = myFixture.findFileInTempDir("res/layout/activity_main.xml");
     XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(file);
 
-    NlModel model = NlModel.create(getMyRootDisposable(), null, myFacet, psiFile.getVirtualFile(), mySurface.getComponentRegistrar());
+    VirtualFile virtualFile = psiFile.getVirtualFile();
+    NlModel model = NlModel.builder(myFacet, virtualFile, ConfigurationManager.getOrCreateInstance(myFacet).getConfiguration(virtualFile))
+      .withParentDisposable(getMyRootDisposable())
+      .withComponentRegistrar(mySurface.getComponentRegistrar())
+      .build();
     RefinableImage imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200));
     RefinableImage imageFuture2 = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200));
 
@@ -182,7 +195,11 @@ public class ThumbnailManagerTest extends NavTestCase {
     VirtualFile file = NavTestCase.findVirtualProjectFile(getProject(), "res/layout/activity_main.xml");
     XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(file);
 
-    NlModel model = NlModel.create(getProject(), null, myFacet, psiFile.getVirtualFile(), mySurface.getComponentRegistrar());
+    VirtualFile virtualFile = psiFile.getVirtualFile();
+    NlModel model = NlModel.builder(myFacet, virtualFile, ConfigurationManager.getOrCreateInstance(myFacet).getConfiguration(virtualFile))
+      .withParentDisposable(getMyRootDisposable())
+      .withComponentRegistrar(mySurface.getComponentRegistrar())
+      .build();
     BufferedImage image = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(192, 320)).getTerminalImage();
 
     String fileName = "basic_activity_1.png";

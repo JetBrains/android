@@ -39,7 +39,8 @@ import static com.android.SdkConstants.VALUE_MATCH_PARENT;
 import static com.android.SdkConstants.VALUE_VERTICAL;
 import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
 import static com.android.SdkConstants.VALUE_ZERO_DP;
-import static com.android.tools.idea.uibuilder.api.actions.ViewActionsKt.withRank;
+import static com.android.tools.idea.uibuilder.api.actions.ViewActionUtils.getToggleSizeActions;
+import static com.android.tools.idea.uibuilder.api.actions.ViewActionUtils.getViewOptionsAction;
 import static com.android.utils.XmlUtils.formatFloatValue;
 
 import com.android.tools.adtui.common.SwingCoordinate;
@@ -316,13 +317,13 @@ public class LinearLayoutHandler extends ViewGroupHandler {
 
   @Override
   public void addToolbarActions(@NotNull List<ViewAction> actions) {
-    int rank = 0;
-    actions.add(withRank(new ToggleOrientationAction(), rank += 20));
-    actions.add(withRank(new BaselineAction(), rank += 20));
-    actions.add(withRank(new DistributeWeightsAction(), rank += 20));
-    actions.add(withRank(new ClearWeightsAction(), rank += 20));
-    actions.add(withRank(new ViewActionSeparator(), rank += 20));
-    addDefaultViewActions(actions, rank);
+    actions.add(getViewOptionsAction());
+    actions.add(new ToggleOrientationAction());
+    actions.add(new BaselineAction());
+    actions.add(new DistributeWeightsAction());
+    actions.add(new ClearWeightsAction());
+    actions.add(new ViewActionSeparator());
+    actions.addAll(getToggleSizeActions());
   }
 
   @Override

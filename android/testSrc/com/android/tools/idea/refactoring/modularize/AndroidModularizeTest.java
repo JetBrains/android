@@ -18,10 +18,10 @@ package com.android.tools.idea.refactoring.modularize;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.testing.TestModuleUtil;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
@@ -63,7 +63,7 @@ public class AndroidModularizeTest extends AndroidTestCase {
     PsiElement activity = myFixture.getJavaFacade().findClass("google.MainActivity");
     DataContext context = dataId -> {
       if (LangDataKeys.TARGET_MODULE.is(dataId)) {
-        return ModuleManager.getInstance(getProject()).findModuleByName("library");
+        return TestModuleUtil.findModule(getProject(), "library");
       }
       return null;
     };

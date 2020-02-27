@@ -44,13 +44,11 @@ public class VisualizationTest {
   @Before
   public void setUp() {
     StudioFlags.NELE_VISUALIZATION.override(true);
-    StudioFlags.NELE_SPLIT_EDITOR.override(true);
   }
 
   @After
   public void tearDown() {
     StudioFlags.NELE_VISUALIZATION.clearOverride();
-    StudioFlags.NELE_SPLIT_EDITOR.clearOverride();
   }
 
   @Test

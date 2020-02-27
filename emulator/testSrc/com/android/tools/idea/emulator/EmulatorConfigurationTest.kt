@@ -45,10 +45,6 @@ class EmulatorConfigurationTest {
         value: "true"
       }
       entry {
-        key: "avd.name"
-        value: "Pixel_3_XL_API_29"
-      }
-      entry {
         key: "avd.id"
         value: "Pixel_3_XL_API_29"
       }
@@ -60,8 +56,6 @@ class EmulatorConfigurationTest {
     val entryList = parseEntryList(proto)
     val config = EmulatorConfiguration.fromHardwareConfig(entryList)
     assertThat(config).isNotNull()
-    assertThat(config?.avdId).isEqualTo("Pixel_3_XL_API_29")
-    assertThat(config?.avdName).isEqualTo("Pixel 3 XL API 29")
     assertThat(config?.avdPath).isEqualTo(Paths.get("/home/username/.android/avd/Pixel_3_XL_API_29"))
     assertThat(config?.displayWidth).isEqualTo(1440)
     assertThat(config?.displayHeight).isEqualTo(2960)
@@ -85,10 +79,6 @@ class EmulatorConfigurationTest {
         value: "false"
       }
       entry {
-        key: "avd.name"
-        value: "Polestar_2_API_28"
-      }
-      entry {
         key: "avd.id"
         value: "Polestar_2_API_28"
       }
@@ -100,8 +90,6 @@ class EmulatorConfigurationTest {
     val entryList = parseEntryList(proto)
     val config = EmulatorConfiguration.fromHardwareConfig(entryList)
     assertThat(config).isNotNull()
-    assertThat(config?.avdId).isEqualTo("Polestar_2_API_28")
-    assertThat(config?.avdName).isEqualTo("Polestar 2 API 28")
     assertThat(config?.avdPath).isEqualTo(Paths.get("/home/username/.android/avd/Polestar_2_API_28"))
     assertThat(config?.displayWidth).isEqualTo(1152)
     assertThat(config?.displayHeight).isEqualTo(1536)
@@ -127,10 +115,6 @@ class EmulatorConfigurationTest {
       entry {
         key: "hw.sensors.orientation"
         value: "true"
-      }
-      entry {
-        key: "avd.id"
-        value: "Pixel_3_XL_API_29"
       }
       entry {
         key: "android.avd.home"

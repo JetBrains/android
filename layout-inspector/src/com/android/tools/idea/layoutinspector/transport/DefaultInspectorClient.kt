@@ -45,6 +45,7 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.INITIAL_RENDER
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.INITIAL_RENDER_NO_PICTURE
 import com.intellij.concurrency.JobScheduler
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.ModuleManager
@@ -52,6 +53,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ProjectManagerListener
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.dialog
 import com.intellij.ui.layout.panel
 import com.intellij.util.containers.ContainerUtil
@@ -77,9 +79,10 @@ private const val MAX_RETRY_COUNT = 60
 
 class DefaultInspectorClient(
   model: InspectorModel,
+  parentDisposable: Disposable,
   channelNameForTest: String = TransportService.CHANNEL_NAME,
   private val scheduler: ScheduledExecutorService = JobScheduler.getScheduler() // test only
-) : InspectorClient {
+) : InspectorClient, Disposable {
   private val project = model.project
   private var client = TransportClient(channelNameForTest)
 
@@ -123,6 +126,11 @@ class DefaultInspectorClient(
     // TODO: retry getting adb if it fails the first time
     adb = AndroidSdkUtils.getAdb(project)?.let { AdbService.getInstance()?.getDebugBridge(it) } ?:
           Futures.immediateFuture(AndroidDebugBridge.createBridge())
+    Disposer.register(parentDisposable, this)
+  }
+
+  override fun dispose() {
+    disconnectNow()
   }
 
   // TODO: detect when a connection is dropped

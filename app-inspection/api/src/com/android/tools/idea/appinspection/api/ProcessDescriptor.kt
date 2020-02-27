@@ -15,26 +15,10 @@
  */
 package com.android.tools.idea.appinspection.api
 
+import com.android.tools.idea.transport.manager.TransportStreamChannel
 import com.android.tools.profiler.proto.Common
 
-/**
- * Simple data class containing [Common.Stream] and [Common.Process] which are supplied by the transport pipeline. It is used to identify
- * processes running on device and can be matched with [LaunchedProcessDescriptor] supplied by AndroidLaunchTaskContributor.
- */
-data class TransportProcessDescriptor(
-  val stream: Common.Stream,
-  val process: Common.Process
-)
-
-
-/**
- * A descriptor that is provided by AndroidLaunchTaskContributor and is used to identify apps launched by Studio.
- *
- * Note the descriptor here is different from [TransportProcessDescriptor] even though they both represent processes.
- * [TransportProcessDescriptor] is based on transport protocol whereas [LaunchedProcessDescriptor] is based on information from a launched
- * app. They share a common set of identifying attributes about a process such as its device's manufacturer, model and process name.
- */
-data class LaunchedProcessDescriptor(
+data class ProcessInfo(
   /** The manufacturer of the device. */
   val manufacturer: String,
 
@@ -44,3 +28,56 @@ data class LaunchedProcessDescriptor(
   /** The name of the process running on the device. */
   val processName: String?
 )
+
+/**
+ * Describes a process running on a device.
+ */
+sealed class ProcessDescriptor {
+  abstract val info: ProcessInfo
+
+  override fun equals(other: Any?) = (other is ProcessDescriptor && other.info == info)
+
+  override fun hashCode() = info.hashCode()
+}
+
+/**
+ * Simple data class containing [Common.Stream] and [Common.Process] which are supplied by the transport pipeline. It is used to identify
+ * processes running on device and can be matched with [LaunchedProcessDescriptor] supplied by AndroidLaunchTaskContributor.
+ */
+internal class TransportProcessDescriptor(
+  val streamChannel: TransportStreamChannel,
+  val process: Common.Process
+) : ProcessDescriptor() {
+  override val info = ProcessInfo(streamChannel.stream.device.manufacturer, streamChannel.stream.device.model, process.name)
+}
+
+
+/**
+ * A descriptor that is provided by AndroidLaunchTaskContributor and is used to identify apps launched by Studio.
+ *
+ * Note the descriptor here is different from [TransportProcessDescriptor] even though they both represent processes.
+ * [TransportProcessDescriptor] is based on transport protocol whereas [LaunchedProcessDescriptor] is based on information from a launched
+ * app. They share a common set of identifying attributes about a process such as its device's manufacturer, model and process name.
+ */
+class LaunchedProcessDescriptor(
+  manufacturer: String,
+  model: String,
+  processName: String?,
+  val jarCopier: AppInspectionJarCopier
+) : ProcessDescriptor() {
+  override val info = ProcessInfo(manufacturer, model, processName)
+}
+
+/**
+ * Describes and has everything necessary to launch an [AppInspectionTarget].
+ *
+ * This is used by the frontend UI combobox to display information about inspectable processes, and to launch [AppInspectionTarget] when
+ * user chooses to.
+ */
+internal class AttachableProcessDescriptor internal constructor(
+  internal val stream: Common.Stream,
+  internal val process: Common.Process,
+  internal val appInspectionJarCopier: AppInspectionJarCopier
+) : ProcessDescriptor() {
+  override val info = ProcessInfo(stream.device.manufacturer, stream.device.model, process.name)
+}

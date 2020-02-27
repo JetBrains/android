@@ -365,9 +365,7 @@ public class DeviceMenuAction extends DropDownAction {
       if (commit) {
         configuration.getConfigurationManager().selectDevice(myDevice);
       }
-      else {
-        configuration.setDevice(myDevice, true);
-      }
+      configuration.setDevice(myDevice, true);
     }
 
     @NotNull

@@ -22,9 +22,11 @@ import com.android.sdklib.devices.Abi;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.SimpleColoredComponent;
+import com.intellij.util.Function;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -99,7 +101,8 @@ public interface AndroidDevice {
   @NotNull
   LaunchCompatibility canRun(@NotNull AndroidVersion minSdkVersion,
                              @NotNull IAndroidTarget projectTarget,
-                             @NotNull EnumSet<IDevice.HardwareFeature> requiredFeatures,
+                             @NotNull AndroidFacet facet,
+                             Function<AndroidFacet, EnumSet<IDevice.HardwareFeature>> getRequiredHardwareFeatures,
                              @Nullable Set<String> supportedAbis);
 
   /** Returns whether this device is debuggable or not. */

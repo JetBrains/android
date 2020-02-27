@@ -18,9 +18,9 @@ package com.android.tools.idea.gradle.project.sync.idea
 import com.android.tools.idea.flags.ExperimentalSettingsConfigurable.TraceProfileItem.DEFAULT
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.testing.IdeComponents
+import com.android.utils.FileUtils.writeToFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.PathManager
-import com.intellij.openapi.util.Pair
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.HeavyPlatformTestCase
 import org.junit.Test
@@ -37,24 +37,52 @@ class TraceSyncUtilTest : HeavyPlatformTestCase() {
   @Test
   fun testAddTraceJvmArgsWithTraceDisabled() {
     settings.TRACE_GRADLE_SYNC = false
-    val jvmArgs = mutableListOf<Pair<String, String>>()
+    val agentJar = findAgentJar()
+    val originalOptions = "-Xms256m\n" +
+                          "-Xmx1280m\n" +
+                          "-XX:ReservedCodeCacheSize=240m\n" +
+                          "-Djava.net.preferIPv4Stack=true\n" +
+                          "-javaagent:${agentJar}=/tmp/text.profile\n"
+
+    val vmFile = FileUtil.createTempFile("studio", ".vmoptions")
+    vmFile.deleteOnExit()
+    writeToFile(vmFile, originalOptions)
+
     // Invoke method to test.
-    addTraceJvmArgs(jvmArgs)
-    assertThat(jvmArgs).isEmpty()
+    updateTraceArgsInFile(vmFile)
+
+    // Verify that -javaagent line is removed.
+    val updatedOptions = vmFile.readText()
+    assertThat(updatedOptions).isEqualTo("-Xms256m\n" +
+                                         "-Xmx1280m\n" +
+                                         "-XX:ReservedCodeCacheSize=240m\n" +
+                                         "-Djava.net.preferIPv4Stack=true\n")
   }
 
   @Test
   fun testAddTraceJvmArgsWithTraceEnabled() {
     settings.TRACE_GRADLE_SYNC = true
     settings.TRACE_PROFILE_SELECTION = DEFAULT
-    val jvmArgs = mutableListOf<Pair<String, String>>()
-    // Invoke method to test.
-    addTraceJvmArgs(jvmArgs)
-
     val agentJar = findAgentJar()
-    assertThat(jvmArgs).hasSize(1)
-    assertThat(jvmArgs[0].first).isEqualTo("-javaagent:${agentJar}")
-    assertThat(jvmArgs[0].second).endsWith(".profile")
+    val originalOptions = "-Xms256m\n" +
+                          "-Xmx1280m\n" +
+                          "-XX:ReservedCodeCacheSize=240m\n" +
+                          "-Djava.net.preferIPv4Stack=true"
+
+    val vmFile = FileUtil.createTempFile("studio", ".vmoptions")
+    vmFile.deleteOnExit()
+    writeToFile(vmFile, originalOptions)
+
+    // Invoke method to test.
+    updateTraceArgsInFile(vmFile)
+
+    // Verify that -javaagent line is added.
+    val updatedOptions = vmFile.readText()
+    assertThat(updatedOptions).startsWith("-Xms256m\n" +
+                                          "-Xmx1280m\n" +
+                                          "-XX:ReservedCodeCacheSize=240m\n" +
+                                          "-Djava.net.preferIPv4Stack=true\n" +
+                                          "-javaagent:${agentJar}=")
   }
 
   @Test

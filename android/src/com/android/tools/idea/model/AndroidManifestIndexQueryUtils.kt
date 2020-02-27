@@ -90,22 +90,22 @@ fun AndroidFacet.queryActivitiesFromManifestIndex() = queryManifestIndex { overr
 }
 
 data class ActivitiesAndAliases(
-  private val activities: List<DefaultActivityLocator.ActivityWrapper>,
-  private val aliases: List<DefaultActivityLocator.ActivityWrapper>
+  val activities: List<DefaultActivityLocator.ActivityWrapper>,
+  val aliases: List<DefaultActivityLocator.ActivityWrapper>
 ) {
-  fun getJoined() : List<DefaultActivityLocator.ActivityWrapper> {
+  fun getJoined(): List<DefaultActivityLocator.ActivityWrapper> {
     val joined = arrayListOf<DefaultActivityLocator.ActivityWrapper>()
     joined.addAll(activities)
     joined.addAll(aliases)
     return joined
   }
 
-  fun findActivityByName(name : String?) : DefaultActivityLocator.ActivityWrapper? {
+  fun findActivityByName(name: String?): DefaultActivityLocator.ActivityWrapper? {
     name ?: return null
     return activities.find { it.qualifiedName == name }
   }
 
-  fun findAliasByName(name : String?) : DefaultActivityLocator.ActivityWrapper? {
+  fun findAliasByName(name: String?): DefaultActivityLocator.ActivityWrapper? {
     name ?: return null
     return aliases.find { it.qualifiedName == name }
   }
@@ -133,8 +133,10 @@ fun AndroidFacet.queryMinSdkAndTargetSdkFromManifestIndex() = queryManifestIndex
     if (minSdkLevel != null && targetSdkLevel != null) return@forEach
   }
 
-  MinSdkAndTargetSdk(SdkVersionInfo.getVersion(minSdkLevel, null) ?: AndroidVersion.DEFAULT,
-                     SdkVersionInfo.getVersion(targetSdkLevel, null) ?: AndroidVersion.DEFAULT)
+  val minSdk = SdkVersionInfo.getVersion(minSdkLevel, null) ?: AndroidVersion.DEFAULT
+  val targetSdk = SdkVersionInfo.getVersion(targetSdkLevel, null) ?: minSdk
+
+  MinSdkAndTargetSdk(minSdk, targetSdk)
 }
 
 data class MinSdkAndTargetSdk(val minSdk: AndroidVersion, val targetSdk: AndroidVersion)
@@ -205,6 +207,19 @@ fun AndroidFacet.queryApplicationDebuggableFromManifestIndex() = queryManifestIn
 }
 
 /**
+ * Returns the first non-null application theme value, or null if such attribute is not specified,
+ * instead of merged results with merging rules applied.
+ *
+ * Must be called in a smart read action.
+ */
+fun AndroidFacet.queryApplicationThemeFromManifestIndex() = queryManifestIndex { overrides, contributors ->
+  contributors.asSequence()
+    .mapNotNull(AndroidManifestRawText::theme)
+    .map(overrides::resolvePlaceholders)
+    .firstOrNull()
+}
+
+/**
  * Returns the package name from primary manifest
  *
  * Must be called in a smart read action.
@@ -227,13 +242,34 @@ fun AndroidFacet.queryPackageNameFromManifestIndex(): String? {
 }
 
 /**
+ * Returns the union set of used features, instead of merged results with merging rules applied.
+ *
+ * Must be called in a smart read action
+ */
+fun AndroidFacet.queryUsedFeaturesFromManifestIndex() = queryManifestIndex { overrides, contributors ->
+  contributors
+    .asSequence()
+    .flatMap { it.usedFeatures.asSequence() }
+    .mapNotNull { feature ->
+      UsedFeatureRawText(feature.name?.let { overrides.resolvePlaceholders(it) },
+                         feature.required?.let { overrides.resolvePlaceholders(it) })
+    }
+    .toSet()
+}
+
+/**
  * To track in crash analytics when EAP
  */
 fun logManifestIndexQueryError(e: Exception) {
-  if (ApplicationManager.getApplication().isEAP) {
-    LOG.error(e)
-  }
-  else {
-    LOG.info(e)
+  when {
+    ApplicationManager.getApplication().isUnitTestMode -> {
+      LOG.warn(e)
+    }
+    ApplicationManager.getApplication().isEAP -> {
+      LOG.error(e)
+    }
+    else -> {
+      LOG.info(e)
+    }
   }
 }

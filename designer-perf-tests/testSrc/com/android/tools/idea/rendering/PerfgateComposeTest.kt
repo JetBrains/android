@@ -98,7 +98,7 @@ class PerfgateComposeTest {
     composeTimeBenchmark.measureOperation(listOf(
       ElapsedTimeMeasurement(Metric("default_template_render_time")),
       MemoryUseMeasurement(Metric("default_template_memory_use")))) {
-      val defaultRender = renderPreviewElement(projectRule.androidFacet,
+      val defaultRender = renderPreviewElement(projectRule.androidFacet(":app"),
                                                PreviewElement.forTesting("google.simpleapplication.MainActivityKt.DefaultPreview")).get()
       assertNotNull(defaultRender)
     }

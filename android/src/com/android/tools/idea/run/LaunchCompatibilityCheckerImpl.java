@@ -23,7 +23,6 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.run.util.LaunchUtils;
 import com.android.tools.idea.run.util.SwapInfo;
@@ -62,23 +61,6 @@ public class LaunchCompatibilityCheckerImpl implements LaunchCompatibilityChecke
   }
 
   /**
-   * Returns the required hardware features from a given {@link AndroidFacet}. This method can block since it relies on
-   * the {@link com.android.tools.idea.model.MergedManifestManager}.
-   */
-  @NotNull
-  private EnumSet<IDevice.HardwareFeature> getRequiredHardwareFeauters() {
-    // Currently, we only look at whether the device supports the watch feature.
-    // We may not want to search the device for every possible feature, but only a small subset of important
-    // features, starting with hardware type watch.
-    if (LaunchUtils.isWatchFeatureRequired(myFacet)) {
-      return EnumSet.of(IDevice.HardwareFeature.WATCH);
-    }
-    else {
-      return EnumSet.noneOf(IDevice.HardwareFeature.class);
-    }
-  }
-
-  /**
    * Validates the given {@link AndroidDevice} and returns the {@link LaunchCompatibility}. This method
    * can block while obtaining the hardware features from the {@link AndroidFacet}.
    */
@@ -113,7 +95,24 @@ public class LaunchCompatibilityCheckerImpl implements LaunchCompatibilityChecke
       }
     }
 
-    return launchCompatibility.combine(device.canRun(myMinSdkVersion, myProjectTarget, getRequiredHardwareFeauters(), mySupportedAbis));
+    return launchCompatibility.combine(device.canRun(myMinSdkVersion, myProjectTarget, myFacet,
+                                                     LaunchCompatibilityCheckerImpl::getRequiredHardwareFeatures, mySupportedAbis));
+  }
+
+  /**
+   * Returns the required hardware features from a given {@link AndroidFacet}.
+   */
+  @NotNull
+  static EnumSet<IDevice.HardwareFeature> getRequiredHardwareFeatures(@NotNull AndroidFacet facet) {
+    // Currently, we only look at whether the device supports the watch feature.
+    // We may not want to search the device for every possible feature, but only a small subset of important
+    // features, starting with hardware type watch.
+    if (LaunchUtils.isWatchFeatureRequired(facet)) {
+      return EnumSet.of(IDevice.HardwareFeature.WATCH);
+    }
+    else {
+      return EnumSet.noneOf(IDevice.HardwareFeature.class);
+    }
   }
 
   public static LaunchCompatibilityChecker create(@NotNull AndroidFacet facet,

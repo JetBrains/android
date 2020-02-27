@@ -38,7 +38,7 @@ public class CanvasResizeTest {
       .closeProjectPanel()
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
-      .getLayoutEditor(false)
+      .getLayoutEditor()
       .waitForRenderToFinish()
       .showOnlyDesignView()
       .getConfigToolbar()

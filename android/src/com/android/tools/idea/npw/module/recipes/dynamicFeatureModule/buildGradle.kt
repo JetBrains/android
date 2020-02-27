@@ -18,6 +18,7 @@ package com.android.tools.idea.npw.module.recipes.dynamicFeatureModule
 
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.npw.module.recipes.androidConfig
+import com.android.tools.idea.npw.module.recipes.emptyPluginsBlock
 import com.android.tools.idea.npw.module.recipes.getConfigurationName
 import com.android.tools.idea.templates.RepositoryUrlManager
 import com.android.tools.idea.templates.resolveDependency
@@ -31,8 +32,8 @@ fun buildGradle(
   buildApiString: String,
   explicitBuildToolsVersion: Boolean,
   buildToolsVersion: String,
-  minApi: Int,
-  targetApi: Int,
+  minApi: String,
+  targetApi: String,
   useAndroidX: Boolean
 ): String {
 
@@ -61,6 +62,7 @@ fun buildGradle(
   }
 
   return """
+${emptyPluginsBlock()}
 
 $androidConfigBlock
 

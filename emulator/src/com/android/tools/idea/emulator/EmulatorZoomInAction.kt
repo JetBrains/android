@@ -15,16 +15,14 @@
  */
 package com.android.tools.idea.emulator
 
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.project.DumbAware
 
 /**
- * Simulates pressing the Power button on a Android virtual device.
+ * Controls zoom-in mode for an Emulator tab.
  */
-class EmulatorZoomInAction : AnAction(), DumbAware {
+class EmulatorZoomInAction : AbstractEmulatorAction() {
 
-  override fun actionPerformed(e: AnActionEvent) {
+  override fun actionPerformed(event: AnActionEvent) {
     TODO("not implemented")
   }
 }

@@ -41,9 +41,6 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupIssues;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
-import com.android.tools.idea.gradle.variant.conflict.Conflict;
-import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
-import com.android.tools.idea.gradle.variant.profiles.ProjectProfileSelectionDialog;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
@@ -74,7 +71,6 @@ import com.intellij.openapi.externalSystem.service.notification.NotificationSour
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.serviceContainer.NonInjectable;
-import com.intellij.util.SystemProperties;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -288,15 +284,7 @@ public class PostSyncProjectSetup {
   }
 
   private void findAndShowVariantConflicts() {
-    ConflictSet conflicts = findConflicts(myProject);
-
-    List<Conflict> structureConflicts = conflicts.getStructureConflicts();
-    if (!structureConflicts.isEmpty() && SystemProperties.getBooleanProperty("enable.project.profiles", false)) {
-      ProjectProfileSelectionDialog dialog = new ProjectProfileSelectionDialog(myProject, structureConflicts);
-      dialog.show();
-    }
-
-    conflicts.showSelectionConflicts();
+    findConflicts(myProject).showSelectionConflicts();
   }
 
   private void modifyJUnitRunConfigurations() {

@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.variant.conflict
 
 import com.android.tools.idea.testing.JavaModuleModelBuilder.Companion.rootModuleBuilder
+import com.android.tools.idea.testing.findAppModule
+import com.android.tools.idea.testing.findModule
 import com.android.tools.idea.testing.setupTestProjectFromAndroidModel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.module.ModuleManager
@@ -55,12 +57,12 @@ class ConflictSetTest : ConflictsTestCase() {
 
     val conflict = conflicts[0]
 
-    assertThat(conflict.source).isSameAs(ModuleManager.getInstance(project).findModuleByName("lib"))
+    assertThat(conflict.source).isSameAs(project.findModule("lib"))
     assertThat(conflict.selectedVariant).isEqualTo("debug")
     val affectedModules = conflict.affectedModules
     assertThat(affectedModules).hasSize(1)
     val affectedModule = affectedModules[0]
-    assertThat(affectedModule.target).isSameAs(ModuleManager.getInstance(project).findModuleByName("app"))
+    assertThat(affectedModule.target).isSameAs(project.findAppModule())
     assertThat(affectedModule.expectedVariant).isEqualTo("release")
   }
 }

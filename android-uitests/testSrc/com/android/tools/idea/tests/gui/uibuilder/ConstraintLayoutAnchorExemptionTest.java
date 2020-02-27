@@ -61,13 +61,13 @@ public class ConstraintLayoutAnchorExemptionTest {
     EditorFixture editor = ideFrameFixture.getEditor()
       .open("app/src/main/res/layout/constraint.xml", EditorFixture.Tab.DESIGN);
 
-    NlEditorFixture design = editor.getLayoutEditor(false)
+    NlEditorFixture design = editor.getLayoutEditor()
       .dragComponentToSurface("Buttons", "Button")
       .waitForRenderToFinish();
     String layoutContents = editor.selectEditorTab(EditorFixture.Tab.EDITOR).getCurrentFileContents();
 
     editor.open("app/src/main/res/layout/constraint.xml", EditorFixture.Tab.DESIGN)
-      .getLayoutEditor(false)
+      .getLayoutEditor()
       .waitForRenderToFinish();
     design.findView("Button", 0)
       .createConstraintFromBottomToLeftOf(design.findView("TextView", 0));
