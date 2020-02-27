@@ -36,7 +36,6 @@ import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidGradleTests.getLocalRepositoriesForGroovy
 import com.android.tools.idea.testing.AndroidGradleTests.updateLocalRepositories
-import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.updatePluginsResolutionManagement
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.util.toVirtualFile
@@ -62,7 +61,6 @@ import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.jetbrains.android.AndroidTestBase.refreshProjectFiles
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
-import org.mockito.Mockito.mock
 import java.io.File
 import java.io.IOException
 
@@ -112,6 +110,7 @@ data class ProjectChecker(
       invokeGradleForProjectDir(projectDir)
     }
     lintIfNeeded(this)
+    checkDslParser(this)
   }
 
   private fun Project.updateGradleAndSyncIfNeeded(projectRoot: File) {

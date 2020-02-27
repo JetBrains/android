@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleScriptFile;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.containers.HashSetQueue;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -34,7 +35,8 @@ import java.util.List;
  * Class to manage unresolved dependencies.
  */
 public final class DependencyManager {
-  @NotNull private final LinkedHashMap<GradleDslFile, List<GradleReferenceInjection>> myUnresolvedReferences = new LinkedHashMap<>();
+  @VisibleForTesting
+  @NotNull public final LinkedHashMap<GradleDslFile, List<GradleReferenceInjection>> myUnresolvedReferences = new LinkedHashMap<>();
 
   public static DependencyManager create() {
     return new DependencyManager();

@@ -22,6 +22,8 @@ import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.dsl.model.GradleFileModelImpl
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt
 import com.android.tools.idea.gradle.project.common.GradleInitScripts
 import com.android.tools.idea.lint.common.LintBatchResult
@@ -58,6 +60,7 @@ import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
 import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.testFramework.UsefulTestCase.assertEmpty
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory
@@ -220,6 +223,19 @@ internal fun lintIfNeeded(project: Project) {
     }
     // TODO: Check for other warnings / inspections, such as unused imports?
   }
+}
+
+internal fun checkDslParser(project: Project) {
+  val projectBuildModel = ProjectBuildModel.get(project)
+  val allModels = projectBuildModel.allIncludedBuildModels
+  val unresolvedDependencies = allModels.flatMap {
+    when (it) {
+      is GradleFileModelImpl ->
+        it.dslFile.context.dependencyManager.myUnresolvedReferences.entries.flatMap { entry -> entry.component2() }
+      else -> listOf()
+    }
+  }
+  assertEmpty(unresolvedDependencies)
 }
 
 internal fun cleanupProjectFiles(projectDir: File) {
