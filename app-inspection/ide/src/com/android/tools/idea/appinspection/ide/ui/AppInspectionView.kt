@@ -44,13 +44,15 @@ class AppInspectionView(appInspectionDiscoveryHost: AppInspectionDiscoveryHost) 
         tabbedPane.removeAll()
         val descriptor = e.item as? ProcessDescriptor ?: return@addItemListener
         val target = appInspectionDiscoveryHost.attachToProcess(descriptor).get() ?: return@addItemListener
-        for (provider in AppInspectorTabProvider.EP_NAME.extensionList) {
-          target.launchInspector(provider.inspectorId, provider.inspectorAgentJar) { messenger ->
-            val tab = provider.createTab(messenger)
-            tabbedPane.addTab(provider.displayName, tab.component)
-            tab.client
+        AppInspectorTabProvider.EP_NAME.extensionList
+          .filter { provider -> provider.isApplicable() }
+          .forEach { provider ->
+            target.launchInspector(provider.inspectorId, provider.inspectorAgentJar) { messenger ->
+              val tab = provider.createTab(messenger)
+              tabbedPane.addTab(provider.displayName, tab.component)
+              tab.client
+            }
           }
-        }
       }
     }
   }
