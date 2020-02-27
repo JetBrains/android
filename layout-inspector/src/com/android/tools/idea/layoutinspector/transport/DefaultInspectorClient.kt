@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.transport
 
+import com.android.annotations.concurrency.Slow
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.CollectingOutputReceiver
 import com.android.tools.analytics.UsageTracker
@@ -195,6 +196,7 @@ class DefaultInspectorClient(
     ProjectManager.getInstance().addProjectManagerListener(project, projectManagerListener)
   }
 
+  @Slow
   override fun execute(command: LayoutInspectorCommand) {
     if (selectedStream == Common.Stream.getDefaultInstance() ||
         selectedProcess == Common.Process.getDefaultInstance() ||
@@ -217,6 +219,7 @@ class DefaultInspectorClient(
     }
   }
 
+  @Slow
   fun getPayload(id: Int): ByteArray {
     val bytesRequest = Transport.BytesRequest.newBuilder()
       .setStreamId(selectedStream.streamId)
@@ -230,6 +233,7 @@ class DefaultInspectorClient(
 
   override fun getProcesses(stream: Common.Stream): Sequence<Common.Process> = processManager.getProcesses(stream)
 
+  @Slow
   override fun attach(stream: Common.Stream, process: Common.Process) {
     if (attachListener == null) {
       logEvent(DynamicLayoutInspectorEventType.ATTACH_REQUEST, stream)
@@ -334,6 +338,7 @@ class DefaultInspectorClient(
     }
   }
 
+  @Slow
   private fun attachWithRetry(preferredProcess: LayoutInspectorPreferredProcess, timesAttempted: Int) {
     if (isConnected) {
       return
@@ -452,6 +457,7 @@ class DefaultInspectorClient(
     }
   }
 
+  @Slow
   private fun setDebugViewAttributes(bridge: AndroidDebugBridge, stream: Common.Stream, enable: Boolean): Boolean {
     try {
       val device = findDevice(bridge, stream) ?: return false
