@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.common.surface
 
+import com.android.annotations.concurrency.AnyThread
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.adtui.ui.ClickableLabel
 import com.android.tools.idea.common.surface.layout.findAllScanlines
 import com.android.tools.idea.common.surface.layout.findLargerScanline
 import com.android.tools.idea.common.surface.layout.findSmallerScanline
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.annotations.VisibleForTesting
-import icons.StudioIcons
+import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Container
@@ -31,12 +32,10 @@ import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.LayoutManager
 import java.awt.Rectangle
-import javax.swing.Box
-import javax.swing.BoxLayout
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
-import javax.swing.SwingConstants
+import kotlin.math.max
 
 private fun Array<Component>.getSceneViewsFromWrappers(): Collection<SceneView> =
   filterIsInstance<SceneViewPeerPanel>().map { it.sceneView }
@@ -129,7 +128,7 @@ private data class LayoutData private constructor(
  * used to paint Swing elements on top of the [SceneView].
  */
 @VisibleForTesting
-class SceneViewPeerPanel(val sceneView: SceneView, val sceneViewToolbar: JComponent?) : JPanel() {
+class SceneViewPeerPanel(val sceneView: SceneView, private val sceneViewToolbar: JComponent?) : JPanel() {
   /**
    * Contains cached layout data that can be used by this panel to verify when it's been invalidated
    * without having to explicitly call [revalidate]
@@ -140,7 +139,6 @@ class SceneViewPeerPanel(val sceneView: SceneView, val sceneViewToolbar: JCompon
    * This label displays the [SceneView] model if there is any
    */
   private val modelNameLabel = JLabel().apply {
-    minimumSize = Dimension(0, 0)
     maximumSize = Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
   }
 
@@ -149,13 +147,11 @@ class SceneViewPeerPanel(val sceneView: SceneView, val sceneViewToolbar: JCompon
    * aligned (the toolbar).
    */
   @VisibleForTesting
-  val sceneViewTopPanel = JPanel().apply {
-    layout = BoxLayout(this, BoxLayout.LINE_AXIS)
+  val sceneViewTopPanel = JPanel(BorderLayout()).apply {
     isOpaque = false
-    add(modelNameLabel)
+    add(modelNameLabel, BorderLayout.CENTER)
     if (sceneViewToolbar != null) {
-      add(Box.createHorizontalGlue())
-      add(sceneViewToolbar)
+      add(sceneViewToolbar, BorderLayout.LINE_END)
     }
   }
 
@@ -181,7 +177,7 @@ class SceneViewPeerPanel(val sceneView: SceneView, val sceneViewToolbar: JCompon
     }
     else {
       modelNameLabel.text = layoutData.modelName
-      sceneViewTopPanel.setBounds(0, 0, width, sceneView.margin.top - 2)
+      sceneViewTopPanel.setBounds(0, 0, width + insets.left + insets.right, sceneView.margin.top - 2)
       sceneViewTopPanel.isVisible = true
     }
 
@@ -270,6 +266,7 @@ internal class SceneViewPanel(private val interactionLayersProvider: () -> List<
   /**
    * Adds the given [SceneView] to this panel if it was not part of the panel already.
    */
+  @UiThread
   fun addSceneView(sceneView: SceneView) {
     val alreadyAdded = components
       .filterIsInstance<SceneViewPeerPanel>()
@@ -290,6 +287,7 @@ internal class SceneViewPanel(private val interactionLayersProvider: () -> List<
   /**
    * Removes the given [SceneView] from the panel.
    */
+  @AnyThread
   fun removeSceneView(sceneView: SceneView) {
     components
       .filterIsInstance<SceneViewPeerPanel>()
