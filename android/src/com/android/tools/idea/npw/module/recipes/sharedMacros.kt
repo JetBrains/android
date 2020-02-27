@@ -90,8 +90,8 @@ fun androidConfig(
   buildApiString: String,
   explicitBuildToolsVersion: Boolean,
   buildToolsVersion: Revision,
-  minApi: Int,
-  targetApi: Int,
+  minApi: String,
+  targetApi: String,
   useAndroidX: Boolean,
   cppFlags: String,
   isLibraryProject: Boolean,
@@ -146,8 +146,8 @@ fun androidConfig(
 
     defaultConfig {
       $applicationIdBlock
-      minSdkVersion $minApi
-      targetSdkVersion $targetApi
+      minSdkVersion ${minApi.toIntOrNull() ?: "\"$minApi\""}
+      targetSdkVersion ${targetApi.toIntOrNull() ?: "\"$targetApi\""}
       versionCode 1
       versionName "1.0"
 

@@ -23,6 +23,7 @@ import com.android.build.attribution.ui.data.builder.AbstractBuildAttributionRep
 import com.android.build.attribution.ui.data.builder.BuildAttributionReportBuilder
 import com.android.ide.common.repository.GradleVersion
 import com.google.common.truth.Truth
+import com.intellij.util.text.DateFormatUtil
 import org.junit.Test
 
 class TaskIssueReportGeneratorTest : AbstractBuildAttributionReportBuilderTest() {
@@ -71,6 +72,7 @@ class TaskIssueReportGeneratorTest : AbstractBuildAttributionReportBuilderTest()
 
   // 2019-11-19 17:12:13
   private val buildFinishedTimestamp = 1574183533000
+  private val buildFinishedTimeString = DateFormatUtil.formatDateTime(buildFinishedTimestamp)
   private val buildReportData = BuildAttributionReportBuilder(mockAnalysisResult, buildFinishedTimestamp).build()
   private val reporter = TaskIssueReportGenerator(
     buildReportData,
@@ -95,7 +97,7 @@ Issue detected in 1 module(s), total execution time was 0.400 s (5.0%), by modul
   Execution mode: FULL, time: 0.400 s (5.0%), determines build duration: true, on critical path: true
 
 ====Build information:====
-Execution date: 11/19/19 5:12 PM
+Execution date: $buildFinishedTimeString
 Total build duration: 10.000 s
 Configuration time: 1.000 s (10.0%)
 Critical path tasks time: 8.000 s (80.0%)
@@ -128,7 +130,7 @@ Issue detected in 1 module(s), total execution time was 0.400 s (5.0%), by modul
   Execution mode: FULL, time: 0.400 s (5.0%), determines build duration: false, on critical path: false
 
 ====Build information:====
-Execution date: 11/19/19 5:12 PM
+Execution date: $buildFinishedTimeString
 Total build duration: 10.000 s
 Configuration time: 1.000 s (10.0%)
 Critical path tasks time: 8.000 s (80.0%)
@@ -162,7 +164,7 @@ Issue detected in 1 module(s), total execution time was 0.400 s (5.0%), by modul
   Execution mode: FULL, time: 0.400 s (5.0%), determines build duration: false, on critical path: false
 
 ====Build information:====
-Execution date: 11/19/19 5:12 PM
+Execution date: $buildFinishedTimeString
 Total build duration: 10.000 s
 Configuration time: 1.000 s (10.0%)
 Critical path tasks time: 8.000 s (80.0%)
@@ -210,7 +212,7 @@ Issue detected in 2 module(s), total execution time was 0.400 s (5.0%), by modul
   Execution mode: INCREMENTAL, time: 0.100 s (1.3%), determines build duration: false, on critical path: false
 
 ====Build information:====
-Execution date: 11/19/19 5:12 PM
+Execution date: $buildFinishedTimeString
 Total build duration: 10.000 s
 Configuration time: 1.000 s (10.0%)
 Critical path tasks time: 8.000 s (80.0%)

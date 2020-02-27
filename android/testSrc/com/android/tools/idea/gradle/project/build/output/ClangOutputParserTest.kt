@@ -392,6 +392,25 @@ class ClangOutputParserTest {
   }
 
   @Test
+  fun `windows - path with invalid character is ignored`() {
+    Assume.assumeTrue(SdkConstants.currentPlatform() == SdkConstants.PLATFORM_WINDOWS)
+    assertParser("""
+      > Task :app:externalNativeBuildDebug
+    * Build multiple targets ...
+    * ninja: Entering directory `C:\src\HelloWorld\app\.cxx\cmake\debug\arm64-v8a'
+    * [1/1] Building CXX object HelloWorld.cpp.o
+    * In file included from ../../../../HelloWorld.cpp:14:
+    * ../../path;with;invalid;char;.h:72:1: error: C++ requires a type specifier for all declarations
+    * blah;
+    * ^
+    * 1 error generated.
+      > Task :app:externalNativeBuildDebug FAILED
+    """.trimIndent().replace("\n", "\r\n")) {
+      assertDiagnosticMessages()
+    }
+  }
+
+  @Test
   fun `windows - absolute paths are resolved correctly`() {
     Assume.assumeTrue(SdkConstants.currentPlatform() == SdkConstants.PLATFORM_WINDOWS)
     assertParser("""

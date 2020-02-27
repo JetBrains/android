@@ -528,7 +528,7 @@ public class GradleBuildInvoker {
   }
 
   public void executeTasks(@NotNull Request request) {
-    String buildFilePath = request.myBuildFilePath.getPath();
+    String buildFilePath = request.getBuildFilePath().getPath();
     // Remember the current build's tasks, in case they want to re-run it with transient gradle options.
     myLastBuildTasks.removeAll(buildFilePath);
     List<String> gradleTasks = request.getGradleTasks();
@@ -539,19 +539,19 @@ public class GradleBuildInvoker {
       return;
     }
     GradleTasksExecutor executor = myTaskExecutorFactory.create(request, myBuildStopper);
-    Runnable executeTasksTask = () -> {
-      myDocumentManager.saveAllDocuments();
-      executor.queue();
-    };
 
     if (ApplicationManager.getApplication().isDispatchThread()) {
-      executeTasksTask.run();
-    }
-    else if (request.isWaitForCompletion()) {
+      myDocumentManager.saveAllDocuments();
+      executor.queue();
+    } else if (request.isWaitForCompletion()) {
+      ApplicationManager.getApplication().invokeAndWait(myDocumentManager::saveAllDocuments);
       executor.queueAndWaitForCompletion();
     }
     else {
-      TransactionGuard.getInstance().submitTransactionAndWait(executeTasksTask);
+      TransactionGuard.getInstance().submitTransactionAndWait(() -> {
+        myDocumentManager.saveAllDocuments();
+        executor.queue();
+      });
     }
   }
 

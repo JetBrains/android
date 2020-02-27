@@ -29,6 +29,7 @@ import com.intellij.psi.PsiElementFactory
 import com.intellij.psi.PsiType
 import com.intellij.util.IncorrectOperationException
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.kotlin.idea.util.projectStructure.getModule
 
 object LayoutBindingTypeUtil {
   private val VIEW_PACKAGE_ELEMENTS = listOf(
@@ -121,11 +122,17 @@ object LayoutBindingTypeUtil {
       return null
     }
     val indexEntry = BindingXmlIndex.getEntriesForLayout(facet.module.project, resourceUrl.name).firstOrNull() ?: return null
-    if (indexEntry.data.layoutType == BindingLayoutType.PLAIN_LAYOUT && !facet.isViewBindingEnabled()) {
+    // Note: The resource might exist in a different module than the one passed into this method;
+    // e.g. if "activity_main.xml" includes a layout from a library, `facet` will be tied to "app"
+    // while `resourceFacet` would be tied to the library.
+    val resourceFacet =
+      indexEntry.file.getModule(facet.module.project)?.let { AndroidFacet.getInstance(it) } ?: return null
+
+    if (indexEntry.data.layoutType == BindingLayoutType.PLAIN_LAYOUT && !resourceFacet.isViewBindingEnabled()) {
       // If including a non-binding layout, we just use its root tag as the type for this tag (e.g. FrameLayout, TextView)
-      return getViewClassName(indexEntry.data.rootTag, null, facet)
+      return getViewClassName(indexEntry.data.rootTag, null, resourceFacet)
     }
-    return getQualifiedBindingName(facet, indexEntry)
+    return getQualifiedBindingName(resourceFacet, indexEntry)
   }
 
 }

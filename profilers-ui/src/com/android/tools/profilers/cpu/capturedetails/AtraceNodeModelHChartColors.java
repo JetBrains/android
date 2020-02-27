@@ -49,14 +49,14 @@ class AtraceNodeModelHChartColors {
     Color color;
     if (chartType == CaptureDetails.Type.CALL_CHART) {
       int index = model.getFullName().hashCode();
-      if (isDeselected) {
-        color = DataVisualizationColors.INSTANCE.getColor(DataVisualizationColors.BACKGROUND_DATA_COLOR, 1, isFocused);
-      }
-      else if (JBColor.isBright()) {
+      if (JBColor.isBright()) {
         color = ColorUtil.darker(DataVisualizationColors.INSTANCE.getColor(index, isFocused), 5);
       }
       else {
         color = ColorUtil.brighter(DataVisualizationColors.INSTANCE.getColor(index, isFocused), 5);
+      }
+      if (isDeselected && !isFocused) {
+        color = DataVisualizationColors.INSTANCE.toGrayscale(color);
       }
     }
     else {
@@ -79,9 +79,10 @@ class AtraceNodeModelHChartColors {
     Color color;
     if (chartType == CaptureDetails.Type.CALL_CHART) {
       int index = model.getFullName().hashCode();
-      color = isDeselected ?
-              DataVisualizationColors.INSTANCE.getColor(DataVisualizationColors.BACKGROUND_DATA_COLOR, isFocused) :
-              DataVisualizationColors.INSTANCE.getColor(index, isFocused);
+      color = DataVisualizationColors.INSTANCE.getColor(index, isFocused);
+      if (isDeselected && !isFocused) {
+        color = DataVisualizationColors.INSTANCE.toGrayscale(color);
+      }
     }
     else {
       // Atrace captures do not know where calls come from so we always use APP.

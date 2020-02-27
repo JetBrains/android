@@ -92,9 +92,32 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, IdeAndroidPro
     knownValuesGetter = ::booleanValues
   )
 
+  val includeDependenciesInfoInApk: SimpleProperty<PsAndroidModule, Boolean> = property(
+    "Retain information about dependencies in the apk",
+    preferredVariableName = { "includeInApk" },
+    resolvedValueGetter = { dependenciesInfo?.includeInApk },
+    parsedPropertyGetter = { dependenciesInfo().includeInApk() },
+    getter = { asBoolean() },
+    setter = { setValue(it) },
+    parser = ::parseBoolean,
+    knownValuesGetter = ::booleanValues
+  )
+
+  val includeDependenciesInfoInBundle: SimpleProperty<PsAndroidModule, Boolean> = property(
+    "Retain information about dependencies in the bundle",
+    preferredVariableName = { "includeInBundle" },
+    resolvedValueGetter = { dependenciesInfo?.includeInBundle },
+    parsedPropertyGetter = { dependenciesInfo().includeInBundle() },
+    getter = { asBoolean() },
+    setter = { setValue(it) },
+    parser = ::parseBoolean,
+    knownValuesGetter = ::booleanValues
+  )
+
   override fun enumerateModels(model: PsAndroidModule): Collection<PsModel> =
     model.buildTypes + model.productFlavors + model.flavorDimensions + model.signingConfigs + model.dependencies.items + model.defaultConfig
 
   override val properties: Collection<ModelProperty<PsAndroidModule, *, *, *>> =
-    listOf(compileSdkVersion, buildToolsVersion, sourceCompatibility, targetCompatibility, viewBindingEnabled)
+    listOf(compileSdkVersion, buildToolsVersion, sourceCompatibility, targetCompatibility, viewBindingEnabled,
+           includeDependenciesInfoInApk, includeDependenciesInfoInBundle)
 }

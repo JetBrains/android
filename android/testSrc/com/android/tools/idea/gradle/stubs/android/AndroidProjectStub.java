@@ -384,6 +384,12 @@ public class AndroidProjectStub implements AndroidProject {
     return myViewBindingOptions;
   }
 
+  @Nullable
+  @Override
+  public DependenciesInfo getDependenciesInfo() {
+    return null;
+  }
+
   public AndroidProjectStub setPluginGeneration(int pluginGeneration) {
     myPluginGeneration = pluginGeneration;
     return this;

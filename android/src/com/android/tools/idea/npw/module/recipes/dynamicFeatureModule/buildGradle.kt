@@ -33,8 +33,8 @@ fun buildGradle(
   buildApiString: String,
   explicitBuildToolsVersion: Boolean,
   buildToolsVersion: String,
-  minApi: Int,
-  targetApi: Int,
+  minApi: String,
+  targetApi: String,
   useAndroidX: Boolean,
   language: Language
 ): String {

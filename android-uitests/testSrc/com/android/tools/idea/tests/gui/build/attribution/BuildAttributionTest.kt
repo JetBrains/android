@@ -138,7 +138,7 @@ class BuildAttributionTest {
     findHyperlabelByTextContainsAndClick("Always-run Tasks (2)")
     requireOpenedPagePathAndHeader(
       " Plugins with tasks determining this build's duration 2 warnings/ DummyPlugin 2 warnings/ Warnings (2)/ Always-run Tasks 2 warnings",
-      "DummyPlugin"
+      "DummyPlugin Always-run Tasks"
     )
 
     selectPageByPath(

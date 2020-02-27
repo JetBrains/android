@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu.capturedetails
 
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.common.DataVisualizationColors
+import com.android.tools.adtui.common.DataVisualizationColors.getColor
 import com.android.tools.profilers.ProfilerColors
 import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.nodemodel.AtraceNodeModel
@@ -246,10 +247,10 @@ class CaptureNodeHRendererTest {
     assertThat(color).isEqualTo(ProfilerColors.CPU_FLAMECHART_APP_HOVER_IDLE)
 
     color = AtraceNodeModelHChartColors.getFillColor(model, CaptureDetails.Type.CALL_CHART, false, false, true)
-    assertThat(color).isEqualTo(DataVisualizationColors.getColor(DataVisualizationColors.BACKGROUND_DATA_COLOR, 0))
+    assertThat(color).isEqualTo(DataVisualizationColors.toGrayscale(DataVisualizationColors.getColor(model.fullName.hashCode(), false)))
 
     color = AtraceNodeModelHChartColors.getIdleCpuColor(model, CaptureDetails.Type.CALL_CHART, false, false, true)
-    assertThat(color).isEqualTo(DataVisualizationColors.getColor(DataVisualizationColors.BACKGROUND_DATA_COLOR, 1))
+    assertThat(color).isEqualTo(DataVisualizationColors.toGrayscale(color))
 
     // Validate text colors using nodes that map to dark and light text colors respectively.
     val darkTextNode = AtraceNodeModel(" ")

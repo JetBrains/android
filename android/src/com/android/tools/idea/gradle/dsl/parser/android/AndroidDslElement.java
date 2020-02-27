@@ -48,6 +48,7 @@ public final class AndroidDslElement extends GradleDslBlockElement {
     {"compileOptions", CompileOptionsDslElement.COMPILE_OPTIONS},
     {"dataBinding", DataBindingDslElement.DATA_BINDING},
     {"defaultConfig", DefaultConfigDslElement.DEFAULT_CONFIG},
+    {"dependenciesInfo", DependenciesInfoDslElement.DEPENDENCIES_INFO},
     {"dexOptions", DexOptionsDslElement.DEX_OPTIONS},
     {"externalNativeBuild", ExternalNativeBuildDslElement.EXTERNAL_NATIVE_BUILD},
     {"kotlinOptions", KotlinOptionsDslElement.KOTLIN_OPTIONS},

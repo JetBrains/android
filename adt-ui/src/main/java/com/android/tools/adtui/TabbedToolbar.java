@@ -96,8 +96,8 @@ public class TabbedToolbar extends JPanel {
     TabLabel tab = new TabLabel(name, closedListener);
     tab.addMouseListener(new MouseAdapter() {
       @Override
-      public void mouseClicked(MouseEvent e) {
-        super.mouseClicked(e);
+      public void mousePressed(MouseEvent e) {
+        super.mousePressed(e);
         selectTab(tab, selectedListener);
         // Need to repaint to adjust blue label for selected tab.
         repaint();

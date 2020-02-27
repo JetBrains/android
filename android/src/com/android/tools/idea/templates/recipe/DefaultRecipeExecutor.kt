@@ -25,6 +25,7 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.resources.ResourceFolderType
 import com.android.support.AndroidxNameUtils
 import com.android.tools.idea.Projects.getBaseDirPath
+import com.android.tools.idea.gradle.dsl.api.GradleFileModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
@@ -83,7 +84,14 @@ import java.io.IOException
  */
 class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boolean) : RecipeExecutor {
   private val referencesExecutor: FindReferencesRecipeExecutor = FindReferencesRecipeExecutor(context)
-  private val io: RecipeIO = if (dryRun) DryRunRecipeIO() else RecipeIO()
+  private val io: RecipeIO = when {
+    dryRun -> DryRunRecipeIO()
+    else -> object : RecipeIO() {
+      override fun applyChanges(gradleModel: GradleFileModel) {
+        gradleModel.applyChanges()
+      }
+    }
+  }
   private val readonlyStatusHandler: ReadonlyStatusHandler = ReadonlyStatusHandler.getInstance(context.project)
 
   private val paramMap: Map<String, Any>

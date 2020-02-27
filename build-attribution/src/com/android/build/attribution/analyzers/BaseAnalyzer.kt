@@ -54,6 +54,8 @@ abstract class BaseAnalyzer(private val taskContainer: TaskContainer, private va
   protected fun applyWhitelistedTasksFilter(task: TaskData): Boolean {
     // ignore tasks from our plugins
     return !isAndroidPlugin(task.originPlugin) &&
+           // ignore tasks from Gradle plugins
+           !isGradlePlugin(task.originPlugin) &&
            // This task is not cacheable and runs all the time intentionally on invoking "clean". We should not surface this as an issue.
            !(task.taskName == "clean" && task.originPlugin.displayName == LifecycleBasePlugin::class.java.canonicalName)
   }
