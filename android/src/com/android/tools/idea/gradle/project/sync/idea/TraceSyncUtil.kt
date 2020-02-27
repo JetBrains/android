@@ -35,12 +35,16 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 
 private const val defaultTraceMethods = "# GRADLE\n" +
+                                        "Trace: com.android.build.gradle.internal.ide.DefaultAndroidProject\n" +
                                         "Trace: com.android.build.gradle.internal.ide.ModelBuilder\n" +
+                                        "Trace: com.android.build.gradle.internal.ide.VariantImpl\n" +
                                         "Trace: com.android.build.gradle.internal.ide.dependencies.ArtifactDependencyGraph\n" +
+                                        "Trace: com.android.build.gradle.internal.ide.dependencies.ArtifactUtils\n" +
                                         "Trace: com.android.build.gradle.internal.tasks.factory.TaskAction\n" +
                                         "Trace: com.android.build.gradle.internal.tasks.factory.TaskAction2\n" +
-                                        "Trace: org.gradle.api.internal.tasks.execution.SkipUpToDateTaskExecuter::execute\n" +
+                                        "Trace: org.gradle.api.internal.artifacts.configurations.DefaultConfiguration\$ConfigurationArtifactCollection\n" +
                                         "Trace: org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter::execute\n" +
+                                        "Trace: org.gradle.api.internal.tasks.execution.SkipUpToDateTaskExecuter::execute\n" +
                                         "\n" +
                                         "# IDEA\n" +
                                         "Trace: com.android.tools.idea.gradle.project.sync.GradleSyncState::syncFailed\n" +
