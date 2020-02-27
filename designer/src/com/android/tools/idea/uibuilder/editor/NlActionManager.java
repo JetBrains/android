@@ -47,7 +47,6 @@ import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.type.LayoutFileType;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.ActionGroup;
@@ -184,7 +183,6 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
 
   @Override
   @NotNull
-  @VisibleForTesting
   public DefaultActionGroup getPopupMenuActions(@Nullable NlComponent leafComponent) {
     DefaultActionGroup group = new DefaultActionGroup();
 

@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.structure;
 import static com.android.tools.idea.common.property.PropertiesManager.UPDATE_DELAY_MSECS;
 import static com.intellij.util.Alarm.ThreadToUse.SWING_THREAD;
 
+import com.android.tools.idea.common.editor.ActionUtils;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
@@ -535,7 +536,8 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
           if (component instanceof NlComponent) {
             // TODO: Ensure the node is selected first
-            mySurface.getActionManager().showPopup(e, (NlComponent)component);
+            // TODO (b/151315668): extract the hardcoded value "LayoutEditor"
+            ActionUtils.showPopup(mySurface, e, mySurface.getActionManager().getPopupMenuActions((NlComponent) component), "LayoutEditor");
           }
           else {
             ActionManager actionManager = ActionManager.getInstance();

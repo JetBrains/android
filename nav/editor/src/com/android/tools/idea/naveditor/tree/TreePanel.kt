@@ -20,6 +20,7 @@ import com.android.tools.componenttree.api.ComponentTreeBuilder
 import com.android.tools.componenttree.api.ComponentTreeModel
 import com.android.tools.componenttree.api.ComponentTreeSelectionModel
 import com.android.tools.componenttree.api.ViewNodeType
+import com.android.tools.idea.common.editor.showPopup
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
@@ -103,7 +104,9 @@ class TreePanel : ToolContent<DesignSurface> {
 
   private fun showContextMenu(x: Int, y: Int) {
     val node = componentTreeSelectionModel.selection.singleOrNull() as NlComponent? ?: return
-    designSurface?.actionManager?.showPopup(componentTree, x, y, node)
+    val actions = designSurface?.actionManager?.getPopupMenuActions(node) ?: return
+    // TODO (b/151315668): extract the hardcoded value "NavEditor".
+    showPopup(componentTree, x, y, actions, "NavEditor")
   }
 
   private fun activateComponent() {
