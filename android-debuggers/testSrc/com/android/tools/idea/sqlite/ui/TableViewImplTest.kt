@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sqlite.ui
 
+import com.android.testutils.MockitoKt.any
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture
@@ -33,32 +34,47 @@ import com.android.tools.idea.sqlite.model.SqliteValue
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
+import com.android.tools.idea.testing.IdeComponents
+import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionPopupMenu
 import com.intellij.openapi.util.Disposer
-import com.intellij.testFramework.LightPlatformTestCase
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
+import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.JBTable
 import com.intellij.util.concurrency.EdtExecutorService
-import junit.framework.TestCase
+import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import java.awt.Dimension
 import java.awt.Point
 import javax.swing.JPanel
+import javax.swing.JPopupMenu
 import javax.swing.JTable
 
 private const val COLUMN_DEFAULT_WIDTH = 75
 
-class TableViewImplTest : LightPlatformTestCase() {
+class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
   private lateinit var view: TableViewImpl
   private lateinit var fakeUi: FakeUi
+  private lateinit var mockActionManager: ActionManager
 
   private lateinit var sqliteUtil: SqliteTestUtil
   private var realDatabaseConnection: DatabaseConnection? = null
 
   override fun setUp() {
     super.setUp()
+
+    val mockPopUpMenu = mock(ActionPopupMenu::class.java)
+    `when`(mockPopUpMenu.component).thenReturn(mock(JPopupMenu::class.java))
+    mockActionManager = mock(ActionManager::class.java)
+    `when`(mockActionManager.createActionPopupMenu(any(String::class.java), any(ActionGroup::class.java))).thenReturn(mockPopUpMenu)
+
+    IdeComponents(myFixture).replaceApplicationService(ActionManager::class.java, mockActionManager)
+
     view = TableViewImpl()
     val component: JPanel = view.component as JPanel
     component.size = Dimension(600, 200)
@@ -288,10 +304,8 @@ class TableViewImplTest : LightPlatformTestCase() {
     view.stopTableLoading()
 
     // Assert
-    assertEquals("1", table.model.getValueAt(0, 0))
-    assertEquals("val1", table.model.getValueAt(0, 1))
-    assertEquals("2", table.model.getValueAt(1, 0))
-    assertEquals("val2", table.model.getValueAt(1, 1))
+    assertEquals(listOf("1", "2"), getColumnAt(table, 0))
+    assertEquals(listOf("val1", "val2"), getColumnAt(table, 1))
   }
 
   fun testSetValueInColumnsOtherThanFirstIsAllowed() {
@@ -356,7 +370,7 @@ class TableViewImplTest : LightPlatformTestCase() {
 
     // Assert
     assertEquals(1, table.model.rowCount)
-    TestCase.assertEquals("val1", table.model.getValueAt(0, 1))
+    assertEquals("val1", table.model.getValueAt(0, 1))
   }
 
   fun `testShowRows Add UpdateRemove`() {
@@ -385,7 +399,7 @@ class TableViewImplTest : LightPlatformTestCase() {
 
     // Assert
     assertEquals(1, table.model.rowCount)
-    TestCase.assertEquals("new val", table.model.getValueAt(0, 1))
+    assertEquals("new val", table.model.getValueAt(0, 1))
   }
 
   fun `testShowRows Add Update UpdateAdd`() {
@@ -417,10 +431,7 @@ class TableViewImplTest : LightPlatformTestCase() {
 
     // Assert
     assertEquals(4, table.model.rowCount)
-    TestCase.assertEquals("new val1", table.model.getValueAt(0, 1))
-    TestCase.assertEquals("val2", table.model.getValueAt(1, 1))
-    TestCase.assertEquals("new val3", table.model.getValueAt(2, 1))
-    TestCase.assertEquals("new val4", table.model.getValueAt(3, 1))
+    assertEquals(listOf("new val1", "val2", "new val3", "new val4"), getColumnAt(table, 1))
   }
 
   fun testEditTableUsingPrimaryKey() {
@@ -575,5 +586,89 @@ class TableViewImplTest : LightPlatformTestCase() {
     assertEquals(SqliteValue.fromAny(null), rows.first().values[1].value)
   }
 
+  fun testRightClickSelectsCell() {
+    // Prepare
+    val table = TreeWalker(view.component).descendants().filterIsInstance<JBTable>().first()
 
+    val col1 = SqliteColumn("col1", SqliteAffinity.INTEGER, false, false)
+    val col2 = SqliteColumn("col2", SqliteAffinity.INTEGER, false, false)
+    val cols = listOf(col1, col2)
+    val rows = listOf(
+      SqliteRow(listOf(
+        SqliteColumnValue("col1", SqliteValue.StringValue("val1")),
+        SqliteColumnValue("col2", SqliteValue.StringValue("val2"))
+      )),
+      SqliteRow(listOf(
+        SqliteColumnValue("col1", SqliteValue.StringValue("val3")),
+        SqliteColumnValue("col2", SqliteValue.StringValue("val4"))
+      ))
+    )
+
+    view.startTableLoading()
+    view.showTableColumns(cols)
+    view.updateRows(rows.map { RowDiffOperation.AddRow(it) })
+    view.stopTableLoading()
+
+    table.size = Dimension(600, 200)
+    table.preferredSize = table.size
+    fakeUi = FakeUi(table)
+
+    val rect = table.getCellRect(1, 1, false)
+
+    // Act
+    fakeUi.mouse.rightClick(rect.x + rect.width / 2, rect.y + rect.height / 2)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    assertEquals(1, table.selectedRows.size)
+    assertEquals(1, table.selectedColumns.size)
+    assertEquals(1, table.selectedRows[0])
+    assertEquals(1, table.selectedColumns[0])
+  }
+
+  fun testRightClickOnCellOpensMenu() {
+    // Prepare
+    val table = TreeWalker(view.component).descendants().filterIsInstance<JBTable>().first()
+
+    val col1 = SqliteColumn("col1", SqliteAffinity.INTEGER, false, false)
+    val col2 = SqliteColumn("col2", SqliteAffinity.INTEGER, false, false)
+    val cols = listOf(col1, col2)
+    val rows = listOf(
+      SqliteRow(listOf(
+        SqliteColumnValue("col1", SqliteValue.StringValue("val1")),
+        SqliteColumnValue("col2", SqliteValue.StringValue("val2"))
+      )),
+      SqliteRow(listOf(
+        SqliteColumnValue("col1", SqliteValue.StringValue("val3")),
+        SqliteColumnValue("col2", SqliteValue.StringValue("val4"))
+      ))
+    )
+
+    view.startTableLoading()
+    view.showTableColumns(cols)
+    view.updateRows(rows.map { RowDiffOperation.AddRow(it) })
+    view.stopTableLoading()
+
+    table.size = Dimension(600, 200)
+    table.preferredSize = table.size
+    fakeUi = FakeUi(table)
+
+    val rect = table.getCellRect(1, 1, false)
+
+    // Act
+    fakeUi.mouse.rightClick(rect.x + rect.width / 2, rect.y + rect.height / 2)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    verify(mockActionManager).createActionPopupMenu(any(String::class.java), any(ActionGroup::class.java))
+  }
+
+  private fun getColumnAt(table: JTable, colIndex: Int): List<String?> {
+    val values = mutableListOf<String?>()
+    for (i in 0 until table.model.rowCount) {
+      values.add(table.model.getValueAt(i, colIndex) as? String)
+    }
+
+    return values
+  }
 }

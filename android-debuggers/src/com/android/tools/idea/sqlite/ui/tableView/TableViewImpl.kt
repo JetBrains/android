@@ -23,8 +23,15 @@ import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteValue
 import com.android.tools.idea.sqlite.ui.notifyError
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CustomShortcutSet
+import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.ColoredTableCellRenderer
+import com.intellij.ui.PopupHandler
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.JBTable
@@ -35,6 +42,8 @@ import java.awt.Component
 import java.awt.FlowLayout
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
+import java.awt.event.InputEvent
+import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.BorderFactory
@@ -42,6 +51,7 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTable
+import javax.swing.KeyStroke
 import javax.swing.table.AbstractTableModel
 import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.TableCellRenderer
@@ -121,6 +131,7 @@ class TableViewImpl : TableView {
 
     table.background = primaryContentBackground
     table.emptyText.text = tableIsEmptyText
+    table.setDefaultRenderer(String::class.java, MyColoredTableCellRenderer())
     table.tableHeader.defaultRenderer = MyTableHeaderRenderer()
     table.tableHeader.reorderingAllowed = false
     table.tableHeader.addMouseListener(object : MouseAdapter() {
@@ -133,8 +144,17 @@ class TableViewImpl : TableView {
         listeners.forEach { it.toggleOrderByColumnInvoked(columns[columnIndex - 1]) }
       }
     })
+    table.addMouseListener(object : MouseAdapter() {
+      override fun mouseClicked(e: MouseEvent) {
+        if (!e.isPopupTrigger) return
 
-    table.setDefaultRenderer(String::class.java, MyColoredTableCellRenderer())
+        val viewRowIndex = table.rowAtPoint(e.point)
+        val viewColumnIndex = table.columnAtPoint(e.point)
+        table.clearSelection()
+        table.addRowSelectionInterval(viewRowIndex, viewRowIndex)
+        table.addColumnSelectionInterval(viewColumnIndex, viewColumnIndex)
+      }
+    })
 
     val scrollPane = JBScrollPane(table)
 
@@ -145,6 +165,8 @@ class TableViewImpl : TableView {
     })
 
     centerPanel.add(scrollPane, BorderLayout.CENTER)
+
+    setUpPopUp()
   }
 
   override var isTableActionsRowVisible: Boolean = true
@@ -227,6 +249,28 @@ class TableViewImpl : TableView {
     else {
       table.autoResizeMode = JTable.AUTO_RESIZE_OFF
     }
+  }
+
+  private fun setUpPopUp() {
+    val setNullAction = object : AnAction("Set to NULL") {
+      override fun actionPerformed(e: AnActionEvent) {
+        val row = table.selectedRow
+        val column = table.selectedColumn
+
+        if (column > 0) {
+          (table.model as MyTableModel).setValueAt(null, row, column)
+        }
+      }
+    }
+
+    setNullAction.registerCustomShortcutSet(
+      CustomShortcutSet(
+        KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.ALT_DOWN_MASK or InputEvent.SHIFT_DOWN_MASK), null)
+      ),
+      table
+    )
+
+    PopupHandler.installUnknownPopupHandler(table, DefaultActionGroup(setNullAction), ActionManager.getInstance())
   }
 
   private class MyTableHeaderRenderer : TableCellRenderer {
