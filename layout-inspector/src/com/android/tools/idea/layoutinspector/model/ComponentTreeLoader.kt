@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.model
 
+import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.SkiaParser
 import com.android.tools.idea.layoutinspector.SkiaParserService
@@ -68,6 +69,7 @@ private class ComponentTreeLoaderImpl(
   private val loadStartTime = AtomicLong(-1)
   private val stringTable = StringTableImpl(tree.stringList)
 
+  @Slow
   fun loadComponentTree(client: InspectorClient, skiaParser: SkiaParserService): ViewNode? {
     val defaultClient = client as? DefaultInspectorClient ?: throw UnsupportedOperationException(
       "ComponentTreeLoaderImpl requires a DefaultClient")

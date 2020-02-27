@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.legacydevice
 
+import com.android.annotations.concurrency.Slow
 import com.android.ddmlib.Client
 import com.android.ddmlib.DebugViewDumpHandler
 import com.android.tools.idea.layoutinspector.model.TreeLoader
@@ -59,6 +60,7 @@ object LegacyTreeLoader : TreeLoader {
     return ListViewRootsHandler().getWindows(ddmClient, 5, TimeUnit.SECONDS)
   }
 
+  @Slow
   private fun capture(client: InspectorClient, window: String, propertiesUpdater: LegacyPropertiesProvider.Updater): ViewNode? {
     val legacyClient = client as? LegacyClient ?: return null
     val ddmClient = legacyClient.selectedClient ?: return null
@@ -201,6 +203,7 @@ object LegacyTreeLoader : TreeLoader {
       }
     }
 
+    @Slow
     @Throws(IOException::class)
     fun getWindows(c: Client, timeout: Long, unit: TimeUnit): List<String> {
       c.listViewRoots(this)

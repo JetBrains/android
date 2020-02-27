@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector
 
+import com.android.annotations.concurrency.Slow
 import com.android.repository.api.RepoManager
 import com.android.repository.api.RepoPackage
 import com.android.tools.idea.flags.StudioFlags
@@ -83,6 +84,7 @@ object SkiaParser : SkiaParserService {
   private const val VERSION_MAP_FILE_NAME = "version-map.xml"
   private val progressIndicator = StudioLoggerProgressIndicator(SkiaParser::class.java)
 
+  @Slow
   @Throws(InvalidPictureException::class)
   override fun getViewTree(data: ByteArray): InspectorView? {
     val server = runServer(data)
@@ -90,6 +92,7 @@ object SkiaParser : SkiaParserService {
     return response?.root?.let { buildTree(it) }
   }
 
+  @Slow
   override fun shutdownAll() {
     supportedVersionMap?.values?.forEach { it.shutdown() }
     devbuildServerInfo.shutdown()
@@ -115,6 +118,7 @@ object SkiaParser : SkiaParserService {
     return res
   }
 
+  @Slow
   private fun runServer(data: ByteArray): ServerInfo {
     val server = findServerInfoForSkpVersion(getSkpVersion(data))
     server.runServer()
@@ -164,6 +168,7 @@ object SkiaParser : SkiaParserService {
     }
   }
 
+  @Slow
   private fun downloadLatestVersion(): Boolean {
     val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
     val sdkManager = sdkHandler.getSdkManager(progressIndicator)
@@ -260,6 +265,7 @@ private class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
    * Note that this will be a sub process of Android Studio and will terminate when
    * Android Studio process is terminated.
    */
+  @Slow
   fun runServer() {
     if (client != null && channel?.isShutdown != true && channel?.isTerminated != true && handler?.process?.isAlive == true) {
       // already started
@@ -306,6 +312,7 @@ private class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
     handler?.startNotify()
   }
 
+  @Slow
   fun shutdown() {
     channel?.shutdownNow()
     channel?.awaitTermination(1, TimeUnit.SECONDS)
@@ -315,6 +322,7 @@ private class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
     handler = null
   }
 
+  @Slow
   private fun tryDownload(): Boolean {
     if (serverVersion == null) {
       // devbuild, can't download
@@ -341,12 +349,14 @@ private class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
     return newPackage.hasLocal() && !newPackage.isUpdate
   }
 
+  @Slow
   fun getViewTree(data: ByteArray): SkiaParser.GetViewTreeResponse? {
     ping()
     return getViewTreeImpl(data)
   }
 
   // TODO: add ping functionality to the server?
+  @Slow
   fun ping() {
     getViewTreeImpl(ByteArray(1))
   }
