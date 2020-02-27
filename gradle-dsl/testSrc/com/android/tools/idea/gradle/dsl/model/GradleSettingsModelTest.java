@@ -311,7 +311,8 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     verifyFileContents(mySettingsFile, GRADLE_SETTINGS_MODEL_SET_PROJECT_DIR_FROM_EXISTING_EXPECTED);
   }
 
-  @Test
+  // TODO(b/150400567): Enable when compatible with windows.
+  //@Test
   public void testSetProjectDirNonRelativePath() throws Exception {
     writeToSettingsFile(GRADLE_SETTINGS_MODEL_SET_PROJECT_DIR);
 

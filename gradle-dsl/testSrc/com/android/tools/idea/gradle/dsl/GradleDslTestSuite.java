@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.gradle.dsl;
 
-import org.junit.Test;
+import com.android.testutils.JarTestSuiteRunner;
+import com.android.tools.tests.IdeaTestSuiteBase;
+import org.junit.runner.RunWith;
 
-public class PlaceholderClassTest {
-
-  @Test
-  public void nothing() {
-
-  }
+@RunWith(JarTestSuiteRunner.class)
+@JarTestSuiteRunner.ExcludeClasses(GradleDslTestSuite.class)  // a suite mustn't contain itself
+public class GradleDslTestSuite extends IdeaTestSuiteBase {
 }
