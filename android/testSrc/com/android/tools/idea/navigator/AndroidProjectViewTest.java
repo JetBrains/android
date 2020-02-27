@@ -456,11 +456,6 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     }
 
     @Override
-    public boolean isShowLibraryContents() {
-      return false;
-    }
-
-    @Override
     public boolean isHideEmptyMiddlePackages() {
       return true;
     }
