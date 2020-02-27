@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.structure
 
 import com.android.SdkConstants
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.testing.AndroidProjectRule.Companion.onDisk
@@ -40,11 +39,20 @@ import org.junit.rules.RuleChain
 import org.junit.rules.TestName
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
+import java.io.File
 import java.io.IOException
 
 @Ignore // Needs to be ignored so bazel doesn't try to run this class as a test and fail with "No tests found".
 @RunWith(Parameterized::class)
 abstract class GradleFileModelTestCase {
+
+  data class TestFileName(val path: String) {
+    fun toFile(testDataPath: String, testDataExtension: String): File {
+      val path = FileUtil.toSystemDependentName(testDataPath) + File.separator + FileUtil.toSystemDependentName(path) + testDataExtension
+      return File(path)
+    }
+  }
+
   @get:Rule
   val nameRule = TestName()
   private val projectRule = onDisk()
@@ -73,7 +81,7 @@ abstract class GradleFileModelTestCase {
       buildFile = projectRule.fixture.tempDirFixture.createFile(buildFileName)
       Assume.assumeTrue(buildFile.isWritable)
     }
-    testDataPath = AndroidTestBase.getTestDataPath() + "/parser"
+    testDataPath = AndroidTestBase.getTestDataPath() + "/psd"
   }
 
   @After

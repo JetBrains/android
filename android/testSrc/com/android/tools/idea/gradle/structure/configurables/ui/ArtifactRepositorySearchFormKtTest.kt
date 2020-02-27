@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.structure.configurables.ui
 
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_REPOSITORY_SEARCH_FORM_KT_PREPARE_ARTIFACT_VERSION_CHOICES
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel
+import com.android.tools.idea.gradle.structure.ARTIFACT_REPOSITORY_SEARCH_FORM_KT_PREPARE_ARTIFACT_VERSION_CHOICES
 import com.android.tools.idea.gradle.structure.GradleFileModelTestCase
 import com.android.tools.idea.gradle.structure.model.PsModel
 import com.android.tools.idea.gradle.structure.model.PsVariables
