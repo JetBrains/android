@@ -33,7 +33,7 @@ class AndroidIoManager {
    *
    * First approximation based on what indexing is using.
    */
-  private val threadCount = UnindexedFilesUpdater.getIndexingThreadsNumber()
+  private val threadCount = UnindexedFilesUpdater.getNumberOfIndexingThreads()
 
   private val boundedExecutor = createBoundedApplicationPoolExecutor(NAME, threadCount)
 
