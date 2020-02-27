@@ -19,6 +19,7 @@ import com.android.testutils.TestUtils
 import com.android.tools.lint.checks.CommentDetector
 import com.google.common.base.Verify
 import com.google.common.collect.Lists
+import com.google.common.collect.Sets
 import com.google.common.truth.Truth.assertThat
 import com.intellij.analysis.AnalysisScope
 import com.intellij.codeInsight.daemon.impl.ShowIntentionsPass
@@ -100,6 +101,19 @@ class LintIdeTest : UsefulTestCase() {
 
   private val project: Project
     get() = myFixture.project
+
+  fun testLintIdeClientReturnsModuleFromEditorResult() {
+    val fileContent = """
+      package p1.p2;
+      public class WhySoSerious {}
+    """.trimIndent()
+    val vfPointer = myFixture.addFileToProject("src/p1/p2/WhySoSerious.java", fileContent).virtualFile
+
+    val module = ModuleManager.getInstance(myFixture.project).modules[0]
+    val lintClient = LintIdeClient(myFixture.project, LintEditorResult(module, vfPointer, fileContent, Sets.newHashSet()))
+
+    assertThat(lintClient.module).isSameAs(module)
+  }
 
   fun testUseValueOf() {
     doTestWithFix(AndroidLintUseValueOfInspection(),

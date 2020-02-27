@@ -75,8 +75,7 @@ class NewAndroidFragmentAction
       facet, null, initialPackageSuggestion, moduleTemplates[0],
       AndroidBundle.message("android.wizard.fragment.add", FormFactor.MOBILE.id), projectSyncInvoker, shouldOpenFiles)
 
-    val moduleModel = NewAndroidModuleModel(project, null, projectSyncInvoker, moduleTemplates[0])
-    val fragmentTypeStep = ChooseFragmentTypeStep(moduleModel, renderModel, FormFactor.MOBILE, directory)
+    val fragmentTypeStep = ChooseFragmentTypeStep(renderModel, FormFactor.MOBILE, directory)
     val wizard = ModelWizard.Builder().addStep(fragmentTypeStep).build()
 
     val dialog = StudioWizardDialogBuilder(wizard, dialogTitle).setProject(project).build()

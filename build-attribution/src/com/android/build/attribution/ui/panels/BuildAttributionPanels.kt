@@ -175,7 +175,6 @@ fun verticalRuler(): JPanel = JBPanel<JBPanel<*>>()
 fun createIssueTypeListPanel(issuesGroup: TaskIssuesGroup, listener: TreeLinkListener<TaskIssueUiData>): JComponent =
   JBPanel<JBPanel<*>>().apply {
     layout = VerticalLayout(6)
-    add(JBLabel("${issuesGroup.type.uiName} (${issuesGroup.issues.size})"))
     issuesGroup.issues.forEach {
       add(HyperlinkLabel(it.task.taskPath).apply { addHyperlinkListener { _ -> listener.clickedOn(it) } })
     }

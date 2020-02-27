@@ -38,10 +38,4 @@ fun isKotlinPlugin(plugin: PluginData): Boolean {
          plugin.displayName.startsWith("org.jetbrains.kotlin")
 }
 
-fun isGradlePlugin(plugin: PluginData): Boolean {
-  return plugin.displayName == "org.gradle.language.base.plugins.LifecycleBasePlugin" ||
-         plugin.displayName == "org.gradle.build-init" ||
-         plugin.displayName == "org.gradle.wrapper" ||
-         plugin.displayName == "org.gradle.help-tasks" ||
-         plugin.displayName.startsWith("org.gradle.api.plugins")
-}
+fun isGradlePlugin(plugin: PluginData) = plugin.displayName.startsWith("org.gradle.")

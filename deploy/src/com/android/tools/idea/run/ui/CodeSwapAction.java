@@ -33,12 +33,12 @@ public class CodeSwapAction extends BaseAction {
 
   public static final String ID = "android.deploy.CodeSwap";
 
-  public static final String NAME = "Apply Code Changes";
+  public static final String NAME = "Apply Cod&e Changes";
 
   // TODO: Control Alt F10 is almost always going to get your xserver to send you to
   //       your 10th virtual console.....
   private static final Shortcut SHORTCUT =
-    new KeyboardShortcut(KeyStroke.getKeyStroke(SystemInfo.isMac ? "control meta shift R" : "control alt F10"), null);
+    new KeyboardShortcut(KeyStroke.getKeyStroke(SystemInfo.isMac ? "control meta shift E" : "control alt F10"), null);
 
   private static final String DESC = "Attempt to apply only code changes without restarting anything.";
 

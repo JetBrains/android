@@ -21,7 +21,6 @@ import com.android.tools.idea.lang.androidSql.refactoring.AndroidSqlFindUsagesPr
 import com.android.tools.idea.lang.androidSql.resolution.AndroidSqlColumn
 import com.android.tools.idea.lang.androidSql.resolution.AndroidSqlDefinition
 import com.intellij.lang.cacheBuilder.WordOccurrence
-import com.intellij.lang.jvm.JvmModifier
 import com.intellij.openapi.application.QueryExecutorBase
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
@@ -51,7 +50,8 @@ class RoomReferenceSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
     if (element.containingFile != null) {
       val module = ModuleUtil.findModuleForPsiElement(element) ?: return@compute null
       RoomSchemaManager.getInstance(module).getSchema(element.containingFile)
-    } else {
+    }
+    else {
       null
     }
   }
@@ -69,23 +69,7 @@ class RoomReferenceSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
 
       // Return early if possible: this method is called by various inspections on all kinds of PSI elements, in most cases we don't have to
       // do anything which means we don't block a FJ thread by building a Room schema.
-      val definesSqlSchema = when (element) {
-        is PsiElementForFakeColumn -> true
-        is PsiClass -> element.definesSqlTable()
-        is PsiField, is KtProperty -> {
-          val psiClass: PsiClass? = if (element is PsiField) {
-            element.containingClass
-          }
-          else {
-            (element as KtProperty).containingClass()?.toLightClass()
-          }
-          // A subclass can be annotated with `@Entity`, making fields into SQL column definitions.
-          !(psiClass == null || psiClass.hasModifier(JvmModifier.FINAL) && !psiClass.definesSqlTable())
-        }
-        else -> false
-      }
-
-      if (!definesSqlSchema) {
+      if (!element.definesRoomSchema) {
         return@runReadAction null
       }
 
@@ -109,12 +93,10 @@ class RoomReferenceSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
     // consumer. The "proper" way is to get the optimizer and schedule an index search for references to a given element that include a
     // given text. Scheduled searches get merged and run later. We use the latter API, but:
     //   - We search for the right word (as calculate above).
-    //   - We use `scopeDeterminedByUser`, not `effectiveScope`. Effective scope for a private field contains only the file in which it's
-    //     defined, which is not how Room works.
     //   - We look for references to the right element: if a table/column name is overridden using annotations, the PSI references may not
     //     point to the class/field itself, but we still want to show these references in "find usages".
     for (word in words) {
-      queryParameters.optimizer.searchWord(word, queryParameters.scopeDeterminedByUser, false, referenceTarget)
+      queryParameters.optimizer.searchWord(word, queryParameters.effectiveSearchScope, false, referenceTarget)
     }
   }
 

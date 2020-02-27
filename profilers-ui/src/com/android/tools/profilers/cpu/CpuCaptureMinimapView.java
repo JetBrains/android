@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu;
 
+import static com.android.tools.profilers.ProfilerFonts.H3_FONT;
 import static com.android.tools.profilers.ProfilerFonts.SMALL_FONT;
 
 import com.android.tools.adtui.AxisComponent;
@@ -69,6 +70,14 @@ public class CpuCaptureMinimapView {
     myInnerPanel.add(createAxis(model.getCaptureRange()), new TabularLayout.Constraint(0, 0));
     myInnerPanel.add(createLineChart(model.getCpuUsage()), new TabularLayout.Constraint(0, 0));
     myInnerPanel.add(chartLabel, new TabularLayout.Constraint(0, 0));
+    if (model.getCpuUsage().getCpuSeries().getSeries().isEmpty()) {
+      JLabel cpuDataNotAvailableLabel = new JLabel();
+      cpuDataNotAvailableLabel.setText("No CPU usage data available for this imported trace");
+      cpuDataNotAvailableLabel.setFont(H3_FONT);
+      cpuDataNotAvailableLabel.setVerticalAlignment(SwingConstants.CENTER);
+      cpuDataNotAvailableLabel.setHorizontalAlignment(SwingConstants.CENTER);
+      myInnerPanel.add(cpuDataNotAvailableLabel, new TabularLayout.Constraint(0, 0));
+    }
 
     myPanel = new JPanel(new TabularLayout("*", "60px"));
     myPanel.setBorder(JBUI.Borders.empty(4, 8));

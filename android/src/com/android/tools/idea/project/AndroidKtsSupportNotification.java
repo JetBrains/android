@@ -49,18 +49,13 @@ public class AndroidKtsSupportNotification {
   }
 
   public void showWarningIfNotShown() {
+    if (StudioFlags.KOTLIN_DSL_PARSING.get()) {
+      return;
+    }
     if (!alreadyShown) {
-      if (StudioFlags.KOTLIN_DSL_PARSING.get()) {
-        AndroidNotification.getInstance(myProject)
-          .showBalloon(KTS_WARNING_TITLE, KTS_ENABLED_WARNING_MSG, WARNING, KTS_NOTIFICATION_GROUP,
-                       new DisableAndroidKtsNotificationHyperlink(),
-                       new FileBugHyperlink());
-      }
-      else {
-        AndroidNotification.getInstance(myProject)
-          .showBalloon(KTS_WARNING_TITLE, KTS_DISABLED_WARNING_MSG, WARNING, KTS_NOTIFICATION_GROUP,
-                       new DisableAndroidKtsNotificationHyperlink());
-      }
+      AndroidNotification.getInstance(myProject)
+        .showBalloon(KTS_WARNING_TITLE, KTS_DISABLED_WARNING_MSG, WARNING, KTS_NOTIFICATION_GROUP,
+                     new DisableAndroidKtsNotificationHyperlink());
       // Make sure that it was displayed, otherwise notification will not show until project is reopened.
       NotificationSettings settings = NotificationsConfigurationImpl.getSettings(KTS_NOTIFICATION_GROUP.getDisplayId());
       alreadyShown = settings.getDisplayType() != NONE || settings.isShouldLog();

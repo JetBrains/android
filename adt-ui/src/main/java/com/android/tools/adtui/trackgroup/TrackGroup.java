@@ -33,13 +33,17 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.util.HashMap;
 import java.util.Map;
+import javax.swing.AbstractAction;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.KeyStroke;
 import javax.swing.ListCellRenderer;
 import javax.swing.SwingConstants;
 import org.jetbrains.annotations.NotNull;
@@ -52,6 +56,7 @@ public class TrackGroup extends AspectObserver {
   private static final Icon EXPAND_ICON = AllIcons.Actions.FindAndShowNextMatches;
   private static final Icon COLLAPSE_ICON = AllIcons.Actions.FindAndShowPrevMatches;
   private static final Font TITLE_FONT = AdtUiUtils.DEFAULT_FONT.biggerOn(5f);
+  private static final String TOGGLE_EXPAND_COLLAPSE_TRACK_KEY = "TOGGLE_EXPAND_COLLAPSE_KEY";
 
   private final TrackGroupModel myModel;
 
@@ -133,6 +138,8 @@ public class TrackGroup extends AspectObserver {
     myComponent = new JPanel(new BorderLayout());
     myComponent.add(titlePanel, BorderLayout.NORTH);
     myComponent.add(myTrackList, BorderLayout.CENTER);
+
+    initKeyBindings(myTrackList);
   }
 
   @NotNull
@@ -210,6 +217,21 @@ public class TrackGroup extends AspectObserver {
     myActionsDropdown.getAction().clear();
 
     // Add children actions.
+  }
+
+  private void initKeyBindings(@NotNull JList list) {
+    list.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), TOGGLE_EXPAND_COLLAPSE_TRACK_KEY);
+    list.getActionMap().put(TOGGLE_EXPAND_COLLAPSE_TRACK_KEY, new AbstractAction() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        for (int selectedIndex : list.getSelectedIndices()) {
+          TrackModel model = myModel.get(selectedIndex);
+          if (model.isCollapsible()) {
+            model.setCollapsed(!model.isCollapsed());
+          }
+        }
+      }
+    });
   }
 
   @VisibleForTesting

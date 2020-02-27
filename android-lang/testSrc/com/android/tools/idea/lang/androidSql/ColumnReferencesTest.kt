@@ -216,7 +216,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
       """
     )
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    val file = myFixture.addClass("""
         package com.example;
 
         import androidx.room.Dao;
@@ -226,7 +226,9 @@ class ColumnReferencesTest : RoomLightTestCase() {
         public interface UserDao {
           @Query("SELECT private<caret>Field FROM User") List<Integer> getIds();
         }
-    """.trimIndent())
+    """.trimIndent()).containingFile
+
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
 
     myFixture.renameElementAtCaret("field")
 
