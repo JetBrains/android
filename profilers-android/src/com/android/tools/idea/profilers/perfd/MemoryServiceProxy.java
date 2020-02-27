@@ -273,23 +273,23 @@ public class MemoryServiceProxy extends ServiceProxy {
   @Override
   public ServerServiceDefinition getServiceDefinition() {
     Map<MethodDescriptor, ServerCallHandler> overrides = new HashMap<>();
-    overrides.put(MemoryServiceGrpc.METHOD_START_MONITORING_APP,
+    overrides.put(MemoryServiceGrpc.getStartMonitoringAppMethod(),
                   ServerCalls.asyncUnaryCall((request, observer) -> {
                     startMonitoringApp((MemoryStartRequest)request, (StreamObserver)observer);
                   }));
-    overrides.put(MemoryServiceGrpc.METHOD_STOP_MONITORING_APP,
+    overrides.put(MemoryServiceGrpc.getStopMonitoringAppMethod(),
                   ServerCalls.asyncUnaryCall((request, observer) -> {
                     stopMonitoringApp((MemoryStopRequest)request, (StreamObserver)observer);
                   }));
-    overrides.put(MemoryServiceGrpc.METHOD_GET_DATA,
+    overrides.put(MemoryServiceGrpc.getGetDataMethod(),
                   ServerCalls.asyncUnaryCall((request, observer) -> {
                     getData((MemoryRequest)request, (StreamObserver)observer);
                   }));
-    overrides.put(MemoryServiceGrpc.METHOD_TRACK_ALLOCATIONS,
+    overrides.put(MemoryServiceGrpc.getTrackAllocationsMethod(),
                   ServerCalls.asyncUnaryCall((request, observer) -> {
                     trackAllocations((TrackAllocationsRequest)request, (StreamObserver)observer);
                   }));
-    overrides.put(MemoryServiceGrpc.METHOD_FORCE_GARBAGE_COLLECTION,
+    overrides.put(MemoryServiceGrpc.getForceGarbageCollectionMethod(),
                   ServerCalls.asyncUnaryCall((request, observer) -> {
                     forceGarbageCollection((ForceGarbageCollectionRequest)request, (StreamObserver)observer);
                   }));
