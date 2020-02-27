@@ -19,6 +19,7 @@ import com.android.annotations.Nullable;
 import com.android.tools.adtui.webp.WebpNativeLibHelper;
 import com.android.utils.ILogger;
 
+import com.intellij.openapi.application.PathManager;
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FilePermission;
@@ -86,13 +87,15 @@ public class RenderSecurityManager extends SecurityManager {
    * For debugging purposes
    */
   private static String sLastFailedPath;
+  private final String mIndexRootPath;
+  private final String mCachePath;
 
   private boolean mAllowSetSecurityManager;
   private boolean mDisabled;
-  @SuppressWarnings("FieldCanBeLocal") private String mSdkPath;
-  @SuppressWarnings("FieldCanBeLocal") private String mProjectPath;
-  private String mTempDir;
-  private String mNormalizedTempDir;
+  private final String mSdkPath;
+  private final String mProjectPath;
+  private final String mTempDir;
+  private final String mNormalizedTempDir;
   private String mCanonicalTempDir;
   private String mAppTempDir;
   private SecurityManager myPreviousSecurityManager;
@@ -138,6 +141,8 @@ public class RenderSecurityManager extends SecurityManager {
     mProjectPath = projectPath;
     mTempDir = System.getProperty("java.io.tmpdir");
     mNormalizedTempDir = new File(mTempDir).getPath(); // will call fs.normalize() on the path
+    mIndexRootPath = PathManager.getIndexRoot().getPath();
+    mCachePath = PathManager.getSystemPath() + "/cache/";
     //noinspection AssignmentToStaticFieldFromInstanceMethod
     sLastFailedPath = null;
   }
@@ -381,7 +386,11 @@ public class RenderSecurityManager extends SecurityManager {
 
   @SuppressWarnings("RedundantIfStatement")
   private boolean isWritingAllowed(String path) {
-    return isTempDirPath(path);
+    return isTempDirPath(path) ||
+           // When loading classes, IntelliJ might sometimes drop a corruption marker
+           path.startsWith(mIndexRootPath) ||
+           // When loading classes, IntelliJ might try to update cache hashes for the loaded files
+           path.startsWith(mCachePath);
   }
 
   private boolean isTempDirPath(String path) {
