@@ -49,6 +49,7 @@ import static org.junit.Assume.assumeTrue;
 import static org.junit.runners.Parameterized.Parameter;
 import static org.junit.runners.Parameterized.Parameters;
 
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
@@ -67,6 +68,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
@@ -90,7 +92,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -240,7 +241,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
       return null;
     });
 
-    myTestDataPath = AndroidTestBase.getTestDataPath() + "/parser";
+    myTestDataPath = TestUtils.getWorkspaceFile("tools/adt/idea/gradle-dsl/testData/parser").getPath();
   }
 
   @NotNull
@@ -455,7 +456,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   }
 
   protected void verifyFileContents(@NotNull VirtualFile file, @NotNull String contents) throws IOException {
-    assertEquals(contents.replaceAll("[ \\t]+", "").trim(), loadText(file).replaceAll("[ \\t]+", "").trim());
+    assertEquals(contents.replaceAll("[ \\r\\t]+", "").trim(), loadText(file).replaceAll("[ \\r\\t]+", "").trim());
   }
 
   protected void verifyFileContents(@NotNull VirtualFile file, @NotNull TestFileName expected) throws IOException {
