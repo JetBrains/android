@@ -84,7 +84,7 @@ class SqliteController(
     Disposer.register(project, this)
 
     virtualFileListener = object : BulkFileListener {
-      override fun before(events: MutableList<out VFileEvent>) {
+      override fun before(events: List<VFileEvent>) {
         if (openDatabases.isEmpty()) return
 
         val toClose = mutableListOf<SqliteDatabase>()
