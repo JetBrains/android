@@ -20,6 +20,7 @@ import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
+import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTEGER_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.LIST_TYPE;
@@ -59,8 +60,10 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.openapi.application.ApplicationManager;
@@ -68,9 +71,11 @@ import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.StdModuleTypes;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -89,6 +94,7 @@ import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.SystemIndependent;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -393,8 +399,26 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   }
 
   @NotNull
+  protected ProjectBuildModel getProjectBuildModel() {
+    BuildModelContext context = createContext();
+    VirtualFile file = context.getGradleBuildFile(getBaseDirPath(getProject()));
+    return new ProjectBuildModelImpl(getProject(), file, context);
+  }
+
+  @Nullable
+  protected ProjectBuildModel getIncludedProjectBuildModel(@NotNull String compositeRoot) {
+
+    BuildModelContext context = createContext();
+    VirtualFile file = context.getGradleBuildFile(new File(compositeRoot));
+    if (file == null) {
+      return null;
+    }
+    return new ProjectBuildModelImpl(getProject(), file, context);
+  }
+
+  @NotNull
   protected GradleSettingsModel getGradleSettingsModel() {
-    ProjectBuildModel projectBuildModel = ProjectBuildModel.get(myProject);
+    ProjectBuildModel projectBuildModel = getProjectBuildModel();
     GradleSettingsModel settingsModel = projectBuildModel.getProjectSettingsModel();
     assertNotNull(settingsModel);
     return settingsModel;
@@ -402,7 +426,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
 
   @NotNull
   protected GradleBuildModel getGradleBuildModel() {
-    ProjectBuildModel projectBuildModel = ProjectBuildModel.get(myProject);
+    ProjectBuildModel projectBuildModel = getProjectBuildModel();
     GradleBuildModel buildModel = projectBuildModel.getModuleBuildModel(myModule);
     assertNotNull(buildModel);
     return buildModel;
@@ -410,7 +434,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
 
   @NotNull
   protected GradleBuildModel getSubModuleGradleBuildModel() {
-    ProjectBuildModel projectBuildModel = ProjectBuildModel.get(myProject);
+    ProjectBuildModel projectBuildModel = getProjectBuildModel();
     GradleBuildModel buildModel = projectBuildModel.getModuleBuildModel(mySubModule);
     assertNotNull(buildModel);
     return buildModel;
@@ -754,5 +778,36 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   public static void verifyPlugins(@NotNull List<String> names, @NotNull List<PluginModel> models) {
     List<String> actualNames = PluginModel.extractNames(models);
     assertSameElements(names, actualNames);
+  }
+
+  @NotNull
+  private BuildModelContext createContext() {
+    return BuildModelContext.create(getProject(), new BuildModelContext.ResolvedConfigurationFileLocationProvider() {
+      @Nullable
+      @Override
+      public VirtualFile getGradleBuildFile(@NotNull Module module) {
+        // Resolved location is unknown (no sync).
+        return null;
+      }
+
+      @Nullable
+      @Override
+      public @SystemIndependent String getGradleProjectRootPath(@NotNull Module module) {
+        String linkedProjectPath = ExternalSystemApiUtil.getExternalProjectPath(module);
+        if (!Strings.isNullOrEmpty(linkedProjectPath)) {
+          return linkedProjectPath;
+        }
+        @SystemIndependent String moduleFilePath = module.getModuleFilePath();
+        return VfsUtil.getParentDir(moduleFilePath);
+      }
+
+      @Nullable
+      @Override
+      public @SystemIndependent String getGradleProjectRootPath(@NotNull Project project) {
+        VirtualFile projectDir = ProjectUtil.guessProjectDir(project);
+        if (projectDir == null) return null;
+        return projectDir.getPath();
+      }
+    });
   }
 }

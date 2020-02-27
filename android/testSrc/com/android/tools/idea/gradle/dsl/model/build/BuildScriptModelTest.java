@@ -35,7 +35,6 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.gradle.dsl.api.BuildScriptModel;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
@@ -191,8 +190,7 @@ public class BuildScriptModelTest extends GradleFileModelTestCase {
     writeToSubModuleBuildFile(BUILD_SCRIPT_MODEL_EXT_PROPERTIES_FROM_BUILDSCRIPT_BLOCK_SUB);
     writeToSettingsFile(getSubModuleSettingsText());
 
-    ProjectBuildModel projectBuildModel = ProjectBuildModel.get(myProject);
-    GradleBuildModel buildModel = projectBuildModel.getModuleBuildModel(mySubModule);
+    GradleBuildModel buildModel = getSubModuleGradleBuildModel();
 
     verifyPropertyModel(buildModel.android().defaultConfig().applicationId(), STRING_TYPE, "boo", STRING, PropertyType.REGULAR, 1);
   }

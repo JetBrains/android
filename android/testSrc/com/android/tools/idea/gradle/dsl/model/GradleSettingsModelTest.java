@@ -71,7 +71,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     writeToSettingsFile(GRADLE_SETTINGS_MODEL_INCLUDED_MODULE_PATHS_WITH_DOT_SEPARATOR_SETTINGS);
     Module newModule = writeToNewSubModule("app.ext", "", "");
 
-    ProjectBuildModel projectModel = ProjectBuildModel.get(myProject);
+    ProjectBuildModel projectModel = getProjectBuildModel();
     GradleBuildModel buildModel = projectModel.getModuleBuildModel(newModule);
 
     assertNotNull(buildModel);

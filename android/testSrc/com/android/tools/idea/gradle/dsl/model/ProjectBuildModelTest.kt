@@ -45,8 +45,8 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.I
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase.runWriteAction
-import org.gradle.internal.impldep.org.hamcrest.CoreMatchers.hasItems
-import org.gradle.internal.impldep.org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.CoreMatchers.hasItems
+import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 import java.io.File
 import java.io.IOException
@@ -59,7 +59,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     writeToSubModuleBuildFile(PROJECT_BUILD_MODEL_APPLIED_FILES_SHARED_SUB)
     writeToSettingsFile(subModuleSettingsText)
 
-    val projectModel = ProjectBuildModel.get(myProject)
+    val projectModel = projectBuildModel
     val parentBuildModel = projectModel.projectBuildModel!!
     val childBuildModel = projectModel.getModuleBuildModel(mySubModule)!!
 
@@ -104,7 +104,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     // Delete the main build file
     runWriteAction<Unit, IOException> { myBuildFile.delete(this) }
 
-    val pbm = ProjectBuildModel.get(myProject)
+    val pbm = projectBuildModel
     assertNull(pbm.projectBuildModel)
 
     val buildModel = pbm.getModuleBuildModel(mySubModule)!!
@@ -124,7 +124,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     writeToBuildFile(PROJECT_BUILD_MODEL_MULTIPLE_MODELS_PERSIST_CHANGES)
     writeToSubModuleBuildFile(PROJECT_BUILD_MODEL_MULTIPLE_MODELS_PERSIST_CHANGES_SUB)
 
-    val projectModel = ProjectBuildModel.get(myProject)
+    val projectModel = projectBuildModel
     val childModelOne = projectModel.getModuleBuildModel(mySubModule)!!
     val childModelTwo = projectModel.getModuleBuildModel(mySubModule)!!
     val parentModelOne = projectModel.projectBuildModel!!
@@ -177,7 +177,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     writeToSettingsFile(subModuleSettingsText)
 
     // This should correctly resolve the variable
-    val projectModel = ProjectBuildModel.get(myProject)
+    val projectModel = projectBuildModel
     val buildModel = projectModel.getModuleBuildModel(mySubModule)!!
 
     val prop = buildModel.ext().findProperty("prop")
@@ -191,7 +191,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     writeToSettingsFile(subModuleSettingsText)
     val newModule = writeToNewSubModule("lib", PROJECT_BUILD_MODEL_SETTINGS_FILE_UPDATES_CORRECTLY_OTHER_SUB, "")
 
-    val projectModel = ProjectBuildModel.get(myProject)
+    val projectModel = projectBuildModel
     val parentBuildModel = projectModel.projectBuildModel!!
     val childBuildModel = projectModel.getModuleBuildModel(File(mySubModule.moduleFilePath).parentFile)!!
     val otherChildBuildModel = projectModel.getModuleBuildModel(newModule)!!
@@ -235,7 +235,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     writeToSubModuleBuildFile(PROJECT_BUILD_MODEL_PROJECT_MODELS_SAVES_FILES_SUB)
     writeToBuildFile(PROJECT_BUILD_MODEL_PROJECT_MODELS_SAVES_FILES)
     writeToSettingsFile(subModuleSettingsText)
-    var pbm = ProjectBuildModel.get(myProject)
+    var pbm = projectBuildModel
     var buildModel = pbm.getModuleBuildModel(mySubModule)
     var optionsModel = buildModel!!.android().defaultConfig().externalNativeBuild().cmake()
     optionsModel.arguments().addListValue().setValue("-DCMAKE_MAKE_PROGRAM=////")
@@ -243,7 +243,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
 
     applyChangesAndReparse(pbm)
 
-    pbm = ProjectBuildModel.get(myProject)
+    pbm = projectBuildModel
     buildModel = pbm.getModuleBuildModel(mySubModule)
     optionsModel = buildModel!!.android().defaultConfig().externalNativeBuild().cmake()
     verifyListProperty(optionsModel.arguments(), listOf("-DCMAKE_MAKE_PROGRAM=////"))
@@ -255,7 +255,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
   fun testGetModelFromVirtualFile() {
     writeToBuildFile(PROJECT_BUILD_MODEL_GET_MODEL_FROM_VIRTUAL_FILE)
 
-    val pbm = ProjectBuildModel.get(myProject)
+    val pbm = projectBuildModel
     val buildModel = pbm.getModuleBuildModel(myBuildFile)
     assertNotNull(buildModel)
     verifyPropertyModel(buildModel.android().compileSdkVersion(), STRING_TYPE, "28", STRING, REGULAR, 0)
@@ -268,7 +268,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     writeToSettingsFile(subModuleSettingsText)
     writeToNewSubModuleFile("a", PROJECT_BUILD_MODEL_ENSURE_PARSING_APPLIED_FILE_IN_SUBMODULE_FOLDER_APPLIED)
 
-    val pbm = ProjectBuildModel.get(myProject)
+    val pbm = projectBuildModel
     val buildModel = pbm.getModuleBuildModel(myModule)
 
     val pluginModel = buildModel!!.buildscript().dependencies().artifacts()[0].completeModel()
@@ -283,7 +283,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     writeToSettingsFile(subModuleSettingsText)
     writeToNewSubModuleFile("a", PROJECT_BUILD_MODEL_ENSURE_PARSING_APPLIED_FILE_IN_SUBMODULE_FOLDER_APPLIED)
 
-    val pbm = ProjectBuildModel.get(myProject)
+    val pbm = projectBuildModel
     val mainBuildModel = pbm.getModuleBuildModel(myModule)!!
     val subBuildModel = pbm.getModuleBuildModel(mySubModule)!!
     val settingModel = pbm.projectSettingsModel!!

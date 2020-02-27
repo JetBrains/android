@@ -93,7 +93,7 @@ public class SubProjectsTest extends GradleFileModelTestCase {
     Module otherSub = writeToNewSubModule("otherSub", SUB_PROJECTS_APPLY_PLUGINS_SUB2, "");
     writeToSettingsFile(getSubModuleSettingsText() + getSubModuleSettingsText("otherSub"));
 
-    ProjectBuildModel buildModel = ProjectBuildModel.get(myProject);
+    ProjectBuildModel buildModel = getProjectBuildModel();
 
     GradleBuildModel mainModel = buildModel.getModuleBuildModel(myModule);
     List<PluginModel> mainPlugins = mainModel.plugins();
