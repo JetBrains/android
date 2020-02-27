@@ -430,7 +430,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   public final void addSceneView(@NotNull SceneView sceneView) {
     //noinspection ConstantConditions, prevent this method from failing when using mocks (http://b/149700391)
     if (mySceneViewPanel != null) {
-      mySceneViewPanel.addSceneView(sceneView);
+      UIUtil.invokeLaterIfNeeded(() ->  mySceneViewPanel.addSceneView(sceneView));
     }
   }
 

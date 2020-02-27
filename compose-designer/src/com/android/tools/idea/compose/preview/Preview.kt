@@ -177,15 +177,17 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   override var groupNameFilter: String? by Delegates.observable(null as String?) { _, oldValue, newValue ->
     if (oldValue != newValue) {
+      LOG.debug("New group preview element selection: $newValue")
       this.groupNameFilteredProvider.groupName = newValue
-      refresh()
+      ApplicationManager.getApplication().invokeLater { refresh() }
     }
   }
   override val availableGroups: Set<String> get() = groupNameFilteredProvider.availableGroups
   override var singlePreviewElementFqnFocus: String? by Delegates.observable(null as String?) { _, oldValue, newValue ->
     if (oldValue != newValue) {
+      LOG.debug("New single preview element focus: $newValue")
       this.singleElementFilteredProvider.composableMethodFqn = newValue
-      refresh()
+      ApplicationManager.getApplication().invokeLater { refresh() }
     }
   }
 

@@ -26,22 +26,19 @@ import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
+import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.ui.JBPopupMenu
 import com.intellij.util.ui.JBUI
 import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.core.MouseButton
 import org.fest.swing.core.Robot
 import org.fest.swing.driver.ComponentDriver
-import org.fest.swing.fixture.JButtonFixture
 import org.fest.swing.fixture.JMenuItemFixture
 import org.fest.swing.fixture.JPopupMenuFixture
 import org.fest.swing.timing.Wait
-import org.fest.swing.util.TextMatcher
 import java.awt.Point
-import javax.swing.AbstractButton
 import javax.swing.JComponent
 import javax.swing.JMenuItem
-import javax.swing.JPanel
 
 private const val TIMEOUT_FOR_SCENE_COMPONENT_ANIMATION_SECONDS = 5L
 private val MINIMUM_ANCHOR_GAP = JBUI.scale(6) * 2 // Based on DrawAnchor.java
@@ -222,7 +219,7 @@ class SceneFixture(private val robot: Robot, private val scene: Scene) {
 
 class SceneViewTopPanelFixture(private val robot: Robot, private val toolbar: JComponent) {
   fun clickButtonByText(text: String): SceneViewTopPanelFixture = also {
-    val button = robot.finder().find(toolbar, Matchers.byText(AbstractButton::class.java, text))
+    val button = robot.finder().find(toolbar, Matchers.byText(ActionButtonWithText::class.java, text))
     robot.click(button)
   }
 }
