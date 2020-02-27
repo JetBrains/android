@@ -16,6 +16,7 @@
 package com.android.tools.idea.databinding
 
 import com.android.tools.idea.databinding.util.DataBindingUtil
+import com.android.tools.idea.databinding.util.getViewBindingEnabledTracker
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
 import com.google.common.collect.Maps
 import com.intellij.openapi.module.ModuleManager
@@ -44,6 +45,8 @@ class LayoutBindingProjectComponent(val project: Project) : ModificationTracker 
   init {
     val cachedValuesManager = CachedValuesManager.getManager(project)
     val moduleManager = ModuleManager.getInstance(project)
+    val dataBindingTracker = DataBindingUtil.getDataBindingEnabledTracker()
+    val viewBindingTracker = project.getViewBindingEnabledTracker()
 
     allBindingEnabledModules = cachedValuesManager.createCachedValue(
       {
@@ -51,21 +54,21 @@ class LayoutBindingProjectComponent(val project: Project) : ModificationTracker 
             .mapNotNull { module -> AndroidFacet.getInstance(module) }
             .filter { facet -> DataBindingUtil.isDataBindingEnabled(facet) || facet.isViewBindingEnabled() }
 
-        CachedValueProvider.Result.create(facets, DataBindingUtil.getDataBindingEnabledTracker(), moduleManager)
+        CachedValueProvider.Result.create(facets, dataBindingTracker, viewBindingTracker, moduleManager)
       }, false)
 
     dataBindingEnabledModules = cachedValuesManager.createCachedValue(
       {
         val facets = allBindingEnabledModules.value
           .filter { facet -> DataBindingUtil.isDataBindingEnabled(facet) }
-        CachedValueProvider.Result.create(facets, DataBindingUtil.getDataBindingEnabledTracker(), moduleManager)
+        CachedValueProvider.Result.create(facets, dataBindingTracker, moduleManager)
       }, false)
 
     viewBindingEnabledModules = cachedValuesManager.createCachedValue(
       {
         val facets = allBindingEnabledModules.value
           .filter { facet -> facet.isViewBindingEnabled() }
-        CachedValueProvider.Result.create(facets, moduleManager)
+        CachedValueProvider.Result.create(facets, viewBindingTracker, moduleManager)
       }, false)
   }
 
