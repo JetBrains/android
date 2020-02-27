@@ -21,8 +21,6 @@ import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.ui.notifyError
 import com.intellij.icons.AllIcons
-import com.intellij.openapi.editor.colors.EditorColors
-import com.intellij.openapi.editor.colors.EditorColorsManager
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.ColoredTableCellRenderer
 import com.intellij.ui.SimpleTextAttributes
@@ -276,12 +274,6 @@ class TableViewImpl : TableView {
       viewRowIndex: Int,
       viewColumnIndex: Int
     ) {
-      if (viewColumnIndex == 0) {
-        background = EditorColorsManager.getInstance().globalScheme.getColor(EditorColors.GUTTER_BACKGROUND)
-      } else {
-        background = primaryContentBackground
-      }
-
       if (value == null) {
         append("NULL", SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES)
       } else {
