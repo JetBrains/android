@@ -70,6 +70,7 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
+import org.jetbrains.android.AndroidTempDirTestFixture;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -91,7 +92,6 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   private static final Logger LOG = Logger.getInstance(AndroidGradleTestCase.class);
 
   protected AndroidFacet myAndroidFacet;
-  protected Modules myModules;
 
   public AndroidGradleTestCase() {
   }
@@ -143,8 +143,10 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   public void setUpFixture() throws Exception {
+    AndroidTempDirTestFixture tempDirFixture = new AndroidTempDirTestFixture(getName());
     TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder =
-      IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName(), true /* .idea directory based project */);
+      IdeaTestFixtureFactory.getFixtureFactory()
+        .createFixtureBuilder(getName(), tempDirFixture.getProjectDir().getParentFile().toPath(), true);
     IdeaProjectTestFixture projectFixture = projectBuilder.getFixture();
     setUpFixture(projectFixture);
   }
@@ -160,11 +162,9 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     LocalFileSystem.getInstance().refreshAndFindFileByPath(project.getBasePath());
     AndroidGradleTests.setUpSdks(fixture, getSdk());
     myFixture = fixture;
-    myModules = new Modules(project);
   }
 
   public void tearDownFixture() {
-    myModules = null;
     myAndroidFacet = null;
     if (myFixture != null) {
       try {
@@ -202,7 +202,6 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
         PlatformTestCase.closeAndDisposeProjectAndCheckThatNoOpenProjects(openProjects[0]);
       }
       myAndroidFacet = null;
-      myModules = null;
     }
     finally {
       try {
@@ -264,7 +263,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
     Module[] modules = ModuleManager.getInstance(project).getModules();
 
-    myAndroidFacet = AndroidGradleTests.findAndroidFacetForTests(modules, chosenModuleName);
+    myAndroidFacet = AndroidGradleTests.findAndroidFacetForTests(project, modules, chosenModuleName);
   }
 
   protected void patchPreparedProject(@NotNull File projectRoot,
@@ -376,7 +375,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   @NotNull
   protected Module getModule(@NotNull String moduleName) {
-    return myModules.getModule(moduleName);
+    return TestModuleUtil.findModule(getProject(), moduleName);
   }
 
   protected void requestSyncAndWait(@NotNull GradleSyncInvoker.Request request) throws Exception {

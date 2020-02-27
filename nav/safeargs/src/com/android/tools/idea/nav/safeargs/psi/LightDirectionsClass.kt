@@ -17,6 +17,10 @@ package com.android.tools.idea.nav.safeargs.psi
 
 import com.android.ide.common.resources.ResourceItem
 import com.android.tools.idea.nav.safeargs.index.NavDestinationData
+import com.android.tools.idea.nav.safeargs.index.NavXmlData
+import com.google.common.base.CaseFormat
+import com.intellij.psi.PsiMethod
+import com.intellij.psi.impl.light.LightMethod
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
@@ -45,6 +49,42 @@ import org.jetbrains.android.facet.AndroidFacet
  *  }
  * ```
  */
-class LightDirectionsClass(facet: AndroidFacet, modulePackage: String, navigationResource: ResourceItem, destination: NavDestinationData)
-  : SafeArgsLightBaseClass(facet, modulePackage, "Directions", navigationResource, destination)
+class LightDirectionsClass(facet: AndroidFacet,
+                           private val modulePackage: String,
+                           navigationResource: ResourceItem,
+                           private val data: NavXmlData,
+                           private val destination: NavDestinationData)
+  : SafeArgsLightBaseClass(facet, modulePackage, "Directions", navigationResource, destination) {
+
+  private val _methods by lazy { computeMethods() }
+
+  override fun getMethods() = _methods
+  override fun getAllMethods() = methods
+  override fun findMethodsByName(name: String, checkBases: Boolean): Array<PsiMethod> {
+    return allMethods.filter { method -> method.name == name }.toTypedArray()
+  }
+
+  private fun computeMethods(): Array<PsiMethod> {
+    if (destination.actions.isEmpty()) return emptyArray()
+
+    val navDirectionsType = parsePsiType(modulePackage, "androidx.navigation.NavDirections", this)
+    return destination.actions
+      .mapNotNull { action ->
+        val targetDestination = data.root.allDestinations.firstOrNull { it.id == action.destination } ?: return@mapNotNull null
+        val types = targetDestination.arguments.map { arg ->
+          arg to parsePsiType(modulePackage, arg.type, this)
+        }
+
+        val methodName = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, action.id)
+        val method = createMethod(methodName, modifiers = MODIFIERS_STATIC_PUBLIC_METHOD, returnType = navDirectionsType)
+        types.forEach {
+          val arg = it.first
+          val type = it.second // We know it's non-null because of the "any" check above
+          method.addParameter(arg.name, type)
+        }
+
+        LightMethod(manager, method, this)
+      }.toTypedArray()
+  }
+}
 

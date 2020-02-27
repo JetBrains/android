@@ -60,12 +60,12 @@ private class AppInspectionLaunchTask(private val module: Module) : LaunchTask {
       LaunchedProcessDescriptor(
         TransportServiceProxy.getDeviceManufacturer(device),
         TransportServiceProxy.getDeviceModel(device),
-        packageName
-      ),
-      object : AppInspectionJarCopier {
-        private val delegate = TransportFileManager(device, TransportService.getInstance().messageBus)
-        override fun copyFileToDevice(jar: AppInspectorJar): List<String> = delegate.copyFileToDevice(jar.toDeployableFile())
-      }
+        packageName,
+        object : AppInspectionJarCopier {
+          private val delegate = TransportFileManager(device, TransportService.getInstance().messageBus)
+          override fun copyFileToDevice(jar: AppInspectorJar): List<String> = delegate.copyFileToDevice(jar.toDeployableFile())
+        }
+      )
     )
     return LaunchResult.success()
   }

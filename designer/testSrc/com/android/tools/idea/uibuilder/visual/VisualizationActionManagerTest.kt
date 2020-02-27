@@ -18,13 +18,21 @@ package com.android.tools.idea.uibuilder.visual
 import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomOutAction
 import com.android.tools.adtui.actions.ZoomToFitAction
+import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.intellij.openapi.Disposable
+import com.intellij.psi.PsiFile
 import org.jetbrains.android.AndroidTestCase
+import org.jetbrains.android.facet.AndroidFacet
+
+private class TestVisualizationModelsProvider : VisualizationModelsProvider {
+  override fun createNlModels(parentDisposable: Disposable, file: PsiFile, facet: AndroidFacet): List<NlModel> = emptyList()
+}
 
 class VisualizationActionManagerTest : AndroidTestCase() {
 
   fun testPopupMenuActions() {
-    val actionManager = VisualizationActionManager(NlDesignSurface.build(project, testRootDisposable))
+    val actionManager = VisualizationActionManager(NlDesignSurface.build(project, testRootDisposable)) { TestVisualizationModelsProvider() }
     val actions = actionManager.getPopupMenuActions(null).getChildren(null)
     assertTrue(actions[0] is ZoomInAction)
     assertTrue(actions[1] is ZoomOutAction)
@@ -32,7 +40,7 @@ class VisualizationActionManagerTest : AndroidTestCase() {
   }
 
   fun testToolbarActions() {
-    val actionManager = VisualizationActionManager(NlDesignSurface.build(project, testRootDisposable))
+    val actionManager = VisualizationActionManager(NlDesignSurface.build(project, testRootDisposable)) { TestVisualizationModelsProvider() }
     assertEquals(0, actionManager.getToolbarActions(null, emptyList()).childrenCount)
   }
 }

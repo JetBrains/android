@@ -67,7 +67,7 @@ public class ClearConstraintTest {
     EditorFixture editor = ideFrameFixture.getEditor()
       .open("app/src/main/res/layout/constraint.xml", EditorFixture.Tab.DESIGN);
 
-    NlEditorFixture design = editor.getLayoutEditor(false)
+    NlEditorFixture design = editor.getLayoutEditor()
       .showOnlyDesignView()
       .dragComponentToSurface("Buttons", "Button")
       .waitForRenderToFinish();
@@ -78,7 +78,7 @@ public class ClearConstraintTest {
     assertThat(layoutContents).contains("app:layout_constraintBaseline_toBaselineOf=\"@+id/textView\"");
 
     editor.open("app/src/main/res/layout/constraint.xml", EditorFixture.Tab.DESIGN)
-      .getLayoutEditor(false)
+      .getLayoutEditor()
       .waitForRenderToFinish();
     JComponent killButton = GuiTests.waitUntilShowing(guiTest.robot(),
                                                       Matchers.byTooltip(JComponent.class, "Delete Baseline Constraint"));

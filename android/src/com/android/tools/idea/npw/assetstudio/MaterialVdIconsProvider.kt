@@ -22,7 +22,6 @@ import com.android.tools.idea.material.icons.MaterialIconsCopyHandler
 import com.android.tools.idea.material.icons.MaterialIconsDownloader
 import com.android.tools.idea.material.icons.MaterialIconsMetadata
 import com.android.tools.idea.material.icons.MaterialIconsMetadataDownloadCacheService
-import com.android.tools.idea.material.icons.MaterialIconsMetadataDownloadService
 import com.android.tools.idea.material.icons.MaterialIconsMetadataUrlProvider
 import com.android.tools.idea.material.icons.MaterialIconsUrlProvider
 import com.android.tools.idea.material.icons.MaterialIconsUtils.getIconsSdkTargetPath
@@ -37,11 +36,11 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.progress.EmptyProgressIndicator
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.EdtExecutorService
-import java.io.BufferedReader
-import java.io.InputStreamReader
-import java.net.URL
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.LinkedBlockingQueue
@@ -111,8 +110,12 @@ private fun loadMaterialVdIcons(metadata: MaterialIconsMetadata,
                                 refreshUiCallback: (MaterialVdIcons, Status) -> Unit,
                                 parentDisposable: Disposable) {
   val iconsLoader = MaterialVdIconsLoader(metadata, iconsUrlProvider)
+  val progressIndicator = EmptyProgressIndicator()
   val backgroundExecutor = createBackgroundExecutor()
-  val disposable = Disposable { backgroundExecutor.shutdownNow() }
+  val disposable = Disposable {
+    backgroundExecutor.shutdownNow()
+    progressIndicator.cancel()
+  }
   Disposer.register(parentDisposable, disposable)
   metadata.families.forEachIndexed { index, style ->
     // Load icons by style/family.
@@ -139,7 +142,7 @@ private fun loadMaterialVdIcons(metadata: MaterialIconsMetadata,
           }
           if (StudioFlags.ASSET_DOWNLOAD_MATERIAL_ICONS.get()) {
             // Then, download the most recent metadata file and any new icons.
-            downloadMetadataAndIcons(metadata, backgroundExecutor)
+            downloadMetadataAndIcons(metadata, backgroundExecutor, progressIndicator)
           }
         }
       }
@@ -181,7 +184,9 @@ private fun copyBundledIcons(metadata: MaterialIconsMetadata, icons: MaterialVdI
   }
 }
 
-private fun downloadMetadataAndIcons(existingMetadata: MaterialIconsMetadata, executor: ExecutorService) {
+private fun downloadMetadataAndIcons(existingMetadata: MaterialIconsMetadata,
+                                     executor: ExecutorService,
+                                     progressIndicator: ProgressIndicator) {
   val targetPath = getIconsSdkTargetPath()
   if (targetPath == null) {
     LOG.warn("No Android Sdk folder, can't download any material icons.")
@@ -189,7 +194,8 @@ private fun downloadMetadataAndIcons(existingMetadata: MaterialIconsMetadata, ex
   }
   ApplicationManager.getApplication().getService(MaterialIconsMetadataDownloadCacheService::class.java).getMetadata().whenCompleteAsync(
     BiConsumer { newMetadata, _ ->
-      MaterialIconsDownloader(existingMetadata, newMetadata).downloadTo(targetPath)
+      ProgressManager.getInstance().runProcess(
+        { MaterialIconsDownloader(existingMetadata, newMetadata).downloadTo(targetPath) }, progressIndicator)
     }, executor)
 }
 

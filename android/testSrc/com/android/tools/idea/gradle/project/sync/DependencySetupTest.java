@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync;
 
 import static com.android.tools.idea.gradle.project.sync.LibraryDependenciesSubject.libraryDependencies;
 import static com.android.tools.idea.gradle.project.sync.ModuleDependenciesSubject.moduleDependencies;
-import static com.android.tools.idea.gradle.util.GradleUtil.getAndroidProject;
 import static com.android.tools.idea.testing.TestProjectPaths.LOCAL_AARS_AS_MODULES;
 import static com.android.tools.idea.testing.TestProjectPaths.LOCAL_JARS_AS_MODULES;
 import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES;
@@ -35,7 +34,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyMode
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
-import com.android.tools.idea.testing.Modules;
+import com.android.tools.idea.testing.TestModuleUtil;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -52,23 +51,19 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings;
  * Tests dependency configuration during Gradle Sync.
  */
 public class DependencySetupTest extends GradleSyncIntegrationTestCase {
-  private Modules myModules;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    Project project = getProject();
-    myModules = new Modules(project);
 
     GradleProjectSettings projectSettings = new GradleProjectSettings();
     projectSettings.setDistributionType(DEFAULT_WRAPPED);
 
-    GradleSettings.getInstance(project).setLinkedProjectsSettings(Collections.singletonList(projectSettings));
+    GradleSettings.getInstance(getProject()).setLinkedProjectsSettings(Collections.singletonList(projectSettings));
   }
 
   @Override
   protected void tearDown() throws Exception {
-    myModules = null;
     //noinspection SuperTearDownInFinally
     super.tearDown();
     LeakHunter.checkLeak(LeakHunter.allRoots(), AndroidModuleModel.class, null);
@@ -82,7 +77,7 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
   public void testWithNonExistingInterModuleDependencies() throws Exception {
     loadSimpleApplication();
 
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
     GradleBuildModel buildModel = GradleBuildModel.get(appModule);
     assertNotNull(buildModel);
     buildModel.dependencies().addModule("api", ":fakeLibrary");
@@ -139,17 +134,18 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
   public void testWithLocalAarsAsModules() throws Exception {
     loadProject(LOCAL_AARS_AS_MODULES);
 
-    Module localAarModule = myModules.getModule("library-debug");
+    Module localAarModule = TestModuleUtil.findModule(getProject(), "library-debug");
 
     // When AAR files are exposed as artifacts, they don't have an AndroidProject model.
     AndroidFacet androidFacet = AndroidFacet.getInstance(localAarModule);
     assertNull(androidFacet);
-    assertNull(getAndroidProject(localAarModule));
+    AndroidModuleModel gradleModel = AndroidModuleModel.get(localAarModule);
+    assertNull(gradleModel);
 
     // Should not expose the AAR as library, instead it should use the "exploded AAR".
     assertAbout(libraryDependencies()).that(localAarModule).doesNotHaveDependencies();
 
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
     assertAbout(libraryDependencies()).that(appModule).containsMatching(
       false, "Gradle: artifacts:library\\-debug:unspecified$", COMPILE);
   }
@@ -157,7 +153,7 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
   public void testWithLocalJarsAsModules() throws Exception {
     loadProject(LOCAL_JARS_AS_MODULES);
 
-    Module localJarModule = myModules.getModule("localJarAsModule");
+    Module localJarModule = TestModuleUtil.findModule(getProject(), "localJarAsModule");
     // Module should be a Java module, not buildable (since it doesn't have source code).
     JavaFacet javaFacet = JavaFacet.getInstance(localJarModule);
     assertNotNull(javaFacet);
@@ -169,14 +165,14 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
   public void testWithInterModuleDependencies() throws Exception {
     loadProject(TRANSITIVE_DEPENDENCIES);
 
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
     assertAbout(moduleDependencies()).that(appModule).hasDependency("library2", COMPILE, false);
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=210172
   public void testTransitiveDependenciesFromJavaModule() throws Exception {
     loadProject(TRANSITIVE_DEPENDENCIES);
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
 
     // 'app' module should have 'guava' as dependency.
     // 'app' -> 'javalib1' -> 'guava'
@@ -186,7 +182,7 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
   // See: https://code.google.com/p/android/issues/detail?id=212338
   public void testTransitiveDependenciesFromAndroidModule() throws Exception {
     loadProject(TRANSITIVE_DEPENDENCIES);
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
 
     // 'app' module should have 'commons-io' as dependency.
     // 'app' -> 'library2' -> 'library1' -> 'commons-io'
@@ -196,7 +192,7 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
   // See: https://code.google.com/p/android/issues/detail?id=212557
   public void testTransitiveAndroidModuleDependency() throws Exception {
     loadProject(TRANSITIVE_DEPENDENCIES);
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
 
     // 'app' module should have 'library1' as module dependency.
     // 'app' -> 'library2' -> 'library1'
@@ -205,7 +201,7 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
 
   public void testJavaLibraryModuleDependencies() throws Exception {
     loadProject(TRANSITIVE_DEPENDENCIES);
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
 
     // dependency should be set on the module not the compiled jar.
     // 'app' -> 'javalib1' -> 'javalib2'
@@ -216,7 +212,7 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
 
   public void testDependencySetUpInJavaModule() throws Exception {
     loadProject(TRANSITIVE_DEPENDENCIES);
-    Module libModule = myModules.getModule("javalib1");
+    Module libModule = TestModuleUtil.findModule(getProject(), "javalib1");
     assertAbout(moduleDependencies()).that(libModule).hasDependency("javalib2", COMPILE, false);
     assertAbout(libraryDependencies()).that(libModule).doesNotContain("Gradle: javalib2.javalib2", COMPILE);
   }
@@ -226,12 +222,12 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
     loadProject(TRANSITIVE_DEPENDENCIES);
 
     // 'fakelib' is in 'libs' directory in 'library2' module.
-    Module library2Module = myModules.getModule("library2");
+    Module library2Module = TestModuleUtil.findModule(getProject(), "library2");
     assertAbout(libraryDependencies()).that(library2Module).containsMatching(false, "Gradle: .*fakelib.*", COMPILE);
 
     // 'app' module should have 'fakelib' as dependency.
     // 'app' -> 'library2' -> 'fakelib'
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
     assertAbout(libraryDependencies()).that(appModule).containsMatching(false, "Gradle: .*fakelib.*", COMPILE);
   }
 }

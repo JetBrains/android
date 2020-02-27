@@ -15,8 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.actions;
 
+import static com.android.SdkConstants.ANDROID_NS_NAME;
+import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
+import static com.android.SdkConstants.ATTR_TEXT;
+import static com.android.SdkConstants.VALUE_MATCH_PARENT;
+import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
+import static com.android.SdkConstants.XMLNS;
+
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.tools.idea.uibuilder.editor.NlEditor;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
@@ -24,7 +32,7 @@ import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.templates.TemplateUtils;
-import com.android.tools.idea.uibuilder.editor.NlPreviewManager;
+import com.android.tools.idea.uibuilder.editor.NlEditor;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
@@ -40,15 +48,12 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiUtilBase;
 import icons.StudioIcons;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
+import java.awt.Rectangle;
 import java.awt.datatransfer.StringSelection;
 import java.util.List;
 import java.util.regex.Pattern;
-
-import static com.android.SdkConstants.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class GenerateLayoutTestSkeletonAction extends AnAction {
   private static final Pattern XML_PROLOG = Pattern.compile("^<\\?xml version.*$");
@@ -110,11 +115,6 @@ public class GenerateLayoutTestSkeletonAction extends AnAction {
     Editor editor = fileEditorManager.getSelectedTextEditor();
     if (editor == null) {
       return null;
-    }
-
-    NlPreviewManager previewManager = NlPreviewManager.getInstance(project);
-    if (previewManager.isWindowVisible()) {
-      return previewManager.getPreviewForm().getSurface();
     }
 
     PsiFile file = PsiUtilBase.getPsiFileInEditor(editor, project);

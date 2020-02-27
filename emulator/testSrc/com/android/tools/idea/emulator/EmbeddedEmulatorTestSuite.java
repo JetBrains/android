@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2020 The Android Open Source Project
  *
@@ -15,9 +14,11 @@
  * limitations under the License.
  */
 package com.android.tools.idea.emulator;
+
 import com.android.testutils.JarTestSuiteRunner;
 import com.android.tools.tests.IdeaTestSuiteBase;
 import org.junit.runner.RunWith;
+
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses(EmbeddedEmulatorTestSuite.class)  // A suite may not contain itself.
 public class EmbeddedEmulatorTestSuite extends IdeaTestSuiteBase {

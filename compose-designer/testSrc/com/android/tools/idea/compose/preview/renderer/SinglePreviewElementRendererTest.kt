@@ -58,7 +58,7 @@ class SinglePreviewElementRendererTest {
    */
   @Test
   fun testInvalidPreview() {
-    assertNull(renderPreviewElement(projectRule.androidFacet,
+    assertNull(renderPreviewElement(projectRule.androidFacet(":app"),
                                     PreviewElement.forTesting("google.simpleapplication.MainActivityKt.InvalidPreview")).get())
   }
 
@@ -67,7 +67,7 @@ class SinglePreviewElementRendererTest {
    */
   @Test
   fun testDefaultPreviewRendering() {
-    val defaultRender = renderPreviewElement(projectRule.androidFacet,
+    val defaultRender = renderPreviewElement(projectRule.androidFacet(":app"),
                                              PreviewElement.forTesting("google.simpleapplication.MainActivityKt.DefaultPreview")).get()
     ImageDiffUtil.assertImageSimilar(File("${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultRender.png"),
                                      defaultRender!!,
@@ -79,7 +79,7 @@ class SinglePreviewElementRendererTest {
    */
   @Test
   fun testDefaultPreviewRenderingWithBackground() {
-    val defaultRenderWithBackground = renderPreviewElement(projectRule.androidFacet,
+    val defaultRenderWithBackground = renderPreviewElement(projectRule.androidFacet(":app"),
                                                            PreviewElement.forTesting(
                                                              "google.simpleapplication.MainActivityKt.DefaultPreview",
                                                              showBackground = true,
@@ -96,7 +96,7 @@ class SinglePreviewElementRendererTest {
    */
   @Test
   fun testEmptyRender() {
-    val defaultRender = renderPreviewElement(projectRule.androidFacet,
+    val defaultRender = renderPreviewElement(projectRule.androidFacet(":app"),
                                              PreviewElement.forTesting("google.simpleapplication.OtherPreviewsKt.EmptyPreview")).get()
 
     assertTrue(defaultRender!!.width > 0 && defaultRender.height > 0)

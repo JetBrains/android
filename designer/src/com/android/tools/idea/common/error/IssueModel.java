@@ -32,7 +32,13 @@ import org.jetbrains.annotations.Nullable;
  * Model to centralize every issue that should be used in the Layout Editor
  */
 public class IssueModel {
+  private static final int MAX_ISSUE_NUMBER_LIMIT = 200;
 
+  /**
+   * Maximum number of issues allowed by this model. This allows to limit how many issues will be handled
+   * by this model.
+   */
+  private final int myIssueNumberLimit;
   private ImmutableList<Issue> myIssues = ImmutableList.of();
   private final ListenerCollection<IssueModelListener> myListeners;
   protected int myWarningCount;
@@ -42,9 +48,21 @@ public class IssueModel {
 
   private List<IssueProvider> myIssueProviders = new ArrayList<>();
 
+  /**
+   * IssueModel constructor.
+   * @param listenerExecutor {@link Executor} to run the listeners execution.
+   * @param issueNumberLimit maximum number of issues to be handled by this model. If the number of issues exceeds this number, it will be
+   *                         truncated to <code>issueNumberLimit</code> and a new {@link TooManyIssuesIssue} added.
+   */
+  @VisibleForTesting
+  IssueModel(@NotNull Executor listenerExecutor, int issueNumberLimit) {
+    myListeners = ListenerCollection.createWithExecutor(listenerExecutor);
+    myIssueNumberLimit = issueNumberLimit;
+  }
+
   @VisibleForTesting
   IssueModel(@NotNull Executor listenerExecutor) {
-    myListeners = ListenerCollection.createWithExecutor(listenerExecutor);
+    this(listenerExecutor, MAX_ISSUE_NUMBER_LIMIT);
   }
 
   public IssueModel() {
@@ -61,8 +79,15 @@ public class IssueModel {
       provider.collectIssues(issueListBuilder);
     }
 
-    myIssues = issueListBuilder.build();
-    myIssues.forEach(issue -> updateIssuesCounts(issue));
+    ImmutableList<Issue> newIssueList = issueListBuilder.build();
+    if (newIssueList.size() > myIssueNumberLimit) {
+      newIssueList = ImmutableList.<Issue>builder()
+        .addAll(newIssueList.subList(0, myIssueNumberLimit))
+        .add(new TooManyIssuesIssue(newIssueList.size() - myIssueNumberLimit))
+        .build();
+    }
+    newIssueList.forEach(issue -> updateIssuesCounts(issue));
+    myIssues = newIssueList;
     // Run listeners on the UI thread
     myListeners.forEach(IssueModelListener::errorModelChanged);
   }

@@ -23,15 +23,17 @@ import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.model.MergedManifestManager
+import com.android.tools.idea.configurations.getAppThemeName
+import com.android.tools.idea.configurations.getDefaultTheme
+import com.android.tools.idea.npw.ThemeHelper
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.getFolderType
-import com.android.tools.idea.ui.resourcemanager.rendering.ImageCache
 import com.android.tools.idea.ui.resourcemanager.MANAGER_SUPPORTED_RESOURCES
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerListViewModel.UpdateUiReason
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptionsParams
+import com.android.tools.idea.ui.resourcemanager.rendering.ImageCache
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.runReadAction
@@ -432,9 +434,22 @@ private fun getResourceResolver(
   return configurationFuture.thenApplyAsync<ResourceResolver>(Function { configuration ->
     configuration?.let { return@Function it.resourceResolver }
     val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
-    val manifest = MergedManifestManager.getMergedManifestSupplier(facet.module).get().get() // Don't care if we block here.
-    val theme = manifest.manifestTheme ?: manifest.getDefaultTheme(null, null, null)
+    val theme = getApplicationTheme(facet)
     val target = configurationManager.highestApiTarget?.let { StudioEmbeddedRenderTarget.getCompatibilityTarget(it) }
     return@Function configurationManager.resolverCache.getResourceResolver(target, theme, FolderConfiguration.createDefault())
   }, AppExecutorUtil.getAppExecutorService())
+}
+
+/**
+ *  Try to get application theme from [ThemeHelper]. And it falls back to the default theme if necessary.
+ */
+private fun getApplicationTheme(facet: AndroidFacet): String {
+  val module = facet.module
+  val appTheme = module.getAppThemeName()
+
+  if (appTheme != null) {
+    return appTheme
+  }
+
+  return module.getDefaultTheme(null, null, null)
 }

@@ -18,22 +18,24 @@ package com.android.tools.idea.run;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.OptionalLibrary;
 import com.android.sdklib.ISystemImage;
+import com.android.sdklib.OptionalLibrary;
 import com.android.sdklib.devices.Abi;
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.Function;
 import com.intellij.util.ThreeState;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class LaunchCompatibility {
   @NonNls private static final String GOOGLE_APIS_TARGET_NAME = "Google APIs";
@@ -100,7 +102,8 @@ public class LaunchCompatibility {
   @NotNull
   public static LaunchCompatibility canRunOnDevice(@NotNull AndroidVersion minSdkVersion,
                                                    @NotNull IAndroidTarget projectTarget,
-                                                   @NotNull EnumSet<IDevice.HardwareFeature> requiredFeatures,
+                                                   @NotNull AndroidFacet facet,
+                                                   Function<AndroidFacet, EnumSet<IDevice.HardwareFeature>> getRequiredHardwareFeatures,
                                                    @Nullable Set<String> supportedAbis,
                                                    @NotNull AndroidDevice device) {
     // check if the device has the required minApi
@@ -113,6 +116,14 @@ public class LaunchCompatibility {
                                     deviceVersion,
                                     minSdkVersion.getCodename() == null ? ">" : "!=");
       return new LaunchCompatibility(ThreeState.NO, reason);
+    }
+
+    EnumSet<IDevice.HardwareFeature> requiredFeatures;
+    try {
+      requiredFeatures = getRequiredHardwareFeatures.fun(facet);
+    }
+    catch(IndexNotReadyException e) {
+      return new LaunchCompatibility(ThreeState.UNSURE, "Required features are unsure because indices are not ready.");
     }
 
     // check if the device provides the required features

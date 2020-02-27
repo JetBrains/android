@@ -16,14 +16,32 @@
 @file:JvmName("ThemeUtils")
 package com.android.tools.idea.configurations
 
+import com.android.SdkConstants
 import com.android.SdkConstants.PREFIX_ANDROID
 import com.android.SdkConstants.STYLE_RESOURCE_PREFIX
+import com.android.ide.common.rendering.HardwareConfigHelper
 import com.android.ide.common.rendering.api.StyleResourceValue
 import com.android.ide.common.resources.ResourceResolver.THEME_NAME
+import com.android.resources.ScreenSize
+import com.android.sdklib.IAndroidTarget
+import com.android.sdklib.devices.Device
 import com.android.tools.idea.editors.theme.ThemeResolver
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle
+import com.android.tools.idea.model.ActivityAttributesSnapshot
+import com.android.tools.idea.model.AndroidManifestIndex
+import com.android.tools.idea.model.AndroidModuleInfo
+import com.android.tools.idea.model.MergedManifestManager
+import com.android.tools.idea.model.logManifestIndexQueryError
+import com.android.tools.idea.model.queryActivitiesFromManifestIndex
+import com.android.tools.idea.model.queryApplicationThemeFromManifestIndex
+import com.android.tools.idea.run.activity.DefaultActivityLocator
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Computable
+import org.jetbrains.android.facet.AndroidFacet
 
 private const val ANDROID_THEME = PREFIX_ANDROID + "Theme"
 private const val ANDROID_THEME_PREFIX = PREFIX_ANDROID + "Theme."
@@ -122,3 +140,123 @@ private fun getFilteredNames(themes: List<ConfiguredThemeEditorStyle>, filter: T
   themes
     .filter(filter)
     .map { it.qualifiedName }
+
+/**
+ *  Try to get application theme from [AndroidManifestIndex] if index is enabled. And it falls back to the merged
+ *  manifest snapshot if necessary.
+ */
+fun Module.getAppThemeName(): String? {
+  if (AndroidManifestIndex.indexEnabled()) {
+    try {
+      val facet = AndroidFacet.getInstance(this)
+      if (facet != null) {
+        return DumbService.getInstance(this.project).runReadActionInSmartMode(Computable {
+          facet.queryApplicationThemeFromManifestIndex()
+        })
+      }
+    }
+    catch (e: IndexNotReadyException) {
+      // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
+      //  We need to refactor the callers of this to require a *smart*
+      //  read action, at which point we can remove this try-catch.
+      logManifestIndexQueryError(e);
+    }
+  }
+
+  return MergedManifestManager.getFreshSnapshot(this).manifestTheme
+}
+
+/**
+ *  Try to get activity themes from [AndroidManifestIndex] if index is enabled. And it falls back to the merged
+ *  manifest snapshot if necessary.
+ */
+fun Module.getAllActivityThemeNames(): Set<String> {
+  if (AndroidManifestIndex.indexEnabled()) {
+    try {
+      val facet = AndroidFacet.getInstance(this)
+      if (facet != null) {
+        return DumbService.getInstance(this.project).runReadActionInSmartMode(Computable {
+          val activities = facet.queryActivitiesFromManifestIndex().activities
+          activities.asSequence()
+            .mapNotNull(DefaultActivityLocator.ActivityWrapper::getTheme)
+            .toSet()
+        })
+      }
+    }
+    catch (e: IndexNotReadyException) {
+      // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
+      //  We need to refactor the callers of this to require a *smart*
+      //  read action, at which point we can remove this try-catch.
+      logManifestIndexQueryError(e);
+    }
+  }
+
+  val manifest = MergedManifestManager.getSnapshot(this)
+  return manifest.activityAttributesMap.values.asSequence()
+    .mapNotNull(ActivityAttributesSnapshot::getTheme)
+    .toSet()
+}
+
+/**
+ * Try to get value of theme corresponding to the given activity from {@link AndroidManifestIndex} if index is enabled.
+ * And it falls back to merged manifest snapshot if necessary.
+ */
+fun Module.getThemeNameForActivity(activityFqcn: String): String? {
+  if (AndroidManifestIndex.indexEnabled()) {
+    try {
+      val facet = AndroidFacet.getInstance(this)
+      if (facet != null) {
+        return DumbService.getInstance(this.project).runReadActionInSmartMode(Computable {
+          val activities = facet.queryActivitiesFromManifestIndex().activities
+          activities.asSequence()
+            .filter { it.qualifiedName == activityFqcn }
+            .mapNotNull(DefaultActivityLocator.ActivityWrapper::getTheme)
+            .filter { it.startsWith(SdkConstants.PREFIX_RESOURCE_REF) }
+            .firstOrNull()
+        })
+      }
+    }
+    catch (e: IndexNotReadyException) {
+      // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
+      //  We need to refactor the callers of this to require a *smart*
+      //  read action, at which point we can remove this try-catch.
+      logManifestIndexQueryError(e);
+    }
+  }
+
+  val manifest = MergedManifestManager.getSnapshot(this)
+  return manifest.getActivityAttributes(activityFqcn)
+    ?.theme
+    ?.takeIf { it.startsWith(SdkConstants.PREFIX_RESOURCE_REF) }
+}
+
+/**
+ * Returns a default theme
+ */
+fun Module.getDefaultTheme(renderingTarget: IAndroidTarget?, screenSize: ScreenSize?, device: Device?): String {
+  // For Android Wear and Android TV, the defaults differ
+  if (device != null) {
+    if (HardwareConfigHelper.isWear(device)) {
+      return "@android:style/Theme.DeviceDefault.Light"
+    }
+    else if (HardwareConfigHelper.isTv(device)) {
+      return "@style/Theme.Leanback"
+    }
+  }
+
+  // Facet being null should not happen, but has been observed to happen in rare scenarios (such as 73332530), probably
+  // related to race condition between Gradle sync and layout rendering
+  val facet = AndroidFacet.getInstance(this) ?: return SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX + "Theme.Material.Light"
+
+  // From manifest theme documentation: "If that attribute is also not set, the default system theme is used."
+  val targetSdk = AndroidModuleInfo.getInstance(facet).targetSdkVersion.apiLevel
+
+  val renderingTargetSdk = renderingTarget?.version?.apiLevel ?: targetSdk
+
+  val apiLevel = targetSdk.coerceAtMost(renderingTargetSdk)
+  return SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX + when {
+    apiLevel >= 21 -> "Theme.Material.Light"
+    apiLevel >= 14 || apiLevel >= 11 && screenSize == ScreenSize.XLARGE -> "Theme.Holo"
+    else -> "Theme"
+  }
+}

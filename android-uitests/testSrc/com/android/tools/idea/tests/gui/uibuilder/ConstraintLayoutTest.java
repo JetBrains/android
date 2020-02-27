@@ -33,7 +33,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.Map;
@@ -86,7 +85,7 @@ public class ConstraintLayoutTest {
 
     NlEditorFixture design = ideFrameFixture.getEditor()
       .open("app/src/main/res/layout/activity_my.xml", Tab.DESIGN)
-      .getLayoutEditor(false)
+      .getLayoutEditor()
       .waitForRenderToFinish();
 
     Multimap<String, String> widgets = ArrayListMultimap.create();
@@ -133,7 +132,7 @@ public class ConstraintLayoutTest {
     editor.closeFile(ACTIVITY_MAIN_XML_RELATIVE_PATH.toString());
     editor.open(ACTIVITY_MAIN_XML_RELATIVE_PATH);
 
-    NlEditorFixture layoutEditor = editor.getLayoutEditor(true);
+    NlEditorFixture layoutEditor = editor.getLayoutEditor();
 
     layoutEditor.waitForRenderToFinish();
     layoutEditor.findView("TextView", 0).getSceneComponent().click();
@@ -195,7 +194,7 @@ public class ConstraintLayoutTest {
       .open(ACTIVITY_MAIN_XML_RELATIVE_PATH)
       .replaceText(contents);
 
-    NlEditorFixture layoutEditor = editor.getLayoutEditor(true);
+    NlEditorFixture layoutEditor = editor.getLayoutEditor();
     layoutEditor.waitForRenderToFinish();
     layoutEditor.showOnlyDesignView();
     layoutEditor.findView("TextView", 0).getSceneComponent().click();

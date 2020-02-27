@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$/testSrc">
+      <sourceFolder url="file://$MODULE_DIR$/testSrc" isTestSource="true" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="truth" level="project" />
+    <orderEntry type="module" module-name="intellij.android.testFramework" />
+    <orderEntry type="module" module-name="intellij.java.testFramework" />
+    <orderEntry type="module" module-name="android.sdktools.testutils" />
+    <orderEntry type="module" module-name="intellij.android.adt.testutils" />
+    <orderEntry type="library" name="kotlin-plugin" level="project" />
+    <orderEntry type="module" module-name="intellij.android.common" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem" />
+    <orderEntry type="module" module-name="intellij.android.dagger" />
+    <orderEntry type="module" module-name="android.sdktools.flags" />
+  </component>
+</module>

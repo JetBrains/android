@@ -230,8 +230,10 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
         throw new WaitingForGradleSyncException("Waiting for next gradle sync to set AndroidFacet.");
       }
     }
-    NlModel model =
-      NlModel.create(myEditor, null, facet, myFile, mySurface.getConfigurationManager(facet), mySurface.getComponentRegistrar());
+    NlModel model = NlModel.builder(facet, myFile, mySurface.getConfigurationManager(facet).getConfiguration(myFile))
+      .withParentDisposable(myEditor)
+      .withComponentRegistrar(mySurface.getComponentRegistrar())
+      .build();
     Module modelModule = AndroidPsiUtils.getModuleSafely(myProject, myFile);
     // Dispose the surface if we remove the module from the project, and show some text warning the user.
     myProject.getMessageBus().connect(mySurface).subscribe(ProjectTopics.MODULES, new ModuleListener() {

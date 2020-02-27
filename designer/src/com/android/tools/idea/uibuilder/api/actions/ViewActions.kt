@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.api.actions
 
+import com.android.SdkConstants
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.actions.ToggleAllShowDecorationsAction
 import com.android.tools.idea.uibuilder.actions.ToggleShowTooltipsAction
+import com.android.tools.idea.uibuilder.api.ToggleSizeViewAction
 import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.api.ViewHandler
 import com.google.common.collect.ImmutableList
@@ -33,16 +35,12 @@ abstract class AbstractViewAction
  * By default, this class will make the action visible and set the {@link ViewAction} icon
  * and label into the passed {@link ViewActionPresentation}.
  *
- * @param myRank the relative sorting order of this action; see [.getRank]
- * for details
  * @param myIcon  the icon to be shown if in the toolbar
  * @param myLabel the menu label (if in a context menu) or the tooltip (if in a toolbar)
  */
 constructor(protected val myIcon: Icon?,
             protected val myLabel: String) : ViewAction {
-  private var myRank: Int = -1
 
-  override fun getRank(): Int = myRank
   override fun getLabel(): String = myLabel
   override fun getIcon(): Icon? = myIcon
   override fun affectsUndo(): Boolean = true
@@ -57,28 +55,6 @@ constructor(protected val myIcon: Icon?,
     presentation.setLabel(label)
     presentation.setVisible(true)
   }
-
-  fun setRank(rank: Int) {
-    // For now the rank for classes implementing AbstractViewAction is mutable. This is to allow instanceof checks on the children.
-    // The rank should be removed so this is a temporary solution.
-    myRank = rank
-  }
-}
-
-private class ViewActionWithRank(private val delegate: ViewAction, private val newRank: Int) : ViewAction by delegate {
-  override fun getRank(): Int = newRank
-}
-
-/**
- * Returns a [ViewAction] with a new rank. This allows overriding the default action rank.
- * @deprecated Do not use ranks. Ordering should be based on list ordering.
- */
-fun ViewAction.withRank(rank: Int): ViewAction = if (this is AbstractViewAction) {
-  setRank(rank)
-  this
-}
-else {
-  ViewActionWithRank(this, rank)
 }
 
 object ViewActionUtils {
@@ -97,4 +73,16 @@ object ViewActionUtils {
                                   .add(ToggleShowTooltipsAction())
                                   .build()))
 
+  /**
+   * Returns the toggle size actions, which contains the [ToggleSizeViewAction] for horizontal and vertical directions.
+   */
+  @JvmStatic
+  fun getToggleSizeActions(): List<ViewAction> {
+    val actions = mutableListOf<ViewAction>()
+    actions.add(ToggleSizeViewAction("Toggle Width", SdkConstants.ATTR_LAYOUT_WIDTH, StudioIcons.LayoutEditor.Toolbar.EXPAND_HORIZONTAL,
+                                     StudioIcons.LayoutEditor.Toolbar.CENTER_HORIZONTAL))
+    actions.add(ToggleSizeViewAction("Toggle Height", SdkConstants.ATTR_LAYOUT_HEIGHT, StudioIcons.LayoutEditor.Toolbar.EXPAND_VERTICAL,
+                                     StudioIcons.LayoutEditor.Toolbar.CENTER_VERTICAL))
+    return actions
+  }
 }

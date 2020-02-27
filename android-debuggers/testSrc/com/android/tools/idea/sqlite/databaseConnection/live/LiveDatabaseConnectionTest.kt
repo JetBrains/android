@@ -104,29 +104,20 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
 
   fun testExecuteQuery() {
     // Prepare
-    val cellValueString = SqliteInspectorProtocol.CellValue.newBuilder()
-      .setColumnName("column1")
-      .setStringValue("a string")
-      .build()
+    val cellValueString = SqliteInspectorProtocol.CellValue.newBuilder().setStringValue("a string").build()
 
-    val cellValueFloat = SqliteInspectorProtocol.CellValue.newBuilder()
-      .setColumnName("column2")
-      .setFloatValue(1f)
-      .build()
+    val cellValueFloat = SqliteInspectorProtocol.CellValue.newBuilder().setFloatValue(1f).build()
 
     val cellValueBlob = SqliteInspectorProtocol.CellValue.newBuilder()
-      .setColumnName("column3")
       .setBlobValue(ByteString.copyFrom("a blob".toByteArray()))
       .build()
 
-    val cellValueInt = SqliteInspectorProtocol.CellValue.newBuilder()
-      .setColumnName("column4")
-      .setIntValue(1)
+    val cellValueInt = SqliteInspectorProtocol.CellValue.newBuilder().setIntValue(1)
       .build()
 
-    val cellValueNull = SqliteInspectorProtocol.CellValue.newBuilder()
-      .setColumnName("column5")
-      .build()
+    val cellValueNull = SqliteInspectorProtocol.CellValue.newBuilder().build()
+
+    val columnNames = listOf("column1", "column2", "column3", "column4", "column5")
 
     val rows = SqliteInspectorProtocol.Row.newBuilder()
       .addValues(cellValueString)
@@ -137,7 +128,11 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
       .build()
 
     val cursor = Response.newBuilder()
-      .setQuery(QueryResponse.newBuilder().addRows(rows))
+      .setQuery(
+        QueryResponse.newBuilder()
+          .addAllColumnNames(columnNames)
+          .addRows(rows)
+      )
       .build()
 
     val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
@@ -171,7 +166,7 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
     assertEquals(sqliteRows[0].values[1].value, 1f)
     assertEquals(sqliteRows[0].values[2].value, ByteString.copyFrom("a blob".toByteArray()))
     assertEquals(sqliteRows[0].values[3].value, 1)
-    assertEquals(sqliteRows[0].values[4].value, "null")
+    assertEquals(sqliteRows[0].values[4].value, null)
   }
 
   fun testReturnsEmptyResultSetForEmptyResponse() {

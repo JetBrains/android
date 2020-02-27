@@ -44,11 +44,11 @@ public class MlkitUtils {
   private MlkitUtils() {
   }
 
-  public static boolean isMlModelFileInAssetsFolder(@NotNull VirtualFile file) {
-    // TODO(b/146357353): revisit the way to check if the file belongs to assets folder.
+  public static boolean isModelFileInMlModelsFolder(@NotNull VirtualFile file) {
+    // TODO(b/146357353): revisit the way to check if the file belongs to models folder.
     return file.getFileType() == TfliteModelFileType.INSTANCE
            && file.getParent() != null
-           && file.getParent().getName().equals(SdkConstants.FD_ASSETS);
+           && file.getParent().getName().equals(SdkConstants.FD_ML_MODELS);
   }
 
   // TODO(b/144867508): revisit later.

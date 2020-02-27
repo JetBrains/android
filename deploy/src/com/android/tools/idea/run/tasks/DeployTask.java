@@ -82,6 +82,9 @@ public class DeployTask extends AbstractDeployTask {
       options.setUserInstallOptions(userInstallOptions);
     }
 
+    // Skip verification if possible.
+    options.setSkipVerification(device, applicationId);
+
     LOG.info("Installing application: " + applicationId);
     Deployer.InstallMode installMode = Deployer.InstallMode.DELTA;
     if (!StudioFlags.DELTA_INSTALL.get()) {

@@ -81,7 +81,7 @@ public final class MenuTest {
   public void dragCastButtonIntoActionBar() {
     NlComponentFixture settingsItem = myEditor.open(MENU_MAIN_XML_RELATIVE_PATH)
       .replaceText(MENU_MAIN_XML_CONTENTS)
-      .getLayoutEditor(true)
+      .getLayoutEditor()
       .waitForRenderToFinish()
       .findView("item", 0);
     dragAndDrop("Cast Button", settingsItem.getSceneComponent().getLeftCenterPoint());
@@ -113,7 +113,7 @@ public final class MenuTest {
   @Test
   public void dragMenuItemIntoActionBar() {
     NlComponentFixture settingsItem = myEditor.open(MENU_MAIN_XML_RELATIVE_PATH)
-      .getLayoutEditor(false)
+      .getLayoutEditor()
       .waitForRenderToFinish()
       .findView("item", 0);
     dragAndDrop("Menu Item", settingsItem.getSceneComponent().getTopCenterPoint());
@@ -141,7 +141,7 @@ public final class MenuTest {
   public void dragSearchItemIntoActionBar() {
     NlComponentFixture settingsItem = myEditor.open(MENU_MAIN_XML_RELATIVE_PATH)
       .replaceText(MENU_MAIN_XML_CONTENTS)
-      .getLayoutEditor(true)
+      .getLayoutEditor()
       .waitForRenderToFinish()
       .findView("item", 0);
     dragAndDrop("Search Item", settingsItem.getSceneComponent().getLeftCenterPoint());
@@ -174,7 +174,7 @@ public final class MenuTest {
   }
 
   private void dragAndDrop(@NotNull String item, @NotNull Point point) {
-    NlEditorFixture editor = myEditor.getLayoutEditor(false);
+    NlEditorFixture editor = myEditor.getLayoutEditor();
     editor.waitForRenderToFinish();
 
     JListFixture list = editor.getPalette().getItemList("");

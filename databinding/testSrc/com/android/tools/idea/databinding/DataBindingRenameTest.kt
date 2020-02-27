@@ -74,7 +74,7 @@ class DataBindingRenameTest(private val dataBindingMode: DataBindingMode) {
 
     val syncState = GradleSyncState.getInstance(myProjectRule.project)
     assertFalse(syncState.isSyncNeeded().toBoolean())
-    assertEquals(ModuleDataBinding.getInstance(myProjectRule.androidFacet).dataBindingMode,
+    assertEquals(ModuleDataBinding.getInstance(myProjectRule.androidFacet(":app")).dataBindingMode,
                  dataBindingMode)
 
     // Make sure that all file system events up to this point have been processed.

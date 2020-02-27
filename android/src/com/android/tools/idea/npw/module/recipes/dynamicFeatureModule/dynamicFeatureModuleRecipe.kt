@@ -42,7 +42,7 @@ fun RecipeExecutor.generateDynamicFeatureModule(
 ) {
   val (projectData, srcOut, resOut, manifestOut) = moduleData
   val apis = moduleData.apis
-  val (_, minApiLevel, buildApi, targetApi, _, buildApiString) = apis
+  val (minApi, _, appCompatVersion, targetApi, targetApiString, buildApiString) = apis
   val useAndroidX = moduleData.projectTemplateData.androidXSupport
   val language = projectData.language
   val ktOrJavaExt = language.extension
@@ -68,8 +68,8 @@ fun RecipeExecutor.generateDynamicFeatureModule(
     buildApiString!!,
     needsExplicitBuildToolsVersion(GradleVersion.parse(projectData.gradlePluginVersion), parseRevision(buildToolsVersion)),
     buildToolsVersion,
-    minApiLevel,
-    targetApi,
+    minApi,
+    targetApiString ?: targetApi.toString(),
     useAndroidX
     ), moduleOut.resolve("build.gradle"))
   save(
@@ -98,7 +98,7 @@ fun RecipeExecutor.generateDynamicFeatureModule(
     addDependency("com.android.support.test:runner:+","androidTestCompile")
     addDependency("com.android.support.test.espresso:espresso-core:+" ,"androidTestCompile")
     /*The following addDependency is added to pass UI tests in AddDynamicFeatureTest. b/123781255*/
-    addDependency("com.android.support:support-annotations:${buildApi}.+", "androidTestCompile")
+    addDependency("com.android.support:support-annotations:${appCompatVersion}.+", "androidTestCompile")
   }
 
   if (language == Language.Kotlin && useAndroidX) {

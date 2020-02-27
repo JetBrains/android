@@ -77,7 +77,7 @@ class ViewInfoParserTest {
   fun testDefaultPreviewRendering() {
     val project = projectRule.project
 
-    renderPreviewElementForResult(projectRule.androidFacet,
+    renderPreviewElementForResult(projectRule.androidFacet(":app"),
                                   PreviewElement.forTesting("google.simpleapplication.MainActivityKt.TwoElementsPreview"))
       .thenAccept { renderResult ->
         ImageIO.write(renderResult?.renderedImage?.copy ?: return@thenAccept, "png", File("/tmp/out.png"))

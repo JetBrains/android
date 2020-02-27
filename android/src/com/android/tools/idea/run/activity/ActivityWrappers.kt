@@ -25,6 +25,7 @@ private fun AndroidManifestRawText.resolvePackageName(overrides: ManifestOverrid
 data class IndexedActivityWrapper(
   private val enabled: String?,
   private val exported: String?,
+  private val theme: String?,
   private val intentFilters: Set<IntentFilterRawText>,
   private val name: String?,
   private val overrides: ManifestOverrides,
@@ -35,13 +36,17 @@ data class IndexedActivityWrapper(
     @JvmStatic
     fun getActivities(manifest: AndroidManifestRawText, overrides: ManifestOverrides): List<IndexedActivityWrapper> {
       val resolvedPackage = manifest.resolvePackageName(overrides)
-      return manifest.activities.map { IndexedActivityWrapper(it.enabled, it.exported, it.intentFilters, it.name, overrides, resolvedPackage) }
+      return manifest.activities.map {
+        IndexedActivityWrapper(it.enabled, it.exported, it.theme, it.intentFilters, it.name, overrides, resolvedPackage)
+      }
     }
 
     @JvmStatic
     fun getActivityAliases(manifest: AndroidManifestRawText, overrides: ManifestOverrides): List<IndexedActivityWrapper> {
       val resolvedPackage = manifest.resolvePackageName(overrides)
-      return manifest.activityAliases.map { IndexedActivityWrapper(it.enabled, it.exported, it.intentFilters, it.name, overrides, resolvedPackage) }
+      return manifest.activityAliases.map {
+        IndexedActivityWrapper(it.enabled, it.exported, null, it.intentFilters, it.name, overrides, resolvedPackage)
+      }
     }
   }
 
@@ -72,6 +77,8 @@ data class IndexedActivityWrapper(
     val resolvedExported = overrides.resolvePlaceholders(exported)
     return resolvedExported.toBoolean()
   }
+
+  override fun getTheme() = theme
 
   override fun hasIntentFilter() = intentFilters.isNotEmpty()
 

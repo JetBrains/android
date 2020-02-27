@@ -65,14 +65,15 @@ class LiveDatabaseConnection(
 
     return taskExecutor.transform(responseFuture) {
       val queryResponse = SqliteInspectorProtocol.Response.parseFrom(it).query
-      val sqliteColumns = queryResponse.rowsList.firstOrNull()?.valuesList?.map { cellValue ->
+
+      val sqliteColumns = queryResponse.columnNamesList.map { columnName ->
         // TODO(blocked): add support for primary keys
         // TODO(blocked): add support for NOT NULL
         // TODO(blocked): we need to get affinity info from the on device inspector.
-        SqliteColumn(cellValue.columnName, SqliteAffinity.TEXT, false, false)
+        SqliteColumn(columnName, SqliteAffinity.TEXT, false, false)
       }
 
-      val resultSet = if (sqliteColumns != null) {
+      val resultSet = if (sqliteColumns.isNotEmpty()) {
         LiveSqliteResultSet(sqliteColumns, sqliteStatement, messenger, id, taskExecutor)
       }
       else {

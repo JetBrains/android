@@ -24,8 +24,6 @@ import java.nio.file.Paths
  * Represents configuration of a running Emulator.
  */
 class EmulatorConfiguration private constructor(
-  val avdId: String,
-  val avdName: String,
   val avdPath: Path,
   val displayWidth: Int,
   val displayHeight: Int,
@@ -41,7 +39,6 @@ class EmulatorConfiguration private constructor(
     fun fromHardwareConfig(hardwareConfig: EntryList): EmulatorConfiguration? {
       var avdHome: String? = null
       var avdId: String? = null
-      var avdName: String? = null
       var displayWidth: Int? = null
       var displayHeight: Int? = null
       var hasOrientationSensors = true
@@ -53,9 +50,6 @@ class EmulatorConfiguration private constructor(
           }
           "avd.id" -> {
             avdId = entry.value
-          }
-          "avd.name" -> {
-            avdName = entry.value.replace('_', ' ')
           }
           "hw.lcd.width" -> {
             displayWidth = parseInt(entry.value)
@@ -71,10 +65,10 @@ class EmulatorConfiguration private constructor(
           }
         }
       }
-      return if (avdHome != null && avdId != null && avdName != null &&
+      return if (avdHome != null && avdId != null &&
                  displayWidth != null && displayWidth > 0 && displayHeight != null && displayHeight > 0) {
-        EmulatorConfiguration(avdId = avdId, avdName = avdName, avdPath = Paths.get(avdHome, avdId), displayWidth = displayWidth,
-                              displayHeight = displayHeight, hasOrientationSensors = hasOrientationSensors, hasAudioOutput = hasAudioOutput)
+        EmulatorConfiguration(avdPath = Paths.get(avdHome, avdId), displayWidth = displayWidth, displayHeight = displayHeight,
+                              hasOrientationSensors = hasOrientationSensors, hasAudioOutput = hasAudioOutput)
       }
       else {
         null

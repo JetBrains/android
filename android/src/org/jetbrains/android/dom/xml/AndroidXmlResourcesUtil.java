@@ -118,7 +118,7 @@ public class AndroidXmlResourcesUtil {
       return myQualifiedGroupClass;
     }
 
-    public static PreferenceSource getPreferencesSource(XmlTag tag, AndroidFacet facet) {
+    public static PreferenceSource getPreferencesSource(@NotNull XmlTag tag, @NotNull AndroidFacet facet) {
       XmlTag rootTag = ((XmlFile)tag.getContainingFile()).getRootTag();
       if (rootTag == null) {
         return FRAMEWORK;

@@ -18,10 +18,11 @@ package com.android.tools.idea.run.deployment;
 import com.google.common.base.Strings;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.swing.Icon;
-import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,23 +35,24 @@ final class ModifyDeviceSetDialogTableModel extends AbstractTableModel {
   private static final int ISSUE_MODEL_COLUMN_INDEX = 5;
 
   @NotNull
-  private final List<Device> myDevices;
+  private final List<Boolean> mySelected;
 
   @NotNull
-  private final JTable myTable;
+  private final List<Device> myDevices;
 
   @NotNull
   private final Multiset<String> myDeviceNameMultiset;
 
-  ModifyDeviceSetDialogTableModel(@NotNull List<Device> devices, @NotNull JTable table) {
+  ModifyDeviceSetDialogTableModel(@NotNull List<Device> devices) {
+    int size = devices.size();
+    mySelected = new ArrayList<>(Collections.nCopies(size, false));
+
     myDevices = devices;
     myDevices.sort(new DeviceComparator());
 
-    myTable = table;
-
     myDeviceNameMultiset = devices.stream()
       .map(Device::getName)
-      .collect(Collectors.toCollection(() -> HashMultiset.create(myDevices.size())));
+      .collect(Collectors.toCollection(() -> HashMultiset.create(size)));
   }
 
   @NotNull
@@ -128,7 +130,7 @@ final class ModifyDeviceSetDialogTableModel extends AbstractTableModel {
   public Object getValueAt(int modelRowIndex, int modelColumnIndex) {
     switch (modelColumnIndex) {
       case SELECTED_MODEL_COLUMN_INDEX:
-        return myTable.isRowSelected(myTable.convertRowIndexToView(modelRowIndex));
+        return mySelected.get(modelRowIndex);
       case TYPE_MODEL_COLUMN_INDEX:
         return myDevices.get(modelRowIndex).getIcon();
       case DEVICE_MODEL_COLUMN_INDEX:
@@ -160,15 +162,7 @@ final class ModifyDeviceSetDialogTableModel extends AbstractTableModel {
 
   @Override
   public void setValueAt(@NotNull Object value, int modelRowIndex, int modelColumnIndex) {
-    int viewRowIndex = myTable.convertRowIndexToView(modelRowIndex);
-
-    if ((boolean)value) {
-      myTable.addRowSelectionInterval(viewRowIndex, viewRowIndex);
-    }
-    else {
-      myTable.removeRowSelectionInterval(viewRowIndex, viewRowIndex);
-    }
-
+    mySelected.set(modelRowIndex, (Boolean)value);
     fireTableCellUpdated(modelRowIndex, modelColumnIndex);
   }
 }

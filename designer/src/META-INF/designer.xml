@@ -66,10 +66,6 @@
       <implementation-class>com.android.tools.idea.uibuilder.handlers.ViewHandlerManager</implementation-class>
     </component>
     <component>
-      <implementation-class>com.android.tools.idea.uibuilder.editor.NlPreviewManager</implementation-class>
-      <headless-implementation-class/>
-    </component>
-    <component>
       <implementation-class>com.android.tools.idea.uibuilder.visual.VisualizationManager</implementation-class>
       <headless-implementation-class/>
     </component>
@@ -129,6 +125,13 @@
               text="Force Refresh Layout"
               description="Refresh preview(s)">
         <keyboard-shortcut keymap="$default" first-keystroke="R"/>
+      </action>
+      <action id="Android.Designer.IssueNotificationAction"
+              icon="StudioIcons.Common.ERROR"
+              class="com.android.tools.idea.common.actions.IssueNotificationAction"
+              text="Toggle Issue Panel"
+              description="Toggle the visibility of Issue Panel">
+        <keyboard-shortcut keymap="$default" first-keystroke="E"/>
       </action>
     </group>
 

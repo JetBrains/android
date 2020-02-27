@@ -151,7 +151,7 @@ public class NdkModuleNode extends AndroidViewModuleNode {
     if (module == null) {
       return null;
     }
-    return String.format("%1$s (Native-Android-Gradle)", getValue().getName());
+    return String.format("%1$s (Native-Android-Gradle)", super.toTestString(printInfo));
   }
 
   @Override

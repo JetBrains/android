@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.model;
 
-import static com.android.SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_NAME;
 import static com.android.xml.AndroidManifest.NODE_USES_FEATURE;
 
-import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.manifmerger.Actions;
 import com.android.manifmerger.MergingReport;
@@ -29,7 +27,7 @@ import com.android.resources.ScreenSize;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
-import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
+import com.android.tools.idea.configurations.ThemeUtils;
 import com.android.tools.idea.run.activity.ActivityLocatorUtils;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -39,7 +37,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
@@ -188,8 +185,9 @@ public class MergedManifestSnapshot {
   @Nullable
   public ActivityAttributesSnapshot getActivityAttributes(@NotNull String activity) {
     int index = activity.indexOf('.');
-    if (index <= 0 && myApplicationId != null && !myApplicationId.isEmpty()) {
-      activity = myApplicationId + (index == -1 ? "." : "") + activity;
+
+    if (index <= 0 && myPackageName != null && !myPackageName.isEmpty()) {
+      activity = myPackageName + (index == -1 ? "." : "") + activity;
     }
     return getActivityAttributesMap().get(activity);
   }
@@ -205,55 +203,7 @@ public class MergedManifestSnapshot {
       return myManifestTheme;
     }
 
-    // For Android Wear and Android TV, the defaults differ
-    if (device != null) {
-      if (HardwareConfigHelper.isWear(device)) {
-        return "@android:style/Theme.DeviceDefault.Light";
-      }
-      else if (HardwareConfigHelper.isTv(device)) {
-        return "@style/Theme.Leanback";
-      }
-    }
-
-
-    AndroidFacet facet = AndroidFacet.getInstance(myModule);
-    if (facet == null) {
-      // Should not happen, but has been observed to happen in rare scenarios
-      // (such as 73332530), probably related to race condition between
-      // Gradle sync and layout rendering
-      return ANDROID_STYLE_RESOURCE_PREFIX + "Theme.Material.Light";
-    }
-
-    // From manifest theme documentation:
-    // "If that attribute is also not set, the default system theme is used."
-    int targetSdk = getTargetSdkVersion().getApiLevel();
-    AndroidModel androidModel = AndroidModel.get(facet);
-    if (androidModel != null) {
-      AndroidVersion targetSdkVersion = androidModel.getTargetSdkVersion();
-      if (targetSdkVersion != null) {
-        targetSdk = targetSdkVersion.getApiLevel();
-      }
-    }
-
-    int renderingTargetSdk = targetSdk;
-    if (renderingTarget instanceof CompatibilityRenderTarget) {
-      renderingTargetSdk = renderingTarget.getVersion().getApiLevel();
-      //targetSdk = SdkVersionInfo.HIGHEST_KNOWN_API
-    }
-    else if (renderingTarget != null) {
-      renderingTargetSdk = renderingTarget.getVersion().getApiLevel();
-    }
-
-    int apiLevel = Math.min(targetSdk, renderingTargetSdk);
-    if (apiLevel >= 21) {
-      return ANDROID_STYLE_RESOURCE_PREFIX + "Theme.Material.Light"; //$NON-NLS-1$
-    }
-    else if (apiLevel >= 14 || apiLevel >= 11 && screenSize == ScreenSize.XLARGE) {
-      return ANDROID_STYLE_RESOURCE_PREFIX + "Theme.Holo"; //$NON-NLS-1$
-    }
-    else {
-      return ANDROID_STYLE_RESOURCE_PREFIX + "Theme"; //$NON-NLS-1$
-    }
+    return ThemeUtils.getDefaultTheme(myModule, renderingTarget, screenSize, device);
   }
 
   @Nullable

@@ -16,7 +16,7 @@
 package com.android.tools.idea.appinspection.ide.ui
 
 import com.android.tools.adtui.stdui.CommonComboBox
-import com.android.tools.idea.appinspection.api.TransportProcessDescriptor
+import com.android.tools.idea.appinspection.api.ProcessDescriptor
 import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessesComboBoxModel
 import java.awt.Component
 import java.awt.Dimension
@@ -24,22 +24,24 @@ import javax.swing.DefaultListCellRenderer
 import javax.swing.JList
 
 //TODO(b/148546243): separate view and model code into independent modules.
-class AppInspectionProcessesComboBox(model: AppInspectionProcessesComboBoxModel)
-  : CommonComboBox<TransportProcessDescriptor, AppInspectionProcessesComboBoxModel>(model) {
+class AppInspectionProcessesComboBox(model: AppInspectionProcessesComboBoxModel) :
+  CommonComboBox<ProcessDescriptor, AppInspectionProcessesComboBoxModel>(model) {
   init {
     // Initial size chosen for a reasonable amount width to fit many longish target names
     // as well as a height so text fits comfortable.
     preferredSize = Dimension(400, 30)
     renderer = object : DefaultListCellRenderer() {
-      override fun getListCellRendererComponent(list: JList<*>?,
-                                                value: Any?,
-                                                index: Int,
-                                                isSelected: Boolean,
-                                                cellHasFocus: Boolean): Component {
-        if (value is TransportProcessDescriptor) {
-          var text = value.stream.device.model.replace('_', ' ');
-          if (value.process.name != null) {
-            text += " -> " + value.process.name
+      override fun getListCellRendererComponent(
+        list: JList<*>?,
+        value: Any?,
+        index: Int,
+        isSelected: Boolean,
+        cellHasFocus: Boolean
+      ): Component {
+        if (value is ProcessDescriptor) {
+          var text = value.info.model.replace('_', ' ');
+          if (value.info.processName != null) {
+            text += " -> " + value.info.processName
           }
           return super.getListCellRendererComponent(list, text, index, isSelected, cellHasFocus)
         }

@@ -28,10 +28,11 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static org.mockito.Mockito.mock;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModelHandler;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.util.GradleWrapper;
+import com.android.tools.idea.projectsystem.gradle.ProjectBuildModelHandler;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.TestModuleUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.editor.Document;
@@ -422,7 +423,7 @@ public class GradleFilesTest extends AndroidGradleTestCase {
 
   @NotNull
   private VirtualFile getAppBuildFile() {
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
     VirtualFile buildFile = getGradleBuildFile(appModule);
     assertNotNull(buildFile);
     return buildFile;

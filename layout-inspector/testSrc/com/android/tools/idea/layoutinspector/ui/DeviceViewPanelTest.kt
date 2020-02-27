@@ -32,7 +32,6 @@ import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.components.JBScrollPane
-import com.intellij.util.ui.UIUtil
 import junit.framework.TestCase
 import org.junit.Before
 import org.junit.Rule
@@ -62,9 +61,9 @@ class DeviceViewPanelTest {
 
   @Test
   fun testFocusableActionButtons() {
-    InspectorClient.clientFactory = { mock(InspectorClient::class.java) }
+    InspectorClient.clientFactory = { _, _ -> mock(InspectorClient::class.java) }
     val model = model { view(1, 0, 0, 1200, 1600, "RelativeLayout") }
-    val inspector = LayoutInspector(model)
+    val inspector = LayoutInspector(model, disposableRule.disposable)
     val settings = DeviceViewSettings()
     val toolbar = getToolbar(DeviceViewPanel(inspector, settings, disposableRule.disposable))
     toolbar.components.forEach { assertThat(it.isFocusable).isTrue() }
@@ -103,7 +102,8 @@ class DeviceViewPanelTest {
       }
     }
 
-    val panel = DeviceViewPanel(LayoutInspector(model), DeviceViewSettings(scalePercent = 100), disposableRule.disposable)
+    val panel = DeviceViewPanel(LayoutInspector(model, disposableRule.disposable),
+                                DeviceViewSettings(scalePercent = 100), disposableRule.disposable)
     val contentPanel = flatten(panel).filterIsInstance<DeviceViewContentPanel>().first()
     val viewport = flatten(panel).filterIsInstance<JViewport>().first()
 

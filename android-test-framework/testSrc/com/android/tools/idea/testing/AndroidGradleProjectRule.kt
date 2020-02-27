@@ -17,12 +17,16 @@ package com.android.tools.idea.testing
 
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.util.toVirtualFile
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.VfsTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.facet.AndroidFacet
+import org.junit.Assume
+import org.junit.AssumptionViolatedException
 import org.junit.Ignore
 import org.junit.runner.Description
 
@@ -53,7 +57,6 @@ class AndroidGradleProjectRule : NamedExternalResource() {
   private class DelegateGradleTestCase : AndroidGradleTestCase() {
     val fixture: CodeInsightTestFixture get() = myFixture
     val androidFacet: AndroidFacet get() = myAndroidFacet
-    val modules: Modules get() = myModules
 
     fun invokeTasks(project: Project, vararg tasks: String): GradleInvocationResult {
       return AndroidGradleTestCase.invokeGradleTasks(project, *tasks)
@@ -68,8 +71,10 @@ class AndroidGradleProjectRule : NamedExternalResource() {
 
   val fixture: CodeInsightTestFixture get() = delegateTestCase.fixture
   val project: Project get() = fixture.project
-  val androidFacet: AndroidFacet get() = delegateTestCase.androidFacet
-  val modules: Modules get() = delegateTestCase.modules
+
+  fun androidFacet(gradlePath: String): AndroidFacet = findGradleModule(gradlePath)?.androidFacet ?: gradleModuleNotFound(gradlePath)
+  fun gradleModule(gradlePath: String): Module = findGradleModule(gradlePath) ?: gradleModuleNotFound(gradlePath)
+  fun findGradleModule(gradlePath: String): Module? = project.gradleModule(gradlePath)
 
   override fun before(description: Description) {
     delegateTestCase.name = description.methodName ?: description.displayName
@@ -127,3 +132,7 @@ class AndroidGradleProjectRule : NamedExternalResource() {
     return delegateTestCase.invokeTasks(project, *tasks)
   }
 }
+
+private fun gradleModuleNotFound(gradlePath: String): Nothing =
+  throw AssumptionViolatedException("No module with Gradle path: $gradlePath")
+

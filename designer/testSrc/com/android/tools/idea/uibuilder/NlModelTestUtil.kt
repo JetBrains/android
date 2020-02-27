@@ -49,12 +49,11 @@ fun createNlModelFromTagName(androidFacet: AndroidFacet,
   : NlModel {
   val configurationManager = ConfigurationManager.getOrCreateInstance(androidFacet)
   val file = LightLayoutFile(xmlContent)
-  val model = NlModel.create(androidFacet.module,
-                             null,
-                             androidFacet,
-                             file,
-                             configurationManager,
-                             Consumer<NlComponent> { NlComponentHelper.registerComponent(it) })
+  val model = NlModel.builder(androidFacet, file, configurationManager.getConfiguration(file))
+    .withParentDisposable(androidFacet.module)
+    .withComponentRegistrar(Consumer<NlComponent> { NlComponentHelper.registerComponent(it) })
+    .build()
+
   val rootComponent = createComponent(file.content.toString(), model)
   model.syncWithPsi(rootComponent.tagDeprecated, listOf(StubTagSnapshotTreeNode(rootComponent)))
   return model

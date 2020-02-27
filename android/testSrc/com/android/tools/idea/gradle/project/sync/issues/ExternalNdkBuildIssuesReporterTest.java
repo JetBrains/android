@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.TestModuleUtil;
 import com.android.tools.idea.util.PositionInFile;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
@@ -78,7 +79,7 @@ public class ExternalNdkBuildIssuesReporterTest extends AndroidGradleTestCase {
     loadSimpleApplication();
     mySyncMessagesStub.removeAllMessages();
 
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
 
     String nativeToolOutput = "Failed to compile something";
     when(mySyncIssue.getData()).thenReturn(nativeToolOutput);
@@ -122,7 +123,7 @@ public class ExternalNdkBuildIssuesReporterTest extends AndroidGradleTestCase {
     loadSimpleApplication();
     mySyncMessagesStub.removeAllMessages();
 
-    Module appModule = myModules.getAppModule();
+    Module appModule = TestModuleUtil.findAppModule(getProject());
 
     String nativeToolOutput = "Failed to compile something";
     when(mySyncIssue.getData()).thenReturn(nativeToolOutput);

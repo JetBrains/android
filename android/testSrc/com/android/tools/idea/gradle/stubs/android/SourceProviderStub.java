@@ -217,4 +217,10 @@ public class SourceProviderStub implements SourceProvider {
   public Collection<File> getShadersDirectories() {
     return Collections.emptyList();
   }
+
+  @Override
+  @NotNull
+  public Collection<File> getMlModelsDirectories() {
+    return Collections.emptyList();
+  }
 }

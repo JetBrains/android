@@ -538,14 +538,6 @@
     </issue>
 
     <issue
-        id="ImplicitExecutor"
-        message="Use `supplyAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
-        <location
-            file="src/com/android/tools/idea/uibuilder/editor/NlPreviewForm.java"
-            line="408"/>
-    </issue>
-
-    <issue
         id="SwingWorker"
         message="Do not use `javax.swing.SwingWorker`, use `com.intellij.util.concurrency.SwingWorker` instead. See `go/do-not-freeze`.">
         <location

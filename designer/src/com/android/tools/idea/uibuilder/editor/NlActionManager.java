@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
-import static com.android.tools.idea.uibuilder.api.actions.ViewActionsKt.withRank;
-
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.editor.ActionToolbarUtil;
 import com.android.tools.idea.actions.MockupDeleteAction;
@@ -342,7 +340,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       return Collections.emptyList();
     }
 
-    List<ViewAction> viewActions = createViewActionList();
+    List<ViewAction> viewActions = new ArrayList<>();
     if (toolbar) {
       viewActions.addAll(ViewHandlerManager.get(mySurface.getProject()).getToolbarActions(handler));
     }
@@ -353,35 +351,12 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       }
     }
 
-    Collections.sort(viewActions);
-
     List<AnAction> target = Lists.newArrayList();
     for (ViewAction viewAction : viewActions) {
       addActions(target, toolbar, viewAction, editor, handler, component, newSelection);
     }
 
     return target;
-  }
-
-  @NotNull
-  private static List<ViewAction> createViewActionList() {
-    return new ArrayList<ViewAction>() {
-      @Override
-      public boolean add(ViewAction viewAction) {
-        // Ensure that if no rank is specified, we just sort in the insert order
-        if (!isEmpty()) {
-          ViewAction prev = get(size() - 1);
-          if (viewAction.getRank() == prev.getRank() || viewAction.getRank() == -1) {
-            viewAction = withRank(viewAction, prev.getRank() + 5);
-          }
-        }
-        else if (viewAction.getRank() == -1) {
-          viewAction =  withRank(viewAction, 0);
-        }
-
-        return super.add(viewAction);
-      }
-    };
   }
 
   /**

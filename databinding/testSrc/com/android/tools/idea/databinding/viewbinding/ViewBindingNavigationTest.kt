@@ -69,7 +69,7 @@ class ViewBindingNavigationTest {
     VirtualFileManager.getInstance().syncRefresh()
     UIUtil.dispatchAllInvocationEvents()
 
-    assertThat(projectRule.androidFacet.isViewBindingEnabled()).isTrue()
+    assertThat(projectRule.androidFacet(":app").isViewBindingEnabled()).isTrue()
   }
 
   @Test

@@ -231,7 +231,7 @@ public class NlEditorMonkeyTest {
     EditorFixture editor = guiTest.ideFrame().getEditor();
     editor.open("app/src/main/res/layout/constraint.xml", EditorFixture.Tab.DESIGN);
 
-    NlEditorFixture layout = editor.getLayoutEditor(false);
+    NlEditorFixture layout = editor.getLayoutEditor();
     layout.waitForRenderToFinish();
 
     for (int i = 0; i < 500; i++) {

@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.project.sync.errors.SdkBuildToolsTooLowErrorHandler
 import com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile
 import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.findAppModule
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -40,13 +41,13 @@ class BuildToolsTooLowReporterIntegrationTest : AndroidGradleTestCase() {
   @Test
   fun testModuleLink() {
     loadSimpleApplication()
-    val appModule = myModules.appModule
+    val appModule = project.findAppModule()
     val appFile = getGradleBuildFile(appModule)!!
 
     val issue = mock(SyncIssue::class.java)
 
     val syncIssues = ImmutableList.of<SyncIssue>(issue)
-    val link = reporter!!.createModuleLink(getProject(), appModule, syncIssues, appFile)
+    val link = reporter!!.createModuleLink(project, appModule, syncIssues, appFile)
     assertThat(link.lineNumber).isEqualTo(-1)
     assertThat(link.filePath).isEqualTo(appFile.path)
   }

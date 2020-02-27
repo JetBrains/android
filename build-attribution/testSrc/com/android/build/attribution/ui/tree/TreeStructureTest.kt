@@ -101,13 +101,13 @@ class TreeStructureTest {
           Tasks determining this build's duration|1 warning|3.000 s|PLUGIN_CRITICAL_PATH_TASKS_ROOT
             :app:compile|null|2.000 s|PLUGIN_CRITICAL_PATH_TASK_PAGE
             :lib:compile|null|1.000 s|PLUGIN_CRITICAL_PATH_TASK_PAGE
-          Warnings (1)|null|null|UNKNOWN_PAGE
+          Warnings (1)|null|null|PLUGIN_WARNINGS_ROOT
             Always-run Tasks|1 warning|2.000 s|PLUGIN_ALWAYS_RUN_ISSUE_ROOT
               :app:compile|null|2.000 s|PLUGIN_ALWAYS_RUN_NO_OUTPUTS_PAGE
         resources.plugin||1.000 s|PLUGIN_PAGE
           Tasks determining this build's duration||1.000 s|PLUGIN_CRITICAL_PATH_TASKS_ROOT
             :app:resources|null|1.000 s|PLUGIN_CRITICAL_PATH_TASK_PAGE
-          Warnings (0)|null|null|UNKNOWN_PAGE
+          Warnings (0)|null|null|PLUGIN_WARNINGS_ROOT
     """.trimIndent()
     // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
     Truth.assertThat(pluginsRoot.printTree()).isEqualTo(expectedStructure)
@@ -175,7 +175,7 @@ class TreeStructureTest {
 
     val warningsRoot = WarningsRootNode(data, mockRoot)
     val expectedStructure = """
-      Warnings (7)|null|null|UNKNOWN_PAGE
+      Warnings (7)|null|null|WARNINGS_ROOT
         Always-run Tasks|2 warnings|null|ALWAYS_RUN_ISSUE_ROOT
           :app:compile|null|2.000 s|ALWAYS_RUN_UP_TO_DATE_OVERRIDE_PAGE
           :lib:compile|null|1.000 s|ALWAYS_RUN_NO_OUTPUTS_PAGE
@@ -224,20 +224,20 @@ class TreeStructureTest {
           Tasks determining this build's duration|1 warning|3.000 s|PLUGIN_CRITICAL_PATH_TASKS_ROOT
             :app:compile|null|2.000 s|PLUGIN_CRITICAL_PATH_TASK_PAGE
             :lib:compile|null|1.000 s|PLUGIN_CRITICAL_PATH_TASK_PAGE
-          Warnings (1)|null|null|UNKNOWN_PAGE
+          Warnings (1)|null|null|PLUGIN_WARNINGS_ROOT
             Always-run Tasks|1 warning|2.000 s|PLUGIN_ALWAYS_RUN_ISSUE_ROOT
               :app:compile|null|2.000 s|PLUGIN_ALWAYS_RUN_NO_OUTPUTS_PAGE
         resources.plugin|1 warning|1.000 s|PLUGIN_PAGE
           Tasks determining this build's duration|1 warning|1.000 s|PLUGIN_CRITICAL_PATH_TASKS_ROOT
             :app:resources|null|1.000 s|PLUGIN_CRITICAL_PATH_TASK_PAGE
-          Warnings (1)|null|null|UNKNOWN_PAGE
+          Warnings (1)|null|null|PLUGIN_WARNINGS_ROOT
             Always-run Tasks|1 warning|1.000 s|PLUGIN_ALWAYS_RUN_ISSUE_ROOT
               :app:resources|null|1.000 s|PLUGIN_ALWAYS_RUN_NO_OUTPUTS_PAGE
       Tasks determining this build's duration|2 warnings|15.000 s|CRITICAL_PATH_TASKS_ROOT
         :app:compile|null|2.000 s|CRITICAL_PATH_TASK_PAGE
         :app:resources|null|1.000 s|CRITICAL_PATH_TASK_PAGE
         :lib:compile|null|1.000 s|CRITICAL_PATH_TASK_PAGE
-      Warnings (5)|null|null|UNKNOWN_PAGE
+      Warnings (5)|null|null|WARNINGS_ROOT
         Always-run Tasks|2 warnings|null|ALWAYS_RUN_ISSUE_ROOT
           :app:compile|null|2.000 s|ALWAYS_RUN_NO_OUTPUTS_PAGE
           :app:resources|null|1.000 s|ALWAYS_RUN_NO_OUTPUTS_PAGE

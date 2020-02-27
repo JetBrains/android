@@ -24,10 +24,12 @@ import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.testFramework.TreeTester;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.usages.PsiElementUsageTarget;
 import com.intellij.usages.Usage;
@@ -44,7 +46,7 @@ import one.util.streamex.StreamEx;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * FindUsages tests for Android resources.
+ * FindUsages tests for Android resources. Tests that require Gradle projects are at {@link AndroidGradleProjectFindUsagesTest}.
  */
 public abstract class AndroidFindUsagesTest extends AndroidTestCase {
   private static final String BASE_PATH = "/findUsages/";
@@ -532,6 +534,42 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
       finally {
         super.tearDown();
       }
+    }
+
+    // Only testing in the new Resources Pipeline, the old pipeline never supported FindUsages of framework resources.
+    public void testFrameworkResourceFromUsage() {
+      PsiFile file = myFixture.addFileToProject(
+        "src/p1/p2/MyView.java",
+        //language=JAVA
+        "package p1.p2;\n" +
+        "public class MyTest {\n" +
+        "    public MyTest() {\n" +
+        "        int attribute = android.R.color.background<caret>_dark;\n" +
+        "    }\n" +
+        "}\n");
+      myFixture.configureFromExistingVirtualFile(file.getVirtualFile());
+      Collection<UsageInfo> references = findUsages(file.getVirtualFile(), myFixture, GlobalSearchScope.allScope(myFixture.getProject()));
+      assertThat(getUsageViewTreeTextRepresentation(references))
+        .isEqualTo("Usage (4 usages)\n" +
+                   " Targets\n" +
+                   "  @android:color/background_dark\n" +
+                   " Found usages (4 usages)\n" +
+                   "  Resource declaration in Android resources XML (1 usage)\n" +
+                   "   values (1 usage)\n" +
+                   "    colors.xml (1 usage)\n" +
+                   "     44<color name=\"background_dark\">#ff000000</color>\n" +
+                   "  Resource reference Android resources XML (2 usages)\n" +
+                   "   values (2 usages)\n" +
+                   "    colors.xml (1 usage)\n" +
+                   "     48<color name=\"bright_foreground_light\">@android:color/background_dark</color>\n" +
+                   "    themes.xml (1 usage)\n" +
+                   "     48<item name=\"colorBackground\">@color/background_dark</item>\n" +
+                   "  Resource reference in code (1 usage)\n" +
+                   "   app (1 usage)\n" +
+                   "    p1.p2 (1 usage)\n" +
+                   "     MyTest (1 usage)\n" +
+                   "      MyTest() (1 usage)\n" +
+                   "       4int attribute = android.R.color.background_dark;\n");
     }
 
     public void testDoNotFindResourceOutOfScope() {
@@ -1531,11 +1569,15 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
   }
 
   public static Collection<UsageInfo> findUsages(VirtualFile file, JavaCodeInsightTestFixture fixture) {
+    return findUsages(file, fixture, null);
+  }
+
+  public static Collection<UsageInfo> findUsages(VirtualFile file, JavaCodeInsightTestFixture fixture, GlobalSearchScope scope) {
     fixture.configureFromExistingVirtualFile(file);
     final UsageTarget[] targets = UsageTargetUtil.findUsageTargets(
       dataId -> ((EditorEx)fixture.getEditor()).getDataContext().getData(dataId));
     assert targets != null && targets.length > 0 && targets[0] instanceof PsiElementUsageTarget;
-    return fixture.findUsages(((PsiElementUsageTarget)targets[0]).getElement());
+    return ((CodeInsightTestFixtureImpl)fixture).findUsages(((PsiElementUsageTarget)targets[0]).getElement(), scope);
   }
 
   public static Collection<UsageInfo> findUsagesNoEditor(String filePath, JavaCodeInsightTestFixture fixture) {

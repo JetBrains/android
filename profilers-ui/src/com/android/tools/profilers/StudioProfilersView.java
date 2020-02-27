@@ -534,6 +534,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myStageToolbar.revalidate();
     myToolbar.setVisible(myStageView.isToolbarVisible());
     myGoLiveToolbar.setVisible(myStageView.supportsStreaming());
+    myDeselectAllToolbar.setVisible(myStageView.shouldShowDeselectAllLabel());
 
     boolean topLevel = myStageView == null || myStageView.needsProcessSelection();
     myCommonToolbar.setVisible(!topLevel && myStageView.supportsStageNavigation());

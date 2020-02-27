@@ -100,6 +100,7 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
         name = ".EnabledActivity",
         enabled = "true",
         exported = "true",
+        theme = null,
         intentFilters = setOf(mainIntentFilter),
         overrides = overrides,
         resolvedPackage = "com.example"
@@ -108,6 +109,7 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
         name = ".DisabledActivity",
         enabled = "false",
         exported = null,
+        theme = null,
         intentFilters = emptySet(),
         overrides = overrides,
         resolvedPackage = "com.example"
@@ -116,6 +118,7 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
         name = ".EnabledAlias",
         enabled = "true",
         exported = "true",
+        theme = null,
         intentFilters = emptySet(),
         overrides = overrides,
         resolvedPackage = "com.example"
@@ -124,6 +127,7 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
         name = ".DisabledAlias",
         enabled = "false",
         exported = null,
+        theme = null,
         intentFilters = emptySet(),
         overrides = overrides,
         resolvedPackage = "com.example"
@@ -174,6 +178,7 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
     Truth.assertThat(myFacet.queryCustomPermissionGroupsFromManifestIndex()).isEqualTo(
       setOf("custom.permissions.CUSTOM_GROUP", "custom.permissions.CUSTOM_GROUP1"))
   }
+
   fun testQueryApplicationDebuggable() {
     val manifestContentDebuggable = """
     <?xml version='1.0' encoding='utf-8'?>
@@ -210,6 +215,32 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
     updateManifest(myModule, FN_ANDROID_MANIFEST_XML, manifestContentDebuggableIsNull)
 
     Truth.assertThat(myFacet.queryApplicationDebuggableFromManifestIndex()).isNull()
+  }
+
+  fun testQueryApplicationTheme() {
+    val manifestContentAppTheme = """
+    <?xml version='1.0' encoding='utf-8'?>
+    <manifest xmlns:android='http://schemas.android.com/apk/res/android' 
+      package='com.example' android:enabled='true'>
+        <application android:theme='@style/Theme.AppCompat' android:debuggable="true">
+        </application>
+    </manifest>
+    """.trimIndent()
+    updateManifest(myModule, FN_ANDROID_MANIFEST_XML, manifestContentAppTheme)
+
+    Truth.assertThat(myFacet.queryApplicationThemeFromManifestIndex()).isEqualTo("@style/Theme.AppCompat")
+
+    val manifestContentNoAppTheme = """
+    <?xml version='1.0' encoding='utf-8'?>
+    <manifest xmlns:android='http://schemas.android.com/apk/res/android' 
+      package='com.example' android:enabled='true'>
+        <application android:debuggable="false">
+        </application>
+    </manifest>
+    """.trimIndent()
+    updateManifest(myModule, FN_ANDROID_MANIFEST_XML, manifestContentNoAppTheme)
+
+    Truth.assertThat(myFacet.queryApplicationThemeFromManifestIndex()).isNull()
   }
 
   fun testQueryPackageName() {
@@ -299,5 +330,25 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
     facets = queryByPackageName(project, "com.example", GlobalSearchScope.projectScope(project)).toList()
     Truth.assertThat(facets.size).isEqualTo(1)
     Truth.assertThat(facets[0]).isEqualTo(myFacet)
+  }
+
+  fun testQueryUsedFeatures() {
+    val manifestContent = """
+    <?xml version='1.0' encoding='utf-8'?>
+    <manifest xmlns:android='http://schemas.android.com/apk/res/android'
+      package='com.example' android:enabled='true'>
+      <uses-feature android:name="android.hardware.type.watch" android:required="true" android:glEsVersion="integer" />
+    </manifest>
+    """.trimIndent()
+    updateManifest(myModule, FN_ANDROID_MANIFEST_XML, manifestContent)
+    Truth.assertThat(myFacet.queryUsedFeaturesFromManifestIndex()).isEqualTo(
+      setOf(UsedFeatureRawText(name = "android.hardware.type.watch", required = "true"))
+    )
+
+    // change required value
+    updateManifest(myModule, FN_ANDROID_MANIFEST_XML, manifestContent.replace("true", "false"))
+    Truth.assertThat(myFacet.queryUsedFeaturesFromManifestIndex()).isEqualTo(
+      setOf(UsedFeatureRawText(name = "android.hardware.type.watch", required = "false"))
+    )
   }
 }

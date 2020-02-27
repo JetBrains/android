@@ -18,10 +18,10 @@ package com.android.tools.idea.sqlite.mocks
 import com.android.tools.idea.sqlite.controllers.TabId
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
-import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.ui.logtab.LogTabView
 import com.android.tools.idea.sqlite.ui.mainView.DatabaseInspectorView
 import com.android.tools.idea.sqlite.ui.mainView.DatabaseInspectorView.Listener
+import com.android.tools.idea.sqlite.ui.mainView.SchemaDiffOperation
 import org.mockito.Mockito.mock
 import java.util.ArrayList
 import javax.swing.JComponent
@@ -62,5 +62,5 @@ open class MockDatabaseInspectorView : DatabaseInspectorView {
 
   override fun reportError(message: String, t: Throwable) { }
 
-  override fun updateDatabase(database: SqliteDatabase, toAdd: List<SqliteTable>) { }
+  override fun updateDatabaseSchema(database: SqliteDatabase, diffOperations: List<SchemaDiffOperation>) { }
 }

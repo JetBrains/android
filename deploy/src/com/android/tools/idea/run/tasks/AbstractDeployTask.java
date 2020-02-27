@@ -261,7 +261,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
                        : IdeActions.ACTION_DEFAULT_RUNNER;
           break;
         case RETRY:
-          myActionId = getId();
+          myActionId = executor.getActionName();
           break;
         default:
           myActionId = null;
@@ -290,7 +290,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
       }
 
       manager.tryToExecute(action,
-                           ActionCommand.getInputEvent(ApplyChangesAction.ID),
+                           ActionCommand.getInputEvent(myActionId),
                            null,
                            ActionPlaces.UNKNOWN,
                            true);

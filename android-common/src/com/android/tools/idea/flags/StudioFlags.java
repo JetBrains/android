@@ -96,6 +96,12 @@ public final class StudioFlags {
     "CpuProfilerStageView flow.",
     true);
 
+  public static final Flag<Boolean> PROFILER_ENABLE_NATIVE_SAMPLE = Flag.create(
+    PROFILER, "memory.heapprofd", "Enable heapprofd captures in the memory profiler.",
+    "Toggles if users can capture heapprofd recordings in the memory profiler. This gates mostly the UI and importing of traces. " +
+    "The perfd functionality is not gated. This feature has a dependency on the trace processor.",
+    false);
+
   public static final Flag<Boolean> PROFILER_UNIFIED_PIPELINE = Flag.create(
     PROFILER, "unified.pipeline", "Enables new event pipeline to be used for core components.",
     "Toggles usage of gRPC apis to fetch data from perfd and the datastore.",
@@ -164,34 +170,9 @@ public final class StudioFlags {
     "When enabled, profiler will track and display events defined through developer APIs",
     false);
 
-  public static final Flag<Boolean> PROFILER_MEMORY_COLOR_BARS_BY_PERCENTAGE = Flag.create(
-    PROFILER, "memory.ui.bars.color", "Indicate class's percentage contribution",
-    "In classifier view, paint the statistics for each class by their relative contributions to the whole",
-    false);
-
-  public static final Flag<Boolean> PROFILER_MEMORY_HEAP_DUMP_SEPARATE = Flag.create(
-    PROFILER, "memory.ui.heapdump.separate", "Show heap dump in its own page",
-    "Show heap dump in a separate frame that takes up the entire window",
-    false);
-
-  public static final Flag<Boolean> PROFILER_MEMORY_FIELDS_IN_DETAIL_VIEW = Flag.create(
-    PROFILER, "memory.ui.details.fields", "Show instance fields in detail view",
-    "Show an instance's fields in the detail view. The class-set view only shows the list of instances.",
-    false);
-
-  public static final Flag<Boolean> PROFILER_SUMMARY_STATS = Flag.create(
-    PROFILER, "memory.ui.stats", "Show summary statistics",
-    "Show summary statistics on the top",
-    false);
-
-  public static final Flag<Boolean> PROFILER_LEAKS_ALWAYS = Flag.create(
-    PROFILER, "memory.ui.leaks.always", "Always detect Activity/Fragment leak check",
-    "Always check for Activity/Fragment leaks and display warnings if they exist",
-    false);
-
-  public static final Flag<Boolean> PROFILER_NEW_TOOLBAR = Flag.create(
-    PROFILER, "memory.ui.toolbar.new", "Show all filtering tools in toolbar",
-    "Show all filters such as \"Leaks\", \"Projects\", and custom search in toolbar",
+  public static final Flag<Boolean> PROFILER_HEAPDUMP_SEPARATE = Flag.create(
+    PROFILER, "memory.heapdump.separate", "Show heap dump separately",
+    "Show heap dump as a separate view instead of sharing with the memory monitor",
     false);
   //endregion
 
@@ -217,7 +198,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> ASSET_DOWNLOAD_MATERIAL_ICONS = Flag.create(
     ASSET, "download.material.icons", "Allow downloading icons to Sdk folder",
     "Allow the IconPickerDialog in Asset Studio to download any new material icons in to the Android/Sdk folder",
-  false);
+    false);
   //endregion
 
   //region Layout Editor
@@ -261,11 +242,6 @@ public final class StudioFlags {
     NELE, "diagnostics", "Enable rendering on-screen stats",
     "If enabled, the surface displays some debug information to diagnose performance",
     false);
-
-  public static final Flag<Boolean> NELE_SPLIT_EDITOR = Flag.create(
-    NELE, "split.layout.editor", "Enable design editors and XML side-by-side view.",
-    "Enable this flag to display the design editors side-by-side with their text representation.",
-    true);
 
   public static final Flag<Boolean> NELE_RESOURCE_POPUP_PICKER = Flag.create(
     NELE, "show.resource.popup.picker", "Enable popup  resource picker in layout editor.",
@@ -443,11 +419,17 @@ public final class StudioFlags {
    * @see StudioFlags#DEFAULT_ACTIVITY_LOCATOR_STRATEGY
    */
   public enum DefaultActivityLocatorStrategy {
-    /** Unconditionally block on a fresh view of the merged manifest. */
+    /**
+     * Unconditionally block on a fresh view of the merged manifest.
+     */
     BLOCK,
-    /** Determine the list of activities using the {@link com.android.tools.idea.model.AndroidManifestIndex}. */
+    /**
+     * Determine the list of activities using the {@link com.android.tools.idea.model.AndroidManifestIndex}.
+     */
     INDEX,
-    /** Use a potentially stale view of the merged manifest if the caller is on the EDT. */
+    /**
+     * Use a potentially stale view of the merged manifest if the caller is on the EDT.
+     */
     STALE
   }
 
@@ -456,7 +438,7 @@ public final class StudioFlags {
     "default.activity.locator.strategy",
     "Choose a strategy for selecting the default activity to launch from the merged manifest.",
     "This can be \"BLOCK\" to unconditionally block on a fresh merged manifest, \"STALE\" to use a potentially stale manifest, "
-      + "or \"INDEX\" to use the custom Android Manifest index (only select this option if manifest indexing is enabled).",
+    + "or \"INDEX\" to use the custom Android Manifest index (only select this option if manifest indexing is enabled).",
     DefaultActivityLocatorStrategy.INDEX
   );
 
@@ -615,9 +597,13 @@ public final class StudioFlags {
 
   public enum LayoutXmlMode {
     DEFAULT,
-    /** Don't run AndroidDomExtender at all, to see how other parts of the XML stack work. */
+    /**
+     * Don't run AndroidDomExtender at all, to see how other parts of the XML stack work.
+     */
     NO_DOM_EXTENDER,
-    /** Don't use TagToClassMapper when computing tag attributes in AttributeProcessingUtil. */
+    /**
+     * Don't use TagToClassMapper when computing tag attributes in AttributeProcessingUtil.
+     */
     ATTRIBUTES_FROM_STYLEABLES,
   }
 
@@ -676,6 +662,13 @@ public final class StudioFlags {
     EDITOR, "samples.support.enabled",
     "Enable supports of samples (tag inside KDoc) that are used in quick documentation",
     "Enable supports of samples (tag inside KDoc) that are used in quick documentation",
+    false
+  );
+
+  public static final Flag<Boolean> DAGGER_SUPPORT_ENABLED = Flag.create(
+    EDITOR, "dagger.support.enabled",
+    "Enable editor support for Dagger",
+    "If enabled adds Dagger specific find usages, gutter icons and new parsing for Dagger errors",
     false
   );
 

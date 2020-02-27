@@ -227,18 +227,16 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface) : Inte
   }
 
   override fun singleClick(@SwingCoordinate x: Int, @SwingCoordinate y: Int, @JdkConstants.InputEventMask modifiersEx: Int) {
-    if (StudioFlags.NELE_SPLIT_EDITOR.get()) {
-      val selectedEditor = FileEditorManager.getInstance(surface.project).selectedEditor
-      if (selectedEditor is DesignToolsSplitEditor) {
-        val splitEditor = selectedEditor as DesignToolsSplitEditor?
-        if (splitEditor!!.isSplitMode()) {
-          // If we're in split mode, we want to select the component in the text editor.
-          val sceneView = surface.getSceneView(x, y) ?: return
-          // TODO: Use {@link SceneViewHelper#selectComponentAt() instead.
-          val component = Coordinates.findComponent(sceneView, x, y)
-          if (component != null) {
-            navigateToComponent(component, false)
-          }
+    val selectedEditor = FileEditorManager.getInstance(surface.project).selectedEditor
+    if (selectedEditor is DesignToolsSplitEditor) {
+      val splitEditor = selectedEditor as DesignToolsSplitEditor?
+      if (splitEditor!!.isSplitMode()) {
+        // If we're in split mode, we want to select the component in the text editor.
+        val sceneView = surface.getSceneView(x, y) ?: return
+        // TODO: Use {@link SceneViewHelper#selectComponentAt() instead.
+        val component = Coordinates.findComponent(sceneView, x, y)
+        if (component != null) {
+          navigateToComponent(component, false)
         }
       }
     }

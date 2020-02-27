@@ -214,18 +214,6 @@ public final class GradleUtil {
     }
   }
 
-  @Nullable
-  public static IdeAndroidProject getAndroidProject(@NotNull Module module) {
-    AndroidModuleModel gradleModel = AndroidModuleModel.get(module);
-    return gradleModel != null ? gradleModel.getAndroidProject() : null;
-  }
-
-  @Nullable
-  public static NativeAndroidProject getNativeAndroidProject(@NotNull Module module) {
-    NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
-    return ndkModuleModel != null ? ndkModuleModel.getAndroidProject() : null;
-  }
-
   /**
    * Returns the Gradle "logical" path (using colons as separators) if the given module represents a Gradle project or sub-project.
    *
@@ -252,25 +240,6 @@ public final class GradleUtil {
       }
     }
     return false;
-  }
-
-  /**
-   * @return list of the module dependencies in the given variant. This method checks dependencies in the main and test (as currently selected
-   * in the UI) artifacts. The returned list does not contain any duplicates.
-   */
-  @NotNull
-  public static List<Library> getModuleDependencies(@NotNull IdeVariant variant) {
-    List<Library> libraries = Lists.newArrayList();
-
-    IdeAndroidArtifact mainArtifact = variant.getMainArtifact();
-    IdeDependencies dependencies = mainArtifact.getLevel2Dependencies();
-    libraries.addAll(dependencies.getModuleDependencies());
-
-    for (IdeBaseArtifact testArtifact : variant.getTestArtifacts()) {
-      dependencies = testArtifact.getLevel2Dependencies();
-      libraries.addAll(dependencies.getModuleDependencies());
-    }
-    return libraries.stream().distinct().collect(Collectors.toList());
   }
 
   @Nullable
@@ -366,7 +335,7 @@ public final class GradleUtil {
   }
 
   @Nullable
-  private static GradleModuleModel getGradleModuleModel(Module module) {
+  public static GradleModuleModel getGradleModuleModel(Module module) {
     GradleFacet gradleFacet = GradleFacet.getInstance(module);
     if (gradleFacet == null) {
       return null;

@@ -77,6 +77,7 @@ public class CMakeListsTest {
 
     ideFrame.getProjectView()
       .selectAndroidPane()
+      .expand(30)
       .clickPath("app", "cpp", C_FILE_NAME)
       .invokeMenuPath("Refactor", "Rename...");
 

@@ -95,7 +95,7 @@ public class NonAndroidModuleNode extends AndroidViewModuleNode {
   @Nullable
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
     Module module = getModule();
-    return String.format("%1$s (non-Android)", module.getName());
+    return String.format("%1$s (non-Android)", super.toTestString(printInfo));
   }
 
   @NotNull

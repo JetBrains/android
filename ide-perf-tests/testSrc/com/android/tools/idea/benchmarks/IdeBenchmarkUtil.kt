@@ -141,6 +141,36 @@ fun <T> runBenchmark(
 }
 
 /**
+ * Runs a benchmark intended to measure an operation on a specific set of elements.
+ *
+ * @param collectElements decides which elements are intended to be used in the benchmark
+ * @param warmupAction performs the supplied warmup action on every element
+ * @param benchmarkAction performs the benchmark action and returns a benchmark sample for every supplied element
+ * @param commitResults collects all samples to be submitted to perfgate or logged elsewhere.
+ */
+fun <T, S> runBenchmark(
+  collectElements: () -> List<T>,
+  warmupAction: (T) -> Unit,
+  benchmarkAction: (T) -> List<S>,
+  commitResults: (List<S>) -> Unit
+) {
+  val samples = mutableListOf<S>()
+  runInEdtAndWait {
+    // Warmup
+    val elements = collectElements()
+    for (element in elements) {
+      warmupAction(element)
+    }
+
+    // Measure run
+    for (element in elements) {
+      samples.addAll(benchmarkAction(element))
+    }
+  }
+  commitResults(samples)
+}
+
+/**
  * Like [measureTimeMillis], but uses System.nanoTime() under the hood.
  *
  * Justification: System.currentTimeMillis() is not guaranteed to be monotonic, so

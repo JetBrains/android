@@ -251,4 +251,28 @@ class InspectionsTest : ComposeLightJavaCodeInsightFixtureTestCase() {
     highlightLength = widthInspection.actualEndOffset - widthInspection.actualStartOffset
     assertEquals("widthDp = 2001".length, highlightLength)
   }
+
+  fun testInspectionsWithNoImport() {
+    myFixture.enableInspections(PreviewNeedsComposableAnnotationInspection() as InspectionProfileEntry)
+
+    @Suppress("TestFunctionName")
+    @Language("kotlin")
+    val fileContent = """
+      import androidx.compose.Composable
+
+      @Composable
+      @androidx.ui.tooling.preview.Preview
+      fun Preview1() {
+      }
+
+      // Missing Composable annotation
+      @androidx.ui.tooling.preview.Preview(name = "preview2")
+      fun Preview2() {
+      }
+    """.trimIndent()
+
+    myFixture.configureByText("Test.kt", fileContent)
+    assertEquals("8: Preview only works with Composable functions.",
+                 myFixture.doHighlighting(HighlightSeverity.ERROR).single().descriptionWithLineNumber())
+  }
 }

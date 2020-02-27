@@ -16,12 +16,12 @@
 package com.android.tools.idea.gradle.project.sync.issues;
 
 import static com.android.builder.model.SyncIssue.SEVERITY_ERROR;
+import static com.android.tools.idea.gradle.util.AndroidGradleUtil.getDisplayNameForModule;
 import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.android.tools.idea.project.messages.MessageType.INFO;
 import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
 
 import com.android.builder.model.SyncIssue;
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
@@ -147,7 +147,7 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
                                   @Nullable VirtualFile buildFile) {
     if (buildFile == null) {
       // No build file found, just include the name of the module.
-      builder.append(module.getName());
+      builder.append(getDisplayNameForModule(module));
     }
     else {
       OpenFileHyperlink link = createModuleLink(project, module, syncIssues, buildFile);
@@ -171,7 +171,8 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
                                                @NotNull Module module,
                                                @NotNull List<SyncIssue> syncIssues,
                                                @NotNull VirtualFile buildFile) {
-    return new OpenFileHyperlink(buildFile.getPath(), module.getName(), -1, -1);
+
+    return new OpenFileHyperlink(buildFile.getPath(), getDisplayNameForModule(module), -1, -1);
   }
 
   /**

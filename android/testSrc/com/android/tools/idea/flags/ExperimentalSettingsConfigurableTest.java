@@ -145,4 +145,15 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     assertEquals("/tmp/text2.profile", myConfigurable.getTraceProfileLocation());
     assertEquals(SPECIFIED_LOCATION, myConfigurable.getTraceProfileSelection());
   }
+
+  public void testIsTraceProfileValid() {
+    myConfigurable.setTraceGradleSync(true);
+    myConfigurable.setTraceProfileLocation("");
+    myConfigurable.setTraceProfileSelection(DEFAULT);
+    assertFalse(myConfigurable.isTraceProfileInvalid());
+
+    myConfigurable.setTraceProfileLocation("");
+    myConfigurable.setTraceProfileSelection(SPECIFIED_LOCATION);
+    assertTrue(myConfigurable.isTraceProfileInvalid());
+  }
 }

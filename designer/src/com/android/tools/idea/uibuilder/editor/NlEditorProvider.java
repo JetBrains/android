@@ -17,8 +17,6 @@ package com.android.tools.idea.uibuilder.editor;
 
 import com.android.tools.idea.common.editor.DesignerEditor;
 import com.android.tools.idea.common.editor.DesignerEditorProvider;
-import com.android.tools.idea.common.type.DesignerTypeRegistrar;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.type.LayoutFileType;
 import com.android.tools.idea.uibuilder.type.MenuFileType;
 import com.android.tools.idea.uibuilder.type.PreferenceScreenFileType;
@@ -31,10 +29,6 @@ public class NlEditorProvider extends DesignerEditorProvider {
 
   public NlEditorProvider() {
     super(ImmutableList.of(LayoutFileType.INSTANCE, MenuFileType.INSTANCE, PreferenceScreenFileType.INSTANCE));
-    if (!StudioFlags.NELE_SPLIT_EDITOR.get()) {
-      // When not using the split editor, we should register the files that otherwise would be accepted/registered by BorderlessNlEditor.
-      DesignFilesPreviewEditorProviderKt.acceptedTypes().forEach(DesignerTypeRegistrar.INSTANCE::register);
-    }
   }
 
   @NotNull

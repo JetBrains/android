@@ -45,7 +45,7 @@ class NavComponentTreeTest {
       .waitForGradleProjectSyncToFinish()
       .editor
       .open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN)
-      .getLayoutEditor(true)
+      .getLayoutEditor()
       .waitForRenderToFinish()
 
     val componentTree = navEditor.navComponentTree()

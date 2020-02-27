@@ -100,9 +100,9 @@ class AppInspectionViewTest {
       LaunchedProcessDescriptor(
         FakeTransportService.FAKE_DEVICE.manufacturer,
         FakeTransportService.FAKE_DEVICE.model,
-        FakeTransportService.FAKE_PROCESS.name
-      ),
-      AppInspectionTestUtils.TestTransportJarCopier
+        FakeTransportService.FAKE_PROCESS.name,
+        AppInspectionTestUtils.TestTransportJarCopier
+      )
     )
     newProcessLatch.await()
     tabAddedLatch.await()

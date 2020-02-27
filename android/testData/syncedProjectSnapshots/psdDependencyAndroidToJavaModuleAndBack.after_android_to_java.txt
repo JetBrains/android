@@ -15,10 +15,11 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/freeDebugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/app/app.iml
+        ModuleFile          : <PROJECT>/.idea/modules/app/app.iml [-]
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
+            ExternalSource      : GRADLE
             SelectedBuildVariant          : freeDebug
             AssembleTaskName    : assembleFreeDebug
             CompileJavaTaskName : compileFreeDebugSources
@@ -58,6 +59,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             - ProGuardCfgFiles  : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET               : Android-Gradle
             TypeId              : android-gradle
+            ExternalSource      : GRADLE
             GradlePath          : :app
         CONENT_ENTRY        : file://<PROJECT>/app
             JavaSource          : file://<PROJECT>/app/build/generated/aidl_source_output_dir/freeDebug/out
@@ -470,13 +472,15 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             compilerTestOutputPath        : file://<PROJECT>/jModuleK/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/jModuleK/jModuleK.iml
+        ModuleFile          : <PROJECT>/.idea/modules/jModuleK/jModuleK.iml [-]
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
+            ExternalSource      : GRADLE
             GradlePath          : :jModuleK
         FACET               : Java-Gradle
             TypeId              : java-gradle
+            ExternalSource      : GRADLE
             Buildable           : true
             BuildFolderPath     : <PROJECT>/jModuleK/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jModuleK
@@ -552,13 +556,15 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             compilerTestOutputPath        : file://<PROJECT>/jModuleL/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/jModuleL/jModuleL.iml
+        ModuleFile          : <PROJECT>/.idea/modules/jModuleL/jModuleL.iml [-]
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
+            ExternalSource      : GRADLE
             GradlePath          : :jModuleL
         FACET               : Java-Gradle
             TypeId              : java-gradle
+            ExternalSource      : GRADLE
             Buildable           : true
             BuildFolderPath     : <PROJECT>/jModuleL/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jModuleL
@@ -598,13 +604,15 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             compilerTestOutputPath        : file://<PROJECT>/jModuleM/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/jModuleM/jModuleM.iml
+        ModuleFile          : <PROJECT>/.idea/modules/jModuleM/jModuleM.iml [-]
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
+            ExternalSource      : GRADLE
             GradlePath          : :jModuleM
         FACET               : Java-Gradle
             TypeId              : java-gradle
+            ExternalSource      : GRADLE
             Buildable           : true
             BuildFolderPath     : <PROJECT>/jModuleM/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jModuleM
@@ -644,13 +652,15 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             compilerTestOutputPath        : file://<PROJECT>/jModuleZ/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/jModuleZ/jModuleZ.iml
+        ModuleFile          : <PROJECT>/.idea/modules/jModuleZ/jModuleZ.iml [-]
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
+            ExternalSource      : GRADLE
             GradlePath          : :jModuleZ
         FACET               : Java-Gradle
             TypeId              : java-gradle
+            ExternalSource      : GRADLE
             Buildable           : true
             BuildFolderPath     : <PROJECT>/jModuleZ/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jModuleZ
@@ -742,10 +752,11 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             compilerTestOutputPath        : file://<PROJECT>/mainModule/build/intermediates/javac/freeDebugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/mainModule/mainModule.iml
+        ModuleFile          : <PROJECT>/.idea/modules/mainModule/mainModule.iml [-]
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
+            ExternalSource      : GRADLE
             SelectedBuildVariant          : freeDebug
             AssembleTaskName    : assembleFreeDebug
             CompileJavaTaskName : compileFreeDebugSources
@@ -785,6 +796,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             - ProGuardCfgFiles  : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET               : Android-Gradle
             TypeId              : android-gradle
+            ExternalSource      : GRADLE
             GradlePath          : :mainModule
         CONENT_ENTRY        : file://<PROJECT>/mainModule
             JavaSource          : file://<PROJECT>/mainModule/build/generated/aidl_source_output_dir/freeDebug/out
@@ -1228,10 +1240,11 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             compilerTestOutputPath        : file://<PROJECT>/moduleA/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/moduleA/moduleA.iml
+        ModuleFile          : <PROJECT>/.idea/modules/moduleA/moduleA.iml [-]
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
+            ExternalSource      : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName    : assembleDebug
             CompileJavaTaskName : compileDebugSources
@@ -1267,6 +1280,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             - ProGuardCfgFiles  : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET               : Android-Gradle
             TypeId              : android-gradle
+            ExternalSource      : GRADLE
             GradlePath          : :moduleA
         CONENT_ENTRY        : file://<PROJECT>/moduleA
             JavaSource          : file://<PROJECT>/moduleA/build/generated/aidl_source_output_dir/debug/out
@@ -1638,10 +1652,11 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             compilerTestOutputPath        : file://<PROJECT>/moduleB/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/moduleB/moduleB.iml
+        ModuleFile          : <PROJECT>/.idea/modules/moduleB/moduleB.iml [-]
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
+            ExternalSource      : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName    : assembleDebug
             CompileJavaTaskName : compileDebugSources
@@ -1677,6 +1692,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             - ProGuardCfgFiles  : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET               : Android-Gradle
             TypeId              : android-gradle
+            ExternalSource      : GRADLE
             GradlePath          : :moduleB
         CONENT_ENTRY        : file://<PROJECT>/moduleB
             JavaSource          : file://<PROJECT>/moduleB/build/generated/aidl_source_output_dir/debug/out
@@ -2042,13 +2058,15 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             compilerTestOutputPath        : file://<PROJECT>/moduleC/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/moduleC/moduleC.iml
+        ModuleFile          : <PROJECT>/.idea/modules/moduleC/moduleC.iml [-]
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
+            ExternalSource      : GRADLE
             GradlePath          : :moduleC
         FACET               : Java-Gradle
             TypeId              : java-gradle
+            ExternalSource      : GRADLE
             Buildable           : true
             BuildFolderPath     : <PROJECT>/moduleC/build
         CONENT_ENTRY        : file://<PROJECT>/moduleC
@@ -2091,10 +2109,11 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             compilerTestOutputPath        : file://<PROJECT>/moduleFlavor/build/intermediates/javac/freeDebugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/moduleFlavor/moduleFlavor.iml
+        ModuleFile          : <PROJECT>/.idea/modules/moduleFlavor/moduleFlavor.iml [-]
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
+            ExternalSource      : GRADLE
             SelectedBuildVariant          : freeDebug
             AssembleTaskName    : assembleFreeDebug
             CompileJavaTaskName : compileFreeDebugSources
@@ -2134,6 +2153,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             - ProGuardCfgFiles  : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET               : Android-Gradle
             TypeId              : android-gradle
+            ExternalSource      : GRADLE
             GradlePath          : :moduleFlavor
         CONENT_ENTRY        : file://<PROJECT>/moduleFlavor
             JavaSource          : file://<PROJECT>/moduleFlavor/build/generated/aidl_source_output_dir/freeDebug/out
@@ -2276,10 +2296,11 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             compilerTestOutputPath        : file://<PROJECT>/modulePlus/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/modulePlus/modulePlus.iml
+        ModuleFile          : <PROJECT>/.idea/modules/modulePlus/modulePlus.iml [-]
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
+            ExternalSource      : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName    : assembleDebug
             CompileJavaTaskName : compileDebugSources
@@ -2315,6 +2336,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             - ProGuardCfgFiles  : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET               : Android-Gradle
             TypeId              : android-gradle
+            ExternalSource      : GRADLE
             GradlePath          : :modulePlus
         CONENT_ENTRY        : file://<PROJECT>/modulePlus
             JavaSource          : file://<PROJECT>/modulePlus/build/generated/aidl_source_output_dir/debug/out
@@ -2706,13 +2728,15 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             compilerTestOutputPath        : file://<PROJECT>/jModuleZ/nestedZ/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/jModuleZ/nestedZ/nestedZ.iml
+        ModuleFile          : <PROJECT>/.idea/modules/jModuleZ/nestedZ/nestedZ.iml [-]
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
+            ExternalSource      : GRADLE
             GradlePath          : :jModuleZ:nestedZ
         FACET               : Java-Gradle
             TypeId              : java-gradle
+            ExternalSource      : GRADLE
             Buildable           : true
             BuildFolderPath     : <PROJECT>/jModuleZ/nestedZ/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jModuleZ/nestedZ
@@ -2748,6 +2772,7 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
         ModuleTypeName      : JAVA_MODULE
         FACET               : Java-Gradle
             TypeId              : java-gradle
+            ExternalSource      : GRADLE
             Buildable           : false
             BuildFolderPath     : <PROJECT>/build [-]
         CONENT_ENTRY        : file://<PROJECT>

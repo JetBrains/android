@@ -57,6 +57,7 @@ iml_module(
         "//tools/idea/xml/impl:intellij.xml.impl[module]",
         "//tools/idea/plugins/gradle/tooling-extension-api:intellij.gradle.toolingExtension[module]",
         "//tools/idea/platform/external-system-api:intellij.platform.externalSystem[module]",
+        "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
     ],
 )
 
@@ -131,6 +132,7 @@ iml_module(
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module, test]",
     ],
 )
 

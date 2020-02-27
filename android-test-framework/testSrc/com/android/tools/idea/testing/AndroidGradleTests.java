@@ -339,7 +339,7 @@ public class AndroidGradleTests {
    * Finds the AndroidFacet to be used by the test.
    */
   @Nullable
-  public static AndroidFacet findAndroidFacetForTests(Module[] modules, @Nullable String chosenModuleName) {
+  public static AndroidFacet findAndroidFacetForTests(@NotNull Project project, Module[] modules, @Nullable String chosenModuleName) {
     AndroidFacet testAndroidFacet = null;
     // if module name is specified, find it
     if (chosenModuleName != null) {
@@ -348,6 +348,14 @@ public class AndroidGradleTests {
           testAndroidFacet = AndroidFacet.getInstance(module);
           break;
         }
+      }
+    }
+
+    // Attempt to find a module with a suffix containing the chosenModuleName
+    if (chosenModuleName != null && testAndroidFacet == null && modules.length > 0) {
+      Module foundModule = TestModuleUtil.findModule(project, chosenModuleName);
+      if (foundModule != null) {
+        testAndroidFacet = AndroidFacet.getInstance(foundModule);
       }
     }
 

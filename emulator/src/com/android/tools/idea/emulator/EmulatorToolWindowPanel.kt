@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.emulator
 
-import com.android.tools.idea.emulator.EmulatorCustomizableActionGroupProvider.Companion.EMULATOR_TOOLBAR_ID
+import com.android.tools.idea.emulator.EmulatorConstants.EMULATOR_CONTROLLER_KEY
+import com.android.tools.idea.emulator.EmulatorConstants.EMULATOR_TOOLBAR_ID
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.ide.ui.customization.CustomActionsSchema
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.JBColor
@@ -35,8 +37,12 @@ import javax.swing.SwingConstants
 /**
  * Represents contents of the Emulator tool window for a single Emulator instance.
  */
-class EmulatorToolWindowPanel(val title: String, val port: Int) : BorderLayoutPanel() {
-  val id = port.toString()
+class EmulatorToolWindowPanel(private val emulator: EmulatorController) : BorderLayoutPanel(), DataProvider {
+  val id
+    get() = emulator.emulatorId
+
+  val title
+    get() = emulator.emulatorId.avdName
 
   val icon
     get() = ICON
@@ -71,7 +77,7 @@ class EmulatorToolWindowPanel(val title: String, val port: Int) : BorderLayoutPa
   fun createContent() {
     try {
       // TODO: Switch to using gRPC Emulator API.
-      val emulatorPanel = EmulatorJarLoader.createView(port)
+      val emulatorPanel = EmulatorJarLoader.createView(emulator.emulatorId.serialPort)
       // Wrap emulatorPanel in another JPanel to keep aspect ratio.
       val layoutManager: LayoutManager = EmulatorLayoutManager(emulatorPanel)
       centerPanel.add(emulatorPanel)
@@ -91,10 +97,16 @@ class EmulatorToolWindowPanel(val title: String, val port: Int) : BorderLayoutPa
     centerPanel.removeAll()
   }
 
+  override fun getData(dataId: String): Any? {
+    return if (dataId == EMULATOR_CONTROLLER_KEY.name) emulator else null
+  }
+
   private fun createToolbarActions() =
       listOf(CustomActionsSchema.getInstance().getCorrectedAction(EMULATOR_TOOLBAR_ID)!!)
+
+  companion object {
+    @JvmStatic
+    private val ICON = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE)
+    private const val isToolbarHorizontal = true
+  }
 }
-
-private val ICON = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE)
-
-private const val isToolbarHorizontal = true

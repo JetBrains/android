@@ -37,7 +37,6 @@ import com.intellij.notification.Notifications;
 import com.intellij.notification.NotificationsAdapter;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.roots.LanguageLevelModuleExtension;
 import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
@@ -215,7 +214,7 @@ public class NewProjectTest {
 
     ideFrameFixture.getEditor()
       .open("app/src/main/res/layout/activity_main.xml", EditorFixture.Tab.DESIGN)
-      .getLayoutEditor(true)
+      .getLayoutEditor()
       .waitForRenderToFinish()
       .dragComponentToSurface("Containers", "RecyclerView");
 
