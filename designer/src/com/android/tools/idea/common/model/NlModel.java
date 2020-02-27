@@ -998,6 +998,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   /**
    * Returns the {@link DataContext} associated to this model. The {@link DataContext} allows storing information that is specific to this
    * model but is not part of it. For example, context information about how the model should be represented in a specific surface.
+   *
+   * The {@link DataContext} might change at any point so make sure you always call this method to obtain the latest data.
    */
   @NotNull
   public final DataContext getDataContext() {
