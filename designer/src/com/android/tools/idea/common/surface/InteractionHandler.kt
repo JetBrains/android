@@ -18,6 +18,7 @@ package com.android.tools.idea.common.surface
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.api.DragType
 import com.android.tools.idea.common.editor.DesignToolsSplitEditor
+import com.android.tools.idea.common.editor.showPopup
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.Coordinates.getAndroidXDip
 import com.android.tools.idea.common.model.Coordinates.getAndroidYDip
@@ -214,7 +215,9 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface) : Inte
     val sceneView = surface.getSceneView(x, y)
     if (sceneView != null) {
       val component = sceneView.selectComponentAt(x, y, modifiersEx, false, true)
-      surface.actionManager.showPopup(mouseEvent, component)
+      val actions = surface.actionManager.getPopupMenuActions(component)
+      // TODO (b/151315668): extract the hardcoded value "LayoutEditor". Be aware this value is used by [SetZoomAction#update].
+      surface.showPopup(mouseEvent, actions, "LayoutEditor")
     }
   }
 
