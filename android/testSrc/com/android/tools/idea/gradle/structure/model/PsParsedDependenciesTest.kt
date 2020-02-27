@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
-import com.android.tools.idea.gradle.dsl.TestFileName.PS_PARSED_DEPENDENCIES_FIND_LIBRARIES
-import com.android.tools.idea.gradle.dsl.TestFileName.PS_PARSED_DEPENDENCIES_PARSED_DEPENDENCIES
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.structure.GradleFileModelTestCase
+import com.android.tools.idea.gradle.structure.PS_PARSED_DEPENDENCIES_FIND_LIBRARIES
+import com.android.tools.idea.gradle.structure.PS_PARSED_DEPENDENCIES_PARSED_DEPENDENCIES
 import com.intellij.testFramework.RunsInEdt
 import org.hamcrest.CoreMatchers.hasItems
 import org.junit.Assert.assertThat
