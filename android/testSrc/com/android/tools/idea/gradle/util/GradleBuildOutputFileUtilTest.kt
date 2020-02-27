@@ -47,7 +47,6 @@ class GradleBuildOutputFileUtilTest {
       "properties": [],
       "versionCode": 1,
       "versionName": "1",
-      "enabled": true,
       "outputFile": "app-debug.apk"
     }
   ]
@@ -75,7 +74,6 @@ class GradleBuildOutputFileUtilTest {
       "properties": [],
       "versionCode": 1,
       "versionName": "1",
-      "enabled": true,
       "outputFile": "app-x86-debug.apk"
     },
     {
@@ -93,7 +91,6 @@ class GradleBuildOutputFileUtilTest {
       "properties": [],
       "versionCode": 1,
       "versionName": "1",
-      "enabled": true,
       "outputFile": "app-hdpiX86-debug.apk"
     }
   ]
