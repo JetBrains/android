@@ -26,6 +26,7 @@ import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import java.io.File;
 import java.util.Arrays;
@@ -34,12 +35,13 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Wizard step that allows the user to point to an existing ml model file to import as ml model. Also shows
  * necessary deps to use this ml model.
  */
-public class ChooseMlModelStep extends ModelWizardStep<MlModel> {
+public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
 
   private final BindingsManager myBindings = new BindingsManager();
 
@@ -50,12 +52,12 @@ public class ChooseMlModelStep extends ModelWizardStep<MlModel> {
   private TextFieldWithBrowseButton myModelLocation;
   private JLabel myRequiredInfoLabel;
 
-  public ChooseMlModelStep(@NotNull MlModel model, @NotNull String title) {
+  public ChooseMlModelStep(@NotNull MlWizardModel model, @NotNull Project project, @NotNull String title) {
     super(model, title);
 
     myModelLocation.addBrowseFolderListener("Select TFLite Model Location",
                                             "Select existing TFLite model to import to ml folder",
-                                            getModel().getProject(),
+                                            project,
                                             FileChooserDescriptorFactory.createSingleFileOrFolderDescriptor());
 
     myBindings.bindTwoWay(new TextProperty(myModelLocation.getTextField()), model.sourceLocation);
@@ -106,5 +108,11 @@ public class ChooseMlModelStep extends ModelWizardStep<MlModel> {
   @Override
   protected JComponent getComponent() {
     return myRootPanel;
+  }
+
+  @Nullable
+  @Override
+  protected JComponent getPreferredFocusComponent() {
+    return myModelLocation;
   }
 }
