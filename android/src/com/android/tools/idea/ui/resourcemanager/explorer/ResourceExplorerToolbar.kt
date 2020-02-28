@@ -275,10 +275,12 @@ private class TypeFilterAction internal constructor(val viewModel: ResourceExplo
   }
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
+    if (state) {
+      ResourceManagerTracking.logTypeFilterEnabled(viewModel.resourceType)
+    }
     typeFilters.forEach { typeFilter ->
       viewModel.typeFiltersModel.setEnabled(viewModel.resourceType, typeFilter, state)
     }
-    // TODO: Update tracking.
   }
 }
 
