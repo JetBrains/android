@@ -511,7 +511,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
           .stream()
           .collect(
             Collectors.toMap((k) -> String.format("%s:%s:%s", k.getId().getGroupId(), k.getId().getArtifactId(), k.getId().getVersion()),
-                             (k) -> k
+                             (k) -> k,
+                             (value1, value2) -> value1  // b/150402775
             ));
     }
     else {
