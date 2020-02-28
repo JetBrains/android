@@ -17,7 +17,7 @@ package com.android.tools.idea.databinding.util;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.databinding.DataBindingMode;
-import com.android.tools.idea.databinding.LayoutBindingSupport;
+import com.android.tools.idea.databinding.DataBindingSupport;
 import com.android.tools.idea.databinding.index.BindingXmlData;
 import com.android.tools.idea.databinding.index.BindingXmlIndex;
 import com.android.tools.idea.databinding.index.ImportData;
@@ -68,8 +68,8 @@ public final class DataBindingUtil {
    * data binding plugin isn't enabled or no implementation is found.
    */
   @Nullable
-  private static LayoutBindingSupport getBindingSupport() {
-    List<LayoutBindingSupport> extensionList = LayoutBindingSupport.EP_NAME.getExtensionList();
+  static DataBindingSupport getDataBindingSupport() {
+    List<DataBindingSupport> extensionList = DataBindingSupport.EP_NAME.getExtensionList();
     return extensionList.isEmpty() ? null : extensionList.get(0);
   }
 
@@ -85,7 +85,7 @@ public final class DataBindingUtil {
    */
   @NotNull
   static public DataBindingMode getDataBindingMode(@NotNull AndroidFacet facet) {
-    LayoutBindingSupport support = getBindingSupport();
+    DataBindingSupport support = getDataBindingSupport();
     return support == null ? DataBindingMode.NONE : support.getDataBindingMode(facet);
   }
 
@@ -95,7 +95,7 @@ public final class DataBindingUtil {
    */
   @NotNull
   static public ModificationTracker getDataBindingEnabledTracker() {
-    LayoutBindingSupport support = getBindingSupport();
+    DataBindingSupport support = getDataBindingSupport();
     return support == null ? (() -> 0) : support.getDataBindingEnabledTracker();
   }
 
