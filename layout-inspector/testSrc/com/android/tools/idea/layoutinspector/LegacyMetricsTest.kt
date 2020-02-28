@@ -55,7 +55,7 @@ class LegacyMetricsTest {
 
     val menuAction = SelectProcessAction(inspectorRule.inspector)
     val connectAction = findFirstConnectAction(menuAction, DEFAULT_PROCESS.name)
-    connectAction.setSelected(event, true)
+    connectAction.connect().get()
 
     val usages = usageTrackerRule.testTracker.usages
       .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT }
@@ -63,7 +63,7 @@ class LegacyMetricsTest {
     var studioEvent = usages[0].studioEvent
 
     val deviceInfo = studioEvent.deviceInfo
-    Assert.assertEquals(AnonymizerUtil.anonymizeUtf8("1234"), deviceInfo.anonymizedSerialNumber)
+    Assert.assertEquals(AnonymizerUtil.anonymizeUtf8("123488"), deviceInfo.anonymizedSerialNumber)
     Assert.assertEquals("My Legacy Model", deviceInfo.model)
     Assert.assertEquals("Google", deviceInfo.manufacturer)
     Assert.assertEquals(DeviceInfo.DeviceType.LOCAL_PHYSICAL, deviceInfo.deviceType)
@@ -84,12 +84,9 @@ class LegacyMetricsTest {
 
     val menuAction = SelectProcessAction(inspectorRule.inspector)
     val connectAction = findFirstConnectAction(menuAction, DEFAULT_PROCESS.name)
-    try {
-      connectAction.setSelected(event, true)
-    }
-    catch (ex: StatusRuntimeException) {
-      // ignore...
-    }
+    kotlin.runCatching { connectAction.connect().get() }
+      .onSuccess { error("Expected a failure since reloadAllWindows will be empty") }
+      .onFailure { /* expected */ }
 
     val usages = usageTrackerRule.testTracker.usages
       .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT }
@@ -97,7 +94,7 @@ class LegacyMetricsTest {
     val studioEvent = usages[0].studioEvent
 
     val deviceInfo = studioEvent.deviceInfo
-    Assert.assertEquals(AnonymizerUtil.anonymizeUtf8("1234"), deviceInfo.anonymizedSerialNumber)
+    Assert.assertEquals(AnonymizerUtil.anonymizeUtf8("123488"), deviceInfo.anonymizedSerialNumber)
     Assert.assertEquals("My Legacy Model", deviceInfo.model)
     Assert.assertEquals("Google", deviceInfo.manufacturer)
     Assert.assertEquals(DeviceInfo.DeviceType.LOCAL_PHYSICAL, deviceInfo.deviceType)
