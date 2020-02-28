@@ -15,12 +15,6 @@
  */
 package com.android.tools.idea.mlkit;
 
-import com.android.ide.common.repository.GradleCoordinate;
-import com.android.tools.idea.projectsystem.AndroidModuleSystem;
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason;
-import com.android.tools.idea.projectsystem.ProjectSystemSyncUtil;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.mlkit.MetadataExtractor;
 import com.android.tools.mlkit.MlkitNames;
 import com.android.tools.mlkit.ModelInfo;
@@ -51,7 +45,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import javax.swing.BoxLayout;
-import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JEditorPane;
 import javax.swing.JPanel;
@@ -78,13 +71,11 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
                                                  "}\n" +
                                                  "</style>";
 
-  private final Project myProject;
   private final Module myModule;
   private final VirtualFile myFile;
   private final JBScrollPane myRootPane;
 
   public TfliteModelFileEditor(@NotNull Project project, @NotNull VirtualFile file) {
-    myProject = project;
     myFile = file;
     myModule = ModuleUtilCore.findModuleForFile(file, project);
 
@@ -92,24 +83,6 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
     contentPanel.setBackground(UIUtil.getTextFieldBackground());
     contentPanel.setBorder(JBUI.Borders.empty(20));
-
-    // TODO(149115468): revisit.
-    JButton addDepButton = new JButton("Add Missing Dependencies");
-    addDepButton.setAlignmentX(Component.LEFT_ALIGNMENT);
-    addDepButton.setVisible(shouldShowAddDepButton());
-    addDepButton.addActionListener(actionEvent -> {
-      List<GradleCoordinate> depsToAdd = MlkitUtils.getMissingDependencies(myModule, myFile);
-      // TODO(b/149224613): switch to use DependencyManagementUtil#addDependencies.
-      AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(myModule);
-      if (DependencyManagementUtil.userWantsToAdd(myModule.getProject(), depsToAdd, "")) {
-        for (GradleCoordinate dep : depsToAdd) {
-          moduleSystem.registerDependency(dep);
-        }
-        ProjectSystemUtil.getSyncManager(myProject).syncProject(SyncReason.PROJECT_MODIFIED);
-        addDepButton.setVisible(false);
-      }
-    });
-    contentPanel.add(addDepButton);
 
     try {
       ModelInfo modelInfo = ModelInfo.buildFrom(new MetadataExtractor(ByteBuffer.wrap(file.contentsToByteArray())));
@@ -129,15 +102,6 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     }
 
     myRootPane = new JBScrollPane(contentPanel);
-
-    project.getMessageBus().connect(project)
-      .subscribe(ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC, result -> addDepButton.setVisible(shouldShowAddDepButton()));
-  }
-
-  private boolean shouldShowAddDepButton() {
-    return MlkitUtils.isModelFileInMlModelsFolder(myFile) &&
-           myModule != null &&
-           !MlkitUtils.getMissingDependencies(myModule, myFile).isEmpty();
   }
 
   private static JTextPane createPaneFromHtml(@NotNull String html) {
@@ -197,7 +161,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   }
 
   @NotNull
-  private static JTextPane createPaneFromTable(@NotNull List<String[]> table, @NotNull String title, @NotNull boolean useHeaderCells) {
+  private static JTextPane createPaneFromTable(@NotNull List<String[]> table, @NotNull String title, boolean useHeaderCells) {
     StringBuilder htmlBuilder = new StringBuilder("<h2>" + title + "</h2>");
     if (!table.isEmpty()) {
       htmlBuilder.append("<table>\n").append(createHtmlRow(table.get(0), useHeaderCells));
