@@ -19,6 +19,7 @@ import com.android.testutils.TestUtils
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.intellij.openapi.project.guessProjectDir
+import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
