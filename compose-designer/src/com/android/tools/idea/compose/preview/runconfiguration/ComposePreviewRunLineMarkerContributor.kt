@@ -43,7 +43,7 @@ class ComposePreviewRunLineMarkerContributor : RunLineMarkerContributor() {
     if (element.node.elementType != KtTokens.IDENTIFIER) return null
 
     (element.parent as? KtNamedFunction)?.takeIf { it.isValidComposePreview() }?.let {
-      return Info(StudioIcons.Shell.Toolbar.RUN, ExecutorAction.getActions()) { _ -> message("run.line.marker.text", it.name!!) }
+      return Info(StudioIcons.Compose.RUN_ON_DEVICE, ExecutorAction.getActions()) { _ -> message("run.line.marker.text", it.name!!) }
     }
     return null
   }
