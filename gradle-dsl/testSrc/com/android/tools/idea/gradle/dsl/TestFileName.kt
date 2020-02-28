@@ -99,6 +99,7 @@ enum class TestFileName(val path: String) {
   GRADLE_SETTINGS_MODEL_SET_PROJECT_DIR_FROM_EXISTING("gradleSettingsModel/setProjectDirFromExisting"),
   GRADLE_SETTINGS_MODEL_SET_PROJECT_DIR_FROM_EXISTING_EXPECTED("gradleSettingsModel/setProjectDirFromExistingExpected"),
   GRADLE_SETTINGS_MODEL_SET_PROJECT_DIR_NON_RELATIVE_EXPECTED("gradleSettingsModel/setProjectDirNonRelativeExpected"),
+  GRADLE_SETTINGS_MODEL_SET_PROJECT_DIR_NON_RELATIVE_WINDOWS_EXPECTED("gradleSettingsModel/setProjectDirNonRelativeWindowsExpected"),
   PROJECT_BUILD_MODEL_APPLIED_FILES_SHARED("projectBuildModel/appliedFilesShared"),
   PROJECT_BUILD_MODEL_APPLIED_FILES_SHARED_APPLIED("projectBuildModel/appliedFilesSharedApplied"),
   PROJECT_BUILD_MODEL_APPLIED_FILES_SHARED_SUB("projectBuildModel/appliedFilesShared_sub"),

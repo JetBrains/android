@@ -43,6 +43,7 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MOD
 import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_SET_PROJECT_DIR_FROM_EXISTING;
 import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_SET_PROJECT_DIR_FROM_EXISTING_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_SET_PROJECT_DIR_NON_RELATIVE_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_SETTINGS_MODEL_SET_PROJECT_DIR_NON_RELATIVE_WINDOWS_EXPECTED;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
@@ -311,8 +312,7 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     verifyFileContents(mySettingsFile, GRADLE_SETTINGS_MODEL_SET_PROJECT_DIR_FROM_EXISTING_EXPECTED);
   }
 
-  // TODO(b/150400567): Enable when compatible with windows.
-  //@Test
+  @Test
   public void testSetProjectDirNonRelativePath() throws Exception {
     writeToSettingsFile(GRADLE_SETTINGS_MODEL_SET_PROJECT_DIR);
 
@@ -328,9 +328,14 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     // Re-parsing should change the property into a readable format.
     settingsModel.reparse();
     File appLocation = settingsModel.moduleDirectory(":app");
-    assertEquals(new File("/cool/app"), appLocation);
-
-    verifyFileContents(mySettingsFile, GRADLE_SETTINGS_MODEL_SET_PROJECT_DIR_NON_RELATIVE_EXPECTED);
+    File expected = new File("/cool/app").getAbsoluteFile();
+    assertEquals(expected, appLocation);
+    if (System.getProperty("os.name").startsWith("Windows")) {
+      verifyFileContents(mySettingsFile, GRADLE_SETTINGS_MODEL_SET_PROJECT_DIR_NON_RELATIVE_WINDOWS_EXPECTED);
+    }
+    else {
+      verifyFileContents(mySettingsFile, GRADLE_SETTINGS_MODEL_SET_PROJECT_DIR_NON_RELATIVE_EXPECTED);
+    }
   }
 
   @Test
