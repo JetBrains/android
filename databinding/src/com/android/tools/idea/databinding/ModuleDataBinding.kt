@@ -24,6 +24,7 @@ import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.databinding.psiclass.LightBrClass
 import com.android.tools.idea.databinding.psiclass.LightDataBindingComponentClass
 import com.android.tools.idea.databinding.util.DataBindingUtil
+import com.android.tools.idea.databinding.util.isViewBindingEnabled
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.util.androidFacet
@@ -68,9 +69,27 @@ class ModuleDataBinding private constructor(private val module: Module) {
       }
     }
 
+  @GuardedBy("lock")
+  private var _viewBindingEnabled = false
+  var viewBindingEnabled: Boolean
+    get() = synchronized(lock) {
+      return _viewBindingEnabled
+    }
+    set(value) {
+      synchronized(lock) {
+        if (_viewBindingEnabled != value) {
+          _viewBindingEnabled = value
+          ViewBindingEnabledTrackingService.instance.incrementModificationCount()
+        }
+      }
+    }
+
   init {
     fun syncModeWithFacetConfiguration() {
       dataBindingMode = module.androidFacet?.let(AndroidModel::get)?.dataBindingMode ?: return
+      AndroidFacet.getInstance(module)?.let { facet ->
+        viewBindingEnabled = facet.isViewBindingEnabled()
+      }
     }
 
     val connection = module.messageBus.connect(module)
