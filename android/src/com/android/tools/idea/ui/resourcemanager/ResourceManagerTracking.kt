@@ -76,6 +76,11 @@ object ResourceManagerTracking {
   fun logSwitchToListMode() = Unit // Missing proto value
 
   /**
+   * Called when refreshing an asset in the resource manager through the right click action
+   */
+  fun logRefreshAsset(type: ResourceType) = log(Kind.REFRESH_RES_PREVIEW, type)
+
+  /**
    * Called when the user toggles the 'local dependencies' filter
    */
   fun logShowLocalDependenciesToggle(state: Boolean) = log(if (state) Kind.DEPENDENT_MODULES_SHOWN else Kind.DEPENDENT_MODULES_HIDDEN)
@@ -94,6 +99,11 @@ object ResourceManagerTracking {
    * Called when the user toggles the 'theme attributes' filter
    */
   fun logShowThemeAttributesToggle(state: Boolean) = log(if (state) Kind.THEME_ATTR_SHOWN else Kind.THEME_ATTR_HIDDEN)
+
+  /**
+   * Called when the user enables a Type filter. Eg: Enable the 'vector' drawable filter
+   */
+  fun logTypeFilterEnabled(type: ResourceType) = log(Kind.ENABLE_FILTER_BY_TYPE, type)
 
   /**
    * Called when users drop or paste a resource from the Resource Manager onto a blank area

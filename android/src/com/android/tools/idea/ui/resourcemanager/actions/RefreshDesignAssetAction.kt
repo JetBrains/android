@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcemanager.actions
 
+import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.RESOURCE_DESIGN_ASSETS_KEY
 import com.android.tools.idea.ui.resourcemanager.rendering.SlowResource.Companion.isSlowResource
@@ -32,6 +33,7 @@ class RefreshDesignAssetAction(private val refreshAssetsCallback: (Array<DesignA
   override fun actionPerformed(e: AnActionEvent) {
     val assets = e.getData(RESOURCE_DESIGN_ASSETS_KEY)
     if (assets != null && canRefresh(assets)) {
+      ResourceManagerTracking.logRefreshAsset(assets.first().type)
       refreshAssetsCallback(assets)
     }
   }
