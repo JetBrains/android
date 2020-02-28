@@ -125,7 +125,7 @@ import com.android.tools.idea.lint.common.LintIdeIssueRegistry;
 import com.android.tools.idea.lint.common.SuppressLintIntentionAction;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.TestProjectSystem;
-import com.android.tools.idea.templates.RepositoryUrlManager;
+import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
 import com.android.tools.idea.testing.AndroidTestUtils;
 import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.lint.checks.IconDetector;

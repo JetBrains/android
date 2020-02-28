@@ -20,6 +20,7 @@ import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleCoordinate.parseCoordinateString
 import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
+import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.util.EditorUtil.openEditor
 import com.android.tools.idea.util.EditorUtil.selectEditor

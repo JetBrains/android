@@ -20,7 +20,7 @@ import com.android.ide.common.repository.GradleCoordinate;
 import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.templates.RepositoryUrlManager;
+import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
 import com.android.tools.idea.ui.GuiTestingService;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Sets;

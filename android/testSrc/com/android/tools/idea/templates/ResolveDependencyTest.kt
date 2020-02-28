@@ -16,9 +16,8 @@
 package com.android.tools.idea.templates
 
 import com.android.ide.common.repository.GradleCoordinate
-import com.android.sdklib.repository.AndroidSdkHandler
+import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.project.Project
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
