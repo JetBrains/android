@@ -63,7 +63,7 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
         return new FacetEditorTab[]{editorTabProvider.createFacetEditorTab(editorContext, this)};
       }
     }
-    return NO_EDITOR_TABS;
+    return new FacetEditorTab[]{new NotEditableAndroidFacetEditorTab()};
   }
 
   public boolean isImportedProperty(@NotNull AndroidImportableProperty property) {
