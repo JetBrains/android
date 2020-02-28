@@ -25,6 +25,8 @@ import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.LabeledComponent
 import com.intellij.openapi.util.Disposer
+import com.intellij.ui.EditorNotificationPanel
+import com.intellij.ui.LightColors
 import com.intellij.ui.components.JBTabbedPane
 import com.intellij.ui.components.JBTextField
 import org.jetbrains.android.facet.AndroidFacet
@@ -45,14 +47,21 @@ class ComposePreviewSettingsEditor(private val project: Project, private val con
 
   init {
     Disposer.register(project, this)
-    panel = JPanel(TabularLayout("*", "Fit,*"))
+    panel = JPanel(TabularLayout("*", "Fit,*,Fit"))
     val tabbedPane = JBTabbedPane()
     tabbedPane.add(message("run.configuration.general.tab"), createGeneralTab())
     debuggerTab = createDebuggerTab()
     debuggerTab?.component?.let {
       tabbedPane.add(message("run.configuration.debugger.tab"), it)
     }
+
+    val minimumApiNotification = EditorNotificationPanel(LightColors.BLUE).apply {
+      setText(message("run.configuration.minimum.api.notification"))
+      isFocusable = false
+    }
+
     panel.add(tabbedPane, TabularLayout.Constraint(0, 0))
+    panel.add(minimumApiNotification, TabularLayout.Constraint(1, 0))
   }
 
   private fun createGeneralTab(): JPanel {
