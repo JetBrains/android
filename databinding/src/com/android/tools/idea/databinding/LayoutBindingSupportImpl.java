@@ -36,8 +36,7 @@ public class LayoutBindingSupportImpl implements LayoutBindingSupport {
   @Override
   @NotNull
   public ModificationTracker getDataBindingEnabledTracker() {
-    //noinspection AccessStaticViaInstance
-    return DataBindingModeTrackingService.getInstance().DATA_BINDING_ENABLED_TRACKER;
+    return DataBindingModeTrackingService.getInstance();
   }
 
   /**
