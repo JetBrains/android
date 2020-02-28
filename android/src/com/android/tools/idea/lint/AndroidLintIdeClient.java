@@ -46,7 +46,6 @@ import com.android.tools.idea.res.FileResourceReader;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
-import com.android.tools.idea.templates.IdeDeprecatedSdkRegistry;
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository;
 import com.android.tools.lint.detector.api.DefaultPosition;
 import com.android.tools.lint.detector.api.Desugaring;
