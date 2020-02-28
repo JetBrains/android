@@ -25,8 +25,10 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
+import java.util.concurrent.Future
 
 val NO_PROCESS_ACTION = object : AnAction("No debuggable processes detected") {
   override fun actionPerformed(event: AnActionEvent) {}
@@ -90,9 +92,12 @@ class SelectProcessAction(val layoutInspector: LayoutInspector) :
 
     override fun setSelected(event: AnActionEvent, state: Boolean) {
       if (state) {
-        client.attach(stream, process)
+        connect()
       }
     }
+
+    @VisibleForTesting
+    fun connect(): Future<*> = ApplicationManager.getApplication().executeOnPooledThread { client.attach(stream, process) }
   }
 
   private class StopAction(val client: () -> InspectorClient) : AnAction("Stop inspector") {

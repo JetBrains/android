@@ -26,6 +26,8 @@ import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.collect.HashBasedTable
+import com.google.common.util.concurrent.Futures
+import java.util.concurrent.Future
 
 internal const val ATTR_TOP = "top"
 internal const val ATTR_BOTTOM = "bottom"
@@ -48,9 +50,10 @@ class LegacyPropertiesProvider : PropertiesProvider {
 
   override val resultListeners = mutableListOf<(PropertiesProvider, ViewNode, PropertiesTable<InspectorPropertyItem>) -> Unit>()
 
-  override fun requestProperties(view: ViewNode) {
+  override fun requestProperties(view: ViewNode): Future<*> {
     val viewProperties = properties[view.drawId] ?: PropertiesTable.emptyTable()
     resultListeners.forEach { it(this, view, viewProperties) }
+    return Futures.immediateFuture(null)
   }
 
   class Updater {

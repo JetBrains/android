@@ -176,7 +176,7 @@ class DefaultInspectorClient(
       processId = { selectedProcess.pid }) {
       if (selectedStream != Common.Stream.getDefaultInstance() &&
           selectedProcess != Common.Process.getDefaultInstance() && isConnected && it.isEnded) {
-        disconnectNow()
+        disconnect(sendStopCommand = false)
       }
       false
     })
@@ -185,7 +185,7 @@ class DefaultInspectorClient(
   private fun registerProjectClosed(project: Project) {
     val projectManagerListener = object : ProjectManagerListener {
       override fun projectClosed(project: Project) {
-        disconnectNow()
+        disconnect(sendStopCommand = true)
         ProjectManager.getInstance().removeProjectManagerListener(project, this)
       }
     }
@@ -347,8 +347,14 @@ class DefaultInspectorClient(
   }
 
   override fun disconnect() {
+    disconnect(sendStopCommand = true)
+  }
+
+  private fun disconnect(sendStopCommand: Boolean) {
     ApplicationManager.getApplication().executeOnPooledThread {
-      execute(LayoutInspectorCommand.Type.STOP)
+      if (sendStopCommand) {
+        execute(LayoutInspectorCommand.Type.STOP)
+      }
       disconnectNow()
     }
   }
