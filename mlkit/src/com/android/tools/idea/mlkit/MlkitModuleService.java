@@ -17,13 +17,8 @@ package com.android.tools.idea.mlkit;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.mlkit.lightpsi.LightModelClass;
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener;
-import com.android.tools.idea.projectsystem.ProjectSystemSyncUtil;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleServiceManager;
-import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -61,15 +56,6 @@ public class MlkitModuleService {
   public MlkitModuleService(@NotNull Module module) {
     myModule = module;
     myModelFileModificationTracker = new ModelFileModificationTracker(module);
-
-    module.getMessageBus().connect(module).subscribe(ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC, new SyncResultListener() {
-      @Override
-      public void syncEnded(@NotNull ProjectSystemSyncManager.SyncResult result) {
-        ApplicationManager.getApplication()
-          .executeOnPooledThread(() -> DumbService.getInstance(module.getProject()).runReadActionInSmartMode(
-            () -> MlkitUtils.verifyDependenciesForAllModelFiles(module)));
-      }
-    });
   }
 
   public ModelFileModificationTracker getModelFileModificationTracker() {
@@ -134,9 +120,6 @@ public class MlkitModuleService {
                 PsiManager.getInstance(module.getProject()).dropResolveCaches();
                 getInstance(module).myLightModelClassMap.clear();
                 myModificationCount++;
-                ApplicationManager.getApplication()
-                  .executeOnPooledThread(() -> DumbService.getInstance(module.getProject()).runReadActionInSmartMode(
-                    () -> MlkitUtils.verifyDependenciesForModelFile(module, file)));
                 return;
               }
             }

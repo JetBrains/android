@@ -28,9 +28,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.problems.WolfTheProblemSolver;
 import com.intellij.psi.PsiClass;
-import com.intellij.util.indexing.FileBasedIndex;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -96,34 +94,5 @@ public class MlkitUtils {
       }
     }
     return pendingDeps;
-  }
-
-  /**
-   * Checks if dependencies required by all auto-generated classes exist.
-   */
-  public static void verifyDependenciesForAllModelFiles(@NotNull Module module) {
-    FileBasedIndex index = FileBasedIndex.getInstance();
-    index.processAllKeys(MlModelFileIndex.INDEX_ID, key -> {
-      index.processValues(MlModelFileIndex.INDEX_ID, key, null, (file, value) -> {
-        verifyDependenciesForModelFile(module, file);
-        return true;
-      }, module.getModuleScope(false));
-
-      return true;
-    }, module.getModuleScope(false), null);
-  }
-
-  /**
-   * Checks if all dependencies required by the auto-generated class exist. If not, flags the model file with underlining its file name by a
-   * red squiggly line.
-   */
-  public static void verifyDependenciesForModelFile(@NotNull Module module, @NotNull VirtualFile modelFile) {
-    WolfTheProblemSolver problemSolver = WolfTheProblemSolver.getInstance(module.getProject());
-    if (getMissingDependencies(module, modelFile).isEmpty()) {
-      problemSolver.clearProblemsFromExternalSource(modelFile, module);
-    }
-    else {
-      problemSolver.reportProblemsFromExternalSource(modelFile, module);
-    }
   }
 }

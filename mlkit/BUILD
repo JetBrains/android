@@ -46,6 +46,7 @@ iml_module(
         "//tools/idea/java/java-indexing-impl:intellij.java.indexing.impl[module]",
         "//tools/idea/java/java-psi-api:intellij.java.psi[module]",
         "//tools/idea/platform/core-api:intellij.platform.core[module]",
+        "//tools/idea/platform/platform-api:intellij.platform.ide[module]",
         "//tools/idea/platform/lang-api:intellij.platform.lang[module]",
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
