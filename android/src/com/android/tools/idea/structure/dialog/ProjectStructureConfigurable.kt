@@ -382,8 +382,6 @@ class ProjectStructureConfigurable(private val project: Project) : SearchableCon
     val modifiedConfigurables = myConfigurables.keys.filter { it.isModified }
     if (modifiedConfigurables.isEmpty()) return
     modifiedConfigurables.forEach { it.apply() }
-    // If we successfully applied changes there is none to notify about the changes since the dialog is being closed.
-    if (!inDoOK) myChangeEventDispatcher.multicaster.projectStructureChanged()
     needsSync = true
   }
 
