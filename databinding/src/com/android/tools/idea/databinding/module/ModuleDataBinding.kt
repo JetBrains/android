@@ -21,7 +21,6 @@ import com.android.tools.idea.databinding.BindingLayout
 import com.android.tools.idea.databinding.BindingLayoutGroup
 import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.DataBindingModeTrackingService
-import com.android.tools.idea.databinding.ViewBindingEnabledTracker
 import com.android.tools.idea.databinding.index.BindingLayoutType
 import com.android.tools.idea.databinding.psiclass.BindingClassConfig
 import com.android.tools.idea.databinding.psiclass.BindingImplClassConfig
@@ -29,7 +28,6 @@ import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.databinding.psiclass.LightBrClass
 import com.android.tools.idea.databinding.psiclass.LightDataBindingComponentClass
 import com.android.tools.idea.databinding.util.DataBindingUtil
-import com.android.tools.idea.databinding.util.isViewBindingEnabled
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
@@ -73,27 +71,9 @@ class ModuleDataBinding private constructor(private val module: Module) {
       }
     }
 
-  @GuardedBy("lock")
-  private var _viewBindingEnabled = false
-  var viewBindingEnabled: Boolean
-    get() = synchronized(lock) {
-      return _viewBindingEnabled
-    }
-    set(value) {
-      synchronized(lock) {
-        if (_viewBindingEnabled != value) {
-          _viewBindingEnabled = value
-          ViewBindingEnabledTracker.incrementModificationCount()
-        }
-      }
-    }
-
   init {
     fun syncModeWithDependencies() {
       dataBindingMode = determineDataBindingMode(module)
-      AndroidFacet.getInstance(module)?.let { facet ->
-        viewBindingEnabled = facet.isViewBindingEnabled()
-      }
     }
 
     val connection = module.messageBus.connect(module)

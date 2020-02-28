@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,23 @@
  */
 package com.android.tools.idea.databinding
 
+import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.util.ModificationTracker
-import net.jcip.annotations.ThreadSafe
-import java.util.concurrent.atomic.AtomicLong
+import org.jetbrains.android.facet.AndroidFacet
 
 /**
- * Service that owns an atomic counter for how many times the view binding setting is changed.
- * This allows it to provide a [ModificationTracker] which is used by IntelliJ for knowing
- * when to clear caches, etc.
+ * Extension point for supporting Data Binding methods.
  */
-@ThreadSafe
-object ViewBindingEnabledTracker : ModificationTracker {
-  private val modificationCount = AtomicLong(0)
-  fun incrementModificationCount() {
-    modificationCount.incrementAndGet()
+interface DataBindingSupport {
+  companion object {
+    @JvmField
+    val EP_NAME = ExtensionPointName<DataBindingSupport>("com.android.tools.idea.databinding.dataBindingSupport")
   }
+  /**
+   * Return a [ModificationTracker] that is incremented every time the setting for whether
+   * data binding is enabled or disabled changes.
+   */
+  val dataBindingEnabledTracker: ModificationTracker
 
-  override fun getModificationCount() = modificationCount.get()
+  fun getDataBindingMode(facet: AndroidFacet): DataBindingMode
 }
