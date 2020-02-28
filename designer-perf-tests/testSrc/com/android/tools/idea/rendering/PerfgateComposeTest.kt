@@ -24,6 +24,7 @@ import com.android.tools.perflogger.Metric
 import com.google.common.collect.LinkedListMultimap
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.psi.PsiDocumentManager
 import org.junit.After

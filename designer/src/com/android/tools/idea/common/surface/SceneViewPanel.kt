@@ -22,8 +22,8 @@ import com.android.tools.idea.common.surface.layout.findAllScanlines
 import com.android.tools.idea.common.surface.layout.findLargerScanline
 import com.android.tools.idea.common.surface.layout.findSmallerScanline
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Container
@@ -35,43 +35,41 @@ import java.awt.Rectangle
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
-import kotlin.math.max
 
 private fun Array<Component>.getSceneViewsFromWrappers(): Collection<SceneView> =
   filterIsInstance<SceneViewPeerPanel>().map { it.sceneView }
 
 /**
- * [LayoutManager] responsible for positioning and measuring all the [SceneView] in a [DesignSurface]
+ * [LayoutManager] responsible for positioning and measuring all the [PositionableContent] in a [DesignSurface]
  *
- * For now, the SceneViewLayoutManager does not contain actual Swing components so we do not need to layout them, just calculate the
+ * For now, the PositionableContentLayoutManager does not contain actual Swing components so we do not need to layout them, just calculate the
  * size of the layout.
- * Eventually, SceneViews will end up being actual Swing components and we will not need this specialized LayoutManager.
+ * Eventually, PositionableContent will end up being actual Swing components and we will not need this specialized LayoutManager.
  */
-abstract class SceneViewLayoutManager: LayoutManager {
+abstract class PositionableContentLayoutManager : LayoutManager {
   /**
-   * Method called by the [SceneViewLayoutManager] to make sure that the layout of the [SceneView]s
+   * Method called by the [PositionableContentLayoutManager] to make sure that the layout of the [PositionableContent]s
    * to ask them to be laid out within the [SceneViewPanel].
    */
-  abstract fun layoutSceneViews(sceneViews: Collection<SceneView>)
+  abstract fun layoutContent(content: Collection<PositionableContent>)
 
   final override fun layoutContainer(parent: Container) {
     val sceneViews = parent.components.getSceneViewsFromWrappers()
 
     // We lay out the [SceneView]s first, so we have the actual sizes available for setting the
     // bounds of the Swing components.
-    layoutSceneViews(sceneViews)
+    layoutContent(sceneViews)
 
     // Now position all the wrapper panels to match the position of the SceneViews
-    val size = Dimension()
     parent.components
       .filterIsInstance<SceneViewPeerPanel>()
       .forEach {
         val sceneView = it.sceneView
-        sceneView.getScaledContentSize(size)
+        val peerPreferredSize = it.preferredSize
         it.setBounds(sceneView.x - sceneView.margin.left,
                      sceneView.y - sceneView.margin.top,
-                     size.width + sceneView.margin.left + sceneView.margin.right,
-                     size.height + sceneView.margin.top + sceneView.margin.bottom)
+                     peerPreferredSize.width,
+                     peerPreferredSize.height)
       }
   }
 
@@ -81,11 +79,11 @@ abstract class SceneViewLayoutManager: LayoutManager {
 }
 
 /**
- * A [SceneViewLayoutManager] for a [DesignSurface] with only one [SceneView].
+ * A [PositionableContentLayoutManager] for a [DesignSurface] with only one [PositionableContent].
  */
-class SingleSceneViewLayoutManager : SceneViewLayoutManager() {
-  override fun layoutSceneViews(sceneViews: Collection<SceneView>) {
-    sceneViews.singleOrNull()?.setLocation(0, 0)
+class SinglePositionableContentLayoutManager : PositionableContentLayoutManager() {
+  override fun layoutContent(content: Collection<PositionableContent>) {
+    content.singleOrNull()?.setLocation(0, 0)
   }
 
   override fun preferredLayoutSize(parent: Container): Dimension =
@@ -183,6 +181,13 @@ class SceneViewPeerPanel(val sceneView: SceneView, private val sceneViewToolbar:
 
     super.doLayout()
   }
+
+  /** [Dimension] used to avoid extra allocations calculating [getPreferredSize] */
+  private val cachedContentSize = Dimension()
+  override fun getPreferredSize(): Dimension = sceneView.getScaledContentSize(cachedContentSize).also {
+    it.width = it.width + sceneView.margin.left + sceneView.margin.right
+    it.height = it.height + sceneView.margin.top + sceneView.margin.bottom
+  }
 }
 
 /**
@@ -190,9 +195,10 @@ class SceneViewPeerPanel(val sceneView: SceneView, private val sceneViewToolbar:
  * [addSceneView] and removed by calling [removeSceneView]. Only [SceneView]s added by calling thosemethods will be rendered by this panel.
  *
  * @param interactionLayersProvider A [Layer] provider that returns the additional interaction [Layer]s, if any
- * @param layoutManager the [SceneViewLayoutManager] responsible for positioning and measuring the [SceneView]s
+ * @param layoutManager the [PositionableContentLayoutManager] responsible for positioning and measuring the [SceneView]s
  */
-internal class SceneViewPanel(private val interactionLayersProvider: () -> List<Layer>, val layoutManager: SceneViewLayoutManager):
+internal class SceneViewPanel(private val interactionLayersProvider: () -> List<Layer>,
+                              val layoutManager: PositionableContentLayoutManager) :
   JPanel(layoutManager) {
   override fun paintComponent(graphics: Graphics) {
     super.paintComponent(graphics)
@@ -205,12 +211,12 @@ internal class SceneViewPanel(private val interactionLayersProvider: () -> List<
       // A Dimension used to avoid reallocating new objects just to obtain the SceneView dimensions
       val reusableDimension = Dimension()
       val sceneViewsToPaint: Collection<SceneView> = components.getSceneViewsFromWrappers()
-      val horizontalTopScanLines = sceneViewsToPaint.findAllScanlines { sceneView: SceneView -> sceneView.y }
-      val horizontalBottomScanLines = sceneViewsToPaint.findAllScanlines { sceneView: SceneView ->
+      val horizontalTopScanLines = sceneViewsToPaint.findAllScanlines { sceneView: PositionableContent -> sceneView.y }
+      val horizontalBottomScanLines = sceneViewsToPaint.findAllScanlines { sceneView: PositionableContent ->
         sceneView.y + sceneView.getScaledContentSize(reusableDimension).height
       }
-      val verticalLeftScanLines = sceneViewsToPaint.findAllScanlines { sceneView: SceneView -> sceneView.x }
-      val verticalRightScanLines = sceneViewsToPaint.findAllScanlines { sceneView: SceneView ->
+      val verticalLeftScanLines = sceneViewsToPaint.findAllScanlines { sceneView: PositionableContent -> sceneView.x }
+      val verticalRightScanLines = sceneViewsToPaint.findAllScanlines { sceneView: PositionableContent ->
         sceneView.x + sceneView.getScaledContentSize(reusableDimension).width
       }
       @SwingCoordinate val viewportRight = viewportBounds.x + viewportBounds.width
