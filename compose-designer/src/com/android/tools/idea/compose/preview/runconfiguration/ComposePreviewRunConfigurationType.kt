@@ -27,8 +27,7 @@ class ComposePreviewRunConfigurationType : SimpleConfigurationType("ComposePrevi
                                                                    "Compose Preview",
                                                                    "Compose Preview Run Configuration Type",
                                                                    NotNullLazyValue.createValue {
-                                                                     // TODO(b/144500928): use proper icon
-                                                                     StudioIcons.Misc.COMPOSABLE_FUNCTION
+                                                                     StudioIcons.Compose.RUN_CONFIGURATION
                                                                    }) {
   init {
     if (!StudioFlags.COMPOSE_PREVIEW_RUN_CONFIGURATION.get()) {
