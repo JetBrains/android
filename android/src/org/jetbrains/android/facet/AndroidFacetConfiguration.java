@@ -108,8 +108,9 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
     assert state != null;
     if (state.ALLOW_USER_CONFIGURATION) {
       return new FacetEditorTab[]{new AndroidFacetEditorTab(editorContext, this)};
+    } else {
+      return new FacetEditorTab[]{new NotEditableAndroidFacetEditorTab()};
     }
-    return NO_EDITOR_TABS;
   }
 
   @Override
