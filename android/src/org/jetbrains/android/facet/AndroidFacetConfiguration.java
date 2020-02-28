@@ -49,7 +49,6 @@ import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
  * @author Eugene.Kudelevsky
  */
 public class AndroidFacetConfiguration implements FacetConfiguration, PersistentStateComponent<JpsAndroidModuleProperties> {
-  private static final FacetEditorTab[] NO_EDITOR_TABS = new FacetEditorTab[0];
   private Project myProject;
 
   private JpsAndroidModuleProperties myProperties = new JpsAndroidModuleProperties();
