@@ -31,7 +31,6 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
-import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.uibuilder.editor.NlEditor;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.google.common.base.CaseFormat;
