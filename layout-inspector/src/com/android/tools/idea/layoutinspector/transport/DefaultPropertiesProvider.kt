@@ -36,8 +36,10 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
+import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.application.ApplicationManager
 import java.awt.Color
+import java.util.concurrent.Future
 
 private val INT32_FIELD_DESCRIPTOR = Property.getDescriptor().findFieldByNumber(Property.INT32_VALUE_FIELD_NUMBER)
 private val INT64_FIELD_DESCRIPTOR = Property.getDescriptor().findFieldByNumber(Property.INT64_VALUE_FIELD_NUMBER)
@@ -64,18 +66,18 @@ class DefaultPropertiesProvider(
 
   override val resultListeners = mutableListOf<(PropertiesProvider, ViewNode, PropertiesTable<InspectorPropertyItem>) -> Unit>()
 
-  override fun requestProperties(view: ViewNode) {
+  override fun requestProperties(view: ViewNode): Future<*> {
     if (!client.isConnected) {
       lastRequestedView = null
       firePropertiesProvided(view, PropertiesTable.emptyTable())
-      return
+      return Futures.immediateFuture(null)
     }
+    lastRequestedView = view
     val inspectorCommand = LayoutInspectorCommand.newBuilder()
       .setType(LayoutInspectorCommand.Type.GET_PROPERTIES)
       .setViewId(view.drawId)
       .build()
-    client.execute(inspectorCommand)
-    lastRequestedView = view
+    return ApplicationManager.getApplication().executeOnPooledThread { client.execute(inspectorCommand) }
   }
 
   private fun loadProperties(event: Any) {
