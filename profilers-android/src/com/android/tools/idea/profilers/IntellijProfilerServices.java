@@ -275,9 +275,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
       }
 
       @Override
-      public boolean isAuditsEnabled() { return StudioFlags.PROFILER_AUDITS.get(); }
-
-      @Override
       public boolean isStartupCpuProfilingEnabled() {
         return StudioFlags.PROFILER_STARTUP_CPU_PROFILING.get();
       }

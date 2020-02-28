@@ -160,11 +160,6 @@ public final class StudioFlags {
     true
   );
 
-  public static final Flag<Boolean> PROFILER_AUDITS = Flag.create(
-    PROFILER, "audits", "Enable profiler audits",
-    "When enabled, profiler workflows such as capturing CPU atrace captures will generate audits",
-    false);
-
   public static final Flag<Boolean> PROFILER_CUSTOM_EVENT_VISUALIZATION = Flag.create(
     PROFILER, "custom.event.visualization", "Enable Profiler Custom Event Visualization",
     "When enabled, profiler will track and display events defined through developer APIs",
