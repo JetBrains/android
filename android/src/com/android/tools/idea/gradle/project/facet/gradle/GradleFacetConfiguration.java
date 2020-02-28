@@ -32,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Configuration options for the Android-Gradle facet. In Android Studio, these options <em>cannot</em> be directly changed by users.
  * In Idea these options <em>cannot</em> be directly changed by users. Idea users will be prompted to visit "Android Project Structure"
- * configuration page (see [LegacyAndroidGradleFacetEditor]).
+ * configuration page (see {@link AndroidGradleFacetEditorForIdea}).
  */
 public class GradleFacetConfiguration implements FacetConfiguration {
   @NonNls public String GRADLE_PROJECT_PATH;
