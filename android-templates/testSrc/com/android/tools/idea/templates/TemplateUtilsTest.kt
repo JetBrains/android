@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.templates
 
-import com.android.tools.idea.templates.TemplateUtils.extractClassName
 import com.android.tools.idea.templates.TemplateUtils.hasExtension
 import junit.framework.TestCase
 import java.io.File
@@ -23,16 +22,6 @@ import java.io.File
 // TODO(qumeric): cover more functions
 
 class TemplateUtilsTest : TestCase() {
-  fun testExtractClassName() {
-    mapOf("My Project" to "MyProject",
-          "hello" to "Hello",
-          "Java's" to "Javas",
-          "testXML" to "TestXML"
-    ).forEach { (arg, result) ->
-      assertEquals(result, extractClassName(arg))
-    }
-  }
-
   fun testHasExtension() {
     val ext = "sh"
     val fileWithExt = File("studio.$ext")

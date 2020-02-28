@@ -20,7 +20,6 @@ import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.res.getFolderType
-import com.android.tools.idea.templates.TemplateUtils
 import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
 import com.android.tools.idea.util.dependsOnAppCompat
 import com.intellij.ide.PasteProvider
@@ -41,6 +40,7 @@ import com.intellij.psi.xml.XmlElement
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import com.android.tools.idea.res.ensureNamespaceImported
+import com.android.tools.idea.util.EditorUtil
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtProperty
@@ -158,7 +158,7 @@ class ResourcePasteProvider : PasteProvider {
         setAttribute(SdkConstants.ATTR_LAYOUT_HEIGHT, SdkConstants.ANDROID_URI, SdkConstants.VALUE_WRAP_CONTENT)
         setAttribute(SdkConstants.ATTR_LAYOUT, resourceReference)
         collapseIfEmpty()
-        TemplateUtils.reformatAndRearrange(parent.project, this)
+        EditorUtil.reformatAndRearrange(parent.project, this)
       }
     }
   }
@@ -178,7 +178,7 @@ class ResourcePasteProvider : PasteProvider {
         setAttribute(SdkConstants.ATTR_LAYOUT_HEIGHT, SdkConstants.ANDROID_URI, dimensionValue)
         setSrcAttribute(dependsOnAppCompat, this, resourceReference)
         collapseIfEmpty()
-        TemplateUtils.reformatAndRearrange(parent.project, this)
+        EditorUtil.reformatAndRearrange(parent.project, this)
       }
     }
   }
@@ -239,7 +239,7 @@ class ResourcePasteProvider : PasteProvider {
     val dependsOnAppCompat = dependsOnAppCompat(xmlTag)
     runWriteAction {
       setSrcAttribute(dependsOnAppCompat, xmlTag, resourceReference)
-      TemplateUtils.reformatAndRearrange(xmlTag.project, xmlTag)
+      EditorUtil.reformatAndRearrange(xmlTag.project, xmlTag)
     }
     return true
   }
