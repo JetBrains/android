@@ -112,24 +112,6 @@ object TemplateUtils {
   }
 
   /**
-   * Converts a CamelCase word into an underlined_word
-   *
-   * @param string the CamelCase version of the word
-   * @return the underlined version of the word
-   */
-  @JvmStatic
-  fun camelCaseToUnderlines(string: String): String = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, string)
-
-  /**
-   * Converts an underlined_word into a CamelCase word
-   *
-   * @param string the underlined word to convert
-   * @return the CamelCase version of the word
-   */
-  @JvmStatic
-  fun underlinesToCamelCase(string: String): String = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, string)
-
-  /**
    * Returns the element children of the given element
    *
    * @param element the parent element
