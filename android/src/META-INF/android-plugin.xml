@@ -620,6 +620,12 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupIssues"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages"/>
     <projectService serviceImplementation="com.android.tools.idea.structure.dialog.ProjectStructureConfigurable"/>
+
+    <!-- This line is Idea-specific. TODO-ank: move Idea-specific code to separate module in order to avoid collisions with AndroidStudio -->
+    <projectConfigurable groupId="build" groupWeight="120"
+                         instance="com.android.tools.idea.structure.dialog.AndroidProjectStructureConfigurableForIdea"
+                         order="last"/>
+
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.invoker.messages.GradleBuildTreeViewConfiguration"/>
     <projectService serviceImplementation="com.android.tools.idea.run.DevicePickerStateService" />
     <projectService serviceImplementation="com.android.tools.idea.stats.RunStatsService" />

@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.facet.gradle;
 import static com.intellij.util.xmlb.XmlSerializer.deserializeInto;
 import static com.intellij.util.xmlb.XmlSerializer.serializeInto;
 
+import org.jetbrains.android.facet.AndroidGradleFacetEditorForIdea;
 import com.intellij.facet.FacetConfiguration;
 import com.intellij.facet.ui.FacetEditorContext;
 import com.intellij.facet.ui.FacetEditorTab;
@@ -30,6 +31,8 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Configuration options for the Android-Gradle facet. In Android Studio, these options <em>cannot</em> be directly changed by users.
+ * In Idea these options <em>cannot</em> be directly changed by users. Idea users will be prompted to visit "Android Project Structure"
+ * configuration page (see [LegacyAndroidGradleFacetEditor]).
  */
 public class GradleFacetConfiguration implements FacetConfiguration {
   @NonNls public String GRADLE_PROJECT_PATH;
@@ -40,7 +43,7 @@ public class GradleFacetConfiguration implements FacetConfiguration {
   @Override
   public FacetEditorTab[] createEditorTabs(FacetEditorContext editorContext,
                                            FacetValidatorsManager validatorsManager) {
-    return new FacetEditorTab[0];
+    return new FacetEditorTab[]{new AndroidGradleFacetEditorForIdea(editorContext.getProject())};
   }
 
   @Override
