@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.needsExplic
 import com.android.tools.idea.npw.module.recipes.addKotlinIfNeeded
 import com.android.tools.idea.npw.module.recipes.benchmarkModule.src.androidTest.exampleBenchmarkJava
 import com.android.tools.idea.npw.module.recipes.benchmarkModule.src.androidTest.exampleBenchmarkKt
-import com.android.tools.idea.templates.RepositoryUrlManager
+import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.templates.resolveDependency
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData

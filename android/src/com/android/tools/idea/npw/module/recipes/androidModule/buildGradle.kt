@@ -22,7 +22,7 @@ import com.android.tools.idea.npw.module.recipes.androidConfig
 import com.android.tools.idea.npw.module.recipes.emptyPluginsBlock
 import com.android.tools.idea.npw.module.recipes.getConfigurationName
 import com.android.tools.idea.npw.module.recipes.supportsImprovedTestDeps
-import com.android.tools.idea.templates.RepositoryUrlManager
+import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.templates.resolveDependency
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.GradlePluginVersion

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.templates
+package com.android.tools.idea.gradle.repositories
 
 import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.ide.common.repository.GradleCoordinate
@@ -55,7 +55,8 @@ class RepositoryUrlManager @VisibleForTesting constructor(
   private val useEmbeddedStudioRepo: Boolean = true) {
   private val pendingNetworkRequests: MutableSet<String> = ConcurrentHashMap.newKeySet()
 
-  internal constructor() : this(IdeGoogleMavenRepository, OfflineIdeGoogleMavenRepository, false)
+  internal constructor() : this(IdeGoogleMavenRepository,
+                                OfflineIdeGoogleMavenRepository, false)
 
   fun getArtifactStringCoordinate(artifactId: GoogleMavenArtifactId, preview: Boolean): String? =
     getArtifactStringCoordinate(artifactId, null, preview)
@@ -263,7 +264,8 @@ class RepositoryUrlManager @VisibleForTesting constructor(
     dependencies: Multimap<String, GradleCoordinate>, supportLibVersionFilter: String?, fileOp: FileOp
   ): List<GradleCoordinate> {
     val result = mutableListOf<GradleCoordinate>()
-    val supportFilter = findExistingExplicitVersion(dependencies.values()) ?: supportLibVersionFilter
+    val supportFilter = findExistingExplicitVersion(dependencies.values())
+                        ?: supportLibVersionFilter
     for (key in dependencies.keySet()) {
       var highest: GradleCoordinate = dependencies.get(key).maxWith(COMPARE_PLUS_LOWER)!!
 
@@ -336,7 +338,8 @@ class RepositoryUrlManager @VisibleForTesting constructor(
 
   companion object {
     @JvmStatic
-    fun get(): RepositoryUrlManager = ServiceManager.getService(RepositoryUrlManager::class.java)
+    fun get(): RepositoryUrlManager = ServiceManager.getService(
+      RepositoryUrlManager::class.java)
   }
 }
 
