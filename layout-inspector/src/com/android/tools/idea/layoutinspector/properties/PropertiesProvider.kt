@@ -17,6 +17,8 @@ package com.android.tools.idea.layoutinspector.properties
 
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.property.panel.api.PropertiesTable
+import com.google.common.util.concurrent.Futures
+import java.util.concurrent.Future
 
 /**
  * A [PropertiesProvider] provides properties to registered listeners..
@@ -34,13 +36,14 @@ interface PropertiesProvider {
    * This is potentially an asynchronous request. The associated [InspectorPropertiesModel]
    * is notified when the table is ready.
    */
-  fun requestProperties(view: ViewNode)
+  fun requestProperties(view: ViewNode): Future<*>
 }
 
 object EmptyPropertiesProvider : PropertiesProvider {
 
   override val resultListeners = mutableListOf<(PropertiesProvider, ViewNode, PropertiesTable<InspectorPropertyItem>) -> Unit>()
 
-  override fun requestProperties(view: ViewNode) {
+  override fun requestProperties(view: ViewNode): Future<*> {
+    return Futures.immediateFuture(null)
   }
 }

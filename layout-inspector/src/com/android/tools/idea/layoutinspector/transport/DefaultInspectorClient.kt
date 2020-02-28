@@ -63,7 +63,6 @@ import com.intellij.ui.layout.panel
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.ui.UIUtil
-import io.grpc.ManagedChannel
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
 import org.jetbrains.android.dom.manifest.getPackageName
@@ -181,7 +180,7 @@ class DefaultInspectorClient(
       if (selectedStream != Common.Stream.getDefaultInstance() &&
           selectedProcess != Common.Process.getDefaultInstance() &&
           !processManager.isProcessActive(selectedStream, selectedProcess)) {
-        disconnectNow()
+        disconnect(sendStopCommand = false)
       }
     }
   }
@@ -189,7 +188,7 @@ class DefaultInspectorClient(
   private fun registerProjectClosed(project: Project) {
     val projectManagerListener = object : ProjectManagerListener {
       override fun projectClosed(project: Project) {
-        disconnectNow()
+        disconnect(sendStopCommand = true)
         ProjectManager.getInstance().removeProjectManagerListener(project, this)
       }
     }
@@ -367,8 +366,14 @@ class DefaultInspectorClient(
   }
 
   override fun disconnect() {
+    disconnect(sendStopCommand = true)
+  }
+
+  private fun disconnect(sendStopCommand: Boolean) {
     ApplicationManager.getApplication().executeOnPooledThread {
-      execute(LayoutInspectorCommand.Type.STOP)
+      if (sendStopCommand) {
+        execute(LayoutInspectorCommand.Type.STOP)
+      }
       disconnectNow()
     }
   }
