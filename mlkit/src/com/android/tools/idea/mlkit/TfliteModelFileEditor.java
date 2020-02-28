@@ -115,9 +115,6 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       ModelInfo modelInfo = ModelInfo.buildFrom(new MetadataExtractor(ByteBuffer.wrap(file.contentsToByteArray())));
       addModelSection(contentPanel, modelInfo);
       addTensorsSection(contentPanel, modelInfo);
-      if (modelInfo.isMetadataExisted()) {
-        addSubgraphSection(contentPanel, modelInfo.getSubGraphInfos().get(0));
-      }
 
       PsiClass modelClass = MlkitModuleService.getInstance(myModule)
         .getOrCreateLightModelClass(new MlModelMetadata(file.getUrl(), MlkitUtils.computeModelClassName(file.getUrl())));
@@ -181,15 +178,6 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
                             "<code>" + buildSampleCode(modelClass) + "</code>";
 
     contentPanel.add(createPaneFromHtml(sampleCodeHtml));
-  }
-
-  private static void addSubgraphSection(@NotNull JPanel contentPanel, @NotNull SubGraphInfo subGraphInfo) {
-    // TODO(b/148866418): make table collapsible.
-    List<String[]> table = new ArrayList<>();
-    table.add(new String[]{"Name", subGraphInfo.getName()});
-    table.add(new String[]{"Description", subGraphInfo.getDescription()});
-
-    contentPanel.add(createPaneFromTable(table, "Subgraph", false));
   }
 
   private static void addTensorsSection(@NotNull JPanel contentPanel, @NotNull ModelInfo modelInfo) {
