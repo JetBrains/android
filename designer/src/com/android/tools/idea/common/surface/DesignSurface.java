@@ -213,9 +213,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     @NotNull Function<DesignSurface, InteractionHandler> interactionProviderCreator,
     @NotNull State defaultSurfaceState,
     boolean isEditable,
-    @NotNull Function<DesignSurface, SceneViewLayoutManager> sceneViewLayoutManagerProvider) {
+    @NotNull Function<DesignSurface, PositionableContentLayoutManager> positionableLayoutManagerProvider) {
     this(project, parentDisposable, actionManagerProvider, interactionProviderCreator, defaultSurfaceState, isEditable, ZoomType.FIT_INTO,
-         sceneViewLayoutManagerProvider);
+         positionableLayoutManagerProvider);
   }
 
   public DesignSurface(
@@ -226,7 +226,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     @NotNull State defaultSurfaceState,
     boolean isEditable,
     @NotNull ZoomType onChangedZoom,
-    @NotNull Function<DesignSurface, SceneViewLayoutManager> sceneViewLayoutManagerProvider) {
+    @NotNull Function<DesignSurface, PositionableContentLayoutManager> positionableLayoutManagerProvider) {
     super(new BorderLayout());
     myConfigurationListener = flags -> {
       if ((flags & (ConfigurationListener.CFG_DEVICE | ConfigurationListener.CFG_DEVICE_STATE)) != 0 && !isLayoutDisabled()) {
@@ -268,7 +268,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myZoomControlsLayerPane.setLayout(new BorderLayout());
     myZoomControlsLayerPane.setFocusable(true);
 
-    mySceneViewPanel = new SceneViewPanel(() -> getInteractionManager().getLayers(), sceneViewLayoutManagerProvider.apply(this));
+    mySceneViewPanel = new SceneViewPanel(() -> getInteractionManager().getLayers(), positionableLayoutManagerProvider.apply(this));
     mySceneViewPanel.setBackground(getBackground());
 
     myScrollPane = new MyScrollPane();

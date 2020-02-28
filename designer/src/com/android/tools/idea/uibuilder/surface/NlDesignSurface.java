@@ -39,7 +39,7 @@ import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.common.surface.InteractionHandler;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.common.surface.SceneViewLayoutManager;
+import com.android.tools.idea.common.surface.PositionableContentLayoutManager;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.rendering.RenderErrorModelFactory;
@@ -57,6 +57,7 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
+import com.android.tools.idea.uibuilder.surface.layout.PositionableContent;
 import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager;
 import com.android.utils.ImmutableCollectors;
@@ -96,21 +97,21 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   private static final double DEFAULT_MIN_SCALE = 0.1;
   private static final double DEFAULT_MAX_SCALE = 10;
 
-  private static class NlDesignSurfaceSceneViewLayoutManager extends SceneViewLayoutManager {
+  private static class NlDesignSurfacePositionableContentLayoutManager extends PositionableContentLayoutManager {
     private final NlDesignSurface myDesignSurface;
     private final SurfaceLayoutManager myLayoutManager;
 
-    NlDesignSurfaceSceneViewLayoutManager(@NotNull NlDesignSurface surface, @NotNull SurfaceLayoutManager surfaceLayoutManager) {
+    NlDesignSurfacePositionableContentLayoutManager(@NotNull NlDesignSurface surface, @NotNull SurfaceLayoutManager surfaceLayoutManager) {
       myDesignSurface = surface;
       myLayoutManager = surfaceLayoutManager;
     }
 
     @Override
-    public void layoutSceneViews(@NotNull Collection<? extends SceneView> sceneViews) {
+    public void layoutContent(@NotNull Collection<? extends PositionableContent> content) {
       Dimension extentSize = myDesignSurface.getExtentSize();
       int availableWidth = extentSize.width;
       int availableHeight = extentSize.height;
-      myLayoutManager.layout(sceneViews, availableWidth, availableHeight, myDesignSurface.isCanvasResizing());
+      myLayoutManager.layout(content, availableWidth, availableHeight, myDesignSurface.isCanvasResizing());
     }
 
     @Override
@@ -395,7 +396,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                           double maxScale,
                           @NotNull ZoomType onChangeZoom) {
     super(project, parentDisposable, actionManagerProvider, interactionHandlerProvider, defaultSurfaceState, isEditable, onChangeZoom,
-          (surface) -> new NlDesignSurfaceSceneViewLayoutManager((NlDesignSurface)surface, layoutManager));
+          (surface) -> new NlDesignSurfacePositionableContentLayoutManager((NlDesignSurface)surface, layoutManager));
     myAnalyticsManager = new NlAnalyticsManager(this);
     myAccessoryPanel.setSurface(this);
     myIsInPreview = isInPreview;
