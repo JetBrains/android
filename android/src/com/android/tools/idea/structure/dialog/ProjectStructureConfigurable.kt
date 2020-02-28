@@ -332,11 +332,12 @@ class ProjectStructureConfigurable(private val project: Project) : SearchableCon
   }
 
   private fun initSidePanel() {
-    val isDefaultProject = project === ProjectManager.getInstance().defaultProject
 
     mySidePanel = SidePanel(this, myHistory)
 
-    if (isDefaultProject) {
+    if (myDisposable.disposed) myDisposable = MyDisposable()
+
+    if (this.isDefaultProject) {
       addConfigurable(IdeSdksConfigurable(this, project))
     } else {
       addConfigurables()
