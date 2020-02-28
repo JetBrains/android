@@ -175,6 +175,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     when(mySyncIssue.getType()).thenReturn(TYPE_GRADLE_TOO_OLD);
     when(mySyncIssue.getSeverity()).thenReturn(SEVERITY_ERROR);
     when(mySyncIssue.getMessage()).thenReturn("");
+    when(mySyncIssue.getData()).thenReturn("");
 
     when(myStrategy2.getSupportedIssueType()).thenReturn(TYPE_UNRESOLVED_DEPENDENCY);
 
