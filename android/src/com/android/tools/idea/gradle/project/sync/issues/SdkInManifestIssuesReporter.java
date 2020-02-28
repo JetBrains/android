@@ -124,12 +124,6 @@ public abstract class SdkInManifestIssuesReporter extends SimpleDeduplicatingSyn
 
   @NotNull
   @Override
-  protected Object getDeduplicationKey(@NotNull SyncIssue issue) {
-    return issue;
-  }
-
-  @NotNull
-  @Override
   protected List<NotificationHyperlink> getCustomLinks(@NotNull Project project,
                                                        @NotNull List<SyncIssue> syncIssues,
                                                        @NotNull List<Module> affectedModules,
