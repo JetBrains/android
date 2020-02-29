@@ -57,8 +57,6 @@ class TableController(
   private var lastExecutedQuery = sqliteStatement
 
   fun setUp(): ListenableFuture<Unit> {
-    view.startTableLoading()
-
     return edtExecutor.transform(databaseConnection.execute(sqliteStatement)) { newResultSet ->
       checkNotNull(newResultSet)
       lastExecutedQuery = sqliteStatement
@@ -80,35 +78,16 @@ class TableController(
     }
   }
 
-  // TODO We should just reload the current page.
-  //  But live inspection doesn't support paging yet. So we need to reload everything.
   override fun refreshData(): ListenableFuture<Unit> {
-    Disposer.dispose(resultSet)
-
-    view.startTableLoading()
-
-    return edtExecutor.transform(databaseConnection.execute(lastExecutedQuery)) { newResultSet ->
-      checkNotNull(newResultSet)
-
-      if (Disposer.isDisposed(this)) {
-        Disposer.dispose(newResultSet)
-        throw ProcessCanceledException()
-      }
-
-      resultSet = newResultSet
-      Disposer.register(this, newResultSet)
-
-      fetchAndDisplayTableData()
-
-      return@transform
-    }
+    return fetchAndDisplayTableData()
   }
 
   override fun dispose() {
     view.removeListener(listener)
   }
 
-  private fun fetchAndDisplayTableData() {
+  private fun fetchAndDisplayTableData(): ListenableFuture<Unit> {
+    view.startTableLoading()
     val fetchTableDataFuture = edtExecutor.transformAsync(resultSet.columns) { columns ->
       if (Disposer.isDisposed(this)) throw ProcessCanceledException()
       view.showTableColumns(columns!!.filter { it.name != table?.rowIdName?.stringName })
@@ -119,12 +98,17 @@ class TableController(
 
     val futureCatching = handleFetchRowsError(fetchTableDataFuture)
 
-    edtExecutor.finallySync(futureCatching) {
+    val future = edtExecutor.finallySync(futureCatching) {
       if (Disposer.isDisposed(this)) throw ProcessCanceledException()
       view.stopTableLoading()
     }
+
+    return edtExecutor.transform(future) { Unit }
   }
 
+  /**
+   * Calls [fetchAndDisplayRows] to fetch new data and updates the view.
+   */
   private fun updateDataAndButtons(): ListenableFuture<Unit> {
     view.setFetchPreviousRowsButtonState(false)
     view.setFetchNextRowsButtonState(false)
@@ -139,7 +123,7 @@ class TableController(
   }
 
   /**
-   * Fetches rows through the [SqliteResultSet].
+   * Fetches rows through the [resultSet] using [start] and [rowBatchSize].
    */
   private fun fetchAndDisplayRows() : ListenableFuture<Unit> {
     return edtExecutor.transformAsync(resultSet.getRowBatch(start, rowBatchSize)) { rows ->
@@ -178,7 +162,6 @@ class TableController(
       val newQuery =
         "SELECT * FROM (${sqliteStatement.sqliteStatementText}) ORDER BY ${AndroidSqlLexer.getValidName(orderBy!!.column.name)} $order"
 
-      view.startTableLoading()
       Disposer.dispose(resultSet)
 
       val selectStatement = SqliteStatement(newQuery, sqliteStatement.parametersValues)
