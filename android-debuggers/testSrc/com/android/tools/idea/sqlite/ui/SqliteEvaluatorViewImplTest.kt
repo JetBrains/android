@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sqlite.ui
 
+import com.android.testutils.MockitoKt.any
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.idea.concurrency.AsyncTestUtils
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture
@@ -39,6 +40,7 @@ import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import com.intellij.util.concurrency.EdtExecutorService
+import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
@@ -48,17 +50,17 @@ import javax.swing.JTable
 
 class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
   private lateinit var view: SqliteEvaluatorViewImpl
+  private lateinit var mockSchemaProvider: SchemaProvider
 
   private lateinit var sqliteUtil: SqliteTestUtil
   private var realDatabaseConnection: DatabaseConnection? = null
 
   override fun setUp() {
     super.setUp()
-    view = SqliteEvaluatorViewImpl(project, TableViewImpl(), object : SchemaProvider {
-      override fun getSchema(database: SqliteDatabase): SqliteSchema? {
-        return SqliteSchema(emptyList())
-      }
-    })
+    mockSchemaProvider = mock(SchemaProvider::class.java)
+    `when`(mockSchemaProvider.getSchema(any(SqliteDatabase::class.java))).thenReturn(SqliteSchema(emptyList()))
+
+    view = SqliteEvaluatorViewImpl(project, TableViewImpl(), mockSchemaProvider)
     view.component.size = Dimension(600, 200)
 
     sqliteUtil = SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
@@ -132,6 +134,24 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
     comboBox.selectedIndex = 0
     verify(mockPsiManager, times(3)).dropPsiCaches()
+  }
+
+  fun testSchemaUpdatedDropsCachesAndGetsNewSchema() {
+    // Prepare
+    val ideComponents = IdeComponents(myFixture)
+    val mockPsiManager = mock(PsiManager::class.java)
+    ideComponents.replaceProjectService(PsiManager::class.java, mockPsiManager)
+
+    val database = FileSqliteDatabase("db1", mock(DatabaseConnection::class.java), mock(VirtualFile::class.java))
+
+    view.addDatabase(database, 0)
+
+    // Act
+    view.schemaChanged(database)
+
+    // Assert
+    verify(mockPsiManager, times(2)).dropPsiCaches()
+    verify(mockSchemaProvider, times(2)).getSchema(database)
   }
 
   fun testTableActionsAreNotVisibleInEvaluatorView() {

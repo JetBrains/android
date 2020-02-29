@@ -57,6 +57,13 @@ class SqliteEvaluatorController(
     view.removeDatabase(index)
   }
 
+  /**
+   * Notifies the controller that the schema associated with [database] has changed.
+   */
+  fun schemaChanged(database: SqliteDatabase) {
+    view.schemaChanged(database)
+  }
+
   override fun refreshData(): ListenableFuture<Unit> {
     return currentTableController?.refreshData() ?: Futures.immediateFuture(Unit)
   }
