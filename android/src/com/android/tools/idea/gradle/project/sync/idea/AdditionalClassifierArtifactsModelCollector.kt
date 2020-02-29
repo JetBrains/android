@@ -22,6 +22,7 @@ import com.android.builder.model.Variant
 import com.android.ide.common.repository.GradleVersion
 import com.android.ide.gradle.model.AdditionalClassifierArtifactsModelParameter
 import com.android.ide.gradle.model.ArtifactIdentifier
+import com.android.ide.gradle.model.ArtifactIdentifierImpl
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidModule
 import com.google.common.annotations.VisibleForTesting
@@ -75,13 +76,9 @@ private fun collectIdentifiers(
     }
   }
 
-  return libraries.filter { it.project == null }.map { it.resolvedCoordinates }.toSet().map {
-    object : ArtifactIdentifier {
-      override fun getVersion(): String = it.version
-      override fun getArtifactId(): String = it.artifactId
-      override fun getGroupId(): String = it.groupId
-    }
-  }
+  return libraries.filter { it.project == null }.map { it.resolvedCoordinates }.map {
+    ArtifactIdentifierImpl(it.groupId, it.artifactId, it.version)
+  }.distinct()
 }
 
 @VisibleForTesting
