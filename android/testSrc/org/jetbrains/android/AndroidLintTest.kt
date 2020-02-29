@@ -19,6 +19,7 @@ import com.android.AndroidProjectTypes
 import com.android.SdkConstants
 import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.StubGoogleMavenRepository
+import com.android.sdklib.AndroidVersion
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.AnalyticsSettings.setInstanceForTest
 import com.android.tools.analytics.AnalyticsSettingsData
@@ -122,6 +123,8 @@ import com.android.tools.idea.lint.common.LintExternalAnnotator.MyFixingIntentio
 import com.android.tools.idea.lint.common.LintIdeIssueRegistry
 import com.android.tools.idea.lint.common.LintIgnoredResult
 import com.android.tools.idea.lint.common.SuppressLintIntentionAction
+import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.model.TestAndroidModel
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.testing.IdeComponents
@@ -129,15 +132,18 @@ import com.android.tools.idea.testing.getIntentionAction
 import com.android.tools.lint.checks.IconDetector
 import com.android.tools.lint.checks.TextViewDetector
 import com.android.tools.lint.client.api.IssueRegistry
+import com.android.tools.lint.detector.api.Desugaring
 import com.android.utils.CharSequences
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.Lists
 import com.google.common.collect.Sets
 import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.LintIssueId.LintSeverity
 import com.google.wireless.android.sdk.stats.LintSession.AnalysisType
 import com.intellij.analysis.AnalysisScope
+import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.codeInsight.daemon.impl.ShowIntentionsPass
 import com.intellij.codeInsight.daemon.impl.ShowIntentionsPass.IntentionsInfo
 import com.intellij.codeInsight.intention.IntentionAction
@@ -145,6 +151,7 @@ import com.intellij.codeInspection.CommonProblemDescriptor
 import com.intellij.codeInspection.QuickFix
 import com.intellij.codeInspection.reference.RefEntity
 import com.intellij.codeInspection.ui.util.SynchronizedBidiMultiMap
+import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.application.Result
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.editor.Document
@@ -998,6 +1005,42 @@ class AndroidLintTest : AndroidTestCase() {
                   "/src/p1/p2/MyActivity.kt", "kt")
   }
 
+  fun testJava8FeaturesWithoutDesugaring() {
+    val minSdk = 16
+    deleteManifest()
+    addMinSdkManifest(minSdk)
+    // Set desugaring level to DEFAULT which does not include java 8 desugaring.
+    AndroidModel.set(myFacet, TestAndroidModel(minSdkVersion = AndroidVersion(minSdk), desugaringLevel = Desugaring.DEFAULT))
+
+    val highlights = doTestHighlighting(AndroidLintNewApiInspection(), "src/com/example/test/TestActivity.java", "java", true)
+    // All Java8 features should be flagged as errors
+    val errors = highlights.filter { it.severity == HighlightSeverity.ERROR || it.severity == HighlightSeverity.WARNING }.toList()
+    Truth.assertThat(errors).hasSize(7)
+
+    val errorDescriptions = errors.map { it.description }
+    assertThat(
+      errorDescriptions).containsExactly("Call requires API level 24 (current min is 16): `java.util.stream.IntStream#range`",
+                                         "Call requires API level 24 (current min is 16): `java.util.stream.IntStream#filter`",
+                                         "Method reference requires API level 24 (current min is 16): `isEven::test`",
+                                         "Call requires API level 24 (current min is 16): `java.util.stream.IntStream#boxed`",
+                                         "Call requires API level 24 (current min is 16): `java.util.stream.Stream#collect`",
+                                         "Cast to `Collector` requires API level 24 (current min is 16)",
+                                         "Call requires API level 24 (current min is 16): `java.util.stream.Collectors#toList`")
+  }
+
+  fun testJava8FeaturesWithDesugaring() {
+    val minSdk = 16
+    deleteManifest()
+    addMinSdkManifest(minSdk)
+    // Explicitly enable full desugaring
+    AndroidModel.set(myFacet, TestAndroidModel(minSdkVersion = AndroidVersion(minSdk), desugaringLevel = Desugaring.FULL))
+
+    val highlights = doTestHighlighting(AndroidLintNewApiInspection(), "src/com/example/test/TestActivity.java", "java", true)
+    // Java8 features should not be flagged as issues
+    val errors = highlights.filter { it.severity == HighlightSeverity.ERROR || it.severity == HighlightSeverity.WARNING }.toList()
+    assertThat(errors).hasSize(0)
+  }
+
   fun testImlFileOutsideContentRoot() {
     myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, "additionalModules/module1/" + SdkConstants.FN_ANDROID_MANIFEST_XML)
     myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, "additionalModules/module2/" + SdkConstants.FN_ANDROID_MANIFEST_XML)
@@ -1349,7 +1392,8 @@ class AndroidLintTest : AndroidTestCase() {
     inspection: AndroidLintInspectionBase,
     copyTo: String,
     extension: String,
-    skipCheck: Boolean = false) {
+    skipCheck: Boolean = false
+  ): List<HighlightInfo> {
     myFixture.enableInspections(inspection)
     val file = myFixture.copyFileToProject(BASE_PATH + getTestName(true) + "." + extension, copyTo)
     myFixture.configureFromExistingVirtualFile(file)
@@ -1358,12 +1402,14 @@ class AndroidLintTest : AndroidTestCase() {
     // lint is passed markup files that contain the error markers, which makes
     // for example quick fixes not work.
     val prev = stripMarkers(file)
-    myFixture.doHighlighting()
+    val highlightInfo = myFixture.doHighlighting()
     // Restore markers before diffing.
     restoreMarkers(file, prev)
     if (!skipCheck) {
       myFixture.checkHighlighting(true, false, false)
     }
+
+    return highlightInfo
   }
 
   /**
