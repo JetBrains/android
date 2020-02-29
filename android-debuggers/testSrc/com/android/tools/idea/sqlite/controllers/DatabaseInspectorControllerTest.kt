@@ -389,6 +389,30 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     verify(evaluatorView).addDatabase(sqliteDatabase3, 0)
   }
 
+  fun testDatabaseIsUpdatedInEvaluatorTabAfterSchemaChanges() {
+    // Prepare
+    mockSqliteView.viewListeners.single().openSqliteEvaluatorTabActionInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    val databaseInspectorView = mockViewFactory.databaseInspectorView
+    val evaluatorView = mockViewFactory.sqliteEvaluatorView
+
+    val newSchema = SqliteSchema(listOf(SqliteTable("tab", emptyList(), null, false)))
+
+    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
+    }
+
+    // Act
+    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(newSchema))
+    databaseInspectorView.viewListeners.first().refreshAllOpenDatabasesSchemaActionInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    verify(evaluatorView).schemaChanged(sqliteDatabase1)
+  }
+
   fun testRemoveDatabase() {
     // Prepare
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
