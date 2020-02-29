@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw.assetstudio.ui
+package com.android.tools.idea.ui.wizard
 
 import com.google.common.truth.Truth.assertThat
-import com.android.tools.idea.npw.assetstudio.ui.ProposedFileTreeModel.Node
+import com.android.tools.idea.ui.wizard.ProposedFileTreeModel.Node
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -75,7 +75,7 @@ private class NodeBuilder {
 }
 
 @NodeDSL
-private class Children: ArrayList<Node>() {
+private class Children : ArrayList<Node>() {
   fun node(block: NodeBuilder.() -> Unit) {
     add(NodeBuilder().apply(block).build())
   }
@@ -92,7 +92,9 @@ private fun File.createChildDir(name: String) = resolve(name).apply { mkdir() }
 
 @RunWith(JUnit4::class)
 class ProposedFileTreeModelTest {
-  @JvmField @Rule val tempFolderRule = TemporaryFolder()
+  @JvmField
+  @Rule
+  val tempFolderRule = TemporaryFolder()
 
   private lateinit var rootDir: File
 

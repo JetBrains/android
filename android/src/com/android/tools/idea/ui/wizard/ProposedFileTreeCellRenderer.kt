@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw.assetstudio.ui
+package com.android.tools.idea.ui.wizard
 
+import com.android.tools.idea.ui.wizard.ProposedFileTreeModel
 import com.intellij.ui.ColoredTreeCellRenderer
 import com.intellij.ui.SimpleTextAttributes
 import javax.swing.JTree

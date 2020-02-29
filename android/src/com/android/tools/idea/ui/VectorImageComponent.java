@@ -23,8 +23,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
-import static com.android.tools.idea.npw.assetstudio.wizard.CheckeredBackgroundPanel.DEFAULT_EVEN_CELL_COLOR;
-import static com.android.tools.idea.npw.assetstudio.wizard.CheckeredBackgroundPanel.DEFAULT_ODD_CELL_COLOR;
+import static com.android.tools.idea.ui.wizard.CheckeredBackgroundPanel.DEFAULT_EVEN_CELL_COLOR;
+import static com.android.tools.idea.ui.wizard.CheckeredBackgroundPanel.DEFAULT_ODD_CELL_COLOR;
 
 /**
  * A Swing component that displays an image centered in the middle.

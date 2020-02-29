@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw.assetstudio.ui
+package com.android.tools.idea.ui.wizard
 
 import com.intellij.icons.AllIcons
 import com.intellij.util.PlatformIcons
@@ -28,6 +28,7 @@ import javax.swing.tree.TreePath
  * with when a proposedFileToIcon mapping isn't specified.
  */
 val DEFAULT_ICON = AllIcons.FileTypes.Any_type!!
+
 /**
  * The [Icon] that [ProposedFileTreeModel] uses to mark directories.
  */
@@ -52,12 +53,13 @@ val DIR_ICON = PlatformIcons.FOLDER_ICON!!
  * then *sub1* will appear before *sub2* in the model of *root*'s children, since it appeared first
  * when iterating over the map entries.
  */
-class ProposedFileTreeModel private constructor(private val rootNode: Node): TreeModel {
+class ProposedFileTreeModel private constructor(private val rootNode: Node) : TreeModel {
   constructor(rootDir: File, proposedFileToIcon: Map<File, Icon>)
     : this(Node.makeTree(rootDir, proposedFileToIcon.keys, proposedFileToIcon::get))
 
   constructor(rootDir: File, proposedFiles: Set<File>)
-    : this(Node.makeTree(rootDir, proposedFiles) { null })
+    : this(
+    Node.makeTree(rootDir, proposedFiles) { null })
 
   /**
    * Returns true if any of the non-directory proposed [File]s in the tree already exist.
@@ -198,9 +200,9 @@ class ProposedFileTreeModel private constructor(private val rootNode: Node): Tre
 
   override fun getChild(parent: Any?, index: Int) = (parent as Node).getChild(index)
 
-  override fun valueForPathChanged(path: TreePath?, newValue: Any?) { }
+  override fun valueForPathChanged(path: TreePath?, newValue: Any?) {}
 
-  override fun removeTreeModelListener(l: TreeModelListener?) { }
+  override fun removeTreeModelListener(l: TreeModelListener?) {}
 
-  override fun addTreeModelListener(l: TreeModelListener?) { }
+  override fun addTreeModelListener(l: TreeModelListener?) {}
 }

@@ -44,6 +44,8 @@ import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.VisibleProperty;
 import com.android.tools.idea.projectsystem.AndroidModulePaths;
+import com.android.tools.idea.ui.wizard.CheckeredBackgroundPanel;
+import com.android.tools.idea.ui.wizard.WrappedFlowLayout;
 import com.android.utils.Pair;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
