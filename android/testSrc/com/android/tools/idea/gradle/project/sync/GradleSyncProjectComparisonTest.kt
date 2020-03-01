@@ -53,7 +53,7 @@ import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.WriteAction.run
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.project.guessProjectDir
-import com.intellij.openapi.util.io.FileUtil.delete
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtil.join
 import com.intellij.openapi.util.io.FileUtil.writeToFile
 import com.intellij.testFramework.PlatformTestUtil
@@ -168,7 +168,7 @@ abstract class GradleSyncProjectComparisonTest(
         // The bug appears only when the central build folder does not exist.
         val centralBuildDirPath = File(projectRootPath, join("central", "build"))
         val centralBuildParentDirPath = centralBuildDirPath.parentFile
-        delete(centralBuildParentDirPath)
+        FileUtil.delete(centralBuildParentDirPath)
       }
       assertIsEqualToSnapshot(text)
     }
@@ -321,6 +321,23 @@ abstract class GradleSyncProjectComparisonTest(
       )
     }
 
+    fun testReimportSimpleApplication() {
+      var root: String? = null
+      val before = openGradleProject(SIMPLE_APPLICATION, "project") { project ->
+        val snapshot = project.saveAndDump()
+        root = project.basePath
+        snapshot
+      }
+      FileUtil.delete(File(root!!, ".idea"))
+      val after = reopenGradleProject("project") { project ->
+        project.saveAndDump()
+      }
+      assertAreEqualToSnapshots(
+        before to ".same",
+        after to ".same"
+      )
+    }
+
     fun testSwitchingVariantsWithReopen_simpleApplication() {
       val debugBefore = openGradleProject(SIMPLE_APPLICATION, "project") { project ->
         project.saveAndDump()
@@ -431,7 +448,7 @@ abstract class GradleSyncProjectComparisonTest(
 
   protected fun createEmptyGradleSettingsFile() {
     val settingsFilePath = File(projectFolderPath, FN_SETTINGS_GRADLE)
-    assertTrue(delete(settingsFilePath))
+    assertTrue(FileUtil.delete(settingsFilePath))
     writeToFile(settingsFilePath, " ")
     assertAbout<FileSubject, File>(file()).that(settingsFilePath).isFile()
     refreshProjectFiles()

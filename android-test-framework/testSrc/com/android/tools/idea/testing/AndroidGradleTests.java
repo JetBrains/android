@@ -56,6 +56,7 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.service.project.manage.ExternalProjectsManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -430,6 +431,7 @@ public class AndroidGradleTests {
    * Imports {@code project}, syncs the project and checks the result.
    */
   public static void importProject(@NotNull Project project, GradleSyncInvoker.Request syncRequest) {
+    ExternalProjectsManager.getInstance(project).getExternalProjectsWatcher().markDirtyAllExternalProjects();
     TestGradleSyncListener syncListener = EdtTestUtil.runInEdtAndGet(() -> {
       GradleProjectImporter.Request request = new GradleProjectImporter.Request(project);
       GradleProjectImporter.getInstance().importProjectNoSync(request);
