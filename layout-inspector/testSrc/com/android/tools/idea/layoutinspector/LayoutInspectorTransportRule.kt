@@ -170,7 +170,6 @@ class LayoutInspectorTransportRule(
       }
       else if (inspectorClient is LegacyClient) {
         addProcess(LEGACY_DEVICE, DEFAULT_PROCESS)
-        inspectorClient.loadProcesses()
       }
     }
     if (connected) {

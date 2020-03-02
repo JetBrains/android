@@ -15,25 +15,18 @@
  */
 package com.android.tools.idea.layoutinspector.legacydevice
 
-import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.Client
-import com.android.ddmlib.ClientData
-import com.android.ddmlib.IDevice
-import com.android.sdklib.SdkVersionInfo
-import com.android.tools.idea.adb.AdbService
-import com.android.tools.idea.ddms.DevicePropertyUtil
 import com.android.tools.idea.layoutinspector.LayoutInspectorPreferredProcess
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.android.tools.profiler.proto.Common
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.concurrency.JobScheduler
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.project.Project
 import com.intellij.util.containers.ContainerUtil
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
-import org.jetbrains.android.sdk.AndroidSdkUtils
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 
@@ -43,7 +36,7 @@ private const val MAX_RETRY_COUNT = 60
  * [InspectorClient] that supports pre-api 28 devices.
  * Since it doesn't use [com.android.tools.idea.transport.TransportService], some relevant event listeners are manually fired.
  */
-class LegacyClient(private val project: Project) : InspectorClient {
+class LegacyClient(parentDisposable: Disposable) : InspectorClient {
 
   var selectedClient: Client? = null
 
@@ -61,57 +54,28 @@ class LegacyClient(private val project: Project) : InspectorClient {
 
   private val processChangedListeners: MutableList<() -> Unit> = ContainerUtil.createConcurrentList()
 
-  private val processToClient: MutableMap<Common.Process, Client> = mutableMapOf()
+  private val processManager = LegacyProcessManager(parentDisposable)
 
   override var treeLoader = LegacyTreeLoader
     @VisibleForTesting set
 
   private val eventListeners: MutableMap<Common.Event.EventGroupIds, MutableList<(Any) -> Unit>> = mutableMapOf()
 
+  init {
+    processManager.processListeners.add {
+      if (selectedClient?.isValid != true) {
+        disconnect()
+      }
+    }
+  }
+
   override fun registerProcessChanged(callback: () -> Unit) {
     processChangedListeners.add(callback)
   }
 
-  override fun loadProcesses(): Map<Common.Stream, List<Common.Process>> {
-    val debugBridge = AndroidSdkUtils.getAdb(project)?.let {
-      AdbService.getInstance().getDebugBridge(it).get()
-    } ?: AndroidDebugBridge.createBridge()
+  override fun getStreams(): Sequence<Common.Stream> = processManager.getStreams()
 
-    val result = mutableMapOf<Common.Stream, List<Common.Process>>()
-    for (iDevice in debugBridge.devices) {
-      val deviceProto = Common.Device.newBuilder().run {
-        apiLevel = iDevice.version.apiLevel
-        iDevice.version.codename?.let { codename = it }
-        featureLevel = iDevice.version.featureLevel
-        isEmulator = iDevice.isEmulator
-        manufacturer = DevicePropertyUtil.getManufacturer(iDevice, "")
-        model = iDevice.avdName ?: DevicePropertyUtil.getModel(iDevice, "")
-        serial = iDevice.serialNumber
-        version = SdkVersionInfo.getVersionString(iDevice.version.apiLevel)
-        build()
-      }
-      val stream = Common.Stream.newBuilder().run {
-        device = deviceProto
-        streamId = iDevice.hashCode().toLong()
-        build()
-      }
-
-      val processes = iDevice.clients
-        .filter { it.clientData.hasFeature(ClientData.FEATURE_VIEW_HIERARCHY) }
-        .sortedBy { it.clientData.clientDescription }
-        .map { client ->
-          Common.Process.newBuilder().run {
-            abiCpuArch = client.clientData.abi
-            name = client.clientData.packageName
-            pid = client.clientData.pid
-            build().also { processToClient[it] = client }
-          }
-        }
-      result[stream] = processes
-    }
-
-    return result
-  }
+  override fun getProcesses(stream: Common.Stream): Sequence<Common.Process> = processManager.getProcesses(stream)
 
   override fun attachIfSupported(preferredProcess: LayoutInspectorPreferredProcess): Future<*>? {
     return ApplicationManager.getApplication().executeOnPooledThread { attachWithRetry(preferredProcess, 0) }
@@ -122,10 +86,9 @@ class LegacyClient(private val project: Project) : InspectorClient {
   // declaring success.
   // If it's not the case, this code is duplicated from DefaultClient and so should be factored out somewhere.
   private fun attachWithRetry(preferredProcess: LayoutInspectorPreferredProcess, timesAttempted: Int) {
-    val processesMap = loadProcesses()
-    for ((stream, processes) in processesMap) {
+    for (stream in getStreams()) {
       if (preferredProcess.isDeviceMatch(stream.device)) {
-        for (process in processes) {
+        for (process in getProcesses(stream)) {
           if (process.name == preferredProcess.packageName) {
             try {
               attach(stream, process)
@@ -148,22 +111,9 @@ class LegacyClient(private val project: Project) : InspectorClient {
   }
 
   override fun attach(stream: Common.Stream, process: Common.Process) {
-    val client = processToClient[process] ?: return
-    selectedClient = client
+    selectedClient = processManager.findClientFor(stream, process) ?: return
     selectedProcess = process
     selectedStream = stream
-
-    AndroidDebugBridge.addDeviceChangeListener(object: AndroidDebugBridge.IDeviceChangeListener {
-      override fun deviceConnected(device: IDevice) {}
-
-      override fun deviceDisconnected(device: IDevice) {}
-
-      override fun deviceChanged(device: IDevice, changeMask: Int) {
-        if (changeMask and IDevice.CHANGE_CLIENT_LIST > 0 && selectedClient?.isValid != true) {
-          disconnect()
-        }
-      }
-    })
 
     reloadAllWindows()
   }
