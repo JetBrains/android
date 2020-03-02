@@ -16,6 +16,30 @@
 package com.android.tools.idea.compose.preview
 
 import org.jetbrains.annotations.ApiStatus
+import javax.swing.Icon
+
+/**
+ * Class representing groups available for selection in the [ComposePreviewManager].
+ */
+data class PreviewGroup private constructor(
+  val displayName: String,
+  val icon: Icon?,
+  val name: String?
+) {
+  companion object {
+    fun namedGroup(displayName: String, icon: Icon? = null, name: String = displayName): PreviewGroup = PreviewGroup(displayName, icon,
+                                                                                                                     name)
+
+    /**
+     * [PreviewGroup] to be used when no filtering is to be applied to the preview.
+     */
+    internal val ALL_PREVIEW_GROUP = PreviewGroup(
+      displayName = message("group.switch.all"),
+      icon = null,
+      name = null
+    )
+  }
+}
 
 /**
  * Interface that provides access to the Compose Preview logic.
@@ -53,12 +77,12 @@ interface ComposePreviewManager {
   /**
    * List of available groups in this preview. The editor can contain multiple groups and only will be displayed at a given time.
    */
-  val availableGroups: Collection<String>
+  val availableGroups: Collection<PreviewGroup>
 
   /**
    * Group name from [availableGroups] currently selected or null if we do not want to do group filtering.
    */
-  var groupNameFilter: String?
+  var groupFilter: PreviewGroup
 
   /**
    * Name of a single [PreviewElement] to focus on.

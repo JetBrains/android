@@ -31,6 +31,7 @@ import com.android.tools.idea.common.util.BuildListener
 import com.android.tools.idea.common.util.ControllableTicker
 import com.android.tools.idea.common.util.setupBuildListener
 import com.android.tools.idea.common.util.setupChangeListener
+import com.android.tools.idea.compose.preview.PreviewGroup.Companion.ALL_PREVIEW_GROUP
 import com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshAction
 import com.android.tools.idea.compose.preview.actions.PreviewSurfaceActionManager
 import com.android.tools.idea.compose.preview.actions.requestBuildForSurface
@@ -181,14 +182,16 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    */
   private val uniqueRefreshLauncher = UniqueTaskCoroutineLauncher(this, "Compose Preview refresh")
 
-  override var groupNameFilter: String? by Delegates.observable(null as String?) { _, oldValue, newValue ->
+  override var groupFilter: PreviewGroup by Delegates.observable(ALL_PREVIEW_GROUP) { _, oldValue, newValue ->
     if (oldValue != newValue) {
       LOG.debug("New group preview element selection: $newValue")
-      this.groupNameFilteredProvider.groupName = newValue
+      this.groupNameFilteredProvider.groupName = newValue.name
       ApplicationManager.getApplication().invokeLater { refresh() }
     }
   }
-  override val availableGroups: Set<String> get() = groupNameFilteredProvider.availableGroups
+  override val availableGroups: Set<PreviewGroup> get() = groupNameFilteredProvider.availableGroups.map {
+    PreviewGroup.namedGroup(it)
+  }.toSet()
   override var singlePreviewElementFqnFocus: String? by Delegates.observable(null as String?) { _, oldValue, newValue ->
     if (oldValue != newValue) {
       LOG.debug("New single preview element focus: $newValue")
