@@ -257,9 +257,11 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     sourceSet.jni().srcDirs().addListValue().setValue("jniSource");
     sourceSet.jniLibs().srcDirs().addListValue().setValue("jniLibsSource");
     sourceSet.manifest().srcFile().addListValue().setValue("manifestSource.xml");
+    sourceSet.mlModels().srcDirs().addListValue().setValue("mlModelsSource");
     sourceSet.renderscript().srcDirs().addListValue().setValue("renderscriptSource");
     sourceSet.res().srcDirs().addListValue().setValue("resSource");
     sourceSet.resources().srcDirs().addListValue().setValue("resourcesSource");
+    sourceSet.shaders().srcDirs().addListValue().setValue("shadersSource");
     verifySourceSet(sourceSet, false /*to verify that the block elements are still not saved to the file*/);
 
     applyChangesAndReparse(buildModel);
@@ -305,6 +307,11 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     assertNotNull(manifest.srcFile());
     assertEquals(savedToFile, hasPsiElement(manifest));
 
+    SourceDirectoryModel mlModels = sourceSet.mlModels();
+    assertEquals("name", "mlModels", mlModels.name());
+    assertThat(mlModels.srcDirs().toList()).hasSize(1);
+    assertEquals(savedToFile, hasPsiElement(mlModels));
+
     SourceDirectoryModel renderscript = sourceSet.renderscript();
     assertEquals("name", "renderscript", renderscript.name());
     assertThat(renderscript.srcDirs().toList()).hasSize(1);
@@ -319,6 +326,11 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     assertEquals("name", "resources", resources.name());
     assertThat(resources.srcDirs().toList()).hasSize(1);
     assertEquals(savedToFile, hasPsiElement(resources));
+
+    SourceDirectoryModel shaders = sourceSet.shaders();
+    assertEquals("name", "shaders", shaders.name());
+    assertThat(shaders.srcDirs().toList()).hasSize(1);
+    assertEquals(savedToFile, hasPsiElement(shaders));
   }
 
   @Test
@@ -342,9 +354,11 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     sourceSet.removeJni();
     sourceSet.removeJniLibs();
     sourceSet.removeManifest();
+    sourceSet.removeMlModels();
     sourceSet.removeRenderscript();
     sourceSet.removeRes();
     sourceSet.removeResources();
+    sourceSet.removeShaders();
 
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, "");
