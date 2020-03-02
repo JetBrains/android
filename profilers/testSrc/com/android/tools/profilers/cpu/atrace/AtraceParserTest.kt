@@ -133,19 +133,6 @@ class AtraceParserTest {
   }
 
   @Test
-  fun testInvalidProcessIdThrows() {
-    var expectedExceptionCaught = false
-    try {
-      val parser = AtraceParser(AtraceParser.INVALID_PROCESS)
-      parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
-    }
-    catch (e: IllegalArgumentException) {
-      expectedExceptionCaught = true
-    }
-    assertThat(expectedExceptionCaught).isTrue()
-  }
-
-  @Test
   fun getProcessListReturnsProcessList() {
     val headOfListExpected = arrayOf(CpuThreadInfo(1510, "system_server"),
                                      CpuThreadInfo(2652, "splayingbitmaps"),
@@ -153,7 +140,9 @@ class AtraceParserTest {
     val tailOfListExpected = arrayOf(CpuThreadInfo(1404, "<1404>"),
                                      CpuThreadInfo(2732, "<2732>"),
                                      CpuThreadInfo(2713, "<2713>"))
-    val parser = AtraceParser(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"))
+    val parser = AtraceParser("")
+    parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
+
     val processes = parser.getProcessList("")
     // Validate the head of our list is organized as expected
     for (i in headOfListExpected.indices) {
@@ -171,46 +160,71 @@ class AtraceParserTest {
   }
 
   @Test
-  fun hintedProcessNameIsTop() {
-    val parser = AtraceParser(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"))
-    // No hint is alphabetical
-    var processes = parser.getProcessList("")
+  fun hintedProcessName_NoHintAlphabetical() {
+    val parser = AtraceParser(0)
+    parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
+
+    val processes = parser.getProcessList("")
     assertThat(processes[0].processName).isEqualTo("system_server")
-    // No matching hint is still alphabetical.
-    processes = parser.getProcessList("something.crazy.nothing.matches")
+  }
+
+  @Test
+  fun hintedProcessName_NoMatchingNameStillAlphabetical() {
+    val parser = AtraceParser(0)
+    parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
+
+    val processes = parser.getProcessList("something.crazy.nothing.matches")
     assertThat(processes[0].processName).isEqualTo("system_server")
-    // Substring matches
-    processes = parser.getProcessList("com.google.package.atrace")
+  }
+
+  @Test
+  fun hintedProcessName_SubstringMatches() {
+    val parser = AtraceParser(0)
+    parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
+
+
+    val processes = parser.getProcessList("com.google.package.atrace")
     assertThat(processes[0].processName).isEqualTo("atrace")
-    // Exact string
-    processes = parser.getProcessList("atrace")
+  }
+
+  @Test
+  fun hintedProcessName_ExactString() {
+    val parser = AtraceParser(0)
+    parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
+
+    val processes = parser.getProcessList("atrace")
     assertThat(processes[0].processName).isEqualTo("atrace")
   }
 
   @Test
   fun settingSelectedProcessReturnsParseWithThatProesssId() {
-    val parser = AtraceParser(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"))
-    parser.setSelectProcess(parser.getProcessList("")[0])
+    val parser = AtraceParser(0)
     val parsedFile = parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
     assertThat(parsedFile.mainThreadId).isEqualTo(parser.getProcessList("")[0].id)
   }
 
   @Test
   fun processNameThatWouldBePidUsesThreadNameInstead() {
-    val parser = AtraceParser(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"))
+    val parser = AtraceParser(0)
+    parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
+
     val info = parser.getProcessList(".gms.persistent")[0]
     assertThat(info.processName).isEqualTo(".gms.persistent")
   }
 
   @Test
   fun missingDataCaptureReturnsMissingdata() {
-    val parser = AtraceParser(CpuProfilerTestUtils.getTraceFile("atrace_processid_1.ctrace"))
+    val parser = AtraceParser(0)
+    parser.parse(CpuProfilerTestUtils.getTraceFile("atrace_processid_1.ctrace"), 0)
+
     assertThat(parser.isMissingData).isTrue()
   }
 
   @Test
   fun perfettoCaptureGetsProcessList() {
-    val parser = AtraceParser(CpuProfilerTestUtils.getTraceFile("perfetto.trace"))
+    val parser = AtraceParser(0)
+    parser.parse(CpuProfilerTestUtils.getTraceFile("perfetto.trace"), 0)
+
     assertThat(parser.getProcessList("")).isNotEmpty()
   }
 

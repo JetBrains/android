@@ -21,6 +21,7 @@ import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.CpuThreadInfo;
+import com.android.tools.profilers.cpu.MainProcessSelector;
 import com.android.tools.profilers.cpu.TraceParser;
 import com.android.tools.profilers.cpu.nodemodel.AtraceNodeModel;
 import com.google.common.annotations.VisibleForTesting;
@@ -111,22 +112,29 @@ public class AtraceParser implements TraceParser {
   private Range myRange;
   private AtraceFrameManager myFrameInfo;
 
+  @NotNull
+  private final MainProcessSelector processSelector;
+
   /**
-   * This constructor parses the atrace model from the file and should be used for getting the list
-   * of processes from the capture. After calling this construct the contract expects {@link #setSelectProcess}
-   * to be called before parse.
+   * This constructor assumes we know what process we want to focus on.
    */
-  public AtraceParser(@NotNull File file) throws IOException {
-    this(INVALID_PROCESS);
-    parseModelIfNeeded(file);
+  public AtraceParser(String processName) {
+    this(new MainProcessSelector(processName, null, null));
   }
 
   /**
-   * This constructor assumes we know what process we want to focus on. It caches off the process id,
-   * and expects parse with the proper file to be called.
+   * This constructor assumes we know what process we want to focus on.
    */
   public AtraceParser(int processId) {
-    myProcessId = processId;
+    this(new MainProcessSelector(null, processId, null));
+  }
+
+  /**
+   * This constructor assumes we don't know which process we want to focus on and will use the passed {@code processSelector} to find it.
+   */
+  public AtraceParser(@NotNull MainProcessSelector processSelector) {
+    this.processSelector = processSelector;
+
     myCaptureTreeNodes = new HashMap<>();
     myThreadStateData = new HashMap<>();
     myCpuSchedulingToCpuData = new HashMap<>();
@@ -139,8 +147,19 @@ public class AtraceParser implements TraceParser {
     double startTimestampUs = convertToUserTimeUs(myModel.getBeginTimestamp());
     double endTimestampUs = convertToUserTimeUs(myModel.getEndTimestamp());
     myRange = new Range(startTimestampUs, endTimestampUs);
+
+    List<CpuThreadSliceInfo> processList = getProcessList(processSelector.getNameHint());
+    if (processList.isEmpty()) {
+      throw new IllegalStateException("Invalid trace without any process information.");
+    }
+
+    Integer selectedProcess = processSelector.apply(processList);
+    if (selectedProcess == null) {
+      throw new IllegalStateException("It was not possible to select a process for this trace.");
+    }
+    myProcessId = selectedProcess;
+
     myProcessModel = myModel.getProcesses().get(myProcessId);
-    // TODO (b/69910215): Handle case capture does not contain process we are looking for.
     // Throw an exception instead of assert as the caller expects we will throw an exception if we failed to parse.
     if (myProcessModel == null) {
       throw new IllegalArgumentException(String.format("A process with the id %s was not found while parsing the capture.", myProcessId));
@@ -201,13 +220,13 @@ public class AtraceParser implements TraceParser {
    * 4) Processes without names.
    */
   @NotNull
-  public CpuThreadSliceInfo[] getProcessList(String hint) {
+  @VisibleForTesting
+  List<CpuThreadSliceInfo> getProcessList(@Nullable String hint) {
     assert myModel != null;
-    CpuThreadSliceInfo[] processList = new CpuThreadSliceInfo[myModel.getProcesses().size()];
-    Stream<ProcessModel> processStream = myModel.getProcesses().values().stream();
-    int index = 0;
-    String hintLower = hint.toLowerCase(Locale.getDefault());
-    processStream = processStream.sorted((a, b) -> {
+
+    String hintLower = hint == null ? "" : hint.toLowerCase(Locale.getDefault());
+
+    return myModel.getProcesses().values().stream().sorted((a, b) -> {
       String aNameLower = getMainThreadForProcess(a).toLowerCase(Locale.getDefault());
       String bNameLower = getMainThreadForProcess(b).toLowerCase(Locale.getDefault());
 
@@ -250,19 +269,10 @@ public class AtraceParser implements TraceParser {
         return b.getId() - a.getId();
       }
       return name;
-    });
-    List<ProcessModel> processes = processStream.collect(Collectors.toList());
-    for (ProcessModel process : processes) {
-      String name = getMainThreadForProcess(process);
-      processList[index++] = new CpuThreadSliceInfo(process.getId(), name, process.getId(), name);
-    }
-    return processList;
-  }
-
-  public void setSelectProcess(@NotNull CpuThreadSliceInfo process) {
-    assert myModel != null;
-    assert myModel.getProcesses().containsKey(process.getProcessId());
-    myProcessId = process.getProcessId();
+    }).map( p -> {
+      String name = getMainThreadForProcess(p);
+      return new CpuThreadSliceInfo(p.getId(), name, p.getId(), name);
+    }).collect(Collectors.toList());
   }
 
   @Override
@@ -494,7 +504,7 @@ public class AtraceParser implements TraceParser {
 
   @Nullable
   public ProcessModel getSurfaceflingerProcessModel() {
-    return Arrays.stream(getProcessList(SURFACE_FLINGER_PROCESS_NAME)).findFirst()
+    return getProcessList(SURFACE_FLINGER_PROCESS_NAME).stream().findFirst()
       .map(threadInfo -> myModel.getProcesses().get(threadInfo.getProcessId())).orElse(null);
   }
 }

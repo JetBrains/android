@@ -22,7 +22,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.components.panels.NonOpaquePanel;
@@ -32,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
 import java.util.function.Function;
 
 /**
@@ -57,7 +57,7 @@ public class ListBoxChooserDialog<T> extends DialogWrapper {
    * List of options to present to the user. The first option in the list is the default selected.
    */
   @NotNull
-  private final T[] myOptions;
+  private final List<T> myOptions;
   /**
    * Function to convert from options to strings for use in the presentation adapter.
    */
@@ -74,7 +74,7 @@ public class ListBoxChooserDialog<T> extends DialogWrapper {
    */
   public ListBoxChooserDialog(@NotNull String title,
                               @Nullable String message,
-                              @NotNull T[] options,
+                              @NotNull List<T> options,
                               @NotNull Function<T, String> presentationAdapter) {
     super(false);
     setTitle(title);
@@ -89,8 +89,8 @@ public class ListBoxChooserDialog<T> extends DialogWrapper {
 
     myPresentationAdapter = presentationAdapter;
     myOptions = options;
-    assert myOptions.length > 0;
-    mySelectedOption = myOptions[0];
+    assert !myOptions.isEmpty();
+    mySelectedOption = myOptions.get(0);
     myActivePresentation = new Presentation();
     init();
   }
@@ -168,7 +168,7 @@ public class ListBoxChooserDialog<T> extends DialogWrapper {
   private class SelectTargetAction extends AnAction {
     private final T myOption;
 
-    public SelectTargetAction(T option) {
+    private SelectTargetAction(T option) {
       myOption = option;
       String name = myPresentationAdapter.apply(option);
       Presentation presentation = getTemplatePresentation();

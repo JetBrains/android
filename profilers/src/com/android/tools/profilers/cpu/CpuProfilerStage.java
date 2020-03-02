@@ -57,7 +57,6 @@ import com.android.tools.profilers.StreamingStage;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.analytics.FilterMetadata;
-import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
 import com.android.tools.profilers.cpu.capturedetails.CaptureDetails;
 import com.android.tools.profilers.cpu.capturedetails.CaptureModel;
 import com.android.tools.profilers.event.EventMonitor;
@@ -644,12 +643,11 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
    */
   private void parseAndSelectImportedTrace(@NotNull File traceFile) {
     assert myIsImportTraceMode;
-    CompletableFuture<CpuCapture> capture = myCaptureParser.parse(traceFile, true);
-    if (capture == null) {
-      // User aborted the capture, or the model received an invalid file (e.g. from tests) canceled. Log and return early.
-      getLogger().info("Imported trace file was not parsed.");
-      return;
-    }
+
+    // We pass no hints for the import mode.
+    CompletableFuture<CpuCapture> capture = myCaptureParser.parse(
+      traceFile, CpuCaptureParser.IMPORTED_TRACE_ID, CpuTraceType.UNSPECIFIED_TYPE, 0, "");
+
     // TODO (b/79244375): extract callback to its own method
     Consumer<CpuCapture> parsingCallback = (parsedCapture) -> {
       if (parsedCapture != null) {
@@ -946,6 +944,11 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
     featureTracker.trackFilterMetadata(filterMetadata);
   }
 
+  @NotNull
+  private String getProcessCaptureNameHint(long traceId) {
+    return CpuProfiler.getTraceInfoFromId(getStudioProfilers(), traceId).getConfiguration().getAppName();
+  }
+
   public boolean isApiInitiatedTracingInProgress() {
     return myCaptureState == CaptureState.CAPTURING && getCaptureInitiationType().equals(TraceInitiationType.INITIATED_BY_API);
   }
@@ -992,8 +995,9 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
         .build();
       Transport.BytesResponse traceResponse = getStudioProfilers().getClient().getTransportClient().getBytes(traceRequest);
       if (!traceResponse.getContents().isEmpty()) {
-        capture =
-          myCaptureParser.parse(mySession, traceId, traceResponse.getContents(), myCompletedTraceIdToInfoMap.get(traceId).getTraceType());
+        File traceFile = CpuCaptureStage.saveCapture(traceId, traceResponse.getContents());
+        capture = myCaptureParser.parse(traceFile, traceId, myCompletedTraceIdToInfoMap.get(traceId).getTraceType(), mySession.getPid(),
+                                        getProcessCaptureNameHint(traceId));
       }
     }
     return capture;

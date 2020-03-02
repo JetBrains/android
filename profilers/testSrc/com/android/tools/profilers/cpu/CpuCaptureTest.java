@@ -21,7 +21,6 @@ import static org.junit.Assert.fail;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Cpu;
-import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.profilers.FakeTraceParser;
 import com.android.tools.profilers.cpu.art.ArtTraceParser;
 import com.android.tools.profilers.cpu.atrace.AtraceParser;
@@ -29,11 +28,13 @@ import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
 import com.android.tools.profilers.cpu.simpleperf.SimpleperfTraceParser;
 import com.google.common.collect.ImmutableMap;
+import java.io.File;
 import java.io.IOException;
 import java.nio.BufferUnderflowException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import org.junit.Test;
 
@@ -41,7 +42,7 @@ import org.junit.Test;
 public class CpuCaptureTest {
 
   @Test
-  public void validCapture() throws IOException, ExecutionException, InterruptedException {
+  public void validCapture() throws ExecutionException, InterruptedException {
     CpuCapture capture = CpuProfilerTestUtils.getValidCapture();
     assertThat(capture).isNotNull();
 
@@ -115,49 +116,50 @@ public class CpuCaptureTest {
   }
 
   @Test
-  public void corruptedTraceFileThrowsException() throws IOException, InterruptedException {
-    CpuCapture capture = null;
+  public void corruptedTraceFileThrowsException() throws InterruptedException {
+    File corruptedTrace = CpuProfilerTestUtils.getTraceFile("corrupted_trace.trace"); // Malformed trace file.
+    CompletableFuture<CpuCapture> future = CpuProfilerTestUtils.getCaptureFuture(corruptedTrace, Cpu.CpuTraceType.ART);
     try {
-      ByteString corruptedTrace = CpuProfilerTestUtils.traceFileToByteString("corrupted_trace.trace"); // Malformed trace file.
-      capture = CpuProfilerTestUtils.getCapture(corruptedTrace, Cpu.CpuTraceType.ART);
+      future.get();
       fail();
     }
     catch (ExecutionException e) {
       // An ExecutionException should happen when trying to get a capture.
       // It should be caused by an expected IllegalStateException thrown while parsing the trace bytes.
       Throwable executionExceptionCause = e.getCause();
-      assertThat(executionExceptionCause).isInstanceOf(IllegalStateException.class);
+      assertThat(executionExceptionCause).isInstanceOf(CpuCaptureParser.ParsingFailureException.class);
 
       // Expected BufferUnderflowException to be thrown in VmTraceParser.
       assertThat(executionExceptionCause.getCause()).isInstanceOf(BufferUnderflowException.class);
       // CpuCaptureParser#traceBytesToCapture catches the BufferUnderflowException and throw an IllegalStateException instead.
     }
-    assertThat(capture).isNull();
   }
 
   @Test
-  public void emptyTraceFileThrowsException() throws IOException, InterruptedException {
-    CpuCapture capture = null;
+  public void emptyTraceFileThrowsException() throws InterruptedException {
+    File emptyTrace = CpuProfilerTestUtils.getTraceFile("empty_trace.trace");
+    CompletableFuture<CpuCapture> future = CpuProfilerTestUtils.getCaptureFuture(emptyTrace, Cpu.CpuTraceType.ART);
+    assertThat(future).isNotNull();
+
     try {
-      ByteString emptyTrace = CpuProfilerTestUtils.traceFileToByteString("empty_trace.trace");
-      capture = CpuProfilerTestUtils.getCapture(emptyTrace, Cpu.CpuTraceType.ART);
+      future.get();
       fail();
     }
     catch (ExecutionException e) {
+      assertThat(future.isCompletedExceptionally()).isTrue();
       // An ExecutionException should happen when trying to get a capture.
       // It should be caused by an expected IllegalStateException thrown while parsing the trace bytes.
       Throwable executionExceptionCause = e.getCause();
-      assertThat(executionExceptionCause).isInstanceOf(IllegalStateException.class);
+      assertThat(executionExceptionCause).isInstanceOf(CpuCaptureParser.ParsingFailureException.class);
 
       // Expected IOException to be thrown in VmTraceParser.
       assertThat(executionExceptionCause.getCause()).isInstanceOf(IOException.class);
       // CpuCaptureParser#traceBytesToCapture catches the IOException and throw an IllegalStateException instead.
     }
-    assertThat(capture).isNull();
   }
 
   @Test
-  public void missingCaptureDataThrowsException() throws IOException, InterruptedException {
+  public void missingCaptureDataThrowsException() {
     CpuCapture capture = null;
     try {
       Range range = new Range(0, 30);
@@ -166,41 +168,27 @@ public class CpuCaptureTest {
       fail();
     }
     catch (IllegalStateException e) {
-      assertEquals(e.getMessage(), "Trace file contained no CPU data.");
+      assertEquals("Trace file contained no CPU data.", e.getMessage());
     }
     assertThat(capture).isNull();
   }
 
   @Test
-  public void profilerTypeMustBeSpecified() throws IOException, InterruptedException {
+  public void parsingTraceWithWrongProfilerTypeShouldFail() throws InterruptedException {
+    // Try to create a capture by passing an ART trace and simpleperf profiler type
+    File artTrace = CpuProfilerTestUtils.getTraceFile("valid_trace.trace"); /* Valid ART trace */
+    CompletableFuture<CpuCapture> future = CpuProfilerTestUtils.getCaptureFuture(artTrace, Cpu.CpuTraceType.SIMPLEPERF);
+
     try {
-      CpuProfilerTestUtils.getCapture(CpuProfilerTestUtils.readValidTrace(), Cpu.CpuTraceType.UNSPECIFIED_TYPE);
+      future.get();
       fail();
     }
     catch (ExecutionException e) {
       // An ExecutionException should happen when trying to get a capture.
       // It should be caused by an expected IllegalStateException thrown while parsing the trace bytes.
       Throwable executionExceptionCause = e.getCause();
-      assertThat(executionExceptionCause).isInstanceOf(IllegalStateException.class);
-
-      // Exception expected to be thrown because a valid profiler type was not set.
-      assertThat(executionExceptionCause.getMessage()).contains("Trace file cannot be parsed");
-    }
-  }
-
-  @Test
-  public void parsingTraceWithWrongProfilerTypeShouldFail() throws IOException, InterruptedException {
-    try {
-      // Try to create a capture by passing an ART trace and simpleperf profiler type
-      CpuProfilerTestUtils.getCapture(CpuProfilerTestUtils.readValidTrace() /* Valid ART trace */, Cpu.CpuTraceType.SIMPLEPERF);
-      fail();
-    }
-    catch (ExecutionException e) {
-      // An ExecutionException should happen when trying to get a capture.
-      // It should be caused by an expected IllegalStateException thrown while parsing the trace bytes.
-      Throwable executionExceptionCause = e.getCause();
-      assertThat(executionExceptionCause).isInstanceOf(IllegalStateException.class);
-      assertThat(executionExceptionCause.getMessage()).contains("magic number mismatch");
+      assertThat(executionExceptionCause).isInstanceOf(CpuCaptureParser.ParsingFailureException.class);
+      assertThat(executionExceptionCause).hasCauseThat().hasMessageThat().contains("magic number mismatch");
     }
   }
 
