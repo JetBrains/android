@@ -155,31 +155,34 @@ private class CapturePanelUi(private val myStage: MemoryProfilerStage,
   }
 
   private fun buildSummaryPanel() = JPanel(FlowLayout(FlowLayout.LEFT)).apply {
-    val totalClassLabel = StatLabel(0, "Total Classes")
-    val totalLeakLabel = StatLabel(0, "Total Leaks", Runnable(::showLeaks))
-    val totalCountLabel = StatLabel(0, "Total Count")
-    val totalNativeSizeLabel = StatLabel(0, "Total Native Size")
-    val totalShallowSizeLabel = StatLabel(0, "Total Shallow Size")
-    val totalRetainedSizeLabel = StatLabel(0, "Total Retained Size")
+    val totalClassLabel = StatLabel(0, "Classes")
+    val totalLeakLabel = StatLabel(0, "Leaks", Runnable(::showLeaks))
+    val totalCountLabel = StatLabel(0, "Count")
+    val totalNativeSizeLabel = StatLabel(0, "Native Size")
+    val totalShallowSizeLabel = StatLabel(0, "Shallow Size")
+    val totalRetainedSizeLabel = StatLabel(0, "Retained Size")
 
-    myStage.aspect.addDependency(myObserver)
-      .onChange(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS) {
-        totalClassLabel.intContent = countClasses()
-        setLabelSumBy(totalCountLabel) {it.totalObjectCount.toLong()}
-        setLabelSumBy(totalNativeSizeLabel) {it.totalNativeSize}
-        setLabelSumBy(totalShallowSizeLabel) {it.totalShallowSize}
-        setLabelSumBy(totalRetainedSizeLabel) {it.totalRetainedSize}
+    fun refreshSummaries() {
+      totalClassLabel.intContent = countClasses()
+      setLabelSumBy(totalCountLabel) {it.totalObjectCount.toLong()}
+      setLabelSumBy(totalNativeSizeLabel) {it.totalNativeSize}
+      setLabelSumBy(totalShallowSizeLabel) {it.totalShallowSize}
+      setLabelSumBy(totalRetainedSizeLabel) {it.totalRetainedSize}
 
-        // Only show "leak" stat when it's supported
-        when (val leakCount = countLeaks()) {
-          null -> totalLeakLabel.isVisible = false
-          else -> totalLeakLabel.apply {
-            isVisible = true
-            intContent = leakCount.toLong()
-            icon = if (leakCount > 0) StudioIcons.Common.WARNING else null
-          }
+      // Only show "leak" stat when it's supported
+      when (val leakCount = countLeaks()) {
+        null -> totalLeakLabel.isVisible = false
+        else -> totalLeakLabel.apply {
+          isVisible = true
+          intContent = leakCount.toLong()
+          icon = if (leakCount > 0) StudioIcons.Common.WARNING else null
         }
       }
+    }
+
+    myStage.aspect.addDependency(myObserver)
+      .onChange(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS, ::refreshSummaries)
+      .onChange(MemoryProfilerAspect.CURRENT_FILTER, ::refreshSummaries)
 
     add(totalClassLabel)
     add(totalLeakLabel)
