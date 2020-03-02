@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,27 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.refactoring
+package org.jetbrains.android.refactoring.namespaces
 
 import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.URI_PREFIX
 import com.android.builder.model.AaptOptions
 import com.android.ide.common.rendering.api.ResourceNamespace
-import com.android.ide.common.resources.SingleNamespaceResourceRepository
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
-import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.res.ResourceRepositoryManager
-import com.google.common.collect.Maps
-import com.google.common.collect.Table
-import com.google.common.collect.Tables
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_REFACTOR_MIGRATE_TO_RESOURCE_NAMESPACES
 import com.intellij.lang.Language
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.openapi.module.Module
@@ -42,18 +35,15 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Ref
-import com.intellij.openapi.vcs.FileStatus
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiReference
-import com.intellij.psi.PsiReferenceExpression
 import com.intellij.psi.XmlElementFactory
 import com.intellij.psi.XmlRecursiveElementVisitor
 import com.intellij.psi.impl.migration.PsiMigrationManager
 import com.intellij.psi.impl.source.xml.SchemaPrefixReference
-import com.intellij.psi.search.searches.ReferencesSearch
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlDocument
@@ -66,29 +56,21 @@ import com.intellij.refactoring.actions.BaseRefactoringAction
 import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
-import com.intellij.usages.Usage
-import com.intellij.usages.UsageGroup
-import com.intellij.usages.UsageInfo2UsageAdapter
-import com.intellij.usages.UsageTarget
-import com.intellij.usages.UsageView
-import com.intellij.usages.rules.SingleParentUsageGroupingRule
-import com.intellij.usages.rules.UsageGroupingRuleProvider
 import com.intellij.util.text.nullize
 import com.intellij.util.xml.DomManager
 import com.intellij.util.xml.DomUtil
 import com.intellij.util.xml.GenericDomValue
 import com.intellij.util.xml.WrappingConverter
 import org.jetbrains.android.dom.converters.AndroidResourceReference
-import org.jetbrains.android.dom.converters.ResourceReferenceConverter
 import org.jetbrains.android.dom.converters.AttrNameConverter
+import org.jetbrains.android.dom.converters.ResourceReferenceConverter
 import org.jetbrains.android.dom.resources.ResourceValue
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.SourceProviderManager
+import org.jetbrains.android.refactoring.module
+import org.jetbrains.android.refactoring.offerToCreateBackupAndRun
+import org.jetbrains.android.refactoring.syncBeforeFinishingRefactoring
 import org.jetbrains.android.util.AndroidUtils
-import com.android.tools.idea.res.packageToRClass
-import javax.swing.Icon
-
-private val DataContext.module: Module? get() = LangDataKeys.MODULE.getData(this)
 
 /**
  * Action to perform the refactoring.
@@ -133,15 +115,6 @@ class MigrateToResourceNamespacesHandler : RefactoringActionHandler {
   }
 }
 
-private sealed class ResourceUsageInfo(element: PsiElement, startOffset: Int, endOffset: Int) : UsageInfo(element, startOffset, endOffset) {
-  constructor(element: PsiElement) : this(element, 0, element.textLength)
-
-  abstract val resourceType: ResourceType
-  abstract val name: String
-
-  var inferredPackage: String? = null
-}
-
 private class DomValueUsageInfo(
   /** DOM value that needs to be rewritten. It cannot be stored because it may become invalid during the refactoring. */
   val resourceValue: ResourceValue,
@@ -166,14 +139,6 @@ private class DomValueUsageInfo(
     get() = resourceValue.resourceName!!
 }
 
-private class CodeUsageInfo(
-  /** The whole field reference, used in "find usages" view. */
-  fieldReferenceExpression: PsiElement,
-  /** The "R" reference itself, will be rebound to the right class. */
-  val classReference: PsiReference,
-  override val resourceType: ResourceType,
-  override val name: String
-) : ResourceUsageInfo(fieldReferenceExpression)
 
 private class XmlAttributeUsageInfo(attribute: XmlAttribute) : ResourceUsageInfo(attribute) {
   override val resourceType: ResourceType get() = ResourceType.ATTR
@@ -209,36 +174,14 @@ class MigrateToResourceNamespacesProcessor(
     result += findManifestUsages()
 
     progressIndicator.text = "Analyzing code files..."
-    result += findCodeUsages()
+    result += findUsagesOfRClassesFromModule(invokingFacet)
 
     progressIndicator.text = "Inferring namespaces..."
     progressIndicator.text2 = null
 
-    val leafRepos = ResourceRepositoryManager.getAppResources(invokingFacet).leafResourceRepositories
+    inferPackageNames(invokingFacet, result, progressIndicator)
 
-    val inferredNamespaces: Table<ResourceType, String, String> =
-      Tables.newCustomTable(Maps.newEnumMap(ResourceType::class.java)) { mutableMapOf<String, String>() }
-
-    val total = result.size.toDouble()
-
-    // TODO(b/78765120): try doing this in parallel using a thread pool.
-    result.forEachIndexed { index, resourceUsageInfo ->
-      ProgressManager.checkCanceled()
-
-      resourceUsageInfo.inferredPackage = inferredNamespaces.row(resourceUsageInfo.resourceType).computeIfAbsent(resourceUsageInfo.name) {
-        for (repo in leafRepos) {
-          if (repo.hasResources(ResourceNamespace.RES_AUTO, resourceUsageInfo.resourceType, resourceUsageInfo.name)) {
-            // TODO(b/78765120): check other repos and build a list of unresolved or conflicting references, to display in a UI later.
-            return@computeIfAbsent (repo as SingleNamespaceResourceRepository).packageName
-          }
-        }
-
-        null
-      }
-
-      progressIndicator.fraction = (index + 1) / total
-    }
-
+    progressIndicator.text = null
     return result.toTypedArray()
   }
 
@@ -364,46 +307,6 @@ class MigrateToResourceNamespacesProcessor(
     return result
   }
 
-  private fun findCodeUsages(): Collection<ResourceUsageInfo> {
-    val result = mutableListOf<ResourceUsageInfo>()
-
-    for (facet in allFacets) {
-      val moduleRepo = ResourceRepositoryManager.getModuleResources(facet)
-
-      // TODO(b/117202820): Handle test R classes as well.
-      val rClasses = myProject.getProjectSystem()
-        .getLightResourceClassService()
-        .getLightRClassesAccessibleFromModule(facet.module, false)
-
-      // TODO(b/78765120): should we rewrite dependent modules as well?
-      val scope = facet.module.moduleScope
-
-      // TODO(b/78765120): process references in parallel?
-      for (rClass in rClasses) {
-        for (psiReference in ReferencesSearch.search(rClass, scope)) {
-          val classRef = psiReference.element as? PsiReferenceExpression ?: continue
-          val typeRef = classRef.parent as? PsiReferenceExpression ?: continue
-          val nameRef = typeRef.parent as? PsiReferenceExpression ?: continue
-
-          // Make sure the PSI structure is as expected for something like "R.string.app_name":
-          if (nameRef.qualifierExpression != typeRef || typeRef.qualifierExpression != classRef) continue
-
-          val name = nameRef.referenceName ?: continue
-          val resourceType = ResourceType.fromClassName(typeRef.referenceName ?: continue) ?: continue
-          if (!moduleRepo.hasResources(ResourceNamespace.RES_AUTO, resourceType, name)) {
-            result += CodeUsageInfo(
-              fieldReferenceExpression = nameRef,
-              classReference = psiReference,
-              resourceType = resourceType,
-              name = name
-            )
-          }
-        }
-      }
-    }
-
-    return result
-  }
 
   override fun performRefactoring(usages: Array<UsageInfo>) {
     val progressIndicator = ProgressManager.getInstance().progressIndicator
@@ -457,18 +360,7 @@ class MigrateToResourceNamespacesProcessor(
             usageInfo.xmlAttribute.setValue(newUrl.qualifiedName)
           }
           is CodeUsageInfo -> {
-            val reference = usageInfo.classReference
-            reference.bindToElement(
-              findOrCreateClass(
-                myProject,
-                psiMigration,
-                packageToRClass(inferredPackage),
-
-                // We're dealing with light R classes, so need to pick the right scope here. This will be handled by
-                // AndroidResolveScopeEnlarger.
-                scope = reference.element.resolveScope
-              )
-            )
+            usageInfo.updateClassReference(psiMigration)
           }
         }
 
@@ -547,39 +439,3 @@ class MigrateToResourceNamespacesProcessor(
  *                   discussed storing the suggested short prefix in an AAR's metadata, so that library authors can provide a suggestion.
  */
 private fun choosePrefix(packageName: String): String = packageName.substringAfterLast('.')
-
-
-class ResourcePackageGroupingRuleProvider : UsageGroupingRuleProvider {
-  override fun createGroupingActions(view: UsageView): Array<AnAction> = AnAction.EMPTY_ARRAY
-  override fun getActiveRules(project: Project) = arrayOf(ResourcePackageGroupingRule())
-}
-
-class ResourcePackageGroupingRule : SingleParentUsageGroupingRule() {
-  override fun getParentGroupFor(usage: Usage, targets: Array<UsageTarget>): UsageGroup? {
-    val packageName = (usage as? UsageInfo2UsageAdapter)?.usageInfo?.let { it as? ResourceUsageInfo }?.inferredPackage ?: return null
-    return ResourcePackageUsageGroup(packageName)
-  }
-
-  override fun getRank(): Int = -1
-}
-
-data class ResourcePackageUsageGroup(val packageName: String) : UsageGroup {
-  override fun navigate(requestFocus: Boolean) {}
-  override fun update() {}
-
-  override fun getIcon(isOpen: Boolean): Icon? = null
-  override fun getFileStatus(): FileStatus? = null
-  override fun isValid() = true
-  override fun canNavigate() = false
-  override fun canNavigateToSource() = false
-  override fun getText(view: UsageView?): String = "Namespace '${choosePrefix(packageName)}' to be added for $packageName"
-
-  override fun compareTo(other: UsageGroup): Int {
-    return if (other is ResourcePackageUsageGroup) {
-      packageName.compareTo(other.packageName)
-    }
-    else {
-      -1
-    }
-  }
-}
