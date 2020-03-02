@@ -56,7 +56,6 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplicationStatement;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 
 /**
@@ -208,13 +207,6 @@ public class GradleFilesTest extends AndroidGradleTestCase {
     VirtualFile virtualFile = findOrCreateFileInProjectRootFolder(FN_GRADLE_PROPERTIES);
     runFakeModificationTest((factory, file) -> file.add(factory.createExpressionFromText("ext.coolexpression = 'nice!'")), true,
                             virtualFile);
-  }
-
-  public void testNotModifiedWhenAddingWhitespaceInWrapperPropertiesFile() throws Exception {
-    loadSimpleApplication();
-    GradleWrapper wrapper = GradleWrapper.create(getBaseDirPath(getProject()));
-    VirtualFile virtualFile = wrapper.getPropertiesFile();
-    runFakeModificationTest((factory, file) -> file.add(factory.createLineTerminator(1)), false, virtualFile);
   }
 
   public void testModifiedWhenAddingTextChildInWrapperPropertiesFile() throws Exception {
@@ -490,6 +482,8 @@ public class GradleFilesTest extends AndroidGradleTestCase {
 
     CommandProcessor.getInstance().executeCommand(getProject(), () ->
       ApplicationManager.getApplication().runWriteAction(() -> {
+        // Ensure document is committed.
+        PsiDocumentManager.getInstance(getProject()).commitAllDocuments();
         editFunction.accept(factory, psiFile);
         psiFile.subtreeChanged();
       }), "Fake Edit Test", null);
