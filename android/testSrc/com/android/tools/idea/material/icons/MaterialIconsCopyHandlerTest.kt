@@ -16,6 +16,8 @@
 package com.android.tools.idea.material.icons
 
 import com.android.ide.common.vectordrawable.VdIcon
+import com.android.tools.idea.material.icons.metadata.MaterialIconsMetadata
+import com.android.tools.idea.material.icons.metadata.MaterialMetadataIcon
 import com.android.utils.SdkUtils
 import com.intellij.openapi.util.io.FileUtil
 import org.intellij.lang.annotations.Language

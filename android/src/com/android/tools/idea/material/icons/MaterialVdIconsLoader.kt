@@ -18,7 +18,11 @@ package com.android.tools.idea.material.icons
 import com.android.SdkConstants
 import com.android.annotations.concurrency.Slow
 import com.android.ide.common.vectordrawable.VdIcon
-import com.android.tools.idea.material.icons.MaterialIconsUtils.toDirFormat
+import com.android.tools.idea.material.icons.common.BundledIconsUrlProvider
+import com.android.tools.idea.material.icons.common.MaterialIconsUrlProvider
+import com.android.tools.idea.material.icons.metadata.MaterialIconsMetadata
+import com.android.tools.idea.material.icons.metadata.MaterialMetadataIcon
+import com.android.tools.idea.material.icons.utils.MaterialIconsUtils.toDirFormat
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.containers.MultiMap
 import java.io.File

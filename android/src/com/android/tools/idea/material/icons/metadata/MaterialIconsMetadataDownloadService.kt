@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.material.icons
+package com.android.tools.idea.material.icons.metadata
 
 import com.android.tools.idea.downloads.DownloadService
-import com.android.tools.idea.material.icons.MaterialIconsUtils.METADATA_FILE_NAME
+import com.android.tools.idea.material.icons.utils.MaterialIconsUtils.METADATA_FILE_NAME
 import java.io.File
 import java.net.URL
 

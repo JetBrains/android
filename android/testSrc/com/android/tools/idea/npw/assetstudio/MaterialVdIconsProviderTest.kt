@@ -16,9 +16,9 @@
 package com.android.tools.idea.npw.assetstudio
 
 import com.android.sdklib.repository.AndroidSdkHandler
-import com.android.tools.idea.material.icons.MaterialIconsMetadataUrlProvider
-import com.android.tools.idea.material.icons.MaterialIconsUrlProvider
 import com.android.tools.idea.material.icons.MaterialVdIcons
+import com.android.tools.idea.material.icons.common.MaterialIconsMetadataUrlProvider
+import com.android.tools.idea.material.icons.common.MaterialIconsUrlProvider
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth

@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.material.icons
+package com.android.tools.idea.material.icons.download
 
+import com.android.tools.idea.material.icons.metadata.MaterialIconsMetadata
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.util.Pair
 import com.intellij.openapi.util.io.FileUtil
@@ -89,7 +90,6 @@ class MaterialIconsDownloaderTest {
     Mockito.`when`(mockDownloadableFileService.createFileDescription(
       ICON_DOWNLOAD_URL, FileUtil.toSystemDependentName("style1/my_icon/style1_my_icon_24.tmp"))).thenReturn(fileDescription)
     Mockito.`when`(mockDownloadableFileService.createDownloader(Mockito.any(), Mockito.eq("Material Icons"))).thenReturn(mockDownloader)
-
     materialIconsDownloader = MaterialIconsDownloader(OLD_METADATA, NEW_METADATA)
   }
 
