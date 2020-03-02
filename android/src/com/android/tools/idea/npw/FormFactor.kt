@@ -24,7 +24,6 @@ import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
 import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API
 import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API_TV
 import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API_WEAR
-import com.android.sdklib.devices.Device
 import com.android.sdklib.repository.IdDisplay
 import com.android.sdklib.repository.targets.SystemImage.AUTOMOTIVE_TAG
 import com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG
@@ -87,14 +86,5 @@ enum class FormFactor(@JvmField val id: String,
 
     @JvmStatic
     operator fun get(id: String): FormFactor = FORM_FACTORS[id] ?: MOBILE
-
-    @JvmStatic
-    operator fun get(device: Device): FormFactor = when {
-      HardwareConfigHelper.isAutomotive(device) -> AUTOMOTIVE
-      HardwareConfigHelper.isWear(device) -> WEAR
-      HardwareConfigHelper.isTv(device) -> TV
-      HardwareConfigHelper.isThings(device) -> THINGS
-      else -> MOBILE
-    }
   }
 }
