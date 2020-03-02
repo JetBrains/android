@@ -126,8 +126,7 @@ fun convertToExternalTextValue(
   // We only need to add a prefix if we are applying the reference from a parent dslFile context.
   if (currentParent is GradleDslFile && currentParent != context.dslFile) {
     // If we are applying a property from rootProject => we only need rootProjectPrefix.
-    // For rootProject buildFile, we use the project name, so we can check if the file has the same name as the project.
-    if (currentParent.name == currentParent.project.name) {
+    if (currentParent.name == ":") {
       externalName.append("rootProject.")
     }
     else {

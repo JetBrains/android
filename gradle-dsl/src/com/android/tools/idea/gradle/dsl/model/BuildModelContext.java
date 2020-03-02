@@ -199,7 +199,7 @@ public final class BuildModelContext {
 
   public GradleBuildFile parseProjectBuildFile(@NotNull Project project, @Nullable VirtualFile file) {
     // First parse the main project build file.
-    GradleBuildFile result = file != null ? new GradleBuildFile(file, project, project.getName(), this) : null;
+    GradleBuildFile result = file != null ? new GradleBuildFile(file, project, ":", this) : null;
     if (result != null) {
       setRootProjectFile(result);
       ApplicationManager.getApplication().runReadAction(() -> {
