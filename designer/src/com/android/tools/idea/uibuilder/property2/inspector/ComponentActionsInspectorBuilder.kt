@@ -113,7 +113,7 @@ private class ViewActionWrapper(private val viewAction: ViewAction,
 }
 
 private class NoArrowDropDownButton(menu: ViewActionMenu, surface: DesignSurface, nlComponents: List<NlComponent>)
-  : DropDownAction(null, menu.label, menu.icon) {
+  : DropDownAction(menu.label, menu.label, menu.icon) {
 
   init {
     addAll(menu.actions.map { ViewActionWrapper(it, surface, nlComponents) })
