@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.material.icons
+package com.android.tools.idea.material.icons.download
 
 import com.android.SdkConstants
 import com.android.annotations.concurrency.Slow
-import com.android.tools.idea.material.icons.MaterialIconsUtils.METADATA_FILE_NAME
-import com.android.tools.idea.material.icons.MaterialIconsUtils.toDirFormat
+import com.android.tools.idea.material.icons.metadata.MaterialIconsMetadata
+import com.android.tools.idea.material.icons.metadata.MaterialIconsMetadataBuilder
+import com.android.tools.idea.material.icons.metadata.MaterialMetadataIcon
+import com.android.tools.idea.material.icons.utils.MaterialIconsUtils.METADATA_FILE_NAME
+import com.android.tools.idea.material.icons.utils.MaterialIconsUtils.toDirFormat
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.util.download.DownloadableFileDescription

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.material.icons
+package com.android.tools.idea.material.icons.metadata
 
 import com.google.common.truth.Truth
 import com.google.gson.JsonParseException
@@ -95,7 +95,9 @@ class MaterialIconsMetadataTest {
       MaterialMetadataIcon("icon_2", 1, emptyArray(), arrayOf("category_2"), emptyArray())
     )
     // Create an instance of MaterialIconsMetadata
-    val metadataObject = MaterialIconsMetadata(host = "my_host", urlPattern = "my_pattern", families = arrayOf("Style 1", "Style 2"),
+    val metadataObject = MaterialIconsMetadata(host = "my_host",
+                                               urlPattern = "my_pattern",
+                                               families = arrayOf("Style 1", "Style 2"),
                                                icons = iconsMetadata)
     // Create a Json String
     val serializedMetadata = MaterialIconsMetadata.parse(metadataObject)
