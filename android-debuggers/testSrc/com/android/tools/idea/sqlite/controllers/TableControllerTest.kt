@@ -37,6 +37,7 @@ import com.android.tools.idea.sqlite.model.SqliteColumnValue
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteTable
+import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.util.Disposer
@@ -156,7 +157,7 @@ class TableControllerTest : PlatformTestCase() {
     // Assert
     orderVerifier.verify(tableView).startTableLoading()
     orderVerifier.verify(tableView).showTableColumns(mockResultSet._columns)
-    orderVerifier.verify(tableView).showTableRowBatch(mockResultSet.invocations[0])
+    orderVerifier.verify(tableView).updateRows(mockResultSet.invocations[0].map { RowDiffOperation.AddRow(it) })
     orderVerifier.verify(tableView).stopTableLoading()
 
     verify(tableView, times(0)).reportError(any(String::class.java), any(Throwable::class.java))
@@ -269,7 +270,7 @@ class TableControllerTest : PlatformTestCase() {
     // Assert
     orderVerifier.verify(tableView).startTableLoading()
     orderVerifier.verify(tableView).showTableColumns(mockResultSet._columns)
-    orderVerifier.verify(tableView).showTableRowBatch(mockResultSet.invocations[0])
+    orderVerifier.verify(tableView).updateRows(mockResultSet.invocations[0].map { RowDiffOperation.AddRow(it) })
     orderVerifier.verify(tableView).stopTableLoading()
 
     verify(tableView, times(0)).reportError(any(String::class.java), any(Throwable::class.java))
@@ -315,10 +316,10 @@ class TableControllerTest : PlatformTestCase() {
     pumpEventsAndWaitForFuture(tableController.refreshData())
 
     // Assert
-    orderVerifier.verify(tableView).showTableRowBatch(listOf(authorsRow1, authorsRow2))
-    orderVerifier.verify(tableView).showTableRowBatch(listOf(authorsRow1, authorsRow2))
-    orderVerifier.verify(tableView).showTableRowBatch(listOf(authorsRow5, authorsRow4))
-    orderVerifier.verify(tableView).showTableRowBatch(listOf(authorsRow5, authorsRow4))
+    orderVerifier.verify(tableView).updateRows(listOf(authorsRow1, authorsRow2).map { RowDiffOperation.AddRow(it) })
+    orderVerifier.verify(tableView).updateRows(emptyList())
+    orderVerifier.verify(tableView).updateRows(listOf(authorsRow5, authorsRow4).toCellUpdates())
+    orderVerifier.verify(tableView).updateRows(emptyList())
   }
 
   fun `test Next UiIsDisabledWhenNoMoreRowsAvailableOnSetup`() {
@@ -354,8 +355,8 @@ class TableControllerTest : PlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    verify(tableView).showTableRowBatch(mockResultSet.invocations[0])
-    verify(tableView).showTableRowBatch(mockResultSet.invocations[1])
+    verify(tableView).updateRows(mockResultSet.invocations[0].map { RowDiffOperation.AddRow(it) })
+    verify(tableView).updateRows(mockResultSet.invocations[1].toCellUpdates())
     verify(tableView, times(3)).setFetchNextRowsButtonState(false)
   }
 
@@ -940,7 +941,7 @@ class TableControllerTest : PlatformTestCase() {
     pumpEventsAndWaitForFuture(tableController.setUp())
 
     // Assert
-    orderVerifier.verify(tableView).showTableRowBatch(listOf(authorsRow1, authorsRow2))
+    orderVerifier.verify(tableView).updateRows(listOf(authorsRow1, authorsRow2).map { RowDiffOperation.AddRow(it) })
   }
 
   fun testSort() {
@@ -963,9 +964,9 @@ class TableControllerTest : PlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    orderVerifier.verify(tableView).showTableRowBatch(listOf(authorsRow1, authorsRow2))
-    orderVerifier.verify(tableView).showTableRowBatch(listOf(authorsRow1, authorsRow2))
-    orderVerifier.verify(tableView).showTableRowBatch(listOf(authorsRow5, authorsRow4))
+    orderVerifier.verify(tableView).updateRows(listOf(authorsRow1, authorsRow2).map { RowDiffOperation.AddRow(it) })
+    orderVerifier.verify(tableView).updateRows(emptyList())
+    orderVerifier.verify(tableView).updateRows(listOf(authorsRow5, authorsRow4).toCellUpdates())
   }
 
   fun testSortOnSortedQuery() {
@@ -986,8 +987,8 @@ class TableControllerTest : PlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    orderVerifier.verify(tableView).showTableRowBatch(listOf(authorsRow5, authorsRow4))
-    orderVerifier.verify(tableView).showTableRowBatch(listOf(authorsRow1, authorsRow2))
+    orderVerifier.verify(tableView).updateRows(listOf(authorsRow5, authorsRow4).map { RowDiffOperation.AddRow(it) })
+    orderVerifier.verify(tableView).updateRows(listOf(authorsRow1, authorsRow2).toCellUpdates())
   }
 
   fun testUpdateCellUpdatesView() {
@@ -1111,6 +1112,88 @@ class TableControllerTest : PlatformTestCase() {
     assertEquals(originalValue, value)
   }
 
+  fun `test AddRows`() {
+    // Prepare
+    val mockResultSet = MockSqliteResultSet(15)
+    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(
+      10, tableView, sqliteTable, mockDatabaseConnection, SqliteStatement(""),
+      edtExecutor
+    )
+    Disposer.register(testRootDisposable, tableController)
+
+    // Act
+    pumpEventsAndWaitForFuture(tableController.setUp())
+
+    // Assert
+    orderVerifier.verify(tableView).updateRows(mockResultSet.invocations[0].map { RowDiffOperation.AddRow(it) })
+  }
+
+  fun `test AddRows RemoveRows`() {
+    // Prepare
+    val mockResultSet = MockSqliteResultSet(15)
+    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(
+      10, tableView, sqliteTable, mockDatabaseConnection, SqliteStatement(""),
+      edtExecutor
+    )
+    Disposer.register(testRootDisposable, tableController)
+
+    // Act
+    pumpEventsAndWaitForFuture(tableController.setUp())
+    tableView.listeners.first().loadNextRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    orderVerifier.verify(tableView).updateRows(mockResultSet.invocations[0].map { RowDiffOperation.AddRow(it) })
+    orderVerifier.verify(tableView).updateRows(mockResultSet.invocations[1].take(5).toCellUpdates() + RowDiffOperation.RemoveLastRows(5))
+  }
+
+  fun `test AddRows UpdateRows`() {
+    // Prepare
+    val mockResultSet = MockSqliteResultSet(20)
+    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(
+      10, tableView, sqliteTable, mockDatabaseConnection, SqliteStatement(""),
+      edtExecutor
+    )
+    Disposer.register(testRootDisposable, tableController)
+
+    // Act
+    pumpEventsAndWaitForFuture(tableController.setUp())
+    tableView.listeners.first().loadNextRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    orderVerifier.verify(tableView).updateRows(mockResultSet.invocations[0].map { RowDiffOperation.AddRow(it) })
+    orderVerifier.verify(tableView).updateRows(mockResultSet.invocations[1].toCellUpdates())
+  }
+
+  fun `test AddRows RemoveRows AddRows`() {
+    // Prepare
+    val mockResultSet = MockSqliteResultSet(15)
+    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(
+      10, tableView, sqliteTable, mockDatabaseConnection, SqliteStatement(""),
+      edtExecutor
+    )
+    Disposer.register(testRootDisposable, tableController)
+
+    // Act
+    pumpEventsAndWaitForFuture(tableController.setUp())
+    tableView.listeners.first().loadNextRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().loadPreviousRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    orderVerifier.verify(tableView).updateRows(mockResultSet.invocations[0].map { RowDiffOperation.AddRow(it) })
+    orderVerifier.verify(tableView).updateRows(mockResultSet.invocations[1].take(5).toCellUpdates() + RowDiffOperation.RemoveLastRows(5))
+    orderVerifier.verify(tableView).updateRows(
+      mockResultSet.invocations[2].take(5).toCellUpdates() + mockResultSet.invocations[2].drop(5).map { RowDiffOperation.AddRow(it) }
+    )
+  }
+
   private fun testUpdateWorksOnCustomDatabase(databaseFile: VirtualFile, targetTableName: String, targetColumnName: String, expectedSqliteStatement: String) {
     // Prepare
     customDatabaseConnection = pumpEventsAndWaitForFuture(
@@ -1170,5 +1253,15 @@ class TableControllerTest : PlatformTestCase() {
       val connection = DriverManager.getConnection(url)
       return@executeAsync JdbcDatabaseConnection(connection, sqliteFile, executor)
     }
+  }
+
+  private fun List<SqliteRow>.toCellUpdates(): List<RowDiffOperation.UpdateCell> {
+    val result = mutableListOf<RowDiffOperation.UpdateCell>()
+
+    for (rowIndex in indices) {
+      result.addAll(get(rowIndex).values.mapIndexed { colIndex, value -> RowDiffOperation.UpdateCell(value, rowIndex, colIndex) })
+    }
+
+    return result
   }
 }
