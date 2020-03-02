@@ -24,6 +24,8 @@ import com.android.tools.idea.run.tasks.LaunchTask
 import com.android.tools.idea.run.util.LaunchStatus
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.JDOMUtil
+import org.jdom.Element
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.facet.AndroidFacet
 import org.mockito.Mockito.mock
@@ -57,6 +59,32 @@ class ComposePreviewRunConfigurationTest : AndroidTestCase() {
 
   fun testConfigurationIsNotProfilable() {
     assertFalse(runConfiguration.isProfilable)
+  }
+
+  fun testReadExternal() {
+    assertNull(runConfiguration.composableMethodFqn)
+
+    val testConfig =
+      // language=xml
+      """
+        <root>
+          <compose-preview-run-configuration composable-fqn="com.example.MyClassKt.ExampleComposable"/>
+        </root>
+      """.trimIndent()
+
+    runConfiguration.readExternal(JDOMUtil.load(testConfig))
+
+    assertEquals("com.example.MyClassKt.ExampleComposable", runConfiguration.composableMethodFqn)
+  }
+
+  fun testWriteExternal() {
+    runConfiguration.composableMethodFqn = "com.example.MyClassKt.ExampleComposable"
+
+    val testElement = Element("test")
+    runConfiguration.writeExternal(testElement)
+
+    val config = JDOMUtil.write(testElement)
+    assertTrue(config.contains("<compose-preview-run-configuration composable-fqn=\"com.example.MyClassKt.ExampleComposable\" />"))
   }
 
   private class FakeApplicationIdProvider : ApplicationIdProvider {
