@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite.ui.tableView
 
 import com.android.tools.idea.sqlite.model.SqliteColumn
+import com.android.tools.idea.sqlite.model.SqliteColumnValue
 import com.android.tools.idea.sqlite.model.SqliteRow
 import javax.swing.JComponent
 
@@ -37,10 +38,6 @@ interface TableView {
    * Removes data for both columns and rows and updates the view.
    */
   fun resetView()
-  /**
-   * Removes data for rows and updates the view.
-   */
-  fun removeRows()
 
   /**
    * Updates the UI to show the number of rows loaded per page.
@@ -49,7 +46,6 @@ interface TableView {
 
   fun startTableLoading()
   fun showTableColumns(columns: List<SqliteColumn>)
-  fun showTableRowBatch(rows: List<SqliteRow>)
   fun stopTableLoading()
   fun reportError(message: String, t: Throwable?)
 
@@ -71,6 +67,11 @@ interface TableView {
   fun addListener(listener: Listener)
   fun removeListener(listener: Listener)
 
+  /**
+   * Shows rows in the table, by applying the list of [RowDiffOperation]s.
+   */
+  fun updateRows(rowDiffOperations: List<RowDiffOperation>)
+
   interface Listener {
     fun loadPreviousRowsInvoked()
     fun loadNextRowsInvoked()
@@ -89,4 +90,17 @@ interface TableView {
      */
     fun toggleOrderByColumnInvoked(sqliteColumn: SqliteColumn)
   }
+}
+
+/** Class that represents a generic rows diff operation */
+sealed class RowDiffOperation {
+  /** Update operations are applied to the cells of existing rows */
+  data class UpdateCell(val newValue: SqliteColumnValue, val rowIndex: Int, val colIndex: Int) : RowDiffOperation()
+  /** Add operations are applied after [UpdateCell] operations, therefore rows are added at the end of the table */
+  data class AddRow(val row: SqliteRow) : RowDiffOperation()
+  /**
+   * Remove operations are applied after [UpdateCell] operations
+   * @param startIndex The index from which rows should be removed from the view.
+   */
+  data class RemoveLastRows(val startIndex: Int) : RowDiffOperation()
 }

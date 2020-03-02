@@ -24,6 +24,7 @@ import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteTable
+import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.google.common.base.Functions
 import com.google.common.util.concurrent.FutureCallback
@@ -33,6 +34,7 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.containers.ComparatorUtil.max
+import kotlin.math.min
 
 /**
  * Controller specialized in displaying rows and columns from a [SqliteResultSet].
@@ -57,6 +59,11 @@ class TableController(
   private var start = 0
 
   private var lastExecutedQuery = sqliteStatement
+
+  /**
+   * The list of rows that is currently shown in the view.
+   */
+  private var currentRows = emptyList<SqliteRow>()
 
   fun setUp(): ListenableFuture<Unit> {
     return edtExecutor.transform(databaseConnection.execute(sqliteStatement)) { newResultSet ->
@@ -126,21 +133,52 @@ class TableController(
 
   /**
    * Fetches rows through the [resultSet] using [start] and [rowBatchSize].
+   * The view is updated through a list of [RowDiffOperation]. Compared to just recreating the view
+   * this approach has the advantage that the state is not lost. Eg. if the user is navigating the table
+   * using the keyboard we don't want to lose the navigation each time the data has to be updated.
    */
   private fun fetchAndDisplayRows() : ListenableFuture<Unit> {
-    return edtExecutor.transformAsync(resultSet.getRowBatch(start, rowBatchSize)) { rows ->
+    return edtExecutor.transform(resultSet.getRowBatch(start, rowBatchSize)) { newRows ->
       if (Disposer.isDisposed(this)) throw ProcessCanceledException()
 
-      if (rows!!.isEmpty()) {
-        view.removeRows()
-        Futures.immediateFuture(Unit)
-      } else {
-        view.removeRows()
-        view.showTableRowBatch(rows)
-        view.setEditable(table != null)
-        Futures.immediateFuture(Unit)
+      val rowDiffOperations = mutableListOf<RowDiffOperation>()
+
+      // Update the cells that already exist
+      for (rowIndex in 0 until min(currentRows.size, newRows.size)) {
+        val rowCellUpdates = performRowsDiff(currentRows[rowIndex], newRows[rowIndex], rowIndex)
+        rowDiffOperations.addAll(rowCellUpdates)
+      }
+
+      // add new rows
+      if (currentRows.size < newRows.size) {
+        rowDiffOperations.addAll(newRows.drop(currentRows.size).map { RowDiffOperation.AddRow(it) })
+      }
+      // remove extra rows
+      else if (currentRows.size > newRows.size) {
+        rowDiffOperations.add(RowDiffOperation.RemoveLastRows(newRows.size))
+      }
+
+      view.updateRows(rowDiffOperations)
+      view.setEditable(table != null)
+
+      currentRows = newRows
+    }
+  }
+
+  /**
+   * Returns a list of [UpdateCell] commands.
+   * A command is added to the list if [oldRow] and [newRow] have different values in the same position.
+   */
+  private fun performRowsDiff(oldRow: SqliteRow, newRow: SqliteRow, rowIndex: Int): List<RowDiffOperation.UpdateCell> {
+    val cellUpdates = mutableListOf<RowDiffOperation.UpdateCell>()
+
+    for (colIndex in oldRow.values.indices) {
+      if (oldRow.values[colIndex] != newRow.values[colIndex]) {
+        cellUpdates.add(RowDiffOperation.UpdateCell(newRow.values[colIndex], rowIndex, colIndex))
       }
     }
+
+    return cellUpdates
   }
 
   private fun handleFetchRowsError(future: ListenableFuture<Unit>): ListenableFuture<Any> {
