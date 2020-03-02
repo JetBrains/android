@@ -24,6 +24,7 @@ import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.ResolutionStackItem
 import com.android.tools.idea.layoutinspector.resource.SourceLocation
 import com.android.tools.property.panel.api.PropertyEditorModel
+import com.android.tools.property.ptable2.PTable
 import com.android.tools.property.ptable2.PTableGroupItem
 import com.android.tools.property.ptable2.PTableVariableHeightCellEditor
 import com.google.common.annotations.VisibleForTesting
@@ -42,6 +43,7 @@ import java.awt.font.TextAttribute
 import javax.swing.BoxLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
+import javax.swing.SwingUtilities
 
 private const val LINK_BORDER = 2
 
@@ -72,6 +74,16 @@ class ResolutionElementEditor(
     linkPanel.isVisible = false
     linkPanel.background = UIUtil.TRANSPARENT_COLOR
     editorModel.addListener(ValueChangedListener { updateFromModel() })
+    editor.addMouseListener(object : MouseAdapter() {
+      override fun mouseClicked(event: MouseEvent) {
+        val property = editorModel.property as? PTableGroupItem ?: return
+        if (!event.isConsumed && event.clickCount > 1) {
+          val table = SwingUtilities.getAncestorOfClass(PTable::class.java, editor) as? PTable ?: return
+          table.toggle(property)
+          event.consume()
+        }
+      }
+    })
     updateFromModel()
   }
 

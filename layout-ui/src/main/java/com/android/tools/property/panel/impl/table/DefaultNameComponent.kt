@@ -93,6 +93,12 @@ class DefaultNameComponent(toggle: () -> Unit) : JPanel(BorderLayout()) {
       override fun mousePressed(event: MouseEvent) {
         requestFocusInWindow()
       }
+
+      override fun mouseClicked(event: MouseEvent) {
+        if (event.clickCount > 1) {
+          toggle()
+        }
+      }
     })
 
     add(iconLabel, BorderLayout.WEST)
