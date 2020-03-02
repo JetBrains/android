@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.android.tools.adtui.actions.DropDownAction
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.profiler.proto.Common
@@ -58,14 +57,13 @@ class SelectProcessAction(val layoutInspector: LayoutInspector) :
 
     // Rebuild the action tree.
     for (client in layoutInspector.allClients) {
-      val processesMap = client.loadProcesses()
-      for (stream in processesMap.keys) {
+      for (stream in client.getStreams()) {
         val serial = stream.device.serial
         if (!serials.add(serial)) {
           continue
         }
         val deviceName = buildDeviceName(serial, stream.device.model, stream.device.manufacturer)
-        add(DeviceAction(deviceName, processesMap, stream, client))
+        add(DeviceAction(deviceName, stream, client))
       }
     }
     if (childrenCount == 0) {
@@ -107,20 +105,16 @@ class SelectProcessAction(val layoutInspector: LayoutInspector) :
     }
   }
 
-  private class DeviceAction(
-    deviceName: String, processesMap: Map<Common.Stream, List<Common.Process>>, stream: Common.Stream, client: InspectorClient
-  ) : DropDownAction(deviceName, null, null) {
+  private class DeviceAction(deviceName: String, stream: Common.Stream, client: InspectorClient) : DropDownAction(deviceName, null, null) {
     override fun displayTextInToolbar() = true
+
     init {
-      val processes = processesMap[stream]
-      if (processes == null || processes.isEmpty()) {
-        add(NO_PROCESS_ACTION)
+      val processes = client.getProcesses(stream).sortedWith(compareBy({ it.name }, { it.pid }))
+      for (process in processes) {
+        add(ConnectAction(process, stream, client))
       }
-      else {
-        val sortedProcessList = processes.sortedWith(compareBy({ it.name }, { it.pid }))
-        for (process in sortedProcessList) {
-          add(ConnectAction(process, stream, client))
-        }
+      if (childrenCount == 0) {
+        add(NO_PROCESS_ACTION)
       }
     }
   }
