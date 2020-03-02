@@ -29,6 +29,7 @@ import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import org.fest.swing.core.Robot
 import org.fest.swing.edt.GuiQuery
+import org.fest.swing.exception.WaitTimedOutError
 import org.fest.swing.timing.Pause
 import org.fest.swing.timing.Wait
 import javax.swing.JComponent
@@ -49,6 +50,19 @@ class SplitEditorFixture(val robot: Robot, val editor: SplitEditor<out FileEdito
     val surface = waitUntilShowing(robot, Matchers.byType(NlDesignSurface::class.java))
     NlDesignSurfaceFixture(robot, surface)
   }
+
+  /**
+   * Returns whether the [NlDesignSurface] is showing in the split editor or not.
+   */
+  val hasDesignSurface: Boolean
+    get() =
+      try {
+        waitUntilShowing(robot, null, Matchers.byType(NlDesignSurface::class.java), 2)
+        true
+      }
+      catch (_: WaitTimedOutError) {
+        false
+      }
 
   private val loadingPanel: WorkBenchLoadingPanelFixture by lazy {
     val workbench: WorkBench<*> = robot.finder().findByType(target(), WorkBench::class.java, false)
@@ -82,4 +96,15 @@ fun EditorFixture.getSplitEditorFixture(): SplitEditorFixture {
     checkState(selected is SplitEditor<out FileEditor>, "invalid editor selected")
     SplitEditorFixture(ideFrame.robot(), selected as SplitEditor<out FileEditor>)
   }
+}
+
+/**
+ * Returns if the current selected editor is a [SplitEditor]
+ */
+fun EditorFixture.isSplitEditor(): Boolean {
+  // Wait for the editor to do any initializations
+  ideFrame.robot().waitForIdle()
+
+  val editors = FileEditorManager.getInstance(ideFrame.project).selectedEditors
+  return editors[0] is SplitEditor<out FileEditor>
 }
