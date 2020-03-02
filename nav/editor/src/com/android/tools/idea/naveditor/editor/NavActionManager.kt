@@ -201,7 +201,7 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
     return group
   }
 
-  override fun getToolbarActions(component: NlComponent?, newSelection: List<NlComponent>) =
+  override fun getToolbarActions(newSelection: List<NlComponent>) =
     DefaultActionGroup().apply {
       // This is called whenever the selection changes, but since our contents are static they can be cached.
       add(addDestinationMenu)

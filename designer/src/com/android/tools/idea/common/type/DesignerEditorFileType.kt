@@ -49,7 +49,7 @@ interface DesignerEditorFileType {
    * Returns the toolbar actions that should be present for the given selection.
    */
   fun getSelectionContextToolbar(surface: DesignSurface, selection: List<NlComponent>): DefaultActionGroup =
-    surface.actionManager.getToolbarActions(null, selection)
+    surface.actionManager.getToolbarActions(selection)
 
   /**
    * If required, modifies the model to make sure it can represent files of this type. For example, we might want to adjust the model's

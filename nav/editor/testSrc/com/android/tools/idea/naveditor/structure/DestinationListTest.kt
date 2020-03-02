@@ -172,7 +172,7 @@ class DestinationListTest : NavTestCase() {
     `when`(actionManager.getPopupMenuActions(any())).thenReturn(DefaultActionGroup())
     // We use any ?: Collections.emptyList() below because any() returns null and Kotlin will
     // complain during the null checking
-    `when`(actionManager.getToolbarActions(any(), any() ?: Collections.emptyList())).thenReturn(DefaultActionGroup())
+    `when`(actionManager.getToolbarActions(any() ?: Collections.emptyList())).thenReturn(DefaultActionGroup())
     val nlComponent = model.find("fragment2")!!
     val listModel = list.myList.model
     val point = list.myList.indexToLocation((0 until listModel.size).indexOfFirst { listModel.getElementAt(it) == nlComponent })

@@ -137,7 +137,7 @@ class TestActionManager(surface: DesignSurface) : ActionManager<DesignSurface>(s
 
   override fun getPopupMenuActions(leafComponent: NlComponent?) = DefaultActionGroup()
 
-  override fun getToolbarActions(component: NlComponent?, newSelection: MutableList<NlComponent>) = DefaultActionGroup()
+  override fun getToolbarActions(selection: MutableList<NlComponent>) = DefaultActionGroup()
 }
 
 class TestInteractionHandler(surface: DesignSurface) : InteractionHandlerBase(surface) {
