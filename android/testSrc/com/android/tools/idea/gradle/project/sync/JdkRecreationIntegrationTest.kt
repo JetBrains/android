@@ -73,7 +73,7 @@ class JdkRecreationIntegrationTest: GradleIntegrationTest {
         assertThat(basePath).isNotNull()
         assertThat(basePath).isNotEmpty()
 
-        val gradleManager = AndroidStudioGradleInstallationManager.getInstance()
+        val gradleManager = AndroidStudioGradleInstallationManager.getInstance() as AndroidStudioGradleInstallationManager
         projectJdk = gradleManager.getGradleJdk(project, basePath!!) as ProjectJdkImpl
       }
 
@@ -100,7 +100,7 @@ class JdkRecreationIntegrationTest: GradleIntegrationTest {
         assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SUCCESS)
 
         val basePath = project.basePath
-        val gradleManager = AndroidStudioGradleInstallationManager.getInstance()
+        val gradleManager = AndroidStudioGradleInstallationManager.getInstance() as AndroidStudioGradleInstallationManager
         val project2Jdk = gradleManager.getGradleJdk(project, basePath!!) as ProjectJdkImpl
         assertThat(project2Jdk.getRoots(OrderRootType.CLASSES)).hasLength(originalSize)
       }

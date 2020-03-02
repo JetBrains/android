@@ -33,7 +33,7 @@ class SendFeedbackActionTest: AndroidGradleTestCase() {
   fun testDescriptionContainsGradleJdk() {
     loadSimpleApplication()
     val description = SendFeedbackAction.getDescription(project)
-    val jdk = AndroidStudioGradleInstallationManager.getInstance().getGradleJdk(project, project.basePath!!)
+    val jdk = (AndroidStudioGradleInstallationManager.getInstance() as AndroidStudioGradleInstallationManager).getGradleJdk(project, project.basePath!!)
     assertThat(jdk).isNotNull()
     assertThat(description).contains("Gradle JDK: ${jdk!!.versionString}")
     assertThat(description).doesNotContain("Gradle JDK: (default)")
