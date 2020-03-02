@@ -59,6 +59,7 @@ import com.intellij.openapi.util.io.FileUtil.writeToFile
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.PathUtil.toSystemDependentName
 import org.jetbrains.android.AndroidTestBase
+import org.jetbrains.annotations.SystemDependent
 import org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings
 import org.jetbrains.plugins.gradle.settings.GradleSettings
@@ -456,5 +457,11 @@ abstract class GradleSyncProjectComparisonTest(
 
   override fun getAdditionalRepos() =
     listOf(File(AndroidTestBase.getTestDataPath(), toSystemDependentName(TestProjectPaths.PSD_SAMPLE_REPO)))
+
+  private val tempSuffix: String = java.time.Clock.systemUTC().millis().toString()
+
+  override fun getBaseTestPath(): @SystemDependent String {
+    return File(super.getBaseTestPath(), tempSuffix).absolutePath
+  }
 }
 
