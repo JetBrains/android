@@ -65,7 +65,6 @@ import com.intellij.ui.components.panels.VerticalLayout;
 import com.intellij.util.IncorrectOperationException;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import javax.swing.Icon;
 import javax.swing.JComponent;
@@ -189,7 +188,13 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     SceneView screenView = mySurface.getFocusedSceneView();
     if (screenView != null) {
       if (leafComponent != null) {
-        addViewHandlerActions(group, leafComponent, screenView.getSelectionModel().getSelection());
+        // Look up view handlers
+        int prevCount = group.getChildrenCount();
+        // Add popup menu action
+        addActions(group, leafComponent.getParent(), leafComponent, screenView.getSelectionModel().getSelection(), false);
+        if (group.getChildrenCount() > prevCount) {
+          group.addSeparator();
+        }
       }
 
       group.addSeparator();
@@ -234,17 +239,6 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     group.addSeparator();
   }
 
-  private void addViewHandlerActions(@NotNull DefaultActionGroup group,
-                                     @NotNull NlComponent component,
-                                     @NotNull List<NlComponent> selection) {
-    // Look up view handlers
-    int prevCount = group.getChildrenCount();
-    addPopupMenuActions(group, component, selection);
-    if (group.getChildrenCount() > prevCount) {
-      group.addSeparator();
-    }
-  }
-
   @Nullable
   private static NlComponent findSharedParent(@NotNull List<NlComponent> newSelection) {
     NlComponent parent = null;
@@ -264,19 +258,22 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     return parent;
   }
 
-  private void addActions(@NotNull DefaultActionGroup group, @Nullable NlComponent component,
-                          @NotNull List<NlComponent> newSelection, boolean toolbar) {
-    NlComponent parent;
-    if (component == null) {
-      parent = findSharedParent(newSelection);
-      if (parent == null) {
-        return;
-      }
-    }
-    else {
-      parent = component.getParent();
-    }
-
+  /**
+   * Adds the actions for the given leafComponent and selection. The actions of leafComponent (if any) are followed by the actions of
+   * selection.
+   *
+   * @param group         The group to collect the added view actions.
+   * @param parent        The shared parent of selection. Can be null (e.g. there is no selection).
+   * @param leafComponent The target {@link NlComponent} which ask for actions. For example, the right-clicked component when opening
+   *                      context menu.
+   * @param selection     The current selected NlComponent
+   * @param toolbar       Indicate the added actions are for toolbar or context menu.
+   */
+  private void addActions(@NotNull DefaultActionGroup group,
+                          @Nullable NlComponent parent,
+                          @Nullable NlComponent leafComponent,
+                          @NotNull List<NlComponent> selection,
+                          boolean toolbar) {
     SceneView screenView = mySurface.getFocusedSceneView();
     if (screenView == null) {
       return;
@@ -291,19 +288,24 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
 
     // TODO: Perform caching
     List<AnAction> actions = new ArrayList<>();
-    if (component != null) {
-      ViewHandler handler = ViewHandlerManager.get(project).getHandler(component);
-      actions.addAll(getViewActionsForHandler(component, newSelection, editor, handler, toolbar));
+    if (leafComponent != null) {
+      ViewHandler handler = ViewHandlerManager.get(project).getHandler(leafComponent);
+      if (handler != null) {
+        actions.addAll(getViewActionsForHandler(leafComponent, selection, editor, handler, toolbar));
+      }
     }
     if (parent != null) {
       ViewHandler handler = ViewHandlerManager.get(project).getHandler(parent);
-      List<NlComponent> selectedChildren = Lists.newArrayListWithCapacity(newSelection.size());
-      for (NlComponent selected : newSelection) {
-        if (selected.getParent() == parent) {
-          selectedChildren.add(selected);
+      if (handler != null) {
+        List<NlComponent> selectedChildren = Lists.newArrayListWithCapacity(selection.size());
+        // TODO(b/150297043): If the selected components have different parents, do we need to provide the view action from parents?
+        for (NlComponent selected : selection) {
+          if (selected.getParent() == parent) {
+            selectedChildren.add(selected);
+          }
         }
+        actions.addAll(getViewActionsForHandler(parent, selectedChildren, editor, handler, toolbar));
       }
-      actions.addAll(getViewActionsForHandler(parent, selectedChildren, editor, handler, toolbar));
     }
 
     boolean lastWasSeparator = false;
@@ -319,19 +321,12 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     }
   }
 
-  private void addPopupMenuActions(@NotNull DefaultActionGroup group,
-                                     @Nullable NlComponent component,
-                                     @NotNull List<NlComponent> newSelection) {
-    addActions(group, component, newSelection, false);
-  }
-
   @Override
   @NotNull
-  public DefaultActionGroup getToolbarActions(@Nullable NlComponent component,
-                                @NotNull List<NlComponent> newSelection) {
+  public DefaultActionGroup getToolbarActions(@NotNull List<NlComponent> selection) {
     DefaultActionGroup group = new DefaultActionGroup();
-    addActions(group, component, newSelection, true);
-
+    NlComponent sharedParent = findSharedParent(selection);
+    addActions(group, sharedParent, null, selection, true);
     return group;
   }
 
@@ -339,12 +334,8 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
   private List<AnAction> getViewActionsForHandler(@NotNull NlComponent component,
                                         @NotNull List<NlComponent> newSelection,
                                         @NotNull ViewEditor editor,
-                                        @Nullable ViewHandler handler,
+                                        @NotNull ViewHandler handler,
                                         boolean toolbar) {
-    if (handler == null) {
-      return Collections.emptyList();
-    }
-
     List<ViewAction> viewActions = new ArrayList<>();
     if (toolbar) {
       viewActions.addAll(ViewHandlerManager.get(mySurface.getProject()).getToolbarActions(handler));

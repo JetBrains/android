@@ -41,6 +41,6 @@ class VisualizationActionManagerTest : AndroidTestCase() {
 
   fun testToolbarActions() {
     val actionManager = VisualizationActionManager(NlDesignSurface.build(project, testRootDisposable)) { TestVisualizationModelsProvider() }
-    assertEquals(0, actionManager.getToolbarActions(null, emptyList()).childrenCount)
+    assertEquals(0, actionManager.getToolbarActions(emptyList()).childrenCount)
   }
 }

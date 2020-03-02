@@ -81,17 +81,20 @@ public abstract class ActionManager<S extends DesignSurface> {
   public abstract void registerActionsShortcuts(@NotNull JComponent component);
 
   /**
-   * Creates a pop-up menu for the given component
+   * Creates the actions for the pop-up menu (a.k.a. context menu) for the given {@link NlComponent}.
+   *
+   * @param leafComponent The target component for the pop-up menu (e.g. The right-clicked component)
    */
   @NotNull
   public abstract DefaultActionGroup getPopupMenuActions(@Nullable NlComponent leafComponent);
 
   /**
-   * Creates the toolbar actions for the given component
+   * Creates the actions for the given {@link NlComponent}s.
+   *
+   * @param selection The selected {@link NlComponent}s in {@link DesignSurface}.
    */
   @NotNull
-  public abstract DefaultActionGroup getToolbarActions(@Nullable NlComponent component,
-                                                       @NotNull List<NlComponent> newSelection);
+  public abstract DefaultActionGroup getToolbarActions(@NotNull List<NlComponent> selection);
 
   /**
    * Returns the context toolbar for a {@link SceneView}. This toolbar should contain actions
