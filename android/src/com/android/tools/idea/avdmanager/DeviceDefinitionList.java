@@ -85,6 +85,9 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   private static final String DEFAULT_WEAR = "Android Wear Square";
   private static final String DEFAULT_TV = "Android TV (1080p)";
   private static final String DEFAULT_AUTOMOTIVE = "Automotive (1024p landscape)";
+  private static final String TV = "TV";
+  private static final String WEAR = "Wear OS";
+  private static final String AUTOMOTIVE = "Automotive";
 
   private Map<String, List<Device>> myDeviceCategoryMap = Maps.newHashMap();
   private static final Map<String, Device> myDefaultCategoryDeviceMap = Maps.newHashMap();
@@ -272,9 +275,9 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   private void setDefaultDevices() {
     myDefaultDevice = updateDefaultDevice(PHONE_TYPE, DEFAULT_PHONE);
     updateDefaultDevice(TABLET_TYPE, DEFAULT_TABLET);
-    updateDefaultDevice(FormFactor.TV.toString(), DEFAULT_TV);
-    updateDefaultDevice(FormFactor.WEAR.toString(), DEFAULT_WEAR);
-    updateDefaultDevice(FormFactor.AUTOMOTIVE.toString(), DEFAULT_AUTOMOTIVE);
+    updateDefaultDevice(TV, DEFAULT_TV);
+    updateDefaultDevice(WEAR, DEFAULT_WEAR);
+    updateDefaultDevice(AUTOMOTIVE, DEFAULT_AUTOMOTIVE);
   }
 
   private Device updateDefaultDevice(String type, String deviceDisplayName) {
@@ -423,11 +426,11 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   @VisibleForTesting
   public static String getCategory(@NotNull Device d) {
     if (HardwareConfigHelper.isAutomotive(d)) {
-      return FormFactor.AUTOMOTIVE.toString();
+      return AUTOMOTIVE;
     } else if (HardwareConfigHelper.isTv(d) || hasTvSizedScreen(d)) {
-      return FormFactor.TV.toString();
+      return TV;
     } else if (HardwareConfigHelper.isWear(d)) {
-      return FormFactor.WEAR.toString();
+      return WEAR;
     } else if (isTablet(d)) {
       return TABLET_TYPE;
     } else {
