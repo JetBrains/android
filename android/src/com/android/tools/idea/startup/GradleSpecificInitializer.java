@@ -110,7 +110,6 @@ public class GradleSpecificInitializer implements Runnable {
     setUpGradleViewToolbarActions();
     checkInstallPath();
 
-/* b/137334921
     ActionManager actionManager = ActionManager.getInstance();
     // "Configure Plugins..." Not sure why it's called StartupWizard.
     AnAction pluginAction = actionManager.getAction("StartupWizard");
@@ -118,7 +117,6 @@ public class GradleSpecificInitializer implements Runnable {
     if (pluginAction != null) {
       pluginAction.getTemplatePresentation().setVisible(false);
     }
-b/137334921 */
 
     if (AndroidSdkUtils.isAndroidSdkManagerEnabled()) {
       try {
