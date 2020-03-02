@@ -139,9 +139,10 @@ public interface IdeProfilerServices {
    * @param listBoxPresentationAdapter adapter that takes in an option and returns a string to be presented to the user.
    * @return The option the user selected. If the user cancels the return value will be null.
    */
+  @Nullable
   <T> T openListBoxChooserDialog(@NotNull String title,
                                  @Nullable String message,
-                                 @NotNull T[] options,
+                                 @NotNull List<T> options,
                                  @NotNull Function<T, String> listBoxPresentationAdapter);
 
   /**

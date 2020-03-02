@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.profilers.IdeProfilerServices;
 import java.io.File;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
@@ -34,8 +35,11 @@ public class CpuCaptureHandler implements Updatable, StatusPanelModel {
   @NotNull private final IdeProfilerServices myServices;
   @NotNull private final ProfilingConfiguration myConfiguration;
   @NotNull private final File myCaptureFile;
+  private final int myCaptureProcessIdHint;
+  @Nullable private final String myCaptureProcessNameHint;
+
   private boolean myIsParsing = false;
-  private final boolean myIsImportedTrace;
+
 
   public CpuCaptureHandler(@NotNull IdeProfilerServices services,
                            @NotNull File captureFile,
@@ -43,13 +47,12 @@ public class CpuCaptureHandler implements Updatable, StatusPanelModel {
                            @Nullable String captureProcessNameHint,
                            int captureProcessIdHint) {
     myCaptureParser = new CpuCaptureParser(services);
-    myCaptureParser.setProcessNameHint(captureProcessNameHint, captureProcessIdHint);
     myCaptureFile = captureFile;
     myServices = services;
     myConfiguration = configuration;
-    // The only way we know if the file we are parsing is imported is by looking at if we have a process id or not.
-    // this value is used when parsing the capture to determine which metrics we send.
-    myIsImportedTrace = captureProcessIdHint == 0;
+    myCaptureProcessIdHint = captureProcessIdHint;
+    myCaptureProcessNameHint = captureProcessNameHint;
+
     myCaptureParser.trackCaptureMetadata(CpuCaptureParser.IMPORTED_TRACE_ID, new CpuCaptureMetadata(configuration));
   }
 
@@ -102,22 +105,17 @@ public class CpuCaptureHandler implements Updatable, StatusPanelModel {
   public void parse(Consumer<CpuCapture> captureCompleted) {
     myIsParsing = true;
     myParseRange.set(0, 0);
-    CompletableFuture<CpuCapture> capture = myCaptureParser.parse(myCaptureFile, myIsImportedTrace);
-    if (capture == null) {
-      // User aborted the capture, or the model received an invalid file (e.g. from tests) canceled. Log and return early.
-      myServices.showNotification(CpuProfilerNotifications.IMPORT_TRACE_PARSING_FAILURE);
-      captureCompleted.accept(null);
-      return;
-    }
+    CompletableFuture<CpuCapture> capture = myCaptureParser.parse(
+      myCaptureFile, CpuCaptureParser.IMPORTED_TRACE_ID, null, myCaptureProcessIdHint, myCaptureProcessNameHint);
 
     // Parsing is in progress. Handle it asynchronously and set the capture afterwards using the main executor.
     capture.handleAsync((parsedCapture, exception) -> {
-      if (capture.isCancelled()) {
+      if (exception instanceof CancellationException) {
         myServices.showNotification(CpuProfilerNotifications.IMPORT_TRACE_PARSING_ABORTED);
-      }
-      else if (parsedCapture == null) {
+      } else if (parsedCapture == null) {
         myServices.showNotification(CpuProfilerNotifications.IMPORT_TRACE_PARSING_FAILURE);
       }
+
       myIsParsing = false;
       captureCompleted.accept(parsedCapture);
       return parsedCapture;

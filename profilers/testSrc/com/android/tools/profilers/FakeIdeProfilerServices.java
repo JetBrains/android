@@ -326,12 +326,13 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   }
 
   @Override
+  @Nullable
   public <T> T openListBoxChooserDialog(@NotNull String title,
                                         @Nullable String message,
-                                        @NotNull T[] options,
+                                        @NotNull List<T> options,
                                         @NotNull Function<T, String> listBoxPresentationAdapter) {
-    if (myListBoxOptionsIndex >= 0 && myListBoxOptionsIndex < options.length) {
-      return options[myListBoxOptionsIndex];
+    if (myListBoxOptionsIndex >= 0 && myListBoxOptionsIndex < options.size()) {
+      return options.get(myListBoxOptionsIndex);
     }
     return null;
   }

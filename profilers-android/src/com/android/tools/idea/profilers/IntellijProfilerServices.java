@@ -74,6 +74,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -316,12 +317,13 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   }
 
   @Override
+  @Nullable
   public <T> T openListBoxChooserDialog(@NotNull String title,
                                         @Nullable String message,
-                                        @NotNull T[] options,
+                                        @NotNull List<T> options,
                                         @NotNull Function<T, String> listBoxPresentationAdapter) {
 
-    Object[] selectedValue = new Object[1];
+    AtomicReference<T> selectedValue = new AtomicReference<>();
     Supplier<T> dialog = () -> {
       ListBoxChooserDialog<T> listBoxDialog = new ListBoxChooserDialog<>(title, message, options, listBoxPresentationAdapter);
       listBoxDialog.show();
@@ -329,7 +331,7 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     };
     // Check if we are on a thread that is able to dispatch ui events. If we are show the dialog, otherwise invoke the dialog later.
     if (SwingUtilities.isEventDispatchThread()) {
-      selectedValue[0] = dialog.get();
+      selectedValue.set(dialog.get());
     }
     else {
       // Object to control communication between the render thread and the capture thread.
@@ -338,7 +340,7 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
         // Tell UI thread that we want to show a dialog then block capture thread
         // until user has made a selection.
         ApplicationManager.getApplication().invokeLater(() -> {
-          selectedValue[0] = dialog.get();
+          selectedValue.set(dialog.get());
           latch.countDown();
         });
         //noinspection WaitNotInLoop
@@ -348,7 +350,7 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
         // If our wait was interrupted continue.
       }
     }
-    return (T)selectedValue[0];
+    return selectedValue.get();
   }
 
   /**

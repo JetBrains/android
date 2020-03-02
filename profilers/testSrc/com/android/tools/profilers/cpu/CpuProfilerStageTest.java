@@ -1721,28 +1721,10 @@ public final class CpuProfilerStageTest extends AspectObserver {
       super.abortParsing();
     }
 
-    @Nullable
+    @NotNull
     @Override
-    public CompletableFuture<CpuCapture> parse(@NotNull Common.Session session,
-                                               long traceId,
-                                               @NotNull ByteString traceData,
-                                               Cpu.CpuTraceType profilerType) {
-      CompletableFuture<CpuCapture> capture = new CompletableFuture<>();
-      capture.cancel(true);
-      return capture;
-    }
-
-    @Nullable
-    @Override
-    public CompletableFuture<CpuCapture> parse(@NotNull File traceFile) {
-      CompletableFuture<CpuCapture> capture = new CompletableFuture<>();
-      capture.cancel(true);
-      return capture;
-    }
-
-    @Nullable
-    @Override
-    public CompletableFuture<CpuCapture> parse(@NotNull File traceFile, boolean reportImportMetrics) {
+    public CompletableFuture<CpuCapture> parse(
+      @NotNull File traceFile, long traceId, @Nullable Cpu.CpuTraceType preferredProfilerType, int idHint, @Nullable String nameHint) {
       CompletableFuture<CpuCapture> capture = new CompletableFuture<>();
       capture.cancel(true);
       return capture;
