@@ -66,8 +66,7 @@ fun validateProjectGradleJdk(project: Project?, projectPath: String?) {
   }
   val jdk: Sdk? =
     if (StringUtils.isNotBlank(projectPath)) {
-      @Suppress("UnstableApiUsage")
-      AndroidStudioGradleInstallationManager.getInstance().getGradleJdk(project, projectPath!!)
+      (AndroidStudioGradleInstallationManager.getInstance() as AndroidStudioGradleInstallationManager).getGradleJdk(project, projectPath!!)
     }
     else {
       null
