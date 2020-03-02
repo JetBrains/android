@@ -25,9 +25,11 @@ import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.ui.tableView.TableView
+import com.google.common.base.Functions
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.containers.ComparatorUtil.max
@@ -103,7 +105,7 @@ class TableController(
       view.stopTableLoading()
     }
 
-    return edtExecutor.transform(future) { Unit }
+    return Futures.transform(future, Functions.constant(Unit), MoreExecutors.directExecutor())
   }
 
   /**
