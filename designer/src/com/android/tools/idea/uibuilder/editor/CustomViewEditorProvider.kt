@@ -224,7 +224,7 @@ private class CustomViewPreviewActionManager(
 
   override fun getToolbarActions(component: NlComponent?, newSelection: MutableList<NlComponent>): DefaultActionGroup {
     val customViewPreviewActions = DefaultActionGroup()
-    val customViews = object : DropDownAction(null, "Custom View for Preview", CUSTOM_VIEW) {
+    val customViews = object : DropDownAction("Custom View for Preview", "Custom View for Preview", CUSTOM_VIEW) {
       override fun update(e: AnActionEvent) {
         super.update(e)
         e.presentation.setText(previewEditor.currentState, false)
