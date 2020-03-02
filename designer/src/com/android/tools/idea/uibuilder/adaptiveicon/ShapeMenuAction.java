@@ -55,7 +55,7 @@ public class ShapeMenuAction extends DropDownAction {
   private final NlDesignSurface mySurface;
 
   public ShapeMenuAction(@NotNull NlDesignSurface surface) {
-    super(null, "Adaptive Icon Shape", null);
+    super("Adaptive Icon Shape", "Adaptive Icon Shape", null);
     mySurface = surface;
     for (AdaptiveIconShape shape : AdaptiveIconShape.values()) {
       add(new SetShapeAction(mySurface, shape));

@@ -39,7 +39,7 @@ public class DeviceMenuAction extends DropDownAction {
   private final ConfigurationHolder myRenderContext;
 
   public DeviceMenuAction(@NotNull ConfigurationHolder renderContext) {
-    super(null, "Device for Preview", StudioIcons.LayoutEditor.Toolbar.VIRTUAL_DEVICES);
+    super("Device for Preview", "Device for Preview", StudioIcons.LayoutEditor.Toolbar.VIRTUAL_DEVICES);
     myRenderContext = renderContext;
     Presentation presentation = getTemplatePresentation();
     updatePresentation(presentation);

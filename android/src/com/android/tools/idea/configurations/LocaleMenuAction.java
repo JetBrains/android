@@ -51,7 +51,7 @@ public class LocaleMenuAction extends DropDownAction {
   private final ConfigurationHolder myRenderContext;
 
   public LocaleMenuAction(@NotNull ConfigurationHolder renderContext) {
-    super(null, "Locale for Preview", null);
+    super("Locale for Preview", "Locale for Preview", null);
     myRenderContext = renderContext;
     Presentation presentation = getTemplatePresentation();
     updatePresentation(presentation);
