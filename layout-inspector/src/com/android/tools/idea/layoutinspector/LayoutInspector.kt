@@ -49,7 +49,7 @@ class LayoutInspector(val layoutInspectorModel: InspectorModel, parentDisposable
   init {
     val defaultClient = InspectorClient.createInstance(layoutInspectorModel, this)
     registerClientListeners(defaultClient)
-    val legacyClient = LegacyClient(layoutInspectorModel.project)
+    val legacyClient = LegacyClient(this)
     registerClientListeners(legacyClient)
     allClients = listOf(defaultClient, legacyClient)
     Disposer.register(parentDisposable, this)

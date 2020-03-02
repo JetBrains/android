@@ -56,31 +56,32 @@ import java.util.concurrent.TimeUnit
 val DEFAULT_PROCESS = Common.Process.newBuilder().apply {
   name = "myProcess"
   pid = 12345
-  deviceId = 1234
+  deviceId = 123456
   state = Common.Process.State.ALIVE
 }.build()!!
 
 val DEFAULT_DEVICE = Common.Device.newBuilder().apply {
-  deviceId = 1234
+  deviceId = 123456
   model = "My Model"
   manufacturer = "Google"
-  serial = "1234"
+  serial = "123456"
   featureLevel = 29
   state = Common.Device.State.ONLINE
 }.build()!!
 
 val LEGACY_DEVICE = Common.Device.newBuilder().apply {
-  deviceId = 1234
+  deviceId = 123488
   model = "My Legacy Model"
   manufacturer = "Google"
-  serial = "1234"
+  serial = "123488"
   apiLevel = 27
   state = Common.Device.State.ONLINE
 }.build()!!
 
 val DEFAULT_STREAM = Common.Stream.newBuilder().apply {
   device = DEFAULT_DEVICE
-  streamId = 1111
+  streamId = 123456
+  type = Common.Stream.Type.DEVICE
 }.build()!!
 
 /**
@@ -185,7 +186,7 @@ class LayoutInspectorTransportRule(
   /**
    * Create a [LegacyClient] rather than a [DefaultInspectorClient]
    */
-  fun withLegacyClient() = apply { inspectorClientFactory = { LegacyClient(project) } }
+  fun withLegacyClient() = apply { inspectorClientFactory = { LegacyClient(projectRule.fixture.projectDisposable) } }
 
   /**
    * The default attach handler just attaches (or fails if [shouldConnectSuccessfully] is false). Use this if you want to do something else.
@@ -206,7 +207,6 @@ class LayoutInspectorTransportRule(
       }
       else if (inspectorClient is LegacyClient) {
         addProcess(LEGACY_DEVICE, DEFAULT_PROCESS)
-        inspectorClient.loadProcesses()
       }
     }
     if (connected) {

@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.layoutinspector
 
+import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
 import com.android.tools.idea.layoutinspector.ui.SelectProcessAction
+import com.android.tools.idea.layoutinspector.util.ProcessManagerSync
 import com.android.tools.idea.stats.AnonymizerUtil
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceInfo
@@ -35,8 +37,7 @@ class MetricsTest {
   @get:Rule
   val inspectorRule = LayoutInspectorTransportRule().withDefaultDevice(connected = false)
 
-  @Rule
-  @JvmField
+  @get:Rule
   val usageTrackerRule = MetricsTrackerRule()
 
   @Test
@@ -57,7 +58,7 @@ class MetricsTest {
     var studioEvent = usages[0].studioEvent
 
     val deviceInfo = studioEvent.deviceInfo
-    assertEquals(AnonymizerUtil.anonymizeUtf8("1234"), deviceInfo.anonymizedSerialNumber)
+    assertEquals(AnonymizerUtil.anonymizeUtf8("123456"), deviceInfo.anonymizedSerialNumber)
     assertEquals("My Model", deviceInfo.model)
     assertEquals("Google", deviceInfo.manufacturer)
     assertEquals(DeviceInfo.DeviceType.LOCAL_PHYSICAL, deviceInfo.deviceType)
@@ -88,7 +89,7 @@ class MetricsTest {
     val studioEvent = usages[0].studioEvent
 
     val deviceInfo = studioEvent.deviceInfo
-    assertEquals(AnonymizerUtil.anonymizeUtf8("1234"), deviceInfo.anonymizedSerialNumber)
+    assertEquals(AnonymizerUtil.anonymizeUtf8("123456"), deviceInfo.anonymizedSerialNumber)
     assertEquals("My Model", deviceInfo.model)
     assertEquals("Google", deviceInfo.manufacturer)
     assertEquals(DeviceInfo.DeviceType.LOCAL_PHYSICAL, deviceInfo.deviceType)
@@ -102,8 +103,7 @@ class MetricsTest2 {
   @get:Rule
   val inspectorRule = LayoutInspectorTransportRule()
 
-  @Rule
-  @JvmField
+  @get:Rule
   val usageTrackerRule = MetricsTrackerRule()
 
   @Test
@@ -125,8 +125,12 @@ class MetricsTest2 {
     assertEquals(0, usages.size)
 
     // Now start the process
+    val client = inspectorRule.inspectorClient as DefaultInspectorClient
     inspectorRule.addProcess(DEFAULT_DEVICE, DEFAULT_PROCESS)
+    val waiter = ProcessManagerSync(client.processManager)
+    waiter.waitUntilReady(DEFAULT_DEVICE.serial, DEFAULT_PROCESS.pid)
     inspectorRule.advanceTime(1100, TimeUnit.MILLISECONDS)
+
     usages = usageTrackerRule.testTracker.usages
       .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT }
     // We should have the attach request and success event now
