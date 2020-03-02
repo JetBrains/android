@@ -21,9 +21,11 @@ import com.android.SdkConstants.ATTR_TEXT_COLOR
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
+import com.android.testutils.MockitoKt.eq
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.imagediff.ImageDiffUtil
 import com.android.tools.adtui.stdui.KeyStrokes
+import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.ResolutionStackModel
 import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyItem
@@ -37,6 +39,7 @@ import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Property.Typ
 import com.android.tools.property.panel.api.PropertyItem
 import com.android.tools.property.panel.impl.model.TextFieldPropertyEditorModel
 import com.android.tools.property.panel.impl.ui.PropertyTextField
+import com.android.tools.property.ptable2.PTable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.ui.laf.IntelliJLaf
 import com.intellij.openapi.util.SystemInfo
@@ -48,8 +51,15 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.withSettings
+import sun.awt.AWTAccessor
+import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Container
+import java.awt.Dimension
 import java.awt.Font
 import java.awt.event.ActionEvent
 import java.awt.geom.AffineTransform
@@ -138,6 +148,24 @@ class ResolutionElementEditorTest {
 
     // The "elevation" attribute is never set so there will not be a link to follow:
     assertThat(ResolutionElementEditor.hasLinkPanel(item2)).isFalse()
+  }
+
+  @Test
+  fun testDoubleClick() {
+    val parent = mock(JComponent::class.java, withSettings().extraInterfaces(PTable::class.java))
+    val table = parent as PTable
+    val editors = createEditors()
+    val editor = editors[0]
+    val item = editor.editorModel.property as InspectorGroupPropertyItem
+    val textEditor = (editor.layout as BorderLayout).getLayoutComponent(BorderLayout.CENTER)
+    AWTAccessor.getComponentAccessor().setParent(editor, parent)
+    editor.size = Dimension(500, 200)
+    editor.doLayout()
+    val ui = FakeUi(textEditor)
+    ui.mouse.doubleClick(200, 100)
+    verify(table).toggle(eq(item))
+    ui.mouse.doubleClick(250, 100)
+    verify(table, times(2)).toggle(eq(item))
   }
 
   private fun checkImage(editors: List<ResolutionElementEditor>, expected: String) {
