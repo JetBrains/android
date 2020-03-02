@@ -99,6 +99,8 @@ class DefaultInspectorClient(
   }
   override var selectedProcess: Common.Process = Common.Process.getDefaultInstance()
 
+  private val listeners: MutableList<TransportEventListener> = mutableListOf()
+
   override val provider = DefaultPropertiesProvider(this, model.resourceLookup)
 
   private var loggedInitialRender = false
@@ -131,6 +133,7 @@ class DefaultInspectorClient(
 
   override fun dispose() {
     disconnectNow()
+    listeners.clear()
     TransportEventPoller.stopPoller(transportPoller)
   }
 
@@ -138,13 +141,12 @@ class DefaultInspectorClient(
   // TODO: move all communication with the agent off the UI thread
 
   override fun register(groupId: Common.Event.EventGroupIds, callback: (Any) -> Unit) {
-    // TODO: unregister listeners
-    transportPoller.registerListener(TransportEventListener(
+    listeners.add(TransportEventListener(
       eventKind = Common.Event.Kind.LAYOUT_INSPECTOR,
       executor = MoreExecutors.directExecutor(),
-      streamId = selectedStream::getStreamId,
+      streamId = { selectedStream.streamId },
       groupId = { groupId.number.toLong() },
-      processId = selectedProcess::getPid) {
+      processId = { selectedProcess.pid }) {
       if (selectedStream != Common.Stream.getDefaultInstance() &&
           selectedProcess != Common.Process.getDefaultInstance() && isConnected &&
           it.timestamp > lastResponseTimePerGroup.getOrDefault(it.groupId, Long.MIN_VALUE)) {
@@ -165,13 +167,12 @@ class DefaultInspectorClient(
   }
 
   private fun registerProcessEnded() {
-    // TODO: unregister listeners
-    transportPoller.registerListener(TransportEventListener(
+    listeners.add(TransportEventListener(
       eventKind = Common.Event.Kind.PROCESS,
       executor = MoreExecutors.directExecutor(),
-      streamId = selectedStream::getStreamId,
+      streamId = { selectedStream.streamId },
       groupId = { selectedProcess.pid.toLong() },
-      processId = selectedProcess::getPid) {
+      processId = { selectedProcess.pid }) {
       if (selectedStream != Common.Stream.getDefaultInstance() &&
           selectedProcess != Common.Process.getDefaultInstance() && isConnected && it.isEnded) {
         disconnectNow()
@@ -279,10 +280,10 @@ class DefaultInspectorClient(
     // Remove existing listener if we're retrying
     attachListener?.let { transportPoller.unregisterListener(it) }
 
-    // TODO: Probably need to detach from an existing process here
-    isConnected = false
-    isCapturing = false
-    processChangedListeners.forEach { it() }
+    if (isConnected) {
+      execute(LayoutInspectorCommand.Type.STOP)
+      disconnectNow()
+    }
 
     // The device daemon takes care of the case if and when the agent is previously attached already.
     val attachCommand = Command.newBuilder()
@@ -316,6 +317,7 @@ class DefaultInspectorClient(
       true // Remove the listener after this callback
     }
     attachListener?.let { transportPoller.registerListener(it) }
+    listeners.forEach { transportPoller.registerListener(it) }
 
     // TODO(b/150503095)
     val response = client.transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(attachCommand).build())
@@ -411,6 +413,8 @@ class DefaultInspectorClient(
         selectedProcess = Common.Process.getDefaultInstance()
         isConnected = false
         isCapturing = false
+        listeners.forEach { transportPoller.unregisterListener(it) }
+        lastResponseTimePerGroup.clear()
       }
     }
     if (didDisconnect) {
