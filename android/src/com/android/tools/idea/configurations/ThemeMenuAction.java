@@ -41,7 +41,7 @@ public class ThemeMenuAction extends DropDownAction {
   private final ConfigurationHolder myRenderContext;
 
   public ThemeMenuAction(@NotNull ConfigurationHolder renderContext) {
-    super(null, "Theme for Preview", StudioIcons.LayoutEditor.Toolbar.THEME_BUTTON);
+    super("Theme for Preview", "Theme for Preview", StudioIcons.LayoutEditor.Toolbar.THEME_BUTTON);
     myRenderContext = renderContext;
   }
 
