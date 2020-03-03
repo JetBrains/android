@@ -25,7 +25,7 @@ import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.npw.assetstudio.AdaptiveIconGenerator;
-import com.android.tools.idea.npw.assetstudio.DrawableRenderer;
+import com.android.tools.idea.rendering.DrawableRenderer;
 import com.android.tools.idea.npw.assetstudio.IconGenerator.Shape;
 import com.android.tools.idea.npw.assetstudio.LauncherIconGenerator;
 import com.android.tools.idea.npw.assetstudio.TvChannelIconGenerator;

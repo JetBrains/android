@@ -48,7 +48,7 @@ import com.android.resources.ResourceType;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.npw.assetstudio.DrawableRenderer;
+import com.android.tools.idea.rendering.DrawableRenderer;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;

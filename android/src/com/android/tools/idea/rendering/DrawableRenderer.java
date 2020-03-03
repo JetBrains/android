@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw.assetstudio;
+package com.android.tools.idea.rendering;
+
+import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
 
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.rendering.api.LayoutlibCallback;
@@ -24,10 +26,6 @@ import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
-import com.android.tools.idea.rendering.RenderLogger;
-import com.android.tools.idea.rendering.RenderProblem;
-import com.android.tools.idea.rendering.RenderService;
-import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.rendering.parsers.LayoutPsiPullParser;
 import com.intellij.openapi.Disposable;
@@ -121,7 +119,8 @@ public class DrawableRenderer implements Disposable {
 
     return myRenderTaskFuture.thenCompose(renderTask -> {
       if (renderTask == null) {
-        return CompletableFuture.completedFuture(AssetStudioUtils.createDummyImage());
+        // Return a dummy image.
+        return CompletableFuture.completedFuture(new BufferedImage(1, 1, TYPE_INT_ARGB));
       }
 
       synchronized (myRenderLock) {
