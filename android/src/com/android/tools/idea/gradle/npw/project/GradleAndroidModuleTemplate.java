@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.npw.project;
 import static com.android.SdkConstants.FD_AIDL;
 import static com.android.SdkConstants.FD_JAVA;
 import static com.android.SdkConstants.FD_MAIN;
+import static com.android.SdkConstants.FD_ML_MODELS;
 import static com.android.SdkConstants.FD_RESOURCES;
 import static com.android.SdkConstants.FD_SOURCES;
 import static com.android.SdkConstants.FD_TEST;
@@ -70,7 +71,8 @@ public class GradleAndroidModuleTemplate {
       new File(baseSrcDir.getPath(), FD_UNIT_TEST + File.separatorChar + FD_JAVA),
       new File(baseSrcDir.getPath(), FD_TEST + File.separatorChar + FD_JAVA),
       new File(baseFlavorDir, FD_AIDL),
-      ImmutableList.of(new File(baseFlavorDir, FD_RESOURCES))
+      ImmutableList.of(new File(baseFlavorDir, FD_RESOURCES)),
+      ImmutableList.of(new File(baseFlavorDir, FD_ML_MODELS))
     ));
   }
 }
