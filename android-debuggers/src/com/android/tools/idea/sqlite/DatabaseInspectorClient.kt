@@ -16,80 +16,21 @@
 package com.android.tools.idea.sqlite
 
 import androidx.sqlite.inspection.SqliteInspectorProtocol
-import com.android.tools.idea.appinspection.api.AppInspectionTarget
-import com.android.tools.idea.appinspection.ide.AppInspectionClientsService
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
-import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.databaseConnection.live.getErrorMessage
-import com.google.common.annotations.VisibleForTesting
-import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.application.ApplicationManager
-import org.jetbrains.ide.PooledThreadExecutor
-import java.util.concurrent.Executor
 
 /**
- * Class used to send and receive messages from an on-device inspector instance.
+ * Class used to receive asynchronous events from the on-device inspector.
+ * @param messenger Communication channel with the on-device inspector.
+ * @param handleError Function called when a ErrorOccurred event is received.
+ * @param openDatabase Function called when a DatabaseOpened event is received.
  */
-class DatabaseInspectorClient private constructor(
-  private val databaseInspectorProjectService: DatabaseInspectorProjectService,
-  messenger: CommandMessenger
+class DatabaseInspectorClient constructor(
+  messenger: CommandMessenger,
+  private val handleError: (errorMessage: String) -> Unit,
+  private val openDatabase: (messenger: CommandMessenger, databaseConnectionId: Int, databaseName: String) -> Unit
 ) : AppInspectorClient(messenger) {
-
-  companion object {
-    private const val inspectorId = "androidx.sqlite.inspection"
-    private val inspectorJar =
-      AppInspectorJar("sqlite-inspection.jar",
-                      developmentDirectory = "../../prebuilts/tools/common/app-inspection/androidx/sqlite/",
-                      releaseDirectory = "plugins/android/resources/app-inspection/")
-
-    /**
-     * Starts listening for the creation of new connections to a device.
-     */
-    fun startListeningForPipelineConnections(databaseInspectorProjectService: DatabaseInspectorProjectService, taskExecutor: Executor) {
-      AppInspectionClientsService.discovery.addTargetListener(PooledThreadExecutor.INSTANCE) { target ->
-        launch(databaseInspectorProjectService, target, FutureCallbackExecutor.wrap(taskExecutor))
-      }
-    }
-
-    /**
-     * Starts the database inspector in the connected app and begins tracking open databases.
-     */
-    private fun launch(
-      databaseInspectorProjectService: DatabaseInspectorProjectService,
-      target: AppInspectionTarget,
-      taskExecutor: FutureCallbackExecutor
-    ): ListenableFuture<DatabaseInspectorClient> {
-      val launchInspectorFuture = target.launchInspector(inspectorId, inspectorJar) { messenger ->
-        DatabaseInspectorClient(databaseInspectorProjectService, messenger)
-      }
-
-      taskExecutor.catching(launchInspectorFuture, Throwable::class.java) {
-        // TODO databaseInspectorProjectService.showError(message)
-        it
-      }
-
-      return taskExecutor.transform(launchInspectorFuture) { it.startTrackingDatabaseConnections(); it }
-    }
-
-    @VisibleForTesting
-    fun createDatabaseInspectorClient(
-      databaseInspectorProjectService: DatabaseInspectorProjectService,
-      messenger: CommandMessenger
-    ): DatabaseInspectorClient {
-      return DatabaseInspectorClient(databaseInspectorProjectService, messenger)
-    }
-
-    @VisibleForTesting
-    fun launchInspector(
-      databaseInspectorProjectService: DatabaseInspectorProjectService,
-      target: AppInspectionTarget,
-      taskExecutor: FutureCallbackExecutor
-    ): ListenableFuture<DatabaseInspectorClient> {
-      return launch(databaseInspectorProjectService, target, taskExecutor)
-    }
-  }
-
   override val eventListener: EventListener = object : EventListener {
     override fun onRawEvent(eventData: ByteArray) {
       val event = SqliteInspectorProtocol.Event.parseFrom(eventData)
@@ -97,13 +38,13 @@ class DatabaseInspectorClient private constructor(
         event.hasDatabaseOpened() -> {
           val openedDatabase = event.databaseOpened
           ApplicationManager.getApplication().invokeLater {
-            databaseInspectorProjectService.openSqliteDatabase(messenger, openedDatabase.databaseId, openedDatabase.name)
+            openDatabase(messenger, openedDatabase.databaseId, openedDatabase.name)
           }
         }
         event.hasErrorOccurred() -> {
           val errorContent = event.errorOccurred.content
           val errorMessage = getErrorMessage((errorContent))
-          databaseInspectorProjectService.handleError(errorMessage, null)
+          handleError(errorMessage)
         }
       }
     }
@@ -121,7 +62,7 @@ class DatabaseInspectorClient private constructor(
    * Sends a command to the on-device inspector to start looking for database connections.
    * When the on-device inspector discovers a connection, it sends back an asynchronous databaseOpen event.
    */
-  private fun startTrackingDatabaseConnections() {
+  fun startTrackingDatabaseConnections() {
     messenger.sendRawCommand(
       SqliteInspectorProtocol.Command.newBuilder()
         .setTrackDatabases(SqliteInspectorProtocol.TrackDatabasesCommand.getDefaultInstance())
