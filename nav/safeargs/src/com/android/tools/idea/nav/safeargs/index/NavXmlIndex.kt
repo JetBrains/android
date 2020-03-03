@@ -38,6 +38,7 @@ import java.io.DataInput
 import java.io.DataOutput
 import java.io.StringReader
 import javax.xml.bind.JAXBContext
+import javax.xml.bind.UnmarshalException
 
 /**
  * File based index for the parts of navigation xml files relevant to generating Safe Args classes.
@@ -107,8 +108,12 @@ class NavXmlIndex : FileBasedIndexExtension<String, NavXmlData>() {
 
   override fun getIndexer(): DataIndexer<String, NavXmlData, FileContent> {
     return DataIndexer { inputData ->
-      val rootNav = jaxbDeserializer.unmarshal(StringReader(inputData.contentAsText.toString())) as NavNavigationData
-      mapOf(getKeyForFile(inputData.file) to NavXmlData(rootNav))
+      try {
+        val rootNav = jaxbDeserializer.unmarshal(StringReader(inputData.contentAsText.toString())) as NavNavigationData
+        mapOf(getKeyForFile(inputData.file) to NavXmlData(rootNav))
+      } catch (e: UnmarshalException) {
+        mapOf()
+      }
     }
   }
 }
