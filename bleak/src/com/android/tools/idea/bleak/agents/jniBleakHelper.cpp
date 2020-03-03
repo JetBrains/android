@@ -4,7 +4,7 @@ using namespace std;
 
 jvmtiEnv *jvmti;
 
-JNIEXPORT void JNICALL Java_com_android_tools_idea_tests_gui_framework_heapassertions_bleak_JniBleakHelper_pauseThreads0(JNIEnv *env) {
+JNIEXPORT void JNICALL Java_com_android_tools_idea_bleak_JniBleakHelper_pauseThreads0(JNIEnv *env) {
 	jint nthreads;
 	jthread *threads;
 	jvmti->GetAllThreads(&nthreads, &threads);
@@ -18,7 +18,7 @@ JNIEXPORT void JNICALL Java_com_android_tools_idea_tests_gui_framework_heapasser
 	}
 }
 
-JNIEXPORT void JNICALL Java_com_android_tools_idea_tests_gui_framework_heapassertions_bleak_JniBleakHelper_resumeThreads0(JNIEnv *env) {
+JNIEXPORT void JNICALL Java_com_android_tools_idea_bleak_JniBleakHelper_resumeThreads0(JNIEnv *env) {
 	jint nthreads;
 	jthread *threads;
 	jvmti->GetAllThreads(&nthreads, &threads);
@@ -39,7 +39,7 @@ jvmtiIterationControl JNICALL heapRootCallback(jvmtiHeapRootKind root_kind, jlon
   return JVMTI_ITERATION_IGNORE;
 }
 
-JNIEXPORT jobjectArray JNICALL Java_com_android_tools_idea_tests_gui_framework_heapassertions_bleak_JniBleakHelper_gcRoots(JNIEnv *env) {
+JNIEXPORT jobjectArray JNICALL Java_com_android_tools_idea_bleak_JniBleakHelper_gcRoots(JNIEnv *env) {
   jvmti->IterateOverReachableObjects(heapRootCallback, NULL, NULL, NULL);
   jint nroots;
   jobject *roots;
@@ -53,7 +53,7 @@ JNIEXPORT jobjectArray JNICALL Java_com_android_tools_idea_tests_gui_framework_h
   return arr;
 }
 
-JNIEXPORT jobjectArray JNICALL Java_com_android_tools_idea_tests_gui_framework_heapassertions_bleak_JniBleakHelper_allLoadedClasses0(JNIEnv *env) {
+JNIEXPORT jobjectArray JNICALL Java_com_android_tools_idea_bleak_JniBleakHelper_allLoadedClasses0(JNIEnv *env) {
   jint nclasses;
   jclass *classes;
   jvmti->GetLoadedClasses(&nclasses, &classes);
