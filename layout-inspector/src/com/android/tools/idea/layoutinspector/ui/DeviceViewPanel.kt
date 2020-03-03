@@ -25,8 +25,10 @@ import com.android.tools.adtui.ui.AdtUiCursors
 import com.android.tools.editor.ActionToolbarUtil
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.legacydevice.CaptureAction
+import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -51,6 +53,7 @@ import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JLayeredPane
 import javax.swing.JPanel
+import javax.swing.JViewport
 import javax.swing.SwingUtilities
 import kotlin.math.min
 
@@ -79,7 +82,6 @@ class DeviceViewPanel(
   override var isPanning = false
   private var isSpacePressed = false
   private var lastPanMouseLocation: Point? = null
-  private var currentZoomOperation: ZoomType? = null
 
   private val contentPanel = DeviceViewContentPanel(layoutInspector.layoutInspectorModel, viewSettings)
 
@@ -144,48 +146,10 @@ class DeviceViewPanel(
   private val scrollPane = JBScrollPane(contentPanel)
   private val layeredPane = JLayeredPane()
   private val deviceViewPanelActionsToolbar: DeviceViewPanelActionsToolbar
+  private val viewportLayoutManager = MyViewportLayoutManager(scrollPane.viewport) { contentPanel.model.layerSpacing }
 
   init {
-    val origLayout = scrollPane.viewport.layout
-    scrollPane.viewport.layout = object: LayoutManager by origLayout {
-      private var lastLayerSpacing = INITIAL_LAYER_SPACING
-
-      override fun layoutContainer(parent: Container?) {
-        when {
-          contentPanel.model.layerSpacing != lastLayerSpacing -> {
-            lastLayerSpacing = contentPanel.model.layerSpacing
-            val viewport = scrollPane.viewport
-            val position = viewport.viewPosition.apply { translate(-viewport.viewSize.width / 2, -viewport.viewSize.height / 2) }
-            origLayout.layoutContainer(parent)
-            viewport.viewPosition = position.apply { translate(viewport.viewSize.width / 2, viewport.viewSize.height / 2) }
-          }
-          currentZoomOperation != null -> {
-            val viewport = scrollPane.viewport
-            viewport.viewPosition = when (currentZoomOperation) {
-              ZoomType.FIT, ZoomType.FIT_INTO, ZoomType.SCREEN -> {
-                origLayout.layoutContainer(parent)
-                val bounds = scrollPane.viewport.extentSize
-                val size = scrollPane.viewport.view.preferredSize
-                Point((size.width - bounds.width).coerceAtLeast(0) / 2, (size.height - bounds.height).coerceAtLeast(0) / 2)
-              }
-              else -> {
-                val position = SwingUtilities.convertPoint(viewport, Point(viewport.width/2, viewport.height/2), contentPanel)
-                val xPercent = position.x.toDouble() / contentPanel.width.toDouble()
-                val yPercent = position.y.toDouble() / contentPanel.height.toDouble()
-
-                origLayout.layoutContainer(parent)
-
-                val newPosition = Point((contentPanel.width * xPercent).toInt(), (contentPanel.height * yPercent).toInt())
-                newPosition.translate(-viewport.width/2, -viewport.height/2)
-                newPosition
-              }
-            }
-            currentZoomOperation = null
-          }
-          else -> origLayout.layoutContainer(parent)
-        }
-      }
-    }
+    scrollPane.viewport.layout = viewportLayoutManager
     contentPanel.isFocusable = true
 
     val mouseListeners = listOf(*contentPanel.mouseListeners)
@@ -265,31 +229,35 @@ class DeviceViewPanel(
       return false
     }
     val root = layoutInspector.layoutInspectorModel.root
-    currentZoomOperation = type
+    viewportLayoutManager.currentZoomOperation = type
     when (type) {
       ZoomType.FIT, ZoomType.FIT_INTO, ZoomType.SCREEN -> {
-        val availableWidth = scrollPane.width - scrollPane.verticalScrollBar.width
-        val availableHeight = scrollPane.height - scrollPane.horizontalScrollBar.height
-        val desiredWidth = (root.width).toDouble()
-        val desiredHeight = (root.height).toDouble()
-        viewSettings.scalePercent = if (desiredHeight == 0.0 || desiredWidth == 0.0) 100
-        else (100 * min(availableHeight / desiredHeight, availableWidth / desiredWidth)).toInt()
+        viewSettings.scalePercent = getFitZoom(root)
       }
       ZoomType.ACTUAL -> viewSettings.scalePercent = 100
       ZoomType.IN -> viewSettings.scalePercent += 10
       ZoomType.OUT -> viewSettings.scalePercent -= 10
     }
-    updateLayeredPaneSize()
     contentPanel.revalidate()
 
     return true
+  }
+
+  private fun getFitZoom(root: ViewNode): Int {
+    val availableWidth = scrollPane.width - scrollPane.verticalScrollBar.width
+    val availableHeight = scrollPane.height - scrollPane.horizontalScrollBar.height
+    val desiredWidth = (root.width).toDouble()
+    val desiredHeight = (root.height).toDouble()
+    return if (desiredHeight == 0.0 || desiredWidth == 0.0) 100
+    else (90 * min(availableHeight / desiredHeight, availableWidth / desiredWidth)).toInt()
   }
 
   override fun canZoomIn() = viewSettings.scalePercent < MAX_ZOOM && !layoutInspector.layoutInspectorModel.isEmpty
 
   override fun canZoomOut() = viewSettings.scalePercent > MIN_ZOOM && !layoutInspector.layoutInspectorModel.isEmpty
 
-  override fun canZoomToFit() = !layoutInspector.layoutInspectorModel.isEmpty
+  override fun canZoomToFit() = !layoutInspector.layoutInspectorModel.isEmpty &&
+                                getFitZoom(layoutInspector.layoutInspectorModel.root) != viewSettings.scalePercent
 
   override fun canZoomToActual() = viewSettings.scalePercent < 100 && canZoomIn() || viewSettings.scalePercent > 100 && canZoomOut()
 
@@ -353,6 +321,51 @@ class DeviceViewPanel(
       }
       val command = if (client().isCapturing) LayoutInspectorCommand.Type.STOP else LayoutInspectorCommand.Type.START
       client().execute(command)
+    }
+  }
+}
+
+@VisibleForTesting
+class MyViewportLayoutManager(
+  private val viewport: JViewport,
+  private val layerSpacing: () -> Int
+) : LayoutManager by viewport.layout {
+  private var lastLayerSpacing = INITIAL_LAYER_SPACING
+  private val origLayout = viewport.layout
+
+  var currentZoomOperation: ZoomType? = null
+
+  override fun layoutContainer(parent: Container?) {
+    when {
+      layerSpacing() != lastLayerSpacing -> {
+        lastLayerSpacing = layerSpacing()
+        val position = viewport.viewPosition.apply { translate(-viewport.view.width / 2, -viewport.view.height / 2) }
+        origLayout.layoutContainer(parent)
+        viewport.viewPosition = position.apply { translate(viewport.view.width / 2, viewport.view.height / 2) }
+      }
+      currentZoomOperation != null -> {
+        viewport.viewPosition = when (currentZoomOperation) {
+          ZoomType.FIT, ZoomType.FIT_INTO, ZoomType.SCREEN -> {
+            origLayout.layoutContainer(parent)
+            val bounds = viewport.extentSize
+            val size = viewport.view.preferredSize
+            Point((size.width - bounds.width).coerceAtLeast(0) / 2, (size.height - bounds.height).coerceAtLeast(0) / 2)
+          }
+          else -> {
+            val position = SwingUtilities.convertPoint(viewport, Point(viewport.width/2, viewport.height/2), viewport.view)
+            val xPercent = position.x.toDouble() / viewport.view.width.toDouble()
+            val yPercent = position.y.toDouble() / viewport.view.height.toDouble()
+
+            origLayout.layoutContainer(parent)
+
+            val newPosition = Point((viewport.view.width * xPercent).toInt(), (viewport.view.height * yPercent).toInt())
+            newPosition.translate(-viewport.extentSize.width/2, -viewport.extentSize.height/2)
+            newPosition
+          }
+        }
+        currentZoomOperation = null
+      }
+      else -> origLayout.layoutContainer(parent)
     }
   }
 }
