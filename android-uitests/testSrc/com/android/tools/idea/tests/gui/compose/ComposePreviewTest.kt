@@ -28,6 +28,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.getSplitEdito
 import com.android.tools.idea.bleak.UseBleak
 import com.android.tools.idea.tests.gui.uibuilder.RenderTaskLeakCheckRule
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
+import icons.StudioIcons
 import junit.framework.TestCase.assertFalse
 import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.fixture.JPopupMenuFixture
@@ -57,11 +58,15 @@ class ComposePreviewTest {
   @Before
   fun setUp() {
     StudioFlags.NELE_SCENEVIEW_TOP_TOOLBAR.override(true)
+    StudioFlags.COMPOSE_PREVIEW.override(true)
+    StudioFlags.COMPOSE_ANIMATED_PREVIEW.override(true)
   }
 
   @After
   fun tearDown() {
     StudioFlags.NELE_SCENEVIEW_TOP_TOOLBAR.clearOverride()
+    StudioFlags.COMPOSE_PREVIEW.clearOverride()
+    StudioFlags.COMPOSE_ANIMATED_PREVIEW.clearOverride()
   }
 
   private fun openComposePreview(fixture: IdeFrameFixture, fileName: String = "MainActivity.kt"): SplitEditorFixture {
@@ -268,7 +273,7 @@ class ComposePreviewTest {
       .allSceneViews
       .first()
       .toolbar()
-      .clickButtonByText("Interactive")
+      .clickButtonByIcon(StudioIcons.Compose.INTERACTIVE_PREVIEW)
 
     composePreview
       .waitForRenderToFinish()

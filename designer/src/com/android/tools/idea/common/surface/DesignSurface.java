@@ -618,14 +618,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @Override
   public void dispose() {
     myInteractionManager.stopListening();
-    for (NlModel model : getModels()) {
-      model.getConfiguration().removeListener(myConfigurationListener);
-      model.removeListener(myModelListener);
-    }
-
     if (myRepaintTimer.isRunning()) {
       myRepaintTimer.stop();
     }
+    getModels().forEach(this::removeModelImpl);
   }
 
   /**
