@@ -71,6 +71,9 @@ public abstract class GradleSyncPerfTestCase extends GradleSyncIntegrationTestCa
       myUsageTracker.close();
       UsageTracker.cleanAfterTesting();
     }
+    catch (Throwable e) {
+      addSuppressedException(e);
+    }
     finally {
       super.tearDown();
     }
@@ -88,7 +91,7 @@ public abstract class GradleSyncPerfTestCase extends GradleSyncIntegrationTestCa
    */
   public void testInitialization() throws Exception {
     UsageTracker.setWriterForTest(myUsageTracker); // Start logging data for performance dashboard
-    loadProject(SIMPLE_APPLICATION);
+    loadProject(SIMPLE_APPLICATION, null, getGradleVersion(), getAGPVersion());
     Logger log = getLogger();
 
     try {
@@ -116,7 +119,7 @@ public abstract class GradleSyncPerfTestCase extends GradleSyncIntegrationTestCa
    */
   public void testSyncTimes() throws Exception {
     UsageTracker.setWriterForTest(myUsageTracker); // Start logging data for performance dashboard
-    loadProject(getRelativePath());
+    loadProject(getRelativePath(), null, getGradleVersion(), getAGPVersion());
     ArrayList<Long> measurements = new ArrayList<>();
     Logger log = getLogger();
 
@@ -220,7 +223,17 @@ public abstract class GradleSyncPerfTestCase extends GradleSyncIntegrationTestCa
 
   @NotNull
   public String getScenarioName() {
-    return getProjectName() + (useSingleVariantSyncInfrastructure() ? "_SVS" : "_FULL");
+    StringBuilder scenarioName = new StringBuilder(getProjectName());
+    scenarioName.append(useSingleVariantSyncInfrastructure() ? "_SVS" : "_FULL");
+    String myAGPVersion = getAGPVersion();
+    if (myAGPVersion != null) {
+      scenarioName.append("_AGP").append(myAGPVersion);
+    }
+    String myGradleVersion = getGradleVersion();
+    if (myGradleVersion != null) {
+      scenarioName.append("_Gradle").append(myGradleVersion);
+    }
+    return scenarioName.toString();
   }
 
   public int getNumSamples() {
@@ -229,5 +242,13 @@ public abstract class GradleSyncPerfTestCase extends GradleSyncIntegrationTestCa
 
   public int getNumDrops() {
     return DEFAULT_INITIAL_DROPS;
+  }
+
+  public String getAGPVersion() {
+    return null;
+  }
+
+  public String getGradleVersion() {
+    return null;
   }
 }
