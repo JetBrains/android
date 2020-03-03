@@ -73,6 +73,7 @@ public final class BuildModelContext {
   private final Project myProject;
   @NotNull
   private final GradleDslFileCache myFileCache;
+  @NotNull
   private final ResolvedConfigurationFileLocationProvider myResolvedConfigurationFileLocationProvider;
   @NotNull
   private final Map<GradleDslFile, ClassToInstanceMap<BuildModelNotification>> myNotifications = new HashMap<>();
@@ -97,7 +98,7 @@ public final class BuildModelContext {
   }
 
   private BuildModelContext(@NotNull Project project,
-                            ResolvedConfigurationFileLocationProvider resolvedConfigurationFileLocationProvider) {
+                            @NotNull ResolvedConfigurationFileLocationProvider resolvedConfigurationFileLocationProvider) {
     myProject = project;
     myFileCache = new GradleDslFileCache(project);
     myResolvedConfigurationFileLocationProvider = resolvedConfigurationFileLocationProvider;
