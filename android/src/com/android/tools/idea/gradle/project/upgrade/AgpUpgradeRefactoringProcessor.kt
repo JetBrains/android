@@ -325,8 +325,7 @@ class AgpUpgradeRefactoringProcessor(
     presentation.targetsNodeText = descriptor.processedElementsHeader
     presentation.isShowReadOnlyStatusAsRed = true
     presentation.isShowCancelButton = true
-    @Suppress("DEPRECATION") // preserve correspondence with BaseRefactoringProcessor
-    presentation.usagesString = RefactoringBundle.message("usageView.usagesText")
+    presentation.searchString = RefactoringBundle.message("usageView.usagesText")
     var codeUsageCount = 0
     var nonCodeUsageCount = 0
     var dynamicUsagesCount = 0
