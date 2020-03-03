@@ -57,6 +57,7 @@ public abstract class SceneView extends PositionableContent {
   private ImmutableList<Layer> myLayersCache;
   @SwingCoordinate private int x;
   @SwingCoordinate private int y;
+  private boolean myAnimated = false;
 
   /**
    * A {@link SceneContext} which offers the rendering and/or picking information for this {@link SceneView}
@@ -394,5 +395,20 @@ public abstract class SceneView extends PositionableContent {
     public int getSwingDimension(@AndroidCoordinate int dim) {
       return Coordinates.getSwingDimension(SceneView.this, dim);
     }
+  }
+
+  /**
+   * Sets animated mode of the scene.
+   * @param animated true if the scene is animated, false otherwise.
+   */
+  public void setAnimated(boolean animated) {
+    myAnimated = animated;
+  }
+
+  /**
+   * Returns true if the scene is animated, false otherwise.
+   */
+  public boolean isAnimated() {
+    return myAnimated;
   }
 }

@@ -1339,4 +1339,12 @@ public class LayoutlibSceneManager extends SceneManager {
     }
     return myRenderTask.triggerTouchEvent(type, x, y);
   }
+
+  /**
+   * Sets animated mode of the scene.
+   * @param animated true if the scene is animated, false otherwise.
+   */
+  public void setAnimated(boolean animated) {
+    getSceneViews().forEach(sv -> sv.setAnimated(animated));
+  }
 }
