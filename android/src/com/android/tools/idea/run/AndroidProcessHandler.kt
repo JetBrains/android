@@ -57,7 +57,7 @@ import java.io.OutputStream
  */
 class AndroidProcessHandler @JvmOverloads constructor(
   private val project: Project,
-  private val targetApplicationId: String,
+  val targetApplicationId: String,
   val captureLogcat: Boolean = true,
   private val deploymentApplicationService: DeploymentApplicationService = DeploymentApplicationService.getInstance(),
   androidProcessMonitorManagerFactory: AndroidProcessMonitorManagerFactory = { _, _, textEmitter, listener ->
