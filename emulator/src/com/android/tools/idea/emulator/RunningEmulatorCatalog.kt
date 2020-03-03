@@ -207,16 +207,16 @@ class RunningEmulatorCatalog : Disposable.Parent {
 
       // Notify listeners.
       if (listenersSnapshot.isNotEmpty()) {
-        for (emulator in addedEmulators) {
-          for (listener in listenersSnapshot) {
-            if (isDisposing) break
-            listener.emulatorAdded(emulator)
-          }
-        }
         for (emulator in removedEmulators) {
           for (listener in listenersSnapshot) {
             if (isDisposing) break
             listener.emulatorRemoved(emulator)
+          }
+        }
+        for (emulator in addedEmulators) {
+          for (listener in listenersSnapshot) {
+            if (isDisposing) break
+            listener.emulatorAdded(emulator)
           }
         }
       }
