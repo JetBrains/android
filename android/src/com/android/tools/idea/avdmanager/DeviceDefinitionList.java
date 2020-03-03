@@ -19,7 +19,6 @@ import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.common.ColoredIconGenerator;
-import com.android.tools.idea.npw.FormFactor;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;

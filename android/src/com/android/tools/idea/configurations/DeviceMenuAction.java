@@ -19,7 +19,6 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.device.DeviceArtPainter;
-import com.android.tools.idea.npw.FormFactor;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -135,10 +134,6 @@ public class DeviceMenuAction extends DropDownAction {
     return name;
   }
 
-  /**
-   * Similar to {@link FormFactor#get(Device)}
-   * but (a) distinguishes between tablets and phones, and (b) uses the new Nele icons
-   */
   private static Icon getDeviceClassIcon(@Nullable Device device) {
     if (device != null) {
       if (isWear(device)) {
