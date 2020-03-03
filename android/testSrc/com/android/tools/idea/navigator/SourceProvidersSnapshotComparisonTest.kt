@@ -57,6 +57,11 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
     assertIsEqualToSnapshot(text)
   }
 
+  fun testWithMlModels() {
+    val text = importSyncAndDumpProject(TestProjectPaths.APP_WITH_ML_MODELS)
+    assertIsEqualToSnapshot(text)
+  }
+
   // TODO(b/121345405): Fix missing test source providers.
   fun testMultiFlavor() {
     val text = importSyncAndDumpProject(TestProjectPaths.MULTI_FLAVOR)
@@ -177,6 +182,7 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
           dumpPaths("ResDirectories") { it.resDirectories }
           dumpPaths("ResourcesDirectories") { it.resourcesDirectories }
           dumpPaths("ShadersDirectories") { it.shadersDirectories }
+          dumpPaths("MlModelsDirectories") { it.mlModelsDirectories }
         }
       }
 
@@ -204,6 +210,8 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
           dumpPaths("ResourcesDirectories") { it.resourcesDirectories }
           dumpUrls("ShadersDirectoryUrls") { it.shadersDirectoryUrls }
           dumpPaths("ShadersDirectories") { it.shadersDirectories }
+          dumpUrls("MlModelsDirectoryUrls") { it.mlModelsDirectoryUrls }
+          dumpPaths("MlModelsDirectories") { it.mlModelsDirectories }
         }
       }
 

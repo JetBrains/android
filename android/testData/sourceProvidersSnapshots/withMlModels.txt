@@ -32,6 +32,8 @@ MODULE: app
                 file://./app/src/main/shaders
             MlModelsDirectoryUrls:
                 file://./app/src/main/ml
+            MlModelsDirectories:
+                file://./app/src/main/ml
     by AndroidModel:
         main
             Manifest:
@@ -334,6 +336,8 @@ MODULE: app
                 MlModelsDirectoryUrls:
                     file://./app/src/main/ml
                     file://./app/src/debug/ml
+                MlModelsDirectories:
+                    file://./app/src/main/ml
         UnitTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
@@ -447,6 +451,8 @@ MODULE: app
                     file://./app/src/main/shaders
                 MlModelsDirectoryUrls:
                     file://./app/src/main/ml
+                MlModelsDirectories:
+                    file://./app/src/main/ml
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -527,6 +533,8 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/main/shaders
                 MlModelsDirectoryUrls:
+                    file://./app/src/main/ml
+                MlModelsDirectories:
                     file://./app/src/main/ml
             debug (IDEA)
                 ScopeType: MAIN
@@ -658,7 +666,4 @@ MODULE: app
                     file://./app/src/androidTestDebug/shaders
                 MlModelsDirectoryUrls:
                     file://./app/src/androidTestDebug/ml
-MODULE: testWithBuildSrc
-MODULE: testWithBuildSrc_buildSrc
-MODULE: testWithBuildSrc_lib1
-MODULE: testWithBuildSrc_lib2
+MODULE: testWithMlModels

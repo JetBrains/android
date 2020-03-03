@@ -123,6 +123,9 @@ class LegacyDelegate constructor(private val facet: AndroidFacet) : NamedIdeaSou
   override val shadersDirectoryUrls: Collection<String> get() = emptySet()
   override val shadersDirectories: Collection<VirtualFile> get() = emptySet()
 
+  override val mlModelsDirectoryUrls: Collection<String> get() = emptySet()
+  override val mlModelsDirectories: Collection<VirtualFile> get() = emptySet()
+
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
     if (other == null || javaClass != other.javaClass) return false
