@@ -224,6 +224,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       interactionHandler?.let {
         it.selected = if (value) InteractionMode.INTERACTIVE else InteractionMode.DEFAULT
       }
+      surface.models.map { surface.getSceneManager(it) }.filterIsInstance<LayoutlibSceneManager>().forEach { it.setAnimated(value) }
       if (value) {
         ticker.start()
       }
