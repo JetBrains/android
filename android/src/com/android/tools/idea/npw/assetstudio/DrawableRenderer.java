@@ -81,7 +81,7 @@ public class DrawableRenderer implements Disposable {
    */
   public DrawableRenderer(@NotNull AndroidFacet facet, @NotNull Configuration configuration) {
     Module module = facet.getModule();
-    RenderLogger logger = new RenderLogger(LauncherIconGenerator.class.getSimpleName(), module);
+    RenderLogger logger = new RenderLogger(DrawableRenderer.class.getSimpleName(), module);
     myParserFactory = new MyLayoutPullParserFactory(module.getProject(), logger);
     // The ThemeEditorUtils.getConfigurationForModule and RenderService.createTask calls are pretty expensive.
     // Executing them off the UI thread.
