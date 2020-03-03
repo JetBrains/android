@@ -33,6 +33,7 @@ import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 
+@org.junit.Ignore("b/150701560")
 class LegacyClientTest {
   @get:Rule
   val adbRule = FakeAdbRule()
