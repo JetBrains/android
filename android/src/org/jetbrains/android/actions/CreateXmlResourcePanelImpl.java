@@ -200,6 +200,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
     myValueField = new JTextField();
     // this panel just holds the value field component within the swing form, so we strip any UI from it and use a very simple LayoutManager
     myValueFieldContainer = new JPanel();
+    myValueFieldContainer.setFocusable(false);
     myValueFieldContainer.setLayout(new BoxLayout(myValueFieldContainer, BoxLayout.Y_AXIS));
     myValueFieldContainer.setUI(null);
     myValueFieldContainer.setBorder(JBUI.Borders.empty());
@@ -325,12 +326,12 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
     if (name.isEmpty() ||
         // If the value is already populated, the user probably don't want to change it
         // (e.g extracting a string resources), so we focus the name field
-        myValueFieldContainer.isVisible() && !myValueField.getText().isEmpty()
+        myValueField.isVisible() && !myValueField.getText().isEmpty()
         || name.equals(IdeResourcesUtil.prependResourcePrefix(myModule, null, myFolderType))) {
       return myNameField;
     }
-    else if (myValueFieldContainer.isVisible()) {
-      return myValueFieldContainer;
+    else if (myValueField.isVisible()) {
+      return myValueField;
     }
     else if (myModuleCombo.isVisible()) {
       return myModuleCombo;
