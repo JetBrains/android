@@ -400,6 +400,13 @@ public final class StudioFlags {
     "Supports Install-without-Install, Speculative Diff and Structural Redefinition",
     false);
 
+  public static final Flag<Boolean> APPLY_CHANGES_STRUCTURAL_DEFINITION = Flag.create(
+    RUNDEBUG,
+    "applychanges.structrualredefinition",
+    "Use ART's new structural redefinition extension for Apply Changes.",
+    "Requires applychanges.optimisticswap to be true.",
+    false);
+
   public static final Flag<Boolean> SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED = Flag.create(
     RUNDEBUG,
     "select.device.snapshot.combo.box.snapshots.enabled",
