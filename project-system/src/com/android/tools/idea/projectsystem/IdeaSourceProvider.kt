@@ -68,6 +68,9 @@ interface IdeaSourceProvider {
 
   val shadersDirectoryUrls: Collection<String>
   val shadersDirectories: Collection<VirtualFile>
+
+  val mlModelsDirectoryUrls: Collection<String>
+  val mlModelsDirectories: Collection<VirtualFile>
 }
 
 /**

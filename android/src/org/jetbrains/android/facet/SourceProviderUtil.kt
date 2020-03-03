@@ -40,7 +40,8 @@ fun createIdeaSourceProviderFromModelSourceProvider(it: SourceProvider, scopeTyp
     jniLibsDirectoryUrls = convertToUrlSet(it.jniLibsDirectories),
     resDirectoryUrls = convertToUrlSet(it.resDirectories),
     assetsDirectoryUrls = convertToUrlSet(it.assetsDirectories),
-    shadersDirectoryUrls = convertToUrlSet(it.shadersDirectories)
+    shadersDirectoryUrls = convertToUrlSet(it.shadersDirectories),
+    mlModelsDirectoryUrls = convertToUrlSet(it.mlModelsDirectories)
   )
 }
 

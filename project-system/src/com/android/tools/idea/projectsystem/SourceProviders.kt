@@ -271,7 +271,8 @@ fun createMergedSourceProvider(scopeType: ScopeType, providers: List<NamedIdeaSo
     jniLibsDirectoryUrls = providers.flatMap { it.jniLibsDirectoryUrls },
     resDirectoryUrls = providers.flatMap { it.resDirectoryUrls },
     assetsDirectoryUrls = providers.flatMap { it.assetsDirectoryUrls },
-    shadersDirectoryUrls = providers.flatMap { it.shadersDirectoryUrls }
+    shadersDirectoryUrls = providers.flatMap { it.shadersDirectoryUrls },
+    mlModelsDirectoryUrls = providers.flatMap { it.mlModelsDirectoryUrls }
   )
 }
 
