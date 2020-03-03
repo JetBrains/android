@@ -32,6 +32,7 @@ import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.ui.wizard.WizardUtils;
+import com.android.tools.idea.util.FormatUtil;
 import com.android.tools.idea.wizard.model.ModelWizard.Facade;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
@@ -229,7 +230,7 @@ public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceTo
       }
     }
     if (!missingSourceModuleNames.isEmpty()) {
-      final String formattedMessage = ImportUIUtil.formatElementListString(
+      final String formattedMessage = FormatUtil.formatElementListString(
         missingSourceModuleNames,
         message("android.wizard.module.import.source.browse.bad.modules.1"),
         message("android.wizard.module.import.source.browse.bad.modules.2"),
