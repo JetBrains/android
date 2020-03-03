@@ -90,7 +90,7 @@ class ViewInfoParserTest {
         assertNotNull(viewInfos.find {
           it.sourceLocation.fileName == "MainActivity.kt" &&
           it.sourceLocation.className == "google.simpleapplication.MainActivityKt\$TwoElementsPreview\$1" &&
-          it.sourceLocation.lineNumber == 45
+          it.sourceLocation.lineNumber == 46
         })
       }.join()
   }
