@@ -66,7 +66,7 @@ public class CreateResourceFileAction extends CreateResourceActionBase {
   }
 
   public CreateResourceFileAction() {
-    super(AndroidBundle.lazyMessage("new.resource.action.title"), AndroidBundle.lazyMessage("new.resource.action.description"),
+    super(AndroidBundle.messagePointer("new.resource.action.title"), AndroidBundle.messagePointer("new.resource.action.description"),
           StdFileTypes.XML.getIcon());
   }
 

@@ -186,7 +186,7 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
     DefaultActionGroup actions = new DefaultActionGroup();
 
     AnAction addDependencyAction =
-      new DumbAwareAction(AndroidBundle.lazyMessage("action.DumbAware.AbstractDependenciesPanel.text.add.dependency"), () -> "",
+      new DumbAwareAction(AndroidBundle.messagePointer("action.DumbAware.AbstractDependenciesPanel.text.add.dependency"), () -> "",
                           IconUtil.getAddIcon()) {
       @Override
       public void actionPerformed(@NotNull AnActionEvent e) {
