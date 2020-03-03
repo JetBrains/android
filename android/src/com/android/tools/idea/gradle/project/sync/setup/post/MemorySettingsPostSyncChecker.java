@@ -95,7 +95,7 @@ public class MemorySettingsPostSyncChecker {
     notification.setTitle(AndroidBundle.message("memory.settings.postsync.title"));
 
     NotificationAction saveRestartAction =
-      NotificationAction.createSimple(AndroidBundle.lazyMessage("memory.settings.postsync.save"), () -> {
+      NotificationAction.createSimple(AndroidBundle.messagePointer("memory.settings.postsync.save"), () -> {
         log(EventKind.SAVE_AND_RESTART, currentXmx, recommended);
         MemorySettingsUtil.saveXmx(recommended);
         Application app = ApplicationManager.getApplication();
@@ -104,7 +104,7 @@ public class MemorySettingsPostSyncChecker {
         }
       });
     NotificationAction configAction =
-      NotificationAction.createSimple(AndroidBundle.lazyMessage("memory.settings.postsync.configure"), () -> {
+      NotificationAction.createSimple(AndroidBundle.messagePointer("memory.settings.postsync.configure"), () -> {
         log(EventKind.CONFIGURE, currentXmx, recommended);
         ShowSettingsUtilImpl.showSettingsDialog(project, "memory.settings", "");
         notification.expire();

@@ -80,7 +80,7 @@ public class CreateXmlResourceSubdirPanel {
 
     decorator.setRemoveAction(button -> doDeleteDirectory());
 
-    final AnActionButton selectAll = new AnActionButton(AndroidBundle.lazyMessage("action.AnActionButton.text.select.all"), PlatformIcons.SELECT_ALL_ICON) {
+    final AnActionButton selectAll = new AnActionButton(AndroidBundle.messagePointer("action.AnActionButton.text.select.all"), PlatformIcons.SELECT_ALL_ICON) {
       @Override
       public void actionPerformed(@NotNull AnActionEvent e) {
         doSelectAllDirs();
@@ -88,7 +88,7 @@ public class CreateXmlResourceSubdirPanel {
     };
     decorator.addExtraAction(selectAll);
 
-    final AnActionButton unselectAll = new AnActionButton(AndroidBundle.lazyMessage("action.AnActionButton.text.unselect.all"), PlatformIcons.UNSELECT_ALL_ICON) {
+    final AnActionButton unselectAll = new AnActionButton(AndroidBundle.messagePointer("action.AnActionButton.text.unselect.all"), PlatformIcons.UNSELECT_ALL_ICON) {
       @Override
       public void actionPerformed(@NotNull AnActionEvent e) {
         doUnselectAllDirs();
