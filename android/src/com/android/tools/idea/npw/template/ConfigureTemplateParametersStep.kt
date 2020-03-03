@@ -16,9 +16,8 @@
 package com.android.tools.idea.npw.template
 
 import com.android.tools.adtui.TabularLayout
-import com.android.tools.adtui.TooltipLabel
 import com.android.tools.adtui.validation.ValidatorPanel
-import com.android.tools.idea.npw.FormFactor
+import com.android.tools.idea.device.FormFactor
 import com.android.tools.idea.npw.bindExpression
 import com.android.tools.idea.npw.invokeLater
 import com.android.tools.idea.npw.model.RenderTemplateModel
@@ -42,7 +41,6 @@ import com.android.tools.idea.observable.core.StringProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.observable.ui.IconProperty
 import com.android.tools.idea.observable.ui.SelectedItemProperty
-import com.android.tools.idea.observable.ui.TextProperty
 import com.android.tools.idea.observable.ui.VisibleProperty
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.templates.uniquenessSatisfied
@@ -87,10 +85,8 @@ import com.intellij.ui.components.JBPanel
 import com.intellij.uiDesigner.core.GridConstraints
 import com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER
 import com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH
-import com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL
 import com.intellij.uiDesigner.core.GridConstraints.FILL_NONE
 import com.intellij.uiDesigner.core.GridLayoutManager
-import com.intellij.util.ui.JBUI
 import org.jetbrains.android.util.AndroidBundle.message
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 import java.awt.Dimension
@@ -102,7 +98,6 @@ import javax.swing.BoxLayout
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
-import javax.swing.JSeparator
 import javax.swing.SwingConstants
 
 val TYPE_CONSTRAINTS: EnumSet<Constraint> = EnumSet.of(

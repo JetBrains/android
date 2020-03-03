@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw
+package com.android.tools.idea.device
 
-import com.android.ide.common.rendering.HardwareConfigHelper
 import com.android.sdklib.AndroidVersion.VersionCodes.KITKAT_WATCH
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API_TV
@@ -71,15 +70,6 @@ enum class FormFactor(@JvmField val id: String,
 
   // Currently all form factors have emulators, but we keep this method to ease introduction of new form factors
   fun hasEmulator(): Boolean = true
-
-  // TODO(qumeric): Probably two classes should be merged
-  fun toTemplateFormFactor() = when(this) {
-    MOBILE -> com.android.tools.idea.wizard.template.FormFactor.Mobile
-    WEAR -> com.android.tools.idea.wizard.template.FormFactor.Wear
-    TV -> com.android.tools.idea.wizard.template.FormFactor.Tv
-    AUTOMOTIVE -> com.android.tools.idea.wizard.template.FormFactor.Automotive
-    THINGS -> com.android.tools.idea.wizard.template.FormFactor.Things
-  }
 
   companion object {
     private val FORM_FACTORS = values().associateBy({ it.id }, { it })

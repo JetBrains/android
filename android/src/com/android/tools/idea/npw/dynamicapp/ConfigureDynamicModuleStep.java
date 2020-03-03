@@ -21,7 +21,7 @@ import static com.android.tools.adtui.validation.Validator.Result.OK;
 import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
 import static com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt;
 import static com.android.tools.idea.gradle.util.DynamicAppUtils.baseIsInstantEnabled;
-import static com.android.tools.idea.npw.FormFactor.MOBILE;
+import static com.android.tools.idea.device.FormFactor.MOBILE;
 import static com.android.tools.idea.npw.model.NewProjectModel.nameToJavaPackage;
 import static java.lang.String.format;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;

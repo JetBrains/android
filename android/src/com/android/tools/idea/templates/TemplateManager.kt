@@ -20,7 +20,7 @@ import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.actions.NewAndroidComponentAction
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.model.AndroidModel
-import com.android.tools.idea.npw.FormFactor
+import com.android.tools.idea.device.FormFactor
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.model.ProjectSyncInvoker.DefaultProjectSyncInvoker
 import com.android.tools.idea.npw.model.RenderTemplateModel
