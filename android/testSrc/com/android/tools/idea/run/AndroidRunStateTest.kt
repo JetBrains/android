@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.run
 
+import com.android.builder.model.TestOptions
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType
 import com.google.common.truth.Truth.assertThat
+import com.intellij.execution.ExecutionResult
 import com.intellij.execution.Executor
 import com.intellij.execution.RunnerAndConfigurationSettings
 import com.intellij.execution.configurations.RunProfile
@@ -29,15 +31,21 @@ import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
+import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.ArgumentMatchers.nullable
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.MockitoAnnotations
+
+private const val TARGET_APP_ID = "target.application.packagename"
+private const val ORCHESTRATOR_APP_ID = "android.support.test.orchestrator"
+private const val ANDROIDX_ORCHESTRATOR_APP_ID = "androidx.test.orchestrator"
 
 /**
  * Unit tests for [AndroidRunState].
@@ -66,37 +74,13 @@ class AndroidRunStateTest {
 
     `when`(mockEnv.project).thenReturn(projectRule.project)
     `when`(mockEnv.executionTarget).thenReturn(mockAndroidExecutionTarget)
-    `when`(mockApplicationIdProvider.packageName).thenReturn("target.application.packagename")
+    `when`(mockApplicationIdProvider.packageName).thenReturn(TARGET_APP_ID)
   }
 
   @Test
   fun logcatShouldBeEnabledForApplicationRun() {
-    val mockAndroidRunConfiguration = mock(AndroidRunConfiguration::class.java)
-    val mockRunnerAndConfigurationSettings = mock(RunnerAndConfigurationSettings::class.java)
-    `when`(mockEnv.runProfile).thenReturn(mockAndroidRunConfiguration)
-    `when`(mockEnv.runnerAndConfigurationSettings).thenReturn(mockRunnerAndConfigurationSettings)
-    `when`(mockRunnerAndConfigurationSettings.type).thenReturn(AndroidRunConfigurationType.getInstance())
-    val runState = AndroidRunState(mockEnv, "launch config name", projectRule.module, mockApplicationIdProvider,
-                                   mockConsoleProvider, mockDeviceFutures, mockAndroidLaunchTasksProvider)
+    val result = runAndroidApplication()
 
-    val result = runState.execute(mockRunExecutor, mockProgramRunner)
-
-    requireNotNull(result)
-    val processHandler = result.processHandler
-    assertThat(processHandler).isInstanceOf(AndroidProcessHandler::class.java)
-    assertThat((processHandler as AndroidProcessHandler).captureLogcat).isTrue()
-  }
-
-  @Test
-  fun logcatShouldBeEnabledWhenRunConfigurationIsUnknown() {
-    `when`(mockEnv.runProfile).thenReturn(mock(RunProfile::class.java))
-    `when`(mockEnv.runnerAndConfigurationSettings).thenReturn(null)
-    val runState = AndroidRunState(mockEnv, "launch config name", projectRule.module, mockApplicationIdProvider,
-                                   mockConsoleProvider, mockDeviceFutures, mockAndroidLaunchTasksProvider)
-
-    val result = runState.execute(mockRunExecutor, mockProgramRunner)
-
-    requireNotNull(result)
     val processHandler = result.processHandler
     assertThat(processHandler).isInstanceOf(AndroidProcessHandler::class.java)
     assertThat((processHandler as AndroidProcessHandler).captureLogcat).isTrue()
@@ -104,19 +88,66 @@ class AndroidRunStateTest {
 
   @Test
   fun logcatShouldBeDisabledForInstrumentationTestRun() {
+    val result = runAndroidTestApplication()
+
+    val processHandler = result.processHandler
+    assertThat(processHandler).isInstanceOf(AndroidProcessHandler::class.java)
+    assertThat((processHandler as AndroidProcessHandler).captureLogcat).isFalse()
+  }
+
+  @Test
+  fun logcatShouldBeEnabledWhenRunConfigurationIsUnknown() {
+    val result = runUnknownRunConfiguration()
+
+    requireNotNull(result)
+    val processHandler = result.processHandler
+    assertThat(processHandler).isInstanceOf(AndroidProcessHandler::class.java)
+    assertThat((processHandler as AndroidProcessHandler).captureLogcat).isTrue()
+  }
+
+  @Test
+  fun androidProcessHandlerMonitorsMasterProcessId() {
+    assertThat((runAndroidApplication().processHandler as AndroidProcessHandler).targetApplicationId).isEqualTo(TARGET_APP_ID)
+    assertThat((runAndroidTestApplication(TestOptions.Execution.HOST).processHandler as AndroidProcessHandler)
+                 .targetApplicationId).isEqualTo(TARGET_APP_ID)
+    assertThat((runAndroidTestApplication(TestOptions.Execution.ANDROID_TEST_ORCHESTRATOR).processHandler as AndroidProcessHandler)
+                 .targetApplicationId).isEqualTo(ORCHESTRATOR_APP_ID)
+    assertThat((runAndroidTestApplication(TestOptions.Execution.ANDROIDX_TEST_ORCHESTRATOR).processHandler as AndroidProcessHandler)
+                 .targetApplicationId).isEqualTo(ANDROIDX_ORCHESTRATOR_APP_ID)
+  }
+
+  private fun runAndroidApplication(): ExecutionResult {
+    val mockTestRunConfiguration = mock(AndroidRunConfiguration::class.java)
+    val mockRunnerAndConfigurationSettings = mock(RunnerAndConfigurationSettings::class.java)
+    `when`(mockEnv.runProfile).thenReturn(mockTestRunConfiguration)
+    `when`(mockEnv.runnerAndConfigurationSettings).thenReturn(mockRunnerAndConfigurationSettings)
+    `when`(mockRunnerAndConfigurationSettings.type).thenReturn(AndroidRunConfigurationType.getInstance())
+
+    val runState = AndroidRunState(mockEnv, "launch config name", projectRule.module, mockApplicationIdProvider,
+                                   mockConsoleProvider, mockDeviceFutures, mockAndroidLaunchTasksProvider)
+    return requireNotNull(runState.execute(mockRunExecutor, mockProgramRunner))
+  }
+
+  private fun runAndroidTestApplication(execution: TestOptions.Execution = TestOptions.Execution.HOST): ExecutionResult {
     val mockTestRunConfiguration = mock(AndroidTestRunConfiguration::class.java)
     val mockRunnerAndConfigurationSettings = mock(RunnerAndConfigurationSettings::class.java)
     `when`(mockEnv.runProfile).thenReturn(mockTestRunConfiguration)
     `when`(mockEnv.runnerAndConfigurationSettings).thenReturn(mockRunnerAndConfigurationSettings)
     `when`(mockRunnerAndConfigurationSettings.type).thenReturn(AndroidTestRunConfigurationType.getInstance())
+    `when`(mockTestRunConfiguration.getTestExecution(nullable(AndroidFacet::class.java))).thenReturn(execution)
+
+    val runState = AndroidRunState(mockEnv, "launch config name", projectRule.module, mockApplicationIdProvider,
+                                   mockConsoleProvider, mockDeviceFutures, mockAndroidLaunchTasksProvider)
+    return requireNotNull(runState.execute(mockRunExecutor, mockProgramRunner))
+  }
+
+  private fun runUnknownRunConfiguration(): ExecutionResult {
+    `when`(mockEnv.runProfile).thenReturn(mock(RunProfile::class.java))
+    `when`(mockEnv.runnerAndConfigurationSettings).thenReturn(null)
+
     val runState = AndroidRunState(mockEnv, "launch config name", projectRule.module, mockApplicationIdProvider,
                                    mockConsoleProvider, mockDeviceFutures, mockAndroidLaunchTasksProvider)
 
-    val result = runState.execute(mockRunExecutor, mockProgramRunner)
-
-    requireNotNull(result)
-    val processHandler = result.processHandler
-    assertThat(processHandler).isInstanceOf(AndroidProcessHandler::class.java)
-    assertThat((processHandler as AndroidProcessHandler).captureLogcat).isFalse()
+    return requireNotNull(runState.execute(mockRunExecutor, mockProgramRunner))
   }
 }
