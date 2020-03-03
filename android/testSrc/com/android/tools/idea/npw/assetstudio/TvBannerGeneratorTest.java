@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.assetstudio;
 
+import static com.android.SdkConstants.FD_ML_MODELS;
 import static com.android.SdkConstants.FD_TEST;
 import static com.android.SdkConstants.FD_UNIT_TEST;
 import static com.android.tools.adtui.imagediff.ImageDiffUtil.DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT;
@@ -99,6 +100,12 @@ public class TvBannerGeneratorTest extends AndroidTestCase {
     @Nullable
     public File getManifestDirectory() {
       return new File(getModuleRoot(), "manifests");
+    }
+
+    @Override
+    @NotNull
+    public List<File> getMlModelsDirectories() {
+      return ImmutableList.of(new File(getModuleRoot(), FD_ML_MODELS));
     }
   };
 
