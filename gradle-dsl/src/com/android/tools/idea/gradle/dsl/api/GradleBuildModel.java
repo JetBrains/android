@@ -26,6 +26,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.io.File;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -126,6 +127,13 @@ public interface GradleBuildModel extends GradleFileModel {
    */
   @NotNull
   Set<GradleFileModel> getInvolvedFiles();
+
+  /**
+   * @return the root directory of the module corresponding to this model.  Implementations are permitted to provide a best-effort
+   * estimate for an answer.
+   */
+  @NotNull
+  File getModuleRootDirectory();
 
   /**
    * Removes repository property.
