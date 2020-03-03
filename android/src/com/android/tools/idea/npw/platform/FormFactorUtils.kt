@@ -18,8 +18,7 @@
 
 package com.android.tools.idea.npw.platform
 
-import com.android.tools.idea.npw.FormFactor
-import com.intellij.util.ui.UIUtil
+import com.android.tools.idea.device.FormFactor
 import java.awt.image.BufferedImage
 import javax.swing.Icon
 import javax.swing.ImageIcon

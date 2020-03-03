@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
