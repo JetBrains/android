@@ -15,38 +15,17 @@
  */
 package com.android.tools.idea.gradle.project.sync.perf;
 
-import static com.android.tools.idea.gradle.project.sync.perf.TestProjectPaths.BASE100;
-
-import org.jetbrains.annotations.NotNull;
-
 /**
- * Measure performance for full sync using the Base100 project.
+ * Measure performance for IDEA sync using the dolphin project with AGP 3.5 and Gradle 5.5.
  */
-public class Base100FullPerfTest extends GradleSyncPerfTestCase {
-  @NotNull
+public class DolphinSVS35PerfTest extends DolphinSVSPerfTest {
   @Override
-  public String getProjectName() {
-    return "Base100";
-  }
-
-  @NotNull
-  @Override
-  public String getRelativePath() {
-    return BASE100;
+  public String getAGPVersion() {
+    return "3.5.0";
   }
 
   @Override
-  protected boolean useSingleVariantSyncInfrastructure() {
-    return false;
-  }
-
-  @Override
-  public int getNumSamples() {
-    return 5;
-  }
-
-  @Override
-  public int getNumDrops() {
-    return 1;
+  public String getGradleVersion() {
+    return "5.5";
   }
 }

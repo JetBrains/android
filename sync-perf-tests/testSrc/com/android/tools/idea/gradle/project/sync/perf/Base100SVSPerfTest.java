@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.perf;
 
+/**
+ * Measure performance for single variant sync using the Base100 project.
+ */
 public class Base100SVSPerfTest extends Base100FullPerfTest {
   @Override
   protected boolean useSingleVariantSyncInfrastructure() {
