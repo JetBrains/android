@@ -55,12 +55,11 @@ iml_module(
         "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module]",
         "//tools/idea/platform/lang-impl:intellij.platform.lang.impl[module]",
         "//tools/idea/.idea/libraries:studio-proto",
-        "//tools/adt/idea/app-inspection/api:intellij.android.app-inspection.api[module]",
-        "//tools/adt/idea/app-inspection/ide:intellij.android.app-inspection.ide[module]",
         "//tools/adt/idea/android-transport:intellij.android.transport[module]",
         "//tools/idea/.idea/libraries:sqlite-inspector-proto",
         "//tools/idea/.idea/libraries:kotlinx-coroutines-guava",
         "//tools/adt/idea/app-inspection/inspector/api:intellij.android.app-inspection.inspector.api[module]",
+        "//tools/adt/idea/app-inspection/inspector/ide:intellij.android.app-inspection.inspector.ide[module]",
     ],
 )
 

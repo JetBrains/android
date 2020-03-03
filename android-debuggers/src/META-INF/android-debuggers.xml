@@ -34,4 +34,8 @@
   <extensions defaultExtensionNs="com.android.tools.idea.lang">
     <androidSql.contextProvider implementation="com.android.tools.idea.sqlite.sqlLanguage.SqliteSchemaContext$Provider" />
   </extensions>
+
+  <extensions defaultExtensionNs="com.android.tools.idea.appinspection">
+    <inspector.ide.appInspectorTabProvider implementation="com.android.tools.idea.sqlite.DatabaseInspectorTabProvider" />
+  </extensions>
 </idea-plugin>

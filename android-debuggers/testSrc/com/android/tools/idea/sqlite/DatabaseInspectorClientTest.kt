@@ -16,70 +16,45 @@
 package com.android.tools.idea.sqlite
 
 import androidx.sqlite.inspection.SqliteInspectorProtocol
-import com.android.tools.idea.appinspection.api.AppInspectionTarget
-import com.android.tools.idea.appinspection.api.ProcessDescriptor
-import com.android.tools.idea.appinspection.api.TargetTerminatedListener
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
-import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture
-import com.android.tools.idea.concurrency.FutureCallbackExecutor
-import com.google.common.util.concurrent.Futures
-import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.testFramework.PlatformTestCase
 import com.intellij.testFramework.PlatformTestUtil
-import org.jetbrains.ide.PooledThreadExecutor
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
-import java.util.concurrent.Executor
 
 class DatabaseInspectorClientTest : PlatformTestCase() {
   private lateinit var databaseInspectorClient: DatabaseInspectorClient
   private lateinit var mockMessenger: AppInspectorClient.CommandMessenger
-  private lateinit var mockDatabaseInspectorProjectService: DatabaseInspectorProjectService
 
-  private val taskExecutor: FutureCallbackExecutor = FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE)
+  private lateinit var openDatabaseFunction: (AppInspectorClient.CommandMessenger, Int, String) -> Unit
+  private var openDatabaseInvoked = false
+
+  private lateinit var handleErrorFunction: (String) -> Unit
+  private var handleErrorInvoked = false
 
   override fun setUp() {
     super.setUp()
 
-    mockDatabaseInspectorProjectService = mock(DatabaseInspectorProjectService::class.java)
     mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
 
-    databaseInspectorClient = DatabaseInspectorClient.createDatabaseInspectorClient(
-      mockDatabaseInspectorProjectService,
-      mockMessenger
-    )
+    openDatabaseInvoked = false
+    openDatabaseFunction = { _, _, _ -> openDatabaseInvoked = true }
+
+    handleErrorInvoked = false
+    handleErrorFunction = { _ -> handleErrorInvoked = true }
+
+    databaseInspectorClient = DatabaseInspectorClient(mockMessenger, handleErrorFunction, openDatabaseFunction)
   }
 
-  fun testLaunchSendsTrackDatabasesCommand() {
+  fun testStartTrackingDatabaseConnectionSendsMessage() {
     // Prepare
-    val mockTarget = object : AppInspectionTarget {
-      override fun <T : AppInspectorClient> launchInspector(
-        inspectorId: String,
-        inspectorJar: AppInspectorJar,
-        creator: (AppInspectorClient.CommandMessenger) -> T
-      ): ListenableFuture<T> {
-        return Futures.immediateFuture(creator(mockMessenger))
-      }
-
-      override fun addTargetTerminatedListener(executor: Executor, listener: TargetTerminatedListener): TargetTerminatedListener {
-        return listener
-      }
-
-      override val descriptor: ProcessDescriptor
-        get() = throw NotImplementedError("Not implemented")
-
-    }
-
     val trackDatabasesCommand = SqliteInspectorProtocol.Command.newBuilder()
       .setTrackDatabases(SqliteInspectorProtocol.TrackDatabasesCommand.getDefaultInstance())
       .build()
       .toByteArray()
 
     // Act
-    pumpEventsAndWaitForFuture(
-      DatabaseInspectorClient.launchInspector(mockDatabaseInspectorProjectService, mockTarget, taskExecutor)
-    )
+    databaseInspectorClient.startTrackingDatabaseConnections()
 
     // Assert
     verify(mockMessenger).sendRawCommand(trackDatabasesCommand)
@@ -95,7 +70,7 @@ class DatabaseInspectorClientTest : PlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    verify(mockDatabaseInspectorProjectService).openSqliteDatabase(mockMessenger, 1, "name")
+    assertTrue(openDatabaseInvoked)
   }
 
   fun testErrorMessageShowsError() {
@@ -114,6 +89,6 @@ class DatabaseInspectorClientTest : PlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    verify(mockDatabaseInspectorProjectService).handleError("errorMessage", null)
+    assertTrue(handleErrorInvoked)
   }
 }
