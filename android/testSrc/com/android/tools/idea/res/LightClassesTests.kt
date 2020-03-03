@@ -59,6 +59,7 @@ import org.jetbrains.android.augment.AndroidLightField
 import org.jetbrains.android.augment.StyleableAttrLightField
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.kotlin.idea.inspections.gradle.findModulesByNames
 import java.io.File
 
 /**
@@ -1441,6 +1442,24 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
 
     myFixture.configureFromExistingVirtualFile(normalClass)
     myFixture.checkHighlighting()
+  }
+
+  fun testClassesDefinedByModule() {
+    val appModule = getModule("app")
+    val libModule = getModule("lib")
+    val service = ProjectLightResourceClassService.getInstance(project)
+
+    assertThat(service.getLightRClassesDefinedByModule(appModule, true).map { it.qualifiedName }).containsExactly(
+      "com.example.projectwithappandlib.app.R",
+      "com.example.projectwithappandlib.app.test.R"
+    )
+    assertThat(service.getLightRClassesDefinedByModule(appModule, false).map { it.qualifiedName }).containsExactly(
+      "com.example.projectwithappandlib.app.R"
+    )
+    assertThat(service.getLightRClassesDefinedByModule(libModule, true).map { it.qualifiedName }).containsExactly(
+      "com.example.projectwithappandlib.lib.R",
+      "com.example.projectwithappandlib.lib.test.R"
+    )
   }
 }
 
