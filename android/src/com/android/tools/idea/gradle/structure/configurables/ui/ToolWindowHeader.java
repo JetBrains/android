@@ -86,7 +86,7 @@ public class ToolWindowHeader extends Header implements Disposable {
     myAnchor = anchor;
     if (myAnchor != null) {
       myMinimizeAction =
-        new DumbAwareAction(AndroidBundle.lazyMessage("action.DumbAware.ToolWindowHeader.text.hide"), () -> "", HideToolWindow) {
+        new DumbAwareAction(AndroidBundle.messagePointer("action.DumbAware.ToolWindowHeader.text.hide"), () -> "", HideToolWindow) {
         @Override
         public void actionPerformed(@NotNull AnActionEvent e) {
           myEventDispatcher.getMulticaster().minimized();

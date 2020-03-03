@@ -41,7 +41,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class RunSdkConfigAction extends DumbAwareAction {
   protected RunSdkConfigAction() {
-    super(AndroidBundle.lazyMessage("android.run.sdk.manager.action.text"));
+    super(AndroidBundle.messagePointer("android.run.sdk.manager.action.text"));
   }
 
   @Override
