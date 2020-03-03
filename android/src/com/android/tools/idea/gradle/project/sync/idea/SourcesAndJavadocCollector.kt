@@ -19,6 +19,7 @@ import com.android.builder.model.AndroidProject
 import com.android.builder.model.BaseArtifact
 import com.android.builder.model.Library
 import com.android.builder.model.Variant
+import com.android.ide.common.gradle.model.IdeMavenCoordinates.LOCAL_AARS
 import com.android.ide.common.repository.GradleVersion
 import com.android.ide.gradle.model.sources.SourcesAndJavadocArtifactIdentifier
 import com.android.ide.gradle.model.sources.SourcesAndJavadocArtifacts
@@ -41,8 +42,8 @@ fun getSourcesAndJavadocArtifacts(
     // Get variants from AndroidProject if it's not empty, otherwise get from VariantGroup.
     // The first case indicates full-variants sync and the later single-variant sync.
     val variants = if (module.androidProject.variants.isNotEmpty()) module.androidProject.variants else module.variantGroup.variants
-    // Collect the library identifiers to download sources and javadoc for, and filter the cached ones.
-    val identifiers = collectIdentifiers(variants).filter { !cachedSourcesAndJavadoc.contains(idToString(it)) }
+    // Collect the library identifiers to download sources and javadoc for, and filter the cached ones and local jar/aars.
+    val identifiers = collectIdentifiers(variants).filter { !cachedSourcesAndJavadoc.contains(idToString(it)) && it.groupId != LOCAL_AARS }
 
     // Query for SourcesAndJavadocArtifacts model.
     if (identifiers.isNotEmpty()) {
