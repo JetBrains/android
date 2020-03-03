@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.tools.idea.naveditor.scene.RefinableImage
+import com.intellij.ui.JreHiDpiUtil
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyFloat
 import org.mockito.ArgumentMatchers.anyInt
@@ -64,6 +65,8 @@ private const val ACTION_ARROW_PARALLEL = 10f
 
 private val LINE_TO_MOUSE_COLOR = Color(0x1886f7)
 private val LINE_TO_MOUSE_STROKE = BasicStroke(3f)
+
+private val EMPTY_DESIGNER_TEXT_COLOR = Color(0xa7a7a7)
 
 fun verifyDrawFragment(inOrder: InOrder,
                        g: Graphics2D,
@@ -286,6 +289,19 @@ fun verifyDrawActionHandleDrag(inOrder: InOrder, g: Graphics2D, center: Point2D.
   verifyFillShape(inOrder, g, innerEllipse, ACTION_HANDLE_INNER_COLOR)
 
   verifyDrawLineToMouse(inOrder, g, center, mouseX, mouseY)
+}
+
+fun verifyDrawEmptyDesigner(inOrder: InOrder, g: Graphics2D, point: Point2D.Float) {
+  inOrder.verify(g).color = EMPTY_DESIGNER_TEXT_COLOR
+  inOrder.verify(g).font = any()
+  inOrder.verify(g).drawString("Click ", point.x.toInt(), point.y.toInt())
+  inOrder.verify(g).fontMetrics
+  if (JreHiDpiUtil.isJreHiDPIEnabled()) {
+    inOrder.verify(g).deviceConfiguration
+  }
+  inOrder.verify(g).drawImage(any(), anyInt(), anyInt(), any())
+  inOrder.verify(g).drawString(eq(" to add a destination"), anyInt(), eq(point.y.toInt()))
+  inOrder.verify(g).dispose()
 }
 
 private fun makeCircle(center: Point2D.Float, radius: Float) =
