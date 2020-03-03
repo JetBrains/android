@@ -16,7 +16,7 @@
 
 @file:JvmName("FormFactorUtils")
 
-package com.android.tools.idea.npw.platform
+package com.android.tools.idea.util
 
 import com.android.tools.idea.device.FormFactor
 import java.awt.image.BufferedImage

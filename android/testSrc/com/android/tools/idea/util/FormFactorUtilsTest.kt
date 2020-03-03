@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.npw.platform
+package com.android.tools.idea.util
 
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.components.JBLabel
