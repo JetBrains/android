@@ -131,6 +131,7 @@ class DefaultInspectorClient(
 
   override fun dispose() {
     disconnectNow()
+    TransportEventPoller.stopPoller(transportPoller)
   }
 
   // TODO: detect when a connection is dropped
@@ -311,6 +312,7 @@ class DefaultInspectorClient(
         execute(LayoutInspectorCommand.Type.START)
       }
       // TODO: verify that capture started successfully
+      attachListener = null
       true // Remove the listener after this callback
     }
     attachListener?.let { transportPoller.registerListener(it) }
