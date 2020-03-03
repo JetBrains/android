@@ -102,7 +102,8 @@ interface InspectorClient {
 
   companion object {
     /**
-     * Prove a way for tests to generate a mock client.
+     * Provide a way for tests to generate a mock client.
+     * Be sure to set it back afterward!
      */
     @VisibleForTesting
     var clientFactory: (model: InspectorModel) -> InspectorClient = { DefaultInspectorClient(it) }

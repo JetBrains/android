@@ -57,6 +57,7 @@ import com.intellij.ui.layout.panel
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.ui.UIUtil
+import io.grpc.ManagedChannel
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
 import org.jetbrains.android.dom.manifest.getPackageName
