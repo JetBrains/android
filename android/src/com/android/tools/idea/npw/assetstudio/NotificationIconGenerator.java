@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.assetstudio;
 
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
+import com.android.tools.idea.rendering.DrawableRenderer;
 import com.intellij.openapi.project.Project;
 import java.awt.Color;
 import java.awt.Dimension;

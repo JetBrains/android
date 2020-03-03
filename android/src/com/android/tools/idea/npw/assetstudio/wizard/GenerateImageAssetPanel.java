@@ -21,7 +21,7 @@ import com.android.resources.Density;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.npw.assetstudio.DrawableRenderer;
+import com.android.tools.idea.rendering.DrawableRenderer;
 import com.android.tools.idea.npw.assetstudio.GeneratedIcon;
 import com.android.tools.idea.npw.assetstudio.GeneratedImageIcon;
 import com.android.tools.idea.npw.assetstudio.IconGenerator;

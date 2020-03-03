@@ -24,6 +24,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.npw.assetstudio.assets.TextAsset;
 import com.android.tools.idea.projectsystem.AndroidModulePaths;
+import com.android.tools.idea.rendering.DrawableRenderer;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.intellij.application.options.CodeStyle;

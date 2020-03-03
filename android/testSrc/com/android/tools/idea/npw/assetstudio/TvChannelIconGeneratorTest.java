@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.assetstudio;
 
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.npw.assetstudio.assets.TextAsset;
+import com.android.tools.idea.rendering.DrawableRenderer;
 import java.awt.Color;
 
 /**
