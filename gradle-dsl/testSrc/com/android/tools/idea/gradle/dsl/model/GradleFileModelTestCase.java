@@ -203,13 +203,16 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   @Before
   @Override
   public void setUp() throws Exception {
+    System.out.println(System.currentTimeMillis() + ": setting up " + getName());
     super.setUp();
+    System.out.println(System.currentTimeMillis() + ": setting up (after super) " + getName());
     IdeSdks.removeJdksOn(getTestRootDisposable());
 
     StudioFlags.KOTLIN_DSL_PARSING.override(true);
 
     runWriteAction((ThrowableComputable<Void, Exception>)() -> {
       String basePath = myProject.getBasePath();
+      System.out.println(System.currentTimeMillis() + ": running write action for " + getName() + ", basePath is " + basePath);
       assertNotNull(basePath);
       myProjectBasePath = VfsUtil.findFile(new File(basePath).toPath(), true);
       assertTrue(myProjectBasePath.isDirectory());
@@ -230,6 +233,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
       mySubModulePropertiesFile = subModuleDirPath.createChildData(this, FN_GRADLE_PROPERTIES);
       assertTrue(mySubModulePropertiesFile.isWritable());
       // Setup the project and the module as a Gradle project system so that their build files could be found.
+      System.out.println(System.currentTimeMillis() + ": finished writing files for " + getName());
       ExternalSystemModulePropertyManager
         .getInstance(myModule)
         .setExternalOptions(
@@ -238,10 +242,12 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
                          myProjectBasePath.getPath(), myProjectBasePath.getPath()),
           new ProjectData(GradleUtil.GRADLE_SYSTEM_ID, myProject.getName(), myProject.getBasePath(), myProject.getBasePath()));
 
+      System.out.println(System.currentTimeMillis() + ": finished write action for " + getName());
       return null;
     });
 
     myTestDataPath = TestUtils.getWorkspaceFile("tools/adt/idea/gradle-dsl/testData/parser").getPath();
+    System.out.println(System.currentTimeMillis() + ": finished setup for " + getName());
   }
 
   @NotNull
@@ -258,10 +264,12 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   @Override
   public void tearDown() throws Exception {
     try {
+      System.out.println(System.currentTimeMillis() + ": tearing down for " + getName());
       StudioFlags.KOTLIN_DSL_PARSING.clearOverride();
     } finally {
       super.tearDown();
     }
+    System.out.println(System.currentTimeMillis() + ": finished tearing down for " + getName());
   }
 
   @Override
