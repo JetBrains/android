@@ -16,14 +16,12 @@
 package com.android.tools.idea.nav.safeargs
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.facet.FacetManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.jetbrains.android.facet.AndroidFacet
-import org.junit.Before
 import org.junit.rules.ExternalResource
 import org.junit.rules.RuleChain
 import org.junit.runner.Description

@@ -18,13 +18,13 @@ package com.android.tools.idea.nav.safeargs.module
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.ResourceItem
 import com.android.resources.ResourceType
+import com.android.tools.idea.nav.safeargs.index.NavXmlData
+import com.android.tools.idea.nav.safeargs.index.NavXmlIndex
 import com.android.tools.idea.nav.safeargs.isSafeArgsEnabled
 import com.android.tools.idea.nav.safeargs.psi.LightArgsClass
 import com.android.tools.idea.nav.safeargs.psi.LightDirectionsClass
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.getSourceAsVirtualFile
-import com.android.tools.idea.nav.safeargs.index.NavXmlData
-import com.android.tools.idea.nav.safeargs.index.NavXmlIndex
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleServiceManager
 import net.jcip.annotations.GuardedBy
@@ -84,11 +84,11 @@ class SafeArgsCacheModuleService private constructor(private val module: Module)
     val modulePackage = getPackageName(facet) ?: return
 
     synchronized(lock) {
-      val moduleResources = ResourceRepositoryManager.getModuleResources(facet)
-      val modificationCount = moduleResources.modificationCount
+      val modificationCount = NavigationResourcesModificationTracker.getInstance(module).modificationCount
       if (modificationCount != lastResourcesModificationCount) {
         lastResourcesModificationCount = modificationCount
 
+        val moduleResources = ResourceRepositoryManager.getModuleResources(facet)
         val navResources = moduleResources.getResources(ResourceNamespace.RES_AUTO, ResourceType.NAVIGATION)
 
         val entries = navResources.values()
