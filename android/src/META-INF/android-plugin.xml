@@ -929,6 +929,12 @@
         implementation="com.android.tools.idea.gradle.actions.GradleNewResourceCreationHandler" />
   </extensions>
 
+  <extensions defaultExtensionNs="com.android">
+    <androidStartupActivity implementation="org.jetbrains.android.CompilerManagerAndroidStartupActivity" />
+    <androidStartupActivity implementation="org.jetbrains.android.AndroidResourceFileListenerAndroidStartupActivity" />
+    <androidStartupActivity implementation="com.android.tools.idea.templates.DynamicTemplateMenuAndroidStartupActivity" />
+    <androidStartupActivity implementation="org.jetbrains.android.CreateAlarmForAutoGenerationAndroidStartupActivity" />
+  </extensions>
   <extensions defaultExtensionNs="com.android.gradle.sync">
     <postSyncProjectSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.project.MissingPlatformsSetupStep"/>
     <postSyncProjectSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.project.ExpiredPreviewBuildSetupStep"/>
