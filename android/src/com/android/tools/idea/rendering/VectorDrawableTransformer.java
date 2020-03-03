@@ -32,7 +32,6 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.util.Objects;
-import kotlin.math.MathKt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kxml2.io.KXmlParser;
@@ -422,7 +421,7 @@ public class VectorDrawableTransformer {
         if (suffix.equals("dp")) {
           double width = getDoubleAttributeValue(parser, ANDROID_URI, "width", suffix);
           double height = getDoubleAttributeValue(parser, ANDROID_URI, "height", suffix);
-          return new Dimension(MathKt.roundToInt(width), MathKt.roundToInt(height));
+          return new Dimension(Math.round((float)width), Math.round((float)height));
         }
       }
       return null;
