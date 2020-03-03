@@ -17,8 +17,6 @@ package com.android.tools.idea.emulator
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
@@ -41,7 +39,7 @@ class EmulatorToolWindowManager(private val project: Project) : RunningEmulatorC
   private var initialized = false
   private val myPanels: MutableList<EmulatorToolWindowPanel> = arrayListOf()
   private var myActivePanel: EmulatorToolWindowPanel? = null
-  private val emulators: MutableSet<EmulatorController> = mutableSetOf()
+  private val emulators: MutableSet<EmulatorController> = hashSetOf()
 
   private var contentManagerListener = object : ContentManagerAdapter() {
     @UiThread
@@ -123,8 +121,9 @@ class EmulatorToolWindowManager(private val project: Project) : RunningEmulatorC
   }
 
   private fun removeEmulatorPanel(emulator: EmulatorController) {
-    val panel = findPanelById(emulator.emulatorId)
+    val panel = findPanelByGrpcPort(emulator.emulatorId.grpcPort)
     if (panel != null) {
+      myPanels.remove(panel)
       val contentManager = getContentManager()
       val content = contentManager.getContent(panel.component)
       contentManager.removeContent(content, true)
@@ -139,13 +138,13 @@ class EmulatorToolWindowManager(private val project: Project) : RunningEmulatorC
       myActivePanel = null
     }
     if (id != null) {
-      myActivePanel = findPanelById(id)
+      myActivePanel = findPanelByGrpcPort(id.grpcPort)
       myActivePanel?.createContent()
     }
   }
 
-  private fun findPanelById(id: EmulatorId): EmulatorToolWindowPanel? {
-    return myPanels.firstOrNull { it.id == id }
+  private fun findPanelByGrpcPort(grpcPort: Int): EmulatorToolWindowPanel? {
+    return myPanels.firstOrNull { it.id.grpcPort == grpcPort }
   }
 
   private fun getContentManager(): ContentManager {
@@ -172,10 +171,6 @@ class EmulatorToolWindowManager(private val project: Project) : RunningEmulatorC
         removeEmulatorPanel(emulator)
       }
     }
-  }
-
-  private fun invokeLater(@UiThread action: () -> Unit) {
-    ApplicationManager.getApplication().invokeLater(action, ModalityState.any())
   }
 
   companion object {

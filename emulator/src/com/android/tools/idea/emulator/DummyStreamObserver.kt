@@ -15,18 +15,22 @@
  */
 package com.android.tools.idea.emulator
 
+import com.android.annotations.concurrency.AnyThread
 import io.grpc.stub.StreamObserver
 
 /**
  * A [StreamObserver] that ignores outcome of the gRPC call.
  */
 open class DummyStreamObserver<T> : StreamObserver<T> {
+  @AnyThread
   override fun onNext(response: T) {
   }
 
+  @AnyThread
   override fun onError(t: Throwable) {
   }
 
+  @AnyThread
   override fun onCompleted() {
   }
 }

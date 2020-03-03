@@ -19,16 +19,25 @@ import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.Slow
 import com.android.emulator.control.EmulatorControllerGrpc
 import com.android.emulator.control.EmulatorStatus
+import com.android.emulator.control.Image
+import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.KeyboardEvent
-import com.android.emulator.control.SensorValue
+import com.android.emulator.control.MouseEvent
+import com.android.emulator.control.PhysicalModelValue
+import com.android.ide.common.util.Cancelable
 import com.android.tools.idea.protobuf.Empty
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.containers.ConcurrentList
 import com.intellij.util.containers.ContainerUtil
+import io.grpc.ConnectivityState
 import io.grpc.ManagedChannel
+import io.grpc.MethodDescriptor
+import io.grpc.Status
+import io.grpc.StatusRuntimeException
 import io.grpc.netty.NettyChannelBuilder
+import io.grpc.stub.ClientCalls
 import io.grpc.stub.StreamObserver
 import java.util.concurrent.atomic.AtomicReference
 
@@ -37,29 +46,49 @@ import java.util.concurrent.atomic.AtomicReference
  */
 class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposable) : Disposable {
   private var channel: ManagedChannel? = null
-  private var emulatorController: EmulatorControllerGrpc.EmulatorControllerStub? = null
+  @Volatile private var emulatorControllerInternal: EmulatorControllerGrpc.EmulatorControllerStub? = null
   @Volatile private var emulatorConfigInternal: EmulatorConfiguration? = null
-  private var stateInternal = AtomicReference(State.NOT_INITIALIZED)
+  private var stateInternal = AtomicReference(ConnectionState.NOT_INITIALIZED)
   private val connectionStateListeners: ConcurrentList<ConnectionStateListener> = ContainerUtil.createConcurrentList()
+  private val connectivityStateWatcher = object : Runnable {
+    override fun run() {
+      val ch = channel ?: return
+      val state = ch.getState(false)
+      when (state) {
+        ConnectivityState.CONNECTING -> connectionState = ConnectionState.CONNECTING
+        ConnectivityState.SHUTDOWN -> connectionState = ConnectionState.DISCONNECTED
+        else -> connectionState = ConnectionState.CONNECTED
+      }
+      ch.notifyWhenStateChanged(state, this)
+    }
+  }
 
   var emulatorConfig: EmulatorConfiguration
     get() {
       return emulatorConfigInternal ?: throw IllegalStateException("Not yet connected to the Emulator")
     }
-    private set(value) {
+    private inline set(value) {
       emulatorConfigInternal = value
     }
 
-  var state: State
+  var connectionState: ConnectionState
     get() {
       return stateInternal.get()
     }
     private set(value) {
       if (stateInternal.getAndSet(value) != value) {
         for (listener in connectionStateListeners) {
-          listener.stateChanged(this, value)
+          listener.connectionStateChanged(this, value)
         }
       }
+    }
+
+  var emulatorController: EmulatorControllerGrpc.EmulatorControllerStub
+    get() {
+      return emulatorControllerInternal ?: throw IllegalStateException()
+    }
+    private inline set(stub) {
+      emulatorControllerInternal = stub
     }
 
   @AnyThread
@@ -82,13 +111,15 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
    */
   @Slow
   fun connect() {
-    state = State.CONNECTING
+    connectionState = ConnectionState.CONNECTING
     val channel = NettyChannelBuilder
       .forAddress("localhost", emulatorId.grpcPort)
       .usePlaintext() // TODO(sprigogin): Add proper authentication.
       .maxInboundMessageSize(16 * 1024 * 1024)
       .build()
     emulatorController = EmulatorControllerGrpc.newStub(channel)
+    channel.notifyWhenStateChanged(channel.getState(false), connectivityStateWatcher)
+    this.channel = channel
     fetchConfiguration()
   }
 
@@ -96,38 +127,62 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
    * Sends a [KeyboardEvent] to the Emulator.
    */
   fun sendKey(keyboardEvent: KeyboardEvent, streamObserver: StreamObserver<Empty> = getDummyObserver()) {
-    emulatorController?.sendKey(keyboardEvent, DelegatingStreamObserver(streamObserver)) ?: throw IllegalStateException()
+    emulatorController.sendKey(keyboardEvent, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSendKeyMethod()))
   }
 
   /**
-   * Retrieves a sensor value.
+   * Sends a [MouseEvent] to the Emulator.
    */
-  fun getSensor(sensorType: SensorValue.SensorType, streamObserver: StreamObserver<SensorValue>) {
-    val sensorValue = SensorValue.newBuilder().setTarget(sensorType).build()
-    emulatorController?.getSensor(sensorValue, DelegatingStreamObserver(streamObserver)) ?: throw IllegalStateException()
+  fun sendMouse(mouseEvent: MouseEvent, streamObserver: StreamObserver<Empty> = getDummyObserver()) {
+    emulatorController.sendMouse(mouseEvent, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSendMouseMethod()))
   }
 
   /**
-   * Sets a sensor value.
+   * Retrieves a physical model value.
    */
-  fun setSensor(sensorValue: SensorValue, streamObserver: StreamObserver<Empty> = getDummyObserver()) {
-    emulatorController?.setSensor(sensorValue, DelegatingStreamObserver(streamObserver)) ?: throw IllegalStateException()
+  fun getPhysicalModel(physicalType: PhysicalModelValue.PhysicalType, streamObserver: StreamObserver<PhysicalModelValue>) {
+    val modelValue = PhysicalModelValue.newBuilder().setTarget(physicalType).build()
+    emulatorController.getPhysicalModel(
+        modelValue, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getGetPhysicalModelMethod()))
+  }
+
+  /**
+   * Sets a physical model value.
+   */
+  fun setPhysicalModel(modelValue: PhysicalModelValue, streamObserver: StreamObserver<Empty> = getDummyObserver()) {
+    emulatorController.setPhysicalModel(
+        modelValue, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSetPhysicalModelMethod()))
+  }
+
+  /**
+   * Streams a series of screenshots.
+   */
+  fun streamScreenshot(imageFormat: ImageFormat, streamObserver: StreamObserver<Image>): Cancelable? {
+    val method = EmulatorControllerGrpc.getStreamScreenshotMethod()
+    val call = emulatorController.channel.newCall(method, emulatorController.callOptions)
+    ClientCalls.asyncServerStreamingCall(call, imageFormat, DelegatingStreamObserver(streamObserver, method))
+    return object : Cancelable {
+      override fun cancel() {
+        call.cancel("Canceled by consumer", null)
+      }
+    }
   }
 
   private fun fetchConfiguration() {
-    emulatorController?.getStatus(Empty.getDefaultInstance(), object : DelegatingStreamObserver<EmulatorStatus>(null) {
+    val responseObserver = object : DelegatingStreamObserver<Empty, EmulatorStatus>(null, EmulatorControllerGrpc.getGetStatusMethod()) {
       override fun onNext(response: EmulatorStatus) {
         val config = EmulatorConfiguration.fromHardwareConfig(response.hardwareConfig!!)
         if (config == null) {
           LOG.warn("Incomplete hardware configuration")
-          state = State.DISCONNECTED
+          connectionState = ConnectionState.DISCONNECTED
         }
         else {
           emulatorConfig = config
-          state = State.CONNECTED
+          connectionState = ConnectionState.CONNECTED
         }
       }
-    })
+    }
+    emulatorController.getStatus(Empty.getDefaultInstance(), responseObserver)
   }
 
   override fun dispose() {
@@ -144,26 +199,31 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   }
 
   override fun hashCode(): Int {
-    return emulatorConfigInternal?.hashCode() ?: 0
+    return emulatorId.hashCode()
   }
 
   /**
    * The state of the [EmulatorController].
    */
-  enum class State {
+  enum class ConnectionState {
     NOT_INITIALIZED,
     CONNECTING,
     CONNECTED,
     DISCONNECTED
   }
 
-  private open inner class DelegatingStreamObserver<T>(val delegate: StreamObserver<in T>?) : StreamObserver<T> {
-    override fun onNext(response: T) {
+  private open inner class DelegatingStreamObserver<RequestT, ResponseT>(
+    val delegate: StreamObserver<in ResponseT>?,
+    val method: MethodDescriptor<in RequestT, in ResponseT>
+  ) : StreamObserver<ResponseT> {
+    override fun onNext(response: ResponseT) {
       delegate?.onNext(response)
     }
 
     override fun onError(t: Throwable) {
-      state = State.DISCONNECTED
+      if (!(t is StatusRuntimeException && t.status.code == Status.Code.CANCELLED) && channel?.isShutdown == false) {
+        LOG.warn("${method.fullMethodName} call failed - ${t.message}")
+      }
       delegate?.onError(t)
     }
 
@@ -181,7 +241,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
      * Called when the state of the Emulator connection changes.
      */
     @AnyThread
-    fun stateChanged(emulator: EmulatorController, state: State)
+    fun connectionStateChanged(emulator: EmulatorController, connectionState: ConnectionState)
   }
 
   companion object {
