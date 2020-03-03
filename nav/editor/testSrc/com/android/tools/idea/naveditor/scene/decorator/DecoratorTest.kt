@@ -25,6 +25,8 @@ import com.android.tools.idea.common.scene.inlineDrawRect
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
+import com.android.tools.idea.naveditor.scene.RefinableImage
+import com.android.tools.idea.naveditor.scene.ThumbnailManager
 import com.android.tools.idea.naveditor.scene.draw.verifyDrawAction
 import com.android.tools.idea.naveditor.scene.draw.verifyDrawActivity
 import com.android.tools.idea.naveditor.scene.draw.verifyDrawFragment
@@ -32,15 +34,18 @@ import com.android.tools.idea.naveditor.scene.draw.verifyDrawHeader
 import com.android.tools.idea.naveditor.scene.draw.verifyDrawHorizontalAction
 import com.android.tools.idea.naveditor.scene.draw.verifyDrawNestedGraph
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.intellij.psi.xml.XmlFile
 import org.mockito.ArgumentMatchers
 import org.mockito.InOrder
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.verifyNoMoreInteractions
 import java.awt.Color
+import java.awt.Dimension
 import java.awt.FontMetrics
 import java.awt.Graphics2D
 import java.awt.geom.Rectangle2D
+import java.awt.image.BufferedImage
 
 private val SELECTED_COLOR = Color(0x1886f7)
 private val TEXT_COLOR = Color(0xa7a7a7)
@@ -100,7 +105,35 @@ class DecoratorTest : NavTestCase() {
     testFragmentDecorator(model, SceneComponent.DrawState.NORMAL, false, true)
   }
 
-  private fun testFragmentDecorator(model: NlModel, drawState: SceneComponent.DrawState, isStart: Boolean, hasDeepLink: Boolean) {
+  fun testFragmentWithLayout() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment(FRAGMENT_ID, layout = "mylayout")
+      }
+    }
+    testFragmentDecorator(model, SceneComponent.DrawState.NORMAL, false, false, false)
+  }
+
+  fun testFragmentWithName() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment(FRAGMENT_ID, name = "foo.Bar")
+      }
+    }
+    testFragmentDecorator(model, SceneComponent.DrawState.NORMAL, false, false, false)
+  }
+
+  fun testFragmentWithLayoutAndName() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment(FRAGMENT_ID, layout = "mylayout", name = "foo.Bar")
+      }
+    }
+    testFragmentDecorator(model, SceneComponent.DrawState.NORMAL, false, false, false)
+  }
+
+  private fun testFragmentDecorator(model: NlModel, drawState: SceneComponent.DrawState, isStart: Boolean,
+                                    hasDeepLink: Boolean, isPlaceholder: Boolean = true) {
     surface.model = model
     val sceneView = surface.focusedSceneView!!
 
@@ -114,10 +147,53 @@ class DecoratorTest : NavTestCase() {
       else -> null
     }
 
+    val image = if (isPlaceholder) null else RefinableImage()
+
     verifyDecorator(FragmentDecorator, sceneComponent, sceneView.context) { inOrder, g ->
       verifyDrawHeader(inOrder, g, headerRect, surface.scale, FRAGMENT_ID, isStart, hasDeepLink)
-      verifyDrawFragment(inOrder, g, drawRect, surface.scale, color)
+      verifyDrawFragment(inOrder, g, drawRect, surface.scale, color, image)
     }
+  }
+
+  fun testFragmentWithImage() {
+    val layoutFile = myFixture.addFileToProject("res/layout/mylayout.xml", "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                                                                           "<android.support.constraint.ConstraintLayout/>") as XmlFile
+    val model = model("nav.xml") {
+      navigation {
+        fragment(FRAGMENT_ID, layout = "mylayout")
+      }
+    }
+
+    surface.model = model
+    val sceneView = surface.focusedSceneView!!
+
+    @Suppress("UndesirableClassUsage")
+    val image = BufferedImage(5, 5, BufferedImage.TYPE_INT_ARGB)
+    val refinableImage = RefinableImage(image)
+
+    val origThumbnailManager = ThumbnailManager.getInstance(myFacet)
+    val thumbnailManager = Mockito.mock(ThumbnailManager::class.java)
+    val configuration = model.surface.configurations.single()
+
+    val sceneComponent = makeSceneComponent(FRAGMENT_ID, SceneComponent.DrawState.NORMAL)
+    val drawRect = sceneComponent.inlineDrawRect(sceneView).value
+    val headerRect = makeHeaderRectangle(drawRect)
+    val dimensions = Dimension(drawRect.width.toInt(), drawRect.height.toInt())
+
+    Mockito.doReturn(refinableImage).`when`(thumbnailManager).getThumbnail(layoutFile, configuration, dimensions)
+
+    try {
+      ThumbnailManager.setInstance(myFacet, thumbnailManager)
+      verifyDecorator(FragmentDecorator, sceneComponent, sceneView.context) { inOrder, g ->
+        verifyDrawHeader(inOrder, g, headerRect, surface.scale, FRAGMENT_ID, false, false)
+        verifyDrawFragment(inOrder, g, drawRect, surface.scale, null, refinableImage)
+      }
+    }
+    finally {
+      ThumbnailManager.setInstance(myFacet, origThumbnailManager)
+    }
+
+    Mockito.verify(thumbnailManager).getThumbnail(layoutFile, configuration, dimensions)
   }
 
   fun testActivity() {
