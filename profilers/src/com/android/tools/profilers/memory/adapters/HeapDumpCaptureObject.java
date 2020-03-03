@@ -102,6 +102,8 @@ public class HeapDumpCaptureObject implements CaptureObject {
   @NotNull
   private final MemoryProfilerStage myStage;
 
+  private final ActivityFragmentLeakInstanceFilter myActivityFragmentLeakFilter;
+
   private final Set<CaptureObjectInstanceFilter> mySupportedInstanceFilters;
 
   private final Set<CaptureObjectInstanceFilter> myCurrentInstanceFilters = new HashSet<>();
@@ -122,7 +124,8 @@ public class HeapDumpCaptureObject implements CaptureObject {
     myFeatureTracker = featureTracker;
     myStage = stage;
 
-    mySupportedInstanceFilters = ImmutableSet.of(new ActivityFragmentLeakInstanceFilter(myClassDb),
+    myActivityFragmentLeakFilter = new ActivityFragmentLeakInstanceFilter(myClassDb);
+    mySupportedInstanceFilters = ImmutableSet.of(myActivityFragmentLeakFilter,
                                                  new ProjectClassesInstanceFilter(myStage.getStudioProfilers().getIdeServices()));
   }
 
@@ -310,6 +313,11 @@ public class HeapDumpCaptureObject implements CaptureObject {
                                       classObj,
                                       javaLangClass == null ? classEntry : javaLangClass.getClassEntry(),
                                       ValueObject.ValueType.CLASS);
+  }
+
+  @Override
+  public ActivityFragmentLeakInstanceFilter getActivityFragmentLeakFilter() {
+    return myActivityFragmentLeakFilter;
   }
 
   @NotNull
