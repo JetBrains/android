@@ -49,7 +49,7 @@ public final class AndroidBundle {
     return CommonBundle.message(getBundle(), key, params);
   }
 
-  public static Supplier<String> lazyMessage(@NotNull @PropertyKey(resourceBundle = BUNDLE_NAME) String key, @NotNull Object... params) {
+  public static Supplier<String> messagePointer(@NotNull @PropertyKey(resourceBundle = BUNDLE_NAME) String key, @NotNull Object... params) {
     return () -> message(key, params);
   }
 }

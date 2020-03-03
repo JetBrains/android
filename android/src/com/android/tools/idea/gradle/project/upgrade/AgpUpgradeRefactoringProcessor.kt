@@ -904,7 +904,7 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
   }
 
   companion object {
-    val USAGE_TYPE = UsageType(AndroidBundle.lazyMessage("project.upgrade.agpClasspathDependencyRefactoringProcessor.usageType"))
+    val USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.agpClasspathDependencyRefactoringProcessor.usageType"))
   }
 }
 
@@ -980,7 +980,7 @@ class GMavenRepositoryRefactoringProcessor : AgpUpgradeComponentRefactoringProce
   }
 
   companion object {
-    val USAGE_TYPE = UsageType(AndroidBundle.lazyMessage("project.upgrade.gMavenRepositoryRefactoringProcessor.usageType"))
+    val USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.gMavenRepositoryRefactoringProcessor.usageType"))
   }
 }
 
@@ -1080,8 +1080,8 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
   }
 
   companion object {
-    val GRADLE_URL_USAGE_TYPE = UsageType(AndroidBundle.lazyMessage("project.upgrade.agpGradleVersionRefactoringProcessor.gradleUrlUsageType"))
-    val WELL_KNOWN_GRADLE_PLUGIN_USAGE_TYPE = UsageType(AndroidBundle.lazyMessage("project.upgrade.agpGradleVersionRefactoringProcessor.wellKnownGradlePluginUsageType"))
+    val GRADLE_URL_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.agpGradleVersionRefactoringProcessor.gradleUrlUsageType"))
+    val WELL_KNOWN_GRADLE_PLUGIN_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.agpGradleVersionRefactoringProcessor.wellKnownGradlePluginUsageType"))
 
     fun getCompatibleGradleVersion(agpVersion: GradleVersion): CompatibleGradleVersion {
       val agpVersionMajorMinor = GradleVersion(agpVersion.major, agpVersion.minor)
@@ -1308,14 +1308,14 @@ class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor
   companion object {
     val ACTIVATED_VERSION = GradleVersion.parse("4.2.0-alpha05")
 
-    val EXISTING_DIRECTIVE_USAGE_TYPE = UsageType(AndroidBundle.lazyMessage("project.upgrade.java8DefaultRefactoringProcessor.existingDirectiveUsageType"))
-    val ACCEPT_NEW_USAGE_TYPE = UsageType(AndroidBundle.lazyMessage("project.upgrade.java8DefaultRefactoringProcessor.acceptNewUsageType"))
-    val INSERT_OLD_USAGE_TYPE = UsageType(AndroidBundle.lazyMessage("project.upgrade.java8DefaultRefactoringProcessor.insertOldUsageType"))
+    val EXISTING_DIRECTIVE_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.java8DefaultRefactoringProcessor.existingDirectiveUsageType"))
+    val ACCEPT_NEW_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.java8DefaultRefactoringProcessor.acceptNewUsageType"))
+    val INSERT_OLD_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.java8DefaultRefactoringProcessor.insertOldUsageType"))
   }
 
   enum class NoLanguageLevelAction(val supplier: Supplier<String>) {
-    ACCEPT_NEW_DEFAULT(AndroidBundle.lazyMessage("project.upgrade.noLanguageLevelAction.acceptNewDefault")),
-    INSERT_OLD_DEFAULT(AndroidBundle.lazyMessage("project.upgrade.noLanguageLevelAction.insertOldDefault")),
+    ACCEPT_NEW_DEFAULT(AndroidBundle.messagePointer("project.upgrade.noLanguageLevelAction.acceptNewDefault")),
+    INSERT_OLD_DEFAULT(AndroidBundle.messagePointer("project.upgrade.noLanguageLevelAction.insertOldDefault")),
     ;
 
     override fun toString() = supplier.get()
@@ -1493,8 +1493,8 @@ class CompileRuntimeConfigurationRefactoringProcessor : AgpUpgradeComponentRefac
     val IMPLEMENTATION_API_INTRODUCED = GradleVersion.parse("3.1.0")
     val COMPILE_REMOVED = GradleVersion.parse("7.0.0-alpha03")
 
-    val RENAME_CONFIGURATION_USAGE_TYPE = UsageType(AndroidBundle.lazyMessage("project.upgrade.compileRuntimeConfigurationRefactoringProcessor.renameConfigurationUsageType"))
-    val CHANGE_DEPENDENCY_CONFIGURATION_USAGE_TYPE = UsageType(AndroidBundle.lazyMessage("project.upgrade.compileRuntimeConfigurationRefactoringProcessor.changeDependencyConfigurationUsageType"))
+    val RENAME_CONFIGURATION_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.compileRuntimeConfigurationRefactoringProcessor.renameConfigurationUsageType"))
+    val CHANGE_DEPENDENCY_CONFIGURATION_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.compileRuntimeConfigurationRefactoringProcessor.changeDependencyConfigurationUsageType"))
   }
 }
 
@@ -1735,24 +1735,24 @@ class FabricCrashlyticsRefactoringProcessor : AgpUpgradeComponentRefactoringProc
     val COMPATIBLE_WITH = GradleVersion.parse("3.4.0")
     val INCOMPATIBLE_VERSION = GradleVersion.parse("4.1.0-alpha05") // see b/154302886
 
-    val REMOVE_FABRIC_REPOSITORY_USAGE_TYPE = UsageType(AndroidBundle.lazyMessage("project.upgrade.fabricCrashlyticsRefactoringProcessor.removeFabricRepositoryUsageType"))
-    val ADD_GMAVEN_REPOSITORY_USAGE_TYPE = UsageType(AndroidBundle.lazyMessage("project.upgrade.fabricCrashlyticsRefactoringProcessor.addGmavenRepositoryUsageType"))
+    val REMOVE_FABRIC_REPOSITORY_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.removeFabricRepositoryUsageType"))
+    val ADD_GMAVEN_REPOSITORY_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.addGmavenRepositoryUsageType"))
 
-    val REMOVE_FABRIC_CLASSPATH_USAGE_TYPE = UsageType(AndroidBundle.lazyMessage("project.upgrade.fabricCrashlyticsRefactoringProcessor.removeFabricClasspathUsageType"))
-    val ADD_GOOGLE_SERVICES_CLASSPATH_USAGE_TYPE = UsageType(AndroidBundle.lazyMessage("project.upgrade.fabricCrashlyticsRefactoringProcessor.addGoogleServicesClasspathUsageType"))
-    val ADD_FIREBASE_CRASHLYTICS_CLASSPATH_USAGE_TYPE = UsageType(AndroidBundle.lazyMessage("project.upgrade.fabricCrashlyticsRefactoringProcessor.addFirebaseCrashlyticsClasspathUsageType"))
+    val REMOVE_FABRIC_CLASSPATH_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.removeFabricClasspathUsageType"))
+    val ADD_GOOGLE_SERVICES_CLASSPATH_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.addGoogleServicesClasspathUsageType"))
+    val ADD_FIREBASE_CRASHLYTICS_CLASSPATH_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.addFirebaseCrashlyticsClasspathUsageType"))
 
-    val REPLACE_FABRIC_PLUGIN_USAGE_TYPE = UsageType(AndroidBundle.lazyMessage("project.upgrade.fabricCrashlyticsRefactoringProcessor.replaceFabricPluginUsageType"))
-    val APPLY_GOOGLE_SERVICES_PLUGIN_USAGE_TYPE = UsageType(AndroidBundle.lazyMessage("project.upgrade.fabricCrashlyticsRefactoringProcessor.applyGoogleServicesPluginUsageType"))
+    val REPLACE_FABRIC_PLUGIN_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.replaceFabricPluginUsageType"))
+    val APPLY_GOOGLE_SERVICES_PLUGIN_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.applyGoogleServicesPluginUsageType"))
 
-    val REMOVE_FABRIC_CRASHLYTICS_SDK_USAGE_TYPE = UsageType(AndroidBundle.lazyMessage("project.upgrade.fabricCrashlyticsRefactoringProcessor.removeFabricCrashlyticsSdkUsageType"))
-    val ADD_FIREBASE_CRASHLYTICS_SDK_USAGE_TYPE = UsageType(AndroidBundle.lazyMessage("project.upgrade.fabricCrashlyticsRefactoringProcessor.addFirebaseCrashlyticsSdkUsageType"))
-    val ADD_GOOGLE_ANALYTICS_SDK_USAGE_TYPE = UsageType(AndroidBundle.lazyMessage("project.upgrade.fabricCrashlyticsRefactoringProcessor.addGoogleAnalyticsSdkUsageType"))
+    val REMOVE_FABRIC_CRASHLYTICS_SDK_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.removeFabricCrashlyticsSdkUsageType"))
+    val ADD_FIREBASE_CRASHLYTICS_SDK_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.addFirebaseCrashlyticsSdkUsageType"))
+    val ADD_GOOGLE_ANALYTICS_SDK_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.addGoogleAnalyticsSdkUsageType"))
 
-    val REMOVE_FABRIC_NDK_USAGE_TYPE = UsageType(AndroidBundle.lazyMessage("project.upgrade.fabricCrashlyticsRefactoringProcessor.removeFabricNdkUsageType"))
-    val ADD_FIREBASE_CRASHLYTICS_NDK_USAGE_TYPE = UsageType(AndroidBundle.lazyMessage("project.upgrade.fabricCrashlyticsRefactoringProcessor.addFirebaseCrashlyticsNdkUsageType"))
-    val REMOVE_CRASHLYTICS_ENABLE_NDK_USAGE_TYPE = UsageType(AndroidBundle.lazyMessage("project.upgrade.fabricCrashlyticsRefactoringProcessor.removeCrashlyticsEnableNdkUsageType"))
-    val ADD_FIREBASE_CRASHLYTICS_NATIVE_SYMBOL_UPLOAD_USAGE_TYPE = UsageType(AndroidBundle.lazyMessage("project.upgrade.fabricCrashlyticsRefactoringProcessor.addFirebaseCrashlyticsNativeSymbolUploadUsageType"))
+    val REMOVE_FABRIC_NDK_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.removeFabricNdkUsageType"))
+    val ADD_FIREBASE_CRASHLYTICS_NDK_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.addFirebaseCrashlyticsNdkUsageType"))
+    val REMOVE_CRASHLYTICS_ENABLE_NDK_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.removeCrashlyticsEnableNdkUsageType"))
+    val ADD_FIREBASE_CRASHLYTICS_NATIVE_SYMBOL_UPLOAD_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.fabricCrashlyticsRefactoringProcessor.addFirebaseCrashlyticsNativeSymbolUploadUsageType"))
   }
 }
 
@@ -2002,22 +2002,22 @@ data class BooleanPropertyMoveInfo(
 val VIEW_BINDING_ENABLED_INFO = BooleanPropertyMoveInfo(
   { android().viewBinding().enabled() },
   { android().buildFeatures().viewBinding() },
-  AndroidBundle.lazyMessage("project.upgrade.viewBindingEnabledUsageInfo.tooltipText"),
-  UsageType(AndroidBundle.lazyMessage("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.viewBindingEnabledUsageType"))
+  AndroidBundle.messagePointer("project.upgrade.viewBindingEnabledUsageInfo.tooltipText"),
+  UsageType(AndroidBundle.messagePointer("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.viewBindingEnabledUsageType"))
 )
 
 val DATA_BINDING_ENABLED_INFO = BooleanPropertyMoveInfo(
   { android().dataBinding().enabled() },
   { android().buildFeatures().dataBinding() },
-  AndroidBundle.lazyMessage("project.upgrade.dataBindingEnabledUsageInfo.tooltipText"),
-  UsageType(AndroidBundle.lazyMessage("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.dataBindingEnabledUsageType"))
+  AndroidBundle.messagePointer("project.upgrade.dataBindingEnabledUsageInfo.tooltipText"),
+  UsageType(AndroidBundle.messagePointer("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.dataBindingEnabledUsageType"))
 )
 
 val MIGRATE_TO_BUILD_FEATURES_INFO = BooleanPropertiesMoveRefactoringInfo(
   GradleVersion.parse("4.0.0-alpha05"),
   GradleVersion.parse("7.0.0"),
-  AndroidBundle.lazyMessage("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.commandName"),
-  AndroidBundle.lazyMessage("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.usageView.header"),
+  AndroidBundle.messagePointer("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.commandName"),
+  AndroidBundle.messagePointer("project.upgrade.migrateToBuildFeaturesRefactoringProcessor.usageView.header"),
   MIGRATE_TO_BUILD_FEATURES,
   listOf(DATA_BINDING_ENABLED_INFO, VIEW_BINDING_ENABLED_INFO)
 )
@@ -2096,15 +2096,15 @@ data class RemovePropertiesInfo(
 
 val SOURCE_SET_JNI_INFO = RemovePropertiesInfo(
   { android().sourceSets().map { sourceSet -> sourceSet.jni() } },
-  AndroidBundle.lazyMessage("project.upgrade.sourceSetJniUsageInfo.tooltipText"),
-  UsageType(AndroidBundle.lazyMessage("project.upgrade.sourceSetJniUsageInfo.usageType"))
+  AndroidBundle.messagePointer("project.upgrade.sourceSetJniUsageInfo.tooltipText"),
+  UsageType(AndroidBundle.messagePointer("project.upgrade.sourceSetJniUsageInfo.usageType"))
 )
 
 val REMOVE_SOURCE_SET_JNI_INFO = RemovePropertiesRefactoringInfo(
   GradleVersion.parse("7.0.0-alpha06"),
   GradleVersion.parse("8.0.0"),
-  AndroidBundle.lazyMessage("project.upgrade.removeSourceSetJniRefactoringProcessor.commandName"),
-  AndroidBundle.lazyMessage("project.upgrade.removeSourceSetJniRefactoringProcessor.usageView.header"),
+  AndroidBundle.messagePointer("project.upgrade.removeSourceSetJniRefactoringProcessor.commandName"),
+  AndroidBundle.messagePointer("project.upgrade.removeSourceSetJniRefactoringProcessor.usageView.header"),
   REMOVE_SOURCE_SET_JNI,
   listOf(SOURCE_SET_JNI_INFO)
 )
