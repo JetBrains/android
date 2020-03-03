@@ -19,6 +19,14 @@ import gnu.trove.THashMap;
 import gnu.trove.TObjectHashingStrategy;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.DoubleBuffer;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+import java.nio.LongBuffer;
+import java.nio.ShortBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -128,6 +136,17 @@ public class ReflectionUtil implements DoNotTrace {
     throw new IllegalStateException("Bad array type: " + obj.getClass().getName());
   }
 
+  private static Class<?> getBufferComponentType(Class<?> bufferClass) {
+    if (ByteBuffer.class.isAssignableFrom(bufferClass)) return Byte.TYPE;
+    if (CharBuffer.class.isAssignableFrom(bufferClass)) return Character.TYPE;
+    if (ShortBuffer.class.isAssignableFrom(bufferClass)) return Short.TYPE;
+    if (IntBuffer.class.isAssignableFrom(bufferClass)) return Integer.TYPE;
+    if (LongBuffer.class.isAssignableFrom(bufferClass)) return Long.TYPE;
+    if (FloatBuffer.class.isAssignableFrom(bufferClass)) return Float.TYPE;
+    if (DoubleBuffer.class.isAssignableFrom(bufferClass)) return Double.TYPE;
+    throw new IllegalStateException("Unknown buffer type: " + bufferClass.getName());
+  }
+
   // estimates the size of obj. This is an underestimate of the real size, as it does not take into account any
   // padding between fields or alignment requirements of the whole object.
   public static long estimateSize(Object obj) {
@@ -139,7 +158,17 @@ public class ReflectionUtil implements DoNotTrace {
     if (!objectSizes.containsKey(klass)) {
       getAllFields(klass);
     }
-    return objectSizes.get(klass) + OBJECT_HEADER_SIZE;
+
+    long size = objectSizes.get(klass) + OBJECT_HEADER_SIZE;
+
+    // account for native memory consumed by direct buffers
+    if (obj instanceof Buffer) {
+      Buffer buf = (Buffer) obj;
+      if (buf.isDirect()) {
+        size += buf.capacity() * sizeOf(getBufferComponentType(klass));
+      }
+    }
+    return size;
   }
 
 }
