@@ -289,15 +289,13 @@ class AppInspectionDiscovery internal constructor(
     streamChannel: TransportStreamChannel
   ): ListenableFuture<AppInspectionTarget> =
     synchronized(lock) {
-      synchronized(lock) {
-        targets.computeIfAbsent(processDescriptor) {
-          val transport =
-            AppInspectionTransport(transportClient, processDescriptor.stream, processDescriptor.process, executor, streamChannel)
-          attachAppInspectionTarget(transport, processDescriptor.appInspectionJarCopier).transform { target ->
-            target.addTargetTerminatedListener(executor) { targets.remove(it) }
-            targetListeners.forEach { (listener, executor) -> executor.execute { listener(target) } }
-            target
-          }
+      targets.computeIfAbsent(processDescriptor) {
+        val transport =
+          AppInspectionTransport(transportClient, processDescriptor.stream, processDescriptor.process, executor, streamChannel)
+        attachAppInspectionTarget(transport, processDescriptor.appInspectionJarCopier).transform { target ->
+          target.addTargetTerminatedListener(executor) { targets.remove(it) }
+          targetListeners.forEach { (listener, executor) -> executor.execute { listener(target) } }
+          target
         }
       }
     }
