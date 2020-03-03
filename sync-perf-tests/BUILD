@@ -12,6 +12,7 @@ iml_module(
         "//prebuilts/studio/buildbenchmarks:Base100_project",
         "//prebuilts/studio/buildbenchmarks/dolphin.3627ef8a",
         "//prebuilts/studio/jdk",
+        "//prebuilts/studio/sdk:build-tools/28.0.3",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:platforms/latest",
@@ -20,7 +21,9 @@ iml_module(
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/sync-perf-tests/testData",
         "//tools/base/build-system:gradle-distrib",
+        "//tools/base/build-system:gradle-distrib-5.5",
         "//tools/base/build-system:studio_repo.zip",
+        "//tools/base/build-system/previous-versions:3.5.0.zip",
     ],
     # do not sort: must match IML order
     test_runtime_deps = [
