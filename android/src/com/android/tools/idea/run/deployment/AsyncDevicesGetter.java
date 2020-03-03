@@ -45,7 +45,7 @@ import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AsyncDevicesGetter {
+final class AsyncDevicesGetter {
   @NotNull
   private final Project myProject;
 
@@ -173,8 +173,7 @@ public class AsyncDevicesGetter {
   }
 
   @VisibleForTesting
-  final void initChecker(@Nullable RunnerAndConfigurationSettings configurationAndSettings,
-                         @NotNull Function<Module, AndroidFacet> facetGetter) {
+  void initChecker(@Nullable RunnerAndConfigurationSettings configurationAndSettings, @NotNull Function<Module, AndroidFacet> facetGetter) {
     if (configurationAndSettings == null) {
       myChecker = null;
       return;
@@ -212,7 +211,7 @@ public class AsyncDevicesGetter {
   }
 
   @VisibleForTesting
-  final Object getChecker() {
+  Object getChecker() {
     return myChecker;
   }
 }
