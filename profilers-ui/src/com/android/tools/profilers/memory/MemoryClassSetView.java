@@ -44,12 +44,16 @@ import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.MemoryObject;
 import com.android.tools.profilers.memory.adapters.ValueObject;
+import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
+import icons.StudioIcons;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.Graphics;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.util.ArrayList;
@@ -125,7 +129,7 @@ final class MemoryClassSetView extends AspectObserver {
       InstanceAttribute.LABEL,
       new AttributeColumn<>(
         "Instance",
-        ValueColumnRenderer::new,
+        this::makeNameColumnRenderer,
         SwingConstants.LEFT,
         LABEL_COLUMN_WIDTH,
         SortOrder.ASCENDING,
@@ -153,7 +157,7 @@ final class MemoryClassSetView extends AspectObserver {
                                 t -> {
                                   Range selectionRange = myStage.getRangeSelectionModel().getSelectionRange();
                                   return t >= TimeUnit.MICROSECONDS.toNanos((long)selectionRange.getMin()) &&
-                                         t <  TimeUnit.MICROSECONDS.toNanos((long)selectionRange.getMax());
+                                         t < TimeUnit.MICROSECONDS.toNanos((long)selectionRange.getMax());
                                 },
                                 t -> SimpleTextAttributes.REGULAR_ATTRIBUTES,
                                 SimpleTextAttributes.GRAY_ITALIC_ATTRIBUTES),
@@ -432,12 +436,13 @@ final class MemoryClassSetView extends AspectObserver {
 
         myMemoizedChildrenCount = myClassSet.getInstancesCount();
         myClassSet.getInstancesStream().forEach(subAdapter ->
-          InstanceNodeKt.addChild(
-            this,
-            subAdapter,
-            myStage.getStudioProfilers().getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled() ?
-            LeafNode::new :
-            InstanceDetailsTreeNode::new));
+                                                  InstanceNodeKt.addChild(
+                                                    this,
+                                                    subAdapter,
+                                                    myStage.getStudioProfilers().getIdeServices().getFeatureConfig()
+                                                      .isSeparateHeapDumpUiEnabled() ?
+                                                    LeafNode::new :
+                                                    InstanceDetailsTreeNode::new));
 
         if (myTreeModel != null) {
           myTreeModel.nodeChanged(this);
@@ -615,5 +620,43 @@ final class MemoryClassSetView extends AspectObserver {
         .forEach(child -> results.addAll(findLeafNodesForFieldPath(child, slice)));
     }
     return results;
+  }
+
+  private ColoredTreeCellRenderer makeNameColumnRenderer() {
+    return new ValueColumnRenderer() {
+      private boolean myIsLeaked = false;
+
+      @Override
+      protected void paintComponent(Graphics g) {
+        if (myIsLeaked) {
+          int width = getWidth();
+          int height = getHeight();
+          Icon i = StudioIcons.Common.WARNING;
+          int iconWidth = i.getIconWidth();
+          int iconHeight = i.getIconHeight();
+          i.paintIcon(this, g, width - iconWidth, (height - iconHeight) / 2);
+        }
+
+        // paint real content last
+        super.paintComponent(g);
+      }
+
+      @Override
+      public void customizeCellRenderer(@NotNull JTree tree,
+                                        Object value,
+                                        boolean selected,
+                                        boolean expanded,
+                                        boolean leaf,
+                                        int row,
+                                        boolean hasFocus) {
+        super.customizeCellRenderer(tree, value, selected, expanded, leaf, row, hasFocus);
+        if (value instanceof MemoryObjectTreeNode &&
+            ((MemoryObjectTreeNode)value).getAdapter() instanceof InstanceObject) {
+          CaptureObjectInstanceFilter leakFilter = myCaptureObject.getActivityFragmentLeakFilter();
+          myIsLeaked = leakFilter != null &&
+                       leakFilter.getInstanceTest().invoke((InstanceObject)((MemoryObjectTreeNode)value).getAdapter());
+        }
+      }
+    };
   }
 }
