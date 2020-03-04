@@ -15,8 +15,22 @@
  */
 package com.android.tools.idea.sqlite
 
+import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
+import com.android.tools.idea.sqlite.databaseConnection.jdbc.JdbcDatabaseConnection
 import com.android.tools.idea.sqlite.model.SqliteValue
+import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.openapi.vfs.VirtualFile
+import java.sql.DriverManager
 
 internal fun Map<String, Any?>.toSqliteValue() = mapValues { (_, v) -> SqliteValue.fromAny(v) }
 
 internal fun List<Any?>.toSqliteValues() = this.map { SqliteValue.fromAny(it) }
+
+fun getJdbcDatabaseConnection(sqliteFile: VirtualFile, executor: FutureCallbackExecutor): ListenableFuture<DatabaseConnection> {
+  return executor.executeAsync {
+    val url = "jdbc:sqlite:${sqliteFile.path}"
+    val connection = DriverManager.getConnection(url)
+    JdbcDatabaseConnection(connection, sqliteFile, executor)
+  }
+}
