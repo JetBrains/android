@@ -173,14 +173,10 @@ public final class StudioFlags {
 
   //region ML Kit
   private static final FlagGroup MLKIT = new FlagGroup(FLAGS, "mlkit", "ML Kit");
-  public static final Flag<Boolean> MLKIT_TFLITE_MODEL_FILE_TYPE = Flag.create(
-    MLKIT, "modelfiletype", "Enable TFLite model file type",
-    "When enabled, TFLite model file can be recognized as a particular type and has its own viewer.",
-    false);
-  public static final Flag<Boolean> MLKIT_LIGHT_CLASSES = Flag.create(
-    MLKIT, "lightclasses", "Enable light model classes generation",
-    "When enabled, light model classes will be generated for each recognized TFLite model file. Please invalidates file " +
-    "caches after enabling (File -> Invalidate Caches...) in order to reindex model files.",
+  public static final Flag<Boolean> ML_MODEL_BINDING = Flag.create(
+    MLKIT, "modelbinding", "Enable ML model binding",
+    "When enabled, TFLite model file will be recognized and indexed. Please invalidates file caches after enabling " +
+    "(File -> Invalidate Caches...) in order to reindex model files.",
     false);
   //endregion
 

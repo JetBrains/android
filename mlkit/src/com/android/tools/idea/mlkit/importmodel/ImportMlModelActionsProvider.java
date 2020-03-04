@@ -26,7 +26,7 @@ public class ImportMlModelActionsProvider implements AdditionalTemplateActionsPr
   @Override
   public List<AnAction> getAdditionalActions(Category category) {
     List<AnAction> additionalActions = new ArrayList<>();
-    if (StudioFlags.MLKIT_TFLITE_MODEL_FILE_TYPE.get() && category == Category.Other) {
+    if (StudioFlags.ML_MODEL_BINDING.get() && category == Category.Other) {
       additionalActions.add(new AndroidImportMlModelAction());
     }
     return additionalActions;

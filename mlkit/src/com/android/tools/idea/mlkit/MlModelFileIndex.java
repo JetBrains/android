@@ -107,7 +107,7 @@ public class MlModelFileIndex extends FileBasedIndexExtension<String, MlModelMet
   @NotNull
   @Override
   public FileBasedIndex.InputFilter getInputFilter() {
-    return file -> StudioFlags.MLKIT_LIGHT_CLASSES.get() && file.getFileType() == TfliteModelFileType.INSTANCE;
+    return file -> StudioFlags.ML_MODEL_BINDING.get() && file.getFileType() == TfliteModelFileType.INSTANCE;
   }
 
   @Override

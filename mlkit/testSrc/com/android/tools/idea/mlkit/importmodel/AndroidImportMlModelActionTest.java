@@ -31,14 +31,14 @@ public class AndroidImportMlModelActionTest extends AndroidTestCase {
     super.setUp();
 
     MockitoAnnotations.initMocks(this);
-    StudioFlags.MLKIT_TFLITE_MODEL_FILE_TYPE.override(true);
+    StudioFlags.ML_MODEL_BINDING.override(true);
     myAction = new AndroidImportMlModelAction();
   }
 
   @Override
   public void tearDown() throws Exception {
     try {
-      StudioFlags.MLKIT_TFLITE_MODEL_FILE_TYPE.clearOverride();
+      StudioFlags.ML_MODEL_BINDING.clearOverride();
     }
     catch (Throwable e) {
       addSuppressedException(e);

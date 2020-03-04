@@ -213,6 +213,10 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider, Mod
    */
   @JvmDefault
   fun getDynamicFeatureModules(): List<Module> = emptyList()
+
+  /** Whether the ML model binding feature is enabled for this module. */
+  @JvmDefault
+  val isMlModelBindingEnabled: Boolean get() = false
 }
 
 /**
