@@ -37,6 +37,9 @@ import com.android.tools.idea.sqlite.model.SqliteColumnValue
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteTable
+import com.android.tools.idea.sqlite.model.SqliteValue
+import com.android.tools.idea.sqlite.toSqliteValue
+import com.android.tools.idea.sqlite.toSqliteValues
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -99,33 +102,33 @@ class TableControllerTest : PlatformTestCase() {
 
     authorsRow1 = SqliteRow(
       listOf(
-        SqliteColumnValue(authorIdColumn.name, 1),
-        SqliteColumnValue(authorNameColumn.name, "Joe1"),
-        SqliteColumnValue(authorLastColumn.name, "LastName1")
+        SqliteColumnValue(authorIdColumn.name, SqliteValue.fromAny(1)),
+        SqliteColumnValue(authorNameColumn.name, SqliteValue.fromAny("Joe1")),
+        SqliteColumnValue(authorLastColumn.name, SqliteValue.fromAny("LastName1"))
       )
     )
 
     authorsRow2 = SqliteRow(
       listOf(
-        SqliteColumnValue(authorIdColumn.name, 2),
-        SqliteColumnValue(authorNameColumn.name, "Joe2"),
-        SqliteColumnValue(authorLastColumn.name, "LastName2")
+        SqliteColumnValue(authorIdColumn.name, SqliteValue.fromAny(2)),
+        SqliteColumnValue(authorNameColumn.name, SqliteValue.fromAny("Joe2")),
+        SqliteColumnValue(authorLastColumn.name, SqliteValue.fromAny("LastName2"))
       )
     )
 
     authorsRow4 = SqliteRow(
       listOf(
-        SqliteColumnValue(authorIdColumn.name, 4),
-        SqliteColumnValue(authorNameColumn.name, "Joe4"),
-        SqliteColumnValue(authorLastColumn.name, "LastName4")
+        SqliteColumnValue(authorIdColumn.name, SqliteValue.fromAny(4)),
+        SqliteColumnValue(authorNameColumn.name, SqliteValue.fromAny("Joe4")),
+        SqliteColumnValue(authorLastColumn.name, SqliteValue.fromAny("LastName4"))
       )
     )
 
     authorsRow5 = SqliteRow(
       listOf(
-        SqliteColumnValue(authorIdColumn.name, 5),
-        SqliteColumnValue(authorNameColumn.name, "Joe5"),
-        SqliteColumnValue(authorLastColumn.name, "LastName5")
+        SqliteColumnValue(authorIdColumn.name, SqliteValue.fromAny(5)),
+        SqliteColumnValue(authorNameColumn.name, SqliteValue.fromAny("Joe5")),
+        SqliteColumnValue(authorLastColumn.name, SqliteValue.fromAny("LastName5"))
       )
     )
   }
@@ -382,7 +385,7 @@ class TableControllerTest : PlatformTestCase() {
       listOf(0, 9),
       listOf(10, 19),
       listOf(20, 29)
-    )
+    ).map { it.toSqliteValues() }
 
     assertRowSequence(mockResultSet.invocations, expectedInvocations)
   }
@@ -409,7 +412,7 @@ class TableControllerTest : PlatformTestCase() {
       listOf(0, 4),
       listOf(5, 9),
       listOf(10, 14)
-    )
+    ).map { it.toSqliteValues() }
 
     assertRowSequence(mockResultSet.invocations, expectedInvocations)
   }
@@ -442,7 +445,7 @@ class TableControllerTest : PlatformTestCase() {
       listOf(20, 29),
       listOf(10, 19),
       listOf(0, 9)
-    )
+    ).map { it.toSqliteValues() }
 
     assertRowSequence(mockResultSet.invocations, expectedInvocations)
   }
@@ -481,7 +484,7 @@ class TableControllerTest : PlatformTestCase() {
       listOf(0, 9),
       listOf(10, 19),
       listOf(20, 29)
-    )
+    ).map { it.toSqliteValues() }
 
     assertRowSequence(mockResultSet.invocations, expectedInvocations)
   }
@@ -511,7 +514,7 @@ class TableControllerTest : PlatformTestCase() {
       listOf(10, 19),
       listOf(20, 29),
       listOf(20, 24)
-    )
+    ).map { it.toSqliteValues() }
 
     assertRowSequence(mockResultSet.invocations, expectedInvocations)
   }
@@ -538,7 +541,7 @@ class TableControllerTest : PlatformTestCase() {
       listOf(0, 9),
       listOf(10, 19),
       listOf(10, 19)
-    )
+    ).map { it.toSqliteValues() }
 
     assertRowSequence(mockResultSet.invocations, expectedInvocations)
   }
@@ -562,7 +565,7 @@ class TableControllerTest : PlatformTestCase() {
     val expectedInvocations = listOf(
       listOf(0, 9),
       listOf(0, 0)
-    )
+    ).map { it.toSqliteValues() }
 
     assertRowSequence(mockResultSet.invocations, expectedInvocations)
 
@@ -588,7 +591,7 @@ class TableControllerTest : PlatformTestCase() {
     val expectedInvocations = listOf(
       listOf(0, 9),
       listOf(0, 49)
-    )
+    ).map { it.toSqliteValues() }
 
     assertRowSequence(mockResultSet.invocations, expectedInvocations)
 
@@ -617,7 +620,7 @@ class TableControllerTest : PlatformTestCase() {
       listOf(0, 9),
       listOf(0, 49),
       listOf(0, 0)
-    )
+    ).map { it.toSqliteValues() }
 
     assertRowSequence(mockResultSet.invocations, expectedInvocations)
 
@@ -652,7 +655,7 @@ class TableControllerTest : PlatformTestCase() {
       listOf(20, 29),
       listOf(20, 24),
       listOf(25, 29)
-    )
+    ).map { it.toSqliteValues() }
 
     assertRowSequence(mockResultSet.invocations, expectedInvocations)
   }
@@ -685,7 +688,7 @@ class TableControllerTest : PlatformTestCase() {
       listOf(20, 29),
       listOf(20, 24),
       listOf(15, 19)
-    )
+    ).map { it.toSqliteValues() }
 
     assertRowSequence(mockResultSet.invocations, expectedInvocations)
   }
@@ -730,7 +733,7 @@ class TableControllerTest : PlatformTestCase() {
       listOf(8, 17),
       listOf(0, 9),
       listOf(10, 19)
-    )
+    ).map { it.toSqliteValues() }
 
     assertRowSequence(mockResultSet.invocations, expectedInvocations)
   }
@@ -760,7 +763,7 @@ class TableControllerTest : PlatformTestCase() {
       listOf(10, 19),
       listOf(20, 29),
       listOf(0, 9)
-    )
+    ).map { it.toSqliteValues() }
 
     assertRowSequence(mockResultSet.invocations, expectedInvocations)
   }
@@ -790,7 +793,7 @@ class TableControllerTest : PlatformTestCase() {
       listOf(10, 19),
       listOf(0, 9),
       listOf(0, 4)
-    )
+    ).map { it.toSqliteValues() }
 
     assertRowSequence(mockResultSet.invocations, expectedInvocations)
   }
@@ -814,7 +817,7 @@ class TableControllerTest : PlatformTestCase() {
     val expectedInvocations = listOf(
       listOf(0, 9),
       listOf(40, 49)
-    )
+    ).map { it.toSqliteValues() }
 
     assertRowSequence(mockResultSet.invocations, expectedInvocations)
   }
@@ -838,7 +841,7 @@ class TableControllerTest : PlatformTestCase() {
     val expectedInvocations = listOf(
       listOf(0, 9),
       listOf(60, 60)
-    )
+    ).map { it.toSqliteValues() }
 
     assertRowSequence(mockResultSet.invocations, expectedInvocations)
   }
@@ -871,7 +874,7 @@ class TableControllerTest : PlatformTestCase() {
       listOf(30, 39),
       listOf(30, 34),
       listOf(0, 4)
-    )
+    ).map { it.toSqliteValues() }
 
     assertRowSequence(mockResultSet.invocations, expectedInvocations)
   }
@@ -897,7 +900,7 @@ class TableControllerTest : PlatformTestCase() {
       listOf(0, 9),
       listOf(9, 18),
       listOf(-1, 8)
-    )
+    ).map { it.toSqliteValues() }
 
     assertRowSequence(mockResultSet.invocations, expectedInvocations)
   }
@@ -920,7 +923,7 @@ class TableControllerTest : PlatformTestCase() {
     val expectedInvocations = listOf(
       listOf(0, 9),
       listOf(11, 20)
-    )
+    ).map { it.toSqliteValues() }
 
     assertRowSequence(mockResultSet.invocations, expectedInvocations)
   }
@@ -1019,11 +1022,11 @@ class TableControllerTest : PlatformTestCase() {
     val targetCol = customSqliteTable.columns[1]
     val targetRow = SqliteRow(
       listOf(
-        SqliteColumnValue(targetCol.name, "old value"),
-        SqliteColumnValue(rowIdCol.name, 1)
+        SqliteColumnValue(targetCol.name, SqliteValue.fromAny("old value")),
+        SqliteColumnValue(rowIdCol.name, SqliteValue.fromAny(1))
       )
     )
-    val newValue = "new value"
+    val newValue = SqliteValue.StringValue("new value")
 
     val orderVerifier = inOrder(tableView, mockDatabaseConnection)
 
@@ -1033,7 +1036,7 @@ class TableControllerTest : PlatformTestCase() {
 
     // Assert
     orderVerifier.verify(mockDatabaseConnection).execute(SqliteStatement(
-      "UPDATE tableName SET c1 = ? WHERE rowid = ?", listOf("new value", 1))
+      "UPDATE tableName SET c1 = ? WHERE rowid = ?", listOf("new value", 1).toSqliteValues())
     )
     orderVerifier.verify(tableView).startTableLoading()
   }
@@ -1086,8 +1089,8 @@ class TableControllerTest : PlatformTestCase() {
     )
     val targetRow = pumpEventsAndWaitForFuture(originalResultSet!!.getRowBatch(0, 1)).first()
 
-    val originalValue = targetRow.values.first { it.columnName == targetCol.name }.value as String
-    val newValue = "test value"
+    val originalValue = targetRow.values.first { it.columnName == targetCol.name }.value
+    val newValue = SqliteValue.StringValue("test value")
 
     tableController = TableController(
       10,
@@ -1108,7 +1111,7 @@ class TableControllerTest : PlatformTestCase() {
     verify(tableView).reportError("Can't update. No primary keys or rowid column.", null)
     val sqliteResultSet = pumpEventsAndWaitForFuture(customDatabaseConnection!!.execute(SqliteStatement("SELECT * FROM tableName")))
     val rows = pumpEventsAndWaitForFuture(sqliteResultSet?.getRowBatch(0, 1))
-    val value = rows.first().values.first { it.columnName == targetCol.name }.value as String
+    val value = rows.first().values.first { it.columnName == targetCol.name }.value
     assertEquals(originalValue, value)
   }
 
@@ -1209,7 +1212,7 @@ class TableControllerTest : PlatformTestCase() {
     )
     val targetRow = pumpEventsAndWaitForFuture(originalResultSet!!.getRowBatch(0, 1)).first()
 
-    val newValue = "test value"
+    val newValue = SqliteValue.StringValue("test value")
 
     val databaseConnectionWrapper = DatabaseConnectionWrapper(customDatabaseConnection!!)
 
@@ -1233,13 +1236,13 @@ class TableControllerTest : PlatformTestCase() {
       SqliteStatement("SELECT * FROM ${AndroidSqlLexer.getValidName(targetTableName)}")
     ))
     val rows = pumpEventsAndWaitForFuture(sqliteResultSet?.getRowBatch(0, 1))
-    val value = rows.first().values.first { it.columnName == targetCol.name }.value as String
-    assertEquals("test value", value)
+    val value = rows.first().values.first { it.columnName == targetCol.name }.value
+    assertEquals(SqliteValue.StringValue("test value"), value)
     val executedUpdateStatement = databaseConnectionWrapper.executedSqliteStatements.first { it.startsWith("UPDATE") }
     assertEquals(expectedSqliteStatement, executedUpdateStatement)
   }
 
-  private fun assertRowSequence(invocations: List<List<SqliteRow>>, expectedInvocations: List<List<Int>>) {
+  private fun assertRowSequence(invocations: List<List<SqliteRow>>, expectedInvocations: List<List<SqliteValue>>) {
     assertTrue(invocations.size == expectedInvocations.size)
     invocations.forEachIndexed { index, rows ->
       assertEquals(expectedInvocations[index][0], rows.first().values[0].value)

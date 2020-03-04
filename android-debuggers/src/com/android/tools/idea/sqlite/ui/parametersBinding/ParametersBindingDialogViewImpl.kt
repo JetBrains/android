@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sqlite.ui.parametersBinding
 
+import com.android.tools.idea.sqlite.model.SqliteValue
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.ui.components.JBCheckBox
@@ -93,8 +94,8 @@ class ParametersBindingDialogViewImpl(
       isNullCheckBox.name = "null-check-box"
     }
 
-    fun getVariableValue() : String? {
-      return if (isNullCheckBox.isSelected) null else namedParameterValueTextField.text
+    fun getVariableValue() : SqliteValue {
+      return if (isNullCheckBox.isSelected) SqliteValue.NullValue else SqliteValue.StringValue(namedParameterValueTextField.text)
     }
   }
 }

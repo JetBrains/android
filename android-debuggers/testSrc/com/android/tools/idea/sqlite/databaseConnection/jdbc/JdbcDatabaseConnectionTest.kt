@@ -25,6 +25,9 @@ import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteTable
+import com.android.tools.idea.sqlite.model.SqliteValue
+import com.android.tools.idea.sqlite.toSqliteValue
+import com.android.tools.idea.sqlite.toSqliteValues
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.application.ApplicationManager
@@ -33,6 +36,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.PlatformTestCase
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.util.concurrency.EdtExecutorService
+import junit.framework.TestCase
 import org.jetbrains.ide.PooledThreadExecutor
 import java.sql.DriverManager
 
@@ -600,7 +604,7 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
     )
 
     pumpEventsAndWaitForFuture(
-      customConnection!!.execute(SqliteStatement("INSERT INTO t1 (c1, c2) VALUES (?, ?)", listOf(null, "null")))
+      customConnection!!.execute(SqliteStatement("INSERT INTO t1 (c1, c2) VALUES (?, ?)", listOf(null, "null").toSqliteValues()))
     )
 
     val resultSet = pumpEventsAndWaitForFuture(
@@ -609,8 +613,8 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
 
     // Assert
     val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10))
-    assertNull(rows.first().values[0].value)
-    assertEquals("null", rows.first().values[1].value)
+    assertEquals(SqliteValue.NullValue, rows.first().values[0].value)
+    assertEquals(SqliteValue.StringValue("null"), rows.first().values[1].value)
   }
 
   private fun SqliteResultSet.hasColumn(name: String, affinity: SqliteAffinity) : Boolean {

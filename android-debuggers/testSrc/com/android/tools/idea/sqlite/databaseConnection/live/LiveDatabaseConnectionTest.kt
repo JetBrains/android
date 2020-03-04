@@ -27,6 +27,7 @@ import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.sqlite.model.RowIdName
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteStatement
+import com.android.tools.idea.sqlite.model.SqliteValue
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.PlatformTestCase
@@ -162,11 +163,11 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
     assertEquals(SqliteAffinity.TEXT, sqliteColumns[3].affinity)
     assertEquals(SqliteAffinity.TEXT, sqliteColumns[4].affinity)
 
-    assertEquals(sqliteRows[0].values[0].value, "a string")
-    assertEquals(sqliteRows[0].values[1].value, 1f)
-    assertEquals(sqliteRows[0].values[2].value, ByteString.copyFrom("a blob".toByteArray()))
-    assertEquals(sqliteRows[0].values[3].value, 1)
-    assertEquals(sqliteRows[0].values[4].value, null)
+    assertEquals(sqliteRows[0].values[0].value, SqliteValue.StringValue("a string"))
+    assertEquals(sqliteRows[0].values[1].value, SqliteValue.StringValue(1f.toString()))
+    assertEquals(sqliteRows[0].values[2].value, SqliteValue.StringValue(ByteString.copyFrom("a blob".toByteArray()).toStringUtf8()))
+    assertEquals(sqliteRows[0].values[3].value, SqliteValue.StringValue(1.toString()))
+    assertEquals(sqliteRows[0].values[4].value, SqliteValue.NullValue)
   }
 
   fun testReturnsEmptyResultSetForEmptyResponse() {

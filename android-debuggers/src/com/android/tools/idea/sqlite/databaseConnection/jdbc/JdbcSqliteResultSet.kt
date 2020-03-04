@@ -23,6 +23,7 @@ import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteColumnValue
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
+import com.android.tools.idea.sqlite.model.SqliteValue
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.SequentialTaskExecutor
@@ -106,7 +107,7 @@ class JdbcSqliteResultSet(
 
   @WorkerThread
   private fun createCurrentRow(resultSet: ResultSet): SqliteRow {
-    return SqliteRow(_columns.mapIndexed { i, column -> SqliteColumnValue(column.name, resultSet.getObject(i + 1)) })
+    return SqliteRow(_columns.mapIndexed { i, column -> SqliteColumnValue(column.name, SqliteValue.fromAny(resultSet.getObject(i + 1))) })
   }
 
   override fun dispose() {

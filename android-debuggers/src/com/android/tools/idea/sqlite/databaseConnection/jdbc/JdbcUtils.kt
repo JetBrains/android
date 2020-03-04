@@ -18,6 +18,7 @@ package com.android.tools.idea.sqlite.databaseConnection.jdbc
 import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteTable
+import com.android.tools.idea.sqlite.model.SqliteValue
 import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
@@ -29,11 +30,9 @@ import java.sql.Types
 fun Connection.resolvePreparedStatement(sqliteStatement: SqliteStatement): PreparedStatement {
   val preparedStatement = prepareStatement(sqliteStatement.sqliteStatementText)
   sqliteStatement.parametersValues.forEachIndexed { index, value ->
-    if (value == null) {
-      preparedStatement.setNull(index+1, Types.VARCHAR)
-    }
-    else {
-      preparedStatement.setString(index+1, value.toString())
+    when (value) {
+      is SqliteValue.StringValue -> preparedStatement.setString(index+1, value.value)
+      is SqliteValue.NullValue -> preparedStatement.setNull(index+1, Types.VARCHAR)
     }
   }
   return preparedStatement

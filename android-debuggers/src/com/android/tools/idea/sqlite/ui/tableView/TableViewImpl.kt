@@ -20,6 +20,7 @@ import com.android.tools.adtui.stdui.CommonButton
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteColumnValue
 import com.android.tools.idea.sqlite.model.SqliteRow
+import com.android.tools.idea.sqlite.model.SqliteValue
 import com.android.tools.idea.sqlite.ui.notifyError
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.ui.ComboBox
@@ -304,17 +305,22 @@ class TableViewImpl : TableView {
       return if (modelColumnIndex == 0) {
         (modelRowIndex + 1).toString()
       } else {
-        rows[modelRowIndex].values[modelColumnIndex - 1]
+        when (val value = rows[modelRowIndex].values[modelColumnIndex - 1]) {
+          is SqliteValue.StringValue -> value.value
+          is SqliteValue.NullValue -> null
+        }
       }
     }
 
     override fun setValueAt(newValue: Any?, modelRowIndex: Int, modelColumnIndex: Int) {
       assert(modelColumnIndex > 0) { "Setting value of column at index 0 is not allowed" }
 
+      val newSqliteValue = if (newValue == null) SqliteValue.NullValue else SqliteValue.StringValue(newValue.toString())
+
       val column = columns[modelColumnIndex - 1]
       val sqliteRow = SqliteRow(rows[modelRowIndex].values.mapIndexed { index, value -> SqliteColumnValue(columns[index].name, value) })
 
-      listeners.forEach { it.updateCellInvoked(sqliteRow, column, newValue) }
+      listeners.forEach { it.updateCellInvoked(sqliteRow, column, newSqliteValue) }
     }
 
     override fun isCellEditable(modelRowIndex: Int, modelColumnIndex: Int) = modelColumnIndex != 0 && isEditable
@@ -323,7 +329,7 @@ class TableViewImpl : TableView {
       for (diffOperation in rowDiffOperations) {
         when (diffOperation) {
           is RowDiffOperation.UpdateCell -> {
-            rows[diffOperation.rowIndex].values[diffOperation.colIndex] = diffOperation.newValue.value as String
+            rows[diffOperation.rowIndex].values[diffOperation.colIndex] = diffOperation.newValue.value
             fireTableCellUpdated(diffOperation.rowIndex, diffOperation.colIndex+1)
           }
           is RowDiffOperation.AddRow -> {
@@ -342,10 +348,10 @@ class TableViewImpl : TableView {
     }
   }
 
-  private data class MyRow(val values: MutableList<String?>) {
+  private data class MyRow(val values: MutableList<SqliteValue>) {
     companion object {
       fun fromSqliteRow(sqliteRow: SqliteRow): MyRow {
-        return MyRow(sqliteRow.values.map { it.value?.toString() }.toMutableList())
+        return MyRow(sqliteRow.values.map { it.value }.toMutableList())
       }
     }
   }

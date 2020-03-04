@@ -21,6 +21,7 @@ import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteColumnValue
 import com.android.tools.idea.sqlite.model.SqliteRow
+import com.android.tools.idea.sqlite.model.SqliteValue
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
@@ -146,7 +147,7 @@ class TableViewImplTest : LightPlatformTestCase() {
 
     val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col)
-    val rows = listOf(SqliteRow(listOf(SqliteColumnValue(col.name, "val"))))
+    val rows = listOf(SqliteRow(listOf(SqliteColumnValue(col.name, SqliteValue.StringValue("val")))))
 
     view.startTableLoading()
     view.showTableColumns(cols)
@@ -180,7 +181,7 @@ class TableViewImplTest : LightPlatformTestCase() {
 
     val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col)
-    val rows = listOf(SqliteRow(listOf(SqliteColumnValue("col", "val"))))
+    val rows = listOf(SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val")))))
 
     view.startTableLoading()
     view.showTableColumns(cols)
@@ -210,7 +211,7 @@ class TableViewImplTest : LightPlatformTestCase() {
 
     val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col)
-    val rows = listOf(SqliteRow(listOf(SqliteColumnValue("col", "val"))))
+    val rows = listOf(SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val")))))
 
     view.startTableLoading()
     view.showTableColumns(cols)
@@ -229,7 +230,7 @@ class TableViewImplTest : LightPlatformTestCase() {
 
     val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col)
-    val rows = listOf(SqliteRow(listOf(SqliteColumnValue("col", "val"))))
+    val rows = listOf(SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val")))))
 
     view.startTableLoading()
     view.showTableColumns(cols)
@@ -248,7 +249,10 @@ class TableViewImplTest : LightPlatformTestCase() {
 
     val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col)
-    val rows = listOf(SqliteRow(listOf(SqliteColumnValue("col", "val1"))), SqliteRow(listOf(SqliteColumnValue("col", "val2"))))
+    val rows = listOf(
+      SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val1")))),
+      SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val2"))))
+    )
 
     view.startTableLoading()
     view.showTableColumns(cols)
@@ -272,7 +276,7 @@ class TableViewImplTest : LightPlatformTestCase() {
 
     val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col)
-    val row = SqliteRow(listOf(SqliteColumnValue("col", "val1")))
+    val row = SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val1"))))
     val rows = listOf(row)
 
     view.startTableLoading()
@@ -284,7 +288,7 @@ class TableViewImplTest : LightPlatformTestCase() {
     table.model.setValueAt("newValue", 0, 1)
 
     // Assert
-    verify(mockListener).updateCellInvoked(row, col, "newValue")
+    verify(mockListener).updateCellInvoked(row, col, SqliteValue.StringValue("newValue"))
   }
 
   fun testColumnsAreEditableExceptForFirst() {
@@ -294,7 +298,7 @@ class TableViewImplTest : LightPlatformTestCase() {
 
     val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col)
-    val rows = listOf(SqliteRow(listOf(SqliteColumnValue("col", "val1"))))
+    val rows = listOf(SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val1")))))
 
     view.startTableLoading()
     view.showTableColumns(cols)
@@ -314,7 +318,7 @@ class TableViewImplTest : LightPlatformTestCase() {
 
     val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col)
-    val rows = listOf(SqliteRow(listOf(SqliteColumnValue("col", "val1"))))
+    val rows = listOf(SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val1")))))
 
     // Act
     view.startTableLoading()
@@ -335,8 +339,8 @@ class TableViewImplTest : LightPlatformTestCase() {
     val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col)
     val rowsToAdd = listOf(
-      SqliteRow(listOf(SqliteColumnValue("col", "val1"))),
-      SqliteRow(listOf(SqliteColumnValue("col", "val2")))
+      SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val1")))),
+      SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val2"))))
     )
 
     // Act
@@ -347,7 +351,7 @@ class TableViewImplTest : LightPlatformTestCase() {
 
     view.updateRows(
       listOf(
-        RowDiffOperation.UpdateCell(SqliteColumnValue("col", "new val"), 0, 0),
+        RowDiffOperation.UpdateCell(SqliteColumnValue("col", SqliteValue.StringValue("new val")), 0, 0),
         RowDiffOperation.RemoveLastRows(1))
     )
 
@@ -364,8 +368,8 @@ class TableViewImplTest : LightPlatformTestCase() {
     val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col)
     val rowsToAdd = listOf(
-      SqliteRow(listOf(SqliteColumnValue("col", "val1"))),
-      SqliteRow(listOf(SqliteColumnValue("col", "val2")))
+      SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val1")))),
+      SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val2"))))
     )
 
     // Act
@@ -374,13 +378,13 @@ class TableViewImplTest : LightPlatformTestCase() {
     view.updateRows(rowsToAdd.map { RowDiffOperation.AddRow(it) })
     view.stopTableLoading()
 
-    view.updateRows(listOf(RowDiffOperation.UpdateCell(SqliteColumnValue("col", "new val"), 0, 0)))
+    view.updateRows(listOf(RowDiffOperation.UpdateCell(SqliteColumnValue("col", SqliteValue.StringValue("new val")), 0, 0)))
 
     view.updateRows(
       listOf(
-        RowDiffOperation.UpdateCell(SqliteColumnValue("col", "new val1"), 0, 0),
-        RowDiffOperation.AddRow(SqliteRow(listOf(SqliteColumnValue("col", "new val3")))),
-        RowDiffOperation.AddRow(SqliteRow(listOf(SqliteColumnValue("col", "new val4"))))
+        RowDiffOperation.UpdateCell(SqliteColumnValue("col", SqliteValue.StringValue("new val1")), 0, 0),
+        RowDiffOperation.AddRow(SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("new val3"))))),
+        RowDiffOperation.AddRow(SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("new val4")))))
     ))
 
     // Assert
