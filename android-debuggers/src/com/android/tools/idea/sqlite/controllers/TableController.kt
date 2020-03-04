@@ -271,9 +271,10 @@ class TableController(
       refreshData()
     }
 
-    override fun updateCellInvoked(targetRow: SqliteRow, targetColumn: SqliteColumn, newValue: SqliteValue) {
+    override fun updateCellInvoked(targetRowIndex: Int, targetColumn: SqliteColumn, newValue: SqliteValue) {
       require(table != null) { "Table is null, can't update." }
 
+      val targetRow = currentRows[targetRowIndex]
       val rowIdColumnValue = targetRow.values.firstOrNull { it.columnName == table.rowIdName?.stringName }
 
       val parametersValues = mutableListOf(newValue)
