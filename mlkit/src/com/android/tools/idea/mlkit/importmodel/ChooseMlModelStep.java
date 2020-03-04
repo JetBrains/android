@@ -92,6 +92,17 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
       stringBuilder.append(dep + "\n");
     }
 
+    stringBuilder
+      .append("\nAlso you need add following to build file\n\n")
+      .append("android {\n")
+      .append("&nbsp;&nbsp;aaptOptions {\n")
+      .append("&nbsp;&nbsp;&nbsp;&nbsp;noCompress \"tflite\"\n")
+      .append("&nbsp;&nbsp;}\n")
+      .append("&nbsp;&nbsp;buildFeatures {\n")
+      .append("&nbsp;&nbsp;&nbsp;&nbsp;mlModelBinding true\n")
+      .append("&nbsp;&nbsp;}\n")
+      .append("}\n");
+
     return WizardUtils.toHtmlString(stringBuilder.toString());
   }
 

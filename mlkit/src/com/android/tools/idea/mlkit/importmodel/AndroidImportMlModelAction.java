@@ -49,7 +49,8 @@ public class AndroidImportMlModelAction extends AnAction {
     if (mlDirectory != null) {
       String title = "Import TFLite model";
       ModelWizard wizard = new ModelWizard.Builder()
-        .addStep(new ChooseMlModelStep(new MlWizardModel(mlDirectory), e.getProject(), title))
+        .addStep(new ChooseMlModelStep(new MlWizardModel(mlDirectory, e.getProject(), LangDataKeys.IDE_VIEW.getData(e.getDataContext())),
+                                       e.getProject(), title))
         .build();
       new StudioWizardDialogBuilder(wizard, title).build().show();
     }
