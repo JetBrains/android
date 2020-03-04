@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.pr
 import com.android.tools.idea.gradle.structure.configurables.ui.modules.ModulePanelKt;
 import com.android.tools.idea.gradle.structure.configurables.ui.modules.SigningConfigsPanelKt;
 import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.projectsystem.AndroidProjectSettingsService;
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
 import com.intellij.compiler.actions.ArtifactAwareProjectSettingsService;
 import com.intellij.ide.projectView.impl.ModuleGroup;
@@ -47,11 +48,12 @@ import org.jetbrains.annotations.Nullable;
  * This subclass of {@linkplain ProjectSettingsService} disables navigation to Project Settings panes that don't apply to
  * Gradle-based projects. For non-Gradle projects, it forwards calls to a delegate instance that preserves normal functionality.
  */
-public class AndroidProjectSettingsService extends ProjectSettingsService implements ArtifactAwareProjectSettingsService {
+public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService implements AndroidProjectSettingsService,
+                                                                                         ArtifactAwareProjectSettingsService {
   private final Project myProject;
   private final IdeaProjectSettingsService myDelegate;
 
-  public AndroidProjectSettingsService(Project project) {
+  public AndroidProjectSettingsServiceImpl(Project project) {
     myProject = project;
     myDelegate = new IdeaProjectSettingsService(project);
   }
@@ -113,6 +115,7 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
     }
   }
 
+  @Override
   public void openSigningConfiguration(@NotNull Module module) {
     showNewPsd(
       new Place()
@@ -122,6 +125,7 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
     );
   }
 
+  @Override
   public void openSdkSettings() {
     showNewPsd(
       new Place()
@@ -129,6 +133,7 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
     );
   }
 
+  @Override
   public void chooseJdkLocation() {
     showNewPsd(
       new Place()
@@ -163,6 +168,7 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
     );
   }
 
+  @Override
   public void openAndSelectDependenciesEditor(@NotNull Module module) {
     showNewPsd(
       new Place()

@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.actions;
 
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.gradle.structure.AndroidProjectSettingsService;
+import com.android.tools.idea.gradle.structure.AndroidProjectSettingsServiceImpl;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.module.Module;
@@ -52,8 +52,8 @@ public abstract class AbstractProjectStructureAction extends AndroidStudioGradle
     Module module = getTargetModule(e);
     if (module != null) {
       ProjectSettingsService service = ProjectSettingsService.getInstance(module.getProject());
-      if (service instanceof AndroidProjectSettingsService) {
-        doPerform(module, ((AndroidProjectSettingsService)service), e);
+      if (service instanceof AndroidProjectSettingsServiceImpl) {
+        doPerform(module, ((AndroidProjectSettingsServiceImpl)service), e);
       }
     }
   }
@@ -95,6 +95,6 @@ public abstract class AbstractProjectStructureAction extends AndroidStudioGradle
   }
 
   protected abstract void doPerform(@NotNull Module module,
-                                    @NotNull AndroidProjectSettingsService projectStructureService,
+                                    @NotNull AndroidProjectSettingsServiceImpl projectStructureService,
                                     @NotNull AnActionEvent e);
 }
