@@ -26,11 +26,13 @@ import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.editor.DeployTargetContext;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.android.tools.idea.testing.AndroidProjectRule;
+import com.intellij.execution.DefaultExecutionTarget;
 import com.intellij.execution.ExecutionTargetManager;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunConfigurationBase;
+import com.intellij.ide.util.ProjectPropertiesComponentImpl;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
@@ -64,6 +66,12 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
   private Clock myClock;
 
+  private PropertiesComponent myProperties;
+
+  private RunManager myRunManager;
+
+  private ExecutionTargetManager myExecutionTargetManager;
+
   private Project myProject;
   private Presentation myPresentation;
   private AnActionEvent myEvent;
@@ -79,6 +87,22 @@ public final class DeviceAndSnapshotComboBoxActionTest {
   public void mockClock() {
     myClock = Mockito.mock(Clock.class);
     Mockito.when(myClock.instant()).thenReturn(Instant.parse("2018-11-28T01:15:27.000Z"));
+  }
+
+  @Before
+  public void mockProperties() {
+    myProperties = Mockito.mock(PropertiesComponent.class);
+  }
+
+  @Before
+  public void mockRunManager() {
+    myRunManager = Mockito.mock(RunManager.class);
+  }
+
+  @Before
+  public void mockExecutionTargetManager() {
+    myExecutionTargetManager = Mockito.mock(ExecutionTargetManager.class);
+    Mockito.when(myExecutionTargetManager.getActiveTarget()).thenReturn(DefaultExecutionTarget.INSTANCE);
   }
 
   @Before
@@ -123,10 +147,10 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
       .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(() -> true)
       .setDevicesGetterGetter(project -> myDevicesGetter)
-      .setGetProperties(PropertiesComponent::getInstance)
+      .setGetProperties(project -> myProperties)
       .setClock(myClock)
-      .setGetRunManager(RunManager::getInstance)
-      .setGetExecutionTargetManager(ExecutionTargetManager::getInstance)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
       .build();
 
     action.update(myEvent);
@@ -148,10 +172,10 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
       .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(() -> true)
       .setDevicesGetterGetter(project -> myDevicesGetter)
-      .setGetProperties(PropertiesComponent::getInstance)
+      .setGetProperties(project -> myProperties)
       .setClock(myClock)
-      .setGetRunManager(RunManager::getInstance)
-      .setGetExecutionTargetManager(ExecutionTargetManager::getInstance)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
       .build();
 
     action.update(myEvent);
@@ -173,10 +197,10 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
       .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(() -> true)
       .setDevicesGetterGetter(project -> myDevicesGetter)
-      .setGetProperties(PropertiesComponent::getInstance)
+      .setGetProperties(project -> myProperties)
       .setClock(myClock)
-      .setGetRunManager(RunManager::getInstance)
-      .setGetExecutionTargetManager(ExecutionTargetManager::getInstance)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
       .build();
 
     action.update(myEvent);
@@ -214,15 +238,14 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
     Mockito.when(myDevicesGetter.get()).thenReturn(Arrays.asList(pixel3ApiQ, pixel2ApiQ));
 
-    PropertiesComponent properties = Mockito.mock(PropertiesComponent.class);
-    Mockito.when(properties.getValue(DeviceAndSnapshotComboBoxAction.SELECTED_DEVICE)).thenReturn("Pixel_3_API_Q");
+    Mockito.when(myProperties.getValue(DeviceAndSnapshotComboBoxAction.SELECTED_DEVICE)).thenReturn("Pixel_3_API_Q");
 
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
       .setDevicesGetterGetter(project -> myDevicesGetter)
-      .setGetProperties(project -> properties)
+      .setGetProperties(project -> myProperties)
       .setClock(myClock)
-      .setGetRunManager(RunManager::getInstance)
-      .setGetExecutionTargetManager(ExecutionTargetManager::getInstance)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
       .build();
 
     action.update(myEvent);
@@ -247,10 +270,10 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
       .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(() -> true)
       .setDevicesGetterGetter(project -> myDevicesGetter)
-      .setGetProperties(PropertiesComponent::getInstance)
+      .setGetProperties(project -> myProperties)
       .setClock(myClock)
-      .setGetRunManager(RunManager::getInstance)
-      .setGetExecutionTargetManager(ExecutionTargetManager::getInstance)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
       .build();
 
     action.update(myEvent);
@@ -295,10 +318,10 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
       .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(() -> true)
       .setDevicesGetterGetter(project -> myDevicesGetter)
-      .setGetProperties(PropertiesComponent::getInstance)
+      .setGetProperties(project -> myProperties)
       .setClock(myClock)
-      .setGetRunManager(RunManager::getInstance)
-      .setGetExecutionTargetManager(ExecutionTargetManager::getInstance)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
       .build();
 
     action.update(myEvent);
@@ -325,10 +348,10 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
       .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(() -> true)
       .setDevicesGetterGetter(project -> myDevicesGetter)
-      .setGetProperties(PropertiesComponent::getInstance)
+      .setGetProperties(project -> myProperties)
       .setClock(myClock)
-      .setGetRunManager(RunManager::getInstance)
-      .setGetExecutionTargetManager(ExecutionTargetManager::getInstance)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
       .build();
 
     action.update(myEvent);
@@ -358,10 +381,10 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
       .setDevicesGetterGetter(project -> myDevicesGetter)
-      .setGetProperties(PropertiesComponent::getInstance)
+      .setGetProperties(project -> myProperties)
       .setClock(myClock)
-      .setGetRunManager(RunManager::getInstance)
-      .setGetExecutionTargetManager(ExecutionTargetManager::getInstance)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
       .build();
 
     action.update(myEvent);
@@ -398,10 +421,10 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
       .setDevicesGetterGetter(project -> myDevicesGetter)
-      .setGetProperties(PropertiesComponent::getInstance)
+      .setGetProperties(project -> myProperties)
       .setClock(myClock)
-      .setGetRunManager(RunManager::getInstance)
-      .setGetExecutionTargetManager(ExecutionTargetManager::getInstance)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
       .build();
 
     action.update(myEvent);
@@ -435,10 +458,10 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
       .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(() -> true)
       .setDevicesGetterGetter(project -> myDevicesGetter)
-      .setGetProperties(PropertiesComponent::getInstance)
+      .setGetProperties(project -> myProperties)
       .setClock(myClock)
-      .setGetRunManager(RunManager::getInstance)
-      .setGetExecutionTargetManager(ExecutionTargetManager::getInstance)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
       .build();
 
     action.update(myEvent);
@@ -470,10 +493,10 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
       .setDevicesGetterGetter(project -> myDevicesGetter)
-      .setGetProperties(PropertiesComponent::getInstance)
+      .setGetProperties(project -> myProperties)
       .setClock(myClock)
-      .setGetRunManager(RunManager::getInstance)
-      .setGetExecutionTargetManager(ExecutionTargetManager::getInstance)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
       .build();
 
     action.update(myEvent);
@@ -612,7 +635,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     AnAction action = new DeviceAndSnapshotComboBoxAction.Builder()
       .setDevicesGetterGetter(project -> myDevicesGetter)
       .setClock(myClock)
-      .setGetRunManager(RunManager::getInstance)
+      .setGetRunManager(project -> myRunManager)
       .build();
 
     Mockito.when(myEvent.getPlace()).thenReturn(ActionPlaces.MAIN_MENU);
@@ -629,6 +652,8 @@ public final class DeviceAndSnapshotComboBoxActionTest {
   @Test
   public void updateMultipleDevicesIsSelected() {
     // Arrange
+    PropertiesComponent properties = new ProjectPropertiesComponentImpl();
+
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 2 API 29")
       .setKey(new Key("Pixel_2_API_29"))
@@ -636,11 +661,11 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .build();
 
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
-      .setGetProperties(PropertiesComponent::getInstance)
+      .setGetProperties(project -> properties)
       .setClock(myClock)
       .setGetSelectedDevices(project -> Collections.singletonList(device))
-      .setGetRunManager(RunManager::getInstance)
-      .setGetExecutionTargetManager(ExecutionTargetManager::getInstance)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
       .build();
 
     action.setMultipleDevicesSelected(myProject, true);
@@ -658,10 +683,10 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
       .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(() -> true)
       .setDevicesGetterGetter(project -> myDevicesGetter)
-      .setGetProperties(PropertiesComponent::getInstance)
+      .setGetProperties(project -> myProperties)
       .setClock(myClock)
-      .setGetRunManager(RunManager::getInstance)
-      .setGetExecutionTargetManager(ExecutionTargetManager::getInstance)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
       .build();
 
     action.update(myEvent);
@@ -675,12 +700,14 @@ public final class DeviceAndSnapshotComboBoxActionTest {
   @Test
   public void updateDoesntClearSelectedDeviceWhenDevicesIsEmpty() {
     // Arrange
+    PropertiesComponent properties = new ProjectPropertiesComponentImpl();
+
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
       .setDevicesGetterGetter(project -> myDevicesGetter)
-      .setGetProperties(PropertiesComponent::getInstance)
+      .setGetProperties(project -> properties)
       .setClock(myClock)
-      .setGetRunManager(RunManager::getInstance)
-      .setGetExecutionTargetManager(ExecutionTargetManager::getInstance)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
       .build();
 
     Device pixel2XlApiQ = new VirtualDevice.Builder()
@@ -719,10 +746,10 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
       .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(() -> true)
       .setDevicesGetterGetter(project -> myDevicesGetter)
-      .setGetProperties(PropertiesComponent::getInstance)
+      .setGetProperties(project -> myProperties)
       .setClock(myClock)
-      .setGetRunManager(RunManager::getInstance)
-      .setGetExecutionTargetManager(ExecutionTargetManager::getInstance)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
       .build();
 
     action.update(myEvent);
@@ -746,10 +773,10 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
       .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(() -> true)
       .setDevicesGetterGetter(project -> myDevicesGetter)
-      .setGetProperties(PropertiesComponent::getInstance)
+      .setGetProperties(project -> myProperties)
       .setClock(myClock)
-      .setGetRunManager(RunManager::getInstance)
-      .setGetExecutionTargetManager(ExecutionTargetManager::getInstance)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
       .build();
 
     action.setSelectedDevice(myProject, builder.build());
@@ -780,10 +807,10 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
       .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(() -> true)
       .setDevicesGetterGetter(project -> myDevicesGetter)
-      .setGetProperties(PropertiesComponent::getInstance)
+      .setGetProperties(project -> myProperties)
       .setClock(myClock)
-      .setGetRunManager(RunManager::getInstance)
-      .setGetExecutionTargetManager(ExecutionTargetManager::getInstance)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
       .build();
 
     action.setSelectedDevice(myProject, device2);
@@ -814,10 +841,10 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
     AnAction action = new DeviceAndSnapshotComboBoxAction.Builder()
       .setDevicesGetterGetter(project -> myDevicesGetter)
-      .setGetProperties(PropertiesComponent::getInstance)
+      .setGetProperties(project -> myProperties)
       .setClock(myClock)
-      .setGetRunManager(RunManager::getInstance)
-      .setGetExecutionTargetManager(ExecutionTargetManager::getInstance)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
       .build();
 
     // Act
@@ -840,10 +867,10 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
     AnAction action = new DeviceAndSnapshotComboBoxAction.Builder()
       .setDevicesGetterGetter(project -> myDevicesGetter)
-      .setGetProperties(PropertiesComponent::getInstance)
+      .setGetProperties(project -> myProperties)
       .setClock(myClock)
-      .setGetRunManager(RunManager::getInstance)
-      .setGetExecutionTargetManager(ExecutionTargetManager::getInstance)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
       .build();
 
     // Act
@@ -866,10 +893,10 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
       .setDevicesGetterGetter(project -> myDevicesGetter)
-      .setGetProperties(PropertiesComponent::getInstance)
+      .setGetProperties(project -> myProperties)
       .setClock(myClock)
-      .setGetRunManager(RunManager::getInstance)
-      .setGetExecutionTargetManager(ExecutionTargetManager::getInstance)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
       .build();
 
     action.setSelectedDevice(myProject, builder.build());
@@ -894,10 +921,10 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
       .setDevicesGetterGetter(project -> myDevicesGetter)
-      .setGetProperties(PropertiesComponent::getInstance)
+      .setGetProperties(project -> myProperties)
       .setClock(myClock)
-      .setGetRunManager(RunManager::getInstance)
-      .setGetExecutionTargetManager(ExecutionTargetManager::getInstance)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
       .build();
 
     action.setSelectedDevice(myProject, builder.build());
@@ -922,10 +949,10 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
       .setDevicesGetterGetter(project -> myDevicesGetter)
-      .setGetProperties(PropertiesComponent::getInstance)
+      .setGetProperties(project -> myProperties)
       .setClock(myClock)
-      .setGetRunManager(RunManager::getInstance)
-      .setGetExecutionTargetManager(ExecutionTargetManager::getInstance)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
       .build();
 
     action.setSelectedDevice(myProject, builder.build());
@@ -950,10 +977,10 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
       .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(() -> true)
       .setDevicesGetterGetter(project -> myDevicesGetter)
-      .setGetProperties(PropertiesComponent::getInstance)
+      .setGetProperties(project -> myProperties)
       .setClock(myClock)
-      .setGetRunManager(RunManager::getInstance)
-      .setGetExecutionTargetManager(ExecutionTargetManager::getInstance)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
       .build();
 
     action.setSelectedDevice(myProject, builder.build());
@@ -980,10 +1007,10 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
     AnAction action = new DeviceAndSnapshotComboBoxAction.Builder()
       .setDevicesGetterGetter(project -> myDevicesGetter)
-      .setGetProperties(PropertiesComponent::getInstance)
+      .setGetProperties(project -> myProperties)
       .setClock(myClock)
-      .setGetRunManager(RunManager::getInstance)
-      .setGetExecutionTargetManager(ExecutionTargetManager::getInstance)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
       .build();
 
     // Act
