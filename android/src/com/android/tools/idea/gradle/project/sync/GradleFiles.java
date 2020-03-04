@@ -34,7 +34,6 @@ import com.google.common.collect.Lists;
 import com.intellij.lang.properties.PropertiesFileType;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.Document;
@@ -68,6 +67,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
@@ -285,7 +285,7 @@ public class GradleFiles {
    * Schedules an update to the currently stored hashes for each of the gradle build files.
    */
   private void scheduleUpdateFileHashes() {
-    Runnable scheduleUpdateHashes = () -> {
+    TransactionGuard.getInstance().submitTransactionLater(myProject, () -> {
       // Local map to minimize time holding myLock
       Map<VirtualFile, Integer> fileHashes = new HashMap<>();
       GradleWrapper gradleWrapper = GradleWrapper.find(myProject);
@@ -334,17 +334,24 @@ public class GradleFiles {
         }
       };
 
-      modules.forEach(module -> {
-        if (application.isUnitTestMode() || application.isHeadlessEnvironment()) {
-          application.runReadAction(() -> computeHashes.accept(module));
-        } else {
-          executorService.execute(() -> progressManager.executeProcessUnderProgress(
-            () -> application.runReadAction(
-              () -> computeHashes.accept(module)),
-            progressIndicator
-          ));
-        }
-      });
+      modules.stream()
+        .map(module ->
+               executorService.submit(
+                 () -> progressManager.executeProcessUnderProgress(
+                   () -> application.runReadAction(
+                     () -> computeHashes.accept(module)),
+                   progressIndicator
+                 )
+               )
+        )
+        .forEach(future -> {
+          try {
+            future.get();
+          }
+          catch (InterruptedException | ExecutionException e) {
+            // ignored, the hashes won't be updated. This will cause areGradleFilesModified to return true.
+          }
+        });
 
       storeExternalBuildFiles(externalBuildFiles);
 
@@ -364,12 +371,7 @@ public class GradleFiles {
       }
 
       storeHashesForFiles(fileHashes);
-    };
-    if (ApplicationManager.getApplication().isUnitTestMode() || ApplicationManager.getApplication().isHeadlessEnvironment()) {
-      scheduleUpdateHashes.run();
-    } else {
-      TransactionGuard.getInstance().submitTransactionLater(myProject, scheduleUpdateHashes);
-    }
+    });
   }
 
   /**
@@ -386,7 +388,7 @@ public class GradleFiles {
    */
   public boolean areGradleFilesModified() {
     // Checks if any file in myChangedFiles actually has changes.
-    return ReadAction.compute(() -> !checkHashesOfChangedFiles());
+    return ApplicationManager.getApplication().runReadAction((Computable<Boolean>)() -> !checkHashesOfChangedFiles());
   }
 
   public boolean areExternalBuildFilesModified() {
