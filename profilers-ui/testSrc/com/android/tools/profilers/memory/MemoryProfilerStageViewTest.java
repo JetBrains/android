@@ -74,6 +74,7 @@ import icons.StudioIcons;
 import java.awt.Component;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.Charset;
 import java.util.Arrays;
@@ -92,6 +93,8 @@ import javax.swing.tree.TreePath;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Assume;
+import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -129,8 +132,126 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     myProfilersView = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
   }
 
+  @Before
+  public void init() {
+    myIdeProfilerServices.enableSeparateHeapDumpUi(false);
+  }
+
   @Test
   public void testCaptureAndHeapView() {
+    myIdeProfilerServices.enableSeparateHeapDumpUi(true);
+
+    final String dummyClassName1 = "DUMMY_CLASS1";
+    final String dummyClassName2 = "DUMMY_CLASS2";
+
+    Map<Integer, String> heapIdMap = ImmutableMap.of(0, "heap1", 1, "heap2");
+
+    MemoryProfilerStageView stageView = (MemoryProfilerStageView)myProfilersView.getStageView();
+
+    FakeCaptureObject fakeCapture1 = new FakeCaptureObject.Builder()
+      .setCaptureName("DUMMY_CAPTURE1")
+      .setHeapIdToNameMap(heapIdMap)
+      .setStartTime(5)
+      .setEndTime(10)
+      .build();
+    InstanceObject fakeInstance1 = new FakeInstanceObject.Builder(fakeCapture1, 1, dummyClassName1)
+      .setName("DUMMY_INSTANCE1")
+      .setHeapId(0)
+      .setDepth(4)
+      .setShallowSize(5)
+      .setRetainedSize(6)
+      .build();
+    InstanceObject fakeInstance2 = new FakeInstanceObject.Builder(fakeCapture1, 2, dummyClassName2)
+      .setName("DUMMY_INSTANCE2")
+      .setDepth(1)
+      .setShallowSize(2)
+      .setRetainedSize(3)
+      .build();
+    fakeCapture1.addInstanceObjects(ImmutableSet.of(fakeInstance1, fakeInstance2));
+
+    FakeCaptureObject fakeCapture2 = new FakeCaptureObject.Builder()
+      .setCaptureName("DUMMY_CAPTURE2")
+      .setHeapIdToNameMap(heapIdMap)
+      .setStartTime(5)
+      .setEndTime(10)
+      .build();
+    InstanceObject fakeInstance3 = new FakeInstanceObject.Builder(fakeCapture2, 1, dummyClassName1)
+      .setName("DUMMY_INSTANCE1")
+      .setHeapId(0)
+      .setDepth(4)
+      .setShallowSize(5)
+      .setRetainedSize(6)
+      .build();
+    InstanceObject fakeInstance4 = new FakeInstanceObject.Builder(fakeCapture2, 2, dummyClassName2)
+      .setName("DUMMY_INSTANCE2")
+      .setDepth(1)
+      .setShallowSize(2)
+      .setRetainedSize(3)
+      .build();
+    fakeCapture2.addInstanceObjects(ImmutableSet.of(fakeInstance3, fakeInstance4));
+
+    MemoryClassifierView classifierView = stageView.getClassifierView();
+
+    JComponent captureComponent = stageView.getChartCaptureSplitter().getSecondComponent();
+    assertThat(captureComponent).isNull();
+    JComponent instanceComponent = stageView.getMainSplitter().getSecondComponent();
+    assertThat(instanceComponent.isVisible()).isFalse();
+
+    assertView(null, null, null, null, false);
+
+    myStage.selectCaptureDuration(makeCaptureDurationData(fakeCapture1), null);
+    assertView(fakeCapture1, null, null, null, true);
+    myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0, 0);
+    myMockLoader.runTask();
+
+    JTree classifierTree = classifierView.getTree();
+    assertThat(classifierTree).isNotNull();
+    HeapSet selectedHeap = myStage.getSelectedHeapSet();
+    assertThat(selectedHeap).isNotNull();
+    assertView(fakeCapture1, selectedHeap, null, null, false);
+    myAspectObserver.assertAndResetCounts(0, 0, 1, 0, 1, 0, 0, 0);
+
+    // Tests selecting a capture which loads immediately.
+    myMockLoader.setReturnImmediateFuture(true);
+    myStage.selectCaptureDuration(makeCaptureDurationData(fakeCapture2), null);
+    classifierTree = classifierView.getTree();
+    assertThat(classifierTree).isNotNull();
+    selectedHeap = myStage.getSelectedHeapSet();
+    // 2 heap changes: 1 from changing the capture, the other from the auto-selection after the capture is loaded.
+    assertView(fakeCapture2, selectedHeap, null, null, false);
+    myAspectObserver.assertAndResetCounts(0, 1, 1, 0, 2, 0, 0, 0);
+
+    stageView.getHeapView().getHeapComboBox().setSelectedItem(fakeCapture2.getHeapSet(0));
+    assertSelection(fakeCapture2, fakeCapture2.getHeapSet(0), null, null);
+    myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 0, 0, 0);
+
+    ClassSet selectedClassSet =
+      findDescendantClassSetNodeWithInstance(getRootClassifierSet(classifierTree).getAdapter(), fakeInstance3);
+    assertThat(selectedClassSet).isNotNull();
+    myStage.selectClassSet(selectedClassSet);
+    assertView(fakeCapture2, fakeCapture2.getHeapSet(0), selectedClassSet, null, false);
+    myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 1, 0, 0);
+
+    assertThat(myStage.getConfiguration().getClassGrouping()).isEqualTo(ARRANGE_BY_CLASS);
+    myStage.getConfiguration().setClassGrouping(ARRANGE_BY_PACKAGE);
+    assertThat(stageView.getClassGrouping().getComponent().getSelectedItem()).isEqualTo(ARRANGE_BY_PACKAGE);
+    myAspectObserver.assertAndResetCounts(0, 0, 0, 1, 0, 1, 0, 0);
+
+    MemoryObjectTreeNode<ClassifierSet> memoryClassRoot = getRootClassifierSet(classifierTree);
+    MemoryObjectTreeNode<ClassSet> targetSet = findChildClassSetNodeWithClassName(memoryClassRoot, dummyClassName1);
+    classifierTree.setSelectionPath(new TreePath(new Object[]{memoryClassRoot, targetSet}));
+    assertSelection(fakeCapture2, fakeCapture2.getHeapSet(0), targetSet.getAdapter(), null);
+
+    myStage.selectInstanceObject(fakeInstance3);
+    assertSelection(fakeCapture2, fakeCapture2.getHeapSet(0), targetSet.getAdapter(), fakeInstance3);
+    assertView(fakeCapture2, fakeCapture2.getHeapSet(0), targetSet.getAdapter(), fakeInstance3, false);
+
+    myStage.selectCaptureDuration(null, null);
+    assertView(null, null, null, null, false);
+  }
+
+  @Test
+  public void testCaptureAndHeapViewLegacy() {
     final String dummyClassName1 = "DUMMY_CLASS1";
     final String dummyClassName2 = "DUMMY_CLASS2";
 
@@ -165,12 +286,10 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     JComponent instanceComponent = stageView.getMainSplitter().getSecondComponent();
     assertThat(instanceComponent.isVisible()).isFalse();
 
-    assertView(null, null, null, null, false);
+    assertViewLegacy(null, null, null, null, false);
 
-    myStage
-      .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> fakeCapture1)),
-                             null);
-    assertView(fakeCapture1, null, null, null, true);
+    myStage.selectCaptureDuration(makeCaptureDurationData(fakeCapture1), null);
+    assertViewLegacy(fakeCapture1, null, null, null, true);
     myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0, 0);
     myMockLoader.runTask();
 
@@ -178,19 +297,17 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     assertThat(classifierTree).isNotNull();
     HeapSet selectedHeap = myStage.getSelectedHeapSet();
     assertThat(selectedHeap).isNotNull();
-    assertView(fakeCapture1, selectedHeap, null, null, false);
+    assertViewLegacy(fakeCapture1, selectedHeap, null, null, false);
     myAspectObserver.assertAndResetCounts(0, 0, 1, 0, 1, 0, 0, 0);
 
     // Tests selecting a capture which loads immediately.
     myMockLoader.setReturnImmediateFuture(true);
-    myStage
-      .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> fakeCapture2)),
-                             null);
+    myStage.selectCaptureDuration(makeCaptureDurationData(fakeCapture2), null);
     classifierTree = classifierView.getTree();
     assertThat(classifierTree).isNotNull();
     selectedHeap = myStage.getSelectedHeapSet();
     // 2 heap changes: 1 from changing the capture, the other from the auto-selection after the capture is loaded.
-    assertView(fakeCapture2, selectedHeap, null, null, false);
+    assertViewLegacy(fakeCapture2, selectedHeap, null, null, false);
     myAspectObserver.assertAndResetCounts(0, 1, 1, 0, 2, 0, 0, 0);
 
     stageView.getHeapView().getHeapComboBox().setSelectedItem(fakeCapture2.getHeapSet(0));
@@ -200,7 +317,7 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     ClassSet selectedClassSet = findDescendantClassSetNodeWithInstance(getRootClassifierSet(classifierTree).getAdapter(), fakeInstance3);
     assertThat(selectedClassSet).isNotNull();
     myStage.selectClassSet(selectedClassSet);
-    assertView(fakeCapture2, fakeCapture2.getHeapSet(0), selectedClassSet, null, false);
+    assertViewLegacy(fakeCapture2, fakeCapture2.getHeapSet(0), selectedClassSet, null, false);
     myAspectObserver.assertAndResetCounts(0, 0, 0, 0, 0, 1, 0, 0);
 
     assertThat(myStage.getConfiguration().getClassGrouping()).isEqualTo(ARRANGE_BY_CLASS);
@@ -215,11 +332,19 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
 
     myStage.selectInstanceObject(fakeInstance3);
     assertSelection(fakeCapture2, fakeCapture2.getHeapSet(0), targetSet.getAdapter(), fakeInstance3);
-    assertView(fakeCapture2, fakeCapture2.getHeapSet(0), targetSet.getAdapter(), fakeInstance3, false);
+    assertViewLegacy(fakeCapture2, fakeCapture2.getHeapSet(0), targetSet.getAdapter(), fakeInstance3, false);
 
     myStage.selectCaptureDuration(null, null);
-    assertView(null, null, null, null, false);
+    assertViewLegacy(null, null, null, null, false);
   }
+
+  private static CaptureDurationData<CaptureObject> makeCaptureDurationData(CaptureObject capture) {
+    return new CaptureDurationData<>(1,
+                                     false,
+                                     false,
+                                     new CaptureEntry<>(new Object(), () -> capture));
+  }
+
 
   @Test
   public void testCaptureElapsedTime() {
@@ -265,7 +390,7 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
   }
 
   @Test
-  public void testLoadingNewCaptureWithExistingLoad() {
+  public void testLoadingNewCaptureWithExistingLoadLegacy() {
     Map<Integer, String> heapIdMap = ImmutableMap.of(0, "heap1", 1, "heap2");
 
     FakeCaptureObject fakeCapture1 =
@@ -281,17 +406,49 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     myStage
       .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> fakeCapture1)),
                              null);
-    assertView(fakeCapture1, null, null, null, true);
+    assertViewLegacy(fakeCapture1, null, null, null, true);
     myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0, 0);
 
     // Select a new capture before the first is loaded.
     myStage
       .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> fakeCapture2)),
                              null);
-    assertView(fakeCapture2, null, null, null, true);
+    assertViewLegacy(fakeCapture2, null, null, null, true);
     myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0, 0);
     myMockLoader.runTask();
-    assertView(fakeCapture2, fakeCapture2.getHeapSet(0), null, null, false);
+    assertViewLegacy(fakeCapture2, fakeCapture2.getHeapSet(0), null, null, false);
+    myAspectObserver.assertAndResetCounts(0, 0, 1, 0, 1, 0, 0, 0);
+  }
+
+  @Test
+  public void testLoadingNewCaptureWithExistingLoad() {
+    myIdeProfilerServices.enableSeparateHeapDumpUi(true);
+    Map<Integer, String> heapIdMap = ImmutableMap.of(0, "heap1", 1, "heap2");
+
+    FakeCaptureObject fakeCapture1 =
+      new FakeCaptureObject.Builder().setCaptureName("DUMMY_CAPTURE1").setHeapIdToNameMap(heapIdMap).setStartTime(5).setEndTime(10).build();
+    FakeCaptureObject fakeCapture2 =
+      new FakeCaptureObject.Builder().setCaptureName("DUMMY_CAPTURE2").setHeapIdToNameMap(heapIdMap).setStartTime(10).setEndTime(15)
+        .build();
+    InstanceObject fakeInstance1 =
+      new FakeInstanceObject.Builder(fakeCapture2, 1, "DUMMY_CLASS").setName("DUMMY_INSTANCE1").setDepth(4).setShallowSize(5)
+        .setRetainedSize(6).build();
+    fakeCapture2.addInstanceObjects(ImmutableSet.of(fakeInstance1));
+
+    myStage
+      .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> fakeCapture1)),
+                             null);
+    assertViewLegacy(fakeCapture1, null, null, null, true);
+    myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0, 0);
+
+    // Select a new capture before the first is loaded.
+    myStage
+      .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> fakeCapture2)),
+                             null);
+    assertViewLegacy(fakeCapture2, null, null, null, true);
+    myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0, 0);
+    myMockLoader.runTask();
+    assertViewLegacy(fakeCapture2, fakeCapture2.getHeapSet(0), null, null, false);
     myAspectObserver.assertAndResetCounts(0, 0, 1, 0, 1, 0, 0, 0);
   }
 
@@ -338,7 +495,7 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
    * pointer when profiler is importing a heap dump file. (Regression bug: b/117796712)
    */
   @Test
-  public void testLoadHeapDumpFromFileFinishLoading() throws Exception {
+  public void testLoadHeapDumpFromFileFinishLoadingLegacy() throws Exception {
     // TODO b/136292864
     Assume.assumeFalse(myUnifiedPipeline);
 
@@ -364,6 +521,38 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     captureObj.addInstanceObjects(ImmutableSet.of(instanceObject));
     stage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObj)),
                                 null);
+  }
+
+  @Test
+  public void testLoadHeapDumpFromFileFinishLoading() throws Exception {
+    myIdeProfilerServices.enableSeparateHeapDumpUi(true);
+    // TODO b/136292864
+    Assume.assumeFalse(myUnifiedPipeline);
+
+    SessionsManager sessionsManager = myProfilers.getSessionsManager();
+    // Create a temp file
+    String data = "random_string_~!@#$%^&*()_+";
+    File file = FileUtil.createTempFile("fake_heap_dump", ".hprof", false);
+    PrintWriter printWriter = new PrintWriter(file);
+    printWriter.write(data);
+    printWriter.close();
+    // Import heap dump from file
+    assertThat(sessionsManager.importSessionFromFile(file)).isTrue();
+    assertThat(sessionsManager.getSelectedSessionMetaData().getType()).isEqualTo(MEMORY_CAPTURE);
+    assertThat(myProfilers.getStage()).isInstanceOf(MemoryProfilerStage.class);
+    MemoryProfilerStage stage = (MemoryProfilerStage)myProfilers.getStage();
+    assertThat(stage.isMemoryCaptureOnly()).isTrue();
+    // Create a FakeCaptureObject and then call selectCaptureDuration().
+    // selectCaptureDuration() would indirectly fire CURRENT_LOADING_CAPTURE aspect which will trigger captureObjectChanged().
+    // Because isDoneLoading() returns true by default in the FakeCaptureObject, captureObjectChanged() will call captureObjectFinishedLoading()
+    // which would execute the logic that had a null pointer exception as reported by b/117796712.
+    FakeCaptureObject captureObj =
+      new FakeCaptureObject.Builder().setHeapIdToNameMap(ImmutableMap.of(0, "default", 1, "app")).build();
+    FakeInstanceObject instanceObject = new FakeInstanceObject.Builder(captureObj, 1, "DUMMY_CLASS1").setHeapId(0).build();
+    captureObj.addInstanceObjects(ImmutableSet.of(instanceObject));
+    stage.selectCaptureDuration(
+      new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObj)),
+      null);
   }
 
   @Test
@@ -811,11 +1000,85 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     assertThat(myStage.getSelectedInstanceObject()).isEqualTo(expectedInstanceObject);
   }
 
+
   private void assertView(@Nullable CaptureObject expectedCaptureObject,
                           @Nullable HeapSet expectedHeapSet,
                           @Nullable ClassSet expectedClassSet,
                           @Nullable InstanceObject expectedInstanceObject,
                           boolean isCaptureLoading) {
+    MemoryProfilerStageView stageView = (MemoryProfilerStageView)myProfilersView.getStageView();
+
+    ComboBoxModel<HeapSet> heapObjectComboBoxModel = stageView.getHeapView().getHeapComboBox().getModel();
+    MemoryProfilerStageLayout layout = stageView.getLayout();
+
+    if (expectedCaptureObject == null) {
+      assertThat(layout.isShowingLoadingUi()).isFalse();
+      assertThat(layout.isShowingCaptureUi()).isFalse();
+      assertThat(heapObjectComboBoxModel.getSize()).isEqualTo(0);
+      assertThat(stageView.getClassifierView().getTree()).isNull();
+      assertThat(stageView.getClassSetView().getComponent().isVisible()).isFalse();
+      assertThat(stageView.getInstanceDetailsView().getComponent().isVisible()).isFalse();
+      return;
+    }
+
+    if (isCaptureLoading) {
+      assertThat(heapObjectComboBoxModel.getSize()).isEqualTo(0);
+    }
+    else {
+      assertThat(layout.isShowingCaptureUi()).isTrue();
+      assertThat(IntStream.range(0, heapObjectComboBoxModel.getSize()).mapToObj(heapObjectComboBoxModel::getElementAt)
+                   .collect(Collectors.toSet())).isEqualTo(new HashSet<>(expectedCaptureObject.getHeapSets()));
+      assertThat(heapObjectComboBoxModel.getSelectedItem()).isEqualTo(expectedHeapSet);
+    }
+
+    if (expectedHeapSet == null) {
+      assertThat(stageView.getClassifierView().getTree()).isNull();
+      return;
+    }
+
+    JTree classifierTree = stageView.getClassifierView().getTree();
+    assertThat(classifierTree).isNotNull();
+
+    if (expectedClassSet == null) {
+      assertThat(classifierTree.getLastSelectedPathComponent()).isNull();
+      assertThat(stageView.getClassSetView().getComponent().isVisible()).isFalse();
+      assertThat(stageView.getInstanceDetailsView().getComponent().isVisible()).isFalse();
+      return;
+    }
+
+    Object selectedClassNode = classifierTree.getLastSelectedPathComponent();
+    assertThat(selectedClassNode).isInstanceOf(MemoryObjectTreeNode.class);
+    assertThat(((MemoryObjectTreeNode)selectedClassNode).getAdapter()).isInstanceOf(ClassSet.class);
+    //noinspection unchecked
+    MemoryObjectTreeNode<ClassSet> selectedClassObject = (MemoryObjectTreeNode<ClassSet>)selectedClassNode;
+    assertThat(selectedClassObject.getAdapter()).isEqualTo(expectedClassSet);
+
+    assertThat(stageView.getClassSetView().getComponent().isVisible()).isTrue();
+    JTree classSetTree = stageView.getClassSetView().getTree();
+    assertThat(classSetTree).isNotNull();
+
+    if (expectedInstanceObject == null) {
+      assertThat(classSetTree.getLastSelectedPathComponent()).isNull();
+      assertThat(stageView.getInstanceDetailsView().getComponent().isVisible()).isFalse();
+      return;
+    }
+
+    Object selectedInstanceNode = classSetTree.getLastSelectedPathComponent();
+    assertThat(selectedInstanceNode).isInstanceOf(MemoryObjectTreeNode.class);
+    assertThat(((MemoryObjectTreeNode)selectedInstanceNode).getAdapter()).isInstanceOf(InstanceObject.class);
+    //noinspection unchecked
+    MemoryObjectTreeNode<InstanceObject> selectedInstanceObject = (MemoryObjectTreeNode<InstanceObject>)selectedInstanceNode;
+    assertThat(selectedInstanceObject.getAdapter()).isEqualTo(expectedInstanceObject);
+
+    boolean detailsViewVisible = expectedInstanceObject.getCallStackDepth() > 0 || !expectedInstanceObject.getReferences().isEmpty();
+    assertThat(stageView.getInstanceDetailsView().getComponent().isVisible()).isEqualTo(detailsViewVisible);
+  }
+
+  private void assertViewLegacy(@Nullable CaptureObject expectedCaptureObject,
+                                @Nullable HeapSet expectedHeapSet,
+                                @Nullable ClassSet expectedClassSet,
+                                @Nullable InstanceObject expectedInstanceObject,
+                                boolean isCaptureLoading) {
     MemoryProfilerStageView stageView = (MemoryProfilerStageView)myProfilersView.getStageView();
 
     ComboBoxModel<HeapSet> heapObjectComboBoxModel = stageView.getHeapView().getHeapComboBox().getModel();

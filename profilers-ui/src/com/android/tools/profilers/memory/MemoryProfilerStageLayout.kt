@@ -59,7 +59,7 @@ internal abstract class MemoryProfilerStageLayout(val capturePanel: CapturePanel
         hideLoadingView()
       }
     }
-  abstract fun showCaptureUi(isShown: Boolean)
+  abstract var isShowingCaptureUi: Boolean
 
   protected val myLoadingView = loadingPanel.component
   protected abstract fun showLoadingView()
@@ -106,7 +106,9 @@ internal class SeparateHeapDumpMemoryProfilerStageLayout(timelineView: JComponen
   }
 
   override val component = JPanel(myLayout).apply {
-    add(timelineView, CARD_TIMELINE)
+    if (timelineView != null) {
+      add(timelineView, CARD_TIMELINE)
+    }
     add(chartCaptureSplitter, CARD_CAPTURE)
     add(loadingPanel.component, CARD_LOADING)
     myLayout.show(this, CARD_TIMELINE)
@@ -120,15 +122,17 @@ internal class SeparateHeapDumpMemoryProfilerStageLayout(timelineView: JComponen
     updateInstanceDetailsSplitter()
   }
 
-  override fun showCaptureUi(isShown: Boolean) {
-    if (isShown) {
-      myLayout.show(component, CARD_CAPTURE)
-      myCaptureShowingCallback.run()
-    } else {
-      myLayout.show(component, CARD_TIMELINE)
-      myTimelineShowingCallback.run()
+  override var isShowingCaptureUi = false
+    set(isShown) {
+      field = isShown
+      if (isShown) {
+        myLayout.show(component, CARD_CAPTURE)
+        myCaptureShowingCallback.run()
+      } else {
+        myLayout.show(component, CARD_TIMELINE)
+        myTimelineShowingCallback.run()
+      }
     }
-  }
 
   override fun showLoadingView() {
     myLayout.show(component, CARD_LOADING)
@@ -176,9 +180,11 @@ internal class LegacyMemoryProfilerStageLayout(timelineView: JComponent?,
     proportion = .6f
   }
 
-  override fun showCaptureUi(isShown: Boolean) {
-    chartCaptureSplitter.secondComponent = if (isShown) capturePanel.component else null
-  }
+  override var isShowingCaptureUi = false
+    set(isShown) {
+      field = isShown
+      chartCaptureSplitter.secondComponent = if (isShown) capturePanel.component else null
+    }
 
   override fun showLoadingView() {
     chartCaptureSplitter.secondComponent = myLoadingView
