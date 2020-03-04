@@ -22,6 +22,7 @@ iml_module(
         "//tools/idea/platform/xdebugger-api:intellij.platform.debugger[module]",
         "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/idea/.idea/libraries:Guava",
+        "//tools/idea/.idea/libraries:zxing-core",
     ],
 )
 
@@ -100,5 +101,6 @@ iml_module(
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/idea/.idea/libraries:zxing-core[test]",
     ],
 )
