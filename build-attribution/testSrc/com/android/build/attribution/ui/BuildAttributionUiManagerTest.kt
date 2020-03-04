@@ -28,6 +28,7 @@ import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
 import com.intellij.build.BuildContentManager
 import com.intellij.build.BuildContentManagerImpl
 import com.intellij.openapi.components.ServiceManager
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl
 import com.intellij.testFramework.PlatformTestUtil
@@ -76,7 +77,7 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
     verifyBuildAnalyzerTabNotSelected()
 
     // Verify state
-    Truth.assertThat(buildAttributionUiManager.buildAttributionTreeView).isNotNull()
+    Truth.assertThat(buildAttributionUiManager.buildAttributionView).isNotNull()
     Truth.assertThat(buildAttributionUiManager.buildContent).isNotNull()
 
     // Verify metrics sent
@@ -125,7 +126,7 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
   fun testContentTabClosed() {
     setNewReportData(reportUiData, buildSessionId)
     // Get the reference to check the state later
-    val buildAttributionTreeView = buildAttributionUiManager.buildAttributionTreeView!!
+    val buildAttributionTreeView = buildAttributionUiManager.buildAttributionView!!
     closeBuildAnalyzerTab()
 
     verifyBuildAnalyzerTabNotExist()
@@ -140,8 +141,8 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
     }
 
     // Verify state cleaned up
-    Truth.assertThat(buildAttributionTreeView.isDisposed).isTrue()
-    Truth.assertThat(buildAttributionUiManager.buildAttributionTreeView).isNull()
+    Truth.assertThat(Disposer.isDisposed(buildAttributionTreeView)).isTrue()
+    Truth.assertThat(buildAttributionUiManager.buildAttributionView).isNull()
     Truth.assertThat(buildAttributionUiManager.buildContent).isNull()
   }
 
@@ -273,8 +274,8 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
     }
 
     // Verify manager state
-    Truth.assertThat(buildAttributionUiManager.buildAttributionTreeView).isNotNull()
-    Truth.assertThat(buildAttributionUiManager.buildAttributionTreeView!!.isDisposed).isFalse()
+    Truth.assertThat(buildAttributionUiManager.buildAttributionView).isNotNull()
+    Truth.assertThat(Disposer.isDisposed(buildAttributionUiManager.buildAttributionView!!)).isFalse()
     Truth.assertThat(buildAttributionUiManager.buildContent).isNotNull()
   }
 
