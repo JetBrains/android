@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
+import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT
+import com.android.tools.idea.compose.preview.runconfiguration.isNonLibraryAndroidModule
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import icons.StudioIcons.Compose.RUN_ON_DEVICE
+import org.jetbrains.kotlin.idea.util.module
 
 /**
  * Action to deploy a @Composable to the device.
@@ -28,5 +31,11 @@ import icons.StudioIcons.Compose.RUN_ON_DEVICE
 internal class DeployToDeviceAction(private val dataContextProvider: () -> DataContext) : AnAction(null, null, RUN_ON_DEVICE) {
   override fun actionPerformed(e: AnActionEvent) {
     // TODO(b/150391302)
+  }
+
+  override fun update(e: AnActionEvent) {
+    super.update(e)
+    e.presentation.isEnabled =
+      dataContextProvider().getData(COMPOSE_PREVIEW_ELEMENT)?.previewBodyPsi?.element?.module?.isNonLibraryAndroidModule() == true
   }
 }
