@@ -25,8 +25,10 @@ import com.android.tools.idea.nav.safeargs.psi.LightArgsClass
 import com.android.tools.idea.nav.safeargs.psi.LightDirectionsClass
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.getSourceAsVirtualFile
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleServiceManager
+import com.intellij.openapi.project.DumbService
 import net.jcip.annotations.GuardedBy
 import net.jcip.annotations.ThreadSafe
 import org.jetbrains.android.dom.manifest.getPackageName
@@ -42,6 +44,7 @@ import org.jetbrains.android.facet.AndroidFacet
 @ThreadSafe
 class SafeArgsCacheModuleService private constructor(private val module: Module) {
   private class NavEntry(val resource: ResourceItem, val data: NavXmlData)
+  private val LOG = Logger.getInstance(SafeArgsCacheModuleService::class.java)
 
   companion object {
     @JvmStatic
@@ -83,11 +86,14 @@ class SafeArgsCacheModuleService private constructor(private val module: Module)
     val facet = AndroidFacet.getInstance(module)?.takeIf { it.isSafeArgsEnabled() } ?: return
     val modulePackage = getPackageName(facet) ?: return
 
+    if (DumbService.getInstance(module.project).isDumb) {
+      LOG.warn("Safe Arg classes may by temporarily stale due to indices not being ready right now.")
+      return
+    }
+
     synchronized(lock) {
       val modificationCount = NavigationResourcesModificationTracker.getInstance(module).modificationCount
       if (modificationCount != lastResourcesModificationCount) {
-        lastResourcesModificationCount = modificationCount
-
         val moduleResources = ResourceRepositoryManager.getModuleResources(facet)
         val navResources = moduleResources.getResources(ResourceNamespace.RES_AUTO, ResourceType.NAVIGATION)
 
@@ -105,6 +111,8 @@ class SafeArgsCacheModuleService private constructor(private val module: Module)
         _args = entries
           .flatMap { entry -> createLightArgsClasses(facet, modulePackage, entry) }
           .toList()
+
+        lastResourcesModificationCount = modificationCount
       }
     }
   }
