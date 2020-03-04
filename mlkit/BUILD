@@ -70,12 +70,21 @@ iml_module(
     ],
     test_class = "com.android.tools.idea.mlkit.MlkitTestSuite",
     test_data = [
+        "//prebuilts/studio/jdk",
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/tools/common/kotlin-plugin:Kotlin/kotlinc/build.txt",
         "//prebuilts/tools/common/mlkit/testData",
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/android/testData",
+        "//tools/adt/idea/android:test_deps.zip",
+        "//tools/adt/idea/mlkit/testData",
+        "//tools/base/build-system:gradle-distrib",
+        "//tools/base/build-system:studio_repo.zip",
         "//tools/idea/java/mockJDK-1.7",
     ],
+    test_resources = ["testData"],
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/.idea/libraries:delight-rhino-sandbox",

@@ -20,9 +20,11 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.editors.manifest.ManifestUtils;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.project.DefaultModuleSystem;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderBuilder;
 import com.android.tools.idea.projectsystem.SourceProviders;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.testing.AndroidTestUtils;
 import com.google.common.collect.ImmutableList;
 import com.intellij.codeInsight.completion.CompletionType;
@@ -51,8 +53,8 @@ public class MlkitLightClassTest extends AndroidTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    StudioFlags.MLKIT_TFLITE_MODEL_FILE_TYPE.override(true);
-    StudioFlags.MLKIT_LIGHT_CLASSES.override(true);
+    StudioFlags.ML_MODEL_BINDING.override(true);
+    ((DefaultModuleSystem)ProjectSystemUtil.getModuleSystem(myModule)).setMlModelBindingEnabled(true);
 
     // Pull in tflite model, which has image(i.e. name: image1) as input tensor and labels as output tensor
     myFixture.setTestDataPath(TestUtils.getWorkspaceFile("prebuilts/tools/common/mlkit/testData").getPath());
@@ -75,8 +77,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
   @Override
   public void tearDown() throws Exception {
     try {
-      StudioFlags.MLKIT_TFLITE_MODEL_FILE_TYPE.clearOverride();
-      StudioFlags.MLKIT_LIGHT_CLASSES.clearOverride();
+      StudioFlags.ML_MODEL_BINDING.clearOverride();
     }
     catch (Throwable e) {
       addSuppressedException(e);

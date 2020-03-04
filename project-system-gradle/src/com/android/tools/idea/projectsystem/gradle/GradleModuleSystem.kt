@@ -532,6 +532,8 @@ class GradleModuleSystem(
     return DynamicAppUtils.getDependentFeatureModulesForBase(module.project, project)
   }
 
+  override val isMlModelBindingEnabled: Boolean get() = readFromAgpFlags { it.mlModelBindingEnabled } ?: false
+
   /**
    * Specifies a version incompatibility between [conflict1] from [module1] and [conflict2] from [module2].
    * Some incompatibilities are indirect incompatibilities i.e. from the dependencies of [conflict1] and [conflict2].

@@ -53,7 +53,7 @@ public class InNonMlFolderNotificationProvider extends EditorNotifications.Provi
   public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file,
                                                          @NotNull FileEditor fileEditor,
                                                          @NotNull Project project) {
-    if (!StudioFlags.MLKIT_LIGHT_CLASSES.get()
+    if (!StudioFlags.ML_MODEL_BINDING.get()
         || fileEditor.getUserData(HIDDEN_KEY) != null
         || !(fileEditor instanceof TfliteModelFileEditor)) {
       return null;

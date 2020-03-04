@@ -258,6 +258,7 @@ class DefaultModuleSystem(override val module: Module) :
     val usesCompose: Key<Boolean> = Key.create(::usesCompose.qualifiedName)
     val isRClassTransitive: Key<Boolean> = Key.create(::isRClassTransitive.qualifiedName)
     val codeShrinker: Key<CodeShrinker?> = Key.create(::codeShrinker.qualifiedName)
+    val isMlModelBindingEnabled: Key<Boolean> = Key.create(::isMlModelBindingEnabled.qualifiedName)
   }
 
   override var usesCompose: Boolean by UserData(Keys.usesCompose, false)
@@ -265,6 +266,8 @@ class DefaultModuleSystem(override val module: Module) :
   override var isRClassTransitive: Boolean by UserData(Keys.isRClassTransitive, true)
 
   override var codeShrinker: CodeShrinker? by UserData(Keys.codeShrinker, null)
+
+  override var isMlModelBindingEnabled: Boolean by UserData(Keys.isMlModelBindingEnabled, false)
 }
 
 /**

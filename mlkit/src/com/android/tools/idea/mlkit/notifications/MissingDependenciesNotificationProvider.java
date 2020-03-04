@@ -16,7 +16,6 @@
 package com.android.tools.idea.mlkit.notifications;
 
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.mlkit.MlkitUtils;
 import com.android.tools.idea.mlkit.TfliteModelFileEditor;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
@@ -53,15 +52,17 @@ public class MissingDependenciesNotificationProvider extends EditorNotifications
   public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file,
                                                          @NotNull FileEditor fileEditor,
                                                          @NotNull Project project) {
-    if (!StudioFlags.MLKIT_LIGHT_CLASSES.get()
-        || fileEditor.getUserData(HIDDEN_KEY) != null
+    if (fileEditor.getUserData(HIDDEN_KEY) != null
         || !(fileEditor instanceof TfliteModelFileEditor)) {
       return null;
     }
 
     Module module = ModuleUtilCore.findModuleForFile(file, project);
-    if (module != null
-        && MlkitUtils.isModelFileInMlModelsFolder(module, file)
+    if (module == null || !MlkitUtils.isMlModelBindingBuildFeatureEnabled(module)) {
+      return null;
+    }
+
+    if (MlkitUtils.isModelFileInMlModelsFolder(module, file)
         && !MlkitUtils.getMissingDependencies(module, file).isEmpty()) {
       EditorNotificationPanel panel = new EditorNotificationPanel();
       panel.setText("Tensorflow Lite model binding dependencies not found.");

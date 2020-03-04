@@ -16,6 +16,7 @@
 package com.android.tools.idea.mlkit;
 
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.mlkit.lightpsi.LightModelClass;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
@@ -44,6 +45,10 @@ import org.jetbrains.annotations.Nullable;
 public class MlkitUtils {
 
   private MlkitUtils() {
+  }
+
+  public static boolean isMlModelBindingBuildFeatureEnabled(@NotNull Module module) {
+    return AndroidFacet.getInstance(module) != null && ProjectSystemUtil.getModuleSystem(module).isMlModelBindingEnabled();
   }
 
   public static boolean isModelFileInMlModelsFolder(@NotNull Module module, @NotNull VirtualFile file) {
