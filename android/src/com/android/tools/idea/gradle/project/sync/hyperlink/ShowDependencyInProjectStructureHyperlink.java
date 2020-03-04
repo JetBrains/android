@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.tools.idea.gradle.structure.AndroidProjectSettingsService;
+import com.android.tools.idea.gradle.structure.AndroidProjectSettingsServiceImpl;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -36,8 +36,8 @@ public class ShowDependencyInProjectStructureHyperlink extends NotificationHyper
   @Override
   protected void execute(@NotNull Project project) {
     ProjectSettingsService service = ProjectSettingsService.getInstance(project);
-    if (service instanceof AndroidProjectSettingsService) {
-      ((AndroidProjectSettingsService)service).openAndSelectDependency(myModule, myDependency);
+    if (service instanceof AndroidProjectSettingsServiceImpl) {
+      ((AndroidProjectSettingsServiceImpl)service).openAndSelectDependency(myModule, myDependency);
     }
   }
 }
