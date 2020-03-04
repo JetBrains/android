@@ -41,4 +41,31 @@ class PreviewElementProviderTest {
     filterWord = "Preview"
     assertEquals("internal.com.sample.TestClass.AMethod", filtered.previewElements.single().composableMethodFqn)
   }
+
+  @Test
+  fun testMemoized() {
+    var staticPreviewProvider = StaticPreviewProvider(listOf(
+      PreviewElement.forTesting("com.sample.TestClass.PreviewMethod1"),
+      PreviewElement.forTesting("com.sample.TestClass.PreviewMethod2"),
+      PreviewElement.forTesting("internal.com.sample.TestClass.AMethod")
+    ))
+
+    val memoized = MemoizedPreviewElementProvider(object : PreviewElementProvider {
+      override val previewElements: List<PreviewElement>
+        get() = staticPreviewProvider.previewElements
+    })
+
+    // Before the first refresh, the list is empty
+    assertEquals(0, memoized.previewElements.size)
+    memoized.refresh()
+    assertEquals(3, memoized.previewElements.size)
+
+    staticPreviewProvider = StaticPreviewProvider(listOf(
+      PreviewElement.forTesting("com.sample.TestClass.PreviewMethod1")
+    ))
+    // Updated the source but did not call refresh
+    assertEquals(3, memoized.previewElements.size)
+    memoized.refresh()
+    assertEquals(1, memoized.previewElements.size)
+  }
 }
