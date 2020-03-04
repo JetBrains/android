@@ -37,6 +37,7 @@ import com.android.tools.idea.compose.preview.actions.requestBuildForSurface
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.UniqueTaskCoroutineLauncher
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
@@ -159,10 +160,16 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   private val psiFilePointer = SmartPointerManager.createPointer(psiFile)
 
   /**
+   * [PreviewElementProvider] used to save the result of a call to [previewProvider]. Calls to [previewProvider] can potentially
+   * be slow. This saves the last result and it is refreshed on demand when we know is not running on the UI thread.
+   */
+  private val memoizedElementsProvider = MemoizedPreviewElementProvider(previewProvider)
+
+  /**
    * Filter to be applied for the preview to display a single [PreviewElement]. Used in interactive mode to focus on a
    * single element.
    */
-  private val singleElementFilteredProvider = SinglePreviewElementFilteredPreviewProvider(previewProvider)
+  private val singleElementFilteredProvider = SinglePreviewElementFilteredPreviewProvider(memoizedElementsProvider)
 
   /**
    * Filter to be applied for the group filtering. This allows multiple [PreviewElement]s belonging to the same group
@@ -556,7 +563,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   override fun refresh() {
     launch(uiThread) {
       isContentBeingRendered = true
-      val filePreviewElements = previewProvider.previewElements
+      val filePreviewElements = withContext(workerThread) {
+        memoizedElementsProvider.refresh()
+        previewProvider.previewElements
+      }
 
       if (filePreviewElements == previewElements) {
         LOG.debug("No updates on the PreviewElements, just refreshing the existing ones")

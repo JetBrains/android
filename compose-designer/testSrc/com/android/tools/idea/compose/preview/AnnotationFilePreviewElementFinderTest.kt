@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview
 
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.impl.source.tree.injected.changesHandler.range
+import com.intellij.util.concurrency.AppExecutorUtil
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.toUElement
 import org.junit.Assert
@@ -33,6 +34,9 @@ private fun assertMethodTextRange(file: UFile, methodName: String, actualBodyRan
   Assert.assertNotEquals(range, TextRange.EMPTY_RANGE)
   Assert.assertEquals(range, actualBodyRange)
 }
+
+private fun <T> computeOnBackground(computable: () -> T): T =
+  AppExecutorUtil.getAppExecutorService().submit(computable).get()
 
 class AnnotationFilePreviewElementFinderTest : ComposeLightJavaCodeInsightFixtureTestCase() {
   fun testFindPreviewAnnotations() {
@@ -82,8 +86,9 @@ class AnnotationFilePreviewElementFinderTest : ComposeLightJavaCodeInsightFixtur
       """.trimIndent()).toUElement() as UFile
 
     assertTrue(AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.sourcePsi.virtualFile))
+    assertTrue(computeOnBackground { AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.sourcePsi.virtualFile) })
 
-    val elements = AnnotationFilePreviewElementFinder.findPreviewMethods(composeTest)
+    val elements = computeOnBackground { AnnotationFilePreviewElementFinder.findPreviewMethods(composeTest) }
     assertEquals(5, elements.size)
     elements[1].let {
       assertEquals("preview2", it.displaySettings.name)
