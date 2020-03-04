@@ -24,7 +24,6 @@ import com.intellij.execution.actions.LazyRunConfigurationProducer
 import com.intellij.execution.configurations.runConfigurationType
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
-import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.psiUtil.getNonStrictParentOfType
 
@@ -42,12 +41,8 @@ open class ComposePreviewRunConfigurationProducer : LazyRunConfigurationProducer
   public final override fun setupConfigurationFromContext(configuration: ComposePreviewRunConfiguration,
                                                           context: ConfigurationContext,
                                                           sourceElement: Ref<PsiElement>): Boolean {
-    if (!StudioFlags.COMPOSE_PREVIEW_RUN_CONFIGURATION.get()) {
-      return false
-    }
-    // We should only be able to run Android modules that are not a library.
-    val facet = context.module?.let { AndroidFacet.getInstance(it) } ?: return false
-    if (facet.configuration.isLibraryProject) return false
+    if (!StudioFlags.COMPOSE_PREVIEW_RUN_CONFIGURATION.get()) return false
+    if (context.module?.isNonLibraryAndroidModule() != true) return false
 
     context.containingComposePreviewFunction()?.let {
       configuration.name = it.name!!
