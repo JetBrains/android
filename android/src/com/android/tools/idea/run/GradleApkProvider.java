@@ -102,23 +102,25 @@ public class GradleApkProvider implements ApkProvider {
 
   public GradleApkProvider(@NotNull AndroidFacet facet,
                            @NotNull ApplicationIdProvider applicationIdProvider,
+                           @NotNull PostBuildModelProvider outputModelProvider,
+                           boolean test,
+                           @NotNull Computable<OutputKind> outputKindProvider) {
+    this(facet, applicationIdProvider, outputModelProvider, new BestOutputFinder(), test, outputKindProvider);
+  }
+
+  @VisibleForTesting
+  public GradleApkProvider(@NotNull AndroidFacet facet,
+                           @NotNull ApplicationIdProvider applicationIdProvider,
                            boolean test) {
     this(facet, applicationIdProvider, () -> null, test, () -> OutputKind.Default);
   }
 
+  @VisibleForTesting
   public GradleApkProvider(@NotNull AndroidFacet facet,
                            @NotNull ApplicationIdProvider applicationIdProvider,
                            @NotNull PostBuildModelProvider outputModelProvider,
                            boolean test) {
     this(facet, applicationIdProvider, outputModelProvider, new BestOutputFinder(), test, () -> OutputKind.Default);
-  }
-
-  public GradleApkProvider(@NotNull AndroidFacet facet,
-                           @NotNull ApplicationIdProvider applicationIdProvider,
-                           @NotNull PostBuildModelProvider outputModelProvider,
-                           boolean test,
-                           @NotNull Computable<OutputKind> outputKindProvider) {
-    this(facet, applicationIdProvider, outputModelProvider, new BestOutputFinder(), test, outputKindProvider);
   }
 
   @VisibleForTesting
