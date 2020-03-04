@@ -93,6 +93,7 @@ import java.awt.Dimension
 import java.awt.FlowLayout
 import java.awt.Font
 import java.util.EnumSet
+import java.util.Optional
 import javax.swing.Box
 import javax.swing.BoxLayout
 import javax.swing.JComponent
@@ -229,9 +230,14 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
     }
 
     if (templates.size > 1) {
-      val row = RowEntry("Target Source Set", ModuleTemplateComboProvider(templates))
-      row.setEnabled(true)
-      row.addToPanel(parametersPanel)
+      val row = RowEntry("Target Source Set", ModuleTemplateComboProvider(templates)).apply {
+        setEnabled(true)
+        addToPanel(parametersPanel)
+        property!!.addListener {
+          model.wizardParameterData.sourceProviderName = (property.get() as Optional<NamedModuleTemplate>).get().name
+        }
+      }
+
 
       val template = (row.property as SelectedItemProperty<NamedModuleTemplate>)
       // ModuleTemplateComboProvider always sets this
