@@ -61,7 +61,6 @@ class ExistingProjectModelData(
   override val useGradleKts = BoolValueProperty(project.hasKtsUsage())
   override val isNewProject = false
   override val language: OptionalValueProperty<Language> = OptionalValueProperty(getInitialSourceLanguage(project))
-  // TODO(qumeric): this should be initialized in new module UI instead
   override val bytecodeLevel: OptionalProperty<BytecodeLevel> = OptionalValueProperty(getInitialBytecodeLevel())
   override val multiTemplateRenderer: MultiTemplateRenderer = MultiTemplateRenderer { renderer ->
     object : Task.Modal(project, message("android.compile.messages.generating.r.java.content.name"), false) {
@@ -146,7 +145,7 @@ class NewAndroidModuleModel(
   inner class ModuleTemplateRenderer : ModuleModel.ModuleTemplateRenderer() {
     override val recipe: Recipe get() = when(formFactor.get()) {
       FormFactor.MOBILE -> { data: TemplateData ->
-        generateAndroidModule(data as ModuleTemplateData, applicationName.get(), useGradleKts.get(), enableCppSupport.get(), cppFlags.get())
+        generateAndroidModule(data as ModuleTemplateData, applicationName.get(), useGradleKts.get(), enableCppSupport.get(), cppFlags.get(), bytecodeLevel.value)
       }
       FormFactor.WEAR -> { data: TemplateData ->
         generateWearModule(data as ModuleTemplateData, applicationName.get(), useGradleKts.get())
