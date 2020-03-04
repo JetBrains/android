@@ -26,6 +26,7 @@ import com.android.tools.profilers.ProfilerLayout.FILTER_TEXT_FIELD_WIDTH
 import com.android.tools.profilers.ProfilerLayout.FILTER_TEXT_HISTORY_SIZE
 import com.android.tools.profilers.ProfilerLayout.TOOLBAR_ICON_BORDER
 import com.android.tools.profilers.ProfilerLayout.createToolbarLayout
+import com.android.tools.profilers.memory.adapters.CaptureObject
 import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet
 import com.intellij.util.ui.JBEmptyBorder
 import icons.StudioIcons
@@ -167,19 +168,21 @@ private class CapturePanelUi(private val myStage: MemoryProfilerStage,
     val totalRetainedSizeLabel = mkLabel("Retained Size")
 
     fun refreshSummaries() {
-      totalClassLabel.intContent = countClasses()
-      setLabelSumBy(totalCountLabel) {it.totalObjectCount.toLong()}
-      setLabelSumBy(totalNativeSizeLabel) {it.totalNativeSize}
-      setLabelSumBy(totalShallowSizeLabel) {it.totalShallowSize}
-      setLabelSumBy(totalRetainedSizeLabel) {it.totalRetainedSize}
+      myStage.selectedCapture?.let {
+        totalClassLabel.intContent = countClasses(it)
+        setLabelSumBy(it, totalCountLabel) { it.totalObjectCount.toLong() }
+        setLabelSumBy(it, totalNativeSizeLabel) { it.totalNativeSize }
+        setLabelSumBy(it, totalShallowSizeLabel) { it.totalShallowSize }
+        setLabelSumBy(it, totalRetainedSizeLabel) { it.totalRetainedSize }
 
-      // Only show "leak" stat when it's supported
-      when (val leakCount = countLeaks()) {
-        null -> totalLeakLabel.isVisible = false
-        else -> totalLeakLabel.apply {
-          isVisible = true
-          intContent = leakCount.toLong()
-          icon = if (leakCount > 0) StudioIcons.Common.WARNING else null
+        // Only show "leak" stat when it's supported
+        when (val leakCount = countLeaks(it)) {
+          null -> totalLeakLabel.isVisible = false
+          else -> totalLeakLabel.apply {
+            isVisible = true
+            intContent = leakCount.toLong()
+            icon = if (leakCount > 0) StudioIcons.Common.WARNING else null
+          }
         }
       }
     }
@@ -199,25 +202,22 @@ private class CapturePanelUi(private val myStage: MemoryProfilerStage,
   }
 
   private fun showLeaks() {
-    val filter = myStage.selectedCapture!!.activityFragmentLeakFilter
-    if (filter != null) {
-      myInstanceFilterMenu.component.selectedItem = filter
+    myStage.selectedCapture?.activityFragmentLeakFilter?.let {
+      myInstanceFilterMenu.component.selectedItem = it
     }
   }
 
-  private fun countClasses() = // count distinct class Ids across all heap sets
-    myStage.selectedCapture!!.heapSets.stream().flatMap {hs ->
+  private fun countClasses(capture: CaptureObject) = // count distinct class Ids across all heap sets
+    capture.heapSets.stream().flatMap {hs ->
       hs.instancesStream.map{it.classEntry.classId}
     }.collect(Collectors.toSet()).size.toLong()
 
-  private fun countLeaks(): Int? {
-    val captureObject = myStage.selectedCapture!!
-    return captureObject.activityFragmentLeakFilter
+  private fun countLeaks(captureObject: CaptureObject): Int? =
+    captureObject.activityFragmentLeakFilter
       ?.filter(captureObject.instances.collect(Collectors.toSet()))
       ?.size
-  }
 
-  private fun setLabelSumBy(label: StatLabel, prop: (ClassifierSet) -> Long) {
-    label.intContent = myStage.selectedCapture!!.heapSets.fold(0L){sum, heapSet -> sum+prop(heapSet)}
+  private fun setLabelSumBy(capture: CaptureObject, label: StatLabel, prop: (ClassifierSet) -> Long) {
+    label.intContent = capture.heapSets.fold(0L){sum, heapSet -> sum+prop(heapSet)}
   }
 }

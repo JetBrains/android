@@ -281,6 +281,11 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   }
 
   @VisibleForTesting
+  MemoryProfilerStageLayout getLayout() {
+    return myLayout;
+  }
+
+  @VisibleForTesting
   JButton getGarbageCollectionButtion() {
     return myForceGarbageCollectionButton;
   }
@@ -395,11 +400,15 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   }
 
   private void setUpToolbarForCapture() {
-    myToolbar.removeAll();
-    long startMicros = (long)getStage().getTimeline().getDataRange().getMin();
-    long elapsedMicros = TimeUnit.NANOSECONDS.toMicros(myCaptureObject.getStartTimeNs()) - startMicros;
-    String timeString = TimeFormatter.getSimplifiedClockString(elapsedMicros);
-    myToolbar.add(makeNavigationButton("Heap dump: " + timeString, true, () -> {}));
+    CaptureObject capture = myCaptureObject;
+    if (capture != null) {
+      myToolbar.removeAll();
+      long startMicros = (long)getStage().getTimeline().getDataRange().getMin();
+      long elapsedMicros = TimeUnit.NANOSECONDS.toMicros(capture.getStartTimeNs()) - startMicros;
+      String timeString = TimeFormatter.getSimplifiedClockString(elapsedMicros);
+      myToolbar.add(makeNavigationButton("Heap dump: " + timeString, true, () -> {
+      }));
+    }
   }
 
   private static JLabel makeNavigationButton(String label, boolean bold, Runnable action) {
@@ -884,7 +893,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       myAllocationButton.setEnabled(isAlive);
       myNativeAllocationButton.setEnabled(isAlive);
       myHeapDumpButton.setEnabled(isAlive);
-      myLayout.showCaptureUi(false);
+      myLayout.setShowingCaptureUi(false);
       return;
     }
 
@@ -914,7 +923,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       return;
     }
 
-    myLayout.showCaptureUi(true);
+    myLayout.setShowingCaptureUi(true);
   }
 
   private void stopLoadingUi() {
