@@ -105,7 +105,6 @@ class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
       anchor,
       anchor.textRange,
       icon,
-      Pass.LINE_MARKERS,
       { tooltip },
       { mouseEvent, _ ->
         if (gotoList.size == 1) {
@@ -116,7 +115,7 @@ class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
         }
       },
       GutterIconRenderer.Alignment.RIGHT,
-      gotoList)
+      { gotoList })
   }
 
   companion object {
