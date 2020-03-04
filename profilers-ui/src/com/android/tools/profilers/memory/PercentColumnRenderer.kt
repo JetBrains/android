@@ -36,6 +36,8 @@ internal class PercentColumnRenderer<T: MemoryObject>(
       g.color = if (mySelected) ProfilerColors.CAPTURE_SPARKLINE_SELECTED else ProfilerColors.CAPTURE_SPARKLINE
       val barWidth = width * percent / 100
       g.fillRect(width - barWidth, 0, barWidth, height)
+      g.color = if (mySelected) ProfilerColors.CAPTURE_SPARKLINE_SELECTED_ACCENT else ProfilerColors.CAPTURE_SPARKLINE_ACCENT
+      g.fillRect(width - barWidth, height - ACCENT_BAR_WIDTH, barWidth, ACCENT_BAR_WIDTH)
     }
     // The percent bar is supposed to  be background, so the call to super should be last
     super.paintComponent(g)
@@ -53,5 +55,9 @@ internal class PercentColumnRenderer<T: MemoryObject>(
       percent = percentGetter.apply(value as MemoryObjectTreeNode<T>)
       require (percent >= 0)
     }
+  }
+
+  private companion object {
+    const val ACCENT_BAR_WIDTH = 2
   }
 }
