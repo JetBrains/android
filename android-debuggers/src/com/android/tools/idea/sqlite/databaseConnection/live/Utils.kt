@@ -22,6 +22,7 @@ import com.android.tools.idea.sqlite.model.SqliteColumnValue
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteTable
+import com.android.tools.idea.sqlite.model.SqliteValue
 import com.android.tools.idea.sqlite.model.getRowIdName
 
 /**
@@ -35,13 +36,16 @@ internal fun buildQueryCommand(sqliteStatement: SqliteStatement, databaseConnect
   return SqliteInspectorProtocol.Command.newBuilder().setQuery(queryBuilder).build()
 }
 
-internal fun SqliteInspectorProtocol.CellValue.toSqliteColumnValue(columnName: String): SqliteColumnValue {
+internal fun SqliteInspectorProtocol.CellValue.toSqliteColumnValue(colName: String): SqliteColumnValue {
   return when (valueCase) {
-    SqliteInspectorProtocol.CellValue.ValueCase.STRING_VALUE -> SqliteColumnValue(columnName, stringValue)
-    SqliteInspectorProtocol.CellValue.ValueCase.FLOAT_VALUE -> SqliteColumnValue(columnName, floatValue)
-    SqliteInspectorProtocol.CellValue.ValueCase.BLOB_VALUE -> SqliteColumnValue(columnName, blobValue)
-    SqliteInspectorProtocol.CellValue.ValueCase.INT_VALUE -> SqliteColumnValue(columnName, intValue)
-    SqliteInspectorProtocol.CellValue.ValueCase.VALUE_NOT_SET-> SqliteColumnValue(columnName, null)
+    // TODO(b/150761542) Handle all types in SqliteValue.
+    SqliteInspectorProtocol.CellValue.ValueCase.STRING_VALUE -> SqliteColumnValue(colName, SqliteValue.StringValue(stringValue))
+    SqliteInspectorProtocol.CellValue.ValueCase.FLOAT_VALUE -> SqliteColumnValue(colName, SqliteValue.StringValue(floatValue.toString()))
+    // TODO(b/150770619) trim the blob if too long.
+    // TODO(b/150770621) test that toStringUtf8 works as expected.
+    SqliteInspectorProtocol.CellValue.ValueCase.BLOB_VALUE -> SqliteColumnValue(colName, SqliteValue.StringValue(blobValue.toStringUtf8()))
+    SqliteInspectorProtocol.CellValue.ValueCase.INT_VALUE -> SqliteColumnValue(colName, SqliteValue.StringValue(intValue.toString()))
+    SqliteInspectorProtocol.CellValue.ValueCase.VALUE_NOT_SET-> SqliteColumnValue(colName, SqliteValue.NullValue)
     null -> error("value is null")
   }
 }

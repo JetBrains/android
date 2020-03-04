@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite.ui
 
 import com.android.tools.adtui.TreeWalker
+import com.android.tools.idea.sqlite.toSqliteValue
 import com.android.tools.idea.sqlite.ui.parametersBinding.ParametersBindingDialogView
 import com.android.tools.idea.sqlite.ui.parametersBinding.ParametersBindingDialogViewImpl
 import com.intellij.testFramework.LightPlatformTestCase
@@ -49,6 +50,6 @@ class ParametersBindingDialogViewImplTest : LightPlatformTestCase() {
     view.doOKAction()
 
     // Assert
-    verify(mockListener).bindingCompletedInvoked(mapOf(Pair("p1", null), Pair("p2", "null")))
+    verify(mockListener).bindingCompletedInvoked(mapOf(Pair("p1", null), Pair("p2", "null")).toSqliteValue())
   }
 }

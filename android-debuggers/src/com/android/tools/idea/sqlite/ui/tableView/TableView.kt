@@ -18,6 +18,7 @@ package com.android.tools.idea.sqlite.ui.tableView
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteColumnValue
 import com.android.tools.idea.sqlite.model.SqliteRow
+import com.android.tools.idea.sqlite.model.SqliteValue
 import javax.swing.JComponent
 
 /**
@@ -78,7 +79,7 @@ interface TableView {
     fun loadFirstRowsInvoked()
     fun loadLastRowsInvoked()
     fun refreshDataInvoked()
-    fun updateCellInvoked(targetRow: SqliteRow, targetColumn: SqliteColumn, newValue: Any?)
+    fun updateCellInvoked(targetRow: SqliteRow, targetColumn: SqliteColumn, newValue: SqliteValue)
 
     /**
      * Invoked when the user changes the number of rows to display per page.

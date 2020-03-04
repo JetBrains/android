@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite.controllers
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.sqlite.model.SqliteStatement
+import com.android.tools.idea.sqlite.model.SqliteValue
 import com.android.tools.idea.sqlite.ui.parametersBinding.ParametersBindingDialogView
 import com.intellij.openapi.Disposable
 
@@ -48,8 +49,8 @@ class ParametersBindingController(
   }
 
   private inner class ParametersBindingViewListenerImpl : ParametersBindingDialogView.Listener {
-    override fun bindingCompletedInvoked(parameters: Map<String, String?>) {
-      val parametersValues = parametersNames.map { parameters[it] }
+    override fun bindingCompletedInvoked(parameters: Map<String, SqliteValue>) {
+      val parametersValues = parametersNames.map { parameters[it] ?: error("No value assigned to parameter $it.") }
       runStatement(SqliteStatement(sqliteStatement, parametersValues))
     }
   }

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.sqlite.ui.parametersBinding
 
+import com.android.tools.idea.sqlite.model.SqliteValue
+
 /**
  * Abstraction used by [ParametersBindingController] to avoid direct dependency on the UI implementation.
  *
@@ -34,6 +36,6 @@ interface ParametersBindingDialogView {
      * This method is called when the user has assigned a value to each parameter.
      * @param parameters A map where each name of a parameter is mapped to the value assigned to it.
      */
-    fun bindingCompletedInvoked(parameters: Map<String, String?>)
+    fun bindingCompletedInvoked(parameters: Map<String, SqliteValue>)
   }
 }

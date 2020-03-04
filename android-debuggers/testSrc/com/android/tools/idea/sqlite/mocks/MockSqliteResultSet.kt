@@ -21,6 +21,7 @@ import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteColumnValue
 import com.android.tools.idea.sqlite.model.SqliteRow
+import com.android.tools.idea.sqlite.model.SqliteValue
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 
@@ -35,7 +36,13 @@ class MockSqliteResultSet(size: Int = 100) : SqliteResultSet {
 
   init {
     for (i in 0 until size) {
-      rows.add(SqliteRow(listOf(SqliteColumnValue(_columns[0].name, i), SqliteColumnValue(_columns[1].name, i))))
+      rows.add(
+        SqliteRow(
+          listOf(
+            SqliteColumnValue(_columns[0].name, SqliteValue.fromAny(i)),
+            SqliteColumnValue(_columns[1].name, SqliteValue.fromAny(i)))
+        )
+      )
     }
   }
 
@@ -58,7 +65,14 @@ class MockSqliteResultSet(size: Int = 100) : SqliteResultSet {
   }
 
   fun insertRowAtIndex(index: Int, value: Int) {
-    rows.add(index, SqliteRow(listOf(SqliteColumnValue(_columns[0].name, value), SqliteColumnValue(_columns[1].name, value))))
+    rows.add(
+      index,
+      SqliteRow(
+        listOf(
+          SqliteColumnValue(_columns[0].name, SqliteValue.fromAny(value)),
+          SqliteColumnValue(_columns[1].name, SqliteValue.fromAny(value)))
+      )
+    )
   }
 
   fun deleteRowAtIndex(index: Int) {

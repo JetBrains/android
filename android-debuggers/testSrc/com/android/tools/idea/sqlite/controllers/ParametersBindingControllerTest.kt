@@ -19,6 +19,8 @@ import com.android.testutils.MockitoKt.any
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.mocks.MockParametersBindingDialogView
 import com.android.tools.idea.sqlite.model.SqliteStatement
+import com.android.tools.idea.sqlite.toSqliteValue
+import com.android.tools.idea.sqlite.toSqliteValues
 import com.android.tools.idea.sqlite.ui.parametersBinding.ParametersBindingDialogView
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.PlatformTestCase
@@ -92,10 +94,10 @@ class ParametersBindingControllerTest : PlatformTestCase() {
     // Act
     controller.setUp()
     val listener = view.listeners.first()
-    listener.bindingCompletedInvoked(mapOf("param1" to "1", "param2" to "2"))
+    listener.bindingCompletedInvoked(mapOf("param1" to "1", "param2" to "2").toSqliteValue())
 
     // Assert
-    assertContainsElements(ranStatements, listOf(SqliteStatement("select * from Foo", listOf("1", "2"))))
+    assertContainsElements(ranStatements, listOf(SqliteStatement("select * from Foo", listOf("1", "2").toSqliteValues())))
   }
 
   fun testSupportsNull() {
@@ -104,10 +106,10 @@ class ParametersBindingControllerTest : PlatformTestCase() {
     // Act
     controller.setUp()
     val listener = view.listeners.first()
-    listener.bindingCompletedInvoked(mapOf("param1" to null, "param2" to "null"))
+    listener.bindingCompletedInvoked(mapOf("param1" to null, "param2" to "null").toSqliteValue())
 
     // Assert
-    assertContainsElements(ranStatements, listOf(SqliteStatement("select * from Foo", listOf(null, "null"))))
+    assertContainsElements(ranStatements, listOf(SqliteStatement("select * from Foo", listOf(null, "null").toSqliteValues())))
   }
 
   fun testRunStatementWithRepeatedNamedParameter() {
@@ -119,9 +121,9 @@ class ParametersBindingControllerTest : PlatformTestCase() {
     // Act
     controller.setUp()
     val listener = view.listeners.first()
-    listener.bindingCompletedInvoked(mapOf("param1" to "1"))
+    listener.bindingCompletedInvoked(mapOf("param1" to "1").toSqliteValue())
 
     // Assert
-    assertContainsElements(ranStatements, listOf(SqliteStatement("select * from Foo", listOf("1", "1"))))
+    assertContainsElements(ranStatements, listOf(SqliteStatement("select * from Foo", listOf("1", "1").toSqliteValues())))
   }
 }
