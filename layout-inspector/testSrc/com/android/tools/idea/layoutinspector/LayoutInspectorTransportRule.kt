@@ -255,6 +255,7 @@ class LayoutInspectorTransportRule(
       processDone.await()
       waitForUnsetSettings()
     }
+    InspectorClient.clientFactory = { DefaultInspectorClient(it) }
   }
 
   private fun waitForUnsetSettings() {
