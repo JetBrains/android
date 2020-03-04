@@ -21,12 +21,14 @@ import com.android.build.attribution.BuildAttributionStateReporterImpl
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.controllers.TaskIssueReporterImpl
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
+import com.android.tools.idea.flags.StudioFlags
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.build.BuildContentManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.ComponentContainer
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindowId
 import com.intellij.openapi.wm.ToolWindowManager
@@ -37,6 +39,8 @@ import com.intellij.ui.content.ContentManagerEvent
 import com.intellij.ui.content.impl.ContentImpl
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.BorderLayout
+import javax.swing.JComponent
+import javax.swing.JPanel
 
 interface BuildAttributionUiManager : Disposable {
   fun showNewReport(reportUiData: BuildAttributionReportUiData, buildSessionId: String)
@@ -61,7 +65,7 @@ class BuildAttributionUiManagerImpl(
 
 
   @VisibleForTesting
-  var buildAttributionTreeView: BuildAttributionTreeView? = null
+  var buildAttributionView: ComponentContainer? = null
 
   @VisibleForTesting
   var buildContent: Content? = null
@@ -122,14 +126,25 @@ class BuildAttributionUiManagerImpl(
   }
 
   private fun createNewView() {
-    buildAttributionTreeView?.let { treeView -> Disposer.dispose(treeView) }
+    buildAttributionView?.let { treeView -> Disposer.dispose(treeView) }
     val issueReporter = TaskIssueReporterImpl(reportUiData, project, uiAnalytics)
-    buildAttributionTreeView = BuildAttributionTreeView(reportUiData, issueReporter, uiAnalytics)
-      .also { newView -> newView.setInitialSelection() }
+    buildAttributionView = if (StudioFlags.NEW_BUILD_ANALYZER_UI_NAVIGATION_ENABLED.get()) {
+      // TODO (mlazeba): replace with new BA UI
+      object : ComponentContainer {
+        private val panel = JPanel()
+        override fun getPreferredFocusableComponent(): JComponent = panel
+        override fun getComponent(): JComponent = panel
+        override fun dispose() = Unit
+      }
+    }
+    else {
+      BuildAttributionTreeView(reportUiData, issueReporter, uiAnalytics)
+        .also { newView -> newView.setInitialSelection() }
+    }
   }
 
   private fun Content.replaceContentView() {
-    buildAttributionTreeView?.let { view ->
+    buildAttributionView?.let { view ->
       component.removeAll()
       component.add(view.component, BorderLayout.CENTER)
       Disposer.register(this, view)
@@ -138,7 +153,7 @@ class BuildAttributionUiManagerImpl(
   }
 
   private fun createNewTab() {
-    buildAttributionTreeView?.let { view ->
+    buildAttributionView?.let { view ->
       buildContent = ContentImpl(BorderLayoutPanel(), "Build Analyzer", true).also { content ->
         content.component.add(view.component, BorderLayout.CENTER)
         Disposer.register(this, content)
@@ -161,7 +176,7 @@ class BuildAttributionUiManagerImpl(
   private fun cleanUp() {
     contentManager?.removeContentManagerListener(contentManagerListener)
     contentManager = null
-    buildAttributionTreeView = null
+    buildAttributionView = null
     buildContent = null
   }
 
