@@ -318,9 +318,7 @@ class TableViewImpl : TableView {
       val newSqliteValue = if (newValue == null) SqliteValue.NullValue else SqliteValue.StringValue(newValue.toString())
 
       val column = columns[modelColumnIndex - 1]
-      val sqliteRow = SqliteRow(rows[modelRowIndex].values.mapIndexed { index, value -> SqliteColumnValue(columns[index].name, value) })
-
-      listeners.forEach { it.updateCellInvoked(sqliteRow, column, newSqliteValue) }
+      listeners.forEach { it.updateCellInvoked(modelRowIndex, column, newSqliteValue) }
     }
 
     override fun isCellEditable(modelRowIndex: Int, modelColumnIndex: Int) = modelColumnIndex != 0 && isEditable

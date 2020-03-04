@@ -79,7 +79,7 @@ interface TableView {
     fun loadFirstRowsInvoked()
     fun loadLastRowsInvoked()
     fun refreshDataInvoked()
-    fun updateCellInvoked(targetRow: SqliteRow, targetColumn: SqliteColumn, newValue: SqliteValue)
+    fun updateCellInvoked(targetRowIndex: Int, targetColumn: SqliteColumn, newValue: SqliteValue)
 
     /**
      * Invoked when the user changes the number of rows to display per page.

@@ -1015,20 +1015,13 @@ class TableControllerTest : PlatformTestCase() {
     Disposer.register(testRootDisposable, tableController)
     pumpEventsAndWaitForFuture(tableController.setUp())
 
-    val rowIdCol = customSqliteTable.columns[0]
     val targetCol = customSqliteTable.columns[1]
-    val targetRow = SqliteRow(
-      listOf(
-        SqliteColumnValue(targetCol.name, SqliteValue.fromAny("old value")),
-        SqliteColumnValue(rowIdCol.name, SqliteValue.fromAny(1))
-      )
-    )
     val newValue = SqliteValue.StringValue("new value")
 
     val orderVerifier = inOrder(tableView, mockDatabaseConnection)
 
     // Act
-    tableView.listeners.first().updateCellInvoked(targetRow, targetCol, newValue)
+    tableView.listeners.first().updateCellInvoked(1, targetCol, newValue)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
@@ -1101,7 +1094,7 @@ class TableControllerTest : PlatformTestCase() {
     pumpEventsAndWaitForFuture(tableController.setUp())
 
     // Act
-    tableView.listeners.first().updateCellInvoked(targetRow, targetCol, newValue)
+    tableView.listeners.first().updateCellInvoked(0, targetCol, newValue)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
@@ -1218,14 +1211,14 @@ class TableControllerTest : PlatformTestCase() {
       tableView,
       targetTable,
       databaseConnectionWrapper,
-      SqliteStatement("SELECT * FROM ${AndroidSqlLexer.getValidName(targetTableName)}"),
+      SqliteStatement(selectAllAndRowIdFromTable(targetTable)),
       edtExecutor
     )
     Disposer.register(testRootDisposable, tableController)
     pumpEventsAndWaitForFuture(tableController.setUp())
 
     // Act
-    tableView.listeners.first().updateCellInvoked(targetRow, targetCol, newValue)
+    tableView.listeners.first().updateCellInvoked(0, targetCol, newValue)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert

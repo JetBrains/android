@@ -17,17 +17,28 @@ package com.android.tools.idea.sqlite.ui
 
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture
+import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.sqlite.controllers.TableController
+import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
+import com.android.tools.idea.sqlite.databaseConnection.jdbc.selectAllAndRowIdFromTable
+import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
+import com.android.tools.idea.sqlite.getJdbcDatabaseConnection
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteColumnValue
 import com.android.tools.idea.sqlite.model.SqliteRow
+import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteValue
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatformTestCase
+import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.JBTable
+import com.intellij.util.concurrency.EdtExecutorService
 import junit.framework.TestCase
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
@@ -43,6 +54,9 @@ class TableViewImplTest : LightPlatformTestCase() {
   private lateinit var view: TableViewImpl
   private lateinit var fakeUi: FakeUi
 
+  private lateinit var sqliteUtil: SqliteTestUtil
+  private var realDatabaseConnection: DatabaseConnection? = null
+
   override fun setUp() {
     super.setUp()
     view = TableViewImpl()
@@ -50,6 +64,20 @@ class TableViewImplTest : LightPlatformTestCase() {
     component.size = Dimension(600, 200)
 
     fakeUi = FakeUi(component)
+
+    sqliteUtil = SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
+    sqliteUtil.setUp()
+  }
+
+  override fun tearDown() {
+    try {
+      if (realDatabaseConnection != null) {
+        pumpEventsAndWaitForFuture(realDatabaseConnection!!.close())
+      }
+      sqliteUtil.tearDown()
+    } finally {
+      super.tearDown()
+    }
   }
 
   fun testColumnsFitParentIfSpaceIsAvailable() {
@@ -288,7 +316,7 @@ class TableViewImplTest : LightPlatformTestCase() {
     table.model.setValueAt("newValue", 0, 1)
 
     // Assert
-    verify(mockListener).updateCellInvoked(row, col, SqliteValue.StringValue("newValue"))
+    verify(mockListener).updateCellInvoked(0, col, SqliteValue.StringValue("newValue"))
   }
 
   fun testColumnsAreEditableExceptForFirst() {
@@ -394,4 +422,158 @@ class TableViewImplTest : LightPlatformTestCase() {
     TestCase.assertEquals("new val3", table.model.getValueAt(2, 1))
     TestCase.assertEquals("new val4", table.model.getValueAt(3, 1))
   }
+
+  fun testEditTableUsingPrimaryKey() {
+    // Prepare
+    val customSqliteFile = sqliteUtil.createAdHocSqliteDatabase(
+      createStatement = "CREATE TABLE t1 (pk INT PRIMARY KEY, c1 INT)",
+      insertStatement = "INSERT INTO t1 (pk, c1) VALUES (42, 1)"
+    )
+    realDatabaseConnection = pumpEventsAndWaitForFuture(
+      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+    )
+
+    val schema = pumpEventsAndWaitForFuture(realDatabaseConnection!!.readSchema())
+    val sqliteTable = schema.tables.first()
+
+    val controller = TableController(
+      10,
+      view,
+      sqliteTable,
+      realDatabaseConnection!!,
+      SqliteStatement(selectAllAndRowIdFromTable(sqliteTable)),
+      FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+    )
+    Disposer.register(testRootDisposable, controller)
+    pumpEventsAndWaitForFuture(controller.setUp())
+
+    val swingTable = TreeWalker(view.component).descendants().filterIsInstance<JBTable>().first()
+    val tableModel = swingTable.model
+
+    // Act
+    tableModel.setValueAt(0, 0, 2)
+
+    // Assert
+    val resultSet = pumpEventsAndWaitForFuture(realDatabaseConnection!!.execute(SqliteStatement("SELECT * FROM t1")))
+    val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10))
+    assertSize(1, rows)
+    assertEquals(SqliteValue.fromAny(42), rows.first().values[0].value)
+    assertEquals(SqliteValue.fromAny(0), rows.first().values[1].value)
+  }
+
+  fun testEditTableUsingRowId() {
+    // Prepare
+    val customSqliteFile = sqliteUtil.createAdHocSqliteDatabase(
+      createStatement = "CREATE TABLE t1 (c1 INT, c2 INT)",
+      insertStatement = "INSERT INTO t1 (c1, c2) VALUES (42, 1)"
+    )
+    realDatabaseConnection = pumpEventsAndWaitForFuture(
+      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+    )
+
+    val schema = pumpEventsAndWaitForFuture(realDatabaseConnection!!.readSchema())
+    val sqliteTable = schema.tables.first()
+
+    val controller = TableController(
+      10,
+      view,
+      sqliteTable,
+      realDatabaseConnection!!,
+      SqliteStatement(selectAllAndRowIdFromTable(sqliteTable)),
+      FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+    )
+    Disposer.register(testRootDisposable, controller)
+    pumpEventsAndWaitForFuture(controller.setUp())
+
+    val swingTable = TreeWalker(view.component).descendants().filterIsInstance<JBTable>().first()
+    val tableModel = swingTable.model
+
+    // Act
+    tableModel.setValueAt(0, 0, 2)
+
+    // Assert
+    val resultSet = pumpEventsAndWaitForFuture(realDatabaseConnection!!.execute(SqliteStatement("SELECT * FROM t1")))
+    val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10))
+    assertSize(1, rows)
+    assertEquals(SqliteValue.fromAny(42), rows.first().values[0].value)
+    assertEquals(SqliteValue.fromAny(0), rows.first().values[1].value)
+  }
+
+  fun testEditTableInsertString() {
+    // Prepare
+    val customSqliteFile = sqliteUtil.createAdHocSqliteDatabase(
+      createStatement = "CREATE TABLE t1 (pk INT PRIMARY KEY, c1 INT)",
+      insertStatement = "INSERT INTO t1 (pk, c1) VALUES (42, 1)"
+    )
+    realDatabaseConnection = pumpEventsAndWaitForFuture(
+      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+    )
+
+    val schema = pumpEventsAndWaitForFuture(realDatabaseConnection!!.readSchema())
+    val sqliteTable = schema.tables.first()
+
+    val controller = TableController(
+      10,
+      view,
+      sqliteTable,
+      realDatabaseConnection!!,
+      SqliteStatement(selectAllAndRowIdFromTable(sqliteTable)),
+      FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+    )
+    Disposer.register(testRootDisposable, controller)
+    pumpEventsAndWaitForFuture(controller.setUp())
+
+    val swingTable = TreeWalker(view.component).descendants().filterIsInstance<JBTable>().first()
+    val tableModel = swingTable.model
+
+    // Act
+    tableModel.setValueAt("foo", 0, 2)
+
+    // Assert
+    val resultSet = pumpEventsAndWaitForFuture(realDatabaseConnection!!.execute(SqliteStatement("SELECT * FROM t1")))
+    val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10))
+    assertSize(1, rows)
+    assertEquals(SqliteValue.fromAny(42), rows.first().values[0].value)
+    assertEquals(SqliteValue.fromAny("foo"), rows.first().values[1].value)
+  }
+
+  fun testEditTableInsertNull() {
+    // Prepare
+    val customSqliteFile = sqliteUtil.createAdHocSqliteDatabase(
+      createStatement = "CREATE TABLE t1 (pk INT PRIMARY KEY, c1 INT)",
+      insertStatement = "INSERT INTO t1 (pk, c1) VALUES (42, 1)"
+    )
+    realDatabaseConnection = pumpEventsAndWaitForFuture(
+      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+    )
+
+    val schema = pumpEventsAndWaitForFuture(realDatabaseConnection!!.readSchema())
+    val sqliteTable = schema.tables.first()
+
+    val controller = TableController(
+      10,
+      view,
+      sqliteTable,
+      realDatabaseConnection!!,
+      SqliteStatement(selectAllAndRowIdFromTable(sqliteTable)),
+      FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+    )
+    Disposer.register(testRootDisposable, controller)
+    pumpEventsAndWaitForFuture(controller.setUp())
+
+    val swingTable = TreeWalker(view.component).descendants().filterIsInstance<JBTable>().first()
+    val tableModel = swingTable.model
+
+    // Act
+    tableModel.setValueAt(null, 0, 2)
+
+    // Assert
+    val resultSet = pumpEventsAndWaitForFuture(realDatabaseConnection!!.execute(SqliteStatement("SELECT * FROM t1")))
+    val rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 10))
+    assertSize(1, rows)
+    assertEquals(SqliteValue.fromAny(42), rows.first().values[0].value)
+    assertEquals(SqliteValue.fromAny(null), rows.first().values[1].value)
+  }
+
+
 }
