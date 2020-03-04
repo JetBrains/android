@@ -66,10 +66,10 @@ class PsSigningConfig(
     }
   }
 
-  fun rename(newName: String) {
+  fun rename(newName: String, renameReferences: Boolean = false) {
     ensureDeclared()
     val oldName = name
-    parsedModel!!.rename(newName)
+    parsedModel!!.rename(newName, renameReferences)
     renamed(oldName, newName)
   }
 
