@@ -22,7 +22,7 @@ import com.android.tools.idea.npw.platform.AndroidVersionsInfo.VersionItem
 import com.google.common.collect.Lists
 import com.intellij.ide.util.ProjectPropertiesComponentImpl
 import com.intellij.ide.util.PropertiesComponent
-import com.intellij.mock.MockApplicationEx
+import com.intellij.mock.MockApplication
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
@@ -38,7 +38,7 @@ class AndroidApiLevelComboBoxTest {
   @Before
   fun setUp() {
     disposable = Disposable { }
-    val instance = MockApplicationEx(disposable)
+    val instance = MockApplication(disposable)
     instance.registerService(PropertiesComponent::class.java, ProjectPropertiesComponentImpl::class.java)
     ApplicationManager.setApplication(instance, disposable)
   }
