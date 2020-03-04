@@ -30,6 +30,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.findAppModule
+import com.android.tools.idea.testing.findClass
 import com.android.tools.idea.testing.highlightedAs
 import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.testing.moveCaret
@@ -43,17 +44,15 @@ import com.intellij.openapi.project.guessProjectDir
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
-import com.intellij.psi.PsiManager
 import com.intellij.psi.impl.ElementPresentationUtil
 import com.intellij.psi.impl.light.LightElement
-import com.intellij.psi.impl.source.resolve.ResolveCache
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.VfsTestUtil.createFile
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import com.intellij.usageView.UsageInfo
 import com.intellij.util.ui.UIUtil
+import junit.framework.TestCase
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.augment.AndroidLightField
 import org.jetbrains.android.augment.StyleableAttrLightField
@@ -679,6 +678,38 @@ sealed class LightClassesTestBase : AndroidTestCase() {
 
       myFixture.completeBasic()
       assertThat(myFixture.lookupElementStrings).containsExactly("appString", "anotherAppString", "class")
+    }
+
+    fun testUseScope() {
+      val activity = myFixture.loadNewFile(
+        "/src/p1/p2/MainActivity.java",
+        // language=java
+        """
+      package p1.p2;
+
+      import android.app.Activity;
+      import android.os.Bundle;
+
+      public class MainActivity extends Activity {
+          @Override
+          protected void onCreate(Bundle savedInstanceState) {
+              super.onCreate(savedInstanceState);
+              getResources().getString(R.string.${caret}app_string);
+          }
+      }
+      """.trimIndent()
+      )
+      val appClassUseScope = myFixture.findClass("p1.p2.R", activity)!!.useScope as GlobalSearchScope
+      assertFalse(appClassUseScope.isSearchInLibraries)
+      assertFalse(appClassUseScope.isSearchInModuleContent(getAdditionalModuleByName("mylib")!!))
+      assertTrue(appClassUseScope.isSearchInModuleContent(myFixture.module))
+      assertTrue(appClassUseScope.isSearchInModuleContent(myFixture.module, true))
+
+      val libClassUseScope = myFixture.findClass("com.example.mylib.R", activity)!!.useScope as GlobalSearchScope
+      assertFalse(libClassUseScope.isSearchInLibraries)
+      assertTrue(libClassUseScope.isSearchInModuleContent(getAdditionalModuleByName("mylib")!!))
+      assertTrue(libClassUseScope.isSearchInModuleContent(myFixture.module))
+      assertTrue(libClassUseScope.isSearchInModuleContent(myFixture.module, true))
     }
   }
 
@@ -1400,7 +1431,7 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
     assertThat(myFixture.lookupElementStrings).doesNotContain("abc_action_bar_home_description")
   }
 
-  fun testScoping() {
+  fun testResolveScope() {
     val unitTest = createFile(
       project.guessProjectDir()!!,
       "app/src/test/java/com/example/projectwithappandlib/app/RClassUnitTest.java",
@@ -1460,6 +1491,64 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
       "com.example.projectwithappandlib.lib.R",
       "com.example.projectwithappandlib.lib.test.R"
     )
+  }
+
+  fun testUseScope() {
+    val appTest = myFixture.loadNewFile(
+      "app/src/androidTest/java/com/example/projectwithappandlib/app/RClassAndroidTest.java",
+      // language=java
+      """
+      package com.example.projectwithappandlib.app;
+
+      public class RClassAndroidTest {
+          void useResources() {
+             int[] id = new int[] {
+              com.example.projectwithappandlib.app.test.R.string.${caret}appTestResource,
+              com.example.projectwithappandlib.app.test.R.string.libResource,
+              com.example.projectwithappandlib.app.test.R.color.primary_material_dark,
+
+              // Main resources are not in the test R class:
+              com.example.projectwithappandlib.app.test.R.string.${"app_name" highlightedAs ERROR},
+
+              // Main resources from dependencies are not in R class:
+              com.example.projectwithappandlib.app.test.R.string.${"libTestResource" highlightedAs ERROR},
+
+              R.string.app_name // Main R class is still accessible.
+             };
+          }
+      }
+      """.trimIndent()
+    )
+
+    val libTest = myFixture.loadNewFile(
+      "lib/src/androidTest/java/com/example/projectwithappandlib/lib/RClassAndroidTest.java",
+      // language=java
+      """
+      package com.example.projectwithappandlib.lib;
+
+      public class RClassAndroidTest {
+          void useResources() {
+             int[] id = new int[] {
+              com.example.projectwithappandlib.lib.test.R.string.${caret}libTestResource,
+              com.example.projectwithappandlib.lib.test.R.color.primary_material_dark,
+
+              // Main resources are in the test R class:
+              com.example.projectwithappandlib.lib.test.R.string.libResource,
+
+              R.string.libResource // Main R class is still accessible.
+             };
+          }
+      }
+      """.trimIndent()
+    )
+
+    val appTestScope = myFixture.findClass("com.example.projectwithappandlib.app.test.R", appTest)!!.useScope as GlobalSearchScope
+    assertFalse(appTestScope.isSearchInLibraries)
+    assertEquals(appTestScope, myFixture.findClass("com.example.projectwithappandlib.app.RClassAndroidTest").useScope)
+
+    val libTestScope = myFixture.findClass("com.example.projectwithappandlib.lib.test.R", libTest)!!.useScope as GlobalSearchScope
+    assertFalse(libTestScope.isSearchInLibraries)
+    assertEquals(libTestScope, myFixture.findClass("com.example.projectwithappandlib.lib.RClassAndroidTest").useScope)
   }
 }
 
