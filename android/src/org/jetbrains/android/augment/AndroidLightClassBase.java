@@ -391,6 +391,23 @@ public abstract class AndroidLightClassBase extends LightElement implements PsiC
   @NotNull
   @Override
   public SearchScope getUseScope() {
+    // For the common case of a public light class, getMemberUseScope below cannot determine the owning module and falls back to using the
+    // entire project. Here we compute a more accurate scope, see ResolveScopeManagerImpl#getUseScope.
+    PsiModifierList modifierList = getModifierList();
+    if (modifierList != null) {
+      if (PsiUtil.getAccessLevel(modifierList) == PsiUtil.ACCESS_LEVEL_PUBLIC) {
+        Module module = ModuleUtilCore.findModuleForPsiElement(this); // see setModuleInfo.
+        if (module != null) {
+          if (getScopeType() == ScopeType.MAIN) {
+            return GlobalSearchScope.moduleWithDependentsScope(module);
+          }
+          else {
+            return GlobalSearchScope.moduleTestsWithDependentsScope(module);
+          }
+        }
+      }
+    }
+
     return PsiImplUtil.getMemberUseScope(this);
   }
 
