@@ -41,5 +41,7 @@ open class MockDatabaseInspectorController(val model: DatabaseInspectorControlle
     database.databaseConnection.close().get()
   }
 
+  override fun showError(message: String, throwable: Throwable?) { }
+
   override fun dispose() { }
 }

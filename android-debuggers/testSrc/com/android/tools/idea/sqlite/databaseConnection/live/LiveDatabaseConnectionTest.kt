@@ -21,6 +21,7 @@ import androidx.sqlite.inspection.SqliteInspectorProtocol.QueryResponse
 import androidx.sqlite.inspection.SqliteInspectorProtocol.Response
 import com.android.testutils.MockitoKt.any
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.concurrency.AsyncTestUtils
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.protobuf.ByteString
@@ -219,5 +220,29 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
 
     assertSize(0, sqliteRows)
     assertSize(0, sqliteColumns)
+  }
+
+  fun testThrowsErrorOnErrorOccurredResponse() {
+    // Prepare
+    val errorOccurredEvent = SqliteInspectorProtocol.ErrorOccurredResponse.newBuilder().setContent(
+      SqliteInspectorProtocol.ErrorContent.newBuilder()
+        .setMessage("errorMessage")
+        .setIsRecoverable(true)
+        .setStackTrace("stackTrace")
+        .build()
+    ).build()
+
+    val cursor = Response.newBuilder()
+      .setErrorOccurred(errorOccurredEvent)
+      .build()
+
+    val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
+    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(cursor.toByteArray()))
+
+    liveDatabaseConnection = LiveDatabaseConnection(mockMessenger, 1, taskExecutor)
+
+    // Act / Assert
+    AsyncTestUtils.pumpEventsAndWaitForFutureException(liveDatabaseConnection.readSchema())
+    AsyncTestUtils.pumpEventsAndWaitForFutureException(liveDatabaseConnection.execute(SqliteStatement("fake query")))
   }
 }

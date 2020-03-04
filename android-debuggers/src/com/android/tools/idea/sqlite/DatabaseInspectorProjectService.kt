@@ -41,6 +41,7 @@ import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.ide.actions.OpenFileAction
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -127,6 +128,18 @@ interface DatabaseInspectorProjectService {
    */
   @AnyThread
   fun getOpenDatabases(): Set<SqliteDatabase>
+
+  /**
+   * Shows the error in the Database Inspector.
+   *
+   * This method is used to handle asynchronous errors from the on-device inspector.
+   * An on-device inspector can send an error as a response to a command (synchronous) or as an event (asynchronous).
+   * When detected, synchronous errors are thrown as exceptions so that they become part of the usual flow for errors:
+   * they cause the futures to fail and are shown in the views.
+   * Asynchronous errors are delivered to this method that takes care of showing them.
+   */
+  @AnyThread
+  fun handleError(message: String, throwable: Throwable?)
 }
 
 class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
@@ -297,6 +310,13 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
 
   @AnyThread
   override fun getOpenDatabases(): Set<SqliteDatabase> = model.openDatabases.keys
+
+  @AnyThread
+  override fun handleError(message: String, throwable: Throwable?) {
+    invokeAndWaitIfNeeded {
+      controller.showError(message, throwable)
+    }
+  }
 
   private class ModelImpl : DatabaseInspectorController.Model {
 

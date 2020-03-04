@@ -18,8 +18,8 @@ package com.android.tools.idea.sqlite
 import androidx.sqlite.inspection.SqliteInspectorProtocol
 import com.android.tools.idea.appinspection.api.AppInspectionTarget
 import com.android.tools.idea.appinspection.api.ProcessDescriptor
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.appinspection.api.TargetTerminatedListener
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
@@ -96,5 +96,24 @@ class DatabaseInspectorClientTest : PlatformTestCase() {
 
     // Assert
     verify(mockDatabaseInspectorProjectService).openSqliteDatabase(mockMessenger, 1, "name")
+  }
+
+  fun testErrorMessageShowsError() {
+    // Prepare
+    val errorOccurredEvent = SqliteInspectorProtocol.ErrorOccurredEvent.newBuilder().setContent(
+      SqliteInspectorProtocol.ErrorContent.newBuilder()
+        .setMessage("errorMessage")
+        .setIsRecoverable(true)
+        .setStackTrace("stackTrace")
+        .build()
+    ).build()
+    val event = SqliteInspectorProtocol.Event.newBuilder().setErrorOccurred(errorOccurredEvent).build()
+
+    // Act
+    databaseInspectorClient.eventListener.onRawEvent(event.toByteArray())
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    verify(mockDatabaseInspectorProjectService).handleError("errorMessage", null)
   }
 }

@@ -28,6 +28,7 @@ import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.util.Disposer
+import java.lang.RuntimeException
 import java.util.concurrent.Executor
 
 /**
@@ -52,8 +53,13 @@ class LiveDatabaseConnection(
     val responseFuture = messenger.sendRawCommand(commands.toByteArray())
 
     return taskExecutor.transform(responseFuture) {
-      val schemaResponse = SqliteInspectorProtocol.Response.parseFrom(it)
-      schemaResponse.getSchema.tablesList.toSqliteSchema()
+      val response = SqliteInspectorProtocol.Response.parseFrom(it)
+
+      if (response.hasErrorOccurred()) {
+        handleError(response.errorOccurred.content)
+      }
+
+      response.getSchema.tablesList.toSqliteSchema()
     }
   }
 
@@ -62,9 +68,13 @@ class LiveDatabaseConnection(
     val responseFuture = messenger.sendRawCommand(queryCommand.toByteArray())
 
     return taskExecutor.transform(responseFuture) {
-      val queryResponse = SqliteInspectorProtocol.Response.parseFrom(it).query
+      val response = SqliteInspectorProtocol.Response.parseFrom(it)
 
-      val resultSet = if (queryResponse.columnNamesList.isNotEmpty()) {
+      if (response.hasErrorOccurred()) {
+        handleError(response.errorOccurred.content)
+      }
+
+      val resultSet = if (response.query.columnNamesList.isNotEmpty()) {
         LiveSqliteResultSet(sqliteStatement, messenger, id, taskExecutor)
       }
       else {
