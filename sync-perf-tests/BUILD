@@ -5,6 +5,20 @@ load("//tools/base/bazel:maven.bzl", "maven_repo")
 iml_module(
     name = "intellij.android.sync-perf-tests",
     iml_files = ["intellij.android.sync-perf-tests.iml"],
+    split_test_targets = {
+        ## Letting Average in other so any new test is grouped with it and gets executed without modifying this file.
+        ##"Average": {
+        ##    "test_filter": "com.android.tools.idea.gradle.project.sync.perf.AveragePerfTest",
+        ##},
+        "Base100": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.Base100PerfTest",
+        },
+        "Dolphin": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.DolphinPerfTest",
+        },
+        "other": {
+        },
+    },
     test_class = "com.android.tools.idea.SyncPerfTestSuite",
     # keep sorted
     test_data = [
