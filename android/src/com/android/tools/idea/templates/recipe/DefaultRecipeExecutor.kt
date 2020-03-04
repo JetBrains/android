@@ -327,9 +327,10 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
   override fun addSourceSet(type: SourceSetType, name: String, dir: File) {
     val buildModel = moduleGradleBuildModel ?: return
     val sourceSet = buildModel.android().addSourceSet(name)
+    val relativeDir = dir.toRelativeString(moduleTemplateData!!.rootDir)
 
     if (type == SourceSetType.MANIFEST) {
-      sourceSet.manifest().srcFile().setValue(dir)
+      sourceSet.manifest().srcFile().setValue(relativeDir)
       return
     }
 
@@ -346,13 +347,13 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
       }
     }.srcDirs()
 
-    val dirExists = srcDirsModel.toList().orEmpty().any { it.toString() == dir.path }
+    val dirExists = srcDirsModel.toList().orEmpty().any { it.toString() == relativeDir }
 
     if (dirExists) {
       return
     }
 
-    srcDirsModel.addListValue().setValue(dir)
+    srcDirsModel.addListValue().setValue(relativeDir)
   }
 
   override fun setExtVar(name: String, value: Any) {

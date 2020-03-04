@@ -77,8 +77,7 @@ class RenderTemplateModel private constructor(
    * The target template we want to render. If null, the user is skipping steps that would instantiate a template and this model shouldn't
    * try to render anything.
    */
-  val templateValues = hashMapOf<String, Any>()
-  private lateinit var wizardParameterData: WizardParameterData
+  lateinit var wizardParameterData: WizardParameterData
   var newTemplate: Template = Template.NoActivity
   set(value) {
     field = value
