@@ -72,7 +72,7 @@ import javax.swing.Icon
  */
 class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
 
-  override fun collectNavigationMarkers(element: PsiElement, result: MutableCollection<in RelatedItemLineMarkerInfo<PsiElement>>) {
+  override fun collectNavigationMarkers(element: PsiElement, result: MutableCollection<in RelatedItemLineMarkerInfo<*>>) {
     val facet = element.androidFacet ?: return
     when (element) {
       is PsiClass -> {
