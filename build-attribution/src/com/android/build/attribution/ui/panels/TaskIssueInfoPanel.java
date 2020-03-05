@@ -130,7 +130,7 @@ public class TaskIssueInfoPanel extends JBPanel {
     };
     recommendationLabel.addHyperlinkListener(e -> {
       myAnalytics.bugReportLinkClicked();
-      myIssueReporter.reportIssue(myIssue);
+      myIssueReporter.reportIssue(myTaskData);
     });
     recommendationLabel.setHyperlinkText("Consider filing a bug to report this issue to the plugin developer. ", "Generate report.", "");
     return recommendationLabel;
