@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.ui
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext
+import com.android.tools.idea.structure.configurables.ui.CrossModuleUiStateComponent
 import com.intellij.openapi.util.ActionCallback
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBTabbedPane

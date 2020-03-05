@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.ui
 
 import com.android.tools.idea.gradle.structure.configurables.ConfigurablesTreeModel
+import com.android.tools.idea.structure.configurables.ui.CrossModuleUiStateComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
