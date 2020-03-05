@@ -132,9 +132,9 @@ private class CapturePanelUi(private val myStage: MemoryProfilerStage,
 
   init {
     val toolbar = JPanel(createToolbarLayout()).apply {
-      add(myInstanceFilterMenu.component)
       add(heapView.component)
       add(classGrouping.component)
+      add(myInstanceFilterMenu.component)
       add(filterComponent)
       if (myStage.studioProfilers.ideServices.featureConfig.isLiveAllocationsSamplingEnabled) {
         add(captureInfoMessage)
