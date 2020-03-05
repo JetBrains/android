@@ -80,14 +80,13 @@ class SigningConfigsPanel(
         renameWithDialog(
           "Enter a new name for signing config '${selectedConfigurable?.displayName}':",
           "Rename Signing Type",
+          true,
           "Also update references",
           selectedConfigurable?.displayName,
           nameValidator
-        )
-        { newName, alsoRenameReferences ->
+        ) { newName, alsoRenameReferences ->
           module.parent.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_MODULES_SIGNINGCONFIGS_RENAME)
-          if (alsoRenameReferences) TODO("Renaming references")
-          (selectedNode.getModel<PsSigningConfig>() ?: return@renameWithDialog).rename(newName)
+          (selectedNode.getModel<PsSigningConfig>() ?: return@renameWithDialog).rename(newName, alsoRenameReferences)
         }
       }
     }

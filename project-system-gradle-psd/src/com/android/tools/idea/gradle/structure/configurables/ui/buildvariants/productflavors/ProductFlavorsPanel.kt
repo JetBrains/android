@@ -162,6 +162,7 @@ class ProductFlavorsPanel(
           is FlavorDimensionConfigurable -> renameWithDialog(
             "Enter a new name for flavor dimension '${selectedObject.displayName}':",
             "Rename Flavor Dimension",
+            false,
             "Also rename related flavor dimensions",
             selectedObject.displayName,
             flavorDimensionNameValidator
@@ -172,6 +173,7 @@ class ProductFlavorsPanel(
           is ProductFlavorConfigurable -> renameWithDialog(
             "Enter a new name for product flavor '${selectedObject.displayName}':",
             "Rename Product Flavor",
+            false,
             "Also rename related product flavors and configurations",
             selectedObject.displayName,
             NameValidator { module.validateProductFlavorName(it.orEmpty(), selectedObject.model.effectiveDimension)}
