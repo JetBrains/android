@@ -91,12 +91,12 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
     )
 
     myFixture.addFileToProject(
-      "src/com/example/app/AppClass.java",
+      "src/com/example/app/AppJavaClass.java",
       // language=java
       """
         package com.example.app;
 
-        public class AppClass {
+        public class AppJavaClass {
             public void foo() {
                 int[] ids = new int[] {
                   R.string.from_app,
@@ -112,18 +112,57 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
     )
 
     myFixture.addFileToProject(
-      "${getAdditionalModulePath("lib")}/src/com/example/lib/LibClass.java",
+      "src/com/example/app/AppKotlinClass.kt",
+      // language=kotlin
+      """
+        package com.example.app
+
+        class AppKotlinClass {
+            fun foo() {
+                val ids = intArrayOf(
+                  R.string.from_app,
+                  R.string.from_lib,
+                  R.string.from_sublib,
+                  com.example.lib.R.string.from_lib,
+                  com.example.lib.R.string.from_sublib,
+                  com.example.sublib.R.string.from_sublib
+                )
+            }
+        }
+      """.trimIndent()
+    )
+
+    myFixture.addFileToProject(
+      "${getAdditionalModulePath("lib")}/src/com/example/lib/LibJavaClass.java",
       // language=java
       """
         package com.example.lib;
 
-        public class LibClass {
+        public class LibJavaClass {
             public void foo() {
                 int[] ids = new int[] {
                   R.string.from_lib,
                   R.string.from_sublib,
                   com.example.sublib.R.string.from_sublib,
                 };
+            }
+        }
+      """.trimIndent()
+    )
+
+    myFixture.addFileToProject(
+      "${getAdditionalModulePath("lib")}/src/com/example/lib/LibKotlinClass.kt",
+      // language=kotlin
+      """
+        package com.example.lib
+
+        class LibKotlinClass {
+            fun foo() {
+                val ids = intArrayOf(
+                  R.string.from_lib,
+                  R.string.from_sublib,
+                  com.example.sublib.R.string.from_sublib
+                )
             }
         }
       """.trimIndent()
@@ -136,16 +175,16 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
     }
   }
 
-  fun testMiddleModule() {
+  fun testMiddleModule_Java() {
     MigrateToNonTransitiveRClassesProcessor(getAdditionalModuleByName("lib")!!.androidFacet!!).run()
 
     myFixture.checkResult(
-      "src/com/example/app/AppClass.java",
+      "src/com/example/app/AppJavaClass.java",
       // language=java
       """
         package com.example.app;
 
-        public class AppClass {
+        public class AppJavaClass {
             public void foo() {
                 int[] ids = new int[] {
                   R.string.from_app,
@@ -162,12 +201,12 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
     )
 
     myFixture.checkResult(
-      "${getAdditionalModulePath("lib")}/src/com/example/lib/LibClass.java",
+      "${getAdditionalModulePath("lib")}/src/com/example/lib/LibJavaClass.java",
       // language=java
       """
         package com.example.lib;
 
-        public class LibClass {
+        public class LibJavaClass {
             public void foo() {
                 int[] ids = new int[] {
                   R.string.from_lib,
@@ -181,16 +220,61 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
     )
   }
 
-  fun testAppModule() {
+  fun testMiddleModule_Kotlin() {
+    MigrateToNonTransitiveRClassesProcessor(getAdditionalModuleByName("lib")!!.androidFacet!!).run()
+
+    myFixture.checkResult(
+      "src/com/example/app/AppKotlinClass.kt",
+      // language=kotlin
+      """
+        package com.example.app
+
+        class AppKotlinClass {
+            fun foo() {
+                val ids = intArrayOf(
+                  R.string.from_app,
+                  R.string.from_lib,
+                  R.string.from_sublib,
+                  com.example.lib.R.string.from_lib,
+                  com.example.sublib.R.string.from_sublib,
+                  com.example.sublib.R.string.from_sublib
+                )
+            }
+        }
+      """.trimIndent(),
+      true
+    )
+
+    myFixture.checkResult(
+      "${getAdditionalModulePath("lib")}/src/com/example/lib/LibKotlinClass.kt",
+      // language=kotlin
+      """
+        package com.example.lib
+
+        class LibKotlinClass {
+            fun foo() {
+                val ids = intArrayOf(
+                  R.string.from_lib,
+                  com.example.sublib.R.string.from_sublib,
+                  com.example.sublib.R.string.from_sublib
+                )
+            }
+        }
+      """.trimIndent(),
+      true
+    )
+  }
+
+  fun testAppModule_Java() {
     MigrateToNonTransitiveRClassesProcessor(myFacet).run()
 
     myFixture.checkResult(
-      "src/com/example/app/AppClass.java",
+      "src/com/example/app/AppJavaClass.java",
       // language=java
       """
         package com.example.app;
 
-        public class AppClass {
+        public class AppJavaClass {
             public void foo() {
                 int[] ids = new int[] {
                   R.string.from_app,
@@ -207,18 +291,63 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
     )
 
     myFixture.checkResult(
-      "${getAdditionalModulePath("lib")}/src/com/example/lib/LibClass.java",
+      "${getAdditionalModulePath("lib")}/src/com/example/lib/LibJavaClass.java",
       // language=java
       """
         package com.example.lib;
 
-        public class LibClass {
+        public class LibJavaClass {
             public void foo() {
                 int[] ids = new int[] {
                   R.string.from_lib,
                   R.string.from_sublib,
                   com.example.sublib.R.string.from_sublib,
                 };
+            }
+        }
+      """.trimIndent(),
+      true
+    )
+  }
+
+  fun testAppModule_Kotlin() {
+    MigrateToNonTransitiveRClassesProcessor(myFacet).run()
+
+    myFixture.checkResult(
+      "src/com/example/app/AppKotlinClass.kt",
+      // language=kotlin
+      """
+        package com.example.app
+
+        class AppKotlinClass {
+            fun foo() {
+                val ids = intArrayOf(
+                  R.string.from_app,
+                  com.example.lib.R.string.from_lib,
+                  com.example.sublib.R.string.from_sublib,
+                  com.example.lib.R.string.from_lib,
+                  com.example.lib.R.string.from_sublib,
+                  com.example.sublib.R.string.from_sublib
+                )
+            }
+        }
+      """.trimIndent(),
+      true
+    )
+
+    myFixture.checkResult(
+      "${getAdditionalModulePath("lib")}/src/com/example/lib/LibKotlinClass.kt",
+      // language=kotlin
+      """
+        package com.example.lib
+
+        class LibKotlinClass {
+            fun foo() {
+                val ids = intArrayOf(
+                  R.string.from_lib,
+                  R.string.from_sublib,
+                  com.example.sublib.R.string.from_sublib
+                )
             }
         }
       """.trimIndent(),
