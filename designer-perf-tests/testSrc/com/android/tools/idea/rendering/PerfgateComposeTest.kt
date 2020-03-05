@@ -31,6 +31,7 @@ import org.junit.After
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.time.Instant
@@ -94,6 +95,7 @@ class PerfgateComposeTest {
     }
   }
 
+  @Ignore("b/151096668")
   @Test
   fun baselinePerf() {
     composeTimeBenchmark.measureOperation(listOf(

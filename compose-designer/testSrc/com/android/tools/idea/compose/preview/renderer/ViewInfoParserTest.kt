@@ -31,6 +31,7 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
@@ -73,6 +74,7 @@ class ViewInfoParserTest {
   /**
    * Checks the rendering of the default `@Preview` in the Compose template.
    */
+  @Ignore("b/151091941")
   @Test
   fun testDefaultPreviewRendering() {
     val project = projectRule.project
