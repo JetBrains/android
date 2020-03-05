@@ -242,6 +242,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewAndroidMo
     myApiLevelCombo = new AndroidApiLevelComboBox();
     myLanguageCombo = new LanguageComboProvider().createComponent();
     myBytecodeCombo = new BytecodeLevelComboProvider().createComponent();
+    myBytecodeCombo.setName("bytecodeLevelComboBox");
     myModuleNameLabel = ContextHelpLabel.create(message("android.wizard.module.help.name"));
     myPackageName = new LabelWithEditButton();
   }
