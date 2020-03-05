@@ -120,7 +120,6 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
 
   private static final Logger LOG = Logger.getInstance(IdeSdksConfigurable.class);
 
-  @Nullable private final Configurable myHost;
   @Nullable private final Project myProject;
 
   @NotNull private final BiMap<String, Component> myComponentsById = HashBiMap.create();
@@ -147,8 +146,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
   private boolean mySdkLoadingRequested = false;
   private boolean myIsJavaHomeValid;
 
-  public IdeSdksConfigurable(@Nullable Configurable host, @Nullable Project project) {
-    myHost = host;
+  public IdeSdksConfigurable(@Nullable Project project) {
     myProject = project;
     myWholePanel.setPreferredSize(JBUI.size(700, 500));
     myWholePanel.setName(IDE_SDKS_LOCATION_VIEW);

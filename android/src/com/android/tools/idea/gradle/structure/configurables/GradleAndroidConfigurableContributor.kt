@@ -32,7 +32,7 @@ class GradleAndroidConfigurableContributor : AndroidConfigurableContributor() {
     if (project.isDefault) {
       return listOf(
         ProjectStructureItemGroup("main",
-                                  IdeSdksConfigurable(null, project)))
+                                  IdeSdksConfigurable(project)))
     }
     val repositorySearchFactory = CachingRepositorySearchFactory()
     val context = PsContextImpl(PsProjectImpl(project, repositorySearchFactory), parentDisposable, false, false, repositorySearchFactory)
@@ -46,7 +46,7 @@ class GradleAndroidConfigurableContributor : AndroidConfigurableContributor() {
     return listOf(
       ProjectStructureItemGroup("main",
                                 ProjectPerspectiveConfigurable(context),
-                                IdeSdksConfigurable(null, project),
+                                IdeSdksConfigurable(project),
                                 VariablesConfigurable(project, context)),
       ProjectStructureItemGroup("modules",
                                 ModulesPerspectiveConfigurable(context),
@@ -61,7 +61,7 @@ class GradleAndroidConfigurableContributor : AndroidConfigurableContributor() {
     return listOf(
       ProjectStructureItemGroup("main",
                                 KtsProjectPerspectiveConfigurable(),
-                                IdeSdksConfigurable(null, project))
+                                IdeSdksConfigurable(project))
     )
   }
 }
