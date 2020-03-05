@@ -18,7 +18,6 @@ package com.android.tools.idea.sqlite.ui.tableView
 import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.adtui.stdui.CommonButton
 import com.android.tools.idea.sqlite.model.SqliteColumn
-import com.android.tools.idea.sqlite.model.SqliteColumnValue
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteValue
 import com.android.tools.idea.sqlite.ui.notifyError
@@ -68,7 +67,7 @@ class TableViewImpl : TableView {
   private val pageSizeDefaultValues = listOf(5, 10, 20, 25, 50)
   private var isLoading = false
 
-  private lateinit var columns: List<SqliteColumn>
+  private var columns: List<SqliteColumn>? = null
 
   private val rootPanel = JPanel(BorderLayout())
   override val component: JComponent = rootPanel
@@ -141,7 +140,7 @@ class TableViewImpl : TableView {
         val columnIndex = table.columnAtPoint(e.point)
         if (columnIndex <= 0) return
 
-        listeners.forEach { it.toggleOrderByColumnInvoked(columns[columnIndex - 1]) }
+        listeners.forEach { it.toggleOrderByColumnInvoked(columns!![columnIndex - 1]) }
       }
     })
     table.addMouseListener(object : MouseAdapter() {
@@ -186,10 +185,12 @@ class TableViewImpl : TableView {
   }
 
   override fun showTableColumns(columns: List<SqliteColumn>) {
-    this.columns = columns
-    if (table.model !is MyTableModel) {
-      table.model = MyTableModel(columns)
+    if (this.columns == columns) {
+      return
     }
+
+    this.columns = columns
+    table.model = MyTableModel(columns)
 
     table.columnModel.getColumn(0).maxWidth = JBUI.scale(60)
     table.columnModel.getColumn(0).resizable = false

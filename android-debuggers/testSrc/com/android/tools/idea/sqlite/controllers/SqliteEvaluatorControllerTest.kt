@@ -37,6 +37,7 @@ import com.intellij.testFramework.PlatformTestCase
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.concurrency.EdtExecutorService
 import org.mockito.Mockito.`when`
+import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
@@ -244,6 +245,26 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
 
     // Assert
     verify(mockListener, times(2)).onSqliteStatementExecuted(sqliteDatabase)
+  }
+
+  fun testResetViewBeforePopulatingIt() {
+    // Prepare
+    val mockSqliteResultSet = MockSqliteResultSet(10)
+    `when`(databaseConnection.execute(SqliteStatement("SELECT"))).thenReturn(Futures.immediateFuture(mockSqliteResultSet))
+
+    sqliteEvaluatorController.setUp()
+
+    val orderVerifier = inOrder(sqliteEvaluatorView.tableView)
+
+    // Act
+    pumpEventsAndWaitForFuture(sqliteEvaluatorController.evaluateSqlStatement(sqliteDatabase, SqliteStatement("SELECT")))
+    pumpEventsAndWaitForFuture(sqliteEvaluatorController.evaluateSqlStatement(sqliteDatabase, SqliteStatement("SELECT")))
+
+    // Assert
+    orderVerifier.verify(sqliteEvaluatorView.tableView).resetView()
+    orderVerifier.verify(sqliteEvaluatorView.tableView).updateRows(mockSqliteResultSet.rows.map { RowDiffOperation.AddRow(it) })
+    orderVerifier.verify(sqliteEvaluatorView.tableView).resetView()
+    orderVerifier.verify(sqliteEvaluatorView.tableView).updateRows(mockSqliteResultSet.rows.map { RowDiffOperation.AddRow(it) })
   }
 
   private fun evaluateSqlActionSuccess(action: String) {
