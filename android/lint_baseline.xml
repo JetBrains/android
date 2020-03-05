@@ -125,7 +125,7 @@
         id="FileComparisons"
         message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
         <location
-            file="src/com/android/tools/idea/gradle/eclipse/EclipseProject.java"
+            file="src/com/android/tools/idea/gradle/adtimport/EclipseProject.java"
             line="540"/>
     </issue>
 
@@ -141,7 +141,7 @@
         id="FileComparisons"
         message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
         <location
-            file="src/com/android/tools/idea/gradle/eclipse/ImportSummary.java"
+            file="src/com/android/tools/idea/gradle/adtimport/ImportSummary.java"
             line="207"/>
     </issue>
 

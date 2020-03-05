@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project;
+package com.android.tools.idea.gradle.adtimport;
 
-import com.android.tools.idea.actions.AndroidImportProjectAction;
-import com.android.tools.idea.gradle.eclipse.AdtImportBuilder;
-import com.android.tools.idea.gradle.eclipse.AdtImportProvider;
-import com.android.tools.idea.gradle.eclipse.GradleImport;
+import com.android.tools.idea.gradle.adtimport.actions.AndroidImportProjectAction;
+import com.android.tools.idea.gradle.project.AndroidModuleImporter;
+import com.android.tools.idea.gradle.project.ModuleImporter;
+import com.android.tools.idea.gradle.project.ModuleToImport;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.android.tools.idea.gradle.eclipse.GradleImport.isAdtProjectDir;
+import static com.android.tools.idea.gradle.adtimport.GradleImport.isAdtProjectDir;
 import static com.android.tools.idea.gradle.util.GradleUtil.getDefaultPhysicalPathFromGradlePath;
 import static com.android.utils.BuildScriptUtil.findGradleBuildFile;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;

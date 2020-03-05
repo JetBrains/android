@@ -16,7 +16,7 @@
 package org.jetbrains.android.refactoring;
 
 import com.android.sdklib.SdkVersionInfo;
-import com.android.tools.idea.gradle.eclipse.GradleImport;
+import com.android.tools.idea.gradle.adtimport.GradleImport;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.AndroidGradleTests;

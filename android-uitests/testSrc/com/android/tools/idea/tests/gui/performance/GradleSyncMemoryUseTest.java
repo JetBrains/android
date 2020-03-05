@@ -17,7 +17,7 @@ package com.android.tools.idea.tests.gui.performance;
 
 import static com.android.tools.idea.gradle.util.BuildMode.REBUILD;
 
-import com.android.tools.idea.gradle.eclipse.GradleImport;
+import com.android.tools.idea.gradle.adtimport.GradleImport;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.tools.idea.gradle.eclipse;
+package com.android.tools.idea.gradle.adtimport;
 
 import static com.android.tools.idea.gradle.util.ImportUtil.APPCOMPAT_ARTIFACT;
 import static com.android.tools.idea.gradle.util.ImportUtil.GRIDLAYOUT_ARTIFACT;

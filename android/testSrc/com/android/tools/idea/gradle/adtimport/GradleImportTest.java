@@ -1,4 +1,4 @@
-package com.android.tools.idea.gradle.eclipse;
+package com.android.tools.idea.gradle.adtimport;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
@@ -37,8 +37,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.SdkConstants.*;
 import static com.android.testutils.TestUtils.getSdk;
-import static com.android.tools.idea.gradle.eclipse.GradleImport.*;
-import static com.android.tools.idea.gradle.eclipse.ImportSummary.*;
+import static com.android.tools.idea.gradle.adtimport.GradleImport.*;
+import static com.android.tools.idea.gradle.adtimport.ImportSummary.*;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.truth.Truth.assertAbout;
