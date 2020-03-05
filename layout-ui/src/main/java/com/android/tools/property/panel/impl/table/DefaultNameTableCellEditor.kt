@@ -15,6 +15,7 @@
  */
 package com.android.tools.property.panel.impl.table
 
+import com.android.tools.property.panel.api.TableSupport
 import com.android.tools.property.ptable2.DefaultPTableCellEditor
 import com.android.tools.property.ptable2.PTable
 import com.android.tools.property.ptable2.PTableCellEditor
@@ -23,12 +24,12 @@ import com.android.tools.property.ptable2.PTableGroupItem
 /**
  * Cell editor for a table group item.
  */
-class DefaultNameTableCellEditor : DefaultPTableCellEditor() {
+class DefaultNameTableCellEditor : DefaultPTableCellEditor(), TableSupport {
   private var lastTable: PTable? = null
   private var lastItem: PTableGroupItem? = null
-  private var component2 = DefaultNameComponent(::toggle)
+  private var component2 = DefaultNameComponent(this)
 
-  override var editorComponent = DefaultNameComponent(::toggle)
+  override var editorComponent = DefaultNameComponent(this)
     private set
 
   fun nowEditing(table: PTable, item: PTableGroupItem): PTableCellEditor {
@@ -48,7 +49,7 @@ class DefaultNameTableCellEditor : DefaultPTableCellEditor() {
     editorComponent.requestFocusInWindow()
   }
 
-  private fun toggle() {
+  override fun toggleGroup() {
     lastItem?.let { lastTable?.toggle(it) }
   }
 

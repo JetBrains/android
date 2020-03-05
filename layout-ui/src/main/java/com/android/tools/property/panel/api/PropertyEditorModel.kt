@@ -82,6 +82,19 @@ interface PropertyEditorModel {
   var isExpandedTableItem: Boolean
 
   /**
+   * Returns true if the editor may require a custom height.
+   */
+  var isCustomHeight: Boolean
+
+  /**
+   * Returns support for table operations if this is a table cell editor (null otherwise).
+   *
+   * When a property editor is created for a table cell [tableSupport] will be specified
+   * to provide table access from events in the editor.
+   */
+  var tableSupport: TableSupport?
+
+  /**
    * Request focus to be placed on this editor.
    */
   fun requestFocus()

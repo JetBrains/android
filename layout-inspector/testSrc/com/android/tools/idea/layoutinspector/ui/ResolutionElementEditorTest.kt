@@ -21,7 +21,6 @@ import com.android.SdkConstants.ATTR_TEXT_COLOR
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
-import com.android.testutils.MockitoKt.eq
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.imagediff.ImageDiffUtil
 import com.android.tools.adtui.stdui.KeyStrokes
@@ -37,9 +36,9 @@ import com.android.tools.idea.layoutinspector.util.DemoExample
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Property.Type
 import com.android.tools.property.panel.api.PropertyItem
+import com.android.tools.property.panel.api.TableSupport
 import com.android.tools.property.panel.impl.model.TextFieldPropertyEditorModel
 import com.android.tools.property.panel.impl.ui.PropertyTextField
-import com.android.tools.property.ptable2.PTable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.ui.laf.IntelliJLaf
 import com.intellij.openapi.util.SystemInfo
@@ -51,11 +50,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.times
-import org.mockito.Mockito.verify
-import org.mockito.Mockito.withSettings
-import sun.awt.AWTAccessor
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Container
@@ -115,23 +109,29 @@ class ResolutionElementEditorTest {
     var updateCount = 0
     val editors = createEditors()
     val editor = editors[0]
-    editor.updateRowHeight = { updateCount++ }
-    assertThat(editor.isCustomHeight).isFalse()
+    val model = editor.editorModel
+    model.tableSupport = object : TableSupport {
+      override fun updateRowHeight(scrollIntoView: Boolean) {
+        updateCount++
+      }
+    }
+    assertThat(model.isCustomHeight).isFalse()
 
     editor.editorModel.isExpandedTableItem = true
-    assertThat(editor.isCustomHeight).isTrue()
+    assertThat(model.isCustomHeight).isTrue()
     assertThat(updateCount).isEqualTo(0)
 
     expandFirstLabel(editor, true)
-    assertThat(editor.isCustomHeight).isTrue()
+    assertThat(model.isCustomHeight).isTrue()
     assertThat(updateCount).isEqualTo(1)
 
     expandFirstLabel(editor, false)
-    assertThat(editor.isCustomHeight).isTrue()
+    assertThat(model.isCustomHeight).isTrue()
     assertThat(updateCount).isEqualTo(2)
 
     editor.editorModel.isExpandedTableItem = false
-    assertThat(editor.isCustomHeight).isFalse()
+    assertThat(model.isCustomHeight).isFalse()
+    assertThat(updateCount).isEqualTo(2)
   }
 
   @Test
@@ -152,20 +152,23 @@ class ResolutionElementEditorTest {
 
   @Test
   fun testDoubleClick() {
-    val parent = mock(JComponent::class.java, withSettings().extraInterfaces(PTable::class.java))
-    val table = parent as PTable
     val editors = createEditors()
     val editor = editors[0]
-    val item = editor.editorModel.property as InspectorGroupPropertyItem
+    var toggleCount = 0
+    val model = editor.editorModel
+    model.tableSupport = object : TableSupport {
+      override fun toggleGroup() {
+        toggleCount++
+      }
+    }
     val textEditor = (editor.layout as BorderLayout).getLayoutComponent(BorderLayout.CENTER)
-    AWTAccessor.getComponentAccessor().setParent(editor, parent)
     editor.size = Dimension(500, 200)
     editor.doLayout()
     val ui = FakeUi(textEditor)
     ui.mouse.doubleClick(200, 100)
-    verify(table).toggle(eq(item))
-    ui.mouse.doubleClick(250, 100)
-    verify(table, times(2)).toggle(eq(item))
+    assertThat(toggleCount).isEqualTo(1)
+    ui.mouse.doubleClick(200, 100)
+    assertThat(toggleCount).isEqualTo(2)
   }
 
   private fun checkImage(editors: List<ResolutionElementEditor>, expected: String) {

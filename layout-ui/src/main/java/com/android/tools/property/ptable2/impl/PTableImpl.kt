@@ -24,7 +24,6 @@ import com.android.tools.property.ptable2.PTableColumn
 import com.android.tools.property.ptable2.PTableGroupItem
 import com.android.tools.property.ptable2.PTableItem
 import com.android.tools.property.ptable2.PTableModel
-import com.android.tools.property.ptable2.PTableVariableHeightCellEditor
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Pair
 import com.intellij.openapi.wm.IdeFocusManager
@@ -42,7 +41,6 @@ import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.Font
-import java.awt.Graphics
 import java.awt.Rectangle
 import java.awt.event.ActionEvent
 import java.awt.event.KeyAdapter
@@ -104,8 +102,6 @@ class PTableImpl(
   override val gridLineColor: Color
     get() = gridColor
   override var wrap = false
-  var rendererShouldUpdateCellHeight = false
-    private set
 
   init {
     super.setShowColumns(false)
@@ -140,16 +136,6 @@ class PTableImpl(
     valueColumn.width = width - nameColumn.width
   }
 
-  override fun paint(g: Graphics) {
-    rendererShouldUpdateCellHeight = true
-    try {
-      super.paint(g)
-    }
-    finally {
-      rendererShouldUpdateCellHeight = false
-    }
-  }
-
   override val component: JComponent
     get() = this
 
@@ -174,7 +160,20 @@ class PTableImpl(
     val index = model.toggle(item)
     if (index >= 0) {
       val row = convertRowIndexToView(index)
-      scrollCellIntoView(row, 0, true)
+      scrollCellIntoView(row, 0)
+    }
+  }
+
+  override fun updateRowHeight(item: PTableItem, column: PTableColumn, height: Int, scrollIntoView: Boolean) {
+    val index = model.indexOf(item)
+    if (index >= 0) {
+      val row = convertRowIndexToView(index)
+      if (getRowHeight(row) != height) {
+        setRowHeight(row, height)
+      }
+      if (scrollIntoView) {
+        scrollCellIntoView(row, column.ordinal)
+      }
     }
   }
 
@@ -326,35 +325,12 @@ class PTableImpl(
   }
 
   override fun getCellEditor(row: Int, column: Int): PTableCellEditorWrapper {
-    val editor = editorProvider(this, item(row), PTableColumn.fromColumn(column))
-    val cellEditor = editor.editorComponent
-    if (cellEditor is PTableVariableHeightCellEditor) {
-      cellEditor.updateRowHeight = {
-        setRowHeight(row, cellEditor.preferredSize.height)
-        scrollCellIntoView(row, column, false)
-      }
-    }
-    tableCellEditor.editor = editor
+    tableCellEditor.editor = editorProvider(this, item(row), PTableColumn.fromColumn(column))
     return tableCellEditor
   }
 
   override fun getToolTipText(event: MouseEvent): String? {
     return customToolTipHook(event)
-  }
-
-  private fun scrollCellIntoView(row: Int, column: Int, updateRowHeight: Boolean) {
-    if (updateRowHeight) {
-      // The value renderer may be of variable height. Give it a chance to update before scrolling:
-      rendererShouldUpdateCellHeight = true
-      try {
-        val renderer = getCellRenderer(row, 1)
-        prepareRenderer(renderer, row, 1)
-      }
-      finally {
-        rendererShouldUpdateCellHeight = false
-      }
-    }
-    scrollCellIntoView(row, column)
   }
 
   private fun filterChanged(oldValue: String, newValue: String) {
@@ -412,7 +388,7 @@ class PTableImpl(
   private fun toggleTreeNode(row: Int) {
     val index = convertRowIndexToModel(row)
     model.toggle(index)
-    scrollCellIntoView(row, 0, true)
+    scrollCellIntoView(row, 0)
   }
 
   private fun selectRow(row: Int) {

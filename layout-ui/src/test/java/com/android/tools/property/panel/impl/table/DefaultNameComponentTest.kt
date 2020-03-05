@@ -16,6 +16,7 @@
 package com.android.tools.property.panel.impl.table
 
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.property.panel.api.TableSupport
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import java.awt.Dimension
@@ -25,7 +26,12 @@ class DefaultNameComponentTest {
   @Test
   fun testDoubleClick() {
     var toggleCount = 0
-    val component = DefaultNameComponent { toggleCount++ }
+    val tableSupport = object : TableSupport {
+      override fun toggleGroup() {
+        toggleCount++
+      }
+    }
+    val component = DefaultNameComponent(tableSupport)
     component.size = Dimension(500, 200)
     val ui = FakeUi(component)
     ui.mouse.doubleClick(400, 100)

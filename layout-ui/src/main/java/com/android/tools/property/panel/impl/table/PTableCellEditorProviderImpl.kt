@@ -23,6 +23,7 @@ import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.NewPropertyItem
 import com.android.tools.property.panel.api.PropertyEditorModel
 import com.android.tools.property.panel.api.PropertyItem
+import com.android.tools.property.panel.api.TableSupport
 import com.android.tools.property.ptable2.DefaultPTableCellEditor
 import com.android.tools.property.ptable2.PTable
 import com.android.tools.property.ptable2.PTableCellEditor
@@ -30,7 +31,6 @@ import com.android.tools.property.ptable2.PTableCellEditorProvider
 import com.android.tools.property.ptable2.PTableColumn
 import com.android.tools.property.ptable2.PTableGroupItem
 import com.android.tools.property.ptable2.PTableItem
-import com.android.tools.property.ptable2.PTableVariableHeightCellEditor
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
@@ -39,7 +39,6 @@ import java.awt.Component
 import java.awt.KeyboardFocusManager
 import javax.swing.JComponent
 import javax.swing.JPanel
-import javax.swing.JTable
 import javax.swing.border.Border
 
 /**
@@ -78,7 +77,9 @@ class PTableCellEditorProviderImpl<N : NewPropertyItem, P : PropertyItem>(
     val controlType = nameControlTypeProvider(newProperty)
     val (newModel, newEditor) = nameEditorProvider.createEditor(newProperty, asTableCellEditor = true)
     val border = JBUI.Borders.empty(0, LEFT_STANDARD_INDENT - newEditor.insets.left, 0, 0)
-    editor.nowEditing(table, property, PTableColumn.NAME, controlType, newModel, EditorPanel(newEditor, border, table.backgroundColor))
+    editor.nowEditing(table, property, PTableColumn.NAME, controlType, newModel,
+                      EditorPanel(newEditor, border, table.backgroundColor))
+    newModel.tableSupport = editor
     return editor
   }
 
@@ -88,12 +89,14 @@ class PTableCellEditorProviderImpl<N : NewPropertyItem, P : PropertyItem>(
     val (newModel, newEditor) = valueEditorProvider.createEditor(valueProperty, asTableCellEditor = true)
     val border = JBUI.Borders.customLine(table.gridLineColor, 0, 1, 0, 0)
     newModel.isExpandedTableItem = (property as? PTableGroupItem)?.let { table.isExpanded(it) } ?: false
-    editor.nowEditing(table, property, PTableColumn.VALUE, controlType, newModel, EditorPanel(newEditor, border, table.backgroundColor))
+    editor.nowEditing(table, property, PTableColumn.VALUE, controlType, newModel,
+                      EditorPanel(newEditor, border, table.backgroundColor))
+    newModel.tableSupport = editor
     return editor
   }
 }
 
-class PTableCellEditorImpl : PTableCellEditor {
+class PTableCellEditorImpl : PTableCellEditor, TableSupport {
 
   private var table: PTable? = null
   private var model: PropertyEditorModel? = null
@@ -130,6 +133,17 @@ class PTableCellEditorImpl : PTableCellEditor {
   private val focusOwner: Component?
     get() = KeyboardFocusManager.getCurrentKeyboardFocusManager().focusOwner
 
+  override fun toggleGroup() {
+    (item as? PTableGroupItem)?.let { table?.toggle(it) }
+  }
+
+  override fun updateRowHeight(scrollIntoView: Boolean) {
+    val propertyItem = item ?: return
+    val editor = editorComponent ?: return
+    val tableColumn = column ?: return
+    table?.updateRowHeight(propertyItem, tableColumn, editor.preferredSize.height, scrollIntoView)
+  }
+
   override fun close(oldTable: PTable) {
     if (table == oldTable) {
       model?.removeListener(listener)
@@ -155,16 +169,15 @@ class PTableCellEditorImpl : PTableCellEditor {
     controlType = newControlType
     editorComponent = newEditor
     newModel.addListener(listener)
+    if (newModel.isCustomHeight) {
+      updateRowHeight(false)
+    }
   }
 
   private fun updateFromModel() {
-    val component = editorComponent?.editor ?: return
-    if (component is PTableVariableHeightCellEditor && component.isCustomHeight) {
-      val jtable = table?.component as? JTable
-      val row = jtable?.editingRow
-      if (row != null && row >= 0) {
-        jtable.setRowHeight(row, component.preferredSize.height)
-      }
+    val model = model ?: return
+    if (model.isCustomHeight) {
+      updateRowHeight(false)
     }
   }
 }
@@ -174,7 +187,7 @@ class EditorPanel(
   val editor: JComponent,
   withBorder: Border,
   backgroundColor: Color?
-): JPanel(BorderLayout()), PTableVariableHeightCellEditor {
+): JPanel(BorderLayout()) {
 
   init {
     add(editor, BorderLayout.CENTER)
@@ -185,11 +198,4 @@ class EditorPanel(
   override fun requestFocus() {
     editor.requestFocus()
   }
-
-  override val isCustomHeight: Boolean
-    get() = (editor as? PTableVariableHeightCellEditor)?.isCustomHeight ?: false
-
-  override var updateRowHeight: () -> Unit
-    get() = (editor as? PTableVariableHeightCellEditor)?.updateRowHeight ?: {}
-    set(value) { (editor as? PTableVariableHeightCellEditor)?.updateRowHeight = value }
 }
