@@ -21,9 +21,10 @@ import com.intellij.psi.PsiClassType
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
-import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiModifierListOwner
+import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiType
+import com.intellij.psi.PsiVariable
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.searches.AnnotatedElementsSearch
 import com.intellij.util.EmptyQuery
@@ -56,6 +57,31 @@ fun getDaggerProvidersForType(type: PsiType, scope: GlobalSearchScope): Collecti
   return getDaggerProvidesMethodsForType(type, scope) +
          getDaggerBindsMethodsForType(type, scope) +
          getDaggerInjectedConstructorsForType(type, scope)
+}
+
+/**
+ * Returns all @Inject-annotated fields of [type] within given [scope].
+ */
+private fun getInjectedFieldsForType(type: PsiType, scope: GlobalSearchScope): Collection<PsiField> {
+  val annotationClass = JavaPsiFacade.getInstance(scope.project).findClass(INJECT_ANNOTATION, scope) ?: return emptyList()
+  return AnnotatedElementsSearch.searchPsiFields(annotationClass, scope).filter { it.type == type }
+}
+
+/**
+ * Returns params of @Provides/@Binds/@Inject-annotated method or @Inject-annotated constructor that have given [type] within given [scope].
+ */
+private fun getParamsOfDaggerProvidersForType(type: PsiType, scope: GlobalSearchScope): Collection<PsiParameter> {
+  val methodsQueries = getMethodsWithAnnotation(INJECT_ANNOTATION, scope) +
+                       getMethodsWithAnnotation(DAGGER_BINDS_ANNOTATION, scope) +
+                       getMethodsWithAnnotation(DAGGER_PROVIDES_ANNOTATION, scope)
+  return methodsQueries.flatMap { it.parameterList.parameters.toList() }.filter { it.type == type }
+}
+
+/**
+ * Returns all Dagger consumers (see [isDaggerConsumer]) for given [type] within given [scope].
+ */
+fun getDaggerConsumersForType(type: PsiType, scope: GlobalSearchScope): Collection<PsiVariable> {
+  return getInjectedFieldsForType(type, scope) + getParamsOfDaggerProvidersForType(type, scope)
 }
 
 /**
