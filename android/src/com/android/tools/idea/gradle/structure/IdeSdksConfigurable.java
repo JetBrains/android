@@ -37,7 +37,9 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RepoManager;
 import com.android.tools.adtui.validation.Validator;
+import com.android.tools.idea.gradle.ui.LabelAndFileForLocation;
 import com.android.tools.idea.gradle.ui.SdkUiStrings;
+import com.android.tools.idea.gradle.ui.SdkUiUtils;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -648,7 +650,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
 
   @NotNull
   private File getNdkLocation() {
-    return getLocationFromComboBoxWithBrowseButton(myNdkLocationComboBox);
+    return SdkUiUtils.getLocationFromComboBoxWithBrowseButton(myNdkLocationComboBox);
   }
 
   @Override
@@ -768,17 +770,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
 
   @NotNull
   private File getJdkLocation() {
-    return getLocationFromComboBoxWithBrowseButton(myJdkLocationComboBox);
-  }
-
-  @NotNull
-  public static File getLocationFromComboBoxWithBrowseButton(@NotNull ComboboxWithBrowseButton comboboxWithBrowseButton) {
-    Object item = comboboxWithBrowseButton.getComboBox().getEditor().getItem();
-    if (item instanceof LabelAndFileForLocation) {
-      return ((LabelAndFileForLocation)item).getFile();
-    }
-    String jdkLocation = item.toString();
-    return toSystemDependentPath(jdkLocation);
+    return SdkUiUtils.getLocationFromComboBoxWithBrowseButton(myJdkLocationComboBox);
   }
 
   /**
@@ -841,36 +833,6 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
   @Override
   public void queryPlace(@NotNull Place place) {
     place.putPath(SDKS_PLACE, mySelectedComponentId);
-  }
-
-  public static class LabelAndFileForLocation {
-    @NotNull private String myLabel;
-    @NotNull private File myFile;
-
-    public LabelAndFileForLocation(@NotNull String label, @NotNull File file) {
-      myLabel = label;
-      myFile = file;
-    }
-
-    @NotNull
-    public String getLabel() {
-      return myLabel;
-    }
-
-    @NotNull
-    public File getFile() {
-      return myFile;
-    }
-
-    @NotNull
-    public String getSystemDependentPath() {
-      return toSystemDependentName(myFile.getPath());
-    }
-
-    @Override
-    public String toString() {
-      return myLabel + ": " + getSystemDependentPath();
-    }
   }
 
   public static class LabelAndPath {
