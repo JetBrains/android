@@ -16,14 +16,17 @@
 package org.jetbrains.android.refactoring.namespaces
 
 import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.SingleNamespaceResourceRepository
 import com.android.resources.ResourceType
+import com.android.tools.idea.kotlin.getNextInQualifiedChain
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.packageToRClass
 import com.google.common.collect.Maps
 import com.google.common.collect.Table
 import com.google.common.collect.Tables
+import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.psi.PsiElement
@@ -34,6 +37,9 @@ import com.intellij.psi.search.searches.ReferencesSearch
 import com.intellij.usageView.UsageInfo
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.refactoring.findOrCreateClass
+import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 
 /**
  * Information about an Android resource reference.
@@ -92,23 +98,51 @@ internal fun findUsagesOfRClassesFromModule(facet: AndroidFacet): Collection<Cod
     .getLightRClassesDefinedByModule(module, true)
 
   for (rClass in rClasses) {
-    for (psiReference in ReferencesSearch.search(rClass, rClass.useScope)) {
-      // TODO(b/137180850): handle Kotlin
-      val classRef = psiReference.element as? PsiReferenceExpression ?: continue
-      val typeRef = classRef.parent as? PsiReferenceExpression ?: continue
-      val nameRef = typeRef.parent as? PsiReferenceExpression ?: continue
+    referencesLoop@ for (psiReference in ReferencesSearch.search(rClass, rClass.useScope)) {
+      val element = psiReference.element
+      val (nameRef, resource) = when (element.language) {
+        JavaLanguage.INSTANCE -> {
+          val classRef = element as? PsiReferenceExpression ?: continue@referencesLoop
+          val typeRef = classRef.parent as? PsiReferenceExpression ?: continue@referencesLoop
+          val typeName = typeRef.referenceName ?: continue@referencesLoop
+          val nameRef = typeRef.parent as? PsiReferenceExpression ?: continue@referencesLoop
 
-      // Make sure the PSI structure is as expected for something like "R.string.app_name":
-      if (nameRef.qualifierExpression != typeRef || typeRef.qualifierExpression != classRef) continue
+          // Make sure the PSI structure is as expected for something like "R.string.app_name":
+          if (nameRef.qualifierExpression != typeRef || typeRef.qualifierExpression != classRef) continue@referencesLoop
 
-      val name = nameRef.referenceName ?: continue
-      val resourceType = ResourceType.fromClassName(typeRef.referenceName ?: continue) ?: continue
-      if (!moduleRepo.hasResources(ResourceNamespace.RES_AUTO, resourceType, name)) {
+          Pair(
+            nameRef as PsiElement,
+            ResourceReference(
+              ResourceNamespace.RES_AUTO,
+              ResourceType.fromClassName(typeName) ?: continue@referencesLoop,
+              nameRef.referenceName ?: continue@referencesLoop
+            )
+          )
+        }
+        KotlinLanguage.INSTANCE -> {
+          val classRef = element as? KtExpression ?: continue@referencesLoop
+          val typeRef = classRef.getNextInQualifiedChain() as? KtNameReferenceExpression ?: continue@referencesLoop
+          val typeName = typeRef.getReferencedName()
+          val nameRef = typeRef.getNextInQualifiedChain() as? KtNameReferenceExpression ?: continue@referencesLoop
+
+          Pair(
+            nameRef as PsiElement,
+            ResourceReference(
+              ResourceNamespace.RES_AUTO,
+              ResourceType.fromClassName(typeName) ?: continue@referencesLoop,
+              nameRef.getReferencedName()
+            )
+          )
+        }
+        else -> continue@referencesLoop
+      }
+
+      if (!moduleRepo.hasResources(resource.namespace, resource.resourceType, resource.name)) {
         result += CodeUsageInfo(
           fieldReferenceExpression = nameRef,
           classReference = psiReference,
-          resourceType = resourceType,
-          name = name
+          resourceType = resource.resourceType,
+          name = resource.name
         )
       }
     }
