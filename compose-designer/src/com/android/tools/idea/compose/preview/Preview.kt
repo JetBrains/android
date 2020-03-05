@@ -46,7 +46,6 @@ import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_PREVIEW_AUTO_BUILD
 import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
-import com.android.tools.idea.rendering.RenderSettings
 import com.android.tools.idea.run.util.StopWatch
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -455,12 +454,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
     // Retrieve the models that were previously displayed so we can reuse them instead of creating new ones.
     val existingModels = surface.models.reverse().toMutableList()
-    val showDecorations = RenderSettings.getProjectSettings(project).showDecorations
 
     // Now we generate all the models (or reuse) for the PreviewElements.
     val models = filePreviewElements
       .asSequence()
-      .map { Pair(it, it.toPreviewXmlString(matchParent = showDecorations)) }
+      .map { Pair(it, it.toPreviewXmlString(matchParent = it.displaySettings.showDecoration)) }
       .map {
         val (previewElement, fileContents) = it
 
