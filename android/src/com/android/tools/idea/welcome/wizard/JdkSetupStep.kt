@@ -19,6 +19,7 @@ import com.android.tools.adtui.validation.Validator
 import com.android.tools.adtui.validation.ValidatorPanel
 import com.android.tools.idea.gradle.structure.IdeSdksConfigurable
 import com.android.tools.idea.gradle.structure.IdeSdksConfigurable.getLocationFromComboBoxWithBrowseButton
+import com.android.tools.idea.gradle.ui.SdkUiStrings.generateChooseValidJdkDirectoryError
 import com.android.tools.idea.io.FilePaths
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
@@ -64,7 +65,7 @@ class JdkSetupStep : ModelWizardStep.WithoutModel("Select default JDK location")
 
   init {
     val descriptor = createSingleFolderDescriptor { file ->
-      validateJdkPath(file) ?: throw IllegalArgumentException(IdeSdksConfigurable.generateChooseValidJdkDirectoryError())
+      validateJdkPath(file) ?: throw IllegalArgumentException(generateChooseValidJdkDirectoryError())
       setJdkLocationComboBox(file)
     }
 

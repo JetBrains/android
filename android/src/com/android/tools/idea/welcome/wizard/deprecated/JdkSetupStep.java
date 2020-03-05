@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.welcome.wizard.deprecated;
 
-import static com.android.tools.idea.gradle.structure.IdeSdksConfigurable.JDK_LOCATION_TOOLTIP;
-import static com.android.tools.idea.gradle.structure.IdeSdksConfigurable.JDK_LOCATION_WARNING_URL;
-import static com.android.tools.idea.gradle.structure.IdeSdksConfigurable.generateChooseValidJdkDirectoryError;
 import static com.android.tools.idea.gradle.structure.IdeSdksConfigurable.getLocationFromComboBoxWithBrowseButton;
+import static com.android.tools.idea.gradle.ui.SdkUiStrings.JDK_LOCATION_TOOLTIP;
+import static com.android.tools.idea.gradle.ui.SdkUiStrings.JDK_LOCATION_WARNING_URL;
+import static com.android.tools.idea.gradle.ui.SdkUiStrings.generateChooseValidJdkDirectoryError;
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.sdk.IdeSdks.getJdkFromJavaHome;
 import static com.android.tools.idea.wizard.WizardConstants.KEY_JDK_LOCATION;
