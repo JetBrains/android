@@ -51,7 +51,7 @@ public final class AdtModuleImporter extends ModuleImporter {
 
   private List<ModuleWizardStep> myWizardSteps;
 
-  public AdtModuleImporter(@NotNull WizardContext context) {
+  private AdtModuleImporter(@NotNull WizardContext context) {
     super();
     myContext = context;
     myProvider = new AdtImportProvider(false);
@@ -138,4 +138,11 @@ public final class AdtModuleImporter extends ModuleImporter {
     return myWizardSteps.contains(step);
   }
 
+  public static class AdtAndroidModuleImporter implements AndroidModuleImporter {
+    @NotNull
+    @Override
+    public ModuleImporter create(@NotNull WizardContext context) {
+      return new AdtModuleImporter(context);
+    }
+  }
 }
