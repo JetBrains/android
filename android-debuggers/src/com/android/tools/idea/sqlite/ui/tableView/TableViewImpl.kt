@@ -39,6 +39,7 @@ import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
 import java.awt.FlowLayout
+import java.awt.Point
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.awt.event.InputEvent
@@ -143,12 +144,11 @@ class TableViewImpl : TableView {
         listeners.forEach { it.toggleOrderByColumnInvoked(columns!![columnIndex - 1]) }
       }
     })
-    table.addMouseListener(object : MouseAdapter() {
-      override fun mouseClicked(e: MouseEvent) {
-        if (!e.isPopupTrigger) return
-
-        val viewRowIndex = table.rowAtPoint(e.point)
-        val viewColumnIndex = table.columnAtPoint(e.point)
+    table.addMouseListener(object : PopupHandler() {
+      override fun invokePopup(comp: Component, x: Int, y: Int) {
+        val mousePoint = Point(x, y)
+        val viewRowIndex = table.rowAtPoint(mousePoint)
+        val viewColumnIndex = table.columnAtPoint(mousePoint)
         table.clearSelection()
         table.addRowSelectionInterval(viewRowIndex, viewRowIndex)
         table.addColumnSelectionInterval(viewColumnIndex, viewColumnIndex)
