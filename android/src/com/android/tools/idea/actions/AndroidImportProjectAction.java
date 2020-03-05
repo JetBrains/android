@@ -17,7 +17,6 @@ package com.android.tools.idea.actions;
 
 import static com.android.tools.idea.gradle.eclipse.GradleImport.isEclipseProjectDir;
 import static com.android.tools.idea.gradle.project.AdtModuleImporter.isAdtProjectLocation;
-import static com.android.tools.idea.gradle.project.ProjectImportUtil.findImportTarget;
 import static com.android.tools.idea.gradle.util.GradleProjects.canImportAsGradleProject;
 import static com.android.utils.BuildScriptUtil.findGradleBuildFile;
 import static com.intellij.ide.impl.NewProjectUtil.createFromWizard;
@@ -29,6 +28,8 @@ import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.idea.gradle.eclipse.AdtImportProvider;
+import com.android.tools.idea.gradle.eclipse.GradleImport;
+import com.android.tools.idea.gradle.project.ProjectImportUtil;
 import com.android.tools.idea.ui.validation.validators.ProjectImportPathValidator;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
@@ -50,6 +51,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.JDOMUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.welcomeScreen.NewWelcomeScreen;
@@ -58,6 +60,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import javax.swing.Icon;
+import org.jdom.Element;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -79,6 +82,7 @@ public class AndroidImportProjectAction extends AnAction {
 
   private static final String WIZARD_TITLE = "Select Eclipse or Gradle Project to Import";
   private static final String WIZARD_DESCRIPTION = "Select your Eclipse project folder, build.gradle or settings.gradle";
+  @NonNls private static final String ANDROID_NATURE_NAME = "com.android.ide.eclipse.adt.AndroidNature";
 
   public AndroidImportProjectAction() {
     this("Import Project...");
@@ -286,5 +290,60 @@ public class AndroidImportProjectAction extends AnAction {
         projectBuilder.cleanup();
       }
     }
+  }
+
+  @NotNull
+  public static VirtualFile findImportTarget(@NotNull VirtualFile file) {
+    VirtualFile gradleTarget = ProjectImportUtil.findGradleTarget(file);
+    if (gradleTarget != null) {
+      return gradleTarget;
+    }
+
+    VirtualFile eclipseTarget = findEclipseTarget(file);
+    if (eclipseTarget != null) {
+      return eclipseTarget;
+    }
+
+    return file;
+  }
+
+  @Nullable
+  private static VirtualFile findEclipseTarget(@NotNull VirtualFile file) {
+    VirtualFile target;
+    VirtualFile result = null;
+    if (file.isDirectory()) {
+      target = ProjectImportUtil.findMatch(file, GradleImport.ECLIPSE_DOT_PROJECT);
+      if (target != null) {
+        result = findImportTarget(target);
+      }
+    }
+    else {
+      if (GradleImport.ECLIPSE_DOT_PROJECT.equals(file.getName()) && hasAndroidNature(file)) {
+        result = file;
+      } else if (GradleImport.ECLIPSE_DOT_CLASSPATH.equals(file.getName())) {
+        result = findImportTarget(file.getParent());
+      }
+    }
+    return result;
+  }
+
+  public static boolean hasAndroidNature(@NotNull VirtualFile projectFile) {
+    File dotProjectFile = new File(projectFile.getPath());
+    try {
+      Element naturesElement = JDOMUtil.load(dotProjectFile).getChild("natures");
+      if (naturesElement != null) {
+        List<Element> naturesList = naturesElement.getChildren("nature");
+        for (Element nature : naturesList) {
+          String natureName = nature.getText();
+          if (ANDROID_NATURE_NAME.equals(natureName)) {
+            return true;
+          }
+        }
+      }
+    }
+    catch (Exception e) {
+      LOG.info(String.format("Unable to get natures for Eclipse project file '%1$s", projectFile.getPath()), e);
+    }
+    return false;
   }
 }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import com.android.tools.idea.actions.AndroidImportProjectAction;
 import com.android.tools.idea.gradle.eclipse.AdtImportBuilder;
 import com.android.tools.idea.gradle.eclipse.AdtImportProvider;
 import com.android.tools.idea.gradle.eclipse.GradleImport;
@@ -59,7 +60,7 @@ public final class AdtModuleImporter extends ModuleImporter {
   }
 
   public static boolean isAdtProjectLocation(@NotNull VirtualFile importSource) {
-    VirtualFile target = ProjectImportUtil.findImportTarget(importSource);
+    VirtualFile target = AndroidImportProjectAction.findImportTarget(importSource);
     VirtualFile targetDir = target.isDirectory() ? target : target.getParent();
     File targetDirFile = virtualToIoFile(targetDir);
     return isAdtProjectDir(targetDirFile) && findGradleBuildFile(targetDirFile).isFile();
