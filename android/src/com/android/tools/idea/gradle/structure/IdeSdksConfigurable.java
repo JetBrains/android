@@ -37,6 +37,7 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RepoManager;
 import com.android.tools.adtui.validation.Validator;
+import com.android.tools.idea.gradle.ui.SdkUiStrings;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -112,13 +113,8 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
   @NonNls private static final String SDKS_PLACE = "sdks.place";
   @NonNls public static final String IDE_SDKS_LOCATION_VIEW = "IdeSdksView";
 
-  private static final String CHOOSE_VALID_JDK_DIRECTORY_ERR_FORMAT = "Please choose a valid JDK %s directory.";
   private static final String CHOOSE_VALID_SDK_DIRECTORY_ERR = "Please choose a valid Android SDK directory.";
   private static final String CHOOSE_VALID_NDK_DIRECTORY_ERR = "Please choose a valid Android NDK directory.";
-  public static final String JDK_LOCATION_WARNING_URL = "https://docs.gradle.org/current/userguide/gradle_daemon.html#sec:why_is_there_more_than_one_daemon_process_on_my_machine";
-  public static final String JDK_LOCATION_TOOLTIP = "To share the same Gradle daemon between Android Studio and other "+
-                                                    "external processes, create a JAVA_HOME environment variable with a valid " +
-                                                    "JDK location and select it from the dropdown below.";
 
   private static final Logger LOG = Logger.getInstance(IdeSdksConfigurable.class);
 
@@ -235,7 +231,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
       return;
     }
     if (validateJdkPath(getJdkLocation()) == null) {
-      throw new ConfigurationException(generateChooseValidJdkDirectoryError());
+      throw new ConfigurationException(SdkUiStrings.generateChooseValidJdkDirectoryError());
     }
     List<ProjectConfigurationError> errors = validateState();
     if (!errors.isEmpty()) {
@@ -254,11 +250,6 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
         IdeSdks.updateWelcomeRunAndroidSdkAction();
       }
     });
-  }
-
-  @NotNull
-  public static String generateChooseValidJdkDirectoryError() {
-    return String.format(CHOOSE_VALID_JDK_DIRECTORY_ERR_FORMAT, IdeSdks.getInstance().getRunningVersionOrDefault().getDescription());
   }
 
   private void saveAndroidNdkPath() {
@@ -297,8 +288,8 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
   }
 
   private void createJdkLocationHelp() {
-    myJdkLocationHelp = ContextHelpLabel.createWithLink(null, JDK_LOCATION_TOOLTIP, "Learn more",
-                                                        () -> BrowserUtil.browse(JDK_LOCATION_WARNING_URL));
+    myJdkLocationHelp = ContextHelpLabel.createWithLink(null, SdkUiStrings.JDK_LOCATION_TOOLTIP, "Learn more",
+                                                        () -> BrowserUtil.browse(SdkUiStrings.JDK_LOCATION_WARNING_URL));
   }
 
   private void createNdkLocationComboBox() {
@@ -348,7 +339,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     FileChooserDescriptor descriptor = createSingleFolderDescriptor("Choose JDK Location", file -> {
       File validatedFile = validateJdkPath(file);
       if (validatedFile == null) {
-        throw new IllegalArgumentException(generateChooseValidJdkDirectoryError());
+        throw new IllegalArgumentException(SdkUiStrings.generateChooseValidJdkDirectoryError());
       }
       setJdkLocationComboBox(file);
       return null;
@@ -674,7 +665,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     }
 
     if (validateJdkPath(getJdkLocation()) == null) {
-      throw new ConfigurationException(generateChooseValidJdkDirectoryError());
+      throw new ConfigurationException(SdkUiStrings.generateChooseValidJdkDirectoryError());
     }
 
     msg = validateAndroidNdkPath();
@@ -697,7 +688,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
 
     if (validateJdkPath(getJdkLocation()) == null) {
       ProjectConfigurationError error =
-        new ProjectConfigurationError(generateChooseValidJdkDirectoryError(), myJdkLocationComboBox.getComboBox());
+        new ProjectConfigurationError(SdkUiStrings.generateChooseValidJdkDirectoryError(), myJdkLocationComboBox.getComboBox());
       errors.add(error);
     }
 
