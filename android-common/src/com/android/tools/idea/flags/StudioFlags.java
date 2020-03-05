@@ -844,6 +844,13 @@ public final class StudioFlags {
     "If enabled, a user can switch compose preview to be animated",
     false
   );
+
+  public static final Flag<Boolean> COMPOSE_DEBUG_BOUNDS = Flag.create(
+    COMPOSE, "preview.debug.bounds",
+    "Enable the debug bounds switch controls",
+    "If enabled, the user can enable/disable the painting of debug bounds",
+    false
+  );
   //endregion
 
   //region Manifests

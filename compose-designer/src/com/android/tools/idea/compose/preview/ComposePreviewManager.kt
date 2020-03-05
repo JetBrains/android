@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.compose.preview
 
+import org.jetbrains.annotations.ApiStatus
+
 /**
  * Interface that provides access to the Compose Preview logic.
  */
@@ -67,4 +69,17 @@ interface ComposePreviewManager {
    * Enables (and indicates) the interactive mode of the preview.
    */
   var isInteractive: Boolean
+}
+
+/**
+ * Interface that provides access to the Compose Preview logic that is not stable or meant for public
+ * use.
+ * This interface contains only temporary or experimental methods.
+ */
+@ApiStatus.Experimental
+interface ComposePreviewManagerEx: ComposePreviewManager {
+  /**
+   * If enabled, the bounds for the different `@Composable` elements will be displayed in the surface.
+   */
+  var showDebugBoundaries: Boolean
 }
