@@ -15,6 +15,13 @@
  */
 package com.android.tools.idea.tests.gui.compose
 
+import com.android.ddmlib.AndroidDebugBridge
+import com.android.ddmlib.testing.FakeAdbRule
+import com.android.fakeadbserver.CommandHandler
+import com.android.fakeadbserver.DeviceState
+import com.android.fakeadbserver.FakeAdbServer
+import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
+import com.android.tools.idea.bleak.UseBleak
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
@@ -22,10 +29,10 @@ import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
+import com.android.tools.idea.tests.gui.framework.fixture.RunToolWindowFixture
 import com.android.tools.idea.tests.gui.framework.fixture.compose.getNotificationsFixture
 import com.android.tools.idea.tests.gui.framework.fixture.designer.SplitEditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.designer.getSplitEditorFixture
-import com.android.tools.idea.bleak.UseBleak
 import com.android.tools.idea.tests.gui.uibuilder.RenderTaskLeakCheckRule
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import icons.StudioIcons
@@ -33,6 +40,7 @@ import junit.framework.TestCase.assertFalse
 import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.fixture.JPopupMenuFixture
 import org.fest.swing.timing.Wait
+import org.fest.swing.util.PatternTextMatcher
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -45,7 +53,9 @@ import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
 import java.awt.datatransfer.UnsupportedFlavorException
 import java.awt.event.KeyEvent
+import java.net.Socket
 import java.util.concurrent.TimeUnit
+import java.util.regex.Pattern
 import javax.swing.JMenuItem
 
 @RunWith(GuiTestRemoteRunner::class)
@@ -54,6 +64,11 @@ class ComposePreviewTest {
   val guiTest = GuiTestRule().withTimeout(5, TimeUnit.MINUTES)
   @get:Rule
   val renderTaskLeakCheckRule = RenderTaskLeakCheckRule()
+
+  private val commandHandler = DeployPreviewCommandHandler()
+
+  @get:Rule
+  val adbRule: FakeAdbRule = FakeAdbRule().initAbdBridgeDuringSetup(false).withDeviceCommandHandler(commandHandler)
 
   @Before
   fun setUp() {
@@ -283,5 +298,58 @@ class ComposePreviewTest {
       .size)
 
     fixture.editor.close()
+  }
+
+  @Test
+  @RunIn(TestGroup.UNRELIABLE) // b/150391302
+  @Throws(Exception::class)
+  fun testDeployPreview() {
+    val fixture = guiTest.importProject("SimpleComposeApplication")
+
+    // Enable the fake ADB server and attach a fake device to which the preview will be deployed.
+    AndroidDebugBridge.enableFakeAdbServerMode(adbRule.fakeAdbServerPort)
+    adbRule.attachDevice("42", "Google", "Pix3l", "versionX", "29", DeviceState.HostConnectionType.USB)
+
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish()
+
+    val composePreview = openComposePreview(fixture, "MultipleComposePreviews.kt").waitForRenderToFinish()
+    commandHandler.composablePackageName = "google.simpleapplication"
+    commandHandler.composableFqn = "google.simpleapplication.MultipleComposePreviewsKt.Preview1"
+
+    composePreview.designSurface
+      .allSceneViews
+      .first()
+      .toolbar()
+      .clickButtonByIcon(StudioIcons.Compose.RUN_ON_DEVICE)
+
+    val runToolWindowFixture = RunToolWindowFixture(guiTest.ideFrame())
+    val contentFixture = runToolWindowFixture.findContent("Preview1")
+    // We should display "Launching '<Compose Preview Configuration Name>' on <Device>"
+    val launchingPreview = Pattern.compile(".*Launching 'Preview1' on Google Pix3l.*", Pattern.DOTALL)
+    contentFixture.waitForOutput(PatternTextMatcher(launchingPreview), 10)
+    // We should display the adb shell command containing androidx.ui.tooling.preview.PreviewActivity, which wraps the @Composable
+    val previewActivity = Pattern.compile(".*androidx\\.ui\\.tooling\\.preview\\.PreviewActivity.*", Pattern.DOTALL)
+    contentFixture.waitForOutput(PatternTextMatcher(previewActivity), 10)
+
+    guiTest.ideFrame().invokeMenuPath("Run", "Stop 'Preview1'")
+    fixture.editor.close()
+  }
+
+  private class DeployPreviewCommandHandler : DeviceCommandHandler("shell") {
+    var composablePackageName: String = "com.example"
+    var composableFqn: String = "com.example.MyComposable"
+
+    override fun accept(server: FakeAdbServer, socket: Socket, device: DeviceState, command: String, args: String): Boolean {
+      val deployArgs = "am start -n \"$composablePackageName/androidx.ui.tooling.preview.PreviewActivity\"" +
+                       " -a android.intent.action.MAIN -c android.intent.category.LAUNCHER --es composable $composableFqn"
+      val stopArgs = "am force-stop $composablePackageName"
+      when (args) {
+        deployArgs, stopArgs -> {
+          CommandHandler.writeOkay(socket.getOutputStream())
+          return true
+        }
+        else -> return false
+      }
+    }
   }
 }
