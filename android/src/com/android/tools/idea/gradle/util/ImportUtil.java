@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import org.jetbrains.annotations.NotNull;
+
 public class ImportUtil {
   public static final String SUPPORT_GROUP_ID = "com.android.support";
   public static final String CORE_KTX_GROUP_ID = "androidx.core";
@@ -23,4 +25,18 @@ public class ImportUtil {
   public static final String GRIDLAYOUT_ARTIFACT = "gridlayout-v7";
   @SuppressWarnings("SpellCheckingInspection")
   public static final String MEDIA_ROUTER_ARTIFACT = "mediarouter-v7";
+  public static final String IMPORT_SUMMARY_TXT = "import-summary.txt";
+
+  @NotNull
+  public static String escapeGroovyStringLiteral(@NotNull String s) {
+    StringBuilder sb = new StringBuilder(s.length() + 5);
+    for (int i = 0, n = s.length(); i < n; i++) {
+      char c = s.charAt(i);
+      if (c == '\\' || c == '\'') {
+        sb.append('\\');
+      }
+      sb.append(c);
+    }
+    return sb.toString();
+  }
 }

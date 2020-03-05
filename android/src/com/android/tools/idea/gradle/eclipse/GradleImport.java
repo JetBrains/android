@@ -26,6 +26,7 @@ import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.util.GradleWrapper;
+import com.android.tools.idea.gradle.util.ImportUtil;
 import com.android.tools.idea.util.PropertiesFiles;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.utils.PositionXmlParser;
@@ -99,7 +100,6 @@ public class GradleImport {
   public static final String MAVEN_URL_PROPERTY = "android.mavenRepoUrl";
   public static final String ECLIPSE_DOT_CLASSPATH = ".classpath";
   public static final String ECLIPSE_DOT_PROJECT = ".project";
-  public static final String IMPORT_SUMMARY_TXT = "import-summary.txt";
   public static final String MAVEN_REPOSITORY;
 
   static {
@@ -221,7 +221,7 @@ public class GradleImport {
         sb.append(", ");
       }
       sb.append("getDefaultProguardFile('");
-      sb.append(escapeGroovyStringLiteral(rule.getName()));
+      sb.append(ImportUtil.escapeGroovyStringLiteral(rule.getName()));
       sb.append("')");
     }
 
@@ -232,7 +232,7 @@ public class GradleImport {
       sb.append("'");
       // Note: project config files are flattened into the module structure (see
       // ImportModule#copyInto handler)
-      sb.append(escapeGroovyStringLiteral(rule.getName()));
+      sb.append(ImportUtil.escapeGroovyStringLiteral(rule.getName()));
       sb.append("'");
     }
 
@@ -258,30 +258,17 @@ public class GradleImport {
       }
       for (File jar : module.getJarDependencies()) {
         String path = jar.getPath().replace(separatorChar, '/'); // Always / in gradle
-        sb.append("    compile files('").append(escapeGroovyStringLiteral(path)).append("')").append(NL);
+        sb.append("    compile files('").append(ImportUtil.escapeGroovyStringLiteral(path)).append("')").append(NL);
       }
       for (GradleCoordinate dependency : module.getTestDependencies()) {
         sb.append("    androidTestCompile '").append(dependency.toString()).append("'").append(NL);
       }
       for (File jar : module.getTestJarDependencies()) {
         String path = jar.getPath().replace(separatorChar, '/');
-        sb.append("    androidTestCompile files('").append(escapeGroovyStringLiteral(path)).append("')").append(NL);
+        sb.append("    androidTestCompile files('").append(ImportUtil.escapeGroovyStringLiteral(path)).append("')").append(NL);
       }
       sb.append("}").append(NL);
     }
-  }
-
-  @NotNull
-  public static String escapeGroovyStringLiteral(@NotNull String s) {
-    StringBuilder sb = new StringBuilder(s.length() + 5);
-    for (int i = 0, n = s.length(); i < n; i++) {
-      char c = s.charAt(i);
-      if (c == '\\' || c == '\'') {
-        sb.append('\\');
-      }
-      sb.append(c);
-    }
-    return sb.toString();
   }
 
   private static String formatMessage(@Nullable String project, @Nullable File file, @NonNull String message) {
@@ -803,7 +790,7 @@ public class GradleImport {
       exportModule(new File(destDir, module.getModuleName()), module);
     }
 
-    mySummary.write(new File(destDir, IMPORT_SUMMARY_TXT));
+    mySummary.write(new File(destDir, ImportUtil.IMPORT_SUMMARY_TXT));
   }
 
   private Iterable<? extends ImportModule> getModulesToImport() {
@@ -882,7 +869,7 @@ public class GradleImport {
     }
 
     if (writeSummary) {
-      mySummary.write(new File(projectDir, IMPORT_SUMMARY_TXT));
+      mySummary.write(new File(projectDir, ImportUtil.IMPORT_SUMMARY_TXT));
     }
 
     return imported;
