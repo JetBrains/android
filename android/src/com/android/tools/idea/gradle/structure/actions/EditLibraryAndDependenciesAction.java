@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,28 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.actions;
+package com.android.tools.idea.gradle.structure.actions;
 
 import com.android.tools.idea.gradle.structure.AndroidProjectSettingsServiceImpl;
+import com.android.tools.idea.gradle.util.ui.EventUtil;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Action that allows users to edit build flavors for the selected module, if the module is an Android Gradle module.
+ * Action that allows users to edit libraries and dependencies for the selected module, if the module is a Gradle module.
  */
-public class EditFlavorsAction extends AbstractProjectStructureAction {
-  public EditFlavorsAction() {
-    super("Edit Flavors...");
+public class EditLibraryAndDependenciesAction extends AbstractProjectStructureAction {
+  public EditLibraryAndDependenciesAction() {
+    super("Edit Libraries and Dependencies...");
   }
 
   @Override
   protected Module getTargetModule(@NotNull AnActionEvent e) {
-    return getSelectedAndroidModule(e);
+    return EventUtil.getSelectedGradleModule(e);
   }
 
   @Override
   protected void doPerform(@NotNull Module module, @NotNull AndroidProjectSettingsServiceImpl projectStructureService, @NotNull AnActionEvent e) {
-    projectStructureService.openAndSelectFlavorsEditor(module);
+    projectStructureService.openAndSelectDependenciesEditor(module);
   }
 }

@@ -24,7 +24,7 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.tools.idea.gradle.actions.AbstractProjectStructureAction.getSelectedAndroidModule;
+import static com.android.tools.idea.gradle.util.ui.EventUtil.getSelectedAndroidModule;
 
 /**
  * Action that allows users to select a build variant for the selected module, if the module is an Android Gradle module.
