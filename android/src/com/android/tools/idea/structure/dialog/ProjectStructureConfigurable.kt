@@ -19,7 +19,7 @@ import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.structure.IdeSdksConfigurable
-import com.android.tools.idea.gradle.structure.configurables.ui.CrossModuleUiStateComponent
+import com.android.tools.idea.structure.configurables.ui.CrossModuleUiStateComponent
 import com.android.tools.idea.stats.withProjectId
 import com.google.common.collect.Maps
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -146,7 +146,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
       }
       masterDetails!!.setHistory(myHistory)
     }
-    else if (toSelect is IdeSdksConfigurable) {
+    else if (toSelect is Place.Navigator) {
       toSelect.setHistory(myHistory)
     }
 

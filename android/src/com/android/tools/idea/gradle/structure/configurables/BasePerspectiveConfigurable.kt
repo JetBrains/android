@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.structure.configurables.android.modules.AbstractModuleConfigurable
-import com.android.tools.idea.gradle.structure.configurables.ui.CrossModuleUiStateComponent
+import com.android.tools.idea.structure.configurables.ui.CrossModuleUiStateComponent
 import com.android.tools.idea.gradle.structure.configurables.ui.ModuleSelectorDropDownPanel
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader

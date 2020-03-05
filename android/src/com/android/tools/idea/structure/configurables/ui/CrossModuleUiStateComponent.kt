@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure.configurables.ui
+package com.android.tools.idea.structure.configurables.ui
 
 /**
  * A component that together with other instances of the specific class manages a consistent UI state across all the modules.

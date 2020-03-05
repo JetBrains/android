@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.structure.configurables.BaseNamedConfigurab
 import com.android.tools.idea.gradle.structure.configurables.BasePerspectiveConfigurable
 import com.android.tools.idea.gradle.structure.configurables.ContainerConfigurable
 import com.android.tools.idea.gradle.structure.configurables.PsContext
-import com.android.tools.idea.gradle.structure.configurables.ui.CrossModuleUiStateComponent
+import com.android.tools.idea.structure.configurables.ui.CrossModuleUiStateComponent
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.intellij.openapi.Disposable

@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.ui;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.model.PsProject;
+import com.android.tools.idea.structure.configurables.ui.CrossModuleUiStateComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.ui.navigation.History;
 import com.intellij.ui.navigation.Place;
