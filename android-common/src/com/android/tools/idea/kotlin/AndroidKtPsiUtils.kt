@@ -15,9 +15,14 @@
  */
 package com.android.tools.idea.kotlin
 
+import com.android.tools.idea.AndroidPsiUtils
+import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiParameter
 import com.intellij.psi.util.parentOfType
+import org.jetbrains.kotlin.asJava.LightClassUtil
 import org.jetbrains.kotlin.asJava.findFacadeClass
+import org.jetbrains.kotlin.asJava.toLightElements
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
@@ -27,7 +32,9 @@ import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtQualifiedExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
@@ -112,7 +119,12 @@ fun KtExpression.getPreviousInQualifiedChain(): KtExpression? {
 fun KotlinType.getQualifiedName() = constructor.declarationDescriptor?.fqNameSafe
 
 fun KotlinType.isSubclassOf(className: String, strict: Boolean = false): Boolean {
-    return (!strict && getQualifiedName()?.asString() == className) || constructor.supertypes.any {
-      it.getQualifiedName()?.asString() == className || it.isSubclassOf(className, true)
-    }
+  return (!strict && getQualifiedName()?.asString() == className) || constructor.supertypes.any {
+    it.getQualifiedName()?.asString() == className || it.isSubclassOf(className, true)
+  }
 }
+
+val KtProperty.psiType get() = LightClassUtil.getLightClassBackingField(this)?.getType()
+val KtParameter.psiType get() = toLightElements().filterIsInstance(PsiParameter::class.java).firstOrNull()?.type
+val KtFunction.psiType get() = LightClassUtil.getLightClassMethod(this)?.returnType
+fun KtClass.toPsiType() = toLightElements().filterIsInstance(PsiClass::class.java).firstOrNull()?.let { AndroidPsiUtils.toPsiType(it) }
