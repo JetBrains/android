@@ -14,11 +14,10 @@ PROJECT             : AS36
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/AS36 [-]
             isCompilerPathInherited       : true
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/AS36.iml [-]
+        ModuleFile          : <PROJECT>/.idea/modules/AS36.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Java-Gradle
             TypeId              : java-gradle
-            ExternalSource      : GRADLE
             Buildable           : false
             BuildFolderPath     : <PROJECT>/build [-]
         CONENT_ENTRY        : file://<PROJECT>
@@ -41,11 +40,10 @@ PROJECT             : AS36
             compilerTestOutputPath        : file://<PROJECT>/libs/android_library/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/libs/android_library/android_library.iml [-]
+        ModuleFile          : <PROJECT>/.idea/modules/libs/android_library/android_library.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
-            ExternalSource      : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName    : assembleDebug
             CompileJavaTaskName : compileDebugSources
@@ -81,7 +79,6 @@ PROJECT             : AS36
             - ProGuardCfgFiles  : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET               : Android-Gradle
             TypeId              : android-gradle
-            ExternalSource      : GRADLE
             GradlePath          : :libs:android_library
         CONENT_ENTRY        : file://<PROJECT>/libs/android_library
             JavaSource          : file://<PROJECT>/libs/android_library/build/generated/aidl_source_output_dir/debug/out
@@ -566,11 +563,10 @@ PROJECT             : AS36
             compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/app/app.iml [-]
+        ModuleFile          : <PROJECT>/.idea/modules/app/app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
-            ExternalSource      : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName    : assembleDebug
             CompileJavaTaskName : compileDebugSources
@@ -606,7 +602,6 @@ PROJECT             : AS36
             - ProGuardCfgFiles  : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET               : Android-Gradle
             TypeId              : android-gradle
-            ExternalSource      : GRADLE
             GradlePath          : :app
         CONENT_ENTRY        : file://<PROJECT>/app
             JavaSource          : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debug/out
@@ -1092,11 +1087,10 @@ PROJECT             : AS36
             compilerTestOutputPath        : file://<PROJECT>/features/dynamicfeature/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/features/dynamicfeature/dynamicfeature.iml [-]
+        ModuleFile          : <PROJECT>/.idea/modules/features/dynamicfeature/dynamicfeature.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
-            ExternalSource      : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName    : assembleDebug
             CompileJavaTaskName : compileDebugSources
@@ -1132,7 +1126,6 @@ PROJECT             : AS36
             - ProGuardCfgFiles  : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET               : Android-Gradle
             TypeId              : android-gradle
-            ExternalSource      : GRADLE
             GradlePath          : :features:dynamicfeature
         CONENT_ENTRY        : file://<PROJECT>/features/dynamicfeature
             JavaSource          : file://<PROJECT>/features/dynamicfeature/build/generated/aidl_source_output_dir/debug/out
@@ -1223,11 +1216,10 @@ PROJECT             : AS36
             compilerTestOutputPath        : file://<PROJECT>/features/dynamicfeature2/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/features/dynamicfeature2/dynamicfeature2.iml [-]
+        ModuleFile          : <PROJECT>/.idea/modules/features/dynamicfeature2/dynamicfeature2.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
-            ExternalSource      : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName    : assembleDebug
             CompileJavaTaskName : compileDebugSources
@@ -1263,7 +1255,6 @@ PROJECT             : AS36
             - ProGuardCfgFiles  : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET               : Android-Gradle
             TypeId              : android-gradle
-            ExternalSource      : GRADLE
             GradlePath          : :features:dynamicfeature2
         CONENT_ENTRY        : file://<PROJECT>/features/dynamicfeature2
             JavaSource          : file://<PROJECT>/features/dynamicfeature2/build/generated/aidl_source_output_dir/debug/out
@@ -1353,15 +1344,13 @@ PROJECT             : AS36
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/features [-]
             isCompilerPathInherited       : true
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/features/features.iml [-]
+        ModuleFile          : <PROJECT>/.idea/modules/features/features.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
-            ExternalSource      : GRADLE
             GradlePath          : :features
         FACET               : Java-Gradle
             TypeId              : java-gradle
-            ExternalSource      : GRADLE
             Buildable           : false
             BuildFolderPath     : <PROJECT>/features/build [-]
         CONENT_ENTRY        : file://<PROJECT>/features
@@ -1384,15 +1373,13 @@ PROJECT             : AS36
             compilerTestOutputPath        : file://<PROJECT>/libs/java_lib/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/libs/java_lib/java_lib.iml [-]
+        ModuleFile          : <PROJECT>/.idea/modules/libs/java_lib/java_lib.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
-            ExternalSource      : GRADLE
             GradlePath          : :libs:java_lib
         FACET               : Java-Gradle
             TypeId              : java-gradle
-            ExternalSource      : GRADLE
             Buildable           : true
             BuildFolderPath     : <PROJECT>/libs/java_lib/build [-]
         CONENT_ENTRY        : file://<PROJECT>/libs/java_lib
@@ -1418,15 +1405,13 @@ PROJECT             : AS36
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/libs [-]
             isCompilerPathInherited       : true
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/libs/libs.iml [-]
+        ModuleFile          : <PROJECT>/.idea/modules/libs/libs.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
-            ExternalSource      : GRADLE
             GradlePath          : :libs
         FACET               : Java-Gradle
             TypeId              : java-gradle
-            ExternalSource      : GRADLE
             Buildable           : false
             BuildFolderPath     : <PROJECT>/libs/build [-]
         CONENT_ENTRY        : file://<PROJECT>/libs
