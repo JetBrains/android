@@ -224,7 +224,12 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
       if (!(t is StatusRuntimeException && t.status.code == Status.Code.CANCELLED) && channel?.isShutdown == false) {
         LOG.warn("${method.fullMethodName} call failed - ${t.message}")
       }
+
       delegate?.onError(t)
+
+      if (t is StatusRuntimeException && t.status.code == Status.Code.UNAVAILABLE) {
+        connectionState = ConnectionState.DISCONNECTED
+      }
     }
 
     override fun onCompleted() {

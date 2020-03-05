@@ -41,7 +41,7 @@ import java.awt.image.ColorModel
 import java.awt.image.MemoryImageSource
 import java.text.SimpleDateFormat
 import java.util.Locale
-import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.atomic.AtomicReference
 import javax.swing.JLabel
 import javax.swing.JPanel
 import kotlin.math.roundToInt
@@ -54,15 +54,16 @@ class EmulatorView(
   private val emulator: EmulatorController
 ) : JPanel(BorderLayout()), ComponentListener, ConnectionStateListener, Disposable {
 
+  var screenRotation = SkinRotation.PORTRAIT
+
   // TODO: Make label text larger.
   private var connectionStateLabel = JLabel(getConnectionStateText(ConnectionState.NOT_INITIALIZED))
   private var screenshotFeed: Cancelable? = null
+  private var screenshotReceiver: ScreenshotReceiver? = null
   private var screenImage: Image? = null
   private var screenWidth = 0
   private var screenHeight = 0
-  private var screenRotation = SkinRotation.PORTRAIT
-  private var screenFeedRequestTime: Long = 0
-  private val screenshotCount = AtomicLong()
+  private val screenImageTransform = AffineTransform()
 
   private val rotatedBy90Degrees
     get() = screenRotation.ordinal % 2 != 0
@@ -87,6 +88,10 @@ class EmulatorView(
       override fun mouseReleased(event: MouseEvent) {
         sendMouseEvent(event.x, event.y, 0)
       }
+
+      override fun mouseClicked(event: MouseEvent) {
+        requestFocusInWindow()
+      }
     })
 
     addKeyListener(object : KeyAdapter() {
@@ -98,6 +103,7 @@ class EmulatorView(
             else -> KeyboardEvent.newBuilder().setText(c.toString()).build()
           }
         emulator.sendKey(keyboardEvent)
+        println("sendKey: $keyboardEvent")
       }
     })
 
@@ -191,20 +197,22 @@ class EmulatorView(
   override fun paintComponent(g: Graphics) {
     super.paintComponent(g)
     g as Graphics2D
-    g.drawImage(screenImage, IDENTITY_TRANSFORM, null)
+    screenImageTransform.setToTranslation((width - screenWidth) * 0.5, (height - screenHeight) * 0.5)
+    g.drawImage(screenImage, screenImageTransform, null)
   }
 
   private fun requestScreenshotFeed() {
     screenshotFeed?.cancel()
-    screenFeedRequestTime = 0
+    screenshotReceiver = null
     if (width != 0 && height != 0) {
       val imageFormat = ImageFormat.newBuilder()
         .setFormat(ImageFormat.ImgFormat.RGBA8888) // TODO: Change to RGB888 after b/150494232 is fixed.
         .setWidth(width)
         .setHeight(height)
         .build()
-      screenshotFeed = emulator.streamScreenshot(imageFormat, ScreenshotReceiver())
-      screenFeedRequestTime = System.currentTimeMillis()
+      val screenshotReceiver = ScreenshotReceiver()
+      this.screenshotReceiver = screenshotReceiver
+      screenshotFeed = emulator.streamScreenshot(imageFormat, screenshotReceiver)
     }
   }
 
@@ -233,44 +241,53 @@ class EmulatorView(
     private var cachedImageSource: MemoryImageSource? = null
     private var imageWidth = 0
     private var imageHeight = 0
+    private val screenshotReference = AtomicReference<Screenshot>()
 
     override fun onNext(response: EmulatorImage) {
-      println(LOG_TIME_FORMAT.format(System.currentTimeMillis()) + " screenshot " + screenshotCount.incrementAndGet())
-      if (cachedImageSource == null) {
-        val delay = System.currentTimeMillis() - screenFeedRequestTime
-        println("First screenshot arrived with $delay ms delay")
-      }
-      val format = response.format
-      val rotation = format.rotation.rotation
-      val width = format.width
-      val height = format.height
-      val pixels = getPixels(response.image, width, height)
+      println(LOG_TIME_FORMAT.format(System.currentTimeMillis()) + " screenshot " + response.seq)
+      screenshotReference.set(Screenshot(response))
 
       invokeLater {
-        screenRotation = rotation
-        screenWidth = width
-        screenHeight = height
+        if (screenshotReceiver != this) {
+          return@invokeLater // This screenshot feed has already been cancelled.
+        }
+        val screenshot = screenshotReference.getAndSet(null) ?: return@invokeLater
+        screenRotation = screenshot.rotation
+        screenWidth = screenshot.width
+        screenHeight = screenshot.height
         var imageSource = cachedImageSource
-        if (imageSource == null || width != imageWidth || height != imageHeight) {
-          imageSource = MemoryImageSource(width, height, pixels, 0, width)
+        if (imageSource == null || screenWidth != imageWidth || screenHeight != imageHeight) {
+          imageSource = MemoryImageSource(screenWidth, screenHeight, screenshot.pixels, 0, screenWidth)
           imageSource.setAnimated(true)
           screenImage = createImage(imageSource)
-          imageWidth = width
-          imageHeight = height
+          imageWidth = screenWidth
+          imageHeight = screenHeight
           cachedImageSource = imageSource
         }
         else {
-          imageSource.newPixels(pixels, ColorModel.getRGBdefault(), 0, width)
+          imageSource.newPixels(screenshot.pixels, ColorModel.getRGBdefault(), 0, screenWidth)
         }
         repaint()
       }
     }
+  }
 
+  private class Screenshot(emulatorImage: EmulatorImage) {
+    val rotation: SkinRotation
+    val width: Int
+    val height: Int
+    val pixels: IntArray
+
+    init {
+      val format = emulatorImage.format
+      rotation = format.rotation.rotation
+      width = format.width
+      height = format.height
+      pixels = getPixels(emulatorImage.image, width, height)
+    }
   }
 
   companion object {
-    @JvmStatic
-    val IDENTITY_TRANSFORM = AffineTransform()
     @JvmStatic
     private val LOG = Logger.getInstance(EmulatorView::class.java)
     @JvmStatic

@@ -19,7 +19,6 @@ import com.android.emulator.control.KeyboardEvent
 import com.android.tools.idea.protobuf.Empty
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.Alarm
@@ -58,7 +57,7 @@ class EmulatorPowerAction : AbstractEmulatorAction() {
     }
 
     override fun onError(t: Throwable) {
-      ApplicationManager.getApplication().invokeLater({ inProgress = false }, ModalityState.any())
+      invokeLater{ inProgress = false }
     }
   }
 
