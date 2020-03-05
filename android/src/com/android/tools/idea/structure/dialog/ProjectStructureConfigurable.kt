@@ -18,7 +18,6 @@ package com.android.tools.idea.structure.dialog
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
-import com.android.tools.idea.gradle.structure.IdeSdksConfigurable
 import com.android.tools.idea.structure.configurables.ui.CrossModuleUiStateComponent
 import com.android.tools.idea.stats.withProjectId
 import com.google.common.collect.Maps
@@ -337,11 +336,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
 
     if (myDisposable.disposed) myDisposable = MyDisposable()
 
-    if (this.isDefaultProject) {
-      addConfigurable(IdeSdksConfigurable(this, myProject))
-    } else {
-      addConfigurables()
-    }
+    addConfigurables()
   }
 
   private fun addConfigurables() {

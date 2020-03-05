@@ -29,6 +29,11 @@ import com.intellij.openapi.project.Project
 class GradleAndroidConfigurableContributor : AndroidConfigurableContributor() {
 
   override fun getConfigurables(project: Project, parentDisposable: Disposable): List<ProjectStructureItemGroup> {
+    if (project.isDefault) {
+      return listOf(
+        ProjectStructureItemGroup("main",
+                                  IdeSdksConfigurable(null, project)))
+    }
     val repositorySearchFactory = CachingRepositorySearchFactory()
     val context = PsContextImpl(PsProjectImpl(project, repositorySearchFactory), parentDisposable, false, false, repositorySearchFactory)
 
