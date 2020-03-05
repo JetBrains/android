@@ -28,7 +28,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.idea.actions.AndroidActionGroupRemover;
 import com.android.tools.idea.actions.AndroidImportModuleAction;
-import com.android.tools.idea.actions.AndroidImportProjectAction;
+import com.android.tools.idea.gradle.adtimport.actions.AndroidImportProjectAction;
 import com.android.tools.idea.actions.AndroidNewModuleAction;
 import com.android.tools.idea.actions.AndroidNewModuleInGroupAction;
 import com.android.tools.idea.actions.AndroidNewProjectAction;
@@ -40,7 +40,6 @@ import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureActi
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
-import com.android.tools.idea.ui.GuiTestingService;
 import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;

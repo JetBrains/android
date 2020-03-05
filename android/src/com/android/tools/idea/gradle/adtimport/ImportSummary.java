@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.tools.idea.gradle.eclipse;
+package com.android.tools.idea.gradle.adtimport;
 
 import com.android.annotations.NonNull;
 import com.google.common.annotations.VisibleForTesting;

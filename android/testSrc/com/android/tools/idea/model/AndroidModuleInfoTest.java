@@ -41,7 +41,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import static com.android.tools.idea.gradle.eclipse.GradleImport.CURRENT_COMPILE_VERSION;
+import static com.android.tools.idea.gradle.adtimport.GradleImport.CURRENT_COMPILE_VERSION;
 import static com.android.tools.idea.testing.TestProjectPaths.*;
 import static com.google.common.truth.Truth.assertThat;
 

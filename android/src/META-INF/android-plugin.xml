@@ -927,7 +927,7 @@
     <moduleDescriptionProvider implementation="com.android.tools.idea.npw.java.NewLibraryModuleDescriptionProvider"/>
 
     <moduleImporter implementation="com.android.tools.idea.gradle.project.GradleModuleImporter$GradleAndroidModuleImporter" />
-    <moduleImporter implementation="com.android.tools.idea.gradle.project.AdtModuleImporter$AdtAndroidModuleImporter" />
+    <moduleImporter implementation="com.android.tools.idea.gradle.adtimport.AdtModuleImporter$AdtAndroidModuleImporter" />
   </extensions>
   <extensions defaultExtensionNs="org.jetbrains.android.actions">
     <newResourceCreationHandler

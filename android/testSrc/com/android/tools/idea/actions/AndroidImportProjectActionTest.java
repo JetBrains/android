@@ -16,7 +16,8 @@
 package com.android.tools.idea.actions;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.eclipse.GradleImport;
+import com.android.tools.idea.gradle.adtimport.GradleImport;
+import com.android.tools.idea.gradle.adtimport.actions.AndroidImportProjectAction;
 import com.google.common.base.Joiner;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.actions;
+package com.android.tools.idea.gradle.adtimport.actions;
 
-import static com.android.tools.idea.gradle.eclipse.GradleImport.isEclipseProjectDir;
-import static com.android.tools.idea.gradle.project.AdtModuleImporter.isAdtProjectLocation;
+import static com.android.tools.idea.gradle.adtimport.GradleImport.isEclipseProjectDir;
+import static com.android.tools.idea.gradle.adtimport.AdtModuleImporter.isAdtProjectLocation;
 import static com.android.tools.idea.gradle.util.GradleProjects.canImportAsGradleProject;
 import static com.android.utils.BuildScriptUtil.findGradleBuildFile;
 import static com.intellij.ide.impl.NewProjectUtil.createFromWizard;
@@ -27,8 +27,9 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 
 import com.android.tools.adtui.validation.Validator;
-import com.android.tools.idea.gradle.eclipse.AdtImportProvider;
-import com.android.tools.idea.gradle.eclipse.GradleImport;
+import com.android.tools.idea.actions.OpenProjectFileChooserDescriptorWithAsyncIcon;
+import com.android.tools.idea.gradle.adtimport.AdtImportProvider;
+import com.android.tools.idea.gradle.adtimport.GradleImport;
 import com.android.tools.idea.gradle.project.ProjectImportUtil;
 import com.android.tools.idea.ui.validation.validators.ProjectImportPathValidator;
 import com.google.common.collect.Lists;

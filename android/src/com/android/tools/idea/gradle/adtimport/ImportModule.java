@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.tools.idea.gradle.eclipse;
+package com.android.tools.idea.gradle.adtimport;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
@@ -34,7 +34,7 @@ import java.nio.charset.Charset;
 import java.util.*;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.gradle.eclipse.GradleImport.*;
+import static com.android.tools.idea.gradle.adtimport.GradleImport.*;
 import static com.android.tools.idea.gradle.util.ImportUtil.APPCOMPAT_ARTIFACT;
 import static com.android.tools.idea.gradle.util.ImportUtil.GRIDLAYOUT_ARTIFACT;
 import static com.android.tools.idea.gradle.util.ImportUtil.MEDIA_ROUTER_ARTIFACT;

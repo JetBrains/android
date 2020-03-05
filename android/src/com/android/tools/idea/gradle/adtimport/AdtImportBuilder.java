@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.eclipse;
+package com.android.tools.idea.gradle.adtimport;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.ImportUtil.IMPORT_SUMMARY_TXT;
