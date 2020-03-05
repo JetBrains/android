@@ -94,6 +94,9 @@ class SqliteEvaluatorController(
       override fun onSuccess(resultSet: SqliteResultSet?) {
         checkNotNull(resultSet)
         edtExecutor.transform(resultSet.totalRowCount) { rowCount ->
+          view.tableView.resetView()
+          view.tableView.setEditable(false)
+
           if (rowCount > 0) {
             currentTableController = TableController(
               view = view.tableView,
@@ -104,9 +107,6 @@ class SqliteEvaluatorController(
             )
             Disposer.register(this@SqliteEvaluatorController, currentTableController!!)
             currentTableController!!.setUp()
-          } else {
-            view.tableView.resetView()
-            view.tableView.setEditable(false)
           }
 
           settableFuture.set(Unit)

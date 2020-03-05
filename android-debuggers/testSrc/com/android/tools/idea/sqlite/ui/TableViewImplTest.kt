@@ -663,6 +663,47 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     verify(mockActionManager).createActionPopupMenu(any(String::class.java), any(ActionGroup::class.java))
   }
 
+  fun testTableModelIsNotRecreatedIfColumnsAreNotDifferent() {
+    // Prepare
+    val column = SqliteColumn("name", SqliteAffinity.NUMERIC, false, false)
+    val table = TreeWalker(view.component).descendants().filterIsInstance<JBTable>().first()
+
+    view.startTableLoading()
+    view.showTableColumns(listOf(column))
+    view.stopTableLoading()
+
+    val tableModel1 = table.model
+
+    // Act
+    view.startTableLoading()
+    view.showTableColumns(listOf(column))
+    view.stopTableLoading()
+
+    // Assert
+    assertEquals(tableModel1, table.model)
+  }
+
+  fun testTableModelIsRecreatedIfColumnsAreDifferent() {
+    // Prepare
+    val column1 = SqliteColumn("name1", SqliteAffinity.NUMERIC, false, false)
+    val column2 = SqliteColumn("name2", SqliteAffinity.NUMERIC, false, false)
+    val table = TreeWalker(view.component).descendants().filterIsInstance<JBTable>().first()
+
+    view.startTableLoading()
+    view.showTableColumns(listOf(column1))
+    view.stopTableLoading()
+
+    val tableModel1 = table.model
+
+    // Act
+    view.startTableLoading()
+    view.showTableColumns(listOf(column2))
+    view.stopTableLoading()
+
+    // Assert
+    assertTrue(tableModel1 != table.model)
+  }
+
   private fun getColumnAt(table: JTable, colIndex: Int): List<String?> {
     val values = mutableListOf<String?>()
     for (i in 0 until table.model.rowCount) {
