@@ -35,6 +35,11 @@ import java.util.*;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.eclipse.GradleImport.*;
+import static com.android.tools.idea.gradle.util.ImportUtil.APPCOMPAT_ARTIFACT;
+import static com.android.tools.idea.gradle.util.ImportUtil.GRIDLAYOUT_ARTIFACT;
+import static com.android.tools.idea.gradle.util.ImportUtil.MEDIA_ROUTER_ARTIFACT;
+import static com.android.tools.idea.gradle.util.ImportUtil.SUPPORT_ARTIFACT;
+import static com.android.tools.idea.gradle.util.ImportUtil.SUPPORT_GROUP_ID;
 import static java.io.File.separator;
 import static java.io.File.separatorChar;
 
@@ -42,14 +47,6 @@ public abstract class ImportModule implements Comparable<ImportModule> {
   @SuppressWarnings("SpellCheckingInspection")
   private static final String SHERLOCK_DEP = "com.actionbarsherlock:actionbarsherlock:4.4.0@aar";
   private static final String PLAY_SERVICES_DEP = "com.google.android.gms:play-services:+";
-  public static final String SUPPORT_GROUP_ID = "com.android.support";
-  public static final String CORE_KTX_GROUP_ID = "androidx.core";
-
-  public static final String APPCOMPAT_ARTIFACT = "appcompat-v7";
-  public static final String SUPPORT_ARTIFACT = "support-v4";
-  public static final String GRIDLAYOUT_ARTIFACT = "gridlayout-v7";
-  @SuppressWarnings("SpellCheckingInspection")
-  public static final String MEDIA_ROUTER_ARTIFACT = "mediarouter-v7";
 
   protected final GradleImport myImporter;
   protected final List<GradleCoordinate> myDependencies = Lists.newArrayList();

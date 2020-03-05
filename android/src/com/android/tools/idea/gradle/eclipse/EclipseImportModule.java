@@ -16,6 +16,11 @@
 
 package com.android.tools.idea.gradle.eclipse;
 
+import static com.android.tools.idea.gradle.util.ImportUtil.APPCOMPAT_ARTIFACT;
+import static com.android.tools.idea.gradle.util.ImportUtil.GRIDLAYOUT_ARTIFACT;
+import static com.android.tools.idea.gradle.util.ImportUtil.MEDIA_ROUTER_ARTIFACT;
+import static com.android.tools.idea.gradle.util.ImportUtil.SUPPORT_ARTIFACT;
+
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.ide.common.repository.GradleCoordinate;
