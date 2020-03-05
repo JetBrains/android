@@ -23,7 +23,6 @@ import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.expressions.Expression;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
-import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.project.Project;
@@ -32,8 +31,8 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,7 +49,7 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
 
   private JPanel myPanel;
   private TextFieldWithBrowseButton myModelLocation;
-  private JLabel myRequiredInfoLabel;
+  private JTextArea myAdditionalRequiredInfosTextArea;
 
   public ChooseMlModelStep(@NotNull MlWizardModel model, @NotNull Project project, @NotNull String title) {
     super(model, title);
@@ -72,7 +71,9 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
       "org.tensorflow:tensorflow-lite:1.13.1",
       "org.tensorflow:tensorflow-lite-support:0.0.0-nightly");
 
-    myRequiredInfoLabel.setText(getRequiredInformationHtml(requiredDependencies));
+    myAdditionalRequiredInfosTextArea.setText(getAdditionalRequiredInfos(requiredDependencies));
+    myAdditionalRequiredInfosTextArea.setEditable(false);
+    myAdditionalRequiredInfosTextArea.setBackground(null);
 
     myRootPanel = new StudioWizardStepPanel(myValidatorPanel);
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
@@ -85,25 +86,25 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
   }
 
   @NotNull
-  private static String getRequiredInformationHtml(@NotNull List<String> requiredDeps) {
+  private static String getAdditionalRequiredInfos(@NotNull List<String> requiredDependencies) {
     // TODO(jackqdyulei): Add dependencies automatically after user click Finish.
     StringBuilder stringBuilder = new StringBuilder("You need to add following deps\n\n");
-    for (String dep : requiredDeps) {
-      stringBuilder.append(dep + "\n");
+    for (String dependency : requiredDependencies) {
+      stringBuilder.append(dependency + "\n");
     }
 
     stringBuilder
       .append("\nAlso you need add following to build file\n\n")
       .append("android {\n")
-      .append("&nbsp;&nbsp;aaptOptions {\n")
-      .append("&nbsp;&nbsp;&nbsp;&nbsp;noCompress \"tflite\"\n")
-      .append("&nbsp;&nbsp;}\n")
-      .append("&nbsp;&nbsp;buildFeatures {\n")
-      .append("&nbsp;&nbsp;&nbsp;&nbsp;mlModelBinding true\n")
-      .append("&nbsp;&nbsp;}\n")
+      .append("  aaptOptions {\n")
+      .append("    noCompress \"tflite\"\n")
+      .append("  }\n")
+      .append("  buildFeatures {\n")
+      .append("    mlModelBinding true\n")
+      .append("  }\n")
       .append("}\n");
 
-    return WizardUtils.toHtmlString(stringBuilder.toString());
+    return stringBuilder.toString();
   }
 
   @NotNull
