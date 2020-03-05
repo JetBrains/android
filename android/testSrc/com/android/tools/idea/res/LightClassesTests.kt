@@ -802,6 +802,21 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       myFixture.completeBasic()
       assertThat(myFixture.lookupElementStrings).isEmpty()
     }
+
+    fun testLibraryUseScope() {
+      addAarDependency(myModule, "aarlib", "com.example.aarlib") { resDir ->
+        resDir.parentFile.resolve(SdkConstants.FN_RESOURCE_TEXT).writeText(
+          """
+          int string aar_lib_string 0x7f010001
+          """.trimIndent()
+        )
+      }
+
+      val aarRClass = myFixture.javaFacade.findClass("com.example.aarlib.R", GlobalSearchScope.everythingScope(project))!!
+      val useScope = aarRClass.useScope as GlobalSearchScope
+      assertTrue(useScope.isSearchInModuleContent(myModule))
+      assertFalse(useScope.isSearchInModuleContent(getAdditionalModuleByName("unrelatedLib")!!))
+    }
   }
 
   class NamespacedModuleWithAar : LightClassesTestBase() {
