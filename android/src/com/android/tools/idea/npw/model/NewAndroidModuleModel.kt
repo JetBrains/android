@@ -142,6 +142,15 @@ class NewAndroidModuleModel(
     multiTemplateRenderer.incrementRenders()
   }
 
+  private fun saveWizardState() = with(properties) {
+    setValue(PROPERTIES_BYTECODE_LEVEL_KEY, bytecodeLevel.value.toString())
+  }
+
+  override fun handleFinished() {
+    super.handleFinished()
+    saveWizardState()
+  }
+
   inner class ModuleTemplateRenderer : ModuleModel.ModuleTemplateRenderer() {
     override val recipe: Recipe get() = when(formFactor.get()) {
       FormFactor.MOBILE -> { data: TemplateData ->
