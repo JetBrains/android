@@ -319,13 +319,16 @@ class AddDynamicFeatureTest {
 
     guiTest.getProjectFileText("MyDynamicFeature/build.gradle").run {
       assertThat(this).doesNotContain("play-services-maps")
+      assertThat(this).contains("implementation 'androidx.appcompat:appcompat:")
+      assertThat(this).contains("implementation 'androidx.constraintlayout:constraintlayout:")
     }
 
     guiTest.getProjectFileText("app/build.gradle").run {
       assertThat(this).contains("api 'com.google.android.gms:play-services-maps")
-      assertThat(this).contains("api 'androidx.appcompat:appcompat:")  // "implementation" re-written as "api"
-      assertThat(this).contains("api 'androidx.constraintlayout:constraintlayout:")
+      assertThat(this).contains("implementation 'androidx.appcompat:appcompat:")
+      assertThat(this).doesNotContain("api 'androidx.constraintlayout:constraintlayout:")
     }
+
   }
 
   /**
