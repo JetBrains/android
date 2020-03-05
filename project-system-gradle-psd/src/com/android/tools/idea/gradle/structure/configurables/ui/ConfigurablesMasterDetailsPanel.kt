@@ -249,6 +249,7 @@ class NameValidator(val validator: (String?) -> String?) : InputValidator {
 fun renameWithDialog(
   message: String,
   title: String,
+  renameReferencesCheckbox: Boolean,
   renameReferencesMessage: String,
   currentName: String?,
   validator: NameValidator,
@@ -258,8 +259,8 @@ fun renameWithDialog(
     message,
     title,
     renameReferencesMessage,
-    false,
-    false,
+    renameReferencesCheckbox,
+    renameReferencesCheckbox,
     null,
     currentName.orEmpty(),
     validator

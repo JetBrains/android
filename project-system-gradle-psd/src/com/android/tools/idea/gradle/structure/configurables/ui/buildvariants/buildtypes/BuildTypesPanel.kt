@@ -75,6 +75,7 @@ class BuildTypesPanel(
         renameWithDialog(
           "Enter a new name for build type '${selectedConfigurable?.displayName}':",
           "Rename Build Type",
+          false,
           "Also rename related build types",
           selectedConfigurable?.displayName,
           nameValidator
