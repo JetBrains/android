@@ -62,7 +62,7 @@ class MissingSdkIssueReporterTest : AndroidGradleTestCase() {
       "SDK location not found. Define a location by setting the ANDROID_SDK_ROOT environment variable or by setting the sdk.dir path in " +
       "your project's local.properties file.\n" +
       "Affected Modules: app", notification.message)
-    assertEquals(NotificationCategory.ERROR, notification.notificationCategory)
+    assertEquals(NotificationCategory.WARNING, notification.notificationCategory)
 
     val notificationUpdate = syncMessages.notificationUpdate
     val quickFixes = notificationUpdate!!.fixes
@@ -105,7 +105,7 @@ class MissingSdkIssueReporterTest : AndroidGradleTestCase() {
 
     reporter.reportAll(listOf(syncIssueOne, syncIssueTwo, syncIssueThree), moduleMap, mapOf(), usageReporter)
 
-    val notifications = syncMessages.notifications.filter { it.notificationCategory == NotificationCategory.ERROR }
+    val notifications = syncMessages.notifications.filter { it.notificationCategory == NotificationCategory.WARNING }
     assertSize(1, notifications)
     val notification = notifications[0]
 
@@ -114,7 +114,6 @@ class MissingSdkIssueReporterTest : AndroidGradleTestCase() {
       "SDK location not found. Define a location by setting the ANDROID_SDK_ROOT environment variable or by setting the sdk.dir path in " +
       "your project's local.properties files.\n" +
       "Affected Modules: TestCompositeLib1, TestCompositeLib3, testWithCompositeBuild", notification.message)
-    assertEquals(NotificationCategory.ERROR, notification.notificationCategory)
 
     val notificationUpdate = syncMessages.notificationUpdate
     val quickFixes = notificationUpdate!!.fixes

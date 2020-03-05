@@ -100,7 +100,7 @@ class AndroidGradleProjectRule : NamedExternalResource() {
 
   fun requestSyncAndWait(request: GradleSyncInvoker.Request) {
     val syncListener = delegateTestCase.requestSync(request)
-    AndroidGradleTests.checkSyncStatus(syncListener)
+    AndroidGradleTests.checkSyncStatus(project, syncListener)
   }
 
   fun generateSources() {

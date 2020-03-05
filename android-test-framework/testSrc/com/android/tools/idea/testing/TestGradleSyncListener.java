@@ -37,7 +37,6 @@ public class TestGradleSyncListener implements GradleSyncListener {
 
   boolean syncSkipped;
   boolean success;
-  boolean hasErrors;
   @Nullable String failureMessage;
 
   TestGradleSyncListener() {
@@ -73,15 +72,5 @@ public class TestGradleSyncListener implements GradleSyncListener {
 
   public boolean isSyncFinished() {
     return success || failureMessage != null;
-  }
-
-  public void collectErrors(Project project) {
-    String errors =
-      Arrays.stream(ModuleManager.getInstance(project).getModules()).flatMap(module -> SyncIssues.forModule(module).stream())
-        .filter(syncIssue -> syncIssue.getSeverity() == SEVERITY_ERROR).map(Object::toString).collect(Collectors.joining("\n"));
-    hasErrors = !errors.isEmpty();
-    if (success && hasErrors) {
-      failureMessage = failureMessage != null ? failureMessage + "\n" + errors : errors;
-    }
   }
 }

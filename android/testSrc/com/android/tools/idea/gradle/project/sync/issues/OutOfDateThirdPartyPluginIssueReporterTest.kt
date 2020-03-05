@@ -56,7 +56,7 @@ class OutOfDateThirdPartyPluginIssueReporterTest : AndroidGradleTestCase() {
 
     assertEquals("Gradle Sync Issues", notification.title)
     assertEquals("This is some message:\npath/one\npath/two\nAffected Modules: app", notification.message)
-    assertEquals(NotificationCategory.ERROR, notification.notificationCategory)
+    assertEquals(NotificationCategory.WARNING, notification.notificationCategory)
 
     val notificationUpdate = syncMessages.notificationUpdate
     val quickFixes = notificationUpdate!!.fixes

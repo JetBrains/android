@@ -22,7 +22,7 @@ import com.android.builder.model.SyncIssue.TYPE_DEPRECATED_CONFIGURATION
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncIssue
-import com.intellij.openapi.externalSystem.service.notification.NotificationCategory.ERROR
+import com.intellij.openapi.externalSystem.service.notification.NotificationCategory.WARNING
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory.INFO
 import com.intellij.openapi.module.Module
 import com.intellij.testFramework.HeavyPlatformTestCase
@@ -191,9 +191,9 @@ class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
     assertNotNull(message)
 
     assertThat(message.message, equalTo("Error message!\nAffected Modules: app, lib"))
-    assertThat(message.notificationCategory, equalTo(ERROR))
+    assertThat(message.notificationCategory, equalTo(WARNING))
 
-    assertThat(messageStub.fakeErrorCount, equalTo(1))
+    assertThat(messageStub.fakeErrorCount, equalTo(0))
 
     assertEquals(
       listOf(GradleSyncIssue.newBuilder().setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build()),

@@ -58,7 +58,7 @@ class CxxConfigurationIssuesReporterTest : AndroidGradleTestCase() {
     assertEquals(
       "No version of NDK matched the requested version 19.1.2\n" +
       "Affected Modules: app", notification.message)
-    assertEquals(NotificationCategory.ERROR, notification.notificationCategory)
+    assertEquals(NotificationCategory.WARNING, notification.notificationCategory)
 
     val notificationUpdate = syncMessages.notificationUpdate
     val quickFixes = notificationUpdate!!.fixes
@@ -94,7 +94,7 @@ class CxxConfigurationIssuesReporterTest : AndroidGradleTestCase() {
 
     reporter.reportAll(listOf(syncIssueOne, syncIssueTwo, syncIssueThree), moduleMap, mapOf(), usageReporter)
 
-    val notifications = syncMessages.notifications.filter { it.notificationCategory == NotificationCategory.ERROR }
+    val notifications = syncMessages.notifications.filter { it.notificationCategory == NotificationCategory.WARNING }
     assertSize(1, notifications)
     val notificationOne = notifications[0]
 
@@ -102,8 +102,6 @@ class CxxConfigurationIssuesReporterTest : AndroidGradleTestCase() {
     assertEquals(
       "No version of NDK matched the requested version 19.1.2\n" +
       "Affected Modules: TestCompositeLib1, TestCompositeLib3, testWithCompositeBuild", notificationOne.message)
-    assertEquals(NotificationCategory.ERROR, notificationOne.notificationCategory)
-
 
     val notificationUpdate = syncMessages.notificationUpdate
     val quickFixes = notificationUpdate!!.fixes

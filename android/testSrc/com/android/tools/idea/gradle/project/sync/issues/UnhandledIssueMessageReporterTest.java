@@ -33,6 +33,7 @@ import static com.android.builder.model.SyncIssue.SEVERITY_ERROR;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.externalSystem.service.notification.NotificationCategory.ERROR;
+import static com.intellij.openapi.externalSystem.service.notification.NotificationCategory.WARNING;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -77,7 +78,7 @@ public class UnhandledIssueMessageReporterTest extends AndroidGradleTestCase {
     assertSize(1, messages);
 
     NotificationData message = messages.get(0);
-    assertEquals(ERROR, message.getNotificationCategory());
+    assertEquals(WARNING, message.getNotificationCategory());
     assertThat(message.getMessage()).contains(expectedText);
 
     assertThat(message.getNavigatable()).isInstanceOf(OpenFileDescriptor.class);
@@ -111,7 +112,7 @@ public class UnhandledIssueMessageReporterTest extends AndroidGradleTestCase {
     assertSize(1, messages);
 
     NotificationData message = messages.get(0);
-    assertEquals(ERROR, message.getNotificationCategory());
+    assertEquals(WARNING, message.getNotificationCategory());
     assertEquals(expectedText, message.getMessage());
 
     assertNull(message.getNavigatable());
