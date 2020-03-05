@@ -305,12 +305,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     VersionItem androidVersion = getModel().androidSdkInfo().getValueOrNull();
     boolean isAndroidxApi = androidVersion != null && androidVersion.getMinApiLevel() >= Q; // No more app-compat after Q
 
-    Template newTemplate = getModel().newRenderTemplate.getValueOrNull();
-
-    if (newTemplate == null) {
-      // TODO(qumeric): why newTemplate may be null?
-      return;
-    }
+    Template newTemplate = getModel().newRenderTemplate.getValue();
 
     boolean hasAndroidxConstraint = newTemplate.getConstraints().contains(TemplateConstraint.AndroidX);
 

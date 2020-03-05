@@ -83,9 +83,9 @@ private fun StringParameter.getErrorMessageForViolatedConstraint(c: Constraint, 
   UNIQUE -> "$name must be unique"
   EXISTS -> "$name must already exist"
   URI_AUTHORITY -> "$name must be a valid URI authority"
-  API_LEVEL -> TODO("validity check")
-  VALUES -> TODO()
-  SOURCE_SET_FOLDER -> TODO()
+  API_LEVEL -> "$name must be a valid API level"
+  VALUES -> "$name must be a valid 'values' file name"
+  SOURCE_SET_FOLDER -> "$name must be a valid source directory name"
 }
 
 /**

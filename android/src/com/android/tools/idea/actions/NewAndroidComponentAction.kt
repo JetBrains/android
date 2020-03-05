@@ -45,11 +45,9 @@ import org.jetbrains.android.refactoring.hasAndroidxProperty
 import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.android.util.AndroidBundle
 import java.io.File
-import java.util.EnumSet
 
 // These categories will be using a new wizard
 val NEW_WIZARD_CATEGORIES = setOf(Category.Activity, Category.Google, Category.Automotive, Category.Compose)
-val FRAGMENT_CATEGORY = setOf(Category.Fragment)
 @JvmField
 val CREATED_FILES = DataKey.create<MutableList<File>>("CreatedFiles")
 
@@ -153,8 +151,6 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
     }
     StudioWizardDialogBuilder(wizardBuilder.build(), dialogTitle).setProject(module.project).build().show()
     e.dataContext.getData(CREATED_FILES)?.addAll(templateModel.createdFiles)
-    // TODO: Implement the getCreatedElements call for the wizard
-    // dialog.createdElements.forEach { view.selectElement(it) }
   }
 
   companion object {
