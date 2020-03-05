@@ -20,6 +20,7 @@ import com.android.tools.adtui.StatLabel
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.flat.FlatSeparator
 import com.android.tools.adtui.model.AspectObserver
+import com.android.tools.profilers.ProfilerFonts
 import com.android.tools.profilers.ProfilerLayout.FILTER_TEXT_FIELD_TRIGGER_DELAY_MS
 import com.android.tools.profilers.ProfilerLayout.FILTER_TEXT_FIELD_WIDTH
 import com.android.tools.profilers.ProfilerLayout.FILTER_TEXT_HISTORY_SIZE
@@ -158,12 +159,14 @@ private class CapturePanelUi(private val myStage: MemoryProfilerStage,
   }
 
   private fun buildSummaryPanel() = JPanel(FlowLayout(FlowLayout.LEFT)).apply {
-    val totalClassLabel = StatLabel(0, "Classes")
-    val totalLeakLabel = StatLabel(0, "Leaks", Runnable(::showLeaks))
-    val totalCountLabel = StatLabel(0, "Count")
-    val totalNativeSizeLabel = StatLabel(0, "Native Size")
-    val totalShallowSizeLabel = StatLabel(0, "Shallow Size")
-    val totalRetainedSizeLabel = StatLabel(0, "Retained Size")
+    fun mkLabel(desc: String, action: Runnable? = null) =
+      StatLabel(0, desc, numFont = ProfilerFonts.H2_FONT, descFont = ProfilerFonts.H4_FONT, action = action)
+    val totalClassLabel = mkLabel("Classes")
+    val totalLeakLabel = mkLabel("Leaks", action = Runnable(::showLeaks))
+    val totalCountLabel = mkLabel("Count")
+    val totalNativeSizeLabel = mkLabel("Native Size")
+    val totalShallowSizeLabel = mkLabel("Shallow Size")
+    val totalRetainedSizeLabel = mkLabel("Retained Size")
 
     fun refreshSummaries() {
       totalClassLabel.intContent = countClasses()
