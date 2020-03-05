@@ -94,7 +94,6 @@ public class AndroidLibraryTest extends AndroidGradleTestCase {
     assertThat(moduleTemplates).isNotEmpty();
 
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
-    // FIXME(qumeric)
     wizardBuilder.addStep(new ConfigureTemplateParametersStep2(render, "Add new Activity Test", moduleTemplates));
     ModelWizard modelWizard = wizardBuilder.build();
     Disposer.register(project, modelWizard);
