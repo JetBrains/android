@@ -60,7 +60,6 @@ public class NativeModelHChartColors {
                             boolean isDeselected) {
     validateModel(model);
 
-    // TODO(b/68014311): Define colors for each type of model and differentiate user code properly
     Color color;
     if (chartType == CaptureDetails.Type.CALL_CHART) {
       if (isDeselected) {
