@@ -165,7 +165,7 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
    * Get the current thumbnail path.
    */
   private val thumbnailPath: String
-    get() = model.newTemplate.thumb().path.path
+    get() = model.newTemplate.thumb().path().path
 
   // TODO(qumeric): probably model.project should be nullable instead of lateinit.
   private val project: Project? get() = if (model.isNewProject) null else model.project
@@ -196,7 +196,7 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
     val thumb = IconProperty(templateThumbLabel)
     val thumbVisibility = VisibleProperty(templateThumbLabel)
     bindings.apply {
-      bindExpression(thumb, thumbPath) { thumbnailsCache.getUnchecked(newTemplate.thumb().path) }
+      bindExpression(thumb, thumbPath) { thumbnailsCache.getUnchecked(newTemplate.thumb().path()) }
       bindExpression(thumbVisibility, thumb) { thumb.get().isPresent }
     }
     thumbPath.set(thumbnailPath)
