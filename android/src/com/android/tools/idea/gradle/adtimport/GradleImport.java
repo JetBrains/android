@@ -86,8 +86,7 @@ import static java.io.File.separatorChar;
  * project), ask about enabling eclipse key bindings, etc?</li>
  * <li>If replaceJars=false, insert *comments* in the source code for potential
  * replacements such that users don't forget and consider switching in the future</li>
- * <li>Figure out if we can reuse fragments from the default freemarker templates for
- * the code generation part.</li>
+ * <li>Figure out if we can reuse fragments from templates for the code generation part.</li>
  * <li>Allow option to preserve module nesting hierarchy. It currently flattens.</li>
  * <li>Make it possible to use this wizard to migrate an already exported Eclipse project?</li>
  * <li>Consider making the export create an HTML file and open in browser?</li>
