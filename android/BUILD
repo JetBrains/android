@@ -203,6 +203,7 @@ iml_module(
             "test_filter": "com.android.tools.idea.gradle.structure.configurables.dependencies.treeview",
         },
         "gradle.structure.model.android": {
+            "shard_count": 2,
             # Timeout waiting to lock Artifact transforms cache
             "tags": ["no_windows"],
             "test_filter": "com.android.tools.idea.gradle.structure.model.android",
