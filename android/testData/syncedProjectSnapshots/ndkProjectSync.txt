@@ -15,11 +15,10 @@ PROJECT             : testNdkProjectSync
             compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/arm7DebugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/app/app.iml [-]
+        ModuleFile          : <PROJECT>/.idea/modules/app/app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
-            ExternalSource      : GRADLE
             SelectedBuildVariant          : arm7Debug
             AssembleTaskName    : assembleArm7Debug
             CompileJavaTaskName : compileArm7DebugSources
@@ -59,11 +58,9 @@ PROJECT             : testNdkProjectSync
             - ProGuardCfgFiles  : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET               : Android-Gradle
             TypeId              : android-gradle
-            ExternalSource      : GRADLE
             GradlePath          : :app
         FACET               : Native-Android-Gradle
             TypeId              : native-android-gradle
-            ExternalSource      : GRADLE
             SelectedBuildVariant          : arm7Debug-arm64-v8a
         CONENT_ENTRY        : file://<PROJECT>/app
             JavaSource          : file://<PROJECT>/app/build/generated/aidl_source_output_dir/arm7Debug/out
@@ -497,7 +494,6 @@ PROJECT             : testNdkProjectSync
         ModuleTypeName      : JAVA_MODULE
         FACET               : Java-Gradle
             TypeId              : java-gradle
-            ExternalSource      : GRADLE
             Buildable           : false
             BuildFolderPath     : <PROJECT>/build [-]
         CONENT_ENTRY        : file://<PROJECT>
