@@ -116,9 +116,9 @@
     </action>
     <group id="GradleProjectStructureActions">
       <separator/>
-      <action id="EditBuildTypes" class="com.android.tools.idea.gradle.actions.EditBuildTypesAction"/>
-      <action id="EditFlavors" class="com.android.tools.idea.gradle.actions.EditFlavorsAction"/>
-      <action id="EditLibraryAndDependencies" class="com.android.tools.idea.gradle.actions.EditLibraryAndDependenciesAction"/>
+      <action id="EditBuildTypes" class="com.android.tools.idea.gradle.structure.actions.EditBuildTypesAction"/>
+      <action id="EditFlavors" class="com.android.tools.idea.gradle.structure.actions.EditFlavorsAction"/>
+      <action id="EditLibraryAndDependencies" class="com.android.tools.idea.gradle.structure.actions.EditLibraryAndDependenciesAction"/>
       <action id="SelectBuildVariant" class="com.android.tools.idea.gradle.actions.SelectBuildVariantAction"/>
       <add-to-group group-id="BuildMenu" anchor="last"/>
       <separator/>
