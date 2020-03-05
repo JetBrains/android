@@ -156,7 +156,7 @@ public class AndroidSdkInitializer implements Runnable {
   }
 
   @Nullable
-  static File findOrGetAndroidSdkPath() {
+  public static File findOrGetAndroidSdkPath() {
     String studioHome = PathManager.getHomePath();
     if (isEmpty(studioHome)) {
       LOG.info("Unable to find Studio home directory");
