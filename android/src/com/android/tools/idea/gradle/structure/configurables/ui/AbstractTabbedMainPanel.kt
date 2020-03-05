@@ -15,13 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui
 
-import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.structure.configurables.PsContext
-import com.android.tools.idea.stats.withProjectId
-import com.android.tools.idea.structure.dialog.TrackedConfigurable
-import com.android.tools.idea.structure.dialog.logUsageTopNavigateTo
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.openapi.util.ActionCallback
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBTabbedPane
