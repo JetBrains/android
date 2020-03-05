@@ -82,8 +82,6 @@ class TaskIssueReportGeneratorTest : AbstractBuildAttributionReportBuilderTest()
 
   @Test
   fun testAlwaysRunSingleTaskReported() {
-    val expectedTitle = "Always-run Tasks No Output Declared: com.android.application compileDebugJavaWithJavac"
-    val expectedKey = "com.android.application_compileDebugJavaWithJavac_AlwaysRunNoOutputIssue"
     val expectedText = """
 At 17:12, Nov 19, 2019, Android Studio detected an issue with Gradle plugin com.android.application
 
@@ -108,15 +106,11 @@ AI-192.6817.14.36.SNAPSHOT, JRE 1.8.0_212-release-1586-b4-5784211x64 JetBrains s
 """.trimIndent()
 
     val issue = buildReportData.findIssueFor(task1androidPlugin, TaskIssueType.ALWAYS_RUN_TASKS)
-    Truth.assertThat(reporter.generateReportTitle(issue)).isEqualTo(expectedTitle)
-    Truth.assertThat(reporter.generateIssueKey(issue)).isEqualTo(expectedKey)
     Truth.assertThat(reporter.generateReportText(issue)).isEqualTo(expectedText)
   }
 
   @Test
   fun testAlwaysRunUpToDateOverrideIssue() {
-    val expectedTitle = "Always-run Tasks Up-To-Date Override: pluginA taskA"
-    val expectedKey = "pluginA_taskA_AlwaysRunUpToDateOverride"
     val expectedText = """
 At 17:12, Nov 19, 2019, Android Studio detected an issue with Gradle plugin pluginA
 
@@ -142,15 +136,11 @@ AI-192.6817.14.36.SNAPSHOT, JRE 1.8.0_212-release-1586-b4-5784211x64 JetBrains s
 
 
     val issue = buildReportData.findIssueFor(taskAmodule1, TaskIssueType.ALWAYS_RUN_TASKS)
-    Truth.assertThat(reporter.generateReportTitle(issue)).isEqualTo(expectedTitle)
-    Truth.assertThat(reporter.generateIssueKey(issue)).isEqualTo(expectedKey)
     Truth.assertThat(reporter.generateReportText(issue)).isEqualTo(expectedText)
   }
 
   @Test
   fun testTaskSetupIssue() {
-    val expectedTitle = "Task Setup Issues: pluginA taskA"
-    val expectedKey = "pluginA_taskA_TaskSetupIssue"
     val expectedText = """
 At 17:12, Nov 19, 2019, Android Studio detected an issue with Gradle plugin pluginA
 
@@ -176,8 +166,6 @@ AI-192.6817.14.36.SNAPSHOT, JRE 1.8.0_212-release-1586-b4-5784211x64 JetBrains s
 
 
     val issue = buildReportData.findIssueFor(taskAmodule1, TaskIssueType.TASK_SETUP_ISSUE)
-    Truth.assertThat(reporter.generateReportTitle(issue)).isEqualTo(expectedTitle)
-    Truth.assertThat(reporter.generateIssueKey(issue)).isEqualTo(expectedKey)
     Truth.assertThat(reporter.generateReportText(issue)).isEqualTo(expectedText)
   }
 
@@ -196,8 +184,6 @@ AI-192.6817.14.36.SNAPSHOT, JRE 1.8.0_212-release-1586-b4-5784211x64 JetBrains s
 
   @Test
   fun testSameIssueInSeveralModules() {
-    val expectedTitle = "Always-run Tasks No Output Declared: pluginB taskB"
-    val expectedKey = "pluginB_taskB_AlwaysRunNoOutputIssue"
     val expectedText = """
 At 17:12, Nov 19, 2019, Android Studio detected an issue with Gradle plugin pluginB
 
@@ -223,8 +209,6 @@ AI-192.6817.14.36.SNAPSHOT, JRE 1.8.0_212-release-1586-b4-5784211x64 JetBrains s
 """.trim()
 
     val issue = buildReportData.findIssueFor(taskBmodule1, TaskIssueType.ALWAYS_RUN_TASKS)
-    Truth.assertThat(reporter.generateReportTitle(issue)).isEqualTo(expectedTitle)
-    Truth.assertThat(reporter.generateIssueKey(issue)).isEqualTo(expectedKey)
     Truth.assertThat(reporter.generateReportText(issue)).isEqualTo(expectedText)
   }
 }

@@ -31,10 +31,6 @@ class TaskIssueReportGenerator(
   private val agpVersionsProvider: () -> List<GradleVersion>
 ) {
 
-  fun generateReportTitle(taskIssue: TaskIssueUiData): String {
-    return "${taskIssue.bugReportTitle}: ${taskIssue.task.pluginName} ${taskIssue.task.name}"
-  }
-
   fun generateReportText(taskIssue: TaskIssueUiData): String {
     return """
 ${generateHeaderText(taskIssue.task.pluginName)}
@@ -101,9 +97,6 @@ AGP versions: ${generateAgpVersionsString()}
       .issues
       .filter { it.isSameIssue(taskIssue) }
   }
-
-  fun generateIssueKey(taskIssue: TaskIssueUiData): String =
-    "${taskIssue.task.pluginName}_${taskIssue.task.name}_${taskIssue::class.simpleName}"
 
   private fun TimeWithPercentage.commonString(): String = "${durationString()} (${percentageString()})"
 
