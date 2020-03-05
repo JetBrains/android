@@ -97,7 +97,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
     IdeaTestFixtureFactory.getFixtureFactory().registerFixtureBuilder(
       AndroidModuleFixtureBuilder.class, AndroidModuleFixtureBuilderImpl.class);
-    AndroidTempDirTestFixture tempDirFixture = new AndroidTempDirTestFixture(getName());
+    AndroidTempDirTestFixture tempDirFixture = new AndroidTempDirTestFixture(getName(), false);
     TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder =
       IdeaTestFixtureFactory.getFixtureFactory()
         .createFixtureBuilder(getName(), tempDirFixture.getProjectDir().getParentFile().toPath(), true);

@@ -431,7 +431,6 @@ public class AndroidGradleTests {
    * Imports {@code project}, syncs the project and checks the result.
    */
   public static void importProject(@NotNull Project project, GradleSyncInvoker.Request syncRequest) {
-    ExternalProjectsManager.getInstance(project).getExternalProjectsWatcher().markDirtyAllExternalProjects();
     TestGradleSyncListener syncListener = EdtTestUtil.runInEdtAndGet(() -> {
       GradleProjectImporter.Request request = new GradleProjectImporter.Request(project);
       GradleProjectImporter.getInstance().importProjectNoSync(request);
