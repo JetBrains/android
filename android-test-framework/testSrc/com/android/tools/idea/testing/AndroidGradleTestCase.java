@@ -36,7 +36,9 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData;
 import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.testing.AndroidGradleTests.SyncIssuesPresentError;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.idea.IdeaTestApplication;
@@ -69,6 +71,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import org.jetbrains.android.AndroidTempDirTestFixture;
 import org.jetbrains.android.AndroidTestBase;
@@ -384,12 +387,12 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   protected void requestSyncAndWait(@NotNull GradleSyncInvoker.Request request) throws Exception {
     TestGradleSyncListener syncListener = requestSync(request);
-    AndroidGradleTests.checkSyncStatus(syncListener);
+    AndroidGradleTests.checkSyncStatus(getProject(), syncListener);
   }
 
-  protected void requestSyncAndWait() throws Exception {
-    TestGradleSyncListener syncListener = requestSync(request -> { });
-    AndroidGradleTests.checkSyncStatus(syncListener);
+  protected void requestSyncAndWait() throws SyncIssuesPresentError, Exception {
+    TestGradleSyncListener syncListener = requestSync(GradleSyncInvoker.Request.testRequest());
+    AndroidGradleTests.checkSyncStatus(getProject(), syncListener);
   }
 
   @NotNull
@@ -398,19 +401,29 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   @NotNull
-  protected String requestSyncAndGetExpectedFailure(@NotNull Consumer<GradleSyncInvoker.Request> requestConfigurator) throws Exception {
-    TestGradleSyncListener syncListener = requestSync(requestConfigurator);
-    assertFalse(syncListener.success);
-    String message = syncListener.failureMessage;
-    assertNotNull(message);
-    return message;
+  protected List<SyncIssueData> requestSyncAndGetExpectedSyncIssueErrors() throws Exception {
+    try {
+      requestSyncAndWait(GradleSyncInvoker.Request.testRequest());
+    } catch (SyncIssuesPresentError e) {
+      return e.getIssues();
+    }
+
+    fail("Failure was expected, but no SyncIssue errors were present");
+    return null; // Unreachable
   }
 
   @NotNull
-  private TestGradleSyncListener requestSync(@NotNull Consumer<GradleSyncInvoker.Request> requestConfigurator) throws Exception {
-    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
-    requestConfigurator.consume(request);
-    return requestSync(request);
+  protected String requestSyncAndGetExpectedFailure(@NotNull Consumer<GradleSyncInvoker.Request> requestConfigurator) throws Exception {
+    try {
+      GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
+      requestConfigurator.consume(request);
+      requestSyncAndWait(request);
+    } catch (AssertionError error) {
+      return error.getMessage();
+    }
+
+    fail("Failure was expected, but import was successful");
+    return null; // Unreachable
   }
 
   @NotNull

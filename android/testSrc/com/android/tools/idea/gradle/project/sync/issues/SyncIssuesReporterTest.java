@@ -190,7 +190,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     assertSize(1, mySyncMessagesStub.getNotifications());
     NotificationData message = mySyncMessagesStub.getNotifications().get(0);
     assertNotNull(message);
-    assertThat(message.getNotificationCategory()).isEqualTo(NotificationCategory.ERROR);
+    assertThat(message.getNotificationCategory()).isEqualTo(NotificationCategory.WARNING);
 
     verify(myStrategy1, never())
       .reportAll(eq(ImmutableList.of(mySyncIssue)), eq(ImmutableMap.of(mySyncIssue, appModule)), eq(ImmutableMap.of(appModule, buildFile)),

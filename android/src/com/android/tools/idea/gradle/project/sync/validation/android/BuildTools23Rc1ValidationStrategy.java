@@ -33,7 +33,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.android.tools.idea.project.messages.MessageType.ERROR;
+import static com.android.tools.idea.project.messages.MessageType.WARNING;
 import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
 import static java.util.Collections.sort;
 
@@ -100,7 +100,7 @@ class BuildTools23Rc1ValidationStrategy extends AndroidProjectValidationStrategy
       msg.append("<br>\n<br>\nOtherwise the project won't build. ");
 
       Project project = getProject();
-      SyncMessage message = new SyncMessage(DEFAULT_GROUP, ERROR, msg.toString());
+      SyncMessage message = new SyncMessage(DEFAULT_GROUP, WARNING, msg.toString());
       GradleSyncMessages.getInstance(project).report(message);
     }
   }

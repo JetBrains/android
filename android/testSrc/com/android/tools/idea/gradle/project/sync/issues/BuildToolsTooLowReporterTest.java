@@ -84,7 +84,7 @@ public class BuildToolsTooLowReporterTest extends PlatformTestCase {
 
     NotificationData message = messages.get(0);
 
-    assertEquals(NotificationCategory.ERROR, message.getNotificationCategory());
+    assertEquals(NotificationCategory.WARNING, message.getNotificationCategory());
     assertEquals("Upgrade Build Tools!\nAffected Modules: testReport", message.getMessage());
 
     assertEquals(quickFixes, mySyncMessages.getNotificationUpdate().getFixes());

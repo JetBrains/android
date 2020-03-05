@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.project.sync.issues;
 
 import static com.android.builder.model.SyncIssue.SEVERITY_ERROR;
 import static com.android.tools.idea.gradle.util.AndroidGradleUtil.getDisplayNameForModule;
-import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.android.tools.idea.project.messages.MessageType.INFO;
+import static com.android.tools.idea.project.messages.MessageType.WARNING;
 import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
 
 import com.android.builder.model.SyncIssue;
@@ -106,7 +106,8 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
                                                boolean isError,
                                                @NotNull SyncIssueUsageReporter usageReporter) {
     GradleSyncMessages messages = GradleSyncMessages.getInstance(project);
-    MessageType type = isError ? ERROR : INFO;
+    // All errors are displayed as warnings and all warnings displayed as info.
+    MessageType type = isError ? WARNING : INFO;
 
     assert !syncIssues.isEmpty();
     NotificationData notification = setupNotificationData(project, syncIssues, affectedModules, buildFileMap, type);

@@ -17,13 +17,14 @@ package com.android.tools.idea.gradle.project.sync;
 
 import static com.android.tools.idea.gradle.project.sync.LibraryDependenciesSubject.libraryDependencies;
 import static com.android.tools.idea.gradle.project.sync.ModuleDependenciesSubject.moduleDependencies;
+import static com.android.tools.idea.testing.AndroidGradleTests.SyncIssuesPresentError;
 import static com.android.tools.idea.testing.TestProjectPaths.LOCAL_AARS_AS_MODULES;
 import static com.android.tools.idea.testing.TestProjectPaths.LOCAL_JARS_AS_MODULES;
 import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
-import static com.intellij.openapi.externalSystem.service.notification.NotificationCategory.ERROR;
+import static com.intellij.openapi.externalSystem.service.notification.NotificationCategory.WARNING;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.DependencyScope.PROVIDED;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -116,8 +117,7 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
 
     try {
       requestSyncAndWait();
-    }
-    catch (AssertionError expected) {
+    } catch (SyncIssuesPresentError expected) {
       // Sync issues are expected.
     }
 
@@ -126,7 +126,7 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
 
     NotificationData notification = messages.get(0);
 
-    assertEquals(ERROR, notification.getNotificationCategory());
+    assertEquals(WARNING, notification.getNotificationCategory());
     assertEquals("Unresolved dependencies", notification.getTitle());
     assertThat(notification.getMessage()).contains("Failed to resolve: com.android.support:appcompat-v7:100.0.0\nAffected Modules:");
   }
