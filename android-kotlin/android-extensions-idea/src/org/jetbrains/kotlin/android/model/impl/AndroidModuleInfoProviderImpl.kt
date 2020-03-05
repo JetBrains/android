@@ -9,7 +9,7 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
-import org.jetbrains.android.dom.manifest.Manifest
+import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
 import org.jetbrains.android.facet.SourceProviderManager
@@ -27,7 +27,9 @@ class AndroidModuleInfoProviderImpl(override val module: Module) : AndroidModule
         return ResourceFolderManager.getInstance(facet).folders
     }
 
-    override fun getApplicationPackage() = androidFacet?.let { Manifest.getMainManifest(it) }?.`package`?.toString()
+    override fun getApplicationPackage(): String? {
+        return androidFacet?.let { getPackageName(it) }
+    }
 
     override fun getActiveSourceProviders(): List<AndroidModuleInfoProvider.SourceProviderMirror> {
         return SourceProviderManager.getInstance(androidFacet ?: return emptyList()).currentSourceProviders.map(::SourceProviderMirrorImpl)
