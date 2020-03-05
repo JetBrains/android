@@ -27,7 +27,6 @@ import com.android.tools.property.ptable2.item.Item
 import com.android.tools.property.ptable2.item.PTableTestModel
 import com.android.tools.property.ptable2.item.createModel
 import com.android.tools.adtui.stdui.KeyStrokes
-import com.android.tools.property.ptable2.PTableVariableHeightCellEditor
 import com.android.tools.property.testing.ApplicationRule
 import com.android.tools.property.testing.RunWithTestFocusManager
 import com.android.tools.property.testing.SwingFocusRule
@@ -381,16 +380,16 @@ class PTableImplTest {
   @Test
   fun resizeRowHeight() {
     table!!.setRowSelectionInterval(5, 5)
+    val item = table!!.item(5)
     val event = KeyEvent(table, KeyEvent.KEY_TYPED, 0, 0, 0, 's')
     imitateFocusManagerIsDispatching(event)
     table!!.dispatchEvent(event)
     assertThat(table!!.editingRow).isEqualTo(5)
     val editor = table!!.editorComponent as SimpleEditorComponent
     editor.preferredSize = Dimension(400, 400)
-    editor.updateRowHeight()
+    table!!.updateRowHeight(item, PTableColumn.VALUE, 400, false)
     assertThat(table!!.getRowHeight(5)).isEqualTo(400)
-    editor.preferredSize = Dimension(400, 800)
-    editor.updateRowHeight()
+    table!!.updateRowHeight(item, PTableColumn.VALUE, 800, false)
     assertThat(table!!.getRowHeight(5)).isEqualTo(800)
   }
 
@@ -655,10 +654,7 @@ class PTableImplTest {
     }
   }
 
-  private class SimpleEditorComponent: JPanel(), PTableVariableHeightCellEditor {
-    override var isCustomHeight = false
-    override var updateRowHeight = {}
-  }
+  private class SimpleEditorComponent: JPanel()
 
   private inner class SimplePTableCellEditorProvider : PTableCellEditorProvider {
     val editor = SimplePTableCellEditor()

@@ -88,6 +88,10 @@ abstract class BasePropertyEditorModel(initialProperty: PropertyItem) : Property
 
   override var isExpandedTableItem: Boolean by Delegates.observable(false) { _, _, _ -> fireValueChanged() }
 
+  override var isCustomHeight = false
+
+  override var tableSupport: TableSupport? = null
+
   /**
    * Toggle to a known value.
    *
