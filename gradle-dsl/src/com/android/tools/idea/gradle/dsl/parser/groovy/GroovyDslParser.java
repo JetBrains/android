@@ -182,7 +182,7 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
     }
 
     if (!(literal instanceof GrLiteral)) {
-      return new ReferenceTo(literal.getText());
+      return new GroovyDslRawText(literal.getText());
     }
 
     // If this literal has a value then return it: this will be the case for non-string values.
