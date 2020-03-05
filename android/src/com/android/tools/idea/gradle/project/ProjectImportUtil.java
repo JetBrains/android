@@ -79,7 +79,7 @@ public final class ProjectImportUtil {
     return result;
   }
 
-  private static VirtualFile findGradleTarget(@NotNull VirtualFile file) {
+  public static VirtualFile findGradleTarget(@NotNull VirtualFile file) {
     return findMatch(file, GRADLE_SUPPORTED_FILES);
   }
 
