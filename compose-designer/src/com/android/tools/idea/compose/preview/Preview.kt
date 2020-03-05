@@ -153,7 +153,7 @@ private fun configureExistingModel(existingModel: NlModel,
  */
 class ComposePreviewRepresentation(psiFile: PsiFile,
                                    previewProvider: PreviewElementProvider) :
-  PreviewRepresentation, ComposePreviewManager, UserDataHolderEx by UserDataHolderBase(), AndroidCoroutinesAware {
+  PreviewRepresentation, ComposePreviewManagerEx, UserDataHolderEx by UserDataHolderBase(), AndroidCoroutinesAware {
   private val LOG = Logger.getInstance(ComposePreviewRepresentation::class.java)
   private val project = psiFile.project
   private val psiFilePointer = SmartPointerManager.createPointer(psiFile)
@@ -204,6 +204,12 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   private val navigationHandler = PreviewNavigationHandler()
   private var interactionHandler: SwitchingInteractionHandler<InteractionMode>? = null
+
+  override var showDebugBoundaries: Boolean = false
+    set(value) {
+      field = value
+      forceRefresh()
+    }
 
   private val surface = NlDesignSurface.builder(project, this)
     .setIsPreview(true)
@@ -458,7 +464,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     // Now we generate all the models (or reuse) for the PreviewElements.
     val models = filePreviewElements
       .asSequence()
-      .map { Pair(it, it.toPreviewXmlString(matchParent = it.displaySettings.showDecoration)) }
+      .map { Pair(it, it.toPreviewXmlString(matchParent = it.displaySettings.showDecoration, paintBounds = showDebugBoundaries)) }
       .map {
         val (previewElement, fileContents) = it
 
@@ -595,6 +601,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       isContentBeingRendered = false
       updateSurfaceVisibilityAndNotifications()
     }
+  }
+
+  private fun forceRefresh() {
+    previewElements = emptyList() // This will just force a refresh
+    refresh()
   }
 
   override fun registerShortcuts(applicableTo: JComponent) {
