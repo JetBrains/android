@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project
 
+import com.android.tools.idea.gradle.project.ProjectImportUtil.findGradleTarget
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
 import com.android.tools.idea.gradle.util.GradleProjects
 import com.android.tools.idea.util.toPathString
@@ -46,7 +47,7 @@ class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
   override fun doOpenProject(virtualFile: VirtualFile, projectToClose: Project?, forceOpenInNewFrame: Boolean): Project? {
     if (!canOpenProject(virtualFile)) return null
 
-    val importTarget = ProjectImportUtil.findImportTarget(virtualFile)
+    val importTarget = findGradleTarget(virtualFile) ?: virtualFile
     val adjustedOpenTarget =
         if (importTarget.isDirectory)importTarget
         else importTarget.parent

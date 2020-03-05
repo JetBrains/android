@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import static com.android.tools.idea.gradle.project.ProjectImportUtil.findImportTarget;
-import static com.intellij.ide.impl.ProjectUtil.updateLastProjectLocation;
+import static com.android.tools.idea.gradle.project.ProjectImportUtil.findGradleTarget;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isExternalSystemAwareModule;
 import static com.intellij.openapi.wm.impl.IdeFrameImpl.SHOULD_OPEN_IN_FULL_SCREEN;
 import static java.lang.Boolean.TRUE;
@@ -141,9 +140,9 @@ public final class GradleProjects {
    * @return {@code true} if the project can be imported as a Gradle project, {@code false} otherwise.
    */
   public static boolean canImportAsGradleProject(@NotNull VirtualFile importSource) {
-    VirtualFile target = findImportTarget(importSource);
-    return (GradleConstants.EXTENSION.equals(target.getExtension()) ||
-            target.getName().endsWith(GradleConstants.KOTLIN_DSL_SCRIPT_EXTENSION));
+    VirtualFile target = findGradleTarget(importSource);
+    return target != null && (GradleConstants.EXTENSION.equals(target.getExtension()) ||
+                              target.getName().endsWith(GradleConstants.KOTLIN_DSL_SCRIPT_EXTENSION));
   }
 
   public static void setSyncRequestedDuringBuild(@NotNull Project project, @Nullable Boolean value) {
