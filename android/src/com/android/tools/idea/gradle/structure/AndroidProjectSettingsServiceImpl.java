@@ -141,6 +141,7 @@ public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService im
     );
   }
 
+  @Override
   public void openAndSelectDependency(@NotNull Module module, @NotNull GradleCoordinate dependency) {
     showNewPsd(
       new Place()
