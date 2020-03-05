@@ -9,6 +9,7 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleWrapper;
+import com.android.tools.idea.gradle.util.ImportUtil;
 import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.util.PropertiesFiles;
 import com.android.utils.Pair;
@@ -3294,7 +3295,7 @@ public class GradleImportTest extends AndroidTestCase {
       importer.exportProject(destDir, false);
       updateGradle(destDir);
     }
-    String summary = Files.asCharSource(new File(gradleProjectDir, IMPORT_SUMMARY_TXT), UTF_8).read();
+    String summary = Files.asCharSource(new File(gradleProjectDir, ImportUtil.IMPORT_SUMMARY_TXT), UTF_8).read();
     summary = summary.replace("\r", "");
     summary = stripOutRiskyPathMessage(summary, rootDir);
 
