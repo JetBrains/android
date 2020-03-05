@@ -29,7 +29,7 @@ public class AdtImportProvider extends ProjectImportProvider {
     this(new AdtImportBuilder(projectImport), projectImport);
   }
 
-  public AdtImportProvider(AdtImportBuilder builder, boolean projectImport) {
+  private AdtImportProvider(AdtImportBuilder builder, boolean projectImport) {
     super(builder);
     myProjectImport = projectImport;
   }
