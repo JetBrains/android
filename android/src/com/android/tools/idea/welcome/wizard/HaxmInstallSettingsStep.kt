@@ -19,6 +19,7 @@ import com.android.sdklib.devices.Storage
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.observable.BindingsManager
 import com.android.tools.idea.observable.ListenerManager
+import com.android.tools.idea.observable.core.IntProperty
 import com.android.tools.idea.observable.core.IntValueProperty
 import com.android.tools.idea.observable.ui.SliderValueProperty
 import com.android.tools.idea.observable.ui.SpinnerValueProperty
@@ -46,7 +47,9 @@ import kotlin.math.abs
 /**
  * Wizard page for setting up Intel® HAXM settings
  */
-class HaxmInstallSettingsStep() : ModelWizardStep.WithoutModel("Emulator Settings") {
+class HaxmInstallSettingsStep(
+  private val emulatorMemory: IntProperty
+) : ModelWizardStep.WithoutModel("Emulator Settings") {
   private val bindings = BindingsManager()
   private val listeners = ListenerManager()
 
@@ -60,7 +63,6 @@ class HaxmInstallSettingsStep() : ModelWizardStep.WithoutModel("Emulator Setting
   private val recommendedMemorySize = getRecommendedHaxmMemory(fullMemorySize)
   private val ticks = MINOR_TICKS.coerceAtMost(maxMemory / MAX_TICK_RESOLUTION)
 
-  private val emulatorMemory = IntValueProperty(recommendedMemorySize)
   private val memorySizeSpinner = JBIntSpinner(recommendedMemorySize, MIN_EMULATOR_MEMORY, maxMemory, maxMemory / ticks)
 
   // TODO(qumeric): add properties
