@@ -54,5 +54,6 @@
     <orderEntry type="module" module-name="intellij.android.layout-inspector" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl" />
     <orderEntry type="module" module-name="intellij.android.bleak" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.psd" />
   </component>
 </module>

@@ -40,7 +40,6 @@
     -->
     <androidStudioInitializer id="Startup.AndroidStudioInitializer" order="first" implementation="com.android.tools.idea.startup.AndroidStudioInitializer" />
     <androidStudioInitializer id="Startup.GradleSpecificInitializer" order="after Startup.AndroidStudioInitializer" implementation="com.android.tools.idea.startup.GradleSpecificInitializer" />
-    <androidStudioInitializer id="Startup.AdtImportInitializer" order="after Startup.AndroidStudioInitializer" implementation="com.android.tools.idea.gradle.adtimport.AdtImportInitializer" />
     <androidStudioInitializer id="Startup.AndroidSdkInitializer" order="last" implementation="com.android.tools.idea.startup.AndroidSdkInitializer" />
 
     <welcomeScreen implementation="com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider"/>
@@ -110,9 +109,6 @@
       <add-to-group group-id="WelcomeScreen.Configure" anchor="first" />
     </action>
 
-    <!-- Disable this action to use IDEA's default "Project Structure" dialog (useful when debugging Android Studio project setup.) -->
-    <action id="ShowProjectStructureSettings" class="com.android.tools.idea.gradle.structure.actions.AndroidShowStructureSettingsAction"
-            project-type="Android" icon="AllIcons.General.ProjectStructure"/>
     <action id="InferNullity" text="Infer Nullity..." class="com.android.tools.idea.actions.AndroidInferNullityAnnotationAction" overrides="true"/>
     <group id="Android.NavBarToolBar">
       <reference id="Android.SyncProject" />

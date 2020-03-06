@@ -149,6 +149,7 @@ iml_module(
         "//tools/idea/.idea/libraries:studio-grpc[test]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
         "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module, test]",
+        "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd[module]",
     ],
 )
 
