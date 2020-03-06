@@ -48,6 +48,7 @@ import static com.intellij.openapi.util.io.FileUtil.appendToFile;
 import static com.intellij.openapi.util.io.FileUtil.delete;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
+import static com.intellij.openapi.util.text.StringUtil.equalsIgnoreCase;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL_PREFIX;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
@@ -143,6 +144,8 @@ import org.jetbrains.android.compiler.ModuleSourceAutogenerating;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.internal.daemon.DaemonState;
+import org.jetbrains.plugins.gradle.internal.daemon.GradleDaemonServices;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -925,6 +928,25 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     });
 
     assertTrue(AndroidGradleTests.syncFailed(syncListener));
+  }
+
+  /**
+   * Verify that daemons can be stopped (b/150790550).
+   * @throws Exception
+   */
+  public void testDaemonStops() throws Exception {
+    loadSimpleApplication();
+    List<DaemonState> daemonStatus = GradleDaemonServices.getDaemonsStatus();
+    assertThat(daemonStatus).isNotEmpty();
+    GradleDaemonServices.stopDaemons();
+    daemonStatus = GradleDaemonServices.getDaemonsStatus();
+    assertThat(daemonStatus).isNotEmpty();
+    for (DaemonState status : daemonStatus) {
+      assertThat(equalsIgnoreCase(status.getStatus(), "stopped")).isTrue();
+    }
+    requestSyncAndWait();
+    daemonStatus = GradleDaemonServices.getDaemonsStatus();
+    assertThat(daemonStatus).isNotEmpty();
   }
 
   @NotNull
