@@ -116,9 +116,6 @@
     </action>
     <group id="GradleProjectStructureActions">
       <separator/>
-      <action id="EditBuildTypes" class="com.android.tools.idea.gradle.structure.actions.EditBuildTypesAction"/>
-      <action id="EditFlavors" class="com.android.tools.idea.gradle.structure.actions.EditFlavorsAction"/>
-      <action id="EditLibraryAndDependencies" class="com.android.tools.idea.gradle.structure.actions.EditLibraryAndDependenciesAction"/>
       <action id="SelectBuildVariant" class="com.android.tools.idea.gradle.actions.SelectBuildVariantAction"/>
       <add-to-group group-id="BuildMenu" anchor="last"/>
       <separator/>
@@ -416,7 +413,6 @@
                          id ="experimentalPlugin" displayName="Android (Experimental)" groupId="language"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.GradleExperimentalSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.sdk.StudioSettingsController"/>
-    <projectService serviceImplementation="com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings"/>
 
     <applicationService serviceInterface="com.intellij.openapi.help.HelpManager"
                         serviceImplementation="com.android.tools.idea.help.StudioHelpManagerImpl"
@@ -672,15 +668,11 @@
     <projectService serviceImplementation="com.android.tools.idea.logcat.PersistentAndroidLogFilters"/>
     <projectService serviceImplementation="org.jetbrains.android.maven.AndroidExternalApklibDependenciesManager"/>
     <projectService serviceImplementation="com.android.tools.idea.configurations.ConfigurationStateManager"/>
-    <projectService serviceImplementation="com.android.tools.idea.gradle.structure.daemon.AvailableLibraryUpdateStorage"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.LibraryFilePaths"/>
 
     <referencesSearch implementation="org.jetbrains.android.AndroidReferenceSearchExecutor"/>
     <projectService serviceImplementation="org.jetbrains.android.compiler.AndroidDexCompilerConfiguration"/>
     <projectService serviceImplementation="org.jetbrains.android.exportSignedPackage.GenerateSignedApkSettings"/>
-    <projectService serviceInterface="com.intellij.openapi.roots.ui.configuration.ProjectSettingsService"
-                    serviceImplementation="com.android.tools.idea.gradle.structure.AndroidProjectSettingsServiceImpl"
-                    overrides="true"/>
     <projectService serviceImplementation="com.android.tools.idea.profiling.capture.CaptureService"/>
     <projectService serviceInterface="com.android.tools.idea.debug.ResourceIdResolver"
                     serviceImplementation="com.android.tools.idea.debug.ProjectResourceIdResolver"/>
@@ -927,7 +919,6 @@
     <moduleDescriptionProvider implementation="com.android.tools.idea.npw.java.NewLibraryModuleDescriptionProvider"/>
 
     <moduleImporter implementation="com.android.tools.idea.gradle.project.GradleModuleImporter$GradleAndroidModuleImporter" />
-    <moduleImporter implementation="com.android.tools.idea.gradle.adtimport.AdtModuleImporter$AdtAndroidModuleImporter" />
   </extensions>
   <extensions defaultExtensionNs="org.jetbrains.android.actions">
     <newResourceCreationHandler
@@ -983,8 +974,6 @@
 
   <extensions defaultExtensionNs="com.android.ide">
     <sdkEventListener implementation="com.android.tools.idea.gradle.sdk.GradleAndroidSdkEventListener"/>
-    <androidConfigurableContributor
-        implementation="com.android.tools.idea.gradle.structure.configurables.GradleAndroidConfigurableContributor"/>
 
   </extensions>
 

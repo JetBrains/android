@@ -13,7 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.structure
+package com.android.tools.idea.gradle.structure;
 
-class Placeholder {
+import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.gradle.structure.actions.AndroidShowStructureSettingsAction;
+import com.android.tools.idea.startup.Actions;
+
+public class PsdActionsInitializer implements Runnable {
+  @Override
+  public void run() {
+    if (IdeInfo.getInstance().isAndroidStudio()) {
+      Actions.replaceAction("ShowProjectStructureSettings", new AndroidShowStructureSettingsAction());
+    }
+  }
 }

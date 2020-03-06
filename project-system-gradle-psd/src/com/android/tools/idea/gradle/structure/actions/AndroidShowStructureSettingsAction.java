@@ -19,8 +19,11 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
+import com.intellij.icons.AllIcons;
 import com.intellij.ide.actions.ShowStructureSettingsAction;
+import com.intellij.idea.ActionsBundle;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import org.jetbrains.annotations.NotNull;
@@ -29,11 +32,16 @@ import org.jetbrains.annotations.NotNull;
  * Displays the "Project Structure" dialog.
  */
 public class AndroidShowStructureSettingsAction extends ShowStructureSettingsAction {
-  @Override
+
+   @Override
   public void update(@NotNull AnActionEvent e) {
     Project project = e.getProject();
     if (project != null && AndroidProjectInfo.getInstance(project).requiresAndroidModel()) {
-      e.getPresentation().setEnabledAndVisible(GradleProjectInfo.getInstance(project).isBuildWithGradle());
+      Presentation presentation = e.getPresentation();
+      presentation.setEnabledAndVisible(GradleProjectInfo.getInstance(project).isBuildWithGradle());
+      presentation.setIcon(AllIcons.General.ProjectStructure);
+      presentation.setText(ActionsBundle.actionText("ShowProjectStructureSettings"));
+      presentation.setDescription(ActionsBundle.actionDescription("ShowProjectStructureSettings"));
     }
     super.update(e);
   }
