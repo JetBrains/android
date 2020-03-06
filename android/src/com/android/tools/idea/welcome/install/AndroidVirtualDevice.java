@@ -38,7 +38,6 @@ import com.android.tools.idea.avdmanager.SystemImageDescription;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.welcome.wizard.deprecated.InstallComponentsPath;
 import com.android.tools.idea.welcome.wizard.deprecated.ProgressStep;
-import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
