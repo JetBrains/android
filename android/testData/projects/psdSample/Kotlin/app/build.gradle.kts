@@ -54,7 +54,7 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.txt", "proguard-rules2.txt")
         }
         create("specialRelease") {
-            matchingFallbacks = listOf("release", "debug")
+            matchingFallbacks = mutableListOf("release", "debug")
             versionNameSuffix = "vnsSpecial"
         }
     }
@@ -84,7 +84,7 @@ android {
         }
         create("otherBar") {
             setDimension("bar")
-            matchingFallbacks = listOf("bar")
+            matchingFallbacks = mutableListOf("bar")
             resConfig("en")
             resConfigs("hdpi", "xhdpi")
         }
