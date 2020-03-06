@@ -37,6 +37,7 @@ import com.intellij.usages.UsageInfo2UsageAdapter
 import com.intellij.usages.impl.rules.UsageType
 import com.intellij.usages.impl.rules.UsageTypeProvider
 import com.intellij.util.Processor
+import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.psi.KtConstructor
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtParameter
@@ -53,6 +54,7 @@ class DaggerUsageTypeProvider : UsageTypeProvider {
   override fun getUsageType(element: PsiElement?): UsageType? {
     return when {
       !DAGGER_SUPPORT_ENABLED.get() -> null
+      element?.module?.isDaggerPresent() != true -> null
       element.isDaggerProvider -> PROVIDED_BY_DAGGER
       element.isDaggerConsumer -> CONSUMED_BY_DAGGER
       else -> null
@@ -75,6 +77,7 @@ class DaggerCustomUsageSearcher : CustomUsageSearcher() {
     runReadAction {
       when {
         !DAGGER_SUPPORT_ENABLED.get() -> return@runReadAction
+        element.module?.isDaggerPresent() != true -> return@runReadAction
         element.isDaggerConsumer -> processProviders(element, processor)
         element.isDaggerProvider -> processConsumers(element, processor)
         else -> return@runReadAction
