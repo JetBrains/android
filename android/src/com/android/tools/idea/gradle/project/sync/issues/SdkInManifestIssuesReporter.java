@@ -131,9 +131,6 @@ public abstract class SdkInManifestIssuesReporter extends SimpleDeduplicatingSyn
     if (affectedModules.isEmpty()) {
       return ImmutableList.of();
     }
-    else if (affectedModulesContainKts(affectedModules, buildFileMap)) {
-      return ImmutableList.of();
-    }
     else {
       return ImmutableList.of(new RemoveSdkFromManifestHyperlink(affectedModules, getProperty()));
     }
