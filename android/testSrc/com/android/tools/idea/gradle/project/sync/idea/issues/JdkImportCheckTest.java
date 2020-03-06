@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.precheck;
+package com.android.tools.idea.gradle.project.sync.idea.issues;
 
-import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
-import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
-import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -31,17 +27,13 @@ import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.Sdk;
 import java.io.File;
-import org.jetbrains.annotations.NotNull;
 
 /**
- * Tests for {@link JdkPreSyncCheck}.
+ * Tests for {@link JdkImportCheck#validateJdk()}.
  */
-public class JdkPreSyncCheckTest extends AndroidGradleTestCase {
+public class JdkImportCheckTest extends AndroidGradleTestCase {
   private IdeSdks myMockIdeSdks;
   private Jdks myMockJdks;
-
-  private JdkPreSyncCheck myJdkPreSyncCheck;
-  private GradleSyncMessagesStub mySyncMessagesStub;
 
   @Override
   public void setUp() throws Exception {
@@ -53,9 +45,6 @@ public class JdkPreSyncCheckTest extends AndroidGradleTestCase {
     myMockJdks = new IdeComponents(getProject()).mockApplicationService(Jdks.class);
     assertSame(myMockIdeSdks, IdeSdks.getInstance());
 
-    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
-
-    myJdkPreSyncCheck = new JdkPreSyncCheck();
     StudioFlags.ALLOW_DIFFERENT_JDK_VERSION.override(false);
   }
 
@@ -68,8 +57,7 @@ public class JdkPreSyncCheckTest extends AndroidGradleTestCase {
   public void testDoCheckCanSyncWithNullJdk() {
     when(myMockIdeSdks.getJdk()).thenReturn(null);
 
-    PreSyncCheckResult result = myJdkPreSyncCheck.doCheckCanSyncAndTryToFix(getProject());
-    verifyCheckFailure(result, "Jdk location is not set");
+    assertThat(runValidateJdkAndGetMessage()).startsWith("Jdk location is not set");
   }
 
   public void testDoCheckWithJdkWithoutHomePath() {
@@ -78,8 +66,7 @@ public class JdkPreSyncCheckTest extends AndroidGradleTestCase {
     when(myMockIdeSdks.getJdk()).thenReturn(jdk);
     when(jdk.getHomePath()).thenReturn(null);
 
-    PreSyncCheckResult result = myJdkPreSyncCheck.doCheckCanSyncAndTryToFix(getProject());
-    verifyCheckFailure(result, "Could not find valid Jdk home from the selected Jdk location");
+    assertThat(runValidateJdkAndGetMessage()).startsWith("Could not find valid Jdk home from the selected Jdk location");
   }
 
   public void testDoCheckWithJdkWithIncompatibleVersion() {
@@ -91,10 +78,10 @@ public class JdkPreSyncCheckTest extends AndroidGradleTestCase {
     when(myMockIdeSdks.getRunningVersionOrDefault()).thenReturn(JavaSdkVersion.JDK_1_8);
     when(myMockJdks.findVersion(new File(pathToJdk10))).thenReturn(JavaSdkVersion.JDK_10);
 
-    PreSyncCheckResult result = myJdkPreSyncCheck.doCheckCanSyncAndTryToFix(getProject());
-    verifyCheckFailure(result,
-                       "The version of selected Jdk doesn't match the Jdk used by Studio. Please choose a valid Jdk 8 directory.\n" +
-                       "Selected Jdk location is /path/to/jdk10.");
+    assertThat(runValidateJdkAndGetMessage()).startsWith(
+      "The version of selected Jdk doesn't match the Jdk used by Studio. Please choose a valid Jdk 8 directory.\n" +
+      "Selected Jdk location is /path/to/jdk10."
+    );
   }
 
   public void testDoCheckWithJdkWithIncompatibleVersionNoCheck() {
@@ -107,10 +94,10 @@ public class JdkPreSyncCheckTest extends AndroidGradleTestCase {
     when(myMockIdeSdks.getRunningVersionOrDefault()).thenReturn(JavaSdkVersion.JDK_1_8);
     when(myMockJdks.findVersion(new File(pathToJdk10))).thenReturn(JavaSdkVersion.JDK_10);
 
-    PreSyncCheckResult result = myJdkPreSyncCheck.doCheckCanSyncAndTryToFix(getProject());
-    verifyCheckFailure(result,
-                       "The Jdk installation is invalid.\n" +
-                       "Selected Jdk location is /path/to/jdk10.");
+    assertThat(runValidateJdkAndGetMessage()).startsWith(
+      "The Jdk installation is invalid.\n" +
+      "Selected Jdk location is /path/to/jdk10."
+    );
   }
 
   public void testDoCheckWithJdkWithInvalidJdkInstallation() {
@@ -124,21 +111,18 @@ public class JdkPreSyncCheckTest extends AndroidGradleTestCase {
     when(myMockIdeSdks.getJdk()).thenReturn(jdk);
     when(jdk.getHomePath()).thenReturn("/path/to/jdk8");
 
-    PreSyncCheckResult result = myJdkPreSyncCheck.doCheckCanSyncAndTryToFix(getProject());
-    verifyCheckFailure(result, "The Jdk installation is invalid.\n" +
-                               "Selected Jdk location is /path/to/jdk8.");
+    assertThat(runValidateJdkAndGetMessage()).startsWith(
+      "The Jdk installation is invalid.\n" +
+      "Selected Jdk location is /path/to/jdk8."
+    );
   }
 
-  private void verifyCheckFailure(@NotNull PreSyncCheckResult result, @NotNull String expectedText) {
-    assertFalse(result.isSuccess());
-
-    assertThat(result.getFailureCause()).startsWith("Invalid Jdk");
-
-    SyncMessage message = mySyncMessagesStub.getFirstReportedMessage();
-    assertNotNull(message);
-    assertThat(message.getText()).hasLength(1);
-    assertEquals(SyncMessage.DEFAULT_GROUP, message.getGroup());
-
-    assertAbout(syncMessage()).that(message).hasMessageLineStartingWith(expectedText, 0);
+  private static String runValidateJdkAndGetMessage() {
+    try {
+      JdkImportCheck.validateJdk();
+      return ""; // No error
+    } catch (JdkImportCheckException e) {
+      return e.getMessage();
+    }
   }
 }

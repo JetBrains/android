@@ -34,7 +34,7 @@ public class PreSyncChecks {
   }
 
   public PreSyncChecks() {
-    this(new JdkPreSyncCheck(), new GradleWrapperPreSyncCheck());
+    this(new GradleWrapperPreSyncCheck());
   }
 
   @VisibleForTesting
