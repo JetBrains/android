@@ -21,6 +21,7 @@ import com.android.tools.idea.bleak.expander.ArrayObjectIdentityExpander
 import com.android.tools.idea.bleak.expander.ClassLoaderExpander
 import com.android.tools.idea.bleak.expander.ClassStaticsExpander
 import com.android.tools.idea.bleak.expander.DefaultObjectExpander
+import com.android.tools.idea.bleak.expander.ElidingExpander
 import com.android.tools.idea.bleak.expander.Expander
 import com.android.tools.idea.bleak.expander.ExpanderChooser
 import com.android.tools.idea.bleak.expander.RootExpander
@@ -92,6 +93,7 @@ private fun getExpanderChooser(customExpanderSupplier: Supplier<List<Expander>>)
   ArrayObjectIdentityExpander(),
   ClassLoaderExpander(jniHelper),
   ClassStaticsExpander()) +
+  ElidingExpander.getExpanders() +
   customExpanderSupplier.get() +
   listOf(DefaultObjectExpander()))
 
