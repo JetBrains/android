@@ -25,6 +25,7 @@ import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.welcome.isWritable
 import com.android.tools.idea.welcome.wizard.getSizeLabel
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStep
+import com.android.tools.idea.wizard.model.ModelWizardStep
 
 private val PROGRESS_LOGGER = StudioLoggerProgressIndicator(InstallableComponent::class.java)
 
@@ -81,6 +82,8 @@ abstract class InstallableComponent(
 
   override val childrenToInstall: Collection<InstallableComponent>
     get() = if (!willBeInstalled.get()) setOf() else setOf(this)
+
+  override val steps: Collection<ModelWizardStep<*>> = setOf()
 
   override fun createSteps(): Collection<DynamicWizardStep> = emptySet()
 
