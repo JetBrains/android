@@ -244,7 +244,8 @@ class EmulatorView(
     private val screenshotReference = AtomicReference<Screenshot>()
 
     override fun onNext(response: EmulatorImage) {
-      println(LOG_TIME_FORMAT.format(System.currentTimeMillis()) + " screenshot " + response.seq)
+      val note = if (isBlack(response.image)) " completely black" else ""
+      println(LOG_TIME_FORMAT.format(System.currentTimeMillis()) + " screenshot " + response.seq + note)
       screenshotReference.set(Screenshot(response))
 
       invokeLater {
@@ -269,6 +270,16 @@ class EmulatorView(
         }
         repaint()
       }
+    }
+
+    private fun isBlack(image: ByteString): Boolean {
+      val bytes = image.toByteArray()
+      for (i in bytes.indices) {
+        if (i.rem(4) != 3 && bytes[i] != 0.toByte()) {
+          return false;
+        }
+      }
+      return true
     }
   }
 
