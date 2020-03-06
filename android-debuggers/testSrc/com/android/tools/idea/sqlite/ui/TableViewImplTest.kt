@@ -25,6 +25,7 @@ import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.jdbc.selectAllAndRowIdFromTable
 import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
 import com.android.tools.idea.sqlite.getJdbcDatabaseConnection
+import com.android.tools.idea.sqlite.model.FileSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteColumnValue
@@ -39,6 +40,7 @@ import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPopupMenu
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
@@ -64,6 +66,8 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
   private lateinit var sqliteUtil: SqliteTestUtil
   private var realDatabaseConnection: DatabaseConnection? = null
+
+  private val database = FileSqliteDatabase("db", mock(DatabaseConnection::class.java), mock(VirtualFile::class.java))
 
   override fun setUp() {
     super.setUp()
@@ -450,7 +454,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val controller = TableController(
       10,
       view,
-      sqliteTable,
+      { sqliteTable },
       realDatabaseConnection!!,
       SqliteStatement(selectAllAndRowIdFromTable(sqliteTable)),
       FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
@@ -488,7 +492,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val controller = TableController(
       10,
       view,
-      sqliteTable,
+      { sqliteTable },
       realDatabaseConnection!!,
       SqliteStatement(selectAllAndRowIdFromTable(sqliteTable)),
       FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
@@ -526,7 +530,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val controller = TableController(
       10,
       view,
-      sqliteTable,
+      { sqliteTable },
       realDatabaseConnection!!,
       SqliteStatement(selectAllAndRowIdFromTable(sqliteTable)),
       FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
@@ -564,7 +568,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val controller = TableController(
       10,
       view,
-      sqliteTable,
+      { sqliteTable },
       realDatabaseConnection!!,
       SqliteStatement(selectAllAndRowIdFromTable(sqliteTable)),
       FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())

@@ -100,7 +100,7 @@ class SqliteEvaluatorController(
           if (rowCount > 0) {
             currentTableController = TableController(
               view = view.tableView,
-              table = null,
+              tableSupplier = { null },
               databaseConnection = databaseConnection,
               sqliteStatement = sqliteStatement,
               edtExecutor = edtExecutor
