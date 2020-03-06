@@ -293,6 +293,9 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
     // Override settings just for tests (e.g. sdk.dir)
     AndroidGradleTests.updateLocalProperties(projectRoot, findSdkPath());
+
+    AndroidGradleTests.applyUglyWorkaroundForMetaspaceOOMInGradleDaemon(projectRoot);
+
     // We need the wrapper for import to succeed
     AndroidGradleTests.createGradleWrapper(projectRoot, GRADLE_LATEST_VERSION);
 
