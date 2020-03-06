@@ -204,7 +204,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
       myTvCheck.setVisible(formFactor == FormFactor.TV);
     });
 
-    myListeners.listenAndFire(androidSdkInfo, () -> updateAppCompatCheckBox());
+    myListeners.listen(androidSdkInfo, () -> updateAppCompatCheckBox());
   }
 
   @Override
@@ -303,11 +303,10 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
   private void updateAppCompatCheckBox() {
     VersionItem androidVersion = getModel().androidSdkInfo().getValueOrNull();
+    Template template = getModel().newRenderTemplate.getValueOrNull();
+
     boolean isAndroidxApi = androidVersion != null && androidVersion.getMinApiLevel() >= Q; // No more app-compat after Q
-
-    Template newTemplate = getModel().newRenderTemplate.getValue();
-
-    boolean hasAndroidxConstraint = newTemplate.getConstraints().contains(TemplateConstraint.AndroidX);
+    boolean hasAndroidxConstraint = template != null && template.getConstraints().contains(TemplateConstraint.AndroidX);
 
     if (isAndroidxApi || hasAndroidxConstraint) {
       myAppCompatCheck.setSelected(false);
