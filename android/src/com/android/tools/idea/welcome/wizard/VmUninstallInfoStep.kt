@@ -26,7 +26,7 @@ import com.intellij.ui.layout.panel
  * It is here just to make sure we don't run uninstallation operations straight away as the first wizard step,
  * as this would not be in line with common wizard conventions.
  */
-class HaxmUninstallInfoStep(
+class VmUninstallInfoStep(
   type: VmType = VmType.HAXM
 ) : ModelWizardStep.WithoutModel("Uninstalling $type") {
   private val panel = panel {
