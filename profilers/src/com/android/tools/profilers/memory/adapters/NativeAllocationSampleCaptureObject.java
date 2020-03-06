@@ -129,7 +129,7 @@ public final class NativeAllocationSampleCaptureObject implements CaptureObject 
   public boolean load(@Nullable Range queryRange, @Nullable Executor queryJoiner) {
     Transport.BytesResponse response = Transport.BytesResponse.getDefaultInstance();
     int retryCount = 100; // ~10 seconds.
-    while (response.getContents() != null && !response.getContents().isEmpty()) {
+    while (response.getContents().isEmpty()) {
       response = myClient.getTransportClient().getBytes(Transport.BytesRequest.newBuilder()
                                                           .setStreamId(mySession.getStreamId())
                                                           .setId(Long.toString(myStartTimeNs))
