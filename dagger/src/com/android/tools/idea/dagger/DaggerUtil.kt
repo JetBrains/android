@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.dagger
 
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.roots.ProjectRootModificationTracker
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassType
@@ -27,6 +29,8 @@ import com.intellij.psi.PsiType
 import com.intellij.psi.PsiVariable
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.searches.AnnotatedElementsSearch
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
 import com.intellij.util.EmptyQuery
 import com.intellij.util.Query
 import org.jetbrains.kotlin.idea.util.findAnnotation
@@ -170,3 +174,12 @@ val PsiElement?.isDaggerConsumer: Boolean
            this is PsiParameter && declarationScope.isDaggerProvider ||
            this is KtParameter && this.ownerFunction.isDaggerProvider
   }
+
+fun Module.isDaggerPresent(): Boolean = CachedValuesManager.getManager(this.project).getCachedValue(this) {
+  CachedValueProvider.Result(calculateIsDaggerPresent(this), ProjectRootModificationTracker.getInstance(this.project))
+}
+
+private fun calculateIsDaggerPresent(module: Module): Boolean {
+  val psiFacade = JavaPsiFacade.getInstance(module.project)
+  return psiFacade.findClass(DAGGER_MODULE_ANNOTATION, GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module)) != null
+}
