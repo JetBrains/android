@@ -75,7 +75,6 @@ iml_module(
         "//tools/adt/idea/android/annotations",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system:studio_repo.zip",
-        "//tools/base/templates",
         "//tools/idea:platform-build-info",
         "//tools/idea/java/jdkAnnotations",
         "//tools/idea/java/mockJDK-1.7",
