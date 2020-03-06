@@ -31,6 +31,7 @@ import com.android.tools.idea.welcome.install.ComponentInstaller
 import com.android.tools.idea.welcome.install.ComponentTreeNode
 import com.android.tools.idea.wizard.WizardConstants
 import com.android.tools.idea.wizard.model.ModelWizardStep
+import com.android.tools.idea.wizard.model.WizardModel
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.ui.Splitter
@@ -241,8 +242,6 @@ class SdkComponentsStep(
     //}
     val sdkLocation = model.sdkLocation
 
-
-
     if (!FileUtil.filesEqual(localHandler.location, sdkLocation)) {
       val progress = StudioLoggerProgressIndicator(javaClass)
       contentPanel.startLoading()
@@ -260,6 +259,10 @@ class SdkComponentsStep(
 
   private fun loadingError() {
     // TODO
+  }
+
+  override fun createDependentSteps(): Collection<ModelWizardStep<*>> {
+    return model.componentTree.steps
   }
 
   private inner class SdkComponentRenderer : AbstractCellEditor(), TableCellRenderer, TableCellEditor {
