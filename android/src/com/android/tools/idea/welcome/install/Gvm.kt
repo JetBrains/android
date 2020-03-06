@@ -40,7 +40,7 @@ class Gvm(
     override val vendor = "google"
     override val installSolution = SolutionCode.INSTALL_GVM
     override val reinstallSolution = SolutionCode.REINSTALL_GVM
-    override val compatibleSystem = SystemInfo.isWindows && CpuVendor.isAMD()
+    override val compatibleSystem = SystemInfo.isWindows && CpuVendor.isAMD
     override val componentPath = "Android_Emulator_Hypervisor_Driver"
   }
 }
