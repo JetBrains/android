@@ -154,7 +154,7 @@ public class MEUI {
       makeColor("UIDesigner.motion.ourCS_SelectedFocusBorder.focusedBorderColor", 0x1886F7, 0x9CCDFF);
 
     public static final Color ourCS_TextColor = makeColor("UIDesigner.motion.ourCS_TextColor.foreground", 0x686868, 0xc7c7c7);
-    public static final Color ourCS_FocusTextColor = makeColor("UIDesigner.motion.cs_FocusText.infoForeground", 0x000000, 0xFFFFFF);
+    public static final Color ourCS_FocusTextColor = makeColor("UIDesigner.motion.cs_FocusText.infoForeground", 0x888888 , 0xC7C7C7);
     public static final Color ourML_BarColor = makeColor("UIDesigner.motion.ourML_BarColor.separatorColor", 0xd8d8d8, 0x808385);
     public static final Color ourPositionColor = makeColor("UIDesigner.motion.PositionMarkColor", 0XF0A732, 0XF0A732);
   }
