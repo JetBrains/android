@@ -25,11 +25,11 @@ class JniBleakHelper: BleakHelper {
   }
 
   override fun pauseThreads() {
-    pauseThreads0()
+    pauseThreads0(Thread.currentThread().name)
   }
 
   override fun resumeThreads() {
-    resumeThreads0()
+    resumeThreads0(Thread.currentThread().name)
   }
 
   companion object {
@@ -44,7 +44,7 @@ class JniBleakHelper: BleakHelper {
 
     @JvmStatic private external fun allLoadedClasses0(): Array<Any>
     @JvmStatic private external fun gcRoots(): Array<Any>
-    @JvmStatic private external fun pauseThreads0()
-    @JvmStatic private external fun resumeThreads0()
+    @JvmStatic private external fun pauseThreads0(testThreadName: String)
+    @JvmStatic private external fun resumeThreads0(testThreadName: String)
   }
 }
