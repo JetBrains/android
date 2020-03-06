@@ -21,6 +21,7 @@ import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteColumn
+import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteTable
@@ -43,13 +44,13 @@ import kotlin.math.min
  * The ownership of the [SqliteResultSet] is transferred to the [TableController],
  * i.e. it is closed when [dispose] is called.
  *
- * The [SqliteResultSet] is not necessarily associated with a real table in the database, in those cases [table] will be null.
+ * The [SqliteResultSet] is not necessarily associated with a real table in the database, in those cases [TableInfo] will be null.
  */
 @UiThread
 class TableController(
   private var rowBatchSize: Int = 50,
   private val view: TableView,
-  private val table: SqliteTable?,
+  private val tableSupplier: () -> SqliteTable?,
   private val databaseConnection: DatabaseConnection,
   private val sqliteStatement: SqliteStatement,
   private val edtExecutor: FutureCallbackExecutor
@@ -100,8 +101,9 @@ class TableController(
     view.startTableLoading()
     val fetchTableDataFuture = edtExecutor.transformAsync(resultSet.columns) { columns ->
       if (Disposer.isDisposed(this)) throw ProcessCanceledException()
+      val table = tableSupplier()
       view.showTableColumns(columns!!.filter { it.name != table?.rowIdName?.stringName })
-      view.setEditable(table != null)
+      view.setEditable(isEditable())
 
       updateDataAndButtons()
     }
@@ -160,7 +162,7 @@ class TableController(
       }
 
       view.updateRows(rowDiffOperations)
-      view.setEditable(table != null)
+      view.setEditable(isEditable())
 
       currentRows = newRows
     }
@@ -185,11 +187,12 @@ class TableController(
   private fun handleFetchRowsError(future: ListenableFuture<Unit>): ListenableFuture<Any> {
     return edtExecutor.catching(future, Throwable::class.java) { error ->
       if (Disposer.isDisposed(this)) throw ProcessCanceledException()
-
-      val message = "Error retrieving rows ${if (table?.name != null) "for table \"${table.name}\"" else ""}"
-      view.reportError(message, error)
+      view.resetView()
+      view.reportError("Error retrieving data from table.", error)
     }
   }
+
+  private fun isEditable() = tableSupplier() != null
 
   private inner class TableViewListenerImpl : TableView.Listener {
     override fun toggleOrderByColumnInvoked(sqliteColumn: SqliteColumn) {
@@ -272,7 +275,11 @@ class TableController(
     }
 
     override fun updateCellInvoked(targetRowIndex: Int, targetColumn: SqliteColumn, newValue: SqliteValue) {
-      require(table != null) { "Table is null, can't update." }
+      val table = tableSupplier()
+      if (table == null) {
+        view.reportError("Can't update. Table not found.", null)
+        return
+      }
 
       val targetRow = currentRows[targetRowIndex]
       val rowIdColumnValue = targetRow.values.firstOrNull { it.columnName == table.rowIdName?.stringName }
@@ -321,3 +328,5 @@ class TableController(
 }
 
 data class OrderBy(val column: SqliteColumn, val asc: Boolean)
+
+data class TableInfo(val database: SqliteDatabase, val tableName: String)

@@ -286,7 +286,7 @@ class DatabaseInspectorControllerImpl(
 
       val tableController = TableController(
         view = tableView,
-        table = table,
+        tableSupplier = { model.openDatabases[database]?.tables?.firstOrNull{ it.name == table.name } },
         databaseConnection = databaseConnection,
         sqliteStatement = SqliteStatement(selectAllAndRowIdFromTable(table)),
         edtExecutor = edtExecutor
