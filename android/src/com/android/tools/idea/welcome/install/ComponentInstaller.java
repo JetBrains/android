@@ -78,8 +78,7 @@ public final class ComponentInstaller {
     sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progress.createSubProgress(1), null, null);
   }
 
-  public void ensureSdkPackagesUninstalled(@NotNull Collection<String> packageNames, @NotNull ProgressIndicator progress)
-    throws WizardException {
+  public void ensureSdkPackagesUninstalled(@NotNull Collection<String> packageNames, @NotNull ProgressIndicator progress) {
     RepoManager sdkManager = mySdkHandler.getSdkManager(progress);
     RepositoryPackages packages = sdkManager.getPackages();
     Map<String, LocalPackage> localPackages = packages.getLocalPackages();
