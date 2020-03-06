@@ -1048,13 +1048,13 @@ public class AndroidStudioSystemHealthMonitor extends PreloadingActivity {
     Package classPackage = cls.getPackage();
     String packageName = classPackage != null ? classPackage.getName() : "";
     if (packageName.startsWith("com.android.") || packageName.startsWith("com.intellij.") || packageName.startsWith("org.jetbrains.") ||
-        packageName.startsWith("or.intellij.") || packageName.startsWith("com.jetbrains.") || packageName.startsWith("git4idea.")) {
+        packageName.startsWith("org.intellij.") || packageName.startsWith("com.jetbrains.") || packageName.startsWith("git4idea.")) {
 
       String actionName = cls.getSimpleName();
-      Class parentClass = cls.getDeclaringClass();
+      Class parentClass = cls.getEnclosingClass();
       while (parentClass != null) {
         actionName = String.format("%s.%s", parentClass.getSimpleName(), actionName);
-        parentClass = parentClass.getDeclaringClass();
+        parentClass = parentClass.getEnclosingClass();
       }
       return actionName;
     }
