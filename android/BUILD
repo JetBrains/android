@@ -179,8 +179,6 @@ iml_module(
         "gradle": {
             "shard_count": 10,
             "data": ["//prebuilts/studio/sdk:ndk"],
-            # WIP: many sync errors with dependencies, but some others related to paths, etc.
-            "tags": ["no_windows"],
             "test_filter": "com.android.tools.idea.gradle",
         },
         "gradle.structure": {
@@ -206,6 +204,25 @@ iml_module(
             # Timeout waiting to lock Artifact transforms cache
             "tags": ["no_windows"],
             "test_filter": "com.android.tools.idea.gradle.structure.model.android",
+        },
+        "gradle.project.sync": {
+            "shard_count": 5,
+            "data": ["//prebuilts/studio/sdk:ndk"],
+            # Mismatches from ProjectDumper, and sync errors with C compiler
+            "tags": ["no_windows"],
+            "test_filter": "com.android.tools.idea.gradle.project.sync",
+        },
+        "gradle.project.model.NdkModuleModelTest.testVariantAbiNames": {
+            "data": ["//prebuilts/studio/sdk:ndk"],
+            # Sync issues
+            "tags": ["no_windows"],
+            "test_filter": "com.android.tools.idea.gradle.project.model.NdkModuleModelTest.testVariantAbiNames",
+        },
+        "gradle.variant.view.BuildVariantUpdaterIntegTest": {
+            "data": ["//prebuilts/studio/sdk:ndk"],
+            # Sync issues
+            "tags": ["no_windows"],
+            "test_filter": "com.android.tools.idea.gradle.variant.view.BuildVariantUpdaterIntegTest",
         },
         "avd": {
             "test_filter": "com.android.tools.idea.avdmanager",
