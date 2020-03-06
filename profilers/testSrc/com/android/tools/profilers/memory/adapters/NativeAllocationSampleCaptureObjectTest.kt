@@ -79,4 +79,15 @@ class NativeAllocationSampleCaptureObjectTest {
     assertThat(capture.isDoneLoading).isTrue()
     assertThat(capture.isError).isFalse()
   }
+
+  @Test
+  @Throws(Exception::class)
+  fun noContentFailsToLoad() {
+    val startTimeNs: Long = 3
+    val endTimeNs: Long = 8
+    val info = Memory.MemoryNativeSampleData.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build()
+    val capture = NativeAllocationSampleCaptureObject(ProfilerClient(grpcChannel.name), ProfilersTestData.SESSION_DATA, info, stage!!)
+    assertThat(capture.load(null, null)).isFalse()
+    assertThat(capture.isError).isTrue()
+  }
 }
