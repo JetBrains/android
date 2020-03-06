@@ -109,9 +109,7 @@ public class TaskIssueInfoPanel extends JBPanel {
   protected JComponent createRecommendation() {
     JPanel panel = new JPanel(new VerticalLayout(5));
     panel.add(new JBLabel("Recommendation").withFont(JBFont.label().asBold()));
-    // Have to add empty 2px left border in order to align text with the following HyperlinkLabel.
     JLabel recommendation = createRecommendationTextLabel();
-    recommendation.setBorder(JBUI.Borders.emptyLeft(2));
     panel.add(recommendation);
     if (myTaskData.getSourceType() != PluginSourceType.BUILD_SRC) {
       panel.add(createReportLinkLabel());
@@ -124,7 +122,12 @@ public class TaskIssueInfoPanel extends JBPanel {
   }
 
   private HyperlinkLabel createReportLinkLabel() {
-    HyperlinkLabel recommendationLabel = new HyperlinkLabel();
+    HyperlinkLabel recommendationLabel = new HyperlinkLabel() {
+      @Override
+      protected int getTextOffset() {
+        return 0;
+      }
+    };
     recommendationLabel.addHyperlinkListener(e -> {
       myAnalytics.bugReportLinkClicked();
       myIssueReporter.reportIssue(myIssue);
