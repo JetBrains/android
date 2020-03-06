@@ -18,12 +18,14 @@ package com.android.tools.idea.welcome.install
 import com.android.sdklib.devices.Storage
 import com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode
 import com.android.tools.idea.avdmanager.AvdManagerConnection
+import com.android.tools.idea.welcome.wizard.HaxmUninstallInfoStep
 import com.android.tools.idea.observable.core.IntProperty
 import com.android.tools.idea.observable.core.IntValueProperty
 import com.android.tools.idea.welcome.wizard.deprecated.HaxmInstallSettingsStep
 import com.android.tools.idea.welcome.wizard.deprecated.VmUninstallInfoStep
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStep
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore
+import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.openapi.util.SystemInfo
 import java.io.File
@@ -56,6 +58,10 @@ class Haxm(
   override fun createSteps(): Collection<DynamicWizardStep> =
     setOf(if (installationIntention === InstallationIntention.UNINSTALL) VmUninstallInfoStep(VmType.HAXM)
           else HaxmInstallSettingsStep(isCustomInstall, willBeInstalled, emulatorMemoryMb))
+
+  override val steps: Collection<ModelWizardStep<*>>
+    get() = setOf(if (installationIntention == InstallationIntention.UNINSTALL) HaxmUninstallInfoStep(VmType.HAXM)
+            else com.android.tools.idea.welcome.wizard.HaxmInstallSettingsStep(emulatorMemoryMb))
 
   /**
    * Create a platform-dependant command line for running the silent HAXM installer.

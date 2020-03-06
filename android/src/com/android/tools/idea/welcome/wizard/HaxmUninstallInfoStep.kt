@@ -16,6 +16,7 @@
 package com.android.tools.idea.welcome.wizard
 
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll
+import com.android.tools.idea.welcome.install.VmType
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.intellij.uiDesigner.core.Spacer
 import com.intellij.ui.layout.panel
@@ -25,10 +26,12 @@ import com.intellij.ui.layout.panel
  * It is here just to make sure we don't run uninstallation operations straight away as the first wizard step,
  * as this would not be in line with common wizard conventions.
  */
-class HaxmUninstallInfoStep : ModelWizardStep.WithoutModel("Uninstalling HAXM") {
+class HaxmUninstallInfoStep(
+  type: VmType = VmType.HAXM
+) : ModelWizardStep.WithoutModel("Uninstalling $type") {
   private val panel = panel {
     row {
-      label("This wizard will execute HAXM stand-alone uninstaller. This is an additional step required to remove this package.")
+      label("This wizard will execute $type stand-alone uninstaller. This is an additional step required to remove this package.")
     }
     row {
       Spacer()()

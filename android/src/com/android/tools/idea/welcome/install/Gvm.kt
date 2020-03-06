@@ -16,10 +16,14 @@
 package com.android.tools.idea.welcome.install
 
 import com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode
+import com.android.tools.idea.observable.core.IntValueProperty
 import com.android.tools.idea.welcome.install.InstallationIntention.UNINSTALL
+import com.android.tools.idea.welcome.wizard.HaxmInstallSettingsStep
+import com.android.tools.idea.welcome.wizard.HaxmUninstallInfoStep
 import com.android.tools.idea.welcome.wizard.deprecated.GvmInstallInfoStep
 import com.android.tools.idea.welcome.wizard.deprecated.VmUninstallInfoStep
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore
+import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.intellij.openapi.util.SystemInfo
 
 /**
@@ -31,6 +35,9 @@ class Gvm(
 ) : Vm(Gvm, installationIntention, isCustomInstall) {
   override val filePrefix = "gvm"
   override val installUrl = GVM_WINDOWS_INSTALL_URL
+  override val steps: Collection<ModelWizardStep<*>>
+    get() = setOf(if (installationIntention == UNINSTALL) HaxmUninstallInfoStep(VmType.GVM)
+            else HaxmInstallSettingsStep(IntValueProperty(1024))) // FIXME
 
   override fun createSteps() =
     setOf(if (installationIntention === UNINSTALL) VmUninstallInfoStep(VmType.GVM)
