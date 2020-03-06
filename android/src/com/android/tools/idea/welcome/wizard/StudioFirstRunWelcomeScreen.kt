@@ -81,7 +81,7 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode) : Welcom
       // TODO(qumeric): add support for MISSING_SDK case and for INSTALL_HANDOFF
       //addStep(LicenseAgreementStep())
       //if(SystemInfo.isMac || SystemInfo.isWindows) {
-      addStep(HaxmUninstallInfoStep())
+      addStep(VmUninstallInfoStep())
       //}
       // if (mode != FirstRunWizardMode.INSTALL_HANDOFF) {
       //addStep(LicenseAgreementStep(LicenseAgreementModel(sdkManagerLocalPath), listOf()))
