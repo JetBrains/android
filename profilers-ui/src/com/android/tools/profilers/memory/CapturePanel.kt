@@ -215,7 +215,7 @@ private class CapturePanelUi(private val myStage: MemoryProfilerStage,
   private fun countLeaks(): Int? {
     val captureObject = myStage.selectedCapture!!
     return captureObject.findLeakFilter()
-      ?.filter(captureObject.instances.collect(Collectors.toSet()), captureObject.classDatabase)
+      ?.filter(captureObject.instances.collect(Collectors.toSet()))
       ?.size
   }
 

@@ -78,8 +78,8 @@ public class ActivityFragmentLeakInstanceFilterTest {
                                                     nonLeakingSubClassActivity2,
                                                     unrelatedClassInstance);
 
-    ActivityFragmentLeakInstanceFilter filter = new ActivityFragmentLeakInstanceFilter();
-    Set<InstanceObject> result = filter.filter(instances, capture.getClassDatabase());
+    ActivityFragmentLeakInstanceFilter filter = new ActivityFragmentLeakInstanceFilter(capture.getClassDatabase());
+    Set<InstanceObject> result = filter.filter(instances);
     assertThat(result).containsExactly(leakingBaseClassActivity, leakingSubClassActivity);
   }
 
@@ -135,8 +135,8 @@ public class ActivityFragmentLeakInstanceFilterTest {
                                                     leakingSupportBaseNativeFragment,
                                                     nonleakingAndroidXBaseNativeFragment);
 
-    ActivityFragmentLeakInstanceFilter filter = new ActivityFragmentLeakInstanceFilter();
-    Set<InstanceObject> result = filter.filter(instances, capture.getClassDatabase());
+    ActivityFragmentLeakInstanceFilter filter = new ActivityFragmentLeakInstanceFilter(capture.getClassDatabase());
+    Set<InstanceObject> result = filter.filter(instances);
     assertThat(result).containsExactly(leakingNativeBaseNativeFragment, leakingSubClassNativeFragment, leakingSupportBaseNativeFragment);
   }
 }

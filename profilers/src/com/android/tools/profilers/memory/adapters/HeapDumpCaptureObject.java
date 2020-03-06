@@ -122,7 +122,7 @@ public class HeapDumpCaptureObject implements CaptureObject {
     myFeatureTracker = featureTracker;
     myStage = stage;
 
-    mySupportedInstanceFilters = ImmutableSet.of(new ActivityFragmentLeakInstanceFilter(),
+    mySupportedInstanceFilters = ImmutableSet.of(new ActivityFragmentLeakInstanceFilter(myClassDb),
                                                  new ProjectClassesInstanceFilter(myStage.getStudioProfilers().getIdeServices()));
   }
 
@@ -339,7 +339,7 @@ public class HeapDumpCaptureObject implements CaptureObject {
       // Run the analyzers on the currently existing InstanceObjects in the HeapSets.
       Set<InstanceObject> currentInstances =
         myHeapSets.values().stream().flatMap(HeapSet::getInstancesStream).collect(Collectors.toSet());
-      refreshInstances(filterToAdd.filter(currentInstances, myClassDb), analyzeJoiner);
+      refreshInstances(filterToAdd.filter(currentInstances), analyzeJoiner);
     });
   }
 
@@ -357,7 +357,7 @@ public class HeapDumpCaptureObject implements CaptureObject {
       // HeapSets using the filter that we are removing.
       Set<InstanceObject> matchedInstances = getAllInstances();
       for (CaptureObjectInstanceFilter filter : myCurrentInstanceFilters) {
-        matchedInstances = filter.filter(matchedInstances, myClassDb);
+        matchedInstances = filter.filter(matchedInstances);
       }
 
       refreshInstances(matchedInstances, analyzeJoiner);
@@ -369,7 +369,7 @@ public class HeapDumpCaptureObject implements CaptureObject {
     myCurrentInstanceFilters.clear();
     myCurrentInstanceFilters.add(filter);
     myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_HEAP_UPDATING);
-    myExecutorService.execute(() -> refreshInstances(filter.filter(getAllInstances(), myClassDb), analyzeJoiner));
+    myExecutorService.execute(() -> refreshInstances(filter.filter(getAllInstances()), analyzeJoiner));
   }
 
   @Override
