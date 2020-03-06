@@ -40,7 +40,7 @@ import com.intellij.ui.layout.panel
  */
 class InstallSummaryStep(
   private val model: FirstRunModel,
-  private val packagesProvider: Supplier<out Collection<RemotePackage>>
+  private val packagesProvider: Supplier<out Collection<RemotePackage>?>
 ) : ModelWizardStep<FirstRunModel>(model, "Verify Settings") {
   private val summaryText = JTextPane().apply {
     isEditable = false
