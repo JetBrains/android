@@ -19,10 +19,7 @@ import com.android.annotations.concurrency.AnyThread
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
-import com.intellij.ui.table.JBTable
-import com.intellij.util.ui.JBUI
 import java.util.concurrent.CancellationException
-import kotlin.math.max
 
 @AnyThread
 internal fun notifyError(message: String, t: Throwable?) {
@@ -33,7 +30,7 @@ internal fun notifyError(message: String, t: Throwable?) {
   var errorMessage = message
   t?.message?.let { errorMessage += ": " + t.message }
 
-  val notification = Notification("Sqlite Viewer", "Sqlite Viewer", errorMessage, NotificationType.WARNING)
+  val notification = Notification("Database Inspector", "Database Inspector", errorMessage, NotificationType.WARNING)
 
   Notifications.Bus.notify(notification)
 }

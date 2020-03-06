@@ -70,7 +70,7 @@ interface DatabaseInspectorView {
 
   fun reportSyncProgress(message: String)
 
-  fun reportError(message: String, t: Throwable)
+  fun reportError(message: String, throwable: Throwable?)
 
   interface Listener {
     /** Called when the user wants to open a table */
