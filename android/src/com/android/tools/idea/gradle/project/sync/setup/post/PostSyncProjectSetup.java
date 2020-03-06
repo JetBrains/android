@@ -39,7 +39,6 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
-import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupIssues;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
@@ -89,7 +88,6 @@ public class PostSyncProjectSetup {
   @NotNull private final GradleProjectInfo myGradleProjectInfo;
   @NotNull private final GradleSyncInvoker mySyncInvoker;
   @NotNull private final GradleSyncState mySyncState;
-  @NotNull private final DependencySetupIssues myDependencySetupIssues;
   @NotNull private final ProjectSetup myProjectSetup;
   @NotNull private final RunManagerEx myRunManager;
 
@@ -105,9 +103,8 @@ public class PostSyncProjectSetup {
                               @NotNull GradleProjectInfo gradleProjectInfo,
                               @NotNull GradleSyncInvoker syncInvoker,
                               @NotNull GradleSyncState syncState,
-                              @NotNull GradleSyncMessages syncMessages,
-                              @NotNull DependencySetupIssues dependencySetupIssues) {
-    this(project, ideInfo, projectStructure, gradleProjectInfo, syncInvoker, syncState, dependencySetupIssues, new ProjectSetup(project),
+                              @NotNull GradleSyncMessages syncMessages) {
+    this(project, ideInfo, projectStructure, gradleProjectInfo, syncInvoker, syncState, new ProjectSetup(project),
          RunManagerEx.getInstanceEx(project));
   }
 
@@ -119,7 +116,6 @@ public class PostSyncProjectSetup {
                        @NotNull GradleProjectInfo gradleProjectInfo,
                        @NotNull GradleSyncInvoker syncInvoker,
                        @NotNull GradleSyncState syncState,
-                       @NotNull DependencySetupIssues dependencySetupIssues,
                        @NotNull ProjectSetup projectSetup,
                        @NotNull RunManagerEx runManager) {
     myProject = project;
@@ -128,7 +124,6 @@ public class PostSyncProjectSetup {
     myGradleProjectInfo = gradleProjectInfo;
     mySyncInvoker = syncInvoker;
     mySyncState = syncState;
-    myDependencySetupIssues = dependencySetupIssues;
     myProjectSetup = projectSetup;
     myRunManager = runManager;
   }
@@ -151,8 +146,6 @@ public class PostSyncProjectSetup {
         onCachedModelsSetupFailure(taskId, request);
         return;
       }
-
-      myDependencySetupIssues.reportIssues();
 
       if (mySyncState.lastSyncFailed()) {
         failTestsIfSyncIssuesPresent();
