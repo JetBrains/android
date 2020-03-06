@@ -119,8 +119,7 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
         }
       }
 
-      //TODO(b/130224064): PSD is empty for projects with KTS at this moment. Need to remove kts check when fixed
-      if (IdeInfo.getInstance().isAndroidStudio() && buildFileMap.values().stream().noneMatch(GradleUtil::isKtsFile)) {
+      if (IdeInfo.getInstance().isAndroidStudio()) {
         if (coordinate != null) {
           quickFixes.add(new ShowDependencyInProjectStructureHyperlink(module, coordinate));
         }
