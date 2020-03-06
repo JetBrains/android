@@ -20,6 +20,11 @@ android {
     buildFeatures {
         dataBinding = true
     }
+    sourceSets {
+        main {
+            res.srcDirs += ['src/main/res-alt']
+        }
+    }
 }
 
 dependencies {
