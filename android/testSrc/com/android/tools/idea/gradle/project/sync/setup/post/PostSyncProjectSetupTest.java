@@ -31,7 +31,6 @@ import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupIssues;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
@@ -61,7 +60,6 @@ public class PostSyncProjectSetupTest extends PlatformTestCase {
   @Mock private GradleProjectInfo myGradleProjectInfo;
   @Mock private GradleSyncInvoker mySyncInvoker;
   @Mock private GradleSyncState mySyncState;
-  @Mock private DependencySetupIssues myDependencySetupIssues;
   @Mock private ProjectSetup myProjectSetup;
   @Mock private GradleProjectBuilder myProjectBuilder;
   @Mock private RunManagerEx myRunManager;
@@ -82,7 +80,7 @@ public class PostSyncProjectSetupTest extends PlatformTestCase {
 
     ProjectStructureStub projectStructure = new ProjectStructureStub(project);
     mySetup = new PostSyncProjectSetup(project, myIdeInfo, projectStructure, myGradleProjectInfo, mySyncInvoker, mySyncState,
-                                       myDependencySetupIssues, myProjectSetup, myRunManager);
+                                       myProjectSetup, myRunManager);
   }
 
   @Override
@@ -177,8 +175,6 @@ public class PostSyncProjectSetupTest extends PlatformTestCase {
 
     PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
     mySetup.setUpProject(request, myTaskId, null);
-
-    verify(myDependencySetupIssues, times(1)).reportIssues();
 
     verify(myProjectSetup, times(1)).setUpProject(true);
     verify(mySyncState, times(1)).syncFailed(any(), any(), any());
