@@ -21,11 +21,11 @@ import com.android.tools.idea.wizard.model.WizardModel;
 import com.intellij.ide.IdeView;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiManager;
 import java.io.File;
 import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
@@ -41,14 +41,12 @@ public class MlWizardModel extends WizardModel {
    */
   @NotNull
   private final File myMlDirectory;
-  private final IdeView myIdeView;
   private final Project myProject;
 
   public final StringValueProperty sourceLocation = new StringValueProperty();
 
-  public MlWizardModel(@NotNull File mlDirectory, @Nullable Project project, @Nullable IdeView ideView) {
+  public MlWizardModel(@NotNull File mlDirectory, @Nullable Project project) {
     myMlDirectory = mlDirectory;
-    myIdeView = ideView;
     myProject = project;
   }
 
@@ -61,10 +59,10 @@ public class MlWizardModel extends WizardModel {
         try {
           VirtualFile toDir = VfsUtil.createDirectoryIfMissing(myMlDirectory.getAbsolutePath());
           if (fromFile != null && toDir != null) {
-            // Navigate to imported model file.
             VirtualFile virtualFile = VfsUtilCore.copyFile(this, fromFile, toDir);
-            if (myProject != null && myIdeView != null) {
-              myIdeView.selectElement(PsiManager.getInstance(myProject).findFile(virtualFile));
+            FileEditorManager fileEditorManager = FileEditorManager.getInstance(myProject);
+            if (fileEditorManager != null) {
+              fileEditorManager.openFile(virtualFile, true);
             }
           }
         }
