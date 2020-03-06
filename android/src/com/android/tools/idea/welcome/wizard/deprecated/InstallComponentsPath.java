@@ -119,7 +119,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
                     new StudioProgressRunner(true, false, "Finding Available SDK Components", null),
                     new StudioDownloader(), StudioSettingsController.getInstance(), true);
     Map<String, RemotePackage> remotePackages = sdkManager.getPackages().getRemotePackages();
-    ComponentTreeNode platforms = Platform.createSubtree(remotePackages, myInstallUpdates);
+    ComponentTreeNode platforms = Platform.Companion.createSubtree(remotePackages, myInstallUpdates);
     if (platforms != null) {
       components.add(platforms);
     }
