@@ -21,9 +21,7 @@ import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
-import static com.android.testutils.TestUtils.getKotlinVersionForTests;
 import static com.android.testutils.TestUtils.getWorkspaceFile;
-import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.io.Files.write;
 import static com.google.common.truth.Truth.assertAbout;
@@ -39,6 +37,7 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
+import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -57,9 +56,9 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.testFramework.EdtTestUtil;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
-import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import com.intellij.util.ThrowableConsumer;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -72,12 +71,6 @@ import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.android.SdkConstants.DOT_GRADLE;
-import static com.android.SdkConstants.EXT_GRADLE_KTS;
-import static com.android.testutils.TestUtils.getWorkspaceFile;
-import static com.google.common.io.Files.write;
-import static com.intellij.openapi.util.io.FileUtil.notNullize;
 
 public class AndroidGradleTests {
   private static final Logger LOG = Logger.getInstance(AndroidGradleTests.class);
@@ -214,6 +207,23 @@ public class AndroidGradleTests {
     assertAbout(file()).that(sdkPath).named("Android SDK path").isDirectory();
     localProperties.setAndroidSdkPath(sdkPath.getPath());
     localProperties.save();
+  }
+
+  /**
+   * Prevents leaking classloaders in gradle daemon
+   */
+  public static void applyUglyWorkaroundForMetaspaceOOMInGradleDaemon(File projectRoot) throws IOException {
+    File projectBuildGradle = new File(projectRoot, "build.gradle");
+    assertAbout(file()).that(projectBuildGradle).isFile();
+    try (FileOutputStream out = new FileOutputStream(projectBuildGradle, true)) {
+      out.write("\n\n// Ugly workaround for OOME:Metaspace in Gradle daemon\n".getBytes(Charsets.UTF_8));
+      out.write(("gradle.services.get(org.gradle.tooling.internal.provider.serialization.PayloadSerializer.class)\n" +
+                 "  .classLoaderRegistry.delegate.cache.classLoaderIds.localCache.values()\n" +
+                 "  .each {\n" +
+                 "    if (it.hasProperty('name') && it.name == 'client-owned-daemon-payload-loader')\n" +
+                 "      it.loadClass('org.gradle.tooling.internal.adapter.ProtocolToModelAdapter').newInstance().REFLECTION_METHOD_INVOKER.lookupCache.store.clear()\n" +
+                 "  }").getBytes(Charsets.UTF_8));
+    }
   }
 
   @NotNull
