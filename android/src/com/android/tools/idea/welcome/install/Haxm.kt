@@ -83,7 +83,7 @@ class Haxm(
     override val vendor = "intel"
     override val installSolution = SolutionCode.INSTALL_HAXM
     override val reinstallSolution = SolutionCode.REINSTALL_HAXM
-    override val compatibleSystem = SystemInfo.isMac || (SystemInfo.isWindows && CpuVendor.isIntel())
+    override val compatibleSystem = SystemInfo.isMac || (SystemInfo.isWindows && CpuVendor.isIntel)
     override val componentPath = "Hardware_Accelerated_Execution_Manager"
   }
 }
