@@ -23,8 +23,6 @@ import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.EmptySqliteResultSet
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
-import com.android.tools.idea.sqlite.model.SqliteAffinity
-import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.google.common.util.concurrent.Futures
@@ -66,15 +64,8 @@ class LiveDatabaseConnection(
     return taskExecutor.transform(responseFuture) {
       val queryResponse = SqliteInspectorProtocol.Response.parseFrom(it).query
 
-      val sqliteColumns = queryResponse.columnNamesList.map { columnName ->
-        // TODO(blocked): add support for primary keys
-        // TODO(blocked): add support for NOT NULL
-        // TODO(blocked): we need to get affinity info from the on device inspector.
-        SqliteColumn(columnName, SqliteAffinity.TEXT, false, false)
-      }
-
-      val resultSet = if (sqliteColumns.isNotEmpty()) {
-        LiveSqliteResultSet(sqliteColumns, sqliteStatement, messenger, id, taskExecutor)
+      val resultSet = if (queryResponse.columnNamesList.isNotEmpty()) {
+        LiveSqliteResultSet(sqliteStatement, messenger, id, taskExecutor)
       }
       else {
         EmptySqliteResultSet()

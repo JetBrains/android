@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite.databaseConnection.live
 
 import androidx.sqlite.inspection.SqliteInspectorProtocol
 import com.android.testutils.MockitoKt
+import com.android.testutils.MockitoKt.any
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFutureException
@@ -31,18 +32,24 @@ import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.LightPlatformTestCase.assertThrows
 import org.jetbrains.ide.PooledThreadExecutor
 import org.mockito.Mockito
+import org.mockito.Mockito.`when`
 
 class LiveSqliteResultSetTest : LightPlatformTestCase() {
   private val taskExecutor: FutureCallbackExecutor = FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE)
 
   fun testColumnsReturnCorrectListOfColumns() {
     // Prepare
-    val columns = listOf(
-      SqliteColumn("col1", SqliteAffinity.TEXT, false, true),
-      SqliteColumn("col2", SqliteAffinity.INTEGER, true, false)
-    )
+    val columnNames = listOf("col1", "col2")
+
+    val cursor = SqliteInspectorProtocol.Response.newBuilder()
+      .setQuery(SqliteInspectorProtocol.QueryResponse.newBuilder().addAllColumnNames(columnNames))
+      .build()
+
     val mockMessenger = Mockito.mock(AppInspectorClient.CommandMessenger::class.java)
-    val resultSet = LiveSqliteResultSet(columns, SqliteStatement("SELECT"), mockMessenger, 0, taskExecutor)
+    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java)))
+      .thenReturn(Futures.immediateFuture(cursor.toByteArray()))
+
+    val resultSet = LiveSqliteResultSet(SqliteStatement("SELECT"), mockMessenger, 0, taskExecutor)
 
     // Act
     val columnsFromResultSet = pumpEventsAndWaitForFuture(resultSet.columns)
@@ -50,8 +57,8 @@ class LiveSqliteResultSetTest : LightPlatformTestCase() {
     // Assert
     assertEquals(
       listOf(
-        SqliteColumn("col1", SqliteAffinity.TEXT, false, true),
-        SqliteColumn("col2", SqliteAffinity.INTEGER, true, false)
+        SqliteColumn("col1", SqliteAffinity.TEXT, false, false),
+        SqliteColumn("col2", SqliteAffinity.TEXT, false, false)
       ),
       columnsFromResultSet
     )
@@ -77,11 +84,7 @@ class LiveSqliteResultSetTest : LightPlatformTestCase() {
     Mockito.`when`(mockMessenger.sendRawCommand(MockitoKt.any(ByteArray::class.java)))
       .thenReturn(Futures.immediateFuture(cursor.toByteArray()))
 
-    val columns = listOf(
-      SqliteColumn("col1", SqliteAffinity.TEXT, false, true),
-      SqliteColumn("col2", SqliteAffinity.INTEGER, true, false)
-    )
-    val resultSet = LiveSqliteResultSet(columns, SqliteStatement("SELECT"), mockMessenger, 0, taskExecutor)
+    val resultSet = LiveSqliteResultSet(SqliteStatement("SELECT"), mockMessenger, 0, taskExecutor)
 
     // Act
     val rowCount = pumpEventsAndWaitForFuture(resultSet.totalRowCount)
@@ -102,11 +105,7 @@ class LiveSqliteResultSetTest : LightPlatformTestCase() {
     Mockito.`when`(mockMessenger.sendRawCommand(MockitoKt.any(ByteArray::class.java)))
       .thenReturn(Futures.immediateFuture(cursor.toByteArray()))
 
-    val columns = listOf(
-      SqliteColumn("col1", SqliteAffinity.TEXT, false, true),
-      SqliteColumn("col2", SqliteAffinity.INTEGER, true, false)
-    )
-    val resultSet = LiveSqliteResultSet(columns, SqliteStatement("SELECT COUNT(*) FROM (query)"), mockMessenger, 0, taskExecutor)
+    val resultSet = LiveSqliteResultSet(SqliteStatement("SELECT COUNT(*) FROM (query)"), mockMessenger, 0, taskExecutor)
     Disposer.register(project, resultSet)
 
     // Act / Assert
@@ -136,11 +135,7 @@ class LiveSqliteResultSetTest : LightPlatformTestCase() {
     Mockito.`when`(mockMessenger.sendRawCommand(MockitoKt.any(ByteArray::class.java)))
       .thenReturn(Futures.immediateFuture(cursor.toByteArray()))
 
-    val columns = listOf(
-      SqliteColumn("col1", SqliteAffinity.TEXT, false, true),
-      SqliteColumn("col2", SqliteAffinity.INTEGER, true, false)
-    )
-    val resultSet = LiveSqliteResultSet(columns, SqliteStatement("SELECT"), mockMessenger, 0, taskExecutor)
+    val resultSet = LiveSqliteResultSet(SqliteStatement("SELECT"), mockMessenger, 0, taskExecutor)
 
     // Act
     // Since we are mocking the answer the values passed to getRowBatch don't matter.
@@ -164,11 +159,7 @@ class LiveSqliteResultSetTest : LightPlatformTestCase() {
     Mockito.`when`(mockMessenger.sendRawCommand(MockitoKt.any(ByteArray::class.java)))
       .thenReturn(Futures.immediateFuture(cursor.toByteArray()))
 
-    val columns = listOf(
-      SqliteColumn("col1", SqliteAffinity.TEXT, false, true),
-      SqliteColumn("col2", SqliteAffinity.INTEGER, true, false)
-    )
-    val resultSet = LiveSqliteResultSet(columns, SqliteStatement("SELECT"), mockMessenger, 0, taskExecutor)
+    val resultSet = LiveSqliteResultSet(SqliteStatement("SELECT"), mockMessenger, 0, taskExecutor)
     Disposer.register(project, resultSet)
 
     // Act / Assert
@@ -188,11 +179,7 @@ class LiveSqliteResultSetTest : LightPlatformTestCase() {
     Mockito.`when`(mockMessenger.sendRawCommand(MockitoKt.any(ByteArray::class.java)))
       .thenReturn(Futures.immediateFuture(cursor.toByteArray()))
 
-    val columns = listOf(
-      SqliteColumn("col1", SqliteAffinity.TEXT, false, true),
-      SqliteColumn("col2", SqliteAffinity.INTEGER, true, false)
-    )
-    val resultSet = LiveSqliteResultSet(columns, SqliteStatement("SELECT"), mockMessenger, 0, taskExecutor)
+    val resultSet = LiveSqliteResultSet(SqliteStatement("SELECT"), mockMessenger, 0, taskExecutor)
 
     // Act / Assert
     assertThrows<IllegalArgumentException>(IllegalArgumentException::class.java) {
@@ -212,11 +199,7 @@ class LiveSqliteResultSetTest : LightPlatformTestCase() {
     Mockito.`when`(mockMessenger.sendRawCommand(MockitoKt.any(ByteArray::class.java)))
       .thenReturn(Futures.immediateFuture(cursor.toByteArray()))
 
-    val columns = listOf(
-      SqliteColumn("col1", SqliteAffinity.TEXT, false, true),
-      SqliteColumn("col2", SqliteAffinity.INTEGER, true, false)
-    )
-    val resultSet = LiveSqliteResultSet(columns, SqliteStatement("SELECT"), mockMessenger, 0, taskExecutor)
+    val resultSet = LiveSqliteResultSet(SqliteStatement("SELECT"), mockMessenger, 0, taskExecutor)
 
     // Act / Assert
     assertThrows<IllegalArgumentException>(IllegalArgumentException::class.java) {
