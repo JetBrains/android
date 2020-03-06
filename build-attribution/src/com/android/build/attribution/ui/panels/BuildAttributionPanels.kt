@@ -164,7 +164,7 @@ else {
 /**
  * Wraps long path to spans to make it possible to auto-wrap to a new line
  */
-private fun wrapPathToSpans(text: String): String = "<p>${text.replace("/", "<span>/</span>")}</p>"
+fun wrapPathToSpans(text: String): String = "<p>${text.replace("/", "<span>/</span>")}</p>"
 
 fun verticalRuler(): JPanel = JBPanel<JBPanel<*>>()
   .withBackground(OnePixelDivider.BACKGROUND)
