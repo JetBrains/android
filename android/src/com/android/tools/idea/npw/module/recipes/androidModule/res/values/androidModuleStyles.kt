@@ -21,9 +21,9 @@ fun androidModuleStyles(): String = """
   <!-- Base application theme. -->
   <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
       <!-- Customize your theme here. -->
-      <item name="colorPrimary">@color/colorPrimary</item>
-      <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-      <item name="colorAccent">@color/colorAccent</item>
+      <item name="colorPrimary">@color/purple500</item>
+      <item name="colorPrimaryDark">@color/purple700</item>
+      <item name="colorAccent">@color/teal200</item>
   </style>
 
 </resources>
