@@ -361,7 +361,7 @@ class ClangOutputParserTest {
         "[:app Debug x86_64]" to """
            C:\sdk\ndk-bundle\toolchains\llvm\prebuilt\windows-x86_64\lib\gcc\arm-linux-androideabi\4.9.x\bin\ld: fatal error: C:\build\intermediates\cmake\debug\obj\armeabi-v7a\libcore.so: open: Invalid argument
     
-           File C:\build\intermediates\cmake\debug\obj\armeabi-v7a\libcore.so is not writable. This may be caused by insufficient permissions or files being locked by other processes. For example, LLDB locks .so files in a while debugging.
+           File C:\build\intermediates\cmake\debug\obj\armeabi-v7a\libcore.so is not writable. This may be caused by insufficient permissions or files being locked by other processes. For example, LLDB locks .so files while debugging.
         """.trimIndent()
       )
     }
@@ -400,7 +400,7 @@ class ClangOutputParserTest {
     * ninja: Entering directory `C:\src\HelloWorld\app\.cxx\cmake\debug\arm64-v8a'
     * [1/1] Building CXX object HelloWorld.cpp.o
     * In file included from ../../../../HelloWorld.cpp:14:
-    * ../../path;with;invalid;char;.h:72:1: error: C++ requires a type specifier for all declarations
+    * ../../path?with?invalid?char?.h:72:1: error: C++ requires a type specifier for all declarations
     * blah;
     * ^
     * 1 error generated.
