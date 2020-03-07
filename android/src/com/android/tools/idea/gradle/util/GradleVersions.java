@@ -38,7 +38,7 @@ import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRA
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 
 public class GradleVersions {
-  private static final Pattern GRADLE_JAR_NAME_PATTERN = Pattern.compile("gradle-core-(.*)\\.jar");
+  private static final Pattern GRADLE_JAR_NAME_PATTERN = Pattern.compile("gradle-core-(\\d+(\\.\\d+)*).*\\.jar");
 
   @NotNull private final GradleProjectSettingsFinder mySettingsFinder;
 
@@ -122,8 +122,7 @@ public class GradleVersions {
     Matcher matcher = GRADLE_JAR_NAME_PATTERN.matcher(fileName);
     if (matcher.matches()) {
       // Obtain the version of Gradle from a library name (e.g. "gradle-core-2.0.jar")
-      String version = matcher.group(1);
-      return GradleVersion.tryParse(removeTimestampFromGradleVersion(version));
+      return GradleVersion.tryParse(matcher.group(1));
     }
     return null;
   }
@@ -141,6 +140,7 @@ public class GradleVersions {
 
   /**
    * Verifies if Gradle version used by project is 4.0 or newer
+   *
    * @return {@code true} if version is 4.0 or newer, {@code false} if version is lower or it is {@code null}
    */
   public boolean isGradle4OrNewer(@NotNull Project project) {
