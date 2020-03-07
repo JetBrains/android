@@ -18,6 +18,8 @@ package com.android.tools.idea.profilers.perfetto.traceprocessor
 import com.android.tools.profiler.perfetto.proto.Memory
 import com.android.tools.profilers.memory.adapters.FakeCaptureObject
 import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapSet
+import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer
+import com.google.common.collect.Maps.newHashMap
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Test
@@ -34,7 +36,9 @@ class HeapProfdConverterTest {
                    .setName("Frame 1"))
       .addFrames(Memory.StackFrame.newBuilder()
                    .setId(2)
-                   .setName("Frame 1A"))
+                   .setName("Frame 1A")
+                   .setModule("TestModule")
+                   .setRelPc(1234))
       .addPointers(Memory.StackPointer.newBuilder()
                      .setId(1)
                      .setFrameId(1))
@@ -65,7 +69,9 @@ class HeapProfdConverterTest {
   @Test
   fun heapSetConversion() {
     val nativeHeapSet = NativeMemoryHeapSet(FakeCaptureObject.Builder().build())
-    val heapProfdConverter = HeapProfdConverter(nativeHeapSet)
+    val symbolizer = FakeFrameSymbolizer()
+    symbolizer.addValidSymbol("TestModule", "ValidSymbol")
+    val heapProfdConverter = HeapProfdConverter("", symbolizer, nativeHeapSet)
     heapProfdConverter.populateHeapSet(context.build())
     assertThat(nativeHeapSet.deltaAllocationCount).isEqualTo(7)
     assertThat(nativeHeapSet.deltaDeallocationCount).isEqualTo(4)
@@ -74,8 +80,8 @@ class HeapProfdConverterTest {
     assertThat(nativeHeapSet.totalRemainingSize).isEqualTo(20)
     assertThat(nativeHeapSet.instancesCount).isEqualTo(3)
     val instances = nativeHeapSet.instancesStream.toList()
-    // Frame 1 -> Frame1A
-    assertThat(instances[0].name).isEqualTo("Frame 1A")
+    // Frame 1 -> Frame1A ( Frame1 has a valid symbol as such formats the name
+    assertThat(instances[0].name).isEqualTo("ValidSymbol (ValidSymbol:123)")
     assertThat(instances[0].callStackDepth).isEqualTo(1)
     assertThat(instances[0].allocationCallStack).isNotNull()
     assertThat(instances[0].allocationCallStack!!.fullStack.getFrames(0).methodName).isEqualTo("Frame 1")
@@ -83,5 +89,20 @@ class HeapProfdConverterTest {
     assertThat(instances[1].name).isEqualTo("Frame 1")
     // Invalid link returns unknown
     assertThat(instances[2].name).isEqualTo("unknown")
+  }
+
+  class FakeFrameSymbolizer : NativeFrameSymbolizer {
+    private val symbols = newHashMap<String, String>()
+    fun addValidSymbol(symbol: String, path: String) {
+      symbols[symbol] = path
+    }
+
+    override fun symbolize(abi: String?,
+                           unsymbolizedFrame: com.android.tools.profiler.proto.Memory.NativeCallStack.NativeFrame?):
+      com.android.tools.profiler.proto.Memory.NativeCallStack.NativeFrame {
+      // Lookup symbol else return as if the symbolizer failed.
+      val symbolName = symbols[unsymbolizedFrame!!.moduleName] ?: "0x00"
+      return unsymbolizedFrame!!.toBuilder().setSymbolName(symbolName).setFileName(symbolName).setLineNumber(123).build()
+    }
   }
 }

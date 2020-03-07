@@ -22,6 +22,7 @@ import com.android.tools.profiler.perfetto.proto.TraceProcessor.QueryBatchRespon
 import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo
 import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapSet
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService
+import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.ServiceManager
@@ -55,8 +56,8 @@ class TraceProcessorServiceImpl : TraceProcessorService, Disposable {
     return client.loadTrace(traceId, traceFile)
   }
 
-  override fun loadMemoryData(memorySet: NativeMemoryHeapSet) {
-    val converter = HeapProfdConverter(memorySet)
+  override fun loadMemoryData(abi: String, symbolizer: NativeFrameSymbolizer, memorySet: NativeMemoryHeapSet) {
+    val converter = HeapProfdConverter(abi, symbolizer, memorySet)
     val request = QueryBatchRequest.newBuilder()
       .addQuery(TraceProcessor.QueryParameters.newBuilder()
                   .setMemoryRequest(Memory.AllocationDataRequest.getDefaultInstance()).build())

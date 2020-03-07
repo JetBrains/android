@@ -15,60 +15,76 @@
  */
 package com.android.tools.idea.profilers.perfetto.traceprocessor
 
-import com.android.tools.profiler.perfetto.proto.Memory
+import com.android.tools.profiler.perfetto.proto.Memory.StackFrame
+import com.android.tools.profiler.perfetto.proto.Memory.NativeAllocationContext
+import com.android.tools.profiler.proto.Memory
 import com.android.tools.profilers.memory.adapters.ClassDb
 import com.android.tools.profilers.memory.adapters.NativeAllocationInstanceObject
 import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapSet
+import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer
+import java.io.File
 import java.util.HashMap
 
 /**
  * Helper class to convert from perfetto memory proto to profiler protos.
  * The {@link NativeMemoryHeapSet} passed into the constructor is populated by calling {@link populateHeapSet}.
  */
-class HeapProfdConverter(private val memorySet: NativeMemoryHeapSet) {
+class HeapProfdConverter(private val abi: String,
+                         private val symbolizer: NativeFrameSymbolizer,
+                         private val memorySet: NativeMemoryHeapSet) {
 
   /**
-   * Function to convert empty or null string to unknown. Heapprofd can sometimes return callstacks that do not have a frame name.
-   * This also mirrors behavior with Perfetto ui.
+   * Given a {@link Memory.StackFrame} from the trace processor we attempt to gather symbolized data. If we cannot get symbolized data
+   * we return the original name if one was found. If no name was found then we return "unknown"
+   * When we have a symbolized frame we return the results in the form of
+   * Symbol (File:Line) eg.. operator new (new.cpp:256)
    */
-  private fun toNameOrUnknown(name: String?): String {
-    if (name.isNullOrBlank()) {
-      return "unknown"
+  private fun toBestAvailableName(rawFrame: StackFrame): String {
+    val symbolizedFrame = symbolizer.symbolize(abi, Memory.NativeCallStack.NativeFrame.newBuilder()
+      .setModuleName(rawFrame.module)
+      // +1 because the common symbolizer does -1 accounting for an offset heapprofd does not have.
+      // see IntellijNativeFrameSymbolizer:getOffsetOfPreviousInstruction
+      .setModuleOffset(rawFrame.relPc + 1)
+      .build())
+    if (symbolizedFrame.symbolName.startsWith("0x")) {
+      // Raw name is better than PC offset.
+      return rawFrame.name.ifBlank { "unknown" }
     }
-    return name
+    val file = File(symbolizedFrame.fileName).name
+    return "${symbolizedFrame.symbolName} (${file}:${symbolizedFrame.lineNumber})"
   }
 
   /**
    * Given a context all values will be enumerated and added to the {@link NativeMemoryHeapSet}. If the context has an allocation with
    * a count > 0 it will be added as an allocation. If the count is <= 0 it will be added as a free.
    */
-  fun populateHeapSet(context: Memory.NativeAllocationContext) {
+  fun populateHeapSet(context: NativeAllocationContext) {
     val frameIdToName: MutableMap<Long, String> = HashMap()
     val stackPointerIdToParentId: MutableMap<Long, Long> = HashMap()
     val stackPointerIdToFrameName: MutableMap<Long, String> = HashMap()
     val callSites: Map<Long, NativeAllocationInstanceObject?> = HashMap()
     val classDb = ClassDb()
     context.framesList.forEach {
-      frameIdToName[it.id] = it.name
+      frameIdToName[it.id] = toBestAvailableName(it)
     }
     context.pointersList.forEach {
-      stackPointerIdToFrameName[it.id] = toNameOrUnknown(frameIdToName[it.frameId])
+      stackPointerIdToFrameName[it.id] = frameIdToName[it.frameId] ?: "unknown"
       stackPointerIdToParentId[it.id] = it.parentId
     }
     context.allocationsList.forEach {
-      val fullStack = com.android.tools.profiler.proto.Memory.AllocationStack.StackFrameWrapper.newBuilder()
+      val fullStack = Memory.AllocationStack.StackFrameWrapper.newBuilder()
       var callSiteId = stackPointerIdToParentId[it.stackId]
       if (!callSites.containsKey(it.stackId)) {
         while (callSiteId != null && callSiteId != 0L) {
-          val name = toNameOrUnknown(stackPointerIdToFrameName[callSiteId])
-          fullStack.addFrames(com.android.tools.profiler.proto.Memory.AllocationStack.StackFrame.newBuilder().setMethodName(name).build())
+          val name = stackPointerIdToFrameName[callSiteId] ?: "unknown"
+          fullStack.addFrames(Memory.AllocationStack.StackFrame.newBuilder().setMethodName(name).build())
           callSiteId = stackPointerIdToParentId[callSiteId]
         }
-        val event = com.android.tools.profiler.proto.Memory.AllocationEvent.Allocation.newBuilder()
+        val event = Memory.AllocationEvent.Allocation.newBuilder()
           .setSize(Math.abs(it.size))
           .build()
-        val name = toNameOrUnknown(stackPointerIdToFrameName[it.stackId])
-        val stack = com.android.tools.profiler.proto.Memory.AllocationStack.newBuilder()
+        val name = stackPointerIdToFrameName[it.stackId] ?: "unknown"
+        val stack = Memory.AllocationStack.newBuilder()
           .setFullStack(fullStack)
           .build()
         val instanceObject = NativeAllocationInstanceObject(
