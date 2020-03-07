@@ -1305,6 +1305,41 @@ class DataBindingInspectionTest(private val dataBindingMode: DataBindingMode) {
   }
 
   @Test
+  fun testDataBindingInspection_methodCallWithMultipleParametersInvertibleWhenAnnotatedByInverseMethod() {
+    fixture.addClass(
+      // language=java
+      """
+      package test.langdb;
+      import android.view.View;
+      import ${dataBindingMode.inverseMethod};
+
+      public class Model {
+        @InverseMethod("calculateInt")
+        public CharSequence calculateString(Model model, int v) {}
+        public int getValue() {}
+        public void setValue(int v) {}
+        public static int calculateInt(Model model, CharSequence s) {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto">
+        <data>
+          <import type="test.langdb.Model"/>
+          <variable name="model" type="Model" />
+        </data>
+        <TextView
+            android:id="@+id/viewId"
+            android:text="@={model.calculateString(model, model.value)}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+    fixture.checkHighlighting()
+  }
+
+  @Test
   fun testDataBindingInspection_bindingExpressionGetterNotMatched() {
     fixture.addClass(
       // language=java
