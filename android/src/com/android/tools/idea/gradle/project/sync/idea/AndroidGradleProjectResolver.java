@@ -91,9 +91,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure;
-import com.intellij.build.events.MessageEvent;
-import com.intellij.build.issue.BuildIssue;
-import com.intellij.build.issue.BuildIssueQuickFix;
 import com.intellij.execution.configurations.SimpleJavaParameters;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -108,7 +105,7 @@ import com.intellij.openapi.externalSystem.util.Order;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
-import com.intellij.pom.Navigatable;
+import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.PathsList;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
@@ -161,6 +158,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
          new IdeaJavaModuleModelFactory(), new IdeDependenciesFactory());
   }
 
+  @NonInjectable
   @VisibleForTesting
   AndroidGradleProjectResolver(@NotNull CommandLineArgs commandLineArgs,
                                @NotNull ProjectFinder projectFinder,
