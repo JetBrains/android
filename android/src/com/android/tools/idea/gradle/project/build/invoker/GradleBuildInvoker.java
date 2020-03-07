@@ -127,6 +127,12 @@ public class GradleBuildInvoker {
     return ServiceManager.getService(project, GradleBuildInvoker.class);
   }
 
+  public GradleBuildInvoker(@NotNull Project project) {
+    this(project, FileDocumentManager.getInstance());
+  }
+
+  @NonInjectable
+  @VisibleForTesting
   public GradleBuildInvoker(@NotNull Project project, @NotNull FileDocumentManager documentManager) {
     this(project, documentManager, new GradleTasksExecutorFactory(), new NativeDebugSessionFinder(project));
   }

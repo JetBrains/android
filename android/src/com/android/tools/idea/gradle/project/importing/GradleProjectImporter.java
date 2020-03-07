@@ -60,8 +60,8 @@ public class GradleProjectImporter {
     return ServiceManager.getService(GradleProjectImporter.class);
   }
 
-  public GradleProjectImporter(@NotNull SdkSync sdkSync) {
-    this(sdkSync, new NewProjectSetup(), new ProjectFolder.Factory());
+  public GradleProjectImporter() {
+    this(SdkSync.getInstance(), new NewProjectSetup(), new ProjectFolder.Factory());
   }
 
   @NonInjectable

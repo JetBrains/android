@@ -98,6 +98,7 @@ import com.intellij.openapi.externalSystem.util.Order;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
+import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.PathsList;
 import java.io.File;
 import java.io.IOException;
@@ -147,6 +148,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
          new IdeaJavaModuleModelFactory(), new IdeDependenciesFactory());
   }
 
+  @NonInjectable
   @VisibleForTesting
   AndroidGradleProjectResolver(@NotNull CommandLineArgs commandLineArgs,
                                @NotNull ProjectFinder projectFinder,
