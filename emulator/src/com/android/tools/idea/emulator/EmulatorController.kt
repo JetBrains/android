@@ -52,12 +52,16 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   private val connectionStateListeners: ConcurrentList<ConnectionStateListener> = ContainerUtil.createConcurrentList()
   private val connectivityStateWatcher = object : Runnable {
     override fun run() {
+      if (connectionState == ConnectionState.DISCONNECTED) {
+        return // DISCONNECTED state is final.
+      }
       val ch = channel ?: return
       val state = ch.getState(false)
       when (state) {
         ConnectivityState.CONNECTING -> connectionState = ConnectionState.CONNECTING
         ConnectivityState.SHUTDOWN -> connectionState = ConnectionState.DISCONNECTED
-        else -> connectionState = ConnectionState.CONNECTED
+        ConnectivityState.READY -> connectionState = ConnectionState.CONNECTED
+        else -> {}
       }
       ch.notifyWhenStateChanged(state, this)
     }
@@ -169,7 +173,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   }
 
   private fun fetchConfiguration() {
-    val responseObserver = object : DelegatingStreamObserver<Empty, EmulatorStatus>(null, EmulatorControllerGrpc.getGetStatusMethod()) {
+    val responseObserver = object : DummyStreamObserver<EmulatorStatus>() {
       override fun onNext(response: EmulatorStatus) {
         val config = EmulatorConfiguration.fromHardwareConfig(response.hardwareConfig!!)
         if (config == null) {
@@ -180,6 +184,10 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
           emulatorConfig = config
           connectionState = ConnectionState.CONNECTED
         }
+      }
+
+      override fun onError(t: Throwable) {
+        connectionState = ConnectionState.DISCONNECTED
       }
     }
     emulatorController.getStatus(Empty.getDefaultInstance(), responseObserver)

@@ -24,6 +24,7 @@ import com.android.tools.idea.emulator.EmulatorController.ConnectionStateListene
 import com.android.tools.idea.protobuf.ByteString
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.Graphics
@@ -56,7 +57,6 @@ class EmulatorView(
 
   var screenRotation = SkinRotation.PORTRAIT
 
-  // TODO: Make label text larger.
   private var connectionStateLabel = JLabel(getConnectionStateText(ConnectionState.NOT_INITIALIZED))
   private var screenshotFeed: Cancelable? = null
   private var screenshotReceiver: ScreenshotReceiver? = null
@@ -69,9 +69,12 @@ class EmulatorView(
     get() = screenRotation.ordinal % 2 != 0
 
   init {
+    connectionStateLabel.setBorder(JBUI.Borders.emptyLeft(20))
+    connectionStateLabel.font = connectionStateLabel.font.deriveFont(connectionStateLabel.font.size * 1.2F)
+    isFocusable = true // Must be focusable to receive keyboard events.
+
     emulator.addConnectionStateListener(this)
     addComponentListener(this)
-    isFocusable = true // Must be focusable to receive keyboard events.
 
     // Forward mouse & keyboard events.
     addMouseMotionListener(object : MouseMotionAdapter() {
@@ -155,6 +158,7 @@ class EmulatorView(
       }
     }
     else {
+      screenImage = null
       connectionStateLabel.text = getConnectionStateText(connectionState)
       add(connectionStateLabel)
     }
@@ -196,6 +200,10 @@ class EmulatorView(
 
   override fun paintComponent(g: Graphics) {
     super.paintComponent(g)
+
+    if (screenImage == null) {
+      return
+    }
     g as Graphics2D
     screenImageTransform.setToTranslation((width - screenWidth) * 0.5, (height - screenHeight) * 0.5)
     g.drawImage(screenImage, screenImageTransform, null)
@@ -204,7 +212,7 @@ class EmulatorView(
   private fun requestScreenshotFeed() {
     screenshotFeed?.cancel()
     screenshotReceiver = null
-    if (width != 0 && height != 0) {
+    if (width != 0 && height != 0 && emulator.connectionState == ConnectionState.CONNECTED) {
       val imageFormat = ImageFormat.newBuilder()
         .setFormat(ImageFormat.ImgFormat.RGBA8888) // TODO: Change to RGB888 after b/150494232 is fixed.
         .setWidth(width)
@@ -276,7 +284,7 @@ class EmulatorView(
       val bytes = image.toByteArray()
       for (i in bytes.indices) {
         if (i.rem(4) != 3 && bytes[i] != 0.toByte()) {
-          return false;
+          return false
         }
       }
       return true
