@@ -53,8 +53,8 @@ public class GradleInitScripts {
 
   // Used by intellij
   @SuppressWarnings("unused")
-  public GradleInitScripts(@NotNull EmbeddedDistributionPaths embeddedDistributionPaths) {
-    this(embeddedDistributionPaths, new ContentCreator());
+  public GradleInitScripts() {
+    this(EmbeddedDistributionPaths.getInstance(), new ContentCreator());
   }
 
   @NonInjectable

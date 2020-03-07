@@ -40,6 +40,7 @@ import com.google.common.collect.Multimap
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
+import com.intellij.serviceContainer.NonInjectable
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
@@ -48,7 +49,7 @@ import java.util.function.Predicate
 /**
  * Helper class to aid in generating Maven URLs for various internal repository files (Support Library, AppCompat, etc).
  */
-class RepositoryUrlManager @VisibleForTesting constructor(
+class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
   private val googleMavenRepository: GoogleMavenRepository,
   private val cachedGoogleMavenRepository: GoogleMavenRepository,
   private val forceRepositoryChecksInTests: Boolean,
