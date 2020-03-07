@@ -136,10 +136,11 @@ class EmulatorToolWindowManager(private val project: Project) : RunningEmulatorC
     if (id != myActivePanel?.id) {
       myActivePanel?.destroyContent()
       myActivePanel = null
-    }
-    if (id != null) {
-      myActivePanel = findPanelByGrpcPort(id.grpcPort)
-      myActivePanel?.createContent()
+
+      if (id != null) {
+        myActivePanel = findPanelByGrpcPort(id.grpcPort)
+        myActivePanel?.createContent()
+      }
     }
   }
 
