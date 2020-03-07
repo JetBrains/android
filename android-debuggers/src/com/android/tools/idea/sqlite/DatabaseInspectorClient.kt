@@ -69,7 +69,7 @@ class DatabaseInspectorClient private constructor(
         it
       }
 
-      return taskExecutor.transform(launchInspectorFuture) { it.trackDatabases(); it }
+      return taskExecutor.transform(launchInspectorFuture) { it.startTrackingDatabaseConnections(); it }
     }
 
     @VisibleForTesting
@@ -118,16 +118,15 @@ class DatabaseInspectorClient private constructor(
   }
 
   /**
-   * Tells on-device inspector to start looking for database connections. When a connection is discovered a databaseOpen event is sent.
+   * Sends a command to the on-device inspector to start looking for database connections.
+   * When the on-device inspector discovers a connection, it sends back an asynchronous databaseOpen event.
    */
-  private fun trackDatabases() {
+  private fun startTrackingDatabaseConnections() {
     messenger.sendRawCommand(
       SqliteInspectorProtocol.Command.newBuilder()
         .setTrackDatabases(SqliteInspectorProtocol.TrackDatabasesCommand.getDefaultInstance())
         .build()
         .toByteArray()
     )
-
-    // TODO(blocked) error handling.
   }
 }
