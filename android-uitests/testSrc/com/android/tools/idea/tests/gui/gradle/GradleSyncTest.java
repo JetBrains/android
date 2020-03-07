@@ -141,7 +141,7 @@ public class GradleSyncTest {
     for (OrderEntry entry : ModuleRootManager.getInstance(appModule).getOrderEntries()) {
       if (entry instanceof ModuleOrderEntry) {
         ModuleOrderEntry moduleOrderEntry = (ModuleOrderEntry)entry;
-        if ("library3".equals(moduleOrderEntry.getModuleName())) {
+        if (guiTest.ideFrame().getModule("library3").getName().equals(moduleOrderEntry.getModuleName())) {
           assertEquals(DependencyScope.TEST, moduleOrderEntry.getScope());
           return;
         }
@@ -231,7 +231,7 @@ public class GradleSyncTest {
       }
     }
 
-    assertThat(moduleDependency.getModuleName()).isEqualTo("library2");
+    assertThat(moduleDependency.getModuleName()).isEqualTo(guiTest.ideFrame().getModule("library2").getName());
   }
 
   // Verifies that the IDE, during sync, asks the user to copy IDE proxy settings to gradle.properties, if applicable.

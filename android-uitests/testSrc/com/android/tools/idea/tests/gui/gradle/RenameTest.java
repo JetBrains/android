@@ -52,7 +52,7 @@ public class RenameTest {
   public void sourceRoot() throws Exception {
     guiTest.importSimpleApplication();
     final Project project = guiTest.ideFrame().getProject();
-    Module appModule = ModuleManager.getInstance(project).findModuleByName("app");
+    Module appModule = guiTest.ideFrame().getModule("app");
 
     VirtualFile mainJavaRoot = ContainerUtil.find(ModuleRootManager.getInstance(appModule).getSourceRoots(),
                                                   vf -> vf.getPath().endsWith("src/main/java"));

@@ -422,7 +422,7 @@ class AddDynamicFeatureTest {
       .setSourceLanguage(lang)
       .enterFeatureModuleName("MyDynamicFeature")
       .enterPackageName("com.example.mydynamicfeature")
-      .selectBaseApplication("app")
+      .selectBaseApplication(ideFrame.getModule("app").name)
       .selectMinimumSdkApi(26)
       .clickNextToConfigureConditionalDelivery()
       .enterName("My Dynamic Feature Title")
