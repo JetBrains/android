@@ -21,8 +21,6 @@ import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.needsExplic
 import com.android.tools.idea.npw.module.recipes.addKotlinIfNeeded
 import com.android.tools.idea.npw.module.recipes.benchmarkModule.src.androidTest.exampleBenchmarkJava
 import com.android.tools.idea.npw.module.recipes.benchmarkModule.src.androidTest.exampleBenchmarkKt
-import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
-import com.android.tools.idea.templates.resolveDependency
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
@@ -40,11 +38,7 @@ fun RecipeExecutor.generateBenchmarkModule(
   val (buildApi, targetApi,  minApi) = moduleData.apis
   val language = projectData.language
 
-  val repoUrlManager = RepositoryUrlManager.get()
-
-  val bgp = resolveDependency(repoUrlManager, "androidx.benchmark:benchmark-gradle-plugin:+", "1.0.0")
-
-  addClasspathDependency(bgp, null)
+  addClasspathDependency("androidx.benchmark:benchmark-gradle-plugin:+")
 
   addIncludeToSettings(moduleData.name)
   save(benchmarkProguardRules(), moduleOut.resolve("benchmark-proguard-rules.pro"))
@@ -65,10 +59,7 @@ fun RecipeExecutor.generateBenchmarkModule(
   addDependency("androidx.test:runner:+", "androidTestImplementation")
   addDependency("androidx.test.ext:junit:+", "androidTestImplementation")
   addDependency("junit:junit:4.12", "androidTestImplementation")
-  addDependency(
-    resolveDependency(repoUrlManager, "androidx.benchmark:benchmark-junit4:+", "1.0.0"),
-    "androidTestImplementation"
-  )
+  addDependency("androidx.benchmark:benchmark-junit4:+", "androidTestImplementation")
 
   save(androidManifestXml(packageName), moduleOut.resolve("src/main/AndroidManifest.xml"))
   save(testAndroidManifestXml(packageName), moduleOut.resolve("src/androidTest/AndroidManifest.xml"))
