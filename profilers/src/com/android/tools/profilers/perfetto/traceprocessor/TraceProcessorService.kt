@@ -17,6 +17,7 @@ package com.android.tools.profilers.perfetto.traceprocessor
 
 import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo
 import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapSet
+import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer
 import java.io.File
 
 /**
@@ -35,5 +36,5 @@ interface TraceProcessorService {
   /**
    * Query the Perfetto trace processor for Heapprofd data and populate the profiler {@link NativeMemoryHeapSet} object with the results.
    */
-  fun loadMemoryData(memorySet: NativeMemoryHeapSet)
+  fun loadMemoryData(abi: String, symbolizer: NativeFrameSymbolizer, memorySet: NativeMemoryHeapSet)
 }

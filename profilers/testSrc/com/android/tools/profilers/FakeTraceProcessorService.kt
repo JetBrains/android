@@ -18,6 +18,7 @@ package com.android.tools.profilers
 import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo
 import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapSet
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService
+import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer
 import java.io.File
 
 class FakeTraceProcessorService: TraceProcessorService {
@@ -29,7 +30,7 @@ class FakeTraceProcessorService: TraceProcessorService {
     )
   }
 
-  override fun loadMemoryData(memorySet: NativeMemoryHeapSet) {
+  override fun loadMemoryData(abi: String, symbolizer: NativeFrameSymbolizer, memorySet: NativeMemoryHeapSet) {
     // Will populate as needed. Currently no test rely on this.
   }
 }
