@@ -51,7 +51,6 @@ import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.template.CheckBoxWidget
 import com.android.tools.idea.wizard.template.Constraint
 import com.android.tools.idea.wizard.template.Constraint.ACTIVITY
-import com.android.tools.idea.wizard.template.Constraint.API_LEVEL
 import com.android.tools.idea.wizard.template.Constraint.APP_PACKAGE
 import com.android.tools.idea.wizard.template.Constraint.CLASS
 import com.android.tools.idea.wizard.template.Constraint.DRAWABLE
@@ -102,7 +101,7 @@ import javax.swing.JPanel
 import javax.swing.SwingConstants
 
 val TYPE_CONSTRAINTS: EnumSet<Constraint> = EnumSet.of(
-  ACTIVITY, API_LEVEL, CLASS, PACKAGE, APP_PACKAGE, MODULE, LAYOUT, DRAWABLE, ID, SOURCE_SET_FOLDER, STRING, URI_AUTHORITY
+  ACTIVITY, CLASS, PACKAGE, APP_PACKAGE, MODULE, LAYOUT, DRAWABLE, ID, SOURCE_SET_FOLDER, STRING, URI_AUTHORITY
 )
 
 fun Parameter<*>.isRelated(p: Parameter<*>): Boolean =
