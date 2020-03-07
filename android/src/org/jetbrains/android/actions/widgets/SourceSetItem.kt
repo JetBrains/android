@@ -36,7 +36,7 @@ class SourceSetItem private constructor(
      */
     @JvmStatic
     fun create(sourceProvider: NamedIdeaSourceProvider, module: Module, resDirUrl: String): SourceSetItem {
-      val resDirPath = PathUtil.toPresentableUrl(resDirUrl)
+      val resDirPath = FileUtil.toSystemIndependentName(PathUtil.toPresentableUrl(resDirUrl))
       val modulePath = AndroidProjectRootUtil.getModuleDirPath(module)
       val relativeResourceUrl =
         modulePath?.let {
