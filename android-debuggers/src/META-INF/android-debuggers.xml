@@ -26,15 +26,6 @@
     <projectService
         serviceInterface="com.android.tools.idea.sqlite.DatabaseInspectorProjectService"
         serviceImplementation="com.android.tools.idea.sqlite.DatabaseInspectorProjectServiceImpl" />
-
-    <facet.toolWindow id="Database Inspector"
-                      facetIdList="android"
-                      anchor="bottom"
-                      secondary="true"
-                      conditionClass="com.android.tools.idea.sqlite.DatabaseInspectorToolWindowCondition"
-                      icon="StudioIcons.Shell.ToolWindows.DEVICE_EXPLORER"
-                      factoryClass="com.android.tools.idea.sqlite.DatabaseInspectorToolWindowFactory"/>
-
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.explorer">

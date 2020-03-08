@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.sqlite.mocks
 
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.withContext
 import javax.naming.OperationNotSupportedException
 import javax.swing.JComponent
 
@@ -30,7 +32,7 @@ open class MockDatabaseInspectorController(val model: DatabaseInspectorControlle
 
   override fun setUp() { }
 
-  override suspend fun addSqliteDatabase(deferredDatabase: Deferred<SqliteDatabase>) {
+  override suspend fun addSqliteDatabase(deferredDatabase: Deferred<SqliteDatabase>) = withContext(uiThread){
     model.add(deferredDatabase.await(), SqliteSchema(emptyList()))
   }
 

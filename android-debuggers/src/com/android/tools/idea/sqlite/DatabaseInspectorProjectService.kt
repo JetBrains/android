@@ -51,10 +51,8 @@ import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.newvfs.BulkFileListener
 import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
-import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.serviceContainer.NonInjectable
 import com.intellij.util.concurrency.EdtExecutorService
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.async
@@ -72,8 +70,7 @@ import javax.swing.JComponent
 import kotlin.concurrent.withLock
 
 /**
- * Intellij Project Service that holds the reference to the [DatabaseInspectorControllerImpl]
- * and is the entry point for opening a Sqlite database in the Database Inspector tool window.
+ * Intellij Project Service that holds the reference to the [DatabaseInspectorControllerImpl].
  */
 interface DatabaseInspectorProjectService {
   companion object {
@@ -144,7 +141,6 @@ interface DatabaseInspectorProjectService {
 
 class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
   private val project: Project,
-  private val toolWindowManager: ToolWindowManager = ToolWindowManager.getInstance(project),
   edtExecutor: Executor = EdtExecutorService.getInstance(),
   taskExecutor: Executor = PooledThreadExecutor.INSTANCE,
   private val databaseConnectionFactory: DatabaseConnectionFactory = DatabaseConnectionFactoryImpl(),
@@ -168,7 +164,6 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
   @TestOnly
   constructor(project: Project, edtExecutor: Executor, taskExecutor: Executor, viewFactory: DatabaseInspectorViewsFactory) : this (
     project,
-    ToolWindowManager.getInstance(project),
     edtExecutor,
     taskExecutor,
     DatabaseConnectionFactoryImpl(),
@@ -262,7 +257,10 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
       FileSqliteDatabase(name, connection, file)
     }
 
-    openSqliteDatabaseInInspector(database)
+    withContext(uiThread) {
+      controller.addSqliteDatabase(database)
+    }
+
     database.await()
   }
 
@@ -277,15 +275,11 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
       LiveSqliteDatabase(name, connection)
     }
 
-    openSqliteDatabaseInInspector(database)
-    database.await()
-  }
-
-  private suspend fun openSqliteDatabaseInInspector(database: Deferred<SqliteDatabase>) = withContext(uiThread) {
-    toolWindowManager.getToolWindow(DatabaseInspectorToolWindowFactory.TOOL_WINDOW_ID).show {
-      // TODO(147733447): check code coverage.
-      projectScope.launch(uiThread) { controller.addSqliteDatabase(database) }
+    withContext(uiThread) {
+      controller.addSqliteDatabase(database)
     }
+
+    database.await()
   }
 
   @UiThread
