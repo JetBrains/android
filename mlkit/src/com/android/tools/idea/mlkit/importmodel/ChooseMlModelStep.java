@@ -65,16 +65,6 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
     Expression<File> locationFile = model.sourceLocation.transform(File::new);
     myValidatorPanel.registerValidator(locationFile, value -> checkPath(value));
 
-    //TODO(jackqdyulei): Get it from mlkit-common module.
-    List<String> requiredDependencies = Arrays.asList(
-      "org.apache.commons:commons-compress:1.19",
-      "org.tensorflow:tensorflow-lite:1.13.1",
-      "org.tensorflow:tensorflow-lite-support:0.0.0-nightly");
-
-    myAdditionalRequiredInfosTextArea.setText(getAdditionalRequiredInfos(requiredDependencies));
-    myAdditionalRequiredInfosTextArea.setEditable(false);
-    myAdditionalRequiredInfosTextArea.setBackground(null);
-
     myRootPanel = new StudioWizardStepPanel(myValidatorPanel);
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
   }
@@ -86,32 +76,12 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
   }
 
   @NotNull
-  private static String getAdditionalRequiredInfos(@NotNull List<String> requiredDependencies) {
-    // TODO(jackqdyulei): Add dependencies automatically after user click Finish.
-    StringBuilder stringBuilder = new StringBuilder("You need to add following deps\n\n");
-    for (String dependency : requiredDependencies) {
-      stringBuilder.append(dependency + "\n");
-    }
-
-    stringBuilder
-      .append("\nAlso you need add following to build file\n\n")
-      .append("android {\n")
-      .append("  aaptOptions {\n")
-      .append("    noCompress \"tflite\"\n")
-      .append("  }\n")
-      .append("  buildFeatures {\n")
-      .append("    mlModelBinding true\n")
-      .append("  }\n")
-      .append("}\n");
-
-    return stringBuilder.toString();
-  }
-
-  @NotNull
   Validator.Result checkPath(@NotNull File file) {
     //TODO(jackqdyulei): check whether destination already contains this file.
-    if (!file.isFile() || !file.getName().endsWith(".tflite")) {
-      return new Validator.Result(Validator.Severity.ERROR, "This file is not a tflite model file");
+    if (!file.isFile()) {
+      return new Validator.Result(Validator.Severity.ERROR, "Please select a TFLite model file to import.");
+    } else if (!file.getName().endsWith(".tflite")) {
+      return new Validator.Result(Validator.Severity.ERROR, "This file is not a TFLite model file.");
     }
     return Validator.Result.OK;
   }
