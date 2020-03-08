@@ -15,22 +15,28 @@
  */
 package com.android.tools.idea.tests.gui.performance
 
+import com.android.tools.idea.bleak.UseBleak
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
-import com.android.tools.idea.bleak.UseBleak
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.awt.event.KeyEvent
 
 @RunWith(GuiTestRemoteRunner::class)
 @RunIn(TestGroup.PERFORMANCE)
 class NavEditorMemoryUseTest {
 
-  @Rule @JvmField val guiTest = GuiTestRule()
+  @Rule
+  @JvmField
+  val guiTest = GuiTestRule()
 
+  /**
+   * Opens and closes the designer tab for a navigation resource file.
+   */
   @Test
   @UseBleak
   fun openAndCloseTab() {
@@ -44,4 +50,24 @@ class NavEditorMemoryUseTest {
     }
   }
 
+  /**
+   * Adds a new destination to the navigation design surface from the add destination menu,
+   * then deletes the new destination.
+   */
+  @Test
+  @UseBleak
+  fun addDestination() {
+    val navSurface = guiTest.importProjectAndWaitForProjectSyncToFinish("Navigation")
+      .editor
+      .open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN)
+      .layoutEditor
+      .waitForRenderToFinish()
+      .navSurface
+
+    guiTest.runWithBleak {
+      navSurface.openAddDestinationMenu()
+        .waitForContents().selectDestination("fragment_my")
+      guiTest.robot().pressAndReleaseKey(KeyEvent.VK_DELETE)
+    }
+  }
 }
