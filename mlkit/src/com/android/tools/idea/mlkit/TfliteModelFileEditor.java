@@ -29,6 +29,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.UserDataHolderBase;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
@@ -88,7 +89,8 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       htmlBodyBuilder.append(getModelSectionBody(modelInfo));
       htmlBodyBuilder.append(getTensorsSectionBody(modelInfo));
       PsiClass modelClass = MlkitModuleService.getInstance(myModule)
-        .getOrCreateLightModelClass(new MlModelMetadata(file.getUrl(), MlkitUtils.computeModelClassName(file.getUrl())));
+        .getOrCreateLightModelClass(
+          new MlModelMetadata(file.getUrl(), MlkitNames.computeModelClassName((VfsUtilCore.virtualToIoFile(file)))));
       htmlBodyBuilder.append(getSampleCodeSectionBody(modelClass));
 
       contentPanel.add(createPaneFromHtml(htmlBodyBuilder.toString()));
