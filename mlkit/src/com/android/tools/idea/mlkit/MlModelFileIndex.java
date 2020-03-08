@@ -16,9 +16,11 @@
 package com.android.tools.idea.mlkit;
 
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.mlkit.MlkitNames;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.util.indexing.DataIndexer;
 import com.intellij.util.indexing.FileBasedIndex;
 import com.intellij.util.indexing.FileBasedIndexExtension;
@@ -29,6 +31,7 @@ import com.intellij.util.io.EnumeratorStringDescriptor;
 import com.intellij.util.io.KeyDescriptor;
 import java.io.DataInput;
 import java.io.DataOutput;
+import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
@@ -50,7 +53,7 @@ public class MlModelFileIndex extends FileBasedIndexExtension<String, MlModelMet
       @Override
       public Map<String, MlModelMetadata> map(@NotNull FileContent inputData) {
         String fileUrl = inputData.getFile().getUrl();
-        String className = MlkitUtils.computeModelClassName(fileUrl);
+        String className = MlkitNames.computeModelClassName(VfsUtilCore.virtualToIoFile(inputData.getFile()));
         try {
           MlModelMetadata modelMetadata = new MlModelMetadata(fileUrl, className);
           return ImmutableMap.of(className, modelMetadata);
