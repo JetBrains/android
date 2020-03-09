@@ -398,11 +398,11 @@ public final class StudioFlags {
     "applychanges.optimisticswap",
     "Use the 'Apply Changes 2.0' deployment pipeline",
     "Supports Install-without-Install, Speculative Diff and Structural Redefinition",
-    false);
+    true);
 
   public static final Flag<Boolean> APPLY_CHANGES_STRUCTURAL_DEFINITION = Flag.create(
     RUNDEBUG,
-    "applychanges.structrualredefinition",
+    "applychanges.structuralredefinition",
     "Use ART's new structural redefinition extension for Apply Changes.",
     "Requires applychanges.optimisticswap to be true.",
     false);
