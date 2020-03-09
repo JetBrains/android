@@ -123,7 +123,7 @@ class ResourceReferencePsiElement(
         ResourceNamespace.fromPackageName(StringUtil.getPackageName(grandClass.qualifiedName!!))
       }
       val resourceName = when (element) {
-        is ResourceLightField -> element.resourceName
+        is ResourceLightField -> element.getResourceName()
         is StyleableAttrLightField -> element.name
         else -> null
       } ?: return null

@@ -38,7 +38,6 @@ import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtQualifiedExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
-import org.jetbrains.kotlin.psi.psiUtil.getQualifiedExpressionForReceiver
 import org.jetbrains.kotlin.psi.psiUtil.getQualifiedExpressionForSelector
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.constants.evaluate.ConstantExpressionEvaluator
@@ -109,21 +108,12 @@ fun KtExpression.tryEvaluateConstant(): String? {
 }
 
 /**
- * When given an element in a qualified chain expression (eg. `activity` in `R.layout.activity`), this finds the previous element in the
- * chain (in this case `layout`).
+ * When given an element in a qualified chain expression (eg. activity in R.layout.activity), this finds the previous element in the chain
+ * (In this case layout).
  */
 fun KtExpression.getPreviousInQualifiedChain(): KtExpression? {
   val receiverExpression = getQualifiedExpressionForSelector()?.receiverExpression
   return (receiverExpression as? KtQualifiedExpression)?.selectorExpression ?: receiverExpression
-}
-
-/**
- * When given an element in a qualified chain expression (eg. `R` in `R.layout.activity`), this finds the next element in the chain (in this
- * case `layout`).
- */
-fun KtExpression.getNextInQualifiedChain(): KtExpression? {
-  return getQualifiedExpressionForReceiver()?.selectorExpression
-         ?: getQualifiedExpressionForSelector()?.getQualifiedExpressionForReceiver()?.selectorExpression
 }
 
 fun KotlinType.getQualifiedName() = constructor.declarationDescriptor?.fqNameSafe

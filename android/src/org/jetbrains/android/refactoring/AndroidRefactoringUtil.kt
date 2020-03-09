@@ -5,13 +5,10 @@ package org.jetbrains.android.refactoring
 import com.android.tools.idea.actions.ExportProjectZip
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.google.wireless.android.sdk.stats.GradleSyncStats
-import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.psi.JavaPsiFacade
@@ -27,7 +24,6 @@ import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.android.util.ErrorReporter
 import javax.swing.JCheckBox
 
-internal val DataContext.module: Module? get() = LangDataKeys.MODULE.getData(this)
 
 internal fun getParentStyle(style: Style): StyleRefData? {
   val parentStyleRefValue = style.parentStyle.value
