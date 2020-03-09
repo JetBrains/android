@@ -16,12 +16,14 @@
 package com.android.tools.idea.nav.safeargs.psi
 
 import com.android.tools.idea.nav.safeargs.SafeArgsRule
+import com.android.tools.idea.nav.safeargs.extensions.Parameter
+import com.android.tools.idea.nav.safeargs.extensions.checkSignaturesAndReturnType
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.testing.findClass
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.JavaPsiFacade
-import com.intellij.psi.PsiPrimitiveType
-import com.intellij.psi.impl.source.PsiClassReferenceType
+import com.intellij.psi.PsiMethod
+import com.intellij.psi.PsiType
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
@@ -134,30 +136,30 @@ class LightDirectionsClassTest {
     val fragment1directions = safeArgsRule.fixture.findClass("test.safeargs.Fragment1Directions", context) as LightDirectionsClass
 
     mainDirections.findMethodsByName("actionToNested").first().let { action ->
-      assertThat(action.parameters).isEmpty()
-      assertThat((action.returnType as PsiClassReferenceType).className).isEqualTo("NavDirections")
+      (action as PsiMethod).checkSignaturesAndReturnType(
+        name = "actionToNested",
+        returnType = "NavDirections"
+      )
     }
 
     fragment1directions.findMethodsByName("actionFragment1ToFragment2").first().let { action ->
-      assertThat(action.parameters.size).isEqualTo(2)
-      action.parameters[0].let { arg1 ->
-        assertThat((arg1.type as PsiClassReferenceType).className).isEqualTo("String")
-        assertThat(arg1.name).isEqualTo("arg1")
-      }
-      action.parameters[1].let { arg2 ->
-        assertThat((arg2.type as PsiPrimitiveType).name).isEqualTo("float")
-        assertThat(arg2.name).isEqualTo("arg2")
-      }
-      assertThat((action.returnType as PsiClassReferenceType).className).isEqualTo("NavDirections")
+      (action as PsiMethod).checkSignaturesAndReturnType(
+        name = "actionFragment1ToFragment2",
+        returnType = "NavDirections",
+        parameters = listOf(
+          Parameter("arg1", "String"),
+          Parameter("arg2", PsiType.FLOAT.name)
+        )
+      )
     }
     fragment1directions.findMethodsByName("actionFragment1ToFragment3").first().let { action ->
-      assertThat(action.parameters.size).isEqualTo(1)
-      action.parameters[0].let { arg1 ->
-        assertThat((arg1.type as PsiPrimitiveType).name).isEqualTo("int")
-        assertThat(arg1.name).isEqualTo("arg")
-      }
-
-      assertThat((action.returnType as PsiClassReferenceType).className).isEqualTo("NavDirections")
+      (action as PsiMethod).checkSignaturesAndReturnType(
+        name = "actionFragment1ToFragment3",
+        returnType = "NavDirections",
+        parameters = listOf(
+          Parameter("arg", PsiType.INT.name)
+        )
+      )
     }
   }
 }
