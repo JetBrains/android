@@ -104,6 +104,7 @@ PROJECT             : MultiFlavor
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/java
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/jni
+            JavaResource (test) : file://<PROJECT>/app/src/androidTest/ml
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/res
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/rs
@@ -113,6 +114,7 @@ PROJECT             : MultiFlavor
             JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/java
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/jni
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/ml
             JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/res
             JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/rs
@@ -122,6 +124,7 @@ PROJECT             : MultiFlavor
             JavaResource (test) : file://<PROJECT>/app/src/androidTestFirstAbc/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestFirstAbc/java
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestFirstAbc/jni
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestFirstAbc/ml
             JavaResource (test) : file://<PROJECT>/app/src/androidTestFirstAbc/res
             JavaResource (test) : file://<PROJECT>/app/src/androidTestFirstAbc/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestFirstAbc/rs
@@ -131,6 +134,7 @@ PROJECT             : MultiFlavor
             JavaResource (test) : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbc/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbc/java
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbc/jni
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbc/ml
             JavaResource (test) : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbc/res
             JavaResource (test) : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbc/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbc/rs
@@ -140,6 +144,7 @@ PROJECT             : MultiFlavor
             JavaResource (test) : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbcDebug/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbcDebug/java
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbcDebug/jni
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbcDebug/ml
             JavaResource (test) : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbcDebug/res
             JavaResource (test) : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbcDebug/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbcDebug/rs
@@ -149,6 +154,7 @@ PROJECT             : MultiFlavor
             JavaResource (test) : file://<PROJECT>/app/src/androidTestSecondAbc/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestSecondAbc/java
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestSecondAbc/jni
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestSecondAbc/ml
             JavaResource (test) : file://<PROJECT>/app/src/androidTestSecondAbc/res
             JavaResource (test) : file://<PROJECT>/app/src/androidTestSecondAbc/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestSecondAbc/rs
@@ -158,6 +164,7 @@ PROJECT             : MultiFlavor
             JavaResource        : file://<PROJECT>/app/src/debug/assets
             JavaSource          : file://<PROJECT>/app/src/debug/java
             JavaSource          : file://<PROJECT>/app/src/debug/jni
+            JavaResource        : file://<PROJECT>/app/src/debug/ml
             JavaResource        : file://<PROJECT>/app/src/debug/res
             JavaResource        : file://<PROJECT>/app/src/debug/resources
             JavaSource          : file://<PROJECT>/app/src/debug/rs
@@ -167,6 +174,7 @@ PROJECT             : MultiFlavor
             JavaResource        : file://<PROJECT>/app/src/firstAbc/assets
             JavaSource          : file://<PROJECT>/app/src/firstAbc/java
             JavaSource          : file://<PROJECT>/app/src/firstAbc/jni
+            JavaResource        : file://<PROJECT>/app/src/firstAbc/ml
             JavaResource        : file://<PROJECT>/app/src/firstAbc/res
             JavaResource        : file://<PROJECT>/app/src/firstAbc/resources
             JavaSource          : file://<PROJECT>/app/src/firstAbc/rs
@@ -176,6 +184,7 @@ PROJECT             : MultiFlavor
             JavaResource        : file://<PROJECT>/app/src/firstAbcSecondAbc/assets
             JavaSource          : file://<PROJECT>/app/src/firstAbcSecondAbc/java
             JavaSource          : file://<PROJECT>/app/src/firstAbcSecondAbc/jni
+            JavaResource        : file://<PROJECT>/app/src/firstAbcSecondAbc/ml
             JavaResource        : file://<PROJECT>/app/src/firstAbcSecondAbc/res
             JavaResource        : file://<PROJECT>/app/src/firstAbcSecondAbc/resources
             JavaSource          : file://<PROJECT>/app/src/firstAbcSecondAbc/rs
@@ -185,6 +194,7 @@ PROJECT             : MultiFlavor
             JavaResource        : file://<PROJECT>/app/src/firstAbcSecondAbcDebug/assets
             JavaSource          : file://<PROJECT>/app/src/firstAbcSecondAbcDebug/java
             JavaSource          : file://<PROJECT>/app/src/firstAbcSecondAbcDebug/jni
+            JavaResource        : file://<PROJECT>/app/src/firstAbcSecondAbcDebug/ml
             JavaResource        : file://<PROJECT>/app/src/firstAbcSecondAbcDebug/res
             JavaResource        : file://<PROJECT>/app/src/firstAbcSecondAbcDebug/resources
             JavaSource          : file://<PROJECT>/app/src/firstAbcSecondAbcDebug/rs
@@ -194,6 +204,7 @@ PROJECT             : MultiFlavor
             JavaResource        : file://<PROJECT>/app/src/main/assets
             JavaSource          : file://<PROJECT>/app/src/main/java
             JavaSource          : file://<PROJECT>/app/src/main/jni
+            JavaResource        : file://<PROJECT>/app/src/main/ml
             JavaResource        : file://<PROJECT>/app/src/main/res
             JavaResource        : file://<PROJECT>/app/src/main/resources
             JavaSource          : file://<PROJECT>/app/src/main/rs
@@ -203,6 +214,7 @@ PROJECT             : MultiFlavor
             JavaResource        : file://<PROJECT>/app/src/secondAbc/assets
             JavaSource          : file://<PROJECT>/app/src/secondAbc/java
             JavaSource          : file://<PROJECT>/app/src/secondAbc/jni
+            JavaResource        : file://<PROJECT>/app/src/secondAbc/ml
             JavaResource        : file://<PROJECT>/app/src/secondAbc/res
             JavaResource        : file://<PROJECT>/app/src/secondAbc/resources
             JavaSource          : file://<PROJECT>/app/src/secondAbc/rs
@@ -212,6 +224,7 @@ PROJECT             : MultiFlavor
             JavaResource (test) : file://<PROJECT>/app/src/test/assets
             JavaSource (test)   : file://<PROJECT>/app/src/test/java
             JavaSource (test)   : file://<PROJECT>/app/src/test/jni
+            JavaResource (test) : file://<PROJECT>/app/src/test/ml
             JavaResource (test) : file://<PROJECT>/app/src/test/res
             JavaResource (test) : file://<PROJECT>/app/src/test/resources
             JavaSource (test)   : file://<PROJECT>/app/src/test/rs
@@ -221,6 +234,7 @@ PROJECT             : MultiFlavor
             JavaResource (test) : file://<PROJECT>/app/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/java
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/jni
+            JavaResource (test) : file://<PROJECT>/app/src/testDebug/ml
             JavaResource (test) : file://<PROJECT>/app/src/testDebug/res
             JavaResource (test) : file://<PROJECT>/app/src/testDebug/resources
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/rs
@@ -230,6 +244,7 @@ PROJECT             : MultiFlavor
             JavaResource (test) : file://<PROJECT>/app/src/testFirstAbc/assets
             JavaSource (test)   : file://<PROJECT>/app/src/testFirstAbc/java
             JavaSource (test)   : file://<PROJECT>/app/src/testFirstAbc/jni
+            JavaResource (test) : file://<PROJECT>/app/src/testFirstAbc/ml
             JavaResource (test) : file://<PROJECT>/app/src/testFirstAbc/res
             JavaResource (test) : file://<PROJECT>/app/src/testFirstAbc/resources
             JavaSource (test)   : file://<PROJECT>/app/src/testFirstAbc/rs
@@ -239,6 +254,7 @@ PROJECT             : MultiFlavor
             JavaResource (test) : file://<PROJECT>/app/src/testFirstAbcSecondAbc/assets
             JavaSource (test)   : file://<PROJECT>/app/src/testFirstAbcSecondAbc/java
             JavaSource (test)   : file://<PROJECT>/app/src/testFirstAbcSecondAbc/jni
+            JavaResource (test) : file://<PROJECT>/app/src/testFirstAbcSecondAbc/ml
             JavaResource (test) : file://<PROJECT>/app/src/testFirstAbcSecondAbc/res
             JavaResource (test) : file://<PROJECT>/app/src/testFirstAbcSecondAbc/resources
             JavaSource (test)   : file://<PROJECT>/app/src/testFirstAbcSecondAbc/rs
@@ -248,6 +264,7 @@ PROJECT             : MultiFlavor
             JavaResource (test) : file://<PROJECT>/app/src/testFirstAbcSecondAbcDebug/assets
             JavaSource (test)   : file://<PROJECT>/app/src/testFirstAbcSecondAbcDebug/java
             JavaSource (test)   : file://<PROJECT>/app/src/testFirstAbcSecondAbcDebug/jni
+            JavaResource (test) : file://<PROJECT>/app/src/testFirstAbcSecondAbcDebug/ml
             JavaResource (test) : file://<PROJECT>/app/src/testFirstAbcSecondAbcDebug/res
             JavaResource (test) : file://<PROJECT>/app/src/testFirstAbcSecondAbcDebug/resources
             JavaSource (test)   : file://<PROJECT>/app/src/testFirstAbcSecondAbcDebug/rs
@@ -257,6 +274,7 @@ PROJECT             : MultiFlavor
             JavaResource (test) : file://<PROJECT>/app/src/testSecondAbc/assets
             JavaSource (test)   : file://<PROJECT>/app/src/testSecondAbc/java
             JavaSource (test)   : file://<PROJECT>/app/src/testSecondAbc/jni
+            JavaResource (test) : file://<PROJECT>/app/src/testSecondAbc/ml
             JavaResource (test) : file://<PROJECT>/app/src/testSecondAbc/res
             JavaResource (test) : file://<PROJECT>/app/src/testSecondAbc/resources
             JavaSource (test)   : file://<PROJECT>/app/src/testSecondAbc/rs

@@ -26,6 +26,7 @@ import com.android.tools.idea.testing.FileSubject.file
 import com.android.tools.idea.testing.GradleSnapshotComparisonTest
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.TestProjectPaths.APP_WITH_ML_MODELS
 import com.android.tools.idea.testing.TestProjectPaths.BASIC
 import com.android.tools.idea.testing.TestProjectPaths.CENTRAL_BUILD_DIRECTORY
 import com.android.tools.idea.testing.TestProjectPaths.HELLO_JNI
@@ -143,6 +144,11 @@ abstract class GradleSyncProjectComparisonTest(
 
     fun testSimpleApplication() {
       val text = importSyncAndDumpProject(SIMPLE_APPLICATION)
+      assertIsEqualToSnapshot(text)
+    }
+
+    fun testWithMlModels() {
+      val text = importSyncAndDumpProject(APP_WITH_ML_MODELS)
       assertIsEqualToSnapshot(text)
     }
 

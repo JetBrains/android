@@ -97,6 +97,7 @@ PROJECT             : AS36
             JavaResource (test) : file://<PROJECT>/libs/android_library/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/libs/android_library/src/androidTest/java
             JavaSource (test)   : file://<PROJECT>/libs/android_library/src/androidTest/jni
+            JavaResource (test) : file://<PROJECT>/libs/android_library/src/androidTest/ml
             JavaResource (test) : file://<PROJECT>/libs/android_library/src/androidTest/res
             JavaResource (test) : file://<PROJECT>/libs/android_library/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/libs/android_library/src/androidTest/rs
@@ -106,6 +107,7 @@ PROJECT             : AS36
             JavaResource (test) : file://<PROJECT>/libs/android_library/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/libs/android_library/src/androidTestDebug/java
             JavaSource (test)   : file://<PROJECT>/libs/android_library/src/androidTestDebug/jni
+            JavaResource (test) : file://<PROJECT>/libs/android_library/src/androidTestDebug/ml
             JavaResource (test) : file://<PROJECT>/libs/android_library/src/androidTestDebug/res
             JavaResource (test) : file://<PROJECT>/libs/android_library/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/libs/android_library/src/androidTestDebug/rs
@@ -115,6 +117,7 @@ PROJECT             : AS36
             JavaResource        : file://<PROJECT>/libs/android_library/src/debug/assets
             JavaSource          : file://<PROJECT>/libs/android_library/src/debug/java
             JavaSource          : file://<PROJECT>/libs/android_library/src/debug/jni
+            JavaResource        : file://<PROJECT>/libs/android_library/src/debug/ml
             JavaResource        : file://<PROJECT>/libs/android_library/src/debug/res
             JavaResource        : file://<PROJECT>/libs/android_library/src/debug/resources
             JavaSource          : file://<PROJECT>/libs/android_library/src/debug/rs
@@ -124,6 +127,7 @@ PROJECT             : AS36
             JavaResource        : file://<PROJECT>/libs/android_library/src/main/assets
             JavaSource          : file://<PROJECT>/libs/android_library/src/main/java
             JavaSource          : file://<PROJECT>/libs/android_library/src/main/jni
+            JavaResource        : file://<PROJECT>/libs/android_library/src/main/ml
             JavaResource        : file://<PROJECT>/libs/android_library/src/main/res
             JavaResource        : file://<PROJECT>/libs/android_library/src/main/resources
             JavaSource          : file://<PROJECT>/libs/android_library/src/main/rs
@@ -133,6 +137,7 @@ PROJECT             : AS36
             JavaResource (test) : file://<PROJECT>/libs/android_library/src/test/assets
             JavaSource (test)   : file://<PROJECT>/libs/android_library/src/test/java
             JavaSource (test)   : file://<PROJECT>/libs/android_library/src/test/jni
+            JavaResource (test) : file://<PROJECT>/libs/android_library/src/test/ml
             JavaResource (test) : file://<PROJECT>/libs/android_library/src/test/res
             JavaResource (test) : file://<PROJECT>/libs/android_library/src/test/resources
             JavaSource (test)   : file://<PROJECT>/libs/android_library/src/test/rs
@@ -142,6 +147,7 @@ PROJECT             : AS36
             JavaResource (test) : file://<PROJECT>/libs/android_library/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/libs/android_library/src/testDebug/java
             JavaSource (test)   : file://<PROJECT>/libs/android_library/src/testDebug/jni
+            JavaResource (test) : file://<PROJECT>/libs/android_library/src/testDebug/ml
             JavaResource (test) : file://<PROJECT>/libs/android_library/src/testDebug/res
             JavaResource (test) : file://<PROJECT>/libs/android_library/src/testDebug/resources
             JavaSource (test)   : file://<PROJECT>/libs/android_library/src/testDebug/rs
@@ -620,6 +626,7 @@ PROJECT             : AS36
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/java
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/jni
+            JavaResource (test) : file://<PROJECT>/app/src/androidTest/ml
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/res
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/rs
@@ -629,6 +636,7 @@ PROJECT             : AS36
             JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/java
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/jni
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/ml
             JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/res
             JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/rs
@@ -638,6 +646,7 @@ PROJECT             : AS36
             JavaResource        : file://<PROJECT>/app/src/debug/assets
             JavaSource          : file://<PROJECT>/app/src/debug/java
             JavaSource          : file://<PROJECT>/app/src/debug/jni
+            JavaResource        : file://<PROJECT>/app/src/debug/ml
             JavaResource        : file://<PROJECT>/app/src/debug/res
             JavaResource        : file://<PROJECT>/app/src/debug/resources
             JavaSource          : file://<PROJECT>/app/src/debug/rs
@@ -647,6 +656,7 @@ PROJECT             : AS36
             JavaResource        : file://<PROJECT>/app/src/main/assets
             JavaSource          : file://<PROJECT>/app/src/main/java
             JavaSource          : file://<PROJECT>/app/src/main/jni
+            JavaResource        : file://<PROJECT>/app/src/main/ml
             JavaResource        : file://<PROJECT>/app/src/main/res
             JavaResource        : file://<PROJECT>/app/src/main/resources
             JavaSource          : file://<PROJECT>/app/src/main/rs
@@ -656,6 +666,7 @@ PROJECT             : AS36
             JavaResource (test) : file://<PROJECT>/app/src/test/assets
             JavaSource (test)   : file://<PROJECT>/app/src/test/java
             JavaSource (test)   : file://<PROJECT>/app/src/test/jni
+            JavaResource (test) : file://<PROJECT>/app/src/test/ml
             JavaResource (test) : file://<PROJECT>/app/src/test/res
             JavaResource (test) : file://<PROJECT>/app/src/test/resources
             JavaSource (test)   : file://<PROJECT>/app/src/test/rs
@@ -665,6 +676,7 @@ PROJECT             : AS36
             JavaResource (test) : file://<PROJECT>/app/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/java
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/jni
+            JavaResource (test) : file://<PROJECT>/app/src/testDebug/ml
             JavaResource (test) : file://<PROJECT>/app/src/testDebug/res
             JavaResource (test) : file://<PROJECT>/app/src/testDebug/resources
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/rs
@@ -1144,6 +1156,7 @@ PROJECT             : AS36
             JavaResource (test) : file://<PROJECT>/features/dynamicfeature/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/src/androidTest/java
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/src/androidTest/jni
+            JavaResource (test) : file://<PROJECT>/features/dynamicfeature/src/androidTest/ml
             JavaResource (test) : file://<PROJECT>/features/dynamicfeature/src/androidTest/res
             JavaResource (test) : file://<PROJECT>/features/dynamicfeature/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/src/androidTest/rs
@@ -1153,6 +1166,7 @@ PROJECT             : AS36
             JavaResource (test) : file://<PROJECT>/features/dynamicfeature/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/src/androidTestDebug/java
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/src/androidTestDebug/jni
+            JavaResource (test) : file://<PROJECT>/features/dynamicfeature/src/androidTestDebug/ml
             JavaResource (test) : file://<PROJECT>/features/dynamicfeature/src/androidTestDebug/res
             JavaResource (test) : file://<PROJECT>/features/dynamicfeature/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/src/androidTestDebug/rs
@@ -1162,6 +1176,7 @@ PROJECT             : AS36
             JavaResource        : file://<PROJECT>/features/dynamicfeature/src/debug/assets
             JavaSource          : file://<PROJECT>/features/dynamicfeature/src/debug/java
             JavaSource          : file://<PROJECT>/features/dynamicfeature/src/debug/jni
+            JavaResource        : file://<PROJECT>/features/dynamicfeature/src/debug/ml
             JavaResource        : file://<PROJECT>/features/dynamicfeature/src/debug/res
             JavaResource        : file://<PROJECT>/features/dynamicfeature/src/debug/resources
             JavaSource          : file://<PROJECT>/features/dynamicfeature/src/debug/rs
@@ -1171,6 +1186,7 @@ PROJECT             : AS36
             JavaResource        : file://<PROJECT>/features/dynamicfeature/src/main/assets
             JavaSource          : file://<PROJECT>/features/dynamicfeature/src/main/java
             JavaSource          : file://<PROJECT>/features/dynamicfeature/src/main/jni
+            JavaResource        : file://<PROJECT>/features/dynamicfeature/src/main/ml
             JavaResource        : file://<PROJECT>/features/dynamicfeature/src/main/res
             JavaResource        : file://<PROJECT>/features/dynamicfeature/src/main/resources
             JavaSource          : file://<PROJECT>/features/dynamicfeature/src/main/rs
@@ -1180,6 +1196,7 @@ PROJECT             : AS36
             JavaResource (test) : file://<PROJECT>/features/dynamicfeature/src/test/assets
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/src/test/java
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/src/test/jni
+            JavaResource (test) : file://<PROJECT>/features/dynamicfeature/src/test/ml
             JavaResource (test) : file://<PROJECT>/features/dynamicfeature/src/test/res
             JavaResource (test) : file://<PROJECT>/features/dynamicfeature/src/test/resources
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/src/test/rs
@@ -1189,6 +1206,7 @@ PROJECT             : AS36
             JavaResource (test) : file://<PROJECT>/features/dynamicfeature/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/src/testDebug/java
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/src/testDebug/jni
+            JavaResource (test) : file://<PROJECT>/features/dynamicfeature/src/testDebug/ml
             JavaResource (test) : file://<PROJECT>/features/dynamicfeature/src/testDebug/res
             JavaResource (test) : file://<PROJECT>/features/dynamicfeature/src/testDebug/resources
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature/src/testDebug/rs
@@ -1273,6 +1291,7 @@ PROJECT             : AS36
             JavaResource (test) : file://<PROJECT>/features/dynamicfeature2/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/src/androidTest/java
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/src/androidTest/jni
+            JavaResource (test) : file://<PROJECT>/features/dynamicfeature2/src/androidTest/ml
             JavaResource (test) : file://<PROJECT>/features/dynamicfeature2/src/androidTest/res
             JavaResource (test) : file://<PROJECT>/features/dynamicfeature2/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/src/androidTest/rs
@@ -1282,6 +1301,7 @@ PROJECT             : AS36
             JavaResource (test) : file://<PROJECT>/features/dynamicfeature2/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/src/androidTestDebug/java
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/src/androidTestDebug/jni
+            JavaResource (test) : file://<PROJECT>/features/dynamicfeature2/src/androidTestDebug/ml
             JavaResource (test) : file://<PROJECT>/features/dynamicfeature2/src/androidTestDebug/res
             JavaResource (test) : file://<PROJECT>/features/dynamicfeature2/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/src/androidTestDebug/rs
@@ -1291,6 +1311,7 @@ PROJECT             : AS36
             JavaResource        : file://<PROJECT>/features/dynamicfeature2/src/debug/assets
             JavaSource          : file://<PROJECT>/features/dynamicfeature2/src/debug/java
             JavaSource          : file://<PROJECT>/features/dynamicfeature2/src/debug/jni
+            JavaResource        : file://<PROJECT>/features/dynamicfeature2/src/debug/ml
             JavaResource        : file://<PROJECT>/features/dynamicfeature2/src/debug/res
             JavaResource        : file://<PROJECT>/features/dynamicfeature2/src/debug/resources
             JavaSource          : file://<PROJECT>/features/dynamicfeature2/src/debug/rs
@@ -1300,6 +1321,7 @@ PROJECT             : AS36
             JavaResource        : file://<PROJECT>/features/dynamicfeature2/src/main/assets
             JavaSource          : file://<PROJECT>/features/dynamicfeature2/src/main/java
             JavaSource          : file://<PROJECT>/features/dynamicfeature2/src/main/jni
+            JavaResource        : file://<PROJECT>/features/dynamicfeature2/src/main/ml
             JavaResource        : file://<PROJECT>/features/dynamicfeature2/src/main/res
             JavaResource        : file://<PROJECT>/features/dynamicfeature2/src/main/resources
             JavaSource          : file://<PROJECT>/features/dynamicfeature2/src/main/rs
@@ -1309,6 +1331,7 @@ PROJECT             : AS36
             JavaResource (test) : file://<PROJECT>/features/dynamicfeature2/src/test/assets
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/src/test/java
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/src/test/jni
+            JavaResource (test) : file://<PROJECT>/features/dynamicfeature2/src/test/ml
             JavaResource (test) : file://<PROJECT>/features/dynamicfeature2/src/test/res
             JavaResource (test) : file://<PROJECT>/features/dynamicfeature2/src/test/resources
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/src/test/rs
@@ -1318,6 +1341,7 @@ PROJECT             : AS36
             JavaResource (test) : file://<PROJECT>/features/dynamicfeature2/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/src/testDebug/java
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/src/testDebug/jni
+            JavaResource (test) : file://<PROJECT>/features/dynamicfeature2/src/testDebug/ml
             JavaResource (test) : file://<PROJECT>/features/dynamicfeature2/src/testDebug/res
             JavaResource (test) : file://<PROJECT>/features/dynamicfeature2/src/testDebug/resources
             JavaSource (test)   : file://<PROJECT>/features/dynamicfeature2/src/testDebug/rs

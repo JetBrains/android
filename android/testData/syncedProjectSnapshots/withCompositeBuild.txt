@@ -143,6 +143,7 @@ PROJECT             : testWithCompositeBuild
             JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/androidTest/java
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/androidTest/jni
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/androidTest/ml
             JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/androidTest/res
             JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/androidTest/rs
@@ -152,6 +153,7 @@ PROJECT             : testWithCompositeBuild
             JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/androidTestDebug/java
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/androidTestDebug/jni
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/androidTestDebug/ml
             JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/androidTestDebug/res
             JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/androidTestDebug/rs
@@ -161,6 +163,7 @@ PROJECT             : testWithCompositeBuild
             JavaResource        : file://<PROJECT>/TestCompositeLib1/app/src/debug/assets
             JavaSource          : file://<PROJECT>/TestCompositeLib1/app/src/debug/java
             JavaSource          : file://<PROJECT>/TestCompositeLib1/app/src/debug/jni
+            JavaResource        : file://<PROJECT>/TestCompositeLib1/app/src/debug/ml
             JavaResource        : file://<PROJECT>/TestCompositeLib1/app/src/debug/res
             JavaResource        : file://<PROJECT>/TestCompositeLib1/app/src/debug/resources
             JavaSource          : file://<PROJECT>/TestCompositeLib1/app/src/debug/rs
@@ -170,6 +173,7 @@ PROJECT             : testWithCompositeBuild
             JavaResource        : file://<PROJECT>/TestCompositeLib1/app/src/main/assets
             JavaSource          : file://<PROJECT>/TestCompositeLib1/app/src/main/java
             JavaSource          : file://<PROJECT>/TestCompositeLib1/app/src/main/jni
+            JavaResource        : file://<PROJECT>/TestCompositeLib1/app/src/main/ml
             JavaResource        : file://<PROJECT>/TestCompositeLib1/app/src/main/res
             JavaResource        : file://<PROJECT>/TestCompositeLib1/app/src/main/resources
             JavaSource          : file://<PROJECT>/TestCompositeLib1/app/src/main/rs
@@ -179,6 +183,7 @@ PROJECT             : testWithCompositeBuild
             JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/test/assets
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/test/java
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/test/jni
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/test/ml
             JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/test/res
             JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/test/resources
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/test/rs
@@ -188,6 +193,7 @@ PROJECT             : testWithCompositeBuild
             JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/testDebug/java
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/testDebug/jni
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/testDebug/ml
             JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/testDebug/res
             JavaResource (test) : file://<PROJECT>/TestCompositeLib1/app/src/testDebug/resources
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/app/src/testDebug/rs
@@ -641,6 +647,7 @@ PROJECT             : testWithCompositeBuild
             JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/androidTest/java
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/androidTest/jni
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/androidTest/ml
             JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/androidTest/res
             JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/androidTest/rs
@@ -650,6 +657,7 @@ PROJECT             : testWithCompositeBuild
             JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/androidTestDebug/java
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/androidTestDebug/jni
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/androidTestDebug/ml
             JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/androidTestDebug/res
             JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/androidTestDebug/rs
@@ -659,6 +667,7 @@ PROJECT             : testWithCompositeBuild
             JavaResource        : file://<PROJECT>/TestCompositeLib1/lib/src/debug/assets
             JavaSource          : file://<PROJECT>/TestCompositeLib1/lib/src/debug/java
             JavaSource          : file://<PROJECT>/TestCompositeLib1/lib/src/debug/jni
+            JavaResource        : file://<PROJECT>/TestCompositeLib1/lib/src/debug/ml
             JavaResource        : file://<PROJECT>/TestCompositeLib1/lib/src/debug/res
             JavaResource        : file://<PROJECT>/TestCompositeLib1/lib/src/debug/resources
             JavaSource          : file://<PROJECT>/TestCompositeLib1/lib/src/debug/rs
@@ -668,6 +677,7 @@ PROJECT             : testWithCompositeBuild
             JavaResource        : file://<PROJECT>/TestCompositeLib1/lib/src/main/assets
             JavaSource          : file://<PROJECT>/TestCompositeLib1/lib/src/main/java
             JavaSource          : file://<PROJECT>/TestCompositeLib1/lib/src/main/jni
+            JavaResource        : file://<PROJECT>/TestCompositeLib1/lib/src/main/ml
             JavaResource        : file://<PROJECT>/TestCompositeLib1/lib/src/main/res
             JavaResource        : file://<PROJECT>/TestCompositeLib1/lib/src/main/resources
             JavaSource          : file://<PROJECT>/TestCompositeLib1/lib/src/main/rs
@@ -677,6 +687,7 @@ PROJECT             : testWithCompositeBuild
             JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/test/assets
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/test/java
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/test/jni
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/test/ml
             JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/test/res
             JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/test/resources
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/test/rs
@@ -686,6 +697,7 @@ PROJECT             : testWithCompositeBuild
             JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/testDebug/java
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/testDebug/jni
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/testDebug/ml
             JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/testDebug/res
             JavaResource (test) : file://<PROJECT>/TestCompositeLib1/lib/src/testDebug/resources
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib1/lib/src/testDebug/rs
@@ -1146,6 +1158,7 @@ PROJECT             : testWithCompositeBuild
             JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/androidTest/java
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/androidTest/jni
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/androidTest/ml
             JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/androidTest/res
             JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/androidTest/rs
@@ -1155,6 +1168,7 @@ PROJECT             : testWithCompositeBuild
             JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/androidTestDebug/java
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/androidTestDebug/jni
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/androidTestDebug/ml
             JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/androidTestDebug/res
             JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/androidTestDebug/rs
@@ -1164,6 +1178,7 @@ PROJECT             : testWithCompositeBuild
             JavaResource        : file://<PROJECT>/TestCompositeLib3/app/src/debug/assets
             JavaSource          : file://<PROJECT>/TestCompositeLib3/app/src/debug/java
             JavaSource          : file://<PROJECT>/TestCompositeLib3/app/src/debug/jni
+            JavaResource        : file://<PROJECT>/TestCompositeLib3/app/src/debug/ml
             JavaResource        : file://<PROJECT>/TestCompositeLib3/app/src/debug/res
             JavaResource        : file://<PROJECT>/TestCompositeLib3/app/src/debug/resources
             JavaSource          : file://<PROJECT>/TestCompositeLib3/app/src/debug/rs
@@ -1173,6 +1188,7 @@ PROJECT             : testWithCompositeBuild
             JavaResource        : file://<PROJECT>/TestCompositeLib3/app/src/main/assets
             JavaSource          : file://<PROJECT>/TestCompositeLib3/app/src/main/java
             JavaSource          : file://<PROJECT>/TestCompositeLib3/app/src/main/jni
+            JavaResource        : file://<PROJECT>/TestCompositeLib3/app/src/main/ml
             JavaResource        : file://<PROJECT>/TestCompositeLib3/app/src/main/res
             JavaResource        : file://<PROJECT>/TestCompositeLib3/app/src/main/resources
             JavaSource          : file://<PROJECT>/TestCompositeLib3/app/src/main/rs
@@ -1182,6 +1198,7 @@ PROJECT             : testWithCompositeBuild
             JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/test/assets
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/test/java
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/test/jni
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/test/ml
             JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/test/res
             JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/test/resources
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/test/rs
@@ -1191,6 +1208,7 @@ PROJECT             : testWithCompositeBuild
             JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/testDebug/java
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/testDebug/jni
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/testDebug/ml
             JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/testDebug/res
             JavaResource (test) : file://<PROJECT>/TestCompositeLib3/app/src/testDebug/resources
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/app/src/testDebug/rs
@@ -1595,6 +1613,7 @@ PROJECT             : testWithCompositeBuild
             JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/androidTest/java
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/androidTest/jni
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/androidTest/ml
             JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/androidTest/res
             JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/androidTest/rs
@@ -1604,6 +1623,7 @@ PROJECT             : testWithCompositeBuild
             JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/androidTestDebug/java
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/androidTestDebug/jni
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/androidTestDebug/ml
             JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/androidTestDebug/res
             JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/androidTestDebug/rs
@@ -1613,6 +1633,7 @@ PROJECT             : testWithCompositeBuild
             JavaResource        : file://<PROJECT>/TestCompositeLib3/lib/src/debug/assets
             JavaSource          : file://<PROJECT>/TestCompositeLib3/lib/src/debug/java
             JavaSource          : file://<PROJECT>/TestCompositeLib3/lib/src/debug/jni
+            JavaResource        : file://<PROJECT>/TestCompositeLib3/lib/src/debug/ml
             JavaResource        : file://<PROJECT>/TestCompositeLib3/lib/src/debug/res
             JavaResource        : file://<PROJECT>/TestCompositeLib3/lib/src/debug/resources
             JavaSource          : file://<PROJECT>/TestCompositeLib3/lib/src/debug/rs
@@ -1622,6 +1643,7 @@ PROJECT             : testWithCompositeBuild
             JavaResource        : file://<PROJECT>/TestCompositeLib3/lib/src/main/assets
             JavaSource          : file://<PROJECT>/TestCompositeLib3/lib/src/main/java
             JavaSource          : file://<PROJECT>/TestCompositeLib3/lib/src/main/jni
+            JavaResource        : file://<PROJECT>/TestCompositeLib3/lib/src/main/ml
             JavaResource        : file://<PROJECT>/TestCompositeLib3/lib/src/main/res
             JavaResource        : file://<PROJECT>/TestCompositeLib3/lib/src/main/resources
             JavaSource          : file://<PROJECT>/TestCompositeLib3/lib/src/main/rs
@@ -1631,6 +1653,7 @@ PROJECT             : testWithCompositeBuild
             JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/test/assets
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/test/java
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/test/jni
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/test/ml
             JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/test/res
             JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/test/resources
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/test/rs
@@ -1640,6 +1663,7 @@ PROJECT             : testWithCompositeBuild
             JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/testDebug/java
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/testDebug/jni
+            JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/testDebug/ml
             JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/testDebug/res
             JavaResource (test) : file://<PROJECT>/TestCompositeLib3/lib/src/testDebug/resources
             JavaSource (test)   : file://<PROJECT>/TestCompositeLib3/lib/src/testDebug/rs
@@ -2125,6 +2149,7 @@ PROJECT             : testWithCompositeBuild
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/java
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/jni
+            JavaResource (test) : file://<PROJECT>/app/src/androidTest/ml
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/res
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/rs
@@ -2134,6 +2159,7 @@ PROJECT             : testWithCompositeBuild
             JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/java
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/jni
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/ml
             JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/res
             JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/rs
@@ -2143,6 +2169,7 @@ PROJECT             : testWithCompositeBuild
             JavaResource        : file://<PROJECT>/app/src/debug/assets
             JavaSource          : file://<PROJECT>/app/src/debug/java
             JavaSource          : file://<PROJECT>/app/src/debug/jni
+            JavaResource        : file://<PROJECT>/app/src/debug/ml
             JavaResource        : file://<PROJECT>/app/src/debug/res
             JavaResource        : file://<PROJECT>/app/src/debug/resources
             JavaSource          : file://<PROJECT>/app/src/debug/rs
@@ -2152,6 +2179,7 @@ PROJECT             : testWithCompositeBuild
             JavaResource        : file://<PROJECT>/app/src/main/assets
             JavaSource          : file://<PROJECT>/app/src/main/java
             JavaSource          : file://<PROJECT>/app/src/main/jni
+            JavaResource        : file://<PROJECT>/app/src/main/ml
             JavaResource        : file://<PROJECT>/app/src/main/res
             JavaResource        : file://<PROJECT>/app/src/main/resources
             JavaSource          : file://<PROJECT>/app/src/main/rs
@@ -2161,6 +2189,7 @@ PROJECT             : testWithCompositeBuild
             JavaResource (test) : file://<PROJECT>/app/src/test/assets
             JavaSource (test)   : file://<PROJECT>/app/src/test/java
             JavaSource (test)   : file://<PROJECT>/app/src/test/jni
+            JavaResource (test) : file://<PROJECT>/app/src/test/ml
             JavaResource (test) : file://<PROJECT>/app/src/test/res
             JavaResource (test) : file://<PROJECT>/app/src/test/resources
             JavaSource (test)   : file://<PROJECT>/app/src/test/rs
@@ -2170,6 +2199,7 @@ PROJECT             : testWithCompositeBuild
             JavaResource (test) : file://<PROJECT>/app/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/java
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/jni
+            JavaResource (test) : file://<PROJECT>/app/src/testDebug/ml
             JavaResource (test) : file://<PROJECT>/app/src/testDebug/res
             JavaResource (test) : file://<PROJECT>/app/src/testDebug/resources
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/rs
@@ -2624,6 +2654,7 @@ PROJECT             : testWithCompositeBuild
             JavaResource (test) : file://<PROJECT>/lib/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/lib/src/androidTest/java
             JavaSource (test)   : file://<PROJECT>/lib/src/androidTest/jni
+            JavaResource (test) : file://<PROJECT>/lib/src/androidTest/ml
             JavaResource (test) : file://<PROJECT>/lib/src/androidTest/res
             JavaResource (test) : file://<PROJECT>/lib/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/lib/src/androidTest/rs
@@ -2633,6 +2664,7 @@ PROJECT             : testWithCompositeBuild
             JavaResource (test) : file://<PROJECT>/lib/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/lib/src/androidTestDebug/java
             JavaSource (test)   : file://<PROJECT>/lib/src/androidTestDebug/jni
+            JavaResource (test) : file://<PROJECT>/lib/src/androidTestDebug/ml
             JavaResource (test) : file://<PROJECT>/lib/src/androidTestDebug/res
             JavaResource (test) : file://<PROJECT>/lib/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/lib/src/androidTestDebug/rs
@@ -2642,6 +2674,7 @@ PROJECT             : testWithCompositeBuild
             JavaResource        : file://<PROJECT>/lib/src/debug/assets
             JavaSource          : file://<PROJECT>/lib/src/debug/java
             JavaSource          : file://<PROJECT>/lib/src/debug/jni
+            JavaResource        : file://<PROJECT>/lib/src/debug/ml
             JavaResource        : file://<PROJECT>/lib/src/debug/res
             JavaResource        : file://<PROJECT>/lib/src/debug/resources
             JavaSource          : file://<PROJECT>/lib/src/debug/rs
@@ -2651,6 +2684,7 @@ PROJECT             : testWithCompositeBuild
             JavaResource        : file://<PROJECT>/lib/src/main/assets
             JavaSource          : file://<PROJECT>/lib/src/main/java
             JavaSource          : file://<PROJECT>/lib/src/main/jni
+            JavaResource        : file://<PROJECT>/lib/src/main/ml
             JavaResource        : file://<PROJECT>/lib/src/main/res
             JavaResource        : file://<PROJECT>/lib/src/main/resources
             JavaSource          : file://<PROJECT>/lib/src/main/rs
@@ -2660,6 +2694,7 @@ PROJECT             : testWithCompositeBuild
             JavaResource (test) : file://<PROJECT>/lib/src/test/assets
             JavaSource (test)   : file://<PROJECT>/lib/src/test/java
             JavaSource (test)   : file://<PROJECT>/lib/src/test/jni
+            JavaResource (test) : file://<PROJECT>/lib/src/test/ml
             JavaResource (test) : file://<PROJECT>/lib/src/test/res
             JavaResource (test) : file://<PROJECT>/lib/src/test/resources
             JavaSource (test)   : file://<PROJECT>/lib/src/test/rs
@@ -2669,6 +2704,7 @@ PROJECT             : testWithCompositeBuild
             JavaResource (test) : file://<PROJECT>/lib/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/lib/src/testDebug/java
             JavaSource (test)   : file://<PROJECT>/lib/src/testDebug/jni
+            JavaResource (test) : file://<PROJECT>/lib/src/testDebug/ml
             JavaResource (test) : file://<PROJECT>/lib/src/testDebug/res
             JavaResource (test) : file://<PROJECT>/lib/src/testDebug/resources
             JavaSource (test)   : file://<PROJECT>/lib/src/testDebug/rs
