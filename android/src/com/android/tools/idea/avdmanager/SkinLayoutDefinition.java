@@ -15,18 +15,23 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.google.common.annotations.VisibleForTesting;
+import static com.intellij.util.containers.ContainerUtil.sorted;
+
 import com.android.repository.io.FileOp;
 import com.google.common.base.Charsets;
 import com.google.common.base.Splitter;
-import com.google.common.collect.Maps;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import com.google.common.collect.ImmutableMap;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Allows access to Device Skin Layout files. The layout file syntax is of the form:
@@ -41,9 +46,11 @@ import java.util.regex.Pattern;
  * </pre>
  */
 public class SkinLayoutDefinition {
+  private static final Splitter TOKEN_SPLITTER = Splitter.on(Pattern.compile("\\s+")).omitEmptyStrings().trimResults();
+  private static final Splitter QUERY_SPLITTER = Splitter.on('.');
 
-  @VisibleForTesting static final Pattern ourQuerySeparator = Pattern.compile("\\.");
-  @VisibleForTesting static final Pattern ourWhitespacePattern = Pattern.compile("\\s+");
+  private final Map<String, String> myProperties;
+  private final Map<String, SkinLayoutDefinition> myChildren;
 
   @Nullable
   public static SkinLayoutDefinition parseFile(@NotNull File file, @NotNull FileOp fop) {
@@ -54,39 +61,41 @@ public class SkinLayoutDefinition {
     catch (IOException e) {
       return null;
     }
-    return loadFromTokens(Splitter.on(ourWhitespacePattern).omitEmptyStrings().trimResults().split(contents).iterator());
+    return parseString(contents);
+  }
+
+  @NotNull
+  public static SkinLayoutDefinition parseString(@NotNull String contents) {
+    return loadFromTokens(TOKEN_SPLITTER.split(contents).iterator());
+  }
+
+  private SkinLayoutDefinition(@NotNull Map<String, String> properties, @NotNull Map<String, SkinLayoutDefinition> children) {
+    myProperties = properties;
+    myChildren = children;
   }
 
   /**
-   * Populate myProperties and myChildren from the token stream
-   * @param tokens a queue of string tokens
+   * Creates a SkinLayoutDefinition from the token stream.
+   *
+   * @param tokens a sequence of string tokens
    */
-  @VisibleForTesting
-  static SkinLayoutDefinition loadFromTokens(Iterator<String> tokens) {
-    String key;
-    String value;
-    SkinLayoutDefinition definition = new SkinLayoutDefinition();
+  private static SkinLayoutDefinition loadFromTokens(Iterator<String> tokens) {
+    ImmutableMap.Builder<String, SkinLayoutDefinition> children = ImmutableMap.builder();
+    ImmutableMap.Builder<String, String> properties = ImmutableMap.builder();
     while (tokens.hasNext()) {
-      key = tokens.next();
-      if (key.equals("}")) { // We're done with this block, return
+      String key = tokens.next();
+      if (key.equals("}")) { // We're done with this block, return.
         break;
-      } else {
-        value = tokens.next();
-        if (value.equals("{")) { // Start of a nested block, recursively load that block
-          definition.myChildren.put(key, loadFromTokens(tokens));
-        } else {                // Otherwise, it's a string property, and we'll store it
-          definition.myProperties.put(key, value);
-        }
+      }
+
+      String value = tokens.next();
+      if (value.equals("{")) { // Start of a nested block, recursively load that block.
+        children.put(key, loadFromTokens(tokens));
+      } else {                // Otherwise, it's a string property, and we'll store it.
+        properties.put(key, value);
       }
     }
-    return definition;
-  }
-
-  private Map<String, String> myProperties = Maps.newHashMap();
-  private Map<String, SkinLayoutDefinition> myChildren = Maps.newHashMap();
-
-  private SkinLayoutDefinition() {
-    // Private constructor. Use #parseFile to obtain an instance
+    return new SkinLayoutDefinition(properties.build(), children.build());
   }
 
   /**
@@ -105,68 +114,77 @@ public class SkinLayoutDefinition {
    * The query string "foo.bar.abc" would return the string "123" and the query string "foo.baz.hello" would return "world."
    * The query string "foo.bar.def" would return null because the key referenced does not exist.
    * The query string "foo.bar" would return null because it represents an incomplete path.
+   *
    * @param queryString a dot-separated list of string keys
    */
   @Nullable
-  public String get(@NotNull String queryString) {
-    return get(Splitter.on(ourQuerySeparator).split(queryString).iterator());
+  public String getValue(@NotNull String queryString) {
+    int lastDot = queryString.lastIndexOf('.');
+    String name = queryString.substring(lastDot + 1);
+    SkinLayoutDefinition node = lastDot < 0 ? this : getNode(queryString.substring(0, lastDot));
+    return node == null ? null : node.myProperties.get(name);
   }
 
+  /**
+   * Returns a sub-node with the given path.
+   *
+   * @param queryString dot-separated sequence of node names
+   * @return the sub-node, or null if not found
+   */
   @Nullable
-  private String get(@NotNull Iterator<String> queryIterator) {
-    if (!queryIterator.hasNext()) {
-      return null;
-    }
-    String key = queryIterator.next();
-    if (!queryIterator.hasNext()) {
-      return myProperties.get(key);
-    } else {
-      SkinLayoutDefinition child = myChildren.get(key);
-      if (child != null) {
-        return child.get(queryIterator);
-      } else {
+  public SkinLayoutDefinition getNode(@NotNull String queryString) {
+    SkinLayoutDefinition result = null;
+    SkinLayoutDefinition node = this;
+    for (String name : QUERY_SPLITTER.split(queryString)) {
+      if (node == null) {
         return null;
       }
+      node = node.myChildren.get(name);
+      result = node;
     }
+    return result;
+  }
+
+  /**
+   * Returns child nodes of this SkinLayoutDefinition.
+   */
+  @NotNull
+  public Map<String, SkinLayoutDefinition> getChildren() {
+    return myChildren;
   }
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder();
-    makeString(sb, 1);
-    return sb.toString();
+    StringBuilder buf = new StringBuilder();
+    makeString(buf, 1);
+    return buf.toString();
   }
 
   /**
    * @param depth number of 2-space indents to apply
    */
-  private void makeString(@NotNull StringBuilder sb, int depth) {
-    sb.append("{\n");
-    for (String key : sort(myProperties.keySet())) {
-      appendSpace(sb, depth);
-      sb.append(key);
-      sb.append("    ");
-      sb.append(myProperties.get(key));
-      sb.append("\n");
+  private void makeString(@NotNull StringBuilder buf, int depth) {
+    buf.append("{\n");
+    for (String key : sorted(myProperties.keySet())) {
+      appendSpace(buf, depth);
+      buf.append(key);
+      buf.append("    ");
+      buf.append(myProperties.get(key));
+      buf.append("\n");
     }
-    for (String key : sort(myChildren.keySet())) {
-      appendSpace(sb, depth);
-      sb.append(key);
-      sb.append("    ");
-      myChildren.get(key).makeString(sb, depth + 1);
+    for (String key : sorted(myChildren.keySet())) {
+      appendSpace(buf, depth);
+      buf.append(key);
+      buf.append("    ");
+      myChildren.get(key).makeString(buf, depth + 1);
     }
-    appendSpace(sb, depth - 1);
-    sb.append("}\n");
+    appendSpace(buf, depth - 1);
+    buf.append("}\n");
   }
 
-  private static List<String> sort(Set<String> set) {
-    ArrayList<String> list = new ArrayList<String>(set);
-    Collections.sort(list);
-    return list;
-  }
-  private static void appendSpace(@NotNull StringBuilder sb, int depth) {
+  private static void appendSpace(@NotNull StringBuilder buf, int depth) {
     for (int i = 0; i < depth; i++) {
-      sb.append("  ");
+      buf.append("  ");
     }
   }
 }
