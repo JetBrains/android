@@ -72,8 +72,6 @@ import javax.swing.table.TableCellRenderer
 
 /**
  * Wizard page for selecting SDK components to download.
- *
- * FIXME(qumeric): currently far from ready. Probably I need to use Validator Panel here and maybe Validator<*> as well.
  */
 class SdkComponentsStep(
   model: FirstRunModel
@@ -85,6 +83,12 @@ class SdkComponentsStep(
     columnModel.getColumn(0).apply {
       cellRenderer = SdkComponentRenderer()
       cellEditor = SdkComponentRenderer()
+    }
+
+    selectionModel.addListSelectionListener {
+      // TODO(qumeric): for some reason it is not being updated
+      componentDescription.text = "".takeIf { selectedRow < 0 } ?: tableModel.getComponentDescription(selectedRow)
+      updateDiskSizes()
     }
   }
   private var wasVisible = false
@@ -109,7 +113,6 @@ class SdkComponentsStep(
     border = BorderFactory.createEmptyBorder()
   }
 
-  // FIXME(qumeric) check if it should be BorderLayoutPanel() (was that in layout but custom-create=true)
   private val sdkLocationLabel = JBLabel("Android SDK Location:")
 
   private val neededSpace = JBLabel("Loading...")
@@ -149,6 +152,11 @@ class SdkComponentsStep(
   private val validatorPanel: ValidatorPanel = ValidatorPanel(this, outerPanel)
   private val root = StudioWizardStepPanel(validatorPanel)
 
+  private fun updateDiskSizes() {
+    availableSpace.text = getDiskSpace(sdkPath.text)
+    neededSpace.text = getSizeLabel(componentsSize)
+  }
+
   init {
     // Since we create and initialize a new AndroidSdkHandler/RepoManager for every (partial)
     // path that's entered, disallow direct editing of the path.
@@ -165,6 +173,8 @@ class SdkComponentsStep(
     validatorPanel.apply {
       registerValidator(TextProperty(sdkPath), SdkPathValidator())
     }
+
+    updateDiskSizes()
   }
 
   override fun getComponent(): JComponent = root
@@ -205,8 +215,6 @@ class SdkComponentsStep(
 
   /*override fun deriveValues(modified: Set<ScopedStateStore.Key<*>>) {
     if (modified.contains(sdkDownloadPathKey) || rootNode.componentStateChanged(modified)) {
-      availableSpace.text = getDiskSpace(sdkDownloadPath)
-      neededSpace.text = "Total download size: $componentsSize"
     }
   }*/
 
@@ -275,6 +283,7 @@ class SdkComponentsStep(
           // so we need to call "setValueAt" manually.
           tableModel.setValueAt(isSelected, row, 0)
         }
+        updateDiskSizes()
       }
     }
     private var emptyBorder: Border? = null
@@ -450,10 +459,10 @@ fun getDiskSpace(path: String?): String {
   val available = getSizeLabel(file.freeSpace)
   return if (SystemInfo.isWindows) {
     val driveName = generateSequence(file, File::getParentFile).last().name
-    "Disk space available on drive $driveName: $available"
+    "$available (drive $driveName)"
   }
   else {
-    "Available disk space: $available"
+    available.toString()
   }
 }
 
