@@ -23,11 +23,14 @@ import java.awt.Font;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class StringsCellRenderer extends FrozenColumnTableCellRenderer {
+final class StringsCellRenderer extends FrozenColumnTableCellRenderer<StringResourceTableModel> {
   private static final SimpleTextAttributes CELL_ERROR_ATTRIBUTES = new SimpleTextAttributes(SimpleTextAttributes.STYLE_WAVED, JBColor.red);
 
   @Override
-  void customizeCellRenderer(@NotNull FrozenColumnTable table, @Nullable Object value, int viewRowIndex, int viewColumnIndex) {
+  void customizeCellRenderer(@NotNull FrozenColumnTable<StringResourceTableModel> table,
+                             @Nullable Object value,
+                             int viewRowIndex,
+                             int viewColumnIndex) {
     if (!(value instanceof String)) {
       return;
     }
@@ -41,7 +44,7 @@ final class StringsCellRenderer extends FrozenColumnTableCellRenderer {
     int modelRowIndex = table.convertRowIndexToModel(viewRowIndex);
     int modelColumnIndex = table.convertColumnIndexToModel(viewColumnIndex);
 
-    String problem = ((StringResourceTableModel)table.getModel()).getCellProblem(modelRowIndex, modelColumnIndex);
+    String problem = table.getModel().getCellProblem(modelRowIndex, modelColumnIndex);
     SimpleTextAttributes attributes;
 
     if (problem == null) {
