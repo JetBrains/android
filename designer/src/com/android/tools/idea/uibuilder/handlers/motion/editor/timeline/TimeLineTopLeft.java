@@ -60,7 +60,7 @@ public class TimeLineTopLeft extends JPanel {
     gbc.gridx = 0;
     gbc.gridy = 0;
     gbc.weightx = 1;
-    gbc.insets = new Insets(MEUI.scale(4), MEUI.scale(4), MEUI.scale(4), MEUI.scale(4));
+    gbc.insets = new Insets(MEUI.scale(1), MEUI.scale(1), MEUI.scale(1), MEUI.scale(1));
     
     for (int i = 0; i < buttons.length; i++) {
       JButton button = buttons[i];
