@@ -38,6 +38,7 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.SystemProperties;
 import java.io.File;
 import java.io.IOException;
@@ -61,7 +62,9 @@ public class AndroidSdkInitializer implements Runnable {
     File.separator + ".." + File.separator + ANDROID_SDK_FOLDER_NAME
   };
   // Default install location from users home dir.
-  @NonNls private static final String ANDROID_SDK_DEFAULT_INSTALL_DIR = File.separator + "Android" + File.separator + "Sdk";
+  @NonNls private static final String ANDROID_SDK_DEFAULT_INSTALL_DIR =
+    (SystemInfo.isWindows ? System.getenv("LOCALAPPDATA") : SystemProperties.getUserHome()) +
+    File.separator + "Android" + File.separator + "Sdk";
 
   @Override
   public void run() {
@@ -73,7 +76,7 @@ public class AndroidSdkInitializer implements Runnable {
     // In unit tests, we only want to set up SDKs which are set up explicitly by the test itself, whereas initialisers
     // might lead to unexpected SDK leaks because having not set up the SDKs, the test will consequently not release them either.
     if (GuiTestingService.getInstance().isGuiTestingMode() || ApplicationManager.getApplication().isUnitTestMode()
-       || ApplicationManager.getApplication().isHeadlessEnvironment()) {
+        || ApplicationManager.getApplication().isHeadlessEnvironment()) {
       // This is good enough. Later on in the GUI test we'll validate the given SDK path.
       return;
     }
@@ -183,7 +186,7 @@ public class AndroidSdkInitializer implements Runnable {
                               () -> System.getenv(SdkConstants.ANDROID_SDK_ROOT_ENV));
     sdkLocationCandidates.put("Last SDK used by Android tools",
                               () -> getLastSdkPathUsedByAndroidTools());
-    sdkLocationCandidates.put("Default install directory", () -> SystemProperties.getUserHome() + ANDROID_SDK_DEFAULT_INSTALL_DIR);
+    sdkLocationCandidates.put("Default install directory", () -> ANDROID_SDK_DEFAULT_INSTALL_DIR);
 
     for (Map.Entry<String, Callable<String>> locationCandidate : sdkLocationCandidates.entrySet()) {
       try {
@@ -213,7 +216,7 @@ public class AndroidSdkInitializer implements Runnable {
   /**
    * Returns the value for property 'lastSdkPath' as stored in the properties file at $HOME/.android/ddms.cfg, or {@code null} if the file
    * or property doesn't exist.
-   *
+   * <p>
    * This is only useful in a scenario where existing users of ADT/Eclipse get Studio, but without the bundle. This method duplicates some
    * functionality of {@link com.android.prefs.AndroidLocation} since we don't want any file system writes to happen during this process.
    */
@@ -230,7 +233,8 @@ public class AndroidSdkInitializer implements Runnable {
     try {
       Properties properties = getProperties(file);
       return properties.getProperty("lastSdkPath");
-    } catch (IOException e) {
+    }
+    catch (IOException e) {
       return null;
     }
   }
