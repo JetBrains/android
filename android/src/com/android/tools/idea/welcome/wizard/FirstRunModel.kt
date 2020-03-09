@@ -67,6 +67,9 @@ class FirstRunModel(private val mode: FirstRunWizardMode): WizardModel() {
   private val fileOp: FileOp = FileOpUtils.create()
 
   // FIXME (why always true?)
+  /**
+   * Should store the root node of the component tree.
+   */
   val componentTree = createComponentTree(true)
 
   init {
