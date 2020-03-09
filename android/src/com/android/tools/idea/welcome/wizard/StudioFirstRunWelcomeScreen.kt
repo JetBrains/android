@@ -16,8 +16,10 @@
 package com.android.tools.idea.welcome.wizard
 
 import com.android.repository.api.RemotePackage
-import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.android.tools.idea.avdmanager.HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated
+import com.android.tools.idea.sdk.wizard.LicenseAgreementModel
+import com.android.tools.idea.sdk.wizard.LicenseAgreementStep
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData
 import com.android.tools.idea.welcome.config.FirstRunWizardMode
@@ -56,16 +58,13 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode) : Welcom
       addStep(FirstRunWelcomeStep(model))
       if (model.installationType.get() != FirstRunModel.InstallationType.CUSTOM) {
         addStep(InstallationTypeWizardStep(model))
+        addStep(JdkSetupStep(model))
       }
-      addStep(JdkSetupStep(model))
       addStep(SelectThemeStep())
       if (mode == FirstRunWizardMode.MISSING_SDK) {
         addStep(MissingSdkAlertStep())
       }
       addStep(SdkComponentsStep(model))
-      if (isLinux && !isChromeOSAndIsNotHWAccelerated() && mode == FirstRunWizardMode.NEW_INSTALL) {
-        addStep(LinuxHaxmInfoStep())
-      }
       if (mode != FirstRunWizardMode.INSTALL_HANDOFF) {
         val supplier = Supplier<Collection<RemotePackage>?> {
           val components: Iterable<InstallableComponent> = model.componentTree.childrenToInstall
@@ -77,15 +76,19 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode) : Welcom
             null
           }
         }
+        model.componentTree.steps.forEach { addStep(it) }
         addStep(InstallSummaryStep(model, supplier))
       }
-      // TODO(qumeric): add support for MISSING_SDK case and for INSTALL_HANDOFF
-      //addStep(LicenseAgreementStep())
-      //if(SystemInfo.isMac || SystemInfo.isWindows) {
-      addStep(VmUninstallInfoStep())
-      //}
-      // if (mode != FirstRunWizardMode.INSTALL_HANDOFF) {
-      //addStep(LicenseAgreementStep(LicenseAgreementModel(sdkManagerLocalPath), listOf()))
+
+      if (isLinux && !isChromeOSAndIsNotHWAccelerated() && mode == FirstRunWizardMode.NEW_INSTALL) {
+        addStep(LinuxHaxmInfoStep())
+      }
+
+       if (mode != FirstRunWizardMode.INSTALL_HANDOFF) {
+         addStep(LicenseAgreementStep(LicenseAgreementModel(model.sdkLocation), listOf()))
+       }
+
+      // TODO: addStep(ProgressStep(model))
     }.build()
 
 
