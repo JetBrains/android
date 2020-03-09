@@ -502,7 +502,15 @@ public class ASGallery<E> extends JBList {
       Border padding = BorderFactory.createEmptyBorder(hPadding, 0, hPadding, 0);
       textLabel.setBorder(padding);
 
-      JPanel panel = new JPanel();
+      JPanel panel = new JPanel() {
+        @Override
+        public Dimension getPreferredSize() {
+          Dimension d = super.getPreferredSize();
+          // Let the list calculate the preferred size, otherwise we can be larger than the cell bounds
+          d.width = -1;
+          return d;
+        }
+      };
       panel.setFocusable(true);
       panel.setOpaque(false); // so that background is from parent window
       panel.setLayout(new BorderLayout());
