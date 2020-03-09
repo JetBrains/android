@@ -175,7 +175,7 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
   fun testExecuteStatementWithParameters() {
     // Prepare
     val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
-    val sqliteStatement = SqliteStatement("fake query", listOf(SqliteValue.StringValue("1"), SqliteValue.NullValue))
+    val sqliteStatement = SqliteStatement("fake query", listOf(SqliteValue.StringValue("1"), SqliteValue.NullValue), "fakeQuery")
 
     val cursor = Response.newBuilder()
       .setQuery(QueryResponse.newBuilder())
