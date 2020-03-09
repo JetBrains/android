@@ -36,7 +36,8 @@ class NamedIdeaSourceProviderImpl(
   override val jniLibsDirectoryUrls: Collection<String> = emptyList(),
   override val resDirectoryUrls: Collection<String> = emptyList(),
   override val assetsDirectoryUrls: Collection<String> = emptyList(),
-  override val shadersDirectoryUrls: Collection<String> = emptyList()
+  override val shadersDirectoryUrls: Collection<String> = emptyList(),
+  override val mlModelsDirectoryUrls: Collection<String> = emptyList()
 ) : NamedIdeaSourceProvider {
   @Volatile
   private var myManifestFile: VirtualFile? = null
@@ -87,6 +88,8 @@ class NamedIdeaSourceProviderImpl(
 
   override val shadersDirectories: Collection<VirtualFile> get() = convertUrlSet(shadersDirectoryUrls)
 
+  override val mlModelsDirectories: Collection<VirtualFile> get() = convertUrlSet(mlModelsDirectoryUrls)
+
   /** Convert a set of IDEA file urls into a set of equivalent virtual files  */
   private fun convertUrlSet(fileUrls: Collection<String>): Collection<VirtualFile> {
     val fileManager = VirtualFileManager.getInstance()
@@ -112,7 +115,8 @@ class IdeaSourceProviderImpl(
   override val jniLibsDirectoryUrls: Collection<String> = emptyList(),
   override val resDirectoryUrls: Collection<String> = emptyList(),
   override val assetsDirectoryUrls: Collection<String> = emptyList(),
-  override val shadersDirectoryUrls: Collection<String> = emptyList()
+  override val shadersDirectoryUrls: Collection<String> = emptyList(),
+  override val mlModelsDirectoryUrls: Collection<String> = emptyList()
 ) : IdeaSourceProvider {
   override val manifestFiles: Collection<VirtualFile> get() = convertUrlSet(manifestFileUrls)
 
@@ -137,6 +141,8 @@ class IdeaSourceProviderImpl(
 
   override val shadersDirectories: Collection<VirtualFile> get() = convertUrlSet(shadersDirectoryUrls)
 
+  override val mlModelsDirectories: Collection<VirtualFile> get() = convertUrlSet(mlModelsDirectoryUrls)
+
   /** Convert a set of IDEA file urls into a set of equivalent virtual files  */
   private fun convertUrlSet(fileUrls: Collection<String>): Collection<VirtualFile> {
     val fileManager = VirtualFileManager.getInstance()
@@ -160,6 +166,7 @@ interface NamedIdeaSourceProviderBuilder {
   fun withResDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder
   fun withAssetsDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder
   fun withShadersDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder
+  fun withMlModelsDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder
   fun build(): NamedIdeaSourceProvider
 
   companion object {
@@ -179,7 +186,8 @@ interface NamedIdeaSourceProviderBuilder {
     val jniLibsDirectoryUrls: Collection<String> = emptyList(),
     val resDirectoryUrls: Collection<String> = emptyList(),
     val assetsDirectoryUrls: Collection<String> = emptyList(),
-    val shadersDirectoryUrls: Collection<String> = emptyList()
+    val shadersDirectoryUrls: Collection<String> = emptyList(),
+    val mlModelsDirectoryUrls: Collection<String> = emptyList()
   ) : NamedIdeaSourceProviderBuilder {
     override fun withName(name: String): NamedIdeaSourceProviderBuilder = copy(name = name)
 
@@ -205,6 +213,8 @@ interface NamedIdeaSourceProviderBuilder {
 
     override fun withShadersDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder = copy(shadersDirectoryUrls = urls)
 
+    override fun withMlModelsDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder = copy(mlModelsDirectoryUrls = urls)
+
     override fun build(): NamedIdeaSourceProvider = NamedIdeaSourceProviderImpl(
       name,
       scopeType,
@@ -217,7 +227,8 @@ interface NamedIdeaSourceProviderBuilder {
       jniLibsDirectoryUrls,
       resDirectoryUrls,
       assetsDirectoryUrls,
-      shadersDirectoryUrls
+      shadersDirectoryUrls,
+      mlModelsDirectoryUrls
     )
   }
 }

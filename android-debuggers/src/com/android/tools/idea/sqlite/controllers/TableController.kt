@@ -24,13 +24,18 @@ import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteTable
+import com.android.tools.idea.sqlite.model.SqliteValue
+import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.android.tools.idea.sqlite.ui.tableView.TableView
+import com.google.common.base.Functions
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.containers.ComparatorUtil.max
+import kotlin.math.min
 
 /**
  * Controller specialized in displaying rows and columns from a [SqliteResultSet].
@@ -56,9 +61,12 @@ class TableController(
 
   private var lastExecutedQuery = sqliteStatement
 
-  fun setUp(): ListenableFuture<Unit> {
-    view.startTableLoading()
+  /**
+   * The list of rows that is currently shown in the view.
+   */
+  private var currentRows = emptyList<SqliteRow>()
 
+  fun setUp(): ListenableFuture<Unit> {
     return edtExecutor.transform(databaseConnection.execute(sqliteStatement)) { newResultSet ->
       checkNotNull(newResultSet)
       lastExecutedQuery = sqliteStatement
@@ -80,35 +88,16 @@ class TableController(
     }
   }
 
-  // TODO We should just reload the current page.
-  //  But live inspection doesn't support paging yet. So we need to reload everything.
   override fun refreshData(): ListenableFuture<Unit> {
-    Disposer.dispose(resultSet)
-
-    view.startTableLoading()
-
-    return edtExecutor.transform(databaseConnection.execute(lastExecutedQuery)) { newResultSet ->
-      checkNotNull(newResultSet)
-
-      if (Disposer.isDisposed(this)) {
-        Disposer.dispose(newResultSet)
-        throw ProcessCanceledException()
-      }
-
-      resultSet = newResultSet
-      Disposer.register(this, newResultSet)
-
-      fetchAndDisplayTableData()
-
-      return@transform
-    }
+    return fetchAndDisplayTableData()
   }
 
   override fun dispose() {
     view.removeListener(listener)
   }
 
-  private fun fetchAndDisplayTableData() {
+  private fun fetchAndDisplayTableData(): ListenableFuture<Unit> {
+    view.startTableLoading()
     val fetchTableDataFuture = edtExecutor.transformAsync(resultSet.columns) { columns ->
       if (Disposer.isDisposed(this)) throw ProcessCanceledException()
       view.showTableColumns(columns!!.filter { it.name != table?.rowIdName?.stringName })
@@ -119,12 +108,17 @@ class TableController(
 
     val futureCatching = handleFetchRowsError(fetchTableDataFuture)
 
-    edtExecutor.finallySync(futureCatching) {
+    val future = edtExecutor.finallySync(futureCatching) {
       if (Disposer.isDisposed(this)) throw ProcessCanceledException()
       view.stopTableLoading()
     }
+
+    return Futures.transform(future, Functions.constant(Unit), MoreExecutors.directExecutor())
   }
 
+  /**
+   * Calls [fetchAndDisplayRows] to fetch new data and updates the view.
+   */
   private fun updateDataAndButtons(): ListenableFuture<Unit> {
     view.setFetchPreviousRowsButtonState(false)
     view.setFetchNextRowsButtonState(false)
@@ -139,22 +133,53 @@ class TableController(
   }
 
   /**
-   * Fetches rows through the [SqliteResultSet].
+   * Fetches rows through the [resultSet] using [start] and [rowBatchSize].
+   * The view is updated through a list of [RowDiffOperation]. Compared to just recreating the view
+   * this approach has the advantage that the state is not lost. Eg. if the user is navigating the table
+   * using the keyboard we don't want to lose the navigation each time the data has to be updated.
    */
   private fun fetchAndDisplayRows() : ListenableFuture<Unit> {
-    return edtExecutor.transformAsync(resultSet.getRowBatch(start, rowBatchSize)) { rows ->
+    return edtExecutor.transform(resultSet.getRowBatch(start, rowBatchSize)) { newRows ->
       if (Disposer.isDisposed(this)) throw ProcessCanceledException()
 
-      if (rows!!.isEmpty()) {
-        view.removeRows()
-        Futures.immediateFuture(Unit)
-      } else {
-        view.removeRows()
-        view.showTableRowBatch(rows)
-        view.setEditable(table != null)
-        Futures.immediateFuture(Unit)
+      val rowDiffOperations = mutableListOf<RowDiffOperation>()
+
+      // Update the cells that already exist
+      for (rowIndex in 0 until min(currentRows.size, newRows.size)) {
+        val rowCellUpdates = performRowsDiff(currentRows[rowIndex], newRows[rowIndex], rowIndex)
+        rowDiffOperations.addAll(rowCellUpdates)
+      }
+
+      // add new rows
+      if (currentRows.size < newRows.size) {
+        rowDiffOperations.addAll(newRows.drop(currentRows.size).map { RowDiffOperation.AddRow(it) })
+      }
+      // remove extra rows
+      else if (currentRows.size > newRows.size) {
+        rowDiffOperations.add(RowDiffOperation.RemoveLastRows(newRows.size))
+      }
+
+      view.updateRows(rowDiffOperations)
+      view.setEditable(table != null)
+
+      currentRows = newRows
+    }
+  }
+
+  /**
+   * Returns a list of [UpdateCell] commands.
+   * A command is added to the list if [oldRow] and [newRow] have different values in the same position.
+   */
+  private fun performRowsDiff(oldRow: SqliteRow, newRow: SqliteRow, rowIndex: Int): List<RowDiffOperation.UpdateCell> {
+    val cellUpdates = mutableListOf<RowDiffOperation.UpdateCell>()
+
+    for (colIndex in oldRow.values.indices) {
+      if (oldRow.values[colIndex] != newRow.values[colIndex]) {
+        cellUpdates.add(RowDiffOperation.UpdateCell(newRow.values[colIndex], rowIndex, colIndex))
       }
     }
+
+    return cellUpdates
   }
 
   private fun handleFetchRowsError(future: ListenableFuture<Unit>): ListenableFuture<Any> {
@@ -178,7 +203,6 @@ class TableController(
       val newQuery =
         "SELECT * FROM (${sqliteStatement.sqliteStatementText}) ORDER BY ${AndroidSqlLexer.getValidName(orderBy!!.column.name)} $order"
 
-      view.startTableLoading()
       Disposer.dispose(resultSet)
 
       val selectStatement = SqliteStatement(newQuery, sqliteStatement.parametersValues)
@@ -247,7 +271,7 @@ class TableController(
       refreshData()
     }
 
-    override fun updateCellInvoked(targetRow: SqliteRow, targetColumn: SqliteColumn, newValue: Any?) {
+    override fun updateCellInvoked(targetRow: SqliteRow, targetColumn: SqliteColumn, newValue: SqliteValue) {
       require(table != null) { "Table is null, can't update." }
 
       val rowIdColumnValue = targetRow.values.firstOrNull { it.columnName == table.rowIdName?.stringName }

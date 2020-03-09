@@ -54,6 +54,9 @@ public enum AndroidSourceType {
 
   /** Java-style resources. */
   RESOURCES("resources", it -> ImmutableList.copyOf(it.getResourcesDirectories()), AllIcons.Modules.ResourcesRoot),
+
+  /** Machine learning models. */
+  ML("ml", it -> ImmutableList.copyOf(it.getMlModelsDirectories()), AllIcons.Modules.ResourcesRoot),
   ;
 
   private final String myName;

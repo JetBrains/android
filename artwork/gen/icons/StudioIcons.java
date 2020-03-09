@@ -89,6 +89,13 @@ public class StudioIcons {
     public static final Icon ZOOM_SELECT = load("/studio/icons/common/zoom-select.svg"); // 16x16
   }
 
+  public static class Compose {
+    public static final Icon INSPECT_PREVIEW = load("/studio/icons/compose/toolbar/inspect-preview.svg"); // 16x16
+    public static final Icon INTERACTIVE_PREVIEW = load("/studio/icons/compose/toolbar/interactive-preview.svg"); // 16x16
+    public static final Icon RUN_CONFIGURATION = load("/studio/icons/compose/toolbar/run-configuration.svg"); // 16x16
+    public static final Icon RUN_ON_DEVICE = load("/studio/icons/compose/toolbar/run-on-device.svg"); // 16x16
+  }
+
   public static class Cursors {
     public static final Icon EW_RESIZE = load("/studio/icons/cursors/ew-resize.svg"); // 32x32
     public static final Icon GRAB = load("/studio/icons/cursors/grab.svg"); // 32x32

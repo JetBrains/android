@@ -18,11 +18,11 @@ package com.android.tools.idea.sqlite.ui.tableView
 import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.adtui.stdui.CommonButton
 import com.android.tools.idea.sqlite.model.SqliteColumn
+import com.android.tools.idea.sqlite.model.SqliteColumnValue
 import com.android.tools.idea.sqlite.model.SqliteRow
+import com.android.tools.idea.sqlite.model.SqliteValue
 import com.android.tools.idea.sqlite.ui.notifyError
 import com.intellij.icons.AllIcons
-import com.intellij.openapi.editor.colors.EditorColors
-import com.intellij.openapi.editor.colors.EditorColorsManager
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.ColoredTableCellRenderer
 import com.intellij.ui.SimpleTextAttributes
@@ -158,10 +158,6 @@ class TableViewImpl : TableView {
     table.model = MyTableModel(emptyList())
   }
 
-  override fun removeRows() {
-    (table.model as MyTableModel).removeAllRows()
-  }
-
   override fun startTableLoading() {
     table.emptyText.text = loadingText
     isLoading = true
@@ -169,7 +165,9 @@ class TableViewImpl : TableView {
 
   override fun showTableColumns(columns: List<SqliteColumn>) {
     this.columns = columns
-    table.model = MyTableModel(columns)
+    if (table.model !is MyTableModel) {
+      table.model = MyTableModel(columns)
+    }
 
     table.columnModel.getColumn(0).maxWidth = JBUI.scale(60)
     table.columnModel.getColumn(0).resizable = false
@@ -177,8 +175,8 @@ class TableViewImpl : TableView {
     setAutoResizeMode()
   }
 
-  override fun showTableRowBatch(rows: List<SqliteRow>) {
-    (table.model as MyTableModel).addRows(rows)
+  override fun updateRows(rowDiffOperations: List<RowDiffOperation>) {
+    (table.model as MyTableModel).applyRowsDiff(rowDiffOperations)
   }
 
   override fun stopTableLoading() {
@@ -276,12 +274,6 @@ class TableViewImpl : TableView {
       viewRowIndex: Int,
       viewColumnIndex: Int
     ) {
-      if (viewColumnIndex == 0) {
-        background = EditorColorsManager.getInstance().globalScheme.getColor(EditorColors.GUTTER_BACKGROUND)
-      } else {
-        background = primaryContentBackground
-      }
-
       if (value == null) {
         append("NULL", SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES)
       } else {
@@ -292,21 +284,8 @@ class TableViewImpl : TableView {
 
   private inner class MyTableModel(val columns: List<SqliteColumn>) : AbstractTableModel() {
 
-    private val rows = mutableListOf<SqliteRow>()
+    private val rows = mutableListOf<MyRow>()
     var isEditable = false
-
-    fun addRows(newRows: List<SqliteRow>) {
-      val startIndex = rows.size
-      val endIndex = startIndex + newRows.size
-      rows.addAll(newRows)
-      fireTableRowsInserted(startIndex, endIndex)
-    }
-
-    fun removeAllRows() {
-      val endIndex = rows.size
-      rows.clear()
-      fireTableRowsDeleted(0, endIndex)
-    }
 
     override fun getColumnName(modelColumnIndex: Int): String {
       return if (modelColumnIndex == 0) {
@@ -326,18 +305,54 @@ class TableViewImpl : TableView {
       return if (modelColumnIndex == 0) {
         (modelRowIndex + 1).toString()
       } else {
-        rows[modelRowIndex].values[modelColumnIndex - 1].value?.toString()
+        when (val value = rows[modelRowIndex].values[modelColumnIndex - 1]) {
+          is SqliteValue.StringValue -> value.value
+          is SqliteValue.NullValue -> null
+        }
       }
     }
 
     override fun setValueAt(newValue: Any?, modelRowIndex: Int, modelColumnIndex: Int) {
       assert(modelColumnIndex > 0) { "Setting value of column at index 0 is not allowed" }
 
-      val row = rows[modelRowIndex]
+      val newSqliteValue = if (newValue == null) SqliteValue.NullValue else SqliteValue.StringValue(newValue.toString())
+
       val column = columns[modelColumnIndex - 1]
-      listeners.forEach { it.updateCellInvoked(row, column, newValue) }
+      val sqliteRow = SqliteRow(rows[modelRowIndex].values.mapIndexed { index, value -> SqliteColumnValue(columns[index].name, value) })
+
+      listeners.forEach { it.updateCellInvoked(sqliteRow, column, newSqliteValue) }
     }
 
     override fun isCellEditable(modelRowIndex: Int, modelColumnIndex: Int) = modelColumnIndex != 0 && isEditable
+
+    fun applyRowsDiff(rowDiffOperations: List<RowDiffOperation>) {
+      for (diffOperation in rowDiffOperations) {
+        when (diffOperation) {
+          is RowDiffOperation.UpdateCell -> {
+            rows[diffOperation.rowIndex].values[diffOperation.colIndex] = diffOperation.newValue.value
+            fireTableCellUpdated(diffOperation.rowIndex, diffOperation.colIndex+1)
+          }
+          is RowDiffOperation.AddRow -> {
+            rows.add(MyRow.fromSqliteRow(diffOperation.row))
+            fireTableRowsInserted(rows.size-1, rows.size-1)
+          }
+          is RowDiffOperation.RemoveLastRows -> {
+            val oldRowsSize = rows.size
+            for (i in oldRowsSize-1 downTo diffOperation.startIndex) {
+              rows.removeAt(i)
+            }
+            fireTableRowsDeleted(diffOperation.startIndex, oldRowsSize-1)
+          }
+        }
+      }
+    }
+  }
+
+  private data class MyRow(val values: MutableList<SqliteValue>) {
+    companion object {
+      fun fromSqliteRow(sqliteRow: SqliteRow): MyRow {
+        return MyRow(sqliteRow.values.map { it.value }.toMutableList())
+      }
+    }
   }
 }

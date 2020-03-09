@@ -27,7 +27,6 @@ import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.formatter.NumberFormatter;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.profiler.proto.Memory;
-import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
@@ -35,7 +34,7 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
-import com.android.tools.profilers.memory.adapters.ClassSet;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
 import com.android.tools.profilers.memory.adapters.FakeCaptureObject;
 import com.android.tools.profilers.memory.adapters.FakeInstanceObject;
 import com.android.tools.profilers.memory.adapters.ReferenceObject;
@@ -180,7 +179,7 @@ public class MemoryInstanceDetailsViewTest {
     myStage.selectCaptureDuration(
       new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> myFakeCaptureObject)),
       null);
-    JTree tree = myDetailsView.buildTree(fakeRootObject);
+    JTree tree = myDetailsView.buildReferenceTree(fakeRootObject);
     DefaultTreeModel treeModel = (DefaultTreeModel)tree.getModel();
     assertNotNull(treeModel);
     MemoryObjectTreeNode<ValueObject> treeRoot = (MemoryObjectTreeNode<ValueObject>)treeModel.getRoot();

@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.material.icons
 
+import com.android.tools.idea.material.icons.common.MaterialIconsUrlProvider
+import com.android.tools.idea.material.icons.metadata.MaterialIconsMetadata
+import com.android.tools.idea.material.icons.metadata.MaterialMetadataIcon
 import com.google.common.truth.Truth
 import com.intellij.openapi.util.io.FileUtil
 import org.junit.Assert.assertFalse

@@ -23,27 +23,20 @@ import com.android.tools.adtui.common.toSwingRect
 import com.android.tools.idea.common.model.Scale
 import com.android.tools.idea.common.model.times
 import com.android.tools.idea.common.model.toScale
-import com.android.tools.idea.common.scene.draw.CompositeDrawCommand
-import com.android.tools.idea.common.scene.draw.DrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand.COMPONENT_LEVEL
-import com.android.tools.idea.common.scene.draw.DrawShape
 import com.android.tools.idea.common.scene.draw.buildString
 import com.android.tools.idea.common.scene.draw.colorToString
 import com.android.tools.idea.common.scene.draw.parse
 import com.android.tools.idea.common.scene.draw.stringToColor
 import com.android.tools.idea.naveditor.scene.ACTION_ARROW_PARALLEL
-import com.android.tools.idea.naveditor.scene.ACTION_STROKE
 import com.android.tools.idea.naveditor.scene.ArrowDirection
 import com.android.tools.idea.naveditor.scene.getHorizontalActionIconRect
-import com.android.tools.idea.naveditor.scene.makeDrawArrowCommand
-import com.android.tools.idea.naveditor.scene.makeDrawImageCommand
-import icons.StudioIcons.NavEditor.Surface.POP_ACTION
 import java.awt.Color
 
-data class DrawHorizontalAction(private val rectangle: SwingRectangle,
-                                private val scale: Scale,
-                                private val color: Color,
-                                private val isPopAction: Boolean) : CompositeDrawCommand(COMPONENT_LEVEL) {
+class DrawHorizontalAction(private val rectangle: SwingRectangle,
+                           scale: Scale,
+                           color: Color,
+                           isPopAction: Boolean) : DrawActionBase(scale, color, isPopAction, COMPONENT_LEVEL) {
   private constructor(tokens: Array<String>)
     : this(tokens[0].toSwingRect(), tokens[1].toScale(), stringToColor(tokens[2]), tokens[3].toBoolean())
 
@@ -52,7 +45,7 @@ data class DrawHorizontalAction(private val rectangle: SwingRectangle,
   override fun serialize(): String = buildString(javaClass.simpleName, rectangle.toString(),
                                                  scale, colorToString(color), isPopAction)
 
-  override fun buildCommands(): List<DrawCommand> {
+  override fun buildAction(): Action {
     val arrowWidth = ACTION_ARROW_PARALLEL * scale
     val lineLength = max(SwingLength(0f), rectangle.width - arrowWidth)
 
@@ -60,19 +53,9 @@ data class DrawHorizontalAction(private val rectangle: SwingRectangle,
     val x2 = x1 + lineLength
     val y = rectangle.center.y
 
-    val drawLine = DrawShape(SwingLine(x1, y, x2, y), color, ACTION_STROKE)
-
     val arrowRect = SwingRectangle(x2, rectangle.y, arrowWidth, rectangle.height)
-    val drawArrow = makeDrawArrowCommand(arrowRect, ArrowDirection.RIGHT, color)
-
-    val list = mutableListOf(drawLine, drawArrow)
-
-    if (isPopAction) {
-      val iconRect = getHorizontalActionIconRect(rectangle, scale)
-      val drawIcon = makeDrawImageCommand(POP_ACTION, iconRect, color)
-      list.add(drawIcon)
-    }
-
-    return list
+    return Action(SwingLine(x1, y, x2, y), arrowRect, ArrowDirection.RIGHT)
   }
+
+  override fun getPopIconRectangle(): SwingRectangle = getHorizontalActionIconRect(rectangle, scale)
 }

@@ -40,16 +40,16 @@ public class MergeCaptureDataSeries<T> implements DataSeries<T> {
   // The series overrides any thread state data coming from perfd. As the Atrace capture
   // has more accurate data.
   @NotNull
-  private AtraceDataSeries<T> myAtraceDataSeries;
+  private LazyDataSeries<T> myLazyDataSeries;
 
   @NotNull
   private final CpuCapture myCapture;
 
   public MergeCaptureDataSeries(@NotNull CpuCapture capture,
                                 @NotNull DataSeries<T> dataStoreSeries,
-                                @NotNull AtraceDataSeries traceState) {
+                                @NotNull LazyDataSeries<T> traceState) {
     myCapture = capture;
-    myAtraceDataSeries = traceState;
+    myLazyDataSeries = traceState;
     myDataStoreSeries = dataStoreSeries;
   }
 
@@ -74,7 +74,7 @@ public class MergeCaptureDataSeries<T> implements DataSeries<T> {
           atraceSeriesRequestTo = maxRangeUs;
         }
         // We request atrace data from our trace start up to the trace end, or request range.
-        List<SeriesData<T>> atraceSeries = getDataForRangeFromSeries(traceStart, atraceSeriesRequestTo, myAtraceDataSeries);
+        List<SeriesData<T>> atraceSeries = getDataForRangeFromSeries(traceStart, atraceSeriesRequestTo, myLazyDataSeries);
 
         // If we have trace data we adjust the range we request sampled data from.
         // The end point of our sampled data is either the first sampled point in our Atrace series. Or if we have no Atrace data

@@ -36,6 +36,7 @@ object DesignerActions {
   //</editor-fold>
 
   //<editor-fold desc="Layout Editor Actions">
+  const val ACTION_SWITCH_DESIGN_MODE = "$PREFIX.SwitchDesignMode"
   const val ACTION_TOGGLE_DEVICE_ORIENTATION = "$PREFIX.ToggleDeviceOrientation"
   //</editor-fold>
 }

@@ -18,6 +18,10 @@ package com.android.tools.idea.compose.preview.runconfiguration
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.openapi.project.Project
+import org.jdom.Element
+
+private const val CONFIGURATION_ELEMENT_NAME = "compose-preview-run-configuration"
+private const val COMPOSABLE_FQN_ATR_NAME = "composable-fqn"
 
 /** A run configuration to launch the Compose tooling PreviewActivity to a device/emulator passing a @Composable via intent parameter. */
 open class ComposePreviewRunConfiguration(project: Project, factory: ConfigurationFactory) : AndroidRunConfiguration(project, factory) {
@@ -37,6 +41,27 @@ open class ComposePreviewRunConfiguration(project: Project, factory: Configurati
   }
 
   override fun isProfilable() = false
+
+  override fun readExternal(element: Element) {
+    super.readExternal(element)
+
+    element.getChild(CONFIGURATION_ELEMENT_NAME)?.let {
+      it.getAttribute(COMPOSABLE_FQN_ATR_NAME)?.let { attr ->
+        composableMethodFqn = attr.value
+      }
+    }
+  }
+
+
+  override fun writeExternal(element: Element) {
+    super.writeExternal(element)
+
+    composableMethodFqn?.let {
+      val configurationElement = Element(CONFIGURATION_ELEMENT_NAME)
+      configurationElement.setAttribute(COMPOSABLE_FQN_ATR_NAME, it)
+      element.addContent(configurationElement)
+    }
+  }
 
   override fun getConfigurationEditor() = ComposePreviewSettingsEditor(project, this)
 }

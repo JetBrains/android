@@ -21,12 +21,14 @@ import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteColumnValue
 import com.android.tools.idea.sqlite.model.SqliteRow
+import com.android.tools.idea.sqlite.model.SqliteValue
+import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
 import com.intellij.testFramework.LightPlatformTestCase
-import com.intellij.testFramework.LightPlatformTestCase.assertThrows
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.JBTable
+import junit.framework.TestCase
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
@@ -145,11 +147,11 @@ class TableViewImplTest : LightPlatformTestCase() {
 
     val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col)
-    val rows = listOf(SqliteRow(listOf(SqliteColumnValue(col.name, "val"))))
+    val rows = listOf(SqliteRow(listOf(SqliteColumnValue(col.name, SqliteValue.StringValue("val")))))
 
     view.startTableLoading()
     view.showTableColumns(cols)
-    view.showTableRowBatch(rows)
+    view.updateRows(rows.map { RowDiffOperation.AddRow(it) })
     view.stopTableLoading()
 
     table.size = Dimension(600, 200)
@@ -179,11 +181,11 @@ class TableViewImplTest : LightPlatformTestCase() {
 
     val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col)
-    val rows = listOf(SqliteRow(listOf(SqliteColumnValue("col", "val"))))
+    val rows = listOf(SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val")))))
 
     view.startTableLoading()
     view.showTableColumns(cols)
-    view.showTableRowBatch(rows)
+    view.updateRows(rows.map { RowDiffOperation.AddRow(it) })
     view.stopTableLoading()
 
     table.size = Dimension(600, 200)
@@ -209,11 +211,11 @@ class TableViewImplTest : LightPlatformTestCase() {
 
     val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col)
-    val rows = listOf(SqliteRow(listOf(SqliteColumnValue("col", "val"))))
+    val rows = listOf(SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val")))))
 
     view.startTableLoading()
     view.showTableColumns(cols)
-    view.showTableRowBatch(rows)
+    view.updateRows(rows.map { RowDiffOperation.AddRow(it) })
     view.stopTableLoading()
 
     // Assert
@@ -228,11 +230,11 @@ class TableViewImplTest : LightPlatformTestCase() {
 
     val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col)
-    val rows = listOf(SqliteRow(listOf(SqliteColumnValue("col", "val"))))
+    val rows = listOf(SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val")))))
 
     view.startTableLoading()
     view.showTableColumns(cols)
-    view.showTableRowBatch(rows)
+    view.updateRows(rows.map { RowDiffOperation.AddRow(it) })
     view.stopTableLoading()
 
     // Assert
@@ -247,11 +249,14 @@ class TableViewImplTest : LightPlatformTestCase() {
 
     val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col)
-    val rows = listOf(SqliteRow(listOf(SqliteColumnValue("col", "val1"))), SqliteRow(listOf(SqliteColumnValue("col", "val2"))))
+    val rows = listOf(
+      SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val1")))),
+      SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val2"))))
+    )
 
     view.startTableLoading()
     view.showTableColumns(cols)
-    view.showTableRowBatch(rows)
+    view.updateRows(rows.map { RowDiffOperation.AddRow(it) })
     view.stopTableLoading()
 
     // Assert
@@ -271,19 +276,19 @@ class TableViewImplTest : LightPlatformTestCase() {
 
     val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col)
-    val row = SqliteRow(listOf(SqliteColumnValue("col", "val1")))
+    val row = SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val1"))))
     val rows = listOf(row)
 
     view.startTableLoading()
     view.showTableColumns(cols)
-    view.showTableRowBatch(rows)
+    view.updateRows(rows.map { RowDiffOperation.AddRow(it) })
     view.stopTableLoading()
 
     // Act
     table.model.setValueAt("newValue", 0, 1)
 
     // Assert
-    verify(mockListener).updateCellInvoked(row, col, "newValue")
+    verify(mockListener).updateCellInvoked(row, col, SqliteValue.StringValue("newValue"))
   }
 
   fun testColumnsAreEditableExceptForFirst() {
@@ -293,16 +298,100 @@ class TableViewImplTest : LightPlatformTestCase() {
 
     val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
     val cols = listOf(col)
-    val rows = listOf(SqliteRow(listOf(SqliteColumnValue("col", "val1"))))
+    val rows = listOf(SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val1")))))
 
     view.startTableLoading()
     view.showTableColumns(cols)
-    view.showTableRowBatch(rows)
+    view.updateRows(rows.map { RowDiffOperation.AddRow(it) })
     view.stopTableLoading()
     view.setEditable(true)
 
     // Assert
     assertFalse(table.model.isCellEditable(0, 0))
     assertTrue(table.model.isCellEditable(0, 1))
+  }
+
+  fun `testShowRows Add`() {
+    // Prepare
+    val treeWalker = TreeWalker(view.component)
+    val table = treeWalker.descendants().filterIsInstance<JBTable>().first()
+
+    val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
+    val cols = listOf(col)
+    val rows = listOf(SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val1")))))
+
+    // Act
+    view.startTableLoading()
+    view.showTableColumns(cols)
+    view.updateRows(rows.map { RowDiffOperation.AddRow(it) })
+    view.stopTableLoading()
+
+    // Assert
+    assertEquals(1, table.model.rowCount)
+    TestCase.assertEquals("val1", table.model.getValueAt(0, 1))
+  }
+
+  fun `testShowRows Add UpdateRemove`() {
+    // Prepare
+    val treeWalker = TreeWalker(view.component)
+    val table = treeWalker.descendants().filterIsInstance<JBTable>().first()
+
+    val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
+    val cols = listOf(col)
+    val rowsToAdd = listOf(
+      SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val1")))),
+      SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val2"))))
+    )
+
+    // Act
+    view.startTableLoading()
+    view.showTableColumns(cols)
+    view.updateRows(rowsToAdd.map { RowDiffOperation.AddRow(it) })
+    view.stopTableLoading()
+
+    view.updateRows(
+      listOf(
+        RowDiffOperation.UpdateCell(SqliteColumnValue("col", SqliteValue.StringValue("new val")), 0, 0),
+        RowDiffOperation.RemoveLastRows(1))
+    )
+
+    // Assert
+    assertEquals(1, table.model.rowCount)
+    TestCase.assertEquals("new val", table.model.getValueAt(0, 1))
+  }
+
+  fun `testShowRows Add Update UpdateAdd`() {
+    // Prepare
+    val treeWalker = TreeWalker(view.component)
+    val table = treeWalker.descendants().filterIsInstance<JBTable>().first()
+
+    val col = SqliteColumn("col", SqliteAffinity.INTEGER, false, false)
+    val cols = listOf(col)
+    val rowsToAdd = listOf(
+      SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val1")))),
+      SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("val2"))))
+    )
+
+    // Act
+    view.startTableLoading()
+    view.showTableColumns(cols)
+    view.updateRows(rowsToAdd.map { RowDiffOperation.AddRow(it) })
+    view.stopTableLoading()
+
+    view.updateRows(listOf(RowDiffOperation.UpdateCell(SqliteColumnValue("col", SqliteValue.StringValue("new val")), 0, 0)))
+
+    view.updateRows(
+      listOf(
+        RowDiffOperation.UpdateCell(SqliteColumnValue("col", SqliteValue.StringValue("new val1")), 0, 0),
+        RowDiffOperation.AddRow(SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("new val3"))))),
+        RowDiffOperation.AddRow(SqliteRow(listOf(SqliteColumnValue("col", SqliteValue.StringValue("new val4")))))
+    ))
+
+    // Assert
+    assertEquals(4, table.model.rowCount)
+    TestCase.assertEquals("new val1", table.model.getValueAt(0, 1))
+    TestCase.assertEquals("val2", table.model.getValueAt(1, 1))
+    TestCase.assertEquals("new val3", table.model.getValueAt(2, 1))
+    TestCase.assertEquals("new val4", table.model.getValueAt(3, 1))
   }
 }

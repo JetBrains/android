@@ -47,7 +47,7 @@ import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.common.surface.SingleSceneViewLayoutManager;
+import com.android.tools.idea.common.surface.SinglePositionableContentLayoutManager;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.configurations.ConfigurationStateManager;
@@ -162,7 +162,7 @@ public class NavDesignSurface extends DesignSurface {
    */
   public NavDesignSurface(@NotNull Project project, @Nullable DesignerEditorPanel editorPanel, @NotNull Disposable parentDisposable) {
     super(project, parentDisposable, surface -> new NavActionManager((NavDesignSurface)surface), NavInteractionHandler::new,
-          getDefaultSurfaceState(), true, (surface) -> new SingleSceneViewLayoutManager());
+          getDefaultSurfaceState(), true, (surface) -> new SinglePositionableContentLayoutManager());
     setBackground(JBColor.white);
 
     // TODO: add nav-specific issues

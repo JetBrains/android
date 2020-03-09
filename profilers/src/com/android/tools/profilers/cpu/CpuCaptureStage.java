@@ -56,6 +56,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -332,11 +333,11 @@ public class CpuCaptureStage extends Stage<Timeline> {
       myTrackGroupModels.add(createInteractionTrackGroup(selectionRange));
     }
 
-    if (capture instanceof AtraceCpuCapture) {
+    if (capture.getType() == Cpu.CpuTraceType.ATRACE) {
       // Display pipeline events, e.g. frames, surfaceflinger. Systrace only.
-      myTrackGroupModels.add(createDisplayTrackGroup(selectionRange, (AtraceCpuCapture)capture));
+      myTrackGroupModels.add(createDisplayTrackGroup(selectionRange, capture));
       // CPU per-core usage and event etc. Systrace only.
-      myTrackGroupModels.add(createCpuCoresTrackGroup(selectionRange, (AtraceCpuCapture)capture));
+      myTrackGroupModels.add(createCpuCoresTrackGroup(selectionRange, capture));
     }
 
     // Thread states and trace events.
@@ -360,10 +361,10 @@ public class CpuCaptureStage extends Stage<Timeline> {
     return interaction;
   }
 
-  private TrackGroupModel createDisplayTrackGroup(@NotNull Range selectionRange, @NotNull AtraceCpuCapture atraceCapture) {
+  private TrackGroupModel createDisplayTrackGroup(@NotNull Range selectionRange, @NotNull CpuCapture cpuCapture) {
     TrackGroupModel display = TrackGroupModel.newBuilder().setTitle("Display").build();
     CpuFramesModel.FrameState mainFrames =
-      new CpuFramesModel.FrameState("Main", atraceCapture.getMainThreadId(), AtraceFrame.FrameThread.MAIN, atraceCapture, selectionRange);
+      new CpuFramesModel.FrameState("Main", cpuCapture.getMainThreadId(), AtraceFrame.FrameThread.MAIN, cpuCapture, selectionRange);
     CpuFrameTooltip mainFrameTooltip = new CpuFrameTooltip(myTrackGroupTimeline);
     mainFrameTooltip.setFrameSeries(mainFrames.getSeries());
     display.addTrackModel(
@@ -397,19 +398,19 @@ public class CpuCaptureStage extends Stage<Timeline> {
     return threads;
   }
 
-  private TrackGroupModel createCpuCoresTrackGroup(@NotNull Range selectionRange, @NotNull AtraceCpuCapture atraceCapture) {
-    int cpuCount = atraceCapture.getCpuCount();
+  private TrackGroupModel createCpuCoresTrackGroup(@NotNull Range selectionRange, @NotNull CpuCapture cpuCapture) {
+    int cpuCount = cpuCapture.getCpuCount();
     String coresTitle = String.format(Locale.getDefault(), "CPU cores (%d)", cpuCount);
     TrackGroupModel cores = TrackGroupModel.newBuilder().setTitle(coresTitle).setCollapsedInitially(true).build();
     for (int cpuId = 0; cpuId < cpuCount; ++cpuId) {
-      CpuKernelTooltip kernelTooltip = new CpuKernelTooltip(getTimeline(), atraceCapture.getMainThreadId());
+      CpuKernelTooltip kernelTooltip = new CpuKernelTooltip(getTimeline(), cpuCapture.getMainThreadId());
       final int coreId = cpuId;
-      AtraceDataSeries<CpuThreadSliceInfo> dataSeries =
-        new AtraceDataSeries<>(atraceCapture, capture -> capture.getCpuThreadSliceInfoStates(coreId));
+      LazyDataSeries<CpuThreadSliceInfo> dataSeries =
+        new LazyDataSeries<>(() -> cpuCapture.getCpuThreadSliceInfoStates(coreId));
       kernelTooltip.setCpuSeries(cpuId, dataSeries);
       cores.addTrackModel(
         TrackModel.newBuilder(
-          new CpuCoreTrackModel(dataSeries, selectionRange, atraceCapture),
+          new CpuCoreTrackModel(dataSeries, selectionRange, cpuCapture),
           ProfilerTrackRendererType.CPU_CORE,
           "CPU " + cpuId)
           .setDefaultTooltipModel(kernelTooltip));

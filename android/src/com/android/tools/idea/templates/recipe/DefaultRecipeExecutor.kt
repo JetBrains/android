@@ -24,7 +24,6 @@ import com.android.ide.common.repository.GradleVersion
 import com.android.resources.ResourceFolderType
 import com.android.support.AndroidxNameUtils
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
-import com.android.tools.idea.gradle.dsl.api.GradleFileModel
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
@@ -48,7 +47,7 @@ import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.gradle.util.GradleUtil.dependsOn
 import com.android.tools.idea.gradle.util.GradleUtil.dependsOnAndroidTest
 import com.android.tools.idea.gradle.util.GradleUtil.dependsOnJavaLibrary
-import com.android.tools.idea.templates.RepositoryUrlManager
+import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.templates.TemplateUtils
 import com.android.tools.idea.templates.TemplateUtils.checkDirectoryIsWriteable
 import com.android.tools.idea.templates.TemplateUtils.checkedCreateDirectoryIfMissing
@@ -221,30 +220,31 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
   /**
    * Add a library dependency into the project.
    */
-  override fun addDependency(mavenCoordinate: String, configuration: String, minRev: String?, moduleDir: File?) {
+  override fun addDependency(mavenCoordinate: String, configuration: String, minRev: String?, moduleDir: File?, toBase: Boolean) {
     // Translate from "compile" to "implementation" based on the parameter map context
     val newConfiguration = GradleUtil.mapConfigurationName(configuration, projectTemplateData.gradlePluginVersion, false)
-    referencesExecutor.addDependency(newConfiguration, mavenCoordinate, minRev)
+    referencesExecutor.addDependency(newConfiguration, mavenCoordinate, minRev, moduleDir, toBase)
 
     val baseFeature = context.moduleTemplateData?.baseFeature
 
-    val buildModel =
-      if (moduleDir != null) {
-        projectBuildModel?.getModuleBuildModel(moduleDir) ?: return
+    val buildModel = when {
+      moduleDir != null -> {
+        projectBuildModel?.getModuleBuildModel(moduleDir)
       }
-      else if (baseFeature == null) {
+      baseFeature == null || !toBase -> {
         moduleGradleBuildModel
       }
-      else {
+      else -> {
         projectBuildModel?.getModuleBuildModel(baseFeature.dir)
-      } ?: return
+      }
+    } ?: return
 
     var resolvedConfiguration = GradleUtil.mapConfigurationName(configuration, projectTemplateData.gradlePluginVersion, false)
     val resolvedMavenCoordinate = resolveDependency(repositoryUrlManager, convertToAndroidX(mavenCoordinate), minRev)
 
     // If a Library (e.g. Google Maps) Manifest references its own resources, it needs to be added to the Base, otherwise aapt2 will fail
     // during linking. Since we don't know the libraries Manifest references, we declare this libraries in the base as "api" dependencies.
-    if (baseFeature != null && resolvedConfiguration == GRADLE_IMPLEMENTATION_CONFIGURATION) {
+    if (baseFeature != null && toBase && resolvedConfiguration == GRADLE_IMPLEMENTATION_CONFIGURATION) {
         resolvedConfiguration = GRADLE_API_CONFIGURATION
     } else if (buildModel.getDependencyConfiguration(resolvedMavenCoordinate) != null) {
       return
@@ -327,9 +327,10 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
   override fun addSourceSet(type: SourceSetType, name: String, dir: File) {
     val buildModel = moduleGradleBuildModel ?: return
     val sourceSet = buildModel.android().addSourceSet(name)
+    val relativeDir = dir.toRelativeString(moduleTemplateData!!.rootDir)
 
     if (type == SourceSetType.MANIFEST) {
-      sourceSet.manifest().srcFile().setValue(dir)
+      sourceSet.manifest().srcFile().setValue(relativeDir)
       return
     }
 
@@ -346,13 +347,13 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
       }
     }.srcDirs()
 
-    val dirExists = srcDirsModel.toList().orEmpty().any { it.toString() == dir.path }
+    val dirExists = srcDirsModel.toList().orEmpty().any { it.toString() == relativeDir }
 
     if (dirExists) {
       return
     }
 
-    srcDirsModel.addListValue().setValue(dir)
+    srcDirsModel.addListValue().setValue(relativeDir)
   }
 
   override fun setExtVar(name: String, value: Any) {
@@ -554,10 +555,6 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     open fun mkDir(directory: File) {
       checkedCreateDirectoryIfMissing(directory)
     }
-
-    open fun applyChanges(gradleModel: GradleFileModel) {
-      gradleModel.applyChanges()
-    }
   }
 
   // TODO(qumeric): make private
@@ -577,8 +574,6 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     override fun mkDir(directory: File) {
       checkDirectoryIsWriteable(directory)
     }
-
-    override fun applyChanges(gradleModel: GradleFileModel) {}
   }
 }
 

@@ -29,7 +29,6 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.PsiShortNamesCache;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.Processor;
-import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -72,11 +71,6 @@ final class DataBindingComponentShortNamesCache extends PsiShortNamesCache {
   @Override
   public String[] getAllClassNames() {
     return ourClassNames;
-  }
-
-  @Override
-  public void getAllClassNames(@NotNull HashSet<String> dest) {
-    dest.add(SdkConstants.CLASS_NAME_DATA_BINDING_COMPONENT);
   }
 
   @NotNull

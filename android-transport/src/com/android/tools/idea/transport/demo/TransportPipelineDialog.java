@@ -122,7 +122,9 @@ public class TransportPipelineDialog extends DialogWrapper {
           .setStreamId(mySelectedStream.getStreamId())
           .setPid(mySelectedProcess.getPid())
           .build();
-        myClient.getTransportStub().execute(Transport.ExecuteRequest.newBuilder().setCommand(command).build());
+        // TODO(b/150503095)
+        Transport.ExecuteResponse response =
+            myClient.getTransportStub().execute(Transport.ExecuteRequest.newBuilder().setCommand(command).build());
       }
     });
 
@@ -325,7 +327,9 @@ public class TransportPipelineDialog extends DialogWrapper {
                 .setAgentLibFileName(String.format("libjvmtiagent_%s.so", process.getAbiCpuArch()))
                 .setAgentConfigPath(TransportFileManager.getAgentConfigFile()))
             .build();
-          myClient.getTransportStub().execute(Transport.ExecuteRequest.newBuilder().setCommand(attachCommand).build());
+          // TODO(b/150503095)
+          Transport.ExecuteResponse response =
+              myClient.getTransportStub().execute(Transport.ExecuteRequest.newBuilder().setCommand(attachCommand).build());
           toggleControls(false);
         });
         processActions.add(processAction);

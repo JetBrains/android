@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.visual;
 
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.ide.DataManager;
@@ -70,13 +71,13 @@ public class VisualizationManager implements ProjectComponent {
    */
   private static final int DEFAULT_WINDOW_WIDTH = 500;
 
-  private final MergingUpdateQueue myToolWindowUpdateQueue;
+  @Nullable private final MergingUpdateQueue myToolWindowUpdateQueue;
 
   private final Project myProject;
   private final FileEditorManager myFileEditorManager;
 
-  private VisualizationForm myToolWindowForm;
-  private ToolWindow myToolWindow;
+  @Nullable private VisualizationForm myToolWindowForm;
+  @Nullable private ToolWindow myToolWindow;
   private boolean myToolWindowReady = false;
   private boolean myToolWindowDisposed = false;
 
@@ -84,8 +85,11 @@ public class VisualizationManager implements ProjectComponent {
     myProject = project;
     myFileEditorManager = fileEditorManager;
 
+    if (!StudioFlags.NELE_VISUALIZATION.get()) {
+      myToolWindowUpdateQueue = null;
+      return;
+    }
     myToolWindowUpdateQueue = new MergingUpdateQueue("android.layout.visual", 100, true, null, project);
-
     final MessageBusConnection connection = project.getMessageBus().connect(project);
     connection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new MyFileEditorManagerListener());
   }
@@ -102,7 +106,8 @@ public class VisualizationManager implements ProjectComponent {
     return myToolWindow != null && myToolWindow.isVisible();
   }
 
-  protected String getToolWindowId() {
+  @NotNull
+  public String getToolWindowId() {
       return AndroidBundle.message("android.layout.visual.tool.window.title");
   }
 
@@ -112,6 +117,9 @@ public class VisualizationManager implements ProjectComponent {
   }
 
   protected void initToolWindow() {
+    if (!StudioFlags.NELE_VISUALIZATION.get()) {
+      return;
+    }
     myToolWindowForm = createPreviewForm();
     final String toolWindowId = getToolWindowId();
     myToolWindow =
@@ -206,6 +214,9 @@ public class VisualizationManager implements ProjectComponent {
   private HierarchyListener myHierarchyListener;
 
   private void processFileEditorChange(@Nullable final FileEditor newEditor) {
+    if (myToolWindowUpdateQueue == null) {
+      return;
+    }
     if (myPendingShowComponent != null) {
       myPendingShowComponent.removeHierarchyListener(myHierarchyListener);
       myPendingShowComponent = null;
@@ -265,6 +276,10 @@ public class VisualizationManager implements ProjectComponent {
           }
           mySeenEditor = true;
           initToolWindow();
+        }
+
+        if (myToolWindow == null || myToolWindowForm == null) {
+          return;
         }
 
         if (newEditor == null) {

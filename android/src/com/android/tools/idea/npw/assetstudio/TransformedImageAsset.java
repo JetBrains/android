@@ -17,13 +17,14 @@ package com.android.tools.idea.npw.assetstudio;
 
 import static com.android.ide.common.util.AssetUtil.NO_EFFECTS;
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.roundToInt;
-import static com.android.tools.idea.npw.assetstudio.VectorDrawableTransformer.transform;
+import static com.android.tools.idea.rendering.VectorDrawableTransformer.transform;
 
 import com.android.ide.common.util.AssetUtil;
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.npw.assetstudio.assets.TextAsset;
+import com.android.tools.idea.rendering.Gravity;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.util.ExceptionUtil;
 import java.awt.Color;

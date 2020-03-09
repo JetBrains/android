@@ -22,8 +22,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.Bleak;
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.UseBleak;
+import com.android.tools.idea.bleak.UseBleak;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
@@ -56,7 +55,7 @@ public class VisualizationTest {
   @RunIn(TestGroup.PERFORMANCE)
   public void openAndCloseVisualizationToolWithBleak() throws Exception {
     EditorFixture editor = guiTest.importSimpleApplication().getEditor();
-    Bleak.runWithBleak(() -> openAndCloseVisualizationTool(editor));
+    guiTest.runWithBleak(() -> openAndCloseVisualizationTool(editor));
   }
 
   static void openAndCloseVisualizationTool(@NotNull EditorFixture editor) {

@@ -437,9 +437,12 @@ b/144931471 */
     assertSize(1, messages);
 
     List<NotificationHyperlink> links = mySyncMessagesStub.getNotificationUpdate().getFixes();
-    assertSize(2, links);
+    boolean studio = IdeInfo.getInstance().isAndroidStudio();
+    assertSize(studio ? 2 : 1, links);
     assertThat(links.get(0)).isInstanceOf(AddGoogleMavenRepositoryHyperlink.class);
-    assertThat(links.get(1)).isInstanceOf(ShowDependencyInProjectStructureHyperlink.class);
+    if (studio) {
+      assertThat(links.get(1)).isInstanceOf(ShowDependencyInProjectStructureHyperlink.class);
+    }
 
     assertEquals(
       ImmutableList.of(

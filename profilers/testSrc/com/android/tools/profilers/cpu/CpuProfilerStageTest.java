@@ -669,7 +669,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     List<SeriesData<CpuThreadSliceInfo>> cpuSeriesData = new ArrayList<>();
     cpuSeriesData.add(new SeriesData<>(5, CpuThreadSliceInfo.NULL_THREAD));
     cpuSeriesData.add(new SeriesData<>(10, new CpuThreadSliceInfo(0, "Test", 0, "Test")));
-    AtraceDataSeries<CpuThreadSliceInfo> series = new AtraceDataSeries<>((AtraceCpuCapture)cpuCapture, (capture) -> cpuSeriesData);
+    LazyDataSeries<CpuThreadSliceInfo> series = new LazyDataSeries<>(() -> cpuSeriesData);
     tooltip.setCpuSeries(1, series);
     assertThat(tooltip.getCpuThreadSliceInfo().getProcessName()).isEqualTo("Test");
 

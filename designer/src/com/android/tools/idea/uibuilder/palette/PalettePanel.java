@@ -44,6 +44,7 @@ import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.ActionPopupMenu;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -61,7 +62,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.wm.impl.content.ToolWindowContentUi;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.util.concurrency.EdtExecutorService;
@@ -248,7 +248,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
           return;
         }
         myItemList.setSelectedIndex(myItemList.locationToIndex(event.getPoint()));
-        ActionPopupMenu popupMenu = ActionManager.getInstance().createActionPopupMenu(ToolWindowContentUi.POPUP_PLACE, myActionGroup);
+        ActionPopupMenu popupMenu = ActionManager.getInstance().createActionPopupMenu(ActionPlaces.TOOLWINDOW_POPUP, myActionGroup);
         popupMenu.getComponent().show(myItemList, event.getX(), event.getY());
       }
     };
@@ -285,7 +285,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
   private void keyboardActionPerformed(@NotNull ActionEvent event, @NotNull AnAction action) {
     DataContext dataContext = DataManager.getInstance().getDataContext(this);
     InputEvent inputEvent = event.getSource() instanceof InputEvent ? (InputEvent)event.getSource() : null;
-    action.actionPerformed(AnActionEvent.createFromAnAction(action, inputEvent, ToolWindowContentUi.POPUP_PLACE, dataContext));
+    action.actionPerformed(AnActionEvent.createFromAnAction(action, inputEvent, ActionPlaces.TOOLWINDOW_POPUP, dataContext));
   }
 
   @NotNull

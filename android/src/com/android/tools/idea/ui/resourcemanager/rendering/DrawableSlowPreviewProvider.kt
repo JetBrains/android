@@ -25,6 +25,7 @@ import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.resolveValue
 import com.android.tools.idea.ui.resourcemanager.plugin.DesignAssetRendererManager
 import com.android.tools.idea.ui.resourcemanager.plugin.FrameworkDrawableRenderer
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.scale.JBUIScale
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Dimension
@@ -34,33 +35,37 @@ import java.util.concurrent.CompletableFuture
 /**
  * [SlowResourcePreviewProvider] for Drawable and Mipmap resources.
  */
-class DrawableSlowPreviewProvider(private val facet: AndroidFacet,
-                                  private val resourceResolver: ResourceResolver) : SlowResourcePreviewProvider {
+class DrawableSlowPreviewProvider(
+  private val facet: AndroidFacet,
+  private val resourceResolver: ResourceResolver,
+  private val contextFile: VirtualFile?) : SlowResourcePreviewProvider {
   private val project = facet.module.project
 
   override val previewPlaceholder: BufferedImage = createDrawablePlaceholderImage(JBUIScale.scale(20), JBUIScale.scale(20))
 
   override fun getSlowPreview(width: Int, height: Int, asset: Asset): CompletableFuture<out BufferedImage?> {
     val designAsset = asset as? DesignAsset ?: return CompletableFuture.completedFuture(null)
+    val configContext = contextFile ?: designAsset.file
     val dimension = Dimension(width, height)
     if (designAsset.resourceItem is SampleDataResourceItem) {
       // Do not try to resolve SampleData, it will return an iterable resourceValue that will generate different previews.
       val file = designAsset.file
-      return DesignAssetRendererManager.getInstance().getViewer(file).getImage(file, facet.module, dimension)
+      return DesignAssetRendererManager.getInstance().getViewer(file).getImage(file, facet.module, dimension, configContext)
     }
     val resolveValue = resourceResolver.resolveValue(designAsset) ?: return CompletableFuture.completedFuture(null)
     if (resolveValue.isFramework) {
       // Delegate framework resources to FrameworkDrawableRenderer. DesignAssetRendererManager fails to provide an image for framework xml
       // resources, it tries to just use the file reference in ResourceValue but it needs a whole ResourceValue from the ResourceResolver
       // that also points to LayoutLib's framework resources instead of the local Android Sdk.
-      return renderFrameworkDrawable(resolveValue, designAsset, dimension) ?: return CompletableFuture.completedFuture(null)
+      return renderFrameworkDrawable(resolveValue, configContext, designAsset, dimension) ?: return CompletableFuture.completedFuture(null)
     }
 
     val file = resourceResolver.resolveDrawable(resolveValue, project) ?: designAsset.file
-    return DesignAssetRendererManager.getInstance().getViewer(file).getImage(file, facet.module, dimension)
+    return DesignAssetRendererManager.getInstance().getViewer(file).getImage(file, facet.module, dimension, configContext)
   }
 
   private fun renderFrameworkDrawable(resolvedValue: ResourceValue,
+                                      configContext: VirtualFile,
                                       designAsset: DesignAsset,
                                       dimension: Dimension): CompletableFuture<out BufferedImage?>? {
     val frameworkValue =
@@ -72,8 +77,6 @@ class DrawableSlowPreviewProvider(private val facet: AndroidFacet,
         // Need a LayoutLib resolved value, so we resolve the resource's reference instead of its value.
         resourceResolver.getUnresolvedResource(designAsset.resourceItem.referenceToSelf) ?: return null
       }
-    return FrameworkDrawableRenderer.getInstance(facet).thenCompose {
-      it.getDrawableRender(frameworkValue, dimension)
-    }
+    return FrameworkDrawableRenderer.getInstance(facet).getDrawableRender(frameworkValue, configContext, dimension)
   }
 }

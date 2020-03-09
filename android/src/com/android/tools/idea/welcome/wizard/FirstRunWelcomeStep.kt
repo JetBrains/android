@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.welcome.wizard
 
-import com.android.tools.idea.npw.platform.getFormFactorsImage
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll
+import com.android.tools.idea.util.getFormFactorsImage
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.components.JBLabel

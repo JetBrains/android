@@ -19,11 +19,13 @@ import com.android.tools.idea.compose.preview.PREVIEW_ANNOTATION_FQN
 import com.android.tools.idea.compose.preview.isValidComposePreview
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.execution.lineMarker.ExecutorAction
 import com.intellij.execution.lineMarker.RunLineMarkerContributor
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import icons.StudioIcons
+import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
@@ -39,11 +41,16 @@ class ComposePreviewRunLineMarkerContributor : RunLineMarkerContributor() {
   override fun getInfo(element: PsiElement): Info? {
     if (!StudioFlags.COMPOSE_PREVIEW_RUN_CONFIGURATION.get()) return null
 
+    // Marker should be in a single LeafPsiElement. We choose the identifier and return null for other elements within the function.
     if (element !is LeafPsiElement) return null
     if (element.node.elementType != KtTokens.IDENTIFIER) return null
 
+    // We should only be able to run Android modules that are not a library.
+    val facet = element.getModuleSystem()?.module?.let { AndroidFacet.getInstance(it) } ?: return null
+    if (facet.configuration.isLibraryProject) return null
+
     (element.parent as? KtNamedFunction)?.takeIf { it.isValidComposePreview() }?.let {
-      return Info(StudioIcons.Shell.Toolbar.RUN, ExecutorAction.getActions()) { _ -> message("run.line.marker.text", it.name!!) }
+      return Info(StudioIcons.Compose.RUN_ON_DEVICE, ExecutorAction.getActions()) { _ -> message("run.line.marker.text", it.name!!) }
     }
     return null
   }

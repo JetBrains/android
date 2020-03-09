@@ -126,7 +126,6 @@ public final class ClassDb {
      * @param superClassId  unique identifier for the direct super class.
      * @param className     fully qualified name of the class.
      */
-    @VisibleForTesting
     public ClassEntry(long classId, long superClassId, @NotNull String className) {
       myClassId = classId;
       mySuperClassId = superClassId;

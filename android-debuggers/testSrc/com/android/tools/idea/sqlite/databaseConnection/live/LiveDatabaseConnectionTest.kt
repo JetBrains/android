@@ -27,12 +27,14 @@ import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.sqlite.model.RowIdName
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteStatement
+import com.android.tools.idea.sqlite.model.SqliteValue
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.PlatformTestCase
 import org.jetbrains.ide.PooledThreadExecutor
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
 
 class LiveDatabaseConnectionTest : PlatformTestCase() {
   private val taskExecutor: FutureCallbackExecutor = FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE)
@@ -162,11 +164,41 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
     assertEquals(SqliteAffinity.TEXT, sqliteColumns[3].affinity)
     assertEquals(SqliteAffinity.TEXT, sqliteColumns[4].affinity)
 
-    assertEquals(sqliteRows[0].values[0].value, "a string")
-    assertEquals(sqliteRows[0].values[1].value, 1f)
-    assertEquals(sqliteRows[0].values[2].value, ByteString.copyFrom("a blob".toByteArray()))
-    assertEquals(sqliteRows[0].values[3].value, 1)
-    assertEquals(sqliteRows[0].values[4].value, null)
+    assertEquals(sqliteRows[0].values[0].value, SqliteValue.StringValue("a string"))
+    assertEquals(sqliteRows[0].values[1].value, SqliteValue.StringValue(1f.toString()))
+    assertEquals(sqliteRows[0].values[2].value, SqliteValue.StringValue(ByteString.copyFrom("a blob".toByteArray()).toStringUtf8()))
+    assertEquals(sqliteRows[0].values[3].value, SqliteValue.StringValue(1.toString()))
+    assertEquals(sqliteRows[0].values[4].value, SqliteValue.NullValue)
+  }
+
+  fun testExecuteStatementWithParameters() {
+    // Prepare
+    val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
+    val sqliteStatement = SqliteStatement("fake query", listOf(SqliteValue.StringValue("1"), SqliteValue.NullValue))
+
+    val cursor = Response.newBuilder()
+      .setQuery(QueryResponse.newBuilder())
+      .build()
+
+    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(cursor.toByteArray()))
+
+    liveDatabaseConnection = LiveDatabaseConnection(mockMessenger, 1, taskExecutor)
+
+    // Act
+    pumpEventsAndWaitForFuture(liveDatabaseConnection.execute(sqliteStatement))!!
+
+    // Assert
+    val param1 = SqliteInspectorProtocol.QueryParameterValue.newBuilder().setStringValue("1").build()
+    val paramNull = SqliteInspectorProtocol.QueryParameterValue.newBuilder().build()
+
+    val queryBuilder = SqliteInspectorProtocol.QueryCommand.newBuilder()
+      .setQuery(sqliteStatement.sqliteStatementText)
+      .addAllQueryParameterValues(listOf(param1, paramNull))
+      .setDatabaseId(1)
+
+    val queryCommand = SqliteInspectorProtocol.Command.newBuilder().setQuery(queryBuilder).build()
+    
+    verify(mockMessenger).sendRawCommand(queryCommand.toByteArray())
   }
 
   fun testReturnsEmptyResultSetForEmptyResponse() {

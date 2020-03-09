@@ -16,9 +16,9 @@
 package com.android.tools.idea.welcome.install;
 
 import com.android.repository.api.RemotePackage;
-import com.android.tools.idea.npw.importing.ImportUIUtil;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
+import com.android.tools.idea.util.FormatUtil;
 import com.google.common.collect.Lists;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -52,10 +52,10 @@ public class InstallComponentsOperation extends InstallOperation<File, File> {
       for (RemotePackage p : packages) {
         descriptions.add(p.getDisplayName());
       }
-      return ImportUIUtil.formatElementListString(descriptions,
-                                                  "The following SDK component was not installed: %s",
-                                                  "The following SDK components were not installed: %1$s and %2$s",
-                                                  "%1$s and %2$s more SDK components were not installed");
+      return FormatUtil.formatElementListString(descriptions,
+                                                "The following SDK component was not installed: %s",
+                                                "The following SDK components were not installed: %1$s and %2$s",
+                                                "%1$s and %2$s more SDK components were not installed");
     }
     else {
       return null;

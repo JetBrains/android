@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync;
 
 import static com.android.SdkConstants.EXT_GRADLE;
 import static com.android.SdkConstants.EXT_GRADLE_KTS;
-import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
@@ -36,12 +35,9 @@ import com.intellij.lang.properties.PropertiesFileType;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
-import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.module.Module;
@@ -245,6 +241,7 @@ public class GradleFiles {
    */
   @Nullable
   private static Integer computeHash(@NotNull VirtualFile file) {
+    if (!file.isValid()) return null;
     Document document = FileDocumentManager.getInstance().getDocument(file);
     return document == null ? null : document.getText().hashCode();
   }
@@ -318,7 +315,7 @@ public class GradleFiles {
           ProgressManager.checkCanceled();
           File path = VfsUtilCore.virtualToIoFile(buildFile);
           if (path.isFile()) {
-            ReadAction.run(() -> putHashForFile(fileHashes, buildFile));
+            putHashForFile(fileHashes, buildFile);
           }
         }
         NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);

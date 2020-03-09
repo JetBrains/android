@@ -77,6 +77,7 @@ class AppInspectionDiscoveryHostTest {
       LaunchedProcessDescriptor(
         device.manufacturer,
         device.model,
+        device.serial,
         process.name,
         AppInspectionTestUtils.TestTransportJarCopier
       )
@@ -235,5 +236,61 @@ class AppInspectionDiscoveryHostTest {
     launchFakeProcess(discoveryHost, fakeDevice2, fakeProcess2)
 
     latch.await()
+  }
+
+  @Test
+  fun processesRunningOnTwoIdenticalDeviceModels() {
+    // Setup
+    val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
+    val discoveryHost = AppInspectionDiscoveryHost(executor, TransportClient(grpcServerRule.name))
+
+    val latch = CountDownLatch(2)
+    discoveryHost.addProcessListener(executor, object : AppInspectionDiscoveryHost.ProcessListener {
+      override fun onProcessConnected(descriptor: ProcessDescriptor) {
+        latch.countDown()
+      }
+
+      override fun onProcessDisconnected(descriptor: ProcessDescriptor) {
+      }
+    })
+
+    // Launch process in stream 1
+    val fakeDevice1 =
+      FakeTransportService.FAKE_DEVICE.toBuilder().setDeviceId(1).setModel("fakeModel").setManufacturer("fakeMan").setSerial("1").build()
+    val fakeProcess1 = FakeTransportService.FAKE_PROCESS.toBuilder().setDeviceId(1).build()
+    launchFakeProcess(discoveryHost, fakeDevice1, fakeProcess1)
+
+    // Launch process with same pid in stream 2
+    val fakeDevice2 =
+      FakeTransportService.FAKE_DEVICE.toBuilder().setDeviceId(2).setModel("fakeModel").setManufacturer("fakeMan").setSerial("2").build()
+    val fakeProcess2 = FakeTransportService.FAKE_PROCESS.toBuilder().setDeviceId(2).build()
+    launchFakeProcess(discoveryHost, fakeDevice2, fakeProcess2)
+
+    latch.await()
+  }
+
+  @Test
+  fun launchInspectableProcessCreatesTarget() {
+    // Setup
+    val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
+    val discoveryHost = AppInspectionDiscoveryHost(executor, TransportClient(grpcServerRule.name))
+
+    val targetReadyLatch = CountDownLatch(1)
+    lateinit var targetToVerify: AppInspectionTarget
+    discoveryHost.discovery.addTargetListener(MoreExecutors.directExecutor()) {
+      targetToVerify = it
+      targetReadyLatch.countDown()
+    }
+
+    // Launch the fake process
+    launchFakeProcess(discoveryHost)
+
+    // Wait to be notified of new AppInspectionTarget
+    targetReadyLatch.await()
+
+    // Verify
+    assertThat(targetToVerify.descriptor.info.manufacturer).isEqualTo(FakeTransportService.FAKE_DEVICE.manufacturer)
+    assertThat(targetToVerify.descriptor.info.model).isEqualTo(FakeTransportService.FAKE_DEVICE.model)
+    assertThat(targetToVerify.descriptor.info.processName).isEqualTo(FakeTransportService.FAKE_PROCESS_NAME)
   }
 }

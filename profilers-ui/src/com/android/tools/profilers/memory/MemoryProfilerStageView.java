@@ -15,8 +15,6 @@
  */
 package com.android.tools.profilers.memory;
 
-import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS;
-import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_VERTICAL_BORDERS;
 import static com.android.tools.profilers.ProfilerLayout.MARKER_LENGTH;
 import static com.android.tools.profilers.ProfilerLayout.MONITOR_BORDER;
 import static com.android.tools.profilers.ProfilerLayout.MONITOR_LABEL_PADDING;
@@ -82,7 +80,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.Gray;
-import com.intellij.ui.JBSplitter;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.IconUtil;
@@ -93,10 +90,16 @@ import com.intellij.util.ui.UIUtilities;
 import icons.StudioIcons;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Insets;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.font.TextAttribute;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
@@ -120,16 +123,10 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   private static final String RECORD_TEXT = "Record";
   private static final String STOP_TEXT = "Stop";
 
-  @NotNull private final MemoryClassSetView myClassSetView = new MemoryClassSetView(getStage(), getIdeComponents());
-  @NotNull private final MemoryInstanceDetailsView myInstanceDetailsView = new MemoryInstanceDetailsView(getStage(), getIdeComponents());
+  private final MemoryProfilerStageLayout myLayout;
+
   @Nullable private RangeSelectionComponent myRangeSelectionComponent;
   @Nullable private CaptureObject myCaptureObject = null;
-
-  @NotNull private final JBSplitter myMainSplitter = new JBSplitter(false);
-  @NotNull private final JBSplitter myChartCaptureSplitter = new JBSplitter(true);
-  @NotNull private final CapturePanel myCapturePanel;
-  @Nullable private LoadingPanel myCaptureLoadingPanel;
-  @NotNull private final JBSplitter myInstanceDetailsSplitter = new JBSplitter(true);
 
   @NotNull private JButton myForceGarbageCollectionButton;
   @NotNull private JButton myHeapDumpButton;
@@ -141,6 +138,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @NotNull private ProfilerAction myStopAllocationAction;
   @NotNull private final JLabel myCaptureElapsedTime;
   @NotNull private final JLabel myAllocationSamplingRateLabel;
+  private final JPanel myToolbar = new JPanel(createToolbarLayout());
 
   @NotNull private DurationDataRenderer<GcDurationData> myGcDurationDataRenderer;
   @NotNull private DurationDataRenderer<AllocationSamplingRateDurationData> myAllocationSamplingRateRenderer;
@@ -156,24 +154,19 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     getTooltipBinder().bind(LifecycleTooltip.class, (stageView, tooltip) -> new LifecycleTooltipView(stageView.getComponent(), tooltip));
     getTooltipBinder().bind(UserEventTooltip.class, (stageView, tooltip) -> new UserEventTooltipView(stageView.getComponent(), tooltip));
 
-    myMainSplitter.getDivider().setBorder(DEFAULT_VERTICAL_BORDERS);
-    myChartCaptureSplitter.getDivider().setBorder(DEFAULT_HORIZONTAL_BORDERS);
-    myInstanceDetailsSplitter.getDivider().setBorder(DEFAULT_HORIZONTAL_BORDERS);
-
     // Do not initialize the monitor UI if it only contains heap dump data.
     // In this case, myRangeSelectionComponent is null and we will not build the context menu.
-    if (!getStage().isMemoryCaptureOnly()) {
-      myChartCaptureSplitter.setFirstComponent(buildMonitorUi());
-    }
-
-    myCapturePanel = new CapturePanel(this);
-    myInstanceDetailsSplitter.setOpaque(true);
-    myInstanceDetailsSplitter.setFirstComponent(myClassSetView.getComponent());
-    myInstanceDetailsSplitter.setSecondComponent(myInstanceDetailsView.getComponent());
-    myMainSplitter.setFirstComponent(myChartCaptureSplitter);
-    myMainSplitter.setSecondComponent(myInstanceDetailsSplitter);
-    myMainSplitter.setProportion(0.6f);
-    getComponent().add(myMainSplitter, BorderLayout.CENTER);
+    JPanel monitorUi = getStage().isMemoryCaptureOnly() ? null : buildMonitorUi();
+    CapturePanel capturePanel = new CapturePanel(this);
+    LoadingPanel loadingPanel = getProfilersView().getIdeProfilerComponents().createLoadingPanel(-1);
+    loadingPanel.setLoadingText("Fetching results");
+    myLayout = getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled() ?
+               new SeparateHeapDumpMemoryProfilerStageLayout(monitorUi, capturePanel, loadingPanel, stage,
+                                                             this::setUpToolbarForTimeline,
+                                                             this::setUpToolbarForCapture,
+                                                             this::setUpToolbarForLoading) :
+               new LegacyMemoryProfilerStageLayout(monitorUi, capturePanel, loadingPanel);
+    getComponent().add(myLayout.getComponent(), BorderLayout.CENTER);
 
     myForceGarbageCollectionButton = new CommonButton(StudioIcons.Profiler.Toolbar.FORCE_GARBAGE_COLLECTION);
     myForceGarbageCollectionButton.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.FORCE_GARBAGE_COLLECTION));
@@ -248,6 +241,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       .onChange(MemoryProfilerAspect.TRACKING_ENABLED, this::allocationTrackingChanged)
       .onChange(MemoryProfilerAspect.CURRENT_CAPTURE_ELAPSED_TIME, this::updateCaptureElapsedTime);
 
+    setUpToolbarForTimeline();
     captureObjectChanged();
     allocationTrackingChanged();
     buildContextMenu();
@@ -300,9 +294,15 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
   @Override
   public JComponent getToolbar() {
-    JPanel toolBar = new JPanel(createToolbarLayout());
-    toolBar.add(myForceGarbageCollectionButton);
-    toolBar.add(myHeapDumpButton);
+    JPanel panel = new JPanel(new BorderLayout());
+    panel.add(myToolbar, BorderLayout.WEST);
+    return panel;
+  }
+
+  private void setUpToolbarForTimeline() {
+    myToolbar.removeAll();
+    myToolbar.add(myForceGarbageCollectionButton);
+    myToolbar.add(myHeapDumpButton);
     if (getStage().useLiveAllocationTracking() &&
         getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isLiveAllocationsSamplingEnabled()) {
       JComboBoxView sampleRateComboView =
@@ -314,12 +314,12 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
                                                                             getStage()::requestLiveAllocationSamplingModeUpdate);
       sampleRateComboView.bind();
       myAllocationSamplingRateDropDown.setRenderer(new LiveAllocationSamplingModeRenderer());
-      toolBar.add(myAllocationSamplingRateLabel);
-      toolBar.add(myAllocationSamplingRateDropDown);
+      myToolbar.add(myAllocationSamplingRateLabel);
+      myToolbar.add(myAllocationSamplingRateDropDown);
     }
     else {
-      toolBar.add(myAllocationButton);
-      toolBar.add(myCaptureElapsedTime);
+      myToolbar.add(myAllocationButton);
+      myToolbar.add(myCaptureElapsedTime);
     }
 
     StudioProfilers profilers = getStage().getStudioProfilers();
@@ -332,64 +332,109 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     };
     profilers.getSessionsManager().addDependency(this).onChange(SessionAspect.SELECTED_SESSION, toggleButtons);
     toggleButtons.run();
+  }
 
-    JPanel panel = new JPanel(new BorderLayout());
-    panel.add(toolBar, BorderLayout.WEST);
-    return panel;
+  private void setUpToolbarForLoading() {
+    myToolbar.removeAll();
+  }
+
+  private void setUpToolbarForCapture() {
+    myToolbar.removeAll();
+    long startMicros = (long)getStage().getTimeline().getDataRange().getMin();
+    long elapsedMicros = TimeUnit.NANOSECONDS.toMicros(myCaptureObject.getStartTimeNs()) - startMicros;
+    String timeString = TimeFormatter.getSimplifiedClockString(elapsedMicros);
+    myToolbar.add(makeNavigationButton("Heap dump: " + timeString, true, () -> {}));
+  }
+
+  private static JLabel makeNavigationButton(String label, boolean bold, Runnable action) {
+    JLabel btn = new JLabel(label);
+    Map<TextAttribute,Object> normalAttrs = new HashMap<>(btn.getFont().getAttributes());
+    if (bold) {
+      normalAttrs.put(TextAttribute.WEIGHT, TextAttribute.WEIGHT_BOLD);
+    }
+    Font normalFont = btn.getFont().deriveFont(normalAttrs);
+    Map<TextAttribute,Object> hoverAttrs = new HashMap<>(normalFont.getAttributes());
+    hoverAttrs.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
+    Font hoverFont = normalFont.deriveFont(hoverAttrs);
+    btn.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 2));
+    btn.setFont(normalFont);
+    btn.addMouseListener(new MouseListener() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        action.run();
+      }
+
+      @Override
+      public void mouseEntered(MouseEvent e) {
+        btn.setFont(hoverFont);
+      }
+
+      @Override
+      public void mouseExited(MouseEvent e) {
+        btn.setFont(normalFont);
+      }
+
+      @Override
+      public void mousePressed(MouseEvent e) {}
+
+      @Override
+      public void mouseReleased(MouseEvent e) {}
+    });
+    return btn;
   }
 
   @VisibleForTesting
   @NotNull
   public Splitter getMainSplitter() {
-    return myMainSplitter;
+    return myLayout.getMainSplitter();
   }
 
   @VisibleForTesting
   @NotNull
   public Splitter getChartCaptureSplitter() {
-    return myChartCaptureSplitter;
+    return myLayout.getChartCaptureSplitter();
   }
 
   @VisibleForTesting
   @NotNull
   public JPanel getCapturePanel() {
-    return myCapturePanel.getComponent();
+    return myLayout.getCapturePanel().getComponent();
   }
 
   @VisibleForTesting
   @NotNull
   MemoryCaptureView getCaptureView() {
-    return myCapturePanel.getCaptureView();
+    return myLayout.getCapturePanel().getCaptureView();
   }
 
   @VisibleForTesting
   @NotNull
   MemoryHeapView getHeapView() {
-    return myCapturePanel.getHeapView();
+    return myLayout.getCapturePanel().getHeapView();
   }
 
   @VisibleForTesting
   @NotNull
   MemoryClassGrouping getClassGrouping() {
-    return myCapturePanel.getClassGrouping();
+    return myLayout.getCapturePanel().getClassGrouping();
   }
 
   @VisibleForTesting
   @NotNull
   MemoryClassifierView getClassifierView() {
-    return myCapturePanel.getClassifierView();
+    return myLayout.getCapturePanel().getClassifierView();
   }
 
   @VisibleForTesting
   @NotNull
   MemoryClassSetView getClassSetView() {
-    return myClassSetView;
+    return myLayout.getCapturePanel().getClassSetView();
   }
 
   @VisibleForTesting
   @NotNull
   MemoryInstanceDetailsView getInstanceDetailsView() {
-    return myInstanceDetailsView;
+    return myLayout.getCapturePanel().getInstanceDetailsView();
   }
 
   @VisibleForTesting
@@ -407,7 +452,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @VisibleForTesting
   @NotNull
   JLabel getCaptureInfoMessage() {
-    return myCapturePanel.getCaptureInfoMessage();
+    return myLayout.getCapturePanel().getCaptureInfoMessage();
   }
 
   private void allocationTrackingChanged() {
@@ -755,7 +800,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       boolean isAlive = getStage().getStudioProfilers().getSessionsManager().isSessionAlive();
       myAllocationButton.setEnabled(isAlive);
       myHeapDumpButton.setEnabled(isAlive);
-      myChartCaptureSplitter.setSecondComponent(null);
+      myLayout.showCaptureUi(false);
       return;
     }
 
@@ -766,10 +811,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     else {
       myAllocationButton.setEnabled(false);
       myHeapDumpButton.setEnabled(false);
-      myCaptureLoadingPanel = getProfilersView().getIdeProfilerComponents().createLoadingPanel(-1);
-      myCaptureLoadingPanel.setLoadingText("Fetching results");
-      myCaptureLoadingPanel.startLoading();
-      myChartCaptureSplitter.setSecondComponent(myCaptureLoadingPanel.getComponent());
+      myLayout.setShowingLoadingUi(true);
     }
   }
 
@@ -786,18 +828,13 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       return;
     }
 
-    stopLoadingUi();
-    myChartCaptureSplitter.setSecondComponent(myCapturePanel.getComponent());
+    myLayout.showCaptureUi(true);
   }
 
   private void stopLoadingUi() {
-    if (myCaptureObject == null || myCaptureLoadingPanel == null) {
-      return;
+    if (myCaptureObject != null && myLayout.isShowingLoadingUi()) {
+      myLayout.setShowingLoadingUi(false);
     }
-
-    myCaptureLoadingPanel.stopLoading();
-    myCaptureLoadingPanel = null;
-    myChartCaptureSplitter.setSecondComponent(null);
   }
 
   private static void configureStackedFilledLine(LineChart chart, Color color, RangedContinuousSeries series) {

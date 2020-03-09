@@ -25,6 +25,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
+import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -145,8 +146,8 @@ class TestInteractionHandler(surface: DesignSurface) : InteractionHandlerBase(su
   override fun createInteractionOnDrag(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? = null
 }
 
-class TestLayoutManager(private val surface: DesignSurface) : SceneViewLayoutManager() {
-  override fun layoutSceneViews(sceneViews: Collection<SceneView>) {
+class TestLayoutManager(private val surface: DesignSurface) : PositionableContentLayoutManager() {
+  override fun layoutContent(content: Collection<PositionableContent>) {
   }
 
   override fun preferredLayoutSize(parent: Container?): Dimension = surface.sceneViews.map { it.contentSize }.firstOrNull() ?: Dimension(0,

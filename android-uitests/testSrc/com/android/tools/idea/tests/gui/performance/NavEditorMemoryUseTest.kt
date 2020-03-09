@@ -19,8 +19,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.UseBleak
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.runWithBleak
+import com.android.tools.idea.bleak.UseBleak
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.junit.Rule
 import org.junit.Test
@@ -36,7 +35,7 @@ class NavEditorMemoryUseTest {
   @UseBleak
   fun openAndCloseTab() {
     val ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("Navigation")
-    runWithBleak {
+    guiTest.runWithBleak {
       ideFrame.editor
         .open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN)
         .getLayoutEditor()

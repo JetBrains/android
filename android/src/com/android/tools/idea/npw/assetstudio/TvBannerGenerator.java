@@ -17,7 +17,7 @@ package com.android.tools.idea.npw.assetstudio;
 
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.roundToInt;
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.scaleRectangleAroundCenter;
-import static com.android.tools.idea.npw.assetstudio.VectorDrawableTransformer.transform;
+import static com.android.tools.idea.rendering.VectorDrawableTransformer.transform;
 import static java.lang.Math.max;
 
 import com.android.ide.common.util.AssetUtil;
@@ -34,6 +34,9 @@ import com.android.tools.idea.observable.core.OptionalProperty;
 import com.android.tools.idea.observable.core.OptionalValueProperty;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
+import com.android.tools.idea.rendering.DrawableRenderer;
+import com.android.tools.idea.rendering.Gravity;
+import com.android.tools.idea.rendering.VectorDrawableTransformer;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;

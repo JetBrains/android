@@ -30,7 +30,6 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.util.ArrayUtil
 import com.intellij.util.Processor
-import com.intellij.util.containers.HashSet
 
 private val BR_CLASS_NAME_LIST = arrayOf(DataBindingUtil.BR)
 
@@ -69,10 +68,6 @@ class BrShortNamesCache(project: Project) : PsiShortNamesCache() {
 
   override fun getAllClassNames(): Array<String> {
     return BR_CLASS_NAME_LIST
-  }
-
-  override fun getAllClassNames(dest: HashSet<String>) {
-    dest.add(DataBindingUtil.BR)
   }
 
   override fun getMethodsByName(name: String, scope: GlobalSearchScope): Array<PsiMethod> {

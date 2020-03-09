@@ -21,10 +21,10 @@ import java.awt.Dimension
 import kotlin.math.max
 
 /**
- * A [SurfaceLayoutManager] which layouts all [SceneView]s vertically or horizontally depending on the given available size.
+ * A [SurfaceLayoutManager] which layouts all [PositionableContent]s vertically or horizontally depending on the given available size.
  *
- * The [horizontalPadding] and [verticalPadding] are the minimum gaps between [SceneView] and the edges of surface.
- * The [horizontalViewDelta] and [verticalViewDelta] are the fixed gap between different [SceneView]s.
+ * The [horizontalPadding] and [verticalPadding] are the minimum gaps between [PositionableContent] and the edges of surface.
+ * The [horizontalViewDelta] and [verticalViewDelta] are the fixed gap between different [PositionableContent]s.
  * Padding and view delta are always the same physical sizes on screen regardless the zoom level.
  */
 class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalPadding: Int,
@@ -36,24 +36,24 @@ class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalPaddin
   private var previousHorizontalPadding = 0
   private var previousVerticalPadding = 0
 
-  override fun getPreferredSize(sceneViews: Collection<SceneView>,
+  override fun getPreferredSize(content: Collection<PositionableContent>,
                                 availableWidth: Int,
                                 availableHeight: Int,
                                 dimension: Dimension?)
     : Dimension {
     val dim = dimension ?: Dimension()
 
-    val vertical = isVertical(sceneViews, availableWidth, availableHeight)
+    val vertical = isVertical(content, availableWidth, availableHeight)
 
     val preferredWidth: Int
     val preferredHeight: Int
     if (vertical) {
-      preferredWidth = sceneViews.maxOf { contentSize.width } ?: 0
-      preferredHeight = sceneViews.sumOf { margin.vertical + contentSize.height + verticalViewDelta } - verticalViewDelta
+      preferredWidth = content.maxOf { contentSize.width } ?: 0
+      preferredHeight = content.sumOf { margin.vertical + contentSize.height + verticalViewDelta } - verticalViewDelta
     }
     else {
-      preferredWidth = sceneViews.sumOf { contentSize.width + horizontalViewDelta } - horizontalViewDelta
-      preferredHeight = sceneViews.maxOf { contentSize.height } ?: 0
+      preferredWidth = content.sumOf { contentSize.width + horizontalViewDelta } - horizontalViewDelta
+      preferredHeight = content.maxOf { contentSize.height } ?: 0
     }
 
     val width = max(0, preferredWidth)
@@ -62,18 +62,18 @@ class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalPaddin
     return dim
   }
 
-  override fun getRequiredSize(sceneViews: Collection<SceneView>, availableWidth: Int, availableHeight: Int, dimension: Dimension?): Dimension {
+  override fun getRequiredSize(content: Collection<PositionableContent>, availableWidth: Int, availableHeight: Int, dimension: Dimension?): Dimension {
     val dim = dimension ?: Dimension()
 
     val requiredWidth: Int
     val requiredHeight: Int
-    if (isVertical(sceneViews, availableWidth, availableHeight)) {
-      requiredWidth = sceneViews.maxOf { scaledContentSize.width } ?: 0
-      requiredHeight = sceneViews.sumOf { margin.vertical + scaledContentSize.height + verticalViewDelta } - verticalViewDelta
+    if (isVertical(content, availableWidth, availableHeight)) {
+      requiredWidth = content.maxOf { scaledContentSize.width } ?: 0
+      requiredHeight = content.sumOf { margin.vertical + scaledContentSize.height + verticalViewDelta } - verticalViewDelta
     }
     else {
-      requiredWidth = sceneViews.sumOf { scaledContentSize.width + horizontalViewDelta } - horizontalViewDelta
-      requiredHeight = sceneViews.maxOf { scaledContentSize.height } ?: 0
+      requiredWidth = content.sumOf { scaledContentSize.width + horizontalViewDelta } - horizontalViewDelta
+      requiredHeight = content.maxOf { scaledContentSize.height } ?: 0
     }
 
     val width = max(0, requiredWidth)
@@ -82,21 +82,21 @@ class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalPaddin
     return dim
   }
 
-  private fun isVertical(sceneViews: Collection<SceneView>, availableWidth: Int, availableHeight: Int): Boolean {
-    if (sceneViews.isEmpty()) {
+  private fun isVertical(content: Collection<PositionableContent>, availableWidth: Int, availableHeight: Int): Boolean {
+    if (content.isEmpty()) {
       return false
     }
 
-    val primary = sceneViews.sortByPosition().first()
+    val primary = content.sortByPosition().first()
     return (availableHeight > 3 * availableWidth / 2) || primary.scaledContentSize.width > primary.scaledContentSize.height
   }
 
-  override fun layout(sceneViews: Collection<SceneView>, availableWidth: Int, availableHeight: Int, keepPreviousPadding: Boolean) {
-    if (sceneViews.isEmpty()) {
+  override fun layout(content: Collection<PositionableContent>, availableWidth: Int, availableHeight: Int, keepPreviousPadding: Boolean) {
+    if (content.isEmpty()) {
       return
     }
 
-    val vertical = isVertical(sceneViews, availableWidth, availableHeight)
+    val vertical = isVertical(content, availableWidth, availableHeight)
 
     val startX: Int
     val startY: Int
@@ -104,7 +104,7 @@ class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalPaddin
       startX = previousHorizontalPadding
       startY = previousVerticalPadding
     } else {
-      val requiredSize = getRequiredSize(sceneViews, availableWidth, availableHeight, null)
+      val requiredSize = getRequiredSize(content, availableWidth, availableHeight, null)
       val requiredWidth = requiredSize.width
       val requiredHeight = requiredSize.height
       startX = max((availableWidth - requiredWidth) / 2, horizontalPadding)
@@ -115,7 +115,7 @@ class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalPaddin
 
     if (vertical) {
       var nextY = startY
-      for (sceneView in sceneViews) {
+      for (sceneView in content) {
         nextY += sceneView.margin.top
         sceneView.setLocation(startX, nextY)
         nextY += sceneView.scaledContentSize.height + sceneView.margin.bottom + verticalViewDelta
@@ -123,7 +123,7 @@ class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalPaddin
     }
     else {
       var nextX = startX
-      for (sceneView in sceneViews) {
+      for (sceneView in content) {
         sceneView.setLocation(nextX, startY)
         nextX += sceneView.scaledContentSize.width + horizontalViewDelta
       }
@@ -132,5 +132,5 @@ class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalPaddin
 }
 
 // Helper functions to improve readability
-private fun Collection<SceneView>.sumOf(mapFunc: SceneView.() -> Int) = map(mapFunc).sum()
-private fun Collection<SceneView>.maxOf(mapFunc: SceneView.() -> Int) = map(mapFunc).max()
+private fun Collection<PositionableContent>.sumOf(mapFunc: PositionableContent.() -> Int) = map(mapFunc).sum()
+private fun Collection<PositionableContent>.maxOf(mapFunc: PositionableContent.() -> Int) = map(mapFunc).max()

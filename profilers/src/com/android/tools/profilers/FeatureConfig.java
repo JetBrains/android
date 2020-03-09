@@ -31,7 +31,6 @@ public interface FeatureConfig {
   boolean isMemorySnapshotEnabled();
   boolean isPerfettoEnabled();
   boolean isPerformanceMonitoringEnabled();
-  boolean isAuditsEnabled();
   boolean isCustomEventVisualizationEnabled();
   boolean isStartupCpuProfilingEnabled();
   boolean isUnifiedPipelineEnabled();

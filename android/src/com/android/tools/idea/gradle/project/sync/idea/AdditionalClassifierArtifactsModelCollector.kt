@@ -19,9 +19,11 @@ import com.android.builder.model.AndroidProject
 import com.android.builder.model.BaseArtifact
 import com.android.builder.model.Library
 import com.android.builder.model.Variant
+import com.android.ide.common.gradle.model.IdeMavenCoordinates.LOCAL_AARS
 import com.android.ide.common.repository.GradleVersion
 import com.android.ide.gradle.model.AdditionalClassifierArtifactsModelParameter
 import com.android.ide.gradle.model.ArtifactIdentifier
+import com.android.ide.gradle.model.ArtifactIdentifierImpl
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidModule
 import com.google.common.annotations.VisibleForTesting
@@ -42,10 +44,10 @@ fun getAdditionalClassifierArtifactsModel(
     // Get variants from AndroidProject if it's not empty, otherwise get from VariantGroup.
     // The first case indicates full-variants sync and the later single-variant sync.
     val variants = if (module.androidProject.variants.isNotEmpty()) module.androidProject.variants else module.variantGroup.variants
-    // Collect the library identifiers to download sources and javadoc for, and filter the cached ones.
-    val identifiers = collectIdentifiers(variants).filter { !cachedLibraries.contains(idToString(it)) }
+    // Collect the library identifiers to download sources and javadoc for, and filter the cached ones and local jar/aars.
+    val identifiers = collectIdentifiers(variants).filter { !cachedLibraries.contains(idToString(it)) && it.groupId != LOCAL_AARS }
 
-    // Query for AdditionalClassiferArtifactsModel model.
+    // Query for AdditionalClassifierArtifactsModel model.
     if (identifiers.isNotEmpty()) {
       controller.findModel(module.gradleProject, AdditionalClassifierArtifactsModel::class.java,
                            AdditionalClassifierArtifactsModelParameter::class.java) { parameter ->
@@ -75,13 +77,9 @@ private fun collectIdentifiers(
     }
   }
 
-  return libraries.filter { it.project == null }.map { it.resolvedCoordinates }.toSet().map {
-    object : ArtifactIdentifier {
-      override fun getVersion(): String = it.version
-      override fun getArtifactId(): String = it.artifactId
-      override fun getGroupId(): String = it.groupId
-    }
-  }
+  return libraries.filter { it.project == null }.map { it.resolvedCoordinates }.map {
+    ArtifactIdentifierImpl(it.groupId, it.artifactId, it.version)
+  }.distinct()
 }
 
 @VisibleForTesting

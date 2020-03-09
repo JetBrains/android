@@ -19,7 +19,7 @@ import com.android.SdkConstants.FN_BUILD_GRADLE_KTS
 import com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.npw.FormFactor
+import com.android.tools.idea.device.FormFactor
 import com.android.tools.idea.npw.platform.Language
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule

@@ -41,6 +41,7 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,21 +55,16 @@ import org.jetbrains.annotations.Nullable;
  * The light class is based on specific model however has structure similar to:
  * <code>
  *   public final class ModelName {
- *     public final class Inputs {
- *       // different load methods
- *       public void loadSomeInput();
- *     }
+ *     public static ModelName newInstance(Context context) throw IOException;
  *     public final class Outputs {
  *       // different get methods
- *       public ByteBuffer getSomeOutput();
+ *       public TensorBuffer getSomeOutput();
  *     }
  *
- *     public final Inputs createInputs() { ... }
- *     public final Outputs run(Inputs inputs) { ... }
+ *     public final Outputs process(TensorImage image1) { ... }
  *   }
  * </code>
  *
- * @see MlkitInputLightClass
  * @see MlkitOutputLightClass
  */
 public class LightModelClass extends AndroidLightClassBase {
@@ -92,24 +88,37 @@ public class LightModelClass extends AndroidLightClassBase {
     ModificationTracker modificationTracker = MlkitModuleService.getInstance(module).getModelFileModificationTracker();
     myCachedMembers = CachedValuesManager.getManager(getProject()).createCachedValue(
       () -> {
-        //Build methods
-        PsiMethod[] methods = new PsiMethod[2];
-        methods[0] = buildRunMethod();
-        methods[1] = buildCreateInputsMethod();
-
-        //Build inner class
         List<TensorInfo> inputTensorInfos = myClassConfig.myModelMetadata.getInputTensorInfos();
         List<TensorInfo> outputTensorInfos = myClassConfig.myModelMetadata.getOutputTensorInfos();
 
+        //Build methods
+        PsiMethod[] methods = new PsiMethod[2];
+        methods[0] = buildProcessMethod(inputTensorInfos);
+        methods[1] = buildNewInstanceStaticMethod();
+
+        //Build inner class
         Map<String, PsiClass> innerClassMap = new HashMap<>();
-        MlkitInputLightClass mlkitInputClass = new MlkitInputLightClass(module, inputTensorInfos, this);
         MlkitOutputLightClass mlkitOutputClass = new MlkitOutputLightClass(module, outputTensorInfos, this);
         innerClassMap.putIfAbsent(mlkitOutputClass.getName(), mlkitOutputClass);
-        innerClassMap.putIfAbsent(mlkitInputClass.getName(), mlkitInputClass);
 
         MyClassMembers data = new MyClassMembers(methods, innerClassMap.values().toArray(PsiClass.EMPTY_ARRAY));
         return CachedValueProvider.Result.create(data, modificationTracker);
       }, false);
+  }
+
+  public static List<String> getInnerClassNames() {
+    return Arrays.asList(MlkitNames.OUTPUTS);
+  }
+
+  @NotNull
+  private PsiMethod buildNewInstanceStaticMethod() {
+    PsiType returnType = PsiType.getTypeByName(getQualifiedName(), getProject(), getResolveScope());
+
+    return new LightMethodBuilder(getManager(), "newInstance")
+      .setMethodReturnType(returnType)
+      .addParameter("context", ClassNames.CONTEXT)
+      .addException(ClassNames.IO_EXCEPTION)
+      .addModifiers(PsiModifier.PUBLIC, PsiModifier.FINAL, PsiModifier.STATIC).setContainingClass(this);
   }
 
   @Override
@@ -148,33 +157,6 @@ public class LightModelClass extends AndroidLightClassBase {
   }
 
   @NotNull
-  private PsiMethod buildRunMethod() {
-    GlobalSearchScope scope = getResolveScope();
-    String outputClassName =
-      String.join(".", myClassConfig.myPackageName, myClassConfig.myModelMetadata.myClassName, MlkitNames.OUTPUTS);
-    String inputClassName =
-      String.join(".", myClassConfig.myPackageName, myClassConfig.myModelMetadata.myClassName, MlkitNames.INPUTS);
-
-    PsiType returnType = PsiType.getTypeByName(outputClassName, getProject(), scope);
-
-    return new LightMethodBuilder(getManager(), "run")
-      .setMethodReturnType(returnType)
-      .addParameter("inputs", PsiType.getTypeByName(inputClassName, getProject(), scope))
-      .addModifiers(PsiModifier.PUBLIC, PsiModifier.FINAL).setContainingClass(this);
-  }
-
-  @NotNull
-  private PsiMethod buildCreateInputsMethod() {
-    String inputClassName =
-      String.join(".", myClassConfig.myPackageName, myClassConfig.myModelMetadata.myClassName, MlkitNames.INPUTS);
-    PsiType returnType = PsiType.getTypeByName(inputClassName, getProject(), getResolveScope());
-
-    return new LightMethodBuilder(getManager(), "createInputs")
-      .setMethodReturnType(returnType)
-      .addModifiers(PsiModifier.PUBLIC, PsiModifier.FINAL).setContainingClass(this);
-  }
-
-  @NotNull
   @Override
   public PsiMethod[] getConstructors() {
     if (myConstructors == null) {
@@ -183,11 +165,31 @@ public class LightModelClass extends AndroidLightClassBase {
           .addParameter("context", PsiType.getTypeByName(ClassNames.CONTEXT, getProject(), getResolveScope()))
           .setConstructor(true)
           .addException(ClassNames.IO_EXCEPTION)
-          .addModifier(PsiModifier.PUBLIC)
+          .addModifier(PsiModifier.PRIVATE)
       };
     }
 
     return myConstructors;
+  }
+
+  @NotNull
+  private PsiMethod buildProcessMethod(@NotNull List<TensorInfo> tensorInfos) {
+    GlobalSearchScope scope = getResolveScope();
+    String outputClassName =
+      String.join(".", myClassConfig.myPackageName, myClassConfig.myModelMetadata.myClassName, MlkitNames.OUTPUTS);
+
+    PsiType returnType = PsiType.getTypeByName(outputClassName, getProject(), scope);
+
+    LightMethodBuilder method = new LightMethodBuilder(getManager(), "process")
+      .setMethodReturnType(returnType)
+      .addModifiers(PsiModifier.PUBLIC, PsiModifier.FINAL)
+      .setContainingClass(this);
+
+    for (TensorInfo tensorInfo : tensorInfos) {
+      method.addParameter(tensorInfo.getName(), CodeUtils.getTypeQualifiedName(tensorInfo));
+    }
+
+    return method;
   }
 
   @NotNull

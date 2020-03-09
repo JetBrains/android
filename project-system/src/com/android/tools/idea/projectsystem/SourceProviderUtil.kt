@@ -21,7 +21,6 @@ import com.android.utils.usLocaleDecapitalize
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.util.text.nullize
 import java.io.File
-import java.util.Locale
 
 /**
  * Builds [NamedModuleTemplate]'s from [sourceProviders].
@@ -47,7 +46,8 @@ fun SourceProviders.buildNamedModuleTemplatesFor(
         unitTestRoot = triplet.unitTests?.javaDirectoryUrls?.firstOrNull()?.toFile(),
         testRoot = triplet.androidTests?.javaDirectoryUrls?.firstOrNull()?.toFile(),
         aidlRoot = triplet.sources?.aidlDirectoryUrls?.firstOrNull()?.toFile(),
-        resDirectories = triplet.sources?.resDirectoryUrls?.map { it.toFile() }.orEmpty()
+        resDirectories = triplet.sources?.resDirectoryUrls?.map { it.toFile() }.orEmpty(),
+        mlModelsDirectories = triplet.sources?.mlModelsDirectoryUrls?.map { it.toFile() }.orEmpty()
       ))
     }
 }

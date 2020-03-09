@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
-import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.DESIGN_MODE;
 import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.NEXT_DEVICE;
 
 import com.android.tools.adtui.actions.DropDownAction;
@@ -73,8 +72,9 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
       return group;
     }
 
-    group.add(DESIGN_MODE.registerForHiddenAction(createDesignModeAction(),
-                                                  new SwitchDesignModeAction((NlDesignSurface)mySurface), mySurface, this));
+    DropDownAction designModeAction = createDesignModeAction();
+    appendShortcutText(designModeAction, SwitchDesignModeAction.getInstance());
+    group.add(designModeAction);
     group.addSeparator();
 
     OrientationMenuAction orientationMenuAction = new OrientationMenuAction(mySurface::getConfiguration, mySurface);

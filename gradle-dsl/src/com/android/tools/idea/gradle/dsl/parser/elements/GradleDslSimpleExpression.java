@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
-import com.android.tools.idea.Projects;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
@@ -282,15 +281,6 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
     if (resolvedElement == null) {
       // Now look in the parent projects ext blocks.
       resolvedElement = resolveReferenceInParentModules(dslFile, referenceTextSegments, parser);
-    }
-
-
-    String fullTextReference = String.join(".", referenceTextSegments);
-    if ("rootDir".equals(fullTextReference)) { // resolve the rootDir reference to project root directory.
-      return new GradleDslGlobalValue(dslFile, Projects.getBaseDirPath(dslFile.getProject()).getPath());
-    }
-    if ("projectDir".equals(fullTextReference)) { // resolve the projectDir reference to module directory.
-      return new GradleDslGlobalValue(dslFile, dslFile.getDirectoryPath().getPath());
     }
 
     return resolvedElement;

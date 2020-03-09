@@ -17,6 +17,7 @@ package com.android.tools.profilers;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.profilers.cpu.BaseCpuCapture;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.CpuThreadInfo;
@@ -43,7 +44,7 @@ public class FakeTraceParser implements TraceParser {
 
   @Override
   public CpuCapture parse(File file, long traceId) {
-    return new CpuCapture(this, traceId, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
+    return new BaseCpuCapture(this, traceId, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
   }
 
   @Override

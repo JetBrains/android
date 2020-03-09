@@ -25,10 +25,15 @@
                         order="first, before java"/>
     <resolveScopeEnlarger implementation="com.android.tools.idea.mlkit.MlkitResolveScopeEnlarger"/>
     <problemFileHighlightFilter implementation="com.android.tools.idea.mlkit.MlModelProblemFileHighlightFilter"/>
+    <editorNotificationProvider implementation="com.android.tools.idea.mlkit.MissingDependenciesNotificationProvider"/>
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
     <resolveScopeEnlarger implementation="com.android.tools.idea.mlkit.MlkitResolveScopeEnlarger$MlkitKotlinResolveScopeEnlarger"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="com.android.tools.idea.templates">
+    <additionalTemplateActionsProvider implementation="com.android.tools.idea.mlkit.importmodel.ImportMlModelActionsProvider"/>
   </extensions>
 
 </idea-plugin>

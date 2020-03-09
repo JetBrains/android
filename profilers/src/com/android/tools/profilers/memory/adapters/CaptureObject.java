@@ -22,6 +22,10 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
+import com.android.tools.profilers.memory.MemoryProfilerConfiguration;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
+import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -195,4 +199,21 @@ public interface CaptureObject extends MemoryObject {
   default void addInstanceFilter(@NotNull CaptureObjectInstanceFilter filter, @NotNull Executor analyzeJoiner) {}
 
   default void removeInstanceFilter(@NotNull CaptureObjectInstanceFilter filter, @NotNull Executor analyzeJoiner) {}
+
+  default void setSingleFilter(@NotNull CaptureObjectInstanceFilter filter, @NotNull Executor analyzeJoiner) {}
+
+  default void removeAllFilters(@NotNull Executor analyzeJoiner) {}
+
+  default boolean isGroupingSupported(MemoryProfilerConfiguration.ClassGrouping grouping) {
+    switch (grouping) {
+      case ARRANGE_BY_CLASS:
+      case ARRANGE_BY_PACKAGE:
+      case ARRANGE_BY_CALLSTACK:
+        return true;
+      case NATIVE_ARRANGE_BY_ALLOCATION_METHOD:
+      case NATIVE_ARRANGE_BY_CALLSTACK:
+      default:
+        return false;
+    }
+  }
 }

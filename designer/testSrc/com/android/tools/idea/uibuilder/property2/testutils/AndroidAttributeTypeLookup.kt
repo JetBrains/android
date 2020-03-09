@@ -31,6 +31,7 @@ object AndroidAttributeFact {
   fun lookup(name: String): NelePropertyType {
     when (name) {
       // Material Design additions
+      "boxStrokeWidthFocused" -> return NelePropertyType.DIMENSION
       "checkedChip" -> return NelePropertyType.ID
       "checkedIcon" -> return NelePropertyType.DRAWABLE
       "checkedIconEnabled" -> return NelePropertyType.THREE_STATE_BOOLEAN
@@ -61,12 +62,16 @@ object AndroidAttributeFact {
       "cornerRadius" -> return NelePropertyType.DIMENSION
       "counterOverflowTextColor" -> return NelePropertyType.COLOR_STATE_LIST
       "counterTextColor" -> return NelePropertyType.COLOR_STATE_LIST
+      "endIconCheckable" -> return NelePropertyType.THREE_STATE_BOOLEAN
       "endIconContentDescription" -> return NelePropertyType.STRING
       "endIconDrawable" -> return NelePropertyType.DRAWABLE
       "endIconMode" -> return NelePropertyType.ENUM
       "endIconTint" -> return NelePropertyType.COLOR_STATE_LIST
       "endIconTintMode" -> return NelePropertyType.ENUM
       "ensureMinTouchTargetSize" -> return NelePropertyType.THREE_STATE_BOOLEAN
+      "errorIconDrawable" -> return NelePropertyType.DRAWABLE
+      "errorIconTint" -> return NelePropertyType.COLOR_STATE_LIST
+      "errorIconTintMode" -> return NelePropertyType.ENUM
       "errorTextColor" -> return NelePropertyType.COLOR_STATE_LIST
       "extendMotionSpec" -> return NelePropertyType.ANIMATOR
       "fabAlignmentMode" -> return NelePropertyType.ENUM
@@ -106,6 +111,7 @@ object AndroidAttributeFact {
       "shapeAppearanceOverlay" -> return NelePropertyType.STYLE
       "shrinkMotionSpec" -> return NelePropertyType.ANIMATOR
       "singleSelection" -> return NelePropertyType.THREE_STATE_BOOLEAN
+      "startIconCheckable" -> return NelePropertyType.THREE_STATE_BOOLEAN
       "startIconContentDescription" -> return NelePropertyType.STRING
       "startIconDrawable" -> return NelePropertyType.DRAWABLE
       "startIconTint" -> return NelePropertyType.COLOR_STATE_LIST
@@ -277,6 +283,12 @@ object AndroidAttributeFact {
 
       // AppCompat additions:
       "srcCompat" -> return NelePropertyType.DRAWABLE
+      "drawableBottomCompat" -> return NelePropertyType.DRAWABLE
+      "drawableEndCompat" -> return NelePropertyType.DRAWABLE
+      "drawableLeftCompat" -> return NelePropertyType.DRAWABLE
+      "drawableRightCompat" -> return NelePropertyType.DRAWABLE
+      "drawableStartCompat" -> return NelePropertyType.DRAWABLE
+      "drawableTopCompat" -> return NelePropertyType.DRAWABLE
       "titleMargins" -> return NelePropertyType.DIMENSION
 
       // tools attribute additions:

@@ -20,7 +20,6 @@ import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.adtui.common.SwingEllipse
 import com.android.tools.adtui.common.SwingFont
 import com.android.tools.adtui.common.SwingLength
-import com.android.tools.adtui.common.SwingPath
 import com.android.tools.adtui.common.SwingPoint
 import com.android.tools.adtui.common.SwingRectangle
 import com.android.tools.adtui.common.SwingStroke
@@ -33,7 +32,6 @@ import com.android.tools.idea.common.scene.LerpEllipse
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DrawCommand
 import com.android.tools.idea.common.scene.draw.DrawImage
-import com.android.tools.idea.common.scene.draw.FillShape
 import com.android.tools.idea.common.scene.inlineScale
 import com.android.tools.idea.naveditor.scene.draw.DrawNavScreen
 import com.android.tools.idea.naveditor.scene.draw.DrawPlaceholder
@@ -109,42 +107,12 @@ enum class ArrowDirection {
   DOWN
 }
 
-fun makeDrawArrowCommand(rectangle: SwingRectangle, direction: ArrowDirection, color: Color): DrawCommand {
-  val left = rectangle.x
-  val right = left + rectangle.width
-
-  val xValues = when (direction) {
-    ArrowDirection.LEFT -> arrayOf(right, left, right)
-    ArrowDirection.RIGHT -> arrayOf(left, right, left)
-    else -> arrayOf(left, left + (right - left) / 2, right)
-  }
-
-  val top = rectangle.y
-  val bottom = top + rectangle.height
-
-  val yValues = when (direction) {
-    ArrowDirection.UP -> arrayOf(bottom, top, bottom)
-    ArrowDirection.DOWN -> arrayOf(top, bottom, top)
-    else -> arrayOf(top, top + (bottom - top) / 2, bottom)
-  }
-
-  val path = SwingPath()
-  path.moveTo(xValues[0], yValues[0])
-
-  for (i in 1 until xValues.count()) {
-    path.lineTo(xValues[i], yValues[i])
-  }
-  path.closePath()
-
-  return FillShape(path, color)
-}
-
-fun makeDrawImageCommand(icon: Icon, rectangle: SwingRectangle) : DrawCommand {
+fun makeDrawImageCommand(icon: Icon, rectangle: SwingRectangle): DrawCommand {
   val image = iconToImage(icon).getScaledInstance(rectangle.width.toInt(), rectangle.height.toInt(), Image.SCALE_SMOOTH)
   return DrawImage(rectangle, image)
 }
 
-fun makeDrawImageCommand(icon: Icon, rectangle: SwingRectangle, color: Color) : DrawCommand {
+fun makeDrawImageCommand(icon: Icon, rectangle: SwingRectangle, color: Color): DrawCommand {
   val coloredIcon = ColoredIconGenerator.generateColoredIcon(icon, color.rgb)
   return makeDrawImageCommand(coloredIcon, rectangle)
 }

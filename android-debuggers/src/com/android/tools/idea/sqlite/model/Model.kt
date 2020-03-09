@@ -62,7 +62,7 @@ data class SqliteTable(val name: String, val columns: List<SqliteColumn>, val ro
 data class SqliteRow(val values: List<SqliteColumnValue>)
 
 /** Representation of a Sqlite table column value */
-data class SqliteColumnValue(val columnName: String, val value: Any?)
+data class SqliteColumnValue(val columnName: String, val value: SqliteValue)
 
 /** Representation of a Sqlite table column */
 data class SqliteColumn(val name: String, val affinity: SqliteAffinity, val isNullable: Boolean, val inPrimaryKey: Boolean)
@@ -73,8 +73,8 @@ data class SqliteColumn(val name: String, val affinity: SqliteAffinity, val isNu
  *  If the statement doesn't contain parameters, [parametersValues] is an empty list.
  *  If it does contain parameters, [parametersValues] contains their values, assigned by order.
  */
-data class SqliteStatement(val sqliteStatementText: String, val parametersValues: List<Any?>) {
-  constructor(sqliteStatement: String) : this(sqliteStatement, emptyList<Any?>())
+data class SqliteStatement(val sqliteStatementText: String, val parametersValues: List<SqliteValue>) {
+  constructor(sqliteStatement: String) : this(sqliteStatement, emptyList<SqliteValue>())
 
   /**
    * Assigns [parametersValues] to corresponding parameters in [sqliteStatementText].
@@ -124,4 +124,26 @@ enum class SqliteAffinity {
       return fromTypename(jdbcType.name)
     }
   }
+}
+
+/**
+ * Abstraction representing a value from a Sqlite database.
+ *
+ * We currently treat everything as String.
+ * This is fine on the studio side, because these values are only used to be shown in the UI, as strings.
+ * On the device side, we can send everything as string and SQLite will do its best to store data in the correct data format, based on the
+ * affinity of the column. See [SQLite data types](https://www.sqlite.org/datatype3.html)
+ */
+sealed class SqliteValue {
+  companion object {
+    fun fromAny(value: Any?): SqliteValue {
+      return when (value) {
+        null -> NullValue
+        else -> StringValue(value.toString())
+      }
+    }
+  }
+
+  data class StringValue(val value: String) : SqliteValue()
+  object NullValue : SqliteValue()
 }

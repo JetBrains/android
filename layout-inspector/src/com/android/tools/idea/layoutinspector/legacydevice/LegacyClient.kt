@@ -27,7 +27,6 @@ import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.android.tools.profiler.proto.Common
 import com.google.common.annotations.VisibleForTesting
-import com.google.common.util.concurrent.Futures
 import com.intellij.concurrency.JobScheduler
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
@@ -67,7 +66,7 @@ class LegacyClient(private val project: Project) : InspectorClient {
   override var treeLoader = LegacyTreeLoader
     @VisibleForTesting set
 
-  val eventListeners: MutableMap<Common.Event.EventGroupIds, MutableList<(Any) -> Unit>> = mutableMapOf()
+  private val eventListeners: MutableMap<Common.Event.EventGroupIds, MutableList<(Any) -> Unit>> = mutableMapOf()
 
   override fun registerProcessChanged(callback: () -> Unit) {
     processChangedListeners.add(callback)
@@ -177,7 +176,7 @@ class LegacyClient(private val project: Project) : InspectorClient {
     }
     val propertiesUpdater = LegacyPropertiesProvider.Updater()
     for (windowId in windowIds) {
-      eventListeners[Common.Event.EventGroupIds.COMPONENT_TREE]?.forEach { it(Pair(windowId, propertiesUpdater)) }
+      eventListeners[Common.Event.EventGroupIds.COMPONENT_TREE]?.forEach { it(LegacyEvent(windowId, propertiesUpdater, windowIds)) }
     }
     propertiesUpdater.apply(provider)
   }
@@ -197,3 +196,5 @@ class LegacyClient(private val project: Project) : InspectorClient {
     eventListeners.getOrPut(groupId, { mutableListOf() }).add(callback)
   }
 }
+
+data class LegacyEvent(val windowId: String, val propertyUpdater: LegacyPropertiesProvider.Updater, val allWindows: List<String>)

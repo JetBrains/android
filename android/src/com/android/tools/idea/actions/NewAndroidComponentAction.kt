@@ -127,6 +127,7 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
       assert(targetDirectory != null)
     }
     val activityDescription = e.presentation.text // e.g. "Empty Activity", "Tabbed Activity"
+    // TODO(qumeric): always show all available templates but preselect a good default
     val moduleTemplates = facet.getModuleTemplates(targetDirectory)
     assert(moduleTemplates.isNotEmpty())
     val initialPackageSuggestion =

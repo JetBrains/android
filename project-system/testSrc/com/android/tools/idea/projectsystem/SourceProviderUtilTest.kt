@@ -63,6 +63,7 @@ class SourceProviderUtilTest {
       .isEqualTo(test.javaDirectoryUrls.first().let { urlToFile(it) }.resolve("com/example"))
     assertThat(mainTemplate.paths.getTestDirectory("com.example"))
       .isEqualTo(androidTest.javaDirectoryUrls.first().let { urlToFile(it) }.resolve("com/example"))
+    assertThat(mainTemplate.paths.mlModelsDirectories).isEqualTo(main.mlModelsDirectoryUrls.map { urlToFile(it) } )
   }
 
   @Test
@@ -134,7 +135,8 @@ class SourceProviderUtilTest {
     jniDirectories: List<File> = listOf(File("jni")),
     resDirectories: List<File> = listOf(File("res")),
     assetsDirectories: List<File> = listOf(File("assets")),
-    shadersDirectories: List<File> = listOf(File("shaders"))
+    shadersDirectories: List<File> = listOf(File("shaders")),
+    mlModelsDirectories: List<File> = listOf(File("ml"))
   ) =
     NamedIdeaSourceProviderImpl(
       name,
@@ -147,7 +149,8 @@ class SourceProviderUtilTest {
       jniDirectoryUrls = jniDirectories.map { root.resolve(it).toIdeaUrl() },
       resDirectoryUrls = resDirectories.map { root.resolve(it).toIdeaUrl() },
       assetsDirectoryUrls = assetsDirectories.map { root.resolve(it).toIdeaUrl() },
-      shadersDirectoryUrls = shadersDirectories.map { root.resolve(it).toIdeaUrl() }
+      shadersDirectoryUrls = shadersDirectories.map { root.resolve(it).toIdeaUrl() },
+      mlModelsDirectoryUrls = mlModelsDirectories.map { root.resolve(it).toIdeaUrl() }
     )
 }
 

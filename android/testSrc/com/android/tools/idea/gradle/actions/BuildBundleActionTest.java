@@ -30,6 +30,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.testing.AndroidModuleModelBuilder;
@@ -52,6 +53,7 @@ import org.mockito.Mock;
 public class BuildBundleActionTest extends PlatformTestCase {
   @Mock private GradleBuildInvoker myBuildInvoker;
   @Mock private AndroidPluginVersionUpdater myAndroidPluginVersionUpdater;
+  @Mock private IdeInfo myIdeInfo;
   private BuildBundleAction myAction;
   private TestDialog myDefaultTestDialog;
 
@@ -62,6 +64,8 @@ public class BuildBundleActionTest extends PlatformTestCase {
 
     new IdeComponents(myProject).replaceProjectService(GradleBuildInvoker.class, myBuildInvoker);
     new IdeComponents(myProject).replaceProjectService(AndroidPluginVersionUpdater.class, myAndroidPluginVersionUpdater);
+    new IdeComponents(myProject).replaceApplicationService(IdeInfo.class, myIdeInfo);
+    when(myIdeInfo.isAndroidStudio()).thenReturn(true);
     myAction = new BuildBundleAction();
   }
 

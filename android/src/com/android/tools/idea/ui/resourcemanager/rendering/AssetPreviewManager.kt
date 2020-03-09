@@ -20,6 +20,7 @@ import com.android.resources.ResourceType
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.rendering.SlowResource.Companion.toSlowResource
 import com.google.common.collect.ImmutableSet
+import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
@@ -45,7 +46,7 @@ interface AssetPreviewManager {
  * [ResourceType.LAYOUT], [ResourceType.COLOR] and [ResourceType.MIPMAP]
  */
 class AssetPreviewManagerImpl(
-  private val facet: AndroidFacet, imageCache: ImageCache, private val resourceResolver: ResourceResolver
+  private val facet: AndroidFacet, imageCache: ImageCache, private val resourceResolver: ResourceResolver, private val contextFile: VirtualFile? = null
 ) : AssetPreviewManager {
 
   private val colorPreviewProvider by lazy {
@@ -55,7 +56,7 @@ class AssetPreviewManagerImpl(
     FontIconProvider(facet)
   }
   private val drawablePreviewProvider by lazy {
-    SlowResourcePreviewManager(imageCache, DrawableSlowPreviewProvider(facet, resourceResolver))
+    SlowResourcePreviewManager(imageCache, DrawableSlowPreviewProvider(facet, resourceResolver, contextFile))
   }
   private val layoutPreviewProvider by lazy {
     SlowResourcePreviewManager(imageCache, LayoutSlowPreviewProvider(facet, resourceResolver))

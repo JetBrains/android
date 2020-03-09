@@ -106,8 +106,8 @@ class SimpleColumnRenderer<T extends MemoryObject> extends ColoredTreeCellRender
                     SortOrder order) {
     Function<MemoryObjectTreeNode<MemoryObject>, String> textGetter =
       makeConditionalTextGetter(subclass, prop, pred, formatter);
-    ColoredTreeCellRenderer renderer = new SimpleColumnRenderer<>(textGetter, v -> null, SwingConstants.RIGHT);
-    return new AttributeColumn<>(name, () -> renderer,
+    return new AttributeColumn<>(name,
+                                 () -> new SimpleColumnRenderer<>(textGetter, v -> null, SwingConstants.RIGHT),
                                  SwingConstants.RIGHT, DEFAULT_COLUMN_WIDTH,
                                  order, compareOn(subclass, prop));
   }

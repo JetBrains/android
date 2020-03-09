@@ -18,7 +18,7 @@ package com.android.tools.idea.appinspection.ide.model
 import com.android.tools.adtui.model.stdui.DefaultCommonComboBoxModel
 import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
 import com.android.tools.idea.appinspection.api.ProcessDescriptor
-import com.intellij.util.concurrency.AppExecutorUtil
+import com.intellij.util.concurrency.EdtExecutorService
 
 //TODO(b/148546243): separate view and model code into independent modules.
 class AppInspectionProcessesComboBoxModel(appInspectionDiscoveryHost: AppInspectionDiscoveryHost) :
@@ -27,7 +27,7 @@ class AppInspectionProcessesComboBoxModel(appInspectionDiscoveryHost: AppInspect
 
   init {
     appInspectionDiscoveryHost.addProcessListener(
-      AppExecutorUtil.getAppScheduledExecutorService(),
+      EdtExecutorService.getInstance(),
       object : AppInspectionDiscoveryHost.ProcessListener {
         override fun onProcessConnected(descriptor: ProcessDescriptor) {
           addElement(descriptor)

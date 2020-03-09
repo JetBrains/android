@@ -22,86 +22,76 @@ import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 
+private val roomAnnotationToClassBody = mapOf(
+  "Dao" to """
+  package androidx.room;
+
+  public @interface Dao {}
+  """.trimIndent(),
+
+  "Database" to """
+  package androidx.room;
+
+  public @interface Database { Class[] tables(); int version(); }
+  """.trimIndent(),
+
+  "Entity" to """
+  package androidx.room;
+
+  public @interface Entity { String tableName() default ""; }
+  """.trimIndent(),
+
+  "Query" to """
+  package androidx.room;
+
+  public @interface Query { String value(); }
+  """.trimIndent(),
+
+  "DatabaseView" to """
+  package androidx.room;
+
+  public @interface DatabaseView { String value() default ""; String viewName() default ""  }
+  """.trimIndent(),
+
+  "Ignore" to """
+  package androidx.room;
+
+  public @interface Ignore {}
+  """.trimIndent(),
+
+  "ColumnInfo" to """
+  package androidx.room;
+
+  public @interface ColumnInfo { String name() default ""; }
+  """.trimIndent(),
+
+  "Embedded" to """
+  package androidx.room;
+
+  public @interface Embedded { String prefix() default ""; }
+  """.trimIndent(),
+
+  "Fts3" to """
+  package androidx.room;
+
+  public @interface Fts3 {}
+  """.trimIndent(),
+
+  "Fts4" to """
+  package androidx.room;
+
+  public @interface Fts4 {}
+  """.trimIndent()
+)
+
 fun createStubRoomClasses(codeInsightTestFixture: JavaCodeInsightTestFixture) {
-  codeInsightTestFixture.addClass(
-    """
-        package androidx.room;
-  
-        public @interface Dao {}
-        """.trimIndent()
-  )
+  roomAnnotationToClassBody.values.forEach { codeInsightTestFixture.addClass(it) }
+}
 
-  codeInsightTestFixture.addClass(
-    """
-        package androidx.room;
-  
-        public @interface Database { Class[] tables(); int version(); }
-        """.trimIndent()
-  )
-
-  codeInsightTestFixture.addClass(
-    """
-        package androidx.room;
-  
-        public @interface Entity { String tableName() default ""; }
-        """.trimIndent()
-  )
-
-  codeInsightTestFixture.addClass(
-    """
-        package androidx.room;
-  
-        public @interface Query { String value(); }
-        """.trimIndent()
-  )
-
-  codeInsightTestFixture.addClass(
-    """
-        package androidx.room;
-  
-        public @interface DatabaseView { String value() default ""; String viewName() default ""  }
-        """.trimIndent()
-  )
-
-  codeInsightTestFixture.addClass(
-    """
-        package androidx.room;
-  
-        public @interface Ignore {}
-        """.trimIndent()
-  )
-
-  codeInsightTestFixture.addClass(
-    """
-        package androidx.room;
-  
-        public @interface ColumnInfo { String name() default ""; }
-        """.trimIndent()
-  )
-
-  codeInsightTestFixture.addClass(
-    """
-        package androidx.room;
-  
-        public @interface Embedded { String prefix() default ""; }
-        """.trimIndent()
-  )
-
-  codeInsightTestFixture.addClass(
-    """
-        package androidx.room;
-  
-        public @interface Fts3 {}
-        """.trimIndent()
-  )
-
-  codeInsightTestFixture.addClass(
-    """
-        package androidx.room;
-  
-        public @interface Fts4 {}
-        """.trimIndent()
-  )
+fun createStubRoomClassesInPath(codeInsightTestFixture: JavaCodeInsightTestFixture, path: String) {
+  roomAnnotationToClassBody.forEach {
+    codeInsightTestFixture.addFileToProject(path + "/androidx/room/${it.key}.java", it.value)
+  }
 }
 
 data class FieldDefinition(val name: String, val type: String, val columnName: String? = null)

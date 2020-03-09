@@ -20,6 +20,7 @@ import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths.COMPOSITE_BUILD
 import com.android.utils.SdkUtils
+import com.android.utils.SdkUtils.escapePropertyValue
 import com.intellij.openapi.util.io.FileUtil.loadFile
 import junit.framework.TestCase
 import org.junit.Test
@@ -39,7 +40,7 @@ class SetSdkDirHyperlinkTest : AndroidGradleTestCase() {
     assertTrue(hyperlink.executeIfClicked(project, HyperlinkEvent(this, null, null, hyperlink.url)))
     assertTrue(localPropertiesPath.exists())
     assertTrue("Local properties must contain sdk.dir", loadFile(localPropertiesPath)
-      .contains("sdk.dir=${AndroidSdks.getInstance().tryToChooseAndroidSdk()!!.location.absolutePath}"))
+      .contains("sdk.dir=${escapePropertyValue(AndroidSdks.getInstance().tryToChooseAndroidSdk()!!.location.absolutePath)}"))
   }
 
   @Test

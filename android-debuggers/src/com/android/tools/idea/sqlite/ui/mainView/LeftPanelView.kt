@@ -23,8 +23,11 @@ import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.ui.renderers.SchemaTreeCellRenderer
 import com.intellij.icons.AllIcons
 import com.intellij.ui.DoubleClickListener
+import com.intellij.ui.IdeBorderFactory
+import com.intellij.ui.SideBorder
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.treeStructure.Tree
+import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.FlowLayout
 import java.awt.event.InputEvent
@@ -43,20 +46,25 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
   val component = rootPanel
 
   init {
-    val northPanel = JPanel(FlowLayout(FlowLayout.LEFT))
-    val centerPanel = JBScrollPane(tree)
+    val northPanel = createNorthPanel()
+    val centerPanel = createCenterPanel()
 
     rootPanel.add(northPanel, BorderLayout.NORTH)
     rootPanel.add(centerPanel, BorderLayout.CENTER)
-
-    setUpNorthPanel(northPanel)
 
     setUpSchemaTree(tree)
   }
 
   fun addDatabaseSchema(database: SqliteDatabase, schema: SqliteSchema, index: Int) {
     val treeModel = tree.model as DefaultTreeModel
-    val root = treeModel.root as DefaultMutableTreeNode
+
+    val root = if (treeModel.root == null) {
+      val root = DefaultMutableTreeNode("Schemas")
+      treeModel.setRoot(root)
+      root
+    } else {
+      treeModel.root as DefaultMutableTreeNode
+    }
 
     val schemaNode = DefaultMutableTreeNode(database)
     schema.tables.sortedBy { it.name }.forEach { table ->
@@ -104,7 +112,9 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     treeModel.removeNodeFromParent(databaseNode)
   }
 
-  private fun setUpNorthPanel(northPanel: JPanel) {
+  private fun createNorthPanel(): JPanel {
+    val northPanel = JPanel(FlowLayout(FlowLayout.LEFT))
+
     val closeDatabaseButton = CommonButton("Close db", AllIcons.Diff.Remove)
     closeDatabaseButton.toolTipText = "Close db"
     northPanel.add(closeDatabaseButton)
@@ -126,14 +136,29 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     northPanel.add(openSqliteEvaluatorButton)
 
     openSqliteEvaluatorButton.addActionListener { mainView.listeners.forEach { it.openSqliteEvaluatorTabActionInvoked() } }
+
+    return northPanel
+  }
+
+  private fun createCenterPanel(): JPanel {
+    val centerPanel = JPanel(BorderLayout())
+    centerPanel.border = IdeBorderFactory.createBorder(SideBorder.TOP)
+
+    val scrollPane = JBScrollPane(tree)
+    scrollPane.border = JBUI.Borders.empty()
+
+    centerPanel.add(scrollPane, BorderLayout.CENTER)
+
+    return centerPanel
   }
 
   private fun setUpSchemaTree(tree: Tree) {
     tree.cellRenderer = SchemaTreeCellRenderer()
-    val root = DefaultMutableTreeNode("Schemas")
 
-    tree.model = DefaultTreeModel(root)
+    tree.model = DefaultTreeModel(null)
     tree.toggleClickCount = 0
+    tree.emptyText.text = "Nothing to show"
+    tree.emptyText.isShowAboveCenter = false
 
     setUpSchemaTreeListeners(tree)
   }

@@ -190,7 +190,8 @@ public class ScreenViewLayer extends Layer {
         double xScaleFactor = (double)resultImageWidth / myScreenViewSize.width;
         double yScaleFactor = (double)resultImageHeight / myScreenViewSize.height;
         cancelHighQualityScaleRequests();
-        if (xScaleFactor > 1.2 && yScaleFactor > 1.2) {
+        // There is no point in requesting high quality image while in animated mode
+        if (xScaleFactor > 1.2 && yScaleFactor > 1.2 && !myScreenView.isAnimated()) {
           // This means that the result image is bigger than the ScreenView by more than a 20%. For this cases, we need to scale down the
           // result image to make it fit in the ScreenView and we use a higher quality (but slow) process. We will issue a request to obtain
           // the high quality version but paint the low quality version below. Once it's ready, we'll repaint.

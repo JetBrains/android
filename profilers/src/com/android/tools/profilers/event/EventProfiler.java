@@ -17,7 +17,9 @@ package com.android.tools.profilers.event;
 
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.EventProfiler.EventStartRequest;
+import com.android.tools.profiler.proto.EventProfiler.EventStartResponse;
 import com.android.tools.profiler.proto.EventProfiler.EventStopRequest;
+import com.android.tools.profiler.proto.EventProfiler.EventStopResponse;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfiler;
 import com.android.tools.profilers.StudioProfilers;
@@ -35,11 +37,15 @@ public class EventProfiler extends StudioProfiler {
 
   @Override
   public void startProfiling(Common.Session session) {
-    myProfilers.getClient().getEventClient().startMonitoringApp(EventStartRequest.newBuilder().setSession(session).build());
+    // TODO(b/150503095)
+    EventStartResponse response =
+        myProfilers.getClient().getEventClient().startMonitoringApp(EventStartRequest.newBuilder().setSession(session).build());
   }
 
   @Override
   public void stopProfiling(Common.Session session) {
-    myProfilers.getClient().getEventClient().stopMonitoringApp(EventStopRequest.newBuilder().setSession(session).build());
+    // TODO(b/150503095)
+    EventStopResponse response =
+        myProfilers.getClient().getEventClient().stopMonitoringApp(EventStopRequest.newBuilder().setSession(session).build());
   }
 }

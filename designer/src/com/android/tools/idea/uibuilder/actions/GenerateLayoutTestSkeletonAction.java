@@ -31,9 +31,9 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
-import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.uibuilder.editor.NlEditor;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.google.common.base.CaseFormat;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -296,7 +296,7 @@ public class GenerateLayoutTestSkeletonAction extends AnAction {
   @NotNull
   private static String getTagSymbol(@NotNull String tagName) {
     tagName = tagName.substring(1 + tagName.lastIndexOf('.'));
-    return StringUtil.toUpperCase(TemplateUtils.camelCaseToUnderlines(tagName));
+    return StringUtil.toUpperCase(CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, tagName));
   }
 
   private static void appendTreeComparison(@NotNull List<NlComponent> components, @NotNull StringBuilder builder) {

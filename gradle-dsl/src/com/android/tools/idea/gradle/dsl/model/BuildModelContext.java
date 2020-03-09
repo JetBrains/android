@@ -73,6 +73,7 @@ public final class BuildModelContext {
   private final Project myProject;
   @NotNull
   private final GradleDslFileCache myFileCache;
+  @NotNull
   private final ResolvedConfigurationFileLocationProvider myResolvedConfigurationFileLocationProvider;
   @NotNull
   private final Map<GradleDslFile, ClassToInstanceMap<BuildModelNotification>> myNotifications = new HashMap<>();
@@ -97,7 +98,7 @@ public final class BuildModelContext {
   }
 
   private BuildModelContext(@NotNull Project project,
-                            ResolvedConfigurationFileLocationProvider resolvedConfigurationFileLocationProvider) {
+                            @NotNull ResolvedConfigurationFileLocationProvider resolvedConfigurationFileLocationProvider) {
     myProject = project;
     myFileCache = new GradleDslFileCache(project);
     myResolvedConfigurationFileLocationProvider = resolvedConfigurationFileLocationProvider;
@@ -199,7 +200,7 @@ public final class BuildModelContext {
 
   public GradleBuildFile parseProjectBuildFile(@NotNull Project project, @Nullable VirtualFile file) {
     // First parse the main project build file.
-    GradleBuildFile result = file != null ? new GradleBuildFile(file, project, project.getName(), this) : null;
+    GradleBuildFile result = file != null ? new GradleBuildFile(file, project, ":", this) : null;
     if (result != null) {
       setRootProjectFile(result);
       ApplicationManager.getApplication().runReadAction(() -> {

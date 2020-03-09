@@ -18,7 +18,7 @@ package com.android.tools.idea.npw.project
 import com.android.tools.adtui.ASGallery
 import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.adtui.util.FormScalingUtil
-import com.android.tools.idea.npw.FormFactor
+import com.android.tools.idea.device.FormFactor
 import com.android.tools.idea.npw.cpp.ConfigureCppSupportStep
 import com.android.tools.idea.npw.model.EMPTY_ACTIVITY
 import com.android.tools.idea.npw.model.NewProjectModel
@@ -27,6 +27,7 @@ import com.android.tools.idea.npw.template.ChooseGalleryItemStep
 import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep2
 import com.android.tools.idea.npw.template.TemplateResolver
 import com.android.tools.idea.npw.template.getDefaultSelectedTemplateIndex
+import com.android.tools.idea.npw.toTemplateFormFactor
 import com.android.tools.idea.npw.ui.WizardGallery
 import com.android.tools.idea.npw.ui.cppIcon
 import com.android.tools.idea.npw.ui.getTemplateIcon

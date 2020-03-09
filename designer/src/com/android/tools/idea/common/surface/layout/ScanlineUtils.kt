@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.surface.layout
 
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 
 /*
  * Scanlines are a simplified method to find the maximum allowed area that a [SceneView] can paint to. We simply build
@@ -54,7 +55,7 @@ typealias ScanlineList = List<Int>
  * Maps the [Collection<SceneView>] into a [ScanlineList] by applying the given function. The returned
  * list will be sorted.
  */
-fun Collection<SceneView>.findAllScanlines(dimensionProcessor: (SceneView) -> Int): ScanlineList = map(dimensionProcessor).sorted()
+fun Collection<PositionableContent>.findAllScanlines(dimensionProcessor: (PositionableContent) -> Int): ScanlineList = map(dimensionProcessor).sorted()
 
 /**
  * Finds the closest scanline to [key] that is smaller or equals to key. If there is no smaller scanline than key,

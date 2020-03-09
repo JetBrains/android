@@ -15,12 +15,17 @@
  */
 package com.android.tools.idea.compose.preview.runconfiguration
 
-import com.android.tools.idea.compose.preview.ComposeLightJavaCodeInsightFixtureTestCase
+import com.android.AndroidProjectTypes
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
+import com.intellij.testFramework.fixtures.TestFixtureBuilder
+import org.jetbrains.android.AndroidTestCase
+import org.jetbrains.android.compose.stubComposableAnnotation
+import org.jetbrains.android.compose.stubPreviewAnnotation
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
@@ -29,18 +34,28 @@ private fun PsiFile.findFunctionIdentifier(name: String): PsiElement {
   return PsiTreeUtil.getChildrenOfType(function, LeafPsiElement::class.java)?.first { it.node.elementType == KtTokens.IDENTIFIER }!!
 }
 
-class ComposePreviewRunLineMarkerContributorTest : ComposeLightJavaCodeInsightFixtureTestCase() {
+class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
 
   private val contributor = ComposePreviewRunLineMarkerContributor()
 
   override fun setUp() {
     super.setUp()
     StudioFlags.COMPOSE_PREVIEW_RUN_CONFIGURATION.override(true)
+    StudioFlags.COMPOSE_PREVIEW.override(true)
+    myFixture.stubComposableAnnotation()
+    myFixture.stubPreviewAnnotation()
   }
 
   override fun tearDown() {
     super.tearDown()
     StudioFlags.COMPOSE_PREVIEW_RUN_CONFIGURATION.clearOverride()
+    StudioFlags.COMPOSE_PREVIEW.clearOverride()
+  }
+
+  override fun configureAdditionalModules(projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>,
+                                          modules: MutableList<MyAdditionalModuleData>) {
+    super.configureAdditionalModules(projectBuilder, modules)
+    addModuleWithAndroidFacet(projectBuilder, modules, "myLibrary", AndroidProjectTypes.PROJECT_TYPE_LIBRARY)
   }
 
   fun testGetInfo() {
@@ -60,6 +75,27 @@ class ComposePreviewRunLineMarkerContributorTest : ComposeLightJavaCodeInsightFi
     val functionIdentifier = file.findFunctionIdentifier("Preview1")
     // a run line marker should be created since the function is a valid preview.
     assertNotNull(contributor.getInfo(functionIdentifier))
+  }
+
+  fun testGetInfoLibraryModule() {
+    val modulePath = getAdditionalModulePath("myLibrary")
+
+    val file = myFixture.addFileToProject(
+      "$modulePath/src/main/java/com/example/mylibrary/TestLibraryFile.kt",
+      // language=kotlin
+      """
+        import androidx.ui.tooling.preview.Preview
+        import androidx.compose.Composable
+
+        @Composable
+        @Preview
+        fun Preview1() {
+        }
+      """.trimIndent())
+
+    val functionIdentifier = file.findFunctionIdentifier("Preview1")
+    // a run line marker should not be created since the function is located in a library module.
+    assertNull(contributor.getInfo(functionIdentifier))
   }
 
   fun testGetInfoInvalidComposePreview() {

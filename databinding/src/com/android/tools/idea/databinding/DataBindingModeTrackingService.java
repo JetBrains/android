@@ -22,25 +22,22 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Service that owns an atomic counter for how many times the data binding setting is changed.
- * This allows it to provide a {@link ModificationTracker} which is used by IntelliJ for knowing
- * when to clear caches, etc.
- *
- * TODO(b/119823849): Investigate deleting this application-level class. There should probably be
- * one tracker per module.
+ * This service implements the {@link ModificationTracker} interface, which is used by IntelliJ
+ * for knowing* when to clear caches, etc., to expose the counter value.
  */
-public final class DataBindingModeTrackingService {
+public final class DataBindingModeTrackingService implements ModificationTracker {
   public static DataBindingModeTrackingService getInstance() {
     return ServiceManager.getService(DataBindingModeTrackingService.class);
   }
-
-  /**
-   * Tracker that changes when a facet's data binding enabled value changes
-   */
-  public static final ModificationTracker DATA_BINDING_ENABLED_TRACKER = () -> getInstance().myEnabledModificationCount.longValue();
 
   private final AtomicLong myEnabledModificationCount = new AtomicLong(0);
 
   public void incrementModificationCount() {
     myEnabledModificationCount.incrementAndGet();
+  }
+
+  @Override
+  public long getModificationCount() {
+    return myEnabledModificationCount.longValue();
   }
 }

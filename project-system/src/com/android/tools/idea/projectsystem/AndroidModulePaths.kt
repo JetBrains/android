@@ -16,6 +16,7 @@
 package com.android.tools.idea.projectsystem
 
 import java.io.File
+import java.util.Collections
 
 /**
  * Represents a template for creating new Android components. It knows where to put the various
@@ -57,6 +58,10 @@ interface AndroidModulePaths {
   fun getAidlDirectory(packageName: String?): File?
 
   val manifestDirectory: File?
+
+  @JvmDefault
+  val mlModelsDirectories: List<File>
+    get() = Collections.emptyList()
 }
 
 data class AndroidModulePathsImpl(
@@ -66,7 +71,8 @@ data class AndroidModulePathsImpl(
   private val unitTestRoot: File?,
   private val testRoot: File?,
   private val aidlRoot: File?,
-  override val resDirectories: List<File>
+  override val resDirectories: List<File>,
+  override val mlModelsDirectories: List<File>
 ) : AndroidModulePaths {
   override fun getSrcDirectory(packageName: String?): File? = srcRoot?.appendPackageToRoot(packageName)
   override fun getTestDirectory(packageName: String?): File? = testRoot?.appendPackageToRoot(packageName)

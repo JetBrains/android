@@ -16,6 +16,7 @@
 package com.android.tools.idea.mlkit;
 
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.mlkit.lightpsi.LightModelClass;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.AndroidLightPackage;
 import com.android.tools.mlkit.MlkitNames;
@@ -85,7 +86,7 @@ public class MlkitClassFinder extends PsiElementFinder {
   @NotNull
   private static String computeDataKey(@NotNull String qualifiedName) {
     // If it might inner class, then find second last element which matches data key.
-    if (qualifiedName.endsWith(MlkitNames.OUTPUTS) || qualifiedName.endsWith(MlkitNames.INPUTS)) {
+    if (LightModelClass.getInnerClassNames().stream().anyMatch(value -> qualifiedName.endsWith(value))) {
       String[] candidates = qualifiedName.split("\\.");
       if (candidates.length >= 2) {
         return candidates[candidates.length - 2];

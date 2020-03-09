@@ -159,14 +159,16 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
     assertNotNull(javaFacet);
     assertFalse(javaFacet.getConfiguration().BUILDABLE);
 
-    assertAbout(libraryDependencies()).that(localJarModule).hasDependency("Gradle: localJarAsModule.local", COMPILE, true);
+    String localJarName = "Gradle: " + localJarModule.getName() + ".local";
+    assertAbout(libraryDependencies()).that(localJarModule).hasDependency(localJarName, COMPILE, true);
   }
 
   public void testWithInterModuleDependencies() throws Exception {
     loadProject(TRANSITIVE_DEPENDENCIES);
 
     Module appModule = TestModuleUtil.findAppModule(getProject());
-    assertAbout(moduleDependencies()).that(appModule).hasDependency("library2", COMPILE, false);
+    String library2Name = TestModuleUtil.findModule(getProject(), "library2").getName();
+    assertAbout(moduleDependencies()).that(appModule).hasDependency(library2Name, COMPILE, false);
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=210172
@@ -196,7 +198,8 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
 
     // 'app' module should have 'library1' as module dependency.
     // 'app' -> 'library2' -> 'library1'
-    assertAbout(moduleDependencies()).that(appModule).hasDependency("library1", COMPILE, false);
+    String lib1Name = TestModuleUtil.findModule(getProject(), "library1").getName();
+    assertAbout(moduleDependencies()).that(appModule).hasDependency(lib1Name, COMPILE, false);
   }
 
   public void testJavaLibraryModuleDependencies() throws Exception {
@@ -205,16 +208,19 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
 
     // dependency should be set on the module not the compiled jar.
     // 'app' -> 'javalib1' -> 'javalib2'
-    assertAbout(moduleDependencies()).that(appModule).hasDependency("javalib1", COMPILE, false);
-    assertAbout(moduleDependencies()).that(appModule).hasDependency("javalib2", COMPILE, false);
-    assertAbout(libraryDependencies()).that(appModule).doesNotContain("Gradle: javalib1", COMPILE);
+    String javalib1Name = TestModuleUtil.findModule(getProject(), "javalib1").getName();
+    String javalib2Name = TestModuleUtil.findModule(getProject(), "javalib2").getName();
+    assertAbout(moduleDependencies()).that(appModule).hasDependency(javalib1Name, COMPILE, false);
+    assertAbout(moduleDependencies()).that(appModule).hasDependency(javalib2Name, COMPILE, false);
+    assertAbout(libraryDependencies()).that(appModule).doesNotContain("Gradle: " + javalib1Name, COMPILE);
   }
 
   public void testDependencySetUpInJavaModule() throws Exception {
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module libModule = TestModuleUtil.findModule(getProject(), "javalib1");
-    assertAbout(moduleDependencies()).that(libModule).hasDependency("javalib2", COMPILE, false);
-    assertAbout(libraryDependencies()).that(libModule).doesNotContain("Gradle: javalib2.javalib2", COMPILE);
+    String javalib2Name = TestModuleUtil.findModule(getProject(), "javalib2").getName();
+    assertAbout(moduleDependencies()).that(libModule).hasDependency(javalib2Name, COMPILE, false);
+    assertAbout(libraryDependencies()).that(libModule).doesNotContain("Gradle: " + javalib2Name, COMPILE);
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=213627

@@ -144,7 +144,7 @@ public class DataStoreServiceTest extends DataStorePollerTest {
     ManagedChannel channel = InProcessChannelBuilder.forName(myServicePath).build();
     myDataStore.connect(STREAM, channel);
     TransportServiceGrpc.TransportServiceBlockingStub stub =
-      TransportServiceGrpc.newBlockingStub(InProcessChannelBuilder.forName(SERVICE_NAME).usePlaintext(true).build());
+      TransportServiceGrpc.newBlockingStub(InProcessChannelBuilder.forName(SERVICE_NAME).usePlaintext().build());
     VersionResponse response = stub.getVersion(VersionRequest.newBuilder().setStreamId(DEVICE.getDeviceId()).build());
     assertEquals(EXPECTED_VERSION, response);
     myDataStore.disconnect(DEVICE.getDeviceId());
@@ -170,7 +170,7 @@ public class DataStoreServiceTest extends DataStorePollerTest {
     final Throwable[] expectedException = new Throwable[1];
     dataStoreService.setNoPiiExceptionHandler((t) -> expectedException[0] = t);
     TransportServiceGrpc.TransportServiceBlockingStub stub = TransportServiceGrpc
-      .newBlockingStub(InProcessChannelBuilder.forName("testSQLFailureCallsbackToExceptionHandler").usePlaintext(true).build());
+      .newBlockingStub(InProcessChannelBuilder.forName("testSQLFailureCallsbackToExceptionHandler").usePlaintext().build());
 
     // Test that a normal RPC call does not trigger an exception
     stub.getAgentStatus(AgentStatusRequest.getDefaultInstance());
@@ -290,12 +290,6 @@ public class DataStoreServiceTest extends DataStorePollerTest {
     @NotNull private final DeviceProcessTable myLegacyTable = new DeviceProcessTable();
 
     private Connection myConnection;
-
-    @NotNull
-    @Override
-    public ServerServiceDefinition bindService() {
-      return super.bindService();
-    }
 
     @NotNull
     @Override

@@ -388,7 +388,7 @@
     <applicationService serviceImplementation="com.android.tools.idea.run.InstalledApkCache"/>
     <applicationService serviceImplementation="com.android.tools.idea.run.InstalledPatchCache"/>
     <applicationService serviceImplementation="com.android.tools.idea.run.DeploymentApplicationService" />
-    <applicationService serviceImplementation="com.android.tools.idea.templates.RepositoryUrlManager"/>
+    <applicationService serviceImplementation="com.android.tools.idea.gradle.repositories.RepositoryUrlManager"/>
     <applicationService serviceImplementation="org.jetbrains.android.uipreview.AndroidEditorSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.uibuilder.visual.VisualizationToolSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.profiling.capture.CaptureTypeService"/>
@@ -424,7 +424,7 @@
     <applicationService serviceImplementation="com.android.tools.idea.diagnostics.crash.StudioCrashReporter" />
     <applicationService serviceInterface="com.android.tools.idea.fonts.DownloadableFontCacheService"
                         serviceImplementation="com.android.tools.idea.fonts.DownloadableFontCacheServiceImpl" />
-    <applicationService serviceImplementation="com.android.tools.idea.material.icons.MaterialIconsMetadataDownloadCacheService"/>
+    <applicationService serviceImplementation="com.android.tools.idea.material.icons.metadata.MaterialIconsMetadataDownloadCacheService"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder"/>
     <applicationService serviceImplementation="com.android.tools.idea.concurrency.AndroidIoManager"/>
 
@@ -679,7 +679,7 @@
     <projectService serviceImplementation="org.jetbrains.android.compiler.AndroidDexCompilerConfiguration"/>
     <projectService serviceImplementation="org.jetbrains.android.exportSignedPackage.GenerateSignedApkSettings"/>
     <projectService serviceInterface="com.intellij.openapi.roots.ui.configuration.ProjectSettingsService"
-                    serviceImplementation="com.android.tools.idea.gradle.structure.AndroidProjectSettingsService"
+                    serviceImplementation="com.android.tools.idea.gradle.structure.AndroidProjectSettingsServiceImpl"
                     overrides="true"/>
     <projectService serviceImplementation="com.android.tools.idea.profiling.capture.CaptureService"/>
     <projectService serviceInterface="com.android.tools.idea.debug.ResourceIdResolver"
@@ -897,6 +897,8 @@
     <extensionPoint qualifiedName="org.jetbrains.android.uipreview.viewLoaderExtension"
                     interface="org.jetbrains.android.uipreview.ViewLoaderExtension"
                     area="IDEA_PROJECT"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.templates.additionalTemplateActionsProvider"
+                    interface="com.android.tools.idea.templates.AdditionalTemplateActionsProvider"/>
     <extensionPoint qualifiedName="com.android.tools.idea.ui.guiTestingStatusProvider"
                     interface="com.android.tools.idea.ui.GuiTestingStatusProvider" />
     <extensionPoint qualifiedName="com.android.tools.gradleModelProvider"
@@ -907,8 +909,8 @@
                     interface="com.android.tools.idea.lang.databinding.DataBindingCompletionSupport"/>
     <extensionPoint qualifiedName="com.android.tools.idea.lang.databinding.dataBindingExpressionSupport"
                     interface="com.android.tools.idea.lang.databinding.DataBindingExpressionSupport"/>
-    <extensionPoint qualifiedName="com.android.tools.idea.databinding.dataBindingSupport"
-                    interface="com.android.tools.idea.databinding.DataBindingSupport"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.databinding.layoutBindingSupport"
+                    interface="com.android.tools.idea.databinding.LayoutBindingSupport"/>
     <extensionPoint qualifiedName="com.android.tools.idea.wizard.template.wizardTemplateProvider"
                     interface="com.android.tools.idea.wizard.template.WizardTemplateProvider"/>
   </extensionPoints>
@@ -929,6 +931,12 @@
         implementation="com.android.tools.idea.gradle.actions.GradleNewResourceCreationHandler" />
   </extensions>
 
+  <extensions defaultExtensionNs="com.android">
+    <androidStartupActivity implementation="org.jetbrains.android.CompilerManagerAndroidStartupActivity" />
+    <androidStartupActivity implementation="org.jetbrains.android.AndroidResourceFileListenerAndroidStartupActivity" />
+    <androidStartupActivity implementation="com.android.tools.idea.templates.DynamicTemplateMenuAndroidStartupActivity" />
+    <androidStartupActivity implementation="org.jetbrains.android.CreateAlarmForAutoGenerationAndroidStartupActivity" />
+  </extensions>
   <extensions defaultExtensionNs="com.android.gradle.sync">
     <postSyncProjectSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.project.MissingPlatformsSetupStep"/>
     <postSyncProjectSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.project.ExpiredPreviewBuildSetupStep"/>

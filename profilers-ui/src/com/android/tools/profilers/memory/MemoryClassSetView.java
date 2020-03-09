@@ -37,10 +37,10 @@ import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribute;
-import com.android.tools.profilers.memory.adapters.ClassSet;
-import com.android.tools.profilers.memory.adapters.ClassifierSet;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
 import com.android.tools.profilers.memory.adapters.FieldObject;
-import com.android.tools.profilers.memory.adapters.HeapSet;
+import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.MemoryObject;
 import com.android.tools.profilers.memory.adapters.ValueObject;
@@ -62,7 +62,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.LongFunction;
-import java.util.stream.Stream;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JComponent;
@@ -181,15 +180,18 @@ final class MemoryClassSetView extends AspectObserver {
       InstanceAttribute.RETAINED_SIZE,
       makeSizeColumn("Retained Size", ValueObject::getRetainedSize));
 
-    JPanel headingPanel = new JPanel(new BorderLayout());
-    JLabel instanceViewLabel = new JLabel("Instance View");
-    instanceViewLabel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
-    headingPanel.add(instanceViewLabel, BorderLayout.WEST);
 
-    CloseButton closeButton = new CloseButton(e -> myStage.selectClassSet(null));
-    headingPanel.add(closeButton, BorderLayout.EAST);
+    if (!stage.getStudioProfilers().getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled()) {
+      JPanel headingPanel = new JPanel(new BorderLayout());
+      JLabel instanceViewLabel = new JLabel("Instance View");
+      instanceViewLabel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
+      headingPanel.add(instanceViewLabel, BorderLayout.WEST);
 
-    myInstancesPanel.add(headingPanel, BorderLayout.NORTH);
+      CloseButton closeButton = new CloseButton(e -> myStage.selectClassSet(null));
+      headingPanel.add(closeButton, BorderLayout.EAST);
+
+      myInstancesPanel.add(headingPanel, BorderLayout.NORTH);
+    }
     myInstancesPanel.setVisible(false);
   }
 
@@ -429,12 +431,13 @@ final class MemoryClassSetView extends AspectObserver {
         }
 
         myMemoizedChildrenCount = myClassSet.getInstancesCount();
-        Stream<InstanceObject> instances = myClassSet.getInstancesStream();
-        instances.forEach(subAdapter -> {
-          InstanceTreeNode child = new InstanceTreeNode(subAdapter);
-          child.setTreeModel(myTreeModel);
-          add(child);
-        });
+        myClassSet.getInstancesStream().forEach(subAdapter ->
+          InstanceNodeKt.addChild(
+            this,
+            subAdapter,
+            myStage.getStudioProfilers().getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled() ?
+            LeafNode::new :
+            InstanceDetailsTreeNode::new));
 
         if (myTreeModel != null) {
           myTreeModel.nodeChanged(this);
@@ -612,57 +615,5 @@ final class MemoryClassSetView extends AspectObserver {
         .forEach(child -> results.addAll(findLeafNodesForFieldPath(child, slice)));
     }
     return results;
-  }
-
-  static class InstanceTreeNode extends LazyMemoryObjectTreeNode<ValueObject> {
-    InstanceTreeNode(@NotNull InstanceObject adapter) {
-      super(adapter, true);
-    }
-
-    @Override
-    public int computeChildrenCount() {
-      return ((InstanceObject)getAdapter()).getFieldCount();
-    }
-
-    @Override
-    public void expandNode() {
-      if (myMemoizedChildrenCount == myChildren.size()) {
-        return;
-      }
-
-      List<FieldObject> fields = ((InstanceObject)getAdapter()).getFields();
-      myMemoizedChildrenCount = fields.size();
-      for (FieldObject field : fields) {
-        FieldTreeNode child = new FieldTreeNode(field);
-        child.setTreeModel(getTreeModel());
-        add(child);
-      }
-    }
-  }
-
-  static class FieldTreeNode extends LazyMemoryObjectTreeNode<FieldObject> {
-    FieldTreeNode(@NotNull FieldObject adapter) {
-      super(adapter, true);
-    }
-
-    @Override
-    public int computeChildrenCount() {
-      return getAdapter().getAsInstance() == null ? 0 : getAdapter().getAsInstance().getFieldCount();
-    }
-
-    @Override
-    public void expandNode() {
-      if (myMemoizedChildrenCount == myChildren.size() || getAdapter().getAsInstance() == null) {
-        return;
-      }
-
-      List<FieldObject> fields = getAdapter().getAsInstance().getFields();
-      myMemoizedChildrenCount = fields.size();
-      for (FieldObject field : fields) {
-        FieldTreeNode child = new FieldTreeNode(field);
-        child.setTreeModel(getTreeModel());
-        add(child);
-      }
-    }
   }
 }

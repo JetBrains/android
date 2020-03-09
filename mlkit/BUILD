@@ -46,9 +46,18 @@ iml_module(
         "//tools/idea/java/java-indexing-impl:intellij.java.indexing.impl[module]",
         "//tools/idea/java/java-psi-api:intellij.java.psi[module]",
         "//tools/idea/platform/core-api:intellij.platform.core[module]",
+        "//tools/idea/platform/platform-api:intellij.platform.ide[module]",
         "//tools/idea/platform/lang-api:intellij.platform.lang[module]",
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
+        "//tools/adt/idea/wizard-model:intellij.android.wizard.model[module]",
+        "//tools/adt/idea/observable:intellij.android.observable[module]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
+        "//tools/adt/idea/observable-ui:intellij.android.observable.ui[module]",
+        "//tools/adt/idea/wizard:intellij.android.wizard[module]",
+        "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module]",
+        "//tools/adt/idea/artwork:intellij.android.artwork[module]",
+        "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module]",
     ],
 )
 
@@ -111,5 +120,7 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/sdk-updates:intellij.android.sdkUpdates[module, test]",
         "//tools/idea:intellij.platform.jps.build_and_others[module, test]",
+        "//tools/idea/.idea/libraries:mockito[test]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
     ],
 )

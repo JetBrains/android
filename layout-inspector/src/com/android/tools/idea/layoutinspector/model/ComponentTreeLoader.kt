@@ -42,8 +42,8 @@ object ComponentTreeLoader : TreeLoader {
 
   override fun loadComponentTree(
     maybeEvent: Any?, resourceLookup: ResourceLookup, client: InspectorClient
-  ): ViewNode? {
-    return loadComponentTree(maybeEvent, resourceLookup, client, SkiaParser)
+  ): Pair<ViewNode, Long>? {
+    return loadComponentTree(maybeEvent, resourceLookup, client, SkiaParser)?.let { Pair(it, it.drawId) }
   }
 
   @VisibleForTesting

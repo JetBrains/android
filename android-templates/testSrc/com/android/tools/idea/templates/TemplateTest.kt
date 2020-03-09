@@ -18,6 +18,9 @@ package com.android.tools.idea.templates
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
+import com.android.tools.idea.gradle.repositories.OfflineIdeGoogleMavenRepository
+import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.template.TemplateResolver
 import com.android.tools.idea.testing.AndroidGradleTestCase

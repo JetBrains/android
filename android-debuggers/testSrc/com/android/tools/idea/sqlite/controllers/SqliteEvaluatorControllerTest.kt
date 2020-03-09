@@ -30,6 +30,7 @@ import com.android.tools.idea.sqlite.model.LiveSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
+import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.PlatformTestCase
@@ -207,7 +208,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     pumpEventsAndWaitForFuture(sqliteEvaluatorController.evaluateSqlStatement(sqliteDatabase, SqliteStatement("SELECT")))
 
     // Assert
-    verify(sqliteEvaluatorView.tableView, times(0)).showTableRowBatch(emptyList())
+    verify(sqliteEvaluatorView.tableView, times(0)).updateRows(emptyList())
   }
 
   fun testTableViewIsShownIfResultSetIsNotEmpty() {
@@ -221,7 +222,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     pumpEventsAndWaitForFuture(sqliteEvaluatorController.evaluateSqlStatement(sqliteDatabase, SqliteStatement("SELECT")))
 
     // Assert
-    verify(sqliteEvaluatorView.tableView).showTableRowBatch(mockSqliteResultSet.rows)
+    verify(sqliteEvaluatorView.tableView).updateRows(mockSqliteResultSet.rows.map { RowDiffOperation.AddRow(it) })
   }
 
   fun testUpdateSchemaIsCalledEveryTimeAUserDefinedStatementIsExecuted() {

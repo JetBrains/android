@@ -38,8 +38,6 @@ import javax.swing.KeyStroke
  */
 enum class DesignSurfaceShortcut(val keyCode: Int, private val keyChar: Char? = null) {
   NEXT_DEVICE(KeyEvent.VK_D),
-  DESIGN_MODE(KeyEvent.VK_B),
-
   PAN(KeyEvent.VK_SPACE);
 
   private val shortcutSet: ShortcutSet by lazy { createShortcutSet() }

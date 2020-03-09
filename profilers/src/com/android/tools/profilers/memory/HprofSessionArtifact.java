@@ -18,7 +18,6 @@ package com.android.tools.profilers.memory;
 import static com.android.tools.profilers.memory.MemoryProfiler.saveHeapDumpToFile;
 
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
 import com.android.tools.profilers.StudioProfilers;
@@ -27,123 +26,36 @@ import com.intellij.util.containers.ContainerUtil;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * An artifact representation of a memory heap dump.
  */
-public final class HprofSessionArtifact implements SessionArtifact<HeapDumpInfo> {
+public final class HprofSessionArtifact extends MemorySessionArtifact<HeapDumpInfo> {
 
-  @NotNull private final StudioProfilers myProfilers;
-  @NotNull private final Common.Session mySession;
-  @NotNull private final Common.SessionMetaData mySessionMetaData;
-  @NotNull private final HeapDumpInfo myInfo;
 
   public HprofSessionArtifact(@NotNull StudioProfilers profilers,
                               @NotNull Common.Session session,
                               @NotNull Common.SessionMetaData sessionMetaData,
                               @NotNull HeapDumpInfo info) {
-    myProfilers = profilers;
-    mySession = session;
-    mySessionMetaData = sessionMetaData;
-    myInfo = info;
-  }
-
-  @NotNull
-  @Override
-  public HeapDumpInfo getArtifactProto() {
-    return myInfo;
-  }
-
-  @NotNull
-  @Override
-  public StudioProfilers getProfilers() {
-    return myProfilers;
+    super(profilers, session, sessionMetaData, info, "Heap Dump");
   }
 
   @Override
-  @NotNull
-  public Common.Session getSession() {
-    return mySession;
-  }
-
-  @NotNull
-  @Override
-  public Common.SessionMetaData getSessionMetaData() {
-    return mySessionMetaData;
+  protected long getStartTime() {
+    return getArtifactProto().getStartTime();
   }
 
   @Override
-  @NotNull
-  public String getName() {
-    return "Heap Dump";
-  }
-
-  @NotNull
-  public String getSubtitle() {
-    if (mySessionMetaData.getType() == Common.SessionMetaData.SessionType.MEMORY_CAPTURE) {
-      return TimeFormatter.getLocalizedDateTime(TimeUnit.NANOSECONDS.toMillis(mySession.getStartTimestamp()));
-    }
-    else {
-      return isOngoing()
-             ? CAPTURING_SUBTITLE
-             : TimeFormatter.getFullClockString(TimeUnit.NANOSECONDS.toMicros(getTimestampNs()));
-    }
-  }
-
-  @Override
-  public long getTimestampNs() {
-    return myInfo.getStartTime() - mySession.getStartTimestamp();
-  }
-
-  @Override
-  public boolean isOngoing() {
-    return myInfo.getEndTime() == Long.MAX_VALUE;
-  }
-
-  @Override
-  public boolean canExport() {
-    return !isOngoing();
-  }
-
-  @Override
-  public void onSelect() {
-    // If the capture selected is not part of the currently selected session, we need to select the session containing the capture.
-    boolean needsToChangeSession = mySession != myProfilers.getSession();
-    if (needsToChangeSession) {
-      myProfilers.getSessionsManager().setSession(mySession);
-    }
-
-    // If memory profiler is not yet open, we need to do it.
-    boolean needsToOpenMemoryProfiler = !(myProfilers.getStage() instanceof MemoryProfilerStage);
-    if (needsToOpenMemoryProfiler) {
-      myProfilers.setStage(new MemoryProfilerStage(myProfilers));
-    }
-
-    long startTimestamp = TimeUnit.NANOSECONDS.toMicros(myInfo.getStartTime());
-    long endTimestamp = TimeUnit.NANOSECONDS.toMicros(myInfo.getEndTime());
-    if (isOngoing()) {
-      SessionArtifact.navigateTimelineToOngoingCapture(myProfilers.getTimeline(), startTimestamp);
-    }
-    else {
-      // Adjust the view range to fit the capture object.
-      assert myProfilers.getStage() instanceof MemoryProfilerStage;
-      MemoryProfilerStage stage = (MemoryProfilerStage)myProfilers.getStage();
-      Range captureRange = new Range(startTimestamp, endTimestamp);
-      myProfilers.getTimeline().adjustRangeCloseToMiddleView(captureRange);
-
-      // Finally, we set and select the capture in the MemoryProfilerStage, which should be the current stage of StudioProfilers.
-      stage.getRangeSelectionModel().set(captureRange.getMin(), captureRange.getMax());
-    }
-
-    myProfilers.getIdeServices().getFeatureTracker().trackSessionArtifactSelected(this, myProfilers.getSessionsManager().isSessionAlive());
+  protected long getEndTime() {
+    return getArtifactProto().getEndTime();
   }
 
   @Override
   public void export(@NotNull OutputStream outputStream) {
     assert canExport();
-    saveHeapDumpToFile(myProfilers.getClient(), mySession, myInfo, outputStream, myProfilers.getIdeServices().getFeatureTracker());
+    saveHeapDumpToFile(getProfilers().getClient(), getSession(), getArtifactProto(), outputStream,
+                       getProfilers().getIdeServices().getFeatureTracker());
   }
 
   public static List<SessionArtifact> getSessionArtifacts(@NotNull StudioProfilers profilers,

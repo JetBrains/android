@@ -28,6 +28,7 @@ import static org.fest.reflect.core.Reflection.type;
 
 import com.android.SdkConstants;
 import com.android.testutils.TestUtils;
+import com.android.tools.idea.bleak.Bleak;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -505,5 +506,9 @@ public class GuiTestRule implements TestRule {
     myInnerTimeout = new DebugFriendlyTimeout(timeout, timeUnits).withThreadDumpOnTimeout();
     myOuterTimeout = new DebugFriendlyTimeout(timeUnits.toSeconds(timeout) + 120, TimeUnit.SECONDS);
     return this;
+  }
+
+  public void runWithBleak(Runnable scenario) {
+    Bleak.runWithBleak(UiTestBleakOptions.INSTANCE.getDefaults(), scenario);
   }
 }

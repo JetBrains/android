@@ -36,6 +36,7 @@ import com.android.tools.profiler.proto.Common.Stream;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Memory.MemoryAllocSamplingData;
 import com.android.tools.profiler.proto.MemoryProfiler.SetAllocationSamplingRateRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.SetAllocationSamplingRateResponse;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.Transport.AgentStatusRequest;
 import com.android.tools.profiler.proto.Transport.EventGroup;
@@ -947,8 +948,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
           .build();
 
         if (getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
-          getClient().getTransportClient().execute(
-            Transport.ExecuteRequest.newBuilder().setCommand(Commands.Command.newBuilder()
+          // TODO(b/150503095)
+          Transport.ExecuteResponse response = getClient().getTransportClient().execute(
+              Transport.ExecuteRequest.newBuilder().setCommand(Commands.Command.newBuilder()
                                                                .setStreamId(getSession().getStreamId())
                                                                .setPid(getSession().getPid())
                                                                .setType(Commands.Command.CommandType.MEMORY_ALLOC_SAMPLING)
@@ -956,10 +958,12 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
               .build());
         }
         else {
-          getClient().getMemoryClient().setAllocationSamplingRate(SetAllocationSamplingRateRequest.newBuilder()
-                                                                    .setSession(getSession())
-                                                                    .setSamplingRate(samplingRate)
-                                                                    .build());
+          // TODO(b/150503095)
+          SetAllocationSamplingRateResponse response =
+              getClient().getMemoryClient().setAllocationSamplingRate(SetAllocationSamplingRateRequest.newBuilder()
+                                                                      .setSession(getSession())
+                                                                      .setSamplingRate(samplingRate)
+                                                                      .build());
         }
       }
     }
