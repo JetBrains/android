@@ -16,7 +16,6 @@
 package com.android.tools.idea.experimental.callgraph
 
 import com.android.tools.idea.lint.common.LintBatchResult
-import com.android.tools.idea.lint.common.LintIdeClient
 import com.android.tools.idea.lint.common.LintIdeRequest
 import com.android.tools.idea.lint.common.LintIdeSupport
 import com.android.tools.lint.checks.WrongThreadInterproceduralDetector
@@ -33,7 +32,8 @@ import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
-import java.util.*
+import java.util.ArrayList
+import java.util.EnumSet
 import kotlin.system.measureTimeMillis
 
 private val LOG = Logger.getInstance(WrongThreadInterproceduralAction::class.java)
