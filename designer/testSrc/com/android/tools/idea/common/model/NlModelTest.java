@@ -849,10 +849,7 @@ public class NlModelTest extends LayoutTestCase {
     XmlFile file = model.getFile();
     XmlTag oldTag = file.getRootTag();
 
-    // Force tag invalidation by deleting it
-/* b/151021146
     WriteCommandAction.runWriteCommandAction(getProject(), oldTag::delete);
-b/151021146 */
     LayoutlibSceneManager.updateHierarchy(oldTag, Collections.emptyList(), model);
   }
 
