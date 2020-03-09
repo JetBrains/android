@@ -76,6 +76,7 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/java
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/jni
+            JavaResource (test) : file://<PROJECT>/app/src/androidTest/ml
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/res
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/rs
@@ -85,6 +86,7 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/java
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/jni
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/ml
             JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/res
             JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/rs
@@ -94,6 +96,7 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource (test) : file://<PROJECT>/app/src/androidTestFree/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestFree/java
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestFree/jni
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestFree/ml
             JavaResource (test) : file://<PROJECT>/app/src/androidTestFree/res
             JavaResource (test) : file://<PROJECT>/app/src/androidTestFree/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestFree/rs
@@ -103,6 +106,7 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource (test) : file://<PROJECT>/app/src/androidTestFreeDebug/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestFreeDebug/java
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestFreeDebug/jni
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestFreeDebug/ml
             JavaResource (test) : file://<PROJECT>/app/src/androidTestFreeDebug/res
             JavaResource (test) : file://<PROJECT>/app/src/androidTestFreeDebug/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestFreeDebug/rs
@@ -112,6 +116,7 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource        : file://<PROJECT>/app/src/debug/assets
             JavaSource          : file://<PROJECT>/app/src/debug/java
             JavaSource          : file://<PROJECT>/app/src/debug/jni
+            JavaResource        : file://<PROJECT>/app/src/debug/ml
             JavaResource        : file://<PROJECT>/app/src/debug/res
             JavaResource        : file://<PROJECT>/app/src/debug/resources
             JavaSource          : file://<PROJECT>/app/src/debug/rs
@@ -121,6 +126,7 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource        : file://<PROJECT>/app/src/free/assets
             JavaSource          : file://<PROJECT>/app/src/free/java
             JavaSource          : file://<PROJECT>/app/src/free/jni
+            JavaResource        : file://<PROJECT>/app/src/free/ml
             JavaResource        : file://<PROJECT>/app/src/free/res
             JavaResource        : file://<PROJECT>/app/src/free/resources
             JavaSource          : file://<PROJECT>/app/src/free/rs
@@ -130,6 +136,7 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource        : file://<PROJECT>/app/src/freeDebug/assets
             JavaSource          : file://<PROJECT>/app/src/freeDebug/java
             JavaSource          : file://<PROJECT>/app/src/freeDebug/jni
+            JavaResource        : file://<PROJECT>/app/src/freeDebug/ml
             JavaResource        : file://<PROJECT>/app/src/freeDebug/res
             JavaResource        : file://<PROJECT>/app/src/freeDebug/resources
             JavaSource          : file://<PROJECT>/app/src/freeDebug/rs
@@ -139,6 +146,7 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource        : file://<PROJECT>/app/src/main/assets
             JavaSource          : file://<PROJECT>/app/src/main/java
             JavaSource          : file://<PROJECT>/app/src/main/jni
+            JavaResource        : file://<PROJECT>/app/src/main/ml
             JavaResource        : file://<PROJECT>/app/src/main/res
             JavaResource        : file://<PROJECT>/app/src/main/resources
             JavaSource          : file://<PROJECT>/app/src/main/rs
@@ -148,6 +156,7 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource (test) : file://<PROJECT>/app/src/test/assets
             JavaSource (test)   : file://<PROJECT>/app/src/test/java
             JavaSource (test)   : file://<PROJECT>/app/src/test/jni
+            JavaResource (test) : file://<PROJECT>/app/src/test/ml
             JavaResource (test) : file://<PROJECT>/app/src/test/res
             JavaResource (test) : file://<PROJECT>/app/src/test/resources
             JavaSource (test)   : file://<PROJECT>/app/src/test/rs
@@ -157,6 +166,7 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource (test) : file://<PROJECT>/app/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/java
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/jni
+            JavaResource (test) : file://<PROJECT>/app/src/testDebug/ml
             JavaResource (test) : file://<PROJECT>/app/src/testDebug/res
             JavaResource (test) : file://<PROJECT>/app/src/testDebug/resources
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/rs
@@ -166,6 +176,7 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource (test) : file://<PROJECT>/app/src/testFree/assets
             JavaSource (test)   : file://<PROJECT>/app/src/testFree/java
             JavaSource (test)   : file://<PROJECT>/app/src/testFree/jni
+            JavaResource (test) : file://<PROJECT>/app/src/testFree/ml
             JavaResource (test) : file://<PROJECT>/app/src/testFree/res
             JavaResource (test) : file://<PROJECT>/app/src/testFree/resources
             JavaSource (test)   : file://<PROJECT>/app/src/testFree/rs
@@ -175,6 +186,7 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource (test) : file://<PROJECT>/app/src/testFreeDebug/assets
             JavaSource (test)   : file://<PROJECT>/app/src/testFreeDebug/java
             JavaSource (test)   : file://<PROJECT>/app/src/testFreeDebug/jni
+            JavaResource (test) : file://<PROJECT>/app/src/testFreeDebug/ml
             JavaResource (test) : file://<PROJECT>/app/src/testFreeDebug/res
             JavaResource (test) : file://<PROJECT>/app/src/testFreeDebug/resources
             JavaSource (test)   : file://<PROJECT>/app/src/testFreeDebug/rs
@@ -527,6 +539,7 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource (test) : file://<PROJECT>/moduleA/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/moduleA/src/androidTest/java
             JavaSource (test)   : file://<PROJECT>/moduleA/src/androidTest/jni
+            JavaResource (test) : file://<PROJECT>/moduleA/src/androidTest/ml
             JavaResource (test) : file://<PROJECT>/moduleA/src/androidTest/res
             JavaResource (test) : file://<PROJECT>/moduleA/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/moduleA/src/androidTest/rs
@@ -536,6 +549,7 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource (test) : file://<PROJECT>/moduleA/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/moduleA/src/androidTestDebug/java
             JavaSource (test)   : file://<PROJECT>/moduleA/src/androidTestDebug/jni
+            JavaResource (test) : file://<PROJECT>/moduleA/src/androidTestDebug/ml
             JavaResource (test) : file://<PROJECT>/moduleA/src/androidTestDebug/res
             JavaResource (test) : file://<PROJECT>/moduleA/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/moduleA/src/androidTestDebug/rs
@@ -545,6 +559,7 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource        : file://<PROJECT>/moduleA/src/debug/assets
             JavaSource          : file://<PROJECT>/moduleA/src/debug/java
             JavaSource          : file://<PROJECT>/moduleA/src/debug/jni
+            JavaResource        : file://<PROJECT>/moduleA/src/debug/ml
             JavaResource        : file://<PROJECT>/moduleA/src/debug/res
             JavaResource        : file://<PROJECT>/moduleA/src/debug/resources
             JavaSource          : file://<PROJECT>/moduleA/src/debug/rs
@@ -554,6 +569,7 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource        : file://<PROJECT>/moduleA/src/main/assets
             JavaSource          : file://<PROJECT>/moduleA/src/main/java
             JavaSource          : file://<PROJECT>/moduleA/src/main/jni
+            JavaResource        : file://<PROJECT>/moduleA/src/main/ml
             JavaResource        : file://<PROJECT>/moduleA/src/main/res
             JavaResource        : file://<PROJECT>/moduleA/src/main/resources
             JavaSource          : file://<PROJECT>/moduleA/src/main/rs
@@ -563,6 +579,7 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource (test) : file://<PROJECT>/moduleA/src/test/assets
             JavaSource (test)   : file://<PROJECT>/moduleA/src/test/java
             JavaSource (test)   : file://<PROJECT>/moduleA/src/test/jni
+            JavaResource (test) : file://<PROJECT>/moduleA/src/test/ml
             JavaResource (test) : file://<PROJECT>/moduleA/src/test/res
             JavaResource (test) : file://<PROJECT>/moduleA/src/test/resources
             JavaSource (test)   : file://<PROJECT>/moduleA/src/test/rs
@@ -572,6 +589,7 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource (test) : file://<PROJECT>/moduleA/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/moduleA/src/testDebug/java
             JavaSource (test)   : file://<PROJECT>/moduleA/src/testDebug/jni
+            JavaResource (test) : file://<PROJECT>/moduleA/src/testDebug/ml
             JavaResource (test) : file://<PROJECT>/moduleA/src/testDebug/res
             JavaResource (test) : file://<PROJECT>/moduleA/src/testDebug/resources
             JavaSource (test)   : file://<PROJECT>/moduleA/src/testDebug/rs
@@ -923,6 +941,7 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource (test) : file://<PROJECT>/moduleB/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/moduleB/src/androidTest/java
             JavaSource (test)   : file://<PROJECT>/moduleB/src/androidTest/jni
+            JavaResource (test) : file://<PROJECT>/moduleB/src/androidTest/ml
             JavaResource (test) : file://<PROJECT>/moduleB/src/androidTest/res
             JavaResource (test) : file://<PROJECT>/moduleB/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/moduleB/src/androidTest/rs
@@ -932,6 +951,7 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource (test) : file://<PROJECT>/moduleB/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/moduleB/src/androidTestDebug/java
             JavaSource (test)   : file://<PROJECT>/moduleB/src/androidTestDebug/jni
+            JavaResource (test) : file://<PROJECT>/moduleB/src/androidTestDebug/ml
             JavaResource (test) : file://<PROJECT>/moduleB/src/androidTestDebug/res
             JavaResource (test) : file://<PROJECT>/moduleB/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/moduleB/src/androidTestDebug/rs
@@ -941,6 +961,7 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource        : file://<PROJECT>/moduleB/src/debug/assets
             JavaSource          : file://<PROJECT>/moduleB/src/debug/java
             JavaSource          : file://<PROJECT>/moduleB/src/debug/jni
+            JavaResource        : file://<PROJECT>/moduleB/src/debug/ml
             JavaResource        : file://<PROJECT>/moduleB/src/debug/res
             JavaResource        : file://<PROJECT>/moduleB/src/debug/resources
             JavaSource          : file://<PROJECT>/moduleB/src/debug/rs
@@ -950,6 +971,7 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource        : file://<PROJECT>/moduleB/src/main/assets
             JavaSource          : file://<PROJECT>/moduleB/src/main/java
             JavaSource          : file://<PROJECT>/moduleB/src/main/jni
+            JavaResource        : file://<PROJECT>/moduleB/src/main/ml
             JavaResource        : file://<PROJECT>/moduleB/src/main/res
             JavaResource        : file://<PROJECT>/moduleB/src/main/resources
             JavaSource          : file://<PROJECT>/moduleB/src/main/rs
@@ -959,6 +981,7 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource (test) : file://<PROJECT>/moduleB/src/test/assets
             JavaSource (test)   : file://<PROJECT>/moduleB/src/test/java
             JavaSource (test)   : file://<PROJECT>/moduleB/src/test/jni
+            JavaResource (test) : file://<PROJECT>/moduleB/src/test/ml
             JavaResource (test) : file://<PROJECT>/moduleB/src/test/res
             JavaResource (test) : file://<PROJECT>/moduleB/src/test/resources
             JavaSource (test)   : file://<PROJECT>/moduleB/src/test/rs
@@ -968,6 +991,7 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             JavaResource (test) : file://<PROJECT>/moduleB/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/moduleB/src/testDebug/java
             JavaSource (test)   : file://<PROJECT>/moduleB/src/testDebug/jni
+            JavaResource (test) : file://<PROJECT>/moduleB/src/testDebug/ml
             JavaResource (test) : file://<PROJECT>/moduleB/src/testDebug/res
             JavaResource (test) : file://<PROJECT>/moduleB/src/testDebug/resources
             JavaSource (test)   : file://<PROJECT>/moduleB/src/testDebug/rs

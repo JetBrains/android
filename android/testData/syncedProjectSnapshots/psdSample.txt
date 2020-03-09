@@ -80,6 +80,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/java
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/jni
+            JavaResource (test) : file://<PROJECT>/app/src/androidTest/ml
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/res
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/rs
@@ -89,6 +90,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/app/src/androidTestBar/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestBar/java
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestBar/jni
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestBar/ml
             JavaResource (test) : file://<PROJECT>/app/src/androidTestBar/res
             JavaResource (test) : file://<PROJECT>/app/src/androidTestBar/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestBar/rs
@@ -98,6 +100,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/app/src/androidTestBasic/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestBasic/java
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestBasic/jni
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestBasic/ml
             JavaResource (test) : file://<PROJECT>/app/src/androidTestBasic/res
             JavaResource (test) : file://<PROJECT>/app/src/androidTestBasic/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestBasic/rs
@@ -107,6 +110,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/app/src/androidTestBasicBar/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestBasicBar/java
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestBasicBar/jni
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestBasicBar/ml
             JavaResource (test) : file://<PROJECT>/app/src/androidTestBasicBar/res
             JavaResource (test) : file://<PROJECT>/app/src/androidTestBasicBar/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestBasicBar/rs
@@ -116,6 +120,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/app/src/androidTestBasicBarDebug/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestBasicBarDebug/java
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestBasicBarDebug/jni
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestBasicBarDebug/ml
             JavaResource (test) : file://<PROJECT>/app/src/androidTestBasicBarDebug/res
             JavaResource (test) : file://<PROJECT>/app/src/androidTestBasicBarDebug/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestBasicBarDebug/rs
@@ -125,6 +130,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/java
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/jni
+            JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/ml
             JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/res
             JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/rs
@@ -134,6 +140,7 @@ PROJECT             : testPsdSample
             JavaResource        : file://<PROJECT>/app/src/bar/assets
             JavaSource          : file://<PROJECT>/app/src/bar/java
             JavaSource          : file://<PROJECT>/app/src/bar/jni
+            JavaResource        : file://<PROJECT>/app/src/bar/ml
             JavaResource        : file://<PROJECT>/app/src/bar/res
             JavaResource        : file://<PROJECT>/app/src/bar/resources
             JavaSource          : file://<PROJECT>/app/src/bar/rs
@@ -143,6 +150,7 @@ PROJECT             : testPsdSample
             JavaResource        : file://<PROJECT>/app/src/basic/assets
             JavaSource          : file://<PROJECT>/app/src/basic/java
             JavaSource          : file://<PROJECT>/app/src/basic/jni
+            JavaResource        : file://<PROJECT>/app/src/basic/ml
             JavaResource        : file://<PROJECT>/app/src/basic/res
             JavaResource        : file://<PROJECT>/app/src/basic/resources
             JavaSource          : file://<PROJECT>/app/src/basic/rs
@@ -152,6 +160,7 @@ PROJECT             : testPsdSample
             JavaResource        : file://<PROJECT>/app/src/basicBar/assets
             JavaSource          : file://<PROJECT>/app/src/basicBar/java
             JavaSource          : file://<PROJECT>/app/src/basicBar/jni
+            JavaResource        : file://<PROJECT>/app/src/basicBar/ml
             JavaResource        : file://<PROJECT>/app/src/basicBar/res
             JavaResource        : file://<PROJECT>/app/src/basicBar/resources
             JavaSource          : file://<PROJECT>/app/src/basicBar/rs
@@ -161,6 +170,7 @@ PROJECT             : testPsdSample
             JavaResource        : file://<PROJECT>/app/src/basicBarDebug/assets
             JavaSource          : file://<PROJECT>/app/src/basicBarDebug/java
             JavaSource          : file://<PROJECT>/app/src/basicBarDebug/jni
+            JavaResource        : file://<PROJECT>/app/src/basicBarDebug/ml
             JavaResource        : file://<PROJECT>/app/src/basicBarDebug/res
             JavaResource        : file://<PROJECT>/app/src/basicBarDebug/resources
             JavaSource          : file://<PROJECT>/app/src/basicBarDebug/rs
@@ -170,6 +180,7 @@ PROJECT             : testPsdSample
             JavaResource        : file://<PROJECT>/app/src/debug/assets
             JavaSource          : file://<PROJECT>/app/src/debug/java
             JavaSource          : file://<PROJECT>/app/src/debug/jni
+            JavaResource        : file://<PROJECT>/app/src/debug/ml
             JavaResource        : file://<PROJECT>/app/src/debug/res
             JavaResource        : file://<PROJECT>/app/src/debug/resources
             JavaSource          : file://<PROJECT>/app/src/debug/rs
@@ -179,6 +190,7 @@ PROJECT             : testPsdSample
             JavaResource        : file://<PROJECT>/app/src/main/assets
             JavaSource          : file://<PROJECT>/app/src/main/java
             JavaSource          : file://<PROJECT>/app/src/main/jni
+            JavaResource        : file://<PROJECT>/app/src/main/ml
             JavaResource        : file://<PROJECT>/app/src/main/res
             JavaResource        : file://<PROJECT>/app/src/main/resources
             JavaSource          : file://<PROJECT>/app/src/main/rs
@@ -188,6 +200,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/app/src/test/assets
             JavaSource (test)   : file://<PROJECT>/app/src/test/java
             JavaSource (test)   : file://<PROJECT>/app/src/test/jni
+            JavaResource (test) : file://<PROJECT>/app/src/test/ml
             JavaResource (test) : file://<PROJECT>/app/src/test/res
             JavaResource (test) : file://<PROJECT>/app/src/test/resources
             JavaSource (test)   : file://<PROJECT>/app/src/test/rs
@@ -197,6 +210,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/app/src/testBar/assets
             JavaSource (test)   : file://<PROJECT>/app/src/testBar/java
             JavaSource (test)   : file://<PROJECT>/app/src/testBar/jni
+            JavaResource (test) : file://<PROJECT>/app/src/testBar/ml
             JavaResource (test) : file://<PROJECT>/app/src/testBar/res
             JavaResource (test) : file://<PROJECT>/app/src/testBar/resources
             JavaSource (test)   : file://<PROJECT>/app/src/testBar/rs
@@ -206,6 +220,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/app/src/testBasic/assets
             JavaSource (test)   : file://<PROJECT>/app/src/testBasic/java
             JavaSource (test)   : file://<PROJECT>/app/src/testBasic/jni
+            JavaResource (test) : file://<PROJECT>/app/src/testBasic/ml
             JavaResource (test) : file://<PROJECT>/app/src/testBasic/res
             JavaResource (test) : file://<PROJECT>/app/src/testBasic/resources
             JavaSource (test)   : file://<PROJECT>/app/src/testBasic/rs
@@ -215,6 +230,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/app/src/testBasicBar/assets
             JavaSource (test)   : file://<PROJECT>/app/src/testBasicBar/java
             JavaSource (test)   : file://<PROJECT>/app/src/testBasicBar/jni
+            JavaResource (test) : file://<PROJECT>/app/src/testBasicBar/ml
             JavaResource (test) : file://<PROJECT>/app/src/testBasicBar/res
             JavaResource (test) : file://<PROJECT>/app/src/testBasicBar/resources
             JavaSource (test)   : file://<PROJECT>/app/src/testBasicBar/rs
@@ -224,6 +240,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/app/src/testBasicBarDebug/assets
             JavaSource (test)   : file://<PROJECT>/app/src/testBasicBarDebug/java
             JavaSource (test)   : file://<PROJECT>/app/src/testBasicBarDebug/jni
+            JavaResource (test) : file://<PROJECT>/app/src/testBasicBarDebug/ml
             JavaResource (test) : file://<PROJECT>/app/src/testBasicBarDebug/res
             JavaResource (test) : file://<PROJECT>/app/src/testBasicBarDebug/resources
             JavaSource (test)   : file://<PROJECT>/app/src/testBasicBarDebug/rs
@@ -233,6 +250,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/app/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/java
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/jni
+            JavaResource (test) : file://<PROJECT>/app/src/testDebug/ml
             JavaResource (test) : file://<PROJECT>/app/src/testDebug/res
             JavaResource (test) : file://<PROJECT>/app/src/testDebug/resources
             JavaSource (test)   : file://<PROJECT>/app/src/testDebug/rs
@@ -694,6 +712,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/nested2/trans/deep2/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/src/androidTest/java
             JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/src/androidTest/jni
+            JavaResource (test) : file://<PROJECT>/nested2/trans/deep2/src/androidTest/ml
             JavaResource (test) : file://<PROJECT>/nested2/trans/deep2/src/androidTest/res
             JavaResource (test) : file://<PROJECT>/nested2/trans/deep2/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/src/androidTest/rs
@@ -703,6 +722,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/nested2/trans/deep2/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/src/androidTestDebug/java
             JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/src/androidTestDebug/jni
+            JavaResource (test) : file://<PROJECT>/nested2/trans/deep2/src/androidTestDebug/ml
             JavaResource (test) : file://<PROJECT>/nested2/trans/deep2/src/androidTestDebug/res
             JavaResource (test) : file://<PROJECT>/nested2/trans/deep2/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/src/androidTestDebug/rs
@@ -712,6 +732,7 @@ PROJECT             : testPsdSample
             JavaResource        : file://<PROJECT>/nested2/trans/deep2/src/debug/assets
             JavaSource          : file://<PROJECT>/nested2/trans/deep2/src/debug/java
             JavaSource          : file://<PROJECT>/nested2/trans/deep2/src/debug/jni
+            JavaResource        : file://<PROJECT>/nested2/trans/deep2/src/debug/ml
             JavaResource        : file://<PROJECT>/nested2/trans/deep2/src/debug/res
             JavaResource        : file://<PROJECT>/nested2/trans/deep2/src/debug/resources
             JavaSource          : file://<PROJECT>/nested2/trans/deep2/src/debug/rs
@@ -721,6 +742,7 @@ PROJECT             : testPsdSample
             JavaResource        : file://<PROJECT>/nested2/trans/deep2/src/main/assets
             JavaSource          : file://<PROJECT>/nested2/trans/deep2/src/main/java
             JavaSource          : file://<PROJECT>/nested2/trans/deep2/src/main/jni
+            JavaResource        : file://<PROJECT>/nested2/trans/deep2/src/main/ml
             JavaResource        : file://<PROJECT>/nested2/trans/deep2/src/main/res
             JavaResource        : file://<PROJECT>/nested2/trans/deep2/src/main/resources
             JavaSource          : file://<PROJECT>/nested2/trans/deep2/src/main/rs
@@ -730,6 +752,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/nested2/trans/deep2/src/test/assets
             JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/src/test/java
             JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/src/test/jni
+            JavaResource (test) : file://<PROJECT>/nested2/trans/deep2/src/test/ml
             JavaResource (test) : file://<PROJECT>/nested2/trans/deep2/src/test/res
             JavaResource (test) : file://<PROJECT>/nested2/trans/deep2/src/test/resources
             JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/src/test/rs
@@ -739,6 +762,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/nested2/trans/deep2/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/src/testDebug/java
             JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/src/testDebug/jni
+            JavaResource (test) : file://<PROJECT>/nested2/trans/deep2/src/testDebug/ml
             JavaResource (test) : file://<PROJECT>/nested2/trans/deep2/src/testDebug/res
             JavaResource (test) : file://<PROJECT>/nested2/trans/deep2/src/testDebug/resources
             JavaSource (test)   : file://<PROJECT>/nested2/trans/deep2/src/testDebug/rs
@@ -821,6 +845,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/dyn_feature/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/dyn_feature/src/androidTest/java
             JavaSource (test)   : file://<PROJECT>/dyn_feature/src/androidTest/jni
+            JavaResource (test) : file://<PROJECT>/dyn_feature/src/androidTest/ml
             JavaResource (test) : file://<PROJECT>/dyn_feature/src/androidTest/res
             JavaResource (test) : file://<PROJECT>/dyn_feature/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/dyn_feature/src/androidTest/rs
@@ -830,6 +855,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/dyn_feature/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/dyn_feature/src/androidTestDebug/java
             JavaSource (test)   : file://<PROJECT>/dyn_feature/src/androidTestDebug/jni
+            JavaResource (test) : file://<PROJECT>/dyn_feature/src/androidTestDebug/ml
             JavaResource (test) : file://<PROJECT>/dyn_feature/src/androidTestDebug/res
             JavaResource (test) : file://<PROJECT>/dyn_feature/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/dyn_feature/src/androidTestDebug/rs
@@ -839,6 +865,7 @@ PROJECT             : testPsdSample
             JavaResource        : file://<PROJECT>/dyn_feature/src/debug/assets
             JavaSource          : file://<PROJECT>/dyn_feature/src/debug/java
             JavaSource          : file://<PROJECT>/dyn_feature/src/debug/jni
+            JavaResource        : file://<PROJECT>/dyn_feature/src/debug/ml
             JavaResource        : file://<PROJECT>/dyn_feature/src/debug/res
             JavaResource        : file://<PROJECT>/dyn_feature/src/debug/resources
             JavaSource          : file://<PROJECT>/dyn_feature/src/debug/rs
@@ -848,6 +875,7 @@ PROJECT             : testPsdSample
             JavaResource        : file://<PROJECT>/dyn_feature/src/main/assets
             JavaSource          : file://<PROJECT>/dyn_feature/src/main/java
             JavaSource          : file://<PROJECT>/dyn_feature/src/main/jni
+            JavaResource        : file://<PROJECT>/dyn_feature/src/main/ml
             JavaResource        : file://<PROJECT>/dyn_feature/src/main/res
             JavaResource        : file://<PROJECT>/dyn_feature/src/main/resources
             JavaSource          : file://<PROJECT>/dyn_feature/src/main/rs
@@ -857,6 +885,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/dyn_feature/src/test/assets
             JavaSource (test)   : file://<PROJECT>/dyn_feature/src/test/java
             JavaSource (test)   : file://<PROJECT>/dyn_feature/src/test/jni
+            JavaResource (test) : file://<PROJECT>/dyn_feature/src/test/ml
             JavaResource (test) : file://<PROJECT>/dyn_feature/src/test/res
             JavaResource (test) : file://<PROJECT>/dyn_feature/src/test/resources
             JavaSource (test)   : file://<PROJECT>/dyn_feature/src/test/rs
@@ -866,6 +895,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/dyn_feature/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/dyn_feature/src/testDebug/java
             JavaSource (test)   : file://<PROJECT>/dyn_feature/src/testDebug/jni
+            JavaResource (test) : file://<PROJECT>/dyn_feature/src/testDebug/ml
             JavaResource (test) : file://<PROJECT>/dyn_feature/src/testDebug/res
             JavaResource (test) : file://<PROJECT>/dyn_feature/src/testDebug/resources
             JavaSource (test)   : file://<PROJECT>/dyn_feature/src/testDebug/rs
@@ -980,6 +1010,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/lib/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/lib/src/androidTest/java
             JavaSource (test)   : file://<PROJECT>/lib/src/androidTest/jni
+            JavaResource (test) : file://<PROJECT>/lib/src/androidTest/ml
             JavaResource (test) : file://<PROJECT>/lib/src/androidTest/res
             JavaResource (test) : file://<PROJECT>/lib/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/lib/src/androidTest/rs
@@ -989,6 +1020,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/lib/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/lib/src/androidTestDebug/java
             JavaSource (test)   : file://<PROJECT>/lib/src/androidTestDebug/jni
+            JavaResource (test) : file://<PROJECT>/lib/src/androidTestDebug/ml
             JavaResource (test) : file://<PROJECT>/lib/src/androidTestDebug/res
             JavaResource (test) : file://<PROJECT>/lib/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/lib/src/androidTestDebug/rs
@@ -998,6 +1030,7 @@ PROJECT             : testPsdSample
             JavaResource        : file://<PROJECT>/lib/src/debug/assets
             JavaSource          : file://<PROJECT>/lib/src/debug/java
             JavaSource          : file://<PROJECT>/lib/src/debug/jni
+            JavaResource        : file://<PROJECT>/lib/src/debug/ml
             JavaResource        : file://<PROJECT>/lib/src/debug/res
             JavaResource        : file://<PROJECT>/lib/src/debug/resources
             JavaSource          : file://<PROJECT>/lib/src/debug/rs
@@ -1007,6 +1040,7 @@ PROJECT             : testPsdSample
             JavaResource        : file://<PROJECT>/lib/src/main/assets
             JavaSource          : file://<PROJECT>/lib/src/main/java
             JavaSource          : file://<PROJECT>/lib/src/main/jni
+            JavaResource        : file://<PROJECT>/lib/src/main/ml
             JavaResource        : file://<PROJECT>/lib/src/main/res
             JavaResource        : file://<PROJECT>/lib/src/main/resources
             JavaSource          : file://<PROJECT>/lib/src/main/rs
@@ -1016,6 +1050,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/lib/src/test/assets
             JavaSource (test)   : file://<PROJECT>/lib/src/test/java
             JavaSource (test)   : file://<PROJECT>/lib/src/test/jni
+            JavaResource (test) : file://<PROJECT>/lib/src/test/ml
             JavaResource (test) : file://<PROJECT>/lib/src/test/res
             JavaResource (test) : file://<PROJECT>/lib/src/test/resources
             JavaSource (test)   : file://<PROJECT>/lib/src/test/rs
@@ -1025,6 +1060,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/lib/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/lib/src/testDebug/java
             JavaSource (test)   : file://<PROJECT>/lib/src/testDebug/jni
+            JavaResource (test) : file://<PROJECT>/lib/src/testDebug/ml
             JavaResource (test) : file://<PROJECT>/lib/src/testDebug/res
             JavaResource (test) : file://<PROJECT>/lib/src/testDebug/resources
             JavaSource (test)   : file://<PROJECT>/lib/src/testDebug/rs
@@ -1376,6 +1412,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/nested1/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/nested1/src/androidTest/java
             JavaSource (test)   : file://<PROJECT>/nested1/src/androidTest/jni
+            JavaResource (test) : file://<PROJECT>/nested1/src/androidTest/ml
             JavaResource (test) : file://<PROJECT>/nested1/src/androidTest/res
             JavaResource (test) : file://<PROJECT>/nested1/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/nested1/src/androidTest/rs
@@ -1385,6 +1422,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/nested1/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/nested1/src/androidTestDebug/java
             JavaSource (test)   : file://<PROJECT>/nested1/src/androidTestDebug/jni
+            JavaResource (test) : file://<PROJECT>/nested1/src/androidTestDebug/ml
             JavaResource (test) : file://<PROJECT>/nested1/src/androidTestDebug/res
             JavaResource (test) : file://<PROJECT>/nested1/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/nested1/src/androidTestDebug/rs
@@ -1394,6 +1432,7 @@ PROJECT             : testPsdSample
             JavaResource        : file://<PROJECT>/nested1/src/debug/assets
             JavaSource          : file://<PROJECT>/nested1/src/debug/java
             JavaSource          : file://<PROJECT>/nested1/src/debug/jni
+            JavaResource        : file://<PROJECT>/nested1/src/debug/ml
             JavaResource        : file://<PROJECT>/nested1/src/debug/res
             JavaResource        : file://<PROJECT>/nested1/src/debug/resources
             JavaSource          : file://<PROJECT>/nested1/src/debug/rs
@@ -1403,6 +1442,7 @@ PROJECT             : testPsdSample
             JavaResource        : file://<PROJECT>/nested1/src/main/assets
             JavaSource          : file://<PROJECT>/nested1/src/main/java
             JavaSource          : file://<PROJECT>/nested1/src/main/jni
+            JavaResource        : file://<PROJECT>/nested1/src/main/ml
             JavaResource        : file://<PROJECT>/nested1/src/main/res
             JavaResource        : file://<PROJECT>/nested1/src/main/resources
             JavaSource          : file://<PROJECT>/nested1/src/main/rs
@@ -1412,6 +1452,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/nested1/src/test/assets
             JavaSource (test)   : file://<PROJECT>/nested1/src/test/java
             JavaSource (test)   : file://<PROJECT>/nested1/src/test/jni
+            JavaResource (test) : file://<PROJECT>/nested1/src/test/ml
             JavaResource (test) : file://<PROJECT>/nested1/src/test/res
             JavaResource (test) : file://<PROJECT>/nested1/src/test/resources
             JavaSource (test)   : file://<PROJECT>/nested1/src/test/rs
@@ -1421,6 +1462,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/nested1/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/nested1/src/testDebug/java
             JavaSource (test)   : file://<PROJECT>/nested1/src/testDebug/jni
+            JavaResource (test) : file://<PROJECT>/nested1/src/testDebug/ml
             JavaResource (test) : file://<PROJECT>/nested1/src/testDebug/res
             JavaResource (test) : file://<PROJECT>/nested1/src/testDebug/resources
             JavaSource (test)   : file://<PROJECT>/nested1/src/testDebug/rs
@@ -1504,6 +1546,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/nested1/deep/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/nested1/deep/src/androidTest/java
             JavaSource (test)   : file://<PROJECT>/nested1/deep/src/androidTest/jni
+            JavaResource (test) : file://<PROJECT>/nested1/deep/src/androidTest/ml
             JavaResource (test) : file://<PROJECT>/nested1/deep/src/androidTest/res
             JavaResource (test) : file://<PROJECT>/nested1/deep/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/nested1/deep/src/androidTest/rs
@@ -1513,6 +1556,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/nested1/deep/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/nested1/deep/src/androidTestDebug/java
             JavaSource (test)   : file://<PROJECT>/nested1/deep/src/androidTestDebug/jni
+            JavaResource (test) : file://<PROJECT>/nested1/deep/src/androidTestDebug/ml
             JavaResource (test) : file://<PROJECT>/nested1/deep/src/androidTestDebug/res
             JavaResource (test) : file://<PROJECT>/nested1/deep/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/nested1/deep/src/androidTestDebug/rs
@@ -1522,6 +1566,7 @@ PROJECT             : testPsdSample
             JavaResource        : file://<PROJECT>/nested1/deep/src/debug/assets
             JavaSource          : file://<PROJECT>/nested1/deep/src/debug/java
             JavaSource          : file://<PROJECT>/nested1/deep/src/debug/jni
+            JavaResource        : file://<PROJECT>/nested1/deep/src/debug/ml
             JavaResource        : file://<PROJECT>/nested1/deep/src/debug/res
             JavaResource        : file://<PROJECT>/nested1/deep/src/debug/resources
             JavaSource          : file://<PROJECT>/nested1/deep/src/debug/rs
@@ -1531,6 +1576,7 @@ PROJECT             : testPsdSample
             JavaResource        : file://<PROJECT>/nested1/deep/src/main/assets
             JavaSource          : file://<PROJECT>/nested1/deep/src/main/java
             JavaSource          : file://<PROJECT>/nested1/deep/src/main/jni
+            JavaResource        : file://<PROJECT>/nested1/deep/src/main/ml
             JavaResource        : file://<PROJECT>/nested1/deep/src/main/res
             JavaResource        : file://<PROJECT>/nested1/deep/src/main/resources
             JavaSource          : file://<PROJECT>/nested1/deep/src/main/rs
@@ -1540,6 +1586,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/nested1/deep/src/test/assets
             JavaSource (test)   : file://<PROJECT>/nested1/deep/src/test/java
             JavaSource (test)   : file://<PROJECT>/nested1/deep/src/test/jni
+            JavaResource (test) : file://<PROJECT>/nested1/deep/src/test/ml
             JavaResource (test) : file://<PROJECT>/nested1/deep/src/test/res
             JavaResource (test) : file://<PROJECT>/nested1/deep/src/test/resources
             JavaSource (test)   : file://<PROJECT>/nested1/deep/src/test/rs
@@ -1549,6 +1596,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/nested1/deep/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/nested1/deep/src/testDebug/java
             JavaSource (test)   : file://<PROJECT>/nested1/deep/src/testDebug/jni
+            JavaResource (test) : file://<PROJECT>/nested1/deep/src/testDebug/ml
             JavaResource (test) : file://<PROJECT>/nested1/deep/src/testDebug/res
             JavaResource (test) : file://<PROJECT>/nested1/deep/src/testDebug/resources
             JavaSource (test)   : file://<PROJECT>/nested1/deep/src/testDebug/rs
@@ -1635,6 +1683,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/nested2/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/nested2/src/androidTest/java
             JavaSource (test)   : file://<PROJECT>/nested2/src/androidTest/jni
+            JavaResource (test) : file://<PROJECT>/nested2/src/androidTest/ml
             JavaResource (test) : file://<PROJECT>/nested2/src/androidTest/res
             JavaResource (test) : file://<PROJECT>/nested2/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/nested2/src/androidTest/rs
@@ -1644,6 +1693,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/nested2/src/androidTestBasic/assets
             JavaSource (test)   : file://<PROJECT>/nested2/src/androidTestBasic/java
             JavaSource (test)   : file://<PROJECT>/nested2/src/androidTestBasic/jni
+            JavaResource (test) : file://<PROJECT>/nested2/src/androidTestBasic/ml
             JavaResource (test) : file://<PROJECT>/nested2/src/androidTestBasic/res
             JavaResource (test) : file://<PROJECT>/nested2/src/androidTestBasic/resources
             JavaSource (test)   : file://<PROJECT>/nested2/src/androidTestBasic/rs
@@ -1653,6 +1703,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/nested2/src/androidTestBasicDebug/assets
             JavaSource (test)   : file://<PROJECT>/nested2/src/androidTestBasicDebug/java
             JavaSource (test)   : file://<PROJECT>/nested2/src/androidTestBasicDebug/jni
+            JavaResource (test) : file://<PROJECT>/nested2/src/androidTestBasicDebug/ml
             JavaResource (test) : file://<PROJECT>/nested2/src/androidTestBasicDebug/res
             JavaResource (test) : file://<PROJECT>/nested2/src/androidTestBasicDebug/resources
             JavaSource (test)   : file://<PROJECT>/nested2/src/androidTestBasicDebug/rs
@@ -1662,6 +1713,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/nested2/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/nested2/src/androidTestDebug/java
             JavaSource (test)   : file://<PROJECT>/nested2/src/androidTestDebug/jni
+            JavaResource (test) : file://<PROJECT>/nested2/src/androidTestDebug/ml
             JavaResource (test) : file://<PROJECT>/nested2/src/androidTestDebug/res
             JavaResource (test) : file://<PROJECT>/nested2/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/nested2/src/androidTestDebug/rs
@@ -1671,6 +1723,7 @@ PROJECT             : testPsdSample
             JavaResource        : file://<PROJECT>/nested2/src/basic/assets
             JavaSource          : file://<PROJECT>/nested2/src/basic/java
             JavaSource          : file://<PROJECT>/nested2/src/basic/jni
+            JavaResource        : file://<PROJECT>/nested2/src/basic/ml
             JavaResource        : file://<PROJECT>/nested2/src/basic/res
             JavaResource        : file://<PROJECT>/nested2/src/basic/resources
             JavaSource          : file://<PROJECT>/nested2/src/basic/rs
@@ -1680,6 +1733,7 @@ PROJECT             : testPsdSample
             JavaResource        : file://<PROJECT>/nested2/src/basicDebug/assets
             JavaSource          : file://<PROJECT>/nested2/src/basicDebug/java
             JavaSource          : file://<PROJECT>/nested2/src/basicDebug/jni
+            JavaResource        : file://<PROJECT>/nested2/src/basicDebug/ml
             JavaResource        : file://<PROJECT>/nested2/src/basicDebug/res
             JavaResource        : file://<PROJECT>/nested2/src/basicDebug/resources
             JavaSource          : file://<PROJECT>/nested2/src/basicDebug/rs
@@ -1689,6 +1743,7 @@ PROJECT             : testPsdSample
             JavaResource        : file://<PROJECT>/nested2/src/debug/assets
             JavaSource          : file://<PROJECT>/nested2/src/debug/java
             JavaSource          : file://<PROJECT>/nested2/src/debug/jni
+            JavaResource        : file://<PROJECT>/nested2/src/debug/ml
             JavaResource        : file://<PROJECT>/nested2/src/debug/res
             JavaResource        : file://<PROJECT>/nested2/src/debug/resources
             JavaSource          : file://<PROJECT>/nested2/src/debug/rs
@@ -1698,6 +1753,7 @@ PROJECT             : testPsdSample
             JavaResource        : file://<PROJECT>/nested2/src/main/assets
             JavaSource          : file://<PROJECT>/nested2/src/main/java
             JavaSource          : file://<PROJECT>/nested2/src/main/jni
+            JavaResource        : file://<PROJECT>/nested2/src/main/ml
             JavaResource        : file://<PROJECT>/nested2/src/main/res
             JavaResource        : file://<PROJECT>/nested2/src/main/resources
             JavaSource          : file://<PROJECT>/nested2/src/main/rs
@@ -1707,6 +1763,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/nested2/src/test/assets
             JavaSource (test)   : file://<PROJECT>/nested2/src/test/java
             JavaSource (test)   : file://<PROJECT>/nested2/src/test/jni
+            JavaResource (test) : file://<PROJECT>/nested2/src/test/ml
             JavaResource (test) : file://<PROJECT>/nested2/src/test/res
             JavaResource (test) : file://<PROJECT>/nested2/src/test/resources
             JavaSource (test)   : file://<PROJECT>/nested2/src/test/rs
@@ -1716,6 +1773,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/nested2/src/testBasic/assets
             JavaSource (test)   : file://<PROJECT>/nested2/src/testBasic/java
             JavaSource (test)   : file://<PROJECT>/nested2/src/testBasic/jni
+            JavaResource (test) : file://<PROJECT>/nested2/src/testBasic/ml
             JavaResource (test) : file://<PROJECT>/nested2/src/testBasic/res
             JavaResource (test) : file://<PROJECT>/nested2/src/testBasic/resources
             JavaSource (test)   : file://<PROJECT>/nested2/src/testBasic/rs
@@ -1725,6 +1783,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/nested2/src/testBasicDebug/assets
             JavaSource (test)   : file://<PROJECT>/nested2/src/testBasicDebug/java
             JavaSource (test)   : file://<PROJECT>/nested2/src/testBasicDebug/jni
+            JavaResource (test) : file://<PROJECT>/nested2/src/testBasicDebug/ml
             JavaResource (test) : file://<PROJECT>/nested2/src/testBasicDebug/res
             JavaResource (test) : file://<PROJECT>/nested2/src/testBasicDebug/resources
             JavaSource (test)   : file://<PROJECT>/nested2/src/testBasicDebug/rs
@@ -1734,6 +1793,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/nested2/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/nested2/src/testDebug/java
             JavaSource (test)   : file://<PROJECT>/nested2/src/testDebug/jni
+            JavaResource (test) : file://<PROJECT>/nested2/src/testDebug/ml
             JavaResource (test) : file://<PROJECT>/nested2/src/testDebug/res
             JavaResource (test) : file://<PROJECT>/nested2/src/testDebug/resources
             JavaSource (test)   : file://<PROJECT>/nested2/src/testDebug/rs
@@ -1817,6 +1877,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/nested2/deep/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/nested2/deep/src/androidTest/java
             JavaSource (test)   : file://<PROJECT>/nested2/deep/src/androidTest/jni
+            JavaResource (test) : file://<PROJECT>/nested2/deep/src/androidTest/ml
             JavaResource (test) : file://<PROJECT>/nested2/deep/src/androidTest/res
             JavaResource (test) : file://<PROJECT>/nested2/deep/src/androidTest/resources
             JavaSource (test)   : file://<PROJECT>/nested2/deep/src/androidTest/rs
@@ -1826,6 +1887,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/nested2/deep/src/androidTestDebug/assets
             JavaSource (test)   : file://<PROJECT>/nested2/deep/src/androidTestDebug/java
             JavaSource (test)   : file://<PROJECT>/nested2/deep/src/androidTestDebug/jni
+            JavaResource (test) : file://<PROJECT>/nested2/deep/src/androidTestDebug/ml
             JavaResource (test) : file://<PROJECT>/nested2/deep/src/androidTestDebug/res
             JavaResource (test) : file://<PROJECT>/nested2/deep/src/androidTestDebug/resources
             JavaSource (test)   : file://<PROJECT>/nested2/deep/src/androidTestDebug/rs
@@ -1835,6 +1897,7 @@ PROJECT             : testPsdSample
             JavaResource        : file://<PROJECT>/nested2/deep/src/debug/assets
             JavaSource          : file://<PROJECT>/nested2/deep/src/debug/java
             JavaSource          : file://<PROJECT>/nested2/deep/src/debug/jni
+            JavaResource        : file://<PROJECT>/nested2/deep/src/debug/ml
             JavaResource        : file://<PROJECT>/nested2/deep/src/debug/res
             JavaResource        : file://<PROJECT>/nested2/deep/src/debug/resources
             JavaSource          : file://<PROJECT>/nested2/deep/src/debug/rs
@@ -1844,6 +1907,7 @@ PROJECT             : testPsdSample
             JavaResource        : file://<PROJECT>/nested2/deep/src/main/assets
             JavaSource          : file://<PROJECT>/nested2/deep/src/main/java
             JavaSource          : file://<PROJECT>/nested2/deep/src/main/jni
+            JavaResource        : file://<PROJECT>/nested2/deep/src/main/ml
             JavaResource        : file://<PROJECT>/nested2/deep/src/main/res
             JavaResource        : file://<PROJECT>/nested2/deep/src/main/resources
             JavaSource          : file://<PROJECT>/nested2/deep/src/main/rs
@@ -1853,6 +1917,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/nested2/deep/src/test/assets
             JavaSource (test)   : file://<PROJECT>/nested2/deep/src/test/java
             JavaSource (test)   : file://<PROJECT>/nested2/deep/src/test/jni
+            JavaResource (test) : file://<PROJECT>/nested2/deep/src/test/ml
             JavaResource (test) : file://<PROJECT>/nested2/deep/src/test/res
             JavaResource (test) : file://<PROJECT>/nested2/deep/src/test/resources
             JavaSource (test)   : file://<PROJECT>/nested2/deep/src/test/rs
@@ -1862,6 +1927,7 @@ PROJECT             : testPsdSample
             JavaResource (test) : file://<PROJECT>/nested2/deep/src/testDebug/assets
             JavaSource (test)   : file://<PROJECT>/nested2/deep/src/testDebug/java
             JavaSource (test)   : file://<PROJECT>/nested2/deep/src/testDebug/jni
+            JavaResource (test) : file://<PROJECT>/nested2/deep/src/testDebug/ml
             JavaResource (test) : file://<PROJECT>/nested2/deep/src/testDebug/res
             JavaResource (test) : file://<PROJECT>/nested2/deep/src/testDebug/resources
             JavaSource (test)   : file://<PROJECT>/nested2/deep/src/testDebug/rs

@@ -170,7 +170,7 @@ private fun SourceProvider.processAll(
   forTest: Boolean = false,
   processor: (String, ExternalSystemSourceType) -> Unit
 ) {
-  (resourcesDirectories + resDirectories + assetsDirectories + manifestFile.parentFile).forEach {
+  (resourcesDirectories + resDirectories + assetsDirectories + mlModelsDirectories + manifestFile.parentFile).forEach {
     processor(it.absolutePath, if (forTest) TEST_RESOURCE else RESOURCE)
   }
 
