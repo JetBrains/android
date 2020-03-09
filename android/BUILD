@@ -980,6 +980,7 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/org/ow2/asm/asm-tree/6.0:jar",
         "//prebuilts/tools/common/m2/repository/org/ow2/asm/asm/6.0:jar",
         "//prebuilts/tools/common/m2/repository/org/slf4j/slf4j-api/1.7.2:jar",
+        "//prebuilts/tools/common/m2/repository/org/tensorflow/tensorflow-lite-support/0.0.0-experimental-metadata:jar",
         "//prebuilts/tools/common/m2/repository/xmlpull/xmlpull/1.1.3.1:jar",
         "//prebuilts/tools/common/m2/repository/xpp3/xpp3/1.1.4c:jar",
     ],
