@@ -20,6 +20,7 @@ import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.android.tools.idea.sqlite.controllers.ParametersBindingController
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteStatement
+import com.android.tools.idea.sqlite.sqlLanguage.needsBinding
 import com.android.tools.idea.sqlite.sqlLanguage.replaceNamedParametersWithPositionalParameters
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactory
 import com.intellij.icons.AllIcons
@@ -63,10 +64,8 @@ class RunSqliteStatementGutterIconAction(
                             .orEmpty()
                             .firstOrNull { it.first.language == AndroidSqlLanguage.INSTANCE }?.first ?: return
 
-    val (sqliteStatement, parametersNames) = replaceNamedParametersWithPositionalParameters(injectedPsiFile)
-
     if (openDatabases.size == 1) {
-      runSqliteStatement(openDatabases.first(), sqliteStatement, parametersNames)
+      runSqliteStatement(openDatabases.first(), injectedPsiFile)
     }
     else if (openDatabases.size > 1) {
       val popupChooserBuilder = JBPopupFactory.getInstance().createPopupChooserBuilder(openDatabases.toList())
@@ -77,7 +76,7 @@ class RunSqliteStatementGutterIconAction(
         .withHintUpdateSupply()
         .setResizable(true)
         .setItemChosenCallback {
-          runSqliteStatement(it, sqliteStatement, parametersNames)
+          runSqliteStatement(it, injectedPsiFile)
         }
         .createPopup()
 
@@ -91,13 +90,14 @@ class RunSqliteStatementGutterIconAction(
     }
   }
 
-  private fun runSqliteStatement(database: SqliteDatabase, sqliteStatement: String, parametersNames: List<String>) {
-    if (parametersNames.isEmpty()) {
+  private fun runSqliteStatement(database: SqliteDatabase, sqliteStatementPsi: PsiElement) {
+    if (!needsBinding(sqliteStatementPsi)) {
+      val (sqliteStatement, _) = replaceNamedParametersWithPositionalParameters(sqliteStatementPsi)
       DatabaseInspectorProjectService.getInstance(project).runSqliteStatement(database, SqliteStatement(sqliteStatement))
     }
     else {
       val view = viewFactory.createParametersBindingView(project)
-      ParametersBindingController(view, sqliteStatement, parametersNames) {
+      ParametersBindingController(view, sqliteStatementPsi) {
         DatabaseInspectorProjectService.getInstance(project).runSqliteStatement(database, it)
       }.also {
         it.setUp()

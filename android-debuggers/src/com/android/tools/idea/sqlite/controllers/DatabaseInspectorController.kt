@@ -292,6 +292,7 @@ class DatabaseInspectorControllerImpl(
       view.openTab(tableId, table.name, tableView.component)
 
       val tableController = TableController(
+        project = project,
         view = tableView,
         tableSupplier = { model.openDatabases[database]?.tables?.firstOrNull{ it.name == table.name } },
         databaseConnection = databaseConnection,

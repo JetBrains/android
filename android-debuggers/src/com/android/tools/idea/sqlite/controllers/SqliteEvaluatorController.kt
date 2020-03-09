@@ -21,6 +21,7 @@ import com.android.tools.idea.lang.androidSql.parser.AndroidSqlParserDefinition
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteStatement
+import com.android.tools.idea.sqlite.sqlLanguage.needsBinding
 import com.android.tools.idea.sqlite.sqlLanguage.replaceNamedParametersWithPositionalParameters
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
@@ -82,7 +83,7 @@ class SqliteEvaluatorController(
   }
 
   fun evaluateSqlStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
-    view.showSqliteStatement(sqliteStatement.assignValuesToParameters())
+    view.showSqliteStatement(sqliteStatement.sqliteStatementWithInlineParameters)
     view.selectDatabase(database)
     return execute(database, sqliteStatement)
   }
@@ -99,6 +100,7 @@ class SqliteEvaluatorController(
 
           if (rowCount > 0) {
             currentTableController = TableController(
+              project = project,
               view = view.tableView,
               tableSupplier = { null },
               databaseConnection = databaseConnection,
@@ -127,14 +129,14 @@ class SqliteEvaluatorController(
   private inner class SqliteEvaluatorViewListenerImpl : SqliteEvaluatorView.Listener {
     override fun evaluateSqlActionInvoked(database: SqliteDatabase, sqliteStatement: String) {
       val psiFile = AndroidSqlParserDefinition.parseSqlQuery(project, sqliteStatement)
-      val parsedStatement = replaceNamedParametersWithPositionalParameters(psiFile)
 
-      if (parsedStatement.parameters.isEmpty()) {
+      if (!needsBinding(psiFile)) {
+        val parsedStatement = replaceNamedParametersWithPositionalParameters(psiFile)
         evaluateSqlStatement(database, SqliteStatement(parsedStatement.statementText))
       }
       else {
         val view = viewFactory.createParametersBindingView(project)
-        ParametersBindingController(view, parsedStatement.statementText, parsedStatement.parameters) {
+        ParametersBindingController(view, psiFile) {
           evaluateSqlStatement(database, it)
         }.also {
           it.setUp()

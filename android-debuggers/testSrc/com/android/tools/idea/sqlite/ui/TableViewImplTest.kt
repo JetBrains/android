@@ -452,6 +452,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val sqliteTable = schema.tables.first()
 
     val controller = TableController(
+      project,
       10,
       view,
       { sqliteTable },
@@ -490,6 +491,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val sqliteTable = schema.tables.first()
 
     val controller = TableController(
+      project,
       10,
       view,
       { sqliteTable },
@@ -528,6 +530,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val sqliteTable = schema.tables.first()
 
     val controller = TableController(
+      project,
       10,
       view,
       { sqliteTable },
@@ -566,6 +569,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     val sqliteTable = schema.tables.first()
 
     val controller = TableController(
+      project,
       10,
       view,
       { sqliteTable },
