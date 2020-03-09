@@ -90,8 +90,6 @@ class SdkComponentsStep(
       updateDiskSizes()
     }
   }
-  private var wasVisible = false
-
   private val componentsSize: Long
     get() = model.componentTree.childrenToInstall.map(InstallableComponent::downloadSize).sum()
 
@@ -212,28 +210,10 @@ class SdkComponentsStep(
     }
   }
 
-  /*override fun deriveValues(modified: Set<ScopedStateStore.Key<*>>) {
-    if (modified.contains(sdkDownloadPathKey) || rootNode.componentStateChanged(modified)) {
-    }
-  }*/
-
 
   override fun getPreferredFocusComponent(): JComponent? = componentsTable
 
-  override fun shouldShow(): Boolean {
-    if (wasVisible) {
-      // If we showed it once (e.g. if we had a invalid path on the standard setup path) we want to be sure it shows again (e.g. if we
-      // fix the path and then go backward and forward). Otherwise the experience is confusing.
-      return true
-    }
-    /*else if (model.mode.hasValidSdkLocation()) {
-    return false
-  }*/
-
-    return true
-  }
-
-  // This belonged to InstallComponentPath before. TODO: maybe it should actually be in onWizardStarting to avoid reduce freezes?
+  // This belonged to InstallComponentPath before. TODO: maybe it should actually be in onWizardStarting to avoid/reduce freezes?
   lateinit var componentInstaller: ComponentInstaller
 
   init {
@@ -260,10 +240,6 @@ class SdkComponentsStep(
 
   private fun loadingError() {
     componentDescription.text = "There was an error while loading a list of components. Please try to restart Android Studio."
-  }
-
-  override fun createDependentSteps(): Collection<ModelWizardStep<*>> {
-    return model.componentTree.steps
   }
 
   private inner class SdkComponentRenderer : AbstractCellEditor(), TableCellRenderer, TableCellEditor {
