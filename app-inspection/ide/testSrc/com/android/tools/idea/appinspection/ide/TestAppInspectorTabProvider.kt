@@ -20,6 +20,7 @@ import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTab
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID
 import com.android.tools.idea.appinspection.test.TEST_JAR
+import com.intellij.openapi.project.Project
 import javax.swing.JPanel
 
 /**
@@ -30,7 +31,7 @@ class StubTestAppInspectorTabProvider : AppInspectorTabProvider {
   override val displayName = "TEST"
   override val inspectorAgentJar = TEST_JAR
 
-  override fun createTab(messenger: AppInspectorClient.CommandMessenger): AppInspectorTab {
+  override fun createTab(project: Project, messenger: AppInspectorClient.CommandMessenger): AppInspectorTab {
     return object : AppInspectorTab {
       override val client: AppInspectorClient
         get() = TODO("not implemented")
