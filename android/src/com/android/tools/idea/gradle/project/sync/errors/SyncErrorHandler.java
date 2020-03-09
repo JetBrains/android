@@ -61,8 +61,8 @@ public abstract class SyncErrorHandler {
     return rootCause;
   }
 
-  protected static void updateUsageTracker(@NotNull Project project,
-                                           @Nullable GradleSyncFailure gradleSyncFailure) {
+  public static void updateUsageTracker(@NotNull Project project,
+                                        @Nullable GradleSyncFailure gradleSyncFailure) {
 
     if (gradleSyncFailure != null) {
       SyncIssueUsageReporter.Companion.getInstance(project).collect(gradleSyncFailure);

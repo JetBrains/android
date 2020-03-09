@@ -65,7 +65,7 @@ public class UnknownHostErrorHandlerTest extends AndroidGradleTestCase {
     GradleSettings.getInstance(getProject()).setOfflineWork(false);
     Throwable cause = new UnknownHostException("my host");
 
-    registerSyncErrorToSimulate(cause);
+    registerSyncErrorToSimulate(new RuntimeException(cause));
 
     loadProjectAndExpectSyncError(SIMPLE_APPLICATION);
 

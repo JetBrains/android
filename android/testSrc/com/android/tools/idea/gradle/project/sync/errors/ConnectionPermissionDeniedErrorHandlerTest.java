@@ -47,8 +47,7 @@ public class ConnectionPermissionDeniedErrorHandlerTest extends AndroidGradleTes
   }
 
   public void testHandleError() throws Exception {
-    Throwable cause = new SocketException("Permission denied: connect");
-    registerSyncErrorToSimulate(cause);
+    registerSyncErrorToSimulate(new RuntimeException(new SocketException("Permission denied: connect")));
 
     loadProjectAndExpectSyncError(SIMPLE_APPLICATION);
 

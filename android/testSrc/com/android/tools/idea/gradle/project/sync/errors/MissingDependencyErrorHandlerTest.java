@@ -88,7 +88,7 @@ public class MissingDependencyErrorHandlerTest extends AndroidGradleTestCase {
 
     GradleSyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
     assertNotNull(notificationUpdate);
-    assertThat(notificationUpdate.getText()).isEqualTo(errMsg);
+    assertThat(notificationUpdate.getText()).startsWith(errMsg);
 
     // Verify hyperlinks are correct.
     List<NotificationHyperlink> quickFixes = notificationUpdate.getFixes();

@@ -46,9 +46,7 @@ public class MissingAndroidSdkErrorHandlerTest extends AndroidGradleTestCase {
   }
 
   public void testHandleError() throws Exception {
-    Throwable cause = new RuntimeException("No sdk.dir property defined in local.properties file.");
-
-    registerSyncErrorToSimulate(cause);
+    registerSyncErrorToSimulate(new RuntimeException("No sdk.dir property defined in local.properties file."));
 
     loadProjectAndExpectSyncError(SIMPLE_APPLICATION);
 

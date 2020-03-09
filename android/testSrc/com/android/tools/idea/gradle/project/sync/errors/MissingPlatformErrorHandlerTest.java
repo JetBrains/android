@@ -45,9 +45,7 @@ public class MissingPlatformErrorHandlerTest extends AndroidGradleTestCase {
   }
 
   public void testHandleError() throws Exception {
-    Throwable cause = new IllegalStateException("Failed to find target android-23");
-
-    registerSyncErrorToSimulate(cause);
+    registerSyncErrorToSimulate(new IllegalStateException("Failed to find target android-23"));
 
     loadProjectAndExpectSyncError(SIMPLE_APPLICATION);
 

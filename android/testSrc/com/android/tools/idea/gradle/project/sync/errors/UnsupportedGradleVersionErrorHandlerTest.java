@@ -53,9 +53,7 @@ public class UnsupportedGradleVersionErrorHandlerTest extends AndroidGradleTestC
   }
 
   public void testHandleError() throws Exception {
-    Throwable cause = new RuntimeException("Gradle version 2.2 is required.");
-
-    registerSyncErrorToSimulate(cause);
+    registerSyncErrorToSimulate(new RuntimeException("Gradle version 2.2 is required."));
 
     loadProjectAndExpectSyncError(SIMPLE_APPLICATION);
 
