@@ -19,7 +19,6 @@ import com.android.tools.mlkit.MetadataExtractor;
 import com.android.tools.mlkit.MlkitNames;
 import com.android.tools.mlkit.ModelInfo;
 import com.android.tools.mlkit.ModelParsingException;
-import com.android.tools.mlkit.SubGraphInfo;
 import com.android.tools.mlkit.TensorInfo;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.openapi.diagnostic.Logger;
@@ -85,13 +84,15 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     contentPanel.setBorder(JBUI.Borders.empty(20));
 
     try {
+      StringBuilder htmlBodyBuilder = new StringBuilder();
       ModelInfo modelInfo = ModelInfo.buildFrom(new MetadataExtractor(ByteBuffer.wrap(file.contentsToByteArray())));
-      addModelSection(contentPanel, modelInfo);
-      addTensorsSection(contentPanel, modelInfo);
-
+      htmlBodyBuilder.append(getModelSectionBody(modelInfo));
+      htmlBodyBuilder.append(getTensorsSectionBody(modelInfo));
       PsiClass modelClass = MlkitModuleService.getInstance(myModule)
         .getOrCreateLightModelClass(new MlModelMetadata(file.getUrl(), MlkitUtils.computeModelClassName(file.getUrl())));
-      addSampleCodeSection(contentPanel, modelClass);
+      htmlBodyBuilder.append(getSampleCodeSectionBody(modelClass));
+
+      contentPanel.add(createPaneFromHtml(htmlBodyBuilder.toString()));
     }
     catch (IOException e) {
       Logger.getInstance(TfliteModelFileEditor.class).error(e);
@@ -124,8 +125,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     return htmlRow.toString();
   }
 
-  private static void addModelSection(@NotNull JPanel contentPanel, @NotNull ModelInfo modelInfo) {
-    // TODO(b/148866418): make table collapsible.
+  private static String getModelSectionBody(@NotNull ModelInfo modelInfo) {
     List<String[]> table = new ArrayList<>();
     table.add(new String[]{"Name", modelInfo.getModelName()});
     table.add(new String[]{"Description", modelInfo.getModelDescription()});
@@ -133,19 +133,15 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     table.add(new String[]{"Author", modelInfo.getModelAuthor()});
     table.add(new String[]{"License", modelInfo.getModelLicense()});
 
-    contentPanel.add(createPaneFromTable(table, "Model", false));
+    return getHtmlBodyFromTable(table, "Model", false);
   }
 
-  private static void addSampleCodeSection(@NotNull JPanel contentPanel, @NotNull PsiClass modelClass) {
-    // TODO(b/148866418): make table collapsible.
-    String sampleCodeHtml = "<h2>Sample Code</h2>\n" +
-                            "<code>" + buildSampleCode(modelClass) + "</code>";
-
-    contentPanel.add(createPaneFromHtml(sampleCodeHtml));
+  private static String getSampleCodeSectionBody(@NotNull PsiClass modelClass) {
+    return "<h2>Sample Code</h2>\n" +
+           "<code>" + buildSampleCode(modelClass) + "</code>";
   }
 
-  private static void addTensorsSection(@NotNull JPanel contentPanel, @NotNull ModelInfo modelInfo) {
-    // TODO(b/148866418): make table collapsible.
+  private static String getTensorsSectionBody(@NotNull ModelInfo modelInfo) {
     List<String[]> table = new ArrayList<>();
     table.add(new String[]{"Name", "Type", "Description", "Shape", "Mean / Std", "Min / Max"});
     table.add(new String[]{"inputs"});
@@ -157,11 +153,11 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       table.add(getTensorsRow(tensorInfo));
     }
 
-    contentPanel.add(createPaneFromTable(table, "Tensors", true));
+    return getHtmlBodyFromTable(table, "Tensors", true);
   }
 
   @NotNull
-  private static JTextPane createPaneFromTable(@NotNull List<String[]> table, @NotNull String title, boolean useHeaderCells) {
+  private static String getHtmlBodyFromTable(@NotNull List<String[]> table, @NotNull String title, boolean useHeaderCells) {
     StringBuilder htmlBuilder = new StringBuilder("<h2>" + title + "</h2>");
     if (!table.isEmpty()) {
       htmlBuilder.append("<table>\n").append(createHtmlRow(table.get(0), useHeaderCells));
@@ -171,7 +167,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       htmlBuilder.append("</table>\n");
     }
 
-    return createPaneFromHtml(htmlBuilder.toString());
+    return htmlBuilder.toString();
   }
 
   @NotNull
