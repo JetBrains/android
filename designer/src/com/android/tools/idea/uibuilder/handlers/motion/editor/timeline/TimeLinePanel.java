@@ -793,7 +793,7 @@ public class TimeLinePanel extends JPanel {
     }
 
     g2.setColor(lineColor);
-    g2.drawLine(x, yHeight, x, h);
+    g2.drawLine(xStart + halfWidth, yHeight, xStart + halfWidth, h);
   }
 
   /**
