@@ -63,7 +63,7 @@ fun notDisposedRenderTasks(): Sequence<List<StackTraceElement>> {
 fun captureAllocationStackTrace(): AllocationStackTrace =
   if (shouldTrackAllocations) {
     // Capture the current stack trace dropping the allocation point stack frame, one for captureAllocationStackTrace and one for getTrace
-    AllocationStackTrace(Thread.currentThread()!!.stackTrace!!.asList().drop(2))
+    AllocationStackTrace(Thread.currentThread().stackTrace.asList().drop(2))
   }
   else {
     NULL_STACK_TRACE
