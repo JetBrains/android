@@ -709,17 +709,6 @@ public final class StudioFlags {
   );
   //endregion
 
-  //region Translations Editor
-  private static final FlagGroup TRANSLATIONS_EDITOR = new FlagGroup(FLAGS, "translations.editor", "Translations Editor");
-
-  public static final Flag<Boolean> TRANSLATIONS_EDITOR_USE_LOGICAL_FONT = Flag.create(
-    TRANSLATIONS_EDITOR,
-    "translations.editor.use.logical.font",
-    "Use a logical font",
-    "Use a logical font to display translations. See https://docs.oracle.com/javase/tutorial/2d/text/fonts.html#logical-fonts",
-    true);
-  //endregion
-
   //region Memory
   private static final FlagGroup MEMORY_SETTINGS = new FlagGroup(FLAGS, "memory.settings", "Memory Settings");
   public static final Flag<Boolean> LOW_IDE_XMX_CAP = Flag.create(
