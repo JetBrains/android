@@ -42,7 +42,7 @@ fun RecipeExecutor.generateCommonModule(
   generateTests: Boolean = false,
   includeCppSupport: Boolean = false,
   iconsGenerationStyle: IconsGenerationStyle = IconsGenerationStyle.ALL,
-  stylesXml: String? = androidModuleStyles(),
+  stylesXml: String? = androidModuleStyles(data.projectTemplateData.androidXSupport),
   colorsXml: String? = androidModuleColors(),
   cppFlags: String = "",
   addLintOptions: Boolean = false
