@@ -76,8 +76,7 @@ class EmulatorToolWindowPanel(private val emulator: EmulatorController) : Border
 
   fun createContent() {
     try {
-      // TODO: Switch to using gRPC Emulator API.
-      val emulatorPanel = EmulatorJarLoader.createView(emulator.emulatorId.serialPort)
+      val emulatorPanel = EmulatorView(emulator)
       // Wrap emulatorPanel in another JPanel to keep aspect ratio.
       val layoutManager: LayoutManager = EmulatorLayoutManager(emulatorPanel)
       centerPanel.add(emulatorPanel)

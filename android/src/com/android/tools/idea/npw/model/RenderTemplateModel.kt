@@ -18,7 +18,7 @@ package com.android.tools.idea.npw.model
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.hasAnyKotlinModules
-import com.android.tools.idea.npw.FormFactor
+import com.android.tools.idea.device.FormFactor
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.project.getPackageForApplication
@@ -77,8 +77,7 @@ class RenderTemplateModel private constructor(
    * The target template we want to render. If null, the user is skipping steps that would instantiate a template and this model shouldn't
    * try to render anything.
    */
-  val templateValues = hashMapOf<String, Any>()
-  private lateinit var wizardParameterData: WizardParameterData
+  lateinit var wizardParameterData: WizardParameterData
   var newTemplate: Template = Template.NoActivity
   set(value) {
     field = value

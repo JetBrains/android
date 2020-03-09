@@ -15,16 +15,6 @@
  */
 package com.android.tools.idea.gradle.variant.view;
 
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.NdkModuleModel;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.android.tools.idea.testing.BuildEnvironment;
-import com.google.common.io.Files;
-import java.io.File;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-
 import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
@@ -36,6 +26,16 @@ import static com.google.common.base.Charsets.UTF_8;
 import static com.intellij.openapi.util.io.FileUtil.appendToFile;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
+
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.BuildEnvironment;
+import com.google.common.io.Files;
+import java.io.File;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
 
 public class BuildVariantUpdaterIntegTest extends AndroidGradleTestCase {
   private boolean mySavedSingleVariantSyncSetting = false;
@@ -68,13 +68,13 @@ public class BuildVariantUpdaterIntegTest extends AndroidGradleTestCase {
     assertEquals("debug", appAndroidModel.getSelectedVariant().getName());
     assertEquals("debug", featureAndroidModel.getSelectedVariant().getName());
 
-    BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), "app", "release");
+    BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), getModule("app").getName(), "release");
 
     assertEquals("release", appAndroidModel.getSelectedVariant().getName());
     assertEquals("release", featureAndroidModel.getSelectedVariant().getName());
 
     // Gets served from cache.
-    BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), "app", "debug");
+    BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), getModule("app").getName(), "debug");
     assertEquals("debug", appAndroidModel.getSelectedVariant().getName());
     assertEquals("debug", featureAndroidModel.getSelectedVariant().getName());
   }
@@ -88,13 +88,13 @@ public class BuildVariantUpdaterIntegTest extends AndroidGradleTestCase {
     assertEquals("debug", getVariant("library2"));
 
     // Switch selected variant from debug to release.
-    BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), "app", "release");
+    BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), getModule("app").getName(), "release");
     assertEquals("release", getVariant("app"));
     assertEquals("release", getVariant("library1"));
     assertEquals("release", getVariant("library2"));
 
     // Switch selected variant from release to debug.
-    BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), "app", "debug");
+    BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), getModule("app").getName(), "debug");
     assertEquals("debug", getVariant("app"));
     assertEquals("debug", getVariant("library1"));
     assertEquals("debug", getVariant("library2"));
@@ -125,7 +125,7 @@ public class BuildVariantUpdaterIntegTest extends AndroidGradleTestCase {
     assertEquals("debug", featureAndroidModel.getSelectedVariant().getName());
 
     // Switch selected variant for app module to qa.
-    BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), "app", "qa");
+    BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), getModule("app").getName(), "qa");
 
     // Verify that variant for app module is updated to qa, and is unchanged for feature module since feature module doesn't contain variant qa.
     assertEquals("qa", appAndroidModel.getSelectedVariant().getName());
@@ -145,12 +145,12 @@ public class BuildVariantUpdaterIntegTest extends AndroidGradleTestCase {
     assertEquals("debug", libAndroidModel.getSelectedVariant().getName());
 
     // Triggers a sync.
-    BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), "app", "basicRelease");
+    BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), getModule("app").getName(), "basicRelease");
     assertEquals("basicRelease", appAndroidModel.getSelectedVariant().getName());
     assertEquals("release", libAndroidModel.getSelectedVariant().getName());
 
     // Gets served from cache.
-    BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), "app", "basicDebug");
+    BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), getModule("app").getName(), "basicDebug");
     assertEquals("basicDebug", appAndroidModel.getSelectedVariant().getName());
     assertEquals("debug", libAndroidModel.getSelectedVariant().getName());
   }
@@ -184,7 +184,7 @@ public class BuildVariantUpdaterIntegTest extends AndroidGradleTestCase {
     assertEquals("debug-x86", lib3NdkModel.getSelectedVariant().getName());
 
     // Triggers a sync.
-    BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), "app", "release");
+    BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), getModule("app").getName(), "release");
     assertEquals("release", appAndroidModel.getSelectedVariant().getName());
     assertEquals("release", lib1AndroidModel.getSelectedVariant().getName());
     assertEquals("release", lib2AndroidModel.getSelectedVariant().getName());
@@ -194,7 +194,7 @@ public class BuildVariantUpdaterIntegTest extends AndroidGradleTestCase {
     assertEquals("release-x86", lib3NdkModel.getSelectedVariant().getName());
 
     // Gets served from cache.
-    BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), "app", "debug");
+    BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), getModule("app").getName(), "debug");
     assertEquals("debug", appAndroidModel.getSelectedVariant().getName());
     assertEquals("debug", lib1AndroidModel.getSelectedVariant().getName());
     assertEquals("debug", lib2AndroidModel.getSelectedVariant().getName());
@@ -233,7 +233,7 @@ public class BuildVariantUpdaterIntegTest extends AndroidGradleTestCase {
     assertEquals("debug-x86", lib3NdkModel.getSelectedVariant().getName());
 
     // Triggers a sync.
-    BuildVariantUpdater.getInstance(getProject()).updateSelectedAbi(getProject(), "app", "armeabi-v7a");
+    BuildVariantUpdater.getInstance(getProject()).updateSelectedAbi(getProject(), getModule("app").getName(), "armeabi-v7a");
     assertEquals("debug", appAndroidModel.getSelectedVariant().getName());
     assertEquals("debug", lib1AndroidModel.getSelectedVariant().getName());
     assertEquals("debug", lib2AndroidModel.getSelectedVariant().getName());
@@ -243,7 +243,7 @@ public class BuildVariantUpdaterIntegTest extends AndroidGradleTestCase {
     assertEquals("debug-armeabi-v7a", lib3NdkModel.getSelectedVariant().getName());
 
     // Gets served from cache.
-    BuildVariantUpdater.getInstance(getProject()).updateSelectedAbi(getProject(), "app", "x86");
+    BuildVariantUpdater.getInstance(getProject()).updateSelectedAbi(getProject(), getModule("app").getName(), "x86");
     assertEquals("debug", appAndroidModel.getSelectedVariant().getName());
     assertEquals("debug", lib1AndroidModel.getSelectedVariant().getName());
     assertEquals("debug", lib2AndroidModel.getSelectedVariant().getName());
@@ -290,7 +290,7 @@ public class BuildVariantUpdaterIntegTest extends AndroidGradleTestCase {
     assertEquals("debug", getVariant("library2"));
 
     // Switch selected variant for app from debug to release.
-    BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), "app", "release");
+    BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), getModule("app").getName(), "release");
     // Verify that app, library1, library2 are all switched to release. app2 remains as debug.
     assertEquals("release", getVariant("app"));
     assertEquals("debug", getVariant("app2"));
@@ -298,7 +298,7 @@ public class BuildVariantUpdaterIntegTest extends AndroidGradleTestCase {
     assertEquals("release", getVariant("library2"));
 
     // Switch selected variant for app from release to debug.
-    BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), "app", "debug");
+    BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), getModule("app").getName(), "debug");
     // Verify that app, library1, library2 are all switched back to debug.
     assertEquals("debug", getVariant("app"));
     assertEquals("debug", getVariant("app2"));
@@ -306,7 +306,7 @@ public class BuildVariantUpdaterIntegTest extends AndroidGradleTestCase {
     assertEquals("debug", getVariant("library2"));
 
     // Switch selected variant for app2 from debug to release.
-    BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), "app2", "release");
+    BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), getModule("app2").getName(), "release");
     // Verify that app2, library1, library2 are all switched to release. app remains as debug.
     assertEquals("debug", getVariant("app"));
     assertEquals("release", getVariant("app2"));

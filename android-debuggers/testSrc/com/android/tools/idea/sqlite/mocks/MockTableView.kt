@@ -16,7 +16,7 @@
 package com.android.tools.idea.sqlite.mocks
 
 import com.android.tools.idea.sqlite.model.SqliteColumn
-import com.android.tools.idea.sqlite.model.SqliteRow
+import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import org.mockito.Mockito.mock
 import javax.swing.JComponent
@@ -33,8 +33,6 @@ open class MockTableView : TableView {
   override fun startTableLoading() { }
 
   override fun showTableColumns(columns: List<SqliteColumn>) { }
-
-  override fun showTableRowBatch(rows: List<SqliteRow>) { }
 
   override fun stopTableLoading() { }
 
@@ -54,7 +52,7 @@ open class MockTableView : TableView {
     listeners.remove(listener)
   }
 
-  override fun removeRows() { }
+  override fun updateRows(rowDiffOperations: List<RowDiffOperation>) { }
 
   override fun showPageSizeValue(maxRowCount: Int) { }
 }

@@ -52,9 +52,11 @@ public class SourceSetDslElement extends GradleDslBlockElement implements Gradle
     {"jni", SourceDirectoryDslElement.JNI},
     {"jniLibs", SourceDirectoryDslElement.JNI_LIBS},
     {"manifest", SourceFileDslElement.MANIFEST},
+    {"mlModels", SourceDirectoryDslElement.ML_MODELS},
     {"renderscript", SourceDirectoryDslElement.RENDERSCRIPT},
     {"res", SourceDirectoryDslElement.RES},
-    {"resources", SourceDirectoryDslElement.RESOURCES}
+    {"resources", SourceDirectoryDslElement.RESOURCES},
+    {"shaders", SourceDirectoryDslElement.SHADERS}
   }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
 
   @NotNull

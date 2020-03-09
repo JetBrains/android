@@ -30,7 +30,7 @@
 
   <actions>
     <action
-        id="LayoutEditor.HelpAssistant.NavEditor"
+        id="NavEditor.HelpAssistant"
         class="com.android.tools.idea.naveditor.actions.NavEditorHelperAssistanceAction"
         icon="StudioIcons.Common.HELP"
         text="Show Help Panel"

@@ -29,7 +29,10 @@ import javax.imageio.ImageIO
 class RasterAssetRenderer : DesignAssetRenderer {
   override fun isFileSupported(file: VirtualFile) = ImageIO.getReaderFormatNames().contains(file.extension)
 
-  override fun getImage(file: VirtualFile, module: Module?, dimension: Dimension): CompletableFuture<out BufferedImage?> =
+  override fun getImage(file: VirtualFile,
+                        module: Module?,
+                        dimension: Dimension,
+                        context: Any?): CompletableFuture<out BufferedImage?> =
     CompletableFuture.supplyAsync {
       try {
         ImageUtils.readImageAtScale(file.inputStream, dimension)

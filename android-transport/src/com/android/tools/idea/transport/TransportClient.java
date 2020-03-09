@@ -30,7 +30,7 @@ public class TransportClient {
   public TransportClient(String channelName) {
     // Optimization - In-process direct-executor channel which allows us to communicate between the client and transport-database without
     // going through the thread pool. This gives us a speed boost per grpc call plus the full caller's stack in transport-database.
-    ManagedChannel channel = InProcessChannelBuilder.forName(channelName).usePlaintext(true).directExecutor().build();
+    ManagedChannel channel = InProcessChannelBuilder.forName(channelName).usePlaintext().directExecutor().build();
     myTransportStub = TransportServiceGrpc.newBlockingStub(channel);
   }
 

@@ -26,7 +26,7 @@ import java.awt.BorderLayout
 import java.awt.event.ItemEvent
 import javax.swing.JPanel
 
-class AppInspectionView(appInspectionDiscoveryHost: AppInspectionDiscoveryHost) {
+class AppInspectionView(private val appInspectionDiscoveryHost: AppInspectionDiscoveryHost) {
   val component = JPanel(BorderLayout())
 
   init {
@@ -41,17 +41,23 @@ class AppInspectionView(appInspectionDiscoveryHost: AppInspectionDiscoveryHost) 
     component.add(tabbedPane, BorderLayout.CENTER)
     inspectionProcessesComboBox.addItemListener { e ->
       if (e.stateChange == ItemEvent.SELECTED) {
-        tabbedPane.removeAll()
-        val descriptor = e.item as? ProcessDescriptor ?: return@addItemListener
-        val target = appInspectionDiscoveryHost.attachToProcess(descriptor).get() ?: return@addItemListener
-        for (provider in AppInspectorTabProvider.EP_NAME.extensionList) {
-          target.launchInspector(provider.inspectorId, provider.inspectorAgentJar) { messenger ->
-            val tab = provider.createTab(messenger)
-            tabbedPane.addTab(provider.displayName, tab.component)
-            tab.client
-          }
-        }
+        refreshTabs(tabbedPane, e)
       }
     }
+  }
+
+  private fun refreshTabs(tabbedPane: CommonTabbedPane, itemEvent: ItemEvent) {
+    tabbedPane.removeAll()
+    val descriptor = itemEvent.item as? ProcessDescriptor ?: return
+    val target = appInspectionDiscoveryHost.attachToProcess(descriptor).get() ?: return
+    AppInspectorTabProvider.EP_NAME.extensionList
+      .filter { provider -> provider.isApplicable() }
+      .forEach { provider ->
+        target.launchInspector(provider.inspectorId, provider.inspectorAgentJar) { messenger ->
+          val tab = provider.createTab(messenger)
+          tabbedPane.addTab(provider.displayName, tab.component)
+          tab.client
+        }
+      }
   }
 }

@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.needsExplic
 import com.android.tools.idea.npw.module.recipes.addKotlinIfNeeded
 import com.android.tools.idea.npw.module.recipes.benchmarkModule.src.androidTest.exampleBenchmarkJava
 import com.android.tools.idea.npw.module.recipes.benchmarkModule.src.androidTest.exampleBenchmarkKt
-import com.android.tools.idea.templates.RepositoryUrlManager
+import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.templates.resolveDependency
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
@@ -37,7 +37,7 @@ fun RecipeExecutor.generateBenchmarkModule(
   val packageName = moduleData.packageName
   val moduleOut = moduleData.rootDir
   val buildToolsVersion = projectData.buildToolsVersion
-  val (minApi, _, buildApi, targetApi, targetApiString, buildApiString) = moduleData.apis
+  val (buildApi, targetApi,  minApi) = moduleData.apis
   val language = projectData.language
 
   val repoUrlManager = RepositoryUrlManager.get()
@@ -51,10 +51,10 @@ fun RecipeExecutor.generateBenchmarkModule(
 
   val bg = buildGradle(
     needsExplicitBuildToolsVersion(GradleVersion.parse(projectData.gradlePluginVersion), Revision.parseRevision(buildToolsVersion)),
-    buildApiString ?: buildApi.toString(),
+    buildApi.apiString,
     buildToolsVersion,
-    minApi,
-    targetApiString ?: targetApi.toString(),
+    minApi.apiString,
+    targetApi.apiString,
     language,
     projectData.gradlePluginVersion
   )

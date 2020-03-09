@@ -143,11 +143,11 @@ public class ProfilerColors {
 
   public static final Color THREAD_LABEL_BORDER = new JBColor(new Color(0x0C000000, true), new Color(0x0CFFFFFF, true));
 
+  public static final Color CAPTURE_SPARKLINE = new JBColor(0xC2D6F6, 0x455563);
+
+  public static final Color CAPTURE_SPARKLINE_SELECTED = new JBColor(0x4785EB, 0x5887DC);
+
   public static final Color CPU_CAPTURE_BACKGROUND = new JBColor(0xECF2FA, 0x323940);
-
-  public static final Color CPU_CAPTURE_SPARKLINE = new JBColor(0xC2D6F6, 0x455563);
-
-  public static final Color CPU_CAPTURE_SPARKLINE_SELECTED = new JBColor(0x4785EB, 0x5887DC);
 
   public static final Color CPU_CALLCHART_VENDOR = new JBColor(0xA2DEFF, 0xA2DEFF);
 

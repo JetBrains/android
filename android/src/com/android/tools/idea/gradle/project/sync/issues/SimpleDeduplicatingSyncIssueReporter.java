@@ -181,7 +181,9 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
    * method should be stateless.
    */
   @NotNull
-  protected abstract Object getDeduplicationKey(@NotNull SyncIssue issue);
+  protected Object getDeduplicationKey(@NotNull SyncIssue issue) {
+    return (issue.getData() == null) ? issue : issue.getData();
+  }
 
   /**
    * @return whether or not links to each of the effected modules should be appended to the SyncIssue message.

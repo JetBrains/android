@@ -36,6 +36,10 @@ import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.memory.FakeCaptureObjectLoader;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
+import com.android.tools.profilers.memory.adapters.classifiers.Classifier;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
+import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import com.android.tools.profilers.memory.adapters.instancefilters.ActivityFragmentLeakInstanceFilter;
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
 import com.google.common.truth.Truth;
@@ -120,7 +124,7 @@ public class HeapDumpCaptureObjectTest {
     assertEquals(testHeap.getName(), "testHeap");
     assertEquals(6, testHeap.getInstancesCount());
 
-    ClassifierSet.Classifier classClassifier = ClassSet.createDefaultClassifier();
+    Classifier classClassifier = ClassSet.createDefaultClassifier();
     classClassifier.partition(
       Collections.emptyList(), testHeap.getInstancesStream().collect(HashSet::new, HashSet::add, HashSet::addAll));
     List<ClassifierSet> classSets = classClassifier.getFilteredClassifierSets();

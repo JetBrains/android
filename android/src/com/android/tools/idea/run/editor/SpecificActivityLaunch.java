@@ -22,6 +22,7 @@ import com.android.tools.idea.run.activity.SpecificActivityLocator;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.SpecificActivityLaunchTask;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -34,9 +35,10 @@ import java.util.List;
 public class SpecificActivityLaunch extends LaunchOption<SpecificActivityLaunch.State> {
   public static final SpecificActivityLaunch INSTANCE = new SpecificActivityLaunch();
 
-  public static final class State extends LaunchOptionState {
+  public static class State extends LaunchOptionState {
     public String ACTIVITY_CLASS = "";
     public boolean SEARCH_ACTIVITY_IN_GLOBAL_SCOPE = false;
+    public boolean SKIP_ACTIVITY_VALIDATION = false;
 
     @Nullable
     @Override
@@ -51,7 +53,9 @@ public class SpecificActivityLaunch extends LaunchOption<SpecificActivityLaunch.
     @Override
     public List<ValidationError> checkConfiguration(@NotNull AndroidFacet facet) {
       try {
-        getActivityLocator(facet).validate();
+        if (!SKIP_ACTIVITY_VALIDATION) {
+          getActivityLocator(facet).validate();
+        }
         return ImmutableList.of();
       }
       catch (ActivityLocator.ActivityLocatorException e) {
@@ -60,8 +64,9 @@ public class SpecificActivityLaunch extends LaunchOption<SpecificActivityLaunch.
       }
     }
 
+    @VisibleForTesting
     @NotNull
-    private SpecificActivityLocator getActivityLocator(@NotNull AndroidFacet facet) {
+    protected SpecificActivityLocator getActivityLocator(@NotNull AndroidFacet facet) {
       Project project = facet.getModule().getProject();
       GlobalSearchScope scope = SEARCH_ACTIVITY_IN_GLOBAL_SCOPE ? GlobalSearchScope.allScope(project)
                                                                 : GlobalSearchScope.projectScope(project);

@@ -23,7 +23,7 @@ import com.android.tools.adtui.validation.Validator.Result
 import com.android.tools.adtui.validation.Validator.Severity
 import com.android.tools.adtui.validation.ValidatorPanel
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt
-import com.android.tools.idea.npw.FormFactor.MOBILE
+import com.android.tools.idea.device.FormFactor.MOBILE
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getInitialDomain
 import com.android.tools.idea.npw.module.AndroidApiLevelComboBox
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo

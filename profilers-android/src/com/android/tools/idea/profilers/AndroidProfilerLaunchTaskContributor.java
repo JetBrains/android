@@ -223,15 +223,17 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
           .setStartCpuTrace(Cpu.StartCpuTrace.newBuilder().setConfiguration(configuration).build())
           .build();
         // TODO handle async error statuses.
-        client.getTransportClient().execute(Transport.ExecuteRequest.newBuilder()
-                                              .setCommand(startCommand)
-                                              .build());
+        // TODO(b/150503095)
+        Transport.ExecuteResponse response = client.getTransportClient().execute(Transport.ExecuteRequest.newBuilder()
+                                                                                  .setCommand(startCommand)
+                                                                                  .build());
       }
       else {
         CpuProfiler.StartupProfilingRequest.Builder requestBuilder = CpuProfiler.StartupProfilingRequest.newBuilder()
           .setDeviceId(profilerDevice.getDeviceId())
           .setConfiguration(configuration);
-        client.getCpuClient().startStartupProfiling(requestBuilder.build());
+        // TODO(b/150503095)
+        CpuProfiler.StartupProfilingResponse response = client.getCpuClient().startStartupProfiling(requestBuilder.build());
       }
     }
     catch (StatusRuntimeException exception) {

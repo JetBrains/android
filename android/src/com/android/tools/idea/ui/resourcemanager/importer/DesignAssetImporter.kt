@@ -19,7 +19,7 @@ import com.android.SdkConstants
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
-import com.android.tools.idea.npw.project.getModuleTemplates
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.model.designAssets
@@ -136,7 +136,7 @@ fun getOrCreateDefaultResDirectory(androidFacet: AndroidFacet): File {
  * @see getOrCreateDefaultResDirectory
  */
 fun getSourceSetsResDirs(facet: AndroidFacet): Array<SourceSetResDir> {
-  val resDirs = facet.getModuleTemplates(null)
+  val resDirs = facet.module.getModuleSystem().getModuleTemplates(null)
     .flatMap { template ->
       template.paths.resDirectories.map {
         SourceSetResDir(it, template.name)

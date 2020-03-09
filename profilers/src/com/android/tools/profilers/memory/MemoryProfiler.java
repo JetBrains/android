@@ -27,12 +27,16 @@ import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Memory.AllocationsInfo;
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportHeapDumpRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.ImportHeapDumpResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.ListDumpInfosRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.ListHeapDumpInfosResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryStartRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryStartResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryStopRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryStopResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
 import com.android.tools.profiler.proto.Transport;
@@ -80,6 +84,10 @@ public class MemoryProfiler extends StudioProfiler {
     sessionsManager.registerImportHandler("hprof", this::importHprof);
     sessionsManager.registerImportHandler("alloc", this::importLegacyAllocations);
 
+    if (profilers.getIdeServices().getFeatureConfig().isNativeMemorySampleEnabled()) {
+      sessionsManager.registerImportHandler("heapprofd", this::importHeapprofd);
+    }
+
     myProfilers.registerSessionChangeListener(Common.SessionMetaData.SessionType.MEMORY_CAPTURE,
                                               () -> {
                                                 MemoryProfilerStage stage = new MemoryProfilerStage(myProfilers);
@@ -100,7 +108,9 @@ public class MemoryProfiler extends StudioProfiler {
 
   @Override
   public void startProfiling(Common.Session session) {
-    myProfilers.getClient().getMemoryClient().startMonitoringApp(MemoryStartRequest.newBuilder().setSession(session).build());
+    // TODO(b/150503095)
+    MemoryStartResponse response =
+        myProfilers.getClient().getMemoryClient().startMonitoringApp(MemoryStartRequest.newBuilder().setSession(session).build());
   }
 
   @Override
@@ -113,7 +123,9 @@ public class MemoryProfiler extends StudioProfiler {
       getLogger().info(e);
     }
 
-    myProfilers.getClient().getMemoryClient().stopMonitoringApp(MemoryStopRequest.newBuilder().setSession(session).build());
+    // TODO(b/150503095)
+    MemoryStopResponse response =
+        myProfilers.getClient().getMemoryClient().stopMonitoringApp(MemoryStopRequest.newBuilder().setSession(session).build());
   }
 
   /**
@@ -200,7 +212,9 @@ public class MemoryProfiler extends StudioProfiler {
         .setData(ByteString.copyFrom(bytes))
         .setInfo(heapDumpInfo)
         .build();
-      myProfilers.getClient().getMemoryClient().importHeapDump(heapDumpRequest);
+      // TODO(b/150503095)
+      ImportHeapDumpResponse response =
+          myProfilers.getClient().getMemoryClient().importHeapDump(heapDumpRequest);
 
       // Select the new session
       sessionsManager.update();
@@ -211,13 +225,12 @@ public class MemoryProfiler extends StudioProfiler {
                                                                         SessionsManager.SessionCreationSource.MANUAL);
   }
 
-  private void importLegacyAllocations(@NotNull File file) {
+  private byte[] importCommon(@NotNull File file, long startTimestampEpochMs, AllocationsInfo.Builder info) {
     SessionsManager sessionsManager = myProfilers.getSessionsManager();
-    long startTimestampEpochMs = System.currentTimeMillis();
     long sessionStartTimeNs = StudioProfilers.getFileCreationTimestampNs(file, startTimestampEpochMs);
     // Select the session if the hprof has already been imported.
     if (sessionsManager.setSessionById(sessionStartTimeNs)) {
-      return;
+      return null;
     }
 
     long sessionEndTimeNs = sessionStartTimeNs + 1;
@@ -227,15 +240,51 @@ public class MemoryProfiler extends StudioProfiler {
     }
     catch (IOException e) {
       getLogger().error("Importing Session Failed: cannot read from file location...");
-      return;
+      return null;
     }
 
-    AllocationsInfo info = AllocationsInfo.newBuilder()
-      .setStartTime(sessionStartTimeNs)
-      .setEndTime(sessionEndTimeNs)
-      .setLegacy(true)
-      .setSuccess(true)
+    info.setStartTime(sessionStartTimeNs);
+    info.setEndTime(sessionEndTimeNs);
+    return bytes;
+  }
+
+  private void importHeapprofd(@NotNull File file) {
+    SessionsManager sessionsManager = myProfilers.getSessionsManager();
+    long startTimestampEpochMs = System.currentTimeMillis();
+    AllocationsInfo.Builder info = AllocationsInfo.newBuilder();
+    byte[] bytes = importCommon(file, startTimestampEpochMs, info);
+    if (bytes == null) {
+      return;
+    }
+    info.setLegacy(false)
+      .setSuccess(true);
+
+    Common.Event nativeCapture = Common.Event.newBuilder()
+      .setKind(Common.Event.Kind.MEMORY_NATIVE_SAMPLE_CAPTURE)
+      .setGroupId(info.getStartTime())
+      .setTimestamp(info.getStartTime())
+      .setIsEnded(true)
+      .setMemoryNativeSample(
+        Memory.MemoryNativeSampleData.newBuilder().setStartTime(info.getStartTime()).setEndTime(info.getEndTime()).build())
       .build();
+    sessionsManager.createImportedSession(file.getName(),
+                                          Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE, info.getStartTime(),
+                                          info.getEndTime(),
+                                          startTimestampEpochMs,
+                                          ImmutableMap.of(Long.toString(info.getStartTime()), ByteString.copyFrom(bytes)),
+                                          nativeCapture);
+  }
+
+  private void importLegacyAllocations(@NotNull File file) {
+    SessionsManager sessionsManager = myProfilers.getSessionsManager();
+    long startTimestampEpochMs = System.currentTimeMillis();
+    AllocationsInfo.Builder info = AllocationsInfo.newBuilder();
+    byte[] bytes = importCommon(file, startTimestampEpochMs, info);
+    if (bytes == null) {
+      return;
+    }
+    info.setLegacy(true)
+      .setSuccess(true);
     if (myProfilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
       Common.Event heapDumpEvent = Common.Event.newBuilder()
         .setKind(Common.Event.Kind.MEMORY_ALLOC_TRACKING)
@@ -245,23 +294,24 @@ public class MemoryProfiler extends StudioProfiler {
         .setMemoryAllocTracking(Memory.MemoryAllocTrackingData.newBuilder().setInfo(info))
         .build();
       sessionsManager.createImportedSession(file.getName(),
-                                            Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE, sessionStartTimeNs,
-                                            sessionEndTimeNs,
+                                            Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE, info.getStartTime(),
+                                            info.getEndTime(),
                                             startTimestampEpochMs,
-                                            ImmutableMap.of(Long.toString(sessionStartTimeNs), ByteString.copyFrom(bytes)),
+                                            ImmutableMap.of(Long.toString(info.getStartTime()), ByteString.copyFrom(bytes)),
                                             heapDumpEvent);
     }
     else {
       Common.Session session = sessionsManager
-        .createImportedSessionLegacy(file.getName(), Common.SessionMetaData.SessionType.MEMORY_CAPTURE, sessionStartTimeNs,
-                                     sessionEndTimeNs,
+        .createImportedSessionLegacy(file.getName(), Common.SessionMetaData.SessionType.MEMORY_CAPTURE, info.getStartTime(),
+                                     info.getEndTime(),
                                      startTimestampEpochMs);
       ImportLegacyAllocationsRequest request = ImportLegacyAllocationsRequest.newBuilder()
         .setSession(session)
         .setInfo(info)
         .setData(ByteString.copyFrom(bytes))
         .build();
-      myProfilers.getClient().getMemoryClient().importLegacyAllocations(request);
+      // TODO(b/150503095)
+      ImportLegacyAllocationsResponse response = myProfilers.getClient().getMemoryClient().importLegacyAllocations(request);
 
       // Select the new session
       sessionsManager.update();
@@ -344,6 +394,27 @@ public class MemoryProfiler extends StudioProfiler {
     return builder.toString();
   }
 
+  public static List<Memory.MemoryNativeSampleData> getNativeHeapSamplesForSession(@NotNull ProfilerClient client,
+                                                                                   @NotNull Common.Session session,
+                                                                                   @NotNull Range rangeUs) {
+    Transport.GetEventGroupsRequest request = Transport.GetEventGroupsRequest.newBuilder()
+      .setStreamId(session.getStreamId())
+      .setPid(session.getPid())
+      .setKind(Common.Event.Kind.MEMORY_NATIVE_SAMPLE_CAPTURE)
+      .setFromTimestamp(TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMin()))
+      .setToTimestamp(TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMax()))
+      .build();
+    Transport.GetEventGroupsResponse response = client.getTransportClient().getEventGroups(request);
+
+    List<Memory.MemoryNativeSampleData> infos = new ArrayList<>();
+    for (Transport.EventGroup group : response.getGroupsList()) {
+      // We only need the last event to get the most recent info
+      Common.Event lastEvent = group.getEvents(group.getEventsCount() - 1);
+      infos.add(lastEvent.getMemoryNativeSample());
+    }
+    return infos;
+  }
+
   public static List<HeapDumpInfo> getHeapDumpsForSession(@NotNull ProfilerClient client,
                                                           @NotNull Common.Session session,
                                                           @NotNull Range rangeUs,
@@ -383,8 +454,8 @@ public class MemoryProfiler extends StudioProfiler {
                                                                    @NotNull Common.Session session,
                                                                    @NotNull Range rangeUs,
                                                                    @NotNull IdeProfilerServices profilerService) {
-    long fromTimestamp = rangeUs.getMin() == Long.MIN_VALUE ? Long.MIN_VALUE : TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMin());
-    long toTimestamp = rangeUs.getMax() == Long.MAX_VALUE ? Long.MAX_VALUE : TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMax());
+    long fromTimestamp = (long)rangeUs.getMin() == Long.MIN_VALUE ? Long.MIN_VALUE : TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMin());
+    long toTimestamp = (long)rangeUs.getMax() == Long.MAX_VALUE ? Long.MAX_VALUE : TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMax());
     if (profilerService.getFeatureConfig().isUnifiedPipelineEnabled()) {
       Transport.GetEventGroupsRequest request = Transport.GetEventGroupsRequest.newBuilder()
         .setStreamId(session.getStreamId())

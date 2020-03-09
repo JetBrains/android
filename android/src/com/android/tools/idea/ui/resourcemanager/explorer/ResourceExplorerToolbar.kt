@@ -23,6 +23,7 @@ import com.android.utils.usLocaleCapitalize
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
@@ -32,7 +33,6 @@ import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.ui.ComboBox
-import com.intellij.openapi.wm.impl.content.ToolWindowContentUi
 import com.intellij.ui.CollectionComboBoxModel
 import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.DocumentAdapter
@@ -161,7 +161,7 @@ private abstract class PopupAction internal constructor(val icon: Icon?, descrip
 
   private fun showAddPopup(component: Component, x: Int, y: Int) {
     ActionManager.getInstance()
-      .createActionPopupMenu(ToolWindowContentUi.POPUP_PLACE, createAddPopupGroup())
+      .createActionPopupMenu(ActionPlaces.TOOLWINDOW_POPUP, createAddPopupGroup())
       .component.show(component, x, y)
   }
 
@@ -275,10 +275,12 @@ private class TypeFilterAction internal constructor(val viewModel: ResourceExplo
   }
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
+    if (state) {
+      ResourceManagerTracking.logTypeFilterEnabled(viewModel.resourceType)
+    }
     typeFilters.forEach { typeFilter ->
       viewModel.typeFiltersModel.setEnabled(viewModel.resourceType, typeFilter, state)
     }
-    // TODO: Update tracking.
   }
 }
 

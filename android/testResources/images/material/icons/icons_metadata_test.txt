@@ -1,4 +1,3 @@
-)]}'
 {
   "host": "fonts.gstatic.com",
   "asset_url_pattern": "/s/i/{family}/{icon}/v{version}/{asset}",

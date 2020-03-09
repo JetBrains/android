@@ -45,6 +45,7 @@ import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsResponse;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact;
+import com.android.tools.profilers.memory.HeapProfdSessionArtifact;
 import com.android.tools.profilers.memory.HprofSessionArtifact;
 import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact;
 import com.google.common.collect.Lists;
@@ -62,7 +63,6 @@ import java.util.Map;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -157,6 +157,9 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     myArtifactsFetchers.add(HprofSessionArtifact::getSessionArtifacts);
     myArtifactsFetchers.add(LegacyAllocationsSessionArtifact::getSessionArtifacts);
     myArtifactsFetchers.add(CpuCaptureSessionArtifact::getSessionArtifacts);
+    if (profilers.getIdeServices().getFeatureConfig().isNativeMemorySampleEnabled()) {
+      myArtifactsFetchers.add(HeapProfdSessionArtifact::getSessionArtifacts);
+    }
   }
 
   @NotNull
@@ -413,7 +416,9 @@ public class SessionsManager extends AspectModel<SessionAspect> {
         .setBeginSession(requestBuilder)
         .setType(Command.CommandType.BEGIN_SESSION)
         .build();
-      myProfilers.getClient().getTransportClient().execute(ExecuteRequest.newBuilder().setCommand(command).build());
+      // TODO(b/150503095)
+      Transport.ExecuteResponse response =
+          myProfilers.getClient().getTransportClient().execute(ExecuteRequest.newBuilder().setCommand(command).build());
     }
     else {
       BeginSessionRequest.Builder requestBuilder = BeginSessionRequest.newBuilder()
@@ -463,7 +468,9 @@ public class SessionsManager extends AspectModel<SessionAspect> {
         .setEndSession(EndSession.newBuilder().setSessionId(profilingSession.getSessionId()))
         .setType(Command.CommandType.END_SESSION)
         .build();
-      myProfilers.getClient().getTransportClient().execute(ExecuteRequest.newBuilder().setCommand(command).build());
+      // TODO(b/150503095)
+      Transport.ExecuteResponse response =
+          myProfilers.getClient().getTransportClient().execute(ExecuteRequest.newBuilder().setCommand(command).build());
     }
     else {
       // In legacy pipeline BeginSession uses device ID as stream ID.
@@ -505,11 +512,13 @@ public class SessionsManager extends AspectModel<SessionAspect> {
         .setFromTimestamp(session.getStartTimestamp())
         .setToTimestamp(session.getEndTimestamp())
         .build();
-      myProfilers.getClient().getTransportClient().deleteEvents(deleteRequest);
+      // TODO(b/150503095)
+      Transport.DeleteEventsResponse response = myProfilers.getClient().getTransportClient().deleteEvents(deleteRequest);
     }
     else {
       DeleteSessionRequest request = DeleteSessionRequest.newBuilder().setSessionId(session.getSessionId()).build();
-      myProfilers.getClient().getProfilerClient().deleteSession(request);
+      // TODO(b/150503095)
+      Profiler.DeleteSessionResponse response = myProfilers.getClient().getProfilerClient().deleteSession(request);
     }
 
     // TODO b/141261422 the main update loop does not handle removing items at the moment. For now we manually remove the SessionItem and
@@ -555,8 +564,8 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     myStreamIdToStreamServerMap.put(stream.getStreamId(), streamServer);
     streamServer.getByteCacheMap().putAll(byteCacheMap);
     BlockingDeque<Event> deque = streamServer.getEventDeque();
-    for (int i = 0; i < events.length; i++) {
-      deque.offer(events[i]);
+    for (Event event : events) {
+      deque.offer(event);
     }
     // inserts the pair of Session begin + end events.
     deque.offer(Common.Event.newBuilder()
@@ -608,7 +617,8 @@ public class SessionsManager extends AspectModel<SessionAspect> {
       .setSessionType(sessionType)
       .setStartTimestampEpochMs(startTimestampEpochMs)
       .build();
-    myProfilers.getClient().getProfilerClient().importSession(sessionRequest);
+    // TODO(b/150503095)
+    Profiler.ImportSessionResponse response = myProfilers.getClient().getProfilerClient().importSession(sessionRequest);
 
     return session;
   }

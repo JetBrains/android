@@ -28,6 +28,7 @@ import static com.android.tools.idea.gradle.dsl.parser.repositories.Repositories
 import com.android.tools.idea.gradle.dsl.api.BuildScriptModel;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleFileModel;
+import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.configurations.ConfigurationsModel;
@@ -60,6 +61,8 @@ import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
 import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement;
 import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement;
+import com.intellij.openapi.vfs.VirtualFile;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -236,6 +239,27 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
       return new GradlePropertiesModel(file);
     }
     throw new IllegalStateException("Unknown GradleDslFile type found!");
+  }
+
+  @Override
+  @NotNull
+  public File getModuleRootDirectory() {
+    BuildModelContext context = myGradleDslFile.getContext();
+    VirtualFile projectSettingsFile = context.getProjectSettingsFile();
+    if (projectSettingsFile == null) {
+      // The settings file does not exist, so we don't know much about this project.
+      // Best-effort result: the directory of the build.gradle file.
+      return myGradleDslFile.getDirectoryPath();
+    }
+    GradleSettingsFile settingsFile = context.getOrCreateSettingsFile(projectSettingsFile);
+    GradleSettingsModel settingsModel = new GradleSettingsModelImpl(settingsFile);
+    File directory = settingsModel.moduleDirectory(myGradleDslFile.getName());
+    if (directory == null) {
+      // The dsl file does not correspond to a known module, so we don't know where the module directory is.
+      // Best-effort result: the directory of the build.gradle file.
+      return myGradleDslFile.getDirectoryPath();
+    }
+    return directory;
   }
 
   /**

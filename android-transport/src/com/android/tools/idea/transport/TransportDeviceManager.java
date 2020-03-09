@@ -360,7 +360,9 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
                   .setAgentLibFileName(String.format("libjvmtiagent_%s.so", context.myPidToAbiMap.get(pid)))
                   .setAgentConfigPath(TransportFileManager.getAgentConfigFile()))
               .build();
-            client.getTransportStub().execute(Transport.ExecuteRequest.newBuilder().setCommand(attachCommand).build());
+            // TODO(b/150503095)
+            Transport.ExecuteResponse response =
+                client.getTransportStub().execute(Transport.ExecuteRequest.newBuilder().setCommand(attachCommand).build());
           }
         }
 
@@ -413,8 +415,8 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
       Thread.currentThread().setContextClassLoader(NettyChannelBuilder.class.getClassLoader());
       ManagedChannel transportChannel = NettyChannelBuilder
         .forAddress("localhost", localPort)
-        .usePlaintext(true)
-        .maxMessageSize(MAX_MESSAGE_SIZE)
+        .usePlaintext()
+        .maxInboundMessageSize(MAX_MESSAGE_SIZE)
         .build();
       Thread.currentThread().setContextClassLoader(stashedContextClassLoader);
 

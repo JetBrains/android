@@ -26,7 +26,7 @@ import com.android.builder.model.BuildTypeContainer;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;
-import com.android.tools.idea.templates.TemplateUtils;
+import com.android.tools.idea.util.EditorUtil;
 import com.android.utils.Pair;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
@@ -144,8 +144,8 @@ class MoveToDebugManifestQuickFix implements LintIdeQuickFix {
       Messages.showErrorDialog(project, error, "Move Permission");
     }
     else {
-      TemplateUtils.openEditor(project, newFile);
-      TemplateUtils.selectEditor(project, newFile);
+      EditorUtil.openEditor(project, newFile);
+      EditorUtil.selectEditor(project, newFile);
     }
   }
 

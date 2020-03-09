@@ -15,20 +15,17 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.tools.adtui.stdui.CommonButton
-import com.android.tools.adtui.stdui.CommonToggleButton
 import com.android.tools.idea.common.actions.CopyResultImageAction
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
-import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.IdeActions
-import icons.StudioIcons
-import java.awt.BorderLayout
-import javax.swing.Box
+import com.intellij.openapi.actionSystem.Separator
+import com.intellij.openapi.actionSystem.ex.ActionManagerEx
+import com.intellij.util.ui.JBUI
 import javax.swing.JComponent
 
 /**
@@ -58,15 +55,22 @@ internal class PreviewSurfaceActionManager(private val surface: DesignSurface) :
   override fun getToolbarActions(component: NlComponent?, newSelection: MutableList<NlComponent>): DefaultActionGroup =
     DefaultActionGroup()
 
-  override fun getSceneViewContextToolbar(sceneView: SceneView): JComponent? = Box.createHorizontalBox().apply {
-    isOpaque = false
-
-    // For now, we just display a mock toolbar. This will be replaced in the future with SceneView the toolbar.
-    add(CommonToggleButton("Interactive", null).apply {
-      addChangeListener {
-        sceneView.scene.sceneManager.model.dataContext.getData(COMPOSE_PREVIEW_MANAGER)?.isInteractive = isSelected
-      }
-    }, BorderLayout.LINE_END)
-    add(CommonButton(StudioIcons.Shell.Toolbar.RUN), BorderLayout.LINE_END)
-  }
+  override fun getSceneViewContextToolbar(sceneView: SceneView): JComponent? =
+    ActionManagerEx.getInstanceEx().createActionToolbar(
+      "sceneView",
+      DefaultActionGroup(
+        Separator(),
+        EnableInteractiveAction { sceneView.scene.sceneManager.model.dataContext },
+        DeployToDeviceAction { sceneView.scene.sceneManager.model.dataContext }
+      ),
+      true,
+      false
+    ).apply {
+      // Do not allocate space for the "see more" chevron if not needed
+      setReservePlaceAutoPopupIcon(false)
+      setShowSeparatorTitles(true)
+    }.component.apply {
+      isOpaque = false
+      border = JBUI.Borders.empty()
+    }
 }

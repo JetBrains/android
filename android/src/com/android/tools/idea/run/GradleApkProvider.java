@@ -47,11 +47,11 @@ import com.android.tools.idea.apk.viewer.ApkParser;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
-import com.android.tools.idea.gradle.structure.AndroidProjectSettingsService;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.OutputType;
 import com.android.tools.idea.log.LogWrapper;
+import com.android.tools.idea.projectsystem.AndroidProjectSettingsService;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -102,23 +102,25 @@ public class GradleApkProvider implements ApkProvider {
 
   public GradleApkProvider(@NotNull AndroidFacet facet,
                            @NotNull ApplicationIdProvider applicationIdProvider,
+                           @NotNull PostBuildModelProvider outputModelProvider,
+                           boolean test,
+                           @NotNull Computable<OutputKind> outputKindProvider) {
+    this(facet, applicationIdProvider, outputModelProvider, new BestOutputFinder(), test, outputKindProvider);
+  }
+
+  @VisibleForTesting
+  public GradleApkProvider(@NotNull AndroidFacet facet,
+                           @NotNull ApplicationIdProvider applicationIdProvider,
                            boolean test) {
     this(facet, applicationIdProvider, () -> null, test, () -> OutputKind.Default);
   }
 
+  @VisibleForTesting
   public GradleApkProvider(@NotNull AndroidFacet facet,
                            @NotNull ApplicationIdProvider applicationIdProvider,
                            @NotNull PostBuildModelProvider outputModelProvider,
                            boolean test) {
     this(facet, applicationIdProvider, outputModelProvider, new BestOutputFinder(), test, () -> OutputKind.Default);
-  }
-
-  public GradleApkProvider(@NotNull AndroidFacet facet,
-                           @NotNull ApplicationIdProvider applicationIdProvider,
-                           @NotNull PostBuildModelProvider outputModelProvider,
-                           boolean test,
-                           @NotNull Computable<OutputKind> outputKindProvider) {
-    this(facet, applicationIdProvider, outputModelProvider, new BestOutputFinder(), test, outputKindProvider);
   }
 
   @VisibleForTesting

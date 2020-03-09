@@ -16,8 +16,10 @@
 package com.android.tools.idea.profilers.perfetto.traceprocessor
 
 import com.android.tools.idea.transport.DeployableFile
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.util.SystemInfo
 import java.io.File
 
 /**
@@ -31,7 +33,24 @@ class TraceProcessorDaemonManager: Disposable {
   private companion object {
     private val LOGGER = Logger.getInstance(TraceProcessorDaemonManager::class.java)
 
-    private val TPD_DEV_PATH = "bazel-bin/tools/base/profiler/native/trace_processor_daemon"
+    private val TPD_DEV_PATH: String by lazy {
+      when {
+        SystemInfo.isWindows -> {
+          LOGGER.warn("TPD Backend not supported on Windows.")
+          "prebuilts/tools/common/trace-processor-daemon/windows"
+        }
+        SystemInfo.isMac -> {
+          "prebuilts/tools/common/trace-processor-daemon/darwin"
+        }
+        SystemInfo.isLinux -> {
+          "prebuilts/tools/common/trace-processor-daemon/linux"
+        }
+        else -> {
+          LOGGER.warn("Unsupported platform for TPD. Using linux binary.")
+          "prebuilts/tools/common/trace-processor-daemon/linux"
+        }
+      }
+    }
     private val TPD_RELEASE_PATH = "plugins/android/resources/trace_processor_daemon"
 
     private val TPD_BINARY = DeployableFile.Builder("trace_processor_daemon")
@@ -45,11 +64,15 @@ class TraceProcessorDaemonManager: Disposable {
     }
   }
 
+  @VisibleForTesting
+  fun processIsRunning(): Boolean {
+    return process?.isAlive ?: false
+  }
+
   @Synchronized
   fun makeSureDaemonIsRunning() {
     // Spawn a new one if either we don't have one running already or if the current one is not alive anymore.
-    val processIsRunning = process?.isAlive ?: false
-    if (!processIsRunning) {
+    if (!processIsRunning()) {
       process = ProcessBuilder(getExecutablePath()).start()
     }
   }

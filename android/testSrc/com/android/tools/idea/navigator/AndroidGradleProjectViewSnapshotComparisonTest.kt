@@ -51,6 +51,11 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
     assertIsEqualToSnapshot(text)
   }
 
+  fun testWithMlModels() {
+    val text = importSyncAndDumpProject(TestProjectPaths.APP_WITH_ML_MODELS)
+    assertIsEqualToSnapshot(text)
+  }
+
   // TODO(b/141846471): Fix the order of nodes representing multiple folders or merge them by package.
   fun testMultiFlavor() {
     val text = importSyncAndDumpProject(TestProjectPaths.MULTI_FLAVOR)

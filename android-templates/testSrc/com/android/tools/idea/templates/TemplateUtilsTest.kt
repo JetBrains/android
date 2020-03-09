@@ -15,50 +15,13 @@
  */
 package com.android.tools.idea.templates
 
-import com.android.tools.idea.templates.TemplateUtils.camelCaseToUnderlines
-import com.android.tools.idea.templates.TemplateUtils.extractClassName
 import com.android.tools.idea.templates.TemplateUtils.hasExtension
-import com.android.tools.idea.templates.TemplateUtils.underlinesToCamelCase
 import junit.framework.TestCase
 import java.io.File
 
 // TODO(qumeric): cover more functions
 
 class TemplateUtilsTest : TestCase() {
-  fun testExtractClassName() {
-    mapOf("My Project" to "MyProject",
-          "hello" to "Hello",
-          "Java's" to "Javas",
-          "testXML" to "TestXML"
-    ).forEach { (arg, result) ->
-      assertEquals(result, extractClassName(arg))
-    }
-  }
-
-  fun testCamelCaseToUnderlines() {
-    mapOf("" to "",
-          "foo" to "foo",
-          "Foo" to "foo",
-          "FooBar" to "foo_bar",
-          "testXML" to "test_x_m_l",
-          "testFoo" to "test_foo"
-    ).forEach { (arg, result) ->
-      assertEquals(result, camelCaseToUnderlines(arg))
-    }
-  }
-
-  fun testUnderlinesToCamelCase() {
-    mapOf("" to "",
-          "_" to "",
-          "foo" to "Foo",
-          "foo_bar" to "FooBar",
-          "foo__bar" to "FooBar",
-          "foo_" to "Foo"
-    ).forEach { (arg, result) ->
-      assertEquals(result, underlinesToCamelCase(arg))
-    }
-  }
-
   fun testHasExtension() {
     val ext = "sh"
     val fileWithExt = File("studio.$ext")

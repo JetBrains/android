@@ -134,11 +134,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myIsCaptureStageEnabled = false;
 
   /**
-   * Whether profiler audits should be generated
-   */
-  private boolean isAuditsEnabled = true;
-
-  /**
    * Whether custom event visualization should be visible
    */
   private boolean myCustomEventVisualizationEnabled = false;
@@ -289,9 +284,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       public boolean isPerformanceMonitoringEnabled() {
         return false;
       }
-
-      @Override
-      public boolean isAuditsEnabled() { return isAuditsEnabled; }
 
       @Override
       public boolean isCustomEventVisualizationEnabled() {

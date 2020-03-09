@@ -25,6 +25,7 @@ import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObjectValueProperty;
+import com.android.tools.idea.rendering.DrawableRenderer;
 import com.android.utils.Pair;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.project.Project;

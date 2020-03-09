@@ -17,10 +17,10 @@ package com.android.tools.idea.npw.model
 
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.stats.withProjectId
-import com.android.tools.idea.templates.TemplateUtils
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
+import com.android.tools.idea.util.EditorUtil
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ProjectTemplateData
@@ -67,7 +67,7 @@ fun Recipe.render(c: RenderingContext, e: RecipeExecutor, loggingEvent: Template
   }
 
   if (!c.dryRun) {
-    TemplateUtils.reformatAndRearrange(c.project, c.targetFiles)
+    EditorUtil.reformatAndRearrange(c.project, c.targetFiles)
   }
 
   ApplicationManager.getApplication().invokeAndWait { PsiDocumentManager.getInstance(c.project).commitAllDocuments() }
@@ -79,7 +79,6 @@ private fun Recipe.doRender(c: RenderingContext, e: RecipeExecutor): Boolean {
   try {
     writeCommandAction(c.project).withName(c.commandName).run<IOException> {
       this(e, c.templateData)
-      // Old recipe executor calls applyChanges after every BuildModel update. It is slow but correct.
       // TODO(qumeric): remove casting when the old executor will be deleted
       if (e is DefaultRecipeExecutor) {
         e.applyChanges()

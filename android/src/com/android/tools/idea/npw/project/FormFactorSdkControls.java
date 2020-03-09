@@ -20,8 +20,7 @@ import static org.jetbrains.android.util.AndroidBundle.message;
 
 import com.android.ide.common.sdk.LoadStatus;
 import com.android.repository.api.UpdatablePackage;
-import com.android.tools.idea.npw.ChooseApiLevelDialog;
-import com.android.tools.idea.npw.FormFactor;
+import com.android.tools.idea.device.FormFactor;
 import com.android.tools.idea.npw.module.AndroidApiLevelComboBox;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.observable.BindingsManager;
@@ -29,6 +28,7 @@ import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.core.OptionalProperty;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.stats.DistributionService;
+import com.android.tools.idea.ui.ChooseApiLevelDialog;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;

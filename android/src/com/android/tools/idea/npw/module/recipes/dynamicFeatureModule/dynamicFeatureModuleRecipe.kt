@@ -15,20 +15,19 @@
  */
 package com.android.tools.idea.npw.module.recipes.dynamicFeatureModule
 
+import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
+import com.android.SdkConstants.FN_BUILD_GRADLE
 import com.android.ide.common.repository.GradleVersion
-import com.android.repository.Revision.parseRevision
-import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.needsExplicitBuildToolsVersion
 import com.android.tools.idea.npw.dynamicapp.DeviceFeatureModel
 import com.android.tools.idea.npw.dynamicapp.DownloadInstallKind
 import com.android.tools.idea.npw.model.NewProjectModel
 import com.android.tools.idea.npw.module.recipes.addKotlinIfNeeded
-import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleUnitTestJava
-import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleUnitTestKt
+import com.android.tools.idea.npw.module.recipes.addTestDependencies
+import com.android.tools.idea.npw.module.recipes.addTests
+import com.android.tools.idea.npw.module.recipes.androidModule.buildGradle
+import com.android.tools.idea.npw.module.recipes.createDefaultDirectories
 import com.android.tools.idea.npw.module.recipes.dynamicFeatureModule.res.values.stringsXml
-import com.android.tools.idea.npw.module.recipes.dynamicFeatureModule.test.exampleInstrumentedTestJava
-import com.android.tools.idea.npw.module.recipes.dynamicFeatureModule.test.exampleInstrumentedTestKt
 import com.android.tools.idea.npw.module.recipes.gitignore
-import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 
@@ -40,76 +39,58 @@ fun RecipeExecutor.generateDynamicFeatureModule(
   downloadInstallKind: DownloadInstallKind,
   deviceFeatures: Collection<DeviceFeatureModel>
 ) {
-  val (projectData, srcOut, resOut, manifestOut) = moduleData
+  val (projectData, srcOut, resOut, manifestOut, testOut, unitTestOut, _, moduleOut) = moduleData
   val apis = moduleData.apis
-  val (minApi, _, appCompatVersion, targetApi, targetApiString, buildApiString) = apis
+  val (buildApi, targetApi,  minApi, appCompatVersion) = apis
   val useAndroidX = moduleData.projectTemplateData.androidXSupport
   val language = projectData.language
-  val ktOrJavaExt = language.extension
-  val moduleOut = moduleData.rootDir
   val name = moduleData.name
   val projectSimpleName = NewProjectModel.nameToJavaPackage(name)
   val packageName = moduleData.packageName
-  val unitTestOut = moduleData.unitTestDir
-  val testOut = moduleData.testDir
   val agpVersion = projectData.gradlePluginVersion
   val baseFeature = moduleData.baseFeature!!
 
-  createDirectory(moduleOut)
-  createDirectory(srcOut)
-  createDirectory(resOut.resolve("drawable"))
+  val manifestXml = androidManifestXml(
+    fusing.toString(), isInstantModule, packageName, projectSimpleName, downloadInstallKind, deviceFeatures
+  )
+
+  createDefaultDirectories(moduleOut, srcOut)
   addIncludeToSettings(name)
 
   val buildToolsVersion = projectData.buildToolsVersion
   save(buildGradle(
-    baseFeature.name,
-    agpVersion,
+    false, // TODO(qumeric): change it
     false,
-    buildApiString!!,
-    needsExplicitBuildToolsVersion(GradleVersion.parse(projectData.gradlePluginVersion), parseRevision(buildToolsVersion)),
+    true,
+    packageName,
+    buildApi.apiString,
     buildToolsVersion,
-    minApi,
-    targetApiString ?: targetApi.toString(),
-    useAndroidX
-    ), moduleOut.resolve("build.gradle"))
-  save(
-    androidManifestXml(fusing.toString(), isInstantModule, packageName, projectSimpleName, downloadInstallKind, deviceFeatures),
-    manifestOut.resolve("AndroidManifest.xml")
-  )
-  save(gitignore(), moduleOut.resolve(".gitignore"))
-
-  val exampleInstrumentedTest = when (projectData.language) {
-    Language.Java -> exampleInstrumentedTestJava(packageName, useAndroidX)
-    Language.Kotlin -> exampleInstrumentedTestKt(packageName, useAndroidX)
-  }
-  save(exampleInstrumentedTest, testOut.resolve("ExampleInstrumentedTest.${ktOrJavaExt}"))
-
-  val exampleUnitTest = when (projectData.language) {
-    Language.Java -> exampleUnitTestJava(packageName)
-    Language.Kotlin -> exampleUnitTestKt(packageName)
-  }
-  save(exampleUnitTest, unitTestOut.resolve("ExampleUnitTest.${ktOrJavaExt}"))
+    minApi.apiString,
+    targetApi.apiString,
+    useAndroidX,
+    agpVersion,
+    baseFeatureName = baseFeature.name,
+    formFactorNames = projectData.includedFormFactorNames
+  ), moduleOut.resolve(FN_BUILD_GRADLE))
 
   applyPlugin("com.android.dynamic-feature")
-  addDependency("junit:junit:4.12", "testCompile")
+  addKotlinIfNeeded(projectData)
+
+  save(manifestXml, manifestOut.resolve(FN_ANDROID_MANIFEST_XML))
+  save(gitignore(), moduleOut.resolve(".gitignore"))
+  addTests(packageName, useAndroidX, false, testOut, unitTestOut, language)
+  addTestDependencies(agpVersion)
 
   val supportsImprovedTestDeps = GradleVersion.parse(agpVersion).compareIgnoringQualifiers("3.0.0") >= 0
   if (supportsImprovedTestDeps) {
-    addDependency("com.android.support.test:runner:+","androidTestCompile")
-    addDependency("com.android.support.test.espresso:espresso-core:+" ,"androidTestCompile")
+    // TODO(qumeric): check if we still need it
     /*The following addDependency is added to pass UI tests in AddDynamicFeatureTest. b/123781255*/
     addDependency("com.android.support:support-annotations:${appCompatVersion}.+", "androidTestCompile")
   }
 
-  if (language == Language.Kotlin && useAndroidX) {
-    addDependency("androidx.core:core-ktx:+")
-  }
-
   addDynamicFeature(moduleData.name, baseFeature.dir)
   if (isInstantModule) {
-    mergeXml(baseAndroidManifestXml(), baseFeature.dir.resolve("src/main/AndroidManifest.xml"))
+    mergeXml(baseAndroidManifestXml(), baseFeature.dir.resolve("src/main/$FN_ANDROID_MANIFEST_XML"))
   }
   mergeXml(stringsXml(dynamicFeatureTitle, projectSimpleName), baseFeature.resDir.resolve("values/strings.xml"))
-
-  addKotlinIfNeeded(projectData)
 }

@@ -18,6 +18,7 @@
 package com.android.tools.idea.actions
 
 import com.android.tools.idea.common.editor.DesignerEditorPanel
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.actionSystem.DataKey
 
 /**

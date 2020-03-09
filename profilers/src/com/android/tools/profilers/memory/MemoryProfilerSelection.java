@@ -15,13 +15,16 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.profilers.memory.adapters.*;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import com.android.tools.profilers.memory.adapters.CaptureObject;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
+import com.android.tools.profilers.memory.adapters.FieldObject;
+import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
+import com.android.tools.profilers.memory.adapters.InstanceObject;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class MemoryProfilerSelection {
   @NotNull private final MemoryProfilerStage myStage;
@@ -79,6 +82,7 @@ public final class MemoryProfilerSelection {
     }
     myCaptureEntry = captureEntry;
     myCaptureObject = myCaptureEntry == null ? null : captureEntry.getCaptureObject();
+    myStage.getClassGroupingModel().update();
     myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE);
     return true;
   }

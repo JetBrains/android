@@ -17,8 +17,6 @@ package com.android.tools.idea.gradle.eclipse;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.eclipse.GradleImport.IMPORT_SUMMARY_TXT;
-import static com.android.tools.idea.gradle.util.GradleWrapper.getWrapperLocation;
-import static com.android.tools.idea.templates.TemplateUtils.openEditor;
 import static com.android.tools.idea.util.ToolWindows.activateProjectView;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_IMPORT_ADT_MODULE;
 
@@ -26,6 +24,7 @@ import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.util.EditorUtil;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.application.ApplicationManager;
@@ -195,7 +194,7 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
   private static void openSummary(Project project) {
     VirtualFile summary = project.getBaseDir().findChild(IMPORT_SUMMARY_TXT);
     if (summary != null) {
-      openEditor(project, summary);
+      EditorUtil.openEditor(project, summary);
     }
   }
 

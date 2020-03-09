@@ -216,9 +216,10 @@ private fun convertMavenCoordinateStringToIdeLibraryName(mavenCoordinate: String
  * Removes name extension or qualifier or classifier from the given [libraryName]. If the given [libraryName]
  * can't be parsed as a [GradleCoordinate] this method returns the [libraryName] un-edited.
  */
-private fun stripExtension(libraryName: String) : String {
-  val coordinate = GradleCoordinate.parseCoordinateString(libraryName) ?: return libraryName
-  return "${coordinate.groupId}:${coordinate.artifactId}:${coordinate.version}"
+private fun stripExtensionAndClassifier(libraryName: String) : String {
+  val parts = libraryName.split(':')
+  if (parts.size < 3) return libraryName // There is not enough parts to form a group:id:version string.
+  return "${parts[0]}:${parts[1]}:${parts[2]}"
 }
 
 private fun Library.isModuleLevel(modulePath: String) = try {
@@ -309,7 +310,7 @@ private fun setupAndroidDependenciesForArtifact(
     }
 
     // Add the JavaDoc and sources location if we have them.
-    additionalArtifactsMapper(stripExtension(libraryName), library.artifact)?.also { (sources, javadocs, sampleSources) ->
+    additionalArtifactsMapper(stripExtensionAndClassifier(libraryName), library.artifact)?.also { (sources, javadocs, sampleSources) ->
       sources?.also { libraryData.addPath(SOURCE, it.absolutePath) }
       javadocs?.also { libraryData.addPath(DOC, it.absolutePath) }
       sampleSources?.also { libraryData.addPath(SOURCE, it.absolutePath) }

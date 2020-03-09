@@ -38,6 +38,8 @@ import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.memory.MemoryProfiler;
 import com.android.tools.profilers.memory.MemoryProfilerAspect;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
+import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import com.android.tools.profilers.memory.adapters.instancefilters.ActivityFragmentLeakInstanceFilter;
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
 import com.android.tools.profilers.memory.adapters.instancefilters.ProjectClassesInstanceFilter;
@@ -367,15 +369,34 @@ public class HeapDumpCaptureObject implements CaptureObject {
     myExecutorService.execute(() -> {
       // Run the remaining analyzers on the full instance set, since we don't know that the instances that have been removed from the
       // HeapSets using the filter that we are removing.
-      Set<InstanceObject> allInstances = new HashSet<>(myInstanceIndex.size());
-      myInstanceIndex.forEachValue(allInstances::add);
-      Set<InstanceObject> matchedInstances = allInstances;
+      Set<InstanceObject> matchedInstances = getAllInstances();
       for (CaptureObjectInstanceFilter filter : myCurrentInstanceFilters) {
         matchedInstances = filter.filter(matchedInstances, myClassDb);
       }
 
       refreshInstances(matchedInstances, analyzeJoiner);
     });
+  }
+
+  @Override
+  public void setSingleFilter(@NotNull CaptureObjectInstanceFilter filter, @NotNull Executor analyzeJoiner) {
+    myCurrentInstanceFilters.clear();
+    myCurrentInstanceFilters.add(filter);
+    myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_HEAP_UPDATING);
+    myExecutorService.execute(() -> refreshInstances(filter.filter(getAllInstances(), myClassDb), analyzeJoiner));
+  }
+
+  @Override
+  public void removeAllFilters(@NotNull Executor analyzeJoiner) {
+    myCurrentInstanceFilters.clear();
+    myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_HEAP_UPDATING);
+    myExecutorService.execute(() -> refreshInstances(getAllInstances(), analyzeJoiner));
+  }
+
+  private Set<InstanceObject> getAllInstances() {
+    Set<InstanceObject> allInstances = new HashSet<>(myInstanceIndex.size());
+    myInstanceIndex.forEachValue(allInstances::add);
+    return allInstances;
   }
 
   private void refreshInstances(@NotNull Set<InstanceObject> instances, @NotNull Executor executor) {

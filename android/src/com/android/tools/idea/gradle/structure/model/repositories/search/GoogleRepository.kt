@@ -16,8 +16,7 @@
 package com.android.tools.idea.gradle.structure.model.repositories.search
 
 import com.android.ide.common.repository.GoogleMavenRepository
-import com.android.tools.idea.templates.IdeGoogleMavenRepository
-import com.google.wireless.android.sdk.stats.PSDEvent
+import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
 import com.google.wireless.android.sdk.stats.PSDEvent.PSDRepositoryUsage.PSDRepository.PROJECT_STRUCTURE_DIALOG_REPOSITORY_GOOGLE
 import com.intellij.util.text.nullize
 

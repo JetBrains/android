@@ -36,6 +36,7 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.testFramework.PsiTestUtil;
 import com.intellij.testFramework.VfsTestUtil;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
@@ -49,6 +50,14 @@ public class MlkitLightClassTest extends AndroidTestCase {
 
     // Pull in tflite model, which has image(i.e. name: image1) as input tensor and labels as output tensor
     myFixture.setTestDataPath(TestUtils.getWorkspaceFile("prebuilts/tools/common/mlkit/testData").getPath());
+
+    // Mock TensorImage, TensorBuffer and TensorLabel
+    myFixture.addFileToProject("src/org/tensorflow/lite/support/image/TensorImage.java",
+                               "package org.tensorflow.lite.support.image; public class TensorImage {}");
+    myFixture.addFileToProject("src/org/tensorflow/lite/support/tensorbuffer/TensorBuffer.java",
+                               "package org.tensorflow.lite.support.tensorbuffer; public class TensorBuffer {}");
+    myFixture.addFileToProject("src/org/tensorflow/lite/support/label/TensorLabel.java",
+                               "package org.tensorflow.lite.support.label; public class TensorLabel {}");
   }
 
   @Override
@@ -80,7 +89,8 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "import java.lang.String;\n" +
       "import java.lang.Float;\n" +
       "import java.util.Map;\n" +
-      "import android.graphics.Bitmap;\n" +
+      "import org.tensorflow.lite.support.image.TensorImage;\n" +
+      "import org.tensorflow.lite.support.label.TensorLabel;\n" +
       "import java.io.IOException;\n" +
       "\n" +
       "public class MainActivity extends Activity {\n" +
@@ -88,12 +98,10 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "    protected void onCreate(Bundle savedInstanceState) {\n" +
       "        super.onCreate(savedInstanceState);\n" +
       "        try {\n" +
-      "            MyModel myModel = new MyModel(this);\n" +
-      "            Bitmap image = null;\n" +
-      "            MyModel.Inputs inputs = myModel.createInputs();\n" +
-      "            inputs.loadImage1(image);\n" +
-      "            MyModel.Outputs output = myModel.run(inputs);\n" +
-      "            Map<String, Float> probability = output.getProbability();\n" +
+      "            MyModel myModel = MyModel.newInstance(this);\n" +
+      "            TensorImage image = null;\n" +
+      "            MyModel.Outputs output = myModel.process(image);\n" +
+      "            TensorLabel tensorLabel = output.getProbabilityAsTensorLabel();\n" +
       "        } catch (IOException e) {};\n" +
       "    }\n" +
       "}"
@@ -120,18 +128,85 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "import android.graphics.Bitmap;\n" +
       "import java.nio.ByteBuffer;\n" +
       "import java.io.IOException;\n" +
+      "import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;\n" +
       "\n" +
       "public class MainActivity extends Activity {\n" +
       "    @Override\n" +
       "    protected void onCreate(Bundle savedInstanceState) {\n" +
       "        super.onCreate(savedInstanceState);\n" +
       "        try {\n" +
-      "            MyPlainModel myModel = new MyPlainModel(this);\n" +
-      "            ByteBuffer byteBuffer = null;\n" +
-      "            MyPlainModel.Inputs inputs = myModel.createInputs();\n" +
-      "            inputs.loadInputFeature0(byteBuffer);\n" +
-      "            MyPlainModel.Outputs output = myModel.run(inputs);\n" +
-      "            ByteBuffer data0 = output.getOutputFeature0();\n" +
+      "            MyPlainModel myModel = MyPlainModel.newInstance(this);\n" +
+      "            TensorBuffer tensorBuffer = null;\n" +
+      "            MyPlainModel.Outputs output = myModel.process(tensorBuffer);\n" +
+      "            TensorBuffer data0 = output.getOutputFeature0AsTensorBuffer();\n" +
+      "        } catch (IOException e) {};\n" +
+      "    }\n" +
+      "}"
+    );
+
+    myFixture.configureFromExistingVirtualFile(activityFile.getVirtualFile());
+    myFixture.checkHighlighting();
+  }
+
+  public void testHighlighting_invokeConstructorThrowError_java() {
+    VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_no_metadata.tflite", "/ml/my_plain_model.tflite");
+    PsiTestUtil.addSourceContentToRoots(myModule, modelVirtualFile.getParent());
+    PsiFile activityFile = myFixture.addFileToProject(
+      "/src/p1/p2/MainActivity.java",
+      // language=java
+      "package p1.p2;\n" +
+      "\n" +
+      "import android.app.Activity;\n" +
+      "import android.os.Bundle;\n" +
+      "import p1.p2.ml.MyPlainModel;\n" +
+      "import java.lang.String;\n" +
+      "import java.lang.Float;\n" +
+      "import java.util.Map;\n" +
+      "import android.graphics.Bitmap;\n" +
+      "import java.nio.ByteBuffer;\n" +
+      "import java.io.IOException;\n" +
+      "import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;\n" +
+      "\n" +
+      "public class MainActivity extends Activity {\n" +
+      "    @Override\n" +
+      "    protected void onCreate(Bundle savedInstanceState) {\n" +
+      "        super.onCreate(savedInstanceState);\n" +
+      "        try {\n" +
+      "            MyPlainModel myModel = new <error descr=\"'MyPlainModel(android.content.Context)' has private access in 'p1.p2.ml.MyPlainModel'\">MyPlainModel</error>();\n" +
+      "        } catch (IOException e) {};\n" +
+      "    }\n" +
+      "}"
+    );
+
+    myFixture.configureFromExistingVirtualFile(activityFile.getVirtualFile());
+    myFixture.checkHighlighting();
+  }
+
+  public void testHighlighting_invokeConstructorWithContextThrowError_java() {
+    VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_no_metadata.tflite", "/ml/my_plain_model.tflite");
+    PsiTestUtil.addSourceContentToRoots(myModule, modelVirtualFile.getParent());
+    PsiFile activityFile = myFixture.addFileToProject(
+      "/src/p1/p2/MainActivity.java",
+      // language=java
+      "package p1.p2;\n" +
+      "\n" +
+      "import android.app.Activity;\n" +
+      "import android.os.Bundle;\n" +
+      "import p1.p2.ml.MyPlainModel;\n" +
+      "import java.lang.String;\n" +
+      "import java.lang.Float;\n" +
+      "import java.util.Map;\n" +
+      "import android.graphics.Bitmap;\n" +
+      "import java.nio.ByteBuffer;\n" +
+      "import java.io.IOException;\n" +
+      "import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;\n" +
+      "\n" +
+      "public class MainActivity extends Activity {\n" +
+      "    @Override\n" +
+      "    protected void onCreate(Bundle savedInstanceState) {\n" +
+      "        super.onCreate(savedInstanceState);\n" +
+      "        try {\n" +
+      "            MyPlainModel myModel = new <error descr=\"'MyPlainModel(android.content.Context)' has private access in 'p1.p2.ml.MyPlainModel'\">MyPlainModel</error>(this);\n" +
       "        } catch (IOException e) {};\n" +
       "    }\n" +
       "}"
@@ -154,17 +229,16 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "import android.os.Bundle\n" +
       "import p1.p2.ml.MyModel\n" +
       "import android.util.Log\n" +
-      "import android.graphics.Bitmap\n" +
+      "import org.tensorflow.lite.support.image.TensorImage;\n" +
+      "import org.tensorflow.lite.support.label.TensorLabel;\n" +
       "\n" +
       "class MainActivity : Activity() {\n" +
       "    override fun onCreate(savedInstanceState: Bundle?) {\n" +
       "        super.onCreate(savedInstanceState)\n" +
-      "        val image: Bitmap? = null\n" +
-      "        val mymodel = MyModel(this)\n" +
-      "        val inputs = mymodel.createInputs()\n" +
-      "        inputs.loadImage1(image)\n" +
-      "        val outputs = mymodel.run(inputs)\n" +
-      "        val probability = outputs.probability\n" +
+      "        val tensorImage: TensorImage? = null\n" +
+      "        val mymodel = MyModel.newInstance(this)\n" +
+      "        val outputs = mymodel.process(tensorImage)\n" +
+      "        val probability = outputs.probabilityAsTensorLabel\n" +
       "        Log.d(\"TAG\", probability.toString())\n" +
       "    }\n" +
       "}"
@@ -187,17 +261,15 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "import android.os.Bundle\n" +
       "import p1.p2.ml.MyPlainModel\n" +
       "import android.util.Log\n" +
-      "import java.nio.ByteBuffer;\n" +
+      "import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;\n" +
       "\n" +
       "class MainActivity : Activity() {\n" +
       "    override fun onCreate(savedInstanceState: Bundle?) {\n" +
       "        super.onCreate(savedInstanceState)\n" +
-      "        val inputFeature: ByteBuffer? = null\n" +
-      "        val mymodel = MyPlainModel(this)\n" +
-      "        val inputs = mymodel.createInputs()\n" +
-      "        inputs.loadInputFeature0(inputFeature)\n" +
-      "        val outputs = mymodel.run(inputs)\n" +
-      "        val outputFeature = outputs.outputFeature0\n" +
+      "        val inputFeature: TensorBuffer? = null\n" +
+      "        val mymodel = MyPlainModel.newInstance(this)\n" +
+      "        val outputs = mymodel.process(inputFeature)\n" +
+      "        val outputFeature = outputs.outputFeature0AsTensorBuffer\n" +
       "        Log.d(\"TAG\", outputFeature.toString())\n" +
       "    }\n" +
       "}"
@@ -244,8 +316,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
     assertThat(FileEditorManagerEx.getInstanceEx(myFixture.getProject()).getCurrentFile()).isEqualTo(modelVirtualFile);
   }
 
-
-  public void testCompleteRunMethod() {
+  public void testCompleteProcessMethod() {
     VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/ml/my_model.tflite");
     PsiTestUtil.addSourceContentToRoots(myModule, modelVirtualFile.getParent());
 
@@ -262,8 +333,8 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "    @Override\n" +
       "    protected void onCreate(Bundle savedInstanceState) {\n" +
       "        super.onCreate(savedInstanceState);\n" +
-      "        MyModel myModel = new MyModel(this);\n" +
-      "        myModel.ru<caret>;\n" +
+      "        MyModel myModel = MyModel.newInstance(this);\n" +
+      "        myModel.pro<caret>;\n" +
       "    }\n" +
       "}"
     );
@@ -281,13 +352,13 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "    @Override\n" +
       "    protected void onCreate(Bundle savedInstanceState) {\n" +
       "        super.onCreate(savedInstanceState);\n" +
-      "        MyModel myModel = new MyModel(this);\n" +
-      "        myModel.run();\n" +
+      "        MyModel myModel = MyModel.newInstance(this);\n" +
+      "        myModel.process();\n" +
       "    }\n" +
       "}");
   }
 
-  public void testCompleteCreateInputsMethod() {
+  public void testCompleteNewInstanceMethod() {
     VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/ml/my_model.tflite");
     PsiTestUtil.addSourceContentToRoots(myModule, modelVirtualFile.getParent());
 
@@ -304,8 +375,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "    @Override\n" +
       "    protected void onCreate(Bundle savedInstanceState) {\n" +
       "        super.onCreate(savedInstanceState);\n" +
-      "        MyModel myModel = new MyModel(this);\n" +
-      "        myModel.c<caret>;\n" +
+      "        MyModel.newI<caret>;\n" +
       "    }\n" +
       "}"
     );
@@ -323,8 +393,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "    @Override\n" +
       "    protected void onCreate(Bundle savedInstanceState) {\n" +
       "        super.onCreate(savedInstanceState);\n" +
-      "        MyModel myModel = new MyModel(this);\n" +
-      "        myModel.createInputs();\n" +
+      "        MyModel.newInstance();\n" +
       "    }\n" +
       "}");
   }
@@ -353,10 +422,10 @@ public class MlkitLightClassTest extends AndroidTestCase {
     myFixture.configureFromExistingVirtualFile(activityFile.getVirtualFile());
     LookupElement[] elements = myFixture.complete(CompletionType.BASIC);
     assertThat(elements).hasLength(2);
-    assertThat(elements[0].toString()).isEqualTo("MyModel.Inputs");
+    assertThat(elements[0].toString()).isEqualTo("MyModel.newInstance");
     assertThat(elements[1].toString()).isEqualTo("MyModel.Outputs");
 
-    myFixture.getLookup().setCurrentItem(elements[0]);
+    myFixture.getLookup().setCurrentItem(elements[1]);
     myFixture.finishLookup(Lookup.NORMAL_SELECT_CHAR);
     myFixture.checkResult("package p1.p2;\n" +
                           "\n" +
@@ -369,7 +438,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
                           "    @Override\n" +
                           "    protected void onCreate(Bundle savedInstanceState) {\n" +
                           "        super.onCreate(savedInstanceState);\n" +
-                          "        MyModel.Inputs;\n" +
+                          "        MyModel.Outputs;\n" +
                           "    }\n" +
                           "}");
   }
@@ -390,7 +459,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "    @Override\n" +
       "    protected void onCreate(Bundle savedInstanceState) {\n" +
       "        super.onCreate(savedInstanceState);\n" +
-      "        Inpu<caret>;\n" +
+      "        Outpu<caret>;\n" +
       "    }\n" +
       "}"
     );
@@ -398,10 +467,10 @@ public class MlkitLightClassTest extends AndroidTestCase {
     myFixture.configureFromExistingVirtualFile(activityFile.getVirtualFile());
     LookupElement[] elements = myFixture.complete(CompletionType.BASIC);
 
-    // Find position of "Inputs"
+    // Find position of "Outputs"
     int lookupPosition = -1;
     for (int i = 0; i < elements.length; i++) {
-      if (elements[i].toString().equals("Inputs")) {
+      if (elements[i].toString().equals("Outputs")) {
         lookupPosition = i;
         break;
       }
@@ -421,7 +490,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
                           "    @Override\n" +
                           "    protected void onCreate(Bundle savedInstanceState) {\n" +
                           "        super.onCreate(savedInstanceState);\n" +
-                          "        MyModel.Inputs;\n" +
+                          "        MyModel.Outputs;\n" +
                           "    }\n" +
                           "}");
   }
@@ -478,9 +547,8 @@ public class MlkitLightClassTest extends AndroidTestCase {
 
     MlkitModuleService mlkitService = MlkitModuleService.getInstance(myModule);
     List<PsiClass> lightClasses = mlkitService.getLightModelClassList();
-    assertThat(lightClasses).hasSize(2);
-    assertThat(lightClasses.get(0).getName()).isEqualTo("MyModel");
-    assertThat(lightClasses.get(1).getName()).isEqualTo("MyPlainModel");
+    List<String> classNameList = lightClasses.stream().map(psiClass -> psiClass.getName()).collect(Collectors.toList());
+    assertThat(classNameList).containsExactly("MyModel", "MyPlainModel");
     assertThat(ModuleUtilCore.findModuleForPsiElement(lightClasses.get(0))).isEqualTo(myModule);
   }
 

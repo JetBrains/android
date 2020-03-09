@@ -23,8 +23,10 @@ import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
+import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.ui.JBPopupMenu
 import com.intellij.util.ui.JBUI
 import org.fest.swing.core.GenericTypeMatcher
@@ -215,7 +217,15 @@ class SceneFixture(private val robot: Robot, private val scene: Scene) {
   }
 }
 
-class SceneViewFixture(private val robot: Robot, private val sceneView: SceneView) {
+class SceneViewTopPanelFixture(private val robot: Robot, private val toolbar: JComponent) {
+  fun clickButtonByText(text: String): SceneViewTopPanelFixture = also {
+    val button = robot.finder().find(toolbar, Matchers.byText(ActionButtonWithText::class.java, text))
+    robot.click(button)
+  }
+}
+
+class SceneViewFixture(private val robot: Robot,
+                       private val sceneView: SceneView) {
   private val componentDriver = ComponentDriver<DesignSurface>(robot)
 
   val midPoint: Point
@@ -227,4 +237,13 @@ class SceneViewFixture(private val robot: Robot, private val sceneView: SceneVie
     SceneComponentFixture(robot, componentDriver, sceneView.scene.sceneComponents.single { tagName == it.nlComponent.tagName })
 
   fun countSceneComponents(): Int = sceneView.scene.sceneComponents.size
+
+  fun toolbar(): SceneViewTopPanelFixture {
+    // Find the SceneViewPeerPanel
+    val sceneViewPeerPanel = robot.finder().find(sceneView.surface) {
+      component -> component is SceneViewPeerPanel && component.sceneView == sceneView
+    } as SceneViewPeerPanel
+
+    return SceneViewTopPanelFixture(robot, sceneViewPeerPanel.sceneViewTopPanel)
+  }
 }

@@ -17,24 +17,32 @@ package com.android.tools.idea.naveditor.actions
 
 import com.android.tools.idea.assistant.OpenAssistSidePanelAction
 import com.android.tools.idea.assistant.ScrollHandler
+import com.android.tools.idea.common.assistant.AssistantPanelMetricsTracker
+import com.android.tools.idea.common.assistant.HelpPanelBundle
+import com.android.tools.idea.common.assistant.HelpPanelToolWindowListener
+import com.android.tools.idea.common.assistant.LayoutEditorHelpPanelAssistantBundleCreatorBase
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.uibuilder.actions.HelpPanelBundle
-import com.android.tools.idea.uibuilder.actions.LayoutEditorHelpPanelAssistantBundleCreatorBase
-import com.android.tools.idea.uibuilder.actions.NAV_EDITOR_BUNDLE_ID
-import com.android.tools.idea.uibuilder.actions.analytics.AssistantPanelMetricsTracker
 import com.google.wireless.android.sdk.stats.DesignEditorHelpPanelEvent.HelpPanelType
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
 
-val navEditorHelpPanelBundle =
-  HelpPanelBundle(NAV_EDITOR_BUNDLE_ID, "/naveditor_help_assistance_bundle.xml")
+const val NAV_EDITOR_BUNDLE_ID = "NavEditor.HelpAssistant"
+
+val navEditorHelpPanelBundle = HelpPanelBundle(NAV_EDITOR_BUNDLE_ID, "/naveditor_help_assistance_bundle.xml")
 
 class NavEditorHelperAssistanceAction : OpenAssistSidePanelAction() {
+
+  init {
+    HelpPanelToolWindowListener.map[NAV_EDITOR_BUNDLE_ID] = HelpPanelType.NAV_EDITOR
+  }
+
   override fun update(e: AnActionEvent) {
     e.presentation.isEnabledAndVisible = StudioFlags.NELE_NAV_EDITOR_ASSISTANT.get()
   }
 
   override fun actionPerformed(event: AnActionEvent) {
+    val project = event.project ?: return
+    HelpPanelToolWindowListener.registerListener(project)
     openWindow(navEditorHelpPanelBundle.bundleId, event.project!!)
   }
 }

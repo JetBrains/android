@@ -62,7 +62,7 @@ class CpuCoreTrackRendererTest {
     Mockito.`when`(mockCapture.range).thenReturn(Range())
     Mockito.`when`(mockCapture.mainThreadId).thenReturn(123)
     val coreTrackModel = TrackModel.newBuilder(
-      CpuCoreTrackModel(AtraceDataSeries(mockCapture) { capture -> capture.getCpuThreadSliceInfoStates(0) }, Range(), mockCapture),
+      CpuCoreTrackModel(LazyDataSeries { mockCapture.getCpuThreadSliceInfoStates(0) }, Range(), mockCapture),
       ProfilerTrackRendererType.CPU_CORE,
       "Foo")
       .build()

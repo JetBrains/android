@@ -24,6 +24,7 @@ import com.intellij.psi.PsiType
 import com.intellij.psi.impl.light.LightMethodBuilder
 import com.intellij.util.IncorrectOperationException
 
+internal val MODIFIERS_PUBLIC_CONSTRUCTOR = arrayOf(PsiModifier.PUBLIC)
 internal val MODIFIERS_PUBLIC_METHOD = arrayOf(PsiModifier.PUBLIC, PsiModifier.FINAL)
 internal val MODIFIERS_STATIC_PUBLIC_METHOD = MODIFIERS_PUBLIC_METHOD + arrayOf(PsiModifier.STATIC)
 
@@ -46,6 +47,12 @@ internal fun parsePsiType(modulePackage: String, typeStr: String, context: PsiEl
   catch (e: IncorrectOperationException) {
     PsiElementFactory.getInstance(context.project).createTypeFromText(FALLBACK_TYPE, context)
   }
+}
+
+internal fun PsiClass.createConstructor(modifiers: Array<String> = MODIFIERS_PUBLIC_CONSTRUCTOR): LightMethodBuilder {
+  return LightMethodBuilder(this, JavaLanguage.INSTANCE)
+    .setConstructor(true)
+    .addModifiers(*modifiers)
 }
 
 internal fun PsiClass.createMethod(name: String,

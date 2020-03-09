@@ -438,10 +438,8 @@ public class CpuCaptureParser {
    */
   private static long calculateRecordDurationMs(CpuCapture capture) {
     Range maxDataRange = new Range();
-    for (CpuThreadInfo thread : capture.getThreads()) {
-      CaptureNode threadMainNode = capture.getCaptureNode(thread.getId());
-      assert threadMainNode != null;
-      maxDataRange.expand(threadMainNode.getStartGlobal(), threadMainNode.getEndGlobal());
+    for (CaptureNode node : capture.getCaptureNodes()) {
+      maxDataRange.expand(node.getStartGlobal(), node.getEndGlobal());
     }
     return TimeUnit.MICROSECONDS.toMillis((long)maxDataRange.getLength());
   }

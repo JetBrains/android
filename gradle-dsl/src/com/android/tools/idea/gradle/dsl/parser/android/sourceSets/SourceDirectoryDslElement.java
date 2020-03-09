@@ -52,12 +52,16 @@ public class SourceDirectoryDslElement extends GradleDslBlockElement {
     new PropertiesElementDescription<>("jni", SourceDirectoryDslElement.class, SourceDirectoryDslElement::new);
   public static final PropertiesElementDescription<SourceDirectoryDslElement> JNI_LIBS =
     new PropertiesElementDescription<>("jniLibs", SourceDirectoryDslElement.class, SourceDirectoryDslElement::new);
+  public static final PropertiesElementDescription<SourceDirectoryDslElement> ML_MODELS =
+    new PropertiesElementDescription<>("mlModels", SourceDirectoryDslElement.class, SourceDirectoryDslElement::new);
   public static final PropertiesElementDescription<SourceDirectoryDslElement> RENDERSCRIPT =
     new PropertiesElementDescription<>("renderscript", SourceDirectoryDslElement.class, SourceDirectoryDslElement::new);
   public static final PropertiesElementDescription<SourceDirectoryDslElement> RES =
     new PropertiesElementDescription<>("res", SourceDirectoryDslElement.class, SourceDirectoryDslElement::new);
   public static final PropertiesElementDescription<SourceDirectoryDslElement> RESOURCES =
     new PropertiesElementDescription<>("resources", SourceDirectoryDslElement.class, SourceDirectoryDslElement::new);
+  public static final PropertiesElementDescription<SourceDirectoryDslElement> SHADERS =
+    new PropertiesElementDescription<>("shaders", SourceDirectoryDslElement.class, SourceDirectoryDslElement::new);
 
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{

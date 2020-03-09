@@ -42,11 +42,11 @@ import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.FakeCpuService;
 import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
-import com.android.tools.profilers.memory.adapters.ClassSet;
-import com.android.tools.profilers.memory.adapters.ClassifierSet;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
 import com.android.tools.profilers.memory.adapters.FakeCaptureObject;
 import com.android.tools.profilers.memory.adapters.FakeInstanceObject;
-import com.android.tools.profilers.memory.adapters.HeapSet;
+import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.LegacyAllocationCaptureObject;
 import com.android.tools.profilers.network.FakeNetworkService;
@@ -807,5 +807,25 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
     MemoryProfilerStage newStage2 = new MemoryProfilerStage(myProfilers, myMockLoader);
     assertThat(newStage2.getLiveAllocationSamplingMode()).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.NONE);
+  }
+
+  @Test
+  public void testClassifierComboBoxModel() {
+    final int EXPECTED_SIZE = 3;
+    // Default no capture object means no filtering.
+    assertThat(myStage.getClassGroupingModel().getSize()).isEqualTo(5);
+    // Update is called on selecting a capture object
+    FakeCaptureObject capture = new FakeCaptureObject.Builder().setHeapIdToNameMap(ImmutableMap.of(0, "default", 1, "app")).build();
+    FakeInstanceObject instanceObject = new FakeInstanceObject.Builder(capture, 1, "class").setHeapId(0).build();
+    capture.addInstanceObjects(ImmutableSet.of(instanceObject));
+    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> capture)),
+                                  null);
+    assertThat(myStage.getClassGroupingModel().getSize()).isEqualTo(EXPECTED_SIZE);
+    for (int i = 0; i < EXPECTED_SIZE; i++) {
+      assertThat(capture.isGroupingSupported(myStage.getClassGroupingModel().getElementAt(i))).isTrue();
+    }
+    // Selecting no capture means no filtering.
+    myStage.selectCaptureDuration(null, null);
+    assertThat(myStage.getClassGroupingModel().getSize()).isEqualTo(5);
   }
 }

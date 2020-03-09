@@ -29,6 +29,7 @@ import org.junit.Assume
 import org.junit.AssumptionViolatedException
 import org.junit.Ignore
 import org.junit.runner.Description
+import java.io.File
 
 /**
  * A rule that can target an Android+Gradle project.
@@ -37,18 +38,6 @@ import org.junit.runner.Description
  * [CodeInsightTestFixture.setTestDataPath]) and then [load] the project.
  */
 class AndroidGradleProjectRule : NamedExternalResource() {
-  /**
-   * A class representing the root of a Gradle project that has not been completely loaded.
-   */
-  interface ProjectRoot {
-    /**
-     * Creates a new file if one doesn't exist or overwrites it if it does.
-     *
-     * @param relativePath Path relative to [CodeInsightTestFixture.getTestDataPath].
-     */
-    fun addOrOverwriteFile(relativePath: String, contents: String): VirtualFile
-  }
-
   /**
    * This rule is a thin wrapper around [AndroidGradleTestCase], which we delegate to to handle any
    * heavy lifting.
@@ -76,6 +65,9 @@ class AndroidGradleProjectRule : NamedExternalResource() {
   fun gradleModule(gradlePath: String): Module = findGradleModule(gradlePath) ?: gradleModuleNotFound(gradlePath)
   fun findGradleModule(gradlePath: String): Module? = project.gradleModule(gradlePath)
 
+  fun getModule(moduleName: String) = delegateTestCase.getModule(moduleName);
+  fun hasModule(moduleName: String) = delegateTestCase.hasModule(moduleName);
+
   override fun before(description: Description) {
     delegateTestCase.name = description.methodName ?: description.displayName
     delegateTestCase.setUp()
@@ -93,18 +85,12 @@ class AndroidGradleProjectRule : NamedExternalResource() {
    *   is actually loaded.
    */
   @JvmOverloads
-  fun load(projectPath: String, preLoad: (ProjectRoot.() -> Unit)? = null) {
+  fun load(projectPath: String, preLoad: ((projectRoot: File) -> Unit)? = null) {
     if (preLoad != null) {
       val rootFile = delegateTestCase.prepareProjectForImport(projectPath)
 
-      val projectRoot = object : ProjectRoot {
-        override fun addOrOverwriteFile(relativePath: String, contents: String): VirtualFile {
-          return VfsTestUtil.createFile(rootFile.toVirtualFile()!!, relativePath, contents)
-        }
-      }
-
+      preLoad(rootFile)
       delegateTestCase.importProject()
-      projectRoot.preLoad()
       delegateTestCase.prepareProjectForTest(project, null)
     }
     else {

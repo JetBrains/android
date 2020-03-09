@@ -18,6 +18,7 @@ package org.jetbrains.android.dom;
 import com.android.SdkConstants;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.testing.AndroidDomRule;
+import com.google.common.base.CaseFormat;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.codeInsight.documentation.DocumentationManager;
@@ -190,7 +191,7 @@ public abstract class AndroidDomTestCase extends AndroidTestCase {
   protected final void doTestHighlighting() throws Throwable {
     // TODO: Kill getTestName, make test classes specify the golden file explicitly.
     String sourceFile = getTestName(true) + ".xml";
-    String destinationFile = getPathToCopy(TemplateUtils.camelCaseToUnderlines(sourceFile));
+    String destinationFile = getPathToCopy(CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, sourceFile));
     doTestHighlighting(sourceFile, destinationFile);
   }
 

@@ -53,7 +53,6 @@ fun RecipeExecutor.generateCommonModule(
   val isLibraryProject = data.isLibrary
   val packageName = data.packageName
   val apis = data.apis
-  val targetApi = apis.targetApi
   val minApi = apis.minApi
 
   createDefaultDirectories(moduleOut, srcOut)
@@ -67,10 +66,10 @@ fun RecipeExecutor.generateCommonModule(
       isLibraryProject,
       data.isDynamic,
       packageName,
-      apis.buildApiString!!,
+      apis.buildApi.apiString,
       projectData.buildToolsVersion,
-      minApi,
-      apis.targetApiString ?: targetApi.toString(),
+      minApi.apiString,
+      apis.targetApi.apiString,
       useAndroidX,
       agpVersion,
       includeCppSupport,

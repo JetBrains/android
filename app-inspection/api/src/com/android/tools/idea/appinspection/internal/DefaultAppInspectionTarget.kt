@@ -21,7 +21,9 @@ import com.android.tools.app.inspection.AppInspection.AppInspectionResponse.Stat
 import com.android.tools.app.inspection.AppInspection.CreateInspectorCommand
 import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
 import com.android.tools.idea.appinspection.api.AppInspectionTarget
+import com.android.tools.idea.appinspection.api.ProcessDescriptor
 import com.android.tools.idea.appinspection.api.TargetTerminatedListener
+import com.android.tools.idea.appinspection.api.TransportProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.concurrency.transform
@@ -164,6 +166,8 @@ private class DefaultAppInspectionTarget(
       listener
     }
   }
+
+  override val descriptor = TransportProcessDescriptor(transport.stream, transport.process)
 
 }
 

@@ -1,6 +1,5 @@
 package org.jetbrains.jps.android;
 
-import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.incremental.storage.ValidityState;
 
@@ -8,6 +7,7 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 
 /**

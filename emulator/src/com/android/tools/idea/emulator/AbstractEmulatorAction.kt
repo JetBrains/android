@@ -35,21 +35,6 @@ abstract class AbstractEmulatorAction : AnAction(), DumbAware {
   }
 
   private fun isEnabled(event: AnActionEvent): Boolean {
-    return getEmulatorController(event)?.state == EmulatorController.State.CONNECTED
-  }
-
-  companion object {
-    /**
-     * Creates a [KeyboardEvent] for the given hardware key.
-     * Key names are defined in https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values.
-     */
-    @JvmStatic
-    protected fun createHardwareKeyEvent(keyName: String,
-                                         eventType: KeyboardEvent.KeyEventType = KeyboardEvent.KeyEventType.keypress): KeyboardEvent {
-      return KeyboardEvent.newBuilder()
-        .setKey(keyName)
-        .setEventType(eventType)
-        .build()
-    }
+    return getEmulatorController(event)?.connectionState == EmulatorController.ConnectionState.CONNECTED
   }
 }

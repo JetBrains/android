@@ -213,9 +213,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     @NotNull Function<DesignSurface, InteractionHandler> interactionProviderCreator,
     @NotNull State defaultSurfaceState,
     boolean isEditable,
-    @NotNull Function<DesignSurface, SceneViewLayoutManager> sceneViewLayoutManagerProvider) {
+    @NotNull Function<DesignSurface, PositionableContentLayoutManager> positionableLayoutManagerProvider) {
     this(project, parentDisposable, actionManagerProvider, interactionProviderCreator, defaultSurfaceState, isEditable, ZoomType.FIT_INTO,
-         sceneViewLayoutManagerProvider);
+         positionableLayoutManagerProvider);
   }
 
   public DesignSurface(
@@ -226,7 +226,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     @NotNull State defaultSurfaceState,
     boolean isEditable,
     @NotNull ZoomType onChangedZoom,
-    @NotNull Function<DesignSurface, SceneViewLayoutManager> sceneViewLayoutManagerProvider) {
+    @NotNull Function<DesignSurface, PositionableContentLayoutManager> positionableLayoutManagerProvider) {
     super(new BorderLayout());
     myConfigurationListener = flags -> {
       if ((flags & (ConfigurationListener.CFG_DEVICE | ConfigurationListener.CFG_DEVICE_STATE)) != 0 && !isLayoutDisabled()) {
@@ -268,7 +268,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myZoomControlsLayerPane.setLayout(new BorderLayout());
     myZoomControlsLayerPane.setFocusable(true);
 
-    mySceneViewPanel = new SceneViewPanel(() -> getInteractionManager().getLayers(), sceneViewLayoutManagerProvider.apply(this));
+    mySceneViewPanel = new SceneViewPanel(() -> getInteractionManager().getLayers(), positionableLayoutManagerProvider.apply(this));
     mySceneViewPanel.setBackground(getBackground());
 
     myScrollPane = new MyScrollPane();
@@ -430,7 +430,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   public final void addSceneView(@NotNull SceneView sceneView) {
     //noinspection ConstantConditions, prevent this method from failing when using mocks (http://b/149700391)
     if (mySceneViewPanel != null) {
-      mySceneViewPanel.addSceneView(sceneView);
+      UIUtil.invokeLaterIfNeeded(() ->  mySceneViewPanel.addSceneView(sceneView));
     }
   }
 
@@ -511,9 +511,14 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @NotNull
   public final SceneManager addModelWithoutRender(@NotNull NlModel model) {
     SceneManager manager = addModel(model);
-    for (DesignSurfaceListener listener : ImmutableList.copyOf(myListeners)) {
-      listener.modelChanged(this, model);
-    }
+
+    EdtExecutorService.getInstance().execute(() -> {
+      for (DesignSurfaceListener listener : ImmutableList.copyOf(myListeners)) {
+        // TODO: The listeners have the expectation of the call happening in the EDT. We need
+        //       to address that.
+        listener.modelChanged(this, model);
+      }
+    });
     return manager;
   }
 

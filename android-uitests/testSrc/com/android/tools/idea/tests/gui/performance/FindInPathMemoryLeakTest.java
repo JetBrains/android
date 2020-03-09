@@ -20,8 +20,7 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.FindPopupPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.Bleak;
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.UseBleak;
+import com.android.tools.idea.bleak.UseBleak;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.Rule;
 import org.junit.Test;
@@ -39,7 +38,7 @@ public class FindInPathMemoryLeakTest {
   @UseBleak
   public void openAndClosePopup() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
-    Bleak.runWithBleak(() -> {
+    guiTest.runWithBleak(() -> {
       ideFrame.openFromMenu(FindPopupPanelFixture::find, "Edit", "Find", "Find in Path...")
           .dialog()
           .close();

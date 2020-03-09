@@ -814,47 +814,6 @@ public class ResourceNotificationManager {
     }
   }
 
-  /*
-    final MessageBusConnection connection = project.getMessageBus().connect(project);
-    connection.subscribe(ProjectTopics.PROJECT_ROOTS, new MyAndroidPlatformListener(project));
-
-  private class MyAndroidPlatformListener implements ModuleRootListener {
-    private final Map<Module, Sdk> myModule2Sdk = new HashMap<Module, Sdk>();
-    private final Project myProject;
-
-    private MyAndroidPlatformListener(@NotNull Project project) {
-      myProject = project;
-      updateMap();
-    }
-
-    @Override
-    public void rootsChanged(ModuleRootEvent event) {
-      final PsiFile file = myToolWindowForm.getFile();
-      if (file != null) {
-        final Module module = ModuleUtilCore.findModuleForPsiElement(file);
-        if (module != null) {
-          final Sdk prevSdk = myModule2Sdk.get(module);
-          final Sdk newSdk = ModuleRootManager.getInstance(module).getSdk();
-          if (newSdk != null &&
-              (newSdk.getSdkType() instanceof AndroidSdkType || (prevSdk != null && prevSdk.getSdkType() instanceof AndroidSdkType)) &&
-              !newSdk.equals(prevSdk)) {
-            notice(Reason.SDK_CHANGED);
-          }
-        }
-      }
-
-      updateMap();
-    }
-
-    private void updateMap() {
-      myModule2Sdk.clear();
-      for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-        myModule2Sdk.put(module, ModuleRootManager.getInstance(module).getSdk());
-      }
-    }
-  }
-  */
-
   /**
    * Interface which should be implemented by clients interested in resource edits and events that affect resources
    */

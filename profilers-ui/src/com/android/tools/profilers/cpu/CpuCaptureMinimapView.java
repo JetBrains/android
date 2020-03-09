@@ -49,6 +49,8 @@ import org.jetbrains.annotations.NotNull;
  * View for navigating track groups in the {@link CpuCaptureStageView}. Contains CPU Usage chart and enables range-selection.
  */
 public class CpuCaptureMinimapView {
+  private static final int RANGE_SELECTION_DRAG_BAR_HEIGHT = 16;
+
   @NotNull private final JPanel myPanel;
   @NotNull private final JPanel myInnerPanel;
 
@@ -108,6 +110,7 @@ public class CpuCaptureMinimapView {
     // Copy capture range as view range
     RangeSelectionComponent rangeSelectionComponent = new RangeSelectionComponent(model, new Range(model.getSelectionRange()), true);
     rangeSelectionComponent.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
+    rangeSelectionComponent.setDragBarHeight(RANGE_SELECTION_DRAG_BAR_HEIGHT);
     return rangeSelectionComponent;
   }
 

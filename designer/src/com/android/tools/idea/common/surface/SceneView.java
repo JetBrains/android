@@ -30,6 +30,7 @@ import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.uibuilder.surface.layout.PositionableContent;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.ui.JBUI;
@@ -46,7 +47,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * View of a {@link Scene} used in a {@link DesignSurface}.
  */
-public abstract class SceneView {
+public abstract class SceneView extends PositionableContent {
   protected static final Insets NO_MARGIN = JBUI.emptyInsets();
 
   @NotNull private final DesignSurface mySurface;
@@ -56,6 +57,7 @@ public abstract class SceneView {
   private ImmutableList<Layer> myLayersCache;
   @SwingCoordinate private int x;
   @SwingCoordinate private int y;
+  private boolean myAnimated = false;
 
   /**
    * A {@link SceneContext} which offers the rendering and/or picking information for this {@link SceneView}
@@ -99,6 +101,7 @@ public abstract class SceneView {
    * @param dimension optional existing {@link Dimension} instance to be reused. If not null, the values will be set and this instance
    *                  returned.
    */
+  @Override
   @NotNull
   @SwingCoordinate
   public final Dimension getScaledContentSize(@Nullable Dimension dimension) {
@@ -113,30 +116,16 @@ public abstract class SceneView {
     return dimension;
   }
 
-  @NotNull
-  @AndroidDpCoordinate
-  public final Dimension getContentSize() {
-    return getContentSize(null);
-  }
-
-  /**
-   * Returns the current size of the view content, excluding margins. This is the same as {@link #getContentSize()} but accounts for the
-   * current zoom level.
-   */
-  @NotNull
-  @SwingCoordinate
-  public final Dimension getScaledContentSize() {
-    return getScaledContentSize(null);
-  }
-
   /**
    * Returns the margin requested by this {@link SceneView}
    */
+  @Override
   @NotNull
   public Insets getMargin() {
     return NO_MARGIN;
   }
 
+  @Override
   @NotNull
   @AndroidDpCoordinate
   abstract public Dimension getContentSize(@Nullable Dimension dimension);
@@ -206,16 +195,19 @@ public abstract class SceneView {
     return getSceneManager().getSceneScalingFactor();
   }
 
+  @Override
   public final void setLocation(@SwingCoordinate int screenX, @SwingCoordinate int screenY) {
     x = screenX;
     y = screenY;
   }
 
+  @Override
   @SwingCoordinate
   public int getX() {
     return x;
   }
 
+  @Override
   @SwingCoordinate
   public int getY() {
     return y;
@@ -403,5 +395,20 @@ public abstract class SceneView {
     public int getSwingDimension(@AndroidCoordinate int dim) {
       return Coordinates.getSwingDimension(SceneView.this, dim);
     }
+  }
+
+  /**
+   * Sets animated mode of the scene.
+   * @param animated true if the scene is animated, false otherwise.
+   */
+  public void setAnimated(boolean animated) {
+    myAnimated = animated;
+  }
+
+  /**
+   * Returns true if the scene is animated, false otherwise.
+   */
+  public boolean isAnimated() {
+    return myAnimated;
   }
 }

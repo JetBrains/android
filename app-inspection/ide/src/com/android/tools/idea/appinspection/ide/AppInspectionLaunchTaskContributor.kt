@@ -60,6 +60,7 @@ private class AppInspectionLaunchTask(private val module: Module) : LaunchTask {
       LaunchedProcessDescriptor(
         TransportServiceProxy.getDeviceManufacturer(device),
         TransportServiceProxy.getDeviceModel(device),
+        device.serialNumber,
         packageName,
         object : AppInspectionJarCopier {
           private val delegate = TransportFileManager(device, TransportService.getInstance().messageBus)

@@ -25,9 +25,11 @@ import com.android.tools.idea.common.scene.inlineDrawRect
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
+import com.android.tools.idea.naveditor.scene.draw.verifyDrawAction
 import com.android.tools.idea.naveditor.scene.draw.verifyDrawActivity
 import com.android.tools.idea.naveditor.scene.draw.verifyDrawFragment
 import com.android.tools.idea.naveditor.scene.draw.verifyDrawHeader
+import com.android.tools.idea.naveditor.scene.draw.verifyDrawHorizontalAction
 import com.android.tools.idea.naveditor.scene.draw.verifyDrawNestedGraph
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import org.mockito.ArgumentMatchers
@@ -40,8 +42,8 @@ import java.awt.FontMetrics
 import java.awt.Graphics2D
 import java.awt.geom.Rectangle2D
 
-private val SELECTED = Color(0x1886f7)
-private val TEXT = Color(0xa7a7a7)
+private val SELECTED_COLOR = Color(0x1886f7)
+private val TEXT_COLOR = Color(0xa7a7a7)
 private const val HEADER_HEIGHT = 22f
 private const val FRAGMENT_ID = "fragment1"
 private const val ACTIVITY_ID = "activity1"
@@ -49,6 +51,8 @@ private const val NESTED_ID = "nested1"
 
 private const val ACTIVITY_PADDING = 8f
 private const val ACTIVITY_TEXT_HEIGHT = 26f
+
+private val ACTION_COLOR = Color(-0x4d585859, true)
 
 class DecoratorTest : NavTestCase() {
   private lateinit var surface: DesignSurface
@@ -106,7 +110,7 @@ class DecoratorTest : NavTestCase() {
     val headerRect = makeHeaderRectangle(drawRect)
 
     val color = when (drawState) {
-      SceneComponent.DrawState.SELECTED -> SELECTED
+      SceneComponent.DrawState.SELECTED -> SELECTED_COLOR
       else -> null
     }
 
@@ -174,7 +178,7 @@ class DecoratorTest : NavTestCase() {
 
     verifyDecorator(ActivityDecorator, sceneComponent, sceneView.context) { inOrder, g ->
       verifyDrawHeader(inOrder, g, headerRect, surface.scale, ACTIVITY_ID, isStart, hasDeepLink)
-      verifyDrawActivity(inOrder, g, drawRect, imageRect, surface.scale, frameColor(drawState), frameThickness(drawState), TEXT, null)
+      verifyDrawActivity(inOrder, g, drawRect, imageRect, surface.scale, frameColor(drawState), frameThickness(drawState), TEXT_COLOR, null)
     }
   }
 
@@ -227,7 +231,87 @@ class DecoratorTest : NavTestCase() {
 
     verifyDecorator(NavigationDecorator, sceneComponent, sceneView.context) { inOrder, g ->
       verifyDrawHeader(inOrder, g, headerRect, surface.scale, NESTED_ID, isStart, hasDeepLink)
-      verifyDrawNestedGraph(inOrder, g, drawRect, surface.scale, frameColor(drawState), frameThickness(drawState), "Nested Graph", TEXT)
+      verifyDrawNestedGraph(inOrder, g, drawRect, surface.scale, frameColor(drawState), frameThickness(drawState), "Nested Graph",
+                            TEXT_COLOR)
+    }
+  }
+
+  fun testAction() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("fragment1") {
+          action("f1_to_f2", destination = "fragment2")
+        }
+        fragment("fragment2")
+      }
+    }
+    testActionDecorator(model, "f1_to_f2", SceneComponent.DrawState.NORMAL, false)
+  }
+
+  fun testSelectedAction() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("fragment1") {
+          action("f1_to_f2", destination = "fragment2")
+        }
+        fragment("fragment2")
+      }
+    }
+    testActionDecorator(model, "f1_to_f2", SceneComponent.DrawState.SELECTED, false)
+  }
+
+  fun testPopAction() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("fragment1") {
+          action("f1_to_f2", destination = "fragment2", popUpTo = "fragment2")
+        }
+        fragment("fragment2")
+      }
+    }
+    testActionDecorator(model, "f1_to_f2", SceneComponent.DrawState.NORMAL, true)
+  }
+
+  fun testSelfAction() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("fragment1") {
+          action("f1_to_f1", destination = "fragment1")
+        }
+      }
+    }
+    testActionDecorator(model, "f1_to_f1", SceneComponent.DrawState.NORMAL, false)
+  }
+
+  fun testHorizontalAction() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("fragment1")
+        action("root_to_f1", destination = "fragment1")
+      }
+    }
+
+    surface.model = model
+    val sceneView = surface.focusedSceneView!!
+    val sceneComponent = makeSceneComponent("root_to_f1", SceneComponent.DrawState.NORMAL)
+
+    verifyDecorator(ActionDecorator, sceneComponent, sceneView.context) { inOrder, g ->
+      verifyDrawHorizontalAction(inOrder, g, sceneComponent.inlineDrawRect(sceneView).value, sceneView.scale,
+                                 actionColor(SceneComponent.DrawState.NORMAL), false)
+    }
+  }
+
+  private fun testActionDecorator(model: NlModel, id: String, drawState: SceneComponent.DrawState, isPop: Boolean) {
+    surface.model = model
+    val sceneView = surface.focusedSceneView!!
+
+    val sceneComponent = SceneComponent(surface.scene!!, surface.models.first().find(id)!!, Mockito.mock(HitProvider::class.java))
+    if (drawState == SceneComponent.DrawState.SELECTED) {
+      sceneComponent.isSelected = true
+    }
+
+    verifyDecorator(ActionDecorator, sceneComponent, sceneView.context) { inOrder, g ->
+      verifyDrawAction(inOrder, g, actionColor(drawState), isPop)
     }
   }
 
@@ -258,7 +342,7 @@ class DecoratorTest : NavTestCase() {
   }
 
   private fun makeSceneComponent(id: String, state: SceneComponent.DrawState): SceneComponent {
-    val sceneComponent = SceneComponent(surface.scene!!, surface.model!!.find(id)!!, Mockito.mock(HitProvider::class.java))
+    val sceneComponent = SceneComponent(surface.scene!!, surface.models.first().find(id)!!, Mockito.mock(HitProvider::class.java))
 
     sceneComponent.setPosition(40, 40)
     sceneComponent.setSize(80, 120)
@@ -274,8 +358,13 @@ class DecoratorTest : NavTestCase() {
 
   companion object {
     private fun frameColor(state: SceneComponent.DrawState) = when (state) {
-      SceneComponent.DrawState.SELECTED -> SELECTED
-      else -> TEXT
+      SceneComponent.DrawState.SELECTED -> SELECTED_COLOR
+      else -> TEXT_COLOR
+    }
+
+    private fun actionColor(state: SceneComponent.DrawState) = when (state) {
+      SceneComponent.DrawState.SELECTED -> SELECTED_COLOR
+      else -> ACTION_COLOR
     }
 
     private fun frameThickness(state: SceneComponent.DrawState) = when (state) {

@@ -60,9 +60,9 @@ class ViewBindingCircularDependenciesTest {
     // app depends on module1 and module2
     // module1 depends on module2's test sources only
     // module2 depends on module1
-    assertThat(project.hasModule("app")).isTrue()
-    assertThat(project.hasModule("module1")).isTrue()
-    assertThat(project.hasModule("module2")).isTrue()
+    assertThat(projectRule.hasModule("app")).isTrue()
+    assertThat(projectRule.hasModule("module1")).isTrue()
+    assertThat(projectRule.hasModule("module2")).isTrue()
 
     val appScope = fixture.findClass("com.example.circulardependencies.MainActivity").resolveScope
     val module1Scope = fixture.findClass("com.example.module1.MainActivity").resolveScope

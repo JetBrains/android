@@ -15,21 +15,16 @@
  */
 package com.android.tools.idea.mlkit.lightpsi;
 
-import static com.intellij.psi.CommonClassNames.JAVA_UTIL_MAP;
-
 import com.android.tools.idea.mlkit.MlkitModuleService;
-import com.android.tools.idea.mlkit.MlkitUtils;
 import com.android.tools.mlkit.MlkitNames;
 import com.android.tools.mlkit.TensorInfo;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
-import com.intellij.psi.CommonClassNames;
-import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiClassType;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiElementFactory;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifier;
@@ -39,7 +34,6 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
-import com.intellij.psi.util.PropertyUtilBase;
 import java.util.List;
 import org.jetbrains.android.augment.AndroidLightClassBase;
 import org.jetbrains.annotations.NotNull;
@@ -97,17 +91,9 @@ public class MlkitOutputLightClass extends AndroidLightClassBase {
   private PsiMethod buildGetterMethod(TensorInfo tensorInfo) {
     Project project = getProject();
     GlobalSearchScope scope = getResolveScope();
-    PsiType returnType;
-    if (tensorInfo.getFileType() == TensorInfo.FileType.TENSOR_AXIS_LABELS) {
-      final PsiClass mapClass = JavaPsiFacade.getInstance(project).findClass(JAVA_UTIL_MAP, scope);
-      final PsiType key = PsiType.getJavaLangString(PsiManager.getInstance(getProject()), scope);
-      final PsiType value = PsiType.getTypeByName(CommonClassNames.JAVA_LANG_FLOAT, project, scope);
-      returnType = PsiElementFactory.getInstance(project).createType(mapClass, key, value);
-    } else {
-      returnType = PsiType.getTypeByName(CodeUtils.getTypeQualifiedName(tensorInfo), project, scope);
-    }
+    PsiClassType returnType = PsiType.getTypeByName(CodeUtils.getTypeQualifiedName(tensorInfo), project, scope);
 
-    return new LightMethodBuilder(myManager, PropertyUtilBase.suggestGetterName(tensorInfo.getName(), returnType))
+    return new LightMethodBuilder(myManager, MlkitNames.formatGetterName(tensorInfo.getName(), returnType.getClassName()))
       .setMethodReturnType(returnType)
       .addModifiers(PsiModifier.PUBLIC, PsiModifier.FINAL)
       .setContainingClass(this);

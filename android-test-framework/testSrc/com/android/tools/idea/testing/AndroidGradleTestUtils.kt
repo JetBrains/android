@@ -955,10 +955,12 @@ fun <T> GradleSnapshotComparisonTest.openGradleProject(testProjectPath: String, 
 
 /**
  * Re-opens a test project previously opened under the given [name], runs a test [action] and then closes and disposes the project.
+ *
+ * The project's `.idea` directory is not required to exist, however.
  */
 fun <T> GradleSnapshotComparisonTest.reopenGradleProject(name: String, action: (Project) -> T): T {
   val projectPath = File(FileUtil.toSystemDependentName(getBaseTestPath() + "/" + name))
-  val project = ProjectUtil.openProject(projectPath.absolutePath, null, true)!!
+  val project = ProjectUtil.openOrImport(projectPath.absolutePath, null, true)!!
   PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   try {
     return action(project)

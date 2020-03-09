@@ -75,7 +75,7 @@ public class NlEditorTest {
     EditorFixture editor = ideFrame.getEditor()
       .open("app/src/main/res/layout/empty_absolute.xml", EditorFixture.Tab.DESIGN);
     NlEditorFixture layout = editor.getLayoutEditor();
-    DesignSurface surface = (DesignSurface)layout.getSurface().target();
+    DesignSurface surface = layout.getSurface().target();
     Dimension screenViewSize = surface.getFocusedSceneView().getScaledContentSize();
     // Drag components to areas that are safe to click (not out of bounds) and that not overlap to prevent them from overlapping each
     // other and interfering with clicking.

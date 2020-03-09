@@ -25,7 +25,6 @@ import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.getAppThemeName
 import com.android.tools.idea.configurations.getDefaultTheme
-import com.android.tools.idea.npw.ThemeHelper
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.getFolderType
 import com.android.tools.idea.ui.resourcemanager.MANAGER_SUPPORTED_RESOURCES
@@ -186,7 +185,7 @@ class ResourceExplorerViewModel private constructor(
         Function { resourceResolver ->
           ResourceExplorerListViewModelImpl(
             facet,
-            configurationFuture.join(),
+            contextFileForConfiguration,
             resourceResolver,
             filterOptions,
             supportedResourceTypes[resourceTypeIndex],
@@ -441,7 +440,7 @@ private fun getResourceResolver(
 }
 
 /**
- *  Try to get application theme from [ThemeHelper]. And it falls back to the default theme if necessary.
+ *  Try to get application theme from the manifest. And it falls back to the default theme if necessary.
  */
 private fun getApplicationTheme(facet: AndroidFacet): String {
   val module = facet.module

@@ -139,6 +139,13 @@
 
     <!-- Layout Editor specific actions -->
     <group id="Android.Designer.LayoutEditorActions" text="Layout Editor">
+      <action id="Android.Designer.SwitchDesignMode"
+              icon="StudioIcons.LayoutEditor.Toolbar.VIEW_MODE"
+              class="com.android.tools.idea.uibuilder.actions.SwitchDesignModeAction"
+              text="Switch Design Mode"
+              description="Switch the design mode cycling within Design, Blueprint, and Design + Blueprint">
+        <keyboard-shortcut keymap="$default" first-keystroke="B"/>
+      </action>
       <action id="Android.Designer.ToggleDeviceOrientation"
               icon="StudioIcons.LayoutEditor.Toolbar.ROTATE_BUTTON"
               class="com.android.tools.idea.common.actions.ToggleDeviceOrientationAction"

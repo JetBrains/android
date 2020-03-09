@@ -173,6 +173,15 @@ class GenericFileFilterTest {
   }
 
   @Test
+  fun `ignore slashes from progress indicators`() {
+    `when`(localFileSystem.findFileByPathIfCached(ArgumentMatchers.contains("5,678"))).thenReturn(null)
+    getFilterResultAndCheckHighlightPositions("""
+      | [1,234 / 5,678] Doing Something Important
+    """.trimIndent())
+      .checkFileLinks()
+  }
+
+  @Test
   fun `real world case 1`() {
     `when`(localFileSystem.findFileByPathIfCached(ArgumentMatchers.argThat {
       it !in setOf(

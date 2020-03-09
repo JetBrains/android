@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.runconfiguration
 
-import com.android.tools.idea.compose.preview.ComposeLightJavaCodeInsightFixtureTestCase
+import com.android.AndroidProjectTypes
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.execution.Location
 import com.intellij.execution.PsiLocation
@@ -26,15 +26,23 @@ import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.MapDataContext
+import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
+import com.intellij.testFramework.fixtures.TestFixtureBuilder
+import org.jetbrains.android.AndroidTestCase
+import org.jetbrains.android.compose.stubComposableAnnotation
+import org.jetbrains.android.compose.stubPreviewAnnotation
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
-class ComposePreviewRunConfigurationProducerTest : ComposeLightJavaCodeInsightFixtureTestCase() {
+class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
 
   private lateinit var composableFunction: KtNamedFunction
 
   override fun setUp() {
     super.setUp()
     StudioFlags.COMPOSE_PREVIEW_RUN_CONFIGURATION.override(true)
+    StudioFlags.COMPOSE_PREVIEW.override(true)
+    myFixture.stubComposableAnnotation()
+    myFixture.stubPreviewAnnotation()
 
     val file = myFixture.addFileToProject(
       "src/Test.kt",
@@ -54,6 +62,13 @@ class ComposePreviewRunConfigurationProducerTest : ComposeLightJavaCodeInsightFi
   override fun tearDown() {
     super.tearDown()
     StudioFlags.COMPOSE_PREVIEW_RUN_CONFIGURATION.clearOverride()
+    StudioFlags.COMPOSE_PREVIEW.clearOverride()
+  }
+
+  override fun configureAdditionalModules(projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>,
+                                          modules: MutableList<MyAdditionalModuleData>) {
+    super.configureAdditionalModules(projectBuilder, modules)
+    addModuleWithAndroidFacet(projectBuilder, modules, "myLibrary", AndroidProjectTypes.PROJECT_TYPE_LIBRARY)
   }
 
   fun testSetupConfigurationFromContext() {
@@ -73,6 +88,29 @@ class ComposePreviewRunConfigurationProducerTest : ComposeLightJavaCodeInsightFi
       assertEquals("Preview1", configurationFromAnnotation.name)
       assertEquals("TestKt.Preview1", configurationFromAnnotation.composableMethodFqn)
     }
+  }
+
+  fun testSetupConfigurationFromContextLibraryModule() {
+    val modulePath = getAdditionalModulePath("myLibrary")
+
+    val file = myFixture.addFileToProject(
+      "$modulePath/src/main/java/com/example/mylibrary/TestLibraryFile.kt",
+      // language=kotlin
+      """
+        import androidx.ui.tooling.preview.Preview
+        import androidx.compose.Composable
+
+        @Composable
+        @Preview
+        fun Preview1() {
+        }
+      """.trimIndent())
+
+    // We shouldn't be able to produce ComposePreviewRunConfiguration from library modules
+    val composableLibraryModule = PsiTreeUtil.findChildrenOfType(file, KtNamedFunction::class.java).first()
+    val configuration = createConfigurationFromElement(composableLibraryModule)
+    assertEquals(newComposePreviewRunConfiguration().name, configuration.name)
+    assertEquals(newComposePreviewRunConfiguration().composableMethodFqn, configuration.composableMethodFqn)
   }
 
   fun testInvalidContexts() {

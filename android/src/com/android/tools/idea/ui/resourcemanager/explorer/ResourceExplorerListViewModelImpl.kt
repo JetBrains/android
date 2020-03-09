@@ -20,7 +20,6 @@ import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceResolver
 import com.android.resources.ResourceType
 import com.android.tools.idea.actions.OpenStringResourceEditorAction
-import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerListViewModel.UpdateUiReason
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
@@ -48,6 +47,7 @@ import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiBinaryFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.xml.XmlFileImpl
@@ -73,7 +73,6 @@ private const val UNRESOLVED_VALUE = "Could not resolve"
  * to manage resources in the provided [facet].
  *
  * @param facet Starting [AndroidFacet] for the view model.
- * @param configuration The [Configuration] used to obtain Theme Attributes.
  * @param resourceResolver [ResourceResolver] that it's used to obtain most of the information for resources.
  * @param filterOptions The [FilterOptions] that defines the resources to include in [getResourceSections].
  * @param defaultResourceType The initial value of [currentResourceType].
@@ -84,7 +83,7 @@ private const val UNRESOLVED_VALUE = "Could not resolve"
  */
 class ResourceExplorerListViewModelImpl(
   override val facet: AndroidFacet,
-  private val configuration: Configuration?,
+  private val contextFile: VirtualFile?,
   private val resourceResolver: ResourceResolver,
   override val filterOptions: FilterOptions,
   defaultResourceType: ResourceType,
@@ -128,14 +127,14 @@ class ResourceExplorerListViewModelImpl(
         else -> emptyList()
       }
 
-  override val assetPreviewManager: AssetPreviewManager = AssetPreviewManagerImpl(facet, listViewImageCache, resourceResolver)
+  override val assetPreviewManager: AssetPreviewManager = AssetPreviewManagerImpl(facet, listViewImageCache, resourceResolver, contextFile)
 
   /**
    * Doing it this way since otherwise there's a bigger delay to get the high quality image on the screen if there's a low quality image in
    * place (from the cache used for [assetPreviewManager]), among other ui issues.
    */
   override val summaryPreviewManager: AssetPreviewManager by lazy {
-    AssetPreviewManagerImpl(facet, summaryImageCache, resourceResolver)
+    AssetPreviewManagerImpl(facet, summaryImageCache, resourceResolver, contextFile)
   }
 
   override fun clearCacheForCurrentResources() {
@@ -211,8 +210,8 @@ class ResourceExplorerListViewModelImpl(
     if (showAndroidResources) {
       getAndroidResources(forFacet, resourceType, typeFilters)?.let { resources.add(it) }
     }
-    if (showThemeAttributes && configuration != null) {
-      getThemeAttributes(forFacet, resourceType, typeFilters, configuration, resourceResolver)?.let { resources.add(it) }
+    if (showThemeAttributes) {
+      getThemeAttributes(forFacet, resourceType, typeFilters, resourceResolver)?.let { resources.add(it) }
     }
     return resources
   }

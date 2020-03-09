@@ -18,7 +18,7 @@ package com.android.tools.idea.npw.assetstudio.ui;
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.toLowerCamelCase;
 
 import com.android.tools.idea.npw.assetstudio.ActionBarIconGenerator;
-import com.android.tools.idea.npw.assetstudio.DrawableRenderer;
+import com.android.tools.idea.rendering.DrawableRenderer;
 import com.android.tools.idea.npw.assetstudio.IconGenerator;
 import com.android.tools.idea.npw.assetstudio.IconGenerator.Shape;
 import com.android.tools.idea.npw.assetstudio.LauncherLegacyIconGenerator;

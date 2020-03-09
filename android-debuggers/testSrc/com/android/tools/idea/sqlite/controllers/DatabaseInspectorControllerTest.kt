@@ -26,8 +26,8 @@ import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.EmptySqliteResultSet
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
-import com.android.tools.idea.sqlite.databaseConnection.jdbc.JdbcDatabaseConnection
 import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
+import com.android.tools.idea.sqlite.getJdbcDatabaseConnection
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorModel
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorView
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorViewsFactory
@@ -50,7 +50,6 @@ import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.android.tools.idea.testing.runDispatching
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
-import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
@@ -71,7 +70,6 @@ import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
-import java.sql.DriverManager
 import java.util.concurrent.Executor
 import javax.swing.JComponent
 
@@ -766,13 +764,5 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     // Verify
     verify(mockSqliteView).removeDatabaseSchema(sqliteDatabase)
     verify(mockSqliteView).addDatabaseSchema(sqliteDatabase, SqliteSchema(listOf(testSqliteTable)), 0)
-  }
-
-  private fun getJdbcDatabaseConnection(sqliteFile: VirtualFile, executor: FutureCallbackExecutor): ListenableFuture<DatabaseConnection> {
-    return executor.executeAsync {
-      val url = "jdbc:sqlite:${sqliteFile.path}"
-      val connection = DriverManager.getConnection(url)
-      return@executeAsync JdbcDatabaseConnection(connection, sqliteFile, executor)
-    }
   }
 }

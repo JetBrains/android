@@ -28,7 +28,7 @@ import com.android.tools.adtui.LabelWithEditButton;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
-import com.android.tools.idea.npw.FormFactor;
+import com.android.tools.idea.device.FormFactor;
 import com.android.tools.idea.npw.model.NewAndroidModuleModel;
 import com.android.tools.idea.npw.model.RenderTemplateModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;

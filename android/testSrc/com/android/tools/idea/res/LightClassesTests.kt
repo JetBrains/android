@@ -1447,8 +1447,8 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
 class NonTransitiveTestRClassesTest : TestRClassesTest() {
   override fun modifyGradleFiles(projectRoot: File) {
     super.modifyGradleFiles(projectRoot)
-    File(projectRoot, "app/gradle.properties").appendText("android.namespacedRClass=true")
-    File(projectRoot, "lib/gradle.properties").appendText("android.namespacedRClass=true")
+    File(projectRoot, "app/gradle.properties").appendText("android.nonTransitiveRClass=true")
+    File(projectRoot, "lib/gradle.properties").appendText("android.nonTransitiveRClass=true")
   }
 
   fun testAppTestResources() {

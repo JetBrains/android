@@ -29,6 +29,7 @@ import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.profilers.FakeTraceParser;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.cpu.BaseCpuCapture;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
@@ -85,9 +86,9 @@ public class CaptureModelTest {
                                                            .put(info, root)
                                                            .build(), true);
 
-    CpuCapture globalOnlyCapture = new CpuCapture(globalOnlyClockSupported, 200, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
-    CpuCapture dualCapture1 = new CpuCapture(dualClockSupported, 200, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
-    CpuCapture dualCapture2 = new CpuCapture(dualClockSupported, 200, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
+    CpuCapture globalOnlyCapture = new BaseCpuCapture(globalOnlyClockSupported, 200, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
+    CpuCapture dualCapture1 = new BaseCpuCapture(dualClockSupported, 200, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
+    CpuCapture dualCapture2 = new BaseCpuCapture(dualClockSupported, 200, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
     myModel.setCapture(globalOnlyCapture);
     assertThat(myModel.getClockType()).isEqualTo(ClockType.GLOBAL);
     myModel.setClockType(ClockType.THREAD);

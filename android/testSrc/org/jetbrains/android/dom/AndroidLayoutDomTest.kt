@@ -12,7 +12,6 @@ import com.android.tools.idea.lint.common.LintExternalAnnotator
 import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.res.addBinaryAarDependency
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
-import com.android.tools.idea.templates.TemplateUtils.camelCaseToUnderlines
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.testing.moveCaret

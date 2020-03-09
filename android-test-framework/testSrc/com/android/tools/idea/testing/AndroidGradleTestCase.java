@@ -378,6 +378,10 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     return TestModuleUtil.findModule(getProject(), moduleName);
   }
 
+  protected boolean hasModule(@NotNull String moduleName) {
+    return TestModuleUtil.hasModule(getProject(), moduleName);
+  }
+
   protected void requestSyncAndWait(@NotNull GradleSyncInvoker.Request request) throws Exception {
     TestGradleSyncListener syncListener = requestSync(request);
     AndroidGradleTests.checkSyncStatus(syncListener);

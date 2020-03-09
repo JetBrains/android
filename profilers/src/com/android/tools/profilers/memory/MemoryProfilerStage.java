@@ -16,6 +16,7 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.model.AspectModel;
+import com.android.tools.adtui.model.ConditionalEnumComboBoxModel;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.DurationDataModel;
 import com.android.tools.adtui.model.EaseOutModel;
@@ -46,7 +47,9 @@ import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Memory.AllocationsInfo;
 import com.android.tools.profiler.proto.Memory.MemoryAllocSamplingData;
 import com.android.tools.profiler.proto.MemoryProfiler.ForceGarbageCollectionRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.ForceGarbageCollectionResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.SetAllocationSamplingRateRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.SetAllocationSamplingRateResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpResponse;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
@@ -61,9 +64,9 @@ import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.analytics.FilterMetadata;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
-import com.android.tools.profilers.memory.adapters.ClassSet;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
 import com.android.tools.profilers.memory.adapters.FieldObject;
-import com.android.tools.profilers.memory.adapters.HeapSet;
+import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
@@ -73,12 +76,14 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.util.containers.ContainerUtil;
 import io.grpc.StatusRuntimeException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CancellationException;
@@ -86,7 +91,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -111,6 +115,7 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
   private final MemoryStageLegends myLegends;
   private final MemoryStageLegends myTooltipLegends;
   private final EaseOutModel myInstructionsEaseOutModel;
+  private final ConditionalEnumComboBoxModel<MemoryProfilerConfiguration.ClassGrouping> myClassGroupingModel;
 
   /**
    * Whether the stage only contains heap dump data imported from hprof file
@@ -179,11 +184,11 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
                                    mySessionData.getPid(),
                                    Common.Event.Kind.MEMORY_GC,
                                    UnifiedEventDataSeries.DEFAULT_GROUP_ID,
-                                   events -> events.stream()
-                                     .map(evt -> new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(evt.getTimestamp()),
-                                                                  new GcDurationData(
-                                                                    TimeUnit.NANOSECONDS.toMicros(evt.getMemoryGc().getDuration()))))
-                                     .collect(Collectors.toList())) :
+                                   events -> ContainerUtil
+                                     .map(events, evt -> new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(evt.getTimestamp()),
+                                                                          new GcDurationData(
+                                                                            TimeUnit.NANOSECONDS
+                                                                              .toMicros(evt.getMemoryGc().getDuration()))))) :
       new LegacyGcStatsDataSeries(myClient, mySessionData);
     myGcStatsModel = new DurationDataModel<>(new RangedSeries<>(viewRange, gcSeries));
     myAllocationSamplingRateDataSeries =
@@ -267,6 +272,13 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
         .getInt(LIVE_ALLOCATION_SAMPLING_PREF, DEFAULT_LIVE_ALLOCATION_SAMPLING_MODE.getValue())
     );
     myAllocationSamplingRateUpdatable.update(0);
+
+    myClassGroupingModel = new ConditionalEnumComboBoxModel<>(MemoryProfilerConfiguration.ClassGrouping.class, (grouping) -> {
+      if (getSelectedCapture() != null) {
+        return getSelectedCapture().isGroupingSupported(grouping);
+      }
+      return true;
+    });
   }
 
   public boolean hasUserUsedMemoryCapture() {
@@ -304,7 +316,7 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
   }
 
   private void forEachUpdatable(Consumer<Updatable> f) {
-    for (Updatable u: new Updatable[] {
+    for (Updatable u : new Updatable[]{
       myDetailedMemoryUsage,
       myHeapDumpDurations,
       myAllocationDurations,
@@ -317,6 +329,11 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
     }) {
       f.accept(u);
     }
+  }
+
+  @NotNull
+  public ConditionalEnumComboBoxModel<MemoryProfilerConfiguration.ClassGrouping> getClassGroupingModel() {
+    return myClassGroupingModel;
   }
 
   @NotNull
@@ -446,7 +463,7 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
         myPendingCaptureStartTime = status.getStartTime();
         break;
       case IN_PROGRESS:
-        getLogger().debug(String.format("A heap dump for %d is already in progress.", mySessionData.getPid()));
+        getLogger().debug(String.format(Locale.getDefault(), "A heap dump for %d is already in progress.", mySessionData.getPid()));
         break;
       case UNSPECIFIED:
       case NOT_PROFILING:
@@ -458,7 +475,8 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
 
   public void forceGarbageCollection() {
     if (getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
-      getStudioProfilers().getClient().getTransportClient().execute(
+      // TODO(b/150503095)
+      Transport.ExecuteResponse response = getStudioProfilers().getClient().getTransportClient().execute(
         Transport.ExecuteRequest.newBuilder()
           .setCommand(Commands.Command.newBuilder()
                         .setStreamId(mySessionData.getStreamId())
@@ -467,7 +485,9 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
           .build());
     }
     else {
-      myClient.forceGarbageCollection(ForceGarbageCollectionRequest.newBuilder().setSession(mySessionData).build());
+      // TODO(b/150503095)
+      ForceGarbageCollectionResponse response =
+          myClient.forceGarbageCollection(ForceGarbageCollectionRequest.newBuilder().setSession(mySessionData).build());
     }
   }
 
@@ -675,6 +695,7 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
       setProfilerMode(ProfilerMode.NORMAL);
       return;
     }
+    getClassGroupingModel().update();
 
     // Synchronize selection with the capture object. Do so only if the capture object is not ongoing.
     if (durationData != null && durationData.getDurationUs() != Long.MAX_VALUE) {
@@ -770,7 +791,8 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
       MemoryAllocSamplingData samplingRate = MemoryAllocSamplingData.newBuilder().setSamplingNumInterval(mode.getValue()).build();
 
       if (getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
-        getStudioProfilers().getClient().getTransportClient().execute(
+        // TODO(b/150503095)
+        Transport.ExecuteResponse response = getStudioProfilers().getClient().getTransportClient().execute(
           Transport.ExecuteRequest.newBuilder().setCommand(Commands.Command.newBuilder()
                                                              .setStreamId(mySessionData.getStreamId())
                                                              .setPid(mySessionData.getPid())
@@ -779,10 +801,12 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
             .build());
       }
       else {
-        getStudioProfilers().getClient().getMemoryClient().setAllocationSamplingRate(SetAllocationSamplingRateRequest.newBuilder()
-                                                                                       .setSession(mySessionData)
-                                                                                       .setSamplingRate(samplingRate)
-                                                                                       .build());
+        // TODO(b/150503095)
+        SetAllocationSamplingRateResponse response =
+            getStudioProfilers().getClient().getMemoryClient().setAllocationSamplingRate(SetAllocationSamplingRateRequest.newBuilder()
+                                                                                         .setSession(mySessionData)
+                                                                                         .setSamplingRate(samplingRate)
+                                                                                         .build());
       }
     }
     catch (StatusRuntimeException e) {

@@ -20,7 +20,7 @@ import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.actions.NewAndroidComponentAction
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.model.AndroidModel
-import com.android.tools.idea.npw.FormFactor
+import com.android.tools.idea.device.FormFactor
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.model.ProjectSyncInvoker.DefaultProjectSyncInvoker
 import com.android.tools.idea.npw.model.RenderTemplateModel
@@ -35,6 +35,7 @@ import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.android.tools.idea.wizard.template.Category
+import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.WizardUiContext
 import com.google.common.collect.Table
 import com.google.common.collect.TreeBasedTable
@@ -49,7 +50,6 @@ import com.intellij.openapi.actionSystem.LangDataKeys
 import icons.AndroidIcons
 import org.jetbrains.android.util.AndroidBundle.message
 import org.jetbrains.annotations.PropertyKey
-import com.android.tools.idea.wizard.template.Template
 
 /**
  * Handles locating templates and providing template metadata
@@ -135,6 +135,13 @@ class TemplateManager private constructor() {
       val actionId = ACTION_ID_PREFIX + category + templateName
       am.replaceAction(actionId, templateAction)
       categoryGroup.add(templateAction)
+    }
+
+    val providers = AdditionalTemplateActionsProvider.EP_NAME.extensionList
+    for (provider in providers) {
+      for (anAction in provider.getAdditionalActions(category)) {
+        categoryGroup.add(anAction)
+      }
     }
   }
 

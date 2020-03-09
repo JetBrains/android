@@ -24,6 +24,7 @@
     <java.elementFinder implementation="com.android.tools.idea.databinding.finders.DataBindingComponentClassFinder" id="dataBinding.ComponentClassFinder" order="first, before java"/>
     <java.elementFinder implementation="com.android.tools.idea.databinding.finders.LayoutBindingPackageFinder" id="dataBinding.DataBindingPackageFinder" order="last, after java"/>
     <applicationService serviceImplementation="com.android.tools.idea.databinding.DataBindingModeTrackingService" />
+    <applicationService serviceImplementation="com.android.tools.idea.databinding.ViewBindingEnabledTrackingService" />
     <automaticRenamerFactory implementation="com.android.tools.idea.databinding.renamer.DataBindingRenamerFactory"/>
     <moduleService serviceImplementation="com.android.tools.idea.databinding.module.ModuleDataBinding" />
     <xml.elementDescriptorProvider implementation="com.android.tools.idea.databinding.xml.DataBindingDomElementDescriptorProvider" order="first"/>
@@ -43,6 +44,6 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea">
-    <databinding.dataBindingSupport implementation="com.android.tools.idea.databinding.DataBindingSupportImpl"/>
+    <databinding.layoutBindingSupport implementation="com.android.tools.idea.databinding.LayoutBindingSupportImpl"/>
   </extensions>
 </idea-plugin>

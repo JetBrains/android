@@ -19,7 +19,7 @@ import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.observable.AbstractProperty
 import com.android.tools.idea.observable.ui.SelectedItemProperty
 import com.intellij.openapi.ui.ComboBox
-import com.intellij.ui.ListCellRendererWrapper
+import com.intellij.ui.SimpleListCellRenderer
 import org.jetbrains.android.util.AndroidBundle.message
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JList
@@ -29,9 +29,9 @@ import javax.swing.JList
  */
 class LanguageComboProvider : ComponentProvider<ComboBox<*>>() {
   override fun createComponent(): ComboBox<Language> = ComboBox(DefaultComboBoxModel(Language.values())).apply {
-    renderer = object : ListCellRendererWrapper<Language>() {
-      override fun customize(list: JList<*>, value: Language?, index: Int, selected: Boolean, hasFocus: Boolean) {
-        setText(value?.toString() ?: message("android.wizard.language.combo.empty"))
+    renderer = object : SimpleListCellRenderer<Language>() {
+      override fun customize(list: JList<out Language>, value: Language?, index: Int, selected: Boolean, hasFocus: Boolean) {
+        text = value.toString()
       }
     }
     toolTipText = message("android.wizard.language.combo.tooltip")

@@ -31,6 +31,7 @@ import com.android.tools.idea.templates.KeystoreUtils.getOrCreateDefaultDebugKey
 import com.android.tools.idea.templates.KeystoreUtils.sha1
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.template.ApiTemplateData
+import com.android.tools.idea.wizard.template.ApiVersion
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
@@ -232,11 +233,12 @@ internal fun getDefaultModuleState(project: Project): ModuleTemplateDataBuilder 
     formFactor = FormFactor.Mobile // FIXME
     themesData = ThemesData()
     apis = ApiTemplateData(
-      minApi = AndroidVersion.VersionCodes.M.toString(),
-      minApiLevel = AndroidVersion.VersionCodes.M,
+      buildApi = ApiVersion(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API, SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString()),
+      targetApi = ApiVersion(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API, SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString()),
+      minApi = ApiVersion(AndroidVersion.VersionCodes.M, AndroidVersion.VersionCodes.M.toString()),
+      // The highest supported/recommended appCompact version is P(28)
       appCompatVersion = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.coerceAtMost(AndroidVersion.VersionCodes.P),
-      buildApiString = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
-      targetApi = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
+      buildApiRevision = null
     )
   }
 }

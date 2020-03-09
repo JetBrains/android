@@ -58,7 +58,7 @@ internal class FindReferencesRecipeExecutor(private val context: RenderingContex
     context.classpathEntries.add(mavenCoordinate)
   }
 
-  override fun addDependency(mavenCoordinate: String, configuration: String, minRev: String?, moduleDir: File?) {
+  override fun addDependency(mavenCoordinate: String, configuration: String, minRev: String?, moduleDir: File?, toBase: Boolean) {
     context.dependencies.put(configuration, mavenCoordinate)
   }
 

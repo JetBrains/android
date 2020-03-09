@@ -44,7 +44,7 @@ fun CodeInsightTestFixture.stubPreviewAnnotation() {
       val widthDp: Int = -1,
       val heightDp: Int = -1,
       val fontScale: Float = 1f,
-      val showDecorations: Boolean = false,
+      val showDecoration: Boolean = false,
       val showBackground: Boolean = false
     )
     """.trimIndent()

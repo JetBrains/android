@@ -15,18 +15,32 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.when;
+
 import com.android.testutils.VirtualTimeScheduler;
 import com.android.tools.adtui.imagediff.ImageDiffUtil;
-import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.imagepool.ImagePoolFactory;
-import com.intellij.mock.MockApplicationEx;
+import com.intellij.mock.MockApplication;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Ref;
 import com.intellij.ui.scale.ScaleContext;
 import com.intellij.util.ui.UIUtil;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.Shape;
+import java.awt.image.BufferedImage;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
@@ -34,15 +48,6 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.util.concurrent.TimeUnit;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.when;
 
 public class ScreenViewLayerTest {
 
@@ -57,7 +62,7 @@ public class ScreenViewLayerTest {
 
   @Before
   public void setUp() {
-    MockApplicationEx instance = new MockApplicationEx(myDisposable);
+    MockApplication instance = new MockApplication(myDisposable);
     ApplicationManager.setApplication(instance, myDisposable);
   }
 
