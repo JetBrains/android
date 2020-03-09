@@ -26,7 +26,7 @@ import org.mockito.Mockito
 class NativeCallStackSetTest {
   @Test
   fun subClassifierIsDefault() {
-    val callstackSet = NativeCallStackSet("Test", 0)
+    val callstackSet = NativeCallStackSet(Memory.AllocationStack.StackFrame.getDefaultInstance(), 0)
     assertThat(callstackSet.createSubClassifier()).isInstanceOf(
       NativeFunctionClassifier::class.java)
   }
