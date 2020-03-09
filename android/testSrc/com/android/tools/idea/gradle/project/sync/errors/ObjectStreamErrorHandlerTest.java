@@ -24,6 +24,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 
 import com.google.common.collect.ImmutableList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.registerSyncErrorToSimulate;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
@@ -50,9 +51,11 @@ public class ObjectStreamErrorHandlerTest extends AndroidGradleTestCase {
 
     GradleSyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
     assertNotNull(notificationUpdate);
-    assertThat(notificationUpdate.getText()).contains(
-      "An unexpected I/O error occurred.\n" +
-      "The error, \"unexpected end of block data\" usually happens on Linux when Build-tools or an Android platform being used in a project is not installed.\n");
+    // Unfortunately, due to intellijs internals that stack trace gets appended to the message when in unit tests. To get around this we
+    // test for parts of the error message that we expect to be present.
+    assertThat(notificationUpdate.getText()).contains("An unexpected I/O error occurred");
+    assertThat(notificationUpdate.getText()).contains("unexpected end of block data");
+    assertThat(notificationUpdate.getText()).contains("usually happens on Linux when Build-tools or an Android platform being used in a project is not installed");
 
     // Verify hyperlinks are correct.
     List<NotificationHyperlink> quickFixes = notificationUpdate.getFixes();

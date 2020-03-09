@@ -26,23 +26,17 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 
 public class SimulatedSyncErrors {
-  private static Key<ExternalSystemException> SIMULATED_ERROR_KEY = Key.create("com.android.tools.idea.gradle.sync.simulated.errors");
+  private static Key<RuntimeException> SIMULATED_ERROR_KEY = Key.create("com.android.tools.idea.gradle.sync.simulated.errors");
 
   private SimulatedSyncErrors() {
   }
 
-  public static void registerNullMessageSyncErrorToSimulate() {
-    registerSyncErrorToSimulate(new Throwable());
-  }
-
   public static void registerSyncErrorToSimulate(@NotNull String errorMessage) {
-    registerSyncErrorToSimulate(new Throwable(errorMessage));
+    registerSyncErrorToSimulate(new RuntimeException(errorMessage));
   }
 
-  public static void registerSyncErrorToSimulate(@NotNull Throwable cause) {
+  public static void registerSyncErrorToSimulate(@NotNull RuntimeException exception) {
     verifyIsTestMode();
-    ExternalSystemException exception = new ExternalSystemException(cause.getMessage());
-    exception.initCause(cause);
     store(exception);
   }
 
@@ -57,13 +51,13 @@ public class SimulatedSyncErrors {
     store(exception);
   }
 
-  private static void store(@NotNull ExternalSystemException exception) {
+  private static void store(@NotNull RuntimeException exception) {
     ApplicationManager.getApplication().putUserData(SIMULATED_ERROR_KEY, exception);
   }
 
   public static void simulateRegisteredSyncError() {
     Application application = ApplicationManager.getApplication();
-    ExternalSystemException error = application.getUserData(SIMULATED_ERROR_KEY);
+    RuntimeException error = application.getUserData(SIMULATED_ERROR_KEY);
     if (error != null) {
       verifyIsTestMode();
       application.putUserData(SIMULATED_ERROR_KEY, null);

@@ -67,7 +67,7 @@ public class ClassLoadingErrorHandlerTest extends AndroidGradleTestCase {
 
   private void assertErrorAndHyperlinksDisplayed(@NotNull Throwable cause, @Nullable AndroidStudioEvent.GradleSyncFailure syncFailure)
     throws Exception {
-    registerSyncErrorToSimulate(cause);
+    registerSyncErrorToSimulate(new RuntimeException(cause));
 
     loadProjectAndExpectSyncError(SIMPLE_APPLICATION);
 

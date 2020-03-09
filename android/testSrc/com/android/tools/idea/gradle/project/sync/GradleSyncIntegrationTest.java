@@ -902,7 +902,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     loadSimpleApplication();
     SyncViewManager viewManager = mock(SyncViewManager.class);
     new IdeComponents(getProject()).replaceProjectService(SyncViewManager.class, viewManager);
-    SimulatedSyncErrors.registerSyncErrorToSimulate(new Throwable("Fake sync error"));
+    SimulatedSyncErrors.registerSyncErrorToSimulate(new RuntimeException("Fake sync error"));
 
     requestSyncAndGetExpectedFailure();
 
@@ -917,7 +917,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     FinishBuildEvent event = (FinishBuildEvent)events.get(2);
     FailureResult failureResult = (FailureResult)event.getResult();
     assertThat(failureResult.getFailures()).isNotEmpty();
-    assertThat(failureResult.getFailures().get(0).getMessage()).isEqualTo("Fake sync error");
+    assertThat(failureResult.getFailures().get(0).getMessage()).contains("Fake sync error");
   }
 
   public void testUnresolvedDependency() throws IOException {
