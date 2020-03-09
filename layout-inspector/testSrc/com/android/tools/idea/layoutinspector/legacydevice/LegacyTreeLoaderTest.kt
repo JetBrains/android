@@ -29,7 +29,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatcher
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyBoolean
@@ -37,7 +36,6 @@ import org.mockito.ArgumentMatchers.argThat
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.verify
 import java.nio.ByteBuffer
 
 class LegacyTreeLoaderTest {
