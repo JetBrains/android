@@ -59,7 +59,6 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   private static final String NAME = "TFLite Model File";
   private static final String HTML_TABLE_STYLE = "<style>\n" +
                                                  "table {\n" +
-                                                 "  font-family: arial, sans-serif;\n" +
                                                  "  border-collapse: collapse;\n" +
                                                  "  width: 60%;\n" +
                                                  "}\n" +
@@ -184,6 +183,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     String html = "<html><head>" + HTML_TABLE_STYLE + "</head><body>" + bodyContent + "</body></html>";
     pane.setContentType("text/html");
     pane.setEditable(false);
+    pane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
     pane.setText(html);
     pane.setBackground(UIUtil.getTextFieldBackground());
   }
