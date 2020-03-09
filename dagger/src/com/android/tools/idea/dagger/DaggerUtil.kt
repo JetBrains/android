@@ -15,7 +15,13 @@
  */
 package com.android.tools.idea.dagger
 
+import com.android.tools.idea.AndroidPsiUtils.toPsiType
+import com.android.tools.idea.kotlin.psiType
+import com.android.tools.idea.kotlin.toPsiType
+import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.projectsystem.getResolveScope
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.roots.ProjectRootModificationTracker
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
@@ -40,6 +46,7 @@ import org.jetbrains.kotlin.psi.KtConstructor
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.psiUtil.containingClass
 
 const val DAGGER_MODULE_ANNOTATION = "dagger.Module"
 const val DAGGER_PROVIDES_ANNOTATION = "dagger.Provides"
@@ -57,10 +64,28 @@ private fun getDaggerModules(scope: GlobalSearchScope): Query<PsiClass> {
 /**
  * Returns all Dagger providers (@Provide/@Binds-annotated methods, @Inject-annotated constructors) for given [type] within given [scope].
  */
-fun getDaggerProvidersForType(type: PsiType, scope: GlobalSearchScope): Collection<PsiMethod> {
+private fun getDaggerProvidersForType(type: PsiType, scope: GlobalSearchScope): Collection<PsiMethod> {
   return getDaggerProvidesMethodsForType(type, scope) +
          getDaggerBindsMethodsForType(type, scope) +
          getDaggerInjectedConstructorsForType(type, scope)
+}
+
+/**
+ * Returns all Dagger providers (@Provide/@Binds-annotated methods, @Inject-annotated constructors) for [element].
+ */
+fun getDaggerProvidersFor(element: PsiElement): Collection<PsiMethod> {
+  val type: PsiType =
+    when (element) {
+      is PsiField -> element.type
+      is KtProperty -> element.psiType
+      is PsiParameter -> element.type
+      is KtParameter -> element.psiType
+      else -> null
+    } ?: return emptyList()
+
+  val scope = ModuleUtil.findModuleForPsiElement(element)?.getModuleSystem()?.getResolveScope(element) ?: return emptyList()
+
+  return getDaggerProvidersForType(type, scope)
 }
 
 /**
@@ -84,8 +109,23 @@ private fun getParamsOfDaggerProvidersForType(type: PsiType, scope: GlobalSearch
 /**
  * Returns all Dagger consumers (see [isDaggerConsumer]) for given [type] within given [scope].
  */
-fun getDaggerConsumersForType(type: PsiType, scope: GlobalSearchScope): Collection<PsiVariable> {
+private fun getDaggerConsumersForType(type: PsiType, scope: GlobalSearchScope): Collection<PsiVariable> {
   return getInjectedFieldsForType(type, scope) + getParamsOfDaggerProvidersForType(type, scope)
+}
+
+/**
+ * Returns all Dagger consumers (see [isDaggerConsumer]) for given [element].
+ */
+fun getDaggerConsumersFor(element: PsiElement): Collection<PsiVariable> {
+  val type: PsiType =
+    when (element) {
+      is PsiMethod -> if (element.isConstructor) element.containingClass?.let { toPsiType(it) } else element.returnType
+      is KtFunction -> if (element is KtConstructor<*>) element.containingClass()?.toPsiType() else element.psiType
+      else -> null
+    } ?: return emptyList()
+
+  val scope = ModuleUtil.findModuleForPsiElement(element)?.getModuleSystem()?.getResolveScope(element) ?: return emptyList()
+  return getDaggerConsumersForType(type, scope)
 }
 
 /**

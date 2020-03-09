@@ -15,13 +15,10 @@
  */
 package com.android.tools.idea.dagger
 
-import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.projectsystem.getResolveScope
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.TruthJUnit.assume
 import com.intellij.ide.highlighter.JavaFileType
-import com.intellij.openapi.module.ModuleUtil
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiParameter
@@ -31,13 +28,11 @@ import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
-import org.jetbrains.uast.kotlin.KotlinUField
-import org.jetbrains.uast.toUElement
 
 class DaggerUtilTest : DaggerTestCase() {
 
   private fun getProvidersForInjectedField_kotlin(fieldType: String): Collection<PsiMethod> {
-    val kotlinFile = myFixture.configureByText(
+    myFixture.configureByText(
       KotlinFileType.INSTANCE,
       //language=kotlin
       """
@@ -49,14 +44,11 @@ class DaggerUtilTest : DaggerTestCase() {
       """.trimIndent()
     )
 
-    val type = (myFixture.moveCaret("injectedF|ield").parentOfType<KtProperty>()?.toUElement() as? KotlinUField)?.getType()
-    assume().that(type).isNotNull()
-    val scope = myFixture.module.getModuleSystem().getResolveScope(kotlinFile.virtualFile)
-    return getDaggerProvidersForType(type!!, scope)
+    return getDaggerProvidersFor(myFixture.moveCaret("injectedF|ield").parentOfType<KtProperty>()!!)
   }
 
   private fun getProvidersForInjectedField(fieldType: String): Collection<PsiMethod> {
-    val file = myFixture.configureByText(
+    myFixture.configureByText(
       //language=JAVA
       JavaFileType.INSTANCE,
       """
@@ -67,10 +59,7 @@ class DaggerUtilTest : DaggerTestCase() {
         }
       """.trimIndent()
     )
-    val type = myFixture.moveCaret("injected|Field").parentOfType<PsiField>()?.type
-    assume().that(type).isNotNull()
-    val scope = myFixture.module.getModuleSystem().getResolveScope(file.virtualFile)
-    return getDaggerProvidersForType(type!!, scope)
+    return getDaggerProvidersFor(myFixture.moveCaret("injected|Field").parentOfType<PsiField>()!!)
   }
 
   fun testIsConsumerForInjectField() {
@@ -473,11 +462,7 @@ class DaggerUtilTest : DaggerTestCase() {
       """.trimIndent()
     )
 
-    val element = myFixture.moveCaret("consum|er")
-    val type = (element.parentOfType<KtParameter>()?.toUElement() as? PsiParameter)?.type
-    assume().that(type).isNotNull()
-    val scope = ModuleUtil.findModuleForPsiElement(element)?.getModuleSystem()?.getResolveScope(element)
-    val providers = getDaggerProvidersForType(type!!, scope!!)
+    val providers = getDaggerProvidersFor(myFixture.moveCaret("consum|er").parentOfType<KtParameter>()!!)
     assertThat(providers).hasSize(1)
     assertThat(providers.first()).isEqualTo(provider)
   }

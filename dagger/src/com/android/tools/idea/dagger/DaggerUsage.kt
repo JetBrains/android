@@ -16,21 +16,11 @@
 package com.android.tools.idea.dagger
 
 import com.android.annotations.concurrency.WorkerThread
-import com.android.tools.idea.AndroidPsiUtils.toPsiType
 import com.android.tools.idea.flags.StudioFlags.DAGGER_SUPPORT_ENABLED
-import com.android.tools.idea.kotlin.psiType
-import com.android.tools.idea.kotlin.toPsiType
-import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.projectsystem.getResolveScope
 import com.intellij.find.findUsages.CustomUsageSearcher
 import com.intellij.find.findUsages.FindUsagesOptions
 import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.module.ModuleUtil
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiField
-import com.intellij.psi.PsiMethod
-import com.intellij.psi.PsiParameter
-import com.intellij.psi.PsiType
 import com.intellij.usageView.UsageInfo
 import com.intellij.usages.Usage
 import com.intellij.usages.UsageInfo2UsageAdapter
@@ -38,11 +28,6 @@ import com.intellij.usages.impl.rules.UsageType
 import com.intellij.usages.impl.rules.UsageTypeProvider
 import com.intellij.util.Processor
 import org.jetbrains.kotlin.idea.util.module
-import org.jetbrains.kotlin.psi.KtConstructor
-import org.jetbrains.kotlin.psi.KtFunction
-import org.jetbrains.kotlin.psi.KtParameter
-import org.jetbrains.kotlin.psi.KtProperty
-import org.jetbrains.kotlin.psi.psiUtil.containingClass
 
 private val PROVIDED_BY_DAGGER = UsageType("Provided by Dagger")
 private val CONSUMED_BY_DAGGER = UsageType("Consumed by Dagger")
@@ -90,18 +75,7 @@ class DaggerCustomUsageSearcher : CustomUsageSearcher() {
    */
   @WorkerThread
   private fun processProviders(element: PsiElement, processor: Processor<Usage>) {
-    val type: PsiType =
-      when (element) {
-        is PsiField -> element.type
-        is KtProperty -> element.psiType
-        is PsiParameter -> element.type
-        is KtParameter -> element.psiType
-        else -> null
-      } ?: return
-
-    val scope = ModuleUtil.findModuleForPsiElement(element)?.getModuleSystem()?.getResolveScope(element) ?: return
-
-    getDaggerProvidersForType(type, scope).forEach {
+    getDaggerProvidersFor(element).forEach {
       val info = UsageInfo(it)
       processor.process(UsageInfo2UsageAdapter(info))
     }
@@ -112,16 +86,7 @@ class DaggerCustomUsageSearcher : CustomUsageSearcher() {
    */
   @WorkerThread
   private fun processConsumers(element: PsiElement, processor: Processor<Usage>) {
-    val type: PsiType =
-      when (element) {
-        is PsiMethod -> if (element.isConstructor) element.containingClass?.let { toPsiType(it) } else element.returnType
-        is KtFunction -> if (element is KtConstructor<*>) element.containingClass()?.toPsiType() else element.psiType
-        else -> null
-      } ?: return
-
-    val scope = ModuleUtil.findModuleForPsiElement(element)?.getModuleSystem()?.getResolveScope(element) ?: return
-
-    getDaggerConsumersForType(type, scope).forEach {
+    getDaggerConsumersFor(element).forEach {
       val info = UsageInfo(it)
       processor.process(UsageInfo2UsageAdapter(info))
     }
