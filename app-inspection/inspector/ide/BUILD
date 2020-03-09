@@ -11,5 +11,6 @@ iml_module(
         "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/adt/idea/app-inspection/inspector/api:intellij.android.app-inspection.inspector.api[module]",
         "//tools/idea/platform/extensions:intellij.platform.extensions[module]",
+        "//tools/idea/platform/core-api:intellij.platform.core[module]",
     ],
 )

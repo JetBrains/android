@@ -22,11 +22,12 @@ import com.android.tools.idea.appinspection.api.ProcessDescriptor
 import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessesComboBoxModel
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.intellij.ide.plugins.newui.HorizontalLayout
+import com.intellij.openapi.project.Project
 import java.awt.BorderLayout
 import java.awt.event.ItemEvent
 import javax.swing.JPanel
 
-class AppInspectionView(private val appInspectionDiscoveryHost: AppInspectionDiscoveryHost) {
+class AppInspectionView(private val project: Project, private val appInspectionDiscoveryHost: AppInspectionDiscoveryHost) {
   val component = JPanel(BorderLayout())
 
   init {
@@ -54,7 +55,7 @@ class AppInspectionView(private val appInspectionDiscoveryHost: AppInspectionDis
       .filter { provider -> provider.isApplicable() }
       .forEach { provider ->
         target.launchInspector(provider.inspectorId, provider.inspectorAgentJar) { messenger ->
-          val tab = provider.createTab(messenger)
+          val tab = provider.createTab(project, messenger)
           tabbedPane.addTab(provider.displayName, tab.component)
           tab.client
         }

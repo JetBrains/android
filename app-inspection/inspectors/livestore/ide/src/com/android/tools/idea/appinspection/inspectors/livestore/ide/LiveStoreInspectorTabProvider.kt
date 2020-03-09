@@ -20,6 +20,7 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTab
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspectors.livestore.model.LiveStoreInspectorClient
+import com.intellij.openapi.project.Project
 import javax.swing.JComponent
 import javax.swing.JPanel
 
@@ -30,7 +31,7 @@ class LiveStoreInspectorTabProvider : AppInspectorTabProvider {
                                                    developmentDirectory = "../../bazel-bin/tools/base/app-inspection/demo/livestore/inspector",
                                                    releaseDirectory = "plugins/android/resources/app-inspection/")
 
-  override fun createTab(messenger: AppInspectorClient.CommandMessenger): AppInspectorTab {
+  override fun createTab(project: Project, messenger: AppInspectorClient.CommandMessenger): AppInspectorTab {
     return object : AppInspectorTab {
       override val client = LiveStoreInspectorClient(messenger)
       override val component: JComponent
