@@ -55,7 +55,7 @@ final class StringsCellRenderer extends FrozenColumnTableCellRenderer {
     }
 
     Font currentFont = table.getFont();
-    Font f = StringResourceEditor.getFont(s, currentFont);
+    Font f = StringResourceEditor.getFont(currentFont);
 
     if (!currentFont.equals(f)) {
       setFont(f);

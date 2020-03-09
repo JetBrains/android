@@ -265,7 +265,7 @@ public final class StringResourceViewPanel implements Disposable {
     // the caret does not appear, so we need to set the caret visibility manually
     component.getCaret().setVisible(editable && component.hasFocus());
 
-    component.setFont(StringResourceEditor.getFont(text, component.getFont()));
+    component.setFont(StringResourceEditor.getFont(component.getFont()));
   }
 
   private class ShowMultilineActionListener implements ActionListener {

@@ -50,7 +50,7 @@ public final class StringResourceEditorTest {
   @Test
   public void getFontScalesFonts() {
     // Act
-    Font font = StringResourceEditor.getFont("", myFont, true);
+    Font font = StringResourceEditor.getFont(myFont);
 
     // Assert
     assertEquals(24, font.getSize());
@@ -62,7 +62,7 @@ public final class StringResourceEditorTest {
     Font font = JBFont.create(myFont);
 
     // Act
-    font = StringResourceEditor.getFont("", font, true);
+    font = StringResourceEditor.getFont(font);
 
     // Assert
     assertEquals(24, font.getSize());
