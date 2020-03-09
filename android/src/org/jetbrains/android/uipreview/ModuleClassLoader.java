@@ -25,19 +25,27 @@ import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.idea.util.FileExtensions;
 import com.android.tools.idea.util.VirtualFileSystemOpener;
+import com.android.utils.SdkUtils;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -59,6 +67,8 @@ public final class ModuleClassLoader extends RenderClassLoader {
   /** Map from fully qualified class name to the corresponding last modified info for each class loaded by this class loader */
   private Map<String, ClassModificationTimestamp> myClassFilesLastModified;
 
+  private final List<URL> mAdditionalLibraries;
+
   private static class ClassModificationTimestamp {
     public final long timestamp;
     public final long length;
@@ -72,8 +82,25 @@ public final class ModuleClassLoader extends RenderClassLoader {
   ModuleClassLoader(@Nullable ClassLoader parent, @NotNull Module module) {
     super(parent);
     myModuleReference = new WeakReference<>(module);
+    mAdditionalLibraries = getAdditionalLibraries();
 
     registerResources(module);
+  }
+
+  @NotNull
+  private static List<URL> getAdditionalLibraries() {
+    String layoutlibDistributionPath = StudioEmbeddedRenderTarget.getEmbeddedLayoutLibPath();
+    if (layoutlibDistributionPath == null) {
+      return Collections.emptyList(); // Error is already logged by getEmbeddedLayoutLibPath
+    }
+
+    String relativeCoroutineLibPath = FileUtil.toSystemIndependentName("data/layoutlib-coroutines.jar");
+    try {
+      return Lists.newArrayList(SdkUtils.fileToUrl(new File(layoutlibDistributionPath, relativeCoroutineLibPath)));
+    } catch (MalformedURLException e) {
+      LOG.error("Failed to find layoutlib-coroutines library", e);
+      return Collections.emptyList();
+    }
   }
 
   @Override
@@ -169,7 +196,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
     // FIXME: While testing this approach, we found an issue on some Windows machine where
     // class loading would be broken. Thus, we limit the fix to the impacted solver classes
     // for now, until we can investigate the problem more in depth on Windows.
-    boolean loadFromProject = name.startsWith("android.support.constraint.solver");
+    boolean loadFromProject = name.startsWith("android.support.constraint.solver") || name.startsWith("kotlinx.coroutines");
     if (loadFromProject) {
       try {
         // Give priority to loading class from this Class Loader.
@@ -367,7 +394,8 @@ public final class ModuleClassLoader extends RenderClassLoader {
   @Override
   @NotNull
   protected List<URL> getExternalJars() {
-    return ClassLoadingUtilsKt.getLibraryDependenciesJars(myModuleReference.get());
+    return Lists.newArrayList(
+      Iterables.concat(mAdditionalLibraries, ClassLoadingUtilsKt.getLibraryDependenciesJars(myModuleReference.get())));
   }
 
   /** Returns the path to a class file loaded for the given class, if any */

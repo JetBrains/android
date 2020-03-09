@@ -109,7 +109,7 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
    * Returns the URL for the embedded layoutlib distribution.
    */
   @Nullable
-  private static String getEmbeddedLayoutLibPath() {
+  public static String getEmbeddedLayoutLibPath() {
     String homePath = FileUtil.toSystemIndependentName(PathManager.getHomePath());
 
     StringBuilder notFoundPaths = new StringBuilder();
