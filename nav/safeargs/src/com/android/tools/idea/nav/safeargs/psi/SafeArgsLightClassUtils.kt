@@ -33,7 +33,8 @@ private const val FALLBACK_TYPE = STRING_FQCN
 
 private val NAV_TO_JAVA_TYPE_MAP = mapOf(
   "string" to STRING_FQCN,
-  "integer" to "int"
+  "integer" to "int",
+  "reference" to "int"
 )
 
 internal fun parsePsiType(modulePackage: String, typeStr: String, context: PsiElement): PsiType {
@@ -56,8 +57,8 @@ internal fun PsiClass.createConstructor(modifiers: Array<String> = MODIFIERS_PUB
 }
 
 internal fun PsiClass.createMethod(name: String,
-                          modifiers: Array<String> = MODIFIERS_PUBLIC_METHOD,
-                          returnType: PsiType = PsiType.VOID): LightMethodBuilder {
+                                   modifiers: Array<String> = MODIFIERS_PUBLIC_METHOD,
+                                   returnType: PsiType = PsiType.VOID): LightMethodBuilder {
   return LightMethodBuilder(manager, JavaLanguage.INSTANCE, name)
     .setContainingClass(this)
     .setMethodReturnType(returnType)
