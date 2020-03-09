@@ -47,12 +47,12 @@ class CompositeProjectBuildModelTest : GradleFileModelTestCase() {
     runWriteAction<Unit, IOException> {
       compositeRoot = myProjectBasePath.createChildDirectory(this, "CompositeBuild")
       assertTrue(compositeRoot.exists())
-      createFileAndWriteContent(compositeRoot.createChildData(this, "settings.gradle"), COMPOSITE_BUILD_COMPOSITE_PROJECT_SETTINGS)
-      createFileAndWriteContent(compositeRoot.createChildData(this, "build.gradle"), COMPOSITE_BUILD_COMPOSITE_PROJECT_ROOT_BUILD)
-      createFileAndWriteContent(compositeRoot.createChildData(this, "subApplied.gradle"), COMPOSITE_BUILD_COMPOSITE_PROJECT_APPLIED)
+      createFileAndWriteContent(compositeRoot.createChildData(this, "settings$myTestDataExtension"), COMPOSITE_BUILD_COMPOSITE_PROJECT_SETTINGS)
+      createFileAndWriteContent(compositeRoot.createChildData(this, "build$myTestDataExtension"), COMPOSITE_BUILD_COMPOSITE_PROJECT_ROOT_BUILD)
+      createFileAndWriteContent(compositeRoot.createChildData(this, "subApplied$myTestDataExtension"), COMPOSITE_BUILD_COMPOSITE_PROJECT_APPLIED)
       compositeSub = compositeRoot.createChildDirectory(this, "app")
       assertTrue(compositeSub.exists())
-      createFileAndWriteContent(compositeSub.createChildData(this, "build.gradle"), COMPOSITE_BUILD_COMPOSITE_PROJECT_SUB_MODULE_BUILD)
+      createFileAndWriteContent(compositeSub.createChildData(this, "build$myTestDataExtension"), COMPOSITE_BUILD_COMPOSITE_PROJECT_SUB_MODULE_BUILD)
     }
   }
 
@@ -77,15 +77,15 @@ class CompositeProjectBuildModelTest : GradleFileModelTestCase() {
     val mainProp = mainModel.projectBuildModel!!.ext().findProperty("mainProjectProperty")
     verifyPropertyModel(mainProp, "ext.mainProjectProperty", "false")
     val compositeProp = compositeModel.projectBuildModel!!.ext().findProperty("compositeProjectProperty")
-    verifyPropertyModel(compositeProp, "ext.compositeProjectProperty", "true", compositeRoot.findChild("build.gradle")!!.path)
+    verifyPropertyModel(compositeProp, "ext.compositeProjectProperty", "true", compositeRoot.findChild("build$myTestDataExtension")!!.path)
     val wrongMainProp = mainModel.projectBuildModel!!.ext().findProperty("compositeProjectProperty")
     assertMissingProperty(wrongMainProp)
     val wrongCompositeProp = compositeModel.projectBuildModel!!.ext().findProperty("mainProjectProperty")
     assertMissingProperty(wrongCompositeProp)
 
     // Check applied property in composite subModule
-    val appName = compositeModel.getModuleBuildModel(compositeSub.findChild("build.gradle")!!).android().defaultConfig().applicationId()
-    verifyPropertyModel(appName, "android.defaultConfig.${ProductFlavorModelImpl.APPLICATION_ID}", "Super cool app", compositeSub.findChild("build.gradle")!!.path)
+    val appName = compositeModel.getModuleBuildModel(compositeSub.findChild("build$myTestDataExtension")!!).android().defaultConfig().applicationId()
+    verifyPropertyModel(appName, "android.defaultConfig.${ProductFlavorModelImpl.APPLICATION_ID}", "Super cool app", compositeSub.findChild("build$myTestDataExtension")!!.path)
   }
 
   @Test
