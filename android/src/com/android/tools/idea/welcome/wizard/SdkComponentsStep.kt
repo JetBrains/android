@@ -86,7 +86,6 @@ class SdkComponentsStep(
     }
 
     selectionModel.addListSelectionListener {
-      // TODO(qumeric): for some reason it is not being updated
       componentDescription.text = "".takeIf { selectedRow < 0 } ?: tableModel.getComponentDescription(selectedRow)
       updateDiskSizes()
     }
@@ -100,6 +99,11 @@ class SdkComponentsStep(
   private val contentPanel = JBLoadingPanel(BorderLayout(), this).apply {
     contentPanel!!.add(componentsTable, BorderLayout.CENTER)
   }
+
+  private var componentDescription = JTextPane().apply {
+    isEditable = false
+  }
+
   private var body = Splitter(false, 0.5f, 0.2f, 0.8f).apply {
     isShowDividerIcon = false
     isShowDividerControls = false
@@ -107,11 +111,6 @@ class SdkComponentsStep(
     secondComponent = ScrollPaneFactory.createScrollPane(componentDescription, false)
   }
 
-  private var componentDescription = JTextPane().apply {
-    font = UIUtil.getLabelFont()
-    isEditable = false
-    border = BorderFactory.createEmptyBorder()
-  }
 
   private val sdkLocationLabel = JBLabel("Android SDK Location:")
 
@@ -260,7 +259,7 @@ class SdkComponentsStep(
   }
 
   private fun loadingError() {
-    // TODO
+    componentDescription.text = "There was an error while loading a list of components. Please try to restart Android Studio."
   }
 
   override fun createDependentSteps(): Collection<ModelWizardStep<*>> {
