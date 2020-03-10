@@ -526,6 +526,7 @@ filegroup(
         ":profiler-artifacts",
         ":transport-artifacts",
         "//prebuilts/tools/common/app-inspection/androidx/sqlite:sqlite_inspector_proto",
+        "//prebuilts/tools/common/app-inspection/androidx/work:workmanager_inspector_proto",
         "//tools/adt/idea/swingp:swing-instrumenter_deploy.jarjar.jar",
         "//tools/analytics-library/protos/src/main/proto:studio.proto",
         "//tools/base/bazel:studio-grpc",

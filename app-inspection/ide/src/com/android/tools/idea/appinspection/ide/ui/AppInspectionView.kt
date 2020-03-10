@@ -169,7 +169,11 @@ class AppInspectionView(
   private fun updateUi() {
     inspectorPanel.removeAll()
 
-    val inspectorComponent = when (inspectorTabs.tabCount) {
+    // Adding inspectorComponent to inspectorPanel triggers re-parenting and removes
+    // the inspectorTabs.getComponentAt(0) from inspectorTabs. In order to avoid the
+    // re-parenting, we uses the number of applicable providers instead of
+    // inspectorTabs.size as the indicator.
+    val inspectorComponent = when (AppInspectorTabProvider.EP_NAME.extensionList.count { it.isApplicable() }) {
       0 -> noInspectorsMessage
       // TODO(b/152556591): Remove this case once we launch more than one inspector
       1 -> inspectorTabs.getComponentAt(0)
