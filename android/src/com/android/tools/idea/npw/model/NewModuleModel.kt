@@ -92,7 +92,7 @@ interface ModuleModelData: ProjectModelData {
   val androidSdkInfo: OptionalValueProperty<AndroidVersionsInfo.VersionItem>
 }
 
-class NewModuleModel(
+open class NewModuleModel(
   private val projectModelData: ProjectModelData,
   override val template: ObjectProperty<NamedModuleTemplate>,
   override val moduleParent: String?,
