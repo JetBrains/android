@@ -16,12 +16,10 @@
 package com.android.tools.idea.gradle.project.model;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
-import static com.android.SdkConstants.ANDROIDX_DATA_BINDING_LIB_ARTIFACT;
-import static com.android.SdkConstants.DATA_BINDING_LIB_ARTIFACT;
 import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
 import static com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST;
+import static com.android.tools.idea.gradle.project.model.AndroidModelSourceProviderUtils.convertVersion;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.android.tools.idea.gradle.util.GradleUtil.dependsOn;
 import static com.android.tools.lint.client.api.LintClient.getGradleDesugaring;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
@@ -36,7 +34,6 @@ import com.android.builder.model.Dependencies;
 import com.android.builder.model.JavaCompileOptions;
 import com.android.builder.model.ProductFlavor;
 import com.android.builder.model.ProductFlavorContainer;
-import com.android.builder.model.ProjectSyncIssues;
 import com.android.builder.model.SourceProvider;
 import com.android.builder.model.SyncIssue;
 import com.android.builder.model.TestOptions;
@@ -51,12 +48,10 @@ import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.projectmodel.DynamicResourceValue;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.databinding.DataBindingMode;
 import com.android.tools.idea.gradle.AndroidGradleClassJarProvider;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
 import com.android.tools.lint.detector.api.Desugaring;
-import com.android.tools.lint.detector.api.Lint;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
@@ -68,7 +63,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -295,6 +289,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     return null;
   }
 
+
   /**
    * Returns the {@code minSdkVersion} specified by the user (in the default config or product flavors).
    * This is normally the merged value, but for example when using preview platforms, the Gradle plugin
@@ -326,7 +321,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
           }
         }
       }
-      myMinSdkVersion = minSdkVersion != null ? Lint.convertVersion(minSdkVersion, null) : NOT_SPECIFIED;
+      myMinSdkVersion = minSdkVersion != null ? convertVersion(minSdkVersion, null) : NOT_SPECIFIED;
     }
 
     return myMinSdkVersion != NOT_SPECIFIED ? myMinSdkVersion : null;
@@ -336,14 +331,14 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @Nullable
   public AndroidVersion getRuntimeMinSdkVersion() {
     ApiVersion minSdkVersion = getSelectedVariant().getMergedFlavor().getMinSdkVersion();
-    return minSdkVersion != null ? Lint.convertVersion(minSdkVersion, null) : null;
+    return minSdkVersion != null ? convertVersion(minSdkVersion, null) : null;
   }
 
   @Override
   @Nullable
   public AndroidVersion getTargetSdkVersion() {
     ApiVersion targetSdkVersion = getSelectedVariant().getMergedFlavor().getTargetSdkVersion();
-    return targetSdkVersion != null ? Lint.convertVersion(targetSdkVersion, null) : null;
+    return targetSdkVersion != null ? convertVersion(targetSdkVersion, null) : null;
   }
 
   /**
@@ -422,6 +417,11 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     IdeVariant selected = myVariantsByName.get(mySelectedVariantName);
     assert selected != null;
     return selected;
+  }
+
+  /** Returns the selected variant name */
+  public String getSelectedVariantName() {
+    return mySelectedVariantName;
   }
 
   @Nullable

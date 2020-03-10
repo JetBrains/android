@@ -72,8 +72,8 @@ public class LintIdeRequest extends LintRequest {
       if (projects != null) {
         scope = Scope.infer(projects);
 
-        if (!LintIdeProject.SUPPORT_CLASS_FILES && (scope.contains(Scope.CLASS_FILE) || scope.contains(Scope.ALL_CLASS_FILES)
-                                                    || scope.contains(Scope.JAVA_LIBRARIES))) {
+        if (!LintIdeClient.SUPPORT_CLASS_FILES && (scope.contains(Scope.CLASS_FILE) || scope.contains(Scope.ALL_CLASS_FILES)
+                                                   || scope.contains(Scope.JAVA_LIBRARIES))) {
           scope = EnumSet.copyOf(scope); // make mutable
           // Can't run class file based checks
           scope.remove(Scope.CLASS_FILE);

@@ -126,7 +126,7 @@ public class LintGlobalInspectionContext implements GlobalInspectionContextExten
     final LintIdeClient client = ideSupport.createBatchClient(lintResult);
 
     EnumSet<Scope> lintScope;
-    if (!LintIdeProject.SUPPORT_CLASS_FILES) {
+    if (!LintIdeClient.SUPPORT_CLASS_FILES) {
       lintScope = EnumSet.copyOf(Scope.ALL);
       // Can't run class file based checks
       lintScope.remove(Scope.CLASS_FILE);
