@@ -31,7 +31,7 @@ import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.annotations.Contract
 import org.junit.After
 import org.junit.Assert
-import org.junit.Assume
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
@@ -79,7 +79,7 @@ abstract class GradleFileModelTestCase {
     StudioFlags.KOTLIN_DSL_PARSING.override(true)
     runWriteAction {
       buildFile = projectRule.fixture.tempDirFixture.createFile(buildFileName)
-      Assume.assumeTrue(buildFile.isWritable)
+      assertTrue(buildFile.isWritable)
     }
     testDataPath = AndroidTestBase.getTestDataPath() + "/psd"
   }
@@ -91,7 +91,7 @@ abstract class GradleFileModelTestCase {
 
   protected fun writeToBuildFile(fileName: TestFileName) {
     val testFile = fileName.toFile(testDataPath, testDataExtension!!)
-    Assume.assumeTrue(testFile.exists())
+    assertTrue(testFile.exists())
     val virtualTestFile = VfsUtil.findFileByIoFile(testFile, true)
     runWriteAction { VfsUtil.saveText(buildFile, VfsUtilCore.loadText(virtualTestFile!!)) }
   }
