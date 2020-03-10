@@ -22,6 +22,7 @@ import com.android.tools.idea.tests.gui.framework.aspects.AspectsAgentLogUtil
 import com.android.tools.tests.IdeaTestSuiteBase
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.openapi.util.SystemInfoRt
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testGuiFramework.impl.GuiTestStarter
 import org.apache.log4j.Level
@@ -165,7 +166,7 @@ object GuiTestLauncher {
       "-Didea.gui.test.port=$port"
     )
     /* aspects agent options */
-    if (!SystemInfo.IS_AT_LEAST_JAVA9) {  // b/134524025
+    if (!SystemInfoRt.IS_AT_LEAST_JAVA9) {  // b/134524025
       options += "-javaagent:${GuiTestOptions.getAspectsAgentJar()}=${GuiTestOptions.getAspectsAgentRules()};${GuiTestOptions.getAspectsAgentBaseline()}"
       options += "-Daspects.baseline.export.path=${GuiTestOptions.getAspectsBaselineExportPath()}"
     }
@@ -215,7 +216,7 @@ object GuiTestLauncher {
 
   private fun getCurrentJavaExec(): String {
     val homeDir = File(System.getProperty("java.home"))
-    val binDir = File(if (SystemInfo.IS_AT_LEAST_JAVA9) homeDir else homeDir.parentFile, "bin")
+    val binDir = File(if (SystemInfoRt.IS_AT_LEAST_JAVA9) homeDir else homeDir.parentFile, "bin")
     val javaName = if (SystemInfo.isWindows) "java.exe" else "java"
     return File(binDir, javaName).path
   }
