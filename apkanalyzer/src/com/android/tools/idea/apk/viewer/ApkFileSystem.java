@@ -73,6 +73,13 @@ public class ApkFileSystem extends ArchiveFileSystem {
     return myAttrGetter.accessDiskWithCheckCanceled(file);
   }
 
+  private final DiskQueryRelay<VirtualFile, String[]> myChildrenGetter = new DiskQueryRelay<>(super::list);
+
+  @Override
+  public @NotNull String[] list(@NotNull VirtualFile file) {
+    return myChildrenGetter.accessDiskWithCheckCanceled(file);
+  }
+
   @NotNull
   @Override
   public String getProtocol() {
