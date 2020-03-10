@@ -100,7 +100,7 @@ public final class StudioFlags {
     PROFILER, "memory.heapprofd", "Enable heapprofd captures in the memory profiler.",
     "Toggles if users can capture heapprofd recordings in the memory profiler. This gates mostly the UI and importing of traces. " +
     "The perfd functionality is not gated. This feature has a dependency on the trace processor.",
-    false);
+    true);
 
   public static final Flag<Boolean> PROFILER_UNIFIED_PIPELINE = Flag.create(
     PROFILER, "unified.pipeline", "Enables new event pipeline to be used for core components.",
