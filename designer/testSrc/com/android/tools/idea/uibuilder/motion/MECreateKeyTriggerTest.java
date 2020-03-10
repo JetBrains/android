@@ -42,22 +42,22 @@ public class MECreateKeyTriggerTest extends BaseMotionEditorTest {
   public void testCreateKeyTriggerLayout() {
     CreatorAccess panel = new CreatorAccess();
     String layout = "0,CreatorAccess      ,0,0,99,99\n" +
-                    "1,JLabel             ,3,0,92,5\n" +
-                    "1,JSeparator         ,3,7,92,0\n" +
-                    "1,JRadioButton       ,3,9,33,8\n" +
-                    "1,JRadioButton       ,43,9,52,8\n" +
-                    "1,JPanel             ,3,18,92,8\n" +
+                    "1,JLabel             ,4,2,90,4\n" +
+                    "1,JSeparator         ,0,9,99,0\n" +
+                    "1,JRadioButton       ,4,12,42,6\n" +
+                    "1,JRadioButton       ,57,11,37,6\n" +
+                    "1,JPanel             ,5,20,89,7\n" +
                     "2,PromptedTextField  ,0,0,0,0\n" +
                     "2,MEComboBox         ,0,0,0,0\n" +
-                    "1,JLabel             ,3,28,92,5\n" +
-                    "1,MEComboBox         ,3,35,92,8\n" +
-                    "1,JLabel             ,3,45,92,5\n" +
-                    "1,PromptedTextField  ,3,51,92,6\n" +
-                    "1,JLabel             ,3,59,92,5\n" +
-                    "1,PromptedTextField  ,3,66,92,6\n" +
-                    "1,JLabel             ,3,74,92,5\n" +
-                    "1,PromptedTextField  ,3,80,92,6\n" +
-                    "1,JButton            ,3,90,92,9\n";
+                    "1,JLabel             ,4,29,90,4\n" +
+                    "1,MEComboBox         ,5,35,89,7\n" +
+                    "1,JLabel             ,4,45,90,4\n" +
+                    "1,PromptedTextField  ,5,50,89,5\n" +
+                    "1,JLabel             ,4,58,90,4\n" +
+                    "1,PromptedTextField  ,5,64,89,5\n" +
+                    "1,JLabel             ,4,72,90,4\n" +
+                    "1,PromptedTextField  ,5,78,89,5\n" +
+                    "1,JButton            ,4,88,90,7\n";
     Dimension size = panel.getPreferredSize();
     panel.setBounds(0, 0, size.width, size.height);
     panel.doLayout();
