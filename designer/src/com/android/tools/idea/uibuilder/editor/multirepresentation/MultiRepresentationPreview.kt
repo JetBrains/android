@@ -113,7 +113,7 @@ open class MultiRepresentationPreview(private val psiFile: PsiFile,
   }
 
   protected fun updateRepresentations() = UIUtil.invokeLaterIfNeeded {
-    if (Disposer.isDisposed(project)) {
+    if (Disposer.isDisposed(this)) {
       return@invokeLaterIfNeeded
     }
 
