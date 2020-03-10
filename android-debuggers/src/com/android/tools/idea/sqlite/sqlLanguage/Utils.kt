@@ -15,13 +15,17 @@
  */
 package com.android.tools.idea.sqlite.sqlLanguage
 
+import com.android.tools.idea.lang.androidSql.parser.AndroidSqlParserDefinition
 import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlBindParameter
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlColumnRefExpression
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlComparisonExpression
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlEquivalenceExpression
+import com.android.tools.idea.lang.androidSql.psi.AndroidSqlInExpression
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlPsiTypes
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlVisitor
+import com.android.tools.idea.sqlite.controllers.SqliteParameter
+import com.android.tools.idea.sqlite.controllers.SqliteParameterValue
 import com.android.tools.idea.sqlite.model.SqliteValue
 import com.intellij.lang.ASTFactory
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
@@ -39,7 +43,7 @@ import java.util.Deque
  */
 fun replaceNamedParametersWithPositionalParameters(psiElement: PsiElement): ParsedSqliteStatement {
   val psiElementCopy = psiElement.copy()
-  val parametersNames = mutableListOf<String>()
+  val parametersNames = mutableListOf<SqliteParameter>()
 
   invokeAndWaitIfNeeded {
     runUndoTransparentWriteAction {
@@ -57,7 +61,7 @@ fun replaceNamedParametersWithPositionalParameters(psiElement: PsiElement): Pars
             parent?.children?.filterIsInstance<AndroidSqlColumnRefExpression>()?.firstOrNull()?.text ?: bindParameterText
           }
 
-          parametersNames.add(parameterName)
+          parametersNames.add(SqliteParameter(parameterName, parentIsInExpression(bindParameter)))
           bindParameter.node.replaceChild(bindParameter.node.firstChildNode, ASTFactory.leaf(AndroidSqlPsiTypes.NUMBERED_PARAMETER, "?"))
         }
       }
@@ -66,6 +70,37 @@ fun replaceNamedParametersWithPositionalParameters(psiElement: PsiElement): Pars
     }
   }
   return ParsedSqliteStatement(psiElementCopy.text, parametersNames)
+}
+
+fun expandCollectionParameters(psiElement: PsiElement, parameterValues: Deque<SqliteParameterValue>): PsiElement {
+  val psiElementCopy = psiElement.copy()
+
+  invokeAndWaitIfNeeded {
+    runUndoTransparentWriteAction {
+      val visitor = object : AndroidSqlVisitor() {
+        override fun visitBindParameter(bindParameter: AndroidSqlBindParameter) {
+          val parameterValue = parameterValues.pollFirst()
+          if (parentIsInExpression(bindParameter)) {
+            val collectionValue = parameterValue as SqliteParameterValue.CollectionValue
+
+            if (collectionValue.value.size > 1) {
+              val listOfQuestionMarks = collectionValue.value.map { "?" }
+              val text = listOfQuestionMarks.joinToString(", ")
+
+              // doing this makes the tree not valid.
+              val leaf = ASTFactory.leaf(AndroidSqlPsiTypes.BIND_PARAMETER, text)
+              bindParameter.node.replaceChild(bindParameter.node.firstChildNode, leaf)
+            }
+          }
+        }
+      }
+
+      PsiTreeUtil.processElements(psiElementCopy) { it.accept(visitor); true }
+    }
+  }
+
+  // it's necessary to create a new PSI element, because of the wrong replacement done above.
+  return AndroidSqlParserDefinition.parseSqlQuery(psiElementCopy.project, psiElementCopy.text)
 }
 
 /**
@@ -116,9 +151,12 @@ fun needsBinding(psiElement: PsiElement): Boolean {
   return needsBinding
 }
 
+private fun parentIsInExpression(bindParameter: AndroidSqlBindParameter): Boolean {
+  return bindParameter.parent.parent is AndroidSqlInExpression
+}
 
 /**
  * @param statementText SQLite statement where parameters have been replaced with '?'
  * @param parameters the name of the parameters that have been replaced with '?'
  */
-data class ParsedSqliteStatement(val statementText: String, val parameters: List<String>)
+data class ParsedSqliteStatement(val statementText: String, val parameters: List<SqliteParameter>)

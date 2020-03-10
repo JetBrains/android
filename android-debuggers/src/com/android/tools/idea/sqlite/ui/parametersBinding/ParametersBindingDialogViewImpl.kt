@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.sqlite.ui.parametersBinding
 
+import com.android.tools.idea.sqlite.controllers.SqliteParameter
+import com.android.tools.idea.sqlite.controllers.SqliteParameterValue
 import com.android.tools.idea.sqlite.model.SqliteValue
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
@@ -50,8 +52,8 @@ class ParametersBindingDialogViewImpl(
     init()
   }
 
-  override fun showNamedParameters(parametersNames: Set<String>) {
-    parametersNames.forEach {
+  override fun showNamedParameters(parameters: Set<SqliteParameter>) {
+    parameters.forEach {
       val namedParameterResolutionPanel = NamedParameterResolutionPanel(it)
       namedParameterResolutionPanels.add(namedParameterResolutionPanel)
       component.add(namedParameterResolutionPanel.panel)
@@ -79,8 +81,8 @@ class ParametersBindingDialogViewImpl(
     return namedParameterResolutionPanels.firstOrNull()?.namedParameterValueTextField
   }
 
-  private inner class NamedParameterResolutionPanel(val namedParameter: String) {
-    private val namedParameterLabel = JLabel(namedParameter)
+  private inner class NamedParameterResolutionPanel(val namedParameter: SqliteParameter) {
+    private val namedParameterLabel = JLabel(namedParameter.name)
     private val isNullCheckBox = JBCheckBox("Is null")
     val namedParameterValueTextField = JBTextField()
     val panel = JPanel(BorderLayout())
@@ -94,8 +96,16 @@ class ParametersBindingDialogViewImpl(
       isNullCheckBox.name = "null-check-box"
     }
 
-    fun getVariableValue() : SqliteValue {
-      return if (isNullCheckBox.isSelected) SqliteValue.NullValue else SqliteValue.StringValue(namedParameterValueTextField.text)
+    // TODO(next CL): add UI to insert multiple values.
+    fun getVariableValue() : SqliteParameterValue {
+      return if (namedParameter.isCollection) {
+        val value = if (isNullCheckBox.isSelected) SqliteValue.NullValue else SqliteValue.StringValue(namedParameterValueTextField.text)
+        SqliteParameterValue.CollectionValue(listOf(value))
+      }
+      else {
+        val value = if (isNullCheckBox.isSelected) SqliteValue.NullValue else SqliteValue.StringValue(namedParameterValueTextField.text)
+        SqliteParameterValue.SingleValue(value)
+      }
     }
   }
 }

@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.sqlite.ui.parametersBinding
 
-import com.android.tools.idea.sqlite.model.SqliteValue
+import com.android.tools.idea.sqlite.controllers.SqliteParameter
+import com.android.tools.idea.sqlite.controllers.SqliteParameterValue
+import com.android.tools.idea.sqlite.ui.parametersBinding.ParametersBindingDialogView.Listener
 
 /**
  * Abstraction used by [ParametersBindingController] to avoid direct dependency on the UI implementation.
@@ -26,7 +28,7 @@ import com.android.tools.idea.sqlite.model.SqliteValue
  */
 interface ParametersBindingDialogView {
   fun show()
-  fun showNamedParameters(parametersNames: Set<String>)
+  fun showNamedParameters(parameters: Set<SqliteParameter>)
 
   fun addListener(listener: Listener)
   fun removeListener(listener: Listener)
@@ -36,6 +38,6 @@ interface ParametersBindingDialogView {
      * This method is called when the user has assigned a value to each parameter.
      * @param parameters A map where each name of a parameter is mapped to the value assigned to it.
      */
-    fun bindingCompletedInvoked(parameters: Map<String, SqliteValue>)
+    fun bindingCompletedInvoked(parameters: Map<SqliteParameter, SqliteParameterValue>)
   }
 }

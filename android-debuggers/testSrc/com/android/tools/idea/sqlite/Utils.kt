@@ -23,8 +23,6 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.vfs.VirtualFile
 import java.sql.DriverManager
 
-internal fun Map<String, Any?>.toSqliteValue() = mapValues { (_, v) -> SqliteValue.fromAny(v) }
-
 internal fun List<Any?>.toSqliteValues() = this.map { SqliteValue.fromAny(it) }
 
 internal fun getJdbcDatabaseConnection(sqliteFile: VirtualFile, executor: FutureCallbackExecutor): ListenableFuture<DatabaseConnection> {

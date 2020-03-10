@@ -18,13 +18,14 @@ package com.android.tools.idea.sqlite.annotator
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
+import com.android.tools.idea.sqlite.controllers.SqliteParameter
+import com.android.tools.idea.sqlite.controllers.SqliteParameterValue
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.mocks.MockPopupChooserBuilder
 import com.android.tools.idea.sqlite.model.LiveSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteStatement
-import com.android.tools.idea.sqlite.toSqliteValue
 import com.android.tools.idea.sqlite.toSqliteValues
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.caret
@@ -148,7 +149,9 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     anAction.actionPerformed(anActionEvent)
 
     val listener = viewFactory.parametersBindingDialogView.listeners.first()
-    listener.bindingCompletedInvoked(mapOf("id" to "1").toSqliteValue())
+    listener.bindingCompletedInvoked(mapOf(
+      SqliteParameter("id") to SqliteParameterValue.fromAny("1")
+    ))
 
     // Assert
     verify(mockDatabaseInspectorProjectService).runSqliteStatement(
@@ -168,7 +171,10 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     anAction.actionPerformed(anActionEvent)
 
     val listener = viewFactory.parametersBindingDialogView.listeners.first()
-    listener.bindingCompletedInvoked(mapOf("id" to "1", "name" to "name").toSqliteValue())
+    listener.bindingCompletedInvoked(mapOf(
+      SqliteParameter("id") to SqliteParameterValue.fromAny("1"),
+      SqliteParameter("name") to SqliteParameterValue.fromAny("name")
+    ))
 
     // Assert
     verify(mockDatabaseInspectorProjectService)
@@ -193,7 +199,10 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     anAction.actionPerformed(anActionEvent)
 
     val listener = viewFactory.parametersBindingDialogView.listeners.first()
-    listener.bindingCompletedInvoked(mapOf("id" to "1", "name" to "name").toSqliteValue())
+    listener.bindingCompletedInvoked(mapOf(
+      SqliteParameter("id") to SqliteParameterValue.fromAny("1"),
+      SqliteParameter("name") to SqliteParameterValue.fromAny("name")
+    ))
 
     // Assert
     verify(mockDatabaseInspectorProjectService).runSqliteStatement(
@@ -217,7 +226,9 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     anAction.actionPerformed(anActionEvent)
 
     val listener = viewFactory.parametersBindingDialogView.listeners.first()
-    listener.bindingCompletedInvoked(mapOf("id" to "1").toSqliteValue())
+    listener.bindingCompletedInvoked(mapOf(
+      SqliteParameter("id") to SqliteParameterValue.fromAny("1")
+    ))
 
     // Assert
     verify(mockDatabaseInspectorProjectService).runSqliteStatement(
@@ -240,7 +251,9 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     anAction.actionPerformed(anActionEvent)
 
     val listener = viewFactory.parametersBindingDialogView.listeners.first()
-    listener.bindingCompletedInvoked(mapOf("id" to "1").toSqliteValue())
+    listener.bindingCompletedInvoked(mapOf(
+      SqliteParameter("id") to SqliteParameterValue.fromAny("1")
+    ))
 
     // Assert
     verify(mockDatabaseInspectorProjectService).runSqliteStatement(
@@ -264,7 +277,9 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     anAction.actionPerformed(anActionEvent)
 
     val listener = viewFactory.parametersBindingDialogView.listeners.first()
-    listener.bindingCompletedInvoked(mapOf(":anId" to "1").toSqliteValue())
+    listener.bindingCompletedInvoked(mapOf(
+      SqliteParameter(":anId") to SqliteParameterValue.fromAny("1")
+    ))
 
     // Assert
     verify(mockDatabaseInspectorProjectService).runSqliteStatement(
@@ -288,7 +303,10 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     anAction.actionPerformed(anActionEvent)
 
     val listener = viewFactory.parametersBindingDialogView.listeners.first()
-    listener.bindingCompletedInvoked(mapOf(":anId" to "1", ":aName" to "name").toSqliteValue())
+    listener.bindingCompletedInvoked(mapOf(
+      SqliteParameter(":anId") to SqliteParameterValue.fromAny("1"),
+      SqliteParameter(":aName") to SqliteParameterValue.fromAny("name")
+    ))
 
     // Assert
     verify(mockDatabaseInspectorProjectService).runSqliteStatement(
@@ -312,7 +330,9 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     anAction.actionPerformed(anActionEvent)
 
     val listener = viewFactory.parametersBindingDialogView.listeners.first()
-    listener.bindingCompletedInvoked(mapOf("id" to "1").toSqliteValue())
+    listener.bindingCompletedInvoked(mapOf(
+      SqliteParameter("id") to SqliteParameterValue.fromAny("1")
+    ))
 
     // Assert
     verify(mockDatabaseInspectorProjectService).runSqliteStatement(
@@ -336,7 +356,9 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     anAction.actionPerformed(anActionEvent)
 
     val listener = viewFactory.parametersBindingDialogView.listeners.first()
-    listener.bindingCompletedInvoked(mapOf("id" to "1").toSqliteValue())
+    listener.bindingCompletedInvoked(mapOf(
+      SqliteParameter("id") to SqliteParameterValue.fromAny("1")
+    ))
 
     // Assert
     verify(mockDatabaseInspectorProjectService).runSqliteStatement(
@@ -360,7 +382,9 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     anAction.actionPerformed(anActionEvent)
 
     val listener = viewFactory.parametersBindingDialogView.listeners.first()
-    listener.bindingCompletedInvoked(mapOf("@anId" to "1").toSqliteValue())
+    listener.bindingCompletedInvoked(mapOf(
+      SqliteParameter("@anId") to SqliteParameterValue.fromAny("1")
+    ))
 
     // Assert
     verify(mockDatabaseInspectorProjectService).runSqliteStatement(
@@ -384,7 +408,9 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     anAction.actionPerformed(anActionEvent)
 
     val listener = viewFactory.parametersBindingDialogView.listeners.first()
-    listener.bindingCompletedInvoked(mapOf("\$anId" to "1").toSqliteValue())
+    listener.bindingCompletedInvoked(mapOf(
+      SqliteParameter("\$anId") to SqliteParameterValue.fromAny("1")
+    ))
 
     // Assert
     verify(mockDatabaseInspectorProjectService).runSqliteStatement(
