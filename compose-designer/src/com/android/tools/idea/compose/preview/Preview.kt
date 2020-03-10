@@ -453,11 +453,17 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   private suspend fun doRefreshSync(filePreviewElements: List<PreviewElement>) {
     if (LOG.isDebugEnabled) LOG.debug("doRefresh of ${filePreviewElements.size} elements.")
     val stopwatch = if (LOG.isDebugEnabled) StopWatch() else null
-    val psiFile = psiFilePointer.element
-    if (psiFile == null || !psiFile.isValid) {
-      LOG.warn("doRefresh with invalid PsiFile")
-      return
-    }
+    val psiFile = ReadAction.compute<PsiFile?, Throwable> {
+      val element = psiFilePointer.element
+
+      return@compute if (element == null || !element.isValid) {
+        LOG.warn("doRefresh with invalid PsiFile")
+        null
+      }
+      else {
+        element
+      }
+    } ?: return
     val facet = AndroidFacet.getInstance(psiFile)!!
     val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
 
