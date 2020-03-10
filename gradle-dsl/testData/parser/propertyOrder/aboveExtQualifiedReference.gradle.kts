@@ -5,5 +5,5 @@ android {
   }
 }
 
-val minSdk by extra(14)
-val maxSdk by extra(18)
+extra["minSdk"] = 14
+extra["maxSdk"] = 18
