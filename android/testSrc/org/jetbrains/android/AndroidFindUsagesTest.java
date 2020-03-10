@@ -39,6 +39,7 @@ import com.intellij.usages.UsageTargetUtil;
 import com.intellij.usages.UsageViewManager;
 import com.intellij.usages.UsageViewPresentation;
 import com.intellij.usages.impl.UsageViewImpl;
+import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -111,10 +112,10 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                              "       5int id1 = R.drawable.picture3;\n" +
                              "  Usage in Android resources XML (2 usages)\n" +
                              "   app (2 usages)\n" +
-                             "    res/layout (1 usage)\n" +
+                             "    res" + File.separatorChar + "layout (1 usage)\n" +
                              "     fu1_layout.xml (1 usage)\n" +
                              "      3<TextView android:background=\"@drawable/picture3\"/>\n" +
-                             "    res/values (1 usage)\n" +
+                             "    res" + File.separatorChar + "values (1 usage)\n" +
                              "     styles.xml (1 usage)\n" +
                              "      3<item name=\"android:windowBackground\">@drawable/picture3</item>\n");
     }
@@ -141,7 +142,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                   "       5int id1 = R.drawable.picture3;\n" +
                                   "  Usage in Android resources XML (1 usage)\n" +
                                   "   app (1 usage)\n" +
-                                  "    res/layout (1 usage)\n" +
+                                  "    res" + File.separatorChar + "layout (1 usage)\n" +
                                   "     layout.xml (1 usage)\n" +
                                   "      3android:background=\"@drawable/picture3\">\n");
     }
@@ -151,7 +152,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                " Found usages (2 usages)\n" +
                                "  Usage in Android resources XML (2 usages)\n" +
                                "   app (2 usages)\n" +
-                               "    res/layout (2 usages)\n" +
+                               "    res" + File.separatorChar + "layout (2 usages)\n" +
                                "     f12_layout.xml (2 usages)\n" +
                                "      26android:layout_below=\"@+id/second\"\n" +
                                "      27android:labelFor=\"@id/second\"\n");
@@ -168,7 +169,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                            "       8int id3 = R.id.anchor;\n" +
                            "  Usage in Android resources XML (1 usage)\n" +
                            "   app (1 usage)\n" +
-                           "    res/layout (1 usage)\n" +
+                           "    res" + File.separatorChar + "layout (1 usage)\n" +
                            "     fu7_layout.xml (1 usage)\n" +
                            "      5<TextView android:layout_alignRight=\"@id/anchor\"/>\n");
     }
@@ -184,7 +185,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                       "       8int id3 = R.id.anchor;\n" +
                                       "  Usage in Android resources XML (1 usage)\n" +
                                       "   app (1 usage)\n" +
-                                      "    res/layout (1 usage)\n" +
+                                      "    res" + File.separatorChar + "layout (1 usage)\n" +
                                       "     fu9_layout.xml (1 usage)\n" +
                                       "      5<TextView android:layout_alignRight=\"@id/anchor\"/>\n");
     }
@@ -200,7 +201,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                 "       5int id1 = R.id.anchor;\n" +
                                 "  Usage in Android resources XML (1 usage)\n" +
                                 "   app (1 usage)\n" +
-                                "    res/layout (1 usage)\n" +
+                                "    res" + File.separatorChar + "layout (1 usage)\n" +
                                 "     layout.xml (1 usage)\n" +
                                 "      7<TextView android:layout_alignRight=\"@id/anchor\"/>\n");
     }
@@ -216,7 +217,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                             "       9int id4 = R.array.str_arr;\n" +
                             "  Usage in Android resources XML (1 usage)\n" +
                             "   app (1 usage)\n" +
-                            "    res/layout (1 usage)\n" +
+                            "    res" + File.separatorChar + "layout (1 usage)\n" +
                             "     stringArray.xml (1 usage)\n" +
                             "      3<ListView android:entries=\"@array/str_arr\"/>\n");
     }
@@ -245,7 +246,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                               "       14int answer = a.getInt(R.styleable.MyView_answer, 0);\n" +
                               "  Usage in Android resources XML (1 usage)\n" +
                               "   app (1 usage)\n" +
-                              "    res/values (1 usage)\n" +
+                              "    res" + File.separatorChar + "values (1 usage)\n" +
                               "     attrs.xml (1 usage)\n" +
                               "      4<attr name=\"answer\">\n");
     }
@@ -255,7 +256,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                  " Found usages (3 usages)\n" +
                                  "  Usage in Android resources XML (3 usages)\n" +
                                  "   app (3 usages)\n" +
-                                 "    res/values (3 usages)\n" +
+                                 "    res" + File.separatorChar + "values (3 usages)\n" +
                                  "     f10_values.xml (3 usages)\n" +
                                  "      6<style name=\"myStyle.s\">\n" +
                                  "      10<style name=\"style1\" parent=\"myStyle\">\n" +
@@ -267,7 +268,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                   " Found usages (3 usages)\n" +
                                   "  Usage in Android resources XML (3 usages)\n" +
                                   "   app (3 usages)\n" +
-                                  "    res/values (3 usages)\n" +
+                                  "    res" + File.separatorChar + "values (3 usages)\n" +
                                   "     f11_values.xml (3 usages)\n" +
                                   "      6<style name=\"myStyle.s\">\n" +
                                   "      10<style name=\"style1\" parent=\"myStyle\">\n" +
@@ -279,7 +280,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                   " Found usages (3 usages)\n" +
                                   "  Usage in Android resources XML (3 usages)\n" +
                                   "   app (3 usages)\n" +
-                                  "    res/values (3 usages)\n" +
+                                  "    res" + File.separatorChar + "values (3 usages)\n" +
                                   "     f14_values.xml (3 usages)\n" +
                                   "      6<style name=\"myStyle.s\">\n" +
                                   "      10<style name=\"style1\" parent=\"myStyle\">\n" +
@@ -297,7 +298,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                   "       7int id3 = R.string.hi;\n" +
                                   "  Usage in Android resources XML (1 usage)\n" +
                                   "   app (1 usage)\n" +
-                                  "    res/layout (1 usage)\n" +
+                                  "    res" + File.separatorChar + "layout (1 usage)\n" +
                                   "     fu5_layout.xml (1 usage)\n" +
                                   "      3<TextView android:text=\"@string/hi\"/>\n");
     }
@@ -313,7 +314,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                               "       6int id2 = R.string.hello;\n" +
                               "  Usage in Android resources XML (1 usage)\n" +
                               "   app (1 usage)\n" +
-                              "    res/layout (1 usage)\n" +
+                              "    res" + File.separatorChar + "layout (1 usage)\n" +
                               "     fu2_layout.xml (1 usage)\n" +
                               "      3<TextView android:text=\"@string/hello\"/>\n");
     }
@@ -329,7 +330,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                "       6int id2 = R.string.hello;\n" +
                                "  Usage in Android resources XML (1 usage)\n" +
                                "   app (1 usage)\n" +
-                               "    res/layout (1 usage)\n" +
+                               "    res" + File.separatorChar + "layout (1 usage)\n" +
                                "     layout.xml (1 usage)\n" +
                                "      5<TextView android:text=\"@string/hello\"/>\n");
     }
@@ -345,7 +346,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                "       6int id2 = R.string.hello;\n" +
                                "  Usage in Android resources XML (1 usage)\n" +
                                "   app (1 usage)\n" +
-                               "    res/layout (1 usage)\n" +
+                               "    res" + File.separatorChar + "layout (1 usage)\n" +
                                "     layout.xml (1 usage)\n" +
                                "      5<TextView android:text=\"@string/hello\"/>\n");
     }
@@ -361,7 +362,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                "       6int id2 = R.string.hello;\n" +
                                "  Usage in Android resources XML (1 usage)\n" +
                                "   app (1 usage)\n" +
-                               "    res/layout (1 usage)\n" +
+                               "    res" + File.separatorChar + "layout (1 usage)\n" +
                                "     layout.xml (1 usage)\n" +
                                "      5<TextView android:text=\"@string/hello\"/>\n");
     }
@@ -377,7 +378,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                "       6int id2 = R.string.hello;\n" +
                                "  Usage in Android resources XML (1 usage)\n" +
                                "   app (1 usage)\n" +
-                               "    res/layout (1 usage)\n" +
+                               "    res" + File.separatorChar + "layout (1 usage)\n" +
                                "     layout.xml (1 usage)\n" +
                                "      5<TextView android:text=\"@string/hello\"/>\n");
     }
@@ -393,7 +394,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                "       6int id2 = R.string.hello;\n" +
                                "  Usage in Android resources XML (1 usage)\n" +
                                "   app (1 usage)\n" +
-                               "    res/layout (1 usage)\n" +
+                               "    res" + File.separatorChar + "layout (1 usage)\n" +
                                "     layout.xml (1 usage)\n" +
                                "      5<TextView android:text=\"@string/hello\"/>\n");
     }
@@ -409,7 +410,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                "       6int id2 = R.string.hello;\n" +
                                "  Usage in Android resources XML (1 usage)\n" +
                                "   app (1 usage)\n" +
-                               "    res/layout (1 usage)\n" +
+                               "    res" + File.separatorChar + "layout (1 usage)\n" +
                                "     layout.xml (1 usage)\n" +
                                "      5<TextView android:text=\"@string/hello\"/>\n");
     }
@@ -425,7 +426,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                "       6int id2 = R.string.hello;\n" +
                                "  Usage in Android resources XML (1 usage)\n" +
                                "   app (1 usage)\n" +
-                               "    res/layout (1 usage)\n" +
+                               "    res" + File.separatorChar + "layout (1 usage)\n" +
                                "     layout.xml (1 usage)\n" +
                                "      5<TextView android:text=\"@string/hello\"/>\n");
     }
@@ -441,7 +442,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                "       6int id2 = R.string.hello;\n" +
                                "  Usage in Android resources XML (1 usage)\n" +
                                "   app (1 usage)\n" +
-                               "    res/layout (1 usage)\n" +
+                               "    res" + File.separatorChar + "layout (1 usage)\n" +
                                "     layout.xml (1 usage)\n" +
                                "      5<TextView android:text=\"@string/hello\"/>\n");
     }
@@ -457,10 +458,10 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                "       6int id2 = R.string.hello;\n" +
                                "  Usage in Android resources XML (2 usages)\n" +
                                "   app (2 usages)\n" +
-                               "    res/layout (1 usage)\n" +
+                               "    res" + File.separatorChar + "layout (1 usage)\n" +
                                "     layout.xml (1 usage)\n" +
                                "      5<TextView android:text=\"@string/hello\"/>\n" +
-                               "    res/values (1 usage)\n" +
+                               "    res" + File.separatorChar + "values (1 usage)\n" +
                                "     f13_values.xml (1 usage)\n" +
                                "      9<item>@string/hello</item>\n");
     }
@@ -476,7 +477,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                    "       5int id1 = R.string.hello;\n" +
                                    "  Usage in Android resources XML (1 usage)\n" +
                                    "   app (1 usage)\n" +
-                                   "    res/layout (1 usage)\n" +
+                                   "    res" + File.separatorChar + "layout (1 usage)\n" +
                                    "     layout.xml (1 usage)\n" +
                                    "      5<TextView android:text=\"@string/hello\"/>\n");
     }
@@ -492,7 +493,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                        "       5int id1 = R.string.hi;\n" +
                                        "  Usage in Android resources XML (1 usage)\n" +
                                        "   app (1 usage)\n" +
-                                       "    res/layout (1 usage)\n" +
+                                       "    res" + File.separatorChar + "layout (1 usage)\n" +
                                        "     layout.xml (1 usage)\n" +
                                        "      6<TextView android:text=\"@string/hi\"/>\n");
     }
@@ -508,7 +509,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                       "       12int attribute = R.attr.newAttr;\n" +
                                       "  Usage in Android resources XML (2 usages)\n" +
                                       "   app (2 usages)\n" +
-                                      "    res/values (2 usages)\n" +
+                                      "    res" + File.separatorChar + "values (2 usages)\n" +
                                       "     attrs.xml (1 usage)\n" +
                                       "      3<attr name=\"newAttr\" format=\"boolean\" />\n" +
                                       "     style.xml (1 usage)\n" +
@@ -583,12 +584,12 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                    " Found usages (3 usages)\n" +
                    "  Resource declaration in Android resources XML (1 usage)\n" +
                    "   app (1 usage)\n" +
-                   "    res/values (1 usage)\n" +
+                   "    res" + File.separatorChar + "values (1 usage)\n" +
                    "     strings.xml (1 usage)\n" +
                    "      2<string name=\"hello\">hello</string>\n" +
                    "  Resource reference Android resources XML (1 usage)\n" +
                    "   app (1 usage)\n" +
-                   "    res/layout (1 usage)\n" +
+                   "    res" + File.separatorChar + "layout (1 usage)\n" +
                    "     fu2_layout.xml (1 usage)\n" +
                    "      3<TextView android:text=\"@string/hello\"/>\n" +
                    "  Resource reference in code (1 usage)\n" +
@@ -606,7 +607,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                              " Found usages (2 usages)\n" +
                              "  Android resource file (1 usage)\n" +
                              "   app (1 usage)\n" +
-                             "    res/font (1 usage)\n" +
+                             "    res" + File.separatorChar + "font (1 usage)\n" +
                              "     new_font.ttf (1 usage)\n" +
                              "      Android resource file font/new_font.ttf\n" +
                              "  Resource reference in code (1 usage)\n" +
@@ -624,15 +625,15 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                              " Found usages (4 usages)\n" +
                              "  Android resource file (1 usage)\n" +
                              "   app (1 usage)\n" +
-                             "    res/drawable (1 usage)\n" +
+                             "    res" + File.separatorChar + "drawable (1 usage)\n" +
                              "     picture3.gif (1 usage)\n" +
                              "      Android resource file drawable/picture3.gif\n" +
                              "  Resource reference Android resources XML (2 usages)\n" +
                              "   app (2 usages)\n" +
-                             "    res/layout (1 usage)\n" +
+                             "    res" + File.separatorChar + "layout (1 usage)\n" +
                              "     fu1_layout.xml (1 usage)\n" +
                              "      3<TextView android:background=\"@drawable/picture3\"/>\n" +
-                             "    res/values (1 usage)\n" +
+                             "    res" + File.separatorChar + "values (1 usage)\n" +
                              "     styles.xml (1 usage)\n" +
                              "      3<item name=\"android:windowBackground\">@drawable/picture3</item>\n" +
                              "  Resource reference in code (1 usage)\n" +
@@ -648,7 +649,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                      " Found usages (2 usages)\n" +
                                      "  Resource reference Android resources XML (1 usage)\n" +
                                      "   app (1 usage)\n" +
-                                     "    res/layout (1 usage)\n" +
+                                     "    res" + File.separatorChar + "layout (1 usage)\n" +
                                      "     layout.xml (1 usage)\n" +
                                      "      1<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                                      "  Resource reference in code (1 usage)\n" +
@@ -666,12 +667,12 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                   " Found usages (3 usages)\n" +
                                   "  Android resource file (1 usage)\n" +
                                   "   app (1 usage)\n" +
-                                  "    res/drawable (1 usage)\n" +
+                                  "    res" + File.separatorChar + "drawable (1 usage)\n" +
                                   "     picture3.gif (1 usage)\n" +
                                   "      Android resource file drawable/picture3.gif\n" +
                                   "  Resource reference Android resources XML (1 usage)\n" +
                                   "   app (1 usage)\n" +
-                                  "    res/layout (1 usage)\n" +
+                                  "    res" + File.separatorChar + "layout (1 usage)\n" +
                                   "     layout.xml (1 usage)\n" +
                                   "      3android:background=\"@drawable/picture3\">\n" +
                                   "  Resource reference in code (1 usage)\n" +
@@ -689,13 +690,13 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                " Found usages (3 usages)\n" +
                                "  Resource declaration in Android resources XML (2 usages)\n" +
                                "   app (2 usages)\n" +
-                               "    res/layout (2 usages)\n" +
+                               "    res" + File.separatorChar + "layout (2 usages)\n" +
                                "     f12_layout.xml (2 usages)\n" +
                                "      16android:id=\"@+id/second\"\n" +
                                "      26android:layout_below=\"@+id/second\"\n" +
                                "  Resource reference Android resources XML (1 usage)\n" +
                                "   app (1 usage)\n" +
-                               "    res/layout (1 usage)\n" +
+                               "    res" + File.separatorChar + "layout (1 usage)\n" +
                                "     f12_layout.xml (1 usage)\n" +
                                "      27android:labelFor=\"@id/second\"\n");
     }
@@ -707,12 +708,12 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                            " Found usages (3 usages)\n" +
                            "  Resource declaration in Android resources XML (1 usage)\n" +
                            "   app (1 usage)\n" +
-                           "    res/layout (1 usage)\n" +
+                           "    res" + File.separatorChar + "layout (1 usage)\n" +
                            "     fu7_layout.xml (1 usage)\n" +
                            "      4<EditText android:id=\"@+id/anchor\"/>\n" +
                            "  Resource reference Android resources XML (1 usage)\n" +
                            "   app (1 usage)\n" +
-                           "    res/layout (1 usage)\n" +
+                           "    res" + File.separatorChar + "layout (1 usage)\n" +
                            "     fu7_layout.xml (1 usage)\n" +
                            "      5<TextView android:layout_alignRight=\"@id/anchor\"/>\n" +
                            "  Resource reference in code (1 usage)\n" +
@@ -730,12 +731,12 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                       " Found usages (3 usages)\n" +
                                       "  Resource declaration in Android resources XML (1 usage)\n" +
                                       "   app (1 usage)\n" +
-                                      "    res/layout (1 usage)\n" +
+                                      "    res" + File.separatorChar + "layout (1 usage)\n" +
                                       "     fu9_layout.xml (1 usage)\n" +
                                       "      4<EditText android:id=\"@+id/anchor\"/>\n" +
                                       "  Resource reference Android resources XML (1 usage)\n" +
                                       "   app (1 usage)\n" +
-                                      "    res/layout (1 usage)\n" +
+                                      "    res" + File.separatorChar + "layout (1 usage)\n" +
                                       "     fu9_layout.xml (1 usage)\n" +
                                       "      5<TextView android:layout_alignRight=\"@id/anchor\"/>\n" +
                                       "  Resource reference in code (1 usage)\n" +
@@ -753,12 +754,12 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                 " Found usages (3 usages)\n" +
                                 "  Resource declaration in Android resources XML (1 usage)\n" +
                                 "   app (1 usage)\n" +
-                                "    res/layout (1 usage)\n" +
+                                "    res" + File.separatorChar + "layout (1 usage)\n" +
                                 "     layout.xml (1 usage)\n" +
                                 "      4<EditText android:id=\"@+id/anchor\"/>\n" +
                                 "  Resource reference Android resources XML (1 usage)\n" +
                                 "   app (1 usage)\n" +
-                                "    res/layout (1 usage)\n" +
+                                "    res" + File.separatorChar + "layout (1 usage)\n" +
                                 "     layout.xml (1 usage)\n" +
                                 "      7<TextView android:layout_alignRight=\"@id/anchor\"/>\n" +
                                 "  Resource reference in code (1 usage)\n" +
@@ -776,12 +777,12 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                             " Found usages (3 usages)\n" +
                             "  Resource declaration in Android resources XML (1 usage)\n" +
                             "   app (1 usage)\n" +
-                            "    res/values (1 usage)\n" +
+                            "    res" + File.separatorChar + "values (1 usage)\n" +
                             "     strings.xml (1 usage)\n" +
                             "      4<string-array name=\"str_arr\"></string-array>\n" +
                             "  Resource reference Android resources XML (1 usage)\n" +
                             "   app (1 usage)\n" +
-                            "    res/layout (1 usage)\n" +
+                            "    res" + File.separatorChar + "layout (1 usage)\n" +
                             "     stringArray.xml (1 usage)\n" +
                             "      3<ListView android:entries=\"@array/str_arr\"/>\n" +
                             "  Resource reference in code (1 usage)\n" +
@@ -799,7 +800,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                           " Found usages (3 usages)\n" +
                           "  Resource declaration in Android resources XML (1 usage)\n" +
                           "   app (1 usage)\n" +
-                          "    res/values (1 usage)\n" +
+                          "    res" + File.separatorChar + "values (1 usage)\n" +
                           "     attrs.xml (1 usage)\n" +
                           "      3<declare-styleable name=\"MyView\">\n" +
                           "  Resource reference in code (2 usages)\n" +
@@ -832,12 +833,12 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                  " Found usages (4 usages)\n" +
                                  "  Resource declaration in Android resources XML (1 usage)\n" +
                                  "   app (1 usage)\n" +
-                                 "    res/values (1 usage)\n" +
+                                 "    res" + File.separatorChar + "values (1 usage)\n" +
                                  "     f10_values.xml (1 usage)\n" +
                                  "      2<style name=\"myStyle\">\n" +
                                  "  Resource reference Android resources XML (3 usages)\n" +
                                  "   app (3 usages)\n" +
-                                 "    res/values (3 usages)\n" +
+                                 "    res" + File.separatorChar + "values (3 usages)\n" +
                                  "     f10_values.xml (3 usages)\n" +
                                  "      6<style name=\"myStyle.s\">\n" +
                                  "      10<style name=\"style1\" parent=\"myStyle\">\n" +
@@ -851,12 +852,12 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                   " Found usages (4 usages)\n" +
                                   "  Resource declaration in Android resources XML (1 usage)\n" +
                                   "   app (1 usage)\n" +
-                                  "    res/values (1 usage)\n" +
+                                  "    res" + File.separatorChar + "values (1 usage)\n" +
                                   "     f11_values.xml (1 usage)\n" +
                                   "      2<style name=\"myStyle\">\n" +
                                   "  Resource reference Android resources XML (3 usages)\n" +
                                   "   app (3 usages)\n" +
-                                  "    res/values (3 usages)\n" +
+                                  "    res" + File.separatorChar + "values (3 usages)\n" +
                                   "     f11_values.xml (3 usages)\n" +
                                   "      6<style name=\"myStyle.s\">\n" +
                                   "      10<style name=\"style1\" parent=\"myStyle\">\n" +
@@ -870,12 +871,12 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                   " Found usages (4 usages)\n" +
                                   "  Resource declaration in Android resources XML (1 usage)\n" +
                                   "   app (1 usage)\n" +
-                                  "    res/values (1 usage)\n" +
+                                  "    res" + File.separatorChar + "values (1 usage)\n" +
                                   "     f14_values.xml (1 usage)\n" +
                                   "      2<style name=\"myStyle\">\n" +
                                   "  Resource reference Android resources XML (3 usages)\n" +
                                   "   app (3 usages)\n" +
-                                  "    res/values (3 usages)\n" +
+                                  "    res" + File.separatorChar + "values (3 usages)\n" +
                                   "     f14_values.xml (3 usages)\n" +
                                   "      6<style name=\"myStyle.s\">\n" +
                                   "      10<style name=\"style1\" parent=\"myStyle\">\n" +
@@ -889,12 +890,12 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                   " Found usages (3 usages)\n" +
                                   "  Resource declaration in Android resources XML (1 usage)\n" +
                                   "   app (1 usage)\n" +
-                                  "    res/values (1 usage)\n" +
+                                  "    res" + File.separatorChar + "values (1 usage)\n" +
                                   "     strings.xml (1 usage)\n" +
                                   "      3<item name=\"hi\" type=\"string\"/>\n" +
                                   "  Resource reference Android resources XML (1 usage)\n" +
                                   "   app (1 usage)\n" +
-                                  "    res/layout (1 usage)\n" +
+                                  "    res" + File.separatorChar + "layout (1 usage)\n" +
                                   "     fu5_layout.xml (1 usage)\n" +
                                   "      3<TextView android:text=\"@string/hi\"/>\n" +
                                   "  Resource reference in code (1 usage)\n" +
@@ -912,12 +913,12 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                        " Found usages (3 usages)\n" +
                                        "  Resource declaration in Android resources XML (1 usage)\n" +
                                        "   app (1 usage)\n" +
-                                       "    res/values (1 usage)\n" +
+                                       "    res" + File.separatorChar + "values (1 usage)\n" +
                                        "     strings.xml (1 usage)\n" +
                                        "      3<item name=\"hi\" type=\"string\"/>\n" +
                                        "  Resource reference Android resources XML (1 usage)\n" +
                                        "   app (1 usage)\n" +
-                                       "    res/layout (1 usage)\n" +
+                                       "    res" + File.separatorChar + "layout (1 usage)\n" +
                                        "     layout.xml (1 usage)\n" +
                                        "      6<TextView android:text=\"@string/hi\"/>\n" +
                                        "  Resource reference in code (1 usage)\n" +
@@ -935,12 +936,12 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                               " Found usages (3 usages)\n" +
                               "  Resource declaration in Android resources XML (1 usage)\n" +
                               "   app (1 usage)\n" +
-                              "    res/values (1 usage)\n" +
+                              "    res" + File.separatorChar + "values (1 usage)\n" +
                               "     strings.xml (1 usage)\n" +
                               "      2<string name=\"hello\">hello</string>\n" +
                               "  Resource reference Android resources XML (1 usage)\n" +
                               "   app (1 usage)\n" +
-                              "    res/layout (1 usage)\n" +
+                              "    res" + File.separatorChar + "layout (1 usage)\n" +
                               "     fu2_layout.xml (1 usage)\n" +
                               "      3<TextView android:text=\"@string/hello\"/>\n" +
                               "  Resource reference in code (1 usage)\n" +
@@ -958,12 +959,12 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                " Found usages (3 usages)\n" +
                                "  Resource declaration in Android resources XML (1 usage)\n" +
                                "   app (1 usage)\n" +
-                               "    res/values (1 usage)\n" +
+                               "    res" + File.separatorChar + "values (1 usage)\n" +
                                "     fu1_values.xml (1 usage)\n" +
                                "      2<string name=\"hello\">hello</string>\n" +
                                "  Resource reference Android resources XML (1 usage)\n" +
                                "   app (1 usage)\n" +
-                               "    res/layout (1 usage)\n" +
+                               "    res" + File.separatorChar + "layout (1 usage)\n" +
                                "     layout.xml (1 usage)\n" +
                                "      5<TextView android:text=\"@string/hello\"/>\n" +
                                "  Resource reference in code (1 usage)\n" +
@@ -981,12 +982,12 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                " Found usages (3 usages)\n" +
                                "  Resource declaration in Android resources XML (1 usage)\n" +
                                "   app (1 usage)\n" +
-                               "    res/values (1 usage)\n" +
+                               "    res" + File.separatorChar + "values (1 usage)\n" +
                                "     fu2_values.xml (1 usage)\n" +
                                "      2<string name=\"hello\">hello</string>\n" +
                                "  Resource reference Android resources XML (1 usage)\n" +
                                "   app (1 usage)\n" +
-                               "    res/layout (1 usage)\n" +
+                               "    res" + File.separatorChar + "layout (1 usage)\n" +
                                "     layout.xml (1 usage)\n" +
                                "      5<TextView android:text=\"@string/hello\"/>\n" +
                                "  Resource reference in code (1 usage)\n" +
@@ -1004,12 +1005,12 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                " Found usages (3 usages)\n" +
                                "  Resource declaration in Android resources XML (1 usage)\n" +
                                "   app (1 usage)\n" +
-                               "    res/values (1 usage)\n" +
+                               "    res" + File.separatorChar + "values (1 usage)\n" +
                                "     fu3_values.xml (1 usage)\n" +
                                "      2<string name=\"hello\">hello</string>\n" +
                                "  Resource reference Android resources XML (1 usage)\n" +
                                "   app (1 usage)\n" +
-                               "    res/layout (1 usage)\n" +
+                               "    res" + File.separatorChar + "layout (1 usage)\n" +
                                "     layout.xml (1 usage)\n" +
                                "      5<TextView android:text=\"@string/hello\"/>\n" +
                                "  Resource reference in code (1 usage)\n" +
@@ -1027,12 +1028,12 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                " Found usages (3 usages)\n" +
                                "  Resource declaration in Android resources XML (1 usage)\n" +
                                "   app (1 usage)\n" +
-                               "    res/values (1 usage)\n" +
+                               "    res" + File.separatorChar + "values (1 usage)\n" +
                                "     fu4_values.xml (1 usage)\n" +
                                "      2<string name=\"hello\">hello</string>\n" +
                                "  Resource reference Android resources XML (1 usage)\n" +
                                "   app (1 usage)\n" +
-                               "    res/layout (1 usage)\n" +
+                               "    res" + File.separatorChar + "layout (1 usage)\n" +
                                "     layout.xml (1 usage)\n" +
                                "      5<TextView android:text=\"@string/hello\"/>\n" +
                                "  Resource reference in code (1 usage)\n" +
@@ -1050,12 +1051,12 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                " Found usages (3 usages)\n" +
                                "  Resource declaration in Android resources XML (1 usage)\n" +
                                "   app (1 usage)\n" +
-                               "    res/values (1 usage)\n" +
+                               "    res" + File.separatorChar + "values (1 usage)\n" +
                                "     fu5_values.xml (1 usage)\n" +
                                "      2<string name=\"hello\">hello</string>\n" +
                                "  Resource reference Android resources XML (1 usage)\n" +
                                "   app (1 usage)\n" +
-                               "    res/layout (1 usage)\n" +
+                               "    res" + File.separatorChar + "layout (1 usage)\n" +
                                "     layout.xml (1 usage)\n" +
                                "      5<TextView android:text=\"@string/hello\"/>\n" +
                                "  Resource reference in code (1 usage)\n" +
@@ -1073,12 +1074,12 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                " Found usages (3 usages)\n" +
                                "  Resource declaration in Android resources XML (1 usage)\n" +
                                "   app (1 usage)\n" +
-                               "    res/values (1 usage)\n" +
+                               "    res" + File.separatorChar + "values (1 usage)\n" +
                                "     fu6_values.xml (1 usage)\n" +
                                "      2<string name=\"hello\">hello</string>\n" +
                                "  Resource reference Android resources XML (1 usage)\n" +
                                "   app (1 usage)\n" +
-                               "    res/layout (1 usage)\n" +
+                               "    res" + File.separatorChar + "layout (1 usage)\n" +
                                "     layout.xml (1 usage)\n" +
                                "      5<TextView android:text=\"@string/hello\"/>\n" +
                                "  Resource reference in code (1 usage)\n" +
@@ -1096,12 +1097,12 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                " Found usages (3 usages)\n" +
                                "  Resource declaration in Android resources XML (1 usage)\n" +
                                "   app (1 usage)\n" +
-                               "    res/values (1 usage)\n" +
+                               "    res" + File.separatorChar + "values (1 usage)\n" +
                                "     fu7_values.xml (1 usage)\n" +
                                "      2<string name=\"hello\">hello</string>\n" +
                                "  Resource reference Android resources XML (1 usage)\n" +
                                "   app (1 usage)\n" +
-                               "    res/layout (1 usage)\n" +
+                               "    res" + File.separatorChar + "layout (1 usage)\n" +
                                "     layout.xml (1 usage)\n" +
                                "      5<TextView android:text=\"@string/hello\"/>\n" +
                                "  Resource reference in code (1 usage)\n" +
@@ -1119,12 +1120,12 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                " Found usages (3 usages)\n" +
                                "  Resource declaration in Android resources XML (1 usage)\n" +
                                "   app (1 usage)\n" +
-                               "    res/values (1 usage)\n" +
+                               "    res" + File.separatorChar + "values (1 usage)\n" +
                                "     f8_values.xml (1 usage)\n" +
                                "      2<string name=\"hello\">hello</string>\n" +
                                "  Resource reference Android resources XML (1 usage)\n" +
                                "   app (1 usage)\n" +
-                               "    res/layout (1 usage)\n" +
+                               "    res" + File.separatorChar + "layout (1 usage)\n" +
                                "     layout.xml (1 usage)\n" +
                                "      5<TextView android:text=\"@string/hello\"/>\n" +
                                "  Resource reference in code (1 usage)\n" +
@@ -1142,15 +1143,15 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                " Found usages (4 usages)\n" +
                                "  Resource declaration in Android resources XML (1 usage)\n" +
                                "   app (1 usage)\n" +
-                               "    res/values (1 usage)\n" +
+                               "    res" + File.separatorChar + "values (1 usage)\n" +
                                "     f13_values.xml (1 usage)\n" +
                                "      4<string name=\"hello\">hello</string>\n" +
                                "  Resource reference Android resources XML (2 usages)\n" +
                                "   app (2 usages)\n" +
-                               "    res/layout (1 usage)\n" +
+                               "    res" + File.separatorChar + "layout (1 usage)\n" +
                                "     layout.xml (1 usage)\n" +
                                "      5<TextView android:text=\"@string/hello\"/>\n" +
-                               "    res/values (1 usage)\n" +
+                               "    res" + File.separatorChar + "values (1 usage)\n" +
                                "     f13_values.xml (1 usage)\n" +
                                "      9<item>@string/hello</item>\n" +
                                "  Resource reference in code (1 usage)\n" +
@@ -1168,12 +1169,12 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                    " Found usages (3 usages)\n" +
                                    "  Resource declaration in Android resources XML (1 usage)\n" +
                                    "   app (1 usage)\n" +
-                                   "    res/values (1 usage)\n" +
+                                   "    res" + File.separatorChar + "values (1 usage)\n" +
                                    "     strings.xml (1 usage)\n" +
                                    "      2<string name=\"hello\">hello</string>\n" +
                                    "  Resource reference Android resources XML (1 usage)\n" +
                                    "   app (1 usage)\n" +
-                                   "    res/layout (1 usage)\n" +
+                                   "    res" + File.separatorChar + "layout (1 usage)\n" +
                                    "     layout.xml (1 usage)\n" +
                                    "      5<TextView android:text=\"@string/hello\"/>\n" +
                                    "  Resource reference in code (1 usage)\n" +
@@ -1227,12 +1228,12 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                         " Found usages (3 usages)\n" +
                         "  Resource declaration in Android resources XML (1 usage)\n" +
                         "   app (1 usage)\n" +
-                        "    res/values (1 usage)\n" +
+                        "    res" + File.separatorChar + "values (1 usage)\n" +
                         "     attrs.xml (1 usage)\n" +
                         "      3<attr name=\"newAttr\" format=\"boolean\" />\n" +
                         "  Resource reference Android resources XML (1 usage)\n" +
                         "   app (1 usage)\n" +
-                        "    res/values (1 usage)\n" +
+                        "    res" + File.separatorChar + "values (1 usage)\n" +
                         "     style.xml (1 usage)\n" +
                         "      3<item name=\"newAttr\">true</item>\n" +
                         "  Resource reference in code (1 usage)\n" +
@@ -1251,12 +1252,12 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
                                       " Found usages (3 usages)\n" +
                                       "  Resource declaration in Android resources XML (1 usage)\n" +
                                       "   app (1 usage)\n" +
-                                      "    res/values (1 usage)\n" +
+                                      "    res" + File.separatorChar + "values (1 usage)\n" +
                                       "     attrs.xml (1 usage)\n" +
                                       "      3<attr name=\"newAttr\" format=\"boolean\" />\n" +
                                       "  Resource reference Android resources XML (1 usage)\n" +
                                       "   app (1 usage)\n" +
-                                      "    res/values (1 usage)\n" +
+                                      "    res" + File.separatorChar + "values (1 usage)\n" +
                                       "     style.xml (1 usage)\n" +
                                       "      3<item name=\"newAttr\">true</item>\n" +
                                       "  Resource reference in code (1 usage)\n" +
