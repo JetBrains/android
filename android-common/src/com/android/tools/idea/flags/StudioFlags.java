@@ -964,5 +964,14 @@ public final class StudioFlags {
   );
   // endregion
 
+  // region WorkManager Inspector
+  private static final FlagGroup WORK_MANAGER_INSPECTOR = new FlagGroup(FLAGS, "work.inspector", "WorkManager Inspector");
+  public static final Flag<Boolean> ENABLE_WORK_MANAGER_INSPECTOR_TAB = Flag.create(
+    WORK_MANAGER_INSPECTOR, "enable.tab", "Enable WorkManager Inspector Tab",
+    "Enables a WorkManager Inspector Tab in the App Inspection tool window",
+    false
+  );
+  // endregion
+
   private StudioFlags() { }
 }
