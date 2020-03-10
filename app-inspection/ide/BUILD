@@ -56,6 +56,7 @@ iml_module(
         "//tools/adt/idea/deploy:intellij.android.deploy[module]",
         "//tools/adt/idea/app-inspection/inspector/ide:intellij.android.app-inspection.inspector.ide[module]",
         "//tools/adt/idea/app-inspection/inspector/api:intellij.android.app-inspection.inspector.api[module]",
+        "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
     ],
 )
 
@@ -129,5 +130,6 @@ iml_module(
         "//tools/idea/.idea/libraries:transport-proto[test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/sdk-updates:intellij.android.sdkUpdates[module, test]",
     ],
 )

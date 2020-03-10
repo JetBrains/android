@@ -16,9 +16,6 @@
 package com.android.tools.idea.appinspection.ide
 
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
-import com.android.tools.idea.appinspection.api.LaunchedProcessDescriptor
-import com.android.tools.idea.appinspection.api.TestInspectorCommandHandler
 import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessesComboBoxModel
 import com.android.tools.idea.appinspection.test.ASYNC_TIMEOUT_MS
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils
@@ -41,7 +38,7 @@ import javax.swing.event.ListDataListener
 
 class AppInspectionProcessesComboBoxModelTest {
   private val timer = FakeTimer()
-  private val transportService = FakeTransportService(timer)
+  private val transportService = FakeTransportService(timer, false)
 
   private val ATTACH_HANDLER = object : CommandHandler(timer) {
     override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
@@ -68,13 +65,12 @@ class AppInspectionProcessesComboBoxModelTest {
   @Test
   fun addsAndRemovesProcess_comboBoxModelUpdatesProperly() {
     val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
-    val discoveryHost = AppInspectionDiscoveryHost(executor, TransportClient(grpcServerRule.name))
+    val discoveryHost = AppInspectionTestUtils.createDiscoveryHost(executor, TransportClient(grpcServerRule.name))
 
-    transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, TestInspectorCommandHandler(timer))
     val addedLatch = CountDownLatch(1)
     val removedLatch = CountDownLatch(1)
 
-    val model = AppInspectionProcessesComboBoxModel(discoveryHost)
+    val model = AppInspectionProcessesComboBoxModel(discoveryHost, emptyList())
     model.addListDataListener(object : ListDataListener {
       override fun contentsChanged(e: ListDataEvent?) {}
 
@@ -88,23 +84,15 @@ class AppInspectionProcessesComboBoxModelTest {
     })
 
     // Attach to a fake process.
+    transportService.addDevice(FakeTransportService.FAKE_DEVICE)
     transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
-    discoveryHost.addLaunchedProcess(
-      LaunchedProcessDescriptor(
-        FakeTransportService.FAKE_DEVICE.manufacturer,
-        FakeTransportService.FAKE_DEVICE.model,
-        FakeTransportService.FAKE_DEVICE.serial,
-        FakeTransportService.FAKE_PROCESS.name,
-        AppInspectionTestUtils.TestTransportJarCopier
-      )
-    )
     addedLatch.await()
 
     // Verify the added target.
     assertThat(model.size).isEqualTo(1)
     with(model.getElementAt(0)) {
-      assertThat(this.info.model).isEqualTo(FakeTransportService.FAKE_DEVICE.model)
-      assertThat(this.info.processName).isEqualTo(FakeTransportService.FAKE_PROCESS.name)
+      assertThat(this.model).isEqualTo(FakeTransportService.FAKE_DEVICE.model)
+      assertThat(this.processName).isEqualTo(FakeTransportService.FAKE_PROCESS.name)
     }
 
     // Remove the fake process.
@@ -113,5 +101,46 @@ class AppInspectionProcessesComboBoxModelTest {
 
     // Verify the empty model list.
     assertThat(model.size).isEqualTo(0)
+  }
+
+  @Test
+  fun prioritizePreferredProcesses() {
+    val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
+    val discoveryHost = AppInspectionTestUtils.createDiscoveryHost(executor, TransportClient(grpcServerRule.name))
+
+    val addedLatch = CountDownLatch(2)
+
+    val model = AppInspectionProcessesComboBoxModel(discoveryHost, listOf("preferred"))
+    model.addListDataListener(object : ListDataListener {
+      override fun contentsChanged(e: ListDataEvent?) {}
+
+      override fun intervalRemoved(e: ListDataEvent?) {
+      }
+
+      override fun intervalAdded(e: ListDataEvent?) {
+        addedLatch.countDown()
+      }
+    })
+
+    val nonPreferredProcess = FakeTransportService.FAKE_PROCESS.toBuilder().setName("non-preferred").setPid(100).build()
+    val preferredProcess = FakeTransportService.FAKE_PROCESS.toBuilder().setName("preferred").setPid(101).build()
+
+    // Launch non-preferred process
+    transportService.addDevice(FakeTransportService.FAKE_DEVICE)
+    transportService.addProcess(FakeTransportService.FAKE_DEVICE, nonPreferredProcess)
+
+    // Launch preferred process
+    transportService.addProcess(FakeTransportService.FAKE_DEVICE, preferredProcess)
+
+    addedLatch.await()
+
+    // Verify the preferred process is listed before the non-preferred process.
+    assertThat(model.size).isEqualTo(2)
+    with(model.getElementAt(0)) {
+      assertThat(this.processName).isEqualTo("preferred")
+    }
+    with(model.getElementAt(1)) {
+      assertThat(this.processName).isEqualTo("non-preferred")
+    }
   }
 }
