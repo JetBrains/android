@@ -74,7 +74,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.updateSettings.impl.UpdateSettingsConfigurable;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.SystemInfoRt;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.HyperlinkAdapter;
@@ -585,7 +585,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
 
         boolean traversalBackward = false;
 
-        if (SystemInfo.IS_AT_LEAST_JAVA9) {
+        if (SystemInfoRt.IS_AT_LEAST_JAVA9) {
           try {
             Method getCause = FocusEvent.class.getMethod("getCause");
             Enum<?> cause = (Enum<?>)getCause.invoke(e);
