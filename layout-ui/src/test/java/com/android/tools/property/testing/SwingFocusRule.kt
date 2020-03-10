@@ -16,6 +16,7 @@
 package com.android.tools.property.testing
 
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.openapi.util.SystemInfoRt
 import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.openapi.wm.impl.IdeFocusManagerHeadless
 import org.junit.rules.ExternalResource
@@ -26,12 +27,7 @@ import org.mockito.Mockito
 import org.mockito.stubbing.Answer
 import sun.awt.AWTAccessor
 import sun.awt.CausedFocusEvent
-import java.awt.Component
-import java.awt.Container
-import java.awt.DefaultKeyboardFocusManager
-import java.awt.Frame
-import java.awt.GraphicsEnvironment
-import java.awt.KeyboardFocusManager
+import java.awt.*
 import java.awt.peer.ComponentPeer
 
 /**
@@ -111,7 +107,7 @@ class SwingFocusRule(private var appRule: ApplicationRule? = null) : ExternalRes
     if (accessor.getPeer(component) == null) {
       val peer = Mockito.mock(ComponentPeer::class.java)
 
-      if (SystemInfo.IS_AT_LEAST_JAVA9) {
+      if (SystemInfoRt.IS_AT_LEAST_JAVA9) {
         val causeClass = Class.forName("java.awt.event.FocusEvent\$Cause")
         val methodCall = ComponentPeer::class.java.getMethod("requestFocus", Component::class.java,
                                             Boolean::class.javaPrimitiveType, Boolean::class.javaPrimitiveType,
