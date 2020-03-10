@@ -367,6 +367,12 @@ public final class StudioFlags {
     "Adds more filter options for resources based on the selected ResourceType. Includes options to filter by resource XML tag or "
     + "File extension.",
     true);
+
+  public static final Flag<Boolean> NAVIGATION_PREVIEW = Flag.create(
+    RES_MANAGER, "nav.preview", "Enable previews for Navigation resources",
+    "Adds a visual preview to the Navigation resources in the Resource Manager. The preview corresponds to the start destination " +
+    "of the graph.",
+    true);
   //endregion
 
   //region Run/Debug
