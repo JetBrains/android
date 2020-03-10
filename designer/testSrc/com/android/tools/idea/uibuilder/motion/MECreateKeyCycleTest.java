@@ -42,23 +42,23 @@ public class MECreateKeyCycleTest extends BaseMotionEditorTest {
   public void testCreateKeyCycleLayout() {
     CreatorAccess panel = new CreatorAccess();
     String layout = "0,CreatorAccess      ,0,0,99,99\n" +
-                    "1,JLabel             ,2,0,93,5\n" +
-                    "1,JSeparator         ,2,7,93,0\n" +
-                    "1,JRadioButton       ,2,8,28,8\n" +
-                    "1,JRadioButton       ,36,8,60,8\n" +
-                    "1,JPanel             ,2,18,93,8\n" +
+                    "1,JLabel             ,4,2,90,4\n" +
+                    "1,JSeparator         ,0,8,99,0\n" +
+                    "1,JRadioButton       ,4,11,42,6\n" +
+                    "1,JRadioButton       ,57,11,37,6\n" +
+                    "1,JPanel             ,5,19,89,6\n" +
                     "2,PromptedTextField  ,0,0,0,0\n" +
                     "2,MEComboBox         ,0,0,0,0\n" +
-                    "1,JSeparator         ,2,27,93,0\n" +
-                    "1,JLabel             ,2,29,93,5\n" +
-                    "1,PromptedTextField  ,2,35,93,6\n" +
-                    "1,JLabel             ,2,43,93,5\n" +
-                    "1,MEComboBox         ,2,49,93,8\n" +
-                    "1,JLabel             ,2,59,93,5\n" +
-                    "1,PromptedTextField  ,2,65,93,6\n" +
-                    "1,JLabel             ,2,73,93,5\n" +
-                    "1,MEComboBox         ,2,79,93,8\n" +
-                    "1,JButton            ,2,90,93,8\n";
+                    "1,JSeparator         ,0,28,99,0\n" +
+                    "1,JLabel             ,4,31,90,4\n" +
+                    "1,PromptedTextField  ,5,36,89,5\n" +
+                    "1,JLabel             ,4,44,90,4\n" +
+                    "1,MEComboBox         ,5,50,89,6\n" +
+                    "1,JLabel             ,4,59,90,4\n" +
+                    "1,PromptedTextField  ,5,64,89,5\n" +
+                    "1,JLabel             ,4,72,90,4\n" +
+                    "1,MEComboBox         ,5,77,89,6\n" +
+                    "1,JButton            ,4,89,90,7\n";
     Dimension size = panel.getPreferredSize();
     panel.setBounds(0, 0, size.width, size.height);
     panel.doLayout();

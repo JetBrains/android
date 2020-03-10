@@ -61,44 +61,54 @@ public class CreateOnSwipe extends BaseCreatePanel {
     int y = 0;
     grid(gbc, 0, y++, 1, 1);
     gbc.weighty = 0;
-    gbc.insets = new Insets(2, 5, 1, 5);
+    gbc.ipadx = MEUI.scale(60);
+    gbc.insets = MEUI.dialogLabelInsets();
 
     gbc.fill = GridBagConstraints.HORIZONTAL;
     add(new JLabel("CREATE ONSWIPE"), gbc);
     grid(gbc, 0, y++);
     gbc.weighty = 0;
+    gbc.insets = MEUI.dialogSeparatorInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(new JSeparator(), gbc);
 
     grid(gbc, 0, y++);
     gbc.weighty = 0;
+    gbc.insets = MEUI.dialogLabelInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(new JLabel("In Transition"), gbc);
     grid(gbc, 0, y++);
+    gbc.insets = MEUI.dialogControlInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(mTransitions, gbc);
 
     grid(gbc, 0, y++);
     gbc.weighty = 0;
+    gbc.insets = MEUI.dialogLabelInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(new JLabel("Drag Direction"), gbc);
     grid(gbc, 0, y++);
+    gbc.insets = MEUI.dialogControlInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(mDragDirection = newComboBox("dragUp", "dragDown", "dragLeft", "dragRight"), gbc);
 
     grid(gbc, 0, y++);
     gbc.weighty = 0;
+    gbc.insets = MEUI.dialogLabelInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(new JLabel("Anchor Side"), gbc);
     grid(gbc, 0, y++);
+    gbc.insets = MEUI.dialogControlInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(mAnchorSide = newComboBox("Top", "Left", "Bottom", "Right"), gbc);
 
     grid(gbc, 0, y++);
     gbc.weighty = 0;
+    gbc.insets = MEUI.dialogLabelInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(new JLabel("Anchor ID"), gbc);
     grid(gbc, 0, y++);
+    gbc.insets = MEUI.dialogControlInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(mAnchorIdBox, gbc);
 
@@ -108,6 +118,7 @@ public class CreateOnSwipe extends BaseCreatePanel {
     }, gbc);
     gbc.weighty = 0;
     gbc.weightx = 1;
+    gbc.insets = MEUI.dialogBottomButtonInsets();
     gbc.anchor = GridBagConstraints.SOUTHEAST;
     //noinspection UnusedAssignment This is to maintain the pattern
     grid(gbc, 0, y++, 2, 1);
