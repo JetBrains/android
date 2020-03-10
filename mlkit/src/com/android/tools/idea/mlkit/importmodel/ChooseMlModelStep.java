@@ -18,21 +18,25 @@ package com.android.tools.idea.mlkit.importmodel;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.idea.npw.template.components.ModuleTemplateComboProvider;
 import com.android.tools.idea.observable.BindingsManager;
+import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.expressions.Expression;
+import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
+import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import java.io.File;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
-import javax.swing.JTextArea;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,9 +53,12 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
 
   private JPanel myPanel;
   private TextFieldWithBrowseButton myModelLocation;
-  private JTextArea myAdditionalRequiredInfosTextArea;
+  private ComboBox<NamedModuleTemplate> myFlavorBox;
 
-  public ChooseMlModelStep(@NotNull MlWizardModel model, @NotNull Project project, @NotNull String title) {
+  public ChooseMlModelStep(@NotNull MlWizardModel model,
+                           @NotNull List<NamedModuleTemplate> moduleTemplates,
+                           @NotNull Project project,
+                           @NotNull String title) {
     super(model, title);
 
     myModelLocation.addBrowseFolderListener("Select TensorFlow Lite Model Location",
@@ -59,11 +66,18 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
                                             project,
                                             FileChooserDescriptorFactory.createSingleFileOrFolderDescriptor());
 
+    for (NamedModuleTemplate namedModuleTemplate : moduleTemplates) {
+      myFlavorBox.addItem(namedModuleTemplate);
+    }
+
     myBindings.bindTwoWay(new TextProperty(myModelLocation.getTextField()), model.sourceLocation);
 
     myValidatorPanel = new ValidatorPanel(this, myPanel);
     Expression<File> locationFile = model.sourceLocation.transform(File::new);
     myValidatorPanel.registerValidator(locationFile, value -> checkPath(value));
+
+    SelectedItemProperty<NamedModuleTemplate> selectedFavor = new SelectedItemProperty<>(myFlavorBox);
+    myValidatorPanel.registerValidator(ObjectProperty.wrap(selectedFavor), value -> checkFlavor(value));
 
     myRootPanel = new StudioWizardStepPanel(myValidatorPanel);
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
@@ -75,14 +89,31 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
     return myValidatorPanel.hasErrors().not();
   }
 
+  @Override
+  protected void onProceeding() {
+    super.onProceeding();
+    File mlDirectory = ((NamedModuleTemplate)myFlavorBox.getSelectedItem()).component2().getMlModelsDirectories().get(0);
+    getModel().mlDirectory.set(mlDirectory.getAbsolutePath());
+  }
+
   @NotNull
-  Validator.Result checkPath(@NotNull File file) {
+  private Validator.Result checkPath(@NotNull File file) {
     //TODO(jackqdyulei): check whether destination already contains this file.
     if (!file.isFile()) {
       return new Validator.Result(Validator.Severity.ERROR, "Please select a TensorFlow Lite model file to import.");
-    } else if (!file.getName().endsWith(".tflite")) {
+    }
+    else if (!file.getName().endsWith(".tflite")) {
       return new Validator.Result(Validator.Severity.ERROR, "This file is not a TensorFlow Lite model file.");
     }
+    return Validator.Result.OK;
+  }
+
+  @NotNull
+  Validator.Result checkFlavor(@NotNull NamedModuleTemplate flavor) {
+    if (flavor.getPaths().getMlModelsDirectories().isEmpty()) {
+      new Validator.Result(Validator.Severity.ERROR, "No valid ml directory in checkFlavor.");
+    }
+
     return Validator.Result.OK;
   }
 
@@ -96,5 +127,9 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
   @Override
   protected JComponent getPreferredFocusComponent() {
     return myModelLocation;
+  }
+
+  private void createUIComponents() {
+    myFlavorBox = new ModuleTemplateComboProvider(Collections.emptyList()).createComponent();
   }
 }
