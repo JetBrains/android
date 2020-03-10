@@ -262,8 +262,10 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
 
     // Assert
     orderVerifier.verify(sqliteEvaluatorView.tableView).resetView()
+    orderVerifier.verify(sqliteEvaluatorView.tableView).showTableColumns(mockSqliteResultSet._columns)
     orderVerifier.verify(sqliteEvaluatorView.tableView).updateRows(mockSqliteResultSet.rows.map { RowDiffOperation.AddRow(it) })
     orderVerifier.verify(sqliteEvaluatorView.tableView).resetView()
+    orderVerifier.verify(sqliteEvaluatorView.tableView).showTableColumns(mockSqliteResultSet._columns)
     orderVerifier.verify(sqliteEvaluatorView.tableView).updateRows(mockSqliteResultSet.rows.map { RowDiffOperation.AddRow(it) })
   }
 
