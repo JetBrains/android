@@ -16,6 +16,7 @@
 package com.android.tools.idea.mlkit.importmodel;
 
 import com.android.tools.idea.mlkit.MlkitUtils;
+import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
 import com.android.tools.idea.wizard.model.ModelWizard;
@@ -29,6 +30,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.StudioIcons;
 import java.io.File;
+import java.util.Collections;
+import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -43,11 +46,11 @@ public class AndroidImportMlModelAction extends AnAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
-    File mlDirectory = getModuleMlDirectory(e);
-    if (mlDirectory != null && e.getProject() != null) {
+    List<NamedModuleTemplate> moduleTemplates = getModuleTemplates(e);
+    if (!moduleTemplates.isEmpty() && e.getProject() != null) {
       String title = "Import TensorFlow Lite model";
       ModelWizard wizard = new ModelWizard.Builder()
-        .addStep(new ChooseMlModelStep(new MlWizardModel(mlDirectory, e.getProject()), e.getProject(), title))
+        .addStep(new ChooseMlModelStep(new MlWizardModel(e.getProject()), moduleTemplates, e.getProject(), title))
         .build();
       new StudioWizardDialogBuilder(wizard, title).build().show();
     }
@@ -74,7 +77,7 @@ public class AndroidImportMlModelAction extends AnAction {
       return;
     }
 
-    if (getModuleMlDirectory(e) == null) {
+    if (getModuleTemplates(e).isEmpty()) {
       presentation.setEnabled(false);
     }
 
@@ -82,16 +85,19 @@ public class AndroidImportMlModelAction extends AnAction {
   }
 
   /**
-   * Picks a directory into which the chosen model should be copied. Returns null if it can't be determined.
+   * Gets a list of {@link NamedModuleTemplate} from {@link AnActionEvent}. Returns
+   * empty list if there isn't exist a valid one.
    */
-  @Nullable
-  private static File getModuleMlDirectory(@NotNull AnActionEvent e) {
-    Module module = LangDataKeys.MODULE.getData(e.getDataContext());
-    if (module != null) {
-      // Stores the last file user has focused, so we know where user want to add this model.
-      VirtualFile virtualFile = CommonDataKeys.VIRTUAL_FILE.getData(e.getDataContext());
-      return MlkitUtils.getModuleMlDirectory(ProjectSystemUtil.getModuleSystem(module).getModuleTemplates(virtualFile));
+  @NotNull
+  private static List<NamedModuleTemplate> getModuleTemplates(@NotNull AnActionEvent e) {
+    if (e.getProject() == null) {
+      return Collections.emptyList();
     }
-    return null;
+    Module module = LangDataKeys.MODULE.getData(e.getDataContext());
+    VirtualFile virtualFile = e.getProject().getProjectFile();
+    if (module == null || virtualFile == null) {
+      return Collections.emptyList();
+    }
+    return ProjectSystemUtil.getModuleSystem(module).getModuleTemplates(virtualFile);
   }
 }
