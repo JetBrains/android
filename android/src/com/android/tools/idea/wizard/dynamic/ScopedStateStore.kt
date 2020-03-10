@@ -57,7 +57,9 @@ class ScopedStateStore(
   private val recentlyUpdated = Sets.newHashSet<Key<*>>()
   private val listeners = Lists.newArrayListWithCapacity<WeakReference<ScopedStoreListener>>(4)
   // Note that this should live as long as the store instance. Otherwise it gets GCed and no notifications are propagated.
-  private val parentListener = object : ScopedStoreListener {
+  private val parentListener = ScopedStoreListenerImpl()
+
+  private inner class ScopedStoreListenerImpl: ScopedStoreListener {
     override fun <T> invokeUpdate(changedKey: Key<T>?) {
       notifyListeners(changedKey)
     }
