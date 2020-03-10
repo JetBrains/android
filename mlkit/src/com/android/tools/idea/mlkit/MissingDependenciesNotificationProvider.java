@@ -59,7 +59,7 @@ public class MissingDependenciesNotificationProvider extends EditorNotifications
 
     Module module = ModuleUtilCore.findModuleForFile(file, project);
     if (module != null
-        && MlkitUtils.isModelFileInMlModelsFolder(file)
+        && MlkitUtils.isModelFileInMlModelsFolder(module, file)
         && !MlkitUtils.getMissingDependencies(module, file).isEmpty()) {
       EditorNotificationPanel panel = new EditorNotificationPanel();
       panel.setText("TF Lite model binding dependencies not found. They are necessary for the newest features to work properly");

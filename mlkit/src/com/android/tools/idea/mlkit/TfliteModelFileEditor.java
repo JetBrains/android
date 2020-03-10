@@ -85,13 +85,13 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   private final JBScrollPane myRootPane;
   private final JEditorPane myEditorPane;
   private boolean myUnderDarcula;
-  private boolean shouldDisplaySampleCodeSection;
+  private boolean myIsSampleCodeSectionVisible;
 
   public TfliteModelFileEditor(@NotNull Project project, @NotNull VirtualFile file) {
     myFile = file;
     myModule = ModuleUtilCore.findModuleForFile(file, project);
     myUnderDarcula = StartupUiUtil.isUnderDarcula();
-    shouldDisplaySampleCodeSection = shouldDisplaySampleCodeSection(file);
+    myIsSampleCodeSectionVisible = shouldDisplaySampleCodeSection();
 
     JPanel contentPanel = new JPanel();
     contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
@@ -111,7 +111,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       ModelInfo modelInfo = ModelInfo.buildFrom(new MetadataExtractor(ByteBuffer.wrap(myFile.contentsToByteArray())));
       htmlBodyBuilder.append(getModelSectionBody(modelInfo));
       htmlBodyBuilder.append(getTensorsSectionBody(modelInfo));
-      if (shouldDisplaySampleCodeSection) {
+      if (myIsSampleCodeSectionVisible) {
         PsiClass modelClass = MlkitModuleService.getInstance(myModule)
           .getOrCreateLightModelClass(
             new MlModelMetadata(myFile.getUrl(), MlkitNames.computeModelClassName((VfsUtilCore.virtualToIoFile(myFile)))));
@@ -289,9 +289,9 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   @NotNull
   @Override
   public JComponent getComponent() {
-    if (myUnderDarcula != StartupUiUtil.isUnderDarcula() || shouldDisplaySampleCodeSection != shouldDisplaySampleCodeSection(myFile)) {
+    if (myUnderDarcula != StartupUiUtil.isUnderDarcula() || myIsSampleCodeSectionVisible != shouldDisplaySampleCodeSection()) {
       myUnderDarcula = StartupUiUtil.isUnderDarcula();
-      shouldDisplaySampleCodeSection = shouldDisplaySampleCodeSection(myFile);
+      myIsSampleCodeSectionVisible = shouldDisplaySampleCodeSection();
       // Refresh UI
       setHtml(myEditorPane, createHtmlBody());
     }
@@ -356,8 +356,8 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   public void dispose() {
   }
 
-  private static boolean shouldDisplaySampleCodeSection(@NotNull VirtualFile modelFile) {
+  private boolean shouldDisplaySampleCodeSection() {
     // TODO(b/150960988): take build feature state into account as well once ag/10508121 landed.
-    return MlkitUtils.isModelFileInMlModelsFolder(modelFile);
+    return MlkitUtils.isModelFileInMlModelsFolder(myModule, myFile);
   }
 }
