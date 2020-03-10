@@ -61,6 +61,12 @@ public class MEUI {
     return JBUI.insets(top, left, bottom, right);
   }
 
+  public static Insets dialogTitleInsets() { return MEUI.insets(8, 12, 0, 12); }
+  public static Insets dialogSeparatorInsets() { return MEUI.insets(8, 0, 0, 0); }
+  public static Insets dialogLabelInsets() { return MEUI.insets(8, 12, 0, 12); }
+  public static Insets dialogControlInsets() { return MEUI.insets(4, 14, 0, 12); }
+  public static Insets dialogBottomButtonInsets() { return MEUI.insets(12, 12, 12, 12); }
+
   public static MEComboBox<String> makeComboBox(String[] a) {
     return new MEComboBox<String>(a);
   }
