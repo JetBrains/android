@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.nav.safeargs.extensions
 
-import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
+import com.intellij.psi.PsiArrayType
 import com.intellij.psi.PsiClassType
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiParameter
@@ -30,16 +31,16 @@ fun PsiMethod.checkSignaturesAndReturnType(
   returnType: String,
   parameters: Collection<Parameter> = emptyList()
 ) {
-  Truth.assertThat(this.name).isEqualTo(name)
+  assertThat(this.name).isEqualTo(name)
 
   if (returnType == PsiType.NULL.name) {
-    Truth.assertThat(getTypeName(this.returnType)).isNull()
+    assertThat(getTypeName(this.returnType)).isNull()
   }
   else {
-    Truth.assertThat(getTypeName(this.returnType)).isEqualTo(returnType)
+    assertThat(getTypeName(this.returnType)).isEqualTo(returnType)
   }
 
-  Truth.assertThat(this.parameters.size).isEqualTo(parameters.size)
+  assertThat(this.parameters.size).isEqualTo(parameters.size)
 
   this.parameters.map { parameter ->
     val pName = parameter.name!!
@@ -53,6 +54,9 @@ private fun getTypeName(type: PsiType?): String? {
   return when (type) {
     is PsiPrimitiveType -> type.name
     is PsiClassType -> type.name
+    is PsiArrayType -> {
+      getTypeName(type.componentType)?.let { componentType -> "$componentType[]" }
+    }
     else -> null
   }
 }
