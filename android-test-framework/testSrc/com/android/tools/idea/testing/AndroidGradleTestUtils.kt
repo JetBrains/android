@@ -80,7 +80,6 @@ import com.android.tools.idea.sdk.IdeSdks
 import com.android.utils.FileUtils
 import com.android.utils.appendCapitalized
 import com.google.common.collect.ImmutableList
-import com.google.common.truth.TruthJUnit.assume
 import com.intellij.externalSystem.JavaProjectData
 import com.intellij.ide.impl.ProjectUtil
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
@@ -656,7 +655,7 @@ fun setupTestProjectFromAndroidModel(
     }
   }
   else {
-    assume().that(moduleManager.modules.size).isEqualTo(0)
+    error("There is already more than one module in the test project.")
   }
   ProjectSystemService.getInstance(project).replaceProjectSystemForTests(GradleProjectSystem(project))
   val gradlePlugins = listOf(
@@ -761,7 +760,7 @@ fun setupTestProjectFromAndroidModel(
       PostSyncProjectSetup.Request(),
       null
     )
-    assume().that(GradleSyncState.getInstance(project).lastSyncFailed()).isFalse()
+    if (GradleSyncState.getInstance(project).lastSyncFailed()) error("Test project setup failed.")
   }
 }
 
