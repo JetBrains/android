@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.profilers.perfetto.traceprocessor
 
-import com.android.tools.profiler.perfetto.proto.Memory.StackFrame
 import com.android.tools.profiler.perfetto.proto.Memory.NativeAllocationContext
+import com.android.tools.profiler.perfetto.proto.Memory.StackFrame
 import com.android.tools.profiler.proto.Memory
 import com.android.tools.profilers.memory.adapters.ClassDb
 import com.android.tools.profilers.memory.adapters.NativeAllocationInstanceObject
 import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapSet
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer
+import com.intellij.util.Base64
 import java.io.File
 import java.util.HashMap
 
@@ -45,7 +46,7 @@ class HeapProfdConverter(private val abi: String,
    */
   private fun toBestAvailableStackFrame(rawFrame: StackFrame): Memory.AllocationStack.StackFrame {
     val symbolizedFrame = symbolizer.symbolize(abi, Memory.NativeCallStack.NativeFrame.newBuilder()
-      .setModuleName(rawFrame.module)
+      .setModuleName(String(Base64.decode(rawFrame.module)))
       // +1 because the common symbolizer does -1 accounting for an offset heapprofd does not have.
       // see IntellijNativeFrameSymbolizer:getOffsetOfPreviousInstruction
       .setModuleOffset(rawFrame.relPc + 1)
@@ -55,7 +56,7 @@ class HeapProfdConverter(private val abi: String,
       if (rawFrame.name.isNullOrBlank()) {
         return UNKNOWN_FRAME
       }
-      return Memory.AllocationStack.StackFrame.newBuilder().setMethodName(rawFrame.name).build()
+      return Memory.AllocationStack.StackFrame.newBuilder().setMethodName(String(Base64.decode(rawFrame.name))).build()
     }
     val file = File(symbolizedFrame.fileName).name
     val formattedName = "${symbolizedFrame.symbolName} (${file}:${symbolizedFrame.lineNumber})"
