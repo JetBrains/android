@@ -29,12 +29,17 @@ internal val MODIFIERS_PUBLIC_METHOD = arrayOf(PsiModifier.PUBLIC, PsiModifier.F
 internal val MODIFIERS_STATIC_PUBLIC_METHOD = MODIFIERS_PUBLIC_METHOD + arrayOf(PsiModifier.STATIC)
 
 private const val STRING_FQCN = "java.lang.String"
+private const val STRING_FQCN_ARRAY = "java.lang.String[]"
+private const val INT_ARRAY = "int[]"
 private const val FALLBACK_TYPE = STRING_FQCN
 
 private val NAV_TO_JAVA_TYPE_MAP = mapOf(
   "string" to STRING_FQCN,
-  "integer" to "int",
-  "reference" to "int"
+  "string[]" to STRING_FQCN_ARRAY,
+  "integer" to PsiType.INT.name,
+  "integer[]" to INT_ARRAY,
+  "reference" to PsiType.INT.name,
+  "reference[]" to INT_ARRAY
 )
 
 internal fun parsePsiType(modulePackage: String, typeStr: String, context: PsiElement): PsiType {
