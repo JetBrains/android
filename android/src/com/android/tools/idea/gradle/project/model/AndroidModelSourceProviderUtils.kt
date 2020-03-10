@@ -17,6 +17,7 @@
 
 package com.android.tools.idea.gradle.project.model
 
+import com.android.builder.model.ApiVersion
 import com.android.builder.model.BaseArtifact
 import com.android.builder.model.BuildTypeContainer
 import com.android.builder.model.ProductFlavorContainer
@@ -26,6 +27,9 @@ import com.android.ide.common.gradle.model.IdeVariant
 import com.android.projectmodel.ARTIFACT_NAME_ANDROID_TEST
 import com.android.projectmodel.ARTIFACT_NAME_MAIN
 import com.android.projectmodel.ARTIFACT_NAME_UNIT_TEST
+import com.android.sdklib.AndroidVersion
+import com.android.sdklib.IAndroidTarget
+import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.gradle.project.model.ArtifactSelector.ANDROID_TEST
 import com.android.tools.idea.gradle.project.model.ArtifactSelector.MAIN
 import com.android.tools.idea.gradle.project.model.ArtifactSelector.UNIT_TEST
@@ -86,4 +90,27 @@ private fun AndroidModuleModel.collectAllProvidersFor(artifactSelector: Artifact
       addAll(variants.mapNotNull { it.selectArtifact()?.variantSourceProvider })
     }
   }
+}
+
+/**
+  * Convert an [ApiVersion] to an [AndroidVersion]. The chief problem here is that the [ApiVersion],
+  * when using a codename, will not encode the corresponding API level (it just reflects the string
+  * entered by the user in the gradle file) so we perform a search here (since lint really wants
+  * to know the actual numeric API level)
+  *
+  * @param api the api version to convert
+  * @param targets if known, the installed targets (used to resolve platform codenames, only
+  * needed to resolve platforms newer than the tools since [IAndroidTarget] knows the rest)
+  * @return the corresponding version
+  */
+fun convertVersion(
+  api: ApiVersion,
+  targets: Array<IAndroidTarget>?
+): AndroidVersion {
+  val codename = api.codename
+  if (codename != null) {
+    val version = SdkVersionInfo.getVersion(codename, targets)
+    return version ?: AndroidVersion(api.apiLevel, codename)
+  }
+  return AndroidVersion(api.apiLevel, null)
 }
