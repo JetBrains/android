@@ -20,7 +20,6 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.search.GlobalSearchScope;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -58,8 +57,6 @@ public class MlModelFilesSearchScope extends GlobalSearchScope {
     }
 
     Module module = ModuleUtilCore.findModuleForFile(file, getProject());
-    return module != null &&
-           AndroidFacet.getInstance(module) != null &&
-           MlkitUtils.isModelFileInMlModelsFolder(file);
+    return module != null && MlkitUtils.isModelFileInMlModelsFolder(module, file);
   }
 }

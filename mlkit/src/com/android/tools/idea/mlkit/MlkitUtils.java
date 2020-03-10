@@ -15,23 +15,24 @@
  */
 package com.android.tools.idea.mlkit;
 
-import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.mlkit.lightpsi.LightModelClass;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.google.common.base.CaseFormat;
+import com.android.tools.idea.projectsystem.SourceProviders;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -42,11 +43,18 @@ public class MlkitUtils {
   private MlkitUtils() {
   }
 
-  public static boolean isModelFileInMlModelsFolder(@NotNull VirtualFile file) {
-    // TODO(b/146357353): revisit the way to check if the file belongs to models folder.
-    return file.getFileType() == TfliteModelFileType.INSTANCE
-           && file.getParent() != null
-           && file.getParent().getName().equals(SdkConstants.FD_ML_MODELS);
+  public static boolean isModelFileInMlModelsFolder(@NotNull Module module, @NotNull VirtualFile file) {
+    AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+    if (androidFacet == null || file.getFileType() != TfliteModelFileType.INSTANCE) {
+      return false;
+    }
+
+    Collection<VirtualFile> mlModelsDirectories = SourceProviders.getInstance(androidFacet).getSources().getMlModelsDirectories();
+    if (VfsUtilCore.isUnder(file, Sets.newHashSet(mlModelsDirectories))) {
+      return true;
+    }
+
+    return false;
   }
 
   public static PsiClass[] getLightModelClasses(@NotNull Project project, @NotNull Map<VirtualFile, MlModelMetadata> modelFileMap) {

@@ -17,6 +17,7 @@ package com.android.tools.idea.projectsystem
 
 import com.android.utils.reflection.qualifiedName
 import com.google.common.annotations.VisibleForTesting
+import com.google.common.collect.ImmutableList
 import com.intellij.ProjectTopics
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetManager
@@ -134,7 +135,7 @@ interface SourceProviders {
      */
     @JvmStatic
     fun replaceForTest(facet: AndroidFacet, disposable: Disposable, sourceSet: NamedIdeaSourceProvider) {
-      facet.putUserData(KEY, object : SourceProviders {
+      facet.putUserData(KEY_FOR_TEST, object : SourceProviders {
         override val sources: IdeaSourceProvider
           get() = sourceSet
         override val unitTestSources: IdeaSourceProvider
@@ -142,7 +143,7 @@ interface SourceProviders {
         override val androidTestSources: IdeaSourceProvider
           get() = throw UnsupportedOperationException()
         override val currentSourceProviders: List<NamedIdeaSourceProvider>
-          get() = throw UnsupportedOperationException()
+          get() = ImmutableList.of(sourceSet)
         override val currentUnitTestSourceProviders: List<NamedIdeaSourceProvider>
           get() = throw UnsupportedOperationException()
         override val currentAndroidTestSourceProviders: List<NamedIdeaSourceProvider>
@@ -157,7 +158,7 @@ interface SourceProviders {
         override val mainManifestFile: VirtualFile?
           get() = sourceSet.manifestFiles.single()
       })
-      Disposer.register(disposable, Disposable { facet.putUserData(KEY, null) })
+      Disposer.register(disposable, Disposable { facet.putUserData(KEY_FOR_TEST, null) })
     }
 
     /**
@@ -167,7 +168,7 @@ interface SourceProviders {
      */
     @JvmStatic
     fun replaceForTest(facet: AndroidFacet, disposable: Disposable, manifestFile: VirtualFile?) {
-      facet.putUserData(KEY, object : SourceProviders {
+      facet.putUserData(KEY_FOR_TEST, object : SourceProviders {
         override val sources: IdeaSourceProvider
           get() = throw UnsupportedOperationException()
         override val unitTestSources: IdeaSourceProvider
@@ -190,14 +191,16 @@ interface SourceProviders {
         override val mainManifestFile: VirtualFile?
           get() = manifestFile
       })
-      Disposer.register(disposable, Disposable { facet.putUserData(KEY, null) })
+      Disposer.register(disposable, Disposable { facet.putUserData(KEY_FOR_TEST, null) })
     }
   }
 }
 
-val AndroidFacet.sourceProviders: SourceProviders get() = getUserData(KEY) ?: createSourceProviderFor(this)
+val AndroidFacet.sourceProviders: SourceProviders get() = getUserData(KEY_FOR_TEST) ?: (getUserData(KEY) ?: createSourceProviderFor(this))
 
 private val KEY: Key<SourceProviders> = Key.create(::KEY.qualifiedName)
+
+private val KEY_FOR_TEST: Key<SourceProviders> = Key.create(::KEY_FOR_TEST.qualifiedName)
 
 private fun createSourceProviderFor(facet: AndroidFacet): SourceProviders {
   return facet.module.project.getProjectSystem().getSourceProvidersFactory().createSourceProvidersFor(facet)

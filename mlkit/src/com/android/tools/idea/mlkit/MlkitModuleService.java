@@ -116,7 +116,7 @@ public class MlkitModuleService {
           public void after(@NotNull List<? extends VFileEvent> events) {
             for (VFileEvent event : events) {
               VirtualFile file = event.getFile();
-              if (file != null && MlkitUtils.isModelFileInMlModelsFolder(file)) {
+              if (file != null && MlkitUtils.isModelFileInMlModelsFolder(module, file)) {
                 PsiManager.getInstance(module.getProject()).dropResolveCaches();
                 getInstance(module).myLightModelClassMap.clear();
                 myModificationCount++;

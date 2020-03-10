@@ -120,6 +120,7 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/sdk-updates:intellij.android.sdkUpdates[module, test]",
         "//tools/idea:intellij.platform.jps.build_and_others[module, test]",
+        "//tools/idea/xml/dom-openapi:intellij.xml.dom[module, test]",
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
     ],
