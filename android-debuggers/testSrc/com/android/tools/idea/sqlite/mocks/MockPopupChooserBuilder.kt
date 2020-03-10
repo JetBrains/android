@@ -36,11 +36,11 @@ open class MockPopupChooserBuilder: IPopupChooserBuilder<SqliteDatabase> {
 
   val mockPopUp: JBPopup = mock(JBPopup::class.java)
 
-  override fun setRenderer(renderer: ListCellRenderer<*>?): IPopupChooserBuilder<SqliteDatabase> = this
+  override fun setRenderer(renderer: ListCellRenderer<in SqliteDatabase>?): IPopupChooserBuilder<SqliteDatabase> = this
 
   override fun setItemChosenCallback(callback: Consumer<in SqliteDatabase>): IPopupChooserBuilder<SqliteDatabase> = this
 
-  override fun setItemsChosenCallback(callback: Consumer<in MutableSet<SqliteDatabase>>): IPopupChooserBuilder<SqliteDatabase> = this
+  override fun setItemsChosenCallback(callback: Consumer<in Set<SqliteDatabase>>): IPopupChooserBuilder<SqliteDatabase> = this
 
   override fun setCancelOnClickOutside(cancelOnClickOutside: Boolean): IPopupChooserBuilder<SqliteDatabase> = this
 
