@@ -771,6 +771,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   private void modelRendered() {
     updateErrorDisplay();
+    // modelRendered might be called in the Layoutlib Render thread and revalidateScrollArea needs to be called on the UI thread.
     UIUtil.invokeLaterIfNeeded(() -> revalidateScrollArea());
   }
 
