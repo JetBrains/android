@@ -43,6 +43,7 @@ public class RenderResult {
   @NotNull private final Map<Object, String> myDefaultStyles;
   @NotNull private final Module myModule;
   private final ReadWriteLock myDisposeLock = new ReentrantReadWriteLock();
+  @Nullable private final Object myValidatorResult;
   private boolean isDisposed;
 
   protected RenderResult(@NotNull PsiFile file,
@@ -54,7 +55,8 @@ public class RenderResult {
                          @NotNull ImmutableList<ViewInfo> systemRootViews,
                          @NotNull ImagePool.Image image,
                          @NotNull Map<Object, Map<ResourceReference, ResourceValue>> defaultProperties,
-                         @NotNull Map<Object, String> defaultStyles) {
+                         @NotNull Map<Object, String> defaultStyles,
+                         @Nullable Object validatorResult) {
     myRenderTask = renderTask;
     myModule = module;
     myFile = file;
@@ -65,6 +67,7 @@ public class RenderResult {
     myImage = image;
     myDefaultProperties = defaultProperties;
     myDefaultStyles = defaultStyles;
+    myValidatorResult = validatorResult;
   }
 
   public void dispose() {
@@ -100,7 +103,8 @@ public class RenderResult {
       systemRootViews != null ? ImmutableList.copyOf(systemRootViews) : ImmutableList.of(),
       image, // image might be ImagePool.NULL_POOL_IMAGE if there is no rendered image (as in layout())
       defaultProperties != null ? ImmutableMap.copyOf(defaultProperties) : ImmutableMap.of(),
-      defaultStyles != null ? ImmutableMap.copyOf(defaultStyles) : ImmutableMap.of());
+      defaultStyles != null ? ImmutableMap.copyOf(defaultStyles) : ImmutableMap.of(),
+      session.getValidationData());
   }
 
   /**
@@ -123,7 +127,8 @@ public class RenderResult {
       ImmutableList.of(),
       ImagePool.NULL_POOLED_IMAGE,
       ImmutableMap.of(),
-      ImmutableMap.of());
+      ImmutableMap.of(),
+      null);
   }
 
   /**
@@ -162,7 +167,8 @@ public class RenderResult {
       ImmutableList.of(),
       ImagePool.NULL_POOLED_IMAGE,
       ImmutableMap.of(),
-      ImmutableMap.of());
+      ImmutableMap.of(),
+      null);
   }
 
   @NotNull
@@ -217,6 +223,11 @@ public class RenderResult {
   @NotNull
   public ImmutableList<ViewInfo> getSystemRootViews() {
     return mySystemRootViews;
+  }
+
+  @Nullable
+  public Object getValidatorResult() {
+    return myValidatorResult;
   }
 
   /**
