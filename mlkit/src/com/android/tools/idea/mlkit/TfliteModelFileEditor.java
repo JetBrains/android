@@ -58,17 +58,26 @@ import org.jetbrains.annotations.Nullable;
 // TODO(b/148866418): complete this based on the UX spec.
 public class TfliteModelFileEditor extends UserDataHolderBase implements FileEditor {
   private static final String NAME = "TFLite Model File";
-  private static final String HTML_TABLE_STYLE = "<style>\n" +
-                                                 "table {\n" +
-                                                 "  border-collapse: collapse;\n" +
-                                                 "  width: 60%;\n" +
-                                                 "}\n" +
-                                                 "td, th {\n" +
-                                                 "  border: 0;\n" +
-                                                 "  text-align: left;\n" +
-                                                 "  padding: 8px;\n" +
-                                                 "}\n" +
-                                                 "</style>";
+  private static final String MODEL_TABLE_STYLE = "#model {\n" +
+                                                  "  border-collapse: collapse;\n" +
+                                                  "  margin-left: 12px;\n" +
+                                                  "  width: 60%;\n" +
+                                                  "}\n" +
+                                                  "#model td, #model th {\n" +
+                                                  "  border: 0;\n" +
+                                                  "  text-align: left;\n" +
+                                                  "  padding: 8px;\n" +
+                                                  "}\n";
+  private static final String TENSORS_TABLE_STYLE = "#tensors {\n" +
+                                                    "  border-collapse: collapse;\n" +
+                                                    "  border: 1px solid #dddddd;\n" +
+                                                    "  margin-left: 20px;\n" +
+                                                    "  width: 60%;\n" +
+                                                    "}\n" +
+                                                    "#tensors td, #tensors th {\n" +
+                                                    "  text-align: left;\n" +
+                                                    "  padding: 6px;\n" +
+                                                    "}\n";
 
   private final Module myModule;
   private final VirtualFile myFile;
@@ -134,41 +143,50 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     table.add(new String[]{"Author", modelInfo.getModelAuthor()});
     table.add(new String[]{"License", modelInfo.getModelLicense()});
 
-    return getHtmlBodyFromTable(table, "Model", false);
+    StringBuilder bodyBuilder = new StringBuilder("<h2>Model</h2>");
+    bodyBuilder.append("<table id=\"model\">\n");
+    for (String[] row : table) {
+      bodyBuilder.append(createHtmlRow(row, false));
+    }
+    bodyBuilder.append("</table>\n");
+
+    return bodyBuilder.toString();
   }
 
   private static String getSampleCodeSectionBody(@NotNull PsiClass modelClass) {
     return "<h2>Sample Code</h2>\n" +
-           "<code>" + buildSampleCode(modelClass) + "</code>";
+           "<div style=\"margin-left:20px;\"><code>" + buildSampleCode(modelClass) + "</code></div>";
   }
 
   private static String getTensorsSectionBody(@NotNull ModelInfo modelInfo) {
-    List<String[]> table = new ArrayList<>();
-    table.add(new String[]{"Name", "Type", "Description", "Shape", "Mean / Std", "Min / Max"});
-    table.add(new String[]{"inputs"});
+    StringBuilder bodyBuilder = new StringBuilder("<h2>Tensors</h2>");
+    List<String[]> inputsTable = new ArrayList<>();
+    inputsTable.add(new String[]{"Name", "Type", "Description", "Shape", "Mean / Std", "Min / Max"});
     for (TensorInfo tensorInfo : modelInfo.getInputs()) {
-      table.add(getTensorsRow(tensorInfo));
+      inputsTable.add(getTensorsRow(tensorInfo));
     }
-    table.add(new String[]{"outputs"});
-    for (TensorInfo tensorInfo : modelInfo.getOutputs()) {
-      table.add(getTensorsRow(tensorInfo));
-    }
+    bodyBuilder.append(getTensorTableBody(inputsTable, "Inputs"));
 
-    return getHtmlBodyFromTable(table, "Tensors", true);
+    List<String[]> outputsTable = new ArrayList<>();
+    outputsTable.add(new String[]{"Name", "Type", "Description", "Shape", "Mean / Std", "Min / Max"});
+    for (TensorInfo tensorInfo : modelInfo.getOutputs()) {
+      outputsTable.add(getTensorsRow(tensorInfo));
+    }
+    bodyBuilder.append(getTensorTableBody(outputsTable, "Outputs"));
+
+    return bodyBuilder.toString();
   }
 
   @NotNull
-  private static String getHtmlBodyFromTable(@NotNull List<String[]> table, @NotNull String title, boolean useHeaderCells) {
-    StringBuilder htmlBuilder = new StringBuilder("<h2>" + title + "</h2>");
-    if (!table.isEmpty()) {
-      htmlBuilder.append("<table>\n").append(createHtmlRow(table.get(0), useHeaderCells));
-      for (String[] row : table.subList(1, table.size())) {
-        htmlBuilder.append(createHtmlRow(row, false));
-      }
-      htmlBuilder.append("</table>\n");
+  private static String getTensorTableBody(@NotNull List<String[]> table, @NotNull String title) {
+    StringBuilder bodyBuilder = new StringBuilder("<p style=\"margin-left:20px;margin-bottom:10px;\">" + title + "</p>");
+    bodyBuilder.append("<table id=\"tensors\">\n").append(createHtmlRow(table.get(0), false));
+    for (String[] row : table.subList(1, table.size())) {
+      bodyBuilder.append(createHtmlRow(row, false));
     }
+    bodyBuilder.append("</table>\n");
 
-    return htmlBuilder.toString();
+    return bodyBuilder.toString();
   }
 
   @NotNull
@@ -182,7 +200,8 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   }
 
   private static void setHtml(@NotNull JEditorPane pane, @NotNull String bodyContent) {
-    String html = "<html><head>" + HTML_TABLE_STYLE + "</head><body>" + bodyContent + "</body></html>";
+    String html =
+      "<html><head><style>" + MODEL_TABLE_STYLE + TENSORS_TABLE_STYLE + "</style></head><body>" + bodyContent + "</body></html>";
     pane.setContentType("text/html");
     pane.setEditable(false);
     pane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
