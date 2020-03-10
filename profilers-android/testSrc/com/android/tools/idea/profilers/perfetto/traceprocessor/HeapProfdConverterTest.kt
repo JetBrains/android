@@ -21,6 +21,7 @@ import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapS
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer
 import com.google.common.collect.Maps.newHashMap
 import com.google.common.truth.Truth.assertThat
+import com.intellij.util.Base64
 import org.junit.Before
 import org.junit.Test
 import kotlin.streams.toList
@@ -33,11 +34,12 @@ class HeapProfdConverterTest {
     context = Memory.NativeAllocationContext.newBuilder()
       .addFrames(Memory.StackFrame.newBuilder()
                    .setId(1)
-                   .setName("Frame 1"))
+                   .setName(Base64.encode("Frame 1".toByteArray()))
+                   .setModule(Base64.encode("/data/local/fakeModule%%".toByteArray())))
       .addFrames(Memory.StackFrame.newBuilder()
                    .setId(2)
-                   .setName("Frame 1A")
-                   .setModule("TestModule")
+                   .setName(Base64.encode("Frame 1A".toByteArray()))
+                   .setModule(Base64.encode("TestModule".toByteArray()))
                    .setRelPc(1234))
       .addPointers(Memory.StackPointer.newBuilder()
                      .setId(1)
@@ -102,7 +104,7 @@ class HeapProfdConverterTest {
       com.android.tools.profiler.proto.Memory.NativeCallStack.NativeFrame {
       // Lookup symbol else return as if the symbolizer failed.
       val symbolName = symbols[unsymbolizedFrame!!.moduleName] ?: "0x00"
-      return unsymbolizedFrame!!.toBuilder().setSymbolName(symbolName).setFileName(symbolName).setLineNumber(123).build()
+      return unsymbolizedFrame.toBuilder().setSymbolName(symbolName).setFileName(symbolName).setLineNumber(123).build()
     }
   }
 }
