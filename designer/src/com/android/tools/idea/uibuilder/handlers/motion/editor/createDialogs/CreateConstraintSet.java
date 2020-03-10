@@ -47,27 +47,33 @@ public class CreateConstraintSet extends BaseCreatePanel {
     GridBagConstraints gbc = new GridBagConstraints();
     int y = 0;
     grid(gbc, 0, y++, 1, 1);
+    gbc.ipadx = MEUI.scale(40);
     gbc.weighty = 0;
-    gbc.insets = MEUI.insets(2, 5, 1, 5);
+    gbc.insets = MEUI.dialogTitleInsets();
 
     gbc.fill = GridBagConstraints.HORIZONTAL;
     add(new JLabel("CREATE CONSTRAINTSET"), gbc);
     grid(gbc, 0, y++);
     gbc.weighty = 0;
+    gbc.insets = MEUI.dialogSeparatorInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(new JSeparator(), gbc);
 
     grid(gbc, 0, y++);
     gbc.weighty = 0;
+    gbc.insets = MEUI.dialogLabelInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(new JLabel("ID"), gbc);
     grid(gbc, 0, y++);
+    gbc.insets = MEUI.dialogControlInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(mId = newTextField("Enter id", 15), gbc);
     grid(gbc, 0, y++);
+    gbc.insets = MEUI.dialogLabelInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(new JLabel("Based On"), gbc);
     grid(gbc, 0, y++);
+    gbc.insets = MEUI.dialogControlInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(comboBox, gbc);
     gbc.weighty = 1;
@@ -76,6 +82,7 @@ public class CreateConstraintSet extends BaseCreatePanel {
     }, gbc);
     gbc.weighty = 0;
     gbc.weightx = 1;
+    gbc.insets = MEUI.dialogBottomButtonInsets();
     gbc.anchor = GridBagConstraints.SOUTHEAST;
     grid(gbc, 0, y++, 2, 1);
     JButton ok = new JButton("Add");

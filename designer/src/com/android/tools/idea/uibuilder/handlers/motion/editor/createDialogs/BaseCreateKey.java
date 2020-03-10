@@ -39,24 +39,27 @@ public class BaseCreateKey extends BaseCreatePanel {
     int y = 0;
     grid(gbc, 0, y++, 2, 1);
     gbc.weighty = 0;
-    gbc.insets = MEUI.insets(2, 5, 1, 5);
+    gbc.ipadx = MEUI.scale(60);
+    gbc.insets = MEUI.dialogTitleInsets();
 
     gbc.fill = GridBagConstraints.HORIZONTAL;
     add(new JLabel(title), gbc);
     grid(gbc, 0, y++, 2, 1);
     gbc.weighty = 0;
+    gbc.insets = MEUI.dialogSeparatorInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(new JSeparator(), gbc);
 
     JRadioButton tagButton, idButton;
     grid(gbc, 0, y, 1, 1);
     gbc.weighty = 0;
+    gbc.insets = MEUI.dialogLabelInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(tagButton = new JRadioButton("TAG"), gbc);
 
-
     grid(gbc, 1, y, 1, 1);
     gbc.weighty = 0;
+    gbc.insets = MEUI.dialogControlInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(idButton = new JRadioButton("ID"), gbc);
 
@@ -83,6 +86,7 @@ public class BaseCreateKey extends BaseCreatePanel {
     cardpanel.add(mViewList, "id");
     grid(gbc, 0, ++y, 2, 1);
     gbc.anchor = GridBagConstraints.CENTER;
+    gbc.insets = MEUI.dialogControlInsets();
     add(cardpanel, gbc);
 
     cardLayout.show(cardpanel, "id");
