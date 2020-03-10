@@ -17,7 +17,7 @@ package com.android.tools.adtui.workbench;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.actions.ToggleDistractionFreeModeAction;
-import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -26,13 +26,17 @@ import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.awt.Component;
+import java.awt.KeyboardFocusManager;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.List;
-import java.util.*;
 
 /**
  * All {@link WorkBench}es of a specified name will use the same {@link DetachedToolWindow}
@@ -40,10 +44,8 @@ import java.util.*;
  * This class is responsible for switching the content to the content of the currently
  * active {@link WorkBench}.
  */
-public class DetachedToolWindowManager implements ProjectComponent {
-  private final Application myApplication;
+public final class DetachedToolWindowManager implements ProjectComponent {
   private final Project myProject;
-  private final FileEditorManager myEditorManager;
   private final MyFileEditorManagerListener myEditorManagerListener;
   private final Map<FileEditor, WorkBench> myWorkBenchMap;
   private final HashMap<String, DetachedToolWindow> myToolWindowMap;
@@ -55,12 +57,8 @@ public class DetachedToolWindowManager implements ProjectComponent {
   }
 
   @VisibleForTesting
-  DetachedToolWindowManager(@NotNull Application application,
-                                   @NotNull Project currentProject,
-                                   @NotNull FileEditorManager fileEditorManager) {
-    myApplication = application;
-    myProject = currentProject;
-    myEditorManager = fileEditorManager;
+  DetachedToolWindowManager(@NotNull Project project) {
+    myProject = project;
     myEditorManagerListener = new MyFileEditorManagerListener();
     myWorkBenchMap = new IdentityHashMap<>(13);
     myToolWindowMap = new HashMap<>(8);
@@ -114,7 +112,7 @@ public class DetachedToolWindowManager implements ProjectComponent {
     if (current != null) {
       return current;
     }
-    FileEditor[] selectedEditors = myEditorManager.getSelectedEditors();
+    FileEditor[] selectedEditors = FileEditorManager.getInstance(myProject).getSelectedEditors();
     if (selectedEditors.length == 0) {
       return null;
     }
@@ -159,19 +157,19 @@ public class DetachedToolWindowManager implements ProjectComponent {
   }
 
   public void restoreDefaultLayout() {
-    myApplication.invokeLater(() -> updateToolWindowsForWorkBench(getActiveWorkBench()));
+    ApplicationManager.getApplication().invokeLater(() -> updateToolWindowsForWorkBench(getActiveWorkBench()));
   }
 
   private class MyFileEditorManagerListener implements FileEditorManagerListener {
 
     @Override
     public void fileOpened(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
-      myApplication.invokeLater(() -> updateToolWindowsForWorkBench(getActiveWorkBench()));
+      ApplicationManager.getApplication().invokeLater(() -> updateToolWindowsForWorkBench(getActiveWorkBench()));
     }
 
     @Override
     public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
-      myApplication.invokeLater(() -> updateToolWindowsForWorkBench(getActiveWorkBench()));
+      ApplicationManager.getApplication().invokeLater(() -> updateToolWindowsForWorkBench(getActiveWorkBench()));
     }
 
     @Override
