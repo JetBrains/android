@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.visual
 
 import com.android.tools.idea.flags.StudioFlags
-import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.JavaProjectTestCase
 
@@ -24,7 +23,7 @@ class VisualizationManagerTest : JavaProjectTestCase() {
 
   fun testNotRegisterWhenFlagIsDisable() {
     StudioFlags.NELE_VISUALIZATION.override(false)
-    val manager = VisualizationManager(project, FileEditorManager.getInstance(project))
+    val manager = VisualizationManager(project)
     manager.initToolWindow()
     val window = ToolWindowManager.getInstance(myProject).getToolWindow(manager.toolWindowId)
     assertNull(window)
@@ -33,7 +32,7 @@ class VisualizationManagerTest : JavaProjectTestCase() {
 
   fun testRegisterWhenFlagIsEnable() {
     StudioFlags.NELE_VISUALIZATION.override(true)
-    val manager = VisualizationManager(project, FileEditorManager.getInstance(project))
+    val manager = VisualizationManager(project)
     manager.initToolWindow()
     val window = ToolWindowManager.getInstance(myProject).getToolWindow(manager.toolWindowId)
     assertNotNull(window)
