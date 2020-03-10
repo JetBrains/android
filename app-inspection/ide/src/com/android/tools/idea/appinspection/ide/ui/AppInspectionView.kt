@@ -21,8 +21,10 @@ import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
 import com.android.tools.idea.appinspection.api.ProcessDescriptor
 import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessesComboBoxModel
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
+import com.android.tools.idea.model.AndroidModuleInfo
 import com.intellij.ide.plugins.newui.HorizontalLayout
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import java.awt.BorderLayout
 import java.awt.event.ItemEvent
@@ -31,10 +33,19 @@ import javax.swing.JPanel
 class AppInspectionView(private val project: Project, private val appInspectionDiscoveryHost: AppInspectionDiscoveryHost) {
   val component = JPanel(BorderLayout())
 
+  /**
+   * This dictates the names of the preferred processes. They are drawn from the android applicationIds of the modules in this [project].
+   */
+  private val preferredProcesses: List<String>
+    get() = ModuleManager.getInstance(project).modules
+      .mapNotNull { AndroidModuleInfo.getInstance(it)?.`package` }
+      .toList()
+
   init {
     component.border = AdtUiUtils.DEFAULT_RIGHT_BORDER
 
-    val inspectionProcessesComboBox = AppInspectionProcessesComboBox(AppInspectionProcessesComboBoxModel(appInspectionDiscoveryHost))
+    val inspectionProcessesComboBox =
+      AppInspectionProcessesComboBox(AppInspectionProcessesComboBoxModel(appInspectionDiscoveryHost, preferredProcesses))
     val toolbar = JPanel(HorizontalLayout(0))
     toolbar.add(inspectionProcessesComboBox)
     component.add(toolbar, BorderLayout.NORTH)

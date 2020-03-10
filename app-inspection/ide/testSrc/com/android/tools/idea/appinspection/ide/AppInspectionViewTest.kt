@@ -18,8 +18,6 @@ package com.android.tools.idea.appinspection.ide
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.stdui.CommonTabbedPane
-import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
-import com.android.tools.idea.appinspection.api.LaunchedProcessDescriptor
 import com.android.tools.idea.appinspection.api.TestInspectorCommandHandler
 import com.android.tools.idea.appinspection.ide.ui.AppInspectionView
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
@@ -63,7 +61,7 @@ class AppInspectionViewTest {
 
   private val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("AppInspectionViewTest", transportService, transportService)!!
   private val appInspectionServiceRule = AppInspectionServiceRule(timer, transportService, grpcServerRule)
-  private val projectRule = AndroidProjectRule.inMemory()
+  private val projectRule = AndroidProjectRule.inMemory().initAndroid(false)
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(grpcServerRule).around(appInspectionServiceRule)!!.around(projectRule).around(EdtRule())!!
@@ -76,7 +74,7 @@ class AppInspectionViewTest {
   @Test
   fun selectProcessInAppInspectionView_addsTwoTabs() {
     val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
-    val discoveryHost = AppInspectionDiscoveryHost(executor, TransportClient(grpcServerRule.name))
+    val discoveryHost = AppInspectionTestUtils.createDiscoveryHost(executor, TransportClient(grpcServerRule.name))
 
     val inspectionView = AppInspectionView(projectRule.project, discoveryHost)
     val newProcessLatch = CountDownLatch(1)
@@ -96,15 +94,6 @@ class AppInspectionViewTest {
     // Attach to a fake process.
     transportService.addDevice(FakeTransportService.FAKE_DEVICE)
     transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
-    discoveryHost.addLaunchedProcess(
-      LaunchedProcessDescriptor(
-        FakeTransportService.FAKE_DEVICE.manufacturer,
-        FakeTransportService.FAKE_DEVICE.model,
-        FakeTransportService.FAKE_DEVICE.serial,
-        FakeTransportService.FAKE_PROCESS.name,
-        AppInspectionTestUtils.TestTransportJarCopier
-      )
-    )
     newProcessLatch.await()
     tabAddedLatch.await()
   }

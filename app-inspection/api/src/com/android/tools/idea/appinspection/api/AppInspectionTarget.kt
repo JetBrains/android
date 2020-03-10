@@ -50,9 +50,4 @@ interface AppInspectionTarget {
    * Listener fires immediately if connection is already closed.
    */
   fun addTargetTerminatedListener(executor: Executor, listener: TargetTerminatedListener): TargetTerminatedListener
-
-  /**
-   * Describes the device and process this target is attached to.
-   */
-  val descriptor: ProcessDescriptor
 }

@@ -38,14 +38,8 @@ class AppInspectionProcessesComboBox(model: AppInspectionProcessesComboBoxModel)
         isSelected: Boolean,
         cellHasFocus: Boolean
       ): Component {
-        if (value is ProcessDescriptor) {
-          var text = value.info.model.replace('_', ' ');
-          if (value.info.processName != null) {
-            text += " -> " + value.info.processName
-          }
-          return super.getListCellRendererComponent(list, text, index, isSelected, cellHasFocus)
-        }
-        return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
+        val content = if (value is ProcessDescriptor) "${value.model.replace('_', ' ')} -> ${value.processName}" else value
+        return super.getListCellRendererComponent(list, content, index, isSelected, cellHasFocus)
       }
     }
   }
