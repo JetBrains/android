@@ -78,6 +78,15 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
                                                     "  text-align: left;\n" +
                                                     "  padding: 6px;\n" +
                                                     "}\n";
+  private static final String SAMPLE_CODE_STYLE = "#sample_code {\n" +
+                                                  "  font-family: 'Source Sans Pro', sans-serif; \n" +
+                                                  "  background-color: #F1F3F4;\n" +
+                                                  "  margin-left: 20px;\n" +
+                                                  "  display: block;\n" +
+                                                  "  width: 60%;\n" +
+                                                  "  padding: 5px;\n" +
+                                                  "  padding-left: 10px;\n" +
+                                                  "}";
 
   private final Module myModule;
   private final VirtualFile myFile;
@@ -155,7 +164,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
 
   private static String getSampleCodeSectionBody(@NotNull PsiClass modelClass) {
     return "<h2>Sample Code</h2>\n" +
-           "<div style=\"margin-left:20px;\"><code>" + buildSampleCode(modelClass) + "</code></div>";
+           "<div id=\"sample_code\"><pre>" + buildSampleCode(modelClass) + "</pre></div>";
   }
 
   private static String getTensorsSectionBody(@NotNull ModelInfo modelInfo) {
@@ -201,7 +210,13 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
 
   private static void setHtml(@NotNull JEditorPane pane, @NotNull String bodyContent) {
     String html =
-      "<html><head><style>" + MODEL_TABLE_STYLE + TENSORS_TABLE_STYLE + "</style></head><body>" + bodyContent + "</body></html>";
+      "<html><head><style>" +
+      MODEL_TABLE_STYLE +
+      TENSORS_TABLE_STYLE +
+      SAMPLE_CODE_STYLE +
+      "</style></head><body>" +
+      bodyContent +
+      "</body></html>";
     pane.setContentType("text/html");
     pane.setEditable(false);
     pane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
@@ -213,19 +228,19 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   private static String buildSampleCode(@NotNull PsiClass modelClass) {
     StringBuilder stringBuilder = new StringBuilder();
     String modelClassName = modelClass.getName();
-    stringBuilder.append(String.format("%s model = %s.newInstance(context);<br>", modelClassName, modelClassName));
+    stringBuilder.append(String.format("%s model = %s.newInstance(context);\n\n", modelClassName, modelClassName));
 
     PsiMethod processMethod = modelClass.findMethodsByName("process", false)[0];
     if (processMethod != null && processMethod.getReturnType() != null) {
       stringBuilder
-        .append(String.format("<br>%s.%s outputs = model.%s(", modelClassName, processMethod.getReturnType().getPresentableText(),
+        .append(String.format("%s.%s outputs = model.%s(", modelClassName, processMethod.getReturnType().getPresentableText(),
                               processMethod.getName()));
       for (PsiParameter parameter : processMethod.getParameterList().getParameters()) {
         stringBuilder.append(parameter.getType().getPresentableText() + " " + parameter.getName() + ",");
       }
       stringBuilder.deleteCharAt(stringBuilder.length() - 1);
 
-      stringBuilder.append(");<br><br>");
+      stringBuilder.append(");\n\n");
     }
 
     int index = 1;
@@ -233,7 +248,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     if (outputsClass != null) {
       for (PsiMethod psiMethod : outputsClass.getMethods()) {
         stringBuilder.append(
-          String.format("%s %s = outputs.%s();<br>", psiMethod.getReturnType().getPresentableText(), "data" + index, psiMethod.getName()));
+          String.format("%s %s = outputs.%s();\n", psiMethod.getReturnType().getPresentableText(), "data" + index, psiMethod.getName()));
         index++;
       }
     }
