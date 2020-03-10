@@ -87,7 +87,12 @@ class SqliteEvaluatorViewImpl(
   }
 
   override fun selectDatabase(database: SqliteDatabase) {
-    evaluatorPanel.databaseComboBox.selectedItem = ComboBoxItem(database, database.name)
+    // Avoid setting the item if it's already selected, so we don't trigger the action listener for now reason.
+    val itemToSelect = ComboBoxItem(database, database.name)
+    val currentlySelectedItem = evaluatorPanel.databaseComboBox.selectedItem
+    if (itemToSelect != currentlySelectedItem) {
+      evaluatorPanel.databaseComboBox.selectedItem = itemToSelect
+    }
   }
 
   override fun removeDatabase(index: Int) {

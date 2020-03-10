@@ -16,20 +16,27 @@
 package com.android.tools.idea.sqlite.ui
 
 import com.android.tools.adtui.TreeWalker
+import com.android.tools.idea.concurrency.AsyncTestUtils
+import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.controllers.SqliteEvaluatorController
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
+import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
+import com.android.tools.idea.sqlite.getJdbcDatabaseConnection
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.model.FileSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
+import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorViewImpl
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
 import com.android.tools.idea.testing.IdeComponents
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.LightPlatformTestCase
+import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import com.intellij.util.concurrency.EdtExecutorService
 import org.mockito.Mockito.mock
@@ -37,9 +44,13 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import java.awt.Dimension
 import javax.swing.JComboBox
+import javax.swing.JTable
 
 class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
   private lateinit var view: SqliteEvaluatorViewImpl
+
+  private lateinit var sqliteUtil: SqliteTestUtil
+  private var realDatabaseConnection: DatabaseConnection? = null
 
   override fun setUp() {
     super.setUp()
@@ -49,6 +60,20 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       }
     })
     view.component.size = Dimension(600, 200)
+
+    sqliteUtil = SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
+    sqliteUtil.setUp()
+  }
+
+  override fun tearDown() {
+    try {
+      if (realDatabaseConnection != null) {
+        pumpEventsAndWaitForFuture(realDatabaseConnection!!.close())
+      }
+      sqliteUtil.tearDown()
+    } finally {
+      super.tearDown()
+    }
   }
 
   fun testAddAndRemoveDatabases() {
@@ -126,5 +151,49 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
     // Assert
     LightPlatformTestCase.assertFalse(tableActionsPanel.isVisible)
+  }
+
+  fun testMultipleStatementAreRun() {
+    // Prepare
+    val sqliteFile = sqliteUtil.createAdHocSqliteDatabase(
+      createStatement = "CREATE TABLE t1 (c1 INT)",
+      insertStatement = "INSERT INTO t1 (c1) VALUES (42)"
+    )
+    realDatabaseConnection = AsyncTestUtils.pumpEventsAndWaitForFuture(
+      getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+    )
+
+    val database = FileSqliteDatabase("db", realDatabaseConnection!!, sqliteFile)
+
+    val controller = SqliteEvaluatorController(
+      project,
+      view,
+      MockDatabaseInspectorViewsFactory(),
+      FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+    )
+    controller.setUp()
+    Disposer.register(testRootDisposable, controller)
+
+    controller.addDatabase(database, 0)
+
+    val table = TreeWalker(view.component).descendants().filterIsInstance<JTable>().first()
+
+    // Act
+    pumpEventsAndWaitForFuture(controller.evaluateSqlStatement(database, SqliteStatement("SELECT * FROM t1")))
+
+    // Assert
+    assertEquals(2, table.model.columnCount)
+    assertEquals("c1", table.model.getColumnName(1))
+    assertEquals(1, table.model.rowCount)
+    assertEquals("42", table.model.getValueAt(0, 1))
+
+    // Act
+    pumpEventsAndWaitForFuture(controller.evaluateSqlStatement(database, SqliteStatement("SELECT * FROM t1")))
+
+    // Assert
+    assertEquals(2, table.model.columnCount)
+    assertEquals("c1", table.model.getColumnName(1))
+    assertEquals(1, table.model.rowCount)
+    assertEquals("42", table.model.getValueAt(0, 1))
   }
 }

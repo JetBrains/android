@@ -172,10 +172,15 @@ class TableViewImpl : TableView {
     set(value) { tableActionsPanel.isVisible = value; field = value }
 
   override fun showPageSizeValue(maxRowCount: Int) {
-    pageSizeComboBox.selectedItem = maxRowCount
+    // Avoid setting the item if it's already selected, so we don't trigger the action listener for now reason.
+    val currentRowCount = pageSizeComboBox.selectedItem
+    if (currentRowCount != maxRowCount) {
+      pageSizeComboBox.selectedItem = maxRowCount
+    }
   }
 
   override fun resetView() {
+    columns = null
     table.model = MyTableModel(emptyList())
   }
 
