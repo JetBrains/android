@@ -111,7 +111,8 @@ class NavXmlIndex : FileBasedIndexExtension<String, NavXmlData>() {
       try {
         val rootNav = jaxbDeserializer.unmarshal(StringReader(inputData.contentAsText.toString())) as NavNavigationData
         mapOf(getKeyForFile(inputData.file) to NavXmlData(rootNav))
-      } catch (e: UnmarshalException) {
+      }
+      catch (e: UnmarshalException) {
         mapOf()
       }
     }

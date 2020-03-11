@@ -66,6 +66,7 @@ interface NavFragmentData {
     override val actions: List<NavActionData> = this@NavFragmentData.actions
   }
 }
+
 /**
  * A navigation is a container of destinations (fragments, nested navigations, etc.)
  *
