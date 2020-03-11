@@ -22,6 +22,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
+import com.android.tools.idea.naveditor.property.NavPropertyWrapper
 import com.android.tools.idea.naveditor.property.editors.TextEditor
 import com.android.tools.idea.naveditor.property.isCustomProperty
 import com.android.tools.idea.res.ResourceRepositoryManager
@@ -95,5 +96,6 @@ class CustomPropertiesInspectorProviderTest : NavTestCase(NAVIGATION_EDITOR_CUST
   }
 
   private fun getPropertyMap(propertiesManager: NavPropertiesManager, components: List<NlComponent>) =
-    NlProperties.getInstance().getProperties(myFacet, propertiesManager, components).values().map { it.name to it }.toMap()
+    NlProperties.getInstance().getProperties(myFacet, propertiesManager, components).values()
+      .map { it.name to NavPropertyWrapper(it) }.toMap()
 }

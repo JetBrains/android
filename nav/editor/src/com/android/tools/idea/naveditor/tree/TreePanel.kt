@@ -27,6 +27,7 @@ import com.android.tools.idea.common.model.SelectionListener
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.naveditor.model.isAction
 import com.android.tools.idea.naveditor.model.isDestination
+import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.DataManager
 import com.intellij.openapi.application.ApplicationManager
@@ -61,7 +62,15 @@ class TreePanel : ToolContent<DesignSurface> {
     selectionModel.addSelectionListener {
       designSurface?.let {
         val list = selectionModel.selection.filterIsInstance<NlComponent>()
+        val oldRootNavigation = (it as? NavDesignSurface)?.currentNavigation
+
         it.selectionModel.setSelection(list)
+
+        val newRootNavigation = (it as? NavDesignSurface)?.currentNavigation
+        if (oldRootNavigation == newRootNavigation && !list.contains(newRootNavigation)) {
+          it.scrollToCenter(list.filter { component -> component.isDestination })
+        }
+
         it.needsRepaint()
       }
     }
