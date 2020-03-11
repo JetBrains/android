@@ -21,6 +21,7 @@ import com.android.emulator.control.Rotation.SkinRotation
 import com.android.ide.common.util.Cancelable
 import com.android.tools.idea.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.emulator.EmulatorController.ConnectionStateListener
+import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_SCREENSHOTS
 import com.android.tools.idea.protobuf.ByteString
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
@@ -40,8 +41,6 @@ import java.awt.event.MouseMotionAdapter
 import java.awt.geom.AffineTransform
 import java.awt.image.ColorModel
 import java.awt.image.MemoryImageSource
-import java.text.SimpleDateFormat
-import java.util.Locale
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -252,8 +251,10 @@ class EmulatorView(
     private val screenshotReference = AtomicReference<Screenshot>()
 
     override fun onNext(response: EmulatorImage) {
-      val note = if (isBlack(response.image)) " completely black" else ""
-      println(LOG_TIME_FORMAT.format(System.currentTimeMillis()) + " screenshot " + response.seq + note)
+      if (EMBEDDED_EMULATOR_TRACE_SCREENSHOTS.get()) {
+        val note = if (isBlack(response.image)) " completely black" else ""
+        LOG.info("Screenshot ${response.seq} $note")
+      }
       screenshotReference.set(Screenshot(response))
 
       invokeLater {
@@ -309,8 +310,6 @@ class EmulatorView(
   companion object {
     @JvmStatic
     private val LOG = Logger.getInstance(EmulatorView::class.java)
-    @JvmStatic
-    private val LOG_TIME_FORMAT= SimpleDateFormat("HH:mm:ss.SSS", Locale.US)
 
     @JvmStatic
     private fun getPixels(imageBytes: ByteString, width: Int, height: Int): IntArray {
