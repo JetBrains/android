@@ -24,6 +24,8 @@ import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.npw.template.TemplateResolver
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.IdeComponents
+import com.android.tools.idea.wizard.template.Category
+import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.StringParameter
 import com.google.common.truth.Truth.assertWithMessage
@@ -81,13 +83,15 @@ open class TemplateTest : AndroidGradleTestCase() {
   protected open fun checkCreateTemplate(
     name: String,
     vararg customizers: ProjectStateCustomizer,
-    templateStateCustomizer: TemplateStateCustomizer = mapOf()
+    templateStateCustomizer: TemplateStateCustomizer = mapOf(),
+    category: Category? = null,
+    formFactor: FormFactor? = null
   ) {
     if (DISABLED) {
       return
     }
     ensureSdkManagerAvailable()
-    val template = TemplateResolver.getTemplateByName(name)!!
+    val template = TemplateResolver.getTemplateByName(name, category, formFactor)!!
 
     templateStateCustomizer.forEach { (parameterName: String, overrideValue: String) ->
       val p = template.parameters.find { it.name == parameterName }!! as StringParameter
@@ -271,12 +275,12 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testGoogleMapsWearActivity() {
-    checkCreateTemplate("Google Maps Wear Activity")
+    checkCreateTemplate("Google Maps Activity", formFactor = FormFactor.Wear)
   }
 
   @TemplateCheck
   fun testGoogleMapsWearActivityWithKotlin() {
-    checkCreateTemplate("Google Maps Wear Activity", withKotlin)
+    checkCreateTemplate("Google Maps Activity", withKotlin, formFactor = FormFactor.Wear)
   }
 
 
@@ -539,7 +543,9 @@ open class TemplateTest : AndroidGradleTestCase() {
     override fun checkCreateTemplate(
       name: String,
       vararg customizers: ProjectStateCustomizer,
-      templateStateCustomizer: TemplateStateCustomizer
+      templateStateCustomizer: TemplateStateCustomizer,
+      category: Category?,
+      formFactor: FormFactor?
     ) {
       templatesChecked.add(name)
     }

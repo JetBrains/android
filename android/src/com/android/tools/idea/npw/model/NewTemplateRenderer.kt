@@ -146,11 +146,12 @@ fun formatWarningMessage(context: RenderingContext): String {
 
 // TODO(qumeric): update TemplateRenderer and this method
 @VisibleForTesting
-internal fun titleToTemplateRenderer(title: String, formFactor: FormFactor): TemplateRenderer = when (title) {
+fun titleToTemplateRenderer(title: String, formFactor: FormFactor): TemplateRenderer = when (title) {
   "" -> TemplateRenderer.UNKNOWN_TEMPLATE_RENDERER
 
   "Android Project" -> TemplateRenderer.ANDROID_PROJECT
 
+  "Benchmark Module" -> TemplateRenderer.BENCHMARK_LIBRARY_MODULE
   "Android Module" -> TemplateRenderer.ANDROID_MODULE
   "Java Library" -> TemplateRenderer.JAVA_LIBRARY
   "Android TV Module" -> TemplateRenderer.ANDROID_TV_MODULE
@@ -168,7 +169,8 @@ internal fun titleToTemplateRenderer(title: String, formFactor: FormFactor): Tem
   "Android TV Activity" -> TemplateRenderer.ANDROID_TV_ACTIVITY
   "Fullscreen Activity" -> TemplateRenderer.FULLSCREEN_ACTIVITY
   "Empty Compose Activity" -> TemplateRenderer.COMPOSE_EMPTY_ACTIVITY
-  "Google Maps Activity" -> TemplateRenderer.GOOGLE_MAPS_ACTIVITY
+  "Google Maps Activity" ->
+    if (formFactor == FormFactor.Wear) TemplateRenderer.WATCH_GOOGLE_MAPS_ACTIVITY else TemplateRenderer.GOOGLE_MAPS_ACTIVITY
   "Navigation Drawer Activity" -> TemplateRenderer.NAVIGATION_DRAWER_ACTIVITY
   "Settings Activity" -> TemplateRenderer.SETTINGS_ACTIVITY
   "Master/Detail Flow" -> TemplateRenderer.MASTER_DETAIL_FLOW
