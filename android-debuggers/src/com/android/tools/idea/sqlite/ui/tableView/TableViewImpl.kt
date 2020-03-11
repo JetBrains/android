@@ -21,6 +21,7 @@ import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteValue
 import com.android.tools.idea.sqlite.ui.notifyError
+import com.google.common.base.Stopwatch
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
@@ -30,15 +31,19 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.ColoredTableCellRenderer
+import com.intellij.ui.HyperlinkAdapter
 import com.intellij.ui.PopupHandler
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.JBTable
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.TimerUtil
+import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
 import java.awt.FlowLayout
+import java.awt.GridBagLayout
 import java.awt.Point
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
@@ -46,28 +51,26 @@ import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import java.time.Duration
 import javax.swing.BorderFactory
 import javax.swing.JComponent
+import javax.swing.JEditorPane
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTable
 import javax.swing.KeyStroke
+import javax.swing.event.HyperlinkEvent
 import javax.swing.table.AbstractTableModel
 import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.TableCellRenderer
+import javax.swing.text.html.HTMLDocument
 
 /**
  * Abstraction on the UI component used to display tables.
  */
 class TableViewImpl : TableView {
-  companion object {
-    private const val tableIsEmptyText = "Table is empty"
-    private const val loadingText = "Loading data..."
-  }
-
   private val listeners = mutableListOf<TableView.Listener>()
   private val pageSizeDefaultValues = listOf(5, 10, 20, 25, 50)
-  private var isLoading = false
 
   private var columns: List<SqliteColumn>? = null
 
@@ -87,15 +90,25 @@ class TableViewImpl : TableView {
   private val refreshButton = CommonButton("Refresh table", AllIcons.Actions.Refresh)
 
   private val table = JBTable()
+  private val tableScrollPane = JBScrollPane(table)
+  private val loadingMessageEditorPane = JEditorPane("text/html", "")
 
   private val tableActionsPanel = JPanel(FlowLayout(FlowLayout.LEFT))
+  private val centerPanel = JPanel(BorderLayout())
+
+  private var isLoading = false
+  private val stopwatch = Stopwatch.createUnstarted()
+  private val loadingTimer = TimerUtil.createNamedTimer("DatabaseInspector loading timer", 1000) {
+    setLoadingText(loadingMessageEditorPane, stopwatch.elapsed())
+  }.apply { isRepeats = true }
 
   init {
-    val centerPanel = JPanel(BorderLayout())
     val southPanel = JPanel(BorderLayout())
     rootPanel.add(tableActionsPanel, BorderLayout.NORTH)
     rootPanel.add(centerPanel, BorderLayout.CENTER)
     rootPanel.add(southPanel, BorderLayout.SOUTH)
+
+    centerPanel.background = primaryContentBackground
 
     tableActionsPanel.name = "table-actions-panel"
 
@@ -136,7 +149,7 @@ class TableViewImpl : TableView {
     refreshButton.addActionListener { listeners.forEach { it.refreshDataInvoked() } }
 
     table.background = primaryContentBackground
-    table.emptyText.text = tableIsEmptyText
+    table.emptyText.text = "Table is empty"
     table.setDefaultRenderer(String::class.java, MyColoredTableCellRenderer())
     table.tableHeader.defaultRenderer = MyTableHeaderRenderer()
     table.tableHeader.reorderingAllowed = false
@@ -161,16 +174,15 @@ class TableViewImpl : TableView {
       }
     })
 
-    val scrollPane = JBScrollPane(table)
-
-    scrollPane.addComponentListener(object : ComponentAdapter() {
+    tableScrollPane.addComponentListener(object : ComponentAdapter() {
       override fun componentResized(e: ComponentEvent) {
         setAutoResizeMode()
       }
     })
 
-    centerPanel.add(scrollPane, BorderLayout.CENTER)
+    centerPanel.add(tableScrollPane, BorderLayout.CENTER)
 
+    setUpLoadingPanel()
     setUpPopUp()
   }
 
@@ -193,8 +205,33 @@ class TableViewImpl : TableView {
   }
 
   override fun startTableLoading() {
-    table.emptyText.text = loadingText
+    setLoadingText(loadingMessageEditorPane, stopwatch.elapsed())
+
+    centerPanel.removeAll()
+    centerPanel.layout = GridBagLayout()
+    centerPanel.add(loadingMessageEditorPane)
+    centerPanel.revalidate()
+    centerPanel.repaint()
+
+
+    stopwatch.start()
+    loadingTimer.start()
     isLoading = true
+  }
+
+  override fun stopTableLoading() {
+    loadingTimer.stop()
+    if (stopwatch.isRunning) {
+      //stopwatch.stop()
+      stopwatch.reset()
+    }
+    isLoading = false
+
+    centerPanel.removeAll()
+    centerPanel.layout = BorderLayout()
+    centerPanel.add(tableScrollPane, BorderLayout.CENTER)
+    centerPanel.revalidate()
+    centerPanel.repaint()
   }
 
   override fun showTableColumns(columns: List<SqliteColumn>) {
@@ -213,14 +250,6 @@ class TableViewImpl : TableView {
 
   override fun updateRows(rowDiffOperations: List<RowDiffOperation>) {
     (table.model as MyTableModel).applyRowsDiff(rowDiffOperations)
-  }
-
-  override fun stopTableLoading() {
-    table.emptyText.text = tableIsEmptyText
-
-    table.setPaintBusy(false)
-
-    isLoading = false
   }
 
   override fun reportError(message: String, t: Throwable?) {
@@ -248,6 +277,30 @@ class TableViewImpl : TableView {
 
   override fun removeListener(listener: TableView.Listener) {
     listeners.remove(listener)
+  }
+
+  private fun setUpLoadingPanel() {
+    setLoadingText(loadingMessageEditorPane, stopwatch.elapsed())
+    val document = loadingMessageEditorPane.document as HTMLDocument
+    document.styleSheet.addRule(
+      "body { text-align: center; font-family: ${UIUtil.getLabelFont()}; font-size: ${UIUtil.getLabelFont().size} pt; }"
+    )
+    document.styleSheet.addRule("h2, h3 { font-weight: normal; }")
+    loadingMessageEditorPane.name = "loading-panel"
+    loadingMessageEditorPane.isOpaque = false
+    loadingMessageEditorPane.isEditable = false
+    loadingMessageEditorPane.addHyperlinkListener(object : HyperlinkAdapter() {
+      override fun hyperlinkActivated(e: HyperlinkEvent) {
+        listeners.forEach { it.cancelRunningStatementInvoked() }
+      }
+    })
+  }
+
+  private fun setLoadingText(editorPane: JEditorPane, duration: Duration) {
+    editorPane.text =
+      "<h2>Running query...</h2>" +
+      "${duration.seconds} sec" +
+      "<h3><a href=\"\">Cancel query</a></h3>"
   }
 
   /**

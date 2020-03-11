@@ -31,6 +31,7 @@ import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteColumnValue
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
+import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.model.SqliteValue
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.android.tools.idea.sqlite.ui.tableView.TableView
@@ -53,6 +54,7 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import java.awt.Dimension
 import java.awt.Point
+import javax.swing.JEditorPane
 import javax.swing.JPanel
 import javax.swing.JPopupMenu
 import javax.swing.JTable
@@ -710,6 +712,83 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
     // Assert
     assertTrue(tableModel1 != table.model)
+  }
+
+  fun testClickOnUrlCallsListener() {
+    // Prepare
+    val mockListener = mock(TableView.Listener::class.java)
+    view.addListener(mockListener)
+    view.startTableLoading()
+
+    val loadingPanel = TreeWalker(view.component).descendants().first { it.name == "loading-panel" } as JEditorPane
+    loadingPanel.text = "<a href=\"\">Test url</a>"
+
+    loadingPanel.size = Dimension(10, 10)
+    loadingPanel.preferredSize = loadingPanel.size
+    val fakeUi = FakeUi(loadingPanel)
+
+    // Act
+    fakeUi.mouse.click(5, 5)
+
+    // Assert
+    verify(mockListener).cancelRunningStatementInvoked()
+
+    view.stopTableLoading()
+  }
+
+  fun testLoadingPanelIsVisibleWhenLoading() {
+    // Act
+    view.startTableLoading()
+
+    // Assert
+    val table = TreeWalker(view.component).descendants().filterIsInstance<JBTable>().firstOrNull()
+    val loadingPanel = TreeWalker(view.component).descendants().first { it.name == "loading-panel" }
+
+    assertTrue(loadingPanel.isVisible)
+    assertNull(table)
+
+    view.stopTableLoading()
+  }
+
+  fun testLoadingPanelIsRemovedWhenLoadingIsFinished() {
+    // Act
+    view.startTableLoading()
+    view.stopTableLoading()
+
+    // Assert
+    val table = TreeWalker(view.component).descendants().filterIsInstance<JBTable>().first()
+    val loadingPanel = TreeWalker(view.component).descendants().firstOrNull { it.name == "loading-panel" }
+
+    assertTrue(table.isVisible)
+    assertNull(loadingPanel)
+  }
+
+  fun testDisposeWhileLoadingDoesntThrow() {
+    // Prepare
+    val customSqliteFile = sqliteUtil.createAdHocSqliteDatabase(
+      createStatement = "CREATE TABLE t1 (pk INT PRIMARY KEY, c1 INT)",
+      insertStatement = "INSERT INTO t1 (pk, c1) VALUES (42, 1)"
+    )
+    realDatabaseConnection = pumpEventsAndWaitForFuture(
+      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+    )
+
+    val controller = TableController(
+      project,
+      10,
+      view,
+      { SqliteTable("tab", emptyList(), null, false) },
+      realDatabaseConnection!!,
+      SqliteStatement("SELECT * FROM t1"),
+      FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+    )
+    Disposer.register(testRootDisposable, controller)
+    pumpEventsAndWaitForFuture(controller.setUp())
+
+    view.startTableLoading()
+
+    // Act/Assert
+    Disposer.dispose(controller)
   }
 
   private fun getColumnAt(table: JTable, colIndex: Int): List<String?> {
