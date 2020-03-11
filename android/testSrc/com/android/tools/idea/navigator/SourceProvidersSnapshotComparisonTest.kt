@@ -50,7 +50,7 @@ bazel test //tools/adt/idea/android:intellij.android.core.tests_tests  --test_sh
 --jvmopt='-DUPDATE_TEST_SNAPSHOTS' --test_output=streamed
  */
 class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotComparisonTest {
-  override val snapshotDirectoryName = "sourceProvidersSnapshots"
+  override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/sourceProvidersSnapshots"
 
   fun testSimpleApplication() {
     val text = importSyncAndDumpProject(TestProjectPaths.SIMPLE_APPLICATION)
