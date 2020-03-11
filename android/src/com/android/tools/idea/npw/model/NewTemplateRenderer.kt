@@ -67,10 +67,9 @@ fun Recipe.render(c: RenderingContext, e: RecipeExecutor, loggingEvent: Template
   }
 
   if (!c.dryRun) {
+    ApplicationManager.getApplication().invokeAndWait { PsiDocumentManager.getInstance(c.project).commitAllDocuments() }
     EditorUtil.reformatAndRearrange(c.project, c.targetFiles)
   }
-
-  ApplicationManager.getApplication().invokeAndWait { PsiDocumentManager.getInstance(c.project).commitAllDocuments() }
 
   return success
 }
