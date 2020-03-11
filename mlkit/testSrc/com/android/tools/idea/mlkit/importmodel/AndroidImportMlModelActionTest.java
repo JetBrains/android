@@ -26,6 +26,7 @@ import com.intellij.testFramework.TestActionEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import org.jetbrains.android.AndroidTestCase;
 import org.mockito.Mock;
@@ -73,5 +74,13 @@ public class AndroidImportMlModelActionTest extends AndroidTestCase {
     namedModuleTemplates.add(myDebugTemplate);
 
     assertEquals(myAction.getModuleMlDirectory(namedModuleTemplates).getPath(), "/project/debug/ml");
+  }
+
+  public void testGetModuleMlDirectory_noMlDirectory_shouldNotCrash() {
+    when(myDebugPaths.getMlModelsDirectories()).thenReturn(Collections.emptyList());
+    List<NamedModuleTemplate> namedModuleTemplates = new ArrayList<>();
+    namedModuleTemplates.add(myDebugTemplate);
+
+    assertEquals(myAction.getModuleMlDirectory(namedModuleTemplates), null);
   }
 }
