@@ -21,7 +21,6 @@ import com.android.tools.idea.device.FormFactor
 import com.android.tools.idea.npw.bindExpression
 import com.android.tools.idea.npw.invokeLater
 import com.android.tools.idea.npw.model.RenderTemplateModel
-import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.project.getSourceProvider
 import com.android.tools.idea.npw.template.components.CheckboxProvider2
 import com.android.tools.idea.npw.template.components.ComponentProvider
@@ -63,6 +62,7 @@ import com.android.tools.idea.wizard.template.Constraint.STRING
 import com.android.tools.idea.wizard.template.Constraint.URI_AUTHORITY
 import com.android.tools.idea.wizard.template.EnumParameter
 import com.android.tools.idea.wizard.template.EnumWidget
+import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.LanguageWidget
 import com.android.tools.idea.wizard.template.PackageNameWidget
 import com.android.tools.idea.wizard.template.Parameter
@@ -267,7 +267,7 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
       val language = (it.property as SelectedItemProperty<Language>)
       bindings.bindTwoWay(language, model.language)
       if (TemplateConstraint.Kotlin in model.newTemplate.constraints) {
-        model.language.value = Language.KOTLIN
+        model.language.value = Language.Kotlin
         it.setEnabled(false)
       }
     }

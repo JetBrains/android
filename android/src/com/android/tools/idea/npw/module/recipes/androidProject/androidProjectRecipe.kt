@@ -21,7 +21,7 @@ import com.android.SdkConstants.FN_GRADLE_PROPERTIES
 import com.android.SdkConstants.FN_LOCAL_PROPERTIES
 import com.android.SdkConstants.FN_SETTINGS_GRADLE
 import com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS
-import com.android.tools.idea.npw.platform.Language
+import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import java.io.File
@@ -40,13 +40,13 @@ fun RecipeExecutor.androidProjectRecipe(
 
   if (useGradleKts) {
     save(
-      androidProjectBuildGradleKts(language == Language.KOTLIN, data.kotlinVersion, data.gradlePluginVersion),
+      androidProjectBuildGradleKts(language == Language.Kotlin, data.kotlinVersion, data.gradlePluginVersion),
       topOut.resolve(FN_BUILD_GRADLE_KTS)
     )
   }
   else {
     save(
-      androidProjectBuildGradle(language == Language.KOTLIN, data.kotlinVersion, data.gradlePluginVersion),
+      androidProjectBuildGradle(language == Language.Kotlin, data.kotlinVersion, data.gradlePluginVersion),
       topOut.resolve(FN_BUILD_GRADLE)
     )
   }
@@ -58,7 +58,7 @@ fun RecipeExecutor.androidProjectRecipe(
   val settingsFile = topOut.resolve(if (useGradleKts) FN_SETTINGS_GRADLE_KTS else FN_SETTINGS_GRADLE)
   save(androidProjectGradleSettings(appTitle), settingsFile) // Note: The initial gradle settings file is the same in kts or groovy
   save(
-    androidProjectGradleProperties(addAndroidXSupport, language == Language.KOTLIN, data.overridePathCheck),
+    androidProjectGradleProperties(addAndroidXSupport, language == Language.Kotlin, data.overridePathCheck),
     topOut.resolve(FN_GRADLE_PROPERTIES))
   save(androidProjectLocalProperties(data.sdkDir), topOut.resolve(FN_LOCAL_PROPERTIES))
   copy(resource("wrapper"), topOut)

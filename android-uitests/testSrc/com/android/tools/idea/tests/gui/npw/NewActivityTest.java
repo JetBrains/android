@@ -15,28 +15,27 @@
  */
 package com.android.tools.idea.tests.gui.npw;
 
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.util.text.StringUtil.getOccurrenceCount;
+import static org.junit.Assert.assertEquals;
+
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
-import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureBasicActivityStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureBasicActivityStepFixture.ActivityTextField;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture;
+import com.android.tools.idea.wizard.template.Language;
 import com.intellij.ide.projectView.impl.ProjectViewPane;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.io.IOException;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.io.IOException;
-
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.util.text.StringUtil.getOccurrenceCount;
-import static org.junit.Assert.assertEquals;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class NewActivityTest {
@@ -69,7 +68,7 @@ public class NewActivityTest {
     invokeNewActivityMenu();
     assertTextFieldValues(DEFAULT_ACTIVITY_NAME, DEFAULT_LAYOUT_NAME);
     assertThat(getSavedKotlinSupport()).isFalse();
-    assertThat(getSavedRenderSourceLanguage()).isEqualTo(Language.JAVA);
+    assertThat(getSavedRenderSourceLanguage()).isEqualTo(Language.Java);
   }
 
   @Test
@@ -109,7 +108,7 @@ public class NewActivityTest {
   @Test
   public void createActivityWithKotlin() {
     myConfigActivity.setSourceLanguage("Kotlin");
-    assertThat(getSavedRenderSourceLanguage()).isEqualTo(Language.KOTLIN);
+    assertThat(getSavedRenderSourceLanguage()).isEqualTo(Language.Kotlin);
     assertThat(getSavedKotlinSupport()).isFalse(); // Changing the Render source language should not affect the project default
 
     myDialog.clickFinish();
@@ -254,6 +253,6 @@ public class NewActivityTest {
 
   @NotNull
   private static Language getSavedRenderSourceLanguage() {
-      return Language.fromName(PropertiesComponent.getInstance().getValue("SAVED_RENDER_LANGUAGE"), Language.JAVA);
+    return Language.fromName(PropertiesComponent.getInstance().getValue("SAVED_RENDER_LANGUAGE"), Language.Java);
   }
 }

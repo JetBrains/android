@@ -32,7 +32,6 @@ import com.android.tools.idea.device.FormFactor;
 import com.android.tools.idea.npw.model.NewAndroidModuleModel;
 import com.android.tools.idea.npw.model.RenderTemplateModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
-import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.template.ChooseActivityTypeStep;
 import com.android.tools.idea.npw.template.components.BytecodeLevelComboProvider;
 import com.android.tools.idea.npw.template.components.LanguageComboProvider;
@@ -54,6 +53,7 @@ import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
 import com.android.tools.idea.wizard.template.BytecodeLevel;
+import com.android.tools.idea.wizard.template.Language;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.ContextHelpLabel;
@@ -81,7 +81,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewAndroidMo
 
   @NotNull private final StudioWizardStepPanel myRootPanel;
   @NotNull private final JBScrollPane myScrollPanel;
-  @NotNull private ValidatorPanel myValidatorPanel;
+  @NotNull private final ValidatorPanel myValidatorPanel;
   @NotNull private final FormFactor myFormFactor;
 
   private final int myMinSdkLevel;
@@ -96,7 +96,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewAndroidMo
   private LabelWithEditButton myPackageName;
   private JLabel myModuleNameLabel;
 
-  @NotNull private RenderTemplateModel myRenderModel;
+  @NotNull private final RenderTemplateModel myRenderModel;
 
   public ConfigureAndroidModuleStep(@NotNull NewAndroidModuleModel model, @NotNull FormFactor formFactor, int minSdkLevel, String basePackage,
                                     @NotNull String title) {

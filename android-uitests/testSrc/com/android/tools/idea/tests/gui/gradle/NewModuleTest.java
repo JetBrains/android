@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import static com.android.tools.idea.npw.platform.Language.KOTLIN;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction.LINE_END;
+import static com.android.tools.idea.wizard.template.Language.Kotlin;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 
@@ -145,7 +145,7 @@ public class NewModuleTest {
     guiTest.ideFrame()
       .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
       .clickNextPhoneAndTabletModule()
-      .setSourceLanguage(KOTLIN)
+      .setSourceLanguage(Kotlin)
       .selectBytecodeLevel(BytecodeLevel.L8.toString())
       .enterModuleName("otherModule")
       .wizard()

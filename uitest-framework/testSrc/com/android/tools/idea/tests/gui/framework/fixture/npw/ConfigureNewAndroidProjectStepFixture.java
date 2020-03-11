@@ -17,14 +17,14 @@ package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
+import com.android.tools.idea.wizard.template.Language;
+import javax.swing.JComboBox;
+import javax.swing.JRootPane;
+import javax.swing.text.JTextComponent;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.text.JTextComponent;
 
 public class ConfigureNewAndroidProjectStepFixture<W extends AbstractWizardFixture>
   extends AbstractWizardStepFixture<ConfigureNewAndroidProjectStepFixture, W> {

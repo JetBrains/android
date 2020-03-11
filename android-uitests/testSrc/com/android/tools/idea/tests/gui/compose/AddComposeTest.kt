@@ -16,12 +16,12 @@
 package com.android.tools.idea.tests.gui.compose
 
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_WIZARD_TEMPLATES
-import com.android.tools.idea.npw.platform.Language.KOTLIN
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureBasicActivityStepFixture.ActivityTextField.NAME
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture
 import com.android.tools.idea.tests.util.WizardUtils.createNewProject
+import com.android.tools.idea.wizard.template.Language.Kotlin
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.junit.After
@@ -67,7 +67,7 @@ class AddComposeTest {
 
     NewModuleWizardFixture.find(guiTest.ideFrame().invokeMenuPath("File", "New", "New Module..."))
       .clickNextPhoneAndTabletModule()
-      .setSourceLanguage(KOTLIN)
+      .setSourceLanguage(Kotlin)
       .selectMinimumSdkApi(28)
       .enterModuleName("compose")
       .wizard()

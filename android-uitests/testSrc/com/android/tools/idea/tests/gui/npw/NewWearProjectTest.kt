@@ -17,10 +17,9 @@ package com.android.tools.idea.tests.gui.npw
 
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.device.FormFactor
-import com.google.common.truth.Truth.assertThat
-
-import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
+import com.android.tools.idea.wizard.template.Language
+import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.junit.Rule
 import org.junit.Test
@@ -36,7 +35,7 @@ class NewWearProjectTest {
 
   @Test
   fun testBuildBlankWearActivityWithoutCompanion() {
-    createWearProject("Blank Activity", Language.JAVA, false)
+    createWearProject("Blank Activity", Language.Java, false)
 
     guiTest.getProjectFileText("app/build.gradle").apply {
       assertThat(this).contains("compileOnly 'com.google.android.wearable")
@@ -55,7 +54,7 @@ class NewWearProjectTest {
 
   @Test
   fun testBuildBlankWearActivityWithCompanion() {
-    createWearProject("Blank Activity", Language.KOTLIN, true)
+    createWearProject("Blank Activity", Language.Kotlin, true)
 
     guiTest.getProjectFileText("mobile/build.gradle").apply {
       assertThat(this).contains("wearApp project")

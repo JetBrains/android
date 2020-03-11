@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.benchmark
 
-import com.android.tools.idea.npw.platform.Language.JAVA
-import com.android.tools.idea.npw.platform.Language.KOTLIN
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture
+import com.android.tools.idea.wizard.template.Language.Java
+import com.android.tools.idea.wizard.template.Language.Kotlin
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.junit.Rule
@@ -58,7 +58,7 @@ class AddBenchmarkModuleTest {
     ideFrame.invokeMenuPath("File", "New", "New Module...")
     NewModuleWizardFixture.find(ideFrame)
       .clickNextToBenchmarkModule()
-      .setSourceLanguage(JAVA)
+      .setSourceLanguage(Java)
       .wizard()
       .clickFinish()
       .waitForGradleProjectSyncToFinish()
@@ -107,7 +107,7 @@ class AddBenchmarkModuleTest {
     ideFrame.invokeMenuPath("File", "New", "New Module...")
     NewModuleWizardFixture.find(ideFrame)
       .clickNextToBenchmarkModule()
-      .setSourceLanguage(KOTLIN)
+      .setSourceLanguage(Kotlin)
       .wizard()
       .clickFinish()
       .waitForGradleProjectSyncToFinish()
