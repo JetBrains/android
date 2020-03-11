@@ -1,0 +1,17 @@
+<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
+
+  <!-- Please add new configurables to configurables.xml, unless you are absolutely sure that it does not make sense in AndroidStudio -->
+  <xi:include href="configurables.xml" xpointer="xpointer(/idea-plugin/*)"/>
+
+
+  <extensions defaultExtensionNs="com.intellij">
+
+    <!-- Note: in AndroidStudio this configurable has different groupId: build -->
+    <applicationConfigurable groupId="build.android" id="instant.run"
+                             provider="com.android.tools.idea.deploy.DeploymentConfigurableProvider"/>
+
+    <projectConfigurable groupId="build.android"
+                         instance="com.android.tools.idea.structure.dialog.AndroidProjectStructureConfigurableForIdea"
+                         order="last"/>
+  </extensions>
+</idea-plugin>
