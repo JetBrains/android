@@ -167,7 +167,7 @@ class MotionLayoutAttributesModelTest {
   fun testSetCustomProperty() {
     motionRule.selectConstraint("start", "widget")
     val model = motionRule.attributesModel
-    val property = model.allProperties[CUSTOM_ATTRIBUTE]!![AUTO_URI, ATTR_TEXT_SIZE]!!
+    val property = model.allProperties[CUSTOM_ATTRIBUTE]!!["", ATTR_TEXT_SIZE]!!
     property.value = "7sp"
     assertThat(motionRule.sceneFileLines(27..29)).isEqualTo("<CustomAttribute\n" +
                                                             "     motion:attributeName=\"textSize\"\n" +
