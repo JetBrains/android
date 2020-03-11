@@ -59,7 +59,7 @@ class NewCustomAttributePanelTest {
   fun testAddCustomField() {
     panelWrapper?.close(0)
     panelWrapper = createPanel("start", "button")
-    panel.dataTypeComboBox.text = "String"
+    panel.dataTypeComboBox.selectedItem = CustomAttributeType.CUSTOM_STRING
     panel.attributeNameEditor.text = "text"
     panel.initialValueEditor.text = "Hello"
     panel.doOKAction()
@@ -77,7 +77,7 @@ class NewCustomAttributePanelTest {
 
   @Test
   fun testValueError() {
-    panel.dataTypeComboBox.text = "String"
+    panel.dataTypeComboBox.selectedItem = CustomAttributeType.CUSTOM_STRING
     panel.attributeNameEditor.text = "text"
     panel.initialValueEditor.text = "@string/my_unknown_string"
     assertThat(panel.errorLabel.isVisible).isTrue()
@@ -88,7 +88,7 @@ class NewCustomAttributePanelTest {
 
   @Test
   fun testMethodNameError() {
-    panel.dataTypeComboBox.text = "String"
+    panel.dataTypeComboBox.selectedItem = CustomAttributeType.CUSTOM_STRING
     panel.attributeNameEditor.text = "unknown_method"
     assertThat(panel.errorLabel.isVisible).isTrue()
     assertThat(panel.errorLabel.text).isEqualTo("Method not found: setUnknown_method;  check arguments")
@@ -98,7 +98,7 @@ class NewCustomAttributePanelTest {
 
   @Test
   fun testAcceptAnywayWithMethodNameError() {
-    panel.dataTypeComboBox.text = "String"
+    panel.dataTypeComboBox.selectedItem = CustomAttributeType.CUSTOM_STRING
     panel.attributeNameEditor.text = "unknown_method"
     panel.initialValueEditor.text = "Hello"
     panel.acceptAnyway.doClick()
