@@ -65,7 +65,7 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
   }
 
   private fun showPopup(component: JComponent, x: Int, y: Int) {
-    val node = componentTreeSelectionModel.selection.singleOrNull() as ViewNode?
+    val node = componentTreeSelectionModel.currentSelection.singleOrNull() as ViewNode?
     if (node != null) {
       layoutInspector?.let { showViewContextMenu(node, it.layoutInspectorModel, component, x, y) }
     }
@@ -87,7 +87,7 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
 
   private fun gotoDefinition() {
     val resourceLookup = layoutInspector?.layoutInspectorModel?.resourceLookup ?: return
-    val node = componentTreeSelectionModel.selection.singleOrNull() as? ViewNode ?: return
+    val node = componentTreeSelectionModel.currentSelection.singleOrNull() as? ViewNode ?: return
     val location = resourceLookup.findFileLocation(node) ?: return
     location.navigatable?.navigate(true)
   }
@@ -102,10 +102,10 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
   @Suppress("UNUSED_PARAMETER")
   private fun selectionChanged(oldView: ViewNode?, newView: ViewNode?) {
     if (newView == null) {
-      componentTreeSelectionModel.selection = emptyList()
+      componentTreeSelectionModel.currentSelection = emptyList()
     }
     else {
-      componentTreeSelectionModel.selection = Collections.singletonList(newView)
+      componentTreeSelectionModel.currentSelection = Collections.singletonList(newView)
     }
   }
 

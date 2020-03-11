@@ -193,12 +193,18 @@ class TreeImpl(
     }
   }
 
+  /**
+   * Update the tree after a change in the tree.
+   *
+   * Attempt to keep the same tree nodes expanded and the same selection if this is a partial update.
+   */
   private fun updateTree(event: TreeModelEvent) {
-    val expanded = TreeUtil.collectExpandedPaths(this)
-    val selected = getSelectionModel().selectionPaths
-    model?.fireTreeStructureChange(event)
-    TreeUtil.restoreExpandedPaths(this, expanded)
-    getSelectionModel().selectionPaths = selected
+    val selectionModel = getSelectionModel() as ComponentTreeSelectionModelImpl
+    selectionModel.keepSelectionDuring {
+      val expanded = TreeUtil.collectExpandedPaths(this)
+      model?.fireTreeStructureChange(event)
+      TreeUtil.restoreExpandedPaths(this, expanded)
+    }
   }
 
   // region Support for Badges

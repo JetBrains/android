@@ -92,7 +92,7 @@ class NavComponentTreeTest : NavTestCase() {
     val component = id.map {model.find(it)!!}
     surface.selectionModel.setSelection(component.toList())
 
-    assertThat(component).containsExactlyElementsIn(selectionModel.selection).inOrder()
+    assertThat(component).containsExactlyElementsIn(selectionModel.currentSelection).inOrder()
 
     val expectedNavigation = model.find(expectedRoot)!!
     assertEquals(surface.currentNavigation, expectedNavigation)
