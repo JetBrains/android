@@ -422,7 +422,7 @@ abstract class GradleSyncProjectComparisonTest(
     }
   }
 
-  override val snapshotDirectoryName = "syncedProjectSnapshots"
+  override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/syncedProjectSnapshots"
   override val snapshotSuffixes = listOfNotNull(
     // Suffixes to use to override the default expected result.
     ".single_variant".takeIf { singleVariantSync },
