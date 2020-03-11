@@ -17,6 +17,7 @@ package com.android.tools.idea.emulator
 
 import com.android.annotations.concurrency.UiThread
 import com.android.emulator.control.KeyboardEvent
+import com.android.emulator.control.KeyboardEvent.KeyEventType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 
@@ -31,7 +32,7 @@ fun invokeLater(@UiThread action: () -> Unit) {
  * Creates a [KeyboardEvent] for the given hardware key.
  * Key names are defined in https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values.
  */
-fun createHardwareKeyEvent(keyName: String, eventType: KeyboardEvent.KeyEventType = KeyboardEvent.KeyEventType.keypress): KeyboardEvent {
+fun createHardwareKeyEvent(keyName: String, eventType: KeyEventType = KeyEventType.keypress): KeyboardEvent {
   return KeyboardEvent.newBuilder()
     .setKey(keyName)
     .setEventType(eventType)
