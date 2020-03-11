@@ -162,7 +162,7 @@ class TableControllerTest : PlatformTestCase() {
     orderVerifier.verify(tableView).stopTableLoading()
 
     verify(tableView, times(0)).reportError(any(String::class.java), any(Throwable::class.java))
-    verify(tableView, times(2)).setEditable(true)
+    verify(tableView, times(3)).setEditable(true)
   }
 
   fun testSetUpTableNameIsNull() {
@@ -178,7 +178,7 @@ class TableControllerTest : PlatformTestCase() {
 
     // Assert
     verify(tableView).startTableLoading()
-    verify(tableView, times(2)).setEditable(false)
+    verify(tableView, times(3)).setEditable(false)
   }
 
   fun testRowIdColumnIsNotShownInView() {
