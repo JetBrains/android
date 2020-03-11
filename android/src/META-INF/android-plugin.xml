@@ -28,7 +28,8 @@
 
   <depends optional="true" config-file="maven-support.xml">org.jetbrains.idea.maven</depends>
   <depends optional="true" config-file="test-ng.xml">TestNG-J</depends>
-  <depends optional="true" config-file="androidstudio.xml">com.intellij.modules.androidstudio</depends>
+  <depends optional="true" config-file="android-plugin-androidstudio.xml">com.intellij.modules.androidstudio</depends>
+  <depends optional="true" config-file="android-plugin-idea.xml">com.intellij.modules.idea</depends>
   <depends optional="true" config-file="eclipse.xml">org.jetbrains.idea.eclipse</depends>
   <depends optional="true" config-file="database-support.xml">com.intellij.database</depends>
   <depends optional="true">org.jetbrains.plugins.terminal</depends>
@@ -390,26 +391,13 @@
     <fileEditorProvider implementation="com.android.tools.idea.profiling.capture.CaptureEditorProvider" />
 
     <stepsBeforeRunProvider implementation="com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider" />
-    <projectConfigurable groupId="build" id="gradle.compiler"
-                         provider="com.android.tools.idea.gradle.project.build.compiler.GradleCompilerSettingsConfigurableProvider"/>
+
     <compiler.optionsManager implementation="com.android.tools.idea.gradle.project.build.compiler.HideCompilerOptions" />
 
-    <applicationConfigurable groupId="tools" id="device.file.explorer"
-                             provider="com.android.tools.idea.explorer.options.DeviceFileExplorerConfigurableProvider"/>
     <applicationService serviceImplementation="com.android.tools.idea.explorer.options.DeviceFileExplorerSettings"/>
 
-    <applicationConfigurable groupId="editor" groupWeight="115" id="nele.options"
-                             provider="com.android.tools.idea.uibuilder.options.NlOptionsConfigurableProvider"/>
-    <applicationConfigurable groupId="build" id="instant.run"
-                             provider="com.android.tools.idea.deploy.DeploymentConfigurableProvider"/>
     <applicationService serviceImplementation="com.android.tools.idea.deploy.DeploymentConfiguration"/>
-    <projectConfigurable provider="com.android.tools.idea.flags.StudioExperimentalConfigurableProvider"
-                         id ="experimental"
-                         bundle="messages.AndroidBundle"
-                         key="configurable.ExperimentalSettingsConfigurable.display.name"
-                         groupId="root" groupWeight="-999"/>
-    <projectConfigurable provider="com.android.tools.idea.flags.PluginExperimentalConfigurableProvider"
-                         id ="experimentalPlugin" displayName="Android (Experimental)" groupId="language"/>
+
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.GradleExperimentalSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.sdk.StudioSettingsController"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings"/>
@@ -621,11 +609,6 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages"/>
     <projectService serviceImplementation="com.android.tools.idea.structure.dialog.ProjectStructureConfigurable"/>
 
-    <!-- This line is Idea-specific. TODO-ank: move Idea-specific code to separate module in order to avoid collisions with AndroidStudio -->
-    <projectConfigurable groupId="build" groupWeight="120"
-                         instance="com.android.tools.idea.structure.dialog.AndroidProjectStructureConfigurableForIdea"
-                         order="last"/>
-
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.invoker.messages.GradleBuildTreeViewConfiguration"/>
     <projectService serviceImplementation="com.android.tools.idea.run.DevicePickerStateService" />
     <projectService serviceImplementation="com.android.tools.idea.stats.RunStatsService" />
@@ -669,9 +652,6 @@
     <moduleService serviceImplementation="org.jetbrains.android.facet.ResourceFolderManager" />
     <moduleService serviceImplementation="com.android.tools.idea.res.ResourceIdManager" />
     <moduleService serviceImplementation="com.android.tools.idea.gradle.project.sync.issues.ModuleSyncIssueRegistry" />
-
-    <projectConfigurable instance="org.jetbrains.android.compiler.AndroidDexCompilerSettingsConfigurable" id="android.dex.compiler"
-                         key="android.dex.compiler.configurable.display.name" bundle="messages.AndroidBundle" parentId="project.propCompiler"/>
 
     <problemFileHighlightFilter implementation="org.jetbrains.android.AndroidProblemFileHighlightingFilter"/>
 
@@ -1005,13 +985,6 @@
   </extensions>
 
   <!-- FIXME-ank2: this code was deleted in JB master
-  <extensions defaultExtensionNs="com.intellij">
-    <applicationConfigurable parentId="preferences.general"
-                             displayName="Memory Settings"
-                             provider="com.android.tools.idea.memorysettings.MemorySettingsConfigurableProvider"
-                             id="memory.settings"/>
-  </extensions>
-
   <extensions defaultExtensionNs="com.android.tools.idea.wizard.template">
     <wizardTemplateProvider implementation="com.android.tools.idea.wizard.template.impl.WizardTemplateProviderImpl" />
   </extensions>
