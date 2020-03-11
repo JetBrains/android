@@ -23,7 +23,7 @@ import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.fromFacet
 import com.android.tools.idea.npw.project.getModuleTemplates
 import com.android.tools.idea.npw.project.getPackageForApplication
 import com.android.tools.idea.npw.project.getPackageForPath
-import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep2
+import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep
 import com.android.tools.idea.npw.template.TemplateResolver
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
 import com.android.tools.idea.ui.wizard.WizardUtils
@@ -147,7 +147,7 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
       if (isActivityTemplate) "android.wizard.config.activity.title" else "android.wizard.config.component.title"
     )
     val wizardBuilder = ModelWizard.Builder().apply {
-      addStep(ConfigureTemplateParametersStep2(templateModel, stepTitle, moduleTemplates))
+      addStep(ConfigureTemplateParametersStep(templateModel, stepTitle, moduleTemplates))
     }
     StudioWizardDialogBuilder(wizardBuilder.build(), dialogTitle).setProject(module.project).build().show()
     e.dataContext.getData(CREATED_FILES)?.addAll(templateModel.createdFiles)
