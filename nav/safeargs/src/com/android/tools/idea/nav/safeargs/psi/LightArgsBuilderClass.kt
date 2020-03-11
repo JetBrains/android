@@ -86,7 +86,9 @@ class LightArgsBuilderClass(facet: AndroidFacet, private val modulePackage: Stri
 
     val argsConstructor = createConstructor()
     argsClass.fragment.arguments.forEach { arg ->
-      argsConstructor.addParameter(arg.name, parsePsiType(modulePackage, arg.type, this))
+      if (arg.defaultValue == null) {
+        argsConstructor.addParameter(arg.name, parsePsiType(modulePackage, arg.type, arg.defaultValue, this))
+      }
     }
 
     return arrayOf(copyConstructor, argsConstructor)
@@ -97,7 +99,7 @@ class LightArgsBuilderClass(facet: AndroidFacet, private val modulePackage: Stri
 
     // Create a getter and setter per argument
     val argMethods: Array<PsiMethod> = argsClass.fragment.arguments.flatMap { arg ->
-      val argType = parsePsiType(modulePackage, arg.type, this)
+      val argType = parsePsiType(modulePackage, arg.type, arg.defaultValue, this)
       val setter = createMethod("set${arg.name.capitalize()}", returnType = thisType)
       setter.addParameter(arg.name, argType)
       val getter = createMethod("get${arg.name.capitalize()}", returnType = argType)

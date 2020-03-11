@@ -22,14 +22,9 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.util.indexing.FileContentImpl
-import com.intellij.util.io.DataExternalizer
-import com.intellij.util.io.DataOutputStream
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.io.DataInputStream
 
 class NavXmlIndexTest {
   private val projectRule = AndroidProjectRule.onDisk()
@@ -97,7 +92,8 @@ class NavXmlIndexTest {
                     tools:layout="@layout/fragment2">
 
               <argument android:name="arg"
-                        app:argType="string" />
+                        app:argType="string"
+                        android:defaultValue="someString"/>
 
               <action android:id="@+id/action_fragment2_to_fragment3"
                       app:destination="@id/fragment3" />
@@ -166,6 +162,7 @@ class NavXmlIndexTest {
       destination.arguments[0].let { argument ->
         assertThat(argument.type).isEqualTo("string")
         assertThat(argument.name).isEqualTo("arg")
+        assertThat(argument.defaultValue).isEqualTo("someString")
       }
       destination.actions[0].let { action ->
         assertThat(action.id).isEqualTo("action_fragment2_to_fragment3")
@@ -188,10 +185,12 @@ class NavXmlIndexTest {
         destination.arguments[0].let { argument ->
           assertThat(argument.type).isEqualTo("float")
           assertThat(argument.name).isEqualTo("arg1")
+          assertThat(argument.defaultValue).isNull()
         }
         destination.arguments[1].let { argument ->
           assertThat(argument.type).isEqualTo("integer")
           assertThat(argument.name).isEqualTo("arg2")
+          assertThat(argument.defaultValue).isNull()
         }
         destination.actions[0].let { action ->
           assertThat(action.id).isEqualTo("action_fragment3_to_fragment1")
