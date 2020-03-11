@@ -1,0 +1,18 @@
+<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
+
+  <!-- Please add new configurables to configurables.xml, unless you are absolutely sure that it does not make sense in IJ Idea -->
+  <xi:include href="configurables.xml" xpointer="xpointer(/idea-plugin/*)"/>
+
+
+  <extensions defaultExtensionNs="com.intellij">
+    <applicationConfigurable parentId="preferences.general"
+                             bundle="messages.AndroidBundle"
+                             key="configurable.MemorySettingsConfigurable.display.name"
+                             provider="com.android.tools.idea.memorysettings.MemorySettingsConfigurableProvider"
+                             id="memory.settings"/>
+
+    <!-- Note: in Idea this configurable has different groupId: build.android -->
+    <applicationConfigurable groupId="build" id="instant.run"
+                             provider="com.android.tools.idea.deploy.DeploymentConfigurableProvider"/>
+  </extensions>
+</idea-plugin>

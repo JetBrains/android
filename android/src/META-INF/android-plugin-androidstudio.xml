@@ -15,7 +15,10 @@
  * limitations under the License.
  *
   -->
-<idea-plugin>
+<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
+
+  <xi:include href="configurables-androidstudio.xml" xpointer="xpointer(/idea-plugin/*)"/>
+
   <application-components>
     <component>
       <implementation-class>com.android.tools.idea.stats.LowMemoryReporter</implementation-class>
@@ -147,11 +150,6 @@
     <langCodeStyleSettingsProvider implementation="org.jetbrains.android.formatter.AndroidXmlLanguageCodeStyleSettingsProvider" order="first"/>
 
     <applicationInitializedListener implementation="com.android.tools.idea.stats.UserSentimentProjectComponent"/>
-    <applicationConfigurable parentId="preferences.general"
-                             bundle="messages.AndroidBundle"
-                             key="configurable.MemorySettingsConfigurable.display.name"
-                             provider="com.android.tools.idea.memorysettings.MemorySettingsConfigurableProvider"
-                             id="memory.settings"/>
   </extensions>
 
 </idea-plugin>
