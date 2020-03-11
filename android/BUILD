@@ -190,7 +190,7 @@ iml_module(
             "test_filter": "com.android.tools.idea.gradle.structure.configurables.variables.VariablesTableTest",
         },
         "gradle.structure.model.DependencyManagementTest": {
-            # Path separators
+            # Path separators (b/151462469)
             "tags": ["no_windows"],
             "test_filter": "com.android.tools.idea.gradle.structure.model.DependencyManagementTest",
         },
@@ -208,7 +208,7 @@ iml_module(
         "gradle.project.sync": {
             "shard_count": 5,
             "data": ["//prebuilts/studio/sdk:ndk"],
-            # Mismatches from ProjectDumper, and sync errors with C compiler
+            # Mismatches from ProjectDumper (b/150709248), and sync errors with C compiler
             "tags": ["no_windows"],
             "test_filter": "com.android.tools.idea.gradle.project.sync",
         },
@@ -229,8 +229,12 @@ iml_module(
         },
         "jetbrains": {
             "shard_count": 6,
-            "tags": ["no_windows"],
             "test_filter": "org.jetbrains.android",
+        },
+        "jetbrains.android.AndroidLintCustomCheckTest": {
+            # Could not initialize Mockito when run as a separate target
+            "tags": ["no_windows"],
+            "test_filter": "org.jetbrains.android.AndroidLintCustomCheckTest",
         },
         "navigator": {
             "shard_count": 2,
