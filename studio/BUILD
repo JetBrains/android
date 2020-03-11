@@ -83,6 +83,7 @@ studio_plugin(
         ],
         "android-extensions-ide.jar": [
             "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions",
+            "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions.common",
         ],
         "android-kotlin.jar": [
             "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea",
