@@ -28,7 +28,6 @@ iml_module(
         "//tools/adt/idea/adt-ui/lib/libwebp",
         "//tools/adt/idea/android:test_deps.zip",
         "//tools/adt/idea/android/annotations",
-        "//tools/adt/idea/android/lib:androidWidgets",
         "//tools/adt/idea/android/lib:sampleData",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/artwork:device-art-resources",
