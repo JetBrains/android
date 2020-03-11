@@ -69,10 +69,6 @@ public abstract class BaseCompileOptionsDslElement extends GradleDslBlockElement
     super(parent, name);
   }
 
-  public BaseCompileOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(COMPILE_OPTIONS.name));
-  }
-
   @Override
   public void addParsedElement(@NotNull GradleDslElement element) {
     setParsedElement(element);
