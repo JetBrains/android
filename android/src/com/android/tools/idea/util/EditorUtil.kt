@@ -46,7 +46,7 @@ object EditorUtil {
         .filterNot { it.name.startsWith("gradlew") }
         .forEach {
           val virtualFile = LocalFileSystem.getInstance().findFileByIoFile(it)!!
-          reformatAndRearrange(project, virtualFile)
+          reformatAndRearrange(project, virtualFile, keepDocumentLocked = true)
         }
     }
   }
