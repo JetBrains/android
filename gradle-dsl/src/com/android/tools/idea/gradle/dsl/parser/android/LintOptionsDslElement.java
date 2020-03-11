@@ -27,7 +27,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
-import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
@@ -37,7 +37,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class LintOptionsDslElement extends GradleDslBlockElement {
   @NotNull
-  public static final ImmutableMap<Pair<String,Integer>, Pair<ModelPropertyDescription, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
+  public static final ImmutableMap<Pair<String,Integer>, ModelEffectDescription> ktsToModelNameMap = Stream.of(new Object[][]{
     {"isAbortOnError", property, ABORT_ON_ERROR, VAR},
     {"isAbsolutePaths", property, ABSOLUTE_PATHS, VAR},
     {"isCheckAllWarnings", property, CHECK_ALL_WARNINGS, VAR},
@@ -76,7 +76,7 @@ public class LintOptionsDslElement extends GradleDslBlockElement {
   }).collect(toModelMap());
 
   @NotNull
-  public static final ImmutableMap<Pair<String,Integer>, Pair<ModelPropertyDescription,SemanticsDescription>> groovyToModelNameMap = Stream.of(new Object[][]{
+  public static final ImmutableMap<Pair<String,Integer>, ModelEffectDescription> groovyToModelNameMap = Stream.of(new Object[][]{
     {"abortOnError", property, ABORT_ON_ERROR, VAR},
     {"abortOnError", exactly(1), ABORT_ON_ERROR, SET},
     {"absolutePaths", property, ABSOLUTE_PATHS, VAR},
@@ -131,7 +131,7 @@ public class LintOptionsDslElement extends GradleDslBlockElement {
 
   @Override
   @NotNull
-  public ImmutableMap<Pair<String, Integer>, Pair<ModelPropertyDescription, SemanticsDescription>> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
+  public ImmutableMap<Pair<String, Integer>, ModelEffectDescription> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
     if (converter instanceof KotlinDslNameConverter) {
       return ktsToModelNameMap;
     }

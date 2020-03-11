@@ -32,7 +32,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
-import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
@@ -45,7 +45,7 @@ public class VectorDrawablesOptionsDslElement extends GradleDslBlockElement {
     new PropertiesElementDescription<>("vectorDrawables", VectorDrawablesOptionsDslElement.class, VectorDrawablesOptionsDslElement::new);
 
   @NotNull
-  private static final ImmutableMap<Pair<String,Integer>, Pair<ModelPropertyDescription, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
+  private static final ImmutableMap<Pair<String,Integer>, ModelEffectDescription> ktsToModelNameMap = Stream.of(new Object[][]{
     {"generatedDensities", property, GENERATED_DENSITIES, VAL},
     {"generatedDensities", atLeast(0), GENERATED_DENSITIES, OTHER},
     {"setGeneratedDensities", exactly(1), GENERATED_DENSITIES, SET},
@@ -53,7 +53,7 @@ public class VectorDrawablesOptionsDslElement extends GradleDslBlockElement {
   }).collect(toModelMap());
 
   @NotNull
-  private static final ImmutableMap<Pair<String,Integer>, Pair<ModelPropertyDescription, SemanticsDescription>> groovyToModelNameMap = Stream.of(new Object[][]{
+  private static final ImmutableMap<Pair<String,Integer>, ModelEffectDescription> groovyToModelNameMap = Stream.of(new Object[][]{
     {"generatedDensities", property, GENERATED_DENSITIES, VAR},
     {"generatedDensities", atLeast(0), GENERATED_DENSITIES, OTHER},
     {"useSupportLibrary", property, USE_SUPPORT_LIBRARY, VAR},
@@ -62,7 +62,7 @@ public class VectorDrawablesOptionsDslElement extends GradleDslBlockElement {
 
   @Override
   @NotNull
-  public ImmutableMap<Pair<String, Integer>, Pair<ModelPropertyDescription, SemanticsDescription>> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
+  public ImmutableMap<Pair<String, Integer>, ModelEffectDescription> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
     if (converter instanceof KotlinDslNameConverter) {
       return ktsToModelNameMap;
     }

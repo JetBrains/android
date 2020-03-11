@@ -27,7 +27,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
-import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
@@ -51,20 +51,20 @@ public class JavaDslElement extends BaseCompileOptionsDslElement {
   // It is also a bit odd in that in Groovy the java block need not be explicitly present -- sourceCompatibility and targetCompatibility
   // properties set at top-level are treated as altering the java block properties.  (I think).
   @NotNull
-  public static final ImmutableMap<Pair<String,Integer>, Pair<ModelPropertyDescription, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
+  public static final ImmutableMap<Pair<String,Integer>, ModelEffectDescription> ktsToModelNameMap = Stream.of(new Object[][]{
     {"sourceCompatibility", property, SOURCE_COMPATIBILITY, VAR},
     {"targetCompatibility", property, TARGET_COMPATIBILITY, VAR}
   }).collect(toModelMap());
 
   @NotNull
-  public static final ImmutableMap<Pair<String,Integer>, Pair<ModelPropertyDescription,SemanticsDescription>> groovyToModelNameMap = Stream.of(new Object[][]{
+  public static final ImmutableMap<Pair<String,Integer>, ModelEffectDescription> groovyToModelNameMap = Stream.of(new Object[][]{
     {"sourceCompatibility", property, SOURCE_COMPATIBILITY, VAR},
     {"targetCompatibility", property, TARGET_COMPATIBILITY, VAR}
   }).collect(toModelMap());
 
   @Override
   @NotNull
-  public ImmutableMap<Pair<String, Integer>, Pair<ModelPropertyDescription, SemanticsDescription>> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
+  public ImmutableMap<Pair<String, Integer>, ModelEffectDescription> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
     if (converter instanceof KotlinDslNameConverter) {
       return ktsToModelNameMap;
     }
