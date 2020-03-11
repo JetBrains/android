@@ -51,6 +51,7 @@ import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.AndroidTestCase.applyAndroidCodeStyleSettings
 import org.jetbrains.android.AndroidTestCase.initializeModuleFixtureBuilderWithSrcAndGen
 import org.jetbrains.android.LightJavaCodeInsightFixtureAdtTestCase
+import org.jetbrains.android.MockitoThreadLocalsCleaner
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.rules.RuleChain
 import org.junit.rules.TestRule
@@ -105,6 +106,8 @@ class AndroidProjectRule private constructor(
 
   private var userHome: String? = null
   lateinit var fixture: CodeInsightTestFixture
+  val mockitoCleaner = MockitoThreadLocalsCleaner()
+
   val module: Module get() = fixture.module
 
   val project: Project get() = fixture.project
@@ -197,6 +200,7 @@ class AndroidProjectRule private constructor(
   }
 
   override fun before(description: Description) {
+    mockitoCleaner.setup()
     fixture = if (lightFixture) {
       createLightFixture()
     }
@@ -329,6 +333,7 @@ class AndroidProjectRule private constructor(
     }
     fixture.tearDown()
     userHome?.let { System.setProperty("user.home", it) } ?: System.clearProperty("user.home")
+    mockitoCleaner.cleanupAndTearDown();
     AndroidTestBase.checkUndisposedAndroidRelatedObjects()
   }
 }
