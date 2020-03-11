@@ -518,7 +518,6 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data:native_libs",
-        "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
         "testData/LayoutTest/**",
     ]),
@@ -541,7 +540,6 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data:native_libs",
-        "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
         "testData/LayoutTest/**",
     ]),
@@ -562,7 +560,6 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data:native_libs",
-        "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
         "testData/SimpleApplication/**",
     ]),
@@ -583,7 +580,6 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data:native_libs",
-        "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
         "testData/SimpleApplication/**",
     ]),
@@ -606,7 +602,6 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data:native_libs",
-        "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
         "testData/SimpleFlavoredApplication/**",
     ]),
@@ -1269,7 +1264,6 @@ java_test(
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/sdk:platforms/android-25",
-        "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
         "testData/SimpleApplication/**",
     ]),
@@ -1292,7 +1286,6 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data:native_libs",
-        "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
         "testData/LayoutTest/**",
     ]),
@@ -1315,7 +1308,6 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data:native_libs",
-        "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
         "testData/LayoutTest/**",
     ]),
@@ -1338,7 +1330,6 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data:native_libs",
-        "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
         "testData/LayoutTest/**",
     ]),
@@ -1361,7 +1352,6 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data:native_libs",
-        "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
         "testData/LayoutTest/**",
     ]),
@@ -1382,7 +1372,6 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data:native_libs",
-        "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
         "testData/SimpleApplication/**",
     ]),
@@ -1403,7 +1392,6 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data:native_libs",
-        "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
         "testData/SimpleApplication/**",
     ]),
@@ -1426,7 +1414,6 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data:native_libs",
-        "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
         "testData/SimpleApplication/**",
     ]),
@@ -1449,7 +1436,6 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data:native_libs",
-        "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
         "testData/SimpleApplication/**",
         "testData/TestImages/**",
@@ -2102,7 +2088,6 @@ java_test(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/layoutlib/data:native_libs",
-        "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
         "testData/SimpleApplication/**",
     ]),
