@@ -103,6 +103,11 @@ public class AndroidImportMlModelAction extends AnAction {
     }
     // Find target ml path given Module templates. If there are multiple, select the main template.
     // TODO(b/150616631): Add drop down UI to let user select the flavour.
-    return namedModuleTemplates.get(0).getPaths().getMlModelsDirectories().get(0);
+    List<File> mlDirectories = namedModuleTemplates.get(0).getPaths().getMlModelsDirectories();
+    if (mlDirectories.isEmpty()) {
+      return null;
+    }
+
+    return mlDirectories.get(0);
   }
 }
