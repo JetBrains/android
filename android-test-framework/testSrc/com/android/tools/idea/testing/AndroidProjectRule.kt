@@ -17,6 +17,7 @@ package com.android.tools.idea.testing
 
 import com.android.testutils.TestUtils
 import com.android.tools.idea.io.FilePaths.toSystemDependentPath
+import com.android.tools.idea.testing.AndroidProjectRule.Companion.withAndroidModel
 import com.intellij.application.options.CodeStyle
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetConfiguration
@@ -33,10 +34,10 @@ import com.intellij.testFramework.fixtures.impl.LightTempDirTestFixtureImpl
 import com.intellij.testFramework.fixtures.impl.TempDirTestFixtureImpl
 import com.intellij.testFramework.registerExtension
 import com.intellij.testFramework.runInEdtAndWait
-import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.AndroidTestCase.applyAndroidCodeStyleSettings
 import org.jetbrains.android.AndroidTestCase.initializeModuleFixtureBuilderWithSrcAndGen
+import org.jetbrains.android.MockitoThreadLocalsCleaner
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.runner.Description
 import java.io.File
@@ -89,6 +90,8 @@ class AndroidProjectRule private constructor(
   : NamedExternalResource() {
 
   lateinit var fixture: CodeInsightTestFixture
+  val mockitoCleaner = MockitoThreadLocalsCleaner()
+
   val module: Module get() = fixture.module
 
   val project: Project get() = fixture.project
@@ -159,6 +162,7 @@ class AndroidProjectRule private constructor(
   }
 
   override fun before(description: Description) {
+    mockitoCleaner.setup()
     fixture = if (lightFixture) {
       createLightFixture()
     }
@@ -262,6 +266,6 @@ class AndroidProjectRule private constructor(
       CodeStyleSettingsManager.getInstance(project).dropTemporarySettings()
     }
     fixture.tearDown()
-    AndroidTestBase.cleanupMockitoThreadLocals()
+    mockitoCleaner.cleanupAndTearDown();
   }
 }

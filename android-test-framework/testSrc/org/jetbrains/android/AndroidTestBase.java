@@ -41,27 +41,26 @@ import com.intellij.testFramework.LightProjectDescriptor;
 import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import com.intellij.util.ui.UIUtil;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Set;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.mockito.internal.progress.ThreadSafeMockingProgress;
 
 @SuppressWarnings({"JUnitTestCaseWithNonTrivialConstructors"})
 public abstract class AndroidTestBase extends UsefulTestCase {
   protected JavaCodeInsightTestFixture myFixture;
+  protected MockitoThreadLocalsCleaner mockitoCleaner = new MockitoThreadLocalsCleaner();
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+
+    mockitoCleaner.setup();
 
     // Compute the workspace root before any IDE code starts messing with user.dir:
     TestUtils.getWorkspaceRoot();
@@ -70,27 +69,11 @@ public abstract class AndroidTestBase extends UsefulTestCase {
 
   @Override
   protected void tearDown() throws Exception {
-    cleanupMockitoThreadLocals();
+    mockitoCleaner.cleanupAndTearDown();
+
     myFixture = null;
     super.tearDown();
     checkUndisposedAndroidRelatedObjects();
-  }
-
-  public static void cleanupMockitoThreadLocals() throws Exception {
-    Field provider = ThreadSafeMockingProgress.class.getDeclaredField("MOCKING_PROGRESS_PROVIDER");
-    provider.setAccessible(true);
-    ThreadLocal key = (ThreadLocal)provider.get(ThreadSafeMockingProgress.class);
-    Field threadLocalsField = Thread.class.getDeclaredField("threadLocals");
-    threadLocalsField.setAccessible(true);
-    Method remove = threadLocalsField.getType().getDeclaredMethod("remove", ThreadLocal.class);
-    remove.setAccessible(true);
-    Set<Thread> threads = Thread.getAllStackTraces().keySet();
-    for (Thread thread : threads) {
-      Object o = threadLocalsField.get(thread);
-      if (o != null) {
-        remove.invoke(o, key);
-      }
-    }
   }
 
   /**
