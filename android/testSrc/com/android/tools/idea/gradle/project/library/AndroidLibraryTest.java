@@ -17,7 +17,7 @@ import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate;
 import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.npw.model.RenderTemplateModel;
-import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep2;
+import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep;
 import com.android.tools.idea.npw.template.TemplateResolver;
 import com.android.tools.idea.observable.BatchInvoker;
 import com.android.tools.idea.observable.TestInvokeStrategy;
@@ -94,7 +94,7 @@ public class AndroidLibraryTest extends AndroidGradleTestCase {
     assertThat(moduleTemplates).isNotEmpty();
 
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
-    wizardBuilder.addStep(new ConfigureTemplateParametersStep2(render, "Add new Activity Test", moduleTemplates));
+    wizardBuilder.addStep(new ConfigureTemplateParametersStep(render, "Add new Activity Test", moduleTemplates));
     ModelWizard modelWizard = wizardBuilder.build();
     Disposer.register(project, modelWizard);
     myInvokeStrategy.updateAllSteps();
