@@ -283,11 +283,6 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   }
 
   @VisibleForTesting
-  MemoryProfilerStageLayout getLayout() {
-    return myLayout;
-  }
-
-  @VisibleForTesting
   JButton getGarbageCollectionButtion() {
     return myForceGarbageCollectionButton;
   }
@@ -891,7 +886,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       myAllocationButton.setEnabled(isAlive);
       myNativeAllocationButton.setEnabled(isAlive);
       myHeapDumpButton.setEnabled(isAlive);
-      myLayout.setShowingCaptureUi(false);
+      myLayout.showCaptureUi(false);
       return;
     }
 
@@ -921,7 +916,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       return;
     }
 
-    myLayout.setShowingCaptureUi(true);
+    myLayout.showCaptureUi(true);
   }
 
   private void stopLoadingUi() {

@@ -188,10 +188,7 @@ private class CapturePanelUi(private val myStage: MemoryProfilerStage,
 
     myStage.aspect.addDependency(myObserver)
       .onChange(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS, ::refreshSummaries)
-      .onChange(MemoryProfilerAspect.CURRENT_FILTER) {
-        if (myStage.selectedCapture != null)
-          refreshSummaries()
-      }
+      .onChange(MemoryProfilerAspect.CURRENT_FILTER, ::refreshSummaries)
 
     add(totalClassLabel)
     add(totalLeakLabel)
