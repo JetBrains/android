@@ -83,6 +83,7 @@ class TableController(
         throw ProcessCanceledException()
       }
 
+      view.setEditable(isEditable())
       view.showPageSizeValue(rowBatchSize)
       view.addListener(listener)
 

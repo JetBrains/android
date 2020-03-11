@@ -51,6 +51,7 @@ class SqliteEvaluatorController(
   fun setUp() {
     view.addListener(sqliteEvaluatorViewListener)
     view.tableView.isTableActionsRowVisible = false
+    view.tableView.setEditable(false)
   }
 
   fun removeDatabase(index: Int) {

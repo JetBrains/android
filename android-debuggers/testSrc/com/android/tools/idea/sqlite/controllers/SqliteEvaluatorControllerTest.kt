@@ -75,6 +75,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
 
     // Assert
     verify(sqliteEvaluatorView).addListener(any(SqliteEvaluatorView.Listener::class.java))
+    verify(sqliteEvaluatorView.tableView).setEditable(false)
   }
 
   fun testEvaluateSqlActionQuerySuccess() {

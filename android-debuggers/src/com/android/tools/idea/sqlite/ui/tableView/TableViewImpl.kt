@@ -64,6 +64,7 @@ class TableViewImpl : TableView {
     private const val tableIsEmptyText = "Table is empty"
     private const val loadingText = "Loading data..."
   }
+
   private val listeners = mutableListOf<TableView.Listener>()
   private val pageSizeDefaultValues = listOf(5, 10, 20, 25, 50)
   private var isLoading = false
@@ -98,6 +99,7 @@ class TableViewImpl : TableView {
 
     tableActionsPanel.name = "table-actions-panel"
 
+    readOnlyLabel.isVisible = false
     readOnlyLabel.name = "read-only-label"
     readOnlyLabel.border = BorderFactory.createEmptyBorder(0, 4, 0, 0)
     southPanel.add(readOnlyLabel, BorderLayout.WEST)
@@ -106,28 +108,32 @@ class TableViewImpl : TableView {
 
     firstRowsPageButton.toolTipText = "First"
     pagingControlsPanel.add(firstRowsPageButton)
-    firstRowsPageButton.addActionListener { listeners.forEach { it.loadFirstRowsInvoked() }}
+    firstRowsPageButton.addActionListener { listeners.forEach { it.loadFirstRowsInvoked() } }
 
     previousRowsPageButton.toolTipText = "Previous"
     pagingControlsPanel.add(previousRowsPageButton)
-    previousRowsPageButton.addActionListener { listeners.forEach { it.loadPreviousRowsInvoked() }}
+    previousRowsPageButton.addActionListener { listeners.forEach { it.loadPreviousRowsInvoked() } }
+
+    setFetchNextRowsButtonState(false)
+    setFetchPreviousRowsButtonState(false)
 
     pageSizeComboBox.isEditable = true
     pageSizeDefaultValues.forEach { pageSizeComboBox.addItem(it) }
+    pageSizeComboBox.selectedIndex = pageSizeDefaultValues.size - 1
     pagingControlsPanel.add(pageSizeComboBox)
     pageSizeComboBox.addActionListener { listeners.forEach { it.rowCountChanged((pageSizeComboBox.selectedItem as Int)) } }
 
     nextRowsPageButton.toolTipText = "Next"
     pagingControlsPanel.add(nextRowsPageButton)
-    nextRowsPageButton.addActionListener { listeners.forEach { it.loadNextRowsInvoked() }}
+    nextRowsPageButton.addActionListener { listeners.forEach { it.loadNextRowsInvoked() } }
 
     lastRowsPageButton.toolTipText = "Last"
     pagingControlsPanel.add(lastRowsPageButton)
-    lastRowsPageButton.addActionListener { listeners.forEach { it.loadLastRowsInvoked() }}
+    lastRowsPageButton.addActionListener { listeners.forEach { it.loadLastRowsInvoked() } }
 
     refreshButton.toolTipText = "Sync table"
     tableActionsPanel.add(refreshButton)
-    refreshButton.addActionListener{ listeners.forEach { it.refreshDataInvoked() } }
+    refreshButton.addActionListener { listeners.forEach { it.refreshDataInvoked() } }
 
     table.background = primaryContentBackground
     table.emptyText.text = tableIsEmptyText
@@ -169,7 +175,9 @@ class TableViewImpl : TableView {
   }
 
   override var isTableActionsRowVisible: Boolean = true
-    set(value) { tableActionsPanel.isVisible = value; field = value }
+    set(value) {
+      tableActionsPanel.isVisible = value; field = value
+    }
 
   override fun showPageSizeValue(maxRowCount: Int) {
     // Avoid setting the item if it's already selected, so we don't trigger the action listener for now reason.
@@ -230,7 +238,7 @@ class TableViewImpl : TableView {
   }
 
   override fun setEditable(isEditable: Boolean) {
-    (table.model as MyTableModel).isEditable = isEditable
+    (table.model as? MyTableModel)?.isEditable = isEditable
     readOnlyLabel.isVisible = !isEditable
   }
 
@@ -305,7 +313,8 @@ class TableViewImpl : TableView {
       if (viewColumnIndex == 0) {
         columnNameLabel.icon = null
         (panel.getComponent(panel.componentCount - 1) as DefaultTableCellRenderer).icon = null
-      } else {
+      }
+      else {
         columnNameLabel.icon = AllIcons.Nodes.DataColumn
         (panel.getComponent(panel.componentCount - 1) as DefaultTableCellRenderer).icon = AllIcons.General.ArrowSplitCenterV
       }
@@ -326,7 +335,8 @@ class TableViewImpl : TableView {
     ) {
       if (value == null) {
         append("NULL", SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES)
-      } else {
+      }
+      else {
         append(value.toString())
       }
     }
@@ -340,7 +350,8 @@ class TableViewImpl : TableView {
     override fun getColumnName(modelColumnIndex: Int): String {
       return if (modelColumnIndex == 0) {
         ""
-      } else {
+      }
+      else {
         columns[modelColumnIndex - 1].name
       }
     }
@@ -354,7 +365,8 @@ class TableViewImpl : TableView {
     override fun getValueAt(modelRowIndex: Int, modelColumnIndex: Int): String? {
       return if (modelColumnIndex == 0) {
         (modelRowIndex + 1).toString()
-      } else {
+      }
+      else {
         when (val value = rows[modelRowIndex].values[modelColumnIndex - 1]) {
           is SqliteValue.StringValue -> value.value
           is SqliteValue.NullValue -> null
@@ -378,18 +390,18 @@ class TableViewImpl : TableView {
         when (diffOperation) {
           is RowDiffOperation.UpdateCell -> {
             rows[diffOperation.rowIndex].values[diffOperation.colIndex] = diffOperation.newValue.value
-            fireTableCellUpdated(diffOperation.rowIndex, diffOperation.colIndex+1)
+            fireTableCellUpdated(diffOperation.rowIndex, diffOperation.colIndex + 1)
           }
           is RowDiffOperation.AddRow -> {
             rows.add(MyRow.fromSqliteRow(diffOperation.row))
-            fireTableRowsInserted(rows.size-1, rows.size-1)
+            fireTableRowsInserted(rows.size - 1, rows.size - 1)
           }
           is RowDiffOperation.RemoveLastRows -> {
             val oldRowsSize = rows.size
-            for (i in oldRowsSize-1 downTo diffOperation.startIndex) {
+            for (i in oldRowsSize - 1 downTo diffOperation.startIndex) {
               rows.removeAt(i)
             }
-            fireTableRowsDeleted(diffOperation.startIndex, oldRowsSize-1)
+            fireTableRowsDeleted(diffOperation.startIndex, oldRowsSize - 1)
           }
         }
       }
