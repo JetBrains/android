@@ -19,7 +19,6 @@ import com.android.tools.adtui.LabelWithEditButton
 import com.android.tools.adtui.validation.ValidatorPanel
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getInitialDomain
-import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.project.DomainToPackageExpression
 import com.android.tools.idea.npw.template.components.LanguageComboProvider
 import com.android.tools.idea.npw.validator.ClassNameValidator
@@ -34,6 +33,7 @@ import com.android.tools.idea.ui.wizard.StudioWizardStepPanel
 import com.android.tools.idea.ui.wizard.WizardUtils
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.model.SkippableWizardStep
+import com.android.tools.idea.wizard.template.Language
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.ContextHelpLabel
 import com.intellij.ui.components.Label
@@ -89,7 +89,7 @@ class ConfigureLibraryModuleStep(
     row {
       val label = Label("Language:")
       right {
-        language = comboBox(LanguageComboProvider().createComponent().model, { Language.KOTLIN }, { model.language.value = it!! }).component
+        language = comboBox(LanguageComboProvider().createComponent().model, { Language.Kotlin }, { model.language.value = it!! }).component
       }
       label.labelFor = language
     }

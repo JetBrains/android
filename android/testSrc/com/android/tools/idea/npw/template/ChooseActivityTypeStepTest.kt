@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.template
 
-import com.android.tools.idea.npw.platform.Language.JAVA
+import com.android.tools.idea.wizard.template.Language.Java
 import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.TemplateConstraint
 import com.google.common.truth.Truth.assertThat
@@ -34,7 +34,7 @@ class ChooseActivityTypeStepTest {
   fun testNoTemplateForExistingModule() {
     assertThat(Template.NoActivity.validate(
       moduleApiLevel = 5, moduleBuildApiLevel = 5,
-      isNewModule = false, isAndroidxProject = false, language = JAVA,
+      isNewModule = false, isAndroidxProject = false, language = Java,
       messageKeys = messageKeys))
       .isEqualTo("No activity template was selected")
   }
@@ -43,7 +43,7 @@ class ChooseActivityTypeStepTest {
   fun testNoTemplateForNewModule() {
     assertThat(mock(Template::class.java).validate(
       moduleApiLevel = 5, moduleBuildApiLevel = 5,
-      isNewModule = true, isAndroidxProject = false, language = JAVA,
+      isNewModule = true, isAndroidxProject = false, language = Java,
       messageKeys = messageKeys))
       .isEqualTo("")
   }
@@ -55,7 +55,7 @@ class ChooseActivityTypeStepTest {
 
     assertThat(template.validate(
       moduleApiLevel = 5, moduleBuildApiLevel = 5,
-      isNewModule = true, isAndroidxProject = true, language = JAVA,
+      isNewModule = true, isAndroidxProject = true, language = Java,
       messageKeys = messageKeys))
       .isEqualTo(message("android.wizard.activity.invalid.min.sdk", 9))
   }
@@ -67,7 +67,7 @@ class ChooseActivityTypeStepTest {
 
     assertThat(template.validate(
       moduleApiLevel = 5, moduleBuildApiLevel = 5,
-      isNewModule = true, isAndroidxProject = true, language = JAVA,
+      isNewModule = true, isAndroidxProject = true, language = Java,
       messageKeys = messageKeys))
       .isEqualTo(message("android.wizard.activity.invalid.min.build", 9))
   }
@@ -79,7 +79,7 @@ class ChooseActivityTypeStepTest {
 
     assertThat(template.validate(
       moduleApiLevel = 5, moduleBuildApiLevel = 5,
-      isNewModule = false, isAndroidxProject = false, language = JAVA,
+      isNewModule = false, isAndroidxProject = false, language = Java,
       messageKeys = messageKeys))
       .isEqualTo(message("android.wizard.activity.invalid.androidx"))
   }
@@ -91,7 +91,7 @@ class ChooseActivityTypeStepTest {
 
     assertThat(template.validate(
       moduleApiLevel = 5, moduleBuildApiLevel = 5,
-      isNewModule = true, isAndroidxProject = false, language = JAVA,
+      isNewModule = true, isAndroidxProject = false, language = Java,
       messageKeys = messageKeys))
       .isEqualTo(message("android.wizard.activity.invalid.needs.kotlin"))
   }
@@ -103,7 +103,7 @@ class ChooseActivityTypeStepTest {
 
     assertThat(template.validate(
       moduleApiLevel = 5, moduleBuildApiLevel = 5,
-      isNewModule = false, isAndroidxProject = false, language = JAVA,
+      isNewModule = false, isAndroidxProject = false, language = Java,
       messageKeys = messageKeys))
       .isEmpty()
   }

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.instantapp;
 
-import static com.android.tools.idea.npw.platform.Language.JAVA;
 import static com.android.tools.idea.testing.FileSubject.file;
+import static com.android.tools.idea.wizard.template.Language.Java;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 
@@ -51,7 +51,7 @@ public class NewInstantAppTest {
       .wizard()
       .clickNext()
       .getConfigureNewAndroidProjectStep()
-      .setSourceLanguage(JAVA)
+      .setSourceLanguage(Java)
       .enterName(projectName)
       .selectMinimumSdkApi(23)
       .wizard()

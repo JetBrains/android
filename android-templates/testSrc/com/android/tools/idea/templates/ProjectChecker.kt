@@ -154,8 +154,7 @@ data class ProjectChecker(
     val projectRecipe: Recipe = { data: TemplateData ->
       androidProjectRecipe(
         data as ProjectTemplateData, "Template Test project",
-        com.android.tools.idea.npw.platform.Language.fromName(language.toString(), com.android.tools.idea.npw.platform.Language.JAVA),
-        true, false
+        language!!, true, false
       )
     }
 
@@ -243,14 +242,10 @@ fun titleToTemplateRenderer(title: String?) = when (title) {
   "Custom View" -> AndroidStudioEvent.TemplateRenderer.CUSTOM_VIEW
   "Android TV Module" -> AndroidStudioEvent.TemplateRenderer.ANDROID_TV_MODULE
   "Google AdMob Ads Activity" -> AndroidStudioEvent.TemplateRenderer.GOOGLE_ADMOBS_ADS_ACTIVITY
-  "Always On Wear Activity" -> AndroidStudioEvent.TemplateRenderer.ALWAYS_ON_WEAR_ACTIVITY
   "Res Folder" -> AndroidStudioEvent.TemplateRenderer.RES_FOLDER
   "Android TV Activity" -> AndroidStudioEvent.TemplateRenderer.ANDROID_TV_ACTIVITY
   "Basic Activity" -> AndroidStudioEvent.TemplateRenderer.BASIC_ACTIVITIY
   "App Widget" -> AndroidStudioEvent.TemplateRenderer.APP_WIDGET
-  "Instant App Project" -> AndroidStudioEvent.TemplateRenderer.ANDROID_INSTANT_APP_PROJECT
-  "Instant App" -> AndroidStudioEvent.TemplateRenderer.ANDROID_INSTANT_APP_MODULE
-  "Dynamic Feature (Instant App)" -> AndroidStudioEvent.TemplateRenderer.ANDROID_INSTANT_APP_DYNAMIC_MODULE
   "Benchmark Module" -> AndroidStudioEvent.TemplateRenderer.BENCHMARK_LIBRARY_MODULE
   "Fullscreen Fragment" -> AndroidStudioEvent.TemplateRenderer.FRAGMENT_FULLSCREEN
   "Google AdMob Ads Fragment" -> AndroidStudioEvent.TemplateRenderer.FRAGMENT_GOOGLE_ADMOB_ADS

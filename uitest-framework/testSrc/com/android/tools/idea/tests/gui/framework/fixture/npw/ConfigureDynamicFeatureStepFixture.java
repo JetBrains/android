@@ -17,9 +17,9 @@ package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
 
-import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
+import com.android.tools.idea.wizard.template.Language;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JRootPane;

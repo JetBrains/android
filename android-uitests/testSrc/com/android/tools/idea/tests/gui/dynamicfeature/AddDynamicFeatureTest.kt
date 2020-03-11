@@ -17,9 +17,6 @@ package com.android.tools.idea.tests.gui.dynamicfeature
 
 import com.android.tools.idea.npw.dynamicapp.DeviceFeatureKind
 import com.android.tools.idea.npw.dynamicapp.DownloadInstallKind
-import com.android.tools.idea.npw.platform.Language
-import com.android.tools.idea.npw.platform.Language.JAVA
-import com.android.tools.idea.npw.platform.Language.KOTLIN
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
@@ -27,6 +24,9 @@ import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureDynamicFe
 import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureDynamicFeatureStepFixture
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture
+import com.android.tools.idea.wizard.template.Language
+import com.android.tools.idea.wizard.template.Language.Java
+import com.android.tools.idea.wizard.template.Language.Kotlin
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.core.matcher.JLabelMatcher
@@ -133,7 +133,7 @@ class AddDynamicFeatureTest {
   fun addDynamicModuleWithConditionalDelivery_includeAtInstallTime() {
     val ideFrame = guiTest.importSimpleApplication()
 
-    createDynamicModule(ideFrame, KOTLIN, DownloadInstallKind.INCLUDE_AT_INSTALL_TIME)
+    createDynamicModule(ideFrame, Kotlin, DownloadInstallKind.INCLUDE_AT_INSTALL_TIME)
 
     guiTest.getProjectFileText("MyDynamicFeature/src/main/AndroidManifest.xml").run {
       assertThat(this).contains("""<dist:delivery>""")
@@ -155,7 +155,7 @@ class AddDynamicFeatureTest {
   fun addDynamicModuleWithConditionalDelivery_installOnDemandOnly() {
     val ideFrame = guiTest.importSimpleApplication()
 
-    createDynamicModule(ideFrame, JAVA, DownloadInstallKind.ON_DEMAND_ONLY)
+    createDynamicModule(ideFrame, Java, DownloadInstallKind.ON_DEMAND_ONLY)
 
     guiTest.getProjectFileText("MyDynamicFeature/src/main/AndroidManifest.xml").run {
       assertThat(this).contains("""<dist:delivery>""")
@@ -177,7 +177,7 @@ class AddDynamicFeatureTest {
   fun addDynamicModuleWithConditionalDelivery_installOnDemandWithMinSdk() {
     val ideFrame = guiTest.importSimpleApplication()
 
-    createDynamicModule(ideFrame, JAVA, DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS)
+    createDynamicModule(ideFrame, Java, DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS)
 
     guiTest.getProjectFileText("MyDynamicFeature/src/main/AndroidManifest.xml").run {
       assertThat(this).contains("""<dist:delivery>""")
@@ -203,7 +203,7 @@ class AddDynamicFeatureTest {
   fun addDynamicModuleWithConditionalDelivery_installOnDemandDeviceFeatures() {
     val ideFrame = guiTest.importSimpleApplication()
 
-    createDynamicModule(ideFrame, JAVA, DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS) {
+    createDynamicModule(ideFrame, Java, DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS) {
       addConditionalDeliveryFeature(DeviceFeatureKind.NAME, "test")
       addConditionalDeliveryFeature(DeviceFeatureKind.NAME, "test2")
       addConditionalDeliveryFeature(DeviceFeatureKind.GL_ES_VERSION, "0x2000000")
@@ -267,7 +267,7 @@ class AddDynamicFeatureTest {
   fun addLoginActivityToDynamicModule() {
     val ideFrame = guiTest.importSimpleApplication()
 
-    createDynamicModule(ideFrame, JAVA)
+    createDynamicModule(ideFrame, Java)
       .invokeMenuPath("File", "New", "Activity", "Login Activity")
     NewActivityWizardFixture.find(ideFrame)
       .clickFinish()
@@ -311,7 +311,7 @@ class AddDynamicFeatureTest {
       assertThat(this).contains("implementation 'androidx.constraintlayout:constraintlayout:")
     }
 
-    createDynamicModule(ideFrame, JAVA)
+    createDynamicModule(ideFrame, Java)
       .invokeMenuPath("File", "New", "Google", "Google Maps Activity")
     NewActivityWizardFixture.find(ideFrame)
       .clickFinish()

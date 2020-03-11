@@ -217,7 +217,7 @@ internal fun getDefaultModuleState(project: Project): ModuleTemplateDataBuilder 
   val projectStateBuilder = ProjectTemplateDataBuilder(true).apply {
     androidXSupport = true
     setProjectDefaults(project)
-    language = com.android.tools.idea.npw.platform.Language.JAVA
+    language = Language.Java
     bytecodeLevel = BytecodeLevel.L7
     topOut = project.guessProjectDir()!!.toIoFile()
     debugKeyStoreSha1 = sha1(getOrCreateDefaultDebugKeystore())

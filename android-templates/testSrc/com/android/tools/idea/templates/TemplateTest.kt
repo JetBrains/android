@@ -21,10 +21,10 @@ import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
 import com.android.tools.idea.gradle.repositories.OfflineIdeGoogleMavenRepository
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
-import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.template.TemplateResolver
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.IdeComponents
+import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.StringParameter
 import com.intellij.openapi.util.SystemInfo
 import kotlin.system.measureTimeMillis
@@ -112,7 +112,7 @@ open class TemplateTest : AndroidGradleTestCase() {
   annotation class TemplateCheck
 
   private val withKotlin: ProjectStateCustomizer = { moduleData: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
-    projectData.language = Language.KOTLIN
+    projectData.language = Language.Kotlin
   }
 
   private fun withNewLocation(location: String): TemplateStateCustomizer = mapOf(
