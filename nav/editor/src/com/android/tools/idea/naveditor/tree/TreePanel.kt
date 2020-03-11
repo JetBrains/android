@@ -62,7 +62,7 @@ class TreePanel : ToolContent<DesignSurface> {
     componentTreeSelectionModel = selectionModel
     selectionModel.addSelectionListener {
       designSurface?.let {
-        val list = selectionModel.selection.filterIsInstance<NlComponent>()
+        val list = selectionModel.currentSelection.filterIsInstance<NlComponent>()
         val oldRootNavigation = (it as? NavDesignSurface)?.currentNavigation
 
         it.selectionModel.setSelection(list)
@@ -97,20 +97,20 @@ class TreePanel : ToolContent<DesignSurface> {
   }
 
   private fun contextSelectionChanged() {
-    componentTreeSelectionModel.selection = designSurface?.selectionModel?.selection ?: emptyList()
+    componentTreeSelectionModel.currentSelection = designSurface?.selectionModel?.selection ?: emptyList()
   }
 
   override fun getComponent() = componentTree
 
   private fun showContextMenu(x: Int, y: Int) {
-    val node = componentTreeSelectionModel.selection.singleOrNull() as NlComponent? ?: return
+    val node = componentTreeSelectionModel.currentSelection.singleOrNull() as NlComponent? ?: return
     val actions = designSurface?.actionManager?.getPopupMenuActions(node) ?: return
     // TODO (b/151315668): extract the hardcoded value "NavEditor".
     showPopup(componentTree, x, y, actions, "NavEditor")
   }
 
   private fun activateComponent() {
-    val node = componentTreeSelectionModel.selection.singleOrNull() as NlComponent? ?: return
+    val node = componentTreeSelectionModel.currentSelection.singleOrNull() as NlComponent? ?: return
     designSurface?.notifyComponentActivate(node)
   }
 
