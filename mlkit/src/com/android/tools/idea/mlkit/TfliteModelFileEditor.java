@@ -36,6 +36,7 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiParameter;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Component;
 import java.beans.PropertyChangeListener;
@@ -78,15 +79,6 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
                                                     "  text-align: left;\n" +
                                                     "  padding: 6px;\n" +
                                                     "}\n";
-  private static final String SAMPLE_CODE_STYLE = "#sample_code {\n" +
-                                                  "  font-family: 'Source Sans Pro', sans-serif; \n" +
-                                                  "  background-color: #F1F3F4;\n" +
-                                                  "  margin-left: 20px;\n" +
-                                                  "  display: block;\n" +
-                                                  "  width: 60%;\n" +
-                                                  "  padding: 5px;\n" +
-                                                  "  padding-left: 10px;\n" +
-                                                  "}";
 
   private final Module myModule;
   private final VirtualFile myFile;
@@ -213,7 +205,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       "<html><head><style>" +
       MODEL_TABLE_STYLE +
       TENSORS_TABLE_STYLE +
-      SAMPLE_CODE_STYLE +
+      buildSampleCodeStyle() +
       "</style></head><body>" +
       bodyContent +
       "</body></html>";
@@ -222,6 +214,24 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     pane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
     pane.setText(html);
     pane.setBackground(UIUtil.getTextFieldBackground());
+  }
+
+  @NotNull
+  private static String buildSampleCodeStyle() {
+    StringBuilder stringBuilder = new StringBuilder();
+    stringBuilder
+      .append("#sample_code {\n" +
+              "  font-family: 'Source Sans Pro', sans-serif; \n" +
+              "  background-color: " + (StartupUiUtil.isUnderDarcula() ? "#2A3141" : "#F1F3F4") + ";\n" +
+              "  color: " + (StartupUiUtil.isUnderDarcula() ? "#EDEFF1" : "#3A474E") + ";\n" +
+              "  margin-left: 20px;\n" +
+              "  display: block;\n" +
+              "  width: 60%;\n" +
+              "  padding: 5px;\n" +
+              "  padding-left: 10px;\n" +
+              "}");
+
+    return stringBuilder.toString();
   }
 
   @NotNull
