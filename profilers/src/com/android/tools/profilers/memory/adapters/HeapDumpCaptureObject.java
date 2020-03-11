@@ -40,6 +40,7 @@ import com.android.tools.profilers.memory.MemoryProfilerAspect;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
+import com.android.tools.profilers.memory.adapters.classifiers.AllHeapSet;
 import com.android.tools.profilers.memory.adapters.instancefilters.ActivityFragmentLeakInstanceFilter;
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
 import com.android.tools.profilers.memory.adapters.instancefilters.ProjectClassesInstanceFilter;
@@ -60,6 +61,7 @@ import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -229,28 +231,58 @@ public class HeapDumpCaptureObject implements CaptureObject {
       .map(cl -> createClassObjectInstance(null, cl))
       .findAny().orElse(null);
 
-    snapshot.getHeaps().forEach(heap -> {
-      HeapSet heapSet = new HeapSet(this, heap.getName(), heap.getId());
+    if (myStage.getStudioProfilers().getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled()) {
+      Map<Heap, HeapSet> heapSets = snapshot.getHeaps().stream()
+        .collect(Collectors.toMap(Function.identity(),
+                                  heap -> new HeapSet(this, heap.getName(), heap.getId())));
 
-      heap.getClasses().forEach(cl ->
-        addInstance(heapSet, cl.getId(), createClassObjectInstance(javaLangClassObject, cl)));
+      AllHeapSet superHeap = new AllHeapSet(this, heapSets.values().toArray(new HeapSet[0]));
+      superHeap.clearClassifierSets(); // forces sub-classifier creation
+      myHeapSets.put(superHeap.getId(), superHeap);
+      heapSets.forEach((heap, heapSet) -> {
+        heap.getClasses().forEach(cl ->
+          addInstance(superHeap, cl.getId(), createClassObjectInstance(javaLangClassObject, cl)));
 
-      heap.forEachInstance(instance -> {
-        assert !JAVA_LANG_CLASS.equals(instance.getClassObj().getClassName());
+        heap.forEachInstance(instance -> {
+          assert !JAVA_LANG_CLASS.equals(instance.getClassObj().getClassName());
 
-        ClassObj classObj = instance.getClassObj();
-        ClassDb.ClassEntry classEntry =
-          classObj.getSuperClassObj() != null ?
-          myClassDb.registerClass(classObj.getId(), classObj.getSuperClassObj().getId(), classObj.getClassName()) :
-          myClassDb.registerClass(classObj.getId(), classObj.getClassName());
-        addInstance(heapSet, instance.getId(), new HeapDumpInstanceObject(this, instance, classEntry, null));
-        return true;
+          ClassObj classObj = instance.getClassObj();
+          ClassDb.ClassEntry classEntry =
+            classObj.getSuperClassObj() != null ?
+            myClassDb.registerClass(classObj.getId(), classObj.getSuperClassObj().getId(), classObj.getClassName()) :
+            myClassDb.registerClass(classObj.getId(), classObj.getClassName());
+          addInstance(superHeap, instance.getId(), new HeapDumpInstanceObject(this, instance, classEntry, null));
+          return true;
+        });
+
+        if (!"default".equals(heap.getName()) || snapshot.getHeaps().size() == 1 || heap.getInstancesCount() > 0) {
+          myHeapSets.put(heap.getId(), heapSet);
+        }
       });
+    } else {
+      snapshot.getHeaps().forEach(heap -> {
+        HeapSet heapSet = new HeapSet(this, heap.getName(), heap.getId());
 
-      if (!"default".equals(heap.getName()) || snapshot.getHeaps().size() == 1 || heap.getInstancesCount() > 0) {
-        myHeapSets.put(heap.getId(), heapSet);
-      }
-    });
+        heap.getClasses().forEach(cl ->
+          addInstance(heapSet, cl.getId(), createClassObjectInstance(javaLangClassObject, cl)));
+
+        heap.forEachInstance(instance -> {
+          assert !JAVA_LANG_CLASS.equals(instance.getClassObj().getClassName());
+
+          ClassObj classObj = instance.getClassObj();
+          ClassDb.ClassEntry classEntry =
+            classObj.getSuperClassObj() != null ?
+            myClassDb.registerClass(classObj.getId(), classObj.getSuperClassObj().getId(), classObj.getClassName()) :
+            myClassDb.registerClass(classObj.getId(), classObj.getClassName());
+          addInstance(heapSet, instance.getId(), new HeapDumpInstanceObject(this, instance, classEntry, null));
+          return true;
+        });
+
+        if (!"default".equals(heap.getName()) || snapshot.getHeaps().size() == 1 || heap.getInstancesCount() > 0) {
+          myHeapSets.put(heap.getId(), heapSet);
+        }
+      });
+    }
 
     myStage.refreshSelectedHeap();
 
@@ -396,7 +428,10 @@ public class HeapDumpCaptureObject implements CaptureObject {
   private void refreshInstances(@NotNull Set<InstanceObject> instances, @NotNull Executor executor) {
     executor.execute(() -> {
       myHeapSets.values().forEach(HeapSet::clearClassifierSets);
-      instances.forEach(inst -> myHeapSets.get(inst.getHeapId()).addDeltaInstanceObject(inst));
+      Consumer<InstanceObject> onInst = myHeapSets.values().stream().filter(heap -> heap instanceof AllHeapSet)
+        .map(h -> (Consumer<InstanceObject>)h::addDeltaInstanceObject).findAny()
+        .orElse((InstanceObject inst) -> myHeapSets.get(inst.getHeapId()).addDeltaInstanceObject(inst));
+      instances.forEach(onInst);
       myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_HEAP_UPDATED);
       myStage.refreshSelectedHeap();
     });
