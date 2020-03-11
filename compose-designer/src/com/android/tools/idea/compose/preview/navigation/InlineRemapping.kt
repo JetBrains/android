@@ -40,7 +40,7 @@ internal fun remapInlineLocation(project: Project, ktFile: KtFile, className: St
                                       internalClassName,
                                       virtualFile) ?: return ktFile to line
   if (bytecodeInfo.smapData == null) {
-    return return Pair(ktFile, line)
+    return Pair(ktFile, line)
   }
 
   return mapStacktraceLineToSource(bytecodeInfo.smapData!!,
