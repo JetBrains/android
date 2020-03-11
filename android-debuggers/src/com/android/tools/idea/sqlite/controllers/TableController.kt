@@ -101,6 +101,7 @@ class TableController(
   }
 
   override fun dispose() {
+    view.stopTableLoading()
     view.removeListener(listener)
   }
 
@@ -231,6 +232,10 @@ class TableController(
         start = 0
         fetchAndDisplayTableData()
       }
+    }
+
+    override fun cancelRunningStatementInvoked() {
+      // TODO(b/151204958): cancel future
     }
 
     override fun rowCountChanged(rowCount: Int) {
