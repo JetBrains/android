@@ -41,6 +41,7 @@ import java.awt.Rectangle
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import java.io.File
+import java.net.MalformedURLException
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -177,8 +178,13 @@ fun toUpperCamelCase(enumValue: Enum<*>): String = CaseFormat.UPPER_UNDERSCORE.t
  * Returns a file pointing to a resource inside template.
  */
 fun getNewAndroidModuleTemplateImage(resourceDir: String, fileName: String): File {
-  val resource = File("templates/module", "$resourceDir/$fileName")
-  val resourceName = "/" + resource.path.replace('\\', '/')
-  val sourceUrl = Resources.getResource(TemplateData::class.java, resourceName)
-  return SdkUtils.urlToFile(sourceUrl)
+  val resourceName = "/templates/module/$resourceDir/$fileName".replace("\\", "/")
+  return try {
+    val sourceUrl = Resources.getResource(TemplateData::class.java, resourceName)
+    SdkUtils.urlToFile(sourceUrl)
+  }
+  catch (e: MalformedURLException) {
+    // A temporary "fix" for b/151162852
+    File("")
+  }
 }
