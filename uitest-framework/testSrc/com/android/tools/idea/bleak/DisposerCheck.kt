@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.bleak
 
+import com.android.tools.idea.bleak.DisposerInfo.Companion.ROOT_PLACEHOLDER
 import com.android.tools.idea.testing.DisposerExplorer
 import com.intellij.openapi.Disposable
 
@@ -39,6 +40,8 @@ class DisposerInfo private constructor (val growingCounts: Map<Key, Int> = mapOf
   }
 
   companion object {
+    val ROOT_PLACEHOLDER = Disposable { }
+
     fun createBaseline() = DisposerInfo(getClassCountsMap())
 
     fun propagateFrom(prevDisposerInfo: DisposerInfo): DisposerInfo {
@@ -61,6 +64,9 @@ class DisposerInfo private constructor (val growingCounts: Map<Key, Int> = mapOf
         }
         DisposerExplorer.VisitResult.CONTINUE
       }
+      DisposerExplorer.getTreeRoots().forEach { child ->
+        counts.compute(Key(ROOT_PLACEHOLDER, child.javaClass)) { k, v -> if (v == null) 1 else v + 1 }
+      }
       return counts
     }
   }
@@ -69,7 +75,11 @@ class DisposerInfo private constructor (val growingCounts: Map<Key, Int> = mapOf
 
 class DisposerLeakInfo(val k: DisposerInfo.Key, val count: Int) {
   override fun toString(): String {
-    return "Disposable of type ${k.disposable.javaClass.name} has an increasing number ($count) of children of type ${k.klass.name}"
+    return if (k.disposable === ROOT_PLACEHOLDER) {
+      "There are an increasing number ($count) of Disposer roots of type ${k.klass.name}"
+    } else {
+      "Disposable of type ${k.disposable.javaClass.name} has an increasing number ($count) of children of type ${k.klass.name}"
+    }
   }
 }
 
