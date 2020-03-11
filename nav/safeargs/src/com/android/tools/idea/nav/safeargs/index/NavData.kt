@@ -22,10 +22,15 @@ import com.google.common.base.CaseFormat
  *
  * A destination may have zero or more arguments. Actions may also have arguments, which act as
  * default values for their destinations.
+ *
+ * In most cases, users will provide [type] explicitly, but if not specified, it can be
+ * inferred from [defaultValue]. If neither [type] nor [defaultValue] are set, this
+ * argument data is invalid.
  */
 interface NavArgumentData {
   val name: String
-  val type: String
+  val type: String?
+  val defaultValue: String?
 }
 
 /**

@@ -42,17 +42,97 @@ private val NAV_TO_JAVA_TYPE_MAP = mapOf(
   "reference[]" to INT_ARRAY
 )
 
-internal fun parsePsiType(modulePackage: String, typeStr: String, context: PsiElement): PsiType {
-  @Suppress("NAME_SHADOWING") // Shadowing to convert val to var
-  var typeStr = typeStr.takeUnless { it.isEmpty() } ?: FALLBACK_TYPE
-  typeStr = NAV_TO_JAVA_TYPE_MAP.getOrDefault(typeStr, typeStr)
-  typeStr = if (!typeStr.startsWith('.')) typeStr else "$modulePackage$typeStr"
+/**
+
+ * Given type strings we pull out of navigation xml files, generate a corresponding [PsiType]
+ * for them.
+ *
+ * @param modulePackage The current package that safe args are being generated into. This will be
+ *    used if `typeStr` is specified with a relative path name (i.e. if it starts with '.')
+ * @param context The [PsiElement] context we are in when creating this [PsiType] -- this is needed
+ *    for IntelliJ machinery.
+ * @param typeStr A String of the type we want to create, e.g. "com.example.SomeClass". This value
+ *    can start with a '.', e.g. ".util.SomeClass", at which point it will be placed within the
+ *    current module package. This value can also be a special type as documented here:
+ *    https://developer.android.com/guide/navigation/navigation-pass-data#supported_argument_types
+ *    If null, `defaultValue` will be used to infer the type.
+ * @param defaultValue The default value specified for this type. This is used as a fallback if
+ *    `typeStr` itself is not specified.
+ *
+ */
+internal fun parsePsiType(modulePackage: String, typeStr: String?, defaultValue: String?, context: PsiElement): PsiType {
+  var psiTypeStr = typeStr
+
+  if (psiTypeStr == null) {
+    psiTypeStr = guessFromDefaultValue(defaultValue)
+  }
+
+  psiTypeStr = psiTypeStr.takeUnless { it.isNullOrEmpty() } ?: FALLBACK_TYPE
+  psiTypeStr = NAV_TO_JAVA_TYPE_MAP.getOrDefault(psiTypeStr, psiTypeStr)
+  psiTypeStr = if (!psiTypeStr.startsWith('.')) psiTypeStr else "$modulePackage$psiTypeStr"
   return try {
-    PsiElementFactory.getInstance(context.project).createTypeFromText(typeStr, context)
+    PsiElementFactory.getInstance(context.project).createTypeFromText(psiTypeStr, context)
   }
   catch (e: IncorrectOperationException) {
     PsiElementFactory.getInstance(context.project).createTypeFromText(FALLBACK_TYPE, context)
   }
+}
+
+private fun guessFromDefaultValue(defaultValue: String?): String? {
+  if (defaultValue == null || defaultValue == "@null") {
+    return null
+  }
+
+  val referenceTypeStr = defaultValue.parseReference()
+  if (referenceTypeStr != null) return referenceTypeStr
+
+  val intTypeStr = defaultValue.parseInt()
+  if (intTypeStr != null) return intTypeStr
+
+  val unsignedIntTypeStr = defaultValue.parseUnsignedInt()
+  if (unsignedIntTypeStr != null) return unsignedIntTypeStr
+
+  val floatTypeStr = defaultValue.parseFloat()
+  if (floatTypeStr != null)  return floatTypeStr
+
+  val booleanTypeStr = defaultValue.parseBoolean()
+  if (booleanTypeStr != null) return booleanTypeStr
+
+  return null
+}
+
+// @[+][package:]id/resource_name -> package.R.id.resource_name
+private val RESOURCE_REGEX = Regex("^@[+]?(.+?:)?(.+?)/(.+)$")
+
+private fun String.parseReference(): String? {
+  return RESOURCE_REGEX.matchEntire(this)?.let { "reference" }
+}
+
+private fun String.parseInt(): String? {
+  return this.toIntOrNull()?.let { PsiType.INT.name }
+}
+
+private fun String.parseUnsignedInt(): String? {
+  if (!this.startsWith("0x")) return null
+  try {
+    Integer.parseUnsignedInt(this.substring(2), 16)
+    return PsiType.INT.name
+  }
+  catch (ignore: NumberFormatException) {
+    return null
+  }
+}
+
+private fun String.parseFloat(): String? {
+  return this.toFloatOrNull()?.let { PsiType.FLOAT.name }
+}
+
+private fun String.parseBoolean(): String? {
+  if (this == "true" || this == "false") {
+    return PsiType.BOOLEAN.name
+  }
+
+  return null
 }
 
 internal fun PsiClass.createConstructor(modifiers: Array<String> = MODIFIERS_PUBLIC_CONSTRUCTOR): LightMethodBuilder {
