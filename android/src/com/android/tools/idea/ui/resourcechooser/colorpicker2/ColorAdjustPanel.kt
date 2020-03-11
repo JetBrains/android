@@ -26,6 +26,7 @@ import javax.swing.BoxLayout
 import javax.swing.JPanel
 import javax.swing.plaf.basic.BasicButtonUI
 import kotlin.math.abs
+import kotlin.math.roundToInt
 
 private const val PREFERRED_HEIGHT = 70
 
@@ -122,21 +123,22 @@ class ColorAdjustPanel(private val model: ColorPickerModel,
       colorIndicator.color = color
     }
 
-    if (source == hueSlider || source == alphaSlider) {
-      // These two components do not effect each other.
-      return
+    if (source != alphaSlider) {
+      // Update alpha slider.
+      alphaSlider.sliderBackgroundColor = color
+      if (alphaSlider.value != color.alpha) {
+        alphaSlider.value = color.alpha
+      }
     }
 
-    val hue = Color.RGBtoHSB(color.red, color.green, color.blue, null)[0]
-    val hueDegree = Math.round(hue * 360)
-    // Don't change hueSlider.value when (hueSlider.value, hueDegree) is (0, 360) or (360, 0).
-    if (abs(hueSlider.value - hueDegree) != 360) {
-      hueSlider.value = hueDegree
-    }
-
-    alphaSlider.sliderBackgroundColor = color
-    if (alphaSlider.value != color.alpha) {
-      alphaSlider.value = color.alpha
+    if (source != alphaSlider && source != hueSlider) {
+      // Update hue slider.
+      val hue = Color.RGBtoHSB(color.red, color.green, color.blue, null)[0]
+      val hueDegree = (hue * 360).roundToInt()
+      // Don't change hueSlider.value when (hueSlider.value, hueDegree) is (0, 360) or (360, 0).
+      if (abs(hueSlider.value - hueDegree) != 360) {
+        hueSlider.value = hueDegree
+      }
     }
 
     repaint()
