@@ -43,9 +43,8 @@ import com.android.tools.profilers.memory.adapters.classifiers.MethodSet;
 import com.android.tools.profilers.memory.adapters.classifiers.NativeAllocationMethodSet;
 import com.android.tools.profilers.memory.adapters.classifiers.NativeCallStackSet;
 import com.android.tools.profilers.memory.adapters.classifiers.PackageSet;
+import com.android.tools.profilers.memory.adapters.classifiers.AllHeapSet;
 import com.android.tools.profilers.memory.adapters.classifiers.ThreadSet;
-import com.android.tools.profilers.memory.adapters.MemoryObject;
-import com.android.tools.profilers.memory.adapters.instancefilters.ActivityFragmentLeakInstanceFilter;
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
@@ -71,7 +70,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.Set;
 import java.util.function.ToLongFunction;
 import java.util.stream.Collectors;
 import javax.swing.Icon;
@@ -525,6 +523,15 @@ final class MemoryClassifierView extends AspectObserver {
 
     if (myHeapSet != null) {
       refreshGrouping();
+    }
+
+    // When the root is "all"-heap, hide it
+    if (myHeapSet instanceof AllHeapSet) {
+      myTree.setRootVisible(false);
+      myTree.setShowsRootHandles(true);
+    } else {
+      myTree.setRootVisible(true);
+      myTree.setShowsRootHandles(false);
     }
   }
 
