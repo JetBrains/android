@@ -62,6 +62,8 @@ class ThrottlingAsyncSupplier<V : Any>(
 
   override fun dispose() {
     updateCallback = null
+    val scheduled = scheduledComputation.getAndSet(null)
+    scheduled?.cancel()
   }
 
   override fun getModificationCount() = lastComputation.get()?.let { it.modificationCountWhenScheduled + 1 } ?: -1L
@@ -89,7 +91,9 @@ class ThrottlingAsyncSupplier<V : Any>(
     // The Alarm uses a bounded thread pool of size 1, so runScheduledComputation() is never running in
     // more than one thread at a time. Since this is the only place scheduledComputation is set to null,
     // we know the computation is non-null.
-    val computation = scheduledComputation.getAndSet(null)!!
+    val computation = scheduledComputation.getAndSet(null)
+    if (computation == null) return // This may happen, for example, when the computation is cancelled due to dispose
+
     // It's possible that this computation was scheduled while we were in the middle of
     // another computation. In that case, we haven't yet checked the freshness of the result
     // of the first computation, so we should see if it's still valid before recomputing.
@@ -135,6 +139,10 @@ private class Computation<V>(val modificationCountWhenScheduled: Long) {
 
   fun broadcastResult() {
     future.set(getResultAndCheckComplete())
+  }
+
+  fun cancel() {
+    future.cancel(false)
   }
 
   fun getResult() = Futures.nonCancellationPropagating(future.transform { it.value })!!
