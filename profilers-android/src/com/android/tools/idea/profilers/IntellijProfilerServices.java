@@ -77,6 +77,7 @@ import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import javax.swing.Icon;
 import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -309,20 +310,9 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   }
 
   @Override
-  public void openParseLargeTracesDialog(Runnable yesCallback, Runnable noCallback) {
-    int dialogResult = Messages.showYesNoDialog(myProject,
-                                                "The trace file generated is large, and Android Studio may become unresponsive while " +
-                                                "it parses the data. Do you want to continue?\n\n" +
-                                                "Warning: If you select \"No\", Android Studio discards the trace data and you will need " +
-                                                "to capture a new method trace.",
-                                                "Trace File Too Large",
-                                                Messages.getWarningIcon());
-    if (dialogResult == Messages.YES) {
-      yesCallback.run();
-    }
-    else {
-      noCallback.run();
-    }
+  public void openYesNoDialog(String message, String title, Runnable yesCallback, Runnable noCallback) {
+    int dialogResult = Messages.showYesNoDialog(myProject, message, title, Messages.getWarningIcon());
+    (dialogResult == Messages.YES ? yesCallback : noCallback).run();
   }
 
   @Override

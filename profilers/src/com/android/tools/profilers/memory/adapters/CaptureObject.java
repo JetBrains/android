@@ -227,4 +227,8 @@ public interface CaptureObject extends MemoryObject {
         return false;
     }
   }
+
+  default boolean canSafelyLoad() {
+    return true;
+  }
 }
