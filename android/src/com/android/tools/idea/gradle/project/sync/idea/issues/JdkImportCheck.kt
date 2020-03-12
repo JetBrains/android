@@ -46,6 +46,13 @@ import java.util.concurrent.CompletableFuture
 
 class JdkImportCheckException(reason: String) : AndroidSyncException(reason)
 
+/**
+ * Validates the state of the JDK that is set in studio before the Gradle import is started.
+ *
+ * If we find that the JDK is not valid then we throw a [JdkImportCheckException] which is then
+ * caught in the [JdkImportIssueChecker] which creates an errors message with the appropriate
+ * quick fixes.
+ */
 fun validateJdk() {
   val jdkValidationError = validateJdk(IdeSdks.getInstance().jdk) ?: return // Valid jdk
   throw JdkImportCheckException(jdkValidationError)
