@@ -44,18 +44,18 @@ public class MECreateKeyAttributeTest extends BaseMotionEditorTest {
   public void testCreateKeyAttributeLayout() {
     CreatorAccess panel = new CreatorAccess();
     String layout = "0,CreatorAccess      ,0,0,99,99\n" +
-                    "1,JLabel             ,2,1,93,7\n" +
-                    "1,JSeparator         ,2,10,93,1\n" +
-                    "1,JRadioButton       ,2,12,28,11\n" +
-                    "1,JRadioButton       ,36,12,60,11\n" +
-                    "1,JPanel             ,2,26,93,12\n" +
-                    "2,PromptedTextField  ,0,0,0,0\n" +
-                    "2,MEComboBox         ,0,0,0,0\n" +
-                    "1,JLabel             ,2,40,93,7\n" +
-                    "1,PromptedTextField  ,2,49,93,9\n" +
-                    "1,JLabel             ,2,61,93,7\n" +
-                    "1,MEComboBox         ,2,70,93,12\n" +
-                    "1,JButton            ,2,86,93,12\n";
+      "1,JLabel             ,4,3,90,6\n" +
+      "1,JSeparator         ,0,12,99,0\n" +
+      "1,JRadioButton       ,4,16,42,9\n" +
+      "1,JRadioButton       ,57,16,37,9\n" +
+      "1,JPanel             ,5,27,89,9\n" +
+      "2,PromptedTextField  ,0,0,0,0\n" +
+      "2,MEComboBox         ,0,0,0,0\n" +
+      "1,JLabel             ,4,41,90,6\n" +
+      "1,PromptedTextField  ,5,48,89,7\n" +
+      "1,JLabel             ,4,60,90,6\n" +
+      "1,MEComboBox         ,5,67,89,9\n" +
+      "1,JButton            ,4,84,90,10\n";
     Dimension size = panel.getPreferredSize();
     panel.setBounds(0, 0, size.width, size.height);
     panel.doLayout();

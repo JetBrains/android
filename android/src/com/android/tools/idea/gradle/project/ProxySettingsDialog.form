@@ -58,7 +58,7 @@
             </constraints>
             <properties>
               <horizontalAlignment value="4"/>
-              <text value="No proxy for:"/>
+              <text resource-bundle="messages/UIBundle" key="proxy.manual.exclude"/>
             </properties>
           </component>
           <component id="71b34" class="javax.swing.JTextField" binding="myHttpProxyLoginTextField">
@@ -172,7 +172,7 @@
             </constraints>
             <properties>
               <horizontalAlignment value="4"/>
-              <text value="No proxy for:"/>
+              <text resource-bundle="messages/UIBundle" key="proxy.manual.exclude"/>
             </properties>
           </component>
           <component id="33485" class="javax.swing.JTextField" binding="myHttpsProxyLoginTextField">

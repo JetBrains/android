@@ -58,7 +58,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
 
     val workbench = WorkBench<LayoutInspector>(project, LAYOUT_INSPECTOR_TOOL_WINDOW_ID, null, project)
     val viewSettings = DeviceViewSettings()
-    val layoutInspector = LayoutInspector(InspectorModel(project))
+    val layoutInspector = LayoutInspector(InspectorModel(project), workbench)
     val deviceViewPanel = DeviceViewPanel(layoutInspector, viewSettings, project)
     workbench.init(deviceViewPanel, layoutInspector, listOf(
       LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition()), false)

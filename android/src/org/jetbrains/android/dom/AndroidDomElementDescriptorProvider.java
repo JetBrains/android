@@ -29,13 +29,13 @@ import com.intellij.psi.impl.source.xml.XmlElementDescriptorProvider;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.containers.HashMap;
 import com.intellij.util.xml.DefinesXml;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
 import com.intellij.xml.XmlElementDescriptor;
 import com.intellij.xml.impl.dom.DomElementXmlDescriptor;
 import icons.StudioIcons;
+import java.util.HashMap;
 import java.util.Map;
 import javax.swing.Icon;
 import org.jetbrains.android.dom.layout.DataBindingElement;
@@ -110,6 +110,7 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
     }
     else if (domElement instanceof XmlResourceElement) {
       AndroidFacet facet = AndroidFacet.getInstance(domElement);
+      if (facet == null) return null;
       AndroidXmlResourcesUtil.PreferenceSource preferenceSource = AndroidXmlResourcesUtil.PreferenceSource.getPreferencesSource(tag, facet);
       className = preferenceSource.getQualifiedBaseClass();
     }

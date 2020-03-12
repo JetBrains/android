@@ -24,9 +24,6 @@ import java.util.concurrent.atomic.AtomicLong;
  * Service that owns an atomic counter for how many times the data binding setting is changed.
  * This allows it to provide a {@link ModificationTracker} which is used by IntelliJ for knowing
  * when to clear caches, etc.
- *
- * TODO(b/119823849): Investigate deleting this application-level class. There should probably be
- * one tracker per module.
  */
 public final class DataBindingModeTrackingService {
   public static DataBindingModeTrackingService getInstance() {

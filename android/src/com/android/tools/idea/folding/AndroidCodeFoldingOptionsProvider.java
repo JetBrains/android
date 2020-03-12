@@ -20,8 +20,8 @@ import com.intellij.openapi.options.BeanConfigurable;
 
 public class AndroidCodeFoldingOptionsProvider extends BeanConfigurable<AndroidFoldingSettings> implements CodeFoldingOptionsProvider {
   public AndroidCodeFoldingOptionsProvider() {
-    super(AndroidFoldingSettings.getInstance());
+    super(AndroidFoldingSettings.getInstance(), "Android");
     AndroidFoldingSettings settings = getInstance();
-    checkBox("Android String References", settings::isCollapseAndroidStrings, settings::setCollapseAndroidStrings);
+    checkBox("String References", settings::isCollapseAndroidStrings, settings::setCollapseAndroidStrings);
   }
 }

@@ -97,7 +97,9 @@ class LayoutInspectorTransportRule(
   // "2" since it's called for debug_view_attributes and debug_view_attributes_application_package
   private val unsetSettingsLatch = CountDownLatch(2)
   private val scheduler = VirtualTimeScheduler()
-  private var inspectorClientFactory: () -> InspectorClient = { DefaultInspectorClient(inspectorModel(), grpcServer.name, scheduler) }
+  private var inspectorClientFactory: () -> InspectorClient = {
+    DefaultInspectorClient(inspectorModel(), projectRule.fixture.projectDisposable, grpcServer.name, scheduler)
+  }
 
   private var attachHandler: CommandHandler = object : CommandHandler(timer) {
     override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
@@ -220,7 +222,7 @@ class LayoutInspectorTransportRule(
   }
 
   override fun apply(base: Statement, description: Description): Statement {
-    return grpcServer.apply(projectRule.apply(adbRule.apply(
+    return grpcServer.apply(projectRule.apply(adbRule.apply(//disposableRule.apply(
       object: Statement() {
         override fun evaluate() {
           before()
@@ -232,16 +234,15 @@ class LayoutInspectorTransportRule(
           }
         }
       }, description
-    ), description), description)
+    ), description), description)//, description)
   }
 
   private fun before() {
     inspectorClientFactory.let {
       inspectorClient = it()
-      InspectorClient.clientFactory = { inspectorClient }
+      InspectorClient.clientFactory = { _, _ -> inspectorClient }
     }
-
-    inspector = LayoutInspector(inspectorModel())
+    inspector = LayoutInspector(inspectorModel(), projectRule.fixture.projectDisposable)
     transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, attachHandler)
     transportService.setCommandHandler(Commands.Command.CommandType.LAYOUT_INSPECTOR, inspectorHandler)
     beforeActions.forEach { it() }
@@ -255,6 +256,7 @@ class LayoutInspectorTransportRule(
       processDone.await()
       waitForUnsetSettings()
     }
+    InspectorClient.clientFactory = { model, parentDisposable -> DefaultInspectorClient(model, parentDisposable) }
   }
 
   private fun waitForUnsetSettings() {

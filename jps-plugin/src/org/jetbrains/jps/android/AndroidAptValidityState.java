@@ -1,8 +1,6 @@
 package org.jetbrains.jps.android;
 
 import com.intellij.openapi.util.Pair;
-import com.intellij.util.containers.HashMap;
-import com.intellij.util.containers.HashSet;
 import gnu.trove.TObjectLongHashMap;
 import org.jetbrains.android.util.ResourceEntry;
 import org.jetbrains.android.util.ResourceFileData;

@@ -36,14 +36,14 @@ public class MECreateOnClickTest extends BaseMotionEditorTest {
   public void testCreateOnClickLayout() {
     CreatorAccess panel = new CreatorAccess();
     String layout = "0,CreatorAccess      ,0,0,99,99\n" +
-                    "1,JLabel             ,3,1,92,9\n" +
-                    "1,JSeparator         ,3,12,92,1\n" +
-                    "1,JLabel             ,3,15,92,9\n" +
-                    "1,MEComboBox         ,3,26,92,14\n" +
-                    "1,JLabel             ,3,42,92,9\n" +
-                    "1,MEComboBox         ,3,53,92,14\n" +
-                    "1,JLabel             ,3,70,92,9\n" +
-                    "1,JButton            ,3,83,92,15\n";
+                    "1,JLabel             ,5,3,88,6\n" +
+                    "1,JSeparator         ,0,14,99,0\n" +
+                    "1,JLabel             ,5,18,88,6\n" +
+                    "1,MEComboBox         ,6,27,87,11\n" +
+                    "1,JLabel             ,5,42,88,6\n" +
+                    "1,MEComboBox         ,6,51,87,11\n" +
+                    "1,JLabel             ,5,66,88,6\n" +
+                    "1,JButton            ,5,82,88,11\n";
     Dimension size = panel.getPreferredSize();
     panel.setBounds(0, 0, size.width, size.height);
     panel.doLayout();

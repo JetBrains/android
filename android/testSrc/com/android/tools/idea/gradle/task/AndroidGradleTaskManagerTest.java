@@ -21,6 +21,7 @@ import org.picocontainer.PicoContainer;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.Mockito.*;
@@ -91,7 +92,9 @@ b/144931276 */
 
     @Override
     public boolean matches(GradleBuildInvoker.Request argument) {
-      return myRequest.toString().equals(argument.toString());
+      // skip generated init scripts args asserting
+      argument.setCommandLineArguments(Collections.emptyList());
+      return myRequest.toString().equals(argument.toString()) && myRequest.getTaskListener() == argument.getTaskListener();
     }
   }
 }

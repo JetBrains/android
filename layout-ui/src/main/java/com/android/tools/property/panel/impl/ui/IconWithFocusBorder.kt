@@ -27,7 +27,6 @@ import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
-import com.intellij.openapi.wm.impl.content.ToolWindowContentUi
 import com.intellij.ui.components.JBLabel
 import java.awt.Graphics
 import java.awt.Graphics2D
@@ -75,7 +74,7 @@ open class IconWithFocusBorder(private val actionToPerform: () -> AnAction?) : J
     }
     val action = actionToPerform() ?: return
     if (action is ActionGroup) {
-      val popupMenu = ActionManager.getInstance().createActionPopupMenu(ToolWindowContentUi.POPUP_PLACE, action)
+      val popupMenu = ActionManager.getInstance().createActionPopupMenu(ActionPlaces.TOOLWINDOW_POPUP, action)
       val location = locationFromEvent(mouseEvent)
       popupMenu.component.show(this, location.x, location.y)
     }

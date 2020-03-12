@@ -45,7 +45,7 @@ class CustomViewPreviewRepresentationProviderTest : LightJavaCodeInsightFixtureT
     assertFalse(provider.accept(project, file.virtualFile))
   }
 
-  fun testAcceptKotlinWhenHasViews() {
+  fun testQuickRejectKotlinWhenNoIncludes() {
     val file = myFixture.addFileToProject("src/com/example/CustomView.kt", """
       package com.example
 
@@ -53,10 +53,10 @@ class CustomViewPreviewRepresentationProviderTest : LightJavaCodeInsightFixtureT
 
       class CustomView() : View()
     """.trimIndent())
-    assertTrue(provider.accept(project, file.virtualFile))
+    assertFalse(provider.accept(project, file.virtualFile))
   }
 
-  fun testAcceptJavaWhenHasViews() {
+  fun testQuickRejectJavaWhenNoIncludes() {
     val file = myFixture.addFileToProject("src/com/example/CustomView.java", """
       package com.example;
 
@@ -64,6 +64,53 @@ class CustomViewPreviewRepresentationProviderTest : LightJavaCodeInsightFixtureT
 
       public class CustomView extends View {
         public CustomButton() {
+          super();
+        }
+      }
+    """.trimIndent())
+    assertFalse(provider.accept(project, file.virtualFile))
+  }
+
+  fun testAcceptKotlinWhenHasViewsAndIncludes() {
+    val file = myFixture.addFileToProject("src/com/example/CustomView.kt", """
+      package com.example
+
+      import android.view.View
+      import android.util.AttributeSet
+      import android.content.Context
+
+      class CustomView() : View()
+    """.trimIndent())
+    assertTrue(provider.accept(project, file.virtualFile))
+  }
+
+  fun testAcceptJavaWhenHasViewsAndDirectIncludes() {
+    val file = myFixture.addFileToProject("src/com/example/CustomView.java", """
+      package com.example;
+
+      import android.view.View;
+      import android.util.AttributeSet;
+      import android.content.Context;
+
+      public class CustomView extends View {
+        public CustomButton() {
+          super();
+        }
+      }
+    """.trimIndent())
+    assertTrue(provider.accept(project, file.virtualFile))
+  }
+
+  fun testAcceptJavaWhenHasViewsAndInDirectIncludes() {
+    val file = myFixture.addFileToProject("src/com/example/CustomView.java", """
+      package com.example;
+
+      import android.view.View;
+      import android.util.*;
+      import android.content.*;
+
+      public class CustomView extends View {
+        public CustomButton(AttributeSet s, Context c) {
           super();
         }
       }

@@ -16,7 +16,7 @@
 <component xmlns="http://jetbrains.org/intellij/schema/application-info"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xsi:schemaLocation="http://jetbrains.org/intellij/schema/application-info http://jetbrains.org/intellij/schema/ApplicationInfo.xsd">
-  <version major="4" minor="0" micro="0" patch="11" full="{0}.{1} Beta 2" eap="true" />
+  <version major="0" minor="0" micro="0" patch="0" full="dev build" eap="true" />
   <company name="Google" url="http://developer.android.com"/>
   <build number="AI-__BUILD__" date="__BUILD_DATE__"/>
   <logo url="/artwork/studio_splash.png" textcolor="cccccc" progressColor="d7effe" progressY="397" progressHeight="3" />
@@ -37,7 +37,6 @@
   <update-urls check="https://dl.google.com/android/studio/patches/updates.xml"
                patches="https://dl.google.com/android/studio/patches/"/>
 
-  <help file="ideahelp.jar" root="idea"/>
   <documentation url="http://developer.android.com/r/studio-ui/menu-start.html"/>
   <feedback url="https://issuetracker.google.com/issues/new?component=192708&amp;template=840533&amp;description=Build%3A%20__BUILD_NUMBER__%2C%20__BUILD_DATE__%2C%20$DESCR%0A%0AIMPORTANT%3A%20Please%20read%20https%3A%2F%2Fdeveloper.android.com%2Fstudio%2Freport-bugs.html%20carefully%20and%20supply%20all%20required%20information." />
   <whatsnew url="https://developer.android.com/r/studio-ui/menu-whats-new.html"/>

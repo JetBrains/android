@@ -603,4 +603,18 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     // `am instrument` force stops the target package anyway, so there's no need for an explicit `am force-stop` for every APK involved.
     return super.getLaunchOptions().setForceStopRunningApp(false);
   }
+
+  /**
+   * Returns a test execution option specified by the facet or HOST is returned by default.
+   *
+   * @param facet Android facet to retrieve test execution option
+   */
+  public TestOptions.Execution getTestExecution(@Nullable AndroidFacet facet) {
+    return Optional.ofNullable(facet)
+      .map(f -> AndroidModuleModel.get(f))
+      .map(model -> model.getArtifactForAndroidTest())
+      .map(testArtifact -> testArtifact.getTestOptions())
+      .map(testOptions -> testOptions.getExecution())
+      .orElse(TestOptions.Execution.HOST);
+  }
 }

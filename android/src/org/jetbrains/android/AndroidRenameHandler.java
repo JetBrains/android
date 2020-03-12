@@ -109,11 +109,6 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
   }
 
   @Override
-  public boolean isRenaming(@NotNull DataContext dataContext) {
-    return isAvailableOnDataContext(dataContext);
-  }
-
-  @Override
   public void invoke(@NotNull Project project, @Nullable Editor editor, @Nullable PsiFile file, @NotNull DataContext dataContext) {
     if (file == null || editor == null) {
       return;
