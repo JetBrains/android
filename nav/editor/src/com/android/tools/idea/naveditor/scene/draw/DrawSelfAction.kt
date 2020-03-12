@@ -46,8 +46,8 @@ class DrawSelfAction(private val rectangle: SwingRectangle,
 
   constructor(serialized: String) : this(parse(serialized, 4))
 
-  override fun serialize() = buildString(javaClass.simpleName, rectangle.toString(),
-                                         scale, colorToString(color), isPopAction)
+  override fun serialize(): String = buildString(javaClass.simpleName, rectangle.toString(),
+                                                 scale, colorToString(color), isPopAction)
 
   override fun buildAction(): Action {
     val points = selfActionPoints(rectangle, scale)

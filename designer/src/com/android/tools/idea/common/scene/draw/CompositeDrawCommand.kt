@@ -32,8 +32,6 @@ abstract class CompositeDrawCommand(private val level: Int = 0) : DrawCommand {
 
   override fun getLevel(): Int = level
 
-  override fun serialize() = ""
-
   override fun paint(g: Graphics2D?, sceneContext: SceneContext?) {
     commands.forEach { it.paint(g, sceneContext) }
   }

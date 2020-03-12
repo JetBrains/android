@@ -20,7 +20,6 @@ import com.android.tools.adtui.common.SwingPoint
 import com.android.tools.adtui.common.toSwingPoint
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DrawCommandBase
-import com.android.tools.idea.common.scene.draw.buildString
 import com.android.tools.idea.common.scene.draw.parse
 import com.android.tools.idea.naveditor.scene.NavColors.TEXT
 import com.intellij.util.ui.JBUI
@@ -30,10 +29,8 @@ import java.awt.Graphics2D
 
 private val text1 = "Click "
 private val text2 = " to add a destination"
-@SwingCoordinate
-private val FONT_SIZE = JBUI.scale(13)
-@SwingCoordinate
-private val VERTICAL_OFFSET = JBUI.scale(3)
+@SwingCoordinate private val FONT_SIZE = JBUI.scale(13)
+@SwingCoordinate private val VERTICAL_OFFSET = JBUI.scale(3)
 
 class DrawEmptyDesigner(private val point: SwingPoint) : DrawCommandBase() {
   private constructor(tokens: Array<String>) : this(tokens[0].toSwingPoint())
@@ -41,20 +38,24 @@ class DrawEmptyDesigner(private val point: SwingPoint) : DrawCommandBase() {
   constructor(serialized: String) : this(parse(serialized, 1))
 
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
-    g.color = TEXT
-    g.font = Font("Default", 0, JBUI.scale(FONT_SIZE))
+    val g2 = g.create() as Graphics2D
+
+    g2.color = TEXT
+    g2.font = Font("Default", 0, JBUI.scale(FONT_SIZE))
 
     var x = point.x.toInt()
     val y = point.y.toInt()
 
-    g.drawString(text1, x, y)
-    x += g.fontMetrics.stringWidth(text1)
+    g2.drawString(text1, x, y)
+    x += g2.fontMetrics.stringWidth(text1)
 
-    ADD_DESTINATION.paintIcon(null, g, x, y - ADD_DESTINATION.iconHeight + JBUI.scale(VERTICAL_OFFSET))
+    ADD_DESTINATION.paintIcon(null, g2, x, y - ADD_DESTINATION.iconHeight + JBUI.scale(VERTICAL_OFFSET))
     x += ADD_DESTINATION.iconWidth
 
-    g.drawString(text2, x, y)
+    g2.drawString(text2, x, y)
   }
 
-  override fun serialize() = buildString(javaClass.simpleName, point.toString())
+  override fun serialize(): String {
+    return com.android.tools.idea.common.scene.draw.buildString(javaClass.simpleName, point.toString())
+  }
 }

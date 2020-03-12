@@ -50,8 +50,8 @@ class DrawAction(private val source: SwingRectangle,
 
   constructor(serialized: String) : this(parse(serialized, 5))
 
-  override fun serialize() = buildString(javaClass.simpleName, source.toString(), dest.toString(),
-                                         scale, colorToString(color), isPopAction)
+  override fun serialize(): String = buildString(javaClass.simpleName, source.toString(), dest.toString(),
+                                                 scale, colorToString(color), isPopAction)
 
   override fun buildAction(): Action {
     val (p1, p2, p3, p4, direction) = getCurvePoints(source, dest, scale)

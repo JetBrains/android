@@ -39,6 +39,8 @@ data class DrawTruncatedText(private val myText: String,
   @SwingCoordinate
   private var myY = 0f
 
+  override fun serialize(): String = ""
+
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
     val fontValue = myFont.value
     val fontMetrics = g.getFontMetrics(fontValue)
