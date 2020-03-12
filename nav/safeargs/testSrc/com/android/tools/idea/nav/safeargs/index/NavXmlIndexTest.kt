@@ -204,4 +204,27 @@ class NavXmlIndexTest {
     assertThat(data.root.allDestinations.map { it.id })
       .containsExactly("fragment1", "fragment2", "fragment3", "top_level_nav", "nested_nav")
   }
+
+  @Test
+  fun indexRecoversFromUnrelatedXml() {
+    StudioFlags.NAV_SAFE_ARGS_SUPPORT.override(true)
+
+    val file = fixture.addFileToProject(
+      "navigation/main.xml",
+      //language=XML
+      """
+        <?xml version="1.0" encoding="utf-8"?>
+        <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+              package="com.example.nav.safeargs">
+            <application android:label="Safe Args Test" />
+        </manifest>
+    """.trimIndent()).virtualFile
+
+    val navXmlIndex = NavXmlIndex()
+    assertThat(navXmlIndex.inputFilter.acceptInput(file)).isEqualTo(true)
+
+    val map = navXmlIndex.indexer.map(FileContentImpl.createByFile(file))
+    assertThat(map).isEmpty()
+  }
+
 }

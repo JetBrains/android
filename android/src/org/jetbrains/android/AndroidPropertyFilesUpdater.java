@@ -12,10 +12,10 @@ import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.command.CommandProcessor;
-import com.intellij.openapi.components.BaseComponent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -58,7 +58,7 @@ import org.jetbrains.annotations.Nullable;
 // This class supports JPS projects and relies on APIs which should not be used in AS otherwise. We suppress related warnings to
 // avoid cluttering of the build output.
 @SuppressWarnings("deprecation")
-public class AndroidPropertyFilesUpdater implements BaseComponent {
+public final class AndroidPropertyFilesUpdater implements Disposable {
   private static final NotificationGroup PROPERTY_FILES_UPDATING_NOTIFICATION =
     NotificationGroup.balloonGroup("Android Property Files Updating");
   private static final Key<List<Object>> ANDROID_PROPERTIES_STATE_KEY = Key.create("ANDROID_PROPERTIES_STATE");
@@ -66,13 +66,10 @@ public class AndroidPropertyFilesUpdater implements BaseComponent {
   private final SingleAlarm myAlarm;
   private final Project myProject;
 
-  protected AndroidPropertyFilesUpdater(Project project) {
-    myAlarm = new SingleAlarm(() -> TransactionGuard.submitTransaction(project, this::updatePropertyFilesIfNecessary), 50, project);
+  private AndroidPropertyFilesUpdater(Project project) {
+    myAlarm = new SingleAlarm(() -> TransactionGuard.submitTransaction(project, this::updatePropertyFilesIfNecessary), 50, this);
     myProject = project;
-  }
 
-  @Override
-  public void initComponent() {
     if (!ApplicationManager.getApplication().isUnitTestMode() &&
         !ApplicationManager.getApplication().isHeadlessEnvironment()) {
       addProjectPropertiesUpdatingListener();
@@ -80,7 +77,7 @@ public class AndroidPropertyFilesUpdater implements BaseComponent {
   }
 
   @Override
-  public void disposeComponent() {
+  public void dispose() {
     if (myNotification != null && !myNotification.isExpired()) {
       myNotification.expire();
     }

@@ -28,9 +28,6 @@ class TraceProcessorDaemonManagerTest {
     // TODO: Find proper tpd binary path when running sandboxes in Bazel.
     Assume.assumeFalse(TestUtils.runningFromBazel())
 
-    // TODO(b/148211035): Enable for Windows after binary compilation is fixed on it.
-    Assume.assumeFalse(SystemInfo.isWindows)
-
     val manager = TraceProcessorDaemonManager()
     Truth.assertThat(manager.processIsRunning()).isFalse()
 

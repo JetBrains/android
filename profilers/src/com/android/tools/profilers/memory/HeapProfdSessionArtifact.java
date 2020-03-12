@@ -47,7 +47,7 @@ public class HeapProfdSessionArtifact extends MemorySessionArtifact<Memory.Memor
   @Override
   public void export(@NotNull OutputStream outputStream) {
     assert canExport();
-    // TODO (b/149541949): Enable exporting of heaprofd.
+    MemoryProfiler.saveHeapProfdSampleToFile(getProfilers().getClient(), getSession(), getArtifactProto(), outputStream);
   }
 
   public static List<SessionArtifact> getSessionArtifacts(@NotNull StudioProfilers profilers,

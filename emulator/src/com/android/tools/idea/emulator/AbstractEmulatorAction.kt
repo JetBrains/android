@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.emulator
 
-import com.android.emulator.control.KeyboardEvent
 import com.android.tools.idea.emulator.EmulatorConstants.EMULATOR_CONTROLLER_KEY
+import com.android.tools.idea.emulator.EmulatorConstants.EMULATOR_VIEW_KEY
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAware
@@ -28,6 +28,10 @@ abstract class AbstractEmulatorAction : AnAction(), DumbAware {
 
   protected fun getEmulatorController(event: AnActionEvent): EmulatorController? {
     return event.dataContext.getData(EMULATOR_CONTROLLER_KEY)
+  }
+
+  protected fun getEmulatorView(event: AnActionEvent): EmulatorView? {
+    return event.dataContext.getData(EMULATOR_VIEW_KEY)
   }
 
   override fun update(event: AnActionEvent) {

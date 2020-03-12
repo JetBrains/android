@@ -28,7 +28,6 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.idea.actions.AndroidActionGroupRemover;
 import com.android.tools.idea.actions.AndroidImportModuleAction;
-import com.android.tools.idea.actions.AndroidImportProjectAction;
 import com.android.tools.idea.actions.AndroidNewModuleAction;
 import com.android.tools.idea.actions.AndroidNewModuleInGroupAction;
 import com.android.tools.idea.actions.AndroidNewProjectAction;
@@ -40,7 +39,6 @@ import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureActi
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
-import com.android.tools.idea.ui.GuiTestingService;
 import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
@@ -164,7 +162,6 @@ public class GradleSpecificInitializer implements Runnable {
     replaceAction("NewProject", new AndroidNewProjectAction());
     replaceAction("NewModule", new AndroidNewModuleAction());
     replaceAction("NewModuleInGroup", new AndroidNewModuleInGroupAction());
-    replaceAction("ImportProject", new AndroidImportProjectAction());
     replaceAction("CreateLibraryFromFile", new CreateLibraryFromFilesAction());
     replaceAction("ImportModule", new AndroidImportModuleAction());
 
@@ -181,7 +178,6 @@ public class GradleSpecificInitializer implements Runnable {
     // Update the Welcome Screen actions
     replaceAction("WelcomeScreen.OpenProject", new AndroidOpenFileAction("Open an existing Android Studio project"));
     replaceAction("WelcomeScreen.CreateNewProject", new AndroidNewProjectAction("Start a new Android Studio project"));
-    replaceAction("WelcomeScreen.ImportProject", new AndroidImportProjectAction("Import project (Gradle, Eclipse ADT, etc.)"));
     replaceAction("WelcomeScreen.Configure.ProjectStructure", new AndroidTemplateProjectStructureAction("Default Project Structure..."));
     replaceAction("TemplateProjectStructure", new AndroidTemplateProjectStructureAction("Default Project Structure..."));
 

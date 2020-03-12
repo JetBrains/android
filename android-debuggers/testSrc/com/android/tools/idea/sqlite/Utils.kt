@@ -27,7 +27,7 @@ internal fun Map<String, Any?>.toSqliteValue() = mapValues { (_, v) -> SqliteVal
 
 internal fun List<Any?>.toSqliteValues() = this.map { SqliteValue.fromAny(it) }
 
-fun getJdbcDatabaseConnection(sqliteFile: VirtualFile, executor: FutureCallbackExecutor): ListenableFuture<DatabaseConnection> {
+internal fun getJdbcDatabaseConnection(sqliteFile: VirtualFile, executor: FutureCallbackExecutor): ListenableFuture<DatabaseConnection> {
   return executor.executeAsync {
     val url = "jdbc:sqlite:${sqliteFile.path}"
     val connection = DriverManager.getConnection(url)

@@ -25,7 +25,10 @@ import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.MouseEvent
 import com.android.emulator.control.PhysicalModelValue
 import com.android.ide.common.util.Cancelable
+import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_GRPC_CALLS
+import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_HIGH_VOLUME_GRPC_CALLS
 import com.android.tools.idea.protobuf.Empty
+import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
@@ -52,12 +55,16 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   private val connectionStateListeners: ConcurrentList<ConnectionStateListener> = ContainerUtil.createConcurrentList()
   private val connectivityStateWatcher = object : Runnable {
     override fun run() {
+      if (connectionState == ConnectionState.DISCONNECTED) {
+        return // DISCONNECTED state is final.
+      }
       val ch = channel ?: return
       val state = ch.getState(false)
       when (state) {
         ConnectivityState.CONNECTING -> connectionState = ConnectionState.CONNECTING
         ConnectivityState.SHUTDOWN -> connectionState = ConnectionState.DISCONNECTED
-        else -> connectionState = ConnectionState.CONNECTED
+        ConnectivityState.READY -> connectionState = ConnectionState.CONNECTED
+        else -> {}
       }
       ch.notifyWhenStateChanged(state, this)
     }
@@ -127,6 +134,9 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
    * Sends a [KeyboardEvent] to the Emulator.
    */
   fun sendKey(keyboardEvent: KeyboardEvent, streamObserver: StreamObserver<Empty> = getDummyObserver()) {
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("sendKey(${shortDebugString(keyboardEvent)})")
+    }
     emulatorController.sendKey(keyboardEvent, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSendKeyMethod()))
   }
 
@@ -134,6 +144,9 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
    * Sends a [MouseEvent] to the Emulator.
    */
   fun sendMouse(mouseEvent: MouseEvent, streamObserver: StreamObserver<Empty> = getDummyObserver()) {
+    if (EMBEDDED_EMULATOR_TRACE_HIGH_VOLUME_GRPC_CALLS.get()) {
+      LOG.info("sendMouse(${shortDebugString(mouseEvent)})")
+    }
     emulatorController.sendMouse(mouseEvent, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSendMouseMethod()))
   }
 
@@ -142,6 +155,9 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
    */
   fun getPhysicalModel(physicalType: PhysicalModelValue.PhysicalType, streamObserver: StreamObserver<PhysicalModelValue>) {
     val modelValue = PhysicalModelValue.newBuilder().setTarget(physicalType).build()
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("getPhysicalModel(${shortDebugString(modelValue)})")
+    }
     emulatorController.getPhysicalModel(
         modelValue, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getGetPhysicalModelMethod()))
   }
@@ -150,6 +166,9 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
    * Sets a physical model value.
    */
   fun setPhysicalModel(modelValue: PhysicalModelValue, streamObserver: StreamObserver<Empty> = getDummyObserver()) {
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("setPhysicalModel(${shortDebugString(modelValue)})")
+    }
     emulatorController.setPhysicalModel(
         modelValue, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSetPhysicalModelMethod()))
   }
@@ -158,6 +177,9 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
    * Streams a series of screenshots.
    */
   fun streamScreenshot(imageFormat: ImageFormat, streamObserver: StreamObserver<Image>): Cancelable? {
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("streamScreenshot(${shortDebugString(imageFormat)})")
+    }
     val method = EmulatorControllerGrpc.getStreamScreenshotMethod()
     val call = emulatorController.channel.newCall(method, emulatorController.callOptions)
     ClientCalls.asyncServerStreamingCall(call, imageFormat, DelegatingStreamObserver(streamObserver, method))
@@ -169,7 +191,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   }
 
   private fun fetchConfiguration() {
-    val responseObserver = object : DelegatingStreamObserver<Empty, EmulatorStatus>(null, EmulatorControllerGrpc.getGetStatusMethod()) {
+    val responseObserver = object : DummyStreamObserver<EmulatorStatus>() {
       override fun onNext(response: EmulatorStatus) {
         val config = EmulatorConfiguration.fromHardwareConfig(response.hardwareConfig!!)
         if (config == null) {
@@ -181,6 +203,13 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
           connectionState = ConnectionState.CONNECTED
         }
       }
+
+      override fun onError(t: Throwable) {
+        connectionState = ConnectionState.DISCONNECTED
+      }
+    }
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("getStatus()")
     }
     emulatorController.getStatus(Empty.getDefaultInstance(), responseObserver)
   }
@@ -224,7 +253,12 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
       if (!(t is StatusRuntimeException && t.status.code == Status.Code.CANCELLED) && channel?.isShutdown == false) {
         LOG.warn("${method.fullMethodName} call failed - ${t.message}")
       }
+
       delegate?.onError(t)
+
+      if (t is StatusRuntimeException && t.status.code == Status.Code.UNAVAILABLE) {
+        connectionState = ConnectionState.DISCONNECTED
+      }
     }
 
     override fun onCompleted() {

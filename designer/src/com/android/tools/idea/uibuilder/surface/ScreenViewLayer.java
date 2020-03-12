@@ -27,6 +27,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.scale.ScaleContext;
+import com.intellij.util.JBHiDPIScaledImage;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -123,12 +124,17 @@ public class ScreenViewLayer extends Layer {
       // has a border layer. Screen views without a border layer might contain transparent images, e.g. a drawable, and reusing the buffer
       // might cause the unexpected effect of parts of the old image being rendered on the transparent parts of the new one. Therefore, we
       // need to force the creation of a new image in this case.
-      image = existingBuffer;
+      if (existingBuffer instanceof JBHiDPIScaledImage) {
+        image = (BufferedImage)((JBHiDPIScaledImage)existingBuffer).getDelegate();
+      } else {
+        image = existingBuffer;
+      }
       clearBackground = true;
     }
     else {
       image = configuration.createCompatibleImage(screenViewVisibleSize.width, screenViewVisibleSize.height, Transparency.TRANSLUCENT);
       assert image != null;
+      existingBuffer = image;
       // No need to clear the background for a new image
       clearBackground = false;
     }
@@ -143,7 +149,7 @@ public class ScreenViewLayer extends Layer {
     cacheImageGraphics.drawImage(renderedImage, 0, 0, image.getWidth(), image.getHeight(), sx1, sy1, sx2, sy2, null);
     cacheImageGraphics.dispose();
 
-    return image;
+    return existingBuffer;
   }
 
   @Override

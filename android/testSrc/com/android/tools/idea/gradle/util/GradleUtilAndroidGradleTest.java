@@ -20,6 +20,7 @@ import static com.android.tools.idea.testing.TestProjectPaths.KOTLIN_GRADLE_DSL;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -50,6 +51,6 @@ public class GradleUtilAndroidGradleTest extends AndroidGradleTestCase {
     Path fullPath = Paths.get(getProject().getBasePath(), expectedPath);
 
     VirtualFile moduleBuildFile = GradleUtil.getGradleBuildFile(module);
-    assertEquals(fullPath.toString(), moduleBuildFile.getPath());
+    assertEquals(FileUtil.toSystemIndependentName(fullPath.toString()), moduleBuildFile.getPath());
   }
 }

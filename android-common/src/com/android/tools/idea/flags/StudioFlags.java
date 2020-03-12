@@ -100,7 +100,7 @@ public final class StudioFlags {
     PROFILER, "memory.heapprofd", "Enable heapprofd captures in the memory profiler.",
     "Toggles if users can capture heapprofd recordings in the memory profiler. This gates mostly the UI and importing of traces. " +
     "The perfd functionality is not gated. This feature has a dependency on the trace processor.",
-    false);
+    true);
 
   public static final Flag<Boolean> PROFILER_UNIFIED_PIPELINE = Flag.create(
     PROFILER, "unified.pipeline", "Enables new event pipeline to be used for core components.",
@@ -398,6 +398,13 @@ public final class StudioFlags {
     "applychanges.optimisticswap",
     "Use the 'Apply Changes 2.0' deployment pipeline",
     "Supports Install-without-Install, Speculative Diff and Structural Redefinition",
+    true);
+
+  public static final Flag<Boolean> APPLY_CHANGES_STRUCTURAL_DEFINITION = Flag.create(
+    RUNDEBUG,
+    "applychanges.structuralredefinition",
+    "Use ART's new structural redefinition extension for Apply Changes.",
+    "Requires applychanges.optimisticswap to be true.",
     false);
 
   public static final Flag<Boolean> SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED = Flag.create(
@@ -528,6 +535,18 @@ public final class StudioFlags {
   public static final Flag<Boolean> EMBEDDED_EMULATOR_ENABLED = Flag.create(
     EMBEDDED_EMULATOR, "embedded.emulator.enabled", "Enable Embedded Emulator",
     "Enables the Embedded Emulator tool window",
+    false);
+  public static final Flag<Boolean> EMBEDDED_EMULATOR_TRACE_GRPC_CALLS = Flag.create(
+    EMBEDDED_EMULATOR, "embedded.emulator.trace.grpc.calls", "Enable Emulator gRPC Tracing",
+    "Enables tracing of most Emulator gRPC calls",
+    false);
+  public static final Flag<Boolean> EMBEDDED_EMULATOR_TRACE_HIGH_VOLUME_GRPC_CALLS = Flag.create(
+    EMBEDDED_EMULATOR, "embedded.emulator.trace.high.volume.grpc.calls", "Enable High Volume Emulator gRPC Tracing",
+    "Enables tracing of high volume Emulator gRPC calls",
+    false);
+  public static final Flag<Boolean> EMBEDDED_EMULATOR_TRACE_SCREENSHOTS = Flag.create(
+    EMBEDDED_EMULATOR, "embedded.emulator.trace.screenshots", "Enable Emulator Screenshot Tracing",
+    "Enables tracing of received Emulator screenshots",
     false);
   //endregion
 
@@ -669,13 +688,6 @@ public final class StudioFlags {
 
   //endregion
 
-  //region Analyzer
-  private static final FlagGroup ANALYZER = new FlagGroup(FLAGS, "analyzer", "Apk/Bundle Analyzer");
-  public static final Flag<Boolean> ENABLE_APP_SIZE_OPTIMIZER = Flag.create(
-    ANALYZER, "enable.app.size.optimizer", "Enable size optimization suggestions in apk analyzer",
-    "If enabled, it will enable the apk analyzer tool to display suggestions for reducing application size", false);
-  //endregion
-
   //region Unified App Bundle
   private static final FlagGroup UAB = new FlagGroup(FLAGS, "uab", "Unified App Bundle");
 
@@ -707,17 +719,6 @@ public final class StudioFlags {
     "If enabled, you can choose run-on-selected-devices for android instrumentation test run configurations.",
     false
   );
-  //endregion
-
-  //region Translations Editor
-  private static final FlagGroup TRANSLATIONS_EDITOR = new FlagGroup(FLAGS, "translations.editor", "Translations Editor");
-
-  public static final Flag<Boolean> TRANSLATIONS_EDITOR_USE_LOGICAL_FONT = Flag.create(
-    TRANSLATIONS_EDITOR,
-    "translations.editor.use.logical.font",
-    "Use a logical font",
-    "Use a logical font to display translations. See https://docs.oracle.com/javase/tutorial/2d/text/fonts.html#logical-fonts",
-    true);
   //endregion
 
   //region Memory
@@ -842,6 +843,13 @@ public final class StudioFlags {
     COMPOSE, "preview.animated.enable",
     "Enable animated compose preview",
     "If enabled, a user can switch compose preview to be animated",
+    false
+  );
+
+  public static final Flag<Boolean> COMPOSE_DEBUG_BOUNDS = Flag.create(
+    COMPOSE, "preview.debug.bounds",
+    "Enable the debug bounds switch controls",
+    "If enabled, the user can enable/disable the painting of debug bounds",
     false
   );
   //endregion

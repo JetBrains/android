@@ -38,6 +38,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSettableExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableCollection;
@@ -849,9 +850,9 @@ public final class GroovyDslUtil {
 
     GradleDslElement parent = element.getParent();
     if (parent != null) {
-      ImmutableCollection<Pair<String, SemanticsDescription>> modelProperties = parent.getExternalToModelMap(writer).values();
-      for (Pair<String, SemanticsDescription> value : modelProperties) {
-        if (value.getFirst().equals(nameElement.getOriginalName())) {
+      ImmutableCollection<Pair<ModelPropertyDescription, SemanticsDescription>> modelProperties = parent.getExternalToModelMap(writer).values();
+      for (Pair<ModelPropertyDescription, SemanticsDescription> value : modelProperties) {
+        if (value.getFirst().name.equals(nameElement.getOriginalName())) {
           Logger.getInstance(GroovyDslWriter.class)
             .warn(new UnsupportedOperationException("trying to update a property: " + nameElement.getOriginalName()));
           return;

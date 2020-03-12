@@ -32,8 +32,6 @@ import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.wm.ToolWindow
-import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.PlatformTestCase
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
@@ -67,16 +65,10 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
     val model = MockDatabaseInspectorModel()
     mockSqliteController = spy(MockDatabaseInspectorController(model))
 
-    val mockToolWindow = mock(ToolWindow::class.java)
-    `when`(mockToolWindow.show(any(Runnable::class.java))).then { (it.arguments.first() as Runnable).run() }
-    val mockToolWindowManager = mock(ToolWindowManager::class.java)
-    `when`(mockToolWindowManager.getToolWindow(any(String::class.java))).then { mockToolWindow }
-
     val fileOpener = Consumer<VirtualFile> { vf -> fileOpened = vf }
 
     databaseInspectorProjectService = DatabaseInspectorProjectServiceImpl(
       project = project,
-      toolWindowManager = mockToolWindowManager,
       fileOpener = fileOpener,
       model = model,
       createController = { mockSqliteController }

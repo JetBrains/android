@@ -31,12 +31,14 @@ import com.android.tools.idea.common.util.BuildListener
 import com.android.tools.idea.common.util.ControllableTicker
 import com.android.tools.idea.common.util.setupBuildListener
 import com.android.tools.idea.common.util.setupChangeListener
+import com.android.tools.idea.compose.preview.PreviewGroup.Companion.ALL_PREVIEW_GROUP
 import com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshAction
 import com.android.tools.idea.compose.preview.actions.PreviewSurfaceActionManager
 import com.android.tools.idea.compose.preview.actions.requestBuildForSurface
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.UniqueTaskCoroutineLauncher
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
@@ -45,7 +47,6 @@ import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_PREVIEW_AUTO_BUILD
 import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
-import com.android.tools.idea.rendering.RenderSettings
 import com.android.tools.idea.run.util.StopWatch
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -153,16 +154,22 @@ private fun configureExistingModel(existingModel: NlModel,
  */
 class ComposePreviewRepresentation(psiFile: PsiFile,
                                    previewProvider: PreviewElementProvider) :
-  PreviewRepresentation, ComposePreviewManager, UserDataHolderEx by UserDataHolderBase(), AndroidCoroutinesAware {
+  PreviewRepresentation, ComposePreviewManagerEx, UserDataHolderEx by UserDataHolderBase(), AndroidCoroutinesAware {
   private val LOG = Logger.getInstance(ComposePreviewRepresentation::class.java)
   private val project = psiFile.project
   private val psiFilePointer = SmartPointerManager.createPointer(psiFile)
 
   /**
+   * [PreviewElementProvider] used to save the result of a call to [previewProvider]. Calls to [previewProvider] can potentially
+   * be slow. This saves the last result and it is refreshed on demand when we know is not running on the UI thread.
+   */
+  private val memoizedElementsProvider = MemoizedPreviewElementProvider(previewProvider)
+
+  /**
    * Filter to be applied for the preview to display a single [PreviewElement]. Used in interactive mode to focus on a
    * single element.
    */
-  private val singleElementFilteredProvider = SinglePreviewElementFilteredPreviewProvider(previewProvider)
+  private val singleElementFilteredProvider = SinglePreviewElementFilteredPreviewProvider(memoizedElementsProvider)
 
   /**
    * Filter to be applied for the group filtering. This allows multiple [PreviewElement]s belonging to the same group
@@ -175,14 +182,16 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    */
   private val uniqueRefreshLauncher = UniqueTaskCoroutineLauncher(this, "Compose Preview refresh")
 
-  override var groupNameFilter: String? by Delegates.observable(null as String?) { _, oldValue, newValue ->
+  override var groupFilter: PreviewGroup by Delegates.observable(ALL_PREVIEW_GROUP) { _, oldValue, newValue ->
     if (oldValue != newValue) {
       LOG.debug("New group preview element selection: $newValue")
-      this.groupNameFilteredProvider.groupName = newValue
+      this.groupNameFilteredProvider.groupName = newValue.name
       ApplicationManager.getApplication().invokeLater { refresh() }
     }
   }
-  override val availableGroups: Set<String> get() = groupNameFilteredProvider.availableGroups
+  override val availableGroups: Set<PreviewGroup> get() = groupNameFilteredProvider.availableGroups.map {
+    PreviewGroup.namedGroup(it)
+  }.toSet()
   override var singlePreviewElementFqnFocus: String? by Delegates.observable(null as String?) { _, oldValue, newValue ->
     if (oldValue != newValue) {
       LOG.debug("New single preview element focus: $newValue")
@@ -198,6 +207,12 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   private val navigationHandler = PreviewNavigationHandler()
   private var interactionHandler: SwitchingInteractionHandler<InteractionMode>? = null
+
+  override var showDebugBoundaries: Boolean = false
+    set(value) {
+      field = value
+      forceRefresh()
+    }
 
   private val surface = NlDesignSurface.builder(project, this)
     .setIsPreview(true)
@@ -438,22 +453,27 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   private suspend fun doRefreshSync(filePreviewElements: List<PreviewElement>) {
     if (LOG.isDebugEnabled) LOG.debug("doRefresh of ${filePreviewElements.size} elements.")
     val stopwatch = if (LOG.isDebugEnabled) StopWatch() else null
-    val psiFile = psiFilePointer.element
-    if (psiFile == null || !psiFile.isValid) {
-      LOG.warn("doRefresh with invalid PsiFile")
-      return
-    }
+    val psiFile = ReadAction.compute<PsiFile?, Throwable> {
+      val element = psiFilePointer.element
+
+      return@compute if (element == null || !element.isValid) {
+        LOG.warn("doRefresh with invalid PsiFile")
+        null
+      }
+      else {
+        element
+      }
+    } ?: return
     val facet = AndroidFacet.getInstance(psiFile)!!
     val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
 
     // Retrieve the models that were previously displayed so we can reuse them instead of creating new ones.
     val existingModels = surface.models.reverse().toMutableList()
-    val showDecorations = RenderSettings.getProjectSettings(project).showDecorations
 
     // Now we generate all the models (or reuse) for the PreviewElements.
     val models = filePreviewElements
       .asSequence()
-      .map { Pair(it, it.toPreviewXmlString(matchParent = showDecorations)) }
+      .map { Pair(it, it.toPreviewXmlString(matchParent = it.displaySettings.showDecoration, paintBounds = showDebugBoundaries)) }
       .map {
         val (previewElement, fileContents) = it
 
@@ -556,7 +576,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   override fun refresh() {
     launch(uiThread) {
       isContentBeingRendered = true
-      val filePreviewElements = previewProvider.previewElements
+      val filePreviewElements = withContext(workerThread) {
+        memoizedElementsProvider.refresh()
+        previewProvider.previewElements
+      }
 
       if (filePreviewElements == previewElements) {
         LOG.debug("No updates on the PreviewElements, just refreshing the existing ones")
@@ -587,6 +610,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       isContentBeingRendered = false
       updateSurfaceVisibilityAndNotifications()
     }
+  }
+
+  private fun forceRefresh() {
+    previewElements = emptyList() // This will just force a refresh
+    refresh()
   }
 
   override fun registerShortcuts(applicableTo: JComponent) {

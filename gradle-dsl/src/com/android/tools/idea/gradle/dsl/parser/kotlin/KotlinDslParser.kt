@@ -188,17 +188,17 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
             return when (context.parent?.fullName) {
               "plugins" -> "org.jetbrains.kotlin.${unquoteString(nameExpression.text)}"
               "dependencies" -> "org.jetbrains.kotlin:kotlin-${unquoteString(nameExpression.text)}"
-              else -> literal.text
+              else -> KotlinDslRawText(literal.text)
             }
           }
         }
-        return ReferenceTo(literal.text)
+        return KotlinDslRawText(literal.text)
       }
       is KtBinaryExpressionWithTypeRHS -> return when (val expressionInfo = literal.left) {
         is KtArrayAccessExpression -> this.extractValue(context, expressionInfo, resolve)
         else -> unquoteString(literal.text)
       }
-      else -> return ReferenceTo(literal.text)
+      else -> return KotlinDslRawText(literal.text)
     }
   }
 

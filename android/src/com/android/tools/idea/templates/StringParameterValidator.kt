@@ -83,9 +83,8 @@ private fun StringParameter.getErrorMessageForViolatedConstraint(c: Constraint, 
   UNIQUE -> "$name must be unique"
   EXISTS -> "$name must already exist"
   URI_AUTHORITY -> "$name must be a valid URI authority"
-  API_LEVEL -> TODO("validity check")
-  VALUES -> TODO()
-  SOURCE_SET_FOLDER -> TODO()
+  VALUES -> "$name must be a valid 'values' file name"
+  SOURCE_SET_FOLDER -> "$name must be a valid source directory name"
 }
 
 /**
@@ -115,7 +114,7 @@ fun StringParameter.validateStringType(
     }
     SOURCE_SET_FOLDER, MODULE -> false // may only violate uniqueness
     UNIQUE, EXISTS -> false // not applicable
-    API_LEVEL, ID -> TODO()
+    ID -> TODO()
   }
 
   fun checkExistence(c: Constraint): Boolean {
@@ -167,7 +166,7 @@ fun StringParameter.validateStringType(
         val vFile = VfsUtil.findFileByIoFile(file, true)
         facet.sourceProviders.getForFile(vFile) != null
       }
-      NONEMPTY, ID, STRING, URI_AUTHORITY, API_LEVEL -> false
+      NONEMPTY, ID, STRING, URI_AUTHORITY -> false
       UNIQUE, EXISTS -> false // not applicable
     }
   }
@@ -190,15 +189,7 @@ fun StringParameter.uniquenessSatisfied(
   project: Project?, module: Module?, provider: SourceProvider?, packageName: String?, value: String?, relatedValues: Set<Any>
 ): Boolean = !validateStringType(project, module, provider, packageName, value, relatedValues).contains(UNIQUE)
 
-// TODO(qumeric):
-//fun StringParameter.isRelated(p: Parameter<*>): Boolean =
-//  p is StringParameter && p !== this && TYPE_CONSTRAINTS.intersect(constraints).intersect(p.constraints).isNotEmpty()
-
-// TODO(qumeric): make private
-const val URI_AUTHORITY_REGEX = "[a-zA-Z][a-zA-Z0-9-_.]*(:\\d+)?"
-val TYPE_CONSTRAINTS: EnumSet<Constraint> = EnumSet.of(
-  ACTIVITY, API_LEVEL, CLASS, PACKAGE, APP_PACKAGE, MODULE, LAYOUT, DRAWABLE, NAVIGATION, ID, SOURCE_SET_FOLDER, STRING, URI_AUTHORITY
-)
+private const val URI_AUTHORITY_REGEX = "[a-zA-Z][a-zA-Z0-9-_.]*(:\\d+)?"
 
 fun existsResourceFile(module: Module?, resourceType: ResourceType, name: String?): Boolean {
   if (name == null || name.isEmpty() || module == null) {

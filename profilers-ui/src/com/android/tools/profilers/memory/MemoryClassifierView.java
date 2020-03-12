@@ -33,11 +33,12 @@ import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute;
+import com.android.tools.profilers.memory.adapters.FieldObject;
+import com.android.tools.profilers.memory.adapters.InstanceObject;
+import com.android.tools.profilers.memory.adapters.MemoryObject;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
-import com.android.tools.profilers.memory.adapters.FieldObject;
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
-import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.classifiers.MethodSet;
 import com.android.tools.profilers.memory.adapters.classifiers.NativeAllocationMethodSet;
 import com.android.tools.profilers.memory.adapters.classifiers.NativeCallStackSet;
@@ -56,7 +57,6 @@ import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.UIUtilities;
 import icons.StudioIcons;
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
@@ -197,14 +197,16 @@ final class MemoryClassifierView extends AspectObserver {
           MemoryObjectTreeNode<ClassifierSet> parent = node.myParent;
           if (parent == null) {
             return 0;
-          } else {
+          }
+          else {
             long myVal = prop.applyAsLong(node.getAdapter());
             long parentVal = prop.applyAsLong(parent.getAdapter());
             return parentVal == 0 ? 0 : (int)(myVal * 100 / parentVal);
           }
         }
       );
-    } else {
+    }
+    else {
       // Legacy renderer
       renderer = new SimpleColumnRenderer<>(textGetter, v -> null, SwingConstants.RIGHT);
     }
@@ -334,9 +336,20 @@ final class MemoryClassifierView extends AspectObserver {
         return null;
       }
 
-      if (((MemoryObjectTreeNode)selection.getLastPathComponent()).getAdapter() instanceof ClassSet) {
-        ClassSet classSet = (ClassSet)((MemoryObjectTreeNode)selection.getLastPathComponent()).getAdapter();
+      MemoryObject treeNodeAdapter = ((MemoryObjectTreeNode)selection.getLastPathComponent()).getAdapter();
+      if (treeNodeAdapter instanceof ClassSet) {
+        ClassSet classSet = (ClassSet)treeNodeAdapter;
         return new CodeLocation.Builder(classSet.getClassEntry().getClassName()).build();
+      }
+      if (treeNodeAdapter instanceof NativeCallStackSet) {
+        NativeCallStackSet nativeSet = (NativeCallStackSet)treeNodeAdapter;
+        if (!Strings.isNullOrEmpty(nativeSet.getFileName())) {
+          return new CodeLocation.Builder(nativeSet.getName()) // Expects class name but we don't have that so we use the function.
+            .setMethodName(nativeSet.getName())
+            .setFileName(nativeSet.getFileName())
+            .setLineNumber(nativeSet.getLineNumber() - 1) // Line numbers from symbolizer are 1 based UI is 0 based.
+            .build();
+        }
       }
       return null;
     });
@@ -424,7 +437,8 @@ final class MemoryClassifierView extends AspectObserver {
                                    filterNames.size() > 1 ? "s" : "",
                                    String.join(", ", filterNames));
         myClassifierPanel.add(makeInstructionsPanel(HELP_TIP_HEADER_FILTER_NO_MATCH, msg), BorderLayout.CENTER);
-      } else {
+      }
+      else {
         myClassifierPanel.add(myHelpTipPanel, BorderLayout.CENTER);
       }
     }

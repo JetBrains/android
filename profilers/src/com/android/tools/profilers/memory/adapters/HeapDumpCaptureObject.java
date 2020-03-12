@@ -221,33 +221,17 @@ public class HeapDumpCaptureObject implements CaptureObject {
     myHasNativeAllocations = nativeRegistryPostProcessor.getHasNativeAllocations();
     mySnapshot = snapshot;
 
-    Map<Heap, HeapSet> heapSets = new HashMap<>(snapshot.getHeaps().size());
-    InstanceObject javaLangClassObject = null;
-    for (Heap heap : snapshot.getHeaps()) {
+    InstanceObject javaLangClassObject = snapshot.getHeaps().stream()
+      .flatMap(h -> h.getClasses().stream().filter(obj -> JAVA_LANG_CLASS.equals(obj.getClassName())))
+      .map(cl -> createClassObjectInstance(null, cl))
+      .findAny().orElse(null);
+
+    snapshot.getHeaps().forEach(heap -> {
       HeapSet heapSet = new HeapSet(this, heap.getName(), heap.getId());
-      heapSets.put(heap, heapSet);
-      if (javaLangClassObject == null) {
-        ClassObj javaLangClass =
-          heap.getClasses().stream().filter(classObj -> JAVA_LANG_CLASS.equals(classObj.getClassName())).findFirst().orElse(null);
-        if (javaLangClass != null) {
-          javaLangClassObject = createClassObjectInstance(null, javaLangClass);
-        }
-      }
-    }
 
-    InstanceObject finalJavaLangClassObject = javaLangClassObject;
-    for (Heap heap : snapshot.getHeaps()) {
-      HeapSet heapSet = heapSets.get(heap);
-      heap.getClasses().forEach(classObj -> {
-        InstanceObject classObject = createClassObjectInstance(finalJavaLangClassObject, classObj);
-        assert !myInstanceIndex.containsKey(classObj.getId());
-        myInstanceIndex.put(classObj.getId(), classObject);
-        heapSet.addDeltaInstanceObject(classObject);
-      });
-    }
+      heap.getClasses().forEach(cl ->
+        addInstance(heapSet, cl.getId(), createClassObjectInstance(javaLangClassObject, cl)));
 
-    for (Heap heap : snapshot.getHeaps()) {
-      HeapSet heapSet = heapSets.get(heap);
       heap.forEachInstance(instance -> {
         assert !JAVA_LANG_CLASS.equals(instance.getClassObj().getClassName());
 
@@ -256,22 +240,24 @@ public class HeapDumpCaptureObject implements CaptureObject {
           classObj.getSuperClassObj() != null ?
           myClassDb.registerClass(classObj.getId(), classObj.getSuperClassObj().getId(), classObj.getClassName()) :
           myClassDb.registerClass(classObj.getId(), classObj.getClassName());
-        InstanceObject instanceObject = new HeapDumpInstanceObject(this, instance, classEntry, null);
-        assert !myInstanceIndex.containsKey(instance.getId());
-        myInstanceIndex.put(instance.getId(), instanceObject);
-        heapSet.addDeltaInstanceObject(instanceObject);
+        addInstance(heapSet, instance.getId(), new HeapDumpInstanceObject(this, instance, classEntry, null));
         return true;
       });
-    }
-    heapSets.forEach((key, value) -> {
-      if (!"default".equals(key.getName()) || heapSets.size() == 1 || key.getInstancesCount() > 0) {
-        myHeapSets.put(key.getId(), value);
+
+      if (!"default".equals(heap.getName()) || snapshot.getHeaps().size() == 1 || heap.getInstancesCount() > 0) {
+        myHeapSets.put(heap.getId(), heapSet);
       }
     });
 
     myStage.refreshSelectedHeap();
 
     return true;
+  }
+
+  private void addInstance(HeapSet heapSet, long id, InstanceObject instObj) {
+    assert !myInstanceIndex.containsKey(id);
+    myInstanceIndex.put(id, instObj);
+    heapSet.addDeltaInstanceObject(instObj);
   }
 
   @Override

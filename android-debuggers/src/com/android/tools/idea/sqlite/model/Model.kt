@@ -68,27 +68,24 @@ data class SqliteColumnValue(val columnName: String, val value: SqliteValue)
 data class SqliteColumn(val name: String, val affinity: SqliteAffinity, val isNullable: Boolean, val inPrimaryKey: Boolean)
 
 /**
- *  Representation of a SQLite statement that may contain positional parameters.
+ * Representation of a SQLite statement that may contain positional parameters.
  *
- *  If the statement doesn't contain parameters, [parametersValues] is an empty list.
- *  If it does contain parameters, [parametersValues] contains their values, assigned by order.
+ * @param sqliteStatementText The text of the SQLite statement.
+ * It can be a complete statement (eg: SELECT * FROM tab WHERE id = 1), or it can be
+ * a statement with positional templates (eg: SELECT * FROM tab WHERE id = ?).
+ * If it contains positional templates, the values of the templates are stored in [parametersValues].
+ * @param parametersValues If [sqliteStatementText] doesn't contain parameters, [parametersValues] is an empty list.
+ * If it does contain parameters, [parametersValues] contains their values.
+ * Each value is matched with each question mark in the order they appear in [sqliteStatementText], from left to right.
+ * @param sqliteStatementWithInlineParameters The same string as [sqliteStatementText],
+ * but positional templates have been replaced with the corresponding value in [parametersValues].
  */
-data class SqliteStatement(val sqliteStatementText: String, val parametersValues: List<SqliteValue>) {
-  constructor(sqliteStatement: String) : this(sqliteStatement, emptyList<SqliteValue>())
-
-  /**
-   * Assigns [parametersValues] to corresponding parameters in [sqliteStatementText].
-   * Returns the resulting string.
-   */
-  fun assignValuesToParameters(): String {
-    var renderedStatement = sqliteStatementText
-    parametersValues.forEach {
-      // TODO(b/143946270) doesn't handle statements like: `SELECT * FROM comments WHERE text LIKE "?" AND id > ?`
-      renderedStatement = renderedStatement.replaceFirst("?", it.toString())
-    }
-
-    return  renderedStatement
-  }
+data class SqliteStatement(
+  val sqliteStatementText: String,
+  val parametersValues: List<SqliteValue>,
+  val sqliteStatementWithInlineParameters: String
+) {
+  constructor(sqliteStatement: String) : this(sqliteStatement, emptyList<SqliteValue>(), sqliteStatement)
 }
 
 enum class RowIdName(val stringName: String) {

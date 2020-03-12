@@ -257,6 +257,17 @@ public final class MemoryProfilerTest {
   }
 
   @Test
+  public  void testSaveHeapProfdSampleToFile() {
+    long startTimeNs = 3;
+    Memory.MemoryNativeSampleData data = Memory.MemoryNativeSampleData.newBuilder().setStartTime(startTimeNs).build();
+    byte[] buffer = data.toByteArray();
+    myTransportService.addFile(Long.toString(startTimeNs), ByteString.copyFrom(buffer));
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    MemoryProfiler.saveHeapProfdSampleToFile(myStudioProfiler.getClient(), ProfilersTestData.SESSION_DATA, data, baos);
+    assertArrayEquals(buffer, baos.toByteArray());
+  }
+
+  @Test
   public void testgetAllocationInfosForSession() {
     Assume.assumeTrue(myUnifiedPipeline);
 

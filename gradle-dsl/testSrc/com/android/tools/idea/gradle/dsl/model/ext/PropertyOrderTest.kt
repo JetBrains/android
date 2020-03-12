@@ -122,7 +122,6 @@ class PropertyOrderTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddPropertiesToEmpty() {
-    assumeTrue(isGroovy())
     writeToBuildFile("")
 
     val buildModel = gradleBuildModel
@@ -530,8 +529,8 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     val minSdkModel = buildModel.android().defaultConfig().minSdkVersion()
     val maxSdkModel = buildModel.android().defaultConfig().maxSdkVersion()
 
-    verifyPropertyModel(minSdkModel, STRING_TYPE, "ext.minSdk", REFERENCE, REGULAR, 0, ProductFlavorModelImpl.MIN_SDK_VERSION)
-    verifyPropertyModel(maxSdkModel, STRING_TYPE, "ext.maxSdk", REFERENCE, REGULAR, 0, ProductFlavorModelImpl.MAX_SDK_VERSION)
+    verifyPropertyModel(minSdkModel, STRING_TYPE, if (isGroovy) "ext.minSdk" else "extra[\"minSdk\"]", REFERENCE, REGULAR, 0, ProductFlavorModelImpl.MIN_SDK_VERSION)
+    verifyPropertyModel(maxSdkModel, STRING_TYPE, if (isGroovy) "ext.maxSdk" else "extra[\"maxSdk\"]", REFERENCE, REGULAR, 0, ProductFlavorModelImpl.MAX_SDK_VERSION)
   }
 
   @Test
@@ -621,9 +620,9 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     writeToBuildFile(PROPERTY_ORDER_RENAME_REORDERS_PROPERTIES)
 
     val buildModel = gradleBuildModel
-    val extModel = buildModel.ext()
 
     run {
+      val extModel = buildModel.ext()
       val firstPropertyModel = extModel.findProperty("oddOneOut")
       val secondPropertyModel = extModel.findProperty("prop1")
       val thirdPropertyModel = extModel.findProperty("prop2")
@@ -637,6 +636,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     applyChangesAndReparse(buildModel)
 
     run {
+      val extModel = buildModel.ext()
       val firstPropertyModel = extModel.findProperty("prop")
       val secondPropertyModel = extModel.findProperty("prop1")
       val thirdPropertyModel = extModel.findProperty("prop2")

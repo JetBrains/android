@@ -16,8 +16,12 @@
 package com.android.tools.idea.dagger
 
 import com.android.tools.idea.testing.caret
+import com.android.tools.idea.testing.loadNewFile
+import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.highlighter.JavaFileType
+import com.intellij.psi.PsiMethod
+import com.intellij.psi.util.parentOfType
 
 class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
@@ -351,6 +355,104 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     //  |       8@Binds abstract fun bindsMethod(s: String):String {}
     //  """.trimMargin()
     //)
+  }
+
+  fun testDaggerConsumer() {
+    // Dagger provider.
+    myFixture.loadNewFile("example/MyProvider.java",
+      //language=JAVA
+                          """
+        package example;
+
+        import javax.inject.Inject;
+
+        public class MyProvider {
+          @Inject public MyProvider() {}
+        }
+      """.trimIndent()
+    ).containingFile
+
+    val provider = myFixture.moveCaret("public MyProvi|der()").parentOfType<PsiMethod>()!!
+
+    // Dagger consumer as param of @Provides-annotated method.
+    myFixture.addClass(
+      //language=JAVA
+      """
+        package example;
+
+        import dagger.Provides;
+        import dagger.Module;
+
+        @Module
+        class MyModule {
+          @Provides String provider(MyProvider consumer) {}
+        }
+      """.trimIndent()
+    )
+
+    // Dagger consumer as param of @Inject-annotated constructor.
+    myFixture.addClass(
+      //language=JAVA
+      """
+        package example;
+
+        import javax.inject.Inject;
+
+        public class MyClass {
+          @Inject public MyClass(MyProvider consumer) {}
+        }
+      """.trimIndent()
+    )
+
+    // Dagger consumer as @Inject-annotated field.
+    myFixture.addClass(
+      //language=JAVA
+      """
+        package example;
+
+        import javax.inject.Inject;
+
+        public class MyClassWithInjectedField {
+          @Inject MyProvider consumer;
+        }
+      """.trimIndent()
+    )
+
+    // Dagger consumer as @Inject-annotated field in Kotlin.
+    myFixture.addFileToProject(
+      "example/MyClassWithInjectedFieldKt.kt",
+      //language=kotlin
+      """
+        package example
+
+        import javax.inject.Inject
+
+        class MyClassWithInjectedFieldKt {
+          @Inject val consumer:MyProvider
+        }
+      """.trimIndent()
+    )
+
+    val presentation = myFixture.getUsageViewTreeTextRepresentation(provider)
+    assertThat(presentation).contains(
+      """
+      | Found usages (4 usages)
+      |  Consumed by Dagger (4 usages)
+      |   ${module.name} (4 usages)
+      |    example (4 usages)
+      |     MyClass (1 usage)
+      |      MyClass(MyProvider) (1 usage)
+      |       6@Inject public MyClass(MyProvider consumer) {}
+      |     MyClassWithInjectedField (1 usage)
+      |      6@Inject MyProvider consumer;
+      |     MyModule (1 usage)
+      |      provider(MyProvider) (1 usage)
+      |       8@Provides String provider(MyProvider consumer) {}
+      |     MyClassWithInjectedFieldKt.kt (1 usage)
+      |      MyClassWithInjectedFieldKt (1 usage)
+      |       6@Inject val consumer:MyProvider
+      """.trimMargin()
+    )
   }
 
   // TODO(b/150134125): uncomment

@@ -30,6 +30,7 @@ import com.android.tools.idea.sqlite.getJdbcDatabaseConnection
 import com.android.tools.idea.sqlite.mocks.DatabaseConnectionWrapper
 import com.android.tools.idea.sqlite.mocks.MockSqliteResultSet
 import com.android.tools.idea.sqlite.mocks.MockTableView
+import com.android.tools.idea.sqlite.model.FileSqliteDatabase
 import com.android.tools.idea.sqlite.model.RowIdName
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumn
@@ -74,6 +75,7 @@ class TableControllerTest : PlatformTestCase() {
   private lateinit var authorsRow4: SqliteRow
   private lateinit var authorsRow5: SqliteRow
 
+  private val database = FileSqliteDatabase("db", mock(DatabaseConnection::class.java), mock(VirtualFile::class.java))
   private val sqliteTable = SqliteTable("tableName", emptyList(), null, false)
 
   override fun setUp() {
@@ -146,8 +148,7 @@ class TableControllerTest : PlatformTestCase() {
     // Prepare
     `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
-      10, tableView, sqliteTable, mockDatabaseConnection, SqliteStatement(""),
-      edtExecutor
+      project,10, tableView, { sqliteTable }, mockDatabaseConnection, SqliteStatement(""), edtExecutor
     )
     Disposer.register(testRootDisposable, tableController)
 
@@ -168,8 +169,7 @@ class TableControllerTest : PlatformTestCase() {
     // Prepare
     `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
-      10, tableView, null, mockDatabaseConnection, SqliteStatement(""),
-      edtExecutor
+      project, 10, tableView, { null }, mockDatabaseConnection, SqliteStatement(""), edtExecutor
     )
     Disposer.register(testRootDisposable, tableController)
 
@@ -187,8 +187,7 @@ class TableControllerTest : PlatformTestCase() {
 
     `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
-      10, tableView, sqliteTable, mockDatabaseConnection, SqliteStatement(""),
-      edtExecutor
+      project, 10, tableView, { sqliteTable }, mockDatabaseConnection, SqliteStatement(""), edtExecutor
     )
     Disposer.register(testRootDisposable, tableController)
 
@@ -206,8 +205,7 @@ class TableControllerTest : PlatformTestCase() {
     `when`(mockResultSet.columns).thenReturn(Futures.immediateFailedFuture(throwable))
     `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
-      10, tableView, sqliteTable, mockDatabaseConnection, SqliteStatement(""),
-      edtExecutor
+      project, 10, tableView, { sqliteTable }, mockDatabaseConnection, SqliteStatement(""), edtExecutor
     )
     Disposer.register(testRootDisposable, tableController)
 
@@ -216,8 +214,7 @@ class TableControllerTest : PlatformTestCase() {
 
     // Assert
     orderVerifier.verify(tableView).startTableLoading()
-    orderVerifier.verify(tableView)
-      .reportError(eq("Error retrieving rows for table \"tableName\""), refEq(throwable))
+    orderVerifier.verify(tableView).reportError(eq("Error retrieving data from table."), refEq(throwable))
     orderVerifier.verify(tableView).stopTableLoading()
   }
 
@@ -225,8 +222,7 @@ class TableControllerTest : PlatformTestCase() {
     // Prepare
     `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
-      10, tableView, sqliteTable, mockDatabaseConnection, SqliteStatement(""),
-      edtExecutor
+      project, 10, tableView, { sqliteTable }, mockDatabaseConnection, SqliteStatement(""), edtExecutor
     )
     Disposer.register(testRootDisposable, tableController)
 
@@ -244,8 +240,7 @@ class TableControllerTest : PlatformTestCase() {
     `when`(mockResultSet.columns).thenReturn(Futures.immediateFailedFuture(Throwable()))
     `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
-      10, tableView, sqliteTable, mockDatabaseConnection, SqliteStatement(""),
-      edtExecutor
+      project, 10, tableView, { sqliteTable }, mockDatabaseConnection, SqliteStatement(""), edtExecutor
     )
     Disposer.register(testRootDisposable, tableController)
 
@@ -258,7 +253,7 @@ class TableControllerTest : PlatformTestCase() {
     // Prepare
     `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
-      10, tableView, sqliteTable, mockDatabaseConnection, SqliteStatement(""), edtExecutor
+      project, 10, tableView, { sqliteTable }, mockDatabaseConnection, SqliteStatement(""), edtExecutor
     )
     Disposer.register(testRootDisposable, tableController)
 
@@ -280,7 +275,7 @@ class TableControllerTest : PlatformTestCase() {
     // Prepare
     `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
-      10, tableView, sqliteTable, mockDatabaseConnection, SqliteStatement(""), edtExecutor
+      project, 10, tableView, { sqliteTable }, mockDatabaseConnection, SqliteStatement(""), edtExecutor
     )
     Disposer.register(testRootDisposable, tableController)
 
@@ -297,9 +292,10 @@ class TableControllerTest : PlatformTestCase() {
   fun testReloadDataAfterSortReturnsSortedData() {
     // Prepare
     tableController = TableController(
+      project,
       2,
       tableView,
-      sqliteTable,
+      { sqliteTable },
       realDatabaseConnection,
       SqliteStatement("SELECT * FROM author"),
       edtExecutor
@@ -327,8 +323,7 @@ class TableControllerTest : PlatformTestCase() {
     val mockResultSet = MockSqliteResultSet(10)
     `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
-      10, tableView, sqliteTable, mockDatabaseConnection, SqliteStatement(""),
-      edtExecutor
+      project, 10, tableView, { sqliteTable }, mockDatabaseConnection, SqliteStatement(""), edtExecutor
     )
     Disposer.register(testRootDisposable, tableController)
 
@@ -344,8 +339,7 @@ class TableControllerTest : PlatformTestCase() {
     val mockResultSet = MockSqliteResultSet(2)
     `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
-      1, tableView, sqliteTable, mockDatabaseConnection, SqliteStatement(""),
-      edtExecutor
+      project, 1, tableView, { sqliteTable }, mockDatabaseConnection, SqliteStatement(""), edtExecutor
     )
     Disposer.register(testRootDisposable, tableController)
 
@@ -365,8 +359,7 @@ class TableControllerTest : PlatformTestCase() {
     val mockResultSet = MockSqliteResultSet()
     `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
-      10, tableView, sqliteTable, mockDatabaseConnection, SqliteStatement(""),
-      edtExecutor
+      project, 10, tableView, { sqliteTable }, mockDatabaseConnection, SqliteStatement(""), edtExecutor
     )
     Disposer.register(testRootDisposable, tableController)
 
@@ -392,8 +385,7 @@ class TableControllerTest : PlatformTestCase() {
     val mockResultSet = MockSqliteResultSet()
     `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
-      5, tableView, sqliteTable, mockDatabaseConnection, SqliteStatement(""),
-      edtExecutor
+      project, 5, tableView, { sqliteTable }, mockDatabaseConnection, SqliteStatement(""), edtExecutor
     )
     Disposer.register(testRootDisposable, tableController)
 
@@ -419,8 +411,7 @@ class TableControllerTest : PlatformTestCase() {
     val mockResultSet = MockSqliteResultSet()
     `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
-      10, tableView, sqliteTable, mockDatabaseConnection, SqliteStatement(""),
-      edtExecutor
+      project, 10, tableView, { sqliteTable }, mockDatabaseConnection, SqliteStatement(""), edtExecutor
     )
     Disposer.register(testRootDisposable, tableController)
 
@@ -452,8 +443,7 @@ class TableControllerTest : PlatformTestCase() {
     val mockResultSet = MockSqliteResultSet()
     `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
-      10, tableView, sqliteTable, mockDatabaseConnection, SqliteStatement(""),
-      edtExecutor
+      project, 10, tableView, { sqliteTable }, mockDatabaseConnection, SqliteStatement(""), edtExecutor
     )
     Disposer.register(testRootDisposable, tableController)
 
@@ -491,8 +481,7 @@ class TableControllerTest : PlatformTestCase() {
     val mockResultSet = MockSqliteResultSet()
     `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
-      10, tableView, sqliteTable, mockDatabaseConnection, SqliteStatement(""),
-      edtExecutor
+      project, 10, tableView, { sqliteTable }, mockDatabaseConnection, SqliteStatement(""), edtExecutor
     )
     Disposer.register(testRootDisposable, tableController)
 
@@ -521,8 +510,7 @@ class TableControllerTest : PlatformTestCase() {
     val mockResultSet = MockSqliteResultSet(20)
     `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
-      10, tableView, sqliteTable, mockDatabaseConnection, SqliteStatement(""),
-      edtExecutor
+      project, 10, tableView, { sqliteTable }, mockDatabaseConnection, SqliteStatement(""), edtExecutor
     )
     Disposer.register(testRootDisposable, tableController)
 
@@ -548,8 +536,7 @@ class TableControllerTest : PlatformTestCase() {
     val mockResultSet = MockSqliteResultSet()
     `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
-      10, tableView, sqliteTable, mockDatabaseConnection, SqliteStatement(""),
-      edtExecutor
+      project, 10, tableView, { sqliteTable }, mockDatabaseConnection, SqliteStatement(""), edtExecutor
     )
     Disposer.register(testRootDisposable, tableController)
 
@@ -574,8 +561,7 @@ class TableControllerTest : PlatformTestCase() {
     val mockResultSet = MockSqliteResultSet(50)
     `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
-      10, tableView, sqliteTable, mockDatabaseConnection, SqliteStatement(""),
-      edtExecutor
+      project, 10, tableView, { sqliteTable }, mockDatabaseConnection, SqliteStatement(""), edtExecutor
     )
     Disposer.register(testRootDisposable, tableController)
 
@@ -600,8 +586,7 @@ class TableControllerTest : PlatformTestCase() {
     val mockResultSet = MockSqliteResultSet(50)
     `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
-      10, tableView, sqliteTable, mockDatabaseConnection, SqliteStatement(""),
-      edtExecutor
+      project, 10, tableView, { sqliteTable }, mockDatabaseConnection, SqliteStatement(""), edtExecutor
     )
     Disposer.register(testRootDisposable, tableController)
 
@@ -629,8 +614,7 @@ class TableControllerTest : PlatformTestCase() {
     val mockResultSet = MockSqliteResultSet()
     `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
-      10, tableView, sqliteTable, mockDatabaseConnection, SqliteStatement(""),
-      edtExecutor
+      project, 10, tableView, { sqliteTable }, mockDatabaseConnection, SqliteStatement(""), edtExecutor
     )
     Disposer.register(testRootDisposable, tableController)
 
@@ -662,8 +646,7 @@ class TableControllerTest : PlatformTestCase() {
     val mockResultSet = MockSqliteResultSet()
     `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
-      10, tableView, sqliteTable, mockDatabaseConnection, SqliteStatement(""),
-      edtExecutor
+      project, 10, tableView, { sqliteTable }, mockDatabaseConnection, SqliteStatement(""), edtExecutor
     )
     Disposer.register(testRootDisposable, tableController)
 
@@ -695,8 +678,7 @@ class TableControllerTest : PlatformTestCase() {
     val mockResultSet = MockSqliteResultSet()
     `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
-      10, tableView, sqliteTable, mockDatabaseConnection, SqliteStatement(""),
-      edtExecutor
+      project, 10, tableView, { sqliteTable }, mockDatabaseConnection, SqliteStatement(""), edtExecutor
     )
     Disposer.register(testRootDisposable, tableController)
 
@@ -740,8 +722,7 @@ class TableControllerTest : PlatformTestCase() {
     val mockResultSet = MockSqliteResultSet()
     `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
-      10, tableView, sqliteTable, mockDatabaseConnection, SqliteStatement(""),
-      edtExecutor
+      project, 10, tableView, { sqliteTable }, mockDatabaseConnection, SqliteStatement(""), edtExecutor
     )
     Disposer.register(testRootDisposable, tableController)
 
@@ -770,8 +751,7 @@ class TableControllerTest : PlatformTestCase() {
     val mockResultSet = MockSqliteResultSet()
     `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
-      10, tableView, sqliteTable, mockDatabaseConnection, SqliteStatement(""),
-      edtExecutor
+      project, 10, tableView, { sqliteTable }, mockDatabaseConnection, SqliteStatement(""), edtExecutor
     )
     Disposer.register(testRootDisposable, tableController)
 
@@ -800,8 +780,7 @@ class TableControllerTest : PlatformTestCase() {
     val mockResultSet = MockSqliteResultSet(50)
     `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
-      10, tableView, sqliteTable, mockDatabaseConnection, SqliteStatement(""),
-      edtExecutor
+      project, 10, tableView, { sqliteTable }, mockDatabaseConnection, SqliteStatement(""), edtExecutor
     )
     Disposer.register(testRootDisposable, tableController)
 
@@ -824,8 +803,7 @@ class TableControllerTest : PlatformTestCase() {
     val mockResultSet = MockSqliteResultSet(61)
     `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
-      10, tableView, sqliteTable, mockDatabaseConnection, SqliteStatement(""),
-      edtExecutor
+      project, 10, tableView, { sqliteTable }, mockDatabaseConnection, SqliteStatement(""), edtExecutor
     )
     Disposer.register(testRootDisposable, tableController)
 
@@ -848,8 +826,7 @@ class TableControllerTest : PlatformTestCase() {
     val mockResultSet = MockSqliteResultSet(50)
     `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
-      10, tableView, sqliteTable, mockDatabaseConnection, SqliteStatement(""),
-      edtExecutor
+      project, 10, tableView, { sqliteTable }, mockDatabaseConnection, SqliteStatement(""), edtExecutor
     )
     Disposer.register(testRootDisposable, tableController)
 
@@ -880,7 +857,9 @@ class TableControllerTest : PlatformTestCase() {
     // Prepare
     val mockResultSet = MockSqliteResultSet()
     `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
-    tableController = TableController(10, tableView, sqliteTable, mockDatabaseConnection, SqliteStatement(""), edtExecutor)
+    tableController = TableController(
+      project, 10, tableView, { sqliteTable }, mockDatabaseConnection, SqliteStatement(""), edtExecutor
+    )
     Disposer.register(testRootDisposable, tableController)
 
     // Act
@@ -906,7 +885,9 @@ class TableControllerTest : PlatformTestCase() {
     // Prepare
     val mockResultSet = MockSqliteResultSet()
     `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
-    tableController = TableController(10, tableView, sqliteTable, mockDatabaseConnection, SqliteStatement(""), edtExecutor)
+    tableController = TableController(
+      project, 10, tableView, { sqliteTable }, mockDatabaseConnection, SqliteStatement(""), edtExecutor
+    )
     Disposer.register(testRootDisposable, tableController)
 
     // Act
@@ -928,9 +909,10 @@ class TableControllerTest : PlatformTestCase() {
   fun testSetUpOnRealDb() {
     // Prepare
     tableController = TableController(
+      project,
       2,
       tableView,
-      sqliteTable,
+      { sqliteTable },
       realDatabaseConnection,
       SqliteStatement("SELECT * FROM author"),
       edtExecutor
@@ -947,9 +929,10 @@ class TableControllerTest : PlatformTestCase() {
   fun testSort() {
     // Prepare
     tableController = TableController(
+      project,
       2,
       tableView,
-      sqliteTable,
+      { sqliteTable },
       realDatabaseConnection,
       SqliteStatement("SELECT * FROM author"),
       edtExecutor
@@ -972,9 +955,10 @@ class TableControllerTest : PlatformTestCase() {
   fun testSortOnSortedQuery() {
     // Prepare
     tableController = TableController(
+      project,
       2,
       tableView,
-      sqliteTable,
+      { sqliteTable },
       realDatabaseConnection,
       SqliteStatement("SELECT * FROM author ORDER BY author_id DESC"),
       edtExecutor
@@ -1005,9 +989,10 @@ class TableControllerTest : PlatformTestCase() {
 
     `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
+      project,
       10,
       tableView,
-      customSqliteTable,
+      { customSqliteTable },
       mockDatabaseConnection,
       SqliteStatement("SELECT * FROM tableName"),
       edtExecutor
@@ -1015,25 +1000,22 @@ class TableControllerTest : PlatformTestCase() {
     Disposer.register(testRootDisposable, tableController)
     pumpEventsAndWaitForFuture(tableController.setUp())
 
-    val rowIdCol = customSqliteTable.columns[0]
     val targetCol = customSqliteTable.columns[1]
-    val targetRow = SqliteRow(
-      listOf(
-        SqliteColumnValue(targetCol.name, SqliteValue.fromAny("old value")),
-        SqliteColumnValue(rowIdCol.name, SqliteValue.fromAny(1))
-      )
-    )
     val newValue = SqliteValue.StringValue("new value")
 
     val orderVerifier = inOrder(tableView, mockDatabaseConnection)
 
     // Act
-    tableView.listeners.first().updateCellInvoked(targetRow, targetCol, newValue)
+    tableView.listeners.first().updateCellInvoked(1, targetCol, newValue)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    orderVerifier.verify(mockDatabaseConnection).execute(SqliteStatement(
-      "UPDATE tableName SET c1 = ? WHERE rowid = ?", listOf("new value", 1).toSqliteValues())
+    orderVerifier.verify(mockDatabaseConnection).execute(
+      SqliteStatement(
+        "UPDATE tableName SET c1 = ? WHERE rowid = ?",
+        listOf("new value", 1).toSqliteValues(),
+        "UPDATE tableName SET c1 = 'new value' WHERE rowid = '1'"
+      )
     )
     orderVerifier.verify(tableView).startTableLoading()
   }
@@ -1090,18 +1072,19 @@ class TableControllerTest : PlatformTestCase() {
     val newValue = SqliteValue.StringValue("test value")
 
     tableController = TableController(
+      project,
       10,
       tableView,
-      targetTable,
+      { targetTable },
       customDatabaseConnection!!,
-      SqliteStatement("SELECT * FROM tableName"),
+      SqliteStatement(selectAllAndRowIdFromTable(targetTable)),
       edtExecutor
     )
     Disposer.register(testRootDisposable, tableController)
     pumpEventsAndWaitForFuture(tableController.setUp())
 
     // Act
-    tableView.listeners.first().updateCellInvoked(targetRow, targetCol, newValue)
+    tableView.listeners.first().updateCellInvoked(0, targetCol, newValue)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
@@ -1112,13 +1095,69 @@ class TableControllerTest : PlatformTestCase() {
     assertEquals(originalValue, value)
   }
 
+  fun `test TableWithoutPK AlterTableAddAllRowIdCombinations UpdateCell ReportErrorInView`() {
+    // Prepare
+    val customSqliteFile = sqliteUtil.createAdHocSqliteDatabase(
+      createStatement = "CREATE TABLE t1 (c1 INT)",
+      insertStatement = "INSERT INTO t1 (c1) VALUES (1)"
+    )
+    customDatabaseConnection = pumpEventsAndWaitForFuture(
+      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+    )
+
+    val schema = pumpEventsAndWaitForFuture(customDatabaseConnection!!.readSchema())
+    val targetTable = schema.tables.find { it.name == "t1" }!!
+    val targetCol = targetTable.columns.find { it.name == "c1" }!!
+
+    val originalResultSet = pumpEventsAndWaitForFuture(
+      customDatabaseConnection!!.execute(SqliteStatement(selectAllAndRowIdFromTable(targetTable)))
+    )
+    val targetRow = pumpEventsAndWaitForFuture(originalResultSet!!.getRowBatch(0, 1)).first()
+
+    val originalValue = targetRow.values.first { it.columnName == targetCol.name }.value
+    val newValue = SqliteValue.StringValue("test value")
+
+    val tableProvider = object {
+      var table = targetTable
+    }
+
+    tableController = TableController(
+      project,
+      10,
+      tableView,
+      { tableProvider.table },
+      customDatabaseConnection!!,
+      SqliteStatement(selectAllAndRowIdFromTable(targetTable)),
+      edtExecutor
+    )
+    Disposer.register(testRootDisposable, tableController)
+    pumpEventsAndWaitForFuture(tableController.setUp())
+
+    // Act
+    pumpEventsAndWaitForFuture(customDatabaseConnection!!.execute(SqliteStatement("ALTER TABLE t1 ADD COLUMN rowid int")))
+    pumpEventsAndWaitForFuture(customDatabaseConnection!!.execute(SqliteStatement("ALTER TABLE t1 ADD COLUMN oid int")))
+    pumpEventsAndWaitForFuture(customDatabaseConnection!!.execute(SqliteStatement("ALTER TABLE t1 ADD COLUMN _rowid_ int")))
+
+    val updatedTargetTable = pumpEventsAndWaitForFuture(customDatabaseConnection!!.readSchema()).tables.find { it.name == "t1" }!!
+    tableProvider.table = updatedTargetTable
+
+    tableView.listeners.first().updateCellInvoked(0, targetCol, newValue)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    verify(tableView).reportError("Can't update. No primary keys or rowid column.", null)
+    val sqliteResultSet = pumpEventsAndWaitForFuture(customDatabaseConnection!!.execute(SqliteStatement("SELECT * FROM t1")))
+    val rows = pumpEventsAndWaitForFuture(sqliteResultSet?.getRowBatch(0, 1))
+    val value = rows.first().values.first { it.columnName == targetCol.name }.value
+    assertEquals(originalValue, value)
+  }
+
   fun `test AddRows`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet(15)
     `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
-      10, tableView, sqliteTable, mockDatabaseConnection, SqliteStatement(""),
-      edtExecutor
+      project, 10, tableView, { sqliteTable }, mockDatabaseConnection, SqliteStatement(""), edtExecutor
     )
     Disposer.register(testRootDisposable, tableController)
 
@@ -1134,8 +1173,7 @@ class TableControllerTest : PlatformTestCase() {
     val mockResultSet = MockSqliteResultSet(15)
     `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
-      10, tableView, sqliteTable, mockDatabaseConnection, SqliteStatement(""),
-      edtExecutor
+      project, 10, tableView, { sqliteTable }, mockDatabaseConnection, SqliteStatement(""), edtExecutor
     )
     Disposer.register(testRootDisposable, tableController)
 
@@ -1154,8 +1192,7 @@ class TableControllerTest : PlatformTestCase() {
     val mockResultSet = MockSqliteResultSet(20)
     `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
-      10, tableView, sqliteTable, mockDatabaseConnection, SqliteStatement(""),
-      edtExecutor
+      project, 10, tableView, { sqliteTable }, mockDatabaseConnection, SqliteStatement(""), edtExecutor
     )
     Disposer.register(testRootDisposable, tableController)
 
@@ -1174,8 +1211,7 @@ class TableControllerTest : PlatformTestCase() {
     val mockResultSet = MockSqliteResultSet(15)
     `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
-      10, tableView, sqliteTable, mockDatabaseConnection, SqliteStatement(""),
-      edtExecutor
+      project, 10, tableView, { sqliteTable }, mockDatabaseConnection, SqliteStatement(""), edtExecutor
     )
     Disposer.register(testRootDisposable, tableController)
 
@@ -1192,6 +1228,93 @@ class TableControllerTest : PlatformTestCase() {
     orderVerifier.verify(tableView).updateRows(
       mockResultSet.invocations[2].take(5).toCellUpdates() + mockResultSet.invocations[2].drop(5).map { RowDiffOperation.AddRow(it) }
     )
+  }
+
+  fun `test ShowTable DropTable RefreshShowsEmptyTable`() {
+    // Prepare
+    val customSqliteFile = sqliteUtil.createAdHocSqliteDatabase(
+      createStatement = "CREATE TABLE t1 (c1 INT)",
+      insertStatement = "INSERT INTO t1 (c1) VALUES (1)"
+    )
+    customDatabaseConnection = pumpEventsAndWaitForFuture(
+      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+    )
+
+    val schema = pumpEventsAndWaitForFuture(customDatabaseConnection!!.readSchema())
+    val targetTable = schema.tables.find { it.name == "t1" }!!
+
+    val tableProvider = object {
+      var table: SqliteTable? = targetTable
+    }
+
+    tableController = TableController(
+      project,
+      10,
+      tableView,
+      { tableProvider.table },
+      customDatabaseConnection!!,
+      SqliteStatement("SELECT * FROM ${targetTable.name}"),
+      edtExecutor
+    )
+    Disposer.register(testRootDisposable, tableController)
+    pumpEventsAndWaitForFuture(tableController.setUp())
+
+    // Act
+    pumpEventsAndWaitForFuture(customDatabaseConnection!!.execute(SqliteStatement("DROP TABLE t1")))
+    tableProvider.table = null
+
+    pumpEventsAndWaitForFuture(tableController.refreshData())
+
+    // Assert
+    orderVerifier.verify(tableView).showTableColumns(targetTable.columns)
+    orderVerifier.verify(tableView).updateRows(listOf(
+      RowDiffOperation.AddRow (SqliteRow(listOf(SqliteColumnValue("c1", SqliteValue.fromAny("1")))))
+    ))
+
+    orderVerifier.verify(tableView).resetView()
+    orderVerifier.verify(tableView).reportError(eq("Error retrieving data from table."), any(Throwable::class.java))
+  }
+
+  fun `test ShowTable DropTable EditTableShowsError`() {
+    // Prepare
+    val customSqliteFile = sqliteUtil.createAdHocSqliteDatabase(
+      createStatement = "CREATE TABLE t1 (c1 INT)",
+      insertStatement = "INSERT INTO t1 (c1) VALUES (1)"
+    )
+    customDatabaseConnection = pumpEventsAndWaitForFuture(
+      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+    )
+
+    val schema = pumpEventsAndWaitForFuture(customDatabaseConnection!!.readSchema())
+    val targetTable = schema.tables.find { it.name == "t1" }!!
+    val targetCol = targetTable.columns.find { it.name == "c1" }!!
+
+    val tableProvider = object {
+      var table: SqliteTable? = targetTable
+    }
+
+    tableController = TableController(
+      project,
+      10,
+      tableView,
+      { tableProvider.table },
+      customDatabaseConnection!!,
+      SqliteStatement(selectAllAndRowIdFromTable(targetTable)),
+      edtExecutor
+    )
+    Disposer.register(testRootDisposable, tableController)
+    pumpEventsAndWaitForFuture(tableController.setUp())
+
+    // Act
+    pumpEventsAndWaitForFuture(customDatabaseConnection!!.execute(SqliteStatement("DROP TABLE t1")))
+    tableProvider.table = null
+
+    tableView.listeners.first().updateCellInvoked(0, targetCol, SqliteValue.StringValue("test value"))
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    orderVerifier.verify(tableView).reportError("Can't update. Table not found.", null)
+    orderVerifier.verifyNoMoreInteractions()
   }
 
   private fun testUpdateWorksOnCustomDatabase(databaseFile: VirtualFile, targetTableName: String, targetColumnName: String, expectedSqliteStatement: String) {
@@ -1214,18 +1337,19 @@ class TableControllerTest : PlatformTestCase() {
     val databaseConnectionWrapper = DatabaseConnectionWrapper(customDatabaseConnection!!)
 
     tableController = TableController(
+      project,
       10,
       tableView,
-      targetTable,
+      { targetTable },
       databaseConnectionWrapper,
-      SqliteStatement("SELECT * FROM ${AndroidSqlLexer.getValidName(targetTableName)}"),
+      SqliteStatement(selectAllAndRowIdFromTable(targetTable)),
       edtExecutor
     )
     Disposer.register(testRootDisposable, tableController)
     pumpEventsAndWaitForFuture(tableController.setUp())
 
     // Act
-    tableView.listeners.first().updateCellInvoked(targetRow, targetCol, newValue)
+    tableView.listeners.first().updateCellInvoked(0, targetCol, newValue)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert

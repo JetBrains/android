@@ -42,6 +42,7 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -573,6 +574,9 @@ public class AvdManagerConnection {
     writeParameterFile(commandLine);
 
     commandLine.addParameters("-avd", info.getName());
+    if (StudioFlags.EMBEDDED_EMULATOR_ENABLED.get()) {
+      commandLine.addParameters("-grpc", "8554"); // TODO: Remove after ag/1245952 has been submitted.
+    }
   }
 
   /**

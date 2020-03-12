@@ -4,32 +4,36 @@ using namespace std;
 
 jvmtiEnv *jvmti;
 
-JNIEXPORT void JNICALL Java_com_android_tools_idea_bleak_JniBleakHelper_pauseThreads0(JNIEnv *env) {
+JNIEXPORT void JNICALL Java_com_android_tools_idea_bleak_JniBleakHelper_pauseThreads0(JNIEnv *env, jstring testThreadNameStr) {
 	jint nthreads;
 	jthread *threads;
 	jvmti->GetAllThreads(&nthreads, &threads);
+	const char* testThreadName = env->GetStringUTFChars(testThreadNameStr, NULL);
+	jsize threadNameLength = env->GetStringUTFLength(testThreadNameStr);
 	for (int i=0; i < nthreads; i++) {
 		jvmtiThreadInfo info;
 		jvmti->GetThreadInfo(threads[i], &info);
-		if (strcmp("Time-limited test", info.name)) {	// if it's not the UI test thread, suspend it
-//		  printf("Pausing thread %d (%s)\n", i, info.name);
+		if (strncmp(testThreadName, info.name, threadNameLength)) {	// if it's not the test thread, suspend it
 			jvmti->SuspendThread(threads[i]);
 		}
 	}
+	env->ReleaseStringUTFChars(testThreadNameStr, testThreadName);
 }
 
-JNIEXPORT void JNICALL Java_com_android_tools_idea_bleak_JniBleakHelper_resumeThreads0(JNIEnv *env) {
+JNIEXPORT void JNICALL Java_com_android_tools_idea_bleak_JniBleakHelper_resumeThreads0(JNIEnv *env, jstring testThreadNameStr) {
 	jint nthreads;
 	jthread *threads;
 	jvmti->GetAllThreads(&nthreads, &threads);
+	const char* testThreadName = env->GetStringUTFChars(testThreadNameStr, NULL);
+	jsize threadNameLength = env->GetStringUTFLength(testThreadNameStr);
 	for (int i=0; i < nthreads; i++) {
 		jvmtiThreadInfo info;
 		jvmti->GetThreadInfo(threads[i], &info);
-		if (strcmp("Time-limited test", info.name)) {	// if it's not the UI test thread, resume it
-//		  printf("Resuming thread %d\n", i);
+		if (strncmp(testThreadName, info.name, threadNameLength)) {	// if it's not the test thread, resume it
 			jvmti->ResumeThread(threads[i]);
 		}
 	}
+	env->ReleaseStringUTFChars(testThreadNameStr, testThreadName);
 }
 
 const jlong GC_ROOT_TAG = 1;

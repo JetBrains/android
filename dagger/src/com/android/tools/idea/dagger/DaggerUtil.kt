@@ -15,17 +15,22 @@
  */
 package com.android.tools.idea.dagger
 
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.roots.ProjectRootModificationTracker
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassType
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
-import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiModifierListOwner
+import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiType
+import com.intellij.psi.PsiVariable
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.searches.AnnotatedElementsSearch
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
 import com.intellij.util.EmptyQuery
 import com.intellij.util.Query
 import org.jetbrains.kotlin.idea.util.findAnnotation
@@ -56,6 +61,31 @@ fun getDaggerProvidersForType(type: PsiType, scope: GlobalSearchScope): Collecti
   return getDaggerProvidesMethodsForType(type, scope) +
          getDaggerBindsMethodsForType(type, scope) +
          getDaggerInjectedConstructorsForType(type, scope)
+}
+
+/**
+ * Returns all @Inject-annotated fields of [type] within given [scope].
+ */
+private fun getInjectedFieldsForType(type: PsiType, scope: GlobalSearchScope): Collection<PsiField> {
+  val annotationClass = JavaPsiFacade.getInstance(scope.project).findClass(INJECT_ANNOTATION, scope) ?: return emptyList()
+  return AnnotatedElementsSearch.searchPsiFields(annotationClass, scope).filter { it.type == type }
+}
+
+/**
+ * Returns params of @Provides/@Binds/@Inject-annotated method or @Inject-annotated constructor that have given [type] within given [scope].
+ */
+private fun getParamsOfDaggerProvidersForType(type: PsiType, scope: GlobalSearchScope): Collection<PsiParameter> {
+  val methodsQueries = getMethodsWithAnnotation(INJECT_ANNOTATION, scope) +
+                       getMethodsWithAnnotation(DAGGER_BINDS_ANNOTATION, scope) +
+                       getMethodsWithAnnotation(DAGGER_PROVIDES_ANNOTATION, scope)
+  return methodsQueries.flatMap { it.parameterList.parameters.toList() }.filter { it.type == type }
+}
+
+/**
+ * Returns all Dagger consumers (see [isDaggerConsumer]) for given [type] within given [scope].
+ */
+fun getDaggerConsumersForType(type: PsiType, scope: GlobalSearchScope): Collection<PsiVariable> {
+  return getInjectedFieldsForType(type, scope) + getParamsOfDaggerProvidersForType(type, scope)
 }
 
 /**
@@ -144,3 +174,12 @@ val PsiElement?.isDaggerConsumer: Boolean
            this is PsiParameter && declarationScope.isDaggerProvider ||
            this is KtParameter && this.ownerFunction.isDaggerProvider
   }
+
+fun Module.isDaggerPresent(): Boolean = CachedValuesManager.getManager(this.project).getCachedValue(this) {
+  CachedValueProvider.Result(calculateIsDaggerPresent(this), ProjectRootModificationTracker.getInstance(this.project))
+}
+
+private fun calculateIsDaggerPresent(module: Module): Boolean {
+  val psiFacade = JavaPsiFacade.getInstance(module.project)
+  return psiFacade.findClass(DAGGER_MODULE_ANNOTATION, GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module)) != null
+}

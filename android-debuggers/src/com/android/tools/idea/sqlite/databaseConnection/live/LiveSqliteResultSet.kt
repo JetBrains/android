@@ -20,10 +20,10 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.databaseConnection.checkOffsetAndSize
+import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
-import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.util.Disposer
 import java.util.concurrent.Executor
@@ -37,7 +37,6 @@ import java.util.concurrent.Executor
  * @param executor Used to execute IO operation on a background thread.
  */
 class LiveSqliteResultSet(
-  _columns: List<SqliteColumn>,
   private val sqliteStatement: SqliteStatement,
   private val messenger: AppInspectorClient.CommandMessenger,
   private val connectionId: Int,
@@ -45,7 +44,25 @@ class LiveSqliteResultSet(
 ) : SqliteResultSet {
   private val taskExecutor = FutureCallbackExecutor.wrap(executor)
 
-  override val columns: ListenableFuture<List<SqliteColumn>> = Futures.immediateFuture(_columns)
+  override val columns: ListenableFuture<List<SqliteColumn>> get() {
+    val queryCommand = buildQueryCommand(sqliteStatement, connectionId)
+    val responseFuture = messenger.sendRawCommand(queryCommand.toByteArray())
+
+    return taskExecutor.transform(responseFuture) {
+      val response = SqliteInspectorProtocol.Response.parseFrom(it)
+
+      if (response.hasErrorOccurred()) {
+        handleError(response.errorOccurred.content)
+      }
+
+      return@transform response.query.columnNamesList.map { columnName ->
+        // TODO(b/150937705): add support for primary keys
+        // TODO(b/150937705): add support for NOT NULL
+        // TODO(b/150937705): we need to get affinity info from the on device inspector.
+        SqliteColumn(columnName, SqliteAffinity.TEXT, false, false)
+      }
+    }
+  }
 
   override val totalRowCount: ListenableFuture<Int> get() {
     val queryCommand = buildQueryCommand(sqliteStatement.toRowCountStatement(), connectionId)
@@ -54,8 +71,13 @@ class LiveSqliteResultSet(
     return taskExecutor.transform(responseFuture) {
       check(!Disposer.isDisposed(this)) { "ResultSet has already been disposed." }
 
-      val queryResponse = SqliteInspectorProtocol.Response.parseFrom(it).query
-      queryResponse.rowsList.firstOrNull()?.valuesList?.firstOrNull()?.intValue ?: 0
+      val response = SqliteInspectorProtocol.Response.parseFrom(it)
+
+      if (response.hasErrorOccurred()) {
+        handleError(response.errorOccurred.content)
+      }
+
+      response.query.rowsList.firstOrNull()?.valuesList?.firstOrNull()?.intValue ?: 0
     }
   }
 
@@ -68,10 +90,14 @@ class LiveSqliteResultSet(
     return taskExecutor.transform(responseFuture) { byteArray ->
       check(!Disposer.isDisposed(this)) { "ResultSet has already been disposed." }
 
-      val queryResponse = SqliteInspectorProtocol.Response.parseFrom(byteArray).query
-      val columnNames = queryResponse.columnNamesList
+      val response = SqliteInspectorProtocol.Response.parseFrom(byteArray)
 
-      val rows = queryResponse.rowsList.map {
+      if (response.hasErrorOccurred()) {
+        handleError(response.errorOccurred.content)
+      }
+
+      val columnNames = response.query.columnNamesList
+      val rows = response.query.rowsList.map {
         val sqliteColumnValues = it.valuesList.mapIndexed { index, cellValue -> cellValue.toSqliteColumnValue(columnNames[index]) }
         SqliteRow(sqliteColumnValues)
       }

@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainEle
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
@@ -42,7 +43,7 @@ public final class SigningConfigDslElement extends GradleDslBlockElement impleme
     new PropertiesElementDescription<>(null, SigningConfigDslElement.class, SigningConfigDslElement::new);
 
   @NotNull
-  public static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
+  public static final ImmutableMap<Pair<String,Integer>, Pair<ModelPropertyDescription, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
     {"keyAlias", property, KEY_ALIAS, VAR},
     {"setKeyAlias", exactly(1), KEY_ALIAS, SET},
     {"keyPassword", property, KEY_PASSWORD, VAR},
@@ -56,7 +57,7 @@ public final class SigningConfigDslElement extends GradleDslBlockElement impleme
   }).collect(toModelMap());
 
   @NotNull
-  public static final ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> groovyToModelNameMap = Stream.of(new Object[][]{
+  public static final ImmutableMap<Pair<String,Integer>, Pair<ModelPropertyDescription,SemanticsDescription>> groovyToModelNameMap = Stream.of(new Object[][]{
     {"keyAlias", property, KEY_ALIAS, VAR},
     {"keyAlias", exactly(1), KEY_ALIAS, SET},
     {"keyPassword", property, KEY_PASSWORD, VAR},
@@ -71,7 +72,7 @@ public final class SigningConfigDslElement extends GradleDslBlockElement impleme
 
   @Override
   @NotNull
-  public ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
+  public ImmutableMap<Pair<String, Integer>, Pair<ModelPropertyDescription, SemanticsDescription>> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
     if (converter instanceof KotlinDslNameConverter) {
       return ktsToModelNameMap;
     }

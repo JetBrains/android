@@ -16,15 +16,6 @@
 package com.android.tools.profilers.memory.adapters.classifiers;
 
 import com.android.tools.profiler.proto.Memory;
-import com.android.tools.profilers.memory.adapters.classifiers.Classifier;
-import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
-import com.android.tools.profilers.memory.adapters.classifiers.NativeAllocationMethodSet;
-import com.google.common.annotations.VisibleForTesting;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,15 +25,25 @@ import org.jetbrains.annotations.Nullable;
  */
 public class NativeCallStackSet extends ClassifierSet {
   private final int myCallstackDepth;
+  private final Memory.AllocationStack.StackFrame myStackFrame;
 
   @NotNull
   public static Classifier createDefaultClassifier() {
     return new NativeFunctionClassifier(0);
   }
 
-  public NativeCallStackSet(@NotNull String methodInfo, int callstackDepth) {
-    super(methodInfo);
+  public NativeCallStackSet(@NotNull Memory.AllocationStack.StackFrame stackFrame, int callstackDepth) {
+    super(stackFrame.getMethodName());
     myCallstackDepth = callstackDepth;
+    myStackFrame = stackFrame;
+  }
+  
+  public String getFileName() {
+    return myStackFrame.getFileName();
+  }
+
+  public int getLineNumber() {
+    return myStackFrame.getLineNumber();
   }
 
   @NotNull

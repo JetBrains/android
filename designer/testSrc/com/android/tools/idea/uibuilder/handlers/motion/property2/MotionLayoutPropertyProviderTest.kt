@@ -101,8 +101,7 @@ class MotionLayoutPropertyProviderTest {
       .isEqualTo("64dp")
 
     val customProperties = motionRule.properties.getValue(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE)
-    assertThat(customProperties.getByNamespace(SdkConstants.AUTO_URI).keys).containsExactly(
-      "textSize")
+    assertThat(customProperties.getByNamespace("").keys).containsExactly("textSize")
   }
 
   @Test
@@ -193,8 +192,7 @@ class MotionLayoutPropertyProviderTest {
       "visibility")
 
     val customProperties = motionRule.properties.getValue(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE)
-    assertThat(customProperties.getByNamespace(SdkConstants.AUTO_URI).keys).containsExactly(
-      "textSize")
+    assertThat(customProperties.getByNamespace("").keys).containsExactly("textSize")
   }
 
   @Test

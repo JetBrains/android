@@ -52,10 +52,14 @@ class TraceProcessorDaemonClient(optionalChannel: Channel? = null) {
         // We are only interested on the main thread of each process.
         if (thread.id == process.id) {
           threadList.add(
-            CpuThreadSliceInfo(thread.id.toInt(), thread.name, process.id.toInt(),process.name))
+            CpuThreadSliceInfo(thread.id.toInt(), thread.name, process.id.toInt(), process.name))
         }
       }
     }
     return threadList.toList()
+  }
+
+  fun queryBatchRequest(request: TraceProcessor.QueryBatchRequest): TraceProcessor.QueryBatchResponse {
+    return stub.queryBatch(request)
   }
 }

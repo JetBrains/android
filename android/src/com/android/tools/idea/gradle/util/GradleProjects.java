@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import static com.android.tools.idea.gradle.project.ProjectImportUtil.findImportTarget;
-import static com.intellij.ide.impl.ProjectUtil.updateLastProjectLocation;
+import static com.android.tools.idea.gradle.project.ProjectImportUtil.findGradleTarget;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isExternalSystemAwareModule;
-import static com.intellij.openapi.wm.impl.IdeFrameImpl.SHOULD_OPEN_IN_FULL_SCREEN;
 import static java.lang.Boolean.TRUE;
 
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
@@ -38,6 +36,7 @@ import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.ex.IdeFrameEx;
+import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -76,11 +75,8 @@ public final class GradleProjects {
     if (WindowManager.getInstance().isFullScreenSupportedInCurrentOS()) {
       IdeFocusManager instance = IdeFocusManager.findInstance();
       IdeFrame lastFocusedFrame = instance.getLastFocusedFrame();
-      if (lastFocusedFrame instanceof IdeFrameEx) {
-        boolean fullScreen = lastFocusedFrame.isInFullScreen();
-        if (fullScreen) {
-          project.putUserData(SHOULD_OPEN_IN_FULL_SCREEN, TRUE);
-        }
+      if (lastFocusedFrame != null && lastFocusedFrame.isInFullScreen()) {
+        project.putUserData(IdeFrameImpl.SHOULD_OPEN_IN_FULL_SCREEN, TRUE);
       }
     }
     ProjectManagerEx projectManagerEx = ProjectManagerEx.getInstanceEx();
@@ -141,9 +137,9 @@ public final class GradleProjects {
    * @return {@code true} if the project can be imported as a Gradle project, {@code false} otherwise.
    */
   public static boolean canImportAsGradleProject(@NotNull VirtualFile importSource) {
-    VirtualFile target = findImportTarget(importSource);
-    return (GradleConstants.EXTENSION.equals(target.getExtension()) ||
-            target.getName().endsWith(GradleConstants.KOTLIN_DSL_SCRIPT_EXTENSION));
+    VirtualFile target = findGradleTarget(importSource);
+    return target != null && (GradleConstants.EXTENSION.equals(target.getExtension()) ||
+                              target.getName().endsWith(GradleConstants.KOTLIN_DSL_SCRIPT_EXTENSION));
   }
 
   public static void setSyncRequestedDuringBuild(@NotNull Project project, @Nullable Boolean value) {

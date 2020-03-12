@@ -19,6 +19,7 @@ import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.npw.module.recipes.generateCommonModule
 import com.android.tools.idea.npw.module.recipes.generateManifest
+import com.android.tools.idea.wizard.template.BytecodeLevel
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.JavaVersion
 import com.android.tools.idea.wizard.template.Language
@@ -30,14 +31,14 @@ fun RecipeExecutor.generateAndroidModule(
   useKts: Boolean,
   includeCppSupport: Boolean = false,
   cppFlags: String,
-  javaVersion: JavaVersion = "1.7"
+  bytecodeLevel: BytecodeLevel = BytecodeLevel.L7
 ) {
   generateCommonModule(
     data, appTitle, useKts, generateManifest(data.packageName, !data.isLibrary), true, includeCppSupport, cppFlags = cppFlags
   )
   val projectData = data.projectTemplateData
   val formFactorNames = projectData.includedFormFactorNames
-  requireJavaVersion(javaVersion, data.projectTemplateData.language == Language.Kotlin)
+  requireJavaVersion(bytecodeLevel.versionString, data.projectTemplateData.language == Language.Kotlin)
   addDependency("com.android.support:appcompat-v7:${data.apis.appCompatVersion}.+")
   // TODO(qumeric): currently only works for a new project
   if (formFactorNames.has(FormFactor.Mobile) && formFactorNames.has(FormFactor.Wear)) {

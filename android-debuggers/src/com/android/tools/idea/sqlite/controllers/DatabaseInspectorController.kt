@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sqlite.controllers
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.device.fs.DownloadProgress
@@ -87,6 +88,7 @@ class DatabaseInspectorControllerImpl(
   override val component: JComponent
     get() = view.component
 
+  @UiThread
   override fun setUp() {
     view.addListener(sqliteViewListener)
   }
@@ -133,6 +135,11 @@ class DatabaseInspectorControllerImpl(
     withContext(workerThread) {
       Disposer.dispose(database.databaseConnection)
     }
+  }
+
+  @UiThread
+  override fun showError(message: String, throwable: Throwable?) {
+    view.reportError(message, throwable)
   }
 
   override fun dispose() = invokeAndWaitIfNeeded {
@@ -285,8 +292,9 @@ class DatabaseInspectorControllerImpl(
       view.openTab(tableId, table.name, tableView.component)
 
       val tableController = TableController(
+        project = project,
         view = tableView,
-        table = table,
+        tableSupplier = { model.openDatabases[database]?.tables?.firstOrNull{ it.name == table.name } },
         databaseConnection = databaseConnection,
         sqliteStatement = SqliteStatement(selectAllAndRowIdFromTable(table)),
         edtExecutor = edtExecutor
@@ -364,6 +372,7 @@ class DatabaseInspectorControllerImpl(
 interface DatabaseInspectorController : Disposable {
   val component: JComponent
 
+  @UiThread
   fun setUp()
 
   /**
@@ -375,6 +384,12 @@ interface DatabaseInspectorController : Disposable {
 
   suspend fun runSqlStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement)
   suspend fun closeDatabase(database: SqliteDatabase)
+
+  /**
+   * Shows the error in the view.
+   */
+  @UiThread
+  fun showError(message: String, throwable: Throwable?)
 
   /**
    * Model for Database Inspector. Used to store and access currently open [SqliteDatabase]s and their [SqliteSchema]s.

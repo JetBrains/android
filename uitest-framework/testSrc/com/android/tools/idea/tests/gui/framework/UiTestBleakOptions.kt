@@ -21,7 +21,6 @@ import com.android.tools.idea.bleak.LeakInfo
 import com.android.tools.idea.bleak.MainBleakCheck
 import com.android.tools.idea.bleak.Whitelist
 import com.android.tools.idea.bleak.WhitelistEntry
-import com.android.tools.idea.bleak.expander.ElidingExpander
 import com.android.tools.idea.bleak.expander.SmartFMapExpander
 import com.android.tools.idea.bleak.expander.SmartListExpander
 import gnu.trove.TObjectHash
@@ -89,7 +88,7 @@ private val knownIssues = Whitelist<LeakInfo>(listOf(
   }
 ))
 
-private val customExpanders = Supplier { ElidingExpander.getExpanders() + listOf(SmartListExpander(), SmartFMapExpander()) }
+private val customExpanders = Supplier { listOf(SmartListExpander(), SmartFMapExpander()) }
 
 object UiTestBleakOptions {
   // a fresh copy of the default options are provided with each access, to facilitate local modifications (e.g. test-specific whitelists)

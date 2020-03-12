@@ -25,9 +25,9 @@ import com.android.ide.common.repository.SdkMavenRepository
 import com.android.repository.io.FileOp
 import com.android.repository.io.FileOpUtils
 import com.android.sdklib.repository.AndroidSdkHandler
-import com.android.tools.idea.gradle.eclipse.ImportModule
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.gradle.util.GradleLocalCache
+import com.android.tools.idea.gradle.util.ImportUtil
 import com.android.tools.idea.lint.common.LintIdeSupport
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.sdk.AndroidSdks
@@ -40,6 +40,7 @@ import com.google.common.collect.Multimap
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
+import com.intellij.serviceContainer.NonInjectable
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
@@ -48,7 +49,7 @@ import java.util.function.Predicate
 /**
  * Helper class to aid in generating Maven URLs for various internal repository files (Support Library, AppCompat, etc).
  */
-class RepositoryUrlManager @VisibleForTesting constructor(
+class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
   private val googleMavenRepository: GoogleMavenRepository,
   private val cachedGoogleMavenRepository: GoogleMavenRepository,
   private val forceRepositoryChecksInTests: Boolean,
@@ -283,7 +284,7 @@ class RepositoryUrlManager @VisibleForTesting constructor(
           revision.dropLast(1)
         else
           supportFilter.takeIf {
-            ImportModule.SUPPORT_GROUP_ID == highest.groupId || ImportModule.CORE_KTX_GROUP_ID == highest.groupId
+            ImportUtil.SUPPORT_GROUP_ID == highest.groupId || ImportUtil.CORE_KTX_GROUP_ID == highest.groupId
           }
         val filter = if (revision != null)
           Predicate { version: GradleVersion -> version.toString().startsWith(revision) }
@@ -350,7 +351,7 @@ const val REVISION_ANY = "+"
 
 private fun findExistingExplicitVersion(dependencies: Collection<GradleCoordinate>): String? {
   val highest = dependencies
-                  .filter { coordinate: GradleCoordinate -> ImportModule.SUPPORT_GROUP_ID == coordinate.groupId }
+                  .filter { coordinate: GradleCoordinate -> ImportUtil.SUPPORT_GROUP_ID == coordinate.groupId }
                   .maxWith(COMPARE_PLUS_LOWER) ?: return null
   val version = highest.revision
   return if (version.endsWith(REVISION_ANY))

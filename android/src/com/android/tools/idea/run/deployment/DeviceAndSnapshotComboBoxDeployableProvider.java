@@ -46,7 +46,7 @@ public class DeviceAndSnapshotComboBoxDeployableProvider implements DeployablePr
   @Nullable
   @Override
   public Deployable getDeployable() throws ApkProvisionException {
-    List<Device> devices = DeviceAndSnapshotComboBoxAction.getSelectedDevices(myProject);
+    List<Device> devices = DeviceAndSnapshotComboBoxAction.getInstance().getSelectedDevices(myProject);
 
     if (devices.size() != 1) {
       return null;

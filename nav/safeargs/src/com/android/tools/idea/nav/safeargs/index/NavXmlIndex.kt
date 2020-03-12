@@ -18,8 +18,8 @@ package com.android.tools.idea.nav.safeargs.index
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.ide.highlighter.XmlFileType
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
@@ -38,6 +38,7 @@ import java.io.DataInput
 import java.io.DataOutput
 import java.io.StringReader
 import javax.xml.bind.JAXBContext
+import javax.xml.bind.UnmarshalException
 
 /**
  * File based index for the parts of navigation xml files relevant to generating Safe Args classes.
@@ -52,12 +53,7 @@ class NavXmlIndex : FileBasedIndexExtension<String, NavXmlData>() {
     private fun getKeyForFile(file: VirtualFile) = FileBasedIndex.getFileId(file).toString()
 
     private fun getDataForFile(file: VirtualFile, scope: GlobalSearchScope): NavXmlData? {
-      val project = scope.project ?: return null
-      if (DumbService.getInstance(project).isDumb) {
-        getLog().info("${NavXmlIndex::class.simpleName} queried outside of smart mode.")
-        return null
-      }
-
+      ApplicationManager.getApplication().assertReadAccessAllowed()
       val index = FileBasedIndex.getInstance()
       return index.getValues(NAME, getKeyForFile(file), scope).firstOrNull()
     }
@@ -112,8 +108,13 @@ class NavXmlIndex : FileBasedIndexExtension<String, NavXmlData>() {
 
   override fun getIndexer(): DataIndexer<String, NavXmlData, FileContent> {
     return DataIndexer { inputData ->
-      val rootNav = jaxbDeserializer.unmarshal(StringReader(inputData.contentAsText.toString())) as NavNavigationData
-      mapOf(getKeyForFile(inputData.file) to NavXmlData(rootNav))
+      try {
+        val rootNav = jaxbDeserializer.unmarshal(StringReader(inputData.contentAsText.toString())) as NavNavigationData
+        mapOf(getKeyForFile(inputData.file) to NavXmlData(rootNav))
+      }
+      catch (e: UnmarshalException) {
+        mapOf()
+      }
     }
   }
 }

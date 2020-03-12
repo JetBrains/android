@@ -459,6 +459,25 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     )
   }
 
+  fun testUpdateSchemaUpdatesModel() {
+    // Prepare
+    val sqliteDatabase = FileSqliteDatabase("db", realDatabaseConnection, sqliteFile)
+
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase))
+    }
+
+    // Act
+    runDispatching {
+      sqliteController.runSqlStatement(sqliteDatabase, SqliteStatement("CREATE TABLE t2 (c1 int not null primary key)"))
+    }
+
+    // Assert
+    val table = mockDatabaseInspectorModel.openDatabases[sqliteDatabase]!!.tables.find { it.name == "t2" }!!
+    assertSize(1, table.columns)
+    assertEquals(SqliteColumn("c1", SqliteAffinity.INTEGER, false, true), table.columns.first())
+  }
+
   fun testCreateTableUpdatesSchema() {
     // Prepare
     val sqliteDatabase = FileSqliteDatabase("db", realDatabaseConnection, sqliteFile)

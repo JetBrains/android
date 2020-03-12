@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class NativeFunctionClassifier extends Classifier {
-  @NotNull private final Map<String, NativeCallStackSet> myFunctions = new LinkedHashMap<>();
+  @NotNull private final Map<Memory.AllocationStack.StackFrame, NativeCallStackSet> myFunctions = new LinkedHashMap<>();
   @NotNull private final Map<String, NativeAllocationMethodSet> myAllocations = new LinkedHashMap<>();
   private final int myDepth;
 
@@ -38,7 +38,7 @@ final class NativeFunctionClassifier extends Classifier {
   @Override
   public ClassifierSet getClassifierSet(@NotNull InstanceObject instance, boolean createIfAbsent) {
     // First check if the instance has a child node.
-    String function = getFunctionAtCurrentDepth(instance);
+    Memory.AllocationStack.StackFrame function = getFrameAtCurrentDepth(instance);
     if (function != null) {
       NativeCallStackSet methodSet = myFunctions.get(function);
       if (methodSet == null && createIfAbsent) {
@@ -59,7 +59,7 @@ final class NativeFunctionClassifier extends Classifier {
   }
 
   @Nullable
-  private String getFunctionAtCurrentDepth(@NotNull InstanceObject instance) {
+  private Memory.AllocationStack.StackFrame getFrameAtCurrentDepth(@NotNull InstanceObject instance) {
     int stackDepth = instance.getCallStackDepth();
     Memory.AllocationStack stack = instance.getAllocationCallStack();
     if (stackDepth <= 0 || myDepth >= stackDepth || stack == null) {
@@ -69,7 +69,7 @@ final class NativeFunctionClassifier extends Classifier {
     int frameIndex = stackDepth - myDepth - 1;
     Memory.AllocationStack.StackFrameWrapper fullStack = stack.getFullStack();
     Memory.AllocationStack.StackFrame stackFrame = fullStack.getFrames(frameIndex);
-    return stackFrame.getMethodName();
+    return stackFrame;
   }
 
   @NotNull

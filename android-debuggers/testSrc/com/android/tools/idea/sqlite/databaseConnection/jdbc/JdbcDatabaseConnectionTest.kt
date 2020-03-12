@@ -601,7 +601,12 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
     )
 
     pumpEventsAndWaitForFuture(
-      customConnection!!.execute(SqliteStatement("INSERT INTO t1 (c1, c2) VALUES (?, ?)", listOf(null, "null").toSqliteValues()))
+      customConnection!!.execute(
+        SqliteStatement(
+          "INSERT INTO t1 (c1, c2) VALUES (?, ?)",
+          listOf(null, "null").toSqliteValues(),
+          "INSERT INTO t1 (c1, c2) VALUES (null, 'null')"
+        ))
     )
 
     val resultSet = pumpEventsAndWaitForFuture(

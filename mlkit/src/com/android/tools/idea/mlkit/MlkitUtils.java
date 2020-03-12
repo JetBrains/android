@@ -49,13 +49,6 @@ public class MlkitUtils {
            && file.getParent().getName().equals(SdkConstants.FD_ML_MODELS);
   }
 
-  // TODO(b/144867508): revisit later.
-  @NotNull
-  public static String computeModelClassName(@NotNull String modelFileUrl) {
-    String modelFileName = FileUtil.getNameWithoutExtension(VfsUtil.extractFileName(modelFileUrl));
-    return CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, modelFileName);
-  }
-
   public static PsiClass[] getLightModelClasses(@NotNull Project project, @NotNull Map<VirtualFile, MlModelMetadata> modelFileMap) {
     List<PsiClass> lightModelClassList = new ArrayList<>();
     for (Map.Entry<VirtualFile, MlModelMetadata> metadata : modelFileMap.entrySet()) {

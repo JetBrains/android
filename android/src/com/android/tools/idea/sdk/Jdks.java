@@ -316,7 +316,7 @@ public class Jdks {
     return runAndCheckJVM(javaExecutablePath);
   }
 
-  private static boolean isJdkRunnableOnPlatform(@NotNull String jdkHome) {
+  public static boolean isJdkRunnableOnPlatform(@NotNull String jdkHome) {
     return runAndCheckJVM(FileUtil.join(jdkHome, "bin", "java"));
   }
 

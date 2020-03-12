@@ -43,7 +43,7 @@ data class MutableNavArgumentData(
 
   @field:XmlAttribute(namespace = AUTO_URI, name = "argType")
   override var type: String
-): NavArgumentData {
+) : NavArgumentData {
   constructor() : this("", "")
 }
 
@@ -60,7 +60,7 @@ data class MutableNavActionData(
 
   @field:XmlElement(name = "argument")
   override var arguments: List<MutableNavArgumentData>
-): NavActionData {
+) : NavActionData {
   constructor() : this("", "", mutableListOf())
 }
 
@@ -80,7 +80,7 @@ data class MutableNavFragmentData(
 
   @field:XmlElement(name = "action")
   override var actions: List<MutableNavActionData>
-): NavFragmentData {
+) : NavFragmentData {
   constructor() : this("", "", mutableListOf(), mutableListOf())
 }
 
@@ -103,7 +103,6 @@ data class MutableNavNavigationData(
 
   @field:XmlElement(name = "navigation")
   override var navigations: List<MutableNavNavigationData>
-): NavNavigationData
-{
+) : NavNavigationData {
   constructor() : this(null, "", mutableListOf(), mutableListOf(), mutableListOf())
 }

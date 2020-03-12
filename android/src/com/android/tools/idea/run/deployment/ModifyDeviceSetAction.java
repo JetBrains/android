@@ -15,14 +15,35 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.serviceContainer.NonInjectable;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 
 final class ModifyDeviceSetAction extends AnAction {
-  ModifyDeviceSetAction() {
+  @NotNull
+  private final DeviceAndSnapshotComboBoxAction myComboBoxAction;
+
+  @NotNull
+  private final Function<Project, DialogWrapper> myNewModifyDeviceSetDialog;
+
+  @NonInjectable
+  ModifyDeviceSetAction(@NotNull DeviceAndSnapshotComboBoxAction comboBoxAction) {
+    this(comboBoxAction, ModifyDeviceSetDialog::new);
+  }
+
+  @VisibleForTesting
+  @NonInjectable
+  ModifyDeviceSetAction(@NotNull DeviceAndSnapshotComboBoxAction comboBoxAction,
+                        @NotNull Function<Project, DialogWrapper> newModifyDeviceSetDialog) {
     super("Modify Device Set...");
+
+    myComboBoxAction = comboBoxAction;
+    myNewModifyDeviceSetDialog = newModifyDeviceSetDialog;
   }
 
   @Override
@@ -33,6 +54,10 @@ final class ModifyDeviceSetAction extends AnAction {
       return;
     }
 
-    new ModifyDeviceSetDialog(project).show();
+    if (!myNewModifyDeviceSetDialog.apply(project).showAndGet()) {
+      return;
+    }
+
+    myComboBoxAction.modifyDeviceSet(project);
   }
 }

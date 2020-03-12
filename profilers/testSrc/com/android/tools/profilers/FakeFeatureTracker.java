@@ -78,6 +78,11 @@ public final class FakeFeatureTracker implements FeatureTracker {
   private int myApiTracingUsageCount = 0;
 
   /**
+   * Whether {@link #trackRecordAllocations()} was called.
+   */
+  private boolean myTrackRecordAllocationsCalled = false;
+
+  /**
    * The last {@link CaptureDetails} passed to the tracker.
    */
   @Nullable private CaptureDetails.Type myLastCaptureDetailsType = null;
@@ -307,7 +312,7 @@ public final class FakeFeatureTracker implements FeatureTracker {
 
   @Override
   public void trackRecordAllocations() {
-
+    myTrackRecordAllocationsCalled = true;
   }
 
   @Override
@@ -438,5 +443,9 @@ public final class FakeFeatureTracker implements FeatureTracker {
 
   public FilterMetadata getLastFilterMetadata() {
     return myLastFilterMetadata;
+  }
+
+  public boolean isTrackRecordAllocationsCalled() {
+    return myTrackRecordAllocationsCalled;
   }
 }

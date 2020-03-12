@@ -90,7 +90,6 @@ iml_module(
         "//tools/idea/platform/service-container:intellij.platform.serviceContainer[module]",
         "//tools/idea/plugins/eclipse:intellij.eclipse[module]",
         "//tools/idea/platform/external-system-api:intellij.platform.externalSystem[module]",
-        "//prebuilts/tools/common/m2/repository/org/freemarker/freemarker/2.3.20:jar",
         "//tools/idea/.idea/libraries:gson",
         "//tools/idea/plugins/groovy:intellij.groovy[module]",
         "//tools/base/perflib:studio.android.sdktools.perflib[module]",
@@ -180,8 +179,6 @@ iml_module(
         "gradle": {
             "shard_count": 10,
             "data": ["//prebuilts/studio/sdk:ndk"],
-            # WIP: many sync errors with dependencies, but some others related to paths, etc.
-            "tags": ["no_windows"],
             "test_filter": "com.android.tools.idea.gradle",
         },
         "gradle.structure": {
@@ -203,9 +200,29 @@ iml_module(
             "test_filter": "com.android.tools.idea.gradle.structure.configurables.dependencies.treeview",
         },
         "gradle.structure.model.android": {
+            "shard_count": 2,
             # Timeout waiting to lock Artifact transforms cache
             "tags": ["no_windows"],
             "test_filter": "com.android.tools.idea.gradle.structure.model.android",
+        },
+        "gradle.project.sync": {
+            "shard_count": 5,
+            "data": ["//prebuilts/studio/sdk:ndk"],
+            # Mismatches from ProjectDumper, and sync errors with C compiler
+            "tags": ["no_windows"],
+            "test_filter": "com.android.tools.idea.gradle.project.sync",
+        },
+        "gradle.project.model.NdkModuleModelTest.testVariantAbiNames": {
+            "data": ["//prebuilts/studio/sdk:ndk"],
+            # Sync issues
+            "tags": ["no_windows"],
+            "test_filter": "com.android.tools.idea.gradle.project.model.NdkModuleModelTest.testVariantAbiNames",
+        },
+        "gradle.variant.view.BuildVariantUpdaterIntegTest": {
+            "data": ["//prebuilts/studio/sdk:ndk"],
+            # Sync issues
+            "tags": ["no_windows"],
+            "test_filter": "com.android.tools.idea.gradle.variant.view.BuildVariantUpdaterIntegTest",
         },
         "avd": {
             "test_filter": "com.android.tools.idea.avdmanager",
@@ -350,7 +367,6 @@ iml_module(
         "//tools/idea/xml/dom-impl:intellij.xml.dom.impl[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/idea/platform/external-system-impl:intellij.platform.externalSystem.impl[module, test]",
-        "//prebuilts/tools/common/m2/repository/org/freemarker/freemarker/2.3.20:jar",
         "//tools/adt/idea/observable:intellij.android.observable[module, test]",
         "//tools/idea/java/compiler/openapi:intellij.java.compiler[module, test]",
         "//tools/base/common:studio.android.sdktools.common[module, test]",
@@ -420,6 +436,7 @@ iml_module(
         "//tools/base/wizard/template-impl:studio.intellij.android.wizardTemplate.impl[module, test]",
         "//tools/adt/idea/lint:intellij.lint[module, test]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
+        "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd[module]",
     ],
 )
 

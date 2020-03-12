@@ -61,20 +61,22 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
 
     // Create a dummy element to move the element to.
     val psiFactory = KtPsiFactory(parentPsiElement.project)
-    val lineTerminator = psiFactory.createNewLine(1)
+    val dummyString = psiFactory.createStringTemplate("toReplace")
     // If the element has no anchor, add it to the beginning of the block.
     val toReplace = if (parentPsiElement is KtBlockExpression && anchorAfter == null) {
-      parentPsiElement.addBefore(lineTerminator, anchor)
+      parentPsiElement.addBefore(dummyString, anchor)
     }
     else {
-      parentPsiElement.addAfter(lineTerminator, anchor)
+      parentPsiElement.addAfter(dummyString, anchor)
     }
 
     // Find the element we need to replace.
     var e = element.psiElement ?: return null
     val dslParent = element.parent as? GradlePropertiesDslElement ?: return null
 
-    while (!(e.parent is KtFile || (e.parent is KtCallExpression && (e.parent as KtCallExpression).isBlockElement(dslParent)))) {
+    while (!(e.parent is KtFile ||
+             (e.parent is KtCallExpression && (e.parent as KtCallExpression).isBlockElement(dslParent)) ||
+             (e.parent is KtBlockExpression && dslParent is ExtDslElement))) {
       if (e.parent == null) {
         e = element.psiElement as PsiElement
         break

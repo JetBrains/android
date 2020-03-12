@@ -134,16 +134,17 @@ private fun oneFullSync() {
     val d = Disposer.newDisposable()
     try {
       IdeEventQueue.getInstance().addDispatcher(IdeEventQueue.EventDispatcher { e ->
-        if (e !is KeyEvent || e.keyCode != KeyEvent.VK_PAUSE) false
+        if (e !is KeyEvent || e.keyCode != KeyEvent.VK_F1) false
         else {
           if (e.id == KeyEvent.KEY_RELEASED) {
             lock.withLock { done = true ; condition.signalAll() }
           }
+          e.consume()
           true
         }
       }, d)
-      awtRobot.keyPress(KeyEvent.VK_PAUSE)
-      awtRobot.keyRelease(KeyEvent.VK_PAUSE)
+      awtRobot.keyPress(KeyEvent.VK_F1)
+      awtRobot.keyRelease(KeyEvent.VK_F1)
       lock.withLock {
         while (!done && System.currentTimeMillis() - start < 15_000) {
           condition.await(100, TimeUnit.MILLISECONDS)

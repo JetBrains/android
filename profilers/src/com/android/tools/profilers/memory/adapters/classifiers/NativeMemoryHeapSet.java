@@ -23,7 +23,7 @@ public class NativeMemoryHeapSet extends HeapSet {
   private static final int DEFAULT_HEAP_ID = 0;
 
   public NativeMemoryHeapSet(@NotNull CaptureObject captureObject) {
-    super(captureObject, "Native", DEFAULT_HEAP_ID);
+    super(captureObject, CaptureObject.NATIVE_HEAP_NAME, DEFAULT_HEAP_ID);
     setClassGrouping(MemoryProfilerConfiguration.ClassGrouping.NATIVE_ARRANGE_BY_ALLOCATION_METHOD);
   }
 

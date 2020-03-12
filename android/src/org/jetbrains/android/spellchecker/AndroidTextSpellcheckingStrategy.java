@@ -29,7 +29,7 @@ import com.intellij.spellchecker.tokenizer.Tokenizer;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.gradle.eclipse.GradleImport.IMPORT_SUMMARY_TXT;
+import static com.android.tools.idea.gradle.util.ImportUtil.IMPORT_SUMMARY_TXT;
 
 /**
  * Spelling strategy for text and property files which is used to mask out typos in

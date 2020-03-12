@@ -116,9 +116,6 @@
     </action>
     <group id="GradleProjectStructureActions">
       <separator/>
-      <action id="EditBuildTypes" class="com.android.tools.idea.gradle.actions.EditBuildTypesAction"/>
-      <action id="EditFlavors" class="com.android.tools.idea.gradle.actions.EditFlavorsAction"/>
-      <action id="EditLibraryAndDependencies" class="com.android.tools.idea.gradle.actions.EditLibraryAndDependenciesAction"/>
       <action id="SelectBuildVariant" class="com.android.tools.idea.gradle.actions.SelectBuildVariantAction"/>
       <add-to-group group-id="BuildMenu" anchor="last"/>
       <separator/>
@@ -163,7 +160,7 @@
     <action id="Android.OpenStringResourceEditor" class="com.android.tools.idea.actions.OpenStringResourceEditorAction">
       <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="EditSource"/>
     </action>
-    <group id="AndroidToolsGroup" class="org.jetbrains.android.actions.AndroidToolsActionGroup" text="Android" icon="AndroidIcons.Android">
+    <group id="AndroidToolsGroup" class="org.jetbrains.android.actions.AndroidToolsActionGroup" text="Android" icon="AndroidIcons.Android" popup="true">
       <separator/>
       <action id="Android.RunAndroidAvdManager"
               class="org.jetbrains.android.actions.RunAndroidAvdManagerAction"
@@ -178,7 +175,7 @@
       <separator/>
       <group id="AndroidToolsGroupExtension"/>
       <separator/>
-      <add-to-group group-id="ToolsMenu" anchor="first"/>
+      <add-to-group group-id="ToolsMenu" anchor="last"/>
     </group>
 
     <group id="Android.MainToolBarActionGroup">
@@ -416,7 +413,6 @@
                          id ="experimentalPlugin" displayName="Android (Experimental)" groupId="language"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.GradleExperimentalSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.sdk.StudioSettingsController"/>
-    <projectService serviceImplementation="com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings"/>
 
     <applicationService serviceInterface="com.intellij.openapi.help.HelpManager"
                         serviceImplementation="com.android.tools.idea.help.StudioHelpManagerImpl"
@@ -658,7 +654,6 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.GradleBuildState"/>
     <projectService serviceImplementation="com.android.tools.idea.project.AndroidNotification"/>
     <projectService serviceImplementation="com.android.tools.idea.project.AndroidKtsSupportNotification"/>
-    <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupIssues"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages"/>
     <projectService serviceImplementation="com.android.tools.idea.structure.dialog.ProjectStructureConfigurable"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.invoker.messages.GradleBuildTreeViewConfiguration"/>
@@ -672,15 +667,11 @@
     <projectService serviceImplementation="com.android.tools.idea.logcat.PersistentAndroidLogFilters"/>
     <projectService serviceImplementation="org.jetbrains.android.maven.AndroidExternalApklibDependenciesManager"/>
     <projectService serviceImplementation="com.android.tools.idea.configurations.ConfigurationStateManager"/>
-    <projectService serviceImplementation="com.android.tools.idea.gradle.structure.daemon.AvailableLibraryUpdateStorage"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.LibraryFilePaths"/>
 
     <referencesSearch implementation="org.jetbrains.android.AndroidReferenceSearchExecutor"/>
     <projectService serviceImplementation="org.jetbrains.android.compiler.AndroidDexCompilerConfiguration"/>
     <projectService serviceImplementation="org.jetbrains.android.exportSignedPackage.GenerateSignedApkSettings"/>
-    <projectService serviceInterface="com.intellij.openapi.roots.ui.configuration.ProjectSettingsService"
-                    serviceImplementation="com.android.tools.idea.gradle.structure.AndroidProjectSettingsServiceImpl"
-                    overrides="true"/>
     <projectService serviceImplementation="com.android.tools.idea.profiling.capture.CaptureService"/>
     <projectService serviceInterface="com.android.tools.idea.debug.ResourceIdResolver"
                     serviceImplementation="com.android.tools.idea.debug.ProjectResourceIdResolver"/>
@@ -864,7 +855,7 @@
     <extensionPoint qualifiedName="com.android.moduleDescriptionProvider" interface="com.android.tools.idea.npw.module.ModuleDescriptionProvider"/>
 
     <extensionPoint qualifiedName="com.android.customProjectTypeImporter" interface="com.android.tools.idea.project.CustomProjectTypeImporter"/>
-
+    <extensionPoint qualifiedName="com.android.moduleImporter" interface="com.android.tools.idea.gradle.project.AndroidModuleImporter" />
     <extensionPoint qualifiedName="com.android.gradle.sync.postSyncProjectSetupStep"
                     interface="com.android.tools.idea.gradle.project.sync.setup.post.ProjectSetupStep"/>
     <extensionPoint qualifiedName="com.android.gradle.sync.postSyncProjectCleanupStep"
@@ -925,6 +916,8 @@
     <moduleDescriptionProvider implementation="com.android.tools.idea.npw.dynamicapp.NewDynamicAppModuleDescriptionProvider"/>
     <moduleDescriptionProvider implementation="com.android.tools.idea.npw.benchmark.NewBenchmarkModuleDescriptionProvider"/>
     <moduleDescriptionProvider implementation="com.android.tools.idea.npw.java.NewLibraryModuleDescriptionProvider"/>
+
+    <moduleImporter implementation="com.android.tools.idea.gradle.project.GradleModuleImporter$GradleAndroidModuleImporter" />
   </extensions>
   <extensions defaultExtensionNs="org.jetbrains.android.actions">
     <newResourceCreationHandler
@@ -980,8 +973,6 @@
 
   <extensions defaultExtensionNs="com.android.ide">
     <sdkEventListener implementation="com.android.tools.idea.gradle.sdk.GradleAndroidSdkEventListener"/>
-    <androidConfigurableContributor
-        implementation="com.android.tools.idea.gradle.structure.configurables.GradleAndroidConfigurableContributor"/>
 
   </extensions>
 
@@ -1052,6 +1043,7 @@
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.MissingNdkIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.idea.issues.AgpUpgradeRequiredIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.idea.issues.SdkPlatformNotFoundIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.idea.issues.JdkImportIssueChecker"/>
   </extensions>
 
   <module-components>

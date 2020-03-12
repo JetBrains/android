@@ -16,25 +16,29 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.android.tools.adtui.actions.DropDownAction
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.profiler.proto.Common
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
+import com.intellij.ui.JBColor
+import com.intellij.util.IconUtil
+import icons.StudioIcons
 
 val NO_PROCESS_ACTION = object : AnAction("No debuggable processes detected") {
   override fun actionPerformed(event: AnActionEvent) {}
 }.apply { templatePresentation.isEnabled = false }
 
+private val ICON = ColoredIconGenerator.generateColoredIcon(StudioIcons.Avd.DEVICE_PHONE, JBColor(0x6E6E6E, 0xAFB1B3))
+
 class SelectProcessAction(val layoutInspector: LayoutInspector) :
-  DropDownAction("Select Process", "Select a process to connect to.", AllIcons.General.Add) {
+  DropDownAction("Select Process", "Select a process to connect to.", ICON) {
 
   private var currentProcess = Common.Process.getDefaultInstance()
   private var project: Project? = null

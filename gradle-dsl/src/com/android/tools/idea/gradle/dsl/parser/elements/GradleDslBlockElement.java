@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser.elements;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.intellij.psi.PsiElement;
 import java.util.Map;
@@ -79,17 +80,17 @@ public class GradleDslBlockElement extends GradlePropertiesDslElement {
     return true;
   }
 
-  private Pair<String,SemanticsDescription> getSemantics(@NotNull GradleDslElement element) {
+  private Pair<ModelPropertyDescription,SemanticsDescription> getSemantics(@NotNull GradleDslElement element) {
     String name = element.getName();
-    Map<Pair<String,Integer>,Pair<String,SemanticsDescription>> nameMapper = getExternalToModelMap(element.getDslFile().getParser());
+    Map<Pair<String,Integer>,Pair<ModelPropertyDescription,SemanticsDescription>> nameMapper = getExternalToModelMap(element.getDslFile().getParser());
     if (element.shouldUseAssignment()) {
-      Pair<String, SemanticsDescription> value = nameMapper.get(new Pair<>(name, (Integer) null));
+      Pair<ModelPropertyDescription, SemanticsDescription> value = nameMapper.get(new Pair<>(name, (Integer) null));
       if (value != null) {
         return value;
       }
     }
     else {
-      for (Map.Entry<Pair<String, Integer>,Pair<String, SemanticsDescription>> entry : nameMapper.entrySet()) {
+      for (Map.Entry<Pair<String, Integer>,Pair<ModelPropertyDescription, SemanticsDescription>> entry : nameMapper.entrySet()) {
         String entryName = entry.getKey().getFirst();
         Integer arity = entry.getKey().getSecond();
         // TODO(xof): distinguish between semantics based on expressed arities (at the moment we return the first method entry we find,
@@ -117,7 +118,7 @@ public class GradleDslBlockElement extends GradlePropertiesDslElement {
    * @param element a Dsl element potentially representing a model property
    */
   private void maybeCanonizeElement(@NotNull GradleDslElement element) { // NOTYPO
-    Pair<String,SemanticsDescription> semantics = getSemantics(element);
+    Pair<ModelPropertyDescription,SemanticsDescription> semantics = getSemantics(element);
     if (semantics == null) return;
     SemanticsDescription description = semantics.getSecond();
     if (element.shouldUseAssignment()) {
@@ -131,7 +132,7 @@ public class GradleDslBlockElement extends GradlePropertiesDslElement {
     }
     // we rename the GradleNameElement, and not the element directly, because this renaming is not about renaming the property
     // but about providing a canonical model name for a thing.
-    element.getNameElement().canonize(semantics.getFirst()); // NOTYPO
+    element.getNameElement().canonize(semantics.getFirst().name); // NOTYPO
   }
 
   @Override
@@ -145,11 +146,11 @@ public class GradleDslBlockElement extends GradlePropertiesDslElement {
       applyDslElement.addParsedElement(element);
       return;
     }
-    Pair<String,SemanticsDescription> semantics = getSemantics(element);
+    Pair<ModelPropertyDescription,SemanticsDescription> semantics = getSemantics(element);
     if (semantics != null) {
       SemanticsDescription description = semantics.getSecond();
       if (description == ADD_AS_LIST && element instanceof GradleDslSimpleExpression) {
-        addAsParsedDslExpressionList(semantics.getFirst(), (GradleDslSimpleExpression) element);
+        addAsParsedDslExpressionList(semantics.getFirst().name, (GradleDslSimpleExpression) element);
         return;
       }
       maybeCanonizeElement(element); // NOTYPO

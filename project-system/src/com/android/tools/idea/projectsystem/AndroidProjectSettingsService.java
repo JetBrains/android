@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.projectsystem;
 
+import com.android.ide.common.repository.GradleCoordinate;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,6 +25,8 @@ public interface AndroidProjectSettingsService {
   void openSdkSettings();
 
   void chooseJdkLocation();
+
+  void openAndSelectDependency(@NotNull Module module, @NotNull GradleCoordinate dependency);
 
   void openAndSelectDependenciesEditor(@NotNull Module module);
 }

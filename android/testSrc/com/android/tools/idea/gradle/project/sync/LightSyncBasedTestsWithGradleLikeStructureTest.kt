@@ -53,7 +53,7 @@ class LightSyncBasedTestsWithGradleLikeStructureTest : SnapshotComparisonTest {
 
   override fun getName(): String = testName.methodName
 
-  override val snapshotDirectoryName: String = "syncedProjectSnapshots"
+  override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/syncedProjectSnapshots"
 
   @Test
   fun testLightTestsWithGradleLikeStructure() {
@@ -75,7 +75,7 @@ class LightSyncBasedTestsWithDefaultTestProjectStructureTest : SnapshotCompariso
 
   override fun getName(): String = testName.methodName
 
-  override val snapshotDirectoryName: String = "syncedProjectSnapshots"
+  override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/syncedProjectSnapshots"
 
   @Test
   fun testLightTestsWithDefaultTestProjectStructure() {
@@ -97,7 +97,7 @@ class LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest : SnapshotC
 
   override fun getName(): String = testName.methodName
 
-  override val snapshotDirectoryName: String = "syncedProjectSnapshots"
+  override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/syncedProjectSnapshots"
 
   @Test
   fun testLightTestsWithMultipleModulesTestProjectStructure() {
@@ -109,7 +109,7 @@ class LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest : SnapshotC
 }
 
 class LightSyncForAndroidTestCaseTest : AndroidTestCase(), SnapshotComparisonTest {
-  override val snapshotDirectoryName: String = "syncedProjectSnapshots"
+  override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android/testData/syncedProjectSnapshots"
 
   @Test
   fun testLightTestsWithDefaultTestProjectStructureForAndroidTestCase() {

@@ -27,6 +27,7 @@ import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.ui.logtab.LogTabView
 import com.android.tools.idea.sqlite.ui.logtab.LogTabViewImpl
+import com.android.tools.idea.sqlite.ui.notifyError
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
@@ -144,9 +145,8 @@ class DatabaseInspectorViewImpl(
     tabs.removeTab(tab)
   }
 
-  override fun reportError(message: String, t: Throwable) {
-    val errorMessage = if (t.message != null) "$message: ${t.message}" else message
-    workBench.loadingStopped(errorMessage)
+  override fun reportError(message: String, throwable: Throwable?) {
+    notifyError(message, throwable)
   }
 
   override fun getLogTabView(): LogTabView {

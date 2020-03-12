@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.databinding.index
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
@@ -171,6 +172,25 @@ class BindingXmlIndexTest {
 
     verifySerializationLogic(bindingXmlIndex.valueExternalizer, data)
   }
+
+  @Test
+  fun indexDoesNotThrowExceptionIfEncounteringUnrelatedXml() {
+    val file = fixture.configureByText(
+      "not-really-a-layout.xml",
+      // language=XML
+      """
+        <?xml version="1.0" encoding="utf-8"?>
+        <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+              package="com.example.layout.binding">
+            <application android:label="BindingXmlIndex Test" />
+        </manifest>
+    """.trimIndent()).virtualFile
+
+    val bindingXmlIndex = BindingXmlIndex()
+    bindingXmlIndex.indexer.map(FileContentImpl.createByFile(file))
+    // If we got here, no exception was thrown
+  }
+
 
   @Test
   @RunsInEdt

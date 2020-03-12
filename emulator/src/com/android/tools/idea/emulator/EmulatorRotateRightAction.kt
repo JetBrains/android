@@ -20,9 +20,9 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 /**
  * Simulates rotating the device clockwise by 90 degrees.
  */
-class EmulatorRotateRightAction : AbstractEmulatorAction() {
+class EmulatorRotateRightAction : EmulatorRotateAction() {
 
   override fun actionPerformed(event: AnActionEvent) {
-    TODO("not implemented")
+    rotate(event, -90F)
   }
 }

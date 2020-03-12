@@ -19,7 +19,6 @@ import com.android.tools.mlkit.MetadataExtractor;
 import com.android.tools.mlkit.MlkitNames;
 import com.android.tools.mlkit.ModelInfo;
 import com.android.tools.mlkit.ModelParsingException;
-import com.android.tools.mlkit.SubGraphInfo;
 import com.android.tools.mlkit.TensorInfo;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.openapi.diagnostic.Logger;
@@ -30,6 +29,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.UserDataHolderBase;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
@@ -58,18 +58,35 @@ import org.jetbrains.annotations.Nullable;
 // TODO(b/148866418): complete this based on the UX spec.
 public class TfliteModelFileEditor extends UserDataHolderBase implements FileEditor {
   private static final String NAME = "TFLite Model File";
-  private static final String HTML_TABLE_STYLE = "<style>\n" +
-                                                 "table {\n" +
-                                                 "  font-family: arial, sans-serif;\n" +
-                                                 "  border-collapse: collapse;\n" +
-                                                 "  width: 60%;\n" +
-                                                 "}\n" +
-                                                 "td, th {\n" +
-                                                 "  border: 0;\n" +
-                                                 "  text-align: left;\n" +
-                                                 "  padding: 8px;\n" +
-                                                 "}\n" +
-                                                 "</style>";
+  private static final String MODEL_TABLE_STYLE = "#model {\n" +
+                                                  "  border-collapse: collapse;\n" +
+                                                  "  margin-left: 12px;\n" +
+                                                  "  width: 60%;\n" +
+                                                  "}\n" +
+                                                  "#model td, #model th {\n" +
+                                                  "  border: 0;\n" +
+                                                  "  text-align: left;\n" +
+                                                  "  padding: 8px;\n" +
+                                                  "}\n";
+  private static final String TENSORS_TABLE_STYLE = "#tensors {\n" +
+                                                    "  border-collapse: collapse;\n" +
+                                                    "  border: 1px solid #dddddd;\n" +
+                                                    "  margin-left: 20px;\n" +
+                                                    "  width: 60%;\n" +
+                                                    "}\n" +
+                                                    "#tensors td, #tensors th {\n" +
+                                                    "  text-align: left;\n" +
+                                                    "  padding: 6px;\n" +
+                                                    "}\n";
+  private static final String SAMPLE_CODE_STYLE = "#sample_code {\n" +
+                                                  "  font-family: 'Source Sans Pro', sans-serif; \n" +
+                                                  "  background-color: #F1F3F4;\n" +
+                                                  "  margin-left: 20px;\n" +
+                                                  "  display: block;\n" +
+                                                  "  width: 60%;\n" +
+                                                  "  padding: 5px;\n" +
+                                                  "  padding-left: 10px;\n" +
+                                                  "}";
 
   private final Module myModule;
   private final VirtualFile myFile;
@@ -85,13 +102,16 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     contentPanel.setBorder(JBUI.Borders.empty(20));
 
     try {
+      StringBuilder htmlBodyBuilder = new StringBuilder();
       ModelInfo modelInfo = ModelInfo.buildFrom(new MetadataExtractor(ByteBuffer.wrap(file.contentsToByteArray())));
-      addModelSection(contentPanel, modelInfo);
-      addTensorsSection(contentPanel, modelInfo);
-
+      htmlBodyBuilder.append(getModelSectionBody(modelInfo));
+      htmlBodyBuilder.append(getTensorsSectionBody(modelInfo));
       PsiClass modelClass = MlkitModuleService.getInstance(myModule)
-        .getOrCreateLightModelClass(new MlModelMetadata(file.getUrl(), MlkitUtils.computeModelClassName(file.getUrl())));
-      addSampleCodeSection(contentPanel, modelClass);
+        .getOrCreateLightModelClass(
+          new MlModelMetadata(file.getUrl(), MlkitNames.computeModelClassName((VfsUtilCore.virtualToIoFile(file)))));
+      htmlBodyBuilder.append(getSampleCodeSectionBody(modelClass));
+
+      contentPanel.add(createPaneFromHtml(htmlBodyBuilder.toString()));
     }
     catch (IOException e) {
       Logger.getInstance(TfliteModelFileEditor.class).error(e);
@@ -124,8 +144,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     return htmlRow.toString();
   }
 
-  private static void addModelSection(@NotNull JPanel contentPanel, @NotNull ModelInfo modelInfo) {
-    // TODO(b/148866418): make table collapsible.
+  private static String getModelSectionBody(@NotNull ModelInfo modelInfo) {
     List<String[]> table = new ArrayList<>();
     table.add(new String[]{"Name", modelInfo.getModelName()});
     table.add(new String[]{"Description", modelInfo.getModelDescription()});
@@ -133,45 +152,50 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     table.add(new String[]{"Author", modelInfo.getModelAuthor()});
     table.add(new String[]{"License", modelInfo.getModelLicense()});
 
-    contentPanel.add(createPaneFromTable(table, "Model", false));
+    StringBuilder bodyBuilder = new StringBuilder("<h2>Model</h2>");
+    bodyBuilder.append("<table id=\"model\">\n");
+    for (String[] row : table) {
+      bodyBuilder.append(createHtmlRow(row, false));
+    }
+    bodyBuilder.append("</table>\n");
+
+    return bodyBuilder.toString();
   }
 
-  private static void addSampleCodeSection(@NotNull JPanel contentPanel, @NotNull PsiClass modelClass) {
-    // TODO(b/148866418): make table collapsible.
-    String sampleCodeHtml = "<h2>Sample Code</h2>\n" +
-                            "<code>" + buildSampleCode(modelClass) + "</code>";
-
-    contentPanel.add(createPaneFromHtml(sampleCodeHtml));
+  private static String getSampleCodeSectionBody(@NotNull PsiClass modelClass) {
+    return "<h2>Sample Code</h2>\n" +
+           "<div id=\"sample_code\"><pre>" + buildSampleCode(modelClass) + "</pre></div>";
   }
 
-  private static void addTensorsSection(@NotNull JPanel contentPanel, @NotNull ModelInfo modelInfo) {
-    // TODO(b/148866418): make table collapsible.
-    List<String[]> table = new ArrayList<>();
-    table.add(new String[]{"Name", "Type", "Description", "Shape", "Mean / Std", "Min / Max"});
-    table.add(new String[]{"inputs"});
+  private static String getTensorsSectionBody(@NotNull ModelInfo modelInfo) {
+    StringBuilder bodyBuilder = new StringBuilder("<h2>Tensors</h2>");
+    List<String[]> inputsTable = new ArrayList<>();
+    inputsTable.add(new String[]{"Name", "Type", "Description", "Shape", "Mean / Std", "Min / Max"});
     for (TensorInfo tensorInfo : modelInfo.getInputs()) {
-      table.add(getTensorsRow(tensorInfo));
+      inputsTable.add(getTensorsRow(tensorInfo));
     }
-    table.add(new String[]{"outputs"});
-    for (TensorInfo tensorInfo : modelInfo.getOutputs()) {
-      table.add(getTensorsRow(tensorInfo));
-    }
+    bodyBuilder.append(getTensorTableBody(inputsTable, "Inputs"));
 
-    contentPanel.add(createPaneFromTable(table, "Tensors", true));
+    List<String[]> outputsTable = new ArrayList<>();
+    outputsTable.add(new String[]{"Name", "Type", "Description", "Shape", "Mean / Std", "Min / Max"});
+    for (TensorInfo tensorInfo : modelInfo.getOutputs()) {
+      outputsTable.add(getTensorsRow(tensorInfo));
+    }
+    bodyBuilder.append(getTensorTableBody(outputsTable, "Outputs"));
+
+    return bodyBuilder.toString();
   }
 
   @NotNull
-  private static JTextPane createPaneFromTable(@NotNull List<String[]> table, @NotNull String title, boolean useHeaderCells) {
-    StringBuilder htmlBuilder = new StringBuilder("<h2>" + title + "</h2>");
-    if (!table.isEmpty()) {
-      htmlBuilder.append("<table>\n").append(createHtmlRow(table.get(0), useHeaderCells));
-      for (String[] row : table.subList(1, table.size())) {
-        htmlBuilder.append(createHtmlRow(row, false));
-      }
-      htmlBuilder.append("</table>\n");
+  private static String getTensorTableBody(@NotNull List<String[]> table, @NotNull String title) {
+    StringBuilder bodyBuilder = new StringBuilder("<p style=\"margin-left:20px;margin-bottom:10px;\">" + title + "</p>");
+    bodyBuilder.append("<table id=\"tensors\">\n").append(createHtmlRow(table.get(0), false));
+    for (String[] row : table.subList(1, table.size())) {
+      bodyBuilder.append(createHtmlRow(row, false));
     }
+    bodyBuilder.append("</table>\n");
 
-    return createPaneFromHtml(htmlBuilder.toString());
+    return bodyBuilder.toString();
   }
 
   @NotNull
@@ -185,9 +209,17 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   }
 
   private static void setHtml(@NotNull JEditorPane pane, @NotNull String bodyContent) {
-    String html = "<html><head>" + HTML_TABLE_STYLE + "</head><body>" + bodyContent + "</body></html>";
+    String html =
+      "<html><head><style>" +
+      MODEL_TABLE_STYLE +
+      TENSORS_TABLE_STYLE +
+      SAMPLE_CODE_STYLE +
+      "</style></head><body>" +
+      bodyContent +
+      "</body></html>";
     pane.setContentType("text/html");
     pane.setEditable(false);
+    pane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
     pane.setText(html);
     pane.setBackground(UIUtil.getTextFieldBackground());
   }
@@ -196,19 +228,19 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   private static String buildSampleCode(@NotNull PsiClass modelClass) {
     StringBuilder stringBuilder = new StringBuilder();
     String modelClassName = modelClass.getName();
-    stringBuilder.append(String.format("%s model = %s.newInstance(context);<br>", modelClassName, modelClassName));
+    stringBuilder.append(String.format("%s model = %s.newInstance(context);\n\n", modelClassName, modelClassName));
 
     PsiMethod processMethod = modelClass.findMethodsByName("process", false)[0];
     if (processMethod != null && processMethod.getReturnType() != null) {
       stringBuilder
-        .append(String.format("<br>%s.%s outputs = model.%s(", modelClassName, processMethod.getReturnType().getPresentableText(),
+        .append(String.format("%s.%s outputs = model.%s(", modelClassName, processMethod.getReturnType().getPresentableText(),
                               processMethod.getName()));
       for (PsiParameter parameter : processMethod.getParameterList().getParameters()) {
         stringBuilder.append(parameter.getType().getPresentableText() + " " + parameter.getName() + ",");
       }
       stringBuilder.deleteCharAt(stringBuilder.length() - 1);
 
-      stringBuilder.append(");<br><br>");
+      stringBuilder.append(");\n\n");
     }
 
     int index = 1;
@@ -216,7 +248,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     if (outputsClass != null) {
       for (PsiMethod psiMethod : outputsClass.getMethods()) {
         stringBuilder.append(
-          String.format("%s %s = outputs.%s();<br>", psiMethod.getReturnType().getPresentableText(), "data" + index, psiMethod.getName()));
+          String.format("%s %s = outputs.%s();\n", psiMethod.getReturnType().getPresentableText(), "data" + index, psiMethod.getName()));
         index++;
       }
     }

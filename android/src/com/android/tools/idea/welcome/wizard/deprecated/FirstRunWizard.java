@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.welcome.wizard.deprecated;
 
+import static com.android.tools.idea.avdmanager.HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated;
 import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -99,7 +100,7 @@ public class FirstRunWizard extends DynamicWizard {
       return;
     }
 
-    if (SystemInfo.isChromeOS) {
+    if (isChromeOSAndIsNotHWAccelerated()) {
       return;
     }
 

@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.psi.PsiElement;
@@ -71,10 +72,10 @@ public class GroovyDslNameConverter implements GradleDslNameConverter {
   @NotNull
   @Override
   public ExternalNameInfo externalNameForParent(@NotNull String modelName, @NotNull GradleDslElement context) {
-    ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> map = context.getExternalToModelMap(this);
+    ImmutableMap<Pair<String,Integer>, Pair<ModelPropertyDescription, SemanticsDescription>> map = context.getExternalToModelMap(this);
     ExternalNameInfo result = new ExternalNameInfo(modelName, null);
-    for (Map.Entry<Pair<String,Integer>, Pair<String,SemanticsDescription>> e : map.entrySet()) {
-      if (e.getValue().getFirst().equals(modelName)) {
+    for (Map.Entry<Pair<String,Integer>, Pair<ModelPropertyDescription,SemanticsDescription>> e : map.entrySet()) {
+      if (e.getValue().getFirst().name.equals(modelName)) {
         SemanticsDescription semantics = e.getValue().getSecond();
         if (semantics == SET || semantics == ADD_AS_LIST || semantics == OTHER) {
           return new ExternalNameInfo(e.getKey().getFirst(), true);
@@ -95,10 +96,10 @@ public class GroovyDslNameConverter implements GradleDslNameConverter {
              "." +
              modelNameForParent(externalName.substring(externalName.lastIndexOf(".") + 1), context);
     }
-    ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> map = context.getExternalToModelMap(this);
-    for (Map.Entry<Pair<String,Integer>, Pair<String,SemanticsDescription>> e : map.entrySet()) {
+    ImmutableMap<Pair<String,Integer>, Pair<ModelPropertyDescription,SemanticsDescription>> map = context.getExternalToModelMap(this);
+    for (Map.Entry<Pair<String,Integer>, Pair<ModelPropertyDescription,SemanticsDescription>> e : map.entrySet()) {
       if (e.getKey().getFirst().equals(externalName)) {
-        return e.getValue().getFirst();
+        return e.getValue().getFirst().name;
       }
     }
     return externalName;

@@ -41,7 +41,9 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Wizard page for setting up Intel® HAXM settings
+ * @deprecated use {@link com.android.tools.idea.welcome.wizard.HaxmInstallSettingsStep}
  */
+@Deprecated
 public final class HaxmInstallSettingsStep extends FirstRunWizardStep {
   private static final int MAJOR_TICKS = 4;
   private static final int MINOR_TICKS = 512;

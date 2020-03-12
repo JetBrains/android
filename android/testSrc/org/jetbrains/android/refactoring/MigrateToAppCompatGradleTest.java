@@ -17,7 +17,7 @@ package org.jetbrains.android.refactoring;
 
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.eclipse.GradleImport;
+import com.android.tools.idea.gradle.adtimport.GradleImport;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
@@ -27,7 +27,6 @@ import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;

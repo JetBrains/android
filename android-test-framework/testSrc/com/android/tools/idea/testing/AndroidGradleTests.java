@@ -36,10 +36,13 @@ import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 
+import com.android.builder.model.SyncIssue;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssues;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.GradleWrapper;
@@ -56,8 +59,8 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.externalSystem.service.project.manage.ExternalProjectsManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;
@@ -69,10 +72,12 @@ import com.intellij.util.ThrowableConsumer;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import javax.annotation.RegEx;
 import junit.framework.TestCase;
 import org.jetbrains.android.AndroidTestBase;
@@ -87,6 +92,23 @@ public class AndroidGradleTests {
   private static final Pattern GOOGLE_REPOSITORY_PATTERN = Pattern.compile("google\\(\\)");
   private static final Pattern JCENTER_REPOSITORY_PATTERN = Pattern.compile("jcenter\\(\\)");
   private static final Pattern MAVEN_REPOSITORY_PATTERN = Pattern.compile("maven \\{.*http.*\\}");
+
+  /**
+   * Thrown when Android Studios Gradle imports obtains and SyncIssues from Gradle that have SyncIssues.SEVERITY_ERROR.
+   */
+  public static class SyncIssuesPresentError extends AssertionError {
+    @NotNull
+    private List<SyncIssueData> issues;
+    public SyncIssuesPresentError(@NotNull String message, @NotNull List<SyncIssueData> issues) {
+      super(message);
+      this.issues = issues;
+    }
+
+    @NotNull
+    public List<SyncIssueData> getIssues() {
+      return issues;
+    }
+  };
 
   /**
    * @deprecated use {@link AndroidGradleTests#updateToolingVersionsAndPaths(java.io.File) instead.}.
@@ -431,14 +453,13 @@ public class AndroidGradleTests {
    * Imports {@code project}, syncs the project and checks the result.
    */
   public static void importProject(@NotNull Project project, GradleSyncInvoker.Request syncRequest) {
-    ExternalProjectsManager.getInstance(project).getExternalProjectsWatcher().markDirtyAllExternalProjects();
     TestGradleSyncListener syncListener = EdtTestUtil.runInEdtAndGet(() -> {
       GradleProjectImporter.Request request = new GradleProjectImporter.Request(project);
       GradleProjectImporter.getInstance().importProjectNoSync(request);
       return syncProject(project, syncRequest);
     });
 
-    AndroidGradleTests.checkSyncStatus(syncListener);
+    AndroidGradleTests.checkSyncStatus(project, syncListener);
     AndroidTestBase.refreshProjectFiles();
   }
 
@@ -471,20 +492,26 @@ public class AndroidGradleTests {
     TestGradleSyncListener syncListener = new TestGradleSyncListener();
     GradleSyncInvoker.getInstance().requestProjectSync(project, request, syncListener);
     syncListener.await();
-    syncListener.collectErrors(project);
     return syncListener;
   }
 
-  public static void checkSyncStatus(@NotNull TestGradleSyncListener syncListener) {
+  public static void checkSyncStatus(@NotNull Project project, @NotNull TestGradleSyncListener syncListener) throws SyncIssuesPresentError {
     if (syncFailed(syncListener)) {
       String cause =
         !syncListener.isSyncFinished() ? "<Timed out>" : isEmpty(syncListener.failureMessage) ? "<Unknown>" : syncListener.failureMessage;
       TestCase.fail(cause);
     }
+    // Also fail the test if SyncIssues with type errors are present.
+    List<SyncIssueData> errors = Arrays.stream(ModuleManager.getInstance(project).getModules()).flatMap(module -> SyncIssues.forModule(module).stream())
+      .filter(syncIssueData -> syncIssueData.getSeverity() == SyncIssue.SEVERITY_ERROR).collect(Collectors.toList());
+    String errorMessage = errors.stream().map(SyncIssueData::toString).collect(Collectors.joining("/n"));
+    if (!errorMessage.isEmpty()) {
+      throw new SyncIssuesPresentError(errorMessage, errors);
+    }
   }
 
   public static boolean syncFailed(@NotNull TestGradleSyncListener syncListener) {
-    return !syncListener.success || !Strings.isNullOrEmpty(syncListener.failureMessage) || syncListener.hasErrors;
+    return !syncListener.success || !Strings.isNullOrEmpty(syncListener.failureMessage);
   }
 
   public static void defaultPatchPreparedProject(@NotNull File projectRoot,

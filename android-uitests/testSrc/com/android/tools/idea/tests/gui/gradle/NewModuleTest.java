@@ -25,6 +25,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
 import com.android.tools.idea.tests.util.WizardUtils;
+import com.android.tools.idea.wizard.template.BytecodeLevel;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.IOException;
@@ -145,6 +146,7 @@ public class NewModuleTest {
       .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
       .clickNextPhoneAndTabletModule()
       .setSourceLanguage(KOTLIN)
+      .selectBytecodeLevel(BytecodeLevel.L8.toString())
       .enterModuleName("otherModule")
       .wizard()
       .clickNext()
@@ -155,6 +157,7 @@ public class NewModuleTest {
 
     String otherModuleBuildGradleText = guiTest.getProjectFileText("otherModule/build.gradle");
     assertThat(otherModuleBuildGradleText).contains("implementation 'androidx.navigation:navigation-fragment-ktx:");
+    assertThat(otherModuleBuildGradleText).contains("JavaVersion.VERSION_1_8");
 
     String navGraphText = guiTest.getProjectFileText("otherModule/src/main/res/navigation/nav_graph.xml");
     assertThat(navGraphText).contains("navigation xmlns:android=");

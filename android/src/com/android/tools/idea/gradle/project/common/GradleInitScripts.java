@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.common;
 
 import static com.android.SdkConstants.DOT_GRADLE;
-import static com.android.tools.idea.gradle.eclipse.GradleImport.escapeGroovyStringLiteral;
+import static com.android.tools.idea.gradle.util.ImportUtil.escapeGroovyStringLiteral;
 import static com.intellij.openapi.application.PathManager.getJarPathForClass;
 import static com.intellij.openapi.util.io.FileUtil.createTempFile;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
@@ -53,8 +53,8 @@ public class GradleInitScripts {
 
   // Used by intellij
   @SuppressWarnings("unused")
-  public GradleInitScripts(@NotNull EmbeddedDistributionPaths embeddedDistributionPaths) {
-    this(embeddedDistributionPaths, new ContentCreator());
+  public GradleInitScripts() {
+    this(EmbeddedDistributionPaths.getInstance(), new ContentCreator());
   }
 
   @NonInjectable

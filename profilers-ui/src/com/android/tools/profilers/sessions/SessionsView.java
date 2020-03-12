@@ -373,10 +373,15 @@ public class SessionsView extends AspectObserver {
   private void addImportAction() {
     // Add the dropdown action for loading from file
     CommonAction loadAction = new CommonAction("Load from file...", null);
+    List<String> supportedExtensions = new ArrayList<>();
+    supportedExtensions.add("hprof");
+    supportedExtensions.add("trace");
+    if (getProfilers().getIdeServices().getFeatureConfig().isNativeMemorySampleEnabled()) {
+      supportedExtensions.add("heapprofd");
+    }
     loadAction.setAction(
       () -> myIdeProfilerComponents.createImportDialog().open(
-        () -> "Open",
-        ImmutableList.of("hprof", "trace"),
+        () -> "Open", supportedExtensions,
         file -> {
           if (!myProfilers.getSessionsManager().importSessionFromFile(new File(file.getPath()))) {
             myIdeProfilerComponents.createUiMessageHandler()

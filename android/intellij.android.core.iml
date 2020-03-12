@@ -39,18 +39,6 @@
     <orderEntry type="module" module-name="intellij.platform.serviceContainer" />
     <orderEntry type="module" module-name="intellij.eclipse" />
     <orderEntry type="module" module-name="intellij.platform.externalSystem" />
-    <orderEntry type="module-library">
-      <library name="freemarker" type="repository">
-        <properties maven-id="org.freemarker:freemarker:2.3.20" />
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/freemarker/freemarker/2.3.20/freemarker-2.3.20.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/freemarker/freemarker/2.3.20/freemarker-2.3.20-sources.jar!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
     <orderEntry type="library" name="gson" level="project" />
     <orderEntry type="module" module-name="intellij.groovy" />
     <orderEntry type="module" module-name="android.sdktools.perflib" />

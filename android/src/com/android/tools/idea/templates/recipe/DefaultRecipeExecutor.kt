@@ -535,8 +535,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
   private fun addFileAlreadyExistWarning(targetFile: File) =
     context.warnings.add("The following file could not be created since it already exists: ${targetFile.path}")
 
-  // TODO(qumeric): make private
-  open class RecipeIO {
+  private open class RecipeIO {
     open fun writeFile(requestor: Any, contents: String?, to: File) {
       checkedCreateDirectoryIfMissing(to.parentFile)
       writeTextFile(this, contents, to)
@@ -557,8 +556,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     }
   }
 
-  // TODO(qumeric): make private
-  class DryRunRecipeIO : RecipeIO() {
+  private class DryRunRecipeIO : RecipeIO() {
     override fun writeFile(requestor: Any, contents: String?, to: File) {
       checkDirectoryIsWriteable(to.parentFile)
     }
