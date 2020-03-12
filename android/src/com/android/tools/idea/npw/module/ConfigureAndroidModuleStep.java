@@ -34,6 +34,7 @@ import com.android.tools.idea.npw.model.RenderTemplateModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.template.ChooseActivityTypeStep;
+import com.android.tools.idea.npw.template.components.BytecodeLevelComboProvider;
 import com.android.tools.idea.npw.template.components.LanguageComboProvider;
 import com.android.tools.idea.npw.validator.ModuleValidator;
 import com.android.tools.idea.observable.BindingsManager;
@@ -52,9 +53,11 @@ import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
+import com.android.tools.idea.wizard.template.BytecodeLevel;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.ContextHelpLabel;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -77,6 +80,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewAndroidMo
   private final ListenerManager myListeners = new ListenerManager();
 
   @NotNull private final StudioWizardStepPanel myRootPanel;
+  @NotNull private final JBScrollPane myScrollPanel;
   @NotNull private ValidatorPanel myValidatorPanel;
   @NotNull private final FormFactor myFormFactor;
 
@@ -84,6 +88,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewAndroidMo
 
   private AndroidApiLevelComboBox myApiLevelCombo;
   private JComboBox<Language> myLanguageCombo;
+  private JComboBox<BytecodeLevel> myBytecodeCombo;
   private JTextField myModuleName;
   private JPanel myPanel;
   private JLabel myAppNameLabel;
@@ -165,8 +170,10 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewAndroidMo
     });
 
     myBindings.bindTwoWay(new SelectedItemProperty<>(myLanguageCombo), getModel().getLanguage());
+    myBindings.bindTwoWay(new SelectedItemProperty<>(myBytecodeCombo), getModel().getBytecodeLevel());
 
     myRootPanel = new StudioWizardStepPanel(myValidatorPanel);
+    myScrollPanel = StudioWizardStepPanel.wrappedWithVScroll(myRootPanel);
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
   }
 
@@ -222,7 +229,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewAndroidMo
   @NotNull
   @Override
   protected JComponent getComponent() {
-    return myRootPanel;
+    return myScrollPanel;
   }
 
   @Nullable
@@ -234,6 +241,8 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewAndroidMo
   private void createUIComponents() {
     myApiLevelCombo = new AndroidApiLevelComboBox();
     myLanguageCombo = new LanguageComboProvider().createComponent();
+    myBytecodeCombo = new BytecodeLevelComboProvider().createComponent();
+    myBytecodeCombo.setName("bytecodeLevelComboBox");
     myModuleNameLabel = ContextHelpLabel.create(message("android.wizard.module.help.name"));
     myPackageName = new LabelWithEditButton();
   }

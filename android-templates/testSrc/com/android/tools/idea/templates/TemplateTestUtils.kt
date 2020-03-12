@@ -32,6 +32,7 @@ import com.android.tools.idea.templates.KeystoreUtils.sha1
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.template.ApiTemplateData
 import com.android.tools.idea.wizard.template.ApiVersion
+import com.android.tools.idea.wizard.template.BytecodeLevel
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
@@ -217,6 +218,7 @@ internal fun getDefaultModuleState(project: Project): ModuleTemplateDataBuilder 
     androidXSupport = true
     setProjectDefaults(project)
     language = com.android.tools.idea.npw.platform.Language.JAVA
+    bytecodeLevel = BytecodeLevel.L7
     topOut = project.guessProjectDir()!!.toIoFile()
     debugKeyStoreSha1 = sha1(getOrCreateDefaultDebugKeystore())
     applicationPackage = defaultPackage

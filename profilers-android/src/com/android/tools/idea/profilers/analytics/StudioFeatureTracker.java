@@ -423,7 +423,8 @@ public final class StudioFeatureTracker implements FeatureTracker {
 
   @Override
   public void trackRecordAllocations() {
-    track(AndroidProfilerEvent.Type.CAPTURE_ALLOCATIONS);
+    // Adding device information to capture allocations so we can tell if the device is Q+ for native allocation tracking.
+    newTracker(AndroidProfilerEvent.Type.CAPTURE_ALLOCATIONS).setDevice(myActiveDevice).track();
   }
 
   @Override
@@ -470,6 +471,9 @@ public final class StudioFeatureTracker implements FeatureTracker {
       case CaptureObject.JNI_HEAP_NAME:
         heapType = AndroidProfilerEvent.MemoryHeap.JNI_HEAP;
         break;
+      case CaptureObject.NATIVE_HEAP_NAME:
+        // TODO (b/151114094): Enable native metrics when google3 side of things goes in.
+        //heapType = AndroidProfilerEvent.MemoryHeap.NATIVE_HEAP;
       default:
         getLogger().error("Attempt to report selection of unknown heap name: " + heapName);
         return;

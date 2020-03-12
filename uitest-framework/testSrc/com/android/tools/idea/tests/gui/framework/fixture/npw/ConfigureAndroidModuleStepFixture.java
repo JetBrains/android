@@ -47,6 +47,14 @@ public class ConfigureAndroidModuleStepFixture<W extends AbstractWizardFixture>
   }
 
   @NotNull
+  public ConfigureAndroidModuleStepFixture<W> selectBytecodeLevel(@NotNull String bytecodeLevel) {
+    new JComboBoxFixture(robot(), robot().finder().findByName(target(), "bytecodeLevelComboBox", JComboBox.class))
+      .selectItem(bytecodeLevel);
+    return this;
+  }
+
+
+  @NotNull
   public ConfigureAndroidModuleStepFixture<W> setSourceLanguage(@NotNull Language language) {
     // TODO: Some Modules (ie New Benchmark Module) have a label ending with ":" - Unify UI
     JLabel languageLabel = (JLabel)robot().finder().find(

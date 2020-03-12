@@ -113,7 +113,7 @@ fun makeDrawImageCommand(icon: Icon, rectangle: SwingRectangle): DrawCommand {
 }
 
 fun makeDrawImageCommand(icon: Icon, rectangle: SwingRectangle, color: Color): DrawCommand {
-  val coloredIcon = ColoredIconGenerator.generateColoredIcon(icon, color.rgb)
+  val coloredIcon = ColoredIconGenerator.generateColoredIcon(icon, color)
   return makeDrawImageCommand(coloredIcon, rectangle)
 }
 

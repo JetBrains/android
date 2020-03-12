@@ -752,7 +752,7 @@ internal fun maybeUpdateName(element : GradleDslElement, writer: KotlinDslWriter
   val modelProperties = element.parent?.getExternalToModelMap(writer)?.values
   if (modelProperties != null) {
     for (value in modelProperties) {
-      if (value.first == nameElement.originalName) {
+      if (value.first.name == nameElement.originalName) {
         Logger.getInstance(KotlinDslWriter::class.java)
           .error(UnsupportedOperationException( "trying to updateName a property: ${nameElement.originalName}"))
       }

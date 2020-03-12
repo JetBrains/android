@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.res
 
-import com.android.builder.model.AaptOptions
+import com.android.builder.model.AaptOptions.Namespacing
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.AndroidManifestPackageNameUtils
 import com.android.projectmodel.ExternalLibrary
@@ -68,10 +68,21 @@ private data class ResourceClasses(
   val testNamespaced: PsiClass?,
   val testNonNamespaced: PsiClass?
 ) {
-  val all = sequenceOf(namespaced, nonNamespaced, testNamespaced, testNonNamespaced)
-
   companion object {
     val Empty = ResourceClasses(null, null, null, null)
+  }
+
+  val all = sequenceOf(namespaced, nonNamespaced, testNamespaced, testNonNamespaced)
+
+  fun pickRelevant(namespacing: Namespacing, includeTestClasses: Boolean): Set<PsiClass?> {
+    return when (namespacing) {
+      Namespacing.REQUIRED -> {
+        if (includeTestClasses) setOf(namespaced, testNamespaced) else setOf(namespaced)
+      }
+      Namespacing.DISABLED -> {
+        if (includeTestClasses) setOf(nonNamespaced, testNonNamespaced) else setOf(nonNamespaced)
+      }
+    }
   }
 }
 
@@ -164,26 +175,20 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
       result.add(getAarRClasses(aarLibrary))
     }
 
-    return result.flatMap { resourceClasses ->
-      when (namespacing) {
-        AaptOptions.Namespacing.REQUIRED -> {
-          if (includeTestClasses) {
-            listOf(resourceClasses.namespaced, resourceClasses.testNamespaced)
-          }
-          else {
-            listOf(resourceClasses.namespaced)
-          }
-        }
-        AaptOptions.Namespacing.DISABLED -> {
-          if (includeTestClasses) {
-            listOf(resourceClasses.nonNamespaced, resourceClasses.testNonNamespaced)
-          }
-          else {
-            listOf(resourceClasses.nonNamespaced)
-          }
-        }
-      }
-    }.filterNotNull()
+    return result.flatMap { it.pickRelevant(namespacing, includeTestClasses) }.filterNotNull()
+  }
+
+  override fun getLightRClassesDefinedByModule(module: Module, includeTestClasses: Boolean): Collection<PsiClass> {
+    val facet = module.androidFacet ?: return emptySet()
+    val moduleRClasses = getModuleRClasses(facet)
+    val relevant = if (ProjectNamespacingStatusService.getInstance(module.project).namespacesUsed) {
+      moduleRClasses.pickRelevant(Namespacing.DISABLED, includeTestClasses) +
+      moduleRClasses.pickRelevant(Namespacing.REQUIRED, includeTestClasses)
+    } else {
+      moduleRClasses.pickRelevant(Namespacing.DISABLED, includeTestClasses)
+    }
+
+    return relevant.filterNotNull()
   }
 
   override fun getLightRClassesContainingModuleResources(module: Module): Collection<PsiClass> {

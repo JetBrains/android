@@ -23,7 +23,6 @@ import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.expressions.Expression;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
-import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.project.Project;
@@ -32,8 +31,8 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,7 +49,7 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
 
   private JPanel myPanel;
   private TextFieldWithBrowseButton myModelLocation;
-  private JLabel myRequiredInfoLabel;
+  private JTextArea myAdditionalRequiredInfosTextArea;
 
   public ChooseMlModelStep(@NotNull MlWizardModel model, @NotNull Project project, @NotNull String title) {
     super(model, title);
@@ -66,14 +65,6 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
     Expression<File> locationFile = model.sourceLocation.transform(File::new);
     myValidatorPanel.registerValidator(locationFile, value -> checkPath(value));
 
-    //TODO(jackqdyulei): Get it from mlkit-common module.
-    List<String> requiredDependencies = Arrays.asList(
-      "org.apache.commons:commons-compress:1.19",
-      "org.tensorflow:tensorflow-lite:1.13.1",
-      "org.tensorflow:tensorflow-lite-support:0.0.0-nightly");
-
-    myRequiredInfoLabel.setText(getRequiredInformationHtml(requiredDependencies));
-
     myRootPanel = new StudioWizardStepPanel(myValidatorPanel);
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
   }
@@ -85,21 +76,12 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
   }
 
   @NotNull
-  private static String getRequiredInformationHtml(@NotNull List<String> requiredDeps) {
-    // TODO(jackqdyulei): Add dependencies automatically after user click Finish.
-    StringBuilder stringBuilder = new StringBuilder("You need to add following deps\n\n");
-    for (String dep : requiredDeps) {
-      stringBuilder.append(dep + "\n");
-    }
-
-    return WizardUtils.toHtmlString(stringBuilder.toString());
-  }
-
-  @NotNull
   Validator.Result checkPath(@NotNull File file) {
     //TODO(jackqdyulei): check whether destination already contains this file.
-    if (!file.isFile() || !file.getName().endsWith(".tflite")) {
-      return new Validator.Result(Validator.Severity.ERROR, "This file is not a tflite model file");
+    if (!file.isFile()) {
+      return new Validator.Result(Validator.Severity.ERROR, "Please select a TFLite model file to import.");
+    } else if (!file.getName().endsWith(".tflite")) {
+      return new Validator.Result(Validator.Severity.ERROR, "This file is not a TFLite model file.");
     }
     return Validator.Result.OK;
   }

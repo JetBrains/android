@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.model
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.device.FormFactor
+import com.android.tools.idea.npw.model.NewProjectModel.Companion.getInitialBytecodeLevel
 import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.getInitialSourceLanguage
 import com.android.tools.idea.npw.module.ModuleModel
 import com.android.tools.idea.npw.module.recipes.androidModule.generateAndroidModule
@@ -36,6 +37,7 @@ import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.templates.ModuleTemplateDataBuilder
 import com.android.tools.idea.templates.ProjectTemplateDataBuilder
+import com.android.tools.idea.wizard.template.BytecodeLevel
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.Recipe
 import com.android.tools.idea.wizard.template.TemplateData
@@ -59,6 +61,7 @@ class ExistingProjectModelData(
   override val useGradleKts = BoolValueProperty(project.hasKtsUsage())
   override val isNewProject = false
   override val language: OptionalValueProperty<Language> = OptionalValueProperty(getInitialSourceLanguage(project))
+  override val bytecodeLevel: OptionalProperty<BytecodeLevel> = OptionalValueProperty(getInitialBytecodeLevel())
   override val multiTemplateRenderer: MultiTemplateRenderer = MultiTemplateRenderer { renderer ->
     object : Task.Modal(project, message("android.compile.messages.generating.r.java.content.name"), false) {
       override fun run(indicator: ProgressIndicator) {
@@ -139,10 +142,19 @@ class NewAndroidModuleModel(
     multiTemplateRenderer.incrementRenders()
   }
 
+  private fun saveWizardState() = with(properties) {
+    setValue(PROPERTIES_BYTECODE_LEVEL_KEY, bytecodeLevel.value.toString())
+  }
+
+  override fun handleFinished() {
+    super.handleFinished()
+    saveWizardState()
+  }
+
   inner class ModuleTemplateRenderer : ModuleModel.ModuleTemplateRenderer() {
     override val recipe: Recipe get() = when(formFactor.get()) {
       FormFactor.MOBILE -> { data: TemplateData ->
-        generateAndroidModule(data as ModuleTemplateData, applicationName.get(), useGradleKts.get(), enableCppSupport.get(), cppFlags.get())
+        generateAndroidModule(data as ModuleTemplateData, applicationName.get(), useGradleKts.get(), enableCppSupport.get(), cppFlags.get(), bytecodeLevel.value)
       }
       FormFactor.WEAR -> { data: TemplateData ->
         generateWearModule(data as ModuleTemplateData, applicationName.get(), useGradleKts.get())

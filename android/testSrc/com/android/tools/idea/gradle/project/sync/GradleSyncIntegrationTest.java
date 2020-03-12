@@ -40,7 +40,6 @@ import static com.android.tools.idea.util.PropertiesFiles.savePropertiesToFile;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
-import static com.intellij.openapi.externalSystem.service.notification.NotificationCategory.ERROR;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toCanonicalPath;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
@@ -80,6 +79,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult;
 import com.android.tools.idea.gradle.task.AndroidGradleTaskManager;
@@ -502,8 +502,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     // Verify sync issues are reported properly.
     List<NotificationData> messages = syncMessages.getNotifications();
     List<NotificationData> relevantMessages = messages.stream()
-      .filter(m -> m.getNotificationCategory().equals(ERROR) &&
-                   m.getTitle().equals("Unresolved dependencies") &&
+      .filter(m -> m.getTitle().equals("Unresolved dependencies") &&
                    m.getMessage().contains(
                      "Unable to resolve dependency for ':app@paidQa/compileClasspath': Could not resolve project :lib.\nAffected Modules:"))
       .collect(toList());
@@ -659,7 +658,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     }
   }
 
-  public void testOnlyLastKnownAgpVersionPopulatedForUnsuccessfulSync() throws Exception {
+  public void testNotLastKnownAgpVersionPopulatedForUnsuccessfulSync() throws Exception {
     // DEPENDENT_MODULES project has two modules, app and lib, app module has dependency on lib module.
     loadProject(DEPENDENT_MODULES);
     for (Module module : ModuleManager.getInstance(getProject()).getModules()) {
@@ -672,7 +671,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     }
 
     File appBuildFile = getBuildFilePath("app");
-    appendToFile(appBuildFile, "\ndependencies { implementation 'bad:bad:bad' }\n");
+    appendToFile(appBuildFile, "\n@invalidDsl { implementation 'bad:bad:bad' }\n");
 
     try {
       requestSyncAndWait();
@@ -687,8 +686,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
       // agpVersion is not available for Java modules.
       if (gradleFacet != null && androidFacet != null) {
         assertThat(gradleFacet.getConfiguration().LAST_SUCCESSFUL_SYNC_AGP_VERSION).isNull();
-        assertThat(gradleFacet.getConfiguration().LAST_KNOWN_AGP_VERSION)
-          .isEqualTo(BuildEnvironment.getInstance().getGradlePluginVersion());
+        assertThat(gradleFacet.getConfiguration().LAST_KNOWN_AGP_VERSION).isNull();
       }
     }
   }
@@ -873,17 +871,21 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
   public void testProjectSyncIssuesAreCorrectlyReported() throws Exception {
     loadProject(HELLO_JNI);
 
+    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
     File appBuildFile = getBuildFilePath("app");
 
     // Set the ndkVersion to something that doesn't exist.
     appendToFile(appBuildFile, "android.ndkVersion 'i am a good version'");
 
-    String expectedFailure = requestSyncAndGetExpectedFailure();
+    List<SyncIssueData> expectedFailures = requestSyncAndGetExpectedSyncIssueErrors();
+    assertThat(expectedFailures).hasSize(1);
+    assertThat(expectedFailures.get(0).getMessage()).isEqualTo("Requested NDK version 'i am a good version' could not be parsed");
 
-    assertThat(expectedFailure).isEqualTo("setup project failed: Sync issues found!\n" +
-                                          "Module '" +
-                                          TestModuleUtil.findAppModule(getProject()).getName() +
-                                          "':\nRequested NDK version 'i am a good version' could not be parsed\n");
+
+    // Also check the notification is emitted correctly.
+    List<NotificationData> notifications = syncMessages.getNotifications();
+    assertThat(notifications).hasSize(1);
+    assertThat(notifications.get(0).getMessage()).startsWith("Requested NDK version 'i am a good version' could not be parsed\n");
   }
 
   public void testKaptIsEnabled() throws Exception {
@@ -920,6 +922,8 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
 
   public void testUnresolvedDependency() throws IOException {
     prepareProjectForImport(SIMPLE_APPLICATION_UNRESOLVED_DEPENDENCY, null, null);
+    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
+
     Project project = getProject();
     TestGradleSyncListener syncListener = EdtTestUtil.runInEdtAndGet(() -> {
       GradleProjectImporter.Request request = new GradleProjectImporter.Request(project);
@@ -927,7 +931,9 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
       return AndroidGradleTests.syncProject(project, GradleSyncInvoker.Request.testRequest());
     });
 
-    assertTrue(AndroidGradleTests.syncFailed(syncListener));
+    assertFalse(AndroidGradleTests.syncFailed(syncListener));
+    List<NotificationData> notifications = syncMessages.getNotifications();
+    assertThat(notifications.get(0).getMessage()).startsWith("Failed to resolve: unresolved:dependency:99.9");
   }
 
   /**

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.annotations.concurrency.Slow
+
 /**
  * Interface to be implemented by classes providing a list of [PreviewElement]
  */
@@ -29,4 +31,26 @@ class FilteredPreviewElementProvider(private val delegate: PreviewElementProvide
                                      private val filter: (PreviewElement) -> Boolean) : PreviewElementProvider {
   override val previewElements: List<PreviewElement>
     get() = delegate.previewElements.filter(filter)
+}
+
+/**
+ * A [PreviewElementProvider] for dealing with [PreviewElementProvider] that might be @[Slow]. This [PreviewElementProvider] contents
+ * will only be updated when the [refresh] method is called and it will return the same contents until a new call happens.
+ */
+class MemoizedPreviewElementProvider(private val delegate: PreviewElementProvider) : PreviewElementProvider {
+  /**
+   * The [PreviewElement]s returned by this property are cached and might not represent the latest state of the [delegate].
+   * You need to call [refresh] to update this copy.
+   */
+  override var previewElements: List<PreviewElement> = emptyList()
+    @Synchronized get
+    @Synchronized private set
+
+  /**
+   * Refreshes the [previewElements]. Do not call on the UI thread.
+   */
+  @Slow
+  fun refresh() {
+    previewElements = delegate.previewElements
+  }
 }

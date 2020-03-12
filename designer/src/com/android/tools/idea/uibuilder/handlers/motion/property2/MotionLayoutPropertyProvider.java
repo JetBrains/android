@@ -206,13 +206,18 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
       for (String customType : MotionSceneAttrs.ourCustomAttribute) {
         String customValue = customTag.getAttributeValue(customType);
         if (customValue != null) {
-          customProperties.put(AUTO_URI, name, createCustomProperty(name, customType, selection, model));
+          NelePropertyItem item = createCustomProperty(name, customType, selection, model);
+          customProperties.put(item.getNamespace(), item.getName(), item);
           break;
         }
       }
     }
-    inheritedAttributes.forEach(defined -> customProperties.put(
-      AUTO_URI, defined.getName(), createCustomProperty(defined.getName(), defined.getCustomType(), selection, model)));
+    inheritedAttributes.forEach(
+      defined -> {
+        NelePropertyItem item = createCustomProperty(defined.getName(), defined.getCustomType(), selection, model);
+        customProperties.put(item.getNamespace(), item.getName(), item);
+      }
+    );
 
     allProperties.put(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE, PropertiesTable.Companion.create(customProperties));
   }

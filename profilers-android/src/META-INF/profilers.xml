@@ -39,5 +39,7 @@
     <fileEditorProvider implementation="com.android.tools.idea.profilers.capture.AndroidProfilerCaptureEditorProvider" />
     <fileTypeFactory implementation="com.android.tools.idea.profilers.capture.CpuCaptureFileTypeFactory" />
     <fileTypeFactory implementation="com.android.tools.idea.profilers.capture.MemoryCaptureFileTypeFactory" />
+    <fileType name="HeapProfd" implementationClass="com.android.tools.idea.profilers.capture.HeapProfdMemoryCaptureFileType"
+              fieldName="INSTANCE" extensions="heapprofd"/>
   </extensions>
 </idea-plugin>

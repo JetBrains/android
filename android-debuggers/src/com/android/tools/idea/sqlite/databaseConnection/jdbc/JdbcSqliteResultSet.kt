@@ -26,7 +26,6 @@ import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteValue
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.util.Disposer
-import com.intellij.util.concurrency.SequentialTaskExecutor
 import java.sql.Connection
 import java.sql.JDBCType
 import java.sql.ResultSet
@@ -37,10 +36,7 @@ class JdbcSqliteResultSet(
   private val sqliteStatement: SqliteStatement
 ) : SqliteResultSet {
 
-  /**
-   * It's safe to use [LazyThreadSafetyMode.NONE] because the property is accessed from a [SequentialTaskExecutor] with a single thread.
-   */
-  private val _columns: List<SqliteColumn> by lazy(LazyThreadSafetyMode.NONE) {
+  override val columns get() = service.sequentialTaskExecutor.executeAsync {
     connection.resolvePreparedStatement(sqliteStatement).use { preparedStatement ->
       preparedStatement.executeQuery().use {
         val metaData = it.metaData
@@ -60,7 +56,7 @@ class JdbcSqliteResultSet(
     }
   }
 
-  private val _rowCount: Int by lazy(LazyThreadSafetyMode.NONE) {
+  override val totalRowCount get() = service.sequentialTaskExecutor.executeAsync {
     check(!Disposer.isDisposed(this)) { "ResultSet has already been closed." }
     check(!connection.isClosed) { "The connection has been closed." }
 
@@ -78,14 +74,10 @@ class JdbcSqliteResultSet(
     }
   }
 
-  override val columns get() = service.sequentialTaskExecutor.executeAsync { _columns }
-
-  override val totalRowCount get() = service.sequentialTaskExecutor.executeAsync { _rowCount }
-
   override fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<List<SqliteRow>> {
     checkOffsetAndSize(rowOffset, rowBatchSize)
 
-    return service.sequentialTaskExecutor.executeAsync {
+    return service.sequentialTaskExecutor.transform(columns) { columns ->
       check(!Disposer.isDisposed(this)) { "ResultSet has already been closed." }
       check(!connection.isClosed) { "The connection has been closed." }
 
@@ -94,7 +86,7 @@ class JdbcSqliteResultSet(
         preparedStatement.executeQuery().use {
           val rows = ArrayList<SqliteRow>()
           while (it.next()) {
-            rows.add(createCurrentRow(it))
+            rows.add(createCurrentRow(it, columns))
           }
 
           preparedStatement.close()
@@ -106,8 +98,8 @@ class JdbcSqliteResultSet(
   }
 
   @WorkerThread
-  private fun createCurrentRow(resultSet: ResultSet): SqliteRow {
-    return SqliteRow(_columns.mapIndexed { i, column -> SqliteColumnValue(column.name, SqliteValue.fromAny(resultSet.getObject(i + 1))) })
+  private fun createCurrentRow(resultSet: ResultSet, columns: List<SqliteColumn>): SqliteRow {
+    return SqliteRow(columns.mapIndexed { i, column -> SqliteColumnValue(column.name, SqliteValue.fromAny(resultSet.getObject(i + 1))) })
   }
 
   override fun dispose() {

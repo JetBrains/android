@@ -18,6 +18,7 @@ package com.android.tools.idea.appinspection.inspector.ide
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.openapi.project.Project
 
 interface AppInspectorTabProvider {
   companion object {
@@ -31,5 +32,5 @@ interface AppInspectorTabProvider {
   val displayName: String
   val inspectorAgentJar: AppInspectorJar
   fun isApplicable(): Boolean = true
-  fun createTab(messenger: AppInspectorClient.CommandMessenger): AppInspectorTab
+  fun createTab(project: Project, messenger: AppInspectorClient.CommandMessenger): AppInspectorTab
 }

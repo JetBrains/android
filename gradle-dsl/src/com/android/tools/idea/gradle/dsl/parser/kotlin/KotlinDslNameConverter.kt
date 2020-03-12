@@ -69,7 +69,7 @@ interface KotlinDslNameConverter: GradleDslNameConverter {
     val defaultResult = ExternalNameInfo(modelName, null)
     var result : ExternalNameInfo? = null
     for (e in map.entries) {
-      if (e.value.first == modelName ) {
+      if (e.value.first.name == modelName ) {
         // prefer assignment if possible, or otherwise the first appropriate method we find
         when (e.value.second) {
           VAR, VWO -> return ExternalNameInfo(e.key.first, false)
@@ -85,7 +85,7 @@ interface KotlinDslNameConverter: GradleDslNameConverter {
   override fun modelNameForParent(externalName: String, context: GradleDslElement): String {
     val map = context.getExternalToModelMap(this)
     for (e in map.entries) {
-      if (e.key.first == externalName) return e.value.first
+      if (e.key.first == externalName) return e.value.first.name
     }
     return externalName
   }

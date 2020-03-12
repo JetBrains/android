@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.welcome.wizard.deprecated;
 
-import com.android.repository.io.FileOpUtils;
+import static com.android.tools.idea.welcome.wizard.SdkComponentsStepKt.getDiskSpace;
+import static com.android.tools.idea.welcome.wizard.SdkComponentsStepKt.getTargetFilesystem;
+import static com.android.tools.idea.welcome.wizard.SdkComponentsStepKt.isExistingSdk;
+import static com.android.tools.idea.welcome.wizard.SdkComponentsStepKt.isNonEmptyNonSdk;
+
 import com.android.tools.adtui.validation.Validator;
-import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.ComponentTreeNode;
@@ -25,14 +28,12 @@ import com.android.tools.idea.welcome.install.InstallableComponent;
 import com.android.tools.idea.welcome.wizard.WelcomeUiUtils;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
-import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBLoadingPanel;
@@ -50,9 +51,7 @@ import java.awt.Container;
 import java.awt.Font;
 import java.awt.event.KeyEvent;
 import java.io.File;
-import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import javax.accessibility.AccessibleContext;
 import javax.swing.AbstractCellEditor;
@@ -70,8 +69,6 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
-import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -79,12 +76,13 @@ import org.jetbrains.annotations.Nullable;
  * Wizard page for selecting SDK components to download.
  * @deprecated use {@link com.android.tools.idea.welcome.wizard.SdkComponentsStep}
  */
+@Deprecated
 public class SdkComponentsStep extends FirstRunWizardStep implements Disposable {
   @NotNull private final ComponentTreeNode myRootNode;
   @NotNull private final FirstRunWizardMode myMode;
   @NotNull private final ScopedStateStore.Key<Boolean> myKeyCustomInstall;
   private final ScopedStateStore.Key<String> mySdkDownloadPathKey;
-  private final ComponentsTableModel myTableModel;
+  private final com.android.tools.idea.welcome.wizard.SdkComponentsStep.ComponentsTableModel myTableModel;
 
   private JPanel myContents;
   private JBTable myComponentsTable;
@@ -124,7 +122,7 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
     myAvailableSpace.setFont(smallLabelFont);
     myErrorMessage.setText(null);
 
-    myTableModel = new ComponentsTableModel(rootNode);
+    myTableModel = new com.android.tools.idea.welcome.wizard.SdkComponentsStep.ComponentsTableModel(rootNode);
     myComponentsTable.setModel(myTableModel);
     myComponentsTable.setTableHeader(null);
     myComponentsTable.getSelectionModel().addListSelectionListener(e -> {
@@ -156,70 +154,6 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
     myContentPanel.setLoadingText("Error loading components");
     myLoading = false;
     invokeUpdate(null);
-  }
-
-  @Nullable
-  private static File getExistingParentFile(@Nullable String path) {
-    if (StringUtil.isEmpty(path)) {
-      return null;
-    }
-    File file = new File(path).getAbsoluteFile();
-    while (file != null && !file.exists()) {
-      file = file.getParentFile();
-    }
-    return file;
-  }
-
-  private static String getDiskSpace(@Nullable String path) {
-    File file = getTargetFilesystem(path);
-    if (file == null) {
-      return "";
-    }
-    String available = WelcomeUiUtils.getSizeLabel(file.getFreeSpace());
-    if (SystemInfo.isWindows) {
-      while (file.getParentFile() != null) {
-        file = file.getParentFile();
-      }
-      return String.format("Disk space available on drive %s: %s", file.getName(), available);
-    }
-    else {
-      return String.format("Available disk space: %s", available);
-    }
-  }
-
-  @Nullable
-  private static File getTargetFilesystem(@Nullable String path) {
-    File file = getExistingParentFile(path);
-    if (file == null) {
-      File[] files = File.listRoots();
-      if (files.length != 0) {
-        file = files[0];
-      }
-    }
-    return file;
-  }
-
-  @Contract("null->false")
-  private static boolean isExistingSdk(@Nullable String path) {
-    if (!StringUtil.isEmptyOrSpaces(path)) {
-      File file = new File(path);
-      return file.isDirectory() && IdeSdks.getInstance().isValidAndroidSdkPath(file);
-    }
-    else {
-      return false;
-    }
-  }
-
-  private static boolean isNonEmptyNonSdk(@Nullable String path) {
-    if (path == null) {
-      return false;
-    }
-    File file = new File(path);
-
-    if (file.exists() && FileOpUtils.create().listFiles(file).length != 0) {
-      return AndroidSdkData.getSdkData(file) == null;
-    }
-    return false;
   }
 
   @Override
@@ -522,65 +456,6 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
 
         super.requestFocus();
       }
-    }
-  }
-
-  private static final class ComponentsTableModel extends AbstractTableModel {
-    private final List<Pair<ComponentTreeNode, Integer>> myComponents;
-
-    ComponentsTableModel(final ComponentTreeNode component) {
-      ImmutableList.Builder<Pair<ComponentTreeNode, Integer>> components = ImmutableList.builder();
-      // Note that root component is not present in the table model so the tree appears to have multiple roots
-      traverse(component.getImmediateChildren(), 0, components);
-      myComponents = components.build();
-    }
-
-    private static void traverse(Collection<ComponentTreeNode> children,
-                                 int indent,
-                                 ImmutableList.Builder<Pair<ComponentTreeNode, Integer>> components) {
-      for (ComponentTreeNode child : children) {
-        components.add(Pair.create(child, indent));
-        traverse(child.getImmediateChildren(), indent + 1, components);
-      }
-    }
-
-    @Override
-    public boolean isCellEditable(int rowIndex, int columnIndex) {
-      return columnIndex == 0 && getInstallableComponent(rowIndex).isEnabled();
-    }
-
-    @Override
-    public int getRowCount() {
-      return myComponents.size();
-    }
-
-    @Override
-    public int getColumnCount() {
-      return 1;
-    }
-
-    @Override
-    public Object getValueAt(int rowIndex, int columnIndex) {
-      return myComponents.get(rowIndex);
-    }
-
-    @NotNull
-    private ComponentTreeNode getInstallableComponent(int rowIndex) {
-      return myComponents.get(rowIndex).getFirst();
-    }
-
-    @Override
-    public void setValueAt(Object aValue, int row, int column) {
-      ComponentTreeNode node = getInstallableComponent(row);
-      node.toggle(((Boolean)aValue));
-      // We need to repaint as a change in a single row may affect the state of
-      // our parent and/or children in other rows.
-      // Note: Don't use fireTableDataChanged to avoid clearing the selection.
-      fireTableRowsUpdated(0, getRowCount());
-    }
-
-    public String getComponentDescription(int index) {
-      return getInstallableComponent(index).getDescription();
     }
   }
 }

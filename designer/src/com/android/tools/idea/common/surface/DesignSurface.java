@@ -550,7 +550,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     model.removeListener(myModelListener);
 
     Disposer.dispose(manager);
-    revalidateScrollArea();
+    UIUtil.invokeLaterIfNeeded(() -> revalidateScrollArea());
     return true;
   }
 
@@ -618,19 +618,16 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @Override
   public void dispose() {
     myInteractionManager.stopListening();
-    for (NlModel model : getModels()) {
-      model.getConfiguration().removeListener(myConfigurationListener);
-      model.removeListener(myModelListener);
-    }
-
     if (myRepaintTimer.isRunning()) {
       myRepaintTimer.stop();
     }
+    getModels().forEach(this::removeModelImpl);
   }
 
   /**
    * Re-layouts the ScreenViews contained in this design surface immediately.
    */
+  @UiThread
   public void validateScrollArea() {
     mySceneViewPanel.invalidate();
     myScrollPane.invalidate();
@@ -642,6 +639,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * Asks the ScreenViews for a re-layouts the ScreenViews contained in this design surface. The re-layout will not happen immediately in
    * this call.
    */
+  @UiThread
   public void revalidateScrollArea() {
     mySceneViewPanel.invalidate();
     myScrollPane.revalidate();
@@ -1540,7 +1538,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   public void setScrollViewSizeAndValidate(@SwingCoordinate int width, @SwingCoordinate int height) {
     myScrollPane.setSize(width, height);
     myScrollPane.doLayout();
-    validateScrollArea();
+    UIUtil.invokeAndWaitIfNeeded((Runnable)() -> validateScrollArea());
   }
 
   /**

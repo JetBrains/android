@@ -36,7 +36,6 @@ import com.intellij.openapi.externalSystem.service.project.IdeModelsProvider
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.ExternalProjectSystemRegistry
 import com.intellij.openapi.util.io.FileUtil.getRelativePath
 import com.intellij.openapi.util.io.FileUtil.toSystemIndependentName
 import com.intellij.openapi.vfs.VfsUtilCore
@@ -115,7 +114,7 @@ private fun createAndroidFacet(module: Module, modelsProvider: IdeModifiableMode
   val model = modelsProvider.getModifiableFacetModel(module)
   val facetType = AndroidFacet.getFacetType()
   val facet = facetType.createFacet(module, AndroidFacet.NAME, facetType.createDefaultConfiguration(), null)
-  model.addFacet(facet, ExternalProjectSystemRegistry.getInstance().getExternalSource(module))
+  model.addFacet(facet)
   return facet
 }
 

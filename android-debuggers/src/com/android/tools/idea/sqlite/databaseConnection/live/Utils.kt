@@ -69,6 +69,36 @@ internal fun List<SqliteInspectorProtocol.Table>.toSqliteSchema(): SqliteSchema 
   return SqliteSchema(tables)
 }
 
+/**
+ * This method is used to handle synchronous errors from the on-device inspector.
+ *
+ * An on-device inspector can send an error as a response to a command (synchronous) or as an event (asynchronous).
+ * When detected, synchronous errors are thrown as exceptions so that they become part of the usual flow for errors:
+ * they cause the futures to fail and are shown in the views.
+ *
+ * Asynchronous errors are delivered to DatabaseInspectorProjectService that takes care of showing them.
+ */
+internal fun handleError(errorContent: SqliteInspectorProtocol.ErrorContent): Nothing {
+  val message = getErrorMessage(errorContent)
+  throw LiveInspectorException(message, errorContent.stackTrace)
+}
+
+internal fun getErrorMessage(errorContent: SqliteInspectorProtocol.ErrorContent): String {
+  return if (!errorContent.isRecoverable) {
+    "An error has occurred which requires you to restart your app. \n${errorContent.message}"
+  }
+  else {
+    errorContent.message
+  }
+}
+
 private fun SqliteInspectorProtocol.Column.toSqliteColumn(): SqliteColumn {
   return SqliteColumn(name, SqliteAffinity.fromTypename(type), !isNotNull, primaryKey > 0)
 }
+
+/**
+ * An exception from the on-device inspector.
+ * @param message The error message of the exception.
+ * @param onDeviceStackTrace The stack trace of the exception, captured on the device.
+ */
+data class LiveInspectorException(override val message: String, val onDeviceStackTrace: String) : RuntimeException()

@@ -21,12 +21,14 @@ import com.android.tools.idea.lang.androidSql.psi.AndroidSqlComparisonExpression
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlEquivalenceExpression
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlPsiTypes
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlVisitor
+import com.android.tools.idea.sqlite.model.SqliteValue
 import com.intellij.lang.ASTFactory
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runUndoTransparentWriteAction
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.parentOfType
+import java.util.Deque
 
 /**
  * Returns a SQLite statement where named parameters have been replaced with positional parameters (?)
@@ -64,6 +66,53 @@ fun replaceNamedParametersWithPositionalParameters(psiElement: PsiElement): Pars
   }
   return ParsedSqliteStatement(psiElementCopy.text, parametersNames)
 }
+
+/**
+ * Replaces all [AndroidSqlBindParameter]s with parameter values in [parameterValues],
+ * matching them by the order they have in the queue.
+ */
+fun inlineParameterValues(psiElement: PsiElement, parameterValues: Deque<SqliteValue>): String {
+  val psiElementCopy = psiElement.copy()
+
+  invokeAndWaitIfNeeded {
+    runUndoTransparentWriteAction {
+      val visitor = object : AndroidSqlVisitor() {
+        override fun visitBindParameter(bindParameter: AndroidSqlBindParameter) {
+          val leaf = when (val sqliteValue = parameterValues.pollFirst()) {
+            is SqliteValue.StringValue -> ASTFactory.leaf(AndroidSqlPsiTypes.SINGLE_QUOTE_STRING_LITERAL, "'${sqliteValue.value}'")
+            is SqliteValue.NullValue -> ASTFactory.leaf(AndroidSqlPsiTypes.NULL, "null")
+          }
+
+          bindParameter.node.replaceChild(bindParameter.node.firstChildNode, leaf)
+        }
+      }
+
+      PsiTreeUtil.processElements(psiElementCopy) { it.accept(visitor); true }
+    }
+  }
+  return psiElementCopy.text
+}
+
+/**
+ * Returns true if the SqliteStatement in [psiElement] has at least one [AndroidSqlBindParameter].
+ */
+fun needsBinding(psiElement: PsiElement): Boolean {
+  var needsBinding = false
+  invokeAndWaitIfNeeded {
+    runUndoTransparentWriteAction {
+      val visitor = object : AndroidSqlVisitor() {
+        override fun visitBindParameter(bindParameter: AndroidSqlBindParameter) {
+          needsBinding = true
+        }
+      }
+
+      // stop visiting after needsBinding becomes true
+      PsiTreeUtil.processElements(psiElement) { it.accept(visitor); !needsBinding }
+    }
+  }
+  return needsBinding
+}
+
 
 /**
  * @param statementText SQLite statement where parameters have been replaced with '?'

@@ -1,4 +1,5 @@
-MODULE: app
+MODULE: testDependentNativeModules
+MODULE: testDependentNativeModules.app
     by Facet:
         main (IDEA)
             ScopeType: MAIN
@@ -642,7 +643,7 @@ MODULE: app
                     file://./app/src/androidTestDebug/shaders
                 MlModelsDirectoryUrls:
                     file://./app/src/androidTestDebug/ml
-MODULE: lib1
+MODULE: testDependentNativeModules.lib1
     by Facet:
         main (IDEA)
             ScopeType: MAIN
@@ -1278,7 +1279,7 @@ MODULE: lib1
                     file://./lib1/src/androidTestDebug/shaders
                 MlModelsDirectoryUrls:
                     file://./lib1/src/androidTestDebug/ml
-MODULE: lib2
+MODULE: testDependentNativeModules.lib2
     by Facet:
         main (IDEA)
             ScopeType: MAIN
@@ -1914,7 +1915,7 @@ MODULE: lib2
                     file://./lib2/src/androidTestDebug/shaders
                 MlModelsDirectoryUrls:
                     file://./lib2/src/androidTestDebug/ml
-MODULE: lib3
+MODULE: testDependentNativeModules.lib3
     by Facet:
         main (IDEA)
             ScopeType: MAIN
@@ -2550,4 +2551,3 @@ MODULE: lib3
                     file://./lib3/src/androidTestDebug/shaders
                 MlModelsDirectoryUrls:
                     file://./lib3/src/androidTestDebug/ml
-MODULE: testDependentNativeModules

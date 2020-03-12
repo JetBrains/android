@@ -15,10 +15,12 @@
  */
 package com.android.tools.adtui
 
+import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.common.clickableTextColor
 import com.android.tools.adtui.model.formatter.NumberFormatter
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ui.components.JBLabel
+import java.awt.Font
 import java.awt.event.MouseEvent
 import java.awt.event.MouseListener
 import java.awt.font.TextAttribute
@@ -34,36 +36,37 @@ import javax.swing.SwingConstants
  */
 class StatLabel @JvmOverloads constructor (num: Long,
                                            desc: String,
-                                           private val myAction: Runnable? = null) : JPanel() {
-  private val myNumLabel = JBLabel()
-  private val myDescLabel = JBLabel(desc)
+                                           numFont: Font = AdtUiUtils.DEFAULT_FONT,
+                                           descFont: Font = AdtUiUtils.DEFAULT_FONT,
+                                           private val action: Runnable? = null) : JPanel() {
+  private val numLabel = JBLabel().apply { font = numFont }
+  private val descLabel = JBLabel(desc).apply { font = descFont }
 
   var intContent: Long = num
     set(newInt) {
-      myNumLabel.text = NumberFormatter.formatInteger(newInt)
+      numLabel.text = NumberFormatter.formatInteger(newInt)
     }
 
   var icon: Icon?
-    get() = myNumLabel.icon
+    get() = numLabel.icon
     set(newIcon) {
-      myNumLabel.icon = newIcon
+      numLabel.icon = newIcon
     }
 
   init {
     intContent = num
     layout = BoxLayout(this, BoxLayout.Y_AXIS)
     border = BorderFactory.createEmptyBorder(4, 6, 4, 6)
-    myNumLabel.horizontalTextPosition = SwingConstants.LEFT
-    add(myNumLabel)
-    add(myDescLabel)
-    myNumLabel.font = myNumLabel.font.deriveFont(18f)
+    numLabel.horizontalTextPosition = SwingConstants.LEFT
+    add(numLabel)
+    add(descLabel)
 
     // If there is an associated action, visually indicate so
-    if(myAction != null) {
-      myNumLabel.foreground = clickableTextColor
-      myDescLabel.foreground = clickableTextColor
-      val (numOff, numOn) = makeUnderlinedFontSwitchers(myNumLabel)
-      val (descOff, descOn) = makeUnderlinedFontSwitchers(myDescLabel)
+    if(action != null) {
+      numLabel.foreground = clickableTextColor
+      descLabel.foreground = clickableTextColor
+      val (numOff, numOn) = makeUnderlinedFontSwitchers(numLabel)
+      val (descOff, descOn) = makeUnderlinedFontSwitchers(descLabel)
       addMouseListener(object : MouseListener {
         override fun mouseEntered(e: MouseEvent?) {
           numOn()
@@ -73,7 +76,7 @@ class StatLabel @JvmOverloads constructor (num: Long,
           numOff()
           descOff()
         }
-        override fun mouseClicked(e: MouseEvent?) = myAction.run()
+        override fun mouseClicked(e: MouseEvent?) = action.run()
         override fun mousePressed(e: MouseEvent?) { }
         override fun mouseReleased(e: MouseEvent?) { }
       })
@@ -81,7 +84,7 @@ class StatLabel @JvmOverloads constructor (num: Long,
   }
 
   @VisibleForTesting
-  fun getNumText() = myNumLabel.text
+  fun getNumText() = numLabel.text
 }
 
 /**

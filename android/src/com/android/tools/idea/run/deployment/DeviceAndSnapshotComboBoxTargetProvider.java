@@ -83,6 +83,6 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetP
   @NotNull
   @Override
   public DeployTarget<State> getDeployTarget(@NotNull Project project) {
-    return new DeviceAndSnapshotComboBoxTarget(DeviceAndSnapshotComboBoxAction.getSelectedDevices(project));
+    return new DeviceAndSnapshotComboBoxTarget(DeviceAndSnapshotComboBoxAction.getInstance().getSelectedDevices(project));
   }
 }

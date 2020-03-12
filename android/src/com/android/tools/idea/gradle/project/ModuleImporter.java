@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import static java.util.stream.Collectors.toList;
+
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -89,7 +92,9 @@ public abstract class ModuleImporter {
   // TODO: Consider creating an extension point
   @NotNull
   private static ModuleImporter[] createImporters(@NotNull WizardContext context) {
-    ModuleImporter[] importers = {new AdtModuleImporter(context), new GradleModuleImporter(context)};
+    ModuleImporter[] importers =
+      ContainerUtil.map(AndroidModuleImporter.IMPORTER.getExtensionList(), it -> it.create(context))
+        .toArray(new ModuleImporter[0]);
     context.putUserData(KEY_IMPORTERS, importers);
     return importers;
   }

@@ -20,6 +20,7 @@ import static com.android.tools.idea.transport.faketransport.FakeTransportServic
 import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CLASS;
 import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE;
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assume.assumeTrue;
 
 import com.android.ddmlib.allocations.AllocationsParserTest;
 import com.android.tools.adtui.model.FakeTimer;
@@ -35,6 +36,7 @@ import com.android.tools.profiler.proto.Memory.MemoryAllocSamplingData;
 import com.android.tools.profiler.proto.Memory.TrackStatus.Status;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRateEvent;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
+import com.android.tools.profilers.FakeFeatureTracker;
 import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.ProfilersTestData;
@@ -53,13 +55,14 @@ import com.android.tools.profilers.network.FakeNetworkService;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.intellij.util.ArrayUtil;
+import com.intellij.util.containers.ContainerUtil;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
@@ -74,7 +77,7 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
   }
 
   @NotNull private final ByteBuffer FAKE_ALLOC_BUFFER = AllocationsParserTest.putAllocationInfo(
-    new String[0], new String[0], new String[0], new int[0][], new short[0][][]
+    ArrayUtil.EMPTY_STRING_ARRAY, ArrayUtil.EMPTY_STRING_ARRAY, ArrayUtil.EMPTY_STRING_ARRAY, new int[0][], new short[0][][]
   );
 
   @NotNull private final FakeMemoryService myService = new FakeMemoryService();
@@ -164,6 +167,22 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertThat(capture.isError()).isFalse();
     myAspectObserver.assertAndResetCounts(0, 0, 1, 0, 1, 0, 0, 0);
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.EXPANDED);
+  }
+
+  @Test
+  public void testToggleNativeAllocationTracking() {
+    assumeTrue(myUnifiedPipeline);
+    assertThat(myStage.isTrackingAllocations()).isFalse();
+    assertThat(((FakeFeatureTracker)myIdeProfilerServices.getFeatureTracker()).isTrackRecordAllocationsCalled()).isFalse();
+    // Validate we enable tracking allocations
+    myStage.toggleNativeAllocationTracking();
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(myStage.isTrackingAllocations()).isTrue();
+    assertThat(((FakeFeatureTracker)myIdeProfilerServices.getFeatureTracker()).isTrackRecordAllocationsCalled()).isTrue();
+    // Validate we disable tracking allocations
+    myStage.toggleNativeAllocationTracking();
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(myStage.isTrackingAllocations()).isFalse();
   }
 
   @Test
@@ -629,9 +648,7 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
   @Test
   public void testLegendsOrder() {
     MemoryProfilerStage.MemoryStageLegends legends = myStage.getLegends();
-    List<String> legendNames = legends.getLegends().stream()
-      .map(legend -> legend.getName())
-      .collect(Collectors.toList());
+    List<String> legendNames = ContainerUtil.map(legends.getLegends(), legend -> legend.getName());
     assertThat(legendNames).containsExactly("Total", "Java", "Native", "Graphics", "Stack", "Code", "Others", "Allocated")
       .inOrder();
   }
@@ -639,9 +656,7 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
   @Test
   public void testTooltipLegendsOrder() {
     MemoryProfilerStage.MemoryStageLegends legends = myStage.getTooltipLegends();
-    List<String> legendNames = legends.getLegends().stream()
-      .map(legend -> legend.getName())
-      .collect(Collectors.toList());
+    List<String> legendNames = ContainerUtil.map(legends.getLegends(), legend -> legend.getName());
     assertThat(legendNames)
       .containsExactly("Others", "Code", "Stack", "Graphics", "Native", "Java", "Allocated", "Tracking", "GC Duration", "Total")
       .inOrder();

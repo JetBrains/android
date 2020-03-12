@@ -16,13 +16,13 @@
 package com.android.tools.idea.editors.strings.table;
 
 import com.intellij.ui.ColoredTableCellRenderer;
+import javax.swing.JTable;
+import javax.swing.table.TableModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-
-class FrozenColumnTableCellRenderer extends ColoredTableCellRenderer {
-  void customizeCellRenderer(@NotNull FrozenColumnTable table, @Nullable Object value, int viewRowIndex, int viewColumnIndex) {
+class FrozenColumnTableCellRenderer<M extends TableModel> extends ColoredTableCellRenderer {
+  void customizeCellRenderer(@NotNull FrozenColumnTable<M> table, @Nullable Object value, int viewRowIndex, int viewColumnIndex) {
   }
 
   @Override
@@ -32,7 +32,9 @@ class FrozenColumnTableCellRenderer extends ColoredTableCellRenderer {
                                              boolean focusOwner,
                                              int viewRowIndex,
                                              int viewColumnIndex) {
-    FrozenColumnTable frozenColumnTable = ((SubTable)subTable).getFrozenColumnTable();
+    @SuppressWarnings("unchecked")
+    FrozenColumnTable<M> frozenColumnTable = ((SubTable<M>)subTable).getFrozenColumnTable();
+
     JTable frozenTable = frozenColumnTable.getFrozenTable();
 
     if (subTable == frozenTable) {

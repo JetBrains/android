@@ -22,6 +22,7 @@ import com.android.tools.idea.sqlite.sqlLanguage.SqliteSchemaContext
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CustomShortcutSet
+import com.intellij.openapi.application.TransactionGuard
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
@@ -77,8 +78,11 @@ class SqliteEvaluatorViewImpl(
     val schema = schemaProvider.getSchema(database)
 
     FileDocumentManager.getInstance().getFile(expandableEditor.editor.document)?.putUserData(SqliteSchemaContext.SQLITE_SCHEMA_KEY, schema)
-    // since the schema has changed we need to drop psi caches to re-run reference resolution and highlighting in the editor text field.
-    PsiManager.getInstance(project).dropPsiCaches()
+
+    TransactionGuard.submitTransaction(project, Runnable {
+      // since the schema has changed we need to drop psi caches to re-run reference resolution and highlighting in the editor text field.
+      PsiManager.getInstance(project).dropPsiCaches()
+    })
   }
 
   override fun addDatabase(database: SqliteDatabase, index: Int) {
@@ -87,7 +91,12 @@ class SqliteEvaluatorViewImpl(
   }
 
   override fun selectDatabase(database: SqliteDatabase) {
-    evaluatorPanel.databaseComboBox.selectedItem = ComboBoxItem(database, database.name)
+    // Avoid setting the item if it's already selected, so we don't trigger the action listener for now reason.
+    val itemToSelect = ComboBoxItem(database, database.name)
+    val currentlySelectedItem = evaluatorPanel.databaseComboBox.selectedItem
+    if (itemToSelect != currentlySelectedItem) {
+      evaluatorPanel.databaseComboBox.selectedItem = itemToSelect
+    }
   }
 
   override fun removeDatabase(index: Int) {

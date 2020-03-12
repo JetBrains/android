@@ -25,7 +25,6 @@ import com.intellij.execution.lineMarker.RunLineMarkerContributor
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import icons.StudioIcons
-import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
@@ -44,10 +43,7 @@ class ComposePreviewRunLineMarkerContributor : RunLineMarkerContributor() {
     // Marker should be in a single LeafPsiElement. We choose the identifier and return null for other elements within the function.
     if (element !is LeafPsiElement) return null
     if (element.node.elementType != KtTokens.IDENTIFIER) return null
-
-    // We should only be able to run Android modules that are not a library.
-    val facet = element.getModuleSystem()?.module?.let { AndroidFacet.getInstance(it) } ?: return null
-    if (facet.configuration.isLibraryProject) return null
+    if (element.getModuleSystem()?.module?.isNonLibraryAndroidModule() != true) return null
 
     (element.parent as? KtNamedFunction)?.takeIf { it.isValidComposePreview() }?.let {
       return Info(StudioIcons.Compose.RUN_ON_DEVICE, ExecutorAction.getActions()) { _ -> message("run.line.marker.text", it.name!!) }

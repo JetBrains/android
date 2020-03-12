@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_APPLY_
 import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_APPLY_FILE_WITH_VARIABLES_APPLIED
 import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_BUILD_SCRIPT_APPLIED_DEPENDENCIES
 import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_BUILD_SCRIPT_APPLIED_DEPENDENCIES_APPLIED
+import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_BUILD_SCRIPT_APPLIED_DEPENDENCIES_APPLIED_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_BUILD_SCRIPT_APPLIED_IN_PARENT_MODULE
 import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_BUILD_SCRIPT_APPLIED_IN_PARENT_MODULE_APPLIED
 import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_BUILD_SCRIPT_APPLIED_IN_PARENT_MODULE_SUB
@@ -42,7 +43,6 @@ import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_SETUP_
 import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_SUBPROJECTS_APPLIED_DEPENDENCIES
 import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_VARIABLE_IN_BUILDSCRIPT
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTEGER_TYPE
@@ -506,18 +506,27 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
 
     fun verify(model: ArtifactDependencyModel) {
       verifyPropertyModel(model.completeModel(), STRING_TYPE, "com.android.tools.build:gradle:3.2.0", STRING, REGULAR, 1)
-      verifyPropertyModel(model.completeModel().unresolvedModel, STRING_TYPE, "deps.android_gradle_plugin", REFERENCE, REGULAR,
-                          1)
+      verifyPropertyModel(model.completeModel().unresolvedModel, STRING_TYPE,
+                          if (isGroovy) "deps.android_gradle_plugin" else "extra[\"deps\"][\"android_gradle_plugin\"]",
+                          REFERENCE, REGULAR, 1)
       assertThat(model.completeModel().resultModel.getRawValue(STRING_TYPE),
-                 equalTo("com.android.tools.build:gradle:${'$'}versions.android_gradle_plugin"))
+                 equalTo(
+                   if (isGroovy)
+                     "com.android.tools.build:gradle:${'$'}versions.android_gradle_plugin"
+                   else
+                     "com.android.tools.build:gradle:\${versions[\"android_gradle_plugin\"]}"))
       verifyPropertyModel(model.version(), STRING_TYPE, "3.2.0", STRING, FAKE, 1)
-      verifyPropertyModel(model.version().resultModel, STRING_TYPE, "3.2.0", STRING, REGULAR, 0)
+      verifyPropertyModel(model.version().resultModel, STRING_TYPE, "3.2.0", STRING, if (isGroovy) REGULAR else DERIVED, 0)
     }
     verify(classPathProperty)
     verify(depsProperty)
     applyChangesAndReparse(buildModel)
     verify(classPathProperty)
     verify(depsProperty)
+
+    verifyFileContents(myBuildFile, PROPERTY_DEPENDENCY_BUILD_SCRIPT_APPLIED_DEPENDENCIES)
+    verifyFileContents(myProjectBasePath.findChild("versions$myTestDataExtension")!!,
+                       PROPERTY_DEPENDENCY_BUILD_SCRIPT_APPLIED_DEPENDENCIES_APPLIED_EXPECTED)
   }
 
   @Test
@@ -531,13 +540,17 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     val artModel = buildModel.dependencies().artifacts()[0]
 
     verifyPropertyModel(artModel.completeModel(), STRING_TYPE, "com.android.tools.build:gradle:3.1.0", STRING, REGULAR, 1)
-    verifyPropertyModel(artModel.completeModel().unresolvedModel, STRING_TYPE, "rootProject.ext.deps.android_gradle_plugin", REFERENCE,
-                        REGULAR,
-                        1)
+    verifyPropertyModel(artModel.completeModel().unresolvedModel, STRING_TYPE,
+                        if (isGroovy) "rootProject.ext.deps.android_gradle_plugin" else "rootProject.extra[\"deps\"][\"android_gradle_plugin\"]",
+                        REFERENCE, REGULAR, 1)
     assertThat(artModel.completeModel().resultModel.getRawValue(STRING_TYPE),
-               equalTo("com.android.tools.build:gradle:${'$'}versions.android_gradle_plugin"))
+               equalTo(
+                 if (isGroovy)
+                   "com.android.tools.build:gradle:${'$'}versions.android_gradle_plugin"
+                 else
+                   "com.android.tools.build:gradle:\${versions[\"android_gradle_plugin\"]}"))
     verifyPropertyModel(artModel.version(), STRING_TYPE, "3.1.0", STRING, FAKE, 1)
-    verifyPropertyModel(artModel.version().resultModel, STRING_TYPE, "3.1.0", STRING, REGULAR, 0)
+    verifyPropertyModel(artModel.version().resultModel, STRING_TYPE, "3.1.0", STRING, if (isGroovy) REGULAR else DERIVED, 0)
   }
 
   @Test
@@ -570,7 +583,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     val buildModel = gradleBuildModel
     val artModel = buildModel.dependencies().artifacts()[0]
 
-    verifyPropertyModel(artModel.completeModel(), STRING_TYPE, "super:powers:1.0.0", STRING, DERIVED, 3)
+    verifyPropertyModel(artModel.completeModel(), STRING_TYPE, "super:powers:1.0.0", STRING, if (isGroovy) DERIVED else REGULAR, 3)
   }
 
   @Test

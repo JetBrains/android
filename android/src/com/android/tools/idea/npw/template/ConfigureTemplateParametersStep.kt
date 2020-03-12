@@ -51,7 +51,6 @@ import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.template.CheckBoxWidget
 import com.android.tools.idea.wizard.template.Constraint
 import com.android.tools.idea.wizard.template.Constraint.ACTIVITY
-import com.android.tools.idea.wizard.template.Constraint.API_LEVEL
 import com.android.tools.idea.wizard.template.Constraint.APP_PACKAGE
 import com.android.tools.idea.wizard.template.Constraint.CLASS
 import com.android.tools.idea.wizard.template.Constraint.DRAWABLE
@@ -102,7 +101,7 @@ import javax.swing.JPanel
 import javax.swing.SwingConstants
 
 val TYPE_CONSTRAINTS: EnumSet<Constraint> = EnumSet.of(
-  ACTIVITY, API_LEVEL, CLASS, PACKAGE, APP_PACKAGE, MODULE, LAYOUT, DRAWABLE, ID, SOURCE_SET_FOLDER, STRING, URI_AUTHORITY
+  ACTIVITY, CLASS, PACKAGE, APP_PACKAGE, MODULE, LAYOUT, DRAWABLE, ID, SOURCE_SET_FOLDER, STRING, URI_AUTHORITY
 )
 
 fun Parameter<*>.isRelated(p: Parameter<*>): Boolean =
@@ -165,7 +164,7 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
    * Get the current thumbnail path.
    */
   private val thumbnailPath: String
-    get() = model.newTemplate.thumb().path.path
+    get() = model.newTemplate.thumb().path().path
 
   // TODO(qumeric): probably model.project should be nullable instead of lateinit.
   private val project: Project? get() = if (model.isNewProject) null else model.project
@@ -196,7 +195,7 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
     val thumb = IconProperty(templateThumbLabel)
     val thumbVisibility = VisibleProperty(templateThumbLabel)
     bindings.apply {
-      bindExpression(thumb, thumbPath) { thumbnailsCache.getUnchecked(newTemplate.thumb().path) }
+      bindExpression(thumb, thumbPath) { thumbnailsCache.getUnchecked(newTemplate.thumb().path()) }
       bindExpression(thumbVisibility, thumb) { thumb.get().isPresent }
     }
     thumbPath.set(thumbnailPath)

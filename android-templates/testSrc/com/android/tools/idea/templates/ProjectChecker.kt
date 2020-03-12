@@ -40,6 +40,7 @@ import com.android.tools.idea.testing.AndroidGradleTests.updateLocalRepositories
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.util.toVirtualFile
+import com.android.tools.idea.wizard.template.BytecodeLevel
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
@@ -161,7 +162,7 @@ data class ProjectChecker(
     val moduleRecipe: Recipe = when (template.formFactor) {
       // TODO(qumeric): support C++
       // TODO(qumeric): investigate why it requires 1.8 and does not work with 1.7
-      FormFactor.Mobile -> { data: TemplateData -> this.generateAndroidModule(data as ModuleTemplateData, appTitle, false, false, "", "1.8") }
+      FormFactor.Mobile -> { data: TemplateData -> this.generateAndroidModule(data as ModuleTemplateData, appTitle, false, false, "", BytecodeLevel.L8) }
       FormFactor.Wear -> { data: TemplateData -> this.generateWearModule(data as ModuleTemplateData, appTitle, false) }
       FormFactor.Tv -> { data: TemplateData -> this.generateTvModule(data as ModuleTemplateData, appTitle, false) }
       FormFactor.Automotive -> { data: TemplateData -> this.generateAutomotiveModule(data as ModuleTemplateData, appTitle, false) }

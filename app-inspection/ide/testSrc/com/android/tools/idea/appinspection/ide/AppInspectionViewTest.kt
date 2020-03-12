@@ -78,7 +78,7 @@ class AppInspectionViewTest {
     val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
     val discoveryHost = AppInspectionDiscoveryHost(executor, TransportClient(grpcServerRule.name))
 
-    val inspectionView = AppInspectionView(discoveryHost)
+    val inspectionView = AppInspectionView(projectRule.project, discoveryHost)
     val newProcessLatch = CountDownLatch(1)
     val tabAddedLatch = CountDownLatch(2)
     discoveryHost.discovery.addTargetListener(appInspectionServiceRule.executorService) {

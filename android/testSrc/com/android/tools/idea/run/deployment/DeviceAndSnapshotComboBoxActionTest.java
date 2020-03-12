@@ -26,9 +26,13 @@ import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.editor.DeployTargetContext;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.android.tools.idea.testing.AndroidProjectRule;
+import com.intellij.execution.DefaultExecutionTarget;
+import com.intellij.execution.ExecutionTargetManager;
+import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunConfigurationBase;
+import com.intellij.ide.util.ProjectPropertiesComponentImpl;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
@@ -62,6 +66,12 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
   private Clock myClock;
 
+  private PropertiesComponent myProperties;
+
+  private RunManager myRunManager;
+
+  private ExecutionTargetManager myExecutionTargetManager;
+
   private Project myProject;
   private Presentation myPresentation;
   private AnActionEvent myEvent;
@@ -77,6 +87,22 @@ public final class DeviceAndSnapshotComboBoxActionTest {
   public void mockClock() {
     myClock = Mockito.mock(Clock.class);
     Mockito.when(myClock.instant()).thenReturn(Instant.parse("2018-11-28T01:15:27.000Z"));
+  }
+
+  @Before
+  public void mockProperties() {
+    myProperties = Mockito.mock(PropertiesComponent.class);
+  }
+
+  @Before
+  public void mockRunManager() {
+    myRunManager = Mockito.mock(RunManager.class);
+  }
+
+  @Before
+  public void mockExecutionTargetManager() {
+    myExecutionTargetManager = Mockito.mock(ExecutionTargetManager.class);
+    Mockito.when(myExecutionTargetManager.getActiveTarget()).thenReturn(DefaultExecutionTarget.INSTANCE);
   }
 
   @Before
@@ -99,11 +125,11 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
   @Test
   public void getSelectedDeviceDevicesIsEmpty() {
-    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
-      () -> true,
-      project -> myDevicesGetter,
-      project -> null,
-      myClock);
+    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
+      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(() -> true)
+      .setDevicesGetterGetter(project -> myDevicesGetter)
+      .setClock(myClock)
+      .build();
 
     assertNull(action.getSelectedDevice(myProject));
   }
@@ -118,11 +144,14 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     Device device = builder.build();
     Mockito.when(myDevicesGetter.get()).thenReturn(Collections.singletonList(device));
 
-    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
-      () -> true,
-      project -> myDevicesGetter,
-      PropertiesComponent::getInstance,
-      myClock);
+    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
+      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(() -> true)
+      .setDevicesGetterGetter(project -> myDevicesGetter)
+      .setGetProperties(project -> myProperties)
+      .setClock(myClock)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
+      .build();
 
     action.update(myEvent);
 
@@ -140,11 +169,14 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     Device device = builder.build();
     Mockito.when(myDevicesGetter.get()).thenReturn(Collections.singletonList(device));
 
-    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
-      () -> true,
-      project -> myDevicesGetter,
-      PropertiesComponent::getInstance,
-      myClock);
+    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
+      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(() -> true)
+      .setDevicesGetterGetter(project -> myDevicesGetter)
+      .setGetProperties(project -> myProperties)
+      .setClock(myClock)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
+      .build();
 
     action.update(myEvent);
     action.setSelectedDevice(myProject, builder.build());
@@ -162,11 +194,14 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     Device device = builder.build();
     Mockito.when(myDevicesGetter.get()).thenReturn(Collections.singletonList(device));
 
-    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
-      () -> true,
-      project -> myDevicesGetter,
-      PropertiesComponent::getInstance,
-      myClock);
+    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
+      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(() -> true)
+      .setDevicesGetterGetter(project -> myDevicesGetter)
+      .setGetProperties(project -> myProperties)
+      .setClock(myClock)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
+      .build();
 
     action.update(myEvent);
     action.setSelectedDevice(myProject, builder.build());
@@ -203,14 +238,15 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
     Mockito.when(myDevicesGetter.get()).thenReturn(Arrays.asList(pixel3ApiQ, pixel2ApiQ));
 
-    PropertiesComponent properties = Mockito.mock(PropertiesComponent.class);
-    Mockito.when(properties.getValue(DeviceAndSnapshotComboBoxAction.SELECTED_DEVICE)).thenReturn("Pixel_3_API_Q");
+    Mockito.when(myProperties.getValue(DeviceAndSnapshotComboBoxAction.SELECTED_DEVICE)).thenReturn("Pixel_3_API_Q");
 
-    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
-      () -> false,
-      project -> myDevicesGetter,
-      project -> properties,
-      myClock);
+    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
+      .setDevicesGetterGetter(project -> myDevicesGetter)
+      .setGetProperties(project -> myProperties)
+      .setClock(myClock)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
+      .build();
 
     action.update(myEvent);
 
@@ -231,11 +267,14 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     Device device1 = builder.build();
     Mockito.when(myDevicesGetter.get()).thenReturn(Collections.singletonList(device1));
 
-    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
-      () -> true,
-      project -> myDevicesGetter,
-      PropertiesComponent::getInstance,
-      myClock);
+    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
+      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(() -> true)
+      .setDevicesGetterGetter(project -> myDevicesGetter)
+      .setGetProperties(project -> myProperties)
+      .setClock(myClock)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
+      .build();
 
     action.update(myEvent);
     action.setSelectedDevice(myProject, builder.build());
@@ -256,7 +295,9 @@ public final class DeviceAndSnapshotComboBoxActionTest {
   @Test
   public void createCustomComponent() {
     // Arrange
-    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(() -> false, project -> null, project -> null, myClock);
+    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
+      .setClock(myClock)
+      .build();
 
     myPresentation.setIcon(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE);
 
@@ -274,11 +315,14 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
   @Test
   public void createPopupActionGroupActionsIsEmpty() {
-    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
-      () -> true,
-      project -> myDevicesGetter,
-      PropertiesComponent::getInstance,
-      myClock);
+    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
+      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(() -> true)
+      .setDevicesGetterGetter(project -> myDevicesGetter)
+      .setGetProperties(project -> myProperties)
+      .setClock(myClock)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
+      .build();
 
     action.update(myEvent);
     Object actualChildren = Arrays.asList(action.createPopupActionGroup(Mockito.mock(JComponent.class), myContext).getChildren(null));
@@ -301,11 +345,14 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     Device device = builder.build();
     Mockito.when(myDevicesGetter.get()).thenReturn(Collections.singletonList(device));
 
-    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
-      () -> true,
-      project -> myDevicesGetter,
-      PropertiesComponent::getInstance,
-      myClock);
+    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
+      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(() -> true)
+      .setDevicesGetterGetter(project -> myDevicesGetter)
+      .setGetProperties(project -> myProperties)
+      .setClock(myClock)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
+      .build();
 
     action.update(myEvent);
     Object actualChildren = Arrays.asList(action.createPopupActionGroup(Mockito.mock(JComponent.class), myContext).getChildren(null));
@@ -332,11 +379,13 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     Device device = builder.build();
     Mockito.when(myDevicesGetter.get()).thenReturn(Collections.singletonList(device));
 
-    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
-      () -> false,
-      project -> myDevicesGetter,
-      PropertiesComponent::getInstance,
-      myClock);
+    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
+      .setDevicesGetterGetter(project -> myDevicesGetter)
+      .setGetProperties(project -> myProperties)
+      .setClock(myClock)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
+      .build();
 
     action.update(myEvent);
     Object actualChildren = Arrays.asList(action.createPopupActionGroup(Mockito.mock(JComponent.class), myContext).getChildren(null));
@@ -370,11 +419,13 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
     Mockito.when(myDevicesGetter.get()).thenReturn(Arrays.asList(device1, device2));
 
-    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
-      () -> false,
-      project -> myDevicesGetter,
-      PropertiesComponent::getInstance,
-      myClock);
+    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
+      .setDevicesGetterGetter(project -> myDevicesGetter)
+      .setGetProperties(project -> myProperties)
+      .setClock(myClock)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
+      .build();
 
     action.update(myEvent);
     Object actualChildren = Arrays.asList(action.createPopupActionGroup(Mockito.mock(JComponent.class), myContext).getChildren(null));
@@ -404,11 +455,14 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     Device device = builder.build();
     Mockito.when(myDevicesGetter.get()).thenReturn(Collections.singletonList(device));
 
-    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
-      () -> true,
-      project -> myDevicesGetter,
-      PropertiesComponent::getInstance,
-      myClock);
+    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
+      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(() -> true)
+      .setDevicesGetterGetter(project -> myDevicesGetter)
+      .setGetProperties(project -> myProperties)
+      .setClock(myClock)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
+      .build();
 
     action.update(myEvent);
     Object actualChildren = Arrays.asList(action.createPopupActionGroup(Mockito.mock(JComponent.class), myContext).getChildren(null));
@@ -437,11 +491,13 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     Device device = builder.build();
     Mockito.when(myDevicesGetter.get()).thenReturn(Collections.singletonList(device));
 
-    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
-      () -> false,
-      project -> myDevicesGetter,
-      PropertiesComponent::getInstance,
-      myClock);
+    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
+      .setDevicesGetterGetter(project -> myDevicesGetter)
+      .setGetProperties(project -> myProperties)
+      .setClock(myClock)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
+      .build();
 
     action.update(myEvent);
     Object actualChildren = Arrays.asList(action.createPopupActionGroup(Mockito.mock(JComponent.class), myContext).getChildren(null));
@@ -576,7 +632,12 @@ public final class DeviceAndSnapshotComboBoxActionTest {
   @Test
   public void updateEventPlaceEqualsMainMenu() {
     // Arrange
-    AnAction action = new DeviceAndSnapshotComboBoxAction(() -> false, project -> myDevicesGetter, project -> null, myClock);
+    AnAction action = new DeviceAndSnapshotComboBoxAction.Builder()
+      .setDevicesGetterGetter(project -> myDevicesGetter)
+      .setClock(myClock)
+      .setGetRunManager(project -> myRunManager)
+      .build();
+
     Mockito.when(myEvent.getPlace()).thenReturn(ActionPlaces.MAIN_MENU);
 
     // Act
@@ -591,11 +652,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
   @Test
   public void updateMultipleDevicesIsSelected() {
     // Arrange
-    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
-      () -> false,
-      project -> null,
-      PropertiesComponent::getInstance,
-      myClock);
+    PropertiesComponent properties = new ProjectPropertiesComponentImpl();
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 2 API 29")
@@ -603,7 +660,15 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    action.setMultipleDevicesSelected(myProject, true, Collections.singletonList(device));
+    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
+      .setGetProperties(project -> properties)
+      .setClock(myClock)
+      .setGetSelectedDevices(project -> Collections.singletonList(device))
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
+      .build();
+
+    action.setMultipleDevicesSelected(myProject, true);
 
     // Act
     action.update(myEvent);
@@ -615,11 +680,14 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
   @Test
   public void updateDevicesIsEmpty() {
-    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
-      () -> true,
-      project -> myDevicesGetter,
-      PropertiesComponent::getInstance,
-      myClock);
+    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
+      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(() -> true)
+      .setDevicesGetterGetter(project -> myDevicesGetter)
+      .setGetProperties(project -> myProperties)
+      .setClock(myClock)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
+      .build();
 
     action.update(myEvent);
 
@@ -632,11 +700,15 @@ public final class DeviceAndSnapshotComboBoxActionTest {
   @Test
   public void updateDoesntClearSelectedDeviceWhenDevicesIsEmpty() {
     // Arrange
-    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
-      () -> false,
-      project -> myDevicesGetter,
-      PropertiesComponent::getInstance,
-      myClock);
+    PropertiesComponent properties = new ProjectPropertiesComponentImpl();
+
+    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
+      .setDevicesGetterGetter(project -> myDevicesGetter)
+      .setGetProperties(project -> properties)
+      .setClock(myClock)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
+      .build();
 
     Device pixel2XlApiQ = new VirtualDevice.Builder()
       .setName("Pixel 2 XL API Q")
@@ -671,11 +743,14 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     Device device = builder.build();
     Mockito.when(myDevicesGetter.get()).thenReturn(Collections.singletonList(device));
 
-    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
-      () -> true,
-      project -> myDevicesGetter,
-      PropertiesComponent::getInstance,
-      myClock);
+    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
+      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(() -> true)
+      .setDevicesGetterGetter(project -> myDevicesGetter)
+      .setGetProperties(project -> myProperties)
+      .setClock(myClock)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
+      .build();
 
     action.update(myEvent);
 
@@ -695,11 +770,14 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     Device device = builder.build();
     Mockito.when(myDevicesGetter.get()).thenReturn(Collections.singletonList(device));
 
-    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
-      () -> true,
-      project -> myDevicesGetter,
-      PropertiesComponent::getInstance,
-      myClock);
+    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
+      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(() -> true)
+      .setDevicesGetterGetter(project -> myDevicesGetter)
+      .setGetProperties(project -> myProperties)
+      .setClock(myClock)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
+      .build();
 
     action.setSelectedDevice(myProject, builder.build());
     action.update(myEvent);
@@ -726,11 +804,14 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
-      () -> true,
-      project -> myDevicesGetter,
-      PropertiesComponent::getInstance,
-      myClock);
+    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
+      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(() -> true)
+      .setDevicesGetterGetter(project -> myDevicesGetter)
+      .setGetProperties(project -> myProperties)
+      .setClock(myClock)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
+      .build();
 
     action.setSelectedDevice(myProject, device2);
     action.update(myEvent);
@@ -758,11 +839,13 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
     Mockito.when(myDevicesGetter.get()).thenReturn(Arrays.asList(lgeNexus5x1, lgeNexus5x2));
 
-    AnAction action = new DeviceAndSnapshotComboBoxAction(
-      () -> false,
-      project -> myDevicesGetter,
-      PropertiesComponent::getInstance,
-      myClock);
+    AnAction action = new DeviceAndSnapshotComboBoxAction.Builder()
+      .setDevicesGetterGetter(project -> myDevicesGetter)
+      .setGetProperties(project -> myProperties)
+      .setClock(myClock)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
+      .build();
 
     // Act
     action.update(myEvent);
@@ -782,11 +865,13 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
     Mockito.when(myDevicesGetter.get()).thenReturn(Collections.singletonList(apiQ64Google));
 
-    AnAction action = new DeviceAndSnapshotComboBoxAction(
-      () -> false,
-      project -> myDevicesGetter,
-      PropertiesComponent::getInstance,
-      myClock);
+    AnAction action = new DeviceAndSnapshotComboBoxAction.Builder()
+      .setDevicesGetterGetter(project -> myDevicesGetter)
+      .setGetProperties(project -> myProperties)
+      .setClock(myClock)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
+      .build();
 
     // Act
     action.update(myEvent);
@@ -806,11 +891,13 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     Device device = builder.build();
     Mockito.when(myDevicesGetter.get()).thenReturn(Collections.singletonList(device));
 
-    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
-      () -> false,
-      project -> myDevicesGetter,
-      PropertiesComponent::getInstance,
-      myClock);
+    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
+      .setDevicesGetterGetter(project -> myDevicesGetter)
+      .setGetProperties(project -> myProperties)
+      .setClock(myClock)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
+      .build();
 
     action.setSelectedDevice(myProject, builder.build());
     action.update(myEvent);
@@ -832,11 +919,13 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     Device device = builder.build();
     Mockito.when(myDevicesGetter.get()).thenReturn(Collections.singletonList(device));
 
-    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
-      () -> false,
-      project -> myDevicesGetter,
-      PropertiesComponent::getInstance,
-      myClock);
+    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
+      .setDevicesGetterGetter(project -> myDevicesGetter)
+      .setGetProperties(project -> myProperties)
+      .setClock(myClock)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
+      .build();
 
     action.setSelectedDevice(myProject, builder.build());
     action.update(myEvent);
@@ -858,11 +947,13 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     Device device = builder.build();
     Mockito.when(myDevicesGetter.get()).thenReturn(Collections.singletonList(device));
 
-    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
-      () -> false,
-      project -> myDevicesGetter,
-      PropertiesComponent::getInstance,
-      myClock);
+    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
+      .setDevicesGetterGetter(project -> myDevicesGetter)
+      .setGetProperties(project -> myProperties)
+      .setClock(myClock)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
+      .build();
 
     action.setSelectedDevice(myProject, builder.build());
     action.update(myEvent);
@@ -883,11 +974,14 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     Device device = builder.build();
     Mockito.when(myDevicesGetter.get()).thenReturn(Collections.singletonList(device));
 
-    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
-      () -> true,
-      project -> myDevicesGetter,
-      PropertiesComponent::getInstance,
-      myClock);
+    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
+      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(() -> true)
+      .setDevicesGetterGetter(project -> myDevicesGetter)
+      .setGetProperties(project -> myProperties)
+      .setClock(myClock)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
+      .build();
 
     action.setSelectedDevice(myProject, builder.build());
     action.update(myEvent);
@@ -911,11 +1005,13 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .thenReturn(Collections.emptyList())
       .thenReturn(Collections.singletonList(device));
 
-    AnAction action = new DeviceAndSnapshotComboBoxAction(
-      () -> false,
-      project -> myDevicesGetter,
-      PropertiesComponent::getInstance,
-      myClock);
+    AnAction action = new DeviceAndSnapshotComboBoxAction.Builder()
+      .setDevicesGetterGetter(project -> myDevicesGetter)
+      .setGetProperties(project -> myProperties)
+      .setClock(myClock)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
+      .build();
 
     // Act
     action.update(myEvent);

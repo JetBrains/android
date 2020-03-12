@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import java.util.Arrays;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,11 +53,8 @@ public class LayoutRenderingIssueValidationStrategy extends AndroidProjectValida
       text += " this can lead to layouts not rendering correctly.";
 
       SyncMessage message = new SyncMessage(DEFAULT_GROUP, WARNING, text);
-      //TODO(b/130224064): need to remove check when kts fully supported
-      if (!GradleUtil.hasKtsBuildFiles(getProject())) {
-        message.add(new FixAndroidGradlePluginVersionHyperlink());
-      }
-      message.add(new OpenUrlHyperlink("https://code.google.com/p/android/issues/detail?id=170841", "More Info..."));
+      message.add(Arrays.asList(new FixAndroidGradlePluginVersionHyperlink(),
+                                new OpenUrlHyperlink("https://code.google.com/p/android/issues/detail?id=170841", "More Info...")));
 
       GradleSyncMessages.getInstance(getProject()).report(message);
     }

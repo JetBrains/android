@@ -37,6 +37,7 @@ import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.adtui.model.formatter.NumberFormatter;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
+import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
@@ -45,23 +46,27 @@ import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
-import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
-import com.android.tools.profilers.memory.adapters.classifiers.Classifier;
-import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
+import com.android.tools.profilers.memory.adapters.ClassDb;
 import com.android.tools.profilers.memory.adapters.FakeCaptureObject;
 import com.android.tools.profilers.memory.adapters.FakeInstanceObject;
-import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.LiveAllocationCaptureObject;
 import com.android.tools.profilers.memory.adapters.MemoryObject;
+import com.android.tools.profilers.memory.adapters.NativeAllocationInstanceObject;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
+import com.android.tools.profilers.memory.adapters.classifiers.Classifier;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
+import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import com.android.tools.profilers.memory.adapters.classifiers.MethodSet;
 import com.android.tools.profilers.memory.adapters.classifiers.NativeAllocationMethodSet;
 import com.android.tools.profilers.memory.adapters.classifiers.NativeCallStackSet;
+import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapSet;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.util.containers.ImmutableList;
 import icons.StudioIcons;
+import java.lang.annotation.Native;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -674,13 +679,14 @@ public class MemoryClassifierViewTest {
     final String ALLOCATION_FUNCTION = "Test Function";
     ColoredTreeCellRenderer renderer = myClassifierView.getNameColumnRenderer();
     MemoryObjectTreeNode<NativeCallStackSet> node = mock(MemoryObjectTreeNode.class);
-    Mockito.when(node.getAdapter()).thenReturn(new NativeCallStackSet(ALLOCATION_FUNCTION, 0));
+    Mockito.when(node.getAdapter())
+      .thenReturn(new NativeCallStackSet(AllocationStack.StackFrame.newBuilder().setMethodName(ALLOCATION_FUNCTION).build(), 0));
     CaptureObject captureObject = new FakeCaptureObject.Builder().build();
     myStage
       .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObject)),
                              null);
     myStage.selectHeapSet(new FakeHeapSet());
-    renderer.customizeCellRenderer(myClassifierView.getTree(), node, false, false, false,  0, false);
+    renderer.customizeCellRenderer(myClassifierView.getTree(), node, false, false, false, 0, false);
     assertThat(renderer.getFragmentTag(0)).isEqualTo(ALLOCATION_FUNCTION);
     assertThat(renderer.getIcon()).isEqualTo(StudioIcons.Profiler.Overlays.METHOD_STACK);
   }
@@ -696,7 +702,7 @@ public class MemoryClassifierViewTest {
       .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObject)),
                              null);
     myStage.selectHeapSet(new FakeHeapSet());
-    renderer.customizeCellRenderer(myClassifierView.getTree(), node, false, false, false,  0, false);
+    renderer.customizeCellRenderer(myClassifierView.getTree(), node, false, false, false, 0, false);
     assertThat(renderer.getFragmentTag(0)).isEqualTo(ALLOCATION_FUNCTION);
     assertThat(renderer.getIcon()).isEqualTo(StudioIcons.Profiler.Overlays.ARRAY_STACK);
   }
@@ -747,6 +753,51 @@ public class MemoryClassifierViewTest {
     myStage.getStudioProfilers().getIdeServices().getCodeNavigator().navigate(codeLocation);
     myStage.getStudioProfilers().getIdeServices().getCodeNavigator().removeListener(myStage);
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
+  }
+
+  @Test
+  public void nativeNavigationTest() {
+    final String ALLOCATION_FUNCTION = "Test Function";
+    final String FILE_NAME = "/some/file/path";
+    final int LINE_NUMBER = 1234;
+    AllocationStack.StackFrame stack = AllocationStack.StackFrame.newBuilder().setMethodName(ALLOCATION_FUNCTION)
+      .setFileName(FILE_NAME)
+      .setLineNumber(LINE_NUMBER).build();
+    MemoryObjectTreeNode<NativeCallStackSet> node = mock(MemoryObjectTreeNode.class);
+    Mockito.when(node.getAdapter()).thenReturn(new NativeCallStackSet(stack, 1));
+    CaptureObject captureObject = new FakeCaptureObject.Builder().build();
+    myStage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<>(new Object(), () -> captureObject)), null);
+    myStage.getConfiguration().setClassGrouping(NATIVE_ARRANGE_BY_CALLSTACK);
+    NativeMemoryHeapSet heapSet = new NativeMemoryHeapSet(captureObject);
+    heapSet.addDeltaInstanceObject(new NativeAllocationInstanceObject(Memory.AllocationEvent.Allocation.getDefaultInstance(),
+                                                                      new ClassDb.ClassEntry(0, 0, ""),
+                                                                      AllocationStack.newBuilder().setFullStack(
+                                                                        AllocationStack.StackFrameWrapper.newBuilder().addFrames(stack))
+                                                                        .build(),
+                                                                      1));
+    myStage.selectHeapSet(heapSet);
+
+    JTree classifierTree = myClassifierView.getTree();
+    assertThat(classifierTree).isNotNull();
+
+    Object root = classifierTree.getModel().getRoot();
+    assertThat(root).isInstanceOf(MemoryObjectTreeNode.class);
+    assertThat(((MemoryObjectTreeNode)root).getAdapter()).isInstanceOf(HeapSet.class);
+    //noinspection unchecked
+    MemoryObjectTreeNode<ClassifierSet> rootNode = (MemoryObjectTreeNode<ClassifierSet>)root;
+    assertThat(rootNode.getChildCount()).isEqualTo(1);
+
+    assertThat(myStage.getSelectedClassSet()).isNull();
+    classifierTree.setSelectionRow(1);
+
+    Supplier<CodeLocation> codeLocationSupplier = myFakeIdeProfilerComponents.getCodeLocationSupplier(classifierTree);
+
+    assertThat(codeLocationSupplier).isNotNull();
+    CodeLocation codeLocation = codeLocationSupplier.get();
+    assertThat(codeLocation).isNotNull();
+    assertThat(codeLocation.getMethodName()).isEqualTo(ALLOCATION_FUNCTION);
+    assertThat(codeLocation.getFileName()).isEqualTo(FILE_NAME);
+    assertThat(codeLocation.getLineNumber()).isEqualTo(LINE_NUMBER - 1); // Correct for the base 0
   }
 
   @Test

@@ -145,7 +145,11 @@ public class ProfilerColors {
 
   public static final Color CAPTURE_SPARKLINE = new JBColor(0xC2D6F6, 0x455563);
 
+  public static final Color CAPTURE_SPARKLINE_ACCENT = new JBColor(0xA0B4D4, 0x677785);
+
   public static final Color CAPTURE_SPARKLINE_SELECTED = new JBColor(0x4785EB, 0x5887DC);
+
+  public static final Color CAPTURE_SPARKLINE_SELECTED_ACCENT = new JBColor(0x2563C9, 0x3665BA);
 
   public static final Color CPU_CAPTURE_BACKGROUND = new JBColor(0xECF2FA, 0x323940);
 

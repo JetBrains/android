@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync.issues
 
 import com.android.builder.model.SyncIssue
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.SYNC_ISSUE
-import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.Key
 import com.intellij.openapi.externalSystem.model.ProjectKeys
@@ -39,12 +38,12 @@ fun Module.syncIssues() : List<SyncIssueData> {
   val linkedProjectPath = ExternalSystemApiUtil.getExternalRootProjectPath(this) ?: return emptyList()
   val projectDataNode = findProjectData(project, GradleConstants.SYSTEM_ID, linkedProjectPath) ?: return emptyList()
   val moduleDataNode = find(projectDataNode, ProjectKeys.MODULE) { node ->
-    node.data.moduleName == name
+    node.data.internalName == name
   } ?: return emptyList()
   return findAll(moduleDataNode, SYNC_ISSUE).map { dataNode -> dataNode.data }
 }
 
-class SyncIssueData(
+data class SyncIssueData(
   val message: String,
   val data: String?,
   val multiLineMessage: List<String>?,

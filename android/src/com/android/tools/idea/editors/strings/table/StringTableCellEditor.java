@@ -54,7 +54,7 @@ public final class StringTableCellEditor extends DefaultCellEditor {
     JComponent component = (JComponent)super.getTableCellEditorComponent(table, value, selected, row, column);
 
     component.setBorder(new LineBorder(JBColor.BLACK));
-    component.setFont(StringResourceEditor.getFont((String)value, component.getFont()));
+    component.setFont(StringResourceEditor.getFont(component.getFont()));
 
     return component;
   }

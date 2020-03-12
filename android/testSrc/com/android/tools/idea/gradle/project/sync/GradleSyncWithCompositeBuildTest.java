@@ -76,9 +76,9 @@ public class GradleSyncWithCompositeBuildTest extends GradleSyncIntegrationTestC
     // Verify module names.
     List<String> moduleNames = ContainerUtil.map(modules, Module::getName);
     String projectName = getProject().getName();
-    List<String> expectedModuleNames = asList(projectName, projectName + "-app", projectName + "-lib",
-                                              "TestCompositeLib1", "TestCompositeLib1-app", "TestCompositeLib1-lib",
-                                              "TestCompositeLib3", "TestCompositeLib3-app", "TestCompositeLib3-lib",
+    List<String> expectedModuleNames = asList(projectName, projectName + ".app", projectName + ".lib",
+                                              "TestCompositeLib1", "TestCompositeLib1.app", "TestCompositeLib1.lib",
+                                              "TestCompositeLib3", "TestCompositeLib3.app", "TestCompositeLib3.lib",
                                               "composite2", "composite4");
     assertThat(moduleNames).containsExactlyElementsIn(expectedModuleNames);
   }
@@ -86,33 +86,33 @@ public class GradleSyncWithCompositeBuildTest extends GradleSyncIntegrationTestC
   public void testModuleDependenciesWithRootAppModule() throws Exception {
     loadProject(COMPOSITE_BUILD);
     String projectName = getProject().getName();
-    String rootAppModuleName = projectName + "-app";
+    String rootAppModuleName = projectName + ".app";
     Module rootAppModule = TestModuleUtil.findModule(getProject(), rootAppModuleName);
     // Verify that app module has dependency on direct and transitive lib modules.
-    assertAbout(moduleDependencies()).that(rootAppModule).hasDependency(projectName + "-lib", COMPILE, false);
-    assertAbout(moduleDependencies()).that(rootAppModule).hasDependency("TestCompositeLib1-lib", COMPILE, false);
+    assertAbout(moduleDependencies()).that(rootAppModule).hasDependency(projectName + ".lib", COMPILE, false);
+    assertAbout(moduleDependencies()).that(rootAppModule).hasDependency("TestCompositeLib1.lib", COMPILE, false);
     assertAbout(moduleDependencies()).that(rootAppModule).hasDependency("composite2", COMPILE, false);
-    assertAbout(moduleDependencies()).that(rootAppModule).hasDependency("TestCompositeLib3-lib", COMPILE, false);
+    assertAbout(moduleDependencies()).that(rootAppModule).hasDependency("TestCompositeLib3.lib", COMPILE, false);
     assertAbout(moduleDependencies()).that(rootAppModule).hasDependency("composite4", COMPILE, false);
   }
 
   public void testModuleDependenciesWithIncludedAppModule() throws Exception {
     loadProject(COMPOSITE_BUILD);
-    String appModuleName = "TestCompositeLib1-app";
+    String appModuleName = "TestCompositeLib1.app";
     Module appModule = TestModuleUtil.findModule(getProject(), appModuleName);
     // Verify that app module has dependency on direct and transitive lib modules.
-    assertAbout(moduleDependencies()).that(appModule).hasDependency("TestCompositeLib1-lib", COMPILE, false);
+    assertAbout(moduleDependencies()).that(appModule).hasDependency("TestCompositeLib1.lib", COMPILE, false);
     assertAbout(moduleDependencies()).that(appModule).hasDependency("composite2", COMPILE, false);
-    assertAbout(moduleDependencies()).that(appModule).hasDependency("TestCompositeLib3-lib", COMPILE, false);
+    assertAbout(moduleDependencies()).that(appModule).hasDependency("TestCompositeLib3.lib", COMPILE, false);
     assertAbout(moduleDependencies()).that(appModule).hasDependency("composite4", COMPILE, false);
   }
 
   public void testGetAssembleTasks() throws Exception {
     loadProject(COMPOSITE_BUILD);
     Module[] modules = new Module[]{
-      TestModuleUtil.findModule(getProject(), "TestCompositeLib1-app"),
-      TestModuleUtil.findModule(getProject(), "TestCompositeLib3-app"),
-      TestModuleUtil.findModule(getProject(), getProject().getName() + "-app")};
+      TestModuleUtil.findModule(getProject(), "TestCompositeLib1.app"),
+      TestModuleUtil.findModule(getProject(), "TestCompositeLib3.app"),
+      TestModuleUtil.findModule(getProject(), getProject().getName() + ".app")};
     ListMultimap<Path, String> tasksPerProject = GradleTaskFinder.getInstance().findTasksToExecute(modules, ASSEMBLE, TestCompileType.ALL);
     // Verify that each included project has task list.
     assertThat(tasksPerProject.asMap()).hasSize(3);
@@ -129,11 +129,11 @@ public class GradleSyncWithCompositeBuildTest extends GradleSyncIntegrationTestC
   public void testGetSourceGenerationTasks() throws Exception {
     loadProject(COMPOSITE_BUILD);
     Module[] modules = new Module[]{
-      TestModuleUtil.findModule(getProject(), "TestCompositeLib1-app"),
+      TestModuleUtil.findModule(getProject(), "TestCompositeLib1.app"),
       TestModuleUtil.findModule(getProject(), "composite2"),
-      TestModuleUtil.findModule(getProject(), "TestCompositeLib3-lib"),
+      TestModuleUtil.findModule(getProject(), "TestCompositeLib3.lib"),
       TestModuleUtil.findModule(getProject(), "composite4"),
-      TestModuleUtil.findModule(getProject(), getProject().getName() + "-app")};
+      TestModuleUtil.findModule(getProject(), getProject().getName() + ".app")};
     ListMultimap<Path, String> tasksPerProject =
       GradleTaskFinder.getInstance().findTasksToExecute(modules, SOURCE_GEN, TestCompileType.ALL);
 

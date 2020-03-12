@@ -77,6 +77,7 @@ import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel;
 import com.android.tools.idea.gradle.project.sync.idea.issues.AgpUpgradeRequiredException;
 import com.android.tools.idea.gradle.project.sync.idea.issues.AndroidSyncException;
+import com.android.tools.idea.gradle.project.sync.idea.issues.JdkImportCheck;
 import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidExtraModelProvider;
 import com.android.tools.idea.gradle.project.sync.idea.svs.VariantGroup;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData;
@@ -104,6 +105,7 @@ import com.intellij.openapi.externalSystem.util.Order;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
+import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.PathsList;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
@@ -156,6 +158,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
          new IdeaJavaModuleModelFactory(), new IdeDependenciesFactory());
   }
 
+  @NonInjectable
   @VisibleForTesting
   AndroidGradleProjectResolver(@NotNull CommandLineArgs commandLineArgs,
                                @NotNull ProjectFinder projectFinder,
@@ -650,6 +653,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     simulateRegisteredSyncError();
 
     SdkSyncUtil.syncAndroidSdks(SdkSync.getInstance(), resolverCtx.getProjectPath());
+
+    JdkImportCheck.validateJdk();
   }
 
   @Override

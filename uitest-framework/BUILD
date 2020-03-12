@@ -81,6 +81,7 @@ iml_module(
         "//tools/adt/idea/layout-inspector:intellij.android.layout-inspector[module, test]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
         "//tools/adt/idea/bleak:intellij.android.bleak[module, test]",
+        "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd[module]",
     ],
 )
 

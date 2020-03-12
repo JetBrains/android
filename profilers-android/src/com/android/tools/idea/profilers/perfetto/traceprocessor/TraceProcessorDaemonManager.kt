@@ -52,8 +52,18 @@ class TraceProcessorDaemonManager: Disposable {
       }
     }
     private val TPD_RELEASE_PATH = "plugins/android/resources/trace_processor_daemon"
+    private val TPD_EXECUTABLE: String by lazy {
+      when {
+        SystemInfo.isWindows -> {
+          "trace_processor_daemon.exe"
+        }
+        else -> {
+          "trace_processor_daemon"
+        }
+      }
+    }
 
-    private val TPD_BINARY = DeployableFile.Builder("trace_processor_daemon")
+    private val TPD_BINARY = DeployableFile.Builder(TPD_EXECUTABLE)
       .setReleaseDir(TPD_RELEASE_PATH)
       .setDevDir(DeployableFile.getDevDir(TPD_DEV_PATH))
       .setExecutable(true)

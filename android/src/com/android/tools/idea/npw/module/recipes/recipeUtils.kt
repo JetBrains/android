@@ -18,6 +18,3 @@ package com.android.tools.idea.npw.module.recipes
 import com.android.tools.idea.gradle.util.GradleUtil
 
 fun getConfigurationName(c: String, agpVersion: String) = GradleUtil.mapConfigurationName(c, agpVersion, false)
-// TODO(qumeric): move everything under  to a proper place
-fun kotlinDependencies(agpVersion: String) =
-  "${getConfigurationName("compile", agpVersion)} \"org.jetbrains.kotlin:kotlin-stdlib-jdk7:${'$'}kotlin_version\""

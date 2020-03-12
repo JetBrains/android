@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.CURRENT_BUILD_TOOLS_VERSION;
-import static com.android.tools.idea.gradle.eclipse.GradleImport.CURRENT_COMPILE_VERSION;
 
 public class BuildEnvironment {
 
@@ -50,8 +49,9 @@ public class BuildEnvironment {
       ourInstance = new BuildEnvironment(
         LatestKnownPluginVersionProvider.INSTANCE.get(),
         CURRENT_BUILD_TOOLS_VERSION,
-        CURRENT_COMPILE_VERSION,
-        CURRENT_COMPILE_VERSION,
+
+        SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
+        SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
         SdkVersionInfo.LOWEST_ACTIVE_API
       );
     }

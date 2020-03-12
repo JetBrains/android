@@ -17,17 +17,17 @@
 package com.android.tools.idea.mlkit.importmodel;
 
 import com.android.tools.idea.observable.core.StringValueProperty;
-import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.wizard.model.WizardModel;
+import com.intellij.ide.IdeView;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,11 +41,13 @@ public class MlWizardModel extends WizardModel {
    */
   @NotNull
   private final File myMlDirectory;
+  private final Project myProject;
 
   public final StringValueProperty sourceLocation = new StringValueProperty();
 
-  public MlWizardModel(@NotNull File mlDirectory) {
+  public MlWizardModel(@NotNull File mlDirectory, @Nullable Project project) {
     myMlDirectory = mlDirectory;
+    myProject = project;
   }
 
   @Override
@@ -57,7 +59,11 @@ public class MlWizardModel extends WizardModel {
         try {
           VirtualFile toDir = VfsUtil.createDirectoryIfMissing(myMlDirectory.getAbsolutePath());
           if (fromFile != null && toDir != null) {
-            VfsUtilCore.copyFile(this, fromFile, toDir);
+            VirtualFile virtualFile = VfsUtilCore.copyFile(this, fromFile, toDir);
+            FileEditorManager fileEditorManager = FileEditorManager.getInstance(myProject);
+            if (fileEditorManager != null) {
+              fileEditorManager.openFile(virtualFile, true);
+            }
           }
         }
         catch (IOException e) {

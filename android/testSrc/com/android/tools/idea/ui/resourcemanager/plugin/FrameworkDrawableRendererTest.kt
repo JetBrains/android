@@ -17,19 +17,11 @@ package com.android.tools.idea.ui.resourcemanager.plugin
 
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.androidFacet
-import com.intellij.application.runInAllowSaveMode
-import com.intellij.testFramework.runInEdtAndWait
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.ExecutionException
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
-import kotlin.test.assertNotSame
 import kotlin.test.assertSame
-import kotlin.test.assertTrue
 
 class FrameworkDrawableRendererTest {
 

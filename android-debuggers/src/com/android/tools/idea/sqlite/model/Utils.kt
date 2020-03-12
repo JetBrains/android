@@ -44,5 +44,6 @@ fun getRowIdName(columns: List<SqliteColumn>): RowIdName? {
  */
 fun SqliteStatement.transform(func: (String) -> String): SqliteStatement {
   val newStatement = func(this.sqliteStatementText)
-  return SqliteStatement(newStatement, parametersValues)
+  val newStatementStringRepresentation = func(this.sqliteStatementWithInlineParameters)
+  return SqliteStatement(newStatement, parametersValues, newStatementStringRepresentation)
 }

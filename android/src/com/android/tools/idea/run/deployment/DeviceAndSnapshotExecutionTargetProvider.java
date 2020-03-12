@@ -28,7 +28,7 @@ public class DeviceAndSnapshotExecutionTargetProvider extends ExecutionTargetPro
   @NotNull
   @Override
   public List<ExecutionTarget> getTargets(@NotNull Project project, @NotNull RunConfiguration configuration) {
-    List<Device> devices = DeviceAndSnapshotComboBoxAction.getSelectedDevices(project);
+    List<Device> devices = DeviceAndSnapshotComboBoxAction.getInstance().getSelectedDevices(project);
     ExecutionTarget target = devices.isEmpty() ? DefaultExecutionTarget.INSTANCE : new DeviceAndSnapshotComboBoxExecutionTarget(devices);
 
     return Collections.singletonList(target);

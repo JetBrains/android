@@ -17,6 +17,7 @@ package com.android.tools.idea.emulator
 
 import com.android.tools.idea.emulator.EmulatorConstants.EMULATOR_CONTROLLER_KEY
 import com.android.tools.idea.emulator.EmulatorConstants.EMULATOR_TOOLBAR_ID
+import com.android.tools.idea.emulator.EmulatorConstants.EMULATOR_VIEW_KEY
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.ide.ui.customization.CustomActionsSchema
 import com.intellij.openapi.actionSystem.ActionManager
@@ -28,7 +29,6 @@ import com.intellij.ui.SideBorder
 import com.intellij.util.ui.components.BorderLayoutPanel
 import icons.StudioIcons
 import java.awt.BorderLayout
-import java.awt.LayoutManager
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -38,6 +38,11 @@ import javax.swing.SwingConstants
  * Represents contents of the Emulator tool window for a single Emulator instance.
  */
 class EmulatorToolWindowPanel(private val emulator: EmulatorController) : BorderLayoutPanel(), DataProvider {
+  private val toolbarActionGroup = DefaultActionGroup(createToolbarActions())
+  private val toolbar = ActionManager.getInstance().createActionToolbar(EMULATOR_TOOLBAR_ID, toolbarActionGroup, isToolbarHorizontal)
+  private val centerPanel: JPanel = JPanel(BorderLayout())
+  private var emulatorView: EmulatorView? = null
+
   val id
     get() = emulator.emulatorId
 
@@ -49,12 +54,6 @@ class EmulatorToolWindowPanel(private val emulator: EmulatorController) : Border
 
   val component: JComponent
     get() = this
-
-  private val toolbarActionGroup = DefaultActionGroup(createToolbarActions())
-
-  private val toolbar = ActionManager.getInstance().createActionToolbar(EMULATOR_TOOLBAR_ID, toolbarActionGroup, isToolbarHorizontal)
-
-  private val centerPanel: JPanel = JPanel(BorderLayout())
 
   init {
     addToCenter(centerPanel)
@@ -76,12 +75,9 @@ class EmulatorToolWindowPanel(private val emulator: EmulatorController) : Border
 
   fun createContent() {
     try {
-      val emulatorPanel = EmulatorView(emulator)
-      // Wrap emulatorPanel in another JPanel to keep aspect ratio.
-      val layoutManager: LayoutManager = EmulatorLayoutManager(emulatorPanel)
-      centerPanel.add(emulatorPanel)
-      centerPanel.layout = layoutManager
-      toolbar.setTargetComponent(emulatorPanel)
+      emulatorView = EmulatorView(emulator)
+      centerPanel.add(emulatorView)
+      toolbar.setTargetComponent(emulatorView)
       centerPanel.repaint()
     }
     catch (e: Exception) {
@@ -97,7 +93,11 @@ class EmulatorToolWindowPanel(private val emulator: EmulatorController) : Border
   }
 
   override fun getData(dataId: String): Any? {
-    return if (dataId == EMULATOR_CONTROLLER_KEY.name) emulator else null
+    return when (dataId) {
+      EMULATOR_CONTROLLER_KEY.name -> emulator
+      EMULATOR_VIEW_KEY.name -> emulatorView
+      else -> null
+    }
   }
 
   private fun createToolbarActions() =

@@ -70,6 +70,7 @@ import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.Update;
 import java.awt.Container;
 import java.awt.Dimension;
@@ -770,7 +771,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   private void modelRendered() {
     updateErrorDisplay();
-    revalidateScrollArea();
+    // modelRendered might be called in the Layoutlib Render thread and revalidateScrollArea needs to be called on the UI thread.
+    UIUtil.invokeLaterIfNeeded(() -> revalidateScrollArea());
   }
 
   @NotNull

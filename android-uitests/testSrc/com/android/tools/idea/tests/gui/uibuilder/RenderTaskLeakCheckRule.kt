@@ -34,9 +34,12 @@ class RenderTaskLeakCheckRule : TestRule {
       override fun evaluate() {
         clearTrackedAllocations()
         base.evaluate()
-        if (notDisposedRenderTasks().count() != 0) {
+        var wait = TimeUnit.SECONDS.toMillis(1)
+        var retries = 3
+        while (notDisposedRenderTasks().count() != 0 && retries-- > 0) {
           // Give tasks the opportunity to complete the dispose
-          Thread.sleep(TimeUnit.SECONDS.toMillis(1))
+          Thread.sleep(wait)
+          wait *= 2
         }
 
         notDisposedRenderTasks()

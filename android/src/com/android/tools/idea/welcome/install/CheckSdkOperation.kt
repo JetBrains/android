@@ -17,6 +17,7 @@ package com.android.tools.idea.welcome.install
 
 import com.android.SdkConstants.FD_EMULATOR
 import com.android.annotations.concurrency.Slow
+import com.android.tools.idea.avdmanager.HardwareAccelerationCheck
 import com.google.common.base.Joiner
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.GeneralCommandLine
@@ -37,6 +38,10 @@ import java.io.File
 class CheckSdkOperation(context: InstallContext) : InstallOperation<File, File>(context, 0.0) {
   @Throws(WizardException::class, InstallationCancelledException::class)
   override fun perform(indicator: ProgressIndicator, file: File): File {
+    if (HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated()) {
+      return file
+    }
+
     val tool = File(file, FD_EMULATOR + File.separator + TOOL_NAME)
     if (!tool.isFile) {
       throw WizardException(ERROR_NO_EMULATOR_DIR)

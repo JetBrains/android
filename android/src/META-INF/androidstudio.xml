@@ -56,6 +56,9 @@
 
   <actions>
     <action id="HelpTopics" class="com.android.tools.idea.actions.MeetAndroidStudioHelpAction" overrides="true"/>
+    <group id="AndroidToolsGroup" class="org.jetbrains.android.actions.AndroidToolsActionGroup" text="Android" icon="AndroidArtworkIcons.Icons.Android" popup="false" keep-content="true" overrides="true">
+      <add-to-group group-id="ToolsMenu" anchor="first"/>
+    </group>
 
     <action class="com.intellij.ide.actions.HelpTopicsAction" id="IntelliJ.HelpTopics" text="IntelliJ IDEA Help">
       <add-to-group group-id="HelpMenu" anchor="after" relative-to-action="HelpTopics" />
@@ -109,9 +112,6 @@
       <add-to-group group-id="WelcomeScreen.Configure" anchor="first" />
     </action>
 
-    <!-- Disable this action to use IDEA's default "Project Structure" dialog (useful when debugging Android Studio project setup.) -->
-    <action id="ShowProjectStructureSettings" class="com.android.tools.idea.gradle.actions.AndroidShowStructureSettingsAction"
-            project-type="Android" icon="AllIcons.General.ProjectStructure"/>
     <action id="InferNullity" text="Infer Nullity..." class="com.android.tools.idea.actions.AndroidInferNullityAnnotationAction" overrides="true"/>
     <group id="Android.NavBarToolBar">
       <reference id="Android.SyncProject" />

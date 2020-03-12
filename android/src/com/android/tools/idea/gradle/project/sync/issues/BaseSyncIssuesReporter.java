@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.issues;
 
 import static com.android.builder.model.SyncIssue.SEVERITY_ERROR;
 import static com.android.tools.idea.project.messages.MessageType.ERROR;
+import static com.android.tools.idea.project.messages.MessageType.INFO;
 import static com.android.tools.idea.project.messages.MessageType.WARNING;
 
 import com.android.builder.model.SyncIssue;
@@ -75,13 +76,8 @@ abstract class BaseSyncIssuesReporter {
     }
   }
 
-  //TODO(b/130224064): need to remove when kts fully supported
-  static boolean affectedModulesContainKts(List<Module> modules, Map<Module, VirtualFile> buildFileMap) {
-    return modules.stream().map(module -> buildFileMap.get(module)).filter(Objects::nonNull).anyMatch(GradleUtil::isKtsFile);
-  }
-
   @NotNull
   static MessageType getMessageType(@NotNull SyncIssue syncIssue) {
-    return syncIssue.getSeverity() == SEVERITY_ERROR ? ERROR : WARNING;
+    return syncIssue.getSeverity() == SEVERITY_ERROR ? WARNING : INFO;
   }
 }

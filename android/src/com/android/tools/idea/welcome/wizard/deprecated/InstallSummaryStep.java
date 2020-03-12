@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.welcome.wizard.deprecated;
 
-import static com.android.tools.idea.gradle.structure.IdeSdksConfigurable.JDK_LOCATION_WARNING_URL;
+import static com.android.tools.idea.gradle.ui.SdkUiStrings.JDK_LOCATION_WARNING_URL;
 import static com.android.tools.idea.sdk.IdeSdks.isSameAsJavaHomeJdk;
 import static com.android.tools.idea.welcome.wizard.InstallSummaryStepKt.getPackagesTable;
 import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;

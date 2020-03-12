@@ -13,7 +13,6 @@ PROJECT             : LightSyncBasedTestsWithMultipleModulesTestProjectStructure
         ModuleTypeName      : JAVA_MODULE
         FACET               : Java-Gradle
             TypeId              : java-gradle
-            ExternalSource      : GRADLE
             Buildable           : false
             BuildFolderPath     :  [-]
         ORDER_ENTRY         : <Module source>
@@ -30,7 +29,6 @@ PROJECT             : LightSyncBasedTestsWithMultipleModulesTestProjectStructure
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
-            ExternalSource      : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName    : assembleDebug
             CompileJavaTaskName : compileDebugSources
@@ -64,7 +62,6 @@ PROJECT             : LightSyncBasedTestsWithMultipleModulesTestProjectStructure
             - ProGuardCfgFiles  : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET               : Android-Gradle
             TypeId              : android-gradle
-            ExternalSource      : GRADLE
             GradlePath          : :app
         CONENT_ENTRY        : file://<PROJECT>/unitTest/app
         JDK                 : <NAME_CUT> Android SDK
@@ -87,7 +84,6 @@ PROJECT             : LightSyncBasedTestsWithMultipleModulesTestProjectStructure
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
-            ExternalSource      : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName    : assembleDebug
             CompileJavaTaskName : compileDebugSources
@@ -121,7 +117,6 @@ PROJECT             : LightSyncBasedTestsWithMultipleModulesTestProjectStructure
             - ProGuardCfgFiles  : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET               : Android-Gradle
             TypeId              : android-gradle
-            ExternalSource      : GRADLE
             GradlePath          : :lib
         CONENT_ENTRY        : file://<PROJECT>/unitTest/lib
         JDK                 : <NAME_CUT> Android SDK

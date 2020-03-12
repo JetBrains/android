@@ -44,11 +44,14 @@ import com.intellij.openapi.command.undo.UnexpectedUndoException;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleGrouper;
+import com.intellij.openapi.module.ModuleGrouperKt;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleWithNameAlreadyExists;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.InputValidator;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -56,6 +59,7 @@ import com.intellij.refactoring.RefactoringBundle;
 import com.intellij.refactoring.rename.RenameHandler;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
@@ -91,8 +95,9 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
   public void invoke(@NotNull final Project project, @NotNull PsiElement[] elements, @NotNull DataContext dataContext) {
     Module module = getGradleModule(dataContext);
     assert module != null;
+    String currentName = ModuleGrouper.instanceFor(project).getShortenedName(module);
     Messages.showInputDialog(project, IdeBundle.message("prompt.enter.new.module.name"), IdeBundle.message("title.rename.module"),
-                             Messages.getQuestionIcon(), module.getName(), new MyInputValidator(module));
+                             Messages.getQuestionIcon(), currentName, new MyInputValidator(module));
   }
 
   @Nullable
@@ -113,13 +118,14 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
   private static class MyInputValidator implements InputValidator {
     @NotNull private final Module myModule;
 
-    public MyInputValidator(@NotNull Module module) {
+    private MyInputValidator(@NotNull Module module) {
       myModule = module;
     }
 
     @Override
     public boolean checkInput(@Nullable String inputString) {
-      return inputString != null && !inputString.isEmpty() && !inputString.equals(myModule.getName()) && !inputString.contains(":");
+      return inputString != null && !inputString.isEmpty() && !inputString.equals(myModule.getName()) && !inputString.contains(":")
+        && !inputString.contains(".");
     }
 
     @Override
@@ -178,8 +184,16 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
 
           // Rename module
           ModifiableModuleModel modifiableModel = ModuleManager.getInstance(project).getModifiableModel();
+          String newName = inputString;
+          // If qualified names are enabled then the user should only pick the last part of the group path. To change the actual
+          // structure the Gradle build files should be changed
+          if (ModuleGrouperKt.isQualifiedModuleNamesEnabled(project)) {
+            List<String> groupPath = new ArrayList<>(ModuleGrouper.instanceFor(project).getGroupPath(myModule));
+            groupPath.add(inputString);
+            newName = StringUtil.join(groupPath, ".");
+          }
           try {
-            modifiableModel.renameModule(myModule, inputString);
+            modifiableModel.renameModule(myModule, newName);
           }
           catch (ModuleWithNameAlreadyExists moduleWithNameAlreadyExists) {
             ApplicationManager.getApplication().invokeLater(

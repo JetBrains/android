@@ -22,6 +22,7 @@ import com.intellij.openapi.actionSystem.DataKey;
  */
 class EmulatorConstants {
   public static final DataKey<EmulatorController> EMULATOR_CONTROLLER_KEY = DataKey.create("emulator");
+  public static final DataKey<EmulatorView> EMULATOR_VIEW_KEY = DataKey.create("emulatorView");
 
   public static final String EMULATOR_TOOLBAR_ID = "EmulatorToolbar";
 }

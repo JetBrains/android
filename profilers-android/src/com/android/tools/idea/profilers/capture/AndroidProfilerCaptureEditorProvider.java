@@ -18,6 +18,7 @@ package com.android.tools.idea.profilers.capture;
 import com.android.tools.idea.fileTypes.profiler.CpuCaptureFileType;
 import com.android.tools.idea.fileTypes.profiler.MemoryCaptureFileType;
 import com.android.tools.idea.flags.StudioFlags;
+import com.google.common.base.Strings;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
@@ -34,8 +35,11 @@ public class AndroidProfilerCaptureEditorProvider implements FileEditorProvider,
 
   @Override
   public boolean accept(@NotNull Project project, @NotNull VirtualFile file) {
-    return file.getExtension() != null &&
-           (file.getExtension().equals(CpuCaptureFileType.EXTENSION) || file.getExtension().equals(MemoryCaptureFileType.EXTENSION));
+    String extension = file.getExtension();
+    return !Strings.isNullOrEmpty(extension) &&
+           (extension.equals(CpuCaptureFileType.EXTENSION) ||
+            extension.equals(MemoryCaptureFileType.EXTENSION) ||
+            (StudioFlags.PROFILER_ENABLE_NATIVE_SAMPLE.get() && extension.equals(HeapProfdMemoryCaptureFileType.EXTENSION)));
   }
 
   @NotNull

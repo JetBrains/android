@@ -38,6 +38,7 @@ import com.android.tools.idea.npw.model.NewProjectModel;
 import com.android.tools.idea.npw.model.NewProjectModuleModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo.VersionItem;
 import com.android.tools.idea.npw.platform.Language;
+import com.android.tools.idea.npw.template.components.BytecodeLevelComboProvider;
 import com.android.tools.idea.npw.template.components.LanguageComboProvider;
 import com.android.tools.idea.npw.ui.ActivityGallery;
 import com.android.tools.idea.npw.ui.TemplateIcon;
@@ -60,6 +61,7 @@ import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
+import com.android.tools.idea.wizard.template.BytecodeLevel;
 import com.android.tools.idea.wizard.template.Template;
 import com.android.tools.idea.wizard.template.TemplateConstraint;
 import com.google.common.collect.Lists;
@@ -109,6 +111,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   private JBLabel myTemplateIconDetail;
   private JPanel myFormFactorSdkControlsPanel;
   private JBCheckBox myGradleKtsCheck;
+  private JComboBox<BytecodeLevel> myBytecodeLevel;
   private FormFactorSdkControls myFormFactorSdkControls;
 
   public ConfigureAndroidProjectStep(@NotNull NewProjectModuleModel newProjectModuleModel, @NotNull NewProjectModel projectModel) {
@@ -166,6 +169,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     myFormFactorSdkControls.init(androidSdkInfo, this);
 
     myBindings.bindTwoWay(new SelectedItemProperty<>(myProjectLanguage), myProjectModel.getLanguage());
+    myBindings.bindTwoWay(new SelectedItemProperty<>(myBytecodeLevel), myProjectModel.getBytecodeLevel());
     myBindings.bindTwoWay(myProjectModel.getUseAppCompat(), new SelectedProperty(myAppCompatCheck));
     if (StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.get()) {
       myBindings.bindTwoWay(myProjectModel.getUseGradleKts(), new SelectedProperty(myGradleKtsCheck));
@@ -200,7 +204,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
       myTvCheck.setVisible(formFactor == FormFactor.TV);
     });
 
-    myListeners.listenAndFire(androidSdkInfo, () -> updateAppCompatCheckBox());
+    myListeners.listen(androidSdkInfo, () -> updateAppCompatCheckBox());
   }
 
   @Override
@@ -299,16 +303,10 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
   private void updateAppCompatCheckBox() {
     VersionItem androidVersion = getModel().androidSdkInfo().getValueOrNull();
+    Template template = getModel().newRenderTemplate.getValueOrNull();
+
     boolean isAndroidxApi = androidVersion != null && androidVersion.getMinApiLevel() >= Q; // No more app-compat after Q
-
-    Template newTemplate = getModel().newRenderTemplate.getValueOrNull();
-
-    if (newTemplate == null) {
-      // TODO(qumeric): why newTemplate may be null?
-      return;
-    }
-
-    boolean hasAndroidxConstraint = newTemplate.getConstraints().contains(TemplateConstraint.AndroidX);
+    boolean hasAndroidxConstraint = template != null && template.getConstraints().contains(TemplateConstraint.AndroidX);
 
     if (isAndroidxApi || hasAndroidxConstraint) {
       myAppCompatCheck.setSelected(false);
@@ -321,6 +319,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
   private void createUIComponents() {
     myProjectLanguage = new LanguageComboProvider().createComponent();
+    myBytecodeLevel = new BytecodeLevelComboProvider().createComponent();
     myFormFactorSdkControls = new FormFactorSdkControls();
     myFormFactorSdkControlsPanel = myFormFactorSdkControls.getRoot();
   }

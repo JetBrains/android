@@ -31,6 +31,8 @@ import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
+import com.android.tools.idea.ui.wizard.WizardUtils.COMPOSE_MIN_AGP_VERSION
+import com.android.tools.idea.ui.wizard.WizardUtils.hasComposeMinAgpVersion
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.model.SkippableWizardStep
@@ -138,11 +140,9 @@ abstract class ChooseGalleryItemStep(
       model.newTemplate.validate(moduleApiLevel, moduleBuildApiLevel, isNewModule, isAndroidxProject, model.language.value, messageKeys)
     )
 
-    // FIXME(qumeric)
-    // Special case for Compose
-    /*if (invalidParameterMessage.get() == "" && !hasComposeMinAgpVersion(project, templateData?.category)) {
+    if (invalidParameterMessage.get() == "" && !hasComposeMinAgpVersion(project, model.newTemplate.category)) {
       invalidParameterMessage.set(message("android.wizard.validate.module.needs.new.agp", COMPOSE_MIN_AGP_VERSION))
-    }*/
+    }
   }
 
   interface TemplateRenderer {

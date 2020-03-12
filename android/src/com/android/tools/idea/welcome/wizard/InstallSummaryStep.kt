@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.welcome.wizard
 
-import com.android.tools.idea.gradle.structure.IdeSdksConfigurable.JDK_LOCATION_WARNING_URL
+import com.android.tools.idea.gradle.ui.SdkUiStrings.JDK_LOCATION_WARNING_URL
 import com.android.tools.idea.sdk.IdeSdks.isSameAsJavaHomeJdk
 
 import com.android.repository.api.RemotePackage
@@ -39,9 +39,9 @@ import com.intellij.ui.layout.panel
  * Provides an explanation of changes the wizard will perform.
  */
 class InstallSummaryStep(
-  private val model: InstallSummaryModel,
+  private val model: FirstRunModel,
   private val packagesProvider: Supplier<out Collection<RemotePackage>>
-) : ModelWizardStep.WithoutModel("Verify Settings") {
+) : ModelWizardStep<FirstRunModel>(model, "Verify Settings") {
   private val summaryText = JTextPane().apply {
     isEditable = false
     contentType = UIUtil.HTML_MIME
@@ -90,7 +90,7 @@ class InstallSummaryStep(
 
   private val setupTypeSection: Section
     get() {
-      val setupType = if (model.customInstall) "Custom" else "Standard"
+      val setupType = model.installationType.get().name
       return Section("Setup Type", setupType)
     }
 

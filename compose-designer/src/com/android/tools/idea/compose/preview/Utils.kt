@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview
 
 import com.android.SdkConstants
 import com.android.SdkConstants.VALUE_WRAP_CONTENT
+import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.ProjectStructure
@@ -290,6 +291,7 @@ interface FilePreviewElementFinder {
    *
    * This method always runs on smart mode.
    */
+  @Slow
   fun findPreviewMethods(project: Project, vFile: VirtualFile): List<PreviewElement> {
     assert(!DumbService.getInstance(project).isDumb) { "findPreviewMethods can not be called on dumb mode" }
 
@@ -304,6 +306,7 @@ interface FilePreviewElementFinder {
    *
    * This method always runs on smart mode.
    */
+  @Slow
   fun findPreviewMethods(uFile: UFile): List<PreviewElement>
 }
 

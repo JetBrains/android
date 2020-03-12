@@ -16,6 +16,8 @@
 package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.adtui.actions.DropDownAction
+import com.android.tools.idea.compose.preview.PreviewGroup
+import com.android.tools.idea.compose.preview.PreviewGroup.Companion.ALL_PREVIEW_GROUP
 import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
 import com.android.tools.idea.compose.preview.message
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -28,20 +30,19 @@ import com.intellij.openapi.actionSystem.ToggleAction
 internal class GroupSwitchAction : DropDownAction(
   null, message("action.group.switch.title"), null) {
   /**
-   * [ToggleAction] that sets the given [groupNameFilter] as filter. If the [groupNameFilter] is null, then no filter will be applied
-   * and all groups will be shown.
+   * [ToggleAction] that sets the given [group] as filter.
    */
-  inner class SetGroupAction(name: String, private val groupNameFilter: String?, private val isSelected: Boolean) : ToggleAction(name) {
+  inner class SetGroupAction(private val group: PreviewGroup,
+                             private val isSelected: Boolean) : ToggleAction(group.displayName) {
     override fun isSelected(e: AnActionEvent): Boolean = isSelected
 
     override fun setSelected(e: AnActionEvent, state: Boolean) {
       if (state) {
-        findComposePreviewManagersForContext(e.dataContext).forEach { it.groupNameFilter = groupNameFilter }
+        findComposePreviewManagersForContext(e.dataContext).forEach { it.groupFilter = group }
       }
     }
   }
 
-  private fun getDisplayNameForGroupName(groupName: String?) = groupName ?: message("group.switch.all")
   override fun displayTextInToolbar(): Boolean = true
 
   override fun update(e: AnActionEvent) {
@@ -52,24 +53,24 @@ internal class GroupSwitchAction : DropDownAction(
     val availableGroups = previewManagers.flatMap { it.availableGroups }.toSet()
     presentation.isEnabledAndVisible = availableGroups.isNotEmpty()
     if (presentation.isEnabledAndVisible) {
-      presentation.text = getDisplayNameForGroupName(previewManagers.map { it.groupNameFilter }.firstOrNull())
+      presentation.text = previewManagers.map { it.groupFilter?.displayName }.firstOrNull()
     }
   }
 
   override fun updateActions(context: DataContext): Boolean {
-    removeAll();
+    removeAll()
     val previewManagers = findComposePreviewManagersForContext(context)
     val availableGroups = previewManagers.flatMap { it.availableGroups }.toSet()
     if (availableGroups.isEmpty()) return true
 
-    val selectedGroup = previewManagers.map { it.groupNameFilter }.firstOrNull()
-    addGroups(availableGroups, selectedGroup);
+    val selectedGroup = previewManagers.map { it.groupFilter }.firstOrNull() ?: ALL_PREVIEW_GROUP
+    addGroups(availableGroups, selectedGroup)
     return true
   }
 
-  private fun addGroups(groups: Set<String>, selected: String?) {
-    add(SetGroupAction("All", null, selected == null))
+  private fun addGroups(groups: Set<PreviewGroup>, selected: PreviewGroup) {
+    add(SetGroupAction(ALL_PREVIEW_GROUP, selected == ALL_PREVIEW_GROUP))
     addSeparator()
-    groups.sorted().forEach { add(SetGroupAction(it, it, it == selected)) }
+    groups.sortedBy { it.displayName }.forEach { add(SetGroupAction(it, it == selected)) }
   }
 }

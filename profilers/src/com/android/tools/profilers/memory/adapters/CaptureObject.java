@@ -45,6 +45,7 @@ public interface CaptureObject extends MemoryObject {
   String ZYGOTE_HEAP_NAME = "zygote";
   String APP_HEAP_NAME = "app";
   String JNI_HEAP_NAME = "JNI";
+  String NATIVE_HEAP_NAME = "Native";
 
   int DEFAULT_HEAP_ID = 0;
   // ID for JNI pseudo-heap, it should not overlap with real Android heaps

@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync;
 import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
 import static com.android.tools.idea.testing.TestProjectPaths.HELLO_JNI;
 import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.externalSystem.service.notification.NotificationCategory.ERROR;
 import static com.intellij.openapi.util.io.FileUtil.appendToFile;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
@@ -28,6 +27,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
+import com.android.tools.idea.testing.AndroidGradleTests.SyncIssuesPresentError;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -62,16 +62,14 @@ public class SingleVariantSyncIntegrationTest extends GradleSyncIntegrationTest 
 
     try {
       requestSyncAndWait();
-    }
-    catch (AssertionError expected) {
-      // Sync issues are expected.
+    } catch (SyncIssuesPresentError expected) {
+      // Sync Issues are expected.
     }
 
     // Verify sync issues are reported properly.
     List<NotificationData> messages = syncMessages.getNotifications();
     List<NotificationData> relevantMessages = messages.stream()
-      .filter(m -> m.getNotificationCategory().equals(ERROR) &&
-                   m.getTitle().equals("Unresolved dependencies") &&
+      .filter(m -> m.getTitle().equals("Unresolved dependencies") &&
                    m.getMessage().contains(
                      "Unable to resolve dependency for ':app@paidQa/compileClasspath': Could not resolve project :lib.\nAffected Modules:"))
       .collect(toList());

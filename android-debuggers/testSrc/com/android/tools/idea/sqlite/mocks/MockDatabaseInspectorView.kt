@@ -60,7 +60,7 @@ open class MockDatabaseInspectorView : DatabaseInspectorView {
 
   override fun closeTab(tabId: TabId) { }
 
-  override fun reportError(message: String, t: Throwable) { }
+  override fun reportError(message: String, throwable: Throwable?) { }
 
   override fun updateDatabaseSchema(database: SqliteDatabase, diffOperations: List<SchemaDiffOperation>) { }
 }

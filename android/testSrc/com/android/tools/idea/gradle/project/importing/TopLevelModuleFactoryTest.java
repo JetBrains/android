@@ -32,6 +32,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.util.io.FileUtil;
 import java.io.File;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
@@ -84,7 +85,7 @@ public class TopLevelModuleFactoryTest extends AndroidGradleTestCase {
     ExternalSystemModulePropertyManager externalSystemProperties = ExternalSystemModulePropertyManager.getInstance(module);
     assertEquals(GRADLE_SYSTEM_ID.getId(), externalSystemProperties.getExternalSystemId());
     assertEquals(":", externalSystemProperties.getLinkedProjectId());
-    assertEquals(projectRootFolderPath.getPath(), externalSystemProperties.getRootProjectPath());
+    assertEquals(FileUtil.toSystemIndependentName(projectRootFolderPath.getPath()), externalSystemProperties.getRootProjectPath());
 
     // Verify the module has a "Gradle" facet.
     GradleFacet gradleFacet = GradleFacet.getInstance(module);

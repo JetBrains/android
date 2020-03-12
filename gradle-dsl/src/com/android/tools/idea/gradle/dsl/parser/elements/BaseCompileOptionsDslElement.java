@@ -25,6 +25,7 @@ import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanti
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
@@ -36,7 +37,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public abstract class BaseCompileOptionsDslElement extends GradleDslBlockElement {
   @NotNull
-  public static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
+  public static final ImmutableMap<Pair<String,Integer>, Pair<ModelPropertyDescription, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
     {"sourceCompatibility", property, SOURCE_COMPATIBILITY, VAR},
     {"setSourceCompatibility", exactly(1), SOURCE_COMPATIBILITY, SET},
     {"targetCompatibility", property, TARGET_COMPATIBILITY, VAR},
@@ -44,7 +45,7 @@ public abstract class BaseCompileOptionsDslElement extends GradleDslBlockElement
   }).collect(toModelMap());
 
   @NotNull
-  public static final ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> groovyToModelNameMap = Stream.of(new Object[][]{
+  public static final ImmutableMap<Pair<String,Integer>, Pair<ModelPropertyDescription,SemanticsDescription>> groovyToModelNameMap = Stream.of(new Object[][]{
     {"sourceCompatibility", property, SOURCE_COMPATIBILITY, VAR},
     {"sourceCompatibility", exactly(1), SOURCE_COMPATIBILITY, SET},
     {"targetCompatibility", property, TARGET_COMPATIBILITY, VAR},
@@ -53,7 +54,7 @@ public abstract class BaseCompileOptionsDslElement extends GradleDslBlockElement
 
   @Override
   @NotNull
-  public ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
+  public ImmutableMap<Pair<String, Integer>, Pair<ModelPropertyDescription, SemanticsDescription>> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
     if (converter instanceof KotlinDslNameConverter) {
       return ktsToModelNameMap;
     }
@@ -67,10 +68,6 @@ public abstract class BaseCompileOptionsDslElement extends GradleDslBlockElement
 
   protected BaseCompileOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
-  }
-
-  public BaseCompileOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, GradleNameElement.create(COMPILE_OPTIONS.name));
   }
 
   @Override
