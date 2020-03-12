@@ -25,11 +25,9 @@ import com.intellij.facet.FacetType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.extensions.ExtensionPointName
-import com.intellij.openapi.extensions.Extensions
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager
-import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.*
 import com.intellij.testFramework.fixtures.impl.LightTempDirTestFixtureImpl
 import com.intellij.testFramework.fixtures.impl.TempDirTestFixtureImpl
@@ -208,7 +206,7 @@ class AndroidProjectRule private constructor(
 
     val projectBuilder = IdeaTestFixtureFactory
         .getFixtureFactory()
-        .createFixtureBuilder(fixtureName ?: description.testClass.simpleName)
+        .createFixtureBuilder(fixtureName ?: description.displayName)
 
     val tempDirFixture =
         if (androidProjectBuilder == null) {
