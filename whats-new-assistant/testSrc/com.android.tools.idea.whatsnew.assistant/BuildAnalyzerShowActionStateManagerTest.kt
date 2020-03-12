@@ -16,6 +16,7 @@
 package com.android.tools.idea.whatsnew.assistant
 
 import com.android.build.attribution.BuildAttributionStateReporter
+import com.android.build.attribution.ui.BuildAttributionUiManager
 import com.android.tools.idea.assistant.StatefulButtonNotifier
 import com.android.tools.idea.assistant.StatefulButtonNotifier.BUTTON_STATE_TOPIC
 import com.android.tools.idea.assistant.datamodel.ActionData
@@ -23,9 +24,11 @@ import com.android.tools.idea.whatsnew.assistant.actions.BuildAnalyzerShowAction
 import com.google.common.truth.Truth
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.ApplicationRule
 import com.intellij.util.messages.MessageBus
 import com.intellij.util.messages.MessageBusConnection
 import org.junit.After
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.any
@@ -34,6 +37,9 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 
 class BuildAnalyzerShowActionStateManagerTest {
+
+  @get:Rule
+  val appRule = ApplicationRule()
 
   private val rootDisposable = Disposer.newDisposable()
 
@@ -129,10 +135,16 @@ class BuildAnalyzerShowActionStateManagerTest {
   ) {
     val messageBus: MessageBus = mock(MessageBus::class.java).also { Disposer.register(rootDisposable, it) }
     val messageBusConnection: MessageBusConnection = mock(MessageBusConnection::class.java).also { Disposer.register(rootDisposable, it) }
+    val buildAttributionUiManagerMock: BuildAttributionUiManager = mock(BuildAttributionUiManager::class.java)
+    val buildAttributionStateReporterMock: BuildAttributionStateReporter = mock(BuildAttributionStateReporter::class.java)
 
     init {
       `when`(project.messageBus).thenReturn(messageBus)
       `when`(messageBus.connect(eq(project))).thenReturn(messageBusConnection)
+      `when`(project.getService(eq(BuildAttributionUiManager::class.java), eq(true))).thenReturn(buildAttributionUiManagerMock)
+      `when`<BuildAttributionStateReporter>(buildAttributionUiManagerMock.stateReporter).thenReturn(buildAttributionStateReporterMock)
+      `when`(buildAttributionStateReporterMock.currentState()).thenReturn(BuildAttributionStateReporter.State.NO_DATA)
+      WhatsNewMetricsTracker.getInstance().open(project, false)
     }
   }
 }

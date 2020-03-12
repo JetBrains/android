@@ -23,18 +23,20 @@ import com.android.tools.idea.assistant.datamodel.ActionData
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
+import com.android.tools.idea.whatsnew.assistant.WhatsNewMetricsTracker
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.util.containers.toArray
 
 class BuildAnalyzerShowAction : AssistActionHandler {
   companion object {
-    val ACTION_KEY = "build.analyzer.show"
+    const val ACTION_KEY = "build.analyzer.show"
   }
 
   override fun getId(): String = ACTION_KEY
 
   override fun handleAction(actionData: ActionData, project: Project) {
+    WhatsNewMetricsTracker.getInstance().clickActionButton(project, ACTION_KEY)
     val buildAttributionUiManager = BuildAttributionUiManager.getInstance(project)
     if (buildAttributionUiManager.stateReporter.currentState() == State.REPORT_DATA_READY) {
       buildAttributionUiManager.openTab(BuildAttributionUiAnalytics.TabOpenEventSource.WNA_BUTTON)
