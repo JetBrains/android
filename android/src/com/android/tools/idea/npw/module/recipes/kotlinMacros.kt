@@ -38,7 +38,7 @@ fun RecipeExecutor.addKotlinDependencies(androidX: Boolean) {
 
 fun RecipeExecutor.setKotlinVersion(kotlinVersion: String) {
     setExtVar("kotlin_version", kotlinVersion)
-    addClasspathDependency("org.jetbrains.kotlin:kotlin-gradle-plugin:\$kotlin_version")
+    addClasspathDependency("org.jetbrains.kotlin:kotlin-gradle-plugin:\$kotlin_version", null)
 }
 
 fun RecipeExecutor.addKotlinToBaseProject(language: Language, kotlinVersion: String, isNewProject: Boolean = false) {

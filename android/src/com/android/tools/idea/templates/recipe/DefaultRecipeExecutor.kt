@@ -191,10 +191,10 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     }
   }
 
-  override fun addClasspathDependency(mavenCoordinate: String) {
-    val resolvedCoordinate = resolveDependency(repositoryUrlManager, mavenCoordinate.trim())
+  override fun addClasspathDependency(mavenCoordinate: String, minRev: String?) {
+    val resolvedCoordinate = resolveDependency(repositoryUrlManager, convertToAndroidX(mavenCoordinate), minRev)
 
-    referencesExecutor.addClasspathDependency(resolvedCoordinate)
+    referencesExecutor.addClasspathDependency(resolvedCoordinate, minRev)
 
     val toBeAddedDependency = ArtifactDependencySpec.create(resolvedCoordinate)
     check(toBeAddedDependency != null) { "$resolvedCoordinate is not a valid classpath dependency" }

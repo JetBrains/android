@@ -44,7 +44,7 @@ fun RecipeExecutor.generateBenchmarkModule(
 
   val bgp = resolveDependency(repoUrlManager, "androidx.benchmark:benchmark-gradle-plugin:+", "1.0.0")
 
-  addClasspathDependency(bgp)
+  addClasspathDependency(bgp, null)
 
   addIncludeToSettings(moduleData.name)
   save(benchmarkProguardRules(), moduleOut.resolve("benchmark-proguard-rules.pro"))
