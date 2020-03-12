@@ -26,7 +26,10 @@ import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.StringParameter
+import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.openapi.util.SystemInfo
+import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.full.memberFunctions
 import kotlin.system.measureTimeMillis
 
 /**
@@ -464,13 +467,13 @@ open class TemplateTest : AndroidGradleTestCase() {
   fun testNewFolders() {
     checkCreateTemplate("AIDL Folder", templateStateCustomizer = withNewLocation("foo"))
     checkCreateTemplate("Assets Folder", templateStateCustomizer = withNewLocation("src/main/assets"))
-    checkCreateTemplate("Font Folder", templateStateCustomizer = withNewLocation( "src/main/res/font"))
+    checkCreateTemplate("Font Folder", templateStateCustomizer = withNewLocation("src/main/res/font"))
     checkCreateTemplate("Java Folder", templateStateCustomizer = withNewLocation("src/main/java"))
-    checkCreateTemplate("JNI Folder", templateStateCustomizer = withNewLocation( "src/main/jni"))
-    checkCreateTemplate("Raw Resources Folder", templateStateCustomizer = withNewLocation( "src/main/res/raw"))
-    checkCreateTemplate("Java Resources Folder", templateStateCustomizer = withNewLocation( "src/main/resources"))
-    checkCreateTemplate("RenderScript Folder", templateStateCustomizer = withNewLocation( "src/main/rs"))
-    checkCreateTemplate("XML Resources Folder", templateStateCustomizer = withNewLocation( "src/main/res/xml"))
+    checkCreateTemplate("JNI Folder", templateStateCustomizer = withNewLocation("src/main/jni"))
+    checkCreateTemplate("Raw Resources Folder", templateStateCustomizer = withNewLocation("src/main/res/raw"))
+    checkCreateTemplate("Java Resources Folder", templateStateCustomizer = withNewLocation("src/main/resources"))
+    checkCreateTemplate("RenderScript Folder", templateStateCustomizer = withNewLocation("src/main/rs"))
+    checkCreateTemplate("XML Resources Folder", templateStateCustomizer = withNewLocation("src/main/res/xml"))
   }
 
   @TemplateCheck
@@ -519,6 +522,45 @@ open class TemplateTest : AndroidGradleTestCase() {
   @TemplateCheck
   fun testAutomotiveMediaServiceWithKotlin() {
     checkCreateTemplate("Media service", withKotlin)
+  }
+
+  open fun testAllTemplatesCovered() {
+    CoverageChecker().testAllTemplatesCovered()
+  }
+
+  // Create a dummy version of this class that just collects all the templates it will test when it is run.
+  // It is important that this class is not run by JUnit!
+  class CoverageChecker : TemplateTest() {
+    override fun shouldRunTest(): Boolean = false
+
+    // Set of templates tested with unit test
+    private val templatesChecked = mutableSetOf<String>()
+
+    override fun checkCreateTemplate(
+      name: String,
+      vararg customizers: ProjectStateCustomizer,
+      templateStateCustomizer: TemplateStateCustomizer
+    ) {
+      templatesChecked.add(name)
+    }
+
+    // The actual implementation of the test
+    override fun testAllTemplatesCovered() {
+      this::class.memberFunctions
+        .filter { it.findAnnotation<TemplateCheck>() != null }
+        .forEach { it.call(this) }
+
+      val templatesWhichShouldBeCovered = TemplateResolver.getAllTemplates().map { it.name }.toSet()
+
+      val notCoveredTemplates = templatesWhichShouldBeCovered.minus(templatesWhichShouldBeCovered)
+
+      val failurePrefix = """
+        The following templates were not covered by TemplateTest. Please ensure that tests are added to cover
+        these templates and that they are annotated with @TemplateCheck.
+        """.trimIndent()
+
+      assertWithMessage(failurePrefix).that(notCoveredTemplates).isEmpty()
+    }
   }
 }
 
