@@ -42,19 +42,22 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
   @NotNull
   private final String myId;
 
+  DeviceAndSnapshotComboBoxExecutionTarget() {
+    this(Collections.emptyList());
+  }
+
   DeviceAndSnapshotComboBoxExecutionTarget(@NotNull Device device) {
     this(Collections.singletonList(device));
   }
 
   DeviceAndSnapshotComboBoxExecutionTarget(@NotNull List<Device> devices) {
-    assert !devices.isEmpty();
     myDevices = devices;
 
     myId = myDevices.stream()
       .map(Device::getKey)
       .map(Key::toString)
       .sorted()
-      .collect(Collectors.joining(", ", "[", "]"));
+      .collect(Collectors.joining(", ", "device_and_snapshot_combo_box_target[", "]"));
   }
 
   @Override
@@ -80,11 +83,14 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
   @NotNull
   @Override
   public String getDisplayName() {
-    if (myDevices.size() == 1) {
-      return myDevices.get(0).getName();
+    switch (myDevices.size()) {
+      case 0:
+        return "No Devices";
+      case 1:
+        return myDevices.get(0).getName();
+      default:
+        return "Multiple Devices";
     }
-
-    return "Multiple Devices";
   }
 
   @NotNull

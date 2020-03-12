@@ -22,7 +22,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.Multimaps;
-import com.intellij.execution.DefaultExecutionTarget;
 import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.ExecutionTargetManager;
 import com.intellij.execution.RunManager;
@@ -623,7 +622,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       presentation.setIcon(null);
       presentation.setText("No Devices");
 
-      updateExecutionTargetManager(project, DefaultExecutionTarget.INSTANCE);
+      updateExecutionTargetManager(project, new DeviceAndSnapshotComboBoxExecutionTarget());
       return;
     }
 
