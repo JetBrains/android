@@ -68,7 +68,7 @@ class ConstraintSetPanel extends JPanel {
   private MTag mSelectedTag; // the Primary selection
   private MTag[] mMultiSelectedTag; // the list if you are supporting multi-select
   MotionEditorSelector mListeners;
-  private static boolean DEBUG = true;
+  private static boolean DEBUG = false;
   ArrayList<MTag> mParent; // mParent.get(0) is the direct parent
   MTag mConstraintSet; // The currently displayed constraintSet
   ArrayList<MTag> mDisplayedRows = new ArrayList<>();
