@@ -165,12 +165,8 @@ public class CommonActions {
       new ToggleVisibilityAction(SHOW_MARGINS_PREF_KEY, "Show Margins", true),
       new ToggleVisibilityAction(FADE_UNSELECTED_VIEWS, "Fade Unselected Views ", false),
       new ToggleLiveRenderingAction())));
-    actions.add(new ToggleAutoConnectAction());
     actions.add(new MarginSelector());
     actions.add(new ViewActionSeparator());
-    actions.add(new ClearConstraintsAction());
-
-    actions.add((new ViewActionSeparator()));
 
     // TODO Decide if we want lock actions.add(new LockConstraints());
     actions.add(new NestedViewActionMenu("Pack", StudioIcons.LayoutEditor.Toolbar.PACK_VERTICAL, Lists.<List<ViewAction>>newArrayList(
