@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.intellij.execution.DefaultExecutionTarget;
 import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.ExecutionTargetProvider;
 import com.intellij.execution.configurations.RunConfiguration;
@@ -29,8 +28,6 @@ public class DeviceAndSnapshotExecutionTargetProvider extends ExecutionTargetPro
   @Override
   public List<ExecutionTarget> getTargets(@NotNull Project project, @NotNull RunConfiguration configuration) {
     List<Device> devices = DeviceAndSnapshotComboBoxAction.getInstance().getSelectedDevices(project);
-    ExecutionTarget target = devices.isEmpty() ? DefaultExecutionTarget.INSTANCE : new DeviceAndSnapshotComboBoxExecutionTarget(devices);
-
-    return Collections.singletonList(target);
+    return Collections.singletonList(new DeviceAndSnapshotComboBoxExecutionTarget(devices));
   }
 }
