@@ -100,6 +100,10 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
 
   private static final long INVALID_START_TIME = -1;
 
+  // The safe factor estimating how many times of memory is needed compared to hprof file size
+  public static final int MEMORY_HPROF_SAFE_FACTOR =
+    Math.max(1, Math.min(Integer.getInteger("profiler.memory.hprof.safeFactor", 10), 1000));
+
   private static Logger getLogger() {
     return Logger.getInstance(MemoryProfilerStage.class);
   }
@@ -666,12 +670,15 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
 
     myUpdateCaptureOnSelection = false;
     CaptureObject captureObject = mySelection.getCaptureObject();
-    if (captureObject == null) {
-      // Loading a capture can fail, in which case we reset everything.
+    Runnable clear = () -> {
       mySelection.selectCaptureEntry(null);
       getTimeline().getSelectionRange().clear();
       myAspect.changed(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE);
       setProfilerMode(ProfilerMode.NORMAL);
+    };
+    if (captureObject == null) {
+      // Loading a capture can fail, in which case we reset everything.
+      clear.run();
       return;
     }
 
@@ -687,59 +694,72 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
     }
     myUpdateCaptureOnSelection = true;
 
-    // TODO: (revisit) - do we want to pass in data range to loadCapture as well?
-    ListenableFuture<CaptureObject> future = myLoader.loadCapture(captureObject, getTimeline().getSelectionRange(), joiner);
-    future.addListener(
-      () -> {
-        try {
-          CaptureObject loadedCaptureObject = future.get();
-          if (mySelection.finishSelectingCaptureObject(loadedCaptureObject)) {
-            Collection<HeapSet> heaps = loadedCaptureObject.getHeapSets();
-            if (heaps.isEmpty()) {
-              return;
-            }
-
-            for (HeapSet heap : heaps) {
-              if (heap.getName().equals("app")) {
-                selectHeapSet(heap);
+    Range queryRange = getTimeline().getSelectionRange();
+    Runnable load = () -> {
+      // TODO: (revisit) - do we want to pass in data range to loadCapture as well?
+      ListenableFuture<CaptureObject> future = myLoader.loadCapture(captureObject, queryRange, joiner);
+      future.addListener(
+        () -> {
+          try {
+            CaptureObject loadedCaptureObject = future.get();
+            if (mySelection.finishSelectingCaptureObject(loadedCaptureObject)) {
+              Collection<HeapSet> heaps = loadedCaptureObject.getHeapSets();
+              if (heaps.isEmpty()) {
                 return;
               }
-            }
 
-            for (HeapSet heap : heaps) {
-              if (heap.getName().equals("default")) {
-                selectHeapSet(heap);
-                return;
+              for (HeapSet heap : heaps) {
+                if (heap.getName().equals("app")) {
+                  selectHeapSet(heap);
+                  return;
+                }
               }
-            }
 
-            HeapSet heap = new ArrayList<>(heaps).get(0);
-            selectHeapSet(heap);
+              for (HeapSet heap : heaps) {
+                if (heap.getName().equals("default")) {
+                  selectHeapSet(heap);
+                  return;
+                }
+              }
+
+              HeapSet heap = new ArrayList<>(heaps).get(0);
+              selectHeapSet(heap);
+            }
+            else {
+              // Capture loading failed.
+              // TODO: loading has somehow failed - we need to inform users about the error status.
+              selectCaptureDuration(null, null);
+
+              // Triggers the aspect to inform listeners that the heap content/filter has changed (become null).
+              refreshSelectedHeap();
+            }
           }
-          else {
-            // Capture loading failed.
-            // TODO: loading has somehow failed - we need to inform users about the error status.
+          catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
             selectCaptureDuration(null, null);
-
-            // Triggers the aspect to inform listeners that the heap content/filter has changed (become null).
-            refreshSelectedHeap();
           }
-        }
-        catch (InterruptedException exception) {
-          Thread.currentThread().interrupt();
-          selectCaptureDuration(null, null);
-        }
-        catch (ExecutionException exception) {
-          selectCaptureDuration(null, null);
-          getLogger().error(exception);
-        }
-        catch (CancellationException ignored) {
-          // No-op: a previous load-capture task is canceled due to another capture being selected and loaded.
-        }
-      },
-      joiner == null ? MoreExecutors.directExecutor() : joiner);
+          catch (ExecutionException exception) {
+            selectCaptureDuration(null, null);
+            getLogger().error(exception);
+          }
+          catch (CancellationException ignored) {
+            // No-op: a previous load-capture task is canceled due to another capture being selected and loaded.
+          }
+        },
+        joiner == null ? MoreExecutors.directExecutor() : joiner);
 
-    setProfilerMode(ProfilerMode.EXPANDED);
+      setProfilerMode(ProfilerMode.EXPANDED);
+    };
+
+    if (captureObject.canSafelyLoad()) {
+      load.run();
+    } else {
+      getStudioProfilers().getIdeServices()
+        .openYesNoDialog("The hprof file is large, and Android Studio may become unresponsive while " +
+                         "it parses the data and afterwards. Do you want to continue?",
+                         "Heap Dump File Too Large",
+                         load, clear);
+    }
   }
 
   @NotNull
@@ -862,6 +882,15 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
   @Override
   public void onNavigated(@NotNull CodeLocation location) {
     setProfilerMode(ProfilerMode.NORMAL);
+  }
+
+  public static boolean canSafelyLoadHprof(long fileSize) {
+    System.gc(); // To avoid overly conservative estimation of free memory
+    long leeway = 300 * 1024 * 1024; // Studio needs ~300MB to run without major freezes
+    long requestableMemory = Runtime.getRuntime().maxMemory() -
+                             Runtime.getRuntime().totalMemory() +
+                             Runtime.getRuntime().freeMemory();
+    return requestableMemory >= MEMORY_HPROF_SAFE_FACTOR * fileSize + leeway;
   }
 
   public static class MemoryStageLegends extends LegendComponentModel {

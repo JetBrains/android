@@ -34,6 +34,7 @@ import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import kotlin.NotImplementedError;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -100,7 +101,7 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   /**
    * Whether long trace files should be parsed.
    */
-  private boolean myShouldParseLongTraces = false;
+  private boolean myShouldProceedYesNoDialog = false;
 
   /**
    * Can toggle for tests via {@link #enableStartupCpuProfiling(boolean)}, but each test starts with this defaulted to false.
@@ -314,13 +315,8 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   }
 
   @Override
-  public void openParseLargeTracesDialog(Runnable yesCallback, Runnable noCallback) {
-    if (myShouldParseLongTraces) {
-      yesCallback.run();
-    }
-    else {
-      noCallback.run();
-    }
+  public void openYesNoDialog(String message, String title, Runnable yesCallback, Runnable noCallback) {
+    (myShouldProceedYesNoDialog ? yesCallback : noCallback).run();
   }
 
   @Override
@@ -346,8 +342,8 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
     myListBoxOptionsIndex = optionIndex;
   }
 
-  public void setShouldParseLongTraces(boolean shouldParseLongTraces) {
-    myShouldParseLongTraces = shouldParseLongTraces;
+  public void setShouldProceedYesNoDialog(boolean shouldProceedYesNoDialog) {
+    myShouldProceedYesNoDialog = shouldProceedYesNoDialog;
   }
 
   public void addCustomProfilingConfiguration(String name, Cpu.CpuTraceType type) {

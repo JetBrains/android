@@ -50,7 +50,7 @@ class CpuCaptureParserTest {
     val largeTraceFile = ByteString.copyFrom(ByteArray(CpuCaptureParser.MAX_SUPPORTED_TRACE_SIZE + 1))
     val fakeServices = FakeIdeProfilerServices()
     // Decide not to parse long trace files
-    fakeServices.setShouldParseLongTraces(false)
+    fakeServices.setShouldProceedYesNoDialog(false)
     val parser = CpuCaptureParser(fakeServices)
     assertThat(parser.parse(ProfilersTestData.SESSION_DATA, ANY_TRACE_ID, largeTraceFile, Cpu.CpuTraceType.ART)).isNull()
   }
@@ -60,7 +60,7 @@ class CpuCaptureParserTest {
     val largeTraceFile = ByteString.copyFrom(ByteArray(CpuCaptureParser.MAX_SUPPORTED_TRACE_SIZE + 1))
     val fakeServices = FakeIdeProfilerServices()
     // Decide to parse long trace files
-    fakeServices.setShouldParseLongTraces(true)
+    fakeServices.setShouldProceedYesNoDialog(true)
     val parser = CpuCaptureParser(fakeServices)
     assertThat(parser.parse(ProfilersTestData.SESSION_DATA, ANY_TRACE_ID, largeTraceFile, Cpu.CpuTraceType.ART)).isNotNull()
   }
@@ -290,7 +290,7 @@ class CpuCaptureParserTest {
 
     val fakeServices = FakeIdeProfilerServices()
     // Decide not to parse long trace files
-    fakeServices.setShouldParseLongTraces(false)
+    fakeServices.setShouldProceedYesNoDialog(false)
     val parser = CpuCaptureParser(fakeServices)
     assertThat(parser.parse(someFile)).isNull()
   }
@@ -302,7 +302,7 @@ class CpuCaptureParserTest {
 
     val fakeServices = FakeIdeProfilerServices()
     // Decide to parse long trace files
-    fakeServices.setShouldParseLongTraces(true)
+    fakeServices.setShouldProceedYesNoDialog(true)
     val parser = CpuCaptureParser(fakeServices)
     assertThat(parser.parse(someFile)).isNotNull()
   }

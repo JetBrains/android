@@ -414,4 +414,13 @@ public class HeapDumpCaptureObject implements CaptureObject {
       });
     });
   }
+
+  @Override
+  public boolean canSafelyLoad() {
+    Transport.BytesResponse response = myClient.getTransportClient().getBytes(Transport.BytesRequest.newBuilder()
+                                                                                .setStreamId(mySession.getStreamId())
+                                                                                .setId(Long.toString(myHeapDumpInfo.getStartTime()))
+                                                                                .build());
+    return MemoryProfilerStage.canSafelyLoadHprof(response.getSerializedSize());
+  }
 }
