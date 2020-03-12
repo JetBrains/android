@@ -26,8 +26,8 @@ PROJECT             : testWithCompositeBuild
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
     MODULE              : TestCompositeLib1.app
-        ExternalModuleGroup : TestCompositeLib1
-        ExternalModuleVersion         : unspecified
+        ExternalModuleGroup : com.test.composite1
+        ExternalModuleVersion         : 1.0
         LinkedProjectId     : TestCompositeLib1:app
         LinkedProjectPath   : <PROJECT>/TestCompositeLib1/app
         RootProjectPath     : <PROJECT>
