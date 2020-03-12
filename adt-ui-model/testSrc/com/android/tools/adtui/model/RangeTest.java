@@ -15,11 +15,10 @@
  */
 package com.android.tools.adtui.model;
 
-import org.junit.Test;
+import static com.google.common.truth.Truth.assertThat;
 
 import java.util.List;
-
-import static com.google.common.truth.Truth.assertThat;
+import org.junit.Test;
 
 public class RangeTest {
 
@@ -147,6 +146,24 @@ public class RangeTest {
     Range intersection = range.getIntersection(new Range(0, 10));
     assertThat(intersection.getMin()).isWithin(DELTA).of(5);
     assertThat(intersection.getMax()).isWithin(DELTA).of(5);
+  }
+
+  @Test
+  public void testIntersectionLength() {
+    Range range = new Range(0, 10);
+    assertThat(range.getIntersectionLength(2, 3)).isWithin(DELTA).of(1);
+    assertThat(range.getIntersectionLength(-1, 1)).isWithin(DELTA).of(1);
+    assertThat(range.getIntersectionLength(9, 11)).isWithin(DELTA).of(1);
+    assertThat(range.getIntersectionLength(15, 20)).isEqualTo(0.0);
+  }
+
+  @Test
+  public void testIntersectionLengthWithRange() {
+    Range range = new Range(0, 10);
+    assertThat(range.getIntersectionLength(new Range(2, 3))).isWithin(DELTA).of(1);
+    assertThat(range.getIntersectionLength(new Range(-1, 1))).isWithin(DELTA).of(1);
+    assertThat(range.getIntersectionLength(new Range(9, 11))).isWithin(DELTA).of(1);
+    assertThat(range.getIntersectionLength(new Range(15, 20))).isEqualTo(0.0);
   }
 
   @Test
