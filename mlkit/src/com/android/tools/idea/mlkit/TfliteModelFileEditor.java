@@ -83,27 +83,36 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   private final Module myModule;
   private final VirtualFile myFile;
   private final JBScrollPane myRootPane;
+  private final JEditorPane myEditorPane;
+  private boolean myUnderDarcula;
 
   public TfliteModelFileEditor(@NotNull Project project, @NotNull VirtualFile file) {
     myFile = file;
     myModule = ModuleUtilCore.findModuleForFile(file, project);
+    myUnderDarcula = StartupUiUtil.isUnderDarcula();
 
     JPanel contentPanel = new JPanel();
     contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
     contentPanel.setBackground(UIUtil.getTextFieldBackground());
     contentPanel.setBorder(JBUI.Borders.empty(20));
 
+    myEditorPane = createPaneFromHtml(createHtmlBody());
+    contentPanel.add(myEditorPane);
+
+    myRootPane = new JBScrollPane(contentPanel);
+  }
+
+  @NotNull
+  private String createHtmlBody() {
+    StringBuilder htmlBodyBuilder = new StringBuilder();
     try {
-      StringBuilder htmlBodyBuilder = new StringBuilder();
-      ModelInfo modelInfo = ModelInfo.buildFrom(new MetadataExtractor(ByteBuffer.wrap(file.contentsToByteArray())));
+      ModelInfo modelInfo = ModelInfo.buildFrom(new MetadataExtractor(ByteBuffer.wrap(myFile.contentsToByteArray())));
       htmlBodyBuilder.append(getModelSectionBody(modelInfo));
       htmlBodyBuilder.append(getTensorsSectionBody(modelInfo));
       PsiClass modelClass = MlkitModuleService.getInstance(myModule)
         .getOrCreateLightModelClass(
-          new MlModelMetadata(file.getUrl(), MlkitNames.computeModelClassName((VfsUtilCore.virtualToIoFile(file)))));
+          new MlModelMetadata(myFile.getUrl(), MlkitNames.computeModelClassName((VfsUtilCore.virtualToIoFile(myFile)))));
       htmlBodyBuilder.append(getSampleCodeSectionBody(modelClass));
-
-      contentPanel.add(createPaneFromHtml(htmlBodyBuilder.toString()));
     }
     catch (IOException e) {
       Logger.getInstance(TfliteModelFileEditor.class).error(e);
@@ -113,7 +122,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       // TODO(deanzhou): show warning message in panel
     }
 
-    myRootPane = new JBScrollPane(contentPanel);
+    return htmlBodyBuilder.toString();
   }
 
   private static JTextPane createPaneFromHtml(@NotNull String html) {
@@ -279,6 +288,11 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   @NotNull
   @Override
   public JComponent getComponent() {
+    if (myUnderDarcula != StartupUiUtil.isUnderDarcula()) {
+      myUnderDarcula = StartupUiUtil.isUnderDarcula();
+      // Refresh UI
+      setHtml(myEditorPane, createHtmlBody());
+    }
     return myRootPane;
   }
 
