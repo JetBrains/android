@@ -29,6 +29,7 @@ import com.android.tools.idea.naveditor.scene.decorator.REGULAR_FRAME_THICKNESS
 private val STROKE = SwingStroke(REGULAR_FRAME_THICKNESS)
 
 class DrawPlaceholder(private val rectangle: SwingRectangle) : CompositeDrawCommand() {
+  override fun serialize(): String = ""
 
   override fun buildCommands(): List<DrawCommand> {
     val rect = FillShape(rectangle, PLACEHOLDER_BACKGROUND)

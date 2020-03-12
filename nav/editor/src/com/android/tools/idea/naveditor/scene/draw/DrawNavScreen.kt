@@ -27,6 +27,7 @@ import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.scene.NavColors.PLACEHOLDER_BACKGROUND
 import com.android.tools.idea.naveditor.scene.NavColors.PLACEHOLDER_TEXT
 import com.android.tools.idea.naveditor.scene.RefinableImage
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.Font
@@ -45,14 +46,16 @@ private const val FONT_NAME = "Default"
 /**
  * [DrawCommand] that draws a screen in the navigation editor.
  */
-class DrawNavScreen(private val rectangle: SwingRectangle,
-                    private val image: RefinableImage) : DrawCommandBase() {
+class DrawNavScreen(@VisibleForTesting val rectangle: SwingRectangle,
+                    @VisibleForTesting val image: RefinableImage) : DrawCommandBase() {
 
   private constructor(tokens: Array<String>) : this(tokens[0].toSwingRect(), RefinableImage())
 
   constructor(serialized: String) : this(parse(serialized, 1))
 
-  override fun serialize() = buildString(javaClass.simpleName, rectangle.toString())
+  override fun serialize(): String {
+    return buildString(javaClass.simpleName, rectangle.toString())
+  }
 
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
     g.setRenderingHints(HQ_RENDERING_HINTS)

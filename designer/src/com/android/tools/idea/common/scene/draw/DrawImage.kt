@@ -22,6 +22,7 @@ import java.awt.Image
 
 class DrawImage(private val rectangle: SwingRectangle,
                 private val image: Image) : DrawCommandBase() {
+  override fun serialize() = ""
 
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
     g.setRenderingHints(HQ_RENDERING_HINTS)

@@ -58,9 +58,6 @@ private const val INITIAL_INNER_RADIUS = 30f
 private const val FINAL_INNER_RADIUS = 40f
 private const val DURATION = 100
 
-private const val MOUSE_X = 20
-private const val MOUSE_Y = 30
-
 class DrawCommandTest : NavTestCase() {
   private lateinit var context: SceneContext
 
@@ -204,10 +201,12 @@ class DrawCommandTest : NavTestCase() {
 
   fun testDrawLineToMouse() {
     val command = DrawLineToMouse(SwingPoint(HANDLE_CENTER))
-    setMouse()
+    val mouseX = 20
+    val mouseY = 30
+    setMouse(mouseX, mouseY)
 
     verifyDrawCommand(command) { inOrder, g ->
-      verifyDrawLineToMouse(inOrder, g, HANDLE_CENTER, MOUSE_X, MOUSE_Y)
+      verifyDrawLineToMouse(inOrder, g, HANDLE_CENTER, mouseX, mouseY)
     }
   }
 
@@ -243,21 +242,14 @@ class DrawCommandTest : NavTestCase() {
 
   private fun testDrawActionHandleDrag(command: DrawCommand, fraction: Float) {
     `when`(context.time).thenReturn((fraction * DURATION).toLong())
-    setMouse()
+    val mouseX = 20
+    val mouseY = 30
+    setMouse(mouseX, mouseY)
 
     val outerRadius = interpolate(INITIAL_OUTER_RADIUS, FINAL_OUTER_RADIUS, fraction)
 
     verifyDrawCommand(command) { inOrder, g ->
-      verifyDrawActionHandleDrag(inOrder, g, HANDLE_CENTER, outerRadius, FINAL_INNER_RADIUS, MOUSE_X, MOUSE_Y)
-    }
-  }
-
-  fun testDrawEmptyDesigner() {
-    val point = Point2D.Float(10f, 10f)
-    val command = DrawEmptyDesigner(SwingPoint(point))
-
-    verifyDrawCommand(command) { inOrder, g ->
-      verifyDrawEmptyDesigner(inOrder, g, point)
+      verifyDrawActionHandleDrag(inOrder, g, HANDLE_CENTER, outerRadius, FINAL_INNER_RADIUS, mouseX, mouseY)
     }
   }
 
@@ -278,10 +270,12 @@ class DrawCommandTest : NavTestCase() {
     verifyNoMoreInteractions(graphics)
   }
 
-  private fun setMouse() {
-    `when`(context.mouseX).thenReturn(MOUSE_X)
-    `when`(context.mouseY).thenReturn(MOUSE_Y)
+  private fun setMouse(x: Int, y: Int) {
+    `when`(context.mouseX).thenReturn(x)
+    `when`(context.mouseY).thenReturn(y)
   }
 
-  private fun interpolate(start: Float, end: Float, fraction: Float) = start + (end - start) * fraction
+  private fun interpolate(start: Float, end: Float, fraction: Float): Float {
+    return start + (end - start) * fraction
+  }
 }

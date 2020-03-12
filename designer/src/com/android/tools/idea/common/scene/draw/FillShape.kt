@@ -28,6 +28,8 @@ class FillShape(@VisibleForTesting val shape: AnimatedValue<SwingShape>,
                 level: Int = 0) : DrawCommandBase(level) {
   constructor(shape: SwingShape, color: Color, level: Int = 0) : this(ConstantValue<SwingShape>(shape), color, level)
 
+  override fun serialize() = ""
+
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
     g.setRenderingHints(HQ_RENDERING_HINTS)
     g.color = color
