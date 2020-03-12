@@ -630,12 +630,6 @@
                       conditionClass="com.android.tools.idea.explorer.DeviceExplorerToolWindowCondition"
                       icon="StudioIcons.Shell.ToolWindows.DEVICE_EXPLORER"
                       factoryClass="com.android.tools.idea.explorer.DeviceExplorerToolWindowFactory"/>
-    <facet.toolWindow id="Captures"
-                      facetIdList="android"
-                      anchor="left"
-                      secondary="true"
-                      icon="StudioIcons.Shell.ToolWindows.CAPTURES"
-                      factoryClass="com.android.tools.idea.profiling.view.CapturesToolWindowFactory"/>
     <facet.toolWindow id="Emulator"
                       facetIdList="android,apk"
                       anchor="right"
