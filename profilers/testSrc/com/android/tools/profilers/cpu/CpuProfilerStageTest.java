@@ -52,7 +52,6 @@ import com.android.tools.profilers.StudioMonitorStage;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.analytics.FilterMetadata;
 import com.android.tools.profilers.cpu.CpuProfilerStage.CaptureState;
-import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
 import com.android.tools.profilers.cpu.atrace.AtraceParser;
 import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip;
 import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
@@ -863,7 +862,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     myServices.enableCpuCaptureStage(false);
     myServices.enableEventsPipeline(true);
     // Needs to be set true else null is inserted into the capture parser.
-    myServices.setShouldParseLongTraces(true);
+    myServices.setShouldProceedYesNoDialog(true);
     // Try to parse a simpleperf trace with ART config.
     ProfilingConfiguration config = new ProfilingConfiguration("My Config",
                                                                Cpu.CpuTraceType.ART,
@@ -1136,7 +1135,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     config.setProfilingBufferSizeInMb(15);
     ByteString largeTraceFile = ByteString.copyFrom(new byte[CpuCaptureParser.MAX_SUPPORTED_TRACE_SIZE + 1]);
     myStage.getProfilerConfigModel().setProfilingConfiguration(config);
-    myServices.setShouldParseLongTraces(false);
+    myServices.setShouldProceedYesNoDialog(false);
 
     CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
     // Simulate a 3 second capture.
@@ -1428,7 +1427,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
 
   @Test
   public void abortParsingRecordedTraceFileShowsABalloon() throws InterruptedException {
-    myServices.setShouldParseLongTraces(false);
+    myServices.setShouldProceedYesNoDialog(false);
     ByteString largeTraceFile = ByteString.copyFrom(new byte[CpuCaptureParser.MAX_SUPPORTED_TRACE_SIZE + 1]);
     CpuProfilerTestUtils.startCapturing(myStage, myCpuService, myTransportService, true);
     CpuProfilerTestUtils.stopCapturing(myStage, myCpuService, myTransportService, true, largeTraceFile);
