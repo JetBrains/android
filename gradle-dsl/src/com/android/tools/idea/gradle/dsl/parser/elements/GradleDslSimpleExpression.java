@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
@@ -410,7 +411,9 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
 
     // If the index matcher doesn't give us anything, just attempt to find the property on the element;
     if (!indexMatcher.find()) {
-      String modelName = converter.modelNameForParent(name, properties);
+      ModelPropertyDescription property = converter.modelDescriptionForParent(name, properties);
+      String modelName = property == null ? name : property.name;
+
       return sameScope
              ? properties.getElementBefore(childElement, modelName, includeSelf)
              : properties.getPropertyElementBefore(childElement, modelName, includeSelf);
@@ -426,7 +429,8 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
     if (elementName == null) {
       return null;
     }
-    String modelName = converter.modelNameForParent(elementName, properties);
+    ModelPropertyDescription property = converter.modelDescriptionForParent(elementName, properties);
+    String modelName = property == null ? elementName : property.name;
 
     GradleDslElement element =
       sameScope

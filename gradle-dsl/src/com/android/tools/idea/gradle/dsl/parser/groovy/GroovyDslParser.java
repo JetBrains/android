@@ -29,7 +29,6 @@ import static com.intellij.psi.util.PsiTreeUtil.getChildOfType;
 import static com.intellij.psi.util.PsiTreeUtil.getNextSiblingOfType;
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
-import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser;
@@ -52,6 +51,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslUnknownElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
@@ -586,7 +586,8 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
 
     Matcher matcher = GradleNameElement.INDEX_PATTERN.matcher(name.name());
     if (matcher.find()) {
-      String property = modelNameForParent(matcher.group(0), blockElement);
+      ModelPropertyDescription propertyDescription = modelDescriptionForParent(matcher.group(0), blockElement);
+      String property = propertyDescription == null ? matcher.group(0) : propertyDescription.name;
       GradleDslElement element = blockElement.getElement(property);
       if (element instanceof GradlePropertiesDslElement) {
         blockElement = (GradlePropertiesDslElement) element;

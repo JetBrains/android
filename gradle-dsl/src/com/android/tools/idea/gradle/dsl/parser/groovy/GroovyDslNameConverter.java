@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.psi.PsiElement;
@@ -35,6 +36,7 @@ import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import java.util.Map;
 import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.lexer.TokenSets;
 
 public class GroovyDslNameConverter implements GradleDslNameConverter {
@@ -84,20 +86,15 @@ public class GroovyDslNameConverter implements GradleDslNameConverter {
     return result;
   }
 
-  @NotNull
+  @Nullable
   @Override
-  public String modelNameForParent(@NotNull String externalName, @NotNull GradleDslElement context) {
-    if (externalName.contains(".")) {
-      return modelNameForParent(externalName.substring(0, externalName.lastIndexOf(".")), context.getParent()) +
-             "." +
-             modelNameForParent(externalName.substring(externalName.lastIndexOf(".") + 1), context);
-    }
+  public ModelPropertyDescription modelDescriptionForParent(@NotNull String externalName, @NotNull GradleDslElement context) {
     ImmutableMap<Pair<String,Integer>, ModelEffectDescription> map = context.getExternalToModelMap(this);
     for (Map.Entry<Pair<String,Integer>, ModelEffectDescription> e : map.entrySet()) {
       if (e.getKey().getFirst().equals(externalName)) {
-        return e.getValue().property.name;
+        return e.getValue().property;
       }
     }
-    return externalName;
+    return null;
   }
 }
