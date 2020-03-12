@@ -28,9 +28,11 @@ import org.jetbrains.annotations.NotNull;
 
 public final class WhatsNewMetricsTracker {
   @NotNull private final Map<Project, MetricsEventBuilder> myProjectToBuilderMap;
+  @NotNull private final Map<Project, ActionButtonMetricsEventBuilder> myProjectToActionBuilderMap;
 
   WhatsNewMetricsTracker() {
     myProjectToBuilderMap = new HashMap<>();
+    myProjectToActionBuilderMap = new HashMap<>();
   }
 
   @NotNull
@@ -44,8 +46,17 @@ public final class WhatsNewMetricsTracker {
     myProjectToBuilderMap.computeIfAbsent(project, p -> {
       MetricsEventBuilder eventBuilder = new MetricsEventBuilder();
       eventBuilder.myBuilder.setAutoOpened(isAutoOpened);
+      getActionsMetricsBuilder(project).generateEventsForAllCreatedBeforeActions(project).forEach(eventBuilder::addActionButtonEvent);
       return eventBuilder;
     });
+  }
+
+  private ActionButtonMetricsEventBuilder getActionsMetricsBuilder(@NotNull Project project) {
+    return myProjectToActionBuilderMap.computeIfAbsent(project, p -> new ActionButtonMetricsEventBuilder());
+  }
+
+  void clearCachedActionKeys(@NotNull Project project) {
+    myProjectToActionBuilderMap.remove(project);
   }
 
   void updateFlow(@NotNull Project project) {
@@ -55,7 +66,26 @@ public final class WhatsNewMetricsTracker {
   void scrolledToBottom(@NotNull Project project) {
     MetricsEventBuilder metricsEventBuilder = myProjectToBuilderMap.get(project);
     if (metricsEventBuilder != null) {
-      metricsEventBuilder.myBuilder.setScrolledToBottom(true);
+      metricsEventBuilder.scrolledToBottom();
+    }
+  }
+
+  public void actionButtonCreated(@NotNull Project project, @NotNull String actionKey) {
+    actionButtonEvent(project, getActionsMetricsBuilder(project).actionCreated(project, actionKey));
+  }
+
+  public void clickActionButton(@NotNull Project project, @NotNull String actionKey) {
+    actionButtonEvent(project, getActionsMetricsBuilder(project).clickAction(project, actionKey));
+  }
+
+  public void stateUpdateActionButton(@NotNull Project project, @NotNull String actionKey) {
+    actionButtonEvent(project, getActionsMetricsBuilder(project).stateUpdateAction(project, actionKey));
+  }
+
+  private void actionButtonEvent(@NotNull Project project, @NotNull WhatsNewAssistantUpdateEvent.ActionButtonEvent.Builder actionButtonEvent) {
+    MetricsEventBuilder metricsEventBuilder = myProjectToBuilderMap.get(project);
+    if (metricsEventBuilder != null) {
+      metricsEventBuilder.addActionButtonEvent(actionButtonEvent);
     }
   }
 
@@ -87,12 +117,23 @@ public final class WhatsNewMetricsTracker {
       myBuilder.setTimeToUpdateMs(myStopwatch.elapsed().toMillis());
     }
 
+    private void scrolledToBottom() {
+      myBuilder.setScrolledToBottom(true);
+      myBuilder.setTimeToScrolledToBottom(myStopwatch.elapsed().toMillis());
+    }
+
     private void buildAndLog() {
       myBuilder.setTimeToCloseMs(myStopwatch.elapsed().toMillis());
 
-      UsageTracker.log(AndroidStudioEvent.newBuilder()
-                         .setKind(AndroidStudioEvent.EventKind.WHATS_NEW_ASSISTANT_UPDATE_EVENT)
-                         .setWhatsNewAssistantUpdateEvent(myBuilder));
+      UsageTracker.log(
+        AndroidStudioEvent.newBuilder()
+          .setKind(AndroidStudioEvent.EventKind.WHATS_NEW_ASSISTANT_UPDATE_EVENT)
+          .setWhatsNewAssistantUpdateEvent(myBuilder)
+      );
+    }
+
+    public void addActionButtonEvent(WhatsNewAssistantUpdateEvent.ActionButtonEvent.Builder actionButtonEvent) {
+      myBuilder.addActionButtonEvents(actionButtonEvent.setTimeFromWnaOpen(myStopwatch.elapsed().toMillis()));
     }
   }
 }
