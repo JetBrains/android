@@ -48,7 +48,7 @@ fun GradleDslFile.getPropertiesElement(
   nameElement: GradleNameElement? = null
 ): GradlePropertiesDslElement? {
   return nameParts.map { namePart -> namePart.trim { it <= ' ' } }.fold(parentElement) { resultElement, nestedElementName ->
-    val canonicalNestedElementName = converter.modelNameForParent(nestedElementName, resultElement)
+    val canonicalNestedElementName = converter.modelDescriptionForParent(nestedElementName, resultElement)?.name ?: nestedElementName
     val elementName = nameElement ?: GradleNameElement.fake(canonicalNestedElementName)
     var element = resultElement.getElement(canonicalNestedElementName)
 
