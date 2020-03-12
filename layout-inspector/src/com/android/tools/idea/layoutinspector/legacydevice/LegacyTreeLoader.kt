@@ -45,26 +45,20 @@ import javax.imageio.ImageIO
  */
 object LegacyTreeLoader : TreeLoader {
 
-  // Reverse mapping of hashCode
-  private val latestWindowIds = mutableMapOf<Long, String>()
-
-  override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup, client: InspectorClient): ViewNode? {
+  override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup, client: InspectorClient): Pair<ViewNode, String>? {
     val legacyClient = client as? LegacyClient ?: return null
     val ddmClient = legacyClient.selectedClient ?: return null
-    val (maybeWindow, maybeUpdater) = data as? Pair<*, *> ?: return null
-    val window = maybeWindow as? Long ?: return null
-    val updater = maybeUpdater as? LegacyPropertiesProvider.Updater ?: return null
-    val windowName = latestWindowIds[window] ?: return null
-    return capture(ddmClient, windowName, updater)
+    val (windowName, updater, _) = data as? LegacyEvent ?: return null
+    return capture(ddmClient, windowName, updater)?.let { Pair(it, windowName) }
   }
 
-  override fun getAllWindowIds(data: Any?, client: InspectorClient): List<Long>? {
+  override fun getAllWindowIds(data: Any?, client: InspectorClient): List<String>? {
+    if (data is LegacyEvent) {
+      return data.allWindows
+    }
     val legacyClient = client as? LegacyClient ?: return null
     val ddmClient = legacyClient.selectedClient ?: return null
-    val windows = ListViewRootsHandler().getWindows(ddmClient, 5, TimeUnit.SECONDS)
-    latestWindowIds.clear()
-    windows.associateByTo(latestWindowIds) { it.hashCode().toLong() }
-    return windows.map { it.hashCode().toLong() }
+    return ListViewRootsHandler().getWindows(ddmClient, 5, TimeUnit.SECONDS)
   }
 
   private fun capture(client: Client, window: String, propertiesUpdater: LegacyPropertiesProvider.Updater): ViewNode? {
@@ -72,15 +66,16 @@ object LegacyTreeLoader : TreeLoader {
     HandleViewDebug.dumpViewHierarchy(client, window, false, true, false, hierarchyHandler)
     val hierarchyData = hierarchyHandler.getData() ?: return null
     val (rootNode, hash) = parseLiveViewNode(hierarchyData, propertiesUpdater) ?: return null
-    rootNode.drawId = window.hashCode().toLong()
     val imageHandler = CaptureByteArrayHandler(HandleViewDebug.CHUNK_VUOP)
     HandleViewDebug.captureView(client, window, hash, imageHandler)
     try {
       val imageData = imageHandler.getData()
-      rootNode.imageBottom = ImageIO.read(ByteArrayInputStream(imageData))
+      if (imageData != null) {
+        rootNode.imageBottom = ImageIO.read(ByteArrayInputStream(imageData))
+      }
     }
     catch (e: IOException) {
-      return null
+      // We didn't get an image, but still return the hierarchy and properties
     }
     return rootNode
   }

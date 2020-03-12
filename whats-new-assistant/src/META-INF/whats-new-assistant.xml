@@ -30,5 +30,7 @@
     <actionHandler implementation="com.android.tools.idea.whatsnew.assistant.actions.WhatsNewDismissAction"/>
     <panelFactory implementation="com.android.tools.idea.whatsnew.assistant.WhatsNewUpdateStatusPanelFactory"/>
     <scrollHandler implementation="com.android.tools.idea.whatsnew.assistant.WhatsNewScrollHandler"/>
+    <actionHandler implementation="com.android.tools.idea.whatsnew.assistant.actions.BuildAnalyzerShowAction"/>
+    <actionStateManager implementation="com.android.tools.idea.whatsnew.assistant.actions.BuildAnalyzerShowActionStateManager"/>
   </extensions>
 </idea-plugin>

@@ -26,6 +26,7 @@ import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspec
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.Event.EventGroupIds
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.Disposable
 import java.util.concurrent.Future
 
 /**
@@ -67,7 +68,7 @@ interface InspectorClient {
    */
   fun execute(command: LayoutInspectorCommand)
 
-  /**
+  /**stud
    * Send simple command to agent without arguments.
    */
   fun execute(commandType: LayoutInspectorCommand.Type) {
@@ -102,22 +103,25 @@ interface InspectorClient {
 
   companion object {
     /**
-     * Prove a way for tests to generate a mock client.
+     * Provide a way for tests to generate a mock client.
+     * Be sure to set it back afterward!
      */
     @VisibleForTesting
-    var clientFactory: (model: InspectorModel) -> InspectorClient = { DefaultInspectorClient(it) }
+    var clientFactory: (model: InspectorModel, parentDisposable: Disposable) -> InspectorClient = { model, parentDisposable ->
+      DefaultInspectorClient(model, parentDisposable)
+    }
 
     /**
      * Use this method to create a new client.
      */
-    fun createInstance(model: InspectorModel): InspectorClient = clientFactory(model)
+    fun createInstance(model: InspectorModel, parentDisposable: Disposable): InspectorClient = clientFactory(model, parentDisposable)
   }
 }
 
 object DisconnectedClient : InspectorClient {
   override val treeLoader: TreeLoader = object: TreeLoader {
-    override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup, client: InspectorClient): ViewNode? = null
-    override fun getAllWindowIds(data: Any?, client: InspectorClient) = listOf<Long>()
+    override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup, client: InspectorClient): Pair<ViewNode, Any>? = null
+    override fun getAllWindowIds(data: Any?, client: InspectorClient) = listOf<Any>()
   }
   override fun register(groupId: EventGroupIds, callback: (Any) -> Unit) {}
   override fun registerProcessChanged(callback: () -> Unit) {}

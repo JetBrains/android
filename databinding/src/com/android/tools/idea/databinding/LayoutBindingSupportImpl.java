@@ -19,7 +19,7 @@ import com.intellij.openapi.util.ModificationTracker;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
-public class DataBindingSupportImpl implements DataBindingSupport {
+public class LayoutBindingSupportImpl implements LayoutBindingSupport {
   /**
    * Returns data binding mode for the facet.
    */
@@ -35,7 +35,16 @@ public class DataBindingSupportImpl implements DataBindingSupport {
   @Override
   @NotNull
   public ModificationTracker getDataBindingEnabledTracker() {
-    //noinspection AccessStaticViaInstance - TODO(b/119823849): One tracker per module?
+    //noinspection AccessStaticViaInstance
     return DataBindingModeTrackingService.getInstance().DATA_BINDING_ENABLED_TRACKER;
+  }
+
+  /**
+   * Returns tracker that changes when a facet's data binding enabled value changes.
+   */
+  @Override
+  @NotNull
+  public ModificationTracker getViewBindingEnabledTracker() {
+    return ViewBindingEnabledTrackingService.getInstance();
   }
 }

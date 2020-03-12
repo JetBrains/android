@@ -103,7 +103,7 @@ class NavigationTest {
     motionRule.selectConstraint("start", "widget")
     check(ANDROID_URI, ATTR_LAYOUT_WIDTH, CONSTRAINT, SCENE_FILE, 11, "android:layout_width=\"64dp\"")
     check(ANDROID_URI, ATTR_LAYOUT_HEIGHT, CONSTRAINT, SCENE_FILE, 12, "android:layout_height=\"64dp\"")
-    check(AUTO_URI, ATTR_TEXT_SIZE, CUSTOM_ATTRIBUTE, SCENE_FILE, 29, "motion:customPixelDimension=\"2sp\"/>")
+    check("", ATTR_TEXT_SIZE, CUSTOM_ATTRIBUTE, SCENE_FILE, 29, "motion:customPixelDimension=\"2sp\"/>")
   }
 
   @Test
@@ -119,7 +119,7 @@ class NavigationTest {
     check(AUTO_URI, MOTION_MOTION_STAGGER, CONSTRAINT, SCENE_FILE, 91, "motion:motionStagger=\"1\"")
     check(ANDROID_URI, ATTR_LAYOUT_WIDTH, CONSTRAINT, LAYOUT_FILE, 42, "android:layout_width=\"32dp\"")
     check(ANDROID_URI, ATTR_LAYOUT_HEIGHT, CONSTRAINT, LAYOUT_FILE, 43, "android:layout_height=\"10dp\"")
-    check(AUTO_URI, ATTR_TEXT_SIZE, CUSTOM_ATTRIBUTE, SCENE_FILE, 95, "motion:customPixelDimension=\"2sp\"/>")
+    check("", ATTR_TEXT_SIZE, CUSTOM_ATTRIBUTE, SCENE_FILE, 95, "motion:customPixelDimension=\"2sp\"/>")
   }
 
   @Test
@@ -159,21 +159,21 @@ class NavigationTest {
   fun testKeyAttribute() {
     motionRule.selectKeyFrame("start", "end", KEY_ATTRIBUTE, 99, "widget")
     check(ANDROID_URI, ATTR_ANDROID_ROTATION, KEY_ATTRIBUTE, SCENE_FILE, 151, "android:rotation=\"1\"")
-    check(AUTO_URI, ATTR_TEXT_SIZE, CUSTOM_ATTRIBUTE, SCENE_FILE, 156, "motion:customPixelDimension=\"2sp\"/>")
+    check("", ATTR_TEXT_SIZE, CUSTOM_ATTRIBUTE, SCENE_FILE, 156, "motion:customPixelDimension=\"2sp\"/>")
   }
 
   @Test
   fun testKeyCycle() {
     motionRule.selectKeyFrame("start", "end", KEY_CYCLE, 15, "widget")
     check(AUTO_URI, "transitionPathRotate", KEY_CYCLE, SCENE_FILE, 159, "motion:transitionPathRotate=\"1.5\"")
-    check(AUTO_URI, ATTR_PIVOT_X, CUSTOM_ATTRIBUTE, SCENE_FILE, 164, "motion:customFloatValue=\".3\"/>")
+    check("", ATTR_PIVOT_X, CUSTOM_ATTRIBUTE, SCENE_FILE, 164, "motion:customFloatValue=\".3\"/>")
   }
 
   @Test
   fun testKeyTimeCycle() {
     motionRule.selectKeyFrame("start", "end", KEY_TIME_CYCLE, 25, "widget")
     check(AUTO_URI, "transitionPathRotate", KEY_TIME_CYCLE, SCENE_FILE, 167, "motion:transitionPathRotate=\"1.5\"")
-    check(AUTO_URI, ATTR_PIVOT_X, CUSTOM_ATTRIBUTE, SCENE_FILE, 172, "motion:customFloatValue=\".7\"/>")
+    check("", ATTR_PIVOT_X, CUSTOM_ATTRIBUTE, SCENE_FILE, 172, "motion:customFloatValue=\".7\"/>")
   }
 
   private fun check(namespace: String, name: String, section: String, expectedFile: String, expectedLine: Int, expectedText: String) {

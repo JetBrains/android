@@ -24,12 +24,15 @@ import com.android.tools.idea.layoutinspector.LayoutInspectorTransportRule
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.VIEW1
+import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import junit.framework.TestCase
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
@@ -53,11 +56,20 @@ class DeviceViewPanelTest {
   @get:Rule
   val inspectorRule = LayoutInspectorTransportRule().withDefaultDevice(connected = true)
 
+  @Before
+  fun setUp() {
+    InspectorClient.clientFactory = { _, _ -> mock(InspectorClient::class.java) }
+  }
+
+  @After
+  fun tearDown() {
+    InspectorClient.clientFactory = { model, parentDisposable -> DefaultInspectorClient(model, parentDisposable) }
+  }
+
   @Test
   fun testFocusableActionButtons() {
-    InspectorClient.clientFactory = { mock(InspectorClient::class.java) }
     val model = model { view(1, 0, 0, 1200, 1600, "RelativeLayout") }
-    val inspector = LayoutInspector(model)
+    val inspector = LayoutInspector(model, disposableRule.disposable)
     val settings = DeviceViewSettings()
     val toolbar = getToolbar(DeviceViewPanel(inspector, settings, disposableRule.disposable))
     toolbar.components.forEach { assertThat(it.isFocusable).isTrue() }
@@ -96,7 +108,8 @@ class DeviceViewPanelTest {
       }
     }
 
-    val panel = DeviceViewPanel(LayoutInspector(model), DeviceViewSettings(scalePercent = 100), disposableRule.disposable)
+    val panel = DeviceViewPanel(LayoutInspector(model, disposableRule.disposable),
+                                DeviceViewSettings(scalePercent = 100), disposableRule.disposable)
     val contentPanel = flatten(panel).filterIsInstance<DeviceViewContentPanel>().first()
     val viewport = flatten(panel).filterIsInstance<JViewport>().first()
 

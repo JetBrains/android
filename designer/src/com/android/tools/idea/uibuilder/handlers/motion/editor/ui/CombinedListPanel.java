@@ -171,8 +171,8 @@ public class CombinedListPanel extends JPanel {
       }
       label.setBackground(isSelected ? mSelectedColor : mUnselectedColor);
       panel.setBackground(isSelected ? mSelectedColor : mUnselectedColor);
-      label.setForeground(ourTextColor);
-      panel.setForeground(ourTextColor);
+      label.setForeground(isSelected ? Color.WHITE : ourTextColor);
+      panel.setForeground(isSelected ? Color.WHITE : ourTextColor);
       return panel;
     }
   };

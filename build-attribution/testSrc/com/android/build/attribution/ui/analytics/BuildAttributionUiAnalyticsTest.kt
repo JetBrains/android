@@ -130,7 +130,7 @@ class BuildAttributionUiAnalyticsTest {
   @Test
   fun testTabOpenFromBuildOutputLink() {
     uiAnalytics.initFirstPage("criticalPathTasks", CRITICAL_PATH_TASKS_ROOT)
-    uiAnalytics.registerBuildOutputLinkClick()
+    uiAnalytics.registerOpenEventSource(BuildAttributionUiAnalytics.TabOpenEventSource.BUILD_OUTPUT_LINK)
     uiAnalytics.tabOpened()
     //Check state was cleared and next open will be reported as TAB_OPENED_WITH_TAB_CLICK
     uiAnalytics.tabOpened()
@@ -146,6 +146,21 @@ class BuildAttributionUiAnalyticsTest {
     buildAttributionEvents.last().studioEvent.buildAttributionUiEvent.let {
       Truth.assertThat(it.buildAttributionReportSessionId).isEqualTo(buildSessionId)
       Truth.assertThat(it.eventType).isEqualTo(EventType.TAB_OPENED_WITH_TAB_CLICK)
+    }
+  }
+
+  @Test
+  fun testTabOpenFromWNA() {
+    uiAnalytics.initFirstPage("criticalPathTasks", CRITICAL_PATH_TASKS_ROOT)
+    uiAnalytics.registerOpenEventSource(BuildAttributionUiAnalytics.TabOpenEventSource.WNA_BUTTON)
+    uiAnalytics.tabOpened()
+
+    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+    Truth.assertThat(buildAttributionEvents).hasSize(1)
+
+    buildAttributionEvents.first().studioEvent.buildAttributionUiEvent.let {
+      Truth.assertThat(it.buildAttributionReportSessionId).isEqualTo(buildSessionId)
+      Truth.assertThat(it.eventType).isEqualTo(EventType.TAB_OPENED_WITH_WNA_BUTTON)
     }
   }
 
@@ -387,7 +402,7 @@ class BuildAttributionUiAnalyticsTest {
     uiAnalytics.tabClosed()
     uiAnalytics.tabCreated()
     uiAnalytics.initFirstPage("tasksRoot", CRITICAL_PATH_TASKS_ROOT)
-    uiAnalytics.registerBuildOutputLinkClick()
+    uiAnalytics.registerOpenEventSource(BuildAttributionUiAnalytics.TabOpenEventSource.BUILD_OUTPUT_LINK)
     uiAnalytics.tabOpened()
     // Current page should now be "tasksRoot" as view was reset.
     // "task2" was already opened and should have the same number 2.

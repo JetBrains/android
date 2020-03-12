@@ -29,7 +29,7 @@ private const val PREFERENCE_KEY = "live.layout.inspector.enabled"
 // Should match LayoutInspectorFileType.getName()
 private const val LAYOUT_INSPECTOR_FILE_TYPE_NAME = "Layout Inspector"
 
-// Should match LayoutInspectorToolWindowFactory.TOOL_WINDOW_ID
+// Should match LayoutInspectorToolWindowFactory.LAYOUT_INSPECTOR_TOOL_WINDOW_ID
 private const val LAYOUT_INSPECTOR_TOOL_WINDOW_ID = "Layout Inspector"
 
 
@@ -37,6 +37,7 @@ var enableLiveLayoutInspector
   get() = PropertiesComponent.getInstance().getBoolean(PREFERENCE_KEY, true)
   set(value) {
     if (value != enableLiveLayoutInspector) {
+      PropertiesComponent.getInstance().setValue(PREFERENCE_KEY, value, true)
       if (value) {
         for (windowEp in FacetDependentToolWindow.EXTENSION_POINT_NAME.extensionList) {
           if (windowEp.id == LAYOUT_INSPECTOR_TOOL_WINDOW_ID) {
@@ -71,5 +72,4 @@ var enableLiveLayoutInspector
         }
       }
     }
-    PropertiesComponent.getInstance().setValue(PREFERENCE_KEY, value)
   }

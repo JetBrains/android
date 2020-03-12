@@ -51,7 +51,7 @@ class MotionDefaultPropertyValueProviderTest {
     motionRule.selectConstraint("start", "button")
     assertThat(lookup(CONSTRAINT, AUTO_URI, MOTION_MOTION_STAGGER)).isEqualTo("1")
     assertThat(lookup(CONSTRAINT, AUTO_URI, MOTION_PATH_MOTION_ARC)).isEqualTo("startHorizontal")
-    assertThat(lookup(CUSTOM_ATTRIBUTE, AUTO_URI, ATTR_TEXT_SIZE)).isEqualTo("2sp")
+    assertThat(lookup(CUSTOM_ATTRIBUTE, "", ATTR_TEXT_SIZE)).isEqualTo("2sp")
   }
 
   private fun lookup(section: String, namespace: String, attrName: String): String? {

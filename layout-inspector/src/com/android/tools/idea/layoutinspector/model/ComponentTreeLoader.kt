@@ -17,8 +17,8 @@ package com.android.tools.idea.layoutinspector.model
 
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.SkiaParser
-import com.android.tools.idea.layoutinspector.common.StringTable
 import com.android.tools.idea.layoutinspector.SkiaParserService
+import com.android.tools.idea.layoutinspector.common.StringTableImpl
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
@@ -28,7 +28,6 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.ui.UIUtil
 import java.awt.Image
 import java.awt.Rectangle
-import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
@@ -43,8 +42,8 @@ object ComponentTreeLoader : TreeLoader {
 
   override fun loadComponentTree(
     maybeEvent: Any?, resourceLookup: ResourceLookup, client: InspectorClient
-  ): ViewNode? {
-    return loadComponentTree(maybeEvent, resourceLookup, client, SkiaParser)
+  ): Pair<ViewNode, Long>? {
+    return loadComponentTree(maybeEvent, resourceLookup, client, SkiaParser)?.let { Pair(it, it.drawId) }
   }
 
   @VisibleForTesting
@@ -65,7 +64,7 @@ private class ComponentTreeLoaderImpl(
   private val tree: LayoutInspectorProto.ComponentTreeEvent, private val resourceLookup: ResourceLookup?
 ) {
   private val loadStartTime = AtomicLong(-1)
-  private val stringTable = StringTable(tree.stringList)
+  private val stringTable = StringTableImpl(tree.stringList)
 
   fun loadComponentTree(client: InspectorClient, skiaParser: SkiaParserService): ViewNode? {
     val defaultClient = client as? DefaultInspectorClient ?: throw UnsupportedOperationException(
@@ -77,7 +76,7 @@ private class ComponentTreeLoaderImpl(
     return try {
       val rootView = loadRootView()
       val bytes = defaultClient.getPayload(tree.payloadId)
-      var viewRoot: InspectorView? = null
+      var rootViewFromSkiaImage: InspectorView? = null
       if (bytes.isNotEmpty()) {
         try {
           if (tree.payloadType == LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG && rootView != null) {
@@ -87,20 +86,20 @@ private class ComponentTreeLoaderImpl(
             }
           }
           else if (tree.payloadType == LayoutInspectorProto.ComponentTreeEvent.PayloadType.SKP) {
-            viewRoot = skiaParser.getViewTree(bytes)
-            if (viewRoot != null && viewRoot.id.isEmpty()) {
+            rootViewFromSkiaImage = skiaParser.getViewTree(bytes)
+            if (rootViewFromSkiaImage != null && rootViewFromSkiaImage.id.isEmpty()) {
               // We were unable to parse the skia image. Allow the user to interact with the component tree.
-              viewRoot = null
+              rootViewFromSkiaImage = null
             }
-            defaultClient.logInitialRender(viewRoot != null)
+            defaultClient.logInitialRender(rootViewFromSkiaImage != null)
           }
         }
         catch (ex: Exception) {
           Logger.getInstance(LayoutInspector::class.java).warn(ex)
         }
       }
-      if (viewRoot != null) {
-        val imageLoader = ComponentImageLoader(rootView, viewRoot)
+      if (rootViewFromSkiaImage != null && rootView != null) {
+        val imageLoader = ComponentImageLoader(rootView, rootViewFromSkiaImage)
         imageLoader.loadImages()
       }
       rootView
@@ -110,9 +109,9 @@ private class ComponentTreeLoaderImpl(
     }
   }
 
-  private fun loadRootView(): ViewNode {
+  private fun loadRootView(): ViewNode? {
     resourceLookup?.updateConfiguration(tree.resources, stringTable)
-    return loadView(tree.root, null)
+    return if (tree.hasRoot()) loadView(tree.root, null) else null
   }
 
   private fun loadView(view: LayoutInspectorProto.View, parent: ViewNode?): ViewNode {
@@ -171,13 +170,15 @@ private class ComponentTreeLoaderImpl(
       if (view.image == null) {
         return image
       }
+      if (image == null) {
+        return view.image
+      }
       @Suppress("UndesirableClassUsage")
-      val result = image ?: BufferedImage(bounds.width, bounds.height, (view.image as BufferedImage).type)
       // Combine the images...
-      val g = result.graphics
+      val g = image.graphics
       UIUtil.drawImage(g, view.image!!, offset.x + view.x - bounds.x, offset.y + view.y - bounds.y, null)
       g.dispose()
-      return result
+      return image
     }
   }
 }

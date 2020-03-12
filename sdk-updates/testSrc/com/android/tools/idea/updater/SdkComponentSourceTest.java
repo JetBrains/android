@@ -16,9 +16,19 @@
 package com.android.tools.idea.updater;
 
 import com.android.repository.Revision;
-import com.android.repository.api.*;
+import com.android.repository.api.Channel;
+import com.android.repository.api.Downloader;
+import com.android.repository.api.RepoManager;
+import com.android.repository.api.RepoPackage;
+import com.android.repository.api.RepositorySource;
+import com.android.repository.api.SettingsController;
+import com.android.repository.api.SimpleRepositorySource;
 import com.android.repository.impl.manager.RepoManagerImpl;
-import com.android.repository.testframework.*;
+import com.android.repository.testframework.FakeDownloader;
+import com.android.repository.testframework.FakeProgressIndicator;
+import com.android.repository.testframework.FakeRepositorySourceProvider;
+import com.android.repository.testframework.FakeSettingsController;
+import com.android.repository.testframework.MockFileOp;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.progress.StudioProgressIndicatorAdapter;
 import com.google.common.collect.ImmutableList;
@@ -27,23 +37,24 @@ import com.google.common.collect.Sets;
 import com.intellij.ide.externalComponents.ExternalComponentManager;
 import com.intellij.ide.externalComponents.ExternalComponentManagerImpl;
 import com.intellij.ide.externalComponents.UpdatableExternalComponent;
-import com.intellij.mock.MockApplicationEx;
+import com.intellij.mock.MockApplication;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.updateSettings.impl.ExternalUpdate;
-import com.intellij.openapi.updateSettings.impl.UpdateChecker;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Pair;
 import com.intellij.testFramework.UsefulTestCase;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.net.URL;
-import java.util.*;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Tests for {@link SdkComponentSource}
@@ -70,7 +81,7 @@ public class SdkComponentSourceTest extends UsefulTestCase {
       @Override
       public void dispose() {}
     };
-    MockApplicationEx instance = new MockApplicationEx(myDisposable);
+    MockApplication instance = new MockApplication(myDisposable);
     instance.registerService(ExternalComponentManager.class, ExternalComponentManagerImpl.class);
     instance.registerService(UpdateSettings.class, UpdateSettings.class);
     ApplicationManager.setApplication(instance, myDisposable);

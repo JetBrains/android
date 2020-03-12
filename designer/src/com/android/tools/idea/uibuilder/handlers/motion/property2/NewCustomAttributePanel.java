@@ -34,9 +34,9 @@ import com.android.tools.property.panel.api.TableLineModel;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 import com.intellij.concurrency.JobScheduler;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.EditorComboBox;
 import icons.StudioIcons;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
@@ -68,7 +68,7 @@ public class NewCustomAttributePanel extends DialogWrapper {
   private JTextField myAttributeNameEditor;
   private JTextField myInitialValueEditor;
   private JPanel myContentPanel;
-  private EditorComboBox myDataType;
+  private ComboBox<CustomAttributeType> myDataType;
   private JCheckBox myAcceptAnyway;
   private JLabel myError;
   private MyTextFieldModel myNewAttributeNameModel;
@@ -102,7 +102,6 @@ public class NewCustomAttributePanel extends DialogWrapper {
     }
     Arrays.stream(CustomAttributeType.values()).forEach(type -> myModel.addElement(type));
     myModel.setSelectedItem(CustomAttributeType.CUSTOM_STRING);
-    //noinspection unchecked
     myDataType.setModel(myModel);
     myDataType.setEditable(false);
     initValidations();
@@ -152,7 +151,7 @@ public class NewCustomAttributePanel extends DialogWrapper {
   }
 
   @TestOnly
-  public EditorComboBox getDataTypeComboBox() {
+  public ComboBox<CustomAttributeType> getDataTypeComboBox() {
     return myDataType;
   }
 
@@ -271,7 +270,7 @@ public class NewCustomAttributePanel extends DialogWrapper {
     myAttributeNameEditor = new CommonTextField<>(myNewAttributeNameModel);
     myInitialValueModel = new MyTextFieldModel(this::updateErrorStatus);
     myInitialValueEditor = new CommonTextField<>(myInitialValueModel);
-    myDataType = new EditorComboBox(CustomAttributeType.CUSTOM_STRING.getTagName());
+    myDataType = new ComboBox<>();
   }
 
   private static class MyTextFieldModel implements CommonTextFieldModel {

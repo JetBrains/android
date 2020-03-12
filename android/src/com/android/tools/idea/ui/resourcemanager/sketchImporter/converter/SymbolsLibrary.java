@@ -18,7 +18,7 @@ package com.android.tools.idea.ui.resourcemanager.sketchImporter.converter;
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models.SymbolModel;
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchSymbolMaster;
 import com.google.common.collect.ImmutableList;
-import com.intellij.util.containers.hash.HashMap;
+import java.util.HashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

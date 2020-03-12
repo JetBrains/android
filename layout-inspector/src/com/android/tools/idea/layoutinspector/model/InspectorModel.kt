@@ -69,7 +69,7 @@ class InspectorModel(val project: Project) {
    * Update [root]'s bounds and children based on any updates to [roots]
    * Also adds a dark layer between windows if DIM_BEHIND is set.
    */
-  private fun updateRoot(allIds: List<Long>) {
+  private fun updateRoot(allIds: List<*>) {
     root.children.clear()
     val maxWidth = roots.values.map { it.width }.max() ?: 0
     val maxHeight = roots.values.map { it.height }.max() ?: 0
@@ -102,7 +102,7 @@ class InspectorModel(val project: Project) {
   /**
    * Replaces all subtrees with differing root IDs. Existing views are updated.
    */
-  fun update(newRoot: ViewNode?, id: Long, allIds: List<Long>) {
+  fun update(newRoot: ViewNode?, id: Any, allIds: List<*>) {
     var structuralChange: Boolean = roots.keys.retainAll(allIds)
     val oldRoot = roots[id]
     // changes in DIM_BEHIND will cause a structural change

@@ -42,6 +42,14 @@ internal fun PsiFile.containsViewSuccessor(): Boolean {
   if (DumbService.isDumb(this.project)) {
     return false
   }
+
+  // Quickly reject non-custom view files. A custom view constructor should have Context and AttributeSet as parameters
+  // (https://developer.android.com/training/custom-views/create-view#subclassview).
+  // Heuristic to check that the code in the file uses android.util.AttributeSet
+  if (viewProvider.document?.charsSequence?.contains("AttributeSet") == false) {
+    return false
+  }
+
   return when (this) {
     is PsiClassOwner -> this.classes.any { it.extendsView() } // Properly detect inheritance from View in Smart mode
     else -> false

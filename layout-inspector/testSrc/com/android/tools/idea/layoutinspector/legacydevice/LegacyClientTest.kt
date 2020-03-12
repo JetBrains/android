@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.layoutinspector.legacydevice
 
-import com.android.flags.junit.SetFlagRule
-import com.android.testutils.MockitoKt
+import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.FakeAdbRule
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.InspectorModel
@@ -29,7 +27,7 @@ import com.android.tools.idea.transport.poller.TransportEventPoller
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.argThat
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
@@ -44,19 +42,22 @@ class LegacyClientTest {
 
   @Test
   fun testReloadAllWindows() {
-    val inspector = LayoutInspector(InspectorModel(projectRule.project))
+    val inspector = LayoutInspector(InspectorModel(projectRule.project), projectRule.fixture.projectDisposable)
     val client = inspector.allClients.firstIsInstance<LegacyClient>()
 
     // we don't need the default poller--stop it so it doesn't leak
     TransportEventPoller.stopPoller(inspector.allClients.firstIsInstance<DefaultInspectorClient>().transportPoller)
 
     val loader = mock(LegacyTreeLoader::class.java)
-    `when`(loader.getAllWindowIds(any(), eq(client))).thenReturn(listOf(1L, 2L, 5L))
+    `when`(loader.getAllWindowIds(ArgumentMatchers.any(), eq(client))).thenReturn(listOf("window1", "window2", "window3"))
     client.treeLoader = loader
 
     client.reloadAllWindows()
-    verify(loader).loadComponentTree(argThat { (id, _): Pair<Long, *> -> id == 1L }, MockitoKt.any(ResourceLookup::class.java), eq(client))
-    verify(loader).loadComponentTree(argThat { (id, _): Pair<Long, *> -> id == 2L }, MockitoKt.any(ResourceLookup::class.java), eq(client))
-    verify(loader).loadComponentTree(argThat { (id, _): Pair<Long, *> -> id == 5L }, MockitoKt.any(ResourceLookup::class.java), eq(client))
+    verify(loader).loadComponentTree(argThat { event: LegacyEvent -> event.windowId == "window1" },
+                                     any(ResourceLookup::class.java), eq(client))
+    verify(loader).loadComponentTree(argThat { event: LegacyEvent -> event.windowId == "window2" },
+                                     any(ResourceLookup::class.java), eq(client))
+    verify(loader).loadComponentTree(argThat { event: LegacyEvent -> event.windowId == "window3" },
+                                     any(ResourceLookup::class.java), eq(client))
   }
 }

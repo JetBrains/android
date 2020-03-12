@@ -63,9 +63,12 @@ class AndroidModuleDependenciesSetup extends ModuleDependenciesSetup {
     String prefix = GradleConstants.SYSTEM_ID.getReadableName() + ": ";
     libraryName = libraryName.isEmpty() || StringUtil.startsWith(libraryName, prefix) ? libraryName : prefix + libraryName;
 
+    LibraryFilePaths libraryFilePaths = LibraryFilePaths.getInstance(module.getProject());
+    File sourceJarPath = libraryFilePaths.findSourceJarPath(libraryName, artifactPath);
+    File javadocJarPath = libraryFilePaths.findJavadocJarPath(libraryName, artifactPath);
     boolean newLibrary = false;
     Library library = modelsProvider.getLibraryByName(libraryName);
-    if (library == null || !isLibraryValid(modelsProvider.getModifiableLibraryModel(library), binaryPaths)) {
+    if (library == null || !isLibraryValid(modelsProvider.getModifiableLibraryModel(library), binaryPaths, javadocJarPath, sourceJarPath)) {
       if (library != null) {
         if (LOG.isDebugEnabled()) {
           LOG.debug(library.getName() + " not valid after sync.");
@@ -89,12 +92,9 @@ class AndroidModuleDependenciesSetup extends ModuleDependenciesSetup {
       // If the 'Guava' library was already defined when setting up 'app', it won't have source attachments. When setting up 'util' we may
       // have source attachments, but the library may have been already created. Here we just add the "source" paths if they were not already
       // set.
-      LibraryFilePaths libraryFilePaths = LibraryFilePaths.getInstance(module.getProject());
-      File sourceJarPath = libraryFilePaths.findSourceJarPath(libraryName, artifactPath);
       if (sourceJarPath != null) {
         updateLibraryRootTypePaths(library, SOURCES, modelsProvider, sourceJarPath);
       }
-      File javadocJarPath = libraryFilePaths.findJavadocJarPath(libraryName, artifactPath);
       if (javadocJarPath != null) {
         updateLibraryRootTypePaths(library, JavadocOrderRootType.getInstance(), modelsProvider, javadocJarPath);
       }

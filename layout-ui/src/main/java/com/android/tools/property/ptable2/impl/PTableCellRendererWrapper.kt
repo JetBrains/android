@@ -45,7 +45,10 @@ class PTableCellRendererWrapper: TableCellRenderer {
     val isExpanded = pTable.isExpandedItem(row, column)
     val component = renderer.getEditorComponent(pTable, item, PTableColumn.fromColumn(column), model.depth(item), isSelected, hasFocus, isExpanded)
     if (pTable.rendererShouldUpdateCellHeight && component is PTableVariableHeightCellEditor && component.isCustomHeight) {
-      table.setRowHeight(row, component.preferredSize.height)
+      val wantedHeight = component.preferredSize.height
+      if (wantedHeight != table.getRowHeight(row)) {
+        table.setRowHeight(row, wantedHeight)
+      }
     }
     return component
   }

@@ -60,4 +60,26 @@ public class GradleVersionsUnitTest {
     assertNull(gradleVersion);
   }
 
+  @Test
+  public void getGradleVersionFromApiJar() {
+    File jarFile = new File("gradle-core-api-6.0.jar");
+    GradleVersion gradleVersion = GradleVersions.getGradleVersionFromJar(jarFile);
+    assertNull(gradleVersion);
+  }
+
+  @Test
+  public void getGradleVersionWithMultipleMinors() {
+    File jarFile = new File("gradle-core-6.2.3.jar");
+    GradleVersion gradleVersion = GradleVersions.getGradleVersionFromJar(jarFile);
+    assertNotNull(gradleVersion);
+    assertEquals(GradleVersion.parse("6.2.3"), gradleVersion);
+  }
+
+  @Test
+  public void getGradleVersionWithoutMinors() {
+    File jarFile = new File("gradle-core-6.jar");
+    GradleVersion gradleVersion = GradleVersions.getGradleVersionFromJar(jarFile);
+    assertNotNull(gradleVersion);
+    assertEquals(GradleVersion.parse("6"), gradleVersion);
+  }
 }

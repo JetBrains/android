@@ -180,7 +180,7 @@ class ComponentTreeLoaderTest {
     val client = mock(DefaultInspectorClient::class.java)
     `when`(client.getPayload(111)).thenReturn(imageBytes)
 
-    val tree = ComponentTreeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client)!!
+    val (tree, _) = ComponentTreeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client)!!
 
     assertThat(tree.fallbackMode).isTrue()
     ImageDiffUtil.assertImageSimilar(imageFile, tree.imageBottom as BufferedImage, 0.0)

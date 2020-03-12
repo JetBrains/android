@@ -33,7 +33,6 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.ComboboxWithBrowseButton;
 import com.intellij.util.Alarm;
 import com.intellij.util.ArrayUtil;
-import com.intellij.util.containers.HashSet;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -46,6 +45,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
