@@ -57,6 +57,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 
@@ -147,6 +148,19 @@ class ConstraintSetPanel extends JPanel {
     mConstraintSetTable.setShowHorizontalLines(false);
     mConstraintSetTable.setAlignmentY(0.0f);
     mConstraintSetTable.getColumnModel().getColumn(0).setPreferredWidth(MEUI.scale(32));
+    mConstraintSetTable.setDefaultRenderer(String.class, new DefaultTableCellRenderer() {
+      @Override
+      public Component getTableCellRendererComponent(JTable table,
+                                                     Object value,
+                                                     boolean isSelected,
+                                                     boolean hasFocus,
+                                                     int row,
+                                                     int column) {
+        super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+        setBorder(noFocusBorder);
+        return this;
+      }
+    });
     mConstraintSetTable.setDefaultRenderer(Icon.class, new TableCellRenderer() {
       JLabel myLabel = new JLabel();
 
