@@ -56,6 +56,7 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog;
+import com.android.tools.idea.uibuilder.actions.ChainStyleViewActions;
 import com.android.tools.idea.uibuilder.actions.ToggleAllLiveRenderingAction;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -74,7 +75,6 @@ import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentU
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintHelperHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.MarginPopup;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.BaseLineToggleViewAction;
-import com.android.tools.idea.uibuilder.actions.ChainStyleViewActions;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scout.Scout;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -165,12 +165,8 @@ public class CommonActions {
       new ToggleVisibilityAction(SHOW_MARGINS_PREF_KEY, "Show Margins", true),
       new ToggleVisibilityAction(FADE_UNSELECTED_VIEWS, "Fade Unselected Views ", false),
       new ToggleAllLiveRenderingAction())));
-    actions.add(new ToggleAutoConnectAction());
     actions.add(new MarginSelector());
     actions.add(new ViewActionSeparator());
-    actions.add(new ClearConstraintsAction());
-
-    actions.add((new ViewActionSeparator()));
 
     // TODO Decide if we want lock actions.add(new LockConstraints());
     actions.add(new NestedViewActionMenu("Pack", StudioIcons.LayoutEditor.Toolbar.PACK_VERTICAL, Lists.<List<ViewAction>>newArrayList(
