@@ -26,10 +26,8 @@ import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.psi.PsiElement;
-import icons.AndroidIcons;
 import icons.StudioIcons;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import javax.swing.Icon;
@@ -44,28 +42,16 @@ public class LintAnnotationsModel {
   private ListMultimap<AttributeKey, IssueData> myAttributeIssues = ImmutableListMultimap.of();
   private List<IssueData> myIssueList = Collections.emptyList();
 
-  @NotNull
-  public Collection<NlComponent> getComponentsWithIssues() {
-    return myIssues == null ? Collections.emptyList() : myIssues.keySet();
-  }
-
-  @Nullable
-  public Icon getIssueIcon(@NotNull NlComponent component) {
-    return getIssueIcon(component, true, false);
-  }
-
   /**
    * Get the icon for the severity level of the issue associated with the
    * given component. If the component has no issue, the returned icon will be null
    *
    * @param component The component the get the icon for
-   * @param smallSize If true, will return an 8x8 icon, otherwise it will return a 16x16
-   *                  (or scaled equivalent for HiDpi screen)
    * @param selected
    * @return The icon for the severity level of the issue.
    */
   @Nullable
-  public Icon getIssueIcon(@NotNull NlComponent component, boolean smallSize, boolean selected) {
+  public Icon getIssueIcon(@NotNull NlComponent component, boolean selected) {
     if (myIssues == null) {
       return null;
     }
@@ -76,10 +62,6 @@ public class LintAnnotationsModel {
 
     IssueData max = findHighestSeverityIssue(issueData);
     boolean isError = HighlightDisplayLevel.ERROR.equals(max.level);
-    if (smallSize) {
-      // TODO: add new icons to StudioIcons and replace these icons
-      return isError ? AndroidIcons.Issue.ErrorBadge : AndroidIcons.Issue.WarningBadge;
-    }
 
     if (selected) {
       return isError ? StudioIcons.Common.ERROR_INLINE_SELECTED : StudioIcons.Common.WARNING_INLINE_SELECTED;
@@ -88,24 +70,14 @@ public class LintAnnotationsModel {
   }
 
   /**
-   * Convenience method for {@link #getIssueMessage(NlComponent, boolean true)}
-   */
-  @Nullable
-  public String getIssueMessage(@NotNull NlComponent component) {
-    return getIssueMessage(component, true);
-  }
-
-  /**
    * If the provided component has an issue, return the message associated with the highest
    * severity issue for the component.
    *
    * @param component                The component to get the issue from
-   * @param includeStaticDescription If true, the returned String will include the {@link AndroidLintInspectionBase#getStaticDescription()}
-   *                                 associated with this issue
    * @return The issue message or null if the component has no issue.
    */
   @Nullable
-  public String getIssueMessage(@NotNull NlComponent component, boolean includeStaticDescription) {
+  public String getIssueMessage(@NotNull NlComponent component) {
     if (myIssues == null) {
       return null;
     }
@@ -113,12 +85,7 @@ public class LintAnnotationsModel {
     if (issueData == null || issueData.isEmpty()) {
       return null;
     }
-
-    IssueData max = findHighestSeverityIssue(issueData);
-    if (includeStaticDescription) {
-      return max.message + "<br><br>\n" + max.inspection.getStaticDescription();
-    }
-    return max.message;
+    return findHighestSeverityIssue(issueData).message;
   }
 
   /**

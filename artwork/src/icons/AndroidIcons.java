@@ -62,11 +62,6 @@ public class AndroidIcons {
     public static final Icon Warning = IconLoader.getIcon("/icons/toolwindows/toolWindowWarning.svg"); // 13x13
   }
 
-  public static class Issue {
-    public static final Icon ErrorBadge = load("/icons/nele/issue/error-badge.png"); // 8x8
-    public static final Icon WarningBadge = load("/icons/nele/issue/warning-badge.png"); // 8x8
-  }
-
   public static class DeviceExplorer {
     public static final Icon DatabaseFolder = load("/icons/explorer/DatabaseFolder.png"); // 16x16
     public static final Icon DevicesLineup = load("/icons/explorer/devices-lineup.png"); // 300x150
