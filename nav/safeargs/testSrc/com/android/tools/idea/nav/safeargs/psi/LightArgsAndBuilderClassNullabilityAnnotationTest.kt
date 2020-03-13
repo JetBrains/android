@@ -34,8 +34,8 @@ import org.junit.runners.Parameterized
  */
 @RunsInEdt
 @RunWith(Parameterized::class)
-class LightArgsAndBuilderClassInferredTypeTest(
-  private val defaultValueTypeMapping: DefaultValueTypeMapping
+class LightArgsAndBuilderClassNullabilityAnnotationTest(
+  private val typeNullabilityMapping: TypeNullabilityMapping
 ) {
   @get:Rule
   val safeArgsRule = SafeArgsRule()
@@ -44,20 +44,18 @@ class LightArgsAndBuilderClassInferredTypeTest(
     @JvmStatic
     @Parameterized.Parameters(name = "{0}")
     fun data() = listOf(
-      DefaultValueTypeMapping("1", PsiType.INT.name),
-      DefaultValueTypeMapping("0x21", PsiType.INT.name),
-      DefaultValueTypeMapping("1f", PsiType.FLOAT.name),
-      DefaultValueTypeMapping("1l", "String"), // "1L" can't be recognized by toLongOrNull
-      DefaultValueTypeMapping("true", PsiType.BOOLEAN.name),
-      DefaultValueTypeMapping("someString", "String"),
-      DefaultValueTypeMapping("@resourceType/resourceName", PsiType.INT.name),
-      DefaultValueTypeMapping("someCustomType", "String"), // custom type can't be recognized
-      DefaultValueTypeMapping("someEnumType", "String") // custom type can't be recognized
+      TypeNullabilityMapping("integer", PsiType.INT.name, false),
+      TypeNullabilityMapping(PsiType.FLOAT.name, false),
+      TypeNullabilityMapping(PsiType.LONG.name, false),
+      TypeNullabilityMapping(PsiType.BOOLEAN.name, false),
+      TypeNullabilityMapping("string", "String", true),
+      TypeNullabilityMapping("reference", PsiType.INT.name, false),
+      TypeNullabilityMapping("test.safeargs.MyCustomType", "MyCustomType", true) // e.g Parcelable, Serializable
     )
   }
 
   @Test
-  fun expectedBuilderConstructorsAndMethodsAreCreated_inferredType() {
+  fun expectedBuilderConstructorsAndMethodsAreCreated_withNullabilityAnnotations() {
     safeArgsRule.fixture.addFileToProject(
       "res/navigation/main.xml",
       //language=XML
@@ -73,7 +71,8 @@ class LightArgsAndBuilderClassInferredTypeTest(
               android:label="Fragment">
             <argument
                 android:name="arg1"
-                android:defaultValue="${defaultValueTypeMapping.defaultValue}"/>
+                app:argType="${typeNullabilityMapping.before}"
+                app:nullable="true"/>
           </fragment>
         </navigation>
       """.trimIndent())
@@ -86,23 +85,6 @@ class LightArgsAndBuilderClassInferredTypeTest(
     // Classes can be found with context
     val builderClass = safeArgsRule.fixture.findClass("test.safeargs.FragmentArgs.Builder", context) as LightArgsBuilderClass
 
-    // We expect two constructors - a copy constructor (which is initialized with the parent args
-    builderClass.constructors.let { constructors ->
-      assertThat(constructors.size).isEqualTo(2)
-      constructors[0].checkSignaturesAndReturnType(
-        name = "Builder",
-        returnType = PsiType.NULL.name,
-        parameters = listOf(
-          Parameter("original", "FragmentArgs")
-        )
-      )
-
-      constructors[1].checkSignaturesAndReturnType(
-        name = "Builder",
-        returnType = PsiType.NULL.name
-      )
-    }
-
     // For the above xml, we expect a getter and setter for each <argument> tag as well as a final
     // `build()` method that generates its parent args class.
     builderClass.methods.let { methods ->
@@ -112,13 +94,14 @@ class LightArgsAndBuilderClassInferredTypeTest(
         name = "setArg1",
         returnType = "Builder",
         parameters = listOf(
-          Parameter("arg1", defaultValueTypeMapping.inferredTypeStr)
+          Parameter("arg1", typeNullabilityMapping.after)
         )
       )
 
       methods[1].checkSignaturesAndReturnType(
         name = "getArg1",
-        returnType = defaultValueTypeMapping.inferredTypeStr
+        returnType = typeNullabilityMapping.after,
+        isReturnTypeNullable = typeNullabilityMapping.isReturnTypeNullable
       )
 
       methods[2].checkSignaturesAndReturnType(
@@ -129,7 +112,7 @@ class LightArgsAndBuilderClassInferredTypeTest(
   }
 
   @Test
-  fun expectedGettersAndFromBundleMethodsAreCreated_inferredType() {
+  fun expectedGettersAndFromBundleMethodsAreCreated_withNullabilityAnnotations() {
     safeArgsRule.fixture.addFileToProject(
       "res/navigation/main.xml",
       //language=XML
@@ -145,7 +128,8 @@ class LightArgsAndBuilderClassInferredTypeTest(
               android:label="Fragment">
             <argument
                 android:name="arg1"
-                android:defaultValue="${defaultValueTypeMapping.defaultValue}" />
+                app:argType="${typeNullabilityMapping.before}"
+                app:nullable="true"/>
           </fragment>
         </navigation>
         """.trimIndent())
@@ -162,7 +146,8 @@ class LightArgsAndBuilderClassInferredTypeTest(
       assertThat(methods.size).isEqualTo(2)
       methods[0].checkSignaturesAndReturnType(
         name = "getArg1",
-        returnType = defaultValueTypeMapping.inferredTypeStr
+        returnType = typeNullabilityMapping.after,
+        isReturnTypeNullable = typeNullabilityMapping.isReturnTypeNullable
       )
 
       methods[1].checkSignaturesAndReturnType(
@@ -176,4 +161,6 @@ class LightArgsAndBuilderClassInferredTypeTest(
   }
 }
 
-class DefaultValueTypeMapping(val defaultValue: String, val inferredTypeStr: String)
+class TypeNullabilityMapping(val before: String, val after: String, val isReturnTypeNullable: Boolean) {
+  constructor(beforeAndAfter: String, nullability: Boolean) : this(beforeAndAfter, beforeAndAfter, nullability)
+}

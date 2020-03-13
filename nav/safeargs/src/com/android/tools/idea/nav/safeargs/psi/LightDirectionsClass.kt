@@ -76,7 +76,9 @@ class LightDirectionsClass(facet: AndroidFacet,
         }
 
         val methodName = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, action.id)
-        val method = createMethod(methodName, modifiers = MODIFIERS_STATIC_PUBLIC_METHOD, returnType = navDirectionsType)
+        val method = createMethod(name = methodName,
+                                  modifiers = MODIFIERS_STATIC_PUBLIC_METHOD,
+                                  returnType = annotateNullability(navDirectionsType))
         types.forEach {
           val arg = it.first
           val type = it.second // We know it's non-null because of the "any" check above

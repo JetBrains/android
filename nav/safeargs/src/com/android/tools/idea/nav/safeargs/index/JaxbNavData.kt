@@ -44,10 +44,13 @@ data class MutableNavArgumentData(
   @field:XmlAttribute(namespace = AUTO_URI, name = "argType")
   override var type: String?,
 
+  @field:XmlAttribute(namespace = AUTO_URI, name = "nullable")
+  override var nullable: String?,
+
   @field:XmlAttribute(namespace = ANDROID_URI, name = "defaultValue")
   override var defaultValue: String?
 ) : NavArgumentData {
-  constructor() : this("", null, null)
+  constructor() : this("", null, null, null)
 }
 
 @XmlRootElement(name = "action")
