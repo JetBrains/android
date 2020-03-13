@@ -206,8 +206,11 @@ final class MemoryClassifierView extends AspectObserver {
             return 0;
           }
           else {
+            assert myTreeRoot != null;
+            // Compute relative contribution with respect to top-most parent
             long myVal = prop.applyAsLong(node.getAdapter());
-            long parentVal = prop.applyAsLong(parent.getAdapter());
+            ClassifierSet root = myTreeRoot.getAdapter();
+            long parentVal = prop.applyAsLong(root);
             return parentVal == 0 ? 0 : (int)(myVal * 100 / parentVal);
           }
         }
