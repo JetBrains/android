@@ -112,7 +112,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       PsiClass modelClass = MlkitModuleService.getInstance(myModule)
         .getOrCreateLightModelClass(
           new MlModelMetadata(myFile.getUrl(), MlkitNames.computeModelClassName((VfsUtilCore.virtualToIoFile(myFile)))));
-      htmlBodyBuilder.append(getSampleCodeSectionBody(modelClass));
+      htmlBodyBuilder.append(getSampleCodeSectionBody(modelClass, modelInfo));
     }
     catch (IOException e) {
       Logger.getInstance(TfliteModelFileEditor.class).error(e);
@@ -163,9 +163,9 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     return bodyBuilder.toString();
   }
 
-  private static String getSampleCodeSectionBody(@NotNull PsiClass modelClass) {
+  private static String getSampleCodeSectionBody(@NotNull PsiClass modelClass, @NotNull ModelInfo modelInfo) {
     return "<h2>Sample Code</h2>\n" +
-           "<div id=\"sample_code\"><pre>" + buildSampleCode(modelClass) + "</pre></div>";
+           "<div id=\"sample_code\"><pre>" + buildSampleCode(modelClass, modelInfo) + "</pre></div>";
   }
 
   private static String getTensorsSectionBody(@NotNull ModelInfo modelInfo) {
@@ -244,7 +244,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   }
 
   @NotNull
-  private static String buildSampleCode(@NotNull PsiClass modelClass) {
+  private static String buildSampleCode(@NotNull PsiClass modelClass, @NotNull ModelInfo modelInfo) {
     StringBuilder stringBuilder = new StringBuilder();
     String modelClassName = modelClass.getName();
     stringBuilder.append(String.format("%s model = %s.newInstance(context);\n\n", modelClassName, modelClassName));
@@ -262,13 +262,13 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       stringBuilder.append(");\n\n");
     }
 
-    int index = 1;
+    int index = 0;
     PsiClass outputsClass = getInnerClass(modelClass, MlkitNames.OUTPUTS);
     if (outputsClass != null) {
       for (PsiMethod psiMethod : outputsClass.getMethods()) {
         stringBuilder.append(
-          String.format("%s %s = outputs.%s();\n", psiMethod.getReturnType().getPresentableText(), "data" + index, psiMethod.getName()));
-        index++;
+          String.format("%s %s = outputs.%s();\n", psiMethod.getReturnType().getPresentableText(),
+                        modelInfo.getOutputs().get(index++).getName(), psiMethod.getName()));
       }
     }
 
