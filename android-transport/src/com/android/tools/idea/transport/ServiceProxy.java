@@ -24,7 +24,6 @@ import io.grpc.stub.ClientCalls;
 import io.grpc.stub.ServerCalls;
 import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.Map;
 
@@ -74,7 +73,7 @@ public abstract class ServiceProxy {
         case BIDI_STREAMING:
         case UNKNOWN:
           // TODO to be implemented.
-          throw new NotImplementedException();
+          throw new UnsupportedOperationException();
       }
     });
 
