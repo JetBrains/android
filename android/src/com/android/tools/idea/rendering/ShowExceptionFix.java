@@ -17,22 +17,48 @@
 package com.android.tools.idea.rendering;
 
 import com.intellij.openapi.project.Project;
+import java.lang.ref.WeakReference;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class ShowExceptionFix implements Runnable {
   @Nullable private final Project myProject;
-  @NotNull private final Throwable myThrowable;
+  @NotNull private final WeakReference<RenderProblem> myRenderProblemWeakReference;
+  @Nullable private final Throwable myThrowable;
 
+  /**
+   * Creates a {@link ShowExceptionFix} holding the given {@link Throwable}. Avoid using this constructor
+   * if you have a {@link RenderProblem} available.
+   */
   public ShowExceptionFix(@Nullable Project project, @NotNull Throwable throwable) {
     myProject = project;
     myThrowable = throwable;
+    myRenderProblemWeakReference = new WeakReference<>(null);
+  }
+
+  /**
+   * Use this constructor if you have a {@link RenderProblem} available. This constructor will
+   * avoid holding a strong link to the {@link RenderProblem} and will avoid consuming extra memory if the problem is disposed.
+   */
+  public ShowExceptionFix(@Nullable Project project, @NotNull RenderProblem problem) {
+    myProject = project;
+    myThrowable = null;
+    myRenderProblemWeakReference = new WeakReference<>(problem);
   }
 
   @Override
   public void run() {
     Throwable t = myThrowable;
+
+    if (t == null) {
+      RenderProblem problem = myRenderProblemWeakReference.get();
+      t = problem != null ? problem.getThrowable() : null;
+    }
+
+    if (t == null) {
+      return;
+    }
     while (t.getCause() != null && t.getCause() != t) {
       t = t.getCause();
     }
