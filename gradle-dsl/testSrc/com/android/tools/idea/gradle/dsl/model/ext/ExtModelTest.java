@@ -124,7 +124,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
     AndroidModel androidModel = getGradleBuildModel().android();
     assertNotNull(androidModel);
-    verifyPropertyModel(androidModel.compileSdkVersion(), INTEGER_TYPE, 21, INTEGER, REGULAR, 1, AndroidModelImpl.COMPILE_SDK_VERSION);
+    verifyPropertyModel(androidModel.compileSdkVersion(), INTEGER_TYPE, 21, INTEGER, REGULAR, 1);
   }
 
   @Test
@@ -137,7 +137,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
 
     AndroidModel androidModel = getGradleBuildModel().android();
     assertNotNull(androidModel);
-    verifyPropertyModel(androidModel.compileSdkVersion(), INTEGER_TYPE, 21, INTEGER, REGULAR, 1, AndroidModelImpl.COMPILE_SDK_VERSION);
+    verifyPropertyModel(androidModel.compileSdkVersion(), INTEGER_TYPE, 21, INTEGER, REGULAR, 1);
   }
 
   @Test
