@@ -590,7 +590,6 @@ public class StudioIcons {
       public static final Icon ANDROID_MODULE = load("/studio/icons/shell/filetree/android-module.svg"); // 16x16
       public static final Icon ANDROID_PROJECT = load("/studio/icons/shell/filetree/android-project.svg"); // 16x16
       public static final Icon ANDROID_TEST_ROOT = load("/studio/icons/shell/filetree/android-test-root.svg"); // 16x16
-      public static final Icon ANDROID_TREE = load("/studio/icons/shell/filetree/android-tree.svg"); // 24x24
       public static final Icon CONFIG_FILE = load("/studio/icons/shell/filetree/config-file.svg"); // 16x16
       public static final Icon FEATURE_MODULE = load("/studio/icons/shell/filetree/feature-module.svg"); // 16x16
       public static final Icon FONT_FILE = load("/studio/icons/shell/filetree/font-file.svg"); // 16x16
@@ -604,6 +603,7 @@ public class StudioIcons {
       public static final Icon RENDER_SCRIPT = load("/studio/icons/shell/filetree/render-script.svg"); // 16x16
       public static final Icon SCENEFORM_ASSET_DESCRIPTION_FILE = load("/studio/icons/shell/filetree/sceneform-asset-description-file.svg"); // 16x16
       public static final Icon SCENEFORM_BINARY = load("/studio/icons/shell/filetree/sceneform-binary.svg"); // 16x16
+      public static final Icon TFLITE_FILE = load("/studio/icons/shell/filetree/tflite-file.svg"); // 16x16
     }
 
     public static class Menu {
