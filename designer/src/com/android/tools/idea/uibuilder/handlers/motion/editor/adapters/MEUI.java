@@ -20,9 +20,11 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
-import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.ui.popup.JBPopupListener;
+import com.intellij.openapi.ui.popup.LightweightWindowEvent;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.IconUtil;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
@@ -40,6 +42,7 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The access to platform independent UI features allow us to run using the JB components as well as the stand alone.
@@ -227,7 +230,7 @@ public class MEUI {
         if (myBalloon == null) {
           myBalloon = create();
         } else {
-          myBalloon.showInCenterOf(myLocal);
+          myBalloon.show(RelativePoint.getSouthOf(myLocal), Balloon.Position.below);
         }
       }
 
@@ -245,7 +248,20 @@ public class MEUI {
           .setRequestFocus(true)
           .setDialogMode(false)
           .createBalloon();
-        balloon.showInCenterOf(myLocal);
+        balloon.addListener(new JBPopupListener() {
+          @Override
+          public void onClosed(@NotNull LightweightWindowEvent event) {
+            MEActionButton button = (myLocal instanceof MEActionButton ? (MEActionButton)myLocal : null);
+            if (button != null) {
+              button.setPopupIsShowing(false);
+            }
+          }
+        });
+        balloon.show(RelativePoint.getSouthOf(myLocal), Balloon.Position.below);
+        MEActionButton button = (myLocal instanceof MEActionButton ? (MEActionButton)myLocal : null);
+        if (button != null) {
+          button.setPopupIsShowing(true);
+        }
         return balloon;
       }
     };
