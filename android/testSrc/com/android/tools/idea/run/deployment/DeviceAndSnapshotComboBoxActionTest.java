@@ -634,8 +634,10 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     // Arrange
     AnAction action = new DeviceAndSnapshotComboBoxAction.Builder()
       .setDevicesGetterGetter(project -> myDevicesGetter)
+      .setGetProperties(project -> myProperties)
       .setClock(myClock)
       .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
       .build();
 
     Mockito.when(myEvent.getPlace()).thenReturn(ActionPlaces.MAIN_MENU);
@@ -1015,5 +1017,52 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
     // Act
     action.update(myEvent);
+  }
+
+  @Test
+  public void updateConnectedDeviceActiveTargetIsSet() {
+    // Arrange
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel 3 API 29")
+      .setKey(new Key("Pixel_3_API_29"))
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    Device connectedDevice = new VirtualDevice.Builder()
+      .setName("Pixel 3 API 29")
+      .setKey(new Key("Pixel_3_API_29"))
+      .setConnectionTime(Instant.parse("2020-03-13T23:13:20.913Z"))
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    Mockito.when(myDevicesGetter.get()).thenReturn(
+      Collections.singletonList(device),
+      Collections.singletonList(device),
+      Collections.singletonList(connectedDevice),
+      Collections.singletonList(connectedDevice));
+
+    RunConfiguration configuration = Mockito.mock(AndroidRunConfiguration.class);
+
+    RunnerAndConfigurationSettings configurationAndSettings = Mockito.mock(RunnerAndConfigurationSettings.class);
+    Mockito.when(configurationAndSettings.getConfiguration()).thenReturn(configuration);
+
+    Mockito.when(myRunManager.getSelectedConfiguration()).thenReturn(configurationAndSettings);
+    Mockito.when(myRunManager.findSettings(configuration)).thenReturn(configurationAndSettings);
+
+    AnAction action = new DeviceAndSnapshotComboBoxAction.Builder()
+      .setDevicesGetterGetter(project -> myDevicesGetter)
+      .setGetProperties(project -> myProperties)
+      .setClock(myClock)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
+      .build();
+
+    // Act
+    action.update(myEvent);
+    action.update(myEvent);
+
+    // Assert
+    Mockito.verify(myExecutionTargetManager).setActiveTarget(new DeviceAndSnapshotComboBoxExecutionTarget(device));
+    Mockito.verify(myExecutionTargetManager).setActiveTarget(new DeviceAndSnapshotComboBoxExecutionTarget(connectedDevice));
   }
 }
