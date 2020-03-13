@@ -573,6 +573,8 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       default:
         assert false : place;
     }
+
+    updateExecutionTargetManager(project, new DeviceAndSnapshotComboBoxExecutionTarget(getSelectedDevices(project)));
   }
 
   @VisibleForTesting
@@ -627,7 +629,6 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       presentation.setIcon(null);
       presentation.setText("No Devices");
 
-      updateExecutionTargetManager(project, new DeviceAndSnapshotComboBoxExecutionTarget());
       return;
     }
 
@@ -636,8 +637,6 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
     presentation.setIcon(device.getIcon());
     presentation.setText(getText(device, devices, mySelectDeviceSnapshotComboBoxSnapshotsEnabled.get()), false);
-
-    updateExecutionTargetManager(project, new DeviceAndSnapshotComboBoxExecutionTarget(device));
   }
 
   /**

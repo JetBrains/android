@@ -42,10 +42,6 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
   @NotNull
   private final String myId;
 
-  DeviceAndSnapshotComboBoxExecutionTarget() {
-    this(Collections.emptyList());
-  }
-
   DeviceAndSnapshotComboBoxExecutionTarget(@NotNull Device device) {
     this(Collections.singletonList(device));
   }
@@ -54,6 +50,7 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
     myDevices = devices;
 
     myId = myDevices.stream()
+      .filter(Device::isConnected)
       .map(Device::getKey)
       .map(Key::toString)
       .sorted()
