@@ -1921,20 +1921,16 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                            StudioIcons.LayoutEditor.Toolbar.BARRIER_HORIZONTAL,
                            ADD_HORIZONTAL_BARRIER),
       new AddElementAction(AddElementAction.GROUP,
-                           // TODO: add new icon to StudioIcons and replace this icon
-                           AndroidIcons.SherpaIcons.Layer,
+                           StudioIcons.LayoutEditor.Palette.GROUP,
                            ADD_GROUP),
       new AddElementAction(AddElementAction.CONSTRAINT_SET,
-                           // TODO: add new icon to StudioIcons and replace this icon
-                           AndroidIcons.SherpaIcons.Layer,
+                           StudioIcons.LayoutEditor.Palette.CONSTRAINT_SET,
                            ADD_CONSTRAINTS_SET),
       new AddElementAction(AddElementAction.LAYER,
-                           // TODO: add new icon to StudioIcons and replace this icon
-                           AndroidIcons.SherpaIcons.Layer,
+                           StudioIcons.LayoutEditor.Palette.LAYER,
                            ADD_LAYER),
       new AddElementAction(AddElementAction.FLOW,
-                           // TODO: add new icon to StudioIcons and replace this icon
-                           AndroidIcons.SherpaIcons.Layer,
+                           StudioIcons.LayoutEditor.Palette.FLOW,
                            ADD_FLOW));
   }
 }
