@@ -26,7 +26,6 @@ import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ColoredTableCellRenderer;
 import com.intellij.ui.ColoredTextContainer;
 import com.intellij.ui.SimpleTextAttributes;
-import icons.AndroidIcons;
 import icons.StudioIcons;
 import java.util.List;
 import java.util.Set;
@@ -54,7 +53,7 @@ public class DeviceRenderer {
                                       @NotNull ColoredTextContainer component,
                                       boolean showSerialNumber,
                                       @Nullable AvdManager avdManager) {
-    component.setIcon(d.isEmulator() ? AndroidIcons.Ddms.Emulator2 : StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE);
+    component.setIcon(d.isEmulator() ? StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE : StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE);
 
     String name;
     if (d.isEmulator()) {

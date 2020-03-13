@@ -33,14 +33,6 @@ public class AndroidIcons {
 
   public static final Icon GreyQuestionMark = load("/icons/grey_question.png"); // 23x23
 
-  public static class Ddms {
-    public static final Icon Emulator2 = load("/icons/ddms/emulator_02.png"); // 16x16
-    public static final Icon RealDevice = load("/icons/ddms/real_device.png"); // 16x16
-    public static final Icon EmulatorDevice = load("/icons/ddms/emulator_device.png"); // 16x16
-    public static final Icon ScreenCapture = load("/icons/ddms/screen_capture.png"); // 16x16
-    public static final Icon ScreenRecorder = load("/icons/ddms/screen_recorder.png"); // 16x16
-  }
-
   public static class Wizards {
     public static final Icon StudioProductIcon = load("/icons/wizards/studio_product.png"); // 60x60
     // Template thumbnails
