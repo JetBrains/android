@@ -19,7 +19,6 @@ package com.android.tools.adtui;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.Updater;
 import org.jetbrains.annotations.NotNull;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -216,12 +215,12 @@ public class AccordionLayout implements LayoutManager2, Updatable {
 
   @Override
   public float getLayoutAlignmentX(Container target) {
-    throw new NotImplementedException();
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public float getLayoutAlignmentY(Container target) {
-    throw new NotImplementedException();
+    throw new UnsupportedOperationException();
   }
 
   @Override
