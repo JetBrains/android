@@ -30,7 +30,6 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.JBColor;
-import icons.AndroidIcons;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
@@ -57,10 +56,9 @@ public class ExtractWidgetTool extends ToolRootPanel implements MockupEditor.Too
    * Here we define all the actions we want to display for the widget creation
    */
   private static ImmutableList<CreatorAction> ourWidgetCreationActions = new ImmutableList.Builder<CreatorAction>()
-    // TODO: add new Icons to StudioIcons and replace this.
-    .add(new CreatorAction(VIEW, "Create new widget from selection", AndroidIcons.Mockup.CreateWidget))
-    // TODO: add new Icons to StudioIcons and replace this.
-    .add(new CreatorAction(VIEW_INCLUDE, "Create new layout from selection", AndroidIcons.Mockup.CreateLayout, true))
+    .add(new CreatorAction(VIEW, "Create new widget from selection", StudioIcons.LayoutEditor.Toolbar.ADD_COMPONENT))
+    // TODO: Using NavEditor icon as placeholder, will replace when needed
+    .add(new CreatorAction(VIEW_INCLUDE, "Create new layout from selection", StudioIcons.NavEditor.Toolbar.ADD_DESTINATION, true))
     .add(new CreatorAction(IMAGE_VIEW, "Create new ImageView", StudioIcons.LayoutEditor.Palette.IMAGE_VIEW))
     .add(new CreatorAction(FLOATING_ACTION_BUTTON.defaultName(), "Create new FloatingActionButton", StudioIcons.LayoutEditor.Palette.FLOATING_ACTION_BUTTON))
     .add(new CreatorAction(TEXT_VIEW, "Create new TextView", StudioIcons.LayoutEditor.Palette.TEXT_VIEW))
@@ -69,8 +67,7 @@ public class ExtractWidgetTool extends ToolRootPanel implements MockupEditor.Too
     .build();
 
   private static ImmutableList<CreatorAction> ourOtherCreationActions = new ImmutableList.Builder<CreatorAction>()
-    // TODO: add new Icons to StudioIcons and replace this.
-    .add(new CreatorAction(ATTR_DRAWABLE, "Create drawable", AndroidIcons.Mockup.ExtractBg))
+    .add(new CreatorAction(ATTR_DRAWABLE, "Create drawable", StudioIcons.LayoutEditor.Properties.IMAGE_PICKER))
     .build();
 
   private final MockupViewPanel myMockupViewPanel;

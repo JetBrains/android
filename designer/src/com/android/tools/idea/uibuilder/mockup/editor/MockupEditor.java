@@ -39,7 +39,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -142,8 +142,8 @@ public class MockupEditor extends JPanel implements ToolContent<DesignSurface>, 
    * @param listener
    */
   private static JLabel createNoMockupIcon(MouseListener listener) {
-    // TODO: add new Icons to StudioIcons and replace this.
-    JLabel addMockupIcon = new JBLabel(NO_MOCKUP_TEXT, AndroidIcons.Mockup.NoMockup, SwingConstants.CENTER);
+    // TODO: Using NavEditor icon as placeholder, will replace when needed
+    JLabel addMockupIcon = new JBLabel(NO_MOCKUP_TEXT, StudioIcons.NavEditor.ExistingDestinations.PLACEHOLDER, SwingConstants.CENTER);
     addMockupIcon.setHorizontalTextPosition(SwingConstants.CENTER);
     addMockupIcon.setVerticalTextPosition(SwingConstants.BOTTOM);
     addMockupIcon.setIconTextGap(15);
