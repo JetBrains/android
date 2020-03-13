@@ -504,7 +504,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
 
     val buildModel = gradleBuildModel
     val propertyModel = buildModel.android().defaultConfig().minSdkVersion()
-    verifyPropertyModel(propertyModel, INTEGER_TYPE, 20, INTEGER, REGULAR, 1, ProductFlavorModelImpl.MIN_SDK_VERSION)
+    verifyPropertyModel(propertyModel, INTEGER_TYPE, 20, INTEGER, REGULAR, 1)
   }
 
   @Test
@@ -516,8 +516,8 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     val minSdkModel = buildModel.android().defaultConfig().minSdkVersion()
     val maxSdkModel = buildModel.android().defaultConfig().maxSdkVersion()
 
-    verifyPropertyModel(minSdkModel, STRING_TYPE, extraName("minSdk"), REFERENCE, REGULAR, 0, ProductFlavorModelImpl.MIN_SDK_VERSION)
-    verifyPropertyModel(maxSdkModel, STRING_TYPE, extraName("maxSdk"), REFERENCE, REGULAR, 0, ProductFlavorModelImpl.MAX_SDK_VERSION)
+    verifyPropertyModel(minSdkModel, STRING_TYPE, extraName("minSdk"), REFERENCE, REGULAR, 0)
+    verifyPropertyModel(maxSdkModel, STRING_TYPE, extraName("maxSdk"), REFERENCE, REGULAR, 0)
   }
 
   @Test
@@ -529,8 +529,8 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     val minSdkModel = buildModel.android().defaultConfig().minSdkVersion()
     val maxSdkModel = buildModel.android().defaultConfig().maxSdkVersion()
 
-    verifyPropertyModel(minSdkModel, STRING_TYPE, if (isGroovy) "ext.minSdk" else "extra[\"minSdk\"]", REFERENCE, REGULAR, 0, ProductFlavorModelImpl.MIN_SDK_VERSION)
-    verifyPropertyModel(maxSdkModel, STRING_TYPE, if (isGroovy) "ext.maxSdk" else "extra[\"maxSdk\"]", REFERENCE, REGULAR, 0, ProductFlavorModelImpl.MAX_SDK_VERSION)
+    verifyPropertyModel(minSdkModel, STRING_TYPE, if (isGroovy) "ext.minSdk" else "extra[\"minSdk\"]", REFERENCE, REGULAR, 0)
+    verifyPropertyModel(maxSdkModel, STRING_TYPE, if (isGroovy) "ext.maxSdk" else "extra[\"maxSdk\"]", REFERENCE, REGULAR, 0)
   }
 
   @Test
@@ -543,7 +543,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     val passwordModel = configModel.storePassword()
 
     verifyPropertyModel(fileModel, STRING_TYPE, "goodbye", STRING, DERIVED, 1, "0")
-    verifyPropertyModel(passwordModel.resolve(), STRING_TYPE, "off", STRING, REGULAR, 1, STORE_PASSWORD)
+    verifyPropertyModel(passwordModel.resolve(), STRING_TYPE, "off", STRING, REGULAR, 1)
   }
 
   @Test
