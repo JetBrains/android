@@ -37,6 +37,7 @@ import javax.swing.plaf.basic.BasicButtonUI;
 public class MEActionButton extends JButton {
   private boolean myMouseDown;
   private boolean myRollover;
+  private boolean myPopupIsShowing;
   private JBDimension myMinimumButtonSize;
 
   public MEActionButton(Icon icon, Icon disable_icon, String tooltip) {
@@ -104,6 +105,11 @@ public class MEActionButton extends JButton {
     repaint();
   }
 
+  public void setPopupIsShowing(boolean isPopupShowing) {
+    myPopupIsShowing = isPopupShowing;
+    repaint();
+  }
+
   private void paintBackground(Graphics g) {
     int state = computeState();
     if (state == ActionButtonComponent.NORMAL && !isBackgroundSet()) {
@@ -115,7 +121,10 @@ public class MEActionButton extends JButton {
   }
 
   private int computeState() {
-    if (myMouseDown) {
+    if (myPopupIsShowing) {
+      return ActionButtonComponent.SELECTED;
+    }
+    else if (myMouseDown) {
       return ActionButtonComponent.PUSHED;
     }
     else if (myRollover && isEnabled()) {
