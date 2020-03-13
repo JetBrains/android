@@ -41,7 +41,7 @@ internal class MemoryInstanceFilterMenu(stage: MemoryProfilerStage): AspectObser
               isVisible = true
               model = DefaultComboBoxModel(allFilters)
               renderer = ListCellRenderer<CaptureObjectInstanceFilter> { _, value, _, _, _ ->
-                JLabel("Show ${value?.displayName ?: "All"}")
+                JLabel("Show ${value?.displayName ?: "All Classes"}")
               }
             }
           } else {
