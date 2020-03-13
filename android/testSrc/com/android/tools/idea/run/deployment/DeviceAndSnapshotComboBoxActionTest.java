@@ -20,6 +20,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiAction;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
@@ -330,6 +331,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     Object expectedChildren = Arrays.asList(
       action.getMultipleDevicesAction(),
       action.getModifyDeviceSetAction(),
+      ActionManager.getInstance().getAction(PairDevicesUsingWiFiAction.ID),
       ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID));
 
     assertEquals(expectedChildren, actualChildren);
@@ -363,6 +365,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       Separator.getInstance(),
       action.getMultipleDevicesAction(),
       action.getModifyDeviceSetAction(),
+      ActionManager.getInstance().getAction(PairDevicesUsingWiFiAction.ID),
       ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID));
 
     assertEquals(expectedChildren, actualChildren);
@@ -396,6 +399,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       Separator.getInstance(),
       action.getMultipleDevicesAction(),
       action.getModifyDeviceSetAction(),
+      ActionManager.getInstance().getAction(PairDevicesUsingWiFiAction.ID),
       ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID));
 
     assertEquals(expectedChildren, actualChildren);
@@ -439,6 +443,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       Separator.getInstance(),
       action.getMultipleDevicesAction(),
       action.getModifyDeviceSetAction(),
+      ActionManager.getInstance().getAction(PairDevicesUsingWiFiAction.ID),
       ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID));
 
     assertEquals(expectedChildren, actualChildren);
@@ -473,6 +478,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       Separator.getInstance(),
       action.getMultipleDevicesAction(),
       action.getModifyDeviceSetAction(),
+      ActionManager.getInstance().getAction(PairDevicesUsingWiFiAction.ID),
       ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID));
 
     assertEquals(expectedChildren, actualChildren);
@@ -508,6 +514,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       Separator.getInstance(),
       action.getMultipleDevicesAction(),
       action.getModifyDeviceSetAction(),
+      ActionManager.getInstance().getAction(PairDevicesUsingWiFiAction.ID),
       ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID));
 
     assertEquals(expectedChildren, actualChildren);

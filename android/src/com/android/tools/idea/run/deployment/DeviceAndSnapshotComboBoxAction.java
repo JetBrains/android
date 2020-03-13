@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiAction;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
@@ -476,6 +477,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
     group.add(myMultipleDevicesAction);
     group.add(myModifyDeviceSetAction);
+    group.add(manager.getAction(PairDevicesUsingWiFiAction.ID));
     group.add(manager.getAction(RunAndroidAvdManagerAction.ID));
 
     AnAction action = manager.getAction("DeveloperServices.ConnectionAssistant");
