@@ -7,12 +7,12 @@ import com.intellij.database.psi.BasicDataSourceManager;
 import com.intellij.database.util.DbImplUtil;
 import com.intellij.database.util.DbSqlUtil;
 import com.intellij.facet.ProjectFacetManager;
+import com.intellij.lang.Language;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.sql.dialects.SqlLanguageDialect;
 import com.intellij.util.Consumer;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -37,7 +37,7 @@ public class AndroidDataSourceManager extends BasicDataSourceManager<AndroidData
 
   @Nullable
   @Override
-  public SqlLanguageDialect getSqlDialect(@NotNull AndroidDataSource element) {
+  public Language getQueryLanguage(@NotNull AndroidDataSource element) {
     return DbSqlUtil.findSqlDialect(Dbms.SQLITE);
   }
 
