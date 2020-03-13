@@ -234,7 +234,7 @@ class RenderTemplateModel private constructor(
       return if (project != null && project.hasAnyKotlinModules())
         Language.fromName(PropertiesComponent.getInstance().getValue(PROPERTIES_RENDER_LANGUAGE_KEY), Language.Kotlin)
       else
-        Language.Kotlin
+        Language.Java
     }
   }
 }
