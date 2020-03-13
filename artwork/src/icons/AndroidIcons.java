@@ -54,10 +54,6 @@ public class AndroidIcons {
     public static final Icon NoActivity = load("/icons/wizards/no_activity.png"); // 256x256
   }
 
-  public static class SherpaIcons {
-    public static final Icon Layer = load("/icons/sherpa/switch_blueprint_off.png");
-  }
-
   public static class ToolWindows {
     public static final Icon Warning = IconLoader.getIcon("/icons/toolwindows/toolWindowWarning.svg"); // 13x13
   }
