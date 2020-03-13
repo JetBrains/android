@@ -31,6 +31,7 @@ interface NavArgumentData {
   val name: String
   val type: String?
   val defaultValue: String?
+  val nullable: String?
 }
 
 /**

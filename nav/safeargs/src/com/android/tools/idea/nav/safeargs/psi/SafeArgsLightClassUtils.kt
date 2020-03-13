@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.nav.safeargs.psi
 
+import com.intellij.codeInsight.NullableNotNullManager
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementFactory
 import com.intellij.psi.PsiModifier
+import com.intellij.psi.PsiPrimitiveType
 import com.intellij.psi.PsiType
 import com.intellij.psi.impl.light.LightMethodBuilder
 import com.intellij.util.IncorrectOperationException
@@ -43,7 +45,6 @@ private val NAV_TO_JAVA_TYPE_MAP = mapOf(
 )
 
 /**
-
  * Given type strings we pull out of navigation xml files, generate a corresponding [PsiType]
  * for them.
  *
@@ -141,11 +142,28 @@ internal fun PsiClass.createConstructor(modifiers: Array<String> = MODIFIERS_PUB
     .addModifiers(*modifiers)
 }
 
+/**
+ * Annotate the target type with the proper nullability based on the <argument> nullable
+ * attribute.
+ */
+internal fun PsiClass.annotateNullability(psiType: PsiType, nullable: String? = null): PsiType {
+  val nonNull = psiType is PsiPrimitiveType || nullable != "true"
+
+  // The exact nullability annotation we use doesn't matter too much. We just want the IDE code
+  // completion popup to recognize it.
+  val nullabilityManager = NullableNotNullManager.getInstance(project)
+  val annotationText = if (nonNull) nullabilityManager.defaultNotNull else nullabilityManager.defaultNullable
+  val annotation = PsiElementFactory.getInstance(project).createAnnotationFromText("@$annotationText", this.context)
+  val annotations = arrayOf(annotation)
+
+  return psiType.annotate { annotations }
+}
+
 internal fun PsiClass.createMethod(name: String,
                                    modifiers: Array<String> = MODIFIERS_PUBLIC_METHOD,
                                    returnType: PsiType = PsiType.VOID): LightMethodBuilder {
   return LightMethodBuilder(manager, JavaLanguage.INSTANCE, name)
     .setContainingClass(this)
+    .setModifiers(*modifiers)
     .setMethodReturnType(returnType)
-    .addModifiers(*modifiers)
 }

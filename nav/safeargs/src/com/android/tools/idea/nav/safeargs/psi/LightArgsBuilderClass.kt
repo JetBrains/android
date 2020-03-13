@@ -100,13 +100,17 @@ class LightArgsBuilderClass(facet: AndroidFacet, private val modulePackage: Stri
     // Create a getter and setter per argument
     val argMethods: Array<PsiMethod> = argsClass.fragment.arguments.flatMap { arg ->
       val argType = parsePsiType(modulePackage, arg.type, arg.defaultValue, this)
-      val setter = createMethod("set${arg.name.capitalize()}", returnType = thisType)
+      val setter = createMethod(name = "set${arg.name.capitalize()}",
+                                returnType = annotateNullability(thisType))
       setter.addParameter(arg.name, argType)
-      val getter = createMethod("get${arg.name.capitalize()}", returnType = argType)
+
+      val getter = createMethod(name = "get${arg.name.capitalize()}",
+                                returnType = annotateNullability(argType, arg.nullable))
       listOf(setter, getter)
     }.toTypedArray()
 
-    val build = createMethod("build", returnType = PsiTypesUtil.getClassType(argsClass))
+    val build = createMethod(name = "build",
+                             returnType = annotateNullability(PsiTypesUtil.getClassType(argsClass)))
     return argMethods + build
   }
 }
