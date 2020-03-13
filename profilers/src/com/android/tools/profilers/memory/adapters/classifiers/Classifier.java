@@ -21,7 +21,6 @@ import java.util.Collections;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 /**
  * The base index for holding child {@link ClassifierSet}s.
@@ -36,7 +35,7 @@ public abstract class Classifier {
     @NotNull
     @Override
     public ClassifierSet getClassifierSet(@NotNull InstanceObject instance, boolean createIfAbsent) {
-      throw new NotImplementedException(); // not used
+      throw new UnsupportedOperationException(); // not used
     }
 
     // Return child classifier sets which is non-empty and not filtered out
