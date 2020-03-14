@@ -17,6 +17,7 @@ package com.android.tools.idea.mlkit;
 
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.vfs.VirtualFile;
+import icons.StudioIcons;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,8 +50,7 @@ public class TfliteModelFileType implements FileType {
   @Nullable
   @Override
   public Icon getIcon() {
-    // TODO(b/144867508): provide custom icon for ml model file.
-    return null;
+    return StudioIcons.Shell.Filetree.TFLITE_FILE;
   }
 
   @Override
