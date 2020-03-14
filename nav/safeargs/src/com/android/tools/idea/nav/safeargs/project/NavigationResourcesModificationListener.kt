@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.nav.safeargs.module
+package com.android.tools.idea.nav.safeargs.project
 
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.ResourceItem
@@ -21,6 +21,7 @@ import com.android.ide.common.util.PathString
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.nav.safeargs.module.NavigationResourcesModificationTracker
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.android.tools.idea.util.LazyFileListenerSubscriber
@@ -85,7 +86,8 @@ class NavigationResourcesModificationListener(
   }
 
   override fun fileChanged(path: PathString, facet: AndroidFacet) {
-    NavigationResourcesModificationTracker.getInstance(facet.module).navigationChanged()
+    NavigationResourcesModificationTracker.getInstance(
+      facet.module).navigationChanged()
   }
 
   override fun contentsChanged(event: VirtualFileEvent) {
@@ -112,7 +114,8 @@ class NavigationResourcesModificationListener(
    */
   private class SubscriptionComponent(
     val project: Project
-  ) : LazyFileListenerSubscriber<NavigationResourcesModificationListener>(NavigationResourcesModificationListener(project), project),
+  ) : LazyFileListenerSubscriber<NavigationResourcesModificationListener>(
+    NavigationResourcesModificationListener(project), project),
       ProjectComponent {
     override fun projectOpened() {
       if (!StudioFlags.NAV_SAFE_ARGS_SUPPORT.get()) return
@@ -139,6 +142,7 @@ class NavigationResourcesModificationListener(
 
   companion object {
     @TestOnly
-    fun ensureSubscribed(project: Project) = project.getComponent(SubscriptionComponent::class.java).ensureSubscribed()
+    fun ensureSubscribed(project: Project) = project.getComponent(
+      SubscriptionComponent::class.java).ensureSubscribed()
   }
 }

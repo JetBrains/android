@@ -17,6 +17,7 @@ package com.android.tools.idea.nav.safeargs.module
 
 import com.android.tools.idea.nav.safeargs.SafeArgsRule
 import com.android.tools.idea.nav.safeargs.extensions.replaceWithSaving
+import com.android.tools.idea.nav.safeargs.project.NavigationResourcesModificationListener
 import com.android.tools.idea.nav.safeargs.psi.LightArgsClass
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
