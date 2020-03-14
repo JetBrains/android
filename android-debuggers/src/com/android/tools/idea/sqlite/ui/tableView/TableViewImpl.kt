@@ -222,7 +222,6 @@ class TableViewImpl : TableView {
   override fun stopTableLoading() {
     loadingTimer.stop()
     if (stopwatch.isRunning) {
-      //stopwatch.stop()
       stopwatch.reset()
     }
     isLoading = false
