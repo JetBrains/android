@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.nav.safeargs.module
+package com.android.tools.idea.nav.safeargs.project
 
 import com.android.tools.idea.nav.safeargs.SafeArgsRule
 import com.android.tools.idea.nav.safeargs.extensions.replaceWithoutSaving
 import com.android.tools.idea.nav.safeargs.extensions.replaceWithSaving
+import com.android.tools.idea.nav.safeargs.module.NavigationResourcesModificationTracker
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
@@ -36,7 +37,8 @@ class NavigationResourcesModificationListenerTest {
   fun setUp() {
     project = safeArgsRule.project
     NavigationResourcesModificationListener.ensureSubscribed(project)
-    navResourcesTracker = NavigationResourcesModificationTracker.getInstance(safeArgsRule.module)
+    navResourcesTracker = NavigationResourcesModificationTracker.getInstance(
+      safeArgsRule.module)
   }
 
   @Test
