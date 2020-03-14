@@ -17,6 +17,7 @@ package com.android.tools.adtui.common
 
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
+import java.awt.Color
 
 /**
  * Colors defined in the UX prototype
@@ -64,6 +65,14 @@ val canvasTooltipBackground = JBColor.namedColor("Canvas.Tooltip.background", JB
  * Example: Background for charts, editors
  */
 val primaryContentBackground = JBColor.namedColor("Content.background", JBColor(0xffffff, 0x2b2b2b))
+
+/**
+ * Background color for selected content.
+ *
+ * Example: selected range in profilers.
+ */
+val contentSelectionBackground = JBColor.namedColor("Content.selectionBackground",
+                                                    JBColor(Color(0x330478DA, true), Color(0x4C2395F5, true)))
 
 /**
  * Background color for an active selection.
