@@ -27,7 +27,6 @@ import com.google.common.base.Splitter
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.serviceIfCreated
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleServiceManager
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.vfs.VirtualFile
@@ -56,7 +55,7 @@ class ResourceFolderManager(val module: Module) : ModificationTracker, Disposabl
 
     @JvmStatic
     fun getInstance(facet: AndroidFacet): ResourceFolderManager {
-      return ModuleServiceManager.getService(facet.module, ResourceFolderManager::class.java)!!
+      return facet.module.getService(ResourceFolderManager::class.java)!!
     }
 
     @JvmField

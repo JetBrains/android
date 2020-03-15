@@ -18,24 +18,19 @@ package com.android.tools.idea.databinding
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
 import com.android.tools.idea.databinding.index.BindingLayoutType
-import com.android.tools.idea.databinding.psiclass.BindingClassConfig
-import com.android.tools.idea.databinding.psiclass.BindingImplClassConfig
-import com.android.tools.idea.databinding.psiclass.LightBindingClass
-import com.android.tools.idea.databinding.psiclass.LightBrClass
-import com.android.tools.idea.databinding.psiclass.LightDataBindingComponentClass
+import com.android.tools.idea.databinding.psiclass.*
 import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetManager
 import com.intellij.facet.FacetManagerAdapter
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleServiceManager
 import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiManager
 import net.jcip.annotations.GuardedBy
 import net.jcip.annotations.ThreadSafe
 import org.jetbrains.android.facet.AndroidFacet
-import java.util.ArrayList
+import java.util.*
 
 private val LIGHT_BINDING_CLASSES_KEY = Key.create<List<LightBindingClass>>("LIGHT_BINDING_CLASSES_KEY")
 
@@ -45,7 +40,7 @@ class ModuleDataBinding private constructor(private val module: Module) {
     @JvmStatic
     fun getInstance(facet: AndroidFacet): ModuleDataBinding {
       // service registered in android plugin
-      return ModuleServiceManager.getService(facet.module, ModuleDataBinding::class.java)!!
+      return facet.module.getService(ModuleDataBinding::class.java)!!
     }
   }
 

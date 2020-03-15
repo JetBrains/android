@@ -18,20 +18,23 @@ package org.jetbrains.android.compiler;
 import com.android.tools.idea.apk.ApkFacet;
 import com.intellij.ProjectTopics;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleServiceManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ModuleRootListener;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.annotation.concurrent.GuardedBy;
-import java.util.*;
 
 public class ModuleSourceAutogenerating {
   private final Set<AndroidAutogeneratorMode> myDirtyModes = EnumSet.noneOf(AndroidAutogeneratorMode.class);
@@ -42,7 +45,7 @@ public class ModuleSourceAutogenerating {
 
   @Nullable
   public static ModuleSourceAutogenerating getInstance(@NotNull AndroidFacet facet) {
-    return ModuleServiceManager.getService(facet.getModule(), ModuleSourceAutogenerating.class);
+    return facet.getModule().getService(ModuleSourceAutogenerating.class);
   }
 
   private ModuleSourceAutogenerating(@NotNull Module module) {

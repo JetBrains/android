@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableList
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.module.ModuleServiceManager
 import com.intellij.openapi.project.Project
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -65,7 +64,7 @@ internal open class SyncIssueRegistry<Component> : Sealable by BaseSealable() {
 }
 
 internal class ModuleSyncIssueRegistry : SyncIssueRegistry<Module>()
-private fun Module.syncIssueRegistry() = ModuleServiceManager.getService(this, ModuleSyncIssueRegistry::class.java)!!
+private fun Module.syncIssueRegistry() = getService(ModuleSyncIssueRegistry::class.java)!!
 
 @JvmName("forModule")
 fun Module.syncIssues() = syncIssueRegistry().get()
