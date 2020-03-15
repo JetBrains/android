@@ -28,27 +28,10 @@ import com.android.tools.idea.projectsystem.getScopeType
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleServiceManager
-import com.intellij.psi.JavaPsiFacade
-import com.intellij.psi.PsiAnnotation
-import com.intellij.psi.PsiArrayInitializerMemberValue
-import com.intellij.psi.PsiClass
-import com.intellij.psi.PsiClassObjectAccessExpression
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiField
-import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiModifier
-import com.intellij.psi.PsiModifierList
-import com.intellij.psi.PsiModifierListOwner
-import com.intellij.psi.PsiNamedElement
-import com.intellij.psi.SmartPointerManager
+import com.intellij.psi.*
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.searches.AnnotatedElementsSearch.searchPsiClasses
-import com.intellij.psi.util.CachedValue
-import com.intellij.psi.util.CachedValueProvider
-import com.intellij.psi.util.CachedValuesManager
-import com.intellij.psi.util.PsiModificationTracker
-import com.intellij.psi.util.PsiUtil
+import com.intellij.psi.util.*
 import com.intellij.testFramework.LightVirtualFile
 import org.jetbrains.kotlin.asJava.elements.KtLightField
 import org.jetbrains.kotlin.psi.KtExpression
@@ -58,7 +41,7 @@ private val LOG = Logger.getInstance(RoomSchemaManager::class.java)
 /** Utility for constructing a [RoomSchema] using IDE indices. */
 class RoomSchemaManager(val module: Module, private val cachedValuesManager: CachedValuesManager) {
   companion object {
-    fun getInstance(module: Module): RoomSchemaManager = ModuleServiceManager.getService(module, RoomSchemaManager::class.java)!!
+    fun getInstance(module: Module): RoomSchemaManager = module.getService(RoomSchemaManager::class.java)!!
   }
 
   private val schemas = ScopeType.values().associate { it to createCachedValue(it) }
