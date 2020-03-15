@@ -17,6 +17,7 @@
 package com.android.tools.idea.concurrency
 
 import com.google.common.base.Function
+import com.google.common.util.concurrent.AsyncFunction
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.JdkFutureAdapters
@@ -47,8 +48,16 @@ import java.util.concurrent.TimeoutException
 /**
  * Wrapper function to apply transform function to ListenableFuture after it get done
  */
+//TODO(b/151801197) remove default value for executor.
 fun <I, O> ListenableFuture<I>.transform(executor: Executor = directExecutor(), func: (I) -> O): ListenableFuture<O> {
   return Futures.transform(this, Function<I, O> { i -> func(i!!) }, executor)
+}
+
+/**
+ * @see Futures.transformAsync
+ */
+fun <I, O> ListenableFuture<I>.transformAsync(executor: Executor, func: (I) -> ListenableFuture<O>): ListenableFuture<O> {
+  return Futures.transformAsync(this, AsyncFunction { i -> func(i!!) }, executor)
 }
 
 /**
@@ -59,10 +68,12 @@ fun ListenableFuture<*>.ignoreResult(): ListenableFuture<Void?> = transform { nu
 /**
  * Wrapper function to convert Future to ListenableFuture
  */
+//TODO(b/151801197) remove default value for executor.
 fun <I> Future<I>.listenInPoolThread(executor: Executor = directExecutor()): ListenableFuture<I> {
   return JdkFutureAdapters.listenInPoolThread(this, executor)
 }
 
+//TODO(b/151801197) remove default value for executor.
 fun <I> List<Future<I>>.listenInPoolThread(executor: Executor = directExecutor()): List<ListenableFuture<I>> {
   return this.map { future: Future<I> -> future.listenInPoolThread(executor) }
 }
@@ -74,6 +85,7 @@ fun <I> List<ListenableFuture<I>>.whenAllComplete(): Futures.FutureCombiner<I?> 
 /**
  * Wrapper function to add callback for a ListenableFuture
  */
+//TODO(b/151801197) remove default value for executor.
 fun <I> ListenableFuture<I>.addCallback(executor: Executor = directExecutor(), success: (I?) -> Unit, failure: (Throwable?) -> Unit) {
   addCallback(executor, object : FutureCallback<I> {
     override fun onFailure(t: Throwable?) {
@@ -89,6 +101,7 @@ fun <I> ListenableFuture<I>.addCallback(executor: Executor = directExecutor(), s
 /**
  * Wrapper function to add callback for a ListenableFuture
  */
+//TODO(b/151801197) remove default value for executor.
 fun <I> ListenableFuture<I>.addCallback(executor: Executor = directExecutor(), futureCallback: FutureCallback<I>) {
   Futures.addCallback(this, futureCallback, executor)
 }
@@ -182,4 +195,66 @@ fun <V> pumpEventsAndWaitForFuture(future: Future<V>, timeout: Long, unit: TimeU
   }
 
   throw TimeoutException()
+}
+
+/**
+ * Similar to [transform], but executes [finallyBlock] in both success and error completion.
+ * The returned future fails if:
+ * 1. The original future fails.
+ * 2. The [finallyBlock] fails.
+ *
+ * If they both fail, the Throwable from the original future is returned,
+ * with the error from [finallyBlock] available through [Throwable.getSuppressed].
+ */
+fun <I> ListenableFuture<I>.finallySync(executor: Executor, finallyBlock: () -> Unit): ListenableFuture<I> {
+  val futureResult = SettableFuture.create<I>()
+
+  addCallback(executor, object : FutureCallback<I> {
+    override fun onSuccess(result: I?) {
+      try {
+        finallyBlock()
+        futureResult.set(result)
+      }
+      catch (finallyError: Throwable) {
+        futureResult.setException(finallyError)
+      }
+    }
+
+    override fun onFailure(t: Throwable) {
+      try {
+        finallyBlock()
+        futureResult.setException(t)
+      }
+      catch (finallyError: Throwable) {
+        // Prefer original error over error from finally block
+        t.addSuppressed(finallyError)
+        futureResult.setException(t)
+      }
+    }
+  })
+  return futureResult
+}
+
+/**
+ * @see [Futures.catching]
+ */
+fun <V, X : Throwable> ListenableFuture<V>.catching(executor: Executor, exceptionType: Class<X>, fallback: (X) -> V): ListenableFuture<V> {
+  return Futures.catching(this, exceptionType, Function<X, V> { t -> fallback(t!!) }, executor)
+}
+
+/**
+ * Submits a [function] in this executor queue, and returns a [ListenableFuture]
+ * that completes with the [function] result or the exception thrown from the [function].
+ */
+fun <V> Executor.executeAsync(function: () -> V): ListenableFuture<V> {
+  val futureResult = SettableFuture.create<V>()
+  execute(Runnable {
+    try {
+      futureResult.set(function())
+    }
+    catch (t: Throwable) {
+      futureResult.setException(t)
+    }
+  })
+  return futureResult
 }
