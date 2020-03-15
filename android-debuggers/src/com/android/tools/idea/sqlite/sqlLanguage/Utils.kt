@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sqlite.sqlLanguage
 
+import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlBindParameter
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlColumnRefExpression
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlComparisonExpression
@@ -79,7 +80,9 @@ fun inlineParameterValues(psiElement: PsiElement, parameterValues: Deque<SqliteV
       val visitor = object : AndroidSqlVisitor() {
         override fun visitBindParameter(bindParameter: AndroidSqlBindParameter) {
           val leaf = when (val sqliteValue = parameterValues.pollFirst()) {
-            is SqliteValue.StringValue -> ASTFactory.leaf(AndroidSqlPsiTypes.SINGLE_QUOTE_STRING_LITERAL, "'${sqliteValue.value}'")
+            is SqliteValue.StringValue -> {
+              ASTFactory.leaf(AndroidSqlPsiTypes.SINGLE_QUOTE_STRING_LITERAL, AndroidSqlLexer.getValidStringValue(sqliteValue.value))
+            }
             is SqliteValue.NullValue -> ASTFactory.leaf(AndroidSqlPsiTypes.NULL, "null")
           }
 

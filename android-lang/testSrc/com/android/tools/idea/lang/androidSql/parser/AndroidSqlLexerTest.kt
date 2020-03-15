@@ -329,4 +329,16 @@ class AndroidSqlLexerTest : AndroidLexerTestCase(AndroidSqlLexer()) {
     assertThat(AndroidSqlLexer.getValidName("foo`bar`baz")).isEqualTo("`foo``bar``baz`")
     assertThat(AndroidSqlLexer.getValidName("\$foo")).isEqualTo("`\$foo`")
   }
+
+  fun testValidString() {
+    assertThat(AndroidSqlLexer.getValidStringValue("foo")).isEqualTo("'foo'")
+    assertThat(AndroidSqlLexer.getValidStringValue("Order")).isEqualTo("'Order'")
+    assertThat(AndroidSqlLexer.getValidStringValue("'foo'")).isEqualTo("'''foo'''")
+    assertThat(AndroidSqlLexer.getValidStringValue("foo bar")).isEqualTo("'foo bar'")
+    assertThat(AndroidSqlLexer.getValidStringValue("foo'bar'baz")).isEqualTo("'foo''bar''baz'")
+    assertThat(AndroidSqlLexer.getValidStringValue("foo`bar`baz")).isEqualTo("'foo`bar`baz'")
+    assertThat(AndroidSqlLexer.getValidStringValue("\$foo")).isEqualTo("'\$foo'")
+    assertThat(AndroidSqlLexer.getValidStringValue("foo''bar")).isEqualTo("'foo''''bar'")
+    assertThat(AndroidSqlLexer.getValidStringValue("\"foo''bar\"")).isEqualTo("'\"foo''''bar\"'")
+  }
 }

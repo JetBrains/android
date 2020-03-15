@@ -264,4 +264,67 @@ class ParametersBindingControllerTest : PlatformTestCase() {
         "select * from Foo where bar = '1' and baz = '1'"
       )))
   }
+
+  fun testParameterStringValueHasRightInlinedFormat1() {
+    // Prepare
+    val psiFile = AndroidSqlParserDefinition.parseSqlQuery(project, "select * from Foo where bar = ?")
+
+    controller = ParametersBindingController(view, psiFile) { ranStatements.add(it) }
+    Disposer.register(project, controller)
+
+    // Act
+    controller.setUp()
+    val listener = view.listeners.first()
+    listener.bindingCompletedInvoked(mapOf("bar" to "te'st").toSqliteValue())
+
+    // Assert
+    assertContainsElements(ranStatements, listOf(
+      SqliteStatement(
+        "select * from Foo where bar = ?",
+        listOf("te'st").toSqliteValues(),
+        "select * from Foo where bar = 'te''st'"
+      )))
+  }
+
+  fun testParameterStringValueHasRightInlinedFormat2() {
+    // Prepare
+    val psiFile = AndroidSqlParserDefinition.parseSqlQuery(project, "select * from Foo where bar = ?")
+
+    controller = ParametersBindingController(view, psiFile) { ranStatements.add(it) }
+    Disposer.register(project, controller)
+
+    // Act
+    controller.setUp()
+    val listener = view.listeners.first()
+    listener.bindingCompletedInvoked(mapOf("bar" to "'test'").toSqliteValue())
+
+    // Assert
+    assertContainsElements(ranStatements, listOf(
+      SqliteStatement(
+        "select * from Foo where bar = ?",
+        listOf("'test'").toSqliteValues(),
+        "select * from Foo where bar = '''test'''"
+      )))
+  }
+
+  fun testParameterStringValueHasRightInlinedFormat3() {
+    // Prepare
+    val psiFile = AndroidSqlParserDefinition.parseSqlQuery(project, "select * from Foo where bar = ?")
+
+    controller = ParametersBindingController(view, psiFile) { ranStatements.add(it) }
+    Disposer.register(project, controller)
+
+    // Act
+    controller.setUp()
+    val listener = view.listeners.first()
+    listener.bindingCompletedInvoked(mapOf("bar" to "\"test\"").toSqliteValue())
+
+    // Assert
+    assertContainsElements(ranStatements, listOf(
+      SqliteStatement(
+        "select * from Foo where bar = ?",
+        listOf("\"test\"").toSqliteValues(),
+        "select * from Foo where bar = '\"test\"'"
+      )))
+  }
 }
