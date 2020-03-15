@@ -18,6 +18,7 @@ package com.android.tools.idea.mlkit;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.mlkit.lightpsi.LightModelClass;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
+import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.SourceProviders;
 import com.google.common.collect.ImmutableList;
@@ -28,12 +29,14 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Provides common utility methods.
@@ -95,5 +98,21 @@ public class MlkitUtils {
       }
     }
     return pendingDeps;
+  }
+
+  @Nullable
+  public static File getModuleMlDirectory(@NotNull List<NamedModuleTemplate> namedModuleTemplates) {
+    if (namedModuleTemplates.isEmpty()) {
+      return null;
+    }
+
+    // Find target ml path given module templates. If there are multiple, select the main template.
+    // TODO(b/150616631): Add drop down UI to let user select the flavour.
+    List<File> mlDirectories = namedModuleTemplates.get(0).getPaths().getMlModelsDirectories();
+    if (mlDirectories.isEmpty()) {
+      return null;
+    }
+
+    return mlDirectories.get(0);
   }
 }
