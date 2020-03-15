@@ -16,21 +16,21 @@
 package com.android.tools.idea.sqlite.controllers
 
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.concurrency.catching
+import com.android.tools.idea.concurrency.transform
+import com.android.tools.idea.concurrency.transformAsync
 import com.android.tools.idea.lang.androidSql.parser.AndroidSqlParserDefinition
-import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.sqlLanguage.needsBinding
 import com.android.tools.idea.sqlite.sqlLanguage.replaceNamedParametersWithPositionalParameters
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
-import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
-import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import java.util.concurrent.Executor
 
 /**
  * Implementation of the application logic related to running queries and updates on a sqlite database.
@@ -42,7 +42,8 @@ class SqliteEvaluatorController(
   private val project: Project,
   private val view: SqliteEvaluatorView,
   private val viewFactory: DatabaseInspectorViewsFactory,
-  private val edtExecutor: FutureCallbackExecutor
+  private val edtExecutor: Executor,
+  private val taskExecutor: Executor
 ) : DatabaseInspectorController.TabController {
   private var currentTableController: TableController? = null
   private val sqliteEvaluatorViewListener: SqliteEvaluatorView.Listener = SqliteEvaluatorViewListenerImpl()
@@ -97,52 +98,31 @@ class SqliteEvaluatorController(
   }
 
   private fun execute(database: SqliteDatabase, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
-    val settableFuture = SettableFuture.create<Unit>()
-    val databaseConnection = database.databaseConnection
-    edtExecutor.addCallback(databaseConnection.execute(sqliteStatement), object : FutureCallback<SqliteResultSet> {
-      override fun onSuccess(resultSet: SqliteResultSet?) {
-        checkNotNull(resultSet)
-        edtExecutor.addCallback(resultSet.totalRowCount, object : FutureCallback<Int> {
-          override fun onSuccess(rowCount: Int?) {
-            view.tableView.resetView()
-            view.tableView.setEditable(false)
+    return database.databaseConnection.execute(sqliteStatement)
+      .transformAsync(taskExecutor) { sqliteResultSet ->
+        sqliteResultSet.totalRowCount
+      }.transform(edtExecutor) { rowCount ->
+        view.tableView.resetView()
+        view.tableView.setEditable(false)
 
-            if (rowCount!! > 0) {
-              currentTableController = TableController(
-                project = project,
-                view = view.tableView,
-                tableSupplier = { null },
-                databaseConnection = databaseConnection,
-                sqliteStatement = sqliteStatement,
-                edtExecutor = edtExecutor
-              )
-              Disposer.register(this@SqliteEvaluatorController, currentTableController!!)
-              currentTableController!!.setUp()
-            }
-
-            settableFuture.set(Unit)
-          }
-
-          override fun onFailure(throwable: Throwable) {
-            reportError(throwable)
-            settableFuture.setException(throwable)
-          }
-        })
+        if (rowCount > 0) {
+          currentTableController = TableController(
+            project = project,
+            view = view.tableView,
+            tableSupplier = { null },
+            databaseConnection = database.databaseConnection,
+            sqliteStatement = sqliteStatement,
+            edtExecutor = edtExecutor,
+            taskExecutor = taskExecutor
+          )
+          Disposer.register(this@SqliteEvaluatorController, currentTableController!!)
+          currentTableController!!.setUp()
+        }
 
         listeners.forEach { it.onSqliteStatementExecuted(database) }
+      }.catching(edtExecutor, Throwable::class.java) { throwable ->
+        view.tableView.reportError("Error executing SQLite statement", throwable)
       }
-
-      override fun onFailure(throwable: Throwable) {
-        reportError(throwable)
-        settableFuture.setException(throwable)
-      }
-    })
-
-    return settableFuture
-  }
-
-  private fun reportError(throwable: Throwable) {
-    view.tableView.reportError("Error executing SQLite statement", throwable)
   }
 
   private inner class SqliteEvaluatorViewListenerImpl : SqliteEvaluatorView.Listener {

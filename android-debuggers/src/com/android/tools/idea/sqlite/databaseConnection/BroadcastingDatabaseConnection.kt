@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.sqlite.databaseConnection
 
-import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.ListenableFuture
@@ -31,15 +31,14 @@ import java.util.concurrent.Executor
  */
 class BroadcastingDatabaseConnection(
   private val databaseConnection: DatabaseConnection,
-  executor: Executor
+  private val taskExecutor: Executor
 ) : DatabaseConnection by databaseConnection {
-  private val taskExecutor = FutureCallbackExecutor.wrap(executor)
 
   override fun execute(sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet> {
     val settableFuture = SettableFuture.create<SqliteResultSet>()
     val executeFuture = databaseConnection.execute(sqliteStatement)
 
-    taskExecutor.addCallback(executeFuture, object : FutureCallback<SqliteResultSet?> {
+    executeFuture.addCallback(taskExecutor, object : FutureCallback<SqliteResultSet> {
       val publisher = ApplicationManager.getApplication().messageBus.syncPublisher(DatabaseConnection.TOPIC)
       override fun onSuccess(result: SqliteResultSet?) {
         publisher.onSqliteStatementExecutionSuccess(sqliteStatement)

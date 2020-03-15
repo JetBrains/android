@@ -729,7 +729,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     val mockSqliteExplorerProjectService = mock(DatabaseInspectorProjectService::class.java)
     `when`(mockSqliteExplorerProjectService.reDownloadAndOpenFile(any(FileSqliteDatabase::class.java), any(DownloadProgress::class.java)))
-      .thenReturn(Futures.immediateFuture(null))
+      .thenReturn(Futures.immediateFuture(Unit))
     project.registerServiceInstance(DatabaseInspectorProjectService::class.java, mockSqliteExplorerProjectService)
 
     // Act

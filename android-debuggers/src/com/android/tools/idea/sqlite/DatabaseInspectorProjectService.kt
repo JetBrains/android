@@ -21,7 +21,7 @@ import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.device.fs.DeviceFileDownloaderService
 import com.android.tools.idea.device.fs.DeviceFileId
 import com.android.tools.idea.device.fs.DownloadProgress
@@ -141,8 +141,8 @@ interface DatabaseInspectorProjectService {
 
 class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
   private val project: Project,
-  edtExecutor: Executor = EdtExecutorService.getInstance(),
-  taskExecutor: Executor = PooledThreadExecutor.INSTANCE,
+  private val edtExecutor: Executor = EdtExecutorService.getInstance(),
+  private val taskExecutor: Executor = PooledThreadExecutor.INSTANCE,
   private val databaseConnectionFactory: DatabaseConnectionFactory = DatabaseConnectionFactoryImpl(),
   private val fileOpener: Consumer<VirtualFile> = Consumer { OpenFileAction.openFile(it, project) },
   private val viewFactory: DatabaseInspectorViewsFactory = DatabaseInspectorViewsFactoryImpl(),
@@ -190,8 +190,6 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
     PooledThreadExecutor.INSTANCE, DatabaseInspectorViewsFactoryImpl()
   )
 
-  private val edtExecutor: FutureCallbackExecutor = FutureCallbackExecutor.wrap(edtExecutor)
-  private val taskExecutor: FutureCallbackExecutor = FutureCallbackExecutor.wrap(taskExecutor)
   private val uiThread = edtExecutor.asCoroutineDispatcher()
   private val workerThread = taskExecutor.asCoroutineDispatcher()
   private val projectScope = AndroidCoroutineScope(project, workerThread)
@@ -293,7 +291,7 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
                        ?: return Futures.immediateFailedFuture(IllegalStateException("DeviceFileId not found"))
     val downloadFuture = DeviceFileDownloaderService.getInstance(project).downloadFile(deviceFileId, progress)
 
-    return edtExecutor.transform(downloadFuture) { downloadedFileData ->
+    return downloadFuture.transform(edtExecutor) { downloadedFileData ->
       fileOpener.accept(downloadedFileData.virtualFile)
       return@transform
     }

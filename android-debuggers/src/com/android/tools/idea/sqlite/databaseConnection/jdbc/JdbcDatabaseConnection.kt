@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.sqlite.databaseConnection.jdbc
 
-import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.concurrency.executeAsync
 import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
-import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.databaseConnection.EmptySqliteResultSet
+import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteSchema
@@ -49,9 +49,7 @@ class JdbcDatabaseConnection(
     private val logger: Logger = Logger.getInstance(JdbcDatabaseConnection::class.java)
   }
 
-  val sequentialTaskExecutor = FutureCallbackExecutor.wrap(
-    SequentialTaskExecutor.createSequentialApplicationPoolExecutor("Sqlite JDBC service", pooledExecutor)
-  )
+  val sequentialTaskExecutor = SequentialTaskExecutor.createSequentialApplicationPoolExecutor("Sqlite JDBC service", pooledExecutor)
 
   override fun close(): ListenableFuture<Unit> = sequentialTaskExecutor.executeAsync {
     connection.close()
