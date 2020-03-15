@@ -19,7 +19,6 @@ import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.model.AndroidModel;
 import com.intellij.ProjectTopics;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleServiceManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ModuleRootListener;
@@ -43,7 +42,7 @@ public class ModuleSourceAutogenerating {
 
   @Nullable
   public static ModuleSourceAutogenerating getInstance(@NotNull AndroidFacet facet) {
-    return ModuleServiceManager.getService(facet.getModule(), ModuleSourceAutogenerating.class);
+    return facet.getModule().getService(ModuleSourceAutogenerating.class);
   }
 
   private ModuleSourceAutogenerating(@NotNull Module module) {
