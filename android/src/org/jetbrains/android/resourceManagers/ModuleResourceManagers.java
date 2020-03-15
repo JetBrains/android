@@ -20,7 +20,6 @@ import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.intellij.ProjectTopics;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleServiceManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ModuleRootListener;
@@ -43,7 +42,7 @@ public class ModuleResourceManagers {
   @NotNull
   public static ModuleResourceManagers getInstance(@NotNull AndroidFacet facet) {
     //noinspection ConstantConditions (registered in android-plugin.xml, so won't be null
-    return ModuleServiceManager.getService(facet.getModule(), ModuleResourceManagers.class);
+    return facet.getModule().getService(ModuleResourceManagers.class);
   }
 
   private ModuleResourceManagers(@NotNull Module module) {

@@ -21,7 +21,6 @@ import com.android.tools.mlkit.MlNames;
 import com.google.common.base.Strings;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleServiceManager;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -47,7 +46,7 @@ import org.jetbrains.annotations.Nullable;
 public class MlModuleService {
 
   public static MlModuleService getInstance(@NotNull Module module) {
-    return Objects.requireNonNull(ModuleServiceManager.getService(module, MlModuleService.class));
+    return Objects.requireNonNull(module.getService(MlModuleService.class));
   }
 
   private final Module myModule;

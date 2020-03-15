@@ -16,7 +16,6 @@
 package com.android.tools.idea.psi;
 
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleServiceManager;
 import com.intellij.psi.PsiClass;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
@@ -51,6 +50,6 @@ public interface TagToClassMapper {
   void resetAllClassMaps();
 
   static TagToClassMapper getInstance(@NotNull Module module) {
-    return ModuleServiceManager.getService(module, TagToClassMapper.class);
+    return module.getService(TagToClassMapper.class);
   }
 }

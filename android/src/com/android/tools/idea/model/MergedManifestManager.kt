@@ -28,7 +28,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleServiceManager
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.Disposer
@@ -256,7 +255,7 @@ open class MergedManifestManager(module: Module) : Disposable {
 
   companion object {
     @JvmStatic
-    fun getInstance(module: Module) = ModuleServiceManager.getService(module, MergedManifestManager::class.java)!!
+    fun getInstance(module: Module) = module.getService(MergedManifestManager::class.java)!!
 
     /**
      * Registers a [callback] to be executed whenever the [module]'s merged manifest has been recomputed.
