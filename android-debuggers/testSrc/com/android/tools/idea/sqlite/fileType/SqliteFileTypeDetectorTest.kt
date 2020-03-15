@@ -22,24 +22,40 @@ import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 
 class SqliteFileTypeDetectorTest : PlatformTestCase() {
   private lateinit var mySqliteUtil: SqliteTestUtil
-  private var myPreviousEnabled: Boolean = false
+  private var myFeaturePreviousEnabled: Boolean = false
+  private var myFileSupportPreviousEnabled: Boolean = false
 
   override fun setUp() {
     super.setUp()
-    mySqliteUtil = SqliteTestUtil(
-      IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
+    mySqliteUtil = SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
     mySqliteUtil.setUp()
-    myPreviousEnabled = DatabaseInspectorFlagController.enableFeature(true)
+    myFeaturePreviousEnabled = DatabaseInspectorFlagController.enableFeature(true)
+    myFileSupportPreviousEnabled = DatabaseInspectorFlagController.enableFileSupport(true)
   }
 
   override fun tearDown() {
     try {
       mySqliteUtil.tearDown()
-      DatabaseInspectorFlagController.enableFeature(myPreviousEnabled)
+      DatabaseInspectorFlagController.enableFeature(myFeaturePreviousEnabled)
+      DatabaseInspectorFlagController.enableFileSupport(myFileSupportPreviousEnabled)
     }
     finally {
       super.tearDown()
     }
+  }
+
+  fun testSqliteFileDetectionDoesNotWorkWhenFlagIsOff() {
+    // Prepare
+    DatabaseInspectorFlagController.enableFileSupport(false)
+    val file = mySqliteUtil.createTestSqliteDatabase()
+    val detector = SqliteFileTypeDetector()
+    val byteSequence = mySqliteUtil.createByteSequence(file, 4096)
+
+    // Act
+    val fileType = detector.detect(file, byteSequence, null)
+
+    // Assert
+    assertThat(fileType).isNull()
   }
 
   fun testSqliteFileDetection() {

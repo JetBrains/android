@@ -489,8 +489,26 @@ public final class StudioFlags {
   //region Database Inspector
   private static final FlagGroup DATABASE_INSPECTOR = new FlagGroup(FLAGS, "database.inspector", "Database Inspector");
   public static final Flag<Boolean> DATABASE_INSPECTOR_ENABLED = Flag.create(
-    DATABASE_INSPECTOR, "enabled", "Enable Database Inspector",
-    "If enabled the Database Inspector tool window will appear. SQLite files opened from the Device Explorer will be opened in the inspector.",
+    DATABASE_INSPECTOR,
+    "enabled",
+    "Enable Database Inspector",
+    "If enabled the Database Inspector tool window will appear." +
+    "SQLite files opened from the Device Explorer will be opened in the inspector.",
+    false
+  );
+  public static final Flag<Boolean> DATABASE_INSPECTOR_FILE_SUPPORT_ENABLED = Flag.create(
+    DATABASE_INSPECTOR,
+    "files.enabled",
+    "Enable file support in Database Inspector",
+    "If enabled, the Database Inspector tool will be able to open databases from files." +
+    "SQLite files opened from the Device Explorer will open in the inspector.",
+    false
+  );
+
+  // TODO(b/144073974) why do we need a separate flag for this?
+  public static final Flag<Boolean> SQLITE_APP_INSPECTOR_ENABLED = Flag.create(
+    DATABASE_INSPECTOR, "sqlite.app.inspector", "Enable experimental SQLite inspector",
+    "SQLite inspector runs and executes all operations in app process",
     false);
   //endregion
 
