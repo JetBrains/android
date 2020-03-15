@@ -16,7 +16,11 @@
 package com.android.tools.idea.sqlite.controllers
 
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.concurrency.addCallback
+import com.android.tools.idea.concurrency.catching
+import com.android.tools.idea.concurrency.finallySync
+import com.android.tools.idea.concurrency.transform
+import com.android.tools.idea.concurrency.transformAsync
 import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
 import com.android.tools.idea.lang.androidSql.parser.AndroidSqlParserDefinition
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
@@ -41,6 +45,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.containers.ComparatorUtil.max
 import java.util.LinkedList
+import java.util.concurrent.Executor
 import kotlin.math.min
 
 /**
@@ -59,7 +64,8 @@ class TableController(
   private val tableSupplier: () -> SqliteTable?,
   private val databaseConnection: DatabaseConnection,
   private val sqliteStatement: SqliteStatement,
-  private val edtExecutor: FutureCallbackExecutor
+  private val edtExecutor: Executor,
+  private val taskExecutor: Executor
 ) : DatabaseInspectorController.TabController {
   private lateinit var resultSet: SqliteResultSet
   private val listener = TableViewListenerImpl()
@@ -75,8 +81,7 @@ class TableController(
 
   fun setUp(): ListenableFuture<Unit> {
     view.startTableLoading()
-    return edtExecutor.transform(databaseConnection.execute(sqliteStatement)) { newResultSet ->
-      checkNotNull(newResultSet)
+    return databaseConnection.execute(sqliteStatement).transform(edtExecutor) { newResultSet ->
       lastExecutedQuery = sqliteStatement
 
       if (Disposer.isDisposed(this)) {
@@ -109,14 +114,14 @@ class TableController(
 
   /**
    * Gets columns and rows from [resultSet] and updates the view.
-   * 
+   *
    * Callers of this method should take care of setting the view in a loading state.
    */
   private fun fetchAndDisplayTableData(): ListenableFuture<Unit> {
-    val fetchTableDataFuture = edtExecutor.transformAsync(resultSet.columns) { columns ->
+    val fetchTableDataFuture = resultSet.columns.transformAsync(edtExecutor) { columns ->
       if (Disposer.isDisposed(this)) throw ProcessCanceledException()
       val table = tableSupplier()
-      view.showTableColumns(columns!!.filter { it.name != table?.rowIdName?.stringName })
+      view.showTableColumns(columns.filter { it.name != table?.rowIdName?.stringName })
       view.setEditable(isEditable())
 
       updateDataAndButtons()
@@ -124,7 +129,7 @@ class TableController(
 
     val futureCatching = handleFetchRowsError(fetchTableDataFuture)
 
-    val future = edtExecutor.finallySync(futureCatching) {
+    val future = futureCatching.finallySync(edtExecutor) {
       if (Disposer.isDisposed(this)) throw ProcessCanceledException()
       view.stopTableLoading()
     }
@@ -141,19 +146,19 @@ class TableController(
     view.setFetchPreviousRowsButtonState(false)
     view.setFetchNextRowsButtonState(false)
 
-    return edtExecutor.transformAsync(fetchAndDisplayRows()) {
-      edtExecutor.transform(resultSet.totalRowCount) { rowCount ->
+    return fetchAndDisplayRows()
+      .transformAsync(taskExecutor) {
+        resultSet.totalRowCount
+      }.transform(edtExecutor) { rowCount ->
         view.setFetchPreviousRowsButtonState(start > 0)
         view.setFetchNextRowsButtonState(start+rowBatchSize < rowCount)
-        return@transform
       }
-    }
   }
 
   private fun updateDataAndButtonsWithLoadingScreens(): ListenableFuture<Unit> {
     view.startTableLoading()
     val updateDataFuture = updateDataAndButtons()
-    val future = edtExecutor.finallySync(updateDataFuture) {
+    val future = updateDataFuture.finallySync(edtExecutor) {
       if (Disposer.isDisposed(this@TableController)) throw ProcessCanceledException()
       view.stopTableLoading()
     }
@@ -168,7 +173,7 @@ class TableController(
    * using the keyboard we don't want to lose the navigation each time the data has to be updated.
    */
   private fun fetchAndDisplayRows() : ListenableFuture<Unit> {
-    return edtExecutor.transform(resultSet.getRowBatch(start, rowBatchSize)) { newRows ->
+    return resultSet.getRowBatch(start, rowBatchSize).transform(edtExecutor) { newRows ->
       if (Disposer.isDisposed(this)) throw ProcessCanceledException()
 
       val rowDiffOperations = mutableListOf<RowDiffOperation>()
@@ -212,7 +217,7 @@ class TableController(
   }
 
   private fun handleFetchRowsError(future: ListenableFuture<Unit>): ListenableFuture<Unit> {
-    return edtExecutor.catching(future, Throwable::class.java) { error ->
+    return future.catching(edtExecutor, Throwable::class.java) { error ->
       if (Disposer.isDisposed(this)) throw ProcessCanceledException()
       view.resetView()
       view.reportError("Error retrieving data from table.", error)
@@ -237,8 +242,7 @@ class TableController(
       Disposer.dispose(resultSet)
 
       view.startTableLoading()
-      edtExecutor.transform(databaseConnection.execute(selectOrderByStatement)) { newResultSet ->
-        checkNotNull(newResultSet)
+      databaseConnection.execute(selectOrderByStatement).transform(edtExecutor) { newResultSet ->
         lastExecutedQuery = selectOrderByStatement
 
         if (Disposer.isDisposed(this@TableController)) {
@@ -285,8 +289,8 @@ class TableController(
     }
 
     override fun loadLastRowsInvoked() {
-      edtExecutor.transformAsync(resultSet.totalRowCount) { rowCount ->
-        start = (rowCount!! / rowBatchSize) * rowBatchSize
+      resultSet.totalRowCount.transformAsync(edtExecutor) { rowCount ->
+        start = (rowCount / rowBatchSize) * rowBatchSize
 
         if (start == rowCount) start -= rowBatchSize
         updateDataAndButtonsWithLoadingScreens()
@@ -338,17 +342,16 @@ class TableController(
       val psiElement = AndroidSqlParserDefinition.parseSqlQuery(project, updateStatement)
       val updateStatementStringRepresentation = inlineParameterValues(psiElement, LinkedList(parametersValues))
 
-      edtExecutor.addCallback(databaseConnection.execute(
-        SqliteStatement(updateStatement, parametersValues, updateStatementStringRepresentation)
-      ), object : FutureCallback<SqliteResultSet?> {
-        override fun onSuccess(result: SqliteResultSet?) {
-          refreshData()
-        }
+      databaseConnection.execute(SqliteStatement(updateStatement, parametersValues, updateStatementStringRepresentation))
+        .addCallback(edtExecutor, object : FutureCallback<SqliteResultSet> {
+          override fun onSuccess(result: SqliteResultSet?) {
+            refreshData()
+          }
 
-        override fun onFailure(t: Throwable) {
-          view.reportError("Can't execute update", t)
-        }
-      })
+          override fun onFailure(t: Throwable) {
+            view.reportError("Can't execute update", t)
+          }
+        })
     }
   }
 }

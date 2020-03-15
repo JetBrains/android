@@ -17,7 +17,8 @@ package com.android.tools.idea.sqlite.controllers
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.concurrency.addCallback
+import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.device.fs.DownloadProgress
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.android.tools.idea.sqlite.SchemaProvider
@@ -63,11 +64,10 @@ class DatabaseInspectorControllerImpl(
   private val project: Project,
   private val model: DatabaseInspectorController.Model,
   private val viewFactory: DatabaseInspectorViewsFactory,
-  edtExecutor: Executor,
-  taskExecutor: Executor
+  private val edtExecutor: Executor,
+  private val taskExecutor: Executor
 ) : DatabaseInspectorController {
 
-  private val edtExecutor = FutureCallbackExecutor.wrap(edtExecutor)
   private val uiThread = edtExecutor.asCoroutineDispatcher()
   private val workerThread = taskExecutor.asCoroutineDispatcher()
   private val view = viewFactory.createDatabaseInspectorView(project)
@@ -259,7 +259,8 @@ class DatabaseInspectorControllerImpl(
       project,
       sqliteEvaluatorView,
       viewFactory,
-      edtExecutor
+      edtExecutor,
+      taskExecutor
     )
     Disposer.register(project, sqliteEvaluatorController)
     sqliteEvaluatorController.setUp()
@@ -298,11 +299,12 @@ class DatabaseInspectorControllerImpl(
         tableSupplier = { model.openDatabases[database]?.tables?.firstOrNull{ it.name == table.name } },
         databaseConnection = databaseConnection,
         sqliteStatement = SqliteStatement(selectAllAndRowIdFromTable(table)),
-        edtExecutor = edtExecutor
+        edtExecutor = edtExecutor,
+        taskExecutor = taskExecutor
       )
       Disposer.register(project, tableController)
 
-      edtExecutor.addCallback(tableController.setUp(), object : FutureCallback<Unit> {
+      tableController.setUp().addCallback(edtExecutor, object : FutureCallback<Unit> {
         override fun onSuccess(result: Unit?) {
           resultSetControllers[tableId] = tableController
         }
@@ -344,7 +346,7 @@ class DatabaseInspectorControllerImpl(
         }
       })
 
-      edtExecutor.transform(downloadFuture) {
+      downloadFuture.transform(edtExecutor) {
         view.reportSyncProgress("")
       }
     }

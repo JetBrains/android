@@ -16,7 +16,7 @@
 package com.android.tools.idea.sqlite.databaseConnection
 
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
-import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.concurrency.executeAsync
 import com.android.tools.idea.sqlite.databaseConnection.jdbc.JdbcDatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnection
 import com.google.common.util.concurrent.Futures
@@ -25,6 +25,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.ide.PooledThreadExecutor
 import java.sql.DriverManager
+import java.util.concurrent.Executor
 
 interface DatabaseConnectionFactory {
   /**
@@ -32,7 +33,7 @@ interface DatabaseConnectionFactory {
    * @param sqliteFile The file containing the Sqlite database.
    * @param executor An executor for long-running and/or IO-bound tasks, such as [PooledThreadExecutor].
    */
-  fun getDatabaseConnection(sqliteFile: VirtualFile, executor: FutureCallbackExecutor): ListenableFuture<DatabaseConnection>
+  fun getDatabaseConnection(sqliteFile: VirtualFile, executor: Executor): ListenableFuture<DatabaseConnection>
 
   /**
    * Returns a [DatabaseConnection] ready to be used, associated with a live connection to an on-device inspector.
@@ -43,7 +44,7 @@ interface DatabaseConnectionFactory {
   fun getLiveDatabaseConnection(
     messenger: AppInspectorClient.CommandMessenger,
     id: Int,
-    executor: FutureCallbackExecutor
+    executor: Executor
   ): ListenableFuture<DatabaseConnection>
 }
 
@@ -52,7 +53,7 @@ class DatabaseConnectionFactoryImpl : DatabaseConnectionFactory {
     private val logger: Logger = Logger.getInstance(DatabaseConnectionFactoryImpl::class.java)
   }
 
-  override fun getDatabaseConnection(sqliteFile: VirtualFile, executor: FutureCallbackExecutor): ListenableFuture<DatabaseConnection> {
+  override fun getDatabaseConnection(sqliteFile: VirtualFile, executor: Executor): ListenableFuture<DatabaseConnection> {
     return executor.executeAsync {
       try {
         val url = "jdbc:sqlite:${sqliteFile.path}"
@@ -72,7 +73,7 @@ class DatabaseConnectionFactoryImpl : DatabaseConnectionFactory {
   override fun getLiveDatabaseConnection(
     messenger: AppInspectorClient.CommandMessenger,
     id: Int,
-    executor: FutureCallbackExecutor
+    executor: Executor
   ): ListenableFuture<DatabaseConnection> {
     return Futures.immediateFuture(BroadcastingDatabaseConnection(LiveDatabaseConnection(messenger, id, executor), executor))
   }
