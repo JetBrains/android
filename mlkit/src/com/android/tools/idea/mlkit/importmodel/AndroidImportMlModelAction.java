@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.mlkit.importmodel;
 
-import com.android.tools.idea.projectsystem.NamedModuleTemplate;
+import com.android.tools.idea.mlkit.MlkitUtils;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
 import com.android.tools.idea.wizard.model.ModelWizard;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -30,7 +29,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.StudioIcons;
 import java.io.File;
-import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -87,27 +85,10 @@ public class AndroidImportMlModelAction extends AnAction {
    * Picks a directory into which the chosen model should be copied. Returns null if it can't be determined.
    */
   @Nullable
-  private File getModuleMlDirectory(@NotNull AnActionEvent e) {
+  private static File getModuleMlDirectory(@NotNull AnActionEvent e) {
     Module module = LangDataKeys.MODULE.getData(e.getDataContext());
     // Stores the last file user has focused, so we know where user want to add this model.
     VirtualFile virtualFile = CommonDataKeys.VIRTUAL_FILE.getData(e.getDataContext());
-
-    return getModuleMlDirectory(ProjectSystemUtil.getModuleSystem(module).getModuleTemplates(virtualFile));
-  }
-
-  @VisibleForTesting
-  @Nullable
-  File getModuleMlDirectory(@NotNull List<NamedModuleTemplate> namedModuleTemplates) {
-    if (namedModuleTemplates.isEmpty()) {
-      return null;
-    }
-    // Find target ml path given Module templates. If there are multiple, select the main template.
-    // TODO(b/150616631): Add drop down UI to let user select the flavour.
-    List<File> mlDirectories = namedModuleTemplates.get(0).getPaths().getMlModelsDirectories();
-    if (mlDirectories.isEmpty()) {
-      return null;
-    }
-
-    return mlDirectories.get(0);
+    return MlkitUtils.getModuleMlDirectory(ProjectSystemUtil.getModuleSystem(module).getModuleTemplates(virtualFile));
   }
 }

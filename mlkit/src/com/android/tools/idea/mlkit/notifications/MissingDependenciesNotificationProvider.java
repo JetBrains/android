@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.mlkit;
+package com.android.tools.idea.mlkit.notifications;
 
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.mlkit.MlkitUtils;
+import com.android.tools.idea.mlkit.TfliteModelFileEditor;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -62,7 +64,7 @@ public class MissingDependenciesNotificationProvider extends EditorNotifications
         && MlkitUtils.isModelFileInMlModelsFolder(module, file)
         && !MlkitUtils.getMissingDependencies(module, file).isEmpty()) {
       EditorNotificationPanel panel = new EditorNotificationPanel();
-      panel.setText("TF Lite model binding dependencies not found. They are necessary for the newest features to work properly");
+      panel.setText("Tensorflow Lite model binding dependencies not found.");
       panel.createActionLabel("Add Now", () -> {
         List<GradleCoordinate> depsToAdd = MlkitUtils.getMissingDependencies(module, file);
         // TODO(b/149224613): switch to use DependencyManagementUtil#addDependencies.

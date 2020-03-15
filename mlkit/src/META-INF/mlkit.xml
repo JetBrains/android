@@ -25,7 +25,8 @@
                         order="first, before java"/>
     <resolveScopeEnlarger implementation="com.android.tools.idea.mlkit.MlkitResolveScopeEnlarger"/>
     <problemFileHighlightFilter implementation="com.android.tools.idea.mlkit.MlModelProblemFileHighlightFilter"/>
-    <editorNotificationProvider implementation="com.android.tools.idea.mlkit.MissingDependenciesNotificationProvider"/>
+    <editorNotificationProvider implementation="com.android.tools.idea.mlkit.notifications.MissingDependenciesNotificationProvider"/>
+    <editorNotificationProvider implementation="com.android.tools.idea.mlkit.notifications.InNonMlFolderNotificationProvider"/>
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
