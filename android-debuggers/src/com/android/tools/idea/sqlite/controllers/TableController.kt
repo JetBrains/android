@@ -74,6 +74,7 @@ class TableController(
   private var currentRows = emptyList<SqliteRow>()
 
   fun setUp(): ListenableFuture<Unit> {
+    view.startTableLoading()
     return edtExecutor.transform(databaseConnection.execute(sqliteStatement)) { newResultSet ->
       checkNotNull(newResultSet)
       lastExecutedQuery = sqliteStatement
@@ -97,6 +98,7 @@ class TableController(
   }
 
   override fun refreshData(): ListenableFuture<Unit> {
+    view.startTableLoading()
     return fetchAndDisplayTableData()
   }
 
@@ -105,8 +107,12 @@ class TableController(
     view.removeListener(listener)
   }
 
+  /**
+   * Gets columns and rows from [resultSet] and updates the view.
+   * 
+   * Callers of this method should take care of setting the view in a loading state.
+   */
   private fun fetchAndDisplayTableData(): ListenableFuture<Unit> {
-    view.startTableLoading()
     val fetchTableDataFuture = edtExecutor.transformAsync(resultSet.columns) { columns ->
       if (Disposer.isDisposed(this)) throw ProcessCanceledException()
       val table = tableSupplier()
@@ -128,6 +134,8 @@ class TableController(
 
   /**
    * Calls [fetchAndDisplayRows] to fetch new data and updates the view.
+   *
+   * This method doesn't set the view in a loading state.
    */
   private fun updateDataAndButtons(): ListenableFuture<Unit> {
     view.setFetchPreviousRowsButtonState(false)
@@ -140,6 +148,17 @@ class TableController(
         return@transform
       }
     }
+  }
+
+  private fun updateDataAndButtonsWithLoadingScreens(): ListenableFuture<Unit> {
+    view.startTableLoading()
+    val updateDataFuture = updateDataAndButtons()
+    val future = edtExecutor.finallySync(updateDataFuture) {
+      if (Disposer.isDisposed(this@TableController)) throw ProcessCanceledException()
+      view.stopTableLoading()
+    }
+
+    return handleFetchRowsError(future)
   }
 
   /**
@@ -192,7 +211,7 @@ class TableController(
     return cellUpdates
   }
 
-  private fun handleFetchRowsError(future: ListenableFuture<Unit>): ListenableFuture<Any> {
+  private fun handleFetchRowsError(future: ListenableFuture<Unit>): ListenableFuture<Unit> {
     return edtExecutor.catching(future, Throwable::class.java) { error ->
       if (Disposer.isDisposed(this)) throw ProcessCanceledException()
       view.resetView()
@@ -217,6 +236,7 @@ class TableController(
 
       Disposer.dispose(resultSet)
 
+      view.startTableLoading()
       edtExecutor.transform(databaseConnection.execute(selectOrderByStatement)) { newResultSet ->
         checkNotNull(newResultSet)
         lastExecutedQuery = selectOrderByStatement
@@ -246,29 +266,22 @@ class TableController(
 
       rowBatchSize = rowCount
 
-      val future = updateDataAndButtons()
-      handleFetchRowsError(future)
+      updateDataAndButtonsWithLoadingScreens()
     }
 
     override fun loadPreviousRowsInvoked() {
       start = max(0, start-rowBatchSize)
-
-      val future = updateDataAndButtons()
-      handleFetchRowsError(future)
+      updateDataAndButtonsWithLoadingScreens()
     }
 
     override fun loadNextRowsInvoked() {
       start += rowBatchSize
-
-      val future = updateDataAndButtons()
-      handleFetchRowsError(future)
+      updateDataAndButtonsWithLoadingScreens()
     }
 
     override fun loadFirstRowsInvoked() {
       start = 0
-
-      val future = updateDataAndButtons()
-      handleFetchRowsError(future)
+      updateDataAndButtonsWithLoadingScreens()
     }
 
     override fun loadLastRowsInvoked() {
@@ -276,9 +289,7 @@ class TableController(
         start = (rowCount!! / rowBatchSize) * rowBatchSize
 
         if (start == rowCount) start -= rowBatchSize
-
-        val future = updateDataAndButtons()
-        handleFetchRowsError(future)
+        updateDataAndButtonsWithLoadingScreens()
       }
     }
 
