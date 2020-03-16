@@ -554,10 +554,12 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     }
 
     Presentation presentation = event.getPresentation();
+
     if (!AndroidUtils.hasAndroidFacets(project)) {
       presentation.setVisible(false);
       return;
     }
+
     updatePresentation(presentation, myGetRunManager.apply(project).getSelectedConfiguration());
 
     String place = event.getPlace();
