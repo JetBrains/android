@@ -50,14 +50,11 @@ private class ModifierListWithNullabilityAnnotation(
 /**
  * A [LightFieldBuilder] with easy nullability support.
  */
-class NullabilityLightFieldBuilder(
-  manager: PsiManager,
-  name: String,
-  type: PsiType,
-  private val isNonNull: Boolean)
+class NullabilityLightFieldBuilder(manager: PsiManager, name: String, type: PsiType, isNonNull: Boolean, vararg modifiers: String)
   : LightFieldBuilder(manager, name, type) {
 
-  override fun getModifierList(): PsiModifierList {
-    return ModifierListWithNullabilityAnnotation(super.getModifierList(), isNonNull)
+  init {
+    setModifiers(*modifiers)
+    setModifierList(ModifierListWithNullabilityAnnotation(super.getModifierList(), isNonNull))
   }
 }
