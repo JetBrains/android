@@ -54,6 +54,7 @@ import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
 import com.android.tools.idea.wizard.template.BytecodeLevel;
 import com.android.tools.idea.wizard.template.Language;
+import com.android.tools.idea.wizard.template.WizardUiContext;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.ContextHelpLabel;
@@ -179,10 +180,11 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewAndroidMo
 
   @NotNull
   @Override
-  protected Collection<? extends ModelWizardStep> createDependentSteps() {
+  protected Collection<? extends ModelWizardStep<?>> createDependentSteps() {
     // Note: MultiTemplateRenderer needs that all Models constructed (ie myRenderModel) are inside a Step, so handleSkipped() is called
-    ChooseActivityTypeStep chooseActivityStep =
-      new ChooseActivityTypeStep(myRenderModel, myFormFactor, Lists.newArrayList(), getModel().getAndroidSdkInfo());
+    ChooseActivityTypeStep chooseActivityStep = ChooseActivityTypeStep.Factory.forNewModule(
+      myRenderModel, myFormFactor, getModel().getAndroidSdkInfo()
+    );
     chooseActivityStep.setShouldShow(!getModel().isLibrary());
 
     LicenseAgreementStep licenseAgreementStep =
