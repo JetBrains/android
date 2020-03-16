@@ -85,11 +85,13 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   private final JBScrollPane myRootPane;
   private final JEditorPane myEditorPane;
   private boolean myUnderDarcula;
+  private boolean shouldDisplaySampleCodeSection;
 
   public TfliteModelFileEditor(@NotNull Project project, @NotNull VirtualFile file) {
     myFile = file;
     myModule = ModuleUtilCore.findModuleForFile(file, project);
     myUnderDarcula = StartupUiUtil.isUnderDarcula();
+    shouldDisplaySampleCodeSection = shouldDisplaySampleCodeSection(file);
 
     JPanel contentPanel = new JPanel();
     contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
@@ -109,10 +111,12 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       ModelInfo modelInfo = ModelInfo.buildFrom(new MetadataExtractor(ByteBuffer.wrap(myFile.contentsToByteArray())));
       htmlBodyBuilder.append(getModelSectionBody(modelInfo));
       htmlBodyBuilder.append(getTensorsSectionBody(modelInfo));
-      PsiClass modelClass = MlkitModuleService.getInstance(myModule)
-        .getOrCreateLightModelClass(
-          new MlModelMetadata(myFile.getUrl(), MlkitNames.computeModelClassName((VfsUtilCore.virtualToIoFile(myFile)))));
-      htmlBodyBuilder.append(getSampleCodeSectionBody(modelClass, modelInfo));
+      if (shouldDisplaySampleCodeSection) {
+        PsiClass modelClass = MlkitModuleService.getInstance(myModule)
+          .getOrCreateLightModelClass(
+            new MlModelMetadata(myFile.getUrl(), MlkitNames.computeModelClassName((VfsUtilCore.virtualToIoFile(myFile)))));
+        htmlBodyBuilder.append(getSampleCodeSectionBody(modelClass, modelInfo));
+      }
     }
     catch (IOException e) {
       Logger.getInstance(TfliteModelFileEditor.class).error(e);
@@ -227,21 +231,17 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
 
   @NotNull
   private static String buildSampleCodeStyle() {
-    StringBuilder stringBuilder = new StringBuilder();
-    stringBuilder
-      .append("#sample_code {\n" +
-              "  font-family: 'Source Sans Pro', sans-serif; \n" +
-              "  background-color: " + (StartupUiUtil.isUnderDarcula() ? "#2A3141" : "#F1F3F4") + ";\n" +
-              "  color: " + (StartupUiUtil.isUnderDarcula() ? "#EDEFF1" : "#3A474E") + ";\n" +
-              "  margin-left: 20px;\n" +
-              "  display: block;\n" +
-              "  width: 60%;\n" +
-              "  padding: 5px;\n" +
-              "  padding-left: 10px;\n" +
-              "  margin-top: 10px;\n" +
-              "}");
-
-    return stringBuilder.toString();
+    return "#sample_code {\n" +
+           "  font-family: 'Source Sans Pro', sans-serif; \n" +
+           "  background-color: " + (StartupUiUtil.isUnderDarcula() ? "#2A3141" : "#F1F3F4") + ";\n" +
+           "  color: " + (StartupUiUtil.isUnderDarcula() ? "#EDEFF1" : "#3A474E") + ";\n" +
+           "  margin-left: 20px;\n" +
+           "  display: block;\n" +
+           "  width: 60%;\n" +
+           "  padding: 5px;\n" +
+           "  padding-left: 10px;\n" +
+           "  margin-top: 10px;\n" +
+           "}";
   }
 
   @NotNull
@@ -289,8 +289,9 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   @NotNull
   @Override
   public JComponent getComponent() {
-    if (myUnderDarcula != StartupUiUtil.isUnderDarcula()) {
+    if (myUnderDarcula != StartupUiUtil.isUnderDarcula() || shouldDisplaySampleCodeSection != shouldDisplaySampleCodeSection(myFile)) {
       myUnderDarcula = StartupUiUtil.isUnderDarcula();
+      shouldDisplaySampleCodeSection = shouldDisplaySampleCodeSection(myFile);
       // Refresh UI
       setHtml(myEditorPane, createHtmlBody());
     }
@@ -353,5 +354,10 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
 
   @Override
   public void dispose() {
+  }
+
+  private static boolean shouldDisplaySampleCodeSection(@NotNull VirtualFile modelFile) {
+    // TODO(b/150960988): take build feature state into account as well once ag/10508121 landed.
+    return MlkitUtils.isModelFileInMlModelsFolder(modelFile);
   }
 }
