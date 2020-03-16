@@ -75,7 +75,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class LiveAllocationCaptureObject implements CaptureObject {
   private static Logger getLogger() {
@@ -183,7 +182,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
 
   @Override
   public void saveToFile(@NotNull OutputStream outputStream) throws IOException {
-    throw new NotImplementedException();
+    throw new UnsupportedOperationException();
   }
 
   @NotNull
