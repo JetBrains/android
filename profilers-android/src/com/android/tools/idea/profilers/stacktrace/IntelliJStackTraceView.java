@@ -132,7 +132,7 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
 
     new DoubleClickListener() {
       @Override
-      protected boolean onDoubleClick(MouseEvent event) {
+      protected boolean onDoubleClick(@NotNull MouseEvent event) {
         return navigationHandler.get();
       }
     }.installOn(myListView);

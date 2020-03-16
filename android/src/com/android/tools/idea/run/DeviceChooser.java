@@ -133,7 +133,7 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
     });
     new DoubleClickListener() {
       @Override
-      protected boolean onDoubleClick(MouseEvent e) {
+      protected boolean onDoubleClick(@NotNull MouseEvent e) {
         if (myDeviceTable.isEnabled() && okAction.isEnabled()) {
           okAction.actionPerformed(null);
           return true;

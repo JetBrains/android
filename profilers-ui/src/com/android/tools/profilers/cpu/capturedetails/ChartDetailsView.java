@@ -36,18 +36,16 @@ import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.intellij.ui.DoubleClickListener;
-import java.awt.CardLayout;
-import java.awt.Dimension;
-import java.awt.Point;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.concurrent.TimeUnit;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * A base class for {@link CallChartDetailsView} and {@link FlameChartDetailsView} details views.
@@ -294,7 +292,7 @@ abstract class ChartDetailsView extends CaptureDetailsView {
       myChart = chart;
       new DoubleClickListener() {
         @Override
-        protected boolean onDoubleClick(MouseEvent event) {
+        protected boolean onDoubleClick(@NotNull MouseEvent event) {
           setLastPopupPoint(event);
           CodeLocation codeLocation = getCodeLocation();
           if (codeLocation != null) {

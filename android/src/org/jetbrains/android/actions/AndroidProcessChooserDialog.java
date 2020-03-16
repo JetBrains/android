@@ -185,7 +185,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
 
     new DoubleClickListener() {
       @Override
-      protected boolean onDoubleClick(MouseEvent event) {
+      protected boolean onDoubleClick(@NotNull MouseEvent event) {
         if (isOKActionEnabled()) {
           doOKAction();
           return true;

@@ -94,7 +94,7 @@ public class DeepLinkChooserDialog extends DialogWrapper {
     myList.setSelectedIndex(0);
     new DoubleClickListener() {
       @Override
-      protected boolean onDoubleClick(MouseEvent e) {
+      protected boolean onDoubleClick(@NotNull MouseEvent e) {
         int index = myList.locationToIndex(e.getPoint());
         if (index != -1 && myList.getModel().getElementAt(index) != null) {
           myList.setSelectedIndex(index);

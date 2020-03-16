@@ -577,7 +577,7 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
     }
 
     @Override
-    protected boolean onDoubleClick(MouseEvent event) {
+    protected boolean onDoubleClick(@NotNull MouseEvent event) {
       return myDelegate != null && myDelegate.onClick(event, 2);
     }
 
