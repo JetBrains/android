@@ -18,8 +18,11 @@ package com.android.tools.idea.tests.gui.gradle;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction.LINE_END;
 import static com.android.tools.idea.wizard.template.Language.Kotlin;
+import static com.android.tools.idea.wizard.template.impl.activities.basicActivity.BasicActivityTemplateKt.getBasicActivityTemplate;
+import static com.android.tools.idea.wizard.template.impl.activities.blankWearActivity.BlankWearActivityTemplateKt.getBlankWearActivityTemplate;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.testFramework.UsefulTestCase.assertThrows;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
@@ -29,6 +32,7 @@ import com.android.tools.idea.wizard.template.BytecodeLevel;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.IOException;
+import org.fest.swing.exception.LocationUnavailableException;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -162,5 +166,36 @@ public class NewModuleTest {
     String navGraphText = guiTest.getProjectFileText("otherModule/src/main/res/navigation/nav_graph.xml");
     assertThat(navGraphText).contains("navigation xmlns:android=");
     assertThat(navGraphText).contains("app:startDestination=\"@id/FirstFragment\"");
+  }
+
+  @Test
+  public void addNewWearModule() {
+    WizardUtils.createNewProject(guiTest); // Use androidx
+    final String moduleName = "wearModule";
+    NewModuleWizardFixture chooseWearActivityScreen =
+      guiTest.ideFrame()
+        .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
+        .clickNextWearModule()
+        .enterModuleName(moduleName)
+        .wizard()
+        .clickNext();
+
+    // check if templates are properly filtered
+    assertThrows(
+      LocationUnavailableException.class,
+      () -> chooseWearActivityScreen.chooseActivity(getBasicActivityTemplate().getName())
+    );
+
+    chooseWearActivityScreen
+      .chooseActivity(getBlankWearActivityTemplate().getName())
+      .clickNext()
+      .clickFinish()
+      .waitForGradleProjectSyncToFinish();
+
+    String gradleFileContents = guiTest.getProjectFileText(moduleName + "/build.gradle");
+    assertThat(gradleFileContents).contains("id 'com.android.application'");
+    assertThat(gradleFileContents).doesNotContain("consumerProguardFiles");
+    assertThat(gradleFileContents).contains("androidx.wear:wear");
+    assertAbout(file()).that(guiTest.getProjectPath(moduleName + "/.gitignore")).isFile();
   }
 }
