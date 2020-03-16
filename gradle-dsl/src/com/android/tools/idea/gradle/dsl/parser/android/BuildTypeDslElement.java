@@ -116,7 +116,7 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement impl
   @Override
   public boolean isInsignificantIfEmpty() {
     // "release" and "debug" Build Type blocks can be deleted if empty
-    return myName.name().equals("release") || myName.name().equals("debug");
+    return getName().equals("release") || getName().equals("debug");
   }
 
   @Override
