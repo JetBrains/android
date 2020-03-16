@@ -138,7 +138,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     StringBuilder htmlRow = new StringBuilder();
     htmlRow.append("<tr>\n");
     for (String value : row) {
-      htmlRow.append(useHeaderCells ? "<th>" + value + "</th>\n" : "<td>" + value + "</td>\n");
+      htmlRow.append(useHeaderCells ? "<th valign=\"top\">" + value + "</th>\n" : "<td valign=\"top\">" + value + "</td>\n");
     }
     htmlRow.append("</tr>\n");
 
@@ -238,6 +238,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
               "  width: 60%;\n" +
               "  padding: 5px;\n" +
               "  padding-left: 10px;\n" +
+              "  margin-top: 10px;\n" +
               "}");
 
     return stringBuilder.toString();
