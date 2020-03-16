@@ -118,7 +118,7 @@ public final class GradleDslExpressionList extends GradlePropertiesDslElement im
   }
 
   void addNewLiteral(@NotNull Object value) {
-    GradleDslLiteral literal = new GradleDslLiteral(this, myName);
+    GradleDslLiteral literal = new GradleDslLiteral(this, GradleNameElement.copy(myName));
     literal.setValue(value);
     addNewExpression(literal);
   }
