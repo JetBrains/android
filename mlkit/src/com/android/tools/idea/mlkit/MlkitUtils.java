@@ -16,7 +16,6 @@
 package com.android.tools.idea.mlkit;
 
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.mlkit.lightpsi.LightModelClass;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;

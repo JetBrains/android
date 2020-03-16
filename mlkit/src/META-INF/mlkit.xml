@@ -27,6 +27,7 @@
     <problemFileHighlightFilter implementation="com.android.tools.idea.mlkit.MlModelProblemFileHighlightFilter"/>
     <editorNotificationProvider implementation="com.android.tools.idea.mlkit.notifications.MissingDependenciesNotificationProvider"/>
     <editorNotificationProvider implementation="com.android.tools.idea.mlkit.notifications.InNonMlFolderNotificationProvider"/>
+    <editorNotificationProvider implementation="com.android.tools.idea.mlkit.notifications.BuildFeatureOffNotificationProvider"/>
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
