@@ -156,11 +156,16 @@ internal fun findLastPsiElementIn(startElement: GradleDslElement): PsiElement? {
 }
 
 /**
- * Get the external name of a dsl element by trimming the parent's name parts and converting the name from model to external, if necessary,
+ * Get the external name of a dsl element by trimming its parent's name parts and converting the name from model to external, if necessary,
  * returning an instance containing the name and whether this is a method call an assignment or unknown (see
  * [GradleDslNameConverter.externalNameForParent])
  */
-internal fun maybeTrimForParent(name: GradleNameElement, parent: GradleDslElement?, converter: GradleDslNameConverter): ExternalNameInfo {
+internal fun maybeTrimForParent(element: GradleDslElement, converter: GradleDslNameConverter): ExternalNameInfo {
+  val name = element.nameElement
+  // TODO(b/151607418): this is only an approximation to the scope in which this element is being written: a proper calculation should have
+  //  separate understanding of lexical scope from the position the element holds in the model hierarchy, and compute trimming relative
+  //  to those (possibly nested) scopes rather than the model.
+  val parent = element.parent
   val parts = ArrayList(name.fullNameParts());
   // FIXME(xof): this case needs fixing too
   if (parent == null || parts.isEmpty()) return ExternalNameInfo(parts, null, name.isFake)
