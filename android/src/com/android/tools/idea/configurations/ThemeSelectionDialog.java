@@ -53,7 +53,7 @@ public class ThemeSelectionDialog extends DialogWrapper {
     contentPanel.setPreferredSize(JBUI.size(800, 500));
     myPanel.installDoubleClickListener(new DoubleClickListener() {
       @Override
-      protected boolean onDoubleClick(MouseEvent event) {
+      protected boolean onDoubleClick(@NotNull MouseEvent event) {
         close(OK_EXIT_CODE);
         return true;
       }

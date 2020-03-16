@@ -1550,7 +1550,7 @@ public class ChooseResourceDialog extends ResourcePickerDialog {
 
       new DoubleClickListener() {
         @Override
-        protected boolean onDoubleClick(MouseEvent e) {
+        protected boolean onDoubleClick(@NotNull MouseEvent e) {
           ResourceChooserItem selected = getSelectedItem();
           if (selected != null) {
             myResultResourceName = selected.getResourceUrl();

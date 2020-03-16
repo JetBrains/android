@@ -97,7 +97,7 @@ public class ViewNodeActiveDisplay extends JComponent {
     new DoubleClickListener(){
 
       @Override
-      protected boolean onDoubleClick(MouseEvent event) {
+      protected boolean onDoubleClick(@NotNull MouseEvent event) {
         ViewNode clicked = getNode(event);
         if (clicked == null) return false;
         for (ViewNodeActiveDisplayListener listener : mListeners) {
