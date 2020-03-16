@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
-import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
@@ -107,13 +105,8 @@ public class GradleDslBlockElement extends GradlePropertiesDslElement {
    * The contract of this method is to arrange that an element parsed from Dsl source corresponding to setting a model property is
    * recognized as that model property.  This is needed because in general there are multiple ways of setting model properties, even
    * within one Dsl language (Groovy setter methods visible and setVisible) let alone between multiple Dsl languages (Groovy visible vs
-   * Kotlin isVisible).
-   *
-   * The operation, if we do find that we are dealing with a model property, boils down to calling canonize (NOTYPO) on the name element,
-   * which changes the name of the element to be the model property name, while not marking the element itself as having been modified (so
-   * that absent anything else happening the element does not appear to need writing out on apply().  The {@link GradleDslNameConverter}
-   * implementations are responsible for converting the model name back to an external name if the element is modified by something else
-   * (e.g. a user's {@link GradlePropertyModel#setValue(Object)}.)
+   * Kotlin isVisible).  If we are dealing with a model property, we annotate the Dsl element with a description of its effect on the
+   * model.
    *
    * @param element a Dsl element potentially representing a model property
    */
@@ -130,9 +123,7 @@ public class GradleDslBlockElement extends GradlePropertiesDslElement {
       // TODO(xof): for methods, we should eventually only canonize (NOTYPO) if we have a SET.  Until the semantics are fully encoded,
       //  though, there are other (description == OTHER) methods which end up here.
     }
-    // we rename the GradleNameElement, and not the element directly, because this renaming is not about renaming the property
-    // but about providing a canonical model name for a thing.
-    element.getNameElement().canonize(effect.property.name); // NOTYPO
+    element.setModelEffect(effect);
   }
 
   @Override

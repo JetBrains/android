@@ -170,7 +170,12 @@ internal fun maybeTrimForParent(element: GradleDslElement, converter: GradleDslN
   // FIXME(xof): this case needs fixing too
   if (parent == null || parts.isEmpty()) return ExternalNameInfo(parts, null, name.isFake)
 
-  val lastNamePart = parts.removeAt(parts.size - 1)
+  val effect = element.modelEffect
+  val part = parts.removeAt(parts.size - 1)
+  val lastNamePart = when (effect) {
+    null -> part
+    else -> effect.property.name
+  }
   // TODO(xof): this Splitter is unlikely to be correct
   val parentParts = Splitter.on(".").splitToList(parent.qualifiedName)
   var i = 0

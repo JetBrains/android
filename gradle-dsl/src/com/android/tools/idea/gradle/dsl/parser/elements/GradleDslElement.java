@@ -229,4 +229,15 @@ public interface GradleDslElement extends AnchorProvider {
    */
   @NotNull
   ImmutableMap<Pair<String, Integer>, ModelEffectDescription> getExternalToModelMap(@NotNull GradleDslNameConverter converter);
+
+
+  /**
+   * The effect of this element on the Dsl model.
+   *
+   * @return the effect on the model, or null if the element has no or unknown effect.
+   */
+  @Nullable
+  ModelEffectDescription getModelEffect();
+
+  void setModelEffect(@Nullable ModelEffectDescription effect);
 }
