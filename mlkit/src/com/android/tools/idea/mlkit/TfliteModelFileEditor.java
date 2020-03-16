@@ -357,7 +357,6 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   }
 
   private boolean shouldDisplaySampleCodeSection() {
-    // TODO(b/150960988): take build feature state into account as well once ag/10508121 landed.
-    return MlkitUtils.isModelFileInMlModelsFolder(myModule, myFile);
+    return MlkitUtils.isMlModelBindingBuildFeatureEnabled(myModule) && MlkitUtils.isModelFileInMlModelsFolder(myModule, myFile);
   }
 }
