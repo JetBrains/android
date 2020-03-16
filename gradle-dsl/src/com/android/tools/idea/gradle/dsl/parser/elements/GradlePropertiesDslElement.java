@@ -599,52 +599,6 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     return literalElement;
   }
 
-  @NotNull
-  public GradlePropertiesDslElement addToNewLiteralList(@NotNull String property, @NotNull String value) {
-    return addToNewLiteralListImpl(property, value);
-  }
-
-  @NotNull
-  private GradlePropertiesDslElement addToNewLiteralListImpl(@NotNull String property, @NotNull Object value) {
-    GradleDslExpressionList gradleDslExpressionList = getPropertyElement(property, GradleDslExpressionList.class);
-    if (gradleDslExpressionList == null) {
-      gradleDslExpressionList = new GradleDslExpressionList(this, GradleNameElement.create(property), false);
-      addPropertyInternal(gradleDslExpressionList, TO_BE_ADDED);
-    }
-    gradleDslExpressionList.addNewLiteral(value);
-    return this;
-  }
-
-  @NotNull
-  public GradlePropertiesDslElement removeFromExpressionList(@NotNull String property, @NotNull String value) {
-    return removeFromExpressionListImpl(property, value);
-  }
-
-  @NotNull
-  private GradlePropertiesDslElement removeFromExpressionListImpl(@NotNull String property, @NotNull Object value) {
-    GradleDslExpressionList gradleDslExpressionList = getPropertyElement(property, GradleDslExpressionList.class);
-    if (gradleDslExpressionList != null) {
-      gradleDslExpressionList.removeExpression(value);
-    }
-    return this;
-  }
-
-  @NotNull
-  public GradlePropertiesDslElement replaceInExpressionList(@NotNull String property, @NotNull String oldValue, @NotNull String newValue) {
-    return replaceInExpressionListImpl(property, oldValue, newValue);
-  }
-
-  @NotNull
-  private GradlePropertiesDslElement replaceInExpressionListImpl(@NotNull String property,
-                                                                 @NotNull Object oldValue,
-                                                                 @NotNull Object newValue) {
-    GradleDslExpressionList gradleDslExpressionList = getPropertyElement(property, GradleDslExpressionList.class);
-    if (gradleDslExpressionList != null) {
-      gradleDslExpressionList.replaceExpression(oldValue, newValue);
-    }
-    return this;
-  }
-
   /**
    * Marks the given {@code property} for removal.
    *
