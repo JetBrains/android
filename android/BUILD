@@ -167,6 +167,7 @@ iml_module(
         "//tools/idea/plugins/terminal:intellij.terminal[module]",
         "//tools/adt/idea/lint:intellij.lint[module]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
+        "//tools/adt/idea/dagger:intellij.android.dagger[module]",
     ],
 )
 
