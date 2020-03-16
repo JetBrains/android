@@ -28,7 +28,6 @@ import com.android.build.attribution.ui.data.PluginSourceType;
 import com.android.build.attribution.ui.data.TaskIssueUiData;
 import com.android.build.attribution.ui.data.TaskUiData;
 import com.android.utils.HtmlBuilder;
-import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.panels.VerticalLayout;
@@ -121,19 +120,8 @@ public class TaskIssueInfoPanel extends JBPanel {
     return new JBLabel(myIssue.getBuildSrcRecommendation());
   }
 
-  private HyperlinkLabel createReportLinkLabel() {
-    HyperlinkLabel recommendationLabel = new HyperlinkLabel() {
-      @Override
-      protected int getTextOffset() {
-        return 0;
-      }
-    };
-    recommendationLabel.addHyperlinkListener(e -> {
-      myAnalytics.bugReportLinkClicked();
-      myIssueReporter.reportIssue(myTaskData);
-    });
-    recommendationLabel.setHyperlinkText("Consider filing a bug to report this issue to the plugin developer. ", "Generate report.", "");
-    return recommendationLabel;
+  private JComponent createReportLinkLabel() {
+    return BuildAttributionPanelsKt.generateReportLinkLabel(myAnalytics, myIssueReporter, myTaskData);
   }
 
   protected JComponent createTaskInfo() {

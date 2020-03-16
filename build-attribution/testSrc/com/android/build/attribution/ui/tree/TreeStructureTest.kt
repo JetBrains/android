@@ -34,7 +34,6 @@ import com.android.build.attribution.ui.data.TaskIssuesGroup
 import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.data.TimeWithPercentage
 import com.android.build.attribution.ui.data.builder.TaskIssueUiDataContainer
-import com.android.build.attribution.ui.panels.TreeLinkListener
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
@@ -76,9 +75,8 @@ class TreeStructureTest {
   @Test
   @RunsInEdt
   fun testTasksDeterminingBuildDuration() {
-    val mockListener = mock(TreeLinkListener::class.java) as TreeLinkListener<TaskIssueUiData>
     task1.issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(task1))
-    val tasksRoot = CriticalPathTasksRoot(mockCriticalPathTasksUiData(), mockRoot, mockListener)
+    val tasksRoot = CriticalPathTasksRoot(mockCriticalPathTasksUiData(), mockRoot)
     val expectedStructure = """
       Tasks determining this build's duration|1 warning|15.000 s|CRITICAL_PATH_TASKS_ROOT
         :app:compile|null|2.000 s|CRITICAL_PATH_TASK_PAGE
