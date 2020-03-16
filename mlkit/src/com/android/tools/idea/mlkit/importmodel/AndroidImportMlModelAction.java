@@ -38,14 +38,14 @@ import org.jetbrains.annotations.Nullable;
  */
 public class AndroidImportMlModelAction extends AnAction {
   public AndroidImportMlModelAction() {
-    super("TFLite Model", null, StudioIcons.Shell.Filetree.ANDROID_FILE);
+    super("TensorFlow Lite Model", null, StudioIcons.Shell.Filetree.ANDROID_FILE);
   }
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
     File mlDirectory = getModuleMlDirectory(e);
     if (mlDirectory != null) {
-      String title = "Import TFLite model";
+      String title = "Import TensorFlow Lite model";
       ModelWizard wizard = new ModelWizard.Builder()
         .addStep(new ChooseMlModelStep(new MlWizardModel(mlDirectory, e.getProject()), e.getProject(), title))
         .build();
