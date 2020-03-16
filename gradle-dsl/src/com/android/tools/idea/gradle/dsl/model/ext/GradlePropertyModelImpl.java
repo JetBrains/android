@@ -635,6 +635,11 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     GradleDslElement element = getTransform().replace(myPropertyHolder, myElement, newElement, myName);
     element.setElementType(myPropertyType);
     element.setUseAssignment(!myIsMethodCall); // TODO(b/141970574): myElement.useAssignment
+    // TODO(b/...): this is necessary until models store the properties they're associated with: for now, the models have only names
+    //  while the Dsl elements are annotated with model effect / properties.
+    if (myElement != null) {
+      element.setModelEffect(myElement.getModelEffect());
+    }
     // We need to ensure the parent will be modified so this change takes effect.
     element.setModified();
     myElement = element;

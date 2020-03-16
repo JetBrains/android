@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
@@ -171,7 +172,8 @@ public abstract class AbstractProductFlavorDslElement extends AbstractFlavorType
     if (property.equals("missingDimensionStrategy") && element instanceof GradleDslMethodCall) {
       GradleDslMethodCall methodCall = (GradleDslMethodCall)element;
       GradleDslExpressionList argumentList = methodCall.getArgumentsElement();
-      argumentList.getNameElement().canonize(MISSING_DIMENSION_STRATEGY); // NOTYPO
+      ModelEffectDescription effect = new ModelEffectDescription(new ModelPropertyDescription(MISSING_DIMENSION_STRATEGY), OTHER);
+      argumentList.setModelEffect(effect);
       super.addParsedElement(argumentList);
       return;
     }

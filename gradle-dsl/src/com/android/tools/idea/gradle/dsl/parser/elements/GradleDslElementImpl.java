@@ -68,6 +68,8 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
   @NotNull protected final List<GradleReferenceInjection> myDependencies = new ArrayList<>();
   @NotNull protected final List<GradleReferenceInjection> myDependents = new ArrayList<>();
 
+  @Nullable private ModelEffectDescription myModelEffectDescription;
+
   /**
    * Creates an instance of a {@link GradleDslElement}
    *
@@ -122,7 +124,7 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
   @Override
   @NotNull
   public String getName() {
-    return myName.name();
+    return myModelEffectDescription == null ? myName.name() : myModelEffectDescription.property.name;
   }
 
   @Override
@@ -523,5 +525,16 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
   @NotNull
   public ImmutableMap<Pair<String, Integer>, ModelEffectDescription> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
     return ImmutableMap.of();
+  }
+
+  @Nullable
+  @Override
+  public ModelEffectDescription getModelEffect() {
+    return myModelEffectDescription;
+  }
+
+  @Override
+  public void setModelEffect(@Nullable ModelEffectDescription effect) {
+    myModelEffectDescription = effect;
   }
 }
