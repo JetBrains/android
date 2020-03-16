@@ -54,8 +54,8 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
   public ChooseMlModelStep(@NotNull MlWizardModel model, @NotNull Project project, @NotNull String title) {
     super(model, title);
 
-    myModelLocation.addBrowseFolderListener("Select TFLite Model Location",
-                                            "Select existing TFLite model to import to ml folder",
+    myModelLocation.addBrowseFolderListener("Select TensorFlow Lite Model Location",
+                                            "Select existing TensorFlow Lite model to import to ml folder",
                                             project,
                                             FileChooserDescriptorFactory.createSingleFileOrFolderDescriptor());
 
@@ -79,9 +79,9 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
   Validator.Result checkPath(@NotNull File file) {
     //TODO(jackqdyulei): check whether destination already contains this file.
     if (!file.isFile()) {
-      return new Validator.Result(Validator.Severity.ERROR, "Please select a TFLite model file to import.");
+      return new Validator.Result(Validator.Severity.ERROR, "Please select a TensorFlow Lite model file to import.");
     } else if (!file.getName().endsWith(".tflite")) {
-      return new Validator.Result(Validator.Severity.ERROR, "This file is not a TFLite model file.");
+      return new Validator.Result(Validator.Severity.ERROR, "This file is not a TensorFlow Lite model file.");
     }
     return Validator.Result.OK;
   }
