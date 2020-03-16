@@ -67,6 +67,9 @@ class NeleNewPropertyItem(model: NelePropertiesModel,
   override val definition: AttributeDefinition?
     get() = delegate?.definition
 
+  override val components: List<NlComponent>
+    get() = delegate?.components ?: emptyList()
+
   override val componentName: String
     get() = delegate?.componentName ?: ""
 
