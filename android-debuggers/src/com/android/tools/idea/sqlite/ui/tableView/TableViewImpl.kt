@@ -39,6 +39,7 @@ import com.intellij.ui.table.JBTable
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.TimerUtil
 import com.intellij.util.ui.UIUtil
+import org.apache.commons.lang.StringUtils
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
@@ -395,7 +396,7 @@ class TableViewImpl : TableView {
         append("NULL", SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES)
       }
       else {
-        append(value.toString())
+        append(StringUtils.abbreviate(value as String, 200))
       }
     }
   }
