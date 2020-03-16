@@ -206,11 +206,32 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   @NotNull
   private static String[] getTensorsRow(@NotNull TensorInfo tensorInfo) {
     MetadataExtractor.NormalizationParams params = tensorInfo.getNormalizationParams();
-    String meanStdRow = params != null ? Arrays.toString(params.getMean()) + "/" + Arrays.toString(params.getStd()) : "";
-    String minMaxRow = params != null ? Arrays.toString(params.getMin()) + "/" + Arrays.toString(params.getMax()) : "";
+    String meanStdColumn = params != null ? Arrays.toString(params.getMean()) + "/" + Arrays.toString(params.getStd()) : "";
+    String minMaxColumn = isValidMinMaxColumn(params) ? Arrays.toString(params.getMin()) + "/" + Arrays.toString(params.getMax()) : "";
 
     return new String[]{tensorInfo.getName(), tensorInfo.getContentType().toString(), tensorInfo.getDescription(),
-      Arrays.toString(tensorInfo.getShape()), meanStdRow, minMaxRow};
+      Arrays.toString(tensorInfo.getShape()), meanStdColumn, minMaxColumn};
+  }
+
+  private static boolean isValidMinMaxColumn(@Nullable MetadataExtractor.NormalizationParams params) {
+    if (params == null || params.getMin() == null || params.getMax() == null) {
+      return false;
+    }
+
+    boolean isValid = false;
+    for (float min : params.getMin()) {
+      if (min != Float.MIN_VALUE) {
+        isValid = true;
+      }
+    }
+
+    for (float max : params.getMax()) {
+      if (max != Float.MAX_VALUE) {
+        isValid = true;
+      }
+    }
+
+    return isValid;
   }
 
   private static void setHtml(@NotNull JEditorPane pane, @NotNull String bodyContent) {
