@@ -85,9 +85,9 @@ class TableViewImpl : TableView {
   private val previousRowsPageButton = CommonButton("Previous", AllIcons.Actions.Play_back)
   private val nextRowsPageButton = CommonButton("Next", AllIcons.Actions.Play_forward)
 
-  private val pageSizeComboBox = ComboBox<Int>()
+  private val pageSizeComboBox = ComboBox<Int>().apply { name = "page-size-combo-box" }
 
-  private val refreshButton = CommonButton("Refresh table", AllIcons.Actions.Refresh)
+  private val refreshButton = CommonButton("Refresh table", AllIcons.Actions.Refresh).apply { name = "refresh-button" }
 
   private val table = JBTable()
   private val tableScrollPane = JBScrollPane(table)
@@ -130,6 +130,7 @@ class TableViewImpl : TableView {
     setFetchNextRowsButtonState(false)
     setFetchPreviousRowsButtonState(false)
 
+    pageSizeComboBox.isEnabled = false
     pageSizeComboBox.isEditable = true
     pageSizeDefaultValues.forEach { pageSizeComboBox.addItem(it) }
     pageSizeComboBox.selectedIndex = pageSizeDefaultValues.size - 1
@@ -205,6 +206,9 @@ class TableViewImpl : TableView {
   }
 
   override fun startTableLoading() {
+    refreshButton.isEnabled = false
+    pageSizeComboBox.isEnabled = false
+
     setLoadingText(loadingMessageEditorPane, stopwatch.elapsed())
 
     centerPanel.removeAll()
@@ -213,13 +217,15 @@ class TableViewImpl : TableView {
     centerPanel.revalidate()
     centerPanel.repaint()
 
-
     stopwatch.start()
     loadingTimer.start()
     isLoading = true
   }
 
   override fun stopTableLoading() {
+    refreshButton.isEnabled = true
+    pageSizeComboBox.isEnabled = true
+
     loadingTimer.stop()
     if (stopwatch.isRunning) {
       stopwatch.reset()

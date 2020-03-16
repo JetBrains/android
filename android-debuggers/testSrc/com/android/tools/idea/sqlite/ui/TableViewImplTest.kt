@@ -791,6 +791,26 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     Disposer.dispose(controller)
   }
 
+  fun testButtonsAreDisabledWhileLoading() {
+    // Prepare
+    val pageSizeComboBox = TreeWalker(view.component).descendants().filter { it.name == "page-size-combo-box" }.first()
+    val refreshButton = TreeWalker(view.component).descendants().filter { it.name == "refresh-button" }.first()
+
+    // Act
+    view.startTableLoading()
+
+    // Assert
+    assertFalse(pageSizeComboBox.isEnabled)
+    assertFalse(refreshButton.isEnabled)
+
+    // Act
+    view.stopTableLoading()
+
+    // Assert
+    assertTrue(pageSizeComboBox.isEnabled)
+    assertTrue(refreshButton.isEnabled)
+  }
+
   private fun getColumnAt(table: JTable, colIndex: Int): List<String?> {
     val values = mutableListOf<String?>()
     for (i in 0 until table.model.rowCount) {
