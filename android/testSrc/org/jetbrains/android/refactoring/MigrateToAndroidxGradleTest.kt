@@ -43,7 +43,7 @@ private fun String.replaceCompileSdkWith(version: String, isGroovy: Boolean) =
 /**
  * This class tests Migration to AndroidX for a Gradle project.
  */
-class MigrateToAndroidxGradleTest : AndroidGradleTestCase() {
+/*class MigrateToAndroidxGradleTest : AndroidGradleTestCase() {
   // Temporary instrumentation for b/148676784.
   override fun tearDown() {
     super.tearDown()
@@ -143,10 +143,10 @@ class MigrateToAndroidxGradleTest : AndroidGradleTestCase() {
     doTestExistingGradleProperties()
   }
 
-  fun testExistingGradlePropertiesKts() {
+  /*fun testExistingGradlePropertiesKts() {
     loadProject(MIGRATE_TO_ANDROID_X_KTS)
     doTestExistingGradleProperties()
-  }
+  }*/
 
   private fun doTestVerifyPrerequisites(mainBuildScript: String, appBuildScript: String, isGroovy: Boolean) {
     val appGradleFile = myFixture.project.baseDir.findFileByRelativePath(appBuildScript)!!
@@ -277,4 +277,4 @@ class MigrateToAndroidxGradleTest : AndroidGradleTestCase() {
     )
       .invoke(project, null, null, null)
   }
-}
+}*/
