@@ -262,8 +262,8 @@ class MigrateToAndroidxGradleTest : AndroidGradleTestCase() {
   }
 
   private fun setFileContent(file: VirtualFile, content: String) {
+    myFixture.openFileInEditor(file)
     WriteCommandAction.runWriteCommandAction(project) {
-      myFixture.openFileInEditor(file)
       val document = myFixture.editor.document
       document.setText(content)
       PsiDocumentManager.getInstance(project).commitDocument(document)
