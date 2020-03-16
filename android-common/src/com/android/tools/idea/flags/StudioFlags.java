@@ -177,7 +177,7 @@ public final class StudioFlags {
     MLKIT, "modelbinding", "Enable ML model binding",
     "When enabled, TFLite model file will be recognized and indexed. Please invalidates file caches after enabling " +
     "(File -> Invalidate Caches...) in order to reindex model files.",
-    false);
+    true);
   //endregion
 
   //region Asset Studio
