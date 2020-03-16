@@ -54,6 +54,7 @@ import java.io.File
 import java.io.FileReader
 import java.nio.ByteOrder
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.TimeUnit
 import javax.xml.bind.JAXBContext
 import javax.xml.bind.annotation.XmlAttribute
 import javax.xml.bind.annotation.XmlElement
@@ -91,6 +92,7 @@ object SkiaParser : SkiaParserService {
 
   override fun shutdownAll() {
     supportedVersionMap?.values?.forEach { it.shutdown() }
+    devbuildServerInfo.shutdown()
   }
 
   private fun buildTree(node: SkiaParser.InspectorView): InspectorView? {
@@ -284,7 +286,8 @@ private class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
     handler = OSProcessHandler(GeneralCommandLine(realPath.absolutePath, localPort.toString()))
     handler!!.addProcessListener(object : ProcessAdapter() {
       override fun processTerminated(event: ProcessEvent) {
-        if (event.exitCode != 0) {
+        // TODO(b/151639359) // We get a 137 when we terminate the server. Silence this error.
+        if (event.exitCode != 0 && event.exitCode != 137) {
           Logger.getInstance(SkiaParser::class.java).error("SkiaServer terminated exitCode: ${event.exitCode}  text: ${event.text}")
         }
         else {
@@ -304,6 +307,10 @@ private class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
   }
 
   fun shutdown() {
+    channel?.shutdownNow()
+    channel?.awaitTermination(1, TimeUnit.SECONDS)
+    channel = null
+    client = null
     handler?.destroyProcess()
     handler = null
   }
