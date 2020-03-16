@@ -85,6 +85,10 @@ private val knownIssues = Whitelist<LeakInfo>(listOf(
      && info.addedChildren.size == 2
      && info.addedChildren[0].type.name == "org.jetbrains.android.uipreview.ModuleClassLoader"
      && info.addedChildren[1].type.name == "org.jetbrains.android.uipreview.ModuleClassLoader"
+  },
+  WhitelistEntry {
+    // b/151316853; upstream bug: IDEA-234673
+    it.leaktrace.signatureAt(-2) == "com.intellij.ide.util.treeView.AbstractTreeUi#myElementToNodeMap"
   }
 ))
 
