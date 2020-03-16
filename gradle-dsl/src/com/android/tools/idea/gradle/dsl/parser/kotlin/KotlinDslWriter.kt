@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.PropertyType
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.KTS_KNOWN_CONFIGURATIONS
+import com.android.tools.idea.gradle.dsl.parser.elements.FakeElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
@@ -26,6 +27,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainContainer
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainElement
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement
@@ -51,6 +53,7 @@ import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.plugins.groovy.lang.psi.impl.PsiImplUtil.isWhiteSpaceOrNls
+import java.lang.UnsupportedOperationException
 
 class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
   override fun moveDslElement(element: GradleDslElement): PsiElement? {
@@ -122,7 +125,7 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
     val project = parentPsiElement.project
     val psiFactory = KtPsiFactory(project)
 
-    val externalNameInfo = maybeTrimForParent(element.nameElement, element.parent, this)
+    val externalNameInfo = maybeTrimForParent(element, this)
     val joinedName = externalNameInfo.externalNameParts.joinToString(".")
     val quotedName = maybeQuoteBits(externalNameInfo.externalNameParts)
     var statementText : String
@@ -417,9 +420,28 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
     val anchor = getPsiElementForAnchor(parentPsiElement, anchorAfter)
     val psiFactory = KtPsiFactory(parentPsiElement.project)
 
+    // TODO(xof): this is a bit heavyweight, but we need it to use the maybeTrimForParent interface.
+    val fakeElement = object : FakeElement(methodCall.parent, GradleNameElement.fake(methodCall.methodName), methodCall, true) {
+      override fun copy(): GradleDslSimpleExpression {
+        throw UnsupportedOperationException("not implemented")
+      }
+
+      override fun extractValue(): Any? {
+        throw UnsupportedOperationException("not implemented")
+      }
+
+      override fun consumeValue(value: Any?) {
+        throw UnsupportedOperationException("not implemented")
+      }
+
+      override fun produceRawValue(): Any? {
+        throw UnsupportedOperationException("not implemented")
+      }
+    }
+
     val statementText =
       if (methodCall.fullName.isNotEmpty() && methodCall.fullName != methodCall.methodName) {
-        val externalNameInfo = maybeTrimForParent(methodCall.nameElement, methodCall.parent, this)
+        val externalNameInfo = maybeTrimForParent(methodCall, this)
         var propertyName = externalNameInfo.externalNameParts.joinToString(".")
         // If we are writing a project property, we should be make sure to use double quotes instead of single quotes
         // since we use single quotes for ProjectPropertiesDslElement.
@@ -430,7 +452,7 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
           null -> methodCall.shouldUseAssignment()
           else -> !asMethod
         }
-        var methodName = maybeTrimForParent(GradleNameElement.fake(methodCall.methodName), methodCall.parent, this).externalNameParts.joinToString(".")
+        var methodName = maybeTrimForParent(fakeElement, this).externalNameParts.joinToString(".")
         if (useAssignment) {
           // Ex: a = b().
           "$propertyName = $methodName()"
@@ -445,8 +467,7 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
       }
     else {
         // Ex : proguardFile() where the name is the same as the methodName, so we need to make sure we create one method only.
-        maybeTrimForParent(
-          GradleNameElement.fake(methodCall.getMethodName()), methodCall.getParent(), this).externalNameParts.joinToString(".") + "()"
+        maybeTrimForParent(fakeElement, this).externalNameParts.joinToString(".") + "()"
       }
     val expression = psiFactory.createExpression(statementText)
 
@@ -495,6 +516,10 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
     }
 
     val argumentList = (addedElement as? KtCallExpression)?.valueArgumentList?.arguments ?: return null
+    // TODO(xof): I think this is meant to handle the case where we have a non-assignment method call with name distinct from methodName,
+    //  such as setRoot(file("...")) such as we might get through transforms.  It looks like it might work for simple cases, but e.g.
+    //  setStorePassword(System.getenv("FOO")) fails this test because argumentList[0].getArgumentExpression() is a
+    //  KtDotQualifiedExpression, not a KtCallExpression.
     if (argumentList.size == 1 && argumentList[0].getArgumentExpression() is KtCallExpression) {
       methodCall.psiElement = argumentList[0].getArgumentExpression()
       methodCall.argumentsElement.psiElement = (argumentList[0].getArgumentExpression() as KtCallExpression).valueArgumentList
