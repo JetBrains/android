@@ -36,9 +36,19 @@ class BuildAttributionViewFixture(robot: Robot, target: JPanel) : JPanelFixture(
       return JPanelFixture(robot(), finder().findByName(infoPanelContainer, "infoPage", JPanel::class.java, true))
     }
 
-  fun findHyperlabelByTextContainsAndClick(text: String) =
+  fun findHyperlabelByTextContainsAndClick(text: String) {
     HyperlinkLabelFixture(robot(), finder().find(visiblePage.target()) { it is HyperlinkLabel && it.text.contains(text) } as HyperlinkLabel)
       .clickLink(text)
+  }
+
+  fun requireWarningPanelsExistOnPage(vararg expectedWarningPanelNames: String) {
+    GuiTask.execute {
+      val warningPanelNames = finder()
+        .findAll(visiblePage.target()) { c -> c?.name?.startsWith("warning-") ?: false }
+        .map { c -> c.name }
+      assertThat(warningPanelNames).isEqualTo(expectedWarningPanelNames.map { "warning-$it" })
+    }
+  }
 
   fun checkInitState() {
     tree.requireSelectedNodeNameContain("Plugins with tasks determining this build's duration")
@@ -125,3 +135,4 @@ class BuildAttributionViewFixture(robot: Robot, target: JPanel) : JPanelFixture(
       tree.convertValueToText(node, false, false, false, 0, false)
   }
 }
+

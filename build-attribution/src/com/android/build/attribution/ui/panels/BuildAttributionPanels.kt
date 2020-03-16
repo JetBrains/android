@@ -17,7 +17,9 @@ package com.android.build.attribution.ui.panels
 
 import com.android.build.attribution.ui.DescriptionWithHelpLinkLabel
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
+import com.android.build.attribution.ui.controllers.TaskIssueReporter
 import com.android.build.attribution.ui.data.CriticalPathPluginUiData
+import com.android.build.attribution.ui.data.PluginSourceType
 import com.android.build.attribution.ui.data.TaskIssueType
 import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskIssuesGroup
@@ -25,6 +27,8 @@ import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.durationString
 import com.android.build.attribution.ui.issueIcon
 import com.android.build.attribution.ui.percentageString
+import com.android.build.attribution.ui.warningIcon
+import com.android.tools.adtui.TabularLayout
 import com.android.utils.HtmlBuilder
 import com.intellij.openapi.ui.OnePixelDivider
 import com.intellij.openapi.util.text.StringUtil.pluralize
@@ -33,8 +37,6 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.JBUI
-import java.awt.GridBagConstraints
-import java.awt.GridBagLayout
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -78,8 +80,11 @@ fun pluginInfoPanel(
   withPreferredWidth(400)
 }
 
-fun taskInfoPanel(taskData: TaskUiData, listener: TreeLinkListener<TaskIssueUiData>): JPanel {
-  val infoPanel = JBPanel<JBPanel<*>>(GridBagLayout())
+fun taskInfoPanel(
+  taskData: TaskUiData,
+  analytics: BuildAttributionUiAnalytics,
+  issueReporter: TaskIssueReporter
+): JPanel {
   val taskDescription = htmlTextLabel(
     HtmlBuilder()
       .openHtmlBody()
@@ -95,61 +100,78 @@ fun taskInfoPanel(taskData: TaskUiData, listener: TreeLinkListener<TaskIssueUiDa
   val taskInfo = htmlTextLabel(
     HtmlBuilder()
       .openHtmlBody()
+      .add("Duration: ${taskData.executionTime.durationString()} / ${taskData.executionTime.percentageString()}")
+      .newline()
       .add("Module: ${taskData.module}")
       .newline()
       .add("Plugin: ${taskData.pluginName}")
       .newline()
       .add("Type: ${taskData.taskType}")
       .newline()
-      .add("Duration: ${taskData.executionTime.durationString()} / ${taskData.executionTime.percentageString()}")
-      .newline()
       .add("Executed incrementally: ${if (taskData.executedIncrementally) "Yes" else "No"}")
+      .newline()
+      .add("Determined this build’s duration: ${if (taskData.onExtendedCriticalPath) "Yes" else "No"}")
       .closeHtmlBody()
       .html
   )
-  val issuesList = JBPanel<JBPanel<*>>(VerticalLayout(6)).apply {
-    add(JBLabel("Issues with this task").withFont(JBUI.Fonts.label().asBold()))
-    for (issue in taskData.issues) {
-      val label = HyperlinkLabel(issue.type.uiName)
-      label.addHyperlinkListener { listener.clickedOn(issue) }
-      label.border = JBUI.Borders.emptyLeft(15)
-      label.setIcon(issueIcon(issue.type))
-      add(label)
-    }
-    if (taskData.issues.isEmpty()) {
-      add(JLabel("No issues found"))
-    }
-  }
+
   val reasonsToRunHeader = JBLabel("Reason task ran").withFont(JBUI.Fonts.label().asBold())
   val reasonsList = reasonsToRunList(taskData)
 
-  val c = GridBagConstraints()
-  c.weightx = 1.0
-  c.gridx = 0
-  c.gridy = 0
-  c.anchor = GridBagConstraints.FIRST_LINE_START
-  c.fill = GridBagConstraints.HORIZONTAL
-  c.insets = JBUI.insetsBottom(8)
-  infoPanel.add(taskDescription, c)
+  // Use tabular layout of two columns two make things wrap nicely.
+  // Elements with fixed width are just added to the first column and determine it's width.
+  // Elements that can and should wrap are added with 'colSpan=2' so that they can grab extra horizontal space when available.
+  val infoPanel = JBPanel<JBPanel<*>>(TabularLayout("Fit,*").setVGap(10))
+  var row = 0
+  infoPanel.add(taskDescription, TabularLayout.Constraint(row++, 0, colSpan = 2))
+  infoPanel.add(taskInfo, TabularLayout.Constraint(row++, 0))
+  infoPanel.add(JBLabel("Warnings").withFont(JBUI.Fonts.label().asBold()), TabularLayout.Constraint(row++, 0))
+  if (taskData.issues.isEmpty()) {
+    infoPanel.add(JLabel("No warnings found"), TabularLayout.Constraint(row++, 0))
+  }
+  else {
+    for ((index, issue) in taskData.issues.withIndex()) {
+      infoPanel.add(taskWarningDescriptionPanel(issue, analytics, index > 0), TabularLayout.Constraint(row++, 0, colSpan = 2))
+    }
+    if (taskData.sourceType != PluginSourceType.BUILD_SRC) {
+      infoPanel.add(generateReportLinkLabel(analytics, issueReporter, taskData), TabularLayout.Constraint(row++, 0))
+    }
+  }
+  infoPanel.add(reasonsToRunHeader, TabularLayout.Constraint(row++, 0))
+  infoPanel.add(reasonsList, TabularLayout.Constraint(row, 0, colSpan = 2))
 
-  c.gridy = 1
-  infoPanel.add(taskInfo, c)
-
-  c.gridy = 2
-  infoPanel.add(issuesList, c)
-
-  c.gridy = 3
-  c.insets = JBUI.insetsTop(8)
-  infoPanel.add(reasonsToRunHeader, c)
-
-  c.gridy = 4
-  c.insets = JBUI.insetsTop(8)
-  c.fill = GridBagConstraints.BOTH
-  c.weighty = 1.0
-  infoPanel.add(reasonsList, c)
-
-  infoPanel.withPreferredWidth(sequenceOf<JComponent>(taskInfo, issuesList).map { it.preferredSize.width }.max()!!)
   return infoPanel
+}
+
+private fun taskWarningDescriptionPanel(
+  issue: TaskIssueUiData,
+  analytics: BuildAttributionUiAnalytics,
+  needSeparatorInFront: Boolean
+): JComponent = JPanel(TabularLayout("Fit,*").setVGap(10)).apply {
+  name = "warning-${issue.type.name}"
+  if (needSeparatorInFront) {
+    add(horizontalRuler(), TabularLayout.Constraint(0, 1))
+  }
+  add(JBLabel(warningIcon()).withBorder(JBUI.Borders.emptyRight(5)), TabularLayout.Constraint(1, 0))
+  add(JBLabel(issue.type.uiName).withFont(JBUI.Fonts.label().asBold()), TabularLayout.Constraint(1, 1))
+  add(DescriptionWithHelpLinkLabel(issue.explanation, issue.helpLink, analytics), TabularLayout.Constraint(2, 1))
+  add(htmlTextLabel("<b>Recommendation</b> ${issue.buildSrcRecommendation}"), TabularLayout.Constraint(3, 1))
+}
+
+fun generateReportLinkLabel(
+  analytics: BuildAttributionUiAnalytics,
+  issueReporter: TaskIssueReporter,
+  taskData: TaskUiData
+): JComponent = object : HyperlinkLabel() {
+  override fun getTextOffset(): Int {
+    return 0
+  }
+}.apply {
+  addHyperlinkListener {
+    analytics.bugReportLinkClicked()
+    issueReporter.reportIssue(taskData)
+  }
+  setHyperlinkText("Consider filing a bug to report this issue to the plugin developer. ", "Generate report.", "")
 }
 
 private fun reasonsToRunList(taskData: TaskUiData) = htmlTextLabel(createReasonsText(taskData.reasonsToRun))
@@ -171,6 +193,12 @@ fun verticalRuler(): JPanel = JBPanel<JBPanel<*>>()
   .withPreferredWidth(1)
   .withMaximumWidth(1)
   .withMinimumWidth(1)
+
+fun horizontalRuler(): JPanel = JBPanel<JBPanel<*>>()
+  .withBackground(OnePixelDivider.BACKGROUND)
+  .withPreferredHeight(1)
+  .withMaximumHeight(1)
+  .withMinimumHeight(1)
 
 fun createIssueTypeListPanel(issuesGroup: TaskIssuesGroup, listener: TreeLinkListener<TaskIssueUiData>): JComponent =
   JBPanel<JBPanel<*>>().apply {

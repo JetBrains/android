@@ -241,7 +241,7 @@ private class PluginTaskNode(
   override fun createComponent(): AbstractBuildAttributionInfoPanel = object : AbstractBuildAttributionInfoPanel() {
     override fun createHeader(): JComponent = headerLabel(taskData.taskPath)
 
-    override fun createBody(): JComponent = taskInfoPanel(taskData, issueClickListener)
+    override fun createBody(): JComponent = taskInfoPanel(taskData, analytics, issueReporter)
   }
     .withPreferredWidth(350)
 

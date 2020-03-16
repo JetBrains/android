@@ -44,7 +44,7 @@ class DescriptionWithHelpLinkLabel(
       anchor = GridBagConstraints.FIRST_LINE_START
     }
 
-    val learnMoreLink = object : HyperlinkLabel("Learn more") {
+    val learnMoreLink = object : HyperlinkLabel("Learn more"){
       override fun getTextOffset(): Int {
         return 0
       }
