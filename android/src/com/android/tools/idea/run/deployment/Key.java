@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
  * A device identifier. When the selected device is persisted in the {@link com.intellij.ide.util.PropertiesComponent PropertiesComponent,}
  * the output of the device key's {@link #toString} method is what actually gets persisted.
  */
-public final class Key {
+public final class Key implements Comparable<Key> {
   @NotNull
   private final String myDeviceKey;
 
@@ -72,5 +72,10 @@ public final class Key {
   @Override
   public String toString() {
     return mySnapshotKey == null ? myDeviceKey : myDeviceKey + '/' + mySnapshotKey;
+  }
+
+  @Override
+  public int compareTo(@NotNull Key key) {
+    return toString().compareTo(key.toString());
   }
 }

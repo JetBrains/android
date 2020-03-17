@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 
 import com.android.tools.idea.run.AndroidDevice;
 import com.intellij.execution.ExecutionTarget;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import org.junit.Test;
@@ -52,6 +53,23 @@ public final class DeviceAndSnapshotComboBoxExecutionTargetTest {
   }
 
   @Test
+  public void deviceAndSnapshotComboBoxExecutionTargetDevicesAndIdAreConsistent() {
+    // Arrange
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel 3 API 29")
+      .setKey(new Key("Pixel_3_API_29"))
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    // Act
+    DeviceAndSnapshotComboBoxExecutionTarget target = new DeviceAndSnapshotComboBoxExecutionTarget(device);
+
+    // Assert
+    assertEquals(Collections.emptyList(), target.getDeploymentDevices());
+    assertEquals("device_and_snapshot_combo_box_target[]", target.getId());
+  }
+
+  @Test
   public void getDevicesDeviceIsNull() {
     // Arrange
     Device device = new VirtualDevice.Builder()
@@ -75,6 +93,7 @@ public final class DeviceAndSnapshotComboBoxExecutionTargetTest {
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
       .setKey(new Key("Pixel_3_API_29"))
+      .setConnectionTime(Instant.parse("2020-03-17T22:16:00.298Z"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
@@ -93,12 +112,14 @@ public final class DeviceAndSnapshotComboBoxExecutionTargetTest {
     Device device1 = new VirtualDevice.Builder()
       .setName("Pixel 2 API 29")
       .setKey(new Key("Pixel_2_API_29"))
+      .setConnectionTime(Instant.parse("2020-03-17T22:16:00.298Z"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
     Device device2 = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
       .setKey(new Key("Pixel_3_API_29"))
+      .setConnectionTime(Instant.parse("2020-03-17T22:16:00.298Z"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
