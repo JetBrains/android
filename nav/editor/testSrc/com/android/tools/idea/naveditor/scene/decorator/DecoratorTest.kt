@@ -73,7 +73,7 @@ class DecoratorTest : NavTestCase() {
         fragment(FRAGMENT_ID)
       }
     }
-    testFragmentDecorator(model, SceneComponent.DrawState.NORMAL, false, false)
+    testFragmentDecorator(model, SceneComponent.DrawState.NORMAL)
   }
 
   fun testFragmentWithHighlight() {
@@ -82,7 +82,7 @@ class DecoratorTest : NavTestCase() {
         fragment(FRAGMENT_ID)
       }
     }
-    testFragmentDecorator(model, SceneComponent.DrawState.SELECTED, false, false)
+    testFragmentDecorator(model, SceneComponent.DrawState.SELECTED)
   }
 
   fun testFragmentWithStartDestination() {
@@ -91,7 +91,7 @@ class DecoratorTest : NavTestCase() {
         fragment(FRAGMENT_ID)
       }
     }
-    testFragmentDecorator(model, SceneComponent.DrawState.NORMAL, true, false)
+    testFragmentDecorator(model, SceneComponent.DrawState.NORMAL, isStart = true)
   }
 
   fun testFragmentWithDeepLink() {
@@ -102,7 +102,7 @@ class DecoratorTest : NavTestCase() {
         }
       }
     }
-    testFragmentDecorator(model, SceneComponent.DrawState.NORMAL, false, true)
+    testFragmentDecorator(model, SceneComponent.DrawState.NORMAL, hasDeepLink = true)
   }
 
   fun testFragmentWithLayout() {
@@ -111,7 +111,7 @@ class DecoratorTest : NavTestCase() {
         fragment(FRAGMENT_ID, layout = "mylayout")
       }
     }
-    testFragmentDecorator(model, SceneComponent.DrawState.NORMAL, false, false, false)
+    testFragmentDecorator(model, SceneComponent.DrawState.NORMAL, isPlaceholder = false)
   }
 
   fun testFragmentWithName() {
@@ -120,7 +120,7 @@ class DecoratorTest : NavTestCase() {
         fragment(FRAGMENT_ID, name = "foo.Bar")
       }
     }
-    testFragmentDecorator(model, SceneComponent.DrawState.NORMAL, false, false, false)
+    testFragmentDecorator(model, SceneComponent.DrawState.NORMAL, isPlaceholder = false)
   }
 
   fun testFragmentWithLayoutAndName() {
@@ -129,11 +129,11 @@ class DecoratorTest : NavTestCase() {
         fragment(FRAGMENT_ID, layout = "mylayout", name = "foo.Bar")
       }
     }
-    testFragmentDecorator(model, SceneComponent.DrawState.NORMAL, false, false, false)
+    testFragmentDecorator(model, SceneComponent.DrawState.NORMAL, isPlaceholder = false)
   }
 
-  private fun testFragmentDecorator(model: NlModel, drawState: SceneComponent.DrawState, isStart: Boolean,
-                                    hasDeepLink: Boolean, isPlaceholder: Boolean = true) {
+  private fun testFragmentDecorator(model: NlModel, drawState: SceneComponent.DrawState, isStart: Boolean = false,
+                                    hasDeepLink: Boolean = false, isPlaceholder: Boolean = true) {
     surface.model = model
     val sceneView = surface.focusedSceneView!!
 
@@ -202,7 +202,7 @@ class DecoratorTest : NavTestCase() {
         activity(ACTIVITY_ID)
       }
     }
-    testActivityDecorator(model, SceneComponent.DrawState.NORMAL, false, false)
+    testActivityDecorator(model, SceneComponent.DrawState.NORMAL)
   }
 
   fun testActivityWithHighlight() {
@@ -211,7 +211,7 @@ class DecoratorTest : NavTestCase() {
         activity(ACTIVITY_ID)
       }
     }
-    testActivityDecorator(model, SceneComponent.DrawState.SELECTED, false, false)
+    testActivityDecorator(model, SceneComponent.DrawState.SELECTED)
   }
 
   fun testActivityWithStartDestination() {
@@ -220,7 +220,7 @@ class DecoratorTest : NavTestCase() {
         activity(ACTIVITY_ID)
       }
     }
-    testActivityDecorator(model, SceneComponent.DrawState.NORMAL, true, false)
+    testActivityDecorator(model, SceneComponent.DrawState.NORMAL, isStart = true)
   }
 
   fun testActivityWithDeepLink() {
@@ -231,10 +231,11 @@ class DecoratorTest : NavTestCase() {
         }
       }
     }
-    testActivityDecorator(model, SceneComponent.DrawState.NORMAL, false, true)
+    testActivityDecorator(model, SceneComponent.DrawState.NORMAL, hasDeepLink =  true)
   }
 
-  private fun testActivityDecorator(model: NlModel, drawState: SceneComponent.DrawState, isStart: Boolean, hasDeepLink: Boolean) {
+  private fun testActivityDecorator(model: NlModel, drawState: SceneComponent.DrawState,
+                                    isStart: Boolean = false, hasDeepLink: Boolean = false) {
     surface.model = model
     val sceneView = surface.focusedSceneView!!
 
@@ -264,7 +265,7 @@ class DecoratorTest : NavTestCase() {
         navigation(NESTED_ID)
       }
     }
-    testNavigationDecorator(model, SceneComponent.DrawState.NORMAL, false, false)
+    testNavigationDecorator(model, SceneComponent.DrawState.NORMAL)
   }
 
   fun testNestedGraphWithHighlight() {
@@ -273,7 +274,7 @@ class DecoratorTest : NavTestCase() {
         navigation(NESTED_ID)
       }
     }
-    testNavigationDecorator(model, SceneComponent.DrawState.SELECTED, false, false)
+    testNavigationDecorator(model, SceneComponent.DrawState.SELECTED)
   }
 
   fun testNestedGraphWithStartDestination() {
@@ -282,7 +283,7 @@ class DecoratorTest : NavTestCase() {
         navigation(NESTED_ID)
       }
     }
-    testNavigationDecorator(model, SceneComponent.DrawState.NORMAL, true, false)
+    testNavigationDecorator(model, SceneComponent.DrawState.NORMAL, isStart = true)
   }
 
   fun testNestedGraphWithDeepLink() {
@@ -293,10 +294,11 @@ class DecoratorTest : NavTestCase() {
         }
       }
     }
-    testNavigationDecorator(model, SceneComponent.DrawState.NORMAL, false, true)
+    testNavigationDecorator(model, SceneComponent.DrawState.NORMAL, hasDeepLink = true)
   }
 
-  private fun testNavigationDecorator(model: NlModel, drawState: SceneComponent.DrawState, isStart: Boolean, hasDeepLink: Boolean) {
+  private fun testNavigationDecorator(model: NlModel, drawState: SceneComponent.DrawState,
+                                      isStart: Boolean = false, hasDeepLink: Boolean = false) {
     surface.model = model
     val sceneView = surface.focusedSceneView!!
 
@@ -321,7 +323,7 @@ class DecoratorTest : NavTestCase() {
         fragment("fragment2")
       }
     }
-    testActionDecorator(model, "f1_to_f2", SceneComponent.DrawState.NORMAL, false)
+    testActionDecorator(model, "f1_to_f2", SceneComponent.DrawState.NORMAL)
   }
 
   fun testSelectedAction() {
@@ -333,7 +335,7 @@ class DecoratorTest : NavTestCase() {
         fragment("fragment2")
       }
     }
-    testActionDecorator(model, "f1_to_f2", SceneComponent.DrawState.SELECTED, false)
+    testActionDecorator(model, "f1_to_f2", SceneComponent.DrawState.SELECTED)
   }
 
   fun testPopAction() {
@@ -345,7 +347,7 @@ class DecoratorTest : NavTestCase() {
         fragment("fragment2")
       }
     }
-    testActionDecorator(model, "f1_to_f2", SceneComponent.DrawState.NORMAL, true)
+    testActionDecorator(model, "f1_to_f2", SceneComponent.DrawState.NORMAL, isPop = true)
   }
 
   fun testSelfAction() {
@@ -356,7 +358,7 @@ class DecoratorTest : NavTestCase() {
         }
       }
     }
-    testActionDecorator(model, "f1_to_f1", SceneComponent.DrawState.NORMAL, false)
+    testActionDecorator(model, "f1_to_f1", SceneComponent.DrawState.NORMAL)
   }
 
   fun testHorizontalAction() {
@@ -377,7 +379,7 @@ class DecoratorTest : NavTestCase() {
     }
   }
 
-  private fun testActionDecorator(model: NlModel, id: String, drawState: SceneComponent.DrawState, isPop: Boolean) {
+  private fun testActionDecorator(model: NlModel, id: String, drawState: SceneComponent.DrawState, isPop: Boolean = false) {
     surface.model = model
     val sceneView = surface.focusedSceneView!!
 
