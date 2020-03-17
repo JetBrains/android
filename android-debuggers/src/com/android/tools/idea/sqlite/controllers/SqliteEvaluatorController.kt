@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite.controllers
 
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.concurrency.cancelOnDispose
 import com.android.tools.idea.concurrency.catching
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.concurrency.transformAsync
@@ -122,7 +123,7 @@ class SqliteEvaluatorController(
         listeners.forEach { it.onSqliteStatementExecuted(database) }
       }.catching(edtExecutor, Throwable::class.java) { throwable ->
         view.tableView.reportError("Error executing SQLite statement", throwable)
-      }
+      }.cancelOnDispose(this)
   }
 
   private inner class SqliteEvaluatorViewListenerImpl : SqliteEvaluatorView.Listener {

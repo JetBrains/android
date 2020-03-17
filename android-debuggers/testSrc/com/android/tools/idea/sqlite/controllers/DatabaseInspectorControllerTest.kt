@@ -50,6 +50,7 @@ import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.android.tools.idea.testing.runDispatching
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
@@ -848,5 +849,28 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     // Verify
     verify(mockSqliteView).removeDatabaseSchema(sqliteDatabase)
     verify(mockSqliteView).addDatabaseSchema(sqliteDatabase, SqliteSchema(listOf(testSqliteTable)), 0)
+  }
+
+  fun testDisposeCancelsExecutionFuture() {
+    // Prepare
+    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
+    }
+    val executionFuture = SettableFuture.create<SqliteResultSet>()
+    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(executionFuture)
+
+    // Act
+    mockSqliteView.viewListeners.single().tableNodeActionInvoked(sqliteDatabase1, testSqliteTable)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    //verify that future is in use now
+    verify(mockDatabaseConnection).execute(any(SqliteStatement::class.java))
+
+    mockSqliteView.viewListeners.single().closeTabActionInvoked(TabId.TableTab(sqliteDatabase1, testSqliteTable.name))
+
+    // Assert
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    assertThat(executionFuture.isCancelled).isTrue()
   }
 }

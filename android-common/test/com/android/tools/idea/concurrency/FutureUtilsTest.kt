@@ -18,7 +18,8 @@ package com.android.tools.idea.concurrency
 import com.google.common.truth.Truth
 import com.google.common.util.concurrent.MoreExecutors.directExecutor
 import com.google.common.util.concurrent.SettableFuture
-import junit.framework.Assert.fail
+import com.intellij.openapi.util.Disposer
+import org.junit.Assert.fail
 import org.junit.Test
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executor
@@ -159,5 +160,14 @@ class FutureUtilsTest {
     future.cancel(true)
     tasks.removeAt(0).run()
     Truth.assertThat(ignored).isTrue()
+  }
+
+  @Test
+  fun testCancelOnDisposeParentDisposed() {
+    val parent = Disposer.newDisposable()
+    val future = SettableFuture.create<String>()
+    future.cancelOnDispose(parent)
+    Disposer.dispose(parent)
+    Truth.assertThat(future.isCancelled).isTrue()
   }
 }

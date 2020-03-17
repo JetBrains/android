@@ -18,6 +18,7 @@ package com.android.tools.idea.sqlite.controllers
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.refEq
+import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFutureCancellation
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.EmptySqliteResultSet
@@ -31,6 +32,7 @@ import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.PlatformTestCase
 import com.intellij.testFramework.PlatformTestUtil
@@ -286,6 +288,37 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
 
     // Assert
     verify(sqliteEvaluatorView.tableView).reportError("Error executing SQLite statement", exception)
+  }
+
+  fun testDisposeCancelsExecution() {
+    // Prepare
+    val executeFuture = SettableFuture.create<SqliteResultSet>()
+    `when`(databaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(executeFuture)
+    sqliteEvaluatorController.setUp()
+
+    // Act
+    sqliteEvaluatorController.evaluateSqlStatement(sqliteDatabase, SqliteStatement("fake stmt"))
+    Disposer.dispose(sqliteEvaluatorController)
+    // Assert
+    pumpEventsAndWaitForFutureCancellation(executeFuture)
+  }
+
+  fun testDisposeCancelsRowCountQuery() {
+    // Prepare
+    val mockResultSet = mock(SqliteResultSet::class.java)
+    `when`(databaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    val rowCountFuture = SettableFuture.create<Int>()
+    `when`(mockResultSet.totalRowCount).thenReturn(rowCountFuture)
+    sqliteEvaluatorController.setUp()
+
+    // Act
+    sqliteEvaluatorController.evaluateSqlStatement(sqliteDatabase, SqliteStatement("fake stmt"))
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    // verify that rowCountFuture is in use.
+    verify(databaseConnection).execute(any(SqliteStatement::class.java))
+    Disposer.dispose(sqliteEvaluatorController)
+    // Assert
+    pumpEventsAndWaitForFutureCancellation(rowCountFuture)
   }
 
   private fun evaluateSqlActionSuccess(action: String) {
