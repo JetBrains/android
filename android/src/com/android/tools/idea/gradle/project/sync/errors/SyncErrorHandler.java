@@ -27,6 +27,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.Pair;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
@@ -72,11 +73,11 @@ public abstract class SyncErrorHandler {
   }
 
   //TODO(karimai): This is a workaround until I refactor the services related to reporting sync Metrics to use Gradle project paths.
-  protected static void updateUsageTracker(@NotNull String projectPath,
-                                           @Nullable GradleSyncFailure gradleSyncFailure) {
+  public static void updateUsageTracker(@NotNull String projectPath,
+                                        @NotNull GradleSyncFailure gradleSyncFailure) {
 
     for (Project project : ProjectManager.getInstance().getOpenProjects()) {
-      if (project.getBasePath().equals(projectPath)) {
+      if (Objects.equals(project.getBasePath(), projectPath)) {
         SyncIssueUsageReporter.Companion.getInstance(project).collect(gradleSyncFailure);
         break;
       }

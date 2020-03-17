@@ -79,10 +79,12 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
+import com.android.tools.idea.gradle.project.sync.idea.issues.InvalidGradleWrapperException;
+import com.android.tools.idea.gradle.project.sync.idea.issues.JdkImportCheckException;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
-import com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult;
 import com.android.tools.idea.gradle.task.AndroidGradleTaskManager;
+import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
@@ -751,30 +753,14 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
   public void testWithPreSyncCheckFailure() throws Exception {
     Project project = getProject();
 
-    // Force a pre sync error
-    String errorMessage = "This is a pre sync check error message";
-    PreSyncCheckResult result = PreSyncCheckResult.failure(errorMessage);
-    GradleSyncInvoker spyInvoker = spy(GradleSyncInvoker.getInstance());
-    when(spyInvoker.runPreSyncChecks(project)).thenReturn(result);
-    myIdeComponents.replaceApplicationService(GradleSyncInvoker.class, spyInvoker);
+    SimulatedSyncErrors.registerSyncErrorToSimulate(new JdkImportCheckException("Presync checks failed"));
 
     // Spy on SyncView manager to confirm it is displaying the error message
     SyncViewManager spyViewManager = spy(ServiceManager.getService(project, SyncViewManager.class));
     myIdeComponents.replaceProjectService(SyncViewManager.class, spyViewManager);
 
     String syncError = loadProjectAndExpectSyncError(SIMPLE_APPLICATION);
-    assertEquals(errorMessage, syncError);
-
-    // Make sure the error is processed in sync view
-    ArgumentCaptor<BuildEvent> buildEventCaptor = ArgumentCaptor.forClass(BuildEvent.class);
-    verify(spyViewManager, times(2)).onEvent(any(Object.class), buildEventCaptor.capture());
-    List<BuildEvent> buildEvents = buildEventCaptor.getAllValues();
-    assertSize(2, buildEvents);
-    assertThat(buildEvents.get(0)).isInstanceOf(StartBuildEvent.class);
-    assertThat(buildEvents.get(1)).isInstanceOf(FinishBuildEvent.class);
-    FinishBuildEvent finishEvent = (FinishBuildEvent)buildEvents.get(1);
-    assertThat(finishEvent.getResult()).isInstanceOf(FailureResult.class);
-    assertEquals(errorMessage, finishEvent.getMessage());
+    assertThat(syncError).startsWith("Presync checks failed\n");
   }
 
   public void testFinishBuildEventOnlyCreatedOnce() throws Exception {
