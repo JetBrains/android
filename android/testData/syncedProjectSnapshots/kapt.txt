@@ -458,6 +458,10 @@ PROJECT             : MainActivity
             UseProjectSettings  : false
             Version             : 3
         CONENT_ENTRY        : file://<PROJECT>/jlib
+            JavaSource          : file://<PROJECT>/jlib/build/generated/source/kapt/main [-]
+            JavaSource (test)   : file://<PROJECT>/jlib/build/generated/source/kapt/test [-]
+            JavaSource          : file://<PROJECT>/jlib/build/generated/source/kaptKotlin/main
+            JavaSource (test)   : file://<PROJECT>/jlib/build/generated/source/kaptKotlin/test
             JavaSource          : file://<PROJECT>/jlib/src/main/java [-]
             JavaSource          : file://<PROJECT>/jlib/src/main/kotlin [-]
             JavaResource        : file://<PROJECT>/jlib/src/main/resources [-]
@@ -466,6 +470,10 @@ PROJECT             : MainActivity
             JavaResource (test) : file://<PROJECT>/jlib/src/test/resources [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/jlib/.gradle [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/jlib/build
+        CONENT_ENTRY        : file://<PROJECT>/jlib/build/generated/source/kapt/main [-]
+        CONENT_ENTRY        : file://<PROJECT>/jlib/build/generated/source/kapt/test [-]
+        CONENT_ENTRY        : file://<PROJECT>/jlib/build/generated/source/kaptKotlin/main
+        CONENT_ENTRY        : file://<PROJECT>/jlib/build/generated/source/kaptKotlin/test
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
