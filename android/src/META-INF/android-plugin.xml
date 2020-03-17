@@ -449,7 +449,6 @@
     <defaultLiveTemplates file="liveTemplates/AndroidComments.xml"/>
     <defaultLiveTemplates file="liveTemplates/AndroidLog.xml"/>
     <defaultLiveTemplates file="liveTemplates/AndroidParcelable.xml"/>
-    <defaultLiveTemplates file="liveTemplates/AndroidTesting.xml"/>
     <defaultLiveTemplates file="liveTemplates/AndroidXML.xml"/>
     <!--FIXME-ank2: check that context is not broken-->
     <liveTemplateContext implementation="com.android.tools.idea.templates.live.XmlAttributeContextType"/>
