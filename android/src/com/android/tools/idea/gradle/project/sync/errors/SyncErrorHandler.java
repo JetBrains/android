@@ -75,7 +75,6 @@ public abstract class SyncErrorHandler {
   //TODO(karimai): This is a workaround until I refactor the services related to reporting sync Metrics to use Gradle project paths.
   public static void updateUsageTracker(@NotNull String projectPath,
                                         @NotNull GradleSyncFailure gradleSyncFailure) {
-
     for (Project project : ProjectManager.getInstance().getOpenProjects()) {
       if (Objects.equals(project.getBasePath(), projectPath)) {
         SyncIssueUsageReporter.Companion.getInstance(project).collect(gradleSyncFailure);

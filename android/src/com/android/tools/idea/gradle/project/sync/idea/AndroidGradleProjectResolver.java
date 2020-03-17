@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea;
 
+import static com.android.tools.idea.flags.StudioFlags.DISABLE_FORCED_UPGRADES;
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.simulateRegisteredSyncError;
 import static com.android.tools.idea.gradle.project.sync.errors.GradleDistributionInstallErrorHandler.COULD_NOT_INSTALL_GRADLE_DISTRIBUTION_PREFIX;
 import static com.android.tools.idea.gradle.project.sync.errors.UnsupportedModelVersionErrorHandler.READ_MIGRATION_GUIDE_MSG;
 import static com.android.tools.idea.gradle.project.sync.errors.UnsupportedModelVersionErrorHandler.UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX;
 import static com.android.tools.idea.gradle.project.sync.idea.GradleModelVersionCheck.getModelVersion;
 import static com.android.tools.idea.gradle.project.sync.idea.GradleModelVersionCheck.isSupportedVersion;
-import static com.android.tools.idea.gradle.project.sync.idea.SdkSyncUtil.*;
+import static com.android.tools.idea.gradle.project.sync.idea.SdkSyncUtil.syncAndroidSdks;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.JAVA_MODULE_MODEL;
@@ -29,6 +30,7 @@ import static com.android.tools.idea.gradle.project.sync.idea.data.service.Andro
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.PROJECT_CLEANUP_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.SYNC_ISSUE;
 import static com.android.tools.idea.gradle.project.sync.idea.issues.GradleWrapperImportCheck.validateGradleWrapper;
+import static com.android.tools.idea.gradle.project.sync.setup.post.upgrade.GradlePluginUpgrade.displayForceUpdatesDisabledMessage;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.ANDROID_HOME_JVM_ARG;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.variant.view.BuildVariantUpdater.MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI;
@@ -79,7 +81,6 @@ import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel;
 import com.android.tools.idea.gradle.project.sync.idea.issues.AgpUpgradeRequiredException;
 import com.android.tools.idea.gradle.project.sync.idea.issues.AndroidSyncException;
-import com.android.tools.idea.gradle.project.sync.idea.issues.GradleWrapperImportCheck;
 import com.android.tools.idea.gradle.project.sync.idea.issues.JdkImportCheck;
 import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidExtraModelProvider;
 import com.android.tools.idea.gradle.project.sync.idea.svs.VariantGroup;
@@ -659,6 +660,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
     JdkImportCheck.validateJdk();
     validateGradleWrapper(resolverCtx.getProjectPath());
+
+    displayInternalWarningIfForcedUpgradesAreDisabled();
   }
 
   @Override
@@ -799,6 +802,15 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   private static boolean shouldOnlySyncSingleVariant(@NotNull Project project) {
     Boolean shouldOnlySyncSingleVariant = project.getUserData(GradleSyncExecutor.SINGLE_VARIANT_KEY);
     return shouldOnlySyncSingleVariant != null && shouldOnlySyncSingleVariant;
+  }
+
+  private void displayInternalWarningIfForcedUpgradesAreDisabled() {
+    if (DISABLE_FORCED_UPGRADES.get()) {
+      Project project = myProjectFinder.findProject(resolverCtx);
+      if (project != null) {
+        displayForceUpdatesDisabledMessage(project);
+      }
+    }
   }
 
   @Override

@@ -20,7 +20,6 @@ import com.android.SdkConstants.GRADLE_LATEST_VERSION
 import com.android.SdkConstants.GRADLE_PATH_SEPARATOR
 import com.android.annotations.concurrency.Slow
 import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.DISABLE_FORCED_UPGRADES
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo.ARTIFACT_ID
@@ -213,10 +212,7 @@ fun shouldForcePluginUpgrade(
   // Or when the skip upgrades property is set.
   if (SystemProperties.getBooleanProperty("studio.skip.agp.upgrade", false)) return false
   // Or when the StudioFlag is set (only available internally).
-  if (StudioFlags.DISABLE_FORCED_UPGRADES.get()) {
-    if (project != null) {
-      displayForceUpdatesDisabledMessage(project)
-    }
+  if (DISABLE_FORCED_UPGRADES.get()) {
     return false
   }
   
