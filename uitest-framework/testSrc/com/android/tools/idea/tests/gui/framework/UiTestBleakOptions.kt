@@ -71,7 +71,8 @@ private val globalWhitelist = Whitelist<LeakInfo>(listOf(
   WhitelistEntry { it.leaktrace.signatureAt(-2) == "com.intellij.openapi.command.impl.UndoRedoStacksHolder#myGlobalStack" },
   WhitelistEntry { it.leaktrace.signatureAt(-4) == "com.intellij.openapi.command.impl.UndoRedoStacksHolder#myDocumentStacks" },
   WhitelistEntry { it.leaktrace.signatureAt(-2) == "com.intellij.openapi.fileEditor.impl.IdeDocumentHistoryImpl#myBackPlaces" },
-  WhitelistEntry { it.leaktrace.signatureAt(-2) == "com.intellij.openapi.editor.impl.RangeMarkerTree\$RMNode#intervals" }
+  WhitelistEntry { it.leaktrace.signatureAt(-2) == "com.intellij.openapi.editor.impl.RangeMarkerTree\$RMNode#intervals" },
+  WhitelistEntry { it.leaktrace.signatureAt(2) == "com.android.tools.idea.io.netty.buffer.ByteBufAllocator#DEFAULT" }
 ))
 
 /**
