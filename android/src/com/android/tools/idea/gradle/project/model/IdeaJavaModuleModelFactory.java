@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.model;
 
 import static com.intellij.openapi.util.text.StringUtil.equalsIgnoreCase;
+import static java.util.Collections.emptyList;
 
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.model.java.IdeaJarLibraryDependencyFactory;
@@ -23,6 +24,7 @@ import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
 import com.android.tools.idea.gradle.model.java.JavaModuleContentRoot;
 import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType;
 import com.intellij.openapi.util.Pair;
 import java.io.File;
@@ -39,6 +41,8 @@ import org.gradle.tooling.model.idea.IdeaModuleDependency;
 import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.kapt.idea.KaptGradleModel;
+import org.jetbrains.kotlin.kapt.idea.KaptSourceSetModel;
 import org.jetbrains.plugins.gradle.model.ExtIdeaCompilerOutput;
 import org.jetbrains.plugins.gradle.model.ExternalProject;
 import org.jetbrains.plugins.gradle.model.ExternalSourceDirectorySet;
@@ -66,9 +70,10 @@ public class IdeaJavaModuleModelFactory {
                                 @NotNull Collection<SyncIssue> syncIssues,
                                 @Nullable ExternalProject externalProject,
                                 boolean androidModuleWithoutVariants,
-                                boolean isBuildable) {
+                                boolean isBuildable,
+                                @Nullable KaptGradleModel kaptModel) {
     Pair<Collection<JavaModuleDependency>, Collection<JarLibraryDependency>> dependencies = getDependencies(ideaModule);
-    return JavaModuleModel.create(ideaModule.getName(), getContentRoots(ideaModule), dependencies.first, dependencies.second,
+    return JavaModuleModel.create(ideaModule.getName(), getContentRoots(ideaModule, kaptModel), dependencies.first, dependencies.second,
                                   getArtifactsByConfiguration(externalProject), syncIssues, getCompilerOutput(externalProject),
                                   ideaModule.getGradleProject().getBuildDirectory(), getLanguageLevel(externalProject),
                                   !androidModuleWithoutVariants && isBuildable,
@@ -91,7 +96,7 @@ public class IdeaJavaModuleModelFactory {
   }
 
   @NotNull
-  private static Collection<JavaModuleContentRoot> getContentRoots(@NotNull IdeaModule ideaModule) {
+  private static Collection<JavaModuleContentRoot> getContentRoots(@NotNull IdeaModule ideaModule, @Nullable KaptGradleModel kaptModel) {
     Collection<? extends IdeaContentRoot> contentRoots = ideaModule.getContentRoots();
     Collection<JavaModuleContentRoot> javaModuleContentRoots = new ArrayList<>();
 
@@ -102,7 +107,32 @@ public class IdeaJavaModuleModelFactory {
         }
       }
     }
+    if (kaptModel != null) {
+      for (KaptSourceSetModel sourceSet : kaptModel.getSourceSets()) {
+        File kotlinSourcesDirFile = sourceSet.getGeneratedKotlinSourcesDirFile();
+        if (kotlinSourcesDirFile != null) {
+          javaModuleContentRoots.add(createContentRoot(kotlinSourcesDirFile, sourceSet.isTest()));
+        }
+        File sourcesDirFile = sourceSet.getGeneratedSourcesDirFile();
+        if (sourcesDirFile != null) {
+          javaModuleContentRoots.add(createContentRoot(sourcesDirFile, sourceSet.isTest()));
+        }
+      }
+    }
     return javaModuleContentRoots;
+  }
+
+  @NotNull
+  private static JavaModuleContentRoot createContentRoot(@NotNull File sourcesDirFile, boolean isTest) {
+    return new JavaModuleContentRoot(
+      sourcesDirFile,
+      emptyList(),
+      !isTest ? ImmutableList.of(sourcesDirFile) : emptyList(),
+      emptyList(),
+      emptyList(),
+      isTest ? ImmutableList.of(sourcesDirFile) : emptyList(),
+      emptyList(),
+      emptyList());
   }
 
   @NotNull

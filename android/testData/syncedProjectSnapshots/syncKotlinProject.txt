@@ -1135,6 +1135,10 @@ PROJECT             : testSyncKotlinProject
             UseProjectSettings  : false
             Version             : 3
         CONENT_ENTRY        : file://<PROJECT>/contentLib
+            JavaSource          : file://<PROJECT>/contentLib/build/generated/source/kapt/main [-]
+            JavaSource (test)   : file://<PROJECT>/contentLib/build/generated/source/kapt/test [-]
+            JavaSource          : file://<PROJECT>/contentLib/build/generated/source/kaptKotlin/main
+            JavaSource (test)   : file://<PROJECT>/contentLib/build/generated/source/kaptKotlin/test
             JavaSource          : file://<PROJECT>/contentLib/src/main/java
             JavaSource          : file://<PROJECT>/contentLib/src/main/kotlin
             JavaResource        : file://<PROJECT>/contentLib/src/main/resources [-]
@@ -1143,6 +1147,10 @@ PROJECT             : testSyncKotlinProject
             JavaResource (test) : file://<PROJECT>/contentLib/src/test/resources [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/contentLib/.gradle [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/contentLib/build
+        CONENT_ENTRY        : file://<PROJECT>/contentLib/build/generated/source/kapt/main [-]
+        CONENT_ENTRY        : file://<PROJECT>/contentLib/build/generated/source/kapt/test [-]
+        CONENT_ENTRY        : file://<PROJECT>/contentLib/build/generated/source/kaptKotlin/main
+        CONENT_ENTRY        : file://<PROJECT>/contentLib/build/generated/source/kaptKotlin/test
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
