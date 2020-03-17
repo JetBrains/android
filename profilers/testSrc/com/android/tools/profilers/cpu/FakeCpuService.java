@@ -258,7 +258,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
     Range requestRange = new Range(start, end);
 
     Range thread1Range = new Range(TimeUnit.SECONDS.toNanos(1), TimeUnit.SECONDS.toNanos(8));
-    if (!thread1Range.getIntersection(requestRange).isEmpty()) {
+    if (thread1Range.intersectsWith(requestRange)) {
       List<CpuProfiler.GetThreadsResponse.ThreadActivity> activitiesThread1 = new ArrayList<>();
       activitiesThread1.add(newActivity(TimeUnit.SECONDS.toNanos(1), Cpu.CpuThreadData.State.RUNNING));
       activitiesThread1.add(newActivity(TimeUnit.SECONDS.toNanos(8), Cpu.CpuThreadData.State.DEAD));
@@ -266,7 +266,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
     }
 
     Range thread2Range = new Range(TimeUnit.SECONDS.toNanos(6), TimeUnit.SECONDS.toNanos(15));
-    if (!thread2Range.getIntersection(requestRange).isEmpty()) {
+    if (thread2Range.intersectsWith(requestRange)) {
       List<CpuProfiler.GetThreadsResponse.ThreadActivity> activitiesThread2 = new ArrayList<>();
       activitiesThread2.add(newActivity(TimeUnit.SECONDS.toNanos(6), Cpu.CpuThreadData.State.RUNNING));
       // Make sure we handle an unexpected state.
