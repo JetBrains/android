@@ -20,10 +20,16 @@ import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
 import com.android.tools.idea.appinspection.api.ProcessDescriptor
 import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessesComboBoxModel
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
+import com.android.tools.idea.concurrency.addCallback
+import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.model.AndroidModuleInfo
+import com.google.common.util.concurrent.FutureCallback
+import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.ide.plugins.newui.HorizontalLayout
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import java.awt.BorderLayout
@@ -62,17 +68,24 @@ class AppInspectionView(private val project: Project, private val appInspectionD
   private fun refreshTabs(tabbedPane: CommonTabbedPane, itemEvent: ItemEvent) {
     tabbedPane.removeAll()
     val descriptor = itemEvent.item as? ProcessDescriptor ?: return
-    val target = appInspectionDiscoveryHost.attachToProcess(descriptor).get() ?: return
-    AppInspectorTabProvider.EP_NAME.extensionList
-      .filter { provider -> provider.isApplicable() }
-      .forEach { provider ->
-        target.launchInspector(provider.inspectorId, provider.inspectorAgentJar) { messenger ->
-          val tab = invokeAndWaitIfNeeded {
-            provider.createTab(project, messenger)
-              .also { tab -> tabbedPane.addTab(provider.displayName, tab.component) }
-          }
-          tab.client
+    appInspectionDiscoveryHost.attachToProcess(descriptor).transform { target ->
+      AppInspectorTabProvider.EP_NAME.extensionList
+        .filter { provider -> provider.isApplicable() }
+        .forEach { provider ->
+          target.launchInspector(provider.inspectorId, provider.inspectorAgentJar) { messenger ->
+            val tab = invokeAndWaitIfNeeded {
+              provider.createTab(project, messenger)
+                .also { tab -> tabbedPane.addTab(provider.displayName, tab.component) }
+            }
+            tab.client
+          }.addCallback(MoreExecutors.directExecutor(), object : FutureCallback<AppInspectorClient> {
+            override fun onSuccess(result: AppInspectorClient?) {
+            }
+            override fun onFailure(t: Throwable) {
+              Logger.getInstance(AppInspectionView::class.java).error(t)
+            }
+          })
         }
-      }
+    }
   }
 }

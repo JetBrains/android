@@ -141,15 +141,16 @@ private class DefaultAppInspectionTarget(
             if (event.appInspectionResponse.status == SUCCESS) {
               connectionFuture.set(AppInspectorConnection(transport, inspectorId, event.timestamp))
             } else {
-              connectionFuture.setException(RuntimeException("Could not launch inspector $inspectorId"))
+              connectionFuture.setException(
+                RuntimeException("Could not launch inspector ${inspectorId}: ${event.appInspectionResponse.errorMessage}")
+              )
             }
           }
         )
         connectionFuture
       },
       transport.executorService
-    )
-      .transform(transport.executorService) { setupEventListener(creator, it) }
+    ).transform(transport.executorService) { setupEventListener(creator, it) }
   }
 
   override fun addTargetTerminatedListener(
