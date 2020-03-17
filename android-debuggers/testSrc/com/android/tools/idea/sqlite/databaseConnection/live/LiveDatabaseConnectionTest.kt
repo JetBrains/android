@@ -167,7 +167,8 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
 
     assertEquals(sqliteRows[0].values[0].value, SqliteValue.StringValue("a string"))
     assertEquals(sqliteRows[0].values[1].value, SqliteValue.StringValue(1f.toString()))
-    assertEquals(sqliteRows[0].values[2].value, SqliteValue.StringValue(ByteString.copyFrom("a blob".toByteArray()).toStringUtf8()))
+    // the value for the blob corresponds to the base16 encoding of the byte array of the blob.
+    assertEquals(sqliteRows[0].values[2].value, SqliteValue.StringValue("6120626C6F62"))
     assertEquals(sqliteRows[0].values[3].value, SqliteValue.StringValue(1.toString()))
     assertEquals(sqliteRows[0].values[4].value, SqliteValue.NullValue)
   }
