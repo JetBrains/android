@@ -652,6 +652,27 @@ public final class DeviceAndSnapshotComboBoxActionTest {
   }
 
   @Test
+  public void updateEventPlaceEqualsActionSearch() {
+    // Arrange
+    AnAction action = new DeviceAndSnapshotComboBoxAction.Builder()
+      .setDevicesGetterGetter(project -> myDevicesGetter)
+      .setGetProperties(project -> myProperties)
+      .setClock(myClock)
+      .setGetRunManager(project -> myRunManager)
+      .setGetExecutionTargetManager(project -> myExecutionTargetManager)
+      .build();
+
+    Mockito.when(myEvent.getPlace()).thenReturn(ActionPlaces.ACTION_SEARCH);
+
+    // Act
+    action.update(myEvent);
+
+    // Assert
+    assertNull(myPresentation.getIcon());
+    assertEquals("Select Device...", myPresentation.getText());
+  }
+
+  @Test
   public void updateMultipleDevicesIsSelected() {
     // Arrange
     PropertiesComponent properties = new ProjectPropertiesComponentImpl();

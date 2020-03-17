@@ -566,7 +566,10 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
     switch (place) {
       case ActionPlaces.MAIN_MENU:
-        updateInMainMenu(presentation);
+      case ActionPlaces.ACTION_SEARCH:
+        presentation.setIcon(null);
+        presentation.setText("Select Device...");
+
         break;
       case ActionPlaces.MAIN_TOOLBAR:
       case ActionPlaces.NAVIGATION_BAR_TOOLBAR:
@@ -610,11 +613,6 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
     presentation.setDescription(null);
     presentation.setEnabled(true);
-  }
-
-  private static void updateInMainMenu(@NotNull Presentation presentation) {
-    presentation.setIcon(null);
-    presentation.setText("Select Device...");
   }
 
   private void updateInToolbar(@NotNull Presentation presentation, @NotNull Project project) {
