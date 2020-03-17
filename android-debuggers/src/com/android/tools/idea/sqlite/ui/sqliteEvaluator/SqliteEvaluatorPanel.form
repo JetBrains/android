@@ -15,7 +15,7 @@
           <component id="276ef" class="javax.swing.JButton" binding="myEvaluateButton">
             <constraints border-constraint="After"/>
             <properties>
-              <text value="Evaluate"/>
+              <text value="Run"/>
             </properties>
           </component>
           <component id="9e09b" class="javax.swing.JComboBox" binding="myDatabaseComboBox">
