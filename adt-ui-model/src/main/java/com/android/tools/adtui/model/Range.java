@@ -150,6 +150,9 @@ public final class Range extends AspectModel<Range.Aspect> {
   /**
    * Returns the intersection range or [0,0] if there is no intersection.
    * Note that this doesn't handle correctly intersections with empty ranges.
+   *
+   * This method creates a new Range object and therefore has some performance overhead. For simply testing intersection use
+   * {@link #intersectsWith(Range)}. For computing the intersection length use {@link #getIntersectionLength(Range)}.
    */
   public Range getIntersection(Range range) {
     if (isEmpty() || range.isEmpty() || range.getMin() > getMax() || range.getMax() < getMin()) {
@@ -158,6 +161,21 @@ public final class Range extends AspectModel<Range.Aspect> {
     else {
       return new Range(Math.max(getMin(), range.getMin()), Math.min(getMax(), range.getMax()));
     }
+  }
+
+  /**
+   * @return true if this range intersects with the given range.
+   */
+  public boolean intersectsWith(@NotNull Range range) {
+    return intersectsWith(range.getMin(), range.getMax());
+  }
+
+  /**
+   * @return true if this range intersects with [min, max].
+   */
+  public boolean intersectsWith(double min, double max) {
+    // We cannot use getIntersectionLength > 0 because the intersection may just be a point (e.g. [x, x]) and length is still 0.
+    return Math.max(getMin(), min) <= Math.min(getMax(), max);
   }
 
   /**

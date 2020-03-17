@@ -215,8 +215,7 @@ public abstract class ChartDetailsView extends CaptureDetailsView {
     private void callChartRangeChanged() {
       CaptureNode node = myCallChart.getNode();
       assert node != null;
-      Range intersection = myCallChart.getRange().getIntersection(new Range(node.getStart(), node.getEnd()));
-      switchCardLayout(myPanel, intersection.isEmpty() || intersection.getLength() == 0);
+      switchCardLayout(myPanel, myCallChart.getRange().getIntersectionLength(node.getStart(), node.getEnd()) == 0.0);
     }
 
     private static AxisComponent createAxis(@NotNull Range range, @NotNull Range globalRange) {

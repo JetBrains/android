@@ -664,11 +664,11 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
       }
 
       long dataMax = duration == Long.MAX_VALUE ? duration : data.x + duration;
-      Range c = new Range(data.x, dataMax);
-      intersection = c.getIntersection(range);
-      if (!intersection.isEmpty() && intersection.getLength() >= overlap) {
+      double intersectionLen = range.getIntersectionLength(data.x, dataMax);
+      // We need both an intersection check and length requirement because the intersection might be a point.
+      if (range.intersectsWith(data.x, dataMax) && intersectionLen >= overlap) {
         durationData = data.value;
-        overlap = intersection.getLength();
+        overlap = intersectionLen;
       }
     }
     return durationData;

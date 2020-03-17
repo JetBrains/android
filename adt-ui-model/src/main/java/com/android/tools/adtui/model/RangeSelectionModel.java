@@ -204,10 +204,10 @@ public class RangeSelectionModel extends AspectModel<RangeSelectionModel.Aspect>
         long dataMax = duration == Long.MAX_VALUE ? duration : data.x + duration;
         Range r = new Range(data.x, dataMax);
         // Check if this constraint intersects the proposedRange.
-        if (!r.getIntersection(proposedRange).isEmpty()) {
+        if (r.intersectsWith(proposedRange)) {
           result = new ConstrainedRangeResult(r, data.value);
           // If this constraint already intersects the current range, use it.
-          if (!r.getIntersection(mySelectionRange).isEmpty()) {
+          if (r.intersectsWith(mySelectionRange)) {
             found = true;
             break;
           }

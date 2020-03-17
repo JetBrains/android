@@ -57,7 +57,7 @@ public class CpuCaptureMinimapModel {
       public List<SeriesData<CpuTraceInfo>> getDataForRange(Range range) {
         // An ad-hoc data series with just the current capture.
         List<SeriesData<CpuTraceInfo>> seriesData = new ArrayList<>();
-        if (!myCaptureRange.getIntersection(range).isEmpty()) {
+        if (myCaptureRange.intersectsWith(range)) {
           CpuTraceInfo traceInfo = new CpuTraceInfo(
             Cpu.CpuTraceInfo.newBuilder()
               .setFromTimestamp(TimeUnit.MICROSECONDS.toNanos((long)myCaptureRange.getMin()))

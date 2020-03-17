@@ -749,7 +749,7 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
     List<SeriesData<CpuTraceInfo>> infoList = getTraceDurations().getSeries().getSeriesForRange(range);
     for (SeriesData<CpuTraceInfo> info : infoList) {
       Range captureRange = info.value.getRange();
-      if (!captureRange.getIntersection(range).isEmpty()) {
+      if (captureRange.intersectsWith(range)) {
         return info.value;
       }
     }
