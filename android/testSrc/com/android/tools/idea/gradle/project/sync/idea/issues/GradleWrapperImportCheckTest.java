@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.precheck;
+package com.android.tools.idea.gradle.project.sync.idea.issues;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult.SUCCESS;
 import static com.android.tools.idea.util.PropertiesFiles.savePropertiesToFile;
-import static com.google.common.truth.Truth.assertThat;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_SHA_256_SUM;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 
@@ -32,14 +30,13 @@ import java.util.Properties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class GradleWrapperPreSyncCheckTest extends AndroidGradleTestCase {
+public class GradleWrapperImportCheckTest extends AndroidGradleTestCase {
   private static String SHA256 = "0986244820e4a35d32d91df2ec4b768b5ba5d6c8246753794f85159f9963ec12";
   private static String REMOTE_DISTRIBUTION = "https://services.gradle.org/distributions/gradle-5.6.2-bin.zip";
   private static String LOCAL_DISTRIBUTION = "file:///tmp/gradle-5.6.2-bin.zip";
 
   public void testDoCheckNoWrapper() {
-    PreSyncCheckResult result = new GradleWrapperPreSyncCheck().doCheckCanSyncAndTryToFix(getProject());
-    assertThat(result).isEqualTo(SUCCESS);
+    GradleWrapperImportCheck.validateGradleWrapper(getProject().getBasePath());
   }
 
   public void testDoCheckNoCheckSumRemote() throws IOException {
@@ -73,7 +70,16 @@ public class GradleWrapperPreSyncCheckTest extends AndroidGradleTestCase {
     savePropertiesToFile(properties, propertiesFilePath, null);
     LocalFileSystem.getInstance().refreshIoFiles(ImmutableList.of(propertiesFilePath));
 
-    PreSyncCheckResult result = new GradleWrapperPreSyncCheck().doCheckCanSyncAndTryToFix(getProject());
-    assertThat(result.isSuccess()).isEqualTo(successful);
+    try {
+      GradleWrapperImportCheck.validateGradleWrapper(getProject().getBasePath());
+      if (!successful) {
+        fail();
+      }
+    } catch (InvalidGradleWrapperException e) {
+      if (successful) {
+        fail();
+      }
+      // Exception expected
+    }
   }
 }

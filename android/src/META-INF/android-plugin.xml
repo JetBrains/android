@@ -375,7 +375,6 @@
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.importing.GradleProjectImporter"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.service.repo.ExternalRepository"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.SdkSync"/>
-    <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.precheck.PreSyncChecks"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleSyncInvoker"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.cleanup.PreSyncProjectCleanUp"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporter"/>
@@ -1049,6 +1048,7 @@
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.idea.issues.AgpUpgradeRequiredIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.idea.issues.SdkPlatformNotFoundIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.idea.issues.JdkImportIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.idea.issues.GradleWrapperImportChecker"/>
   </extensions>
 
   <module-components>
