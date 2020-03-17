@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.databinding.psiclass
 
-import com.intellij.codeInsight.NullableNotNullManager
 import com.intellij.psi.PsiAnnotation
-import com.intellij.psi.PsiElementFactory
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiModifierList
 import com.intellij.psi.PsiType
@@ -38,12 +36,7 @@ private class ModifierListWithNullabilityAnnotation(
   }
 
   override fun getAnnotations(): Array<PsiAnnotation> {
-    // The exact nullability annotation we use doesn't matter too much. We just want the IDE code
-    // completion popup to recognize it.
-    val nullabilityManager = NullableNotNullManager.getInstance(project)
-    val annotationText = if (isNonNull) nullabilityManager.defaultNotNull else nullabilityManager.defaultNullable
-    val annotation = PsiElementFactory.getInstance(project).createAnnotationFromText("@$annotationText", wrapped.context)
-    return arrayOf(annotation)
+    return arrayOf(project.createNullabilityAnnotation(isNonNull, wrapped.context))
   }
 }
 
