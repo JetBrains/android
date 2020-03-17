@@ -49,7 +49,6 @@ import javax.swing.BoxLayout;
 import javax.swing.JComponent;
 import javax.swing.JEditorPane;
 import javax.swing.JPanel;
-import javax.swing.JTextPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -129,8 +128,8 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     return htmlBodyBuilder.toString();
   }
 
-  private static JTextPane createPaneFromHtml(@NotNull String html) {
-    JTextPane modelPane = new JTextPane();
+  private static JEditorPane createPaneFromHtml(@NotNull String html) {
+    JEditorPane modelPane = new JEditorPane();
     modelPane.setAlignmentX(Component.LEFT_ALIGNMENT);
     setHtml(modelPane, html);
 
