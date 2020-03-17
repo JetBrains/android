@@ -41,7 +41,7 @@ class TransportServiceTest : PlatformTestCase() {
   @Throws(Exception::class)
   override fun setUp() {
     // Bazel tests are sandboxed so we disable VfsRoot checks.
-    VfsRootAccess.allowRootAccess("/", "C:\\")
+    VfsRootAccess.allowRootAccess(testRootDisposable, "/", "C:\\")
     // The idea.home path is needed for PlatformTestCase tests.
     System.setProperty("idea.home", Files.createDirectories(Paths.get(TMP_DIR, "tools/idea")).toString())
 
