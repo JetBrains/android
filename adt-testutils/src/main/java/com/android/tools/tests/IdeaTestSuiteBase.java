@@ -15,28 +15,28 @@
  */
 package com.android.tools.tests;
 
+import static com.android.testutils.TestUtils.getWorkspaceRoot;
+
 import com.android.repository.io.FileOpUtils;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.util.InstallerUtil;
 import com.android.testutils.TestUtils;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.testFramework.TestApplicationManager;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
-import static com.android.testutils.TestUtils.getWorkspaceRoot;
+import org.jetbrains.annotations.NotNull;
 
 
 public class IdeaTestSuiteBase {
   protected static final String TMP_DIR = System.getProperty("java.io.tmpdir");
 
   static {
-    VfsRootAccess.allowRootAccess("/", "C:\\");  // Bazel tests are sandboxed so we disable VfsRoot checks.
+    VfsRootAccess.allowRootAccess(Disposer.newDisposable(IdeaTestSuiteBase.class.getName()), "/", "C:\\");  // Bazel tests are sandboxed so we disable VfsRoot checks.
     setProperties();
     setupKotlinPlugin();
   }
