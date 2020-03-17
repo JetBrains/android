@@ -15,10 +15,7 @@
  */
 package com.android.tools.adtui.model.formatter;
 
-import static com.intellij.icons.AllIcons.Javaee.Local;
-
 import java.text.DecimalFormat;
-import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 
 /**
