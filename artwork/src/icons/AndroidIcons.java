@@ -10,28 +10,14 @@ public class AndroidIcons {
 
   public static final Icon Android = load("/icons/android.svg"); // 16x16
 
-  public static final Icon AvdManager = load("/icons/avd_manager.png"); // 16x16
-  public static final Icon SdkManager = load("/icons/sdk_manager.png"); // 16x16
-
-  public static final Icon Renderscript = load("/icons/render-script.png"); // 16x16
-  public static final Icon GreyArrowDown = load("/icons/dropArrow.png"); // 20x20
   public static final Icon NotMatch = load("/icons/notMatch.png");
 
-  public static final Icon AndroidFile = load("/icons/android_file.png"); // 16x16
   public static final Icon Activity = load("/icons/activity.png"); // 16x16
-  public static final Icon Targets = load("/icons/targets.png"); // 16x16
-  public static final Icon Square = load("/icons/square.png"); // 16x16
-  public static final Icon Landscape = load("/icons/landscape.png"); // 16x16
-  public static final Icon Portrait = load("/icons/portrait.png"); // 16x16
-  public static final Icon Display = load("/icons/display.png"); // 16x16
-  public static final Icon ThemesPreview = load("/icons/themesPreview.png"); // 13x13
 
   public static final Icon EmptyFlag = load("/icons/flags/flag_empty.png"); // 16x16
 
 
   public static final Icon Variant = load("/icons/variant.png");
-
-  public static final Icon GreyQuestionMark = load("/icons/grey_question.png"); // 23x23
 
   public static class Wizards {
     public static final Icon StudioProductIcon = load("/icons/wizards/studio_product.png"); // 60x60
@@ -52,10 +38,6 @@ public class AndroidIcons {
     public static final Icon NavigationTabs = load("/icons/wizards/navigation/navigation_tabs.png"); // 256x256
     public static final Icon CppConfiguration = load("/icons/wizards/cpp_configure.png"); // 256x256
     public static final Icon NoActivity = load("/icons/wizards/no_activity.png"); // 256x256
-  }
-
-  public static class ToolWindows {
-    public static final Icon Warning = IconLoader.getIcon("/icons/toolwindows/toolWindowWarning.svg"); // 13x13
   }
 
   public static class DeviceExplorer {
