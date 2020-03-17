@@ -310,14 +310,15 @@ class DatabaseInspectorControllerImpl(
         taskExecutor = taskExecutor
       )
       Disposer.register(project, tableController)
+      resultSetControllers[tabId] = tableController
 
       tableController.setUp().addCallback(edtExecutor, object : FutureCallback<Unit> {
         override fun onSuccess(result: Unit?) {
-          resultSetControllers[tabId] = tableController
         }
 
         override fun onFailure(t: Throwable) {
           view.reportError("Error reading Sqlite table \"${table.name}\"", t)
+          closeTab(tabId)
         }
       })
     }

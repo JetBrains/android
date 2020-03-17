@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite.controllers
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrency.addCallback
+import com.android.tools.idea.concurrency.cancelOnDispose
 import com.android.tools.idea.concurrency.catching
 import com.android.tools.idea.concurrency.finallySync
 import com.android.tools.idea.concurrency.transform
@@ -45,6 +46,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.containers.ComparatorUtil.max
 import java.util.LinkedList
+import java.util.concurrent.CancellationException
 import java.util.concurrent.Executor
 import kotlin.math.min
 
@@ -88,12 +90,6 @@ class TableController(
     view.startTableLoading()
     return databaseConnection.execute(sqliteStatement).transform(edtExecutor) { newResultSet ->
       lastExecutedQuery = sqliteStatement
-
-      if (Disposer.isDisposed(this)) {
-        Disposer.dispose(newResultSet)
-        throw ProcessCanceledException()
-      }
-
       view.setEditable(isEditable())
       view.showPageSizeValue(rowBatchSize)
       view.addListener(listener)
@@ -104,7 +100,7 @@ class TableController(
       fetchAndDisplayTableData()
 
       return@transform
-    }
+    }.cancelOnDispose(this)
   }
 
   override fun refreshData(): ListenableFuture<Unit> {
@@ -136,14 +132,13 @@ class TableController(
       view.setEditable(isEditable())
 
       updateDataAndButtons()
-    }
+    }.cancelOnDispose(this)
 
     val futureCatching = handleFetchRowsError(fetchTableDataFuture)
 
     val future = futureCatching.finallySync(edtExecutor) {
-      if (Disposer.isDisposed(this)) throw ProcessCanceledException()
       view.stopTableLoading()
-    }
+    }.cancelOnDispose(this)
 
     return Futures.transform(future, Functions.constant(Unit), MoreExecutors.directExecutor())
   }
@@ -185,8 +180,6 @@ class TableController(
    */
   private fun fetchAndDisplayRows() : ListenableFuture<Unit> {
     return resultSet.getRowBatch(start, rowBatchSize).transform(edtExecutor) { newRows ->
-      if (Disposer.isDisposed(this)) throw ProcessCanceledException()
-
       val rowDiffOperations = mutableListOf<RowDiffOperation>()
 
       // Update the cells that already exist
@@ -208,7 +201,7 @@ class TableController(
       view.setEditable(isEditable())
 
       currentRows = newRows
-    }
+    }.cancelOnDispose(this)
   }
 
   /**
@@ -228,11 +221,14 @@ class TableController(
   }
 
   private fun handleFetchRowsError(future: ListenableFuture<Unit>): ListenableFuture<Unit> {
-    return future.catching(edtExecutor, Throwable::class.java) { error ->
-      if (Disposer.isDisposed(this)) throw ProcessCanceledException()
+    future.addCallback(edtExecutor, success = {}) { error ->
+      if (Disposer.isDisposed(this)) return@addCallback
       view.resetView()
-      view.reportError("Error retrieving data from table.", error)
+      if (error !is CancellationException) {
+        view.reportError("Error retrieving data from table.", error)
+      }
     }
+    return future
   }
 
   private fun isEditable() = tableSupplier() != null

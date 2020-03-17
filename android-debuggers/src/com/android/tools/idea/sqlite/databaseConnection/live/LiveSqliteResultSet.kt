@@ -18,6 +18,7 @@ package com.android.tools.idea.sqlite.databaseConnection.live
 import androidx.sqlite.inspection.SqliteInspectorProtocol
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.concurrency.transform
+import com.android.tools.idea.concurrency.cancelOnDispose
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.databaseConnection.checkOffsetAndSize
 import com.android.tools.idea.sqlite.model.SqliteAffinity
@@ -31,7 +32,6 @@ import java.util.concurrent.Executor
 /**
  * [SqliteResultSet] for live connections.
  *
- * @param _columns The list of columns for this result set.
  * @param sqliteStatement The original [SqliteStatement] this result set is for.
  * @param messenger Used to send messages to an on-device inspector.
  * @param taskExecutor Used to execute IO operation on a background thread.
@@ -60,7 +60,7 @@ class LiveSqliteResultSet(
         // TODO(b/150937705): we need to get affinity info from the on device inspector.
         SqliteColumn(columnName, SqliteAffinity.TEXT, false, false)
       }
-    }
+    }.cancelOnDispose(this)
   }
 
   override val totalRowCount: ListenableFuture<Int> get() {
@@ -68,8 +68,6 @@ class LiveSqliteResultSet(
     val responseFuture = messenger.sendRawCommand(queryCommand.toByteArray())
 
     return responseFuture.transform(taskExecutor) {
-      check(!Disposer.isDisposed(this)) { "ResultSet has already been disposed." }
-
       val response = SqliteInspectorProtocol.Response.parseFrom(it)
 
       if (response.hasErrorOccurred()) {
@@ -77,7 +75,7 @@ class LiveSqliteResultSet(
       }
 
       response.query.rowsList.firstOrNull()?.valuesList?.firstOrNull()?.intValue ?: 0
-    }
+    }.cancelOnDispose(this)
   }
 
   override fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<List<SqliteRow>> {
@@ -87,8 +85,6 @@ class LiveSqliteResultSet(
     val responseFuture = messenger.sendRawCommand(queryCommand.toByteArray())
 
     return responseFuture.transform(taskExecutor) { byteArray ->
-      check(!Disposer.isDisposed(this)) { "ResultSet has already been disposed." }
-
       val response = SqliteInspectorProtocol.Response.parseFrom(byteArray)
 
       if (response.hasErrorOccurred()) {
@@ -102,7 +98,7 @@ class LiveSqliteResultSet(
       }
 
       rows
-    }
+    }.cancelOnDispose(this)
   }
 
   override fun dispose() {

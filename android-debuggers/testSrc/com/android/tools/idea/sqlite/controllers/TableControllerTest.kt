@@ -18,6 +18,7 @@ package com.android.tools.idea.sqlite.controllers
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.refEq
+import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFutureCancellation
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFutureException
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
@@ -42,6 +43,7 @@ import com.android.tools.idea.sqlite.model.SqliteValue
 import com.android.tools.idea.sqlite.toSqliteValues
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.PlatformTestCase
@@ -231,7 +233,7 @@ class TableControllerTest : PlatformTestCase() {
     val future = tableController.setUp()
 
     // Assert
-    pumpEventsAndWaitForFutureException(future)
+    pumpEventsAndWaitForFutureCancellation(future)
   }
 
   fun testSetUpErrorIsDisposed() {
@@ -246,7 +248,7 @@ class TableControllerTest : PlatformTestCase() {
 
     // Act/Assert
     Disposer.dispose(tableController)
-    pumpEventsAndWaitForFutureException(tableController.setUp())
+    pumpEventsAndWaitForFutureCancellation(tableController.setUp())
   }
 
   fun testRefreshData() {
@@ -286,7 +288,7 @@ class TableControllerTest : PlatformTestCase() {
     val future = tableController.refreshData()
 
     // Assert
-    pumpEventsAndWaitForFutureException(future)
+    pumpEventsAndWaitForFutureCancellation(future)
   }
 
   fun testSortByColumnShowsLoadingScreen() {
@@ -1376,7 +1378,7 @@ class TableControllerTest : PlatformTestCase() {
     pumpEventsAndWaitForFuture(customDatabaseConnection!!.execute(SqliteStatement("DROP TABLE t1")))
     tableProvider.table = null
 
-    pumpEventsAndWaitForFuture(tableController.refreshData())
+    pumpEventsAndWaitForFutureException(tableController.refreshData())
 
     // Assert
     orderVerifier.verify(tableView).showTableColumns(targetTable.columns)
@@ -1481,6 +1483,23 @@ class TableControllerTest : PlatformTestCase() {
     orderVerifier.verify(tableView).reportError("Can't update. Table not found.", null)
     orderVerifier.verifyNoMoreInteractions()
   }
+
+  fun testDisposeCancelsExecution() {
+    val executionFuture = SettableFuture.create<SqliteResultSet>()
+    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(executionFuture)
+    tableController = TableController(
+      project, 10, tableView, { null }, mockDatabaseConnection, SqliteStatement(""), edtExecutor, edtExecutor
+    )
+
+    Disposer.register(testRootDisposable, tableController)
+
+    // Act
+    tableController.setUp()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    Disposer.dispose(tableController)
+    // Assert
+    pumpEventsAndWaitForFutureCancellation(executionFuture)
+ }
 
   private fun testUpdateWorksOnCustomDatabase(databaseFile: VirtualFile, targetTableName: String, targetColumnName: String, expectedSqliteStatement: String) {
     // Prepare
