@@ -66,7 +66,7 @@ public class ComponentPopupMenu {
 
   public void addItem(@NotNull PopupMenuItem popupMenuItem) {
 
-    AnAction action = new AnAction(null, null, popupMenuItem.getIcon()) {
+    AnAction action = new AnAction(popupMenuItem.getIcon()) {
       @Override
       public void update(@NotNull AnActionEvent e) {
 
