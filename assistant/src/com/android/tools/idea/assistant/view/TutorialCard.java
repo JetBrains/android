@@ -42,9 +42,9 @@ import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.BoundedRangeModel;
 import javax.swing.Box;
+import javax.swing.JEditorPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
-import javax.swing.JTextPane;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -255,7 +255,7 @@ public class TutorialCard extends CardViewPanel {
     SwingUtilities.invokeLater(() -> initScrollValues());
   }
 
-  private static class TutorialDescription extends JTextPane {
+  private static class TutorialDescription extends JEditorPane {
     TutorialDescription() {
       super();
       setOpaque(false);
