@@ -17,7 +17,6 @@ package com.android.tools.idea.npw.template
 
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.validation.ValidatorPanel
-import com.android.tools.idea.device.FormFactor
 import com.android.tools.idea.npw.bindExpression
 import com.android.tools.idea.npw.invokeLater
 import com.android.tools.idea.npw.model.RenderTemplateModel
@@ -31,6 +30,7 @@ import com.android.tools.idea.npw.template.components.ModuleTemplateComboProvide
 import com.android.tools.idea.npw.template.components.PackageComboProvider2
 import com.android.tools.idea.npw.template.components.SeparatorProvider
 import com.android.tools.idea.npw.template.components.TextFieldProvider2
+import com.android.tools.idea.npw.toWizardFormFactor
 import com.android.tools.idea.observable.AbstractProperty
 import com.android.tools.idea.observable.BindingsManager
 import com.android.tools.idea.observable.ListenerManager
@@ -185,7 +185,7 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
       templateDescriptionLabel.text = WizardUtils.toHtmlString(newTemplate.description)
     }
 
-    icon = FormFactor[newTemplate.formFactor.toString()].icon // TODO(qumeric): do not use strings (may fail with Generic, etc.)
+    icon = newTemplate.formFactor.toWizardFormFactor().icon
 
     val thumb = IconProperty(templateThumbLabel)
     val thumbVisibility = VisibleProperty(templateThumbLabel)
