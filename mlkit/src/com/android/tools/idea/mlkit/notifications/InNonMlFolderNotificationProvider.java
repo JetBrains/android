@@ -62,7 +62,7 @@ public class InNonMlFolderNotificationProvider extends EditorNotifications.Provi
     Module module = ModuleUtilCore.findModuleForFile(file, project);
     if (module != null && !MlkitUtils.isModelFileInMlModelsFolder(module, file)) {
       EditorNotificationPanel panel = new EditorNotificationPanel();
-      panel.setText("This Tensorflow Lite model is not in a configured ml-model directory, model binding is disabled.");
+      panel.setText("This TensorFlow Lite model is not in a configured ml-model directory, model binding is disabled.");
       panel.createActionLabel("Move file", () -> ApplicationManager.getApplication().runWriteAction(new Runnable() {
         @Override
         public void run() {
