@@ -25,7 +25,6 @@ import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.jdbc.selectAllAndRowIdFromTable
 import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
 import com.android.tools.idea.sqlite.getJdbcDatabaseConnection
-import com.android.tools.idea.sqlite.model.FileSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteColumnValue
@@ -41,7 +40,6 @@ import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPopupMenu
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
@@ -68,8 +66,6 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
   private lateinit var sqliteUtil: SqliteTestUtil
   private var realDatabaseConnection: DatabaseConnection? = null
-
-  private val database = FileSqliteDatabase("db", mock(DatabaseConnection::class.java), mock(VirtualFile::class.java))
 
   override fun setUp() {
     super.setUp()
@@ -801,10 +797,16 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     Disposer.dispose(controller)
   }
 
-  fun testButtonsAreDisabledWhileLoading() {
+  fun testButtonsAreDisabledBeforeAndWhileLoading() {
     // Prepare
-    val pageSizeComboBox = TreeWalker(view.component).descendants().filter { it.name == "page-size-combo-box" }.first()
-    val refreshButton = TreeWalker(view.component).descendants().filter { it.name == "refresh-button" }.first()
+    val pageSizeComboBox = TreeWalker(view.component).descendants().first { it.name == "page-size-combo-box" }
+    val refreshButton = TreeWalker(view.component).descendants().first { it.name == "refresh-button" }
+    val liveUpdatesCheckBox = TreeWalker(view.component).descendants().first { it.name == "live-updates-checkbox" }
+
+    // Assert
+    assertFalse(pageSizeComboBox.isEnabled)
+    assertFalse(refreshButton.isEnabled)
+    assertFalse(liveUpdatesCheckBox.isEnabled)
 
     // Act
     view.startTableLoading()
@@ -812,6 +814,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     // Assert
     assertFalse(pageSizeComboBox.isEnabled)
     assertFalse(refreshButton.isEnabled)
+    assertFalse(liveUpdatesCheckBox.isEnabled)
 
     // Act
     view.stopTableLoading()
@@ -819,6 +822,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     // Assert
     assertTrue(pageSizeComboBox.isEnabled)
     assertTrue(refreshButton.isEnabled)
+    assertTrue(liveUpdatesCheckBox.isEnabled)
   }
 
   private fun getColumnAt(table: JTable, colIndex: Int): List<String?> {

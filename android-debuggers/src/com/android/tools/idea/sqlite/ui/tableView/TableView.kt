@@ -79,6 +79,7 @@ interface TableView {
     fun loadFirstRowsInvoked()
     fun loadLastRowsInvoked()
     fun refreshDataInvoked()
+    fun toggleLiveUpdatesInvoked()
     fun updateCellInvoked(targetRowIndex: Int, targetColumn: SqliteColumn, newValue: SqliteValue)
 
     /**
