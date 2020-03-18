@@ -15,33 +15,37 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.semantics;
 
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.UNSPECIFIED_FOR_NOW;
+
 import java.util.Arrays;
 import org.jetbrains.annotations.NotNull;
 
 public class ModelPropertyDescription {
   @NotNull public final String name;
+  @NotNull public final ModelPropertyType type;
 
   public ModelPropertyDescription(@NotNull String name) {
     this.name = name;
+    this.type = UNSPECIFIED_FOR_NOW;
   }
 
   @Override
   public String toString() {
-    return name;
+    return name + " (" + type + ")";
   }
 
   // TODO(b/151216877): really ModelPropertyDescriptions should be singletons, but while we still have some String descriptions
   //  (for convenience) let's allow multiple descriptions of the same thing and handle equality ourselves.
   @Override
   public int hashCode() {
-    return Arrays.hashCode(new Object[] {name});
+    return Arrays.hashCode(new Object[] {name, type});
   }
 
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof ModelPropertyDescription) {
       ModelPropertyDescription mpd = (ModelPropertyDescription) obj;
-      return this.name.equals(mpd.name);
+      return this.name.equals(mpd.name) && this.type.equals(mpd.type);
     }
     else {
       return false;
