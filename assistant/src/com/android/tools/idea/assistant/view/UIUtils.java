@@ -274,8 +274,8 @@ public class UIUtils {
   @VisibleForTesting
   @NotNull
   static String addLocalHTMLPaths(@NotNull String html, @NotNull URL url, @NotNull String localImage) {
-    String baseUrl = url.getPath().replace(localImage, "");
-    String replacementPattern = "<img src=\"file://" + baseUrl;
+    String baseUrl = url.toExternalForm().replace(localImage, "");
+    String replacementPattern = "<img src=\"" + baseUrl;
     return html.replaceAll("<img src=\"/", replacementPattern);
   }
 }

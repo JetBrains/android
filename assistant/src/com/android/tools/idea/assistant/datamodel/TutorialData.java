@@ -78,4 +78,9 @@ public interface TutorialData {
    * @return true to use local image files
    */
   boolean hasLocalHTMLPaths();
+
+  /**
+   * Returns true if the tutorial does not need to be loaded initially.
+   */
+  boolean shouldLoadLazily();
 }
