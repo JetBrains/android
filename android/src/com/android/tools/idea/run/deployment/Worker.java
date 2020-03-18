@@ -38,6 +38,11 @@ final class Worker<V> {
       myResultFuture = task.get();
     }
 
+    if (myResultFuture.isCancelled()) {
+      myResultFuture = task.get();
+      return myResult;
+    }
+
     if (!myResultFuture.isDone()) {
       return myResult;
     }
