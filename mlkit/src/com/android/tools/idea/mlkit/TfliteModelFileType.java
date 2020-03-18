@@ -47,7 +47,7 @@ public class TfliteModelFileType implements FileType {
     return TFLITE_EXTENSION;
   }
 
-  @Nullable
+  @NotNull
   @Override
   public Icon getIcon() {
     return StudioIcons.Shell.Filetree.TFLITE_FILE;

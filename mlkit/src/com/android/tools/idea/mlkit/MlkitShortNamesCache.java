@@ -67,7 +67,7 @@ public class MlkitShortNamesCache extends PsiShortNamesCache {
         PsiClass[] lightClasses = MlkitUtils.getLightModelClasses(myProject, modelFileMap);
         for (PsiClass lightClass : lightClasses) {
           for (PsiClass innerClass : lightClass.getInnerClasses()) {
-            if (innerClass.getName().equals(name)) {
+            if (name.equals(innerClass.getName())) {
               lightClassList.add(innerClass);
             }
           }
