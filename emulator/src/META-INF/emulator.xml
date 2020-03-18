@@ -31,7 +31,7 @@
       <action id="android.emulator.rotate.left" class="com.android.tools.idea.emulator.EmulatorRotateLeftAction"
               icon="StudioIcons.Emulator.ROTATE_LEFT" text="Rotate Left" description="Rotate counterclockwise by 90 degrees"/>
       <action id="android.emulator.rotate.right" class="com.android.tools.idea.emulator.EmulatorRotateRightAction"
-              icon="StudioIcons.Emulator.ROTATE_RIGHT" text="Rotate Left" description="Rotate clockwise by 90 degrees"/>
+              icon="StudioIcons.Emulator.ROTATE_RIGHT" text="Rotate Right" description="Rotate clockwise by 90 degrees"/>
       <action id="android.emulator.back" class="com.android.tools.idea.emulator.EmulatorBackAction"
               icon="StudioIcons.Emulator.BACK" text="Back" description="Press Back button"/>
       <action id="android.emulator.home" class="com.android.tools.idea.emulator.EmulatorHomeAction"
