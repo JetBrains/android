@@ -25,11 +25,13 @@ import com.intellij.openapi.application.ApplicationManager
  * @param messenger Communication channel with the on-device inspector.
  * @param handleError Function called when a ErrorOccurred event is received.
  * @param openDatabase Function called when a DatabaseOpened event is received.
+ * @param onDisposeListener Function called when an onDispose event is received.
  */
 class DatabaseInspectorClient constructor(
   messenger: CommandMessenger,
   private val handleError: (errorMessage: String) -> Unit,
-  private val openDatabase: (messenger: CommandMessenger, databaseConnectionId: Int, databaseName: String) -> Unit
+  private val openDatabase: (messenger: CommandMessenger, databaseConnectionId: Int, databaseName: String) -> Unit,
+  private val onDisposeListener: () -> Unit
 ) : AppInspectorClient(messenger) {
   override val eventListener: EventListener = object : EventListener {
     override fun onRawEvent(eventData: ByteArray) {
@@ -54,7 +56,7 @@ class DatabaseInspectorClient constructor(
     }
 
     override fun onDispose() {
-      // TODO databaseInspectorProjectService.closeAllLiveDatabase()
+      onDisposeListener()
     }
   }
 

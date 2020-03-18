@@ -97,6 +97,12 @@ interface DatabaseInspectorProjectService {
   fun openSqliteDatabase(messenger: AppInspectorClient.CommandMessenger, id: Int, name: String): ListenableFuture<SqliteDatabase>
 
   /**
+   * Closes all open live databases in [DatabaseInspectorController].
+   */
+  @AnyThread
+  fun closeAllLiveDatabase()
+
+  /**
    * Runs the query passed as argument in the Sqlite Inspector.
    */
   @UiThread
@@ -247,6 +253,15 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
     }
 
     database.await()
+  }
+
+  @AnyThread
+  override fun closeAllLiveDatabase() {
+    projectScope.launch(uiThread) {
+      model.getOpenDatabases().filterIsInstance<LiveSqliteDatabase>().forEach {
+        controller.closeDatabase(it)
+      }
+    }
   }
 
   @UiThread
