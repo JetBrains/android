@@ -19,6 +19,7 @@ import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.idea.appinspection.api.TestInspectorCommandHandler
+import com.android.tools.idea.appinspection.ide.ui.AppInspectionProcessesComboBox
 import com.android.tools.idea.appinspection.ide.ui.AppInspectionView
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
@@ -32,6 +33,7 @@ import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.testFramework.EdtRule
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -66,7 +68,8 @@ class AppInspectionViewTest {
   @get:Rule
   val ruleChain = RuleChain.outerRule(grpcServerRule).around(appInspectionServiceRule)!!.around(projectRule).around(EdtRule())!!
 
-  init {
+  @Before
+  fun setup() {
     transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, ATTACH_HANDLER)
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, TestInspectorCommandHandler(timer))
   }
@@ -96,5 +99,45 @@ class AppInspectionViewTest {
     transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
     newProcessLatch.await()
     tabAddedLatch.await()
+  }
+
+  @Test
+  fun disposeInspectorWhenSelectionChanges() {
+    val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
+    val discoveryHost = AppInspectionTestUtils.createDiscoveryHost(executor, TransportClient(grpcServerRule.name))
+
+    val inspectionView = AppInspectionView(projectRule.project, discoveryHost)
+    val tabAddedLatch = CountDownLatch(2)
+    val tabbedPane = TreeWalker(inspectionView.component).descendants().filterIsInstance<CommonTabbedPane>().first()
+    tabbedPane.addContainerListener(object : ContainerListener {
+      override fun componentAdded(e: ContainerEvent) {
+        tabAddedLatch.countDown()
+      }
+      override fun componentRemoved(e: ContainerEvent?) {}
+    })
+
+    // Launch two processes and wait for them to show up in combobox
+    val fakeDevice =
+      FakeTransportService.FAKE_DEVICE.toBuilder().setDeviceId(1).setModel("fakeModel").setManufacturer("fakeMan").setSerial("1").build()
+    val fakeProcess1 = FakeTransportService.FAKE_PROCESS.toBuilder().setPid(1).setDeviceId(1).build()
+    val fakeProcess2 = FakeTransportService.FAKE_PROCESS.toBuilder().setPid(2).setDeviceId(1).build()
+    transportService.addDevice(fakeDevice)
+    transportService.addProcess(fakeDevice, fakeProcess1)
+    transportService.addProcess(fakeDevice, fakeProcess2)
+    tabAddedLatch.await()
+
+    // Change combobox selection and check to see if a dispose command was sent out.
+    val inspectorDisposedLatch = CountDownLatch(1)
+    transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, object : CommandHandler(timer) {
+      override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
+        if (command.appInspectionCommand.hasDisposeInspectorCommand()) {
+          inspectorDisposedLatch.countDown()
+        }
+      }
+    })
+    val comboBox = TreeWalker(inspectionView.component).descendants().filterIsInstance<AppInspectionProcessesComboBox>().first()
+    comboBox.selectedIndex = (comboBox.selectedIndex + 1) % comboBox.itemCount
+
+    inspectorDisposedLatch.await()
   }
 }
