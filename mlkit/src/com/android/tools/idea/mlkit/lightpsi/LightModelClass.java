@@ -41,7 +41,7 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -107,18 +107,20 @@ public class LightModelClass extends AndroidLightClassBase {
   }
 
   public static List<String> getInnerClassNames() {
-    return Arrays.asList(MlkitNames.OUTPUTS);
+    return Collections.singletonList(MlkitNames.OUTPUTS);
   }
 
   @NotNull
   private PsiMethod buildNewInstanceStaticMethod() {
     PsiType returnType = PsiType.getTypeByName(getQualifiedName(), getProject(), getResolveScope());
-
-    return new LightMethodBuilder(getManager(), "newInstance")
+    LightMethodBuilder method = new LightMethodBuilder(getManager(), "newInstance")
       .setMethodReturnType(returnType)
       .addParameter("context", ClassNames.CONTEXT)
       .addException(ClassNames.IO_EXCEPTION)
-      .addModifiers(PsiModifier.PUBLIC, PsiModifier.FINAL, PsiModifier.STATIC).setContainingClass(this);
+      .addModifiers(PsiModifier.PUBLIC, PsiModifier.FINAL, PsiModifier.STATIC)
+      .setContainingClass(this);
+    method.setNavigationElement(this);
+    return method;
   }
 
   @Override
@@ -188,6 +190,7 @@ public class LightModelClass extends AndroidLightClassBase {
     for (TensorInfo tensorInfo : tensorInfos) {
       method.addParameter(tensorInfo.getName(), CodeUtils.getTypeQualifiedName(tensorInfo));
     }
+    method.setNavigationElement(this);
 
     return method;
   }
