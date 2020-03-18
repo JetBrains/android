@@ -38,7 +38,7 @@ import kotlin.math.min
  * Representations of all Android hardware devices we can target when building an app.
  */
 enum class FormFactor(@JvmField val id: String,
-                      @JvmField private val displayName: String?,
+                      @JvmField private val displayName: String,
                       @JvmField val defaultApi: Int,
                       val minOfflineApiLevel: Int,
                       maxOfflineApiLevel: Int,
@@ -59,7 +59,7 @@ enum class FormFactor(@JvmField val id: String,
 
   val maxOfflineApiLevel: Int = min(maxOfflineApiLevel, HIGHEST_KNOWN_STABLE_API)
 
-  override fun toString(): String = displayName ?: id
+  override fun toString(): String = displayName
 
   fun isSupported(tag: IdDisplay?, targetSdkLevel: Int): Boolean {
     if (this == MOBILE && targetSdkLevel == KITKAT_WATCH) {
