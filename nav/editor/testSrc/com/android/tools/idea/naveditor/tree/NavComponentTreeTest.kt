@@ -23,6 +23,8 @@ import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.google.common.truth.Truth.assertThat
+import org.mockito.Mockito.spy
+import org.mockito.Mockito.verify
 
 class NavComponentTreeTest : NavTestCase() {
   private lateinit var model: NlModel
@@ -89,7 +91,7 @@ class NavComponentTreeTest : NavTestCase() {
   }
 
   private fun testSelection(expectedRoot: String, vararg id: String) {
-    val component = id.map {model.find(it)!!}
+    val component = id.map { model.find(it)!! }
     surface.selectionModel.setSelection(component.toList())
 
     assertThat(component).containsExactlyElementsIn(selectionModel.currentSelection).inOrder()
@@ -112,5 +114,26 @@ class NavComponentTreeTest : NavTestCase() {
     val nodeType = TreePanel.NlComponentNodeType()
     assertEquals(id, nodeType.idOf(component))
     assertNull(nodeType.textValueOf(component))
+  }
+
+  fun testScrollToFragment() {
+    testScrolling(arrayOf("fragment1"), arrayOf("fragment1"))
+  }
+
+  fun testScrollToRoot() {
+    testScrolling(arrayOf("root"), arrayOf())
+  }
+
+  fun testScrollToMultiple() {
+    testScrolling(arrayOf("fragment1", "fragment2", "subnav", "action1"), arrayOf("fragment1", "fragment2", "subnav"))
+  }
+
+  private fun testScrolling(selection: Array<String>, expected: Array<String>) {
+    val components = selection.map { model.find(it)!! }
+    val spy = spy(surface)
+    panel.setToolContext(spy)
+    spy.selectionModel.setSelection(components)
+    panel.updateSelection()
+    verify(spy).scrollToCenter(expected.map { model.find(it)!! })
   }
 }
