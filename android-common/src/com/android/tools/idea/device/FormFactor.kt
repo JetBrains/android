@@ -38,7 +38,7 @@ import kotlin.math.min
  * Representations of all Android hardware devices we can target when building an app.
  */
 enum class FormFactor(@JvmField val id: String,
-                      @JvmField private val displayName: String,
+                      val displayName: String,
                       @JvmField val defaultApi: Int,
                       val minOfflineApiLevel: Int,
                       maxOfflineApiLevel: Int,
