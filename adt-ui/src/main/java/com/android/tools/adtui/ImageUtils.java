@@ -39,6 +39,8 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.ImageObserver;
@@ -132,6 +134,71 @@ public class ImageUtils {
     }
 
     return rotated;
+  }
+
+  /**
+   * Rotates the given image by the given number of quadrants and scales it to the given dimensions.
+   *
+   * @param source the source image
+   * @param numQuadrants the number of quadrants to rotate by counterclockwise
+   * @param destinationWidth the width of the resulting image
+   * @param destinationHeight the height of the resulting image
+   * @return the rotated and scaled image
+   */
+  @NotNull
+  public static BufferedImage rotateByQuadrantsAndScale(
+      @NotNull BufferedImage source, int numQuadrants, int destinationWidth, int destinationHeight) {
+    while (numQuadrants < 0) {
+      numQuadrants += 4;
+    }
+    numQuadrants %= 4;
+
+    int w = source.getWidth();
+    int h = source.getHeight();
+
+    double rotatedW;
+    double rotatedH;
+    int shiftX;
+    int shiftY;
+    switch (numQuadrants) {
+      case 0:
+      default:
+        rotatedW = w;
+        rotatedH = h;
+        shiftX = 0;
+        shiftY = 0;
+        break;
+
+      case 1:
+        rotatedW = h;
+        rotatedH = w;
+        shiftX = -w;
+        shiftY = 0;
+        break;
+
+      case 2:
+        rotatedW = w;
+        rotatedH = h;
+        shiftX = -w;
+        shiftY = -h;
+        break;
+
+      case 3:
+        rotatedW = h;
+        rotatedH = w;
+        shiftX = 0;
+        shiftY = -h;
+        break;
+    }
+
+    BufferedImage result = new BufferedImage(destinationWidth, destinationHeight, source.getType());
+    AffineTransform transform = new AffineTransform();
+    // Please notice that the transformations are applied in the reverse order.
+    transform.quadrantRotate(-numQuadrants);
+    transform.scale(destinationWidth / rotatedW, destinationHeight / rotatedH);
+    transform.translate(shiftX, shiftY);
+    AffineTransformOp transformOp = new AffineTransformOp(transform, AffineTransformOp.TYPE_BILINEAR);
+    return transformOp.filter(source, result);
   }
 
   public static boolean isRetinaImage(@Nullable BufferedImage image) {
