@@ -15,7 +15,9 @@
  */
 package org.jetbrains.android.refactoring
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.DisposerExplorer
 import com.android.tools.idea.testing.TestProjectPaths.MIGRATE_TO_ANDROID_X
@@ -29,6 +31,7 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.util.ThrowableRunnable
+import com.intellij.util.Time
 import kotlin.text.Regex.Companion.escapeReplacement
 
 /**
@@ -44,7 +47,7 @@ private fun String.replaceCompileSdkWith(version: String, isGroovy: Boolean) =
 /**
  * This class tests Migration to AndroidX for a Gradle project.
  */
-/*class MigrateToAndroidxGradleTest : AndroidGradleTestCase() {
+class MigrateToAndroidxGradleTest : AndroidGradleTestCase() {
   // Temporary instrumentation for b/148676784.
   override fun tearDown() {
     super.tearDown()
@@ -59,7 +62,8 @@ private fun String.replaceCompileSdkWith(version: String, isGroovy: Boolean) =
     Truth.assertThat(leak2).isNull()
   }
 
-  private fun doTestMigrationRefactoring(mainBuildScript: String, appBuildScript: String, activityMain: String, expectedSequence: String) {
+  private fun doTestMigrationRefactoring(
+    mainBuildScript: String, appBuildScript: String, activityMain: String, mainActivityPath: String, expectedSequence: String) {
     runProcessor()
 
     val activityMain = getTextForFile(activityMain)
@@ -78,7 +82,7 @@ private fun String.replaceCompileSdkWith(version: String, isGroovy: Boolean) =
 
     assertEquals(expectedSequence.trimIndent(), implementationLines)
 
-    val mainActivityKt = getTextForFile("app/src/main/java/com/example/google/migratetoandroidx/MainActivity.kt")
+    val mainActivityKt = getTextForFile(mainActivityPath)
     assertFalse(mainActivityKt.contains("android.support"))
     assertFalse(activityMain.contains("android.support"))
     val gradleProperties = getTextForFile("gradle.properties")
@@ -92,6 +96,7 @@ private fun String.replaceCompileSdkWith(version: String, isGroovy: Boolean) =
     val activityMain = "app/src/main/res/layout/activity_main.xml"
     val mainBuildScript = "build.gradle"
     val appBuildScript = "app/build.gradle"
+    val mainActivityKt = "app/src/main/java/com/example/google/migratetoandroidx/MainActivity.kt"
     val expectedSequence = """
     def testVariable = 'com.google.android.material:material:V.V.V'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:+"
@@ -99,15 +104,15 @@ private fun String.replaceCompileSdkWith(version: String, isGroovy: Boolean) =
     implementation 'androidx.constraintlayout:constraintlayout:V.V.V'
     implementation testVariable
       """
-    doTestMigrationRefactoring(mainBuildScript, appBuildScript, activityMain, expectedSequence)
+    doTestMigrationRefactoring(mainBuildScript, appBuildScript, activityMain,mainActivityKt, expectedSequence)
   }
 
   fun testMigrationRefactoringKts() {
     loadProject(MIGRATE_TO_ANDROID_X_KTS)
-    Registry.get("platform.random.idempotence.check.rate").setValue(1, getTestRootDisposable())
     val activityMain = "app/src/main/res/layout/activity_main.xml"
     val mainBuildScript = "build.gradle.kts"
     val appBuildScript = "app/build.gradle.kts"
+    val mainActivityKt = "app/src/main/java/com/example/google/migratetoandroidxkts/MainActivity.kt"
     val expectedSequence = """
     val testVariable = "com.google.android.material:material:V.V.V"
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:+")
@@ -115,11 +120,10 @@ private fun String.replaceCompileSdkWith(version: String, isGroovy: Boolean) =
     implementation("androidx.constraintlayout:constraintlayout:V.V.V")
     implementation(testVariable)
       """
-    doTestMigrationRefactoring(mainBuildScript, appBuildScript, activityMain, expectedSequence)
+    doTestMigrationRefactoring(mainBuildScript, appBuildScript, activityMain, mainActivityKt, expectedSequence)
   }
 
   private fun doTestExistingGradleProperties() {
-    loadProject(MIGRATE_TO_ANDROID_X_KTS)
 
     runWriteAction {
       // gradle.properties is created by test framework. We do not care about its content here since we never sync the project again
@@ -139,16 +143,17 @@ private fun String.replaceCompileSdkWith(version: String, isGroovy: Boolean) =
     assertTrue(gradleProperties.contains("# Preserve this comment and variable") &&
                gradleProperties.contains("random.variable=true"))
   }
+  
 
   fun testExistingGradlePropertiesGroovy() {
-    loadProject(MIGRATE_TO_ANDROID_X)
+    loadProject(MIGRATE_TO_ANDROID_X_KTS)
     doTestExistingGradleProperties()
   }
 
-  /*fun testExistingGradlePropertiesKts() {
+  fun testExistingGradlePropertiesKts() {
     loadProject(MIGRATE_TO_ANDROID_X_KTS)
     doTestExistingGradleProperties()
-  }*/
+  }
 
   private fun doTestVerifyPrerequisites(mainBuildScript: String, appBuildScript: String, isGroovy: Boolean) {
     val appGradleFile = myFixture.project.baseDir.findFileByRelativePath(appBuildScript)!!
@@ -264,8 +269,8 @@ private fun String.replaceCompileSdkWith(version: String, isGroovy: Boolean) =
   }
 
   private fun setFileContent(file: VirtualFile, content: String) {
-    myFixture.openFileInEditor(file)
     WriteCommandAction.runWriteCommandAction(project) {
+      myFixture.openFileInEditor(file)
       val document = myFixture.editor.document
       document.setText(content)
       PsiDocumentManager.getInstance(project).commitDocument(document)
@@ -279,4 +284,4 @@ private fun String.replaceCompileSdkWith(version: String, isGroovy: Boolean) =
     )
       .invoke(project, null, null, null)
   }
-}*/
+}
