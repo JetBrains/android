@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.model.ext.transforms;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslWriter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,12 +55,30 @@ public class KtsOnlyPropertyTransform extends PropertyTransform {
 
   @NotNull
   @Override
+  public GradleDslExpression bind(@NotNull GradleDslElement holder,
+                                  @Nullable GradleDslElement oldElement,
+                                  @NotNull Object value,
+                                  @NotNull ModelPropertyDescription propertyDescription) {
+    return myTransform.bind(holder, oldElement, value, propertyDescription);
+  }
+
+  @NotNull
+  @Override
   public GradleDslExpression bindList(@NotNull GradleDslElement holder,
                                       @Nullable GradleDslElement oldElement,
                                       @NotNull String name,
                                       boolean isMethodCall,
                                       boolean isSet) {
     return myTransform.bindList(holder, oldElement, name, isMethodCall, isSet);
+  }
+
+  @Override
+  public GradleDslExpression bindList(@NotNull GradleDslElement holder,
+                                      @Nullable GradleDslElement oldElement,
+                                      @NotNull ModelPropertyDescription propertyDescription,
+                                      boolean isMethodCall,
+                                      boolean isSet) {
+    return myTransform.bindList(holder, oldElement, propertyDescription, isMethodCall, isSet);
   }
 
   @NotNull
@@ -69,6 +88,15 @@ public class KtsOnlyPropertyTransform extends PropertyTransform {
                                      @NotNull String name,
                                      boolean isMethodCall) {
     return myTransform.bindMap(holder, oldElement, name, isMethodCall);
+  }
+
+  @NotNull
+  @Override
+  public GradleDslExpression bindMap(@NotNull GradleDslElement holder,
+                                     @Nullable GradleDslElement oldElement,
+                                     @NotNull ModelPropertyDescription propertyDescription,
+                                     boolean isMethodCall) {
+    return super.bindMap(holder, oldElement, propertyDescription, isMethodCall);
   }
 
   @NotNull
