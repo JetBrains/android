@@ -68,6 +68,9 @@ public class TutorialCard extends CardViewPanel {
   private boolean myAdjustmentListenerInitialized;
   private int myStepIndex;
 
+  // The card will not draw anything when it's not visible. This boolean checks if the card is drawn for the first time.
+  private boolean myFirstTimeDrawn = false;
+
   TutorialCard(@NotNull FeaturesPanel featuresPanel,
                @NotNull TutorialData tutorial,
                @NotNull FeatureData feature,
@@ -94,10 +97,14 @@ public class TutorialCard extends CardViewPanel {
     add(myContentsScroller, BorderLayout.CENTER);
 
     // add nav for step by step tutorials
-    if (myBundle.isStepByStep()) {
+    if (tutorial.shouldLoadLazily()) {
+      // This card can be loaded later. Draw when visibility changes.
       add(new StepByStepFooter(), BorderLayout.SOUTH);
+    } else {
+      // Draw now. Cards initially visible will not go through the {@link #setVisibility} calls.
+      myFirstTimeDrawn = true;
+      redraw();
     }
-    redraw();
   }
 
   /**
@@ -105,6 +112,11 @@ public class TutorialCard extends CardViewPanel {
    */
   @Override
   public void setVisible(boolean aFlag) {
+    if (aFlag && !myFirstTimeDrawn) {
+      // First time the card is visible.
+      myFirstTimeDrawn = true;
+      redraw();
+    }
     super.setVisible(aFlag);
     initScrollValues();
   }

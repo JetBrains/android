@@ -376,6 +376,9 @@ public class DefaultTutorialBundle implements TutorialBundleData {
     @XmlAttribute(name = "hasLocalHTMLPaths")
     private boolean myHasLocalHTMLPaths = false;
 
+    @XmlAttribute(name = "loadLazily")
+    private boolean myLoadLazily = false;
+
     protected String myResourceRoot;
 
     @XmlElements({
@@ -426,6 +429,11 @@ public class DefaultTutorialBundle implements TutorialBundleData {
     @Override
     public boolean hasLocalHTMLPaths() {
       return myHasLocalHTMLPaths;
+    }
+
+    @Override
+    public boolean shouldLoadLazily() {
+      return myLoadLazily;
     }
 
     @Nullable
