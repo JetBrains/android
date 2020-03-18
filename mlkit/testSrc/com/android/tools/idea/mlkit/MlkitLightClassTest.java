@@ -248,7 +248,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "class MainActivity : Activity() {\n" +
       "    override fun onCreate(savedInstanceState: Bundle?) {\n" +
       "        super.onCreate(savedInstanceState)\n" +
-      "        val tensorImage: TensorImage? = null\n" +
+      "        val tensorImage = TensorImage()\n" +
       "        val mymodel = MyModel.newInstance(this)\n" +
       "        val outputs = mymodel.process(tensorImage)\n" +
       "        val probability = outputs.probabilityAsTensorLabel\n" +
@@ -279,7 +279,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "class MainActivity : Activity() {\n" +
       "    override fun onCreate(savedInstanceState: Bundle?) {\n" +
       "        super.onCreate(savedInstanceState)\n" +
-      "        val inputFeature: TensorBuffer? = null\n" +
+      "        val inputFeature = TensorBuffer()\n" +
       "        val mymodel = MyPlainModel.newInstance(this)\n" +
       "        val outputs = mymodel.process(inputFeature)\n" +
       "        val outputFeature = outputs.outputFeature0AsTensorBuffer\n" +
