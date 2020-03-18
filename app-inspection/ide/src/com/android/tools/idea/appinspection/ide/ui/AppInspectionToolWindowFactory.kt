@@ -41,7 +41,7 @@ class AppInspectionToolWindowFactory : DumbAware, ToolWindowFactory, Condition<P
   }
 
   override fun init(toolWindow: ToolWindow) {
-    toolWindow.isToHideOnEmptyContent = true
+    toolWindow.setToHideOnEmptyContent(true)
     toolWindow.hide(null)
     toolWindow.isShowStripeButton = false
     toolWindow.stripeTitle = APP_INSPECTION_TITLE
