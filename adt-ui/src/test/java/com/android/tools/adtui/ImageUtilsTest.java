@@ -29,13 +29,14 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.List;
 import javax.imageio.ImageIO;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
 
+@SuppressWarnings("UndesirableClassUsage")
 public class ImageUtilsTest extends TestCase {
   public void testScaleImage() throws Exception {
-    @SuppressWarnings("UndesirableClassUsage")
     BufferedImage image = new BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB_PRE);
     Graphics g = image.getGraphics();
     g.setColor(new Color(0xFF00FF00, true));
@@ -74,7 +75,7 @@ public class ImageUtilsTest extends TestCase {
     assertEquals(0xFFFF0000, scaled.getRGB(13, 13));
   }
 
-  public void testRotation() throws IOException {
+  public void testRotateByRightAngle() throws IOException {
     BufferedImage srcImage = readImage("/imageutils/0.png");
     BufferedImage expected90 = readImage("/imageutils/90.png");
     BufferedImage expected180 = readImage("/imageutils/180.png");
@@ -90,6 +91,20 @@ public class ImageUtilsTest extends TestCase {
       img = ImageUtils.rotateByRightAngle(img, 90);
     }
     assertEqualsImage(srcImage, img);
+  }
+
+  public void testRotateByQuadrantsAndScale() throws Exception {
+    BufferedImage testImage = readImage("/imageutils/colors.png");
+    int h = testImage.getHeight();
+    int w = testImage.getWidth();
+    BufferedImage image0 = ImageUtils.rotateByQuadrantsAndScale(testImage, 0, w * 3 / 4, h * 3 / 4);
+    BufferedImage image1 = ImageUtils.rotateByQuadrantsAndScale(testImage, 1, h * 3 / 4, w * 3 / 4);
+    BufferedImage image2 = ImageUtils.rotateByQuadrantsAndScale(testImage, 2, w * 3 / 4, h * 3 / 4);
+    BufferedImage image3 = ImageUtils.rotateByQuadrantsAndScale(testImage, 3, h * 3 / 4, w * 3 / 4);
+    assertEqualsImage("/imageutils/rotateByQuadrantsAndScale_golden0.png", image0);
+    assertEqualsImage("/imageutils/rotateByQuadrantsAndScale_golden1.png", image1);
+    assertEqualsImage("/imageutils/rotateByQuadrantsAndScale_golden2.png", image2);
+    assertEqualsImage("/imageutils/rotateByQuadrantsAndScale_golden3.png", image3);
   }
 
   public void testAddMargin() {
@@ -110,7 +125,6 @@ public class ImageUtilsTest extends TestCase {
   }
 
   private static BufferedImage createTestImage(int w, int h, int imageType, Color fill) {
-    @SuppressWarnings("UndesirableClassUsage")
     BufferedImage image = new BufferedImage(w, h, imageType);
     Graphics g = image.getGraphics();
     g.setColor(fill);
@@ -124,11 +138,15 @@ public class ImageUtilsTest extends TestCase {
     return ImageIO.read(f);
   }
 
-  private static void assertEqualsImage(BufferedImage expected, BufferedImage actual) {
+  private static void assertEqualsImage(@NotNull BufferedImage expected, @NotNull BufferedImage actual) {
     assertEqualsImageExcludingMargin(expected, actual, 0);
   }
 
-  private static void assertEqualsImageExcludingMargin(BufferedImage expected, BufferedImage actual, int margin) {
+  private static void assertEqualsImage(@NotNull String expectedImageFile, @NotNull BufferedImage actual) throws IOException {
+    assertEqualsImageExcludingMargin(readImage(expectedImageFile), actual, 0);
+  }
+
+  private static void assertEqualsImageExcludingMargin(@NotNull BufferedImage expected, @NotNull BufferedImage actual, int margin) {
     assertEquals(expected.getWidth(), actual.getWidth() - 2 * margin);
     assertEquals(expected.getHeight(), actual.getHeight() - 2 * margin);
 
@@ -252,9 +270,7 @@ public class ImageUtilsTest extends TestCase {
    *                    doubling the image size
    * @return a rendered image, or null
    */
-  public static BufferedImage drawRectangles(BufferedImage image,
-                                             java.util.List<Rectangle> rectangles, Rectangle boundingBox, double scale) {
-
+  public static BufferedImage drawRectangles(BufferedImage image, List<Rectangle> rectangles, Rectangle boundingBox, double scale) {
     // This code is not a test. When I implemented image cropping, I first implemented
     // it for BufferedImages (since it's easier; easy image painting, easy scaling,
     // easy transparency handling, etc). However, this meant that we would need to
@@ -308,7 +324,6 @@ public class ImageUtilsTest extends TestCase {
     return dest;
   }
 
-  @SuppressWarnings("UndesirableClassUsage")
   public void testNonOpaque() throws Exception {
     BufferedImage image = new BufferedImage(100, 200, BufferedImage.TYPE_INT_RGB);
     assertThat(ImageUtils.isNonOpaque(image)).isFalse();
@@ -338,8 +353,8 @@ public class ImageUtilsTest extends TestCase {
   }
 
   /**
-   * Check that when requesting an image with the same size as the original, we indeed
-   * get the same image as the original
+   * Checks that when requesting an image with the same size as the original, we indeed
+   * get the same image as the original.
    */
   public void testReadImageAtScaleNoScale() throws IOException {
     File imageFile = TestResources.getFile(ImageUtilsTest.class, "/imageutils/star.png");
