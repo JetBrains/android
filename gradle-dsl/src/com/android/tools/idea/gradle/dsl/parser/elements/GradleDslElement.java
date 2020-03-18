@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.psi.PsiElement;
 import kotlin.Pair;
@@ -240,4 +241,10 @@ public interface GradleDslElement extends AnchorProvider {
   ModelEffectDescription getModelEffect();
 
   void setModelEffect(@Nullable ModelEffectDescription effect);
+
+  /**
+   *  A convenience function to extract the property if the effect is not null.
+   */
+  @Nullable
+  ModelPropertyDescription getModelProperty();
 }
