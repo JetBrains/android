@@ -44,7 +44,7 @@ public class AndroidImportMlModelAction extends AnAction {
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
     File mlDirectory = getModuleMlDirectory(e);
-    if (mlDirectory != null) {
+    if (mlDirectory != null && e.getProject() != null) {
       String title = "Import TensorFlow Lite model";
       ModelWizard wizard = new ModelWizard.Builder()
         .addStep(new ChooseMlModelStep(new MlWizardModel(mlDirectory, e.getProject()), e.getProject(), title))
@@ -87,8 +87,11 @@ public class AndroidImportMlModelAction extends AnAction {
   @Nullable
   private static File getModuleMlDirectory(@NotNull AnActionEvent e) {
     Module module = LangDataKeys.MODULE.getData(e.getDataContext());
-    // Stores the last file user has focused, so we know where user want to add this model.
-    VirtualFile virtualFile = CommonDataKeys.VIRTUAL_FILE.getData(e.getDataContext());
-    return MlkitUtils.getModuleMlDirectory(ProjectSystemUtil.getModuleSystem(module).getModuleTemplates(virtualFile));
+    if (module != null) {
+      // Stores the last file user has focused, so we know where user want to add this model.
+      VirtualFile virtualFile = CommonDataKeys.VIRTUAL_FILE.getData(e.getDataContext());
+      return MlkitUtils.getModuleMlDirectory(ProjectSystemUtil.getModuleSystem(module).getModuleTemplates(virtualFile));
+    }
+    return null;
   }
 }

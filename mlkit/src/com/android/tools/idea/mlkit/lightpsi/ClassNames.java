@@ -16,11 +16,9 @@
 package com.android.tools.idea.mlkit.lightpsi;
 
 class ClassNames {
-  public static String BITMAP = "android.graphics.Bitmap";
-  public static String BYTE_BUFFER = "java.nio.ByteBuffer";
-  public static String CONTEXT = "android.content.Context";
-  public static String IO_EXCEPTION = "java.io.IOException";
-  public static String TENSOR_IMAGE = "org.tensorflow.lite.support.image.TensorImage";
-  public static String TENSOR_BUFFER = "org.tensorflow.lite.support.tensorbuffer.TensorBuffer";
-  public static String TENSOR_LABEL = "org.tensorflow.lite.support.label.TensorLabel";
+  public static final String CONTEXT = "android.content.Context";
+  public static final String IO_EXCEPTION = "java.io.IOException";
+  public static final String TENSOR_IMAGE = "org.tensorflow.lite.support.image.TensorImage";
+  public static final String TENSOR_BUFFER = "org.tensorflow.lite.support.tensorbuffer.TensorBuffer";
+  public static final String TENSOR_LABEL = "org.tensorflow.lite.support.label.TensorLabel";
 }

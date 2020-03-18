@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 public class CodeUtils {
 
   /**
-   * Get qualified type name based on {@link Param}
+   * Get qualified type name based on {@link TensorInfo}.
    */
   @NotNull
   public static String getTypeQualifiedName(@NotNull TensorInfo tensorInfo) {
