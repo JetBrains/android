@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.appinspection.ide.ui
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
@@ -34,6 +35,7 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import java.awt.BorderLayout
 import java.awt.event.ItemEvent
+import java.util.concurrent.CopyOnWriteArrayList
 import javax.swing.JPanel
 
 class AppInspectionView(private val project: Project, private val appInspectionDiscoveryHost: AppInspectionDiscoveryHost) {
@@ -46,6 +48,8 @@ class AppInspectionView(private val project: Project, private val appInspectionD
     get() = ModuleManager.getInstance(project).modules
       .mapNotNull { AndroidModuleInfo.getInstance(it)?.`package` }
       .toList()
+
+  private val activeClients = CopyOnWriteArrayList<AppInspectorClient.CommandMessenger>()
 
   init {
     component.border = AdtUiUtils.DEFAULT_RIGHT_BORDER
@@ -65,8 +69,13 @@ class AppInspectionView(private val project: Project, private val appInspectionD
     }
   }
 
+  @UiThread
   private fun refreshTabs(tabbedPane: CommonTabbedPane, itemEvent: ItemEvent) {
     tabbedPane.removeAll()
+    activeClients.removeAll {
+      it.disposeInspector()
+      true
+    }
     val descriptor = itemEvent.item as? ProcessDescriptor ?: return
     appInspectionDiscoveryHost.attachToProcess(descriptor).transform { target ->
       AppInspectorTabProvider.EP_NAME.extensionList
@@ -77,6 +86,7 @@ class AppInspectionView(private val project: Project, private val appInspectionD
               provider.createTab(project, messenger)
                 .also { tab -> tabbedPane.addTab(provider.displayName, tab.component) }
             }
+            activeClients.add(messenger)
             tab.client
           }.addCallback(MoreExecutors.directExecutor(), object : FutureCallback<AppInspectorClient> {
             override fun onSuccess(result: AppInspectorClient?) {
