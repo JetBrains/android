@@ -29,11 +29,13 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.UserDataHolderBase;
+import com.intellij.openapi.util.io.FileTooBigException;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiParameter;
+import com.intellij.ui.BrowserHyperlinkListener;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.StartupUiUtil;
@@ -116,6 +118,11 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
             new MlModelMetadata(myFile.getUrl(), MlkitNames.computeModelClassName((VfsUtilCore.virtualToIoFile(myFile)))));
         htmlBodyBuilder.append(getSampleCodeSectionBody(modelClass, modelInfo));
       }
+    }
+    catch (FileTooBigException e) {
+      htmlBodyBuilder.append(
+        "Model file is larger than 20MB, please check <a href=\"https://developer.android.com/studio/write/mlmodelbinding\">our " +
+        "documentation</a> for a workaround.");
     }
     catch (IOException e) {
       Logger.getInstance(TfliteModelFileEditor.class).error(e);
@@ -247,6 +254,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     pane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
     pane.setText(html);
     pane.setBackground(UIUtil.getTextFieldBackground());
+    pane.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE);
   }
 
   @NotNull
