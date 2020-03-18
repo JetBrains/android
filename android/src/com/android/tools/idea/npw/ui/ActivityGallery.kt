@@ -21,6 +21,7 @@
 
 package com.android.tools.idea.npw.ui
 
+import com.android.tools.idea.npw.toWizardFormFactor
 import com.android.tools.idea.wizard.template.Template
 import com.intellij.openapi.util.IconLoader
 import icons.AndroidIcons
@@ -36,3 +37,5 @@ fun getTemplateIcon(template: Template): TemplateIcon? {
   return TemplateIcon(icon)
 }
 
+fun getTemplateTitle(template: Template): String =
+  template.name.replace("${template.formFactor.toWizardFormFactor().displayName} ", "")
