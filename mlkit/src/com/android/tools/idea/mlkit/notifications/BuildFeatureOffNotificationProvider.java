@@ -57,9 +57,7 @@ public class BuildFeatureOffNotificationProvider extends EditorNotifications.Pro
     Module module = ModuleUtilCore.findModuleForFile(file, project);
     if (module != null && !MlkitUtils.isMlModelBindingBuildFeatureEnabled(module) && MlkitUtils.isModelFileInMlModelsFolder(module, file)) {
       EditorNotificationPanel panel = new EditorNotificationPanel();
-      panel.setText(
-        "Tensorflow Lite model binding build feature is disabled. To configure your app to use model binding, " +
-        "enable the feature in your build.gradle file.");
+      panel.setText("TensorFlow Lite model binding build feature is disabled. Click Learn More for steps on how to enable.");
       panel.createActionLabel("Learn more", () -> BrowserUtil.browse("https://developer.android.com/studio/write/mlmodelbinding"));
       panel.createActionLabel("Hide notification", () -> {
         fileEditor.putUserData(HIDDEN_KEY, "true");
