@@ -154,7 +154,10 @@ class DatabaseInspectorControllerImpl(
   }
 
   override suspend fun databasePossiblyChanged() = withContext(uiThread) {
-    // TODO(next CL): update tabs and schema
+    // update schemas
+    model.getOpenDatabases().forEach { updateDatabaseSchema(it) }
+    // update tabs
+    resultSetControllers.values.forEach { it.notifyDataMightBeStale() }
   }
 
   override fun dispose() = invokeAndWaitIfNeeded {
@@ -461,6 +464,11 @@ interface DatabaseInspectorController : Disposable {
      * While the future of the first invocation is not completed, the future from the first invocation is returned to following invocations.
      */
     fun refreshData(): ListenableFuture<Unit>
+
+    /**
+     * Notify this tab that its data might be stale.
+     */
+    fun notifyDataMightBeStale()
   }
 }
 

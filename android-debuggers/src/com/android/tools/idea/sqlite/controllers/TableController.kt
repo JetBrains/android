@@ -95,6 +95,8 @@ class TableController(
    */
   private var refreshDataFuture: ListenableFuture<Unit> = Futures.immediateFuture(Unit)
 
+  private var liveUpdatesEnabled = false
+
   fun setUp(): ListenableFuture<Unit> {
     view.startTableLoading()
     return databaseConnection.execute(sqliteStatement).transform(edtExecutor) { newResultSet ->
@@ -117,6 +119,13 @@ class TableController(
     view.startTableLoading()
     refreshDataFuture = fetchAndDisplayTableData()
     return refreshDataFuture
+  }
+
+  override fun notifyDataMightBeStale() {
+    // refresh the table, without showing a loading screen.
+    if (liveUpdatesEnabled && refreshDataFuture.isDone) {
+      refreshDataFuture = fetchAndDisplayTableData()
+    }
   }
 
   override fun dispose() {
@@ -242,7 +251,7 @@ class TableController(
     return future
   }
 
-  private fun isEditable() = tableSupplier() != null
+  private fun isEditable() = tableSupplier() != null && !liveUpdatesEnabled
 
   private inner class TableViewListenerImpl : TableView.Listener {
     override fun toggleOrderByColumnInvoked(sqliteColumn: SqliteColumn) {
@@ -322,6 +331,15 @@ class TableController(
     override fun refreshDataInvoked() {
       databaseInspectorAnalyticsTracker.trackTargetRefreshed(AppInspectionEvent.DatabaseInspectorEvent.TargetType.TABLE_TARGET)
       refreshData()
+    }
+
+    override fun toggleLiveUpdatesInvoked() {
+      liveUpdatesEnabled = !liveUpdatesEnabled
+      view.setEditable(!liveUpdatesEnabled)
+
+      if (liveUpdatesEnabled) {
+        notifyDataMightBeStale()
+      }
     }
 
     override fun updateCellInvoked(targetRowIndex: Int, targetColumn: SqliteColumn, newValue: SqliteValue) {

@@ -70,6 +70,10 @@ class SqliteEvaluatorController(
     return currentTableController?.refreshData() ?: Futures.immediateFuture(Unit)
   }
 
+  override fun notifyDataMightBeStale() {
+    currentTableController?.notifyDataMightBeStale()
+  }
+
   override fun dispose() {
     view.removeListener(sqliteEvaluatorViewListener)
     listeners.clear()

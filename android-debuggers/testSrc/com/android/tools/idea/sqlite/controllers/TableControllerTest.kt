@@ -1611,6 +1611,31 @@ class TableControllerTest : PlatformTestCase() {
     verify(mockTrackerService).trackTableCellEdited()
   }
 
+  fun testNotifyDataMightBeStaleUpdatesTable() {
+    // Prepare
+    val mockResultSet = MockSqliteResultSet()
+    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(
+      project,10, tableView, { sqliteTable }, mockDatabaseConnection, SqliteStatement(""), {}, edtExecutor, edtExecutor
+    )
+    Disposer.register(testRootDisposable, tableController)
+    pumpEventsAndWaitForFuture(tableController.setUp())
+
+    // Act
+    tableView.listeners.first().toggleLiveUpdatesInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    // 1st invocation by setUp, 2nd by toggleLiveUpdatesInvoked
+    verify(tableView, times(2)).showTableColumns(mockResultSet._columns)
+    // invocation by setUp
+    verify(tableView, times(1)).updateRows(mockResultSet.invocations[0].map { RowDiffOperation.AddRow(it) })
+    // invocation by toggleLiveUpdatesInvoked
+    verify(tableView, times(1)).updateRows(emptyList())
+    // invocation by setUp
+    verify(tableView, times(1)).startTableLoading()
+  }
+
   private fun testUpdateWorksOnCustomDatabase(databaseFile: VirtualFile, targetTableName: String, targetColumnName: String, expectedSqliteStatement: String) {
     // Prepare
     customDatabaseConnection = pumpEventsAndWaitForFuture(
