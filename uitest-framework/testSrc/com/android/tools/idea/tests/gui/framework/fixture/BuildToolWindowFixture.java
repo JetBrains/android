@@ -100,6 +100,7 @@ public class BuildToolWindowFixture extends ToolWindowFixture {
     return consoleView.getText();
   }
 
+/* b/154962719
   private ToolWindowContentUi getContentUI() {
     return ((ToolWindowImpl)myToolWindow).getContentUI();
   }
@@ -158,4 +159,5 @@ public class BuildToolWindowFixture extends ToolWindowFixture {
     clickCloseTab("Build Analyzer");
     waitTabNotExist("Build Analyzer");
   }
+b/154962719 */
 }
