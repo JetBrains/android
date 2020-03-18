@@ -91,6 +91,8 @@ public final class ScrollViewScrollHandler implements ScrollHandler {
       if (scrollPosX != 0 || scrollPosY != 0) {
         view.scrollTo(scrollPosX, scrollPosY);
       }
+      // This is required for layoutlib native to invalidate and redraw correctly
+      view.requestLayout();
     }
 
     if (!(view instanceof ViewGroup)) {
