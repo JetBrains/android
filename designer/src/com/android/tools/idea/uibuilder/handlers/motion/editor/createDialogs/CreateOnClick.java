@@ -82,12 +82,6 @@ public class CreateOnClick extends BaseCreatePanel {
     gbc.anchor = GridBagConstraints.CENTER;
     add(viewIds, gbc);
 
-    grid(gbc, 0, y++);
-    gbc.weighty = 0;
-    gbc.insets = MEUI.dialogLabelInsets();
-    gbc.anchor = GridBagConstraints.CENTER;
-    add(new JLabel("Action"), gbc);
-
     gbc.fill = GridBagConstraints.HORIZONTAL;
 
     gbc.weighty = 1;
