@@ -70,11 +70,4 @@ enum class FormFactor(@JvmField val id: String,
 
   // Currently all form factors have emulators, but we keep this method to ease introduction of new form factors
   fun hasEmulator(): Boolean = true
-
-  companion object {
-    private val FORM_FACTORS = values().associateBy({ it.id }, { it })
-
-    @JvmStatic
-    operator fun get(id: String): FormFactor = FORM_FACTORS[id] ?: MOBILE
-  }
 }
