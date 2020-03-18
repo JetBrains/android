@@ -20,10 +20,13 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl;
 import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.removeElement;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelSemanticsDescription.CREATE_WITH_VALUE;
 
 /**
  * <p>Defines a transform that can be used to allow a {@link GradlePropertyModel} to represent complex properties.
@@ -82,6 +85,14 @@ public abstract class PropertyTransform {
                                            @NotNull Object value,
                                            @NotNull String name);
 
+  @NotNull
+  public GradleDslExpression bind(@NotNull GradleDslElement holder,
+                                  @Nullable GradleDslElement oldElement,
+                                  @NotNull Object value,
+                                  @NotNull ModelPropertyDescription propertyDescription) {
+    return bind(holder, oldElement, value, propertyDescription.name);
+  }
+
   /**
    * A function used to bind a new list to the {@link GradlePropertyModel}.
    *
@@ -100,6 +111,16 @@ public abstract class PropertyTransform {
     return new GradleDslExpressionList(holder, GradleNameElement.create(name), !isMethodCall, isSet);
   }
 
+  public GradleDslExpression bindList(@NotNull GradleDslElement holder,
+                                      @Nullable GradleDslElement oldElement,
+                                      @NotNull ModelPropertyDescription propertyDescription,
+                                      boolean isMethodCall,
+                                      boolean isSet) {
+    GradleDslExpression result = bindList(holder, oldElement, propertyDescription.name, isMethodCall, isSet);
+    result.setModelEffect(new ModelEffectDescription(propertyDescription, CREATE_WITH_VALUE));
+    return result;
+  }
+
   /**
    * A function used to bind a new map to the {@link GradlePropertyModel}.
    *
@@ -115,6 +136,16 @@ public abstract class PropertyTransform {
                                      @NotNull String name,
                                      boolean isMethodCall) {
     return new GradleDslExpressionMap(holder, GradleNameElement.create(name), !isMethodCall);
+  }
+
+  @NotNull
+  public GradleDslExpression bindMap(@NotNull GradleDslElement holder,
+                                     @Nullable GradleDslElement oldElement,
+                                     @NotNull ModelPropertyDescription propertyDescription,
+                                     boolean isMethodCall) {
+    GradleDslExpression result = bindMap(holder, oldElement, propertyDescription.name, isMethodCall);
+    result.setModelEffect(new ModelEffectDescription(propertyDescription, CREATE_WITH_VALUE));
+    return result;
   }
 
   /**

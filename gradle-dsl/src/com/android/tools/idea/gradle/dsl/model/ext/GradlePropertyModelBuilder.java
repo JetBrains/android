@@ -213,9 +213,16 @@ public class GradlePropertyModelBuilder {
    */
   public GradlePropertyModelImpl build() {
     GradleDslElement currentElement = getElement();
-    GradlePropertyModelImpl model = currentElement == null
-                                    ? new GradlePropertyModelImpl(getParentElement(), myType, myName)
-                                    : new GradlePropertyModelImpl(currentElement);
+    GradlePropertyModelImpl model;
+    if (currentElement != null) {
+      model = new GradlePropertyModelImpl(currentElement);
+    }
+    else if(myProperty != null) {
+      model = new GradlePropertyModelImpl(getParentElement(), myType, myProperty);
+    }
+    else {
+      model = new GradlePropertyModelImpl(getParentElement(), myType, myName);
+    }
     return setUpModel(model);
   }
 
