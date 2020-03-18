@@ -60,21 +60,24 @@ class TreePanel : ToolContent<DesignSurface> {
     componentTree = tree
     componentTreeModel = model
     componentTreeSelectionModel = selectionModel
-    selectionModel.addSelectionListener {
-      designSurface?.let {
-        val list = selectionModel.currentSelection.filterIsInstance<NlComponent>()
-        val oldRootNavigation = (it as? NavDesignSurface)?.currentNavigation
+    selectionModel.addSelectionListener { updateSelection() }
+  }
 
-        it.selectionModel.setSelection(list)
+  @VisibleForTesting
+  fun updateSelection() {
+    val surface = designSurface ?: return
+    val list = componentTreeSelectionModel.currentSelection.filterIsInstance<NlComponent>()
+    val oldRootNavigation = (surface as? NavDesignSurface)?.currentNavigation
 
-        val newRootNavigation = (it as? NavDesignSurface)?.currentNavigation
-        if (oldRootNavigation == newRootNavigation && !list.contains(newRootNavigation)) {
-          it.scrollToCenter(list.filter { component -> component.isDestination })
-        }
+    surface.selectionModel.setSelection(list)
 
-        it.needsRepaint()
-      }
+    // Don't scroll if we've either selected the root navigation, or changed the root navigation
+    val newRootNavigation = (surface as? NavDesignSurface)?.currentNavigation
+    if (oldRootNavigation == newRootNavigation && !list.contains(newRootNavigation)) {
+      surface.scrollToCenter(list.filter { component -> component.isDestination })
     }
+
+    surface.needsRepaint()
   }
 
   override fun setToolContext(toolContext: DesignSurface?) {
