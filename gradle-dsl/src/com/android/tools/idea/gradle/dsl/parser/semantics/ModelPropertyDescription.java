@@ -29,6 +29,11 @@ public class ModelPropertyDescription {
     this.type = UNSPECIFIED_FOR_NOW;
   }
 
+  public ModelPropertyDescription(@NotNull String name, @NotNull ModelPropertyType type) {
+    this.name = name;
+    this.type = type;
+  }
+
   @Override
   public String toString() {
     return name + " (" + type + ")";

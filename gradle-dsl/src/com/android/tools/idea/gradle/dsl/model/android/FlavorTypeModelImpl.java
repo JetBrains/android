@@ -18,8 +18,8 @@ package com.android.tools.idea.gradle.dsl.model.android;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.LIST_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
-import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.FILE_TRANSFORM;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_LIST;
 
 import com.android.tools.idea.gradle.dsl.api.android.FlavorTypeModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
@@ -35,7 +35,6 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
-import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import java.util.List;
@@ -52,7 +51,7 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   @NonNls public static final String BUILD_CONFIG_FIELD = "mBuildConfigField";
   @NonNls public static final String CONSUMER_PROGUARD_FILES = "mConsumerProguardFiles";
   @NonNls public static final String MANIFEST_PLACEHOLDERS = "mMmanifestPlaceholders";
-  @NonNls public static final ModelPropertyDescription MATCHING_FALLBACKS = new ModelPropertyDescription("mMatchingFallbacks");
+  @NonNls public static final ModelPropertyDescription MATCHING_FALLBACKS = new ModelPropertyDescription("mMatchingFallbacks", MUTABLE_LIST);
   @NonNls public static final String MULTI_DEX_ENABLED = "mMultiDexEnabled";
   @NonNls public static final String MULTI_DEX_KEEP_FILE = "mMultiDexKeepFile";
   @NonNls public static final String MULTI_DEX_KEEP_PROGUARD = "mMultiDexKeepProguard";

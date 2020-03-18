@@ -16,5 +16,6 @@
 package com.android.tools.idea.gradle.dsl.parser.semantics;
 
 public enum ModelPropertyType {
+  MUTABLE_LIST,
   UNSPECIFIED_FOR_NOW
 }
