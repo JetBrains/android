@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -86,6 +87,19 @@ public class IdeSettingsDialogFixture extends IdeaDialogFixture<SettingsDialog> 
 
   @NotNull
   public IdeSettingsDialogFixture selectSdkPage() {
+    return selectPage("Appearance & Behavior/System Settings/Android SDK");
+  }
+
+  @NotNull
+  public IdeSettingsDialogFixture selectExperimentalPage() {
+    return selectPage("Experimental");
+  }
+
+  public JCheckBoxFixture findCheckBox(@NotNull String text) {
+    return new JCheckBoxFixture(robot(), GuiTests.waitUntilShowing(robot(), Matchers.byText(JCheckBox.class, text)));
+  }
+
+  private IdeSettingsDialogFixture selectPage(@NotNull String path) {
     JPanel optionsEditor = field("myEditor").ofType(JPanel.class).in(getDialogWrapper()).get();
     List<JComponent> trees = findComponentsOfType(optionsEditor, "com.intellij.openapi.options.newEditor.SettingsTreeView");
     JComponent tree = Iterables.getOnlyElement(trees);
@@ -96,13 +110,14 @@ public class IdeSettingsDialogFixture extends IdeaDialogFixture<SettingsDialog> 
     // It takes a few seconds to load the whole tree.
     Wait.seconds(5).expecting("The desired path is loaded").until(() -> {
       try {
-        jTreeFixture.selectPath("Appearance & Behavior/System Settings/Android SDK");
+        jTreeFixture.selectPath(path);
         return true;
       } catch (LocationUnavailableException e) {
         return false;
       }
     });
     return this;
+
   }
 
   public void clickOK() {
