@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite
 
 import com.android.testutils.MockitoKt.any
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFutureException
 import com.android.tools.idea.device.fs.DeviceFileDownloaderService
@@ -28,6 +29,7 @@ import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorController
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorModel
 import com.android.tools.idea.sqlite.model.FileSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabase
+import com.android.tools.idea.testing.runDispatching
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.PlatformTestCase
@@ -44,6 +46,7 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
   private lateinit var databaseInspectorProjectService: DatabaseInspectorProjectService
   private lateinit var mockSqliteController: MockDatabaseInspectorController
   private lateinit var fileOpened: VirtualFile
+  private lateinit var model: MockDatabaseInspectorModel
 
   private var databaseToClose: SqliteDatabase? = null
 
@@ -57,7 +60,7 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
     sqliteFile1 = sqliteUtil.createTestSqliteDatabase("db1.db")
     DeviceFileId("deviceId", "filePath").storeInVirtualFile(sqliteFile1)
 
-    val model = MockDatabaseInspectorModel()
+    model = MockDatabaseInspectorModel()
     mockSqliteController = spy(MockDatabaseInspectorController(model))
 
     val fileOpener = Consumer<VirtualFile> { vf -> fileOpened = vf }
@@ -141,5 +144,32 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
     // Act/Assert
     pumpEventsAndWaitForFutureException(
       databaseInspectorProjectService.reDownloadAndOpenFile(openedDatabase, mock(DownloadProgress::class.java)))
+  }
+
+  fun testCloseAllLiveDatabase() {
+    // Prepare
+    val fileDatabase = pumpEventsAndWaitForFuture(databaseInspectorProjectService.openSqliteDatabase(sqliteFile1))
+    databaseToClose = fileDatabase
+
+    pumpEventsAndWaitForFuture(databaseInspectorProjectService.openSqliteDatabase(
+      mock(AppInspectorClient.CommandMessenger::class.java),
+      1,
+      "db1"
+    ))
+
+    pumpEventsAndWaitForFuture(databaseInspectorProjectService.openSqliteDatabase(
+      mock(AppInspectorClient.CommandMessenger::class.java),
+      2,
+      "db2"
+    ))
+
+    // Act
+    runDispatching {
+      databaseInspectorProjectService.closeAllLiveDatabase()
+    }
+
+    // Assert
+    assertSize(1, model.getOpenDatabases())
+    assertEquals(fileDatabase, model.getOpenDatabases().first())
   }
 }
