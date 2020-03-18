@@ -30,6 +30,7 @@ import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.datatransfer.StringSelection;
@@ -183,6 +184,10 @@ public class MEUI {
   public static final int DIR_RIGHT = 1;
   public static final int DIR_TOP = 2;
   public static final int DIR_BOTTOM = 3;
+
+  public static Font getToolBarButtonSmallFont() {
+    return JBUI.Fonts.smallFont();
+  }
 
   public static JButton createToolBarButton(Icon icon, String tooltip) {
     return createToolBarButton(icon, null, tooltip);

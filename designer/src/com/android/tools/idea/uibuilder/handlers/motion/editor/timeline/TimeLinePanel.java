@@ -45,6 +45,8 @@ import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -63,6 +65,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JLayer;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.Timer;
 import javax.swing.event.ListSelectionEvent;
@@ -103,6 +106,7 @@ public class TimeLinePanel extends JPanel {
   int[] myYPoints = new int[5];
   private MTagActionListener mListener;
   Timer myMouseDownTimer;
+  JPopupMenu myPlaybackSpeedPopupMenu = new JPopupMenu();
 
   @Override
   public void updateUI() {
@@ -116,6 +120,11 @@ public class TimeLinePanel extends JPanel {
   }
   public TimeLinePanel() {
     super(new BorderLayout());
+
+    for (int i = 0; i < ourSpeedsMultipliers.length; i++) {
+      myPlaybackSpeedPopupMenu.add(ourSpeedsMultipliers[i] + "x").addActionListener(createPlaybackSpeedPopupMenuActionListener(i));
+    }
+
     JPanel top = new JPanel(new BorderLayout());
     top.add(myTimeLineTopPanel, BorderLayout.CENTER);
     top.add(mTimeLineTopLeft, BorderLayout.WEST);
@@ -475,6 +484,24 @@ public class TimeLinePanel extends JPanel {
     }
   }
 
+  private ActionListener createPlaybackSpeedPopupMenuActionListener(int playbackSpeedIndex) {
+    return new ActionListener() {
+      int speedIndex = playbackSpeedIndex;
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        Track.animationSpeed();
+        mCurrentSpeed = speedIndex;
+        myProgressPerMillisecond = ourSpeedsMultipliers[mCurrentSpeed] / (float)mDuration;
+        mTimeLineTopLeft.mSlow.setToolTipText(mDuration + " x " + ourSpeedsMultipliers[mCurrentSpeed]);
+        mTimeLineTopLeft.mSlow.setText(ourSpeedsMultipliers[mCurrentSpeed] + "x");
+      }
+    };
+  }
+
+  private void showPlaybackSpeedPopup() {
+    myPlaybackSpeedPopupMenu.show(mTimeLineTopLeft.mSlow, 0, 20);
+  }
+
   private void performCommand(TimelineCommands e, int mode) {
     watchdog();
     switch (e) {
@@ -486,10 +513,7 @@ public class TimeLinePanel extends JPanel {
         mIsPlaying = true;
         break;
       case SPEED:
-        Track.animationSpeed();
-        mCurrentSpeed = (mCurrentSpeed + 1) % ourSpeedsMultipliers.length;
-        myProgressPerMillisecond = ourSpeedsMultipliers[mCurrentSpeed] / (float)mDuration;
-        mTimeLineTopLeft.mSlow.setToolTipText(mDuration + " x " + ourSpeedsMultipliers[mCurrentSpeed]);
+        showPlaybackSpeedPopup();
         break;
       case LOOP:
         Track.animationDirectionToggle();
