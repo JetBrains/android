@@ -46,6 +46,7 @@ import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeProfilerService;
+import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.ReferenceWalker;
@@ -74,12 +75,14 @@ import icons.StudioIcons;
 import java.awt.Component;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -342,28 +345,67 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     // TODO b/136292864
     Assume.assumeFalse(myUnifiedPipeline);
 
-    SessionsManager sessionsManager = myProfilers.getSessionsManager();
-    // Create a temp file
-    String data = "random_string_~!@#$%^&*()_+";
-    File file = FileUtil.createTempFile("fake_heap_dump", ".hprof", false);
-    PrintWriter printWriter = new PrintWriter(file);
-    printWriter.write(data);
-    printWriter.close();
-    // Import heap dump from file
-    assertThat(sessionsManager.importSessionFromFile(file)).isTrue();
-    assertThat(sessionsManager.getSelectedSessionMetaData().getType()).isEqualTo(MEMORY_CAPTURE);
-    assertThat(myProfilers.getStage()).isInstanceOf(MemoryProfilerStage.class);
-    MemoryProfilerStage stage = (MemoryProfilerStage)myProfilers.getStage();
-    assertThat(stage.isMemoryCaptureOnly()).isTrue();
-    // Create a FakeCaptureObject and then call selectCaptureDuration().
-    // selectCaptureDuration() would indirectly fire CURRENT_LOADING_CAPTURE aspect which will trigger captureObjectChanged().
-    // Because isDoneLoading() returns true by default in the FakeCaptureObject, captureObjectChanged() will call captureObjectFinishedLoading()
-    // which would execute the logic that had a null pointer exception as reported by b/117796712.
-    FakeCaptureObject captureObj = new FakeCaptureObject.Builder().setHeapIdToNameMap(ImmutableMap.of(0, "default", 1, "app")).build();
-    FakeInstanceObject instanceObject = new FakeInstanceObject.Builder(captureObj, 1, "DUMMY_CLASS1").setHeapId(0).build();
-    captureObj.addInstanceObjects(ImmutableSet.of(instanceObject));
-    stage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObj)),
-                                null);
+    // Make sure the second loading runs after the first due to b/151245410
+    testFirstLoadsCaptureThenStartSecond(
+      () -> {
+        try {
+          SessionsManager sessionsManager = myProfilers.getSessionsManager();
+          // Create a temp file
+          String data = "random_string_~!@#$%^&*()_+";
+          File file = FileUtil.createTempFile("fake_heap_dump", ".hprof", false);
+          PrintWriter printWriter = new PrintWriter(file);
+          printWriter.write(data);
+          printWriter.close();
+          // Import heap dump from file
+          assertThat(sessionsManager.importSessionFromFile(file)).isTrue();
+          assertThat(sessionsManager.getSelectedSessionMetaData().getType()).isEqualTo(MEMORY_CAPTURE);
+          assertThat(myProfilers.getStage()).isInstanceOf(MemoryProfilerStage.class);
+          MemoryProfilerStage stage = (MemoryProfilerStage)myProfilers.getStage();
+          assertThat(stage.isMemoryCaptureOnly()).isTrue();
+        } catch (IOException e) {
+          throw new RuntimeException(e.getMessage());
+        }
+      },
+      () -> {
+        MemoryProfilerStage stage = (MemoryProfilerStage)myProfilers.getStage();
+        // Create a FakeCaptureObject and then call selectCaptureDuration().
+        // selectCaptureDuration() would indirectly fire CURRENT_LOADING_CAPTURE aspect which will trigger captureObjectChanged().
+        // Because isDoneLoading() returns true by default in the FakeCaptureObject, captureObjectChanged() will call captureObjectFinishedLoading()
+        // which would execute the logic that had a null pointer exception as reported by b/117796712.
+        FakeCaptureObject captureObj = new FakeCaptureObject.Builder()
+          .setHeapIdToNameMap(ImmutableMap.of(0, "default", 1, "app")).build();
+        FakeInstanceObject instanceObject =
+          new FakeInstanceObject.Builder(captureObj, 1, "DUMMY_CLASS1").setHeapId(0).build();
+        captureObj.addInstanceObjects(ImmutableSet.of(instanceObject));
+        CaptureEntry<CaptureObject> entry = new CaptureEntry<>(new Object(), () -> captureObj);
+        stage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, entry),
+                                    null);
+      }
+    );
+  }
+
+  private void testFirstLoadsCaptureThenStartSecond(Runnable first, Runnable second) throws InterruptedException {
+    CountDownLatch firstFinished = new CountDownLatch(1);
+    CountDownLatch secondStarted = new CountDownLatch(1);
+    myProfilers.addDependency(myAspectObserver)
+      .onChange(ProfilerAspect.STAGE, () -> {
+        myProfilers.removeDependencies(myAspectObserver);
+        MemoryProfilerStage stage = (MemoryProfilerStage)myProfilers.getStage();
+        stage.getAspect().addDependency(myAspectObserver)
+          .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, () -> {
+            try {
+              assertThat(firstFinished.await(120, TimeUnit.SECONDS)).isTrue();
+            } catch (InterruptedException e) {
+              throw new RuntimeException(e.getMessage());
+            }
+            stage.getAspect().removeDependencies(myAspectObserver);
+            second.run();
+            secondStarted.countDown();
+          });
+      });
+    first.run();
+    firstFinished.countDown();
+    assertThat(secondStarted.await(120, TimeUnit.SECONDS)).isTrue();
   }
 
   @Test
