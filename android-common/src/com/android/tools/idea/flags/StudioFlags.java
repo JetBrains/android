@@ -171,10 +171,10 @@ public final class StudioFlags {
     false);
   //endregion
 
-  //region ML Kit
-  private static final FlagGroup MLKIT = new FlagGroup(FLAGS, "mlkit", "ML Kit");
+  //region ML
+  private static final FlagGroup ML = new FlagGroup(FLAGS, "ml", "ML");
   public static final Flag<Boolean> ML_MODEL_BINDING = Flag.create(
-    MLKIT, "modelbinding", "Enable ML model binding",
+    ML, "modelbinding", "Enable ML model binding",
     "When enabled, TFLite model file will be recognized and indexed. Please invalidates file caches after enabling " +
     "(File -> Invalidate Caches...) in order to reindex model files.",
     true);
