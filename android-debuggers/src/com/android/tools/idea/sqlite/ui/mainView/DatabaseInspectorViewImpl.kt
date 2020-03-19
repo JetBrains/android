@@ -44,6 +44,7 @@ import com.intellij.ui.tabs.UiDecorator
 import com.intellij.ui.tabs.impl.JBEditorTabs
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
+import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.GridBagLayout
 import java.awt.event.MouseAdapter
@@ -194,7 +195,7 @@ class DatabaseInspectorViewImpl(
       }
     })
     tab.setTabLabelActions(tabActionGroup, ActionPlaces.EDITOR_TAB)
-    tab.icon = AllIcons.Nodes.DataTables
+    tab.icon = StudioIcons.DatabaseInspector.TABLE
     tab.text = tableName
     return tab
   }
@@ -202,7 +203,7 @@ class DatabaseInspectorViewImpl(
   private fun createToolWindowDefinition(): ToolWindowDefinition<SqliteViewContext> {
     return ToolWindowDefinition(
       "Open Databases",
-      AllIcons.Nodes.DataTables,
+      StudioIcons.DatabaseInspector.TABLE,
       "OPEN_DATABASES",
       Side.LEFT,
       Split.TOP,
