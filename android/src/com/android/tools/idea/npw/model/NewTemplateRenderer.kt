@@ -166,7 +166,7 @@ fun titleToTemplateRenderer(title: String, formFactor: FormFactor): TemplateRend
   "Scrolling Activity" -> TemplateRenderer.SCROLLING_ACTIVITY
   "Google AdMob Ads Activity" -> TemplateRenderer.GOOGLE_ADMOBS_ADS_ACTIVITY
   "Always On Wear Activity" -> TemplateRenderer.ALWAYS_ON_WEAR_ACTIVITY
-  "Android TV Activity" -> TemplateRenderer.ANDROID_TV_ACTIVITY
+  "Android TV Blank Activity" -> TemplateRenderer.ANDROID_TV_ACTIVITY
   "Fullscreen Activity" -> TemplateRenderer.FULLSCREEN_ACTIVITY
   "Empty Compose Activity" -> TemplateRenderer.COMPOSE_EMPTY_ACTIVITY
   "Google Maps Activity" ->

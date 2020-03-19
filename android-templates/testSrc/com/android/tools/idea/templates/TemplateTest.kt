@@ -286,12 +286,12 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testNewTvActivity() {
-    checkCreateTemplate("Android TV Activity")
+    checkCreateTemplate("Android TV Blank Activity")
   }
 
   @TemplateCheck
   fun testNewTvActivityWithKotlin() {
-    checkCreateTemplate("Android TV Activity", withKotlin)
+    checkCreateTemplate("Android TV Blank Activity", withKotlin)
   }
 
 
