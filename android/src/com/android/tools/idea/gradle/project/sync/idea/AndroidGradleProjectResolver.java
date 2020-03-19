@@ -59,7 +59,6 @@ import com.android.ide.gradle.model.sources.SourcesAndJavadocArtifacts;
 import com.android.repository.Revision;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.LibraryFilePaths;
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -86,7 +85,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure;
 import com.intellij.execution.configurations.SimpleJavaParameters;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -281,7 +279,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         !hasArtifacts(gradleModule)) {
       // This is just a root folder for a group of Gradle projects. We don't set an IdeaGradleProject so the JPS builder won't try to
       // compile it using Gradle. We still need to create the module to display files inside it.
-      createJavaProject(gradleModule, ideModule, emptyList(), false, false);
+      createJavaProject(gradleModule, ideModule, emptyList(), false, false, kaptGradleModel);
       return;
     }
 
@@ -322,7 +320,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       // This is a Java lib module or Jar/Aar wrapped module.
       // The module is buildable only if JavaPlugin is applied. For Jar/Aar wrapped module, this could be false.
       createJavaProject(gradleModule, ideModule, issues, androidProjectWithoutVariants,
-                        gradlePluginList.contains("org.gradle.api.plugins.JavaPlugin"));
+                        gradlePluginList.contains("org.gradle.api.plugins.JavaPlugin"), kaptGradleModel);
       // Populate ContentRootDataNode for buildSrc module. This DataNode is required to setup classpath buildscript.
       if (BUILD_SRC_FOLDER_NAME.equals(gradleModule.getGradleProject().getName())) {
         nextResolver.populateModuleContentRoots(gradleModule, ideModule);
@@ -339,9 +337,12 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
                                  @NotNull DataNode<ModuleData> ideModule,
                                  @NotNull Collection<SyncIssue> syncIssues,
                                  boolean androidProjectWithoutVariants,
-                                 boolean isBuildable) {
+                                 boolean isBuildable,
+                                 @Nullable KaptGradleModel kaptGradleModel) {
     ExternalProject externalProject = resolverCtx.getExtraProject(gradleModule, ExternalProject.class);
-    JavaModuleModel javaModuleModel = myIdeaJavaModuleModelFactory.create(gradleModule, syncIssues, externalProject, androidProjectWithoutVariants, isBuildable);
+    JavaModuleModel javaModuleModel =
+      myIdeaJavaModuleModelFactory
+        .create(gradleModule, syncIssues, externalProject, androidProjectWithoutVariants, isBuildable, kaptGradleModel);
     ideModule.createChild(JAVA_MODULE_MODEL, javaModuleModel);
   }
 

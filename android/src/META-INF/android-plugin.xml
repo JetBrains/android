@@ -139,6 +139,12 @@
       <add-to-group group-id="ExportImportGroup" anchor="last"/>
     </action>
 
+    <group id="Android.InstantRunActions">
+      <action id="android.deploy.ApplyChanges" class="com.android.tools.idea.run.ui.ApplyChangesAction"/>
+      <action id="android.deploy.CodeSwap" class="com.android.tools.idea.run.ui.CodeSwapAction"/>
+      <add-to-group group-id="RunnerActions" anchor="after" relative-to-action="Run"/>
+    </group>
+
     <action id="LegacyNewAndroidComponent" class="com.android.tools.idea.actions.LegacyNewAndroidComponentAction">
       <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewDir"/>
     </action>
@@ -394,6 +400,8 @@
     <applicationService serviceImplementation="com.android.tools.idea.profiling.capture.CaptureTypeService"/>
     <applicationService serviceInterface="org.jetbrains.android.facet.AndroidFacetConfiguration$EditorTabProvider"
                         serviceImplementation="org.jetbrains.android.facet.AndroidFacetEditorTab$Provider"/>
+    <applicationService serviceInterface="com.android.tools.idea.util.CommonAndroidUtil"
+                        serviceImplementation="org.jetbrains.android.util.AndroidUtils"/>
     <fileEditorProvider implementation="com.android.tools.idea.profiling.capture.CaptureEditorProvider" />
 
     <stepsBeforeRunProvider implementation="com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider" />
@@ -657,6 +665,7 @@
     <projectService serviceImplementation="com.android.tools.idea.run.DevicePickerStateService" />
     <projectService serviceImplementation="com.android.tools.idea.stats.RunStatsService" />
     <projectService serviceImplementation="com.android.tools.idea.run.DeploymentService" />
+    <postStartupActivity implementation="com.android.tools.idea.deploy.DeployActionsInitializer"/>
 
     <projectService serviceImplementation="com.android.tools.idea.run.profiler.CpuProfilerConfigsState" />
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration"/>
@@ -895,7 +904,8 @@
                     interface="org.jetbrains.android.uipreview.ViewLoaderExtension"
                     area="IDEA_PROJECT"/>
     <extensionPoint qualifiedName="com.android.tools.idea.ui.guiTestingStatusProvider"
-                    interface="com.android.tools.idea.ui.GuiTestingStatusProvider" />
+                    interface="com.android.tools.idea.ui.GuiTestingStatusProvider"
+                    dynamic="false"/>
     <extensionPoint qualifiedName="com.android.tools.gradleModelProvider"
                     interface="com.android.tools.idea.gradle.dsl.api.GradleModelProvider" />
     <extensionPoint qualifiedName="com.android.rendering.renderSecurityManagerOverrides"
@@ -1019,13 +1029,6 @@
 
   <extensions defaultExtensionNs="com.android.run">
     <androidDebugger implementation="com.android.tools.idea.run.editor.AndroidJavaDebugger"/>
-  </extensions>
-
-  <extensions defaultExtensionNs="com.intellij">
-    <applicationConfigurable parentId="preferences.general"
-                             displayName="Memory Settings"
-                             provider="com.android.tools.idea.memorysettings.MemorySettingsConfigurableProvider"
-                             id="memory.settings"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.wizard.template">

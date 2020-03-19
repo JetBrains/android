@@ -16,10 +16,9 @@
 
 package com.android.tools.adtui.model;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.LinkedList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public final class Range extends AspectModel<Range.Aspect> {
 
@@ -159,6 +158,22 @@ public final class Range extends AspectModel<Range.Aspect> {
     else {
       return new Range(Math.max(getMin(), range.getMin()), Math.min(getMax(), range.getMax()));
     }
+  }
+
+  /**
+   * @return length of the intersection between this range and the given range. If they don't intersect, returns 0.0.
+   */
+  public double getIntersectionLength(@NotNull Range range) {
+    return getIntersectionLength(range.getMin(), range.getMax());
+  }
+
+  /**
+   * @return length of the intersection between this range and [min, max]. If they don't intersect, returns 0.0.
+   */
+  public double getIntersectionLength(double min, double max) {
+    double intersectionMin = Math.max(myMin, min);
+    double intersectionMax = Math.min(myMax, max);
+    return Math.max(0.0, intersectionMax - intersectionMin);
   }
 
   /**

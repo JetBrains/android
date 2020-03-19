@@ -26,6 +26,7 @@ import com.intellij.openapi.project.Project;
 import java.util.Collections;
 import java.util.List;
 import javax.swing.Icon;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,6 +36,10 @@ public class DeviceAndSnapshotExecutionTargetProvider extends ExecutionTargetPro
   public List<ExecutionTarget> getTargets(@NotNull Project project, @NotNull RunnerAndConfigurationSettings configuration) {
     ActionManager manager = ActionManager.getInstance();
     DeviceAndSnapshotComboBoxAction action = (DeviceAndSnapshotComboBoxAction)manager.getAction("DeviceAndSnapshotComboBox");
+
+    if (!AndroidUtils.hasAndroidFacets(project)) {
+      return Collections.singletonList(DefaultExecutionTarget.INSTANCE);
+    }
 
     // We always return an ExecutionTarget as long as we have valid config and package names.
     // This is because we don't want to maintain listener states with ddmlib, and we don't
