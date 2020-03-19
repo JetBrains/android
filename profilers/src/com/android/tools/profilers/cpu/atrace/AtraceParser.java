@@ -32,7 +32,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -57,16 +56,6 @@ import trebuchet.util.PrintlnImportFeedback;
 public class AtraceParser implements TraceParser {
   @VisibleForTesting
   static final long UTILIZATION_BUCKET_LENGTH_US = TimeUnit.MILLISECONDS.toMicros(50);
-  /**
-   * A value to be used when we don't know the process we want to parse.
-   * Note: The max process id values we can have is max short, and some invalid process names can be -1 so
-   * to avoid confusion we use int max.
-   */
-  public static final int INVALID_PROCESS = Integer.MAX_VALUE;
-  /**
-   * The platform RenderThread is hard coded to have this name.
-   */
-  public static final String RENDER_THREAD_NAME = "RenderThread";
 
   /**
    * SurfaceFlinger is responsible for compositing all the application and system surfaces into a single buffer
@@ -106,7 +95,6 @@ public class AtraceParser implements TraceParser {
   // Trebuchet.Model is what Trebuchet uses to represent all captured data.
   private Model myModel;
   private Range myRange;
-  private AtraceFrameManager myFrameInfo;
 
   @NotNull
   private final MainProcessSelector processSelector;
@@ -163,8 +151,9 @@ public class AtraceParser implements TraceParser {
     buildCaptureTreeNodes();
     buildThreadStateData();
     buildCpuStateData();
-    myFrameInfo = new AtraceFrameManager(myProcessModel, convertToUserTimeUsFunction(), findRenderThreadId(myProcessModel));
-    return new AtraceCpuCapture(traceId, myRange, this, myFrameInfo);
+
+    AtraceFrameManager frameManager = new AtraceFrameManager(myProcessModel, convertToUserTimeUsFunction());
+    return new AtraceCpuCapture(traceId, myRange, this, frameManager);
   }
 
   /**
@@ -297,10 +286,6 @@ public class AtraceParser implements TraceParser {
   @NotNull
   public List<SeriesData<Long>> getCpuUtilizationSeries() {
     return myCpuUtilizationSeries;
-  }
-
-  public int getRenderThreadId() {
-    return findRenderThreadId(myProcessModel);
   }
 
   /**
@@ -474,17 +459,6 @@ public class AtraceParser implements TraceParser {
       }
     }
     return name;
-  }
-
-  /**
-   * Helper function used to find the main and render threads.
-   *
-   * @return ui thread model as this element is required to be non-null.
-   */
-  private static int findRenderThreadId(@NotNull ProcessModel process) {
-    Optional<ThreadModel> renderThread =
-      process.getThreads().stream().filter((thread) -> thread.getName().equalsIgnoreCase(RENDER_THREAD_NAME)).findFirst();
-    return renderThread.map(ThreadModel::getId).orElse(INVALID_PROCESS);
   }
 
   @Nullable

@@ -35,7 +35,6 @@ public class AtraceCpuCapture extends BaseCpuCapture {
   @NotNull
   private final List<SeriesData<Long>> myCpuUtilizationSeries;
 
-  private final int myRenderThreadId;
   private final boolean myIsMissingData;
 
   @NotNull
@@ -47,8 +46,6 @@ public class AtraceCpuCapture extends BaseCpuCapture {
     myThreadStateDataSeries = parser.getThreadStateDataSeries();
     myCpuThreadSliceInfoStates = parser.getCpuThreadSliceInfoStates();
     myCpuUtilizationSeries = parser.getCpuUtilizationSeries();
-
-    myRenderThreadId = parser.getRenderThreadId();
     myIsMissingData = parser.isMissingData();
 
     myFrameManager = frameManager;
@@ -98,6 +95,6 @@ public class AtraceCpuCapture extends BaseCpuCapture {
 
   @Override
   public int getRenderThreadId() {
-    return myRenderThreadId;
+    return myFrameManager.getRenderThreadId();
   }
 }
