@@ -92,6 +92,8 @@ public class AndroidGradleTests {
   private static final Pattern GOOGLE_REPOSITORY_PATTERN = Pattern.compile("google\\(\\)");
   private static final Pattern JCENTER_REPOSITORY_PATTERN = Pattern.compile("jcenter\\(\\)");
   private static final Pattern MAVEN_REPOSITORY_PATTERN = Pattern.compile("maven \\{.*http.*\\}");
+  /** Property name that allows adding multiple local repositories via JVM properties */
+  private static final String ADDITIONAL_REPOSITORY_PROPERTY = "idea.test.gradle.additional.repositories";
 
   /**
    * Thrown when Android Studios Gradle imports obtains and SyncIssues from Gradle that have SyncIssues.SEVERITY_ERROR.
@@ -311,6 +313,26 @@ public class AndroidGradleTests {
       repositories.add(TestUtils.getPrebuiltOfflineMavenRepo());
       repositories.add(getWorkspaceFile("out/repo"));
     }
+
+    // Read optional repositories passed as JVM property (see ADDITIONAL_REPOSITORY_PROPERTY)
+    // This property allows multiple local repositories separated by the path separator
+    String additionalRepositories = System.getProperty(ADDITIONAL_REPOSITORY_PROPERTY);
+    if (additionalRepositories != null) {
+      for (String repositoryPath : additionalRepositories.split(File.pathSeparator)) {
+        File additionalRepositoryPathFile = new File(repositoryPath.trim());
+        if (additionalRepositoryPathFile.exists() && additionalRepositoryPathFile.isDirectory()) {
+          LOG.info(String.format("Added additional gradle repository '$1%s' from $2%s property",
+                                 additionalRepositoryPathFile, ADDITIONAL_REPOSITORY_PROPERTY));
+          repositories.add(additionalRepositoryPathFile);
+        }
+        else {
+          LOG.info(String.format("Unable to find additional gradle repository '$1%s'\n" +
+                                 "Check you $2%s property and verify the path",
+                                 additionalRepositoryPathFile, ADDITIONAL_REPOSITORY_PROPERTY));
+        }
+      }
+    }
+
     return repositories;
   }
 
