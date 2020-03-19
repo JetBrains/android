@@ -29,18 +29,13 @@ import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorModel
 import com.android.tools.idea.sqlite.model.FileSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.google.common.util.concurrent.Futures
-import com.intellij.openapi.application.runWriteAction
-import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.PlatformTestCase
-import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.registerServiceInstance
-import kotlinx.coroutines.runBlocking
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
-import org.mockito.Mockito.verify
 import java.util.function.Consumer
 
 class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
@@ -84,24 +79,6 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
       sqliteUtil.tearDown()
     } finally {
       super.tearDown()
-    }
-  }
-
-  // TODO(b/144904247) This test fails on pre-submit on windows. re-enable it. Need a windows machine.
-  fun testDatabaseIsClosedWhenFileIsDeleted() {
-    if (SystemInfo.isWindows) {
-      return
-    }
-    // Prepare
-    databaseToClose = pumpEventsAndWaitForFuture(databaseInspectorProjectService.openSqliteDatabase(sqliteFile1))
-
-    // Act
-    runWriteAction { sqliteFile1.delete(this) }
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-
-    // Assert
-    runBlocking {
-      verify(mockSqliteController).closeDatabase(databaseToClose!!)
     }
   }
 

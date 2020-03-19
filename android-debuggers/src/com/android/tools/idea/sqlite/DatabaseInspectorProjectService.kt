@@ -45,15 +45,9 @@ import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.vfs.VirtualFileManager
-import com.intellij.openapi.vfs.newvfs.BulkFileListener
-import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent
-import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.serviceContainer.NonInjectable
 import com.intellij.util.concurrency.EdtExecutorService
-import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.async
 import kotlinx.coroutines.guava.await
@@ -205,7 +199,6 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
     @UiThread get() = controller.component
 
   init {
-    // TODO(b/145341040) investigate performance impact.
     model.addListener(object : DatabaseInspectorController.Model.Listener {
       override fun onDatabaseAdded(database: SqliteDatabase) {
         if (database is FileSqliteDatabase) {
@@ -219,30 +212,6 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
         }
       }
     })
-
-    val virtualFileListener = object : BulkFileListener {
-      override fun before(events: MutableList<out VFileEvent>) {
-        if (openFileSqliteDatabases.isEmpty()) return
-
-        val toClose = mutableListOf<SqliteDatabase>()
-        for (event in events) {
-          if (event !is VFileDeleteEvent) continue
-
-          for (database in openFileSqliteDatabases) {
-            if (VfsUtil.isAncestor(event.file, database.virtualFile, false)) {
-              toClose.add(database)
-            }
-          }
-        }
-
-        for (database in toClose) {
-          projectScope.launch(NonCancellable) { controller.closeDatabase(database) }
-        }
-      }
-    }
-
-    val messageBusConnection = project.messageBus.connect(project)
-    messageBusConnection.subscribe(VirtualFileManager.VFS_CHANGES, virtualFileListener)
   }
 
   @AnyThread
