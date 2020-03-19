@@ -47,7 +47,6 @@ class PreviewNavigationTest {
     projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH)
     projectRule.requestSyncAndWait()
     val gradleInvocationResult = projectRule.invokeTasks("compileDebugSources")
-
     if (!gradleInvocationResult.isBuildSuccessful) {
       fail("""
         The project must compile correctly for the test to pass.
@@ -71,7 +70,6 @@ class PreviewNavigationTest {
   /**
    * Checks the rendering of the default `@Preview` in the Compose template.
    */
-  @Ignore("b/151091941")
   @Test
   fun testComposableNavigation() {
     val project = projectRule.project
@@ -93,8 +91,8 @@ class PreviewNavigationTest {
 
           // Click the Text("Hello 2") by clicking (0, 0)
           // The hits will be, in that other: Text > Column > MaterialTheme
+          // TODO(b/151091941): The Text hit is currently broken
           assertEquals("""
-            MainActivity.kt:47
             MainActivity.kt:46
             MainActivity.kt:45
           """.trimIndent(), findComponentHits(project, rootView, 0, 0)

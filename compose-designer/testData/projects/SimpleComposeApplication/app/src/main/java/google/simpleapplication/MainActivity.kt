@@ -45,7 +45,7 @@ fun TwoElementsPreview() {
     MaterialTheme {
         Column {
             Text("Hello 2")
-            Button {
+            Button(onClick = {}) {
                 Text("Hello World")
             }
         }

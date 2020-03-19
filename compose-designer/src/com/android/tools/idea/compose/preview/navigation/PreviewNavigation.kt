@@ -80,7 +80,7 @@ fun findComponentHits(project: Project, rootViewInfo: ViewInfo, @AndroidCoordina
   return allViewInfos
     .findHitWithDepth(x, y)
     // We do not need to keep hits without source information
-    .filter { !it.second.sourceLocation.isEmpty() }
+    .filter { it.second.sourceLocation.lineNumber >= 0 }
     // Sort by the hit depth. Elements lower in the hierarchy, are at the top. If they are the same level, order by line number
     .sortedWith(compareByDescending<Pair<Int, ComposeViewInfo>> { it.first }.thenByDescending { it.second.sourceLocation.lineNumber })
     .map { it.second.sourceLocation }
