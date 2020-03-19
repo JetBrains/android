@@ -141,7 +141,7 @@ public class MEUI {
   //0c283e
   public static class CSPanel {
     public static final Color our_SelectedFocusBackground =
-      makeColor("UIDesigner.motion.CSPanel.SelectedBackground", 0x3973d6, 0x2E65CA);
+      makeColor("UIDesigner.motion.CSPanel.SelectedFocusBackground", 0x3973d6, 0x2E65CA);
     public static final Color our_SelectedBackground =
       makeColor("UIDesigner.motion.CSPanel.SelectedBackground", 0xD3D3D3, 0x0C283E);
   }
