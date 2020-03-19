@@ -37,11 +37,12 @@ import javax.swing.SwingConstants
 /**
  * Represents contents of the Emulator tool window for a single Emulator instance.
  */
-class EmulatorToolWindowPanel(private val emulator: EmulatorController) : BorderLayoutPanel(), DataProvider {
+internal class EmulatorToolWindowPanel(private val emulator: EmulatorController) : BorderLayoutPanel(), DataProvider {
   private val toolbarActionGroup = DefaultActionGroup(createToolbarActions())
   private val toolbar = ActionManager.getInstance().createActionToolbar(EMULATOR_TOOLBAR_ID, toolbarActionGroup, isToolbarHorizontal)
   private val centerPanel: JPanel = JPanel(BorderLayout())
-  private var emulatorView: EmulatorView? = null
+  var emulatorView: EmulatorView? = null
+    private set
 
   val id
     get() = emulator.emulatorId
@@ -73,9 +74,9 @@ class EmulatorToolWindowPanel(private val emulator: EmulatorController) : Border
     }
   }
 
-  fun createContent() {
+  fun createContent(cropSkin: Boolean) {
     try {
-      emulatorView = EmulatorView(emulator)
+      emulatorView = EmulatorView(emulator, cropSkin)
       centerPanel.add(emulatorView)
       toolbar.setTargetComponent(emulatorView)
       centerPanel.repaint()
@@ -87,6 +88,7 @@ class EmulatorToolWindowPanel(private val emulator: EmulatorController) : Border
   }
 
   fun destroyContent() {
+    emulatorView = null
     toolbar.setTargetComponent(null)
     centerPanel.layout = BorderLayout()
     centerPanel.removeAll()
