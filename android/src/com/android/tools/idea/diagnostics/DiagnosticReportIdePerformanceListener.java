@@ -22,7 +22,9 @@ import com.android.tools.idea.diagnostics.report.DiagnosticReport;
 import com.intellij.diagnostic.IdePerformanceListener;
 import com.intellij.diagnostic.ThreadDump;
 import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.util.messages.MessageBusConnection;
 import java.io.File;
@@ -31,7 +33,10 @@ import java.io.PrintWriter;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.function.Consumer;
@@ -99,30 +104,59 @@ class DiagnosticReportIdePerformanceListener implements IdePerformanceListener {
     if (localBuilder == null) {
       return;
     }
-    myReportsCollected++;
-    if (DiagnosticReportBuilder.MAX_REPORTS != -1 && myReportsCollected >= DiagnosticReportBuilder.MAX_REPORTS) {
-      LOG.info("Stopped collecting UI freeze reports after " + myReportsCollected + " reports.");
-      unregister();
-    }
-    if (myContext != null) {
-      Path localReportPath = getPathForReportName("profileDiagnostics", myContext);
-      // If the report has already been generated (freeze took too long), append a line with a real
-      // freeze duration.
-      if (localReportPath != null) {
-        if (Files.exists(localReportPath)) {
-          try {
-            Files.write(localReportPath, ("UI freeze lasted " + lengthInSeconds + " seconds.\n").getBytes(), StandardOpenOption.APPEND);
+    try {
+      myReportsCollected++;
+      if (DiagnosticReportBuilder.MAX_REPORTS != -1 && myReportsCollected >= DiagnosticReportBuilder.MAX_REPORTS) {
+        LOG.info("Stopped collecting UI freeze reports after " + myReportsCollected + " reports.");
+        unregister();
+      }
+      if (myContext != null) {
+        if (myContext.myThreadDumpPath == null) {
+          Path directoryForFreeze = tryCreateDirectoryForFreeze(lengthInSeconds);
+          if (directoryForFreeze == null) {
+            return;
           }
-          catch (IOException e) {
-            // Non fatal exception
-            LOG.warn("Exception while appending to a report.", e);
+          myContext.myThreadDumpPath = directoryForFreeze;
+        }
+        Path localReportPath = getPathForReportName("profileDiagnostics", myContext);
+        // If the report has already been generated (freeze took too long), append a line with a real
+        // freeze duration.
+        if (localReportPath != null) {
+          if (Files.exists(localReportPath)) {
+            try {
+              Files.write(localReportPath, ("UI freeze lasted " + lengthInSeconds + " seconds.\n").getBytes(), StandardOpenOption.APPEND);
+            }
+            catch (IOException e) {
+              // Non fatal exception
+              LOG.warn("Exception while appending to a report.", e);
+            }
           }
         }
       }
+    } finally {
+      myBuilder = null;
+      myContext = null;
+      localBuilder.stop();
     }
-    myBuilder = null;
-    myContext = null;
-    localBuilder.stop();
+  }
+
+  private static Path tryCreateDirectoryForFreeze(long freezeInSeconds) {
+    String dirName = "uiFreeze-" + formatTime(System.currentTimeMillis()) + "-" + freezeInSeconds + "sec";
+    Path freezeDir = Paths.get(PathManager.getLogPath(), dirName);
+    try {
+      if (Files.exists(freezeDir)) {
+        return null;
+      }
+      Files.createDirectories(freezeDir);
+      return freezeDir;
+    }
+    catch (IOException e) {
+      return null;
+    }
+  }
+
+  private static String formatTime(long timeMs) {
+      return new SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(new Date(timeMs));
   }
 
   @NonNull
@@ -200,7 +234,8 @@ class DiagnosticReportIdePerformanceListener implements IdePerformanceListener {
     myMessageBusConnection.disconnect();
     myMessageBusConnection = null;
 
-    myLastActionTracker.dispose();
+    Disposer.dispose(myLastActionTracker);
+    //noinspection ConstantConditions
     myLastActionTracker = null;
   }
 
@@ -212,7 +247,7 @@ class DiagnosticReportIdePerformanceListener implements IdePerformanceListener {
     }
 
     public Path saveReportFile(String reportName, String reportContents) {
-      return DiagnosticReportIdePerformanceListener.this.saveReportFile(reportName, reportContents, myContext);
+      return DiagnosticReportIdePerformanceListener.saveReportFile(reportName, reportContents, myContext);
     }
 
     public void reportReady(DiagnosticReport report) {
