@@ -24,6 +24,7 @@ import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Charsets
 import com.google.common.collect.Lists
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import java.io.BufferedReader
 import java.io.ByteArrayInputStream
 import java.io.IOException
@@ -45,10 +46,8 @@ import javax.imageio.ImageIO
 object LegacyTreeLoader : TreeLoader {
 
   override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup, client: InspectorClient): Pair<ViewNode, String>? {
-    val legacyClient = client as? LegacyClient ?: return null
-    val ddmClient = legacyClient.selectedClient ?: return null
     val (windowName, updater, _) = data as? LegacyEvent ?: return null
-    return capture(ddmClient, windowName, updater)?.let { Pair(it, windowName) }
+    return capture(client, windowName, updater)?.let { Pair(it, windowName) }
   }
 
   override fun getAllWindowIds(data: Any?, client: InspectorClient): List<String>? {
@@ -60,13 +59,15 @@ object LegacyTreeLoader : TreeLoader {
     return ListViewRootsHandler().getWindows(ddmClient, 5, TimeUnit.SECONDS)
   }
 
-  private fun capture(client: Client, window: String, propertiesUpdater: LegacyPropertiesProvider.Updater): ViewNode? {
+  private fun capture(client: InspectorClient, window: String, propertiesUpdater: LegacyPropertiesProvider.Updater): ViewNode? {
+    val legacyClient = client as? LegacyClient ?: return null
+    val ddmClient = legacyClient.selectedClient ?: return null
     val hierarchyHandler = CaptureByteArrayHandler(DebugViewDumpHandler.CHUNK_VURT)
-    client.dumpViewHierarchy(window, false, true, false, hierarchyHandler)
+    ddmClient.dumpViewHierarchy(window, false, true, false, hierarchyHandler)
     val hierarchyData = hierarchyHandler.getData() ?: return null
     val (rootNode, hash) = parseLiveViewNode(hierarchyData, propertiesUpdater) ?: return null
     val imageHandler = CaptureByteArrayHandler(DebugViewDumpHandler.CHUNK_VUOP)
-    client.captureView(window, hash, imageHandler)
+    ddmClient.captureView(window, hash, imageHandler)
     try {
       val imageData = imageHandler.getData()
       if (imageData != null) {
@@ -75,6 +76,12 @@ object LegacyTreeLoader : TreeLoader {
     }
     catch (e: IOException) {
       // We didn't get an image, but still return the hierarchy and properties
+    }
+    if (rootNode.imageBottom != null) {
+      client.logEvent(DynamicLayoutInspectorEventType.COMPATIBILITY_RENDER)
+    }
+    else {
+      client.logEvent(DynamicLayoutInspectorEventType.COMPATIBILITY_RENDER_NO_PICTURE)
     }
     return rootNode
   }

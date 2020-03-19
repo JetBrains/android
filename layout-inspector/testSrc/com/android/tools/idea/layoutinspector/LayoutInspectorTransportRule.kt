@@ -15,10 +15,14 @@
  */
 package com.android.tools.idea.layoutinspector
 
+import com.android.ddmlib.AndroidDebugBridge
+import com.android.ddmlib.ClientData
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.FakeAdbServer
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
+import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler
+import com.android.fakeadbserver.devicecommandhandlers.ddmsHandlers.FeaturesHandler
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.FpsTimer
@@ -154,6 +158,8 @@ class LayoutInspectorTransportRule(
   private val beforeActions = mutableListOf<() -> Unit>()
 
   init {
+    adbRule.withDeviceCommandHandler(JdwpCommandHandler().addPacketHandler(
+      FeaturesHandler.CHUNK_TYPE, FeaturesHandler(emptyMap(), listOf(ClientData.FEATURE_VIEW_HIERARCHY))))
     adbRule.withDeviceCommandHandler(object : DeviceCommandHandler("shell") {
       override fun accept(server: FakeAdbServer, socket: Socket, device: DeviceState, command: String, args: String): Boolean {
         when (args) {
@@ -247,12 +253,31 @@ class LayoutInspectorTransportRule(
    * Add the given process and stream to the transport service.
    */
   fun addProcess(device: Common.Device, process: Common.Process) {
-    adbRule.attachDevice(device.deviceId.toString(), device.manufacturer, device.model, device.version, device.apiLevel.toString(),
-                         DeviceState.HostConnectionType.USB)
+    val deviceState = adbRule.attachDevice(device.deviceId.toString(), device.manufacturer, device.model, device.version,
+                                           device.apiLevel.toString(), DeviceState.HostConnectionType.USB)
+    val uid = System.currentTimeMillis().toInt()
+    deviceState.startClient(process.pid, uid, process.name, "${process.name}.com.example.myapplication", true)
+    waitUntilProcessIsAvailable(device, process)
     if (device.featureLevel >= 29) {
       transportService.addDevice(device)
       transportService.addProcess(device, process)
     }
+  }
+
+  private fun waitUntilProcessIsAvailable(device: Common.Device, process: Common.Process) {
+    var times = 20
+    while (!isProcessAvailable(device, process)) {
+      Thread.sleep(100)
+      if (--times <= 0) {
+        error("Timeout waiting for process to be available")
+      }
+    }
+  }
+
+  private fun isProcessAvailable(device: Common.Device, process: Common.Process): Boolean {
+    val bridge = AndroidDebugBridge.getBridge()!!
+    val iDevice = bridge.devices.first { it.serialNumber == device.serial } ?: return false
+    return iDevice.clients.any { it.clientData.pid == process.pid && it.clientData.hasFeature(ClientData.FEATURE_VIEW_HIERARCHY) }
   }
 
   override fun apply(base: Statement, description: Description): Statement {
@@ -290,7 +315,9 @@ class LayoutInspectorTransportRule(
       inspectorClient.registerProcessChanged { processDone.countDown() }
       inspectorClient.disconnect()
       assertThat(processDone.await(30, TimeUnit.SECONDS)).isTrue()
-      waitForUnsetSettings()
+      if (inspectorClient is DefaultInspectorClient) {
+        waitForUnsetSettings()
+      }
     }
   }
 
