@@ -119,6 +119,7 @@ class UserSentimentPanel(private var myProject: Project?,
 
     @JvmField
     val NOTIFICATIONS =
-      NotificationGroup(AndroidBundle.message("feedback.notifications.title"), NotificationDisplayType.BALLOON, true)
+      NotificationGroup("Thanks for the feedback!", NotificationDisplayType.BALLOON, true, null, null,
+        AndroidBundle.message("feedback.notifications.title"))
   }
 }

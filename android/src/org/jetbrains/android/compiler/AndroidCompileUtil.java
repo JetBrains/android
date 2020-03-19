@@ -30,6 +30,7 @@ import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.compiler.progress.CompilerTask;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
@@ -394,7 +395,7 @@ public class AndroidCompileUtil {
                              "' as source root, because it is not located under content root of module '" +
                              model.getModule().getName() + "'\n<a href='fix'>Open Project Structure</a>";
       final Notification notification = new Notification(
-        AndroidBundle.message("android.autogeneration.notification.group"),
+        NotificationGroup.createIdWithTitle("Android Autogeneration", AndroidBundle.message("android.autogeneration.notification.group")),
         "Autogeneration Error", message, NotificationType.ERROR,
         new NotificationListener.Adapter() {
           @Override

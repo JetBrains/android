@@ -40,6 +40,7 @@ import com.android.tools.idea.observable.collections.ObservableList;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.LayoutInspectorEvent;
 import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.Disposable;
@@ -406,7 +407,8 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
   }
 
   private static void createNotification(@NotNull String message, @NotNull NotificationType type) {
-    Notifications.Bus.notify(new Notification(AndroidBundle.message("android.ddms.actions.layoutinspector.notification.group"),
+    Notifications.Bus.notify(new Notification(
+      NotificationGroup.createIdWithTitle("Layout Inspector", AndroidBundle.message("android.ddms.actions.layoutinspector.notification.group")),
                                               AndroidBundle.message("android.ddms.actions.layoutinspector.notification.title"),
                                               message, type, null));
   }
