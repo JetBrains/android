@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.naveditor.property.inspector
+package com.android.tools.idea.naveditor.dialogs
 
 import com.android.SdkConstants.*
 import com.android.tools.idea.common.model.NlComponent
@@ -24,6 +24,11 @@ import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.analytics.TestNavUsageTracker
 import com.android.tools.idea.naveditor.property.NavDeeplinkProperty
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
+import com.android.tools.idea.naveditor.property.inspector.NAV_LIST_COMPONENT_NAME
+import com.android.tools.idea.naveditor.property.inspector.NavDeeplinkInspectorProvider
+import com.android.tools.idea.naveditor.property.inspector.NavInspectorPanel
+import com.android.tools.idea.naveditor.property.inspector.NavInspectorProviders
+import com.android.tools.idea.naveditor.property.inspector.runAndClose
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.google.common.collect.HashBasedTable
 import com.google.common.truth.Truth.assertThat

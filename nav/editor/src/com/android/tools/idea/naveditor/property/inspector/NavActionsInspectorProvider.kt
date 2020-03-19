@@ -15,18 +15,22 @@
  */
 package com.android.tools.idea.naveditor.property.inspector
 
-import com.google.common.annotations.VisibleForTesting
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.naveditor.dialogs.AddActionDialog
+import com.android.tools.idea.naveditor.dialogs.AddActionDialog.Defaults.GLOBAL
+import com.android.tools.idea.naveditor.dialogs.AddActionDialog.Defaults.NORMAL
+import com.android.tools.idea.naveditor.dialogs.AddActionDialog.Defaults.RETURN_TO_SOURCE
+import com.android.tools.idea.naveditor.dialogs.showAndUpdateFromDialog
 import com.android.tools.idea.naveditor.model.isAction
 import com.android.tools.idea.naveditor.property.NavActionsProperty
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
-import com.android.tools.idea.naveditor.property.inspector.AddActionDialog.Defaults.*
 import com.android.tools.idea.naveditor.scene.decorator.HIGHLIGHTED_CLIENT_PROPERTY
 import com.android.tools.idea.naveditor.scene.flatten
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.NavEditorEvent.Source.PROPERTY_INSPECTOR
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction

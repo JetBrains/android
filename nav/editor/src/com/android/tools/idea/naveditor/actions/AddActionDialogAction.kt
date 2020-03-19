@@ -17,8 +17,8 @@ package com.android.tools.idea.naveditor.actions
 
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.naveditor.property.inspector.AddActionDialog
-import com.android.tools.idea.naveditor.property.inspector.showAndUpdateFromDialog
+import com.android.tools.idea.naveditor.dialogs.AddActionDialog
+import com.android.tools.idea.naveditor.dialogs.showAndUpdateFromDialog
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
