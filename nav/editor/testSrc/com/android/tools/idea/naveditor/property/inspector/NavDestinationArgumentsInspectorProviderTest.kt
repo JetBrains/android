@@ -21,6 +21,7 @@ import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.analytics.TestNavUsageTracker
+import com.android.tools.idea.naveditor.dialogs.AddArgumentDialog
 import com.android.tools.idea.naveditor.model.argumentName
 import com.android.tools.idea.naveditor.model.defaultValue
 import com.android.tools.idea.naveditor.model.typeAttr
