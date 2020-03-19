@@ -46,9 +46,6 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
   // assignments require "prop = ["file.txt", "file.pro"]". If the method syntax is required #markAsMethodCall should be used.
   private boolean myIsMethodCall;
 
-  // Indicates whether this property, if list-like, is a List or a Set
-  private boolean myIsSet;
-
   // The list of transforms to be checked for this property model. Only the first transform that has its PropertyTransform#condition
   // return true will be used.
   @NotNull
@@ -638,10 +635,10 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
 
   private void makeEmptyList() {
     if (myPropertyDescription == null) {
-      bindToNewElement(getTransform().bindList(myPropertyHolder, myElement, getName(), myIsMethodCall, myIsSet));
+      bindToNewElement(getTransform().bindList(myPropertyHolder, myElement, getName(), myIsMethodCall));
     }
     else {
-      bindToNewElement(getTransform().bindList(myPropertyHolder, myElement, myPropertyDescription, myIsMethodCall, myIsSet));
+      bindToNewElement(getTransform().bindList(myPropertyHolder, myElement, myPropertyDescription, myIsMethodCall));
     }
   }
 
