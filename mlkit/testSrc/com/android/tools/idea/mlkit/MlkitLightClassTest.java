@@ -57,7 +57,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
     ((DefaultModuleSystem)ProjectSystemUtil.getModuleSystem(myModule)).setMlModelBindingEnabled(true);
 
     // Pull in tflite model, which has image(i.e. name: image1) as input tensor and labels as output tensor
-    myFixture.setTestDataPath(TestUtils.getWorkspaceFile("prebuilts/tools/common/mlkit/testData").getPath());
+    myFixture.setTestDataPath(TestUtils.getWorkspaceFile("prebuilts/tools/common/mlkit/testData/models").getPath());
 
     // Mock TensorImage, TensorBuffer and TensorLabel
     myFixture.addFileToProject("src/org/tensorflow/lite/support/image/TensorImage.java",
