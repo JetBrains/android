@@ -62,7 +62,7 @@ enum class FormFactor(@JvmField val id: String,
   override fun toString(): String = displayName ?: id
 
   fun isSupported(tag: IdDisplay?, targetSdkLevel: Int): Boolean {
-    if (id == "Mobile" && targetSdkLevel == KITKAT_WATCH) {
+    if (this == MOBILE && targetSdkLevel == KITKAT_WATCH) {
       return false
     }
     return apiTags.isEmpty() || tag in apiTags

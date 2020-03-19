@@ -19,8 +19,8 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.device.FormFactor;
-import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.wizard.template.Language;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
@@ -36,7 +36,7 @@ public class NewAutomotiveProjectTest {
 
   @Test
   public void testBuildMediaService() {
-    createAutomotiveProject("Media service", Language.JAVA);
+    createAutomotiveProject("Media service", Language.Java);
 
     guiTest.ideFrame().getEditor()
       .open("mobile/build.gradle") // Did we create a mobile "companion" module?

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
-import static com.android.tools.idea.npw.platform.Language.JAVA;
+import static com.android.tools.idea.wizard.template.Language.Java;
 
 import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
@@ -92,7 +92,7 @@ class NewProjectDescriptor {
       .clickNext()
       .getConfigureNewAndroidProjectStep()
       .enterName(myName)
-      .setSourceLanguage(JAVA)
+      .setSourceLanguage(Java)
       .enterPackageName(myPkg)
       .selectMinimumSdkApi(myMinSdkApi)
       .wizard()

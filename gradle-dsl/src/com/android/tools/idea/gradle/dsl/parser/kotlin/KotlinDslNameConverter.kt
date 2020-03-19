@@ -26,6 +26,7 @@ import org.jetbrains.kotlin.psi.KtPsiFactory
 import kotlin.jvm.JvmDefault
 
 import com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*
 import com.intellij.openapi.application.runReadAction
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
@@ -69,9 +70,9 @@ interface KotlinDslNameConverter: GradleDslNameConverter {
     val defaultResult = ExternalNameInfo(modelName, null)
     var result : ExternalNameInfo? = null
     for (e in map.entries) {
-      if (e.value.first.name == modelName ) {
+      if (e.value.property.name == modelName ) {
         // prefer assignment if possible, or otherwise the first appropriate method we find
-        when (e.value.second) {
+        when (e.value.semantics) {
           VAR, VWO -> return ExternalNameInfo(e.key.first, false)
           SET, ADD_AS_LIST, OTHER -> if (result == null) result = ExternalNameInfo(e.key.first, true)
           else -> Unit
@@ -82,11 +83,11 @@ interface KotlinDslNameConverter: GradleDslNameConverter {
   }
 
   @JvmDefault
-  override fun modelNameForParent(externalName: String, context: GradleDslElement): String {
+  override fun modelDescriptionForParent(externalName: String, context: GradleDslElement): ModelPropertyDescription? {
     val map = context.getExternalToModelMap(this)
     for (e in map.entries) {
-      if (e.key.first == externalName) return e.value.first.name
+      if (e.key.first == externalName) return e.value.property
     }
-    return externalName
+    return null
   }
 }

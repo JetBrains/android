@@ -22,7 +22,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.Multimaps;
-import com.intellij.execution.DefaultExecutionTarget;
 import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.ExecutionTargetManager;
 import com.intellij.execution.RunManager;
@@ -66,6 +65,7 @@ import javax.swing.GroupLayout.Group;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -554,13 +554,22 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     }
 
     Presentation presentation = event.getPresentation();
+
+    if (!AndroidUtils.hasAndroidFacets(project)) {
+      presentation.setVisible(false);
+      return;
+    }
+
     updatePresentation(presentation, myGetRunManager.apply(project).getSelectedConfiguration());
 
     String place = event.getPlace();
 
     switch (place) {
       case ActionPlaces.MAIN_MENU:
-        updateInMainMenu(presentation);
+      case ActionPlaces.ACTION_SEARCH:
+        presentation.setIcon(null);
+        presentation.setText("Select Device...");
+
         break;
       case ActionPlaces.MAIN_TOOLBAR:
       case ActionPlaces.NAVIGATION_BAR_TOOLBAR:
@@ -569,6 +578,8 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       default:
         assert false : place;
     }
+
+    updateExecutionTargetManager(project, new DeviceAndSnapshotComboBoxExecutionTarget(getSelectedDevices(project)));
   }
 
   @VisibleForTesting
@@ -604,11 +615,6 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     presentation.setEnabled(true);
   }
 
-  private static void updateInMainMenu(@NotNull Presentation presentation) {
-    presentation.setIcon(null);
-    presentation.setText("Select Device...");
-  }
-
   private void updateInToolbar(@NotNull Presentation presentation, @NotNull Project project) {
     if (isMultipleDevicesSelected(project)) {
       presentation.setIcon(null);
@@ -623,7 +629,6 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       presentation.setIcon(null);
       presentation.setText("No Devices");
 
-      updateExecutionTargetManager(project, DefaultExecutionTarget.INSTANCE);
       return;
     }
 
@@ -632,8 +637,6 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
     presentation.setIcon(device.getIcon());
     presentation.setText(getText(device, devices, mySelectDeviceSnapshotComboBoxSnapshotsEnabled.get()), false);
-
-    updateExecutionTargetManager(project, new DeviceAndSnapshotComboBoxExecutionTarget(device));
   }
 
   /**

@@ -37,7 +37,7 @@
       <loadForDefaultProject/>
     </component>
     <component>
-    <implementation-class>com.android.tools.idea.nav.safeargs.module.NavigationResourcesModificationListener$SubscriptionComponent</implementation-class>
+    <implementation-class>com.android.tools.idea.nav.safeargs.project.NavigationResourcesModificationListener$SubscriptionComponent</implementation-class>
     </component>
   </project-components>
 </idea-plugin>

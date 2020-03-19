@@ -377,7 +377,9 @@ public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureD
       super.customizeCellRenderer(tree, value, selected, expanded, leaf, row, hasFocus);
       CpuTreeNode node = getNode(value);
       if (node != null) {
-        myPercentage = getGetter().apply(node) / getNode(tree.getModel().getRoot()).getGlobalTotal();
+        // We grab the global children total in the case of multi-select this value ends up being the sum of our childrens time
+        // and what we want to display is what percentage of all our childrens time do we consume.
+        myPercentage = getGetter().apply(node) / getNode(tree.getModel().getRoot()).getGlobalChildrenTotal();
       }
       mySparkLineColor = selected ? ProfilerColors.CAPTURE_SPARKLINE_SELECTED : ProfilerColors.CAPTURE_SPARKLINE;
     }
@@ -386,10 +388,10 @@ public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureD
     protected void paintComponent(Graphics g) {
       if (myPercentage > 0) {
         g.setColor(mySparkLineColor);
-        // The sparkline starts from the left side of the cell and is proportional to the value, occupying at most half of the cell.
+        // The sparkline starts from the left side of the cell and is proportional to the value, occupying the full cell.
         g.fillRect(TABLE_COLUMN_CELL_SPARKLINE_LEFT_PADDING,
                    TABLE_COLUMN_CELL_SPARKLINE_TOP_BOTTOM_PADDING,
-                   (int)(myPercentage * (getWidth() / 2 - TABLE_COLUMN_CELL_SPARKLINE_LEFT_PADDING)),
+                   (int)(myPercentage * (getWidth() - TABLE_COLUMN_CELL_SPARKLINE_LEFT_PADDING)),
                    getHeight() - TABLE_COLUMN_CELL_SPARKLINE_TOP_BOTTOM_PADDING * 2);
       }
       super.paintComponent(g);

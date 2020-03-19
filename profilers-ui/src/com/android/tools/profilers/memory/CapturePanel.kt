@@ -26,9 +26,7 @@ import com.android.tools.profilers.ProfilerLayout.FILTER_TEXT_FIELD_WIDTH
 import com.android.tools.profilers.ProfilerLayout.FILTER_TEXT_HISTORY_SIZE
 import com.android.tools.profilers.ProfilerLayout.TOOLBAR_ICON_BORDER
 import com.android.tools.profilers.ProfilerLayout.createToolbarLayout
-import com.android.tools.profilers.memory.adapters.CaptureObject
 import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet
-import com.android.tools.profilers.memory.adapters.instancefilters.ActivityFragmentLeakInstanceFilter
 import com.intellij.util.ui.JBEmptyBorder
 import icons.StudioIcons
 import java.awt.BorderLayout
@@ -201,7 +199,7 @@ private class CapturePanelUi(private val myStage: MemoryProfilerStage,
   }
 
   private fun showLeaks() {
-    val filter = myStage.selectedCapture!!.findLeakFilter()
+    val filter = myStage.selectedCapture!!.activityFragmentLeakFilter
     if (filter != null) {
       myInstanceFilterMenu.component.selectedItem = filter
     }
@@ -214,18 +212,12 @@ private class CapturePanelUi(private val myStage: MemoryProfilerStage,
 
   private fun countLeaks(): Int? {
     val captureObject = myStage.selectedCapture!!
-    return captureObject.findLeakFilter()
-      ?.filter(captureObject.instances.collect(Collectors.toSet()), captureObject.classDatabase)
+    return captureObject.activityFragmentLeakFilter
+      ?.filter(captureObject.instances.collect(Collectors.toSet()))
       ?.size
   }
 
   private fun setLabelSumBy(label: StatLabel, prop: (ClassifierSet) -> Long) {
     label.intContent = myStage.selectedCapture!!.heapSets.fold(0L){sum, heapSet -> sum+prop(heapSet)}
-  }
-
-  private companion object {
-    fun CaptureObject.findLeakFilter() =
-      (supportedInstanceFilters.find { it is ActivityFragmentLeakInstanceFilter })
-        as ActivityFragmentLeakInstanceFilter?
   }
 }

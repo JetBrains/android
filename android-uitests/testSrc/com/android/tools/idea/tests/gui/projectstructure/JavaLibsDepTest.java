@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.tests.gui.projectstructure;
 
-import static com.android.tools.idea.npw.platform.Language.JAVA;
 import static com.android.tools.idea.tests.gui.projectstructure.DependenciesTestUtil.APP_NAME;
 import static com.android.tools.idea.tests.gui.projectstructure.DependenciesTestUtil.MIN_SDK_API;
+import static com.android.tools.idea.wizard.template.Language.Java;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
@@ -79,7 +79,7 @@ public class JavaLibsDepTest {
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void multiJavaLibraries() {
-    IdeFrameFixture ideFrame = DependenciesTestUtil.createNewProject(guiTest, APP_NAME, MIN_SDK_API, JAVA);
+    IdeFrameFixture ideFrame = DependenciesTestUtil.createNewProject(guiTest, APP_NAME, MIN_SDK_API, Java);
 
     DependenciesTestUtil.createJavaModule(ideFrame); // default name: lib
     DependenciesTestUtil.addModuleDependencyUnderAnother(ideFrame, JAVA_MODULE_1, "app", "api");

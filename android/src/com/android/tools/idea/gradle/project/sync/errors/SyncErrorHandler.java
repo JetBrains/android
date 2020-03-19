@@ -19,10 +19,12 @@ import com.android.tools.idea.gradle.project.sync.issues.SyncIssueUsageReporter;
 import com.google.common.base.Splitter;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure;
 import com.intellij.notification.NotificationType;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.Pair;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -61,11 +63,23 @@ public abstract class SyncErrorHandler {
     return rootCause;
   }
 
-  protected static void updateUsageTracker(@NotNull Project project,
-                                           @Nullable GradleSyncFailure gradleSyncFailure) {
+  public static void updateUsageTracker(@NotNull Project project,
+                                        @Nullable GradleSyncFailure gradleSyncFailure) {
 
     if (gradleSyncFailure != null) {
       SyncIssueUsageReporter.Companion.getInstance(project).collect(gradleSyncFailure);
+    }
+  }
+
+  //TODO(karimai): This is a workaround until I refactor the services related to reporting sync Metrics to use Gradle project paths.
+  protected static void updateUsageTracker(@NotNull String projectPath,
+                                           @Nullable GradleSyncFailure gradleSyncFailure) {
+
+    for (Project project : ProjectManager.getInstance().getOpenProjects()) {
+      if (project.getBasePath().equals(projectPath)) {
+        SyncIssueUsageReporter.Companion.getInstance(project).collect(gradleSyncFailure);
+        break;
+      }
     }
   }
 

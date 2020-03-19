@@ -5,6 +5,18 @@ load("//tools/base/bazel:maven.bzl", "maven_repo")
 iml_module(
     name = "intellij.android.sync-perf-tests",
     iml_files = ["intellij.android.sync-perf-tests.iml"],
+    split_test_targets = {
+        "Base100": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.Base100PerfTest",
+        },
+        "Dolphin": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.DolphinPerfTest",
+        },
+        # This split test target contains AveragePerfTest, and other unspecified tests if
+        # they exist. Additional targets should be made if this one begins taking a long time.
+        "other": {
+        },
+    },
     test_class = "com.android.tools.idea.SyncPerfTestSuite",
     # keep sorted
     test_data = [
@@ -12,6 +24,7 @@ iml_module(
         "//prebuilts/studio/buildbenchmarks:Base100_project",
         "//prebuilts/studio/buildbenchmarks/dolphin.3627ef8a",
         "//prebuilts/studio/jdk",
+        "//prebuilts/studio/sdk:build-tools/28.0.3",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:platforms/latest",
@@ -20,7 +33,9 @@ iml_module(
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/sync-perf-tests/testData",
         "//tools/base/build-system:gradle-distrib",
+        "//tools/base/build-system:gradle-distrib-5.5",
         "//tools/base/build-system:studio_repo.zip",
+        "//tools/base/build-system/previous-versions:3.5.0.zip",
     ],
     # do not sort: must match IML order
     test_runtime_deps = [

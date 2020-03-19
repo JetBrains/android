@@ -20,6 +20,8 @@ import com.android.tools.idea.gradle.dsl.model.ext.transforms.FileTransform;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.PropertyTransform;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -44,6 +46,7 @@ public class PropertyUtil {
                                                                          @NotNull Object value,
                                                                          @NotNull GradleNameElement name) {
     // Check if we can reuse the element.
+    ModelEffectDescription effect = null;
     if (oldElement instanceof GradleDslLiteral) {
       GradleDslSimpleExpression expression = (GradleDslSimpleExpression)oldElement;
       expression.setValue(value);
@@ -52,9 +55,12 @@ public class PropertyUtil {
     else {
       if (oldElement != null) {
         name = oldElement.getNameElement();
+        effect = oldElement.getModelEffect();
       }
 
-      return createBasicExpression(parent, value, name);
+      GradleDslSimpleExpression expression = createBasicExpression(parent, value, name);
+      expression.setModelEffect(effect);
+      return expression;
     }
   }
 
@@ -311,6 +317,11 @@ public class PropertyUtil {
    * Requires READ_ACCESS.
    */
   private static boolean checkForModifiedName(@NotNull GradleDslElement originalElement, @NotNull GradleDslElement newElement) {
+    ModelEffectDescription oEffect = originalElement.getModelEffect();
+    ModelEffectDescription nEffect = newElement.getModelEffect();
+    if (oEffect != null && nEffect != null && Objects.equals(oEffect.property, nEffect.property)) {
+      return false;
+    }
     GradleNameElement oNameElement = originalElement.getNameElement();
     String oldName = oNameElement.getOriginalName();
     if (oldName == null) {

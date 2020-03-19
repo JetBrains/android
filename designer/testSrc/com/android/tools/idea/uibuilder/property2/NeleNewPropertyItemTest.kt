@@ -93,6 +93,7 @@ class NeleNewPropertyItemTest {
     assertThat(property.type).isEqualTo(NelePropertyType.STRING)
     assertThat(property.definition!!.resourceReference).isEqualTo(ResourceReference.attr(ResourceNamespace.ANDROID, ATTR_TEXT))
     assertThat(property.componentName).isEqualTo(FQCN_TEXT_VIEW)
+    assertThat(property.components).containsExactly(delegate.components[0])
     assertThat(property.libraryName).isEqualTo("android")
     assertThat(property.resolvedValue).isEqualTo("Hello")
     assertThat(property.isReference).isFalse()

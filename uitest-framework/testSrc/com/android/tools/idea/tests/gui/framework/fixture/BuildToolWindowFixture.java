@@ -28,10 +28,12 @@ import com.intellij.ui.content.Content;
 import java.awt.Point;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.JTree;
 import org.fest.swing.core.ComponentMatcher;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
+import org.fest.swing.fixture.JTreeFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
@@ -48,6 +50,13 @@ public class BuildToolWindowFixture extends ToolWindowFixture {
   public ConsoleViewImpl getGradleSyncConsoleView() {
     Content syncContent = getContent("Sync");
     return myRobot.finder().findByType(syncContent.getComponent(), ConsoleViewImpl.class, true /* showing */);
+  }
+
+  @NotNull
+  public JTreeFixture getGradleSyncEventTree() {
+    Content syncContent = getContent("Sync");
+    JTree tree = myRobot.finder().findByType(syncContent.getComponent(), JTree.class, true /* showing */);
+    return new JTreeFixture(myRobot, tree);
   }
 
   @NotNull

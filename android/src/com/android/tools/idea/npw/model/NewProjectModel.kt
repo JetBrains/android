@@ -24,9 +24,6 @@ import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.tools.idea.npw.module.recipes.androidProject.androidProjectRecipe
-import com.android.tools.idea.npw.platform.Language
-import com.android.tools.idea.npw.platform.Language.JAVA
-import com.android.tools.idea.npw.platform.Language.KOTLIN
 import com.android.tools.idea.npw.project.DomainToPackageExpression
 import com.android.tools.idea.npw.project.setGradleWrapperExecutable
 import com.android.tools.idea.observable.core.BoolProperty
@@ -42,6 +39,9 @@ import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.wizard.model.WizardModel
 import com.android.tools.idea.wizard.template.BytecodeLevel
+import com.android.tools.idea.wizard.template.Language
+import com.android.tools.idea.wizard.template.Language.Java
+import com.android.tools.idea.wizard.template.Language.Kotlin
 import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.android.tools.idea.wizard.template.Recipe
 import com.android.tools.idea.wizard.template.TemplateData
@@ -331,7 +331,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
       if (languageValue == null) {
         val selectedOldUseKotlin = props.getBoolean(PROPERTIES_KOTLIN_SUPPORT_KEY)
         val isFirstUsage = !props.isValueSet(PROPERTIES_ANDROID_PACKAGE_KEY)
-        initialLanguage = if (selectedOldUseKotlin || isFirstUsage) KOTLIN else JAVA
+        initialLanguage = if (selectedOldUseKotlin || isFirstUsage) Kotlin else Java
 
         // Save now, otherwise the user may cancel the wizard, but the property for "isFirstUsage" will be set just because it was shown.
         props.setValue(PROPERTIES_NPW_LANGUAGE_KEY, initialLanguage.toString())
@@ -339,12 +339,12 @@ class NewProjectModel : WizardModel(), ProjectModelData {
       }
       else {
         // We have this value saved already, nothing to do
-        initialLanguage = Language.fromName(languageValue, KOTLIN)
+        initialLanguage = Language.fromName(languageValue, Kotlin)
       }
 
       val askedBefore = props.getBoolean(PROPERTIES_NPW_ASKED_LANGUAGE_KEY)
       // After version 3.5, we force the user to select the language if we didn't ask before or if the selection was not Kotlin.
-      return if (initialLanguage === KOTLIN || askedBefore) Optional.of(initialLanguage) else Optional.empty()
+      return if (initialLanguage === Kotlin || askedBefore) Optional.of(initialLanguage) else Optional.empty()
     }
 
     @JvmStatic

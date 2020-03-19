@@ -15,28 +15,15 @@
  */
 package com.android.tools.idea.mlkit.importmodel;
 
-import static org.mockito.Mockito.when;
-
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.projectsystem.AndroidModulePaths;
-import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.testFramework.TestActionEvent;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import org.jetbrains.android.AndroidTestCase;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 public class AndroidImportMlModelActionTest extends AndroidTestCase {
 
-  @Mock
-  private AndroidModulePaths myDebugPaths;
-
-  private NamedModuleTemplate myDebugTemplate;
   private AndroidImportMlModelAction myAction;
 
   @Override
@@ -44,20 +31,21 @@ public class AndroidImportMlModelActionTest extends AndroidTestCase {
     super.setUp();
 
     MockitoAnnotations.initMocks(this);
-
-    StudioFlags.MLKIT_TFLITE_MODEL_FILE_TYPE.override(true);
-
+    StudioFlags.ML_MODEL_BINDING.override(true);
     myAction = new AndroidImportMlModelAction();
-
-    myDebugTemplate = new NamedModuleTemplate("debug", myDebugPaths);
-    when(myDebugPaths.getMlModelsDirectories()).thenReturn(Arrays.asList(new File("/project/debug/ml")));
   }
 
   @Override
   public void tearDown() throws Exception {
-    StudioFlags.MLKIT_TFLITE_MODEL_FILE_TYPE.clearOverride();
-
-    super.tearDown();
+    try {
+      StudioFlags.ML_MODEL_BINDING.clearOverride();
+    }
+    catch (Throwable e) {
+      addSuppressedException(e);
+    }
+    finally {
+      super.tearDown();
+    }
   }
 
   public void testUpdateProjectIsNull() {
@@ -66,12 +54,5 @@ public class AndroidImportMlModelActionTest extends AndroidTestCase {
     myAction.update(event);
 
     assertFalse(event.getPresentation().isEnabled());
-  }
-
-  public void testGetModuleMlDirectory_onlyOneTemplate_selectIt() {
-    List<NamedModuleTemplate> namedModuleTemplates = new ArrayList<>();
-    namedModuleTemplates.add(myDebugTemplate);
-
-    assertEquals(myAction.getModuleMlDirectory(namedModuleTemplates).getPath(), "/project/debug/ml");
   }
 }

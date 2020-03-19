@@ -95,6 +95,16 @@ public abstract class MultiTypePropertyModelImpl<T extends Enum<T>> extends Grad
   }
 
   @Override
+  @Nullable
+  public GradleDslElement getElement() {
+    PropertyTransform transform = getTransform();
+    if (transform.test(myElement, myPropertyHolder)) {
+      return transform.transform(myElement);
+    }
+    return null;
+  }
+
+  @Override
   @NotNull
   protected PropertyTransform getTransform() {
     PropertyTransform pt = myTransforms.get(myType);

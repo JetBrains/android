@@ -24,7 +24,7 @@ import com.android.tools.idea.npw.model.EMPTY_ACTIVITY
 import com.android.tools.idea.npw.model.NewProjectModel
 import com.android.tools.idea.npw.model.NewProjectModuleModel
 import com.android.tools.idea.npw.template.ChooseGalleryItemStep
-import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep2
+import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep
 import com.android.tools.idea.npw.template.TemplateResolver
 import com.android.tools.idea.npw.template.getDefaultSelectedTemplateIndex
 import com.android.tools.idea.npw.toTemplateFormFactor
@@ -93,7 +93,7 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
     return listOf(
       ConfigureAndroidProjectStep(newProjectModuleModel!!, model),
       ConfigureCppSupportStep(model),
-      ConfigureTemplateParametersStep2(renderModel, message("android.wizard.config.activity.title"), listOf()))
+      ConfigureTemplateParametersStep(renderModel, message("android.wizard.config.activity.title"), listOf()))
   }
 
   private fun createUIComponents() {

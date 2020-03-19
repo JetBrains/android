@@ -63,12 +63,15 @@ class LightArgsClass(facet: AndroidFacet, private val modulePackage: String, nav
 
   private fun computeMethods(): Array<PsiMethod> {
     val thisType = PsiTypesUtil.getClassType(this)
-    val fromBundle = createMethod("fromBundle", modifiers = MODIFIERS_STATIC_PUBLIC_METHOD, returnType = thisType)
-    fromBundle.addParameter("bundle", parsePsiType(modulePackage, "android.os.Bundle", this))
+    val fromBundle = createMethod(name = "fromBundle",
+                                  modifiers = MODIFIERS_STATIC_PUBLIC_METHOD,
+                                  returnType = annotateNullability(thisType))
+    fromBundle.addParameter("bundle", parsePsiType(modulePackage, "android.os.Bundle", null, this))
 
     val getters: Array<PsiMethod> = fragment.arguments.map { arg ->
-      val psiType = parsePsiType(modulePackage, arg.type, this)
-      createMethod("get${arg.name.capitalize()}", returnType = psiType)
+      val psiType = parsePsiType(modulePackage, arg.type, arg.defaultValue, this)
+      createMethod(name = "get${arg.name.capitalize()}",
+                   returnType = annotateNullability(psiType, arg.nullable))
     }.toTypedArray()
 
     return getters + fromBundle

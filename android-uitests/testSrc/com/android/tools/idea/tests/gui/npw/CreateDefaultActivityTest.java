@@ -15,28 +15,27 @@
  */
 package com.android.tools.idea.tests.gui.npw;
 
-import com.android.tools.idea.npw.platform.Language;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.util.text.StringUtil.getOccurrenceCount;
+import static org.junit.Assert.assertEquals;
+
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureBasicActivityStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture;
+import com.android.tools.idea.wizard.template.Language;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.io.IOException;
-import java.util.concurrent.TimeUnit;
-
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.util.text.StringUtil.getOccurrenceCount;
-import static org.junit.Assert.assertEquals;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class CreateDefaultActivityTest {
@@ -70,7 +69,7 @@ public class CreateDefaultActivityTest {
     invokeNewActivityMenu();
     assertTextFieldValues(DEFAULT_ACTIVITY_NAME, DEFAULT_LAYOUT_NAME);
     assertThat(getSavedKotlinSupport()).isFalse();
-    assertThat(getSavedRenderSourceLanguage()).isEqualTo(Language.JAVA);
+    assertThat(getSavedRenderSourceLanguage()).isEqualTo(Language.Java);
   }
 
   /**
@@ -127,6 +126,6 @@ public class CreateDefaultActivityTest {
 
   @NotNull
   private static Language getSavedRenderSourceLanguage() {
-    return Language.fromName(PropertiesComponent.getInstance().getValue("SAVED_RENDER_LANGUAGE"), Language.JAVA);
+    return Language.fromName(PropertiesComponent.getInstance().getValue("SAVED_RENDER_LANGUAGE"), Language.Java);
   }
 }

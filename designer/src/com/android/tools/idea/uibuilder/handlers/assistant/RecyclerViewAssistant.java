@@ -70,8 +70,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class RecyclerViewAssistant extends AssistantPopupPanel {
+  private static final Logger LOG = Logger.getInstance(RecyclerViewAssistant.class);
   private static final int ITEM_COUNT_DEFAULT = 10;
-  private static Logger LOG = Logger.getInstance(RecyclerViewAssistant.class);
 
   private static final ImmutableList<Template> TEMPLATES = ImmutableList.of(
     Template.NONE_TEMPLATE,

@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
-import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
-import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.intellij.psi.PsiElement;
 import java.util.Map;
@@ -80,17 +78,17 @@ public class GradleDslBlockElement extends GradlePropertiesDslElement {
     return true;
   }
 
-  private Pair<ModelPropertyDescription,SemanticsDescription> getSemantics(@NotNull GradleDslElement element) {
+  private ModelEffectDescription getModelEffect(@NotNull GradleDslElement element) {
     String name = element.getName();
-    Map<Pair<String,Integer>,Pair<ModelPropertyDescription,SemanticsDescription>> nameMapper = getExternalToModelMap(element.getDslFile().getParser());
+    Map<Pair<String,Integer>,ModelEffectDescription> nameMapper = getExternalToModelMap(element.getDslFile().getParser());
     if (element.shouldUseAssignment()) {
-      Pair<ModelPropertyDescription, SemanticsDescription> value = nameMapper.get(new Pair<>(name, (Integer) null));
+      ModelEffectDescription value = nameMapper.get(new Pair<>(name, (Integer) null));
       if (value != null) {
         return value;
       }
     }
     else {
-      for (Map.Entry<Pair<String, Integer>,Pair<ModelPropertyDescription, SemanticsDescription>> entry : nameMapper.entrySet()) {
+      for (Map.Entry<Pair<String, Integer>,ModelEffectDescription> entry : nameMapper.entrySet()) {
         String entryName = entry.getKey().getFirst();
         Integer arity = entry.getKey().getSecond();
         // TODO(xof): distinguish between semantics based on expressed arities (at the moment we return the first method entry we find,
@@ -107,20 +105,15 @@ public class GradleDslBlockElement extends GradlePropertiesDslElement {
    * The contract of this method is to arrange that an element parsed from Dsl source corresponding to setting a model property is
    * recognized as that model property.  This is needed because in general there are multiple ways of setting model properties, even
    * within one Dsl language (Groovy setter methods visible and setVisible) let alone between multiple Dsl languages (Groovy visible vs
-   * Kotlin isVisible).
-   *
-   * The operation, if we do find that we are dealing with a model property, boils down to calling canonize (NOTYPO) on the name element,
-   * which changes the name of the element to be the model property name, while not marking the element itself as having been modified (so
-   * that absent anything else happening the element does not appear to need writing out on apply().  The {@link GradleDslNameConverter}
-   * implementations are responsible for converting the model name back to an external name if the element is modified by something else
-   * (e.g. a user's {@link GradlePropertyModel#setValue(Object)}.)
+   * Kotlin isVisible).  If we are dealing with a model property, we annotate the Dsl element with a description of its effect on the
+   * model.
    *
    * @param element a Dsl element potentially representing a model property
    */
   private void maybeCanonizeElement(@NotNull GradleDslElement element) { // NOTYPO
-    Pair<ModelPropertyDescription,SemanticsDescription> semantics = getSemantics(element);
-    if (semantics == null) return;
-    SemanticsDescription description = semantics.getSecond();
+    ModelEffectDescription effect = getModelEffect(element);
+    if (effect == null) return;
+    SemanticsDescription description = effect.semantics;
     if (element.shouldUseAssignment()) {
       if (description != VAR && description != VWO && description != VAR_BUT_DO_NOT_USE_FOR_WRITING_IN_KTS) {
         // we are maybe-renaming a property involved in an assignment, which only makes sense if the property has a writer (i.e.
@@ -130,9 +123,7 @@ public class GradleDslBlockElement extends GradlePropertiesDslElement {
       // TODO(xof): for methods, we should eventually only canonize (NOTYPO) if we have a SET.  Until the semantics are fully encoded,
       //  though, there are other (description == OTHER) methods which end up here.
     }
-    // we rename the GradleNameElement, and not the element directly, because this renaming is not about renaming the property
-    // but about providing a canonical model name for a thing.
-    element.getNameElement().canonize(semantics.getFirst().name); // NOTYPO
+    element.setModelEffect(effect);
   }
 
   @Override
@@ -146,11 +137,11 @@ public class GradleDslBlockElement extends GradlePropertiesDslElement {
       applyDslElement.addParsedElement(element);
       return;
     }
-    Pair<ModelPropertyDescription,SemanticsDescription> semantics = getSemantics(element);
-    if (semantics != null) {
-      SemanticsDescription description = semantics.getSecond();
+    ModelEffectDescription effect = getModelEffect(element);
+    if (effect != null) {
+      SemanticsDescription description = effect.semantics;
       if (description == ADD_AS_LIST && element instanceof GradleDslSimpleExpression) {
-        addAsParsedDslExpressionList(semantics.getFirst().name, (GradleDslSimpleExpression) element);
+        addAsParsedDslExpressionList(effect.property.name, (GradleDslSimpleExpression) element);
         return;
       }
       maybeCanonizeElement(element); // NOTYPO

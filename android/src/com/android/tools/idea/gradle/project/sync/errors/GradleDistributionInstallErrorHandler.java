@@ -29,15 +29,13 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.gradle.wrapper.PathAssembler;
 import org.gradle.wrapper.WrapperConfiguration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleUtil;
 
 public class GradleDistributionInstallErrorHandler extends SyncErrorHandler {
-  public static final Pattern COULD_NOT_INSTALL_GRADLE_DISTRIBUTION_PATTERN = Pattern.compile("Could not install Gradle distribution from '(.*?)'.");
+  public static final String COULD_NOT_INSTALL_GRADLE_DISTRIBUTION_PREFIX = "Could not install Gradle distribution from ";
 
   @Override
   public boolean handleError(@NotNull ExternalSystemException error, @NotNull NotificationData notification, @NotNull Project project) {
@@ -45,8 +43,7 @@ public class GradleDistributionInstallErrorHandler extends SyncErrorHandler {
     if (msg == null) {
       return false;
     }
-    Matcher matcher = COULD_NOT_INSTALL_GRADLE_DISTRIBUTION_PATTERN.matcher(msg);
-    if (!matcher.matches()) {
+    if (!msg.startsWith(COULD_NOT_INSTALL_GRADLE_DISTRIBUTION_PREFIX)) {
       return false;
     }
     StringBuilder text = new StringBuilder(msg);

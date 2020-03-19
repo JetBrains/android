@@ -18,7 +18,6 @@ package com.android.tools.idea.mlkit.importmodel;
 
 import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.wizard.model.WizardModel;
-import com.intellij.ide.IdeView;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -29,7 +28,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * {@link WizardModel} that contains model location to import.
@@ -39,13 +37,12 @@ public class MlWizardModel extends WizardModel {
   /**
    * The Directory of new ml folder
    */
-  @NotNull
   private final File myMlDirectory;
   private final Project myProject;
 
   public final StringValueProperty sourceLocation = new StringValueProperty();
 
-  public MlWizardModel(@NotNull File mlDirectory, @Nullable Project project) {
+  public MlWizardModel(@NotNull File mlDirectory, @NotNull Project project) {
     myMlDirectory = mlDirectory;
     myProject = project;
   }

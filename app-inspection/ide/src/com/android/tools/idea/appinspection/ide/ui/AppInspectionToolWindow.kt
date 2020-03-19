@@ -22,7 +22,7 @@ import com.intellij.openapi.wm.ToolWindow
 import javax.swing.JComponent
 
 class AppInspectionToolWindow(window: ToolWindow, project: Project) : Disposable {
-  private val appInspectionView = AppInspectionView(project, AppInspectionHostService.instance.discoveryHost)
+  private val appInspectionView = AppInspectionView(project, AppInspectionHostService.getInstance(project).discoveryHost)
   val component: JComponent = appInspectionView.component
 
   override fun dispose() {

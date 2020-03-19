@@ -117,34 +117,6 @@ public final class GradleDslExpressionList extends GradlePropertiesDslElement im
     return -1;
   }
 
-  void addNewLiteral(@NotNull Object value) {
-    GradleDslLiteral literal = new GradleDslLiteral(this, myName);
-    literal.setValue(value);
-    addNewExpression(literal);
-  }
-
-  /**
-   * This method does not support removing maps or lists by value. Use removeElement for that.
-   */
-  void removeExpression(@NotNull Object value) {
-    for (GradleDslSimpleExpression expression : getSimpleExpressions()) {
-      if (value.equals(expression.getValue())) {
-        super.removeProperty(expression);
-        updateDependenciesOnRemoveElement(expression);
-        return;
-      }
-    }
-  }
-
-  void replaceExpression(@NotNull Object oldValue, @NotNull Object newValue) {
-    for (GradleDslSimpleExpression expression : getSimpleExpressions()) {
-      if (oldValue.equals(expression.getValue())) {
-        expression.setValue(newValue);
-        return;
-      }
-    }
-  }
-
   public void replaceExpression(@NotNull GradleDslExpression oldExpression, @NotNull GradleDslExpression newExpression) {
     super.replaceElement(oldExpression, newExpression);
   }

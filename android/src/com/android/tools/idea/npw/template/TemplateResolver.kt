@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.template
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.wizard.template.Category
+import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.WizardTemplateProvider
 import com.intellij.openapi.extensions.ExtensionPointName
@@ -32,6 +33,10 @@ class TemplateResolver {
         .filter { it.category != Category.Compose || StudioFlags.COMPOSE_WIZARD_TEMPLATES.get()}
     }
 
-    fun getTemplateByName(name: String) = getAllTemplates().find { it.name == name }
+    fun getTemplateByName(name: String, category: Category? = null, formFactor: FormFactor? = null) =
+      getAllTemplates()
+        .filter { category == null || it.category == category }
+        .filter { formFactor == null || it.formFactor == formFactor }
+        .find { it.name == name }
   }
 }

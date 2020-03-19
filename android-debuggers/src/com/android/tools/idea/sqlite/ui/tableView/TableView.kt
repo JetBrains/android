@@ -90,6 +90,11 @@ interface TableView {
      * Invoked when the user wants to order the data by a specific column
      */
     fun toggleOrderByColumnInvoked(sqliteColumn: SqliteColumn)
+
+    /**
+     * Invoked when the user wants to cancel the SQLite statement that is currently running.
+     */
+    fun cancelRunningStatementInvoked()
   }
 }
 

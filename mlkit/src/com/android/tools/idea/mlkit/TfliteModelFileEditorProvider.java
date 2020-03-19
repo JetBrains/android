@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.mlkit;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
@@ -31,8 +32,7 @@ public class TfliteModelFileEditorProvider implements FileEditorProvider, DumbAw
 
   @Override
   public boolean accept(@NotNull Project project, @NotNull VirtualFile file) {
-    // TODO(b/144867508): limit to assets folder.
-    return file.getFileType() == TfliteModelFileType.INSTANCE;
+    return StudioFlags.ML_MODEL_BINDING.get() && file.getFileType() == TfliteModelFileType.INSTANCE;
   }
 
   @NotNull

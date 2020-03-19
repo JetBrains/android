@@ -30,6 +30,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -70,6 +71,7 @@ class PreviewNavigationTest {
   /**
    * Checks the rendering of the default `@Preview` in the Compose template.
    */
+  @Ignore("b/151091941")
   @Test
   fun testComposableNavigation() {
     val project = projectRule.project

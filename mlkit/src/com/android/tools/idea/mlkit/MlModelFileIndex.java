@@ -31,7 +31,6 @@ import com.intellij.util.io.EnumeratorStringDescriptor;
 import com.intellij.util.io.KeyDescriptor;
 import java.io.DataInput;
 import java.io.DataOutput;
-import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
@@ -107,7 +106,7 @@ public class MlModelFileIndex extends FileBasedIndexExtension<String, MlModelMet
   @NotNull
   @Override
   public FileBasedIndex.InputFilter getInputFilter() {
-    return file -> StudioFlags.MLKIT_LIGHT_CLASSES.get() && file.getFileType() == TfliteModelFileType.INSTANCE;
+    return file -> StudioFlags.ML_MODEL_BINDING.get() && file.getFileType() == TfliteModelFileType.INSTANCE;
   }
 
   @Override

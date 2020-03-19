@@ -32,12 +32,11 @@ import com.android.repository.api.UpdatablePackage;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.device.FormFactor;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.model.NewProjectModel;
 import com.android.tools.idea.npw.model.NewProjectModuleModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo.VersionItem;
-import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.template.components.BytecodeLevelComboProvider;
 import com.android.tools.idea.npw.template.components.LanguageComboProvider;
 import com.android.tools.idea.npw.ui.ActivityGallery;
@@ -62,6 +61,7 @@ import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.template.BytecodeLevel;
+import com.android.tools.idea.wizard.template.Language;
 import com.android.tools.idea.wizard.template.Template;
 import com.android.tools.idea.wizard.template.TemplateConstraint;
 import com.google.common.collect.Lists;
@@ -221,7 +221,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
     myProjectLanguage.setEnabled(!isKotlinOnly);
     if (isKotlinOnly) {
-      myProjectModel.getLanguage().setValue(Language.KOTLIN);
+      myProjectModel.getLanguage().setValue(Language.Kotlin);
     }
     updateAppCompatCheckBox();
   }

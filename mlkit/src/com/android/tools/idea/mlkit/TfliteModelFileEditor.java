@@ -29,13 +29,16 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.UserDataHolderBase;
+import com.intellij.openapi.util.io.FileTooBigException;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiParameter;
+import com.intellij.ui.BrowserHyperlinkListener;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Component;
 import java.beans.PropertyChangeListener;
@@ -48,7 +51,6 @@ import javax.swing.BoxLayout;
 import javax.swing.JComponent;
 import javax.swing.JEditorPane;
 import javax.swing.JPanel;
-import javax.swing.JTextPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -78,40 +80,49 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
                                                     "  text-align: left;\n" +
                                                     "  padding: 6px;\n" +
                                                     "}\n";
-  private static final String SAMPLE_CODE_STYLE = "#sample_code {\n" +
-                                                  "  font-family: 'Source Sans Pro', sans-serif; \n" +
-                                                  "  background-color: #F1F3F4;\n" +
-                                                  "  margin-left: 20px;\n" +
-                                                  "  display: block;\n" +
-                                                  "  width: 60%;\n" +
-                                                  "  padding: 5px;\n" +
-                                                  "  padding-left: 10px;\n" +
-                                                  "}";
 
   private final Module myModule;
   private final VirtualFile myFile;
   private final JBScrollPane myRootPane;
+  private final JEditorPane myEditorPane;
+  private boolean myUnderDarcula;
+  private boolean myIsSampleCodeSectionVisible;
 
   public TfliteModelFileEditor(@NotNull Project project, @NotNull VirtualFile file) {
     myFile = file;
     myModule = ModuleUtilCore.findModuleForFile(file, project);
+    myUnderDarcula = StartupUiUtil.isUnderDarcula();
+    myIsSampleCodeSectionVisible = shouldDisplaySampleCodeSection();
 
     JPanel contentPanel = new JPanel();
     contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
     contentPanel.setBackground(UIUtil.getTextFieldBackground());
     contentPanel.setBorder(JBUI.Borders.empty(20));
 
+    myEditorPane = createPaneFromHtml(createHtmlBody());
+    contentPanel.add(myEditorPane);
+
+    myRootPane = new JBScrollPane(contentPanel);
+  }
+
+  @NotNull
+  private String createHtmlBody() {
+    StringBuilder htmlBodyBuilder = new StringBuilder();
     try {
-      StringBuilder htmlBodyBuilder = new StringBuilder();
-      ModelInfo modelInfo = ModelInfo.buildFrom(new MetadataExtractor(ByteBuffer.wrap(file.contentsToByteArray())));
+      ModelInfo modelInfo = ModelInfo.buildFrom(new MetadataExtractor(ByteBuffer.wrap(myFile.contentsToByteArray())));
       htmlBodyBuilder.append(getModelSectionBody(modelInfo));
       htmlBodyBuilder.append(getTensorsSectionBody(modelInfo));
-      PsiClass modelClass = MlkitModuleService.getInstance(myModule)
-        .getOrCreateLightModelClass(
-          new MlModelMetadata(file.getUrl(), MlkitNames.computeModelClassName((VfsUtilCore.virtualToIoFile(file)))));
-      htmlBodyBuilder.append(getSampleCodeSectionBody(modelClass));
-
-      contentPanel.add(createPaneFromHtml(htmlBodyBuilder.toString()));
+      if (myIsSampleCodeSectionVisible) {
+        PsiClass modelClass = MlkitModuleService.getInstance(myModule)
+          .getOrCreateLightModelClass(
+            new MlModelMetadata(myFile.getUrl(), MlkitNames.computeModelClassName((VfsUtilCore.virtualToIoFile(myFile)))));
+        htmlBodyBuilder.append(getSampleCodeSectionBody(modelClass, modelInfo));
+      }
+    }
+    catch (FileTooBigException e) {
+      htmlBodyBuilder.append(
+        "Model file is larger than 20MB, please check <a href=\"https://developer.android.com/studio/write/mlmodelbinding\">our " +
+        "documentation</a> for a workaround.");
     }
     catch (IOException e) {
       Logger.getInstance(TfliteModelFileEditor.class).error(e);
@@ -121,11 +132,11 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       // TODO(deanzhou): show warning message in panel
     }
 
-    myRootPane = new JBScrollPane(contentPanel);
+    return htmlBodyBuilder.toString();
   }
 
-  private static JTextPane createPaneFromHtml(@NotNull String html) {
-    JTextPane modelPane = new JTextPane();
+  private static JEditorPane createPaneFromHtml(@NotNull String html) {
+    JEditorPane modelPane = new JEditorPane();
     modelPane.setAlignmentX(Component.LEFT_ALIGNMENT);
     setHtml(modelPane, html);
 
@@ -137,7 +148,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     StringBuilder htmlRow = new StringBuilder();
     htmlRow.append("<tr>\n");
     for (String value : row) {
-      htmlRow.append(useHeaderCells ? "<th>" + value + "</th>\n" : "<td>" + value + "</td>\n");
+      htmlRow.append(useHeaderCells ? "<th valign=\"top\">" + value + "</th>\n" : "<td valign=\"top\">" + value + "</td>\n");
     }
     htmlRow.append("</tr>\n");
 
@@ -162,9 +173,9 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     return bodyBuilder.toString();
   }
 
-  private static String getSampleCodeSectionBody(@NotNull PsiClass modelClass) {
+  private static String getSampleCodeSectionBody(@NotNull PsiClass modelClass, @NotNull ModelInfo modelInfo) {
     return "<h2>Sample Code</h2>\n" +
-           "<div id=\"sample_code\"><pre>" + buildSampleCode(modelClass) + "</pre></div>";
+           "<div id=\"sample_code\"><pre>" + buildSampleCode(modelClass, modelInfo) + "</pre></div>";
   }
 
   private static String getTensorsSectionBody(@NotNull ModelInfo modelInfo) {
@@ -201,11 +212,32 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   @NotNull
   private static String[] getTensorsRow(@NotNull TensorInfo tensorInfo) {
     MetadataExtractor.NormalizationParams params = tensorInfo.getNormalizationParams();
-    String meanStdRow = params != null ? Arrays.toString(params.getMean()) + "/" + Arrays.toString(params.getStd()) : "";
-    String minMaxRow = params != null ? Arrays.toString(params.getMin()) + "/" + Arrays.toString(params.getMax()) : "";
+    String meanStdColumn = params != null ? Arrays.toString(params.getMean()) + "/" + Arrays.toString(params.getStd()) : "";
+    String minMaxColumn = isValidMinMaxColumn(params) ? Arrays.toString(params.getMin()) + "/" + Arrays.toString(params.getMax()) : "";
 
     return new String[]{tensorInfo.getName(), tensorInfo.getContentType().toString(), tensorInfo.getDescription(),
-      Arrays.toString(tensorInfo.getShape()), meanStdRow, minMaxRow};
+      Arrays.toString(tensorInfo.getShape()), meanStdColumn, minMaxColumn};
+  }
+
+  private static boolean isValidMinMaxColumn(@Nullable MetadataExtractor.NormalizationParams params) {
+    if (params == null || params.getMin() == null || params.getMax() == null) {
+      return false;
+    }
+
+    boolean isValid = false;
+    for (float min : params.getMin()) {
+      if (min != Float.MIN_VALUE) {
+        isValid = true;
+      }
+    }
+
+    for (float max : params.getMax()) {
+      if (max != Float.MAX_VALUE) {
+        isValid = true;
+      }
+    }
+
+    return isValid;
   }
 
   private static void setHtml(@NotNull JEditorPane pane, @NotNull String bodyContent) {
@@ -213,7 +245,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       "<html><head><style>" +
       MODEL_TABLE_STYLE +
       TENSORS_TABLE_STYLE +
-      SAMPLE_CODE_STYLE +
+      buildSampleCodeStyle() +
       "</style></head><body>" +
       bodyContent +
       "</body></html>";
@@ -222,10 +254,26 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     pane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
     pane.setText(html);
     pane.setBackground(UIUtil.getTextFieldBackground());
+    pane.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE);
   }
 
   @NotNull
-  private static String buildSampleCode(@NotNull PsiClass modelClass) {
+  private static String buildSampleCodeStyle() {
+    return "#sample_code {\n" +
+           "  font-family: 'Source Sans Pro', sans-serif; \n" +
+           "  background-color: " + (StartupUiUtil.isUnderDarcula() ? "#2A3141" : "#F1F3F4") + ";\n" +
+           "  color: " + (StartupUiUtil.isUnderDarcula() ? "#EDEFF1" : "#3A474E") + ";\n" +
+           "  margin-left: 20px;\n" +
+           "  display: block;\n" +
+           "  width: 60%;\n" +
+           "  padding: 5px;\n" +
+           "  padding-left: 10px;\n" +
+           "  margin-top: 10px;\n" +
+           "}";
+  }
+
+  @NotNull
+  private static String buildSampleCode(@NotNull PsiClass modelClass, @NotNull ModelInfo modelInfo) {
     StringBuilder stringBuilder = new StringBuilder();
     String modelClassName = modelClass.getName();
     stringBuilder.append(String.format("%s model = %s.newInstance(context);\n\n", modelClassName, modelClassName));
@@ -243,13 +291,13 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       stringBuilder.append(");\n\n");
     }
 
-    int index = 1;
+    int index = 0;
     PsiClass outputsClass = getInnerClass(modelClass, MlkitNames.OUTPUTS);
     if (outputsClass != null) {
       for (PsiMethod psiMethod : outputsClass.getMethods()) {
         stringBuilder.append(
-          String.format("%s %s = outputs.%s();\n", psiMethod.getReturnType().getPresentableText(), "data" + index, psiMethod.getName()));
-        index++;
+          String.format("%s %s = outputs.%s();\n", psiMethod.getReturnType().getPresentableText(),
+                        modelInfo.getOutputs().get(index++).getName(), psiMethod.getName()));
       }
     }
 
@@ -269,6 +317,12 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   @NotNull
   @Override
   public JComponent getComponent() {
+    if (myUnderDarcula != StartupUiUtil.isUnderDarcula() || myIsSampleCodeSectionVisible != shouldDisplaySampleCodeSection()) {
+      myUnderDarcula = StartupUiUtil.isUnderDarcula();
+      myIsSampleCodeSectionVisible = shouldDisplaySampleCodeSection();
+      // Refresh UI
+      setHtml(myEditorPane, createHtmlBody());
+    }
     return myRootPane;
   }
 
@@ -328,5 +382,9 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
 
   @Override
   public void dispose() {
+  }
+
+  private boolean shouldDisplaySampleCodeSection() {
+    return MlkitUtils.isMlModelBindingBuildFeatureEnabled(myModule) && MlkitUtils.isModelFileInMlModelsFolder(myModule, myFile);
   }
 }

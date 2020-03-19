@@ -59,18 +59,22 @@ public class CreateKeyTrigger extends BaseCreateKey {
     int y = createTop(gbc, "CREATE KEY TRIGGER");
 
     grid(gbc, 0, y++, 2, 1);
+    gbc.insets = MEUI.dialogLabelInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(new JLabel("Type"), gbc);
     grid(gbc, 0, y++, 2, 1);
     gbc.anchor = GridBagConstraints.CENTER;
+    gbc.insets = MEUI.dialogControlInsets();
     add(comboBox, gbc);
 
     JLabel title;
     grid(gbc, 0, y++, 2, 1);
     gbc.weighty = 0;
+    gbc.insets = MEUI.dialogLabelInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(title = new JLabel("Position"), gbc);
     grid(gbc, 0, y++, 2, 1);
+    gbc.insets = MEUI.dialogControlInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(mMainParameter = newTextField("0-100", 15), gbc);
 
@@ -88,17 +92,21 @@ public class CreateKeyTrigger extends BaseCreateKey {
     });
     grid(gbc, 0, y++,2, 1);
     gbc.weighty = 0;
+    gbc.insets = MEUI.dialogLabelInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(new JLabel("Collide width"), gbc);
     grid(gbc, 0, y++, 2, 1);
+    gbc.insets = MEUI.dialogControlInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(newTextField("triggerId", 15), gbc);
 
     grid(gbc, 0, y++, 2, 1);
     gbc.weighty = 0;
+    gbc.insets = MEUI.dialogLabelInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(new JLabel("onCross"), gbc);
     grid(gbc, 0, y++, 2, 1);
+    gbc.insets = MEUI.dialogControlInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(mOnCross = newTextField("method", 15), gbc);
 
@@ -108,6 +116,7 @@ public class CreateKeyTrigger extends BaseCreateKey {
     }, gbc);
     gbc.weighty = 0;
     gbc.weightx = 1;
+    gbc.insets = MEUI.dialogBottomButtonInsets();
     gbc.anchor = GridBagConstraints.SOUTHEAST;
     grid(gbc, 0, y++, 2, 1);
     JButton ok = new JButton("Add");

@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -64,6 +63,10 @@ public class MlkitModuleService {
 
   @Nullable
   public LightModelClass getOrCreateLightModelClass(@NotNull MlModelMetadata modelMetadata) {
+    if (!MlkitUtils.isMlModelBindingBuildFeatureEnabled(myModule)) {
+      return null;
+    }
+
     return myLightModelClassMap.computeIfAbsent(modelMetadata, modelMetadata1 -> {
       LightModelClassConfig classConfig = MlModelClassGenerator.generateLightModelClass(myModule, modelMetadata1);
       return classConfig != null ? new LightModelClass(myModule, classConfig) : null;
@@ -75,7 +78,7 @@ public class MlkitModuleService {
    */
   @NotNull
   public List<PsiClass> getLightModelClassList() {
-    if (AndroidFacet.getInstance(myModule) == null) {
+    if (!MlkitUtils.isMlModelBindingBuildFeatureEnabled(myModule)) {
       return Collections.emptyList();
     }
 
@@ -108,15 +111,15 @@ public class MlkitModuleService {
   public static class ModelFileModificationTracker implements ModificationTracker {
     private int myModificationCount;
 
-    private ModelFileModificationTracker(Module module) {
-      if (StudioFlags.MLKIT_LIGHT_CLASSES.get()) {
+    private ModelFileModificationTracker(@NotNull Module module) {
+      if (StudioFlags.ML_MODEL_BINDING.get()) {
         MessageBusConnection connection = module.getMessageBus().connect(module);
         connection.subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
           @Override
           public void after(@NotNull List<? extends VFileEvent> events) {
             for (VFileEvent event : events) {
               VirtualFile file = event.getFile();
-              if (file != null && MlkitUtils.isModelFileInMlModelsFolder(file)) {
+              if (file != null && MlkitUtils.isModelFileInMlModelsFolder(module, file)) {
                 PsiManager.getInstance(module.getProject()).dropResolveCaches();
                 getInstance(module).myLightModelClassMap.clear();
                 myModificationCount++;

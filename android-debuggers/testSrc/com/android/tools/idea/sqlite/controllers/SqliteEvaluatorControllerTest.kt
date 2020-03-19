@@ -19,6 +19,7 @@ import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.refEq
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture
+import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFutureException
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.EmptySqliteResultSet
@@ -75,6 +76,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
 
     // Assert
     verify(sqliteEvaluatorView).addListener(any(SqliteEvaluatorView.Listener::class.java))
+    verify(sqliteEvaluatorView.tableView).setEditable(false)
   }
 
   fun testEvaluateSqlActionQuerySuccess() {
@@ -267,6 +269,19 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     orderVerifier.verify(sqliteEvaluatorView.tableView).resetView()
     orderVerifier.verify(sqliteEvaluatorView.tableView).showTableColumns(mockSqliteResultSet._columns)
     orderVerifier.verify(sqliteEvaluatorView.tableView).updateRows(mockSqliteResultSet.rows.map { RowDiffOperation.AddRow(it) })
+  }
+
+  fun testErrorFromRowCountAreHandled() {
+    // Prepare
+    val mockResultSet = mock(SqliteResultSet::class.java)
+    `when`(mockResultSet.totalRowCount).thenReturn(Futures.immediateFailedFuture(RuntimeException()))
+
+    `when`(databaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+
+    sqliteEvaluatorController.setUp()
+
+    // Act/Assert
+    pumpEventsAndWaitForFutureException(sqliteEvaluatorController.evaluateSqlStatement(sqliteDatabase, SqliteStatement("fake stmt")))
   }
 
   private fun evaluateSqlActionSuccess(action: String) {

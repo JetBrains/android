@@ -24,8 +24,7 @@ import com.android.tools.idea.gradle.dsl.parser.ModificationAware;
 import com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
-import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
-import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.application.ApplicationManager;
@@ -68,6 +67,8 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
 
   @NotNull protected final List<GradleReferenceInjection> myDependencies = new ArrayList<>();
   @NotNull protected final List<GradleReferenceInjection> myDependents = new ArrayList<>();
+
+  @Nullable private ModelEffectDescription myModelEffectDescription;
 
   /**
    * Creates an instance of a {@link GradleDslElement}
@@ -123,7 +124,7 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
   @Override
   @NotNull
   public String getName() {
-    return myName.name();
+    return myModelEffectDescription == null ? myName.name() : myModelEffectDescription.property.name;
   }
 
   @Override
@@ -522,7 +523,18 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
 
   @Override
   @NotNull
-  public ImmutableMap<Pair<String, Integer>, Pair<ModelPropertyDescription, SemanticsDescription>> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
+  public ImmutableMap<Pair<String, Integer>, ModelEffectDescription> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
     return ImmutableMap.of();
+  }
+
+  @Nullable
+  @Override
+  public ModelEffectDescription getModelEffect() {
+    return myModelEffectDescription;
+  }
+
+  @Override
+  public void setModelEffect(@Nullable ModelEffectDescription effect) {
+    myModelEffectDescription = effect;
   }
 }

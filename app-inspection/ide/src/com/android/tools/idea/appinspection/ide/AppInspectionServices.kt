@@ -15,13 +15,22 @@
  */
 package com.android.tools.idea.appinspection.ide
 
-import com.android.tools.idea.appinspection.api.AppInspectionDiscovery
+import com.android.ddmlib.AndroidDebugBridge
+import com.android.ddmlib.IDevice
 import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
-import com.android.tools.idea.transport.manager.TransportStreamManager
+import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
+import com.android.tools.idea.transport.DeployableFile
 import com.android.tools.idea.transport.TransportClient
+import com.android.tools.idea.transport.TransportFileManager
 import com.android.tools.idea.transport.TransportService
+import com.android.tools.idea.transport.TransportServiceProxy
+import com.android.tools.idea.transport.manager.TransportStreamManager
+import com.android.tools.profiler.proto.Common
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.components.ServiceManager
+import com.intellij.openapi.components.service
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.project.Project
 import com.intellij.util.concurrency.AppExecutorUtil
 import java.util.concurrent.TimeUnit
 
@@ -29,7 +38,7 @@ import java.util.concurrent.TimeUnit
 /**
  * This service holds a reference to [AppInspectionDiscoveryHost]. It will establish new connections when they are discovered.
  */
-internal class AppInspectionHostService : Disposable {
+internal class AppInspectionHostService(project: Project) : Disposable {
   init {
     // The following line has the side effect of starting the transport service if it has not been already.
     // The consequence of not doing this is gRPC calls are never responded to.
@@ -39,21 +48,48 @@ internal class AppInspectionHostService : Disposable {
   private val client = TransportClient(TransportService.CHANNEL_NAME)
   private val streamManager = TransportStreamManager.createManager(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100))
 
-  val discoveryHost = AppInspectionDiscoveryHost(AppExecutorUtil.getAppScheduledExecutorService(), client, streamManager)
+  val discoveryHost = AppInspectionDiscoveryHost(
+    AppExecutorUtil.getAppScheduledExecutorService(),
+    client,
+    streamManager
+  ) { device ->
+    val jarCopier = findDevice(device)?.createJarCopier()
+    if (jarCopier == null) {
+      logger.error("AndroidDebugBridge cannot find device (manufacturer='${device.manufacturer}', '${device.model}', '${device.serial}')")
+    }
+    jarCopier
+  }
+
+  private fun IDevice.createJarCopier(): AppInspectionJarCopier {
+    return object : AppInspectionJarCopier {
+      private val delegate = TransportFileManager(this@createJarCopier, TransportService.getInstance().messageBus)
+      override fun copyFileToDevice(jar: AppInspectorJar): List<String> = delegate.copyFileToDevice(jar.toDeployableFile())
+    }
+  }
 
   companion object {
-    val instance: AppInspectionHostService
-      get() = ServiceManager.getService(AppInspectionHostService::class.java)
+    private val logger = Logger.getInstance(AppInspectionHostService::class.java)
+    fun getInstance(project: Project) = project.service<AppInspectionHostService>()
   }
 
   override fun dispose() {
     TransportStreamManager.unregisterManager(streamManager)
   }
-}
 
-// "class" is used simply as a namespace, an object by itself must be stateless. It is purpose is to provide public access to subset
-// of AppInspectionHostService API: clients can add a listener to be notified about new connections, but can't establish new one.
-object AppInspectionClientsService {
-  val discovery: AppInspectionDiscovery
-    get() = AppInspectionHostService.instance.discoveryHost.discovery
+  /**
+   * This uses the current [AndroidDebugBridge] to locate a device described by [device]. Return value is null if bridge is not available,
+   * bridge does not detect any devices, or if the provided [device] does not match any of the devices the bridge is aware of.
+   */
+  private fun findDevice(device: Common.Device): IDevice? {
+    return AndroidDebugBridge.getBridge()?.devices?.find {
+      device.manufacturer == TransportServiceProxy.getDeviceManufacturer(it)
+        && device.model == TransportServiceProxy.getDeviceModel(it)
+        && device.serial == it.serialNumber
+    }
+  }
+
+  private fun AppInspectorJar.toDeployableFile() = DeployableFile.Builder(name).apply {
+    releaseDirectory?.let { this.setReleaseDir(it) }
+    developmentDirectory?.let { this.setDevDir(it) }
+  }.build()
 }

@@ -278,7 +278,8 @@
       label="ConstraintLayout concepts"
       remoteLink="https://developer.android.com/training/constraint-layout"
       remoteLinkLabel="View ConstraintLayout Guide."
-      hasLocalHTMLPaths="true">
+      hasLocalHTMLPaths="true"
+      loadLazily="true">
       <description>
         <![CDATA[
 
@@ -331,7 +332,8 @@ the corresponding parent’s sides:
         label="ConstraintLayout editor"
         remoteLink="https://developer.android.com/training/constraint-layout"
         remoteLinkLabel="View ConstraintLayout Guide."
-        hasLocalHTMLPaths="true">
+        hasLocalHTMLPaths="true"
+        loadLazily="true">
     <description>
       <![CDATA[
 
@@ -401,7 +403,8 @@ Once a widget has been constrained via opposite constraint, its applied bias can
         label="Guide to MotionLayout."
         remoteLink="https://developer.android.com/training/constraint-layout/motionlayout"
         remoteLinkLabel="View MotionLayout Guide."
-        hasLocalHTMLPaths="true">
+        hasLocalHTMLPaths="true"
+        loadLazily="true">
       <description>
         <![CDATA[
 

@@ -23,4 +23,8 @@ import org.junit.runner.RunWith;
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses(MlkitTestSuite.class)  // a suite mustn't contain itself
 public class MlkitTestSuite extends IdeaTestSuiteBase {
+  static {
+    unzipIntoOfflineMavenRepo("tools/base/build-system/studio_repo.zip");
+    unzipIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.zip");
+  }
 }

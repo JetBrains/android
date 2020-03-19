@@ -15,18 +15,22 @@
  */
 package com.android.tools.profilers.memory.adapters.classifiers;
 
+import com.android.tools.adtui.model.filter.Filter;
+import com.android.tools.profilers.CachedFunction;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.MemoryObject;
-import com.android.tools.adtui.model.filter.Filter;
+import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
+import java.util.IdentityHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A general base class for classifying/filtering objects into categories.
@@ -60,6 +64,9 @@ public abstract class ClassifierSet implements MemoryObject {
 
   // Number of ClassifierSet that match the filter.
   protected int myFilterMatchCount = 0;
+
+  private final CachedFunction<CaptureObjectInstanceFilter, Integer> myInstanceFilterMatchCounter =
+    new CachedFunction<>(this::countInstanceFilterMatch, new IdentityHashMap<>());
 
   protected boolean myIsFiltered;
   protected boolean myIsMatched;
@@ -138,6 +145,10 @@ public abstract class ClassifierSet implements MemoryObject {
     return getAllocationSize() - getDeallocationSize();
   }
 
+  final public int getInstanceFilterMatchCount(CaptureObjectInstanceFilter filter) {
+    return myInstanceFilterMatchCounter.invoke(filter);
+  }
+
   /**
    * Add an instance to the baseline snapshot and update the accounting of the "total" values.
    * Note that instances at the baseline must be an allocation event.
@@ -175,6 +186,7 @@ public abstract class ClassifierSet implements MemoryObject {
     if (instanceObject.getCallStackDepth() > 0) {
       myInstancesWithStackInfoCount += unit;
     }
+    myInstanceFilterMatchCounter.invalidate();
     myNeedsRefiltering = true;
   }
 
@@ -240,6 +252,10 @@ public abstract class ClassifierSet implements MemoryObject {
     if (instanceChanged && instanceObject.getCallStackDepth() > 0) {
       myInstancesWithStackInfoCount += unit;
       myNeedsRefiltering = true;
+    }
+
+    if (instanceChanged) {
+      myInstanceFilterMatchCounter.invalidate();
     }
 
     return instanceChanged;
@@ -426,6 +442,14 @@ public abstract class ClassifierSet implements MemoryObject {
 
   protected boolean matches(@NotNull Filter filter) {
     return filter.matches(getName());
+  }
+
+  private int countInstanceFilterMatch(CaptureObjectInstanceFilter filter) {
+    return myClassifier != null && !myClassifier.isTerminalClassifier()
+           ? myClassifier.getAllClassifierSets().stream()
+             .map(s -> s.getInstanceFilterMatchCount(filter))
+             .reduce(0, Integer::sum)
+           : (int) getInstancesStream().filter(filter.getInstanceTest()::invoke).count();
   }
 
   private static long validOrZero(long value) {

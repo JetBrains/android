@@ -51,10 +51,18 @@ class SqliteEvaluatorController(
   fun setUp() {
     view.addListener(sqliteEvaluatorViewListener)
     view.tableView.isTableActionsRowVisible = false
+    view.tableView.setEditable(false)
   }
 
   fun removeDatabase(index: Int) {
     view.removeDatabase(index)
+  }
+
+  /**
+   * Notifies the controller that the schema associated with [database] has changed.
+   */
+  fun schemaChanged(database: SqliteDatabase) {
+    view.schemaChanged(database)
   }
 
   override fun refreshData(): ListenableFuture<Unit> {
@@ -94,36 +102,47 @@ class SqliteEvaluatorController(
     edtExecutor.addCallback(databaseConnection.execute(sqliteStatement), object : FutureCallback<SqliteResultSet> {
       override fun onSuccess(resultSet: SqliteResultSet?) {
         checkNotNull(resultSet)
-        edtExecutor.transform(resultSet.totalRowCount) { rowCount ->
-          view.tableView.resetView()
-          view.tableView.setEditable(false)
+        edtExecutor.addCallback(resultSet.totalRowCount, object : FutureCallback<Int> {
+          override fun onSuccess(rowCount: Int?) {
+            view.tableView.resetView()
+            view.tableView.setEditable(false)
 
-          if (rowCount > 0) {
-            currentTableController = TableController(
-              project = project,
-              view = view.tableView,
-              tableSupplier = { null },
-              databaseConnection = databaseConnection,
-              sqliteStatement = sqliteStatement,
-              edtExecutor = edtExecutor
-            )
-            Disposer.register(this@SqliteEvaluatorController, currentTableController!!)
-            currentTableController!!.setUp()
+            if (rowCount!! > 0) {
+              currentTableController = TableController(
+                project = project,
+                view = view.tableView,
+                tableSupplier = { null },
+                databaseConnection = databaseConnection,
+                sqliteStatement = sqliteStatement,
+                edtExecutor = edtExecutor
+              )
+              Disposer.register(this@SqliteEvaluatorController, currentTableController!!)
+              currentTableController!!.setUp()
+            }
+
+            settableFuture.set(Unit)
           }
 
-          settableFuture.set(Unit)
-        }
+          override fun onFailure(throwable: Throwable) {
+            reportError(throwable)
+            settableFuture.setException(throwable)
+          }
+        })
 
         listeners.forEach { it.onSqliteStatementExecuted(database) }
       }
 
-      override fun onFailure(t: Throwable) {
-        view.tableView.reportError("Error executing SQLite statement", t)
-        settableFuture.setException(t)
+      override fun onFailure(throwable: Throwable) {
+        reportError(throwable)
+        settableFuture.setException(throwable)
       }
     })
 
     return settableFuture
+  }
+
+  private fun reportError(throwable: Throwable) {
+    view.tableView.reportError("Error executing SQLite statement", throwable)
   }
 
   private inner class SqliteEvaluatorViewListenerImpl : SqliteEvaluatorView.Listener {

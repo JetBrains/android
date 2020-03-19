@@ -30,6 +30,7 @@ import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.workbench.ToolWindowCallback;
+import com.android.tools.idea.common.editor.ActionUtils;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
@@ -356,7 +357,8 @@ public class DestinationList extends JPanel implements DataProvider, Disposable 
             myList.setSelectedIndex(index);
           }
           NlComponent component = myList.getModel().getElementAt(index);
-          myDesignSurface.getActionManager().showPopup(e, component);
+          // TODO (b/151315668): extract the hardcoded value "NavEditor".
+          ActionUtils.showPopup(myDesignSurface, e, myDesignSurface.getActionManager().getPopupMenuActions(component), "NavEditor");
           e.consume();
         }
       }

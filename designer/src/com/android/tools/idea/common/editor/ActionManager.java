@@ -19,13 +19,9 @@ import com.android.tools.adtui.stdui.KeyBindingKt;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
-import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.actionSystem.ActionPopupMenu;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
-import java.awt.Component;
-import java.awt.event.MouseEvent;
 import java.util.Arrays;
 import java.util.List;
 import javax.swing.JComponent;
@@ -68,22 +64,6 @@ public abstract class ActionManager<S extends DesignSurface> {
     return new DesignSurfaceActionsToolbar(mySurface, mySurface, mySurface).getDesignSurfaceToolbar();
   }
 
-  public final void showPopup(@NotNull MouseEvent event, @Nullable NlComponent leafComponent) {
-    Component invoker = event.getSource() instanceof Component ? (Component)event.getSource() : mySurface;
-    showPopup(invoker, event.getX(), event.getY(), leafComponent);
-  }
-
-  public final void showPopup(@NotNull Component invoker, int x, int y, @Nullable NlComponent leafComponent) {
-    DefaultActionGroup group = getPopupMenuActions(leafComponent);
-    if (group.getChildrenCount() == 0) {
-      return;
-    }
-
-    com.intellij.openapi.actionSystem.ActionManager actionManager = com.intellij.openapi.actionSystem.ActionManager.getInstance();
-    ActionPopupMenu popupMenu = actionManager.createActionPopupMenu("LayoutEditor", group);
-    popupMenu.getComponent().show(invoker, x, y);
-  }
-
   /**
    * Returns a pre-registered action for the given action name. See {@link com.intellij.openapi.actionSystem.IdeActions}
    */
@@ -101,18 +81,20 @@ public abstract class ActionManager<S extends DesignSurface> {
   public abstract void registerActionsShortcuts(@NotNull JComponent component);
 
   /**
-   * Creates a pop-up menu for the given component
+   * Creates the actions for the pop-up menu (a.k.a. context menu) for the given {@link NlComponent}.
+   *
+   * @param leafComponent The target component for the pop-up menu (e.g. The right-clicked component)
    */
-  @VisibleForTesting
   @NotNull
   public abstract DefaultActionGroup getPopupMenuActions(@Nullable NlComponent leafComponent);
 
   /**
-   * Creates the toolbar actions for the given component
+   * Creates the actions for the given {@link NlComponent}s.
+   *
+   * @param selection The selected {@link NlComponent}s in {@link DesignSurface}.
    */
   @NotNull
-  public abstract DefaultActionGroup getToolbarActions(@Nullable NlComponent component,
-                                                       @NotNull List<NlComponent> newSelection);
+  public abstract DefaultActionGroup getToolbarActions(@NotNull List<NlComponent> selection);
 
   /**
    * Returns the context toolbar for a {@link SceneView}. This toolbar should contain actions

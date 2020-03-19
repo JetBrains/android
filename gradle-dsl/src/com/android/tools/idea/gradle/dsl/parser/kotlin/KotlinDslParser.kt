@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.VARIABLE
-import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.FILE_CONSTRUCTOR_NAME
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.INCOMPLETE_PARSING
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.INVALID_EXPRESSION
@@ -408,7 +407,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     val matcher = GradleNameElement.INDEX_PATTERN.matcher(name.name())
     if (matcher.find()) {
       // we have an index / dereferencing lvalue: find the actual element that we will need to modify.
-      val property = modelNameForParent(matcher.group(0), parentBlock)
+      val property = modelDescriptionForParent(matcher.group(0), parentBlock)?.name ?: matcher.group(0)
       parentBlock = parentBlock.getElement(property) as? GradlePropertiesDslElement ?: return
       // we do not need to convert this to a model name because it must be a user-supplied property.
       var index = if (matcher.find()) matcher.group(1) else return

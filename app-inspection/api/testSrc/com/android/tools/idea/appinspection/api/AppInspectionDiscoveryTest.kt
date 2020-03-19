@@ -36,14 +36,13 @@ class AppInspectionDiscoveryTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
 
-  private val FAKE_PROCESS = AttachableProcessDescriptor(
+  private val FAKE_PROCESS = ProcessDescriptor(
     Common.Stream.newBuilder()
       .setType(Common.Stream.Type.DEVICE)
       .setStreamId(FakeTransportService.FAKE_DEVICE_ID)
       .setDevice(FakeTransportService.FAKE_DEVICE)
       .build(),
-    FakeTransportService.FAKE_PROCESS,
-    AppInspectionTestUtils.TestTransportJarCopier
+    FakeTransportService.FAKE_PROCESS
   )
 
   private val ATTACH_HANDLER = object : CommandHandler(timer) {
@@ -82,7 +81,7 @@ class AppInspectionDiscoveryTest {
       targetReadyLatch.countDown()
     }
 
-    discovery.attachToProcess(FAKE_PROCESS, appInspectionServiceRule.streamChannel)
+    discovery.attachToProcess(FAKE_PROCESS, AppInspectionTestUtils.TestTransportJarCopier, appInspectionServiceRule.streamChannel)
   }
 
   @Test
@@ -98,10 +97,12 @@ class AppInspectionDiscoveryTest {
     }
 
     // Attach to the process.
-    val target2 = discovery.attachToProcess(FAKE_PROCESS, appInspectionServiceRule.streamChannel).get()
+    val target2 =
+      discovery.attachToProcess(FAKE_PROCESS, AppInspectionTestUtils.TestTransportJarCopier, appInspectionServiceRule.streamChannel).get()
 
     // Attach to the same process again.
-    val target3 = discovery.attachToProcess(FAKE_PROCESS, appInspectionServiceRule.streamChannel).get()
+    val target3 =
+      discovery.attachToProcess(FAKE_PROCESS, AppInspectionTestUtils.TestTransportJarCopier, appInspectionServiceRule.streamChannel).get()
 
     targetReadyLatch.await()
 
@@ -119,7 +120,7 @@ class AppInspectionDiscoveryTest {
       targetReadyLatch.countDown()
     }
 
-    discovery.attachToProcess(FAKE_PROCESS, appInspectionServiceRule.streamChannel)
+    discovery.attachToProcess(FAKE_PROCESS, AppInspectionTestUtils.TestTransportJarCopier, appInspectionServiceRule.streamChannel)
 
     targetReadyLatch.await()
 
@@ -144,7 +145,8 @@ class AppInspectionDiscoveryTest {
         targetTerminatedLatch.countDown()
       }
     }
-    val firstTarget = discovery.attachToProcess(FAKE_PROCESS, appInspectionServiceRule.streamChannel)
+    val firstTarget =
+      discovery.attachToProcess(FAKE_PROCESS, AppInspectionTestUtils.TestTransportJarCopier, appInspectionServiceRule.streamChannel)
 
     // Fake process ended event
     transportService.addEventToStream(
@@ -161,7 +163,8 @@ class AppInspectionDiscoveryTest {
     // Wait
     targetTerminatedLatch.await()
 
-    val secondTarget = discovery.attachToProcess(FAKE_PROCESS, appInspectionServiceRule.streamChannel).get()
+    val secondTarget =
+      discovery.attachToProcess(FAKE_PROCESS, AppInspectionTestUtils.TestTransportJarCopier, appInspectionServiceRule.streamChannel).get()
 
     // Verify first target was removed from discovery's internal cache, therefore the second target is newly created.
     assertThat(firstTarget).isNotSameAs(secondTarget)

@@ -17,6 +17,7 @@ package com.android.tools.adtui.common
 
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
+import java.awt.Color
 
 /**
  * Colors defined in the UX prototype
@@ -71,6 +72,14 @@ val primaryContentBackground = JBColor.namedColor("Content.background", JBColor(
  * Example: text color of "Leak" button
  */
 val clickableTextColor = JBColor.namedColor("Content.clickable", JBColor(0x268bd2, 0x268bd2))
+
+/**
+ * Background color for selected content.
+ *
+ * Example: selected range in profilers.
+ */
+val contentSelectionBackground = JBColor.namedColor("Content.selectionBackground",
+                                                    JBColor(Color(0x330478DA, true), Color(0x4C2395F5, true)))
 
 /**
  * Background color for an active selection.

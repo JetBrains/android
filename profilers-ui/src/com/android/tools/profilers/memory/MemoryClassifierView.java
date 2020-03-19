@@ -44,6 +44,8 @@ import com.android.tools.profilers.memory.adapters.classifiers.NativeAllocationM
 import com.android.tools.profilers.memory.adapters.classifiers.NativeCallStackSet;
 import com.android.tools.profilers.memory.adapters.classifiers.PackageSet;
 import com.android.tools.profilers.memory.adapters.classifiers.ThreadSet;
+import com.android.tools.profilers.memory.adapters.MemoryObject;
+import com.android.tools.profilers.memory.adapters.instancefilters.ActivityFragmentLeakInstanceFilter;
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
@@ -58,6 +60,9 @@ import com.intellij.util.ui.UIUtilities;
 import icons.StudioIcons;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.util.Collections;
@@ -66,8 +71,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.Set;
 import java.util.function.ToLongFunction;
 import java.util.stream.Collectors;
+import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTree;
@@ -655,6 +662,28 @@ final class MemoryClassifierView extends AspectObserver {
   @VisibleForTesting
   ColoredTreeCellRenderer getNameColumnRenderer() {
     return new ColoredTreeCellRenderer() {
+      private long myLeakCount = 0;
+
+      @Override
+      protected void paintComponent(Graphics g) {
+        if (myLeakCount > 0) {
+          int width = getWidth();
+          int height = getHeight();
+
+          Icon i = StudioIcons.Common.WARNING;
+          int iconWidth = i.getIconWidth();
+          int iconHeight = i.getIconHeight();
+          i.paintIcon(this, g, width - iconWidth, (height - iconHeight) / 2);
+
+          String text = String.valueOf(myLeakCount);
+          ((Graphics2D)g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+          int textWidth = g.getFontMetrics().stringWidth(text);
+          g.drawString(text, width - iconWidth - textWidth - 4, (height + iconHeight) / 2 - 1);
+        }
+        // paint real content last
+        super.paintComponent(g);
+      }
+
       @Override
       public void customizeCellRenderer(@NotNull JTree tree,
                                         Object value,
@@ -728,6 +757,12 @@ final class MemoryClassifierView extends AspectObserver {
           append(name, SimpleTextAttributes.REGULAR_ATTRIBUTES, name);
         }
 
+        if (node.getAdapter() instanceof ClassifierSet) {
+          CaptureObjectInstanceFilter leakFilter = myCaptureObject.getActivityFragmentLeakFilter();
+          myLeakCount = leakFilter != null ?
+                        ((ClassifierSet)node.getAdapter()).getInstanceFilterMatchCount(leakFilter) :
+                        0;
+        }
         setTextAlign(SwingConstants.LEFT);
       }
     };

@@ -18,8 +18,15 @@ package com.android.tools.idea.mlkit;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.testutils.TestUtils;
+import com.android.tools.idea.editors.manifest.ManifestUtils;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.project.DefaultModuleSystem;
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderBuilder;
+import com.android.tools.idea.projectsystem.SourceProviders;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.testing.AndroidTestUtils;
+import com.google.common.collect.ImmutableList;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.lookup.Lookup;
 import com.intellij.codeInsight.lookup.LookupElement;
@@ -38,6 +45,7 @@ import com.intellij.testFramework.VfsTestUtil;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 public class MlkitLightClassTest extends AndroidTestCase {
@@ -45,8 +53,8 @@ public class MlkitLightClassTest extends AndroidTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    StudioFlags.MLKIT_TFLITE_MODEL_FILE_TYPE.override(true);
-    StudioFlags.MLKIT_LIGHT_CLASSES.override(true);
+    StudioFlags.ML_MODEL_BINDING.override(true);
+    ((DefaultModuleSystem)ProjectSystemUtil.getModuleSystem(myModule)).setMlModelBindingEnabled(true);
 
     // Pull in tflite model, which has image(i.e. name: image1) as input tensor and labels as output tensor
     myFixture.setTestDataPath(TestUtils.getWorkspaceFile("prebuilts/tools/common/mlkit/testData").getPath());
@@ -58,13 +66,18 @@ public class MlkitLightClassTest extends AndroidTestCase {
                                "package org.tensorflow.lite.support.tensorbuffer; public class TensorBuffer {}");
     myFixture.addFileToProject("src/org/tensorflow/lite/support/label/TensorLabel.java",
                                "package org.tensorflow.lite.support.label; public class TensorLabel {}");
+
+    AndroidFacet androidFacet = AndroidFacet.getInstance(myModule);
+    VirtualFile manifestFile = ManifestUtils.getMainManifest(androidFacet).getVirtualFile();
+    NamedIdeaSourceProvider ideSourceProvider = NamedIdeaSourceProviderBuilder.create("name", manifestFile.getUrl())
+      .withMlModelsDirectoryUrls(ImmutableList.of(manifestFile.getParent().getUrl() + "/ml")).build();
+    SourceProviders.replaceForTest(androidFacet, myModule, ideSourceProvider);
   }
 
   @Override
   public void tearDown() throws Exception {
     try {
-      StudioFlags.MLKIT_TFLITE_MODEL_FILE_TYPE.clearOverride();
-      StudioFlags.MLKIT_LIGHT_CLASSES.clearOverride();
+      StudioFlags.ML_MODEL_BINDING.clearOverride();
     }
     catch (Throwable e) {
       addSuppressedException(e);

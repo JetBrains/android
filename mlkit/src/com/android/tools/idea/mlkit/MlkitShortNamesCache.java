@@ -17,7 +17,8 @@ package com.android.tools.idea.mlkit;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.mlkit.lightpsi.LightModelClass;
-import com.android.tools.mlkit.MlkitNames;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
@@ -48,7 +49,7 @@ public class MlkitShortNamesCache extends PsiShortNamesCache {
   @NotNull
   @Override
   public PsiClass[] getClassesByName(@NotNull String name, @NotNull GlobalSearchScope scope) {
-    if (StudioFlags.MLKIT_LIGHT_CLASSES.get()) {
+    if (StudioFlags.ML_MODEL_BINDING.get()) {
       List<PsiClass> lightClassList = new ArrayList<>();
       Map<VirtualFile, MlModelMetadata> modelFileMap = new HashMap<>();
       FileBasedIndex index = FileBasedIndex.getInstance();
@@ -66,7 +67,7 @@ public class MlkitShortNamesCache extends PsiShortNamesCache {
         PsiClass[] lightClasses = MlkitUtils.getLightModelClasses(myProject, modelFileMap);
         for (PsiClass lightClass : lightClasses) {
           for (PsiClass innerClass : lightClass.getInnerClasses()) {
-            if (innerClass.getName().equals(name)) {
+            if (name.equals(innerClass.getName())) {
               lightClassList.add(innerClass);
             }
           }
@@ -89,12 +90,21 @@ public class MlkitShortNamesCache extends PsiShortNamesCache {
   @NotNull
   @Override
   public String[] getAllClassNames() {
-    if (StudioFlags.MLKIT_LIGHT_CLASSES.get()) {
+    if (StudioFlags.ML_MODEL_BINDING.get()) {
       List<String> classNameList = new ArrayList<>();
-      FileBasedIndex.getInstance().processAllKeys(MlModelFileIndex.INDEX_ID, key -> {
-        classNameList.add(key);
+      FileBasedIndex index = FileBasedIndex.getInstance();
+      index.processAllKeys(MlModelFileIndex.INDEX_ID, key -> {
+        index.processValues(MlModelFileIndex.INDEX_ID, key, null, (file, value) -> {
+          Module module = ModuleUtilCore.findModuleForFile(file, myProject);
+          if (module != null && MlkitUtils.isMlModelBindingBuildFeatureEnabled(module)) {
+            classNameList.add(key);
+            return false;
+          }
+          return true;
+        }, GlobalSearchScope.projectScope(myProject));
+
         return true;
-      }, myProject);
+      }, GlobalSearchScope.projectScope(myProject), null);
 
       if (!classNameList.isEmpty()) {
         classNameList.addAll(LightModelClass.getInnerClassNames());

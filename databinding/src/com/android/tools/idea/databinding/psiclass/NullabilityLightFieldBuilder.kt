@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.databinding.psiclass
 
-import com.intellij.codeInsight.NullableNotNullManager
 import com.intellij.psi.PsiAnnotation
-import com.intellij.psi.PsiElementFactory
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiModifierList
 import com.intellij.psi.PsiType
@@ -38,26 +36,18 @@ private class ModifierListWithNullabilityAnnotation(
   }
 
   override fun getAnnotations(): Array<PsiAnnotation> {
-    // The exact nullability annotation we use doesn't matter too much. We just want the IDE code
-    // completion popup to recognize it.
-    val nullabilityManager = NullableNotNullManager.getInstance(project)
-    val annotationText = if (isNonNull) nullabilityManager.defaultNotNull else nullabilityManager.defaultNullable
-    val annotation = PsiElementFactory.getInstance(project).createAnnotationFromText("@$annotationText", wrapped.context)
-    return arrayOf(annotation)
+    return arrayOf(project.createNullabilityAnnotation(isNonNull, wrapped.context))
   }
 }
 
 /**
  * A [LightFieldBuilder] with easy nullability support.
  */
-class NullabilityLightFieldBuilder(
-  manager: PsiManager,
-  name: String,
-  type: PsiType,
-  private val isNonNull: Boolean)
+class NullabilityLightFieldBuilder(manager: PsiManager, name: String, type: PsiType, isNonNull: Boolean, vararg modifiers: String)
   : LightFieldBuilder(manager, name, type) {
 
-  override fun getModifierList(): PsiModifierList {
-    return ModifierListWithNullabilityAnnotation(super.getModifierList(), isNonNull)
+  init {
+    setModifiers(*modifiers)
+    setModifierList(ModifierListWithNullabilityAnnotation(super.getModifierList(), isNonNull))
   }
 }

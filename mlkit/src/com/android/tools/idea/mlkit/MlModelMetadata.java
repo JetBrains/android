@@ -25,6 +25,7 @@ import com.intellij.openapi.vfs.VirtualFileManager;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -78,7 +79,7 @@ public class MlModelMetadata {
       return myModelData.getInputs();
     }
 
-    return Arrays.asList();
+    return Collections.emptyList();
   }
 
   @NotNull
@@ -87,7 +88,7 @@ public class MlModelMetadata {
       return myModelData.getOutputs();
     }
 
-    return Arrays.asList();
+    return Collections.emptyList();
   }
 
   @Override

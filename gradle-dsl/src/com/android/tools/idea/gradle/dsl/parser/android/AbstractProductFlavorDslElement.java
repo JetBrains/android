@@ -22,9 +22,9 @@ import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.VectorDra
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
-import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
 import kotlin.Pair;
@@ -58,10 +58,10 @@ public abstract class AbstractProductFlavorDslElement extends AbstractFlavorType
   }
 
   @NotNull
-  public static final ImmutableMap<Pair<String, Integer>, Pair<ModelPropertyDescription, SemanticsDescription>> ktsToModelNameMap =
+  public static final ImmutableMap<Pair<String, Integer>, ModelEffectDescription> ktsToModelNameMap =
     Stream.concat(
       AbstractFlavorTypeDslElement.ktsToModelNameMap.entrySet().stream().map(data -> new Object[]{
-        data.getKey().getFirst(), data.getKey().getSecond(), data.getValue().getFirst(), data.getValue().getSecond()
+        data.getKey().getFirst(), data.getKey().getSecond(), data.getValue().property, data.getValue().semantics
       }),
       Stream.of(new Object[][]{
         {"applicationId", property, APPLICATION_ID, VAR},
@@ -99,10 +99,10 @@ public abstract class AbstractProductFlavorDslElement extends AbstractFlavorType
       .collect(toModelMap());
 
   @NotNull
-  public static final ImmutableMap<Pair<String, Integer>, Pair<ModelPropertyDescription,SemanticsDescription>> groovyToModelNameMap =
+  public static final ImmutableMap<Pair<String, Integer>, ModelEffectDescription> groovyToModelNameMap =
     Stream.concat(
       AbstractFlavorTypeDslElement.groovyToModelNameMap.entrySet().stream().map(data -> new Object[]{
-        data.getKey().getFirst(), data.getKey().getSecond(), data.getValue().getFirst(), data.getValue().getSecond()
+        data.getKey().getFirst(), data.getKey().getSecond(), data.getValue().property, data.getValue().semantics
       }),
       Stream.of(new Object[][]{
         {"applicationId", property, APPLICATION_ID, VAR},
@@ -147,7 +147,7 @@ public abstract class AbstractProductFlavorDslElement extends AbstractFlavorType
 
   @Override
   @NotNull
-  public ImmutableMap<Pair<String, Integer>, Pair<ModelPropertyDescription, SemanticsDescription>> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
+  public ImmutableMap<Pair<String, Integer>, ModelEffectDescription> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
     if (converter instanceof KotlinDslNameConverter) {
       return ktsToModelNameMap;
     }
@@ -172,7 +172,8 @@ public abstract class AbstractProductFlavorDslElement extends AbstractFlavorType
     if (property.equals("missingDimensionStrategy") && element instanceof GradleDslMethodCall) {
       GradleDslMethodCall methodCall = (GradleDslMethodCall)element;
       GradleDslExpressionList argumentList = methodCall.getArgumentsElement();
-      argumentList.getNameElement().canonize(MISSING_DIMENSION_STRATEGY); // NOTYPO
+      ModelEffectDescription effect = new ModelEffectDescription(new ModelPropertyDescription(MISSING_DIMENSION_STRATEGY), OTHER);
+      argumentList.setModelEffect(effect);
       super.addParsedElement(argumentList);
       return;
     }

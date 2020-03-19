@@ -40,7 +40,7 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -66,7 +66,7 @@ public final class ScreenRecorderAction extends AbstractDeviceAction {
   @VisibleForTesting
   ScreenRecorderAction(@NotNull Project project, @NotNull DeviceContext context, @NotNull Features features) {
     super(context, AndroidBundle.message("android.ddms.actions.screenrecord"),
-          AndroidBundle.message("android.ddms.actions.screenrecord.description"), AndroidIcons.Ddms.ScreenRecorder);
+          AndroidBundle.message("android.ddms.actions.screenrecord.description"), StudioIcons.Logcat.VIDEO_CAPTURE);
 
     myFeatures = features;
     myProject = project;

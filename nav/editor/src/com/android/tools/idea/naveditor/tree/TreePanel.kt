@@ -20,6 +20,7 @@ import com.android.tools.componenttree.api.ComponentTreeBuilder
 import com.android.tools.componenttree.api.ComponentTreeModel
 import com.android.tools.componenttree.api.ComponentTreeSelectionModel
 import com.android.tools.componenttree.api.ViewNodeType
+import com.android.tools.idea.common.editor.showPopup
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
@@ -27,6 +28,7 @@ import com.android.tools.idea.common.model.SelectionListener
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.naveditor.model.isAction
 import com.android.tools.idea.naveditor.model.isDestination
+import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.DataManager
 import com.intellij.openapi.application.ApplicationManager
@@ -61,7 +63,15 @@ class TreePanel : ToolContent<DesignSurface> {
     selectionModel.addSelectionListener {
       designSurface?.let {
         val list = selectionModel.selection.filterIsInstance<NlComponent>()
+        val oldRootNavigation = (it as? NavDesignSurface)?.currentNavigation
+
         it.selectionModel.setSelection(list)
+
+        val newRootNavigation = (it as? NavDesignSurface)?.currentNavigation
+        if (oldRootNavigation == newRootNavigation && !list.contains(newRootNavigation)) {
+          it.scrollToCenter(list.filter { component -> component.isDestination })
+        }
+
         it.needsRepaint()
       }
     }
@@ -94,7 +104,9 @@ class TreePanel : ToolContent<DesignSurface> {
 
   private fun showContextMenu(x: Int, y: Int) {
     val node = componentTreeSelectionModel.selection.singleOrNull() as NlComponent? ?: return
-    designSurface?.actionManager?.showPopup(componentTree, x, y, node)
+    val actions = designSurface?.actionManager?.getPopupMenuActions(node) ?: return
+    // TODO (b/151315668): extract the hardcoded value "NavEditor".
+    showPopup(componentTree, x, y, actions, "NavEditor")
   }
 
   private fun activateComponent() {

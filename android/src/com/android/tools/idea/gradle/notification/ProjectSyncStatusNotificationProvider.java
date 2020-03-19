@@ -25,6 +25,7 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.util.ThreeState.YES;
 
 import com.android.annotations.concurrency.AnyThread;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleFiles;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
@@ -164,6 +165,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
         @Override
         @Nullable
         NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull GradleProjectInfo projectInfo) {
+          if (!IdeInfo.getInstance().isAndroidStudio()) return null;
           if ((System.currentTimeMillis() -
                Long.parseLong(
                  PropertiesComponent.getInstance().getValue("PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP", "0")) >
@@ -272,7 +274,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
   private static class StaleGradleModelNotificationPanel extends IndexingSensitiveNotificationPanel {
     StaleGradleModelNotificationPanel(@NotNull Project project, @NotNull Type type, @NotNull String text) {
       super(project, type, text);
-      if (GradleProjects.containsExternalCppProjects(project)) {
+      if (GradleFiles.getInstance(project).areExternalBuildFilesModified()) {
         // Set this to true so that the request sent to gradle daemon contains arg -Pandroid.injected.refresh.external.native.model=true,
         // which would refresh the C++ project. See com.android.tools.idea.gradle.project.sync.common.CommandLineArgs for related logic.
         project.putUserData(REFRESH_EXTERNAL_NATIVE_MODELS_KEY, true);

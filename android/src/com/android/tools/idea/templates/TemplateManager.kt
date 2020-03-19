@@ -210,7 +210,7 @@ class TemplateManager private constructor() {
       )
       val chooseTypeStep: SkippableWizardStep<RenderTemplateModel>
       chooseTypeStep = when (category) {
-        CATEGORY_ACTIVITY -> ChooseActivityTypeStep(renderModel, FormFactor.MOBILE, targetDirectory)
+        CATEGORY_ACTIVITY -> ChooseActivityTypeStep.Factory.forActivityGallery(renderModel, targetDirectory)
         CATEGORY_FRAGMENT -> ChooseFragmentTypeStep(renderModel, FormFactor.MOBILE, targetDirectory)
         else -> throw RuntimeException("Invalid category name: $category")
       }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sqlite.mocks
 
+import com.android.tools.idea.sqlite.controllers.SqliteParameter
 import com.android.tools.idea.sqlite.ui.parametersBinding.ParametersBindingDialogView
 
 open class MockParametersBindingDialogView : ParametersBindingDialogView {
@@ -22,7 +23,7 @@ open class MockParametersBindingDialogView : ParametersBindingDialogView {
 
   override fun show() { }
 
-  override fun showNamedParameters(parametersNames: Set<String>) { }
+  override fun showNamedParameters(parameters: Set<SqliteParameter>) { }
 
   override fun addListener(listener: ParametersBindingDialogView.Listener) {
     listeners.add(listener)

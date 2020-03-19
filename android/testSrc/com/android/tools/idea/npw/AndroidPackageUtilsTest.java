@@ -27,8 +27,8 @@ import org.mockito.Mockito;
 
 import java.io.File;
 
+import static com.android.tools.idea.testing.TestProjectPaths.APPLICATION_ID_SUFFIX;
 import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB;
-import static com.intellij.openapi.module.ModuleUtilCore.getModuleDirPath;
 
 /**
  * Tests for {@link AndroidPackageUtils}.
@@ -65,5 +65,12 @@ public final class AndroidPackageUtilsTest extends AndroidGradleTestCase {
     VirtualFile targetDirectory = fs.refreshAndFindFileByPath(getProject().getBasePath()).findFileByRelativePath(targetDirPath);
 
     return AndroidPackageUtils.getPackageForPath(myAndroidFacet, Lists.newArrayList(NamedModuleTemplate), targetDirectory);
+  }
+
+  public void testGetPackageForPathWithApplicationIfSuffix() throws Exception {
+    loadProject(APPLICATION_ID_SUFFIX);
+
+    // Bug b/146366612
+    assertEquals("one.name.debug", getModel().getApplicationId());
   }
 }

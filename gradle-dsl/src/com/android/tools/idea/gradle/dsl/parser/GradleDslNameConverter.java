@@ -16,8 +16,10 @@
 package com.android.tools.idea.gradle.dsl.parser;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface GradleDslNameConverter {
   /**
@@ -73,13 +75,13 @@ public interface GradleDslNameConverter {
   }
 
   /**
-   * Converts a dotted-hierarchy name with hierarchy denoting external names to a dotted-hierarchy name of canonical model names for
-   * properties.  Does not perform any syntactic transformations.
+   * Converts a single external name part to a description of the Model property it is associated with.
+   * Does not perform any syntactic transformations.
    *
-   * @param externalName the external dotted-namestring for this name
+   * @param externalName the external operator or property name
    * @param context the parent element of the element whose name this is (or will be after parsing)
-   * @return a string containing a dotted-hierarchy of model names
+   * @return a description of the model property
    */
-  @NotNull
-  default String modelNameForParent(@NotNull String externalName, @NotNull GradleDslElement context) { return ""; }
+  @Nullable
+  default ModelPropertyDescription modelDescriptionForParent(@NotNull String externalName, @NotNull GradleDslElement context) { return null; }
 }

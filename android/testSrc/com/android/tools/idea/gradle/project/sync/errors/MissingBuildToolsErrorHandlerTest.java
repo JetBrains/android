@@ -49,8 +49,7 @@ public class MissingBuildToolsErrorHandlerTest extends AndroidGradleTestCase {
 
   public void testHandleError() throws Exception {
     String errMsg = "Failed to find Build Tools revision 24.0.0 rc4";
-    Throwable cause = new IllegalStateException(errMsg);
-    registerSyncErrorToSimulate(cause);
+    registerSyncErrorToSimulate(new IllegalStateException(errMsg));
 
     loadProjectAndExpectSyncError(SIMPLE_APPLICATION);
 

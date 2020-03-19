@@ -16,6 +16,7 @@
 package com.android.tools.idea.nav.safeargs.extensions
 
 import com.google.common.truth.Truth.assertThat
+import com.intellij.codeInsight.NullableNotNullManager
 import com.intellij.psi.PsiArrayType
 import com.intellij.psi.PsiClassType
 import com.intellij.psi.PsiMethod
@@ -29,6 +30,7 @@ import com.intellij.psi.PsiType
 fun PsiMethod.checkSignaturesAndReturnType(
   name: String,
   returnType: String,
+  isReturnTypeNullable: Boolean = false,
   parameters: Collection<Parameter> = emptyList()
 ) {
   assertThat(this.name).isEqualTo(name)
@@ -38,6 +40,9 @@ fun PsiMethod.checkSignaturesAndReturnType(
   }
   else {
     assertThat(getTypeName(this.returnType)).isEqualTo(returnType)
+
+    val nullabilityManager = NullableNotNullManager.getInstance(this.project)
+    assertThat(nullabilityManager.isNullable(this, false)).isEqualTo(isReturnTypeNullable)
   }
 
   assertThat(this.parameters.size).isEqualTo(parameters.size)

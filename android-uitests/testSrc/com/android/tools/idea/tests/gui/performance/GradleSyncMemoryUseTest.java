@@ -80,8 +80,8 @@ public class GradleSyncMemoryUseTest {
         .getEditor()
         .select("compileSdkVersion (-100)")
         .enterText(currentVersion)
-        .awaitNotification("Gradle project sync failed. Basic functionality (e.g. editing, debugging) will not work properly.")
-        .performAction("Try Again")
+        .awaitNotification("Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
+        .performAction("Sync Now")
         .waitForGradleProjectSyncToFinish();
     });
   }
@@ -122,8 +122,8 @@ public class GradleSyncMemoryUseTest {
         .getEditor()
         .select("implementation ('com.android.support:design123')")
         .enterText("'com.google.guava:guava:18.0'")
-        .awaitNotification("Gradle project sync failed. Basic functionality (e.g. editing, debugging) will not work properly.")
-        .performAction("Try Again")
+        .awaitNotification("Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
+        .performAction("Sync Now")
         .waitForGradleProjectSyncToFinish();
     });
   }

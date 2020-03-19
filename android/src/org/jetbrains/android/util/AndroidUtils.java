@@ -31,6 +31,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.TargetSelectionMode;
+import com.android.tools.idea.util.CommonAndroidUtil;
 import com.android.utils.TraceUtils;
 import com.intellij.CommonBundle;
 import com.intellij.codeInsight.hint.HintUtil;
@@ -129,7 +130,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * @author yole, coyote
  */
-public class AndroidUtils {
+public class AndroidUtils extends CommonAndroidUtil {
   private static final Logger LOG = Logger.getInstance(AndroidUtils.class);
 
   @NonNls public static final String NAMESPACE_KEY = "android";
@@ -170,6 +171,11 @@ public class AndroidUtils {
   private static final Lexer JAVA_LEXER = JavaParserDefinition.createLexer(LanguageLevel.JDK_1_5);
 
   private AndroidUtils() {
+  }
+
+  @Override
+  public boolean isAndroidProject(@NotNull Project project) {
+    return hasAndroidFacets(project);
   }
 
   @Nullable

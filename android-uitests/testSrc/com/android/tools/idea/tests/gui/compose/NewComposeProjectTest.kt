@@ -16,9 +16,9 @@
 package com.android.tools.idea.tests.gui.compose
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.util.WizardUtils
+import com.android.tools.idea.wizard.template.Language
 import com.google.common.truth.Truth
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.junit.After
@@ -55,7 +55,7 @@ class NewComposeProjectTest {
    */
   @Test
   fun newComposeProject() {
-    WizardUtils.createNewProject(guiTest, "Empty Compose Activity", Language.KOTLIN)
+    WizardUtils.createNewProject(guiTest, "Empty Compose Activity", Language.Kotlin)
 
     guiTest.getProjectFileText("app/build.gradle").run {
       Truth.assertThat(this).contains("implementation 'androidx.ui:ui-layout:")

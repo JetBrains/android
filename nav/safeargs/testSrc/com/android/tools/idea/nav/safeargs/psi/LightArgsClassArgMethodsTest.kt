@@ -46,7 +46,6 @@ class LightArgsClassArgMethodsTest(private val typeMapping: TypeMapping) {
       TypeMapping(PsiType.FLOAT.name),
       TypeMapping(PsiType.LONG.name),
       TypeMapping(PsiType.BOOLEAN.name),
-      TypeMapping(PsiType.FLOAT.name),
       TypeMapping("string", "String"),
       TypeMapping("reference", PsiType.INT.name),
       TypeMapping("test.safeargs.MyCustomType", "MyCustomType"), // e.g Parcelable, Serializable

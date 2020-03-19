@@ -26,6 +26,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.ui.DialogWrapper;
 import java.time.Clock;
+import java.time.Instant;
 import java.util.Arrays;
 import org.junit.Rule;
 import org.junit.Test;
@@ -47,12 +48,14 @@ public final class ModifyDeviceSetActionTest {
     Device device1 = new VirtualDevice.Builder()
       .setName("Pixel 2 API 29")
       .setKey(new Key("Pixel_2_API_29"))
+      .setConnectionTime(Instant.parse("2020-03-13T23:13:20.913Z"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
     Device device2 = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
       .setKey(new Key("Pixel_3_API_29"))
+      .setConnectionTime(Instant.parse("2020-03-13T23:13:20.913Z"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 

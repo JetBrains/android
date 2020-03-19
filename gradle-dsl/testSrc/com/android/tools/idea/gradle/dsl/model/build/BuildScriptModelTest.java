@@ -247,6 +247,6 @@ public class BuildScriptModelTest extends GradleFileModelTestCase {
     verifyPropertyModel(artifacts.get(0).completeModel(), "buildscript.dependencies.classpath", "com.android.tools.build:gradle:2.1.2");
 
     ResolvedPropertyModel applicationId = buildModel.android().defaultConfig().applicationId();
-    verifyPropertyModel(applicationId, "android.defaultConfig." + ProductFlavorModelImpl.APPLICATION_ID, "3.2.0");
+    assertEquals("applicationId", "3.2.0", applicationId);
   }
 }
