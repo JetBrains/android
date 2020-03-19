@@ -39,6 +39,7 @@ import com.intellij.ui.table.JBTable
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.TimerUtil
 import com.intellij.util.ui.UIUtil
+import icons.StudioIcons
 import org.apache.commons.lang.StringUtils
 import java.awt.BorderLayout
 import java.awt.Color
@@ -353,7 +354,7 @@ class TableViewImpl : TableView {
     init {
       val sortIcon = DefaultTableCellRenderer()
       sortIcon.icon = AllIcons.General.ArrowSplitCenterV
-      columnNameLabel.icon = AllIcons.Nodes.DataColumn
+      columnNameLabel.icon = StudioIcons.DatabaseInspector.COLUMN
       columnNameLabel.iconTextGap = 8
 
       panel.background = Color(0, 0, 0, 0)
@@ -374,7 +375,7 @@ class TableViewImpl : TableView {
         (panel.getComponent(panel.componentCount - 1) as DefaultTableCellRenderer).icon = null
       }
       else {
-        columnNameLabel.icon = AllIcons.Nodes.DataColumn
+        columnNameLabel.icon = StudioIcons.DatabaseInspector.COLUMN
         (panel.getComponent(panel.componentCount - 1) as DefaultTableCellRenderer).icon = AllIcons.General.ArrowSplitCenterV
       }
 
