@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.nav.safeargs.psi
 
-import com.intellij.codeInsight.NullableNotNullManager
+import com.android.tools.idea.psi.createNullabilityAnnotation
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
@@ -149,13 +149,7 @@ internal fun PsiClass.createConstructor(modifiers: Array<String> = MODIFIERS_PUB
 internal fun PsiClass.annotateNullability(psiType: PsiType, nullable: String? = null): PsiType {
   val nonNull = psiType is PsiPrimitiveType || nullable != "true"
 
-  // The exact nullability annotation we use doesn't matter too much. We just want the IDE code
-  // completion popup to recognize it.
-  val nullabilityManager = NullableNotNullManager.getInstance(project)
-  val annotationText = if (nonNull) nullabilityManager.defaultNotNull else nullabilityManager.defaultNullable
-  val annotation = PsiElementFactory.getInstance(project).createAnnotationFromText("@$annotationText", this.context)
-  val annotations = arrayOf(annotation)
-
+  val annotations = arrayOf(project.createNullabilityAnnotation(nonNull, context))
   return psiType.annotate { annotations }
 }
 
