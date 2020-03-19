@@ -26,6 +26,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSc
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.FlowLayout;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,6 +42,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -79,6 +81,19 @@ class LayoutPanel extends JPanel {
     transitionProperties.setBorder(BorderFactory.createEmptyBorder());
     add(transitionProperties, BorderLayout.CENTER);
     add(top, BorderLayout.NORTH);
+    mConstraintSetTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+      @Override
+      public Component getTableCellRendererComponent(JTable table,
+                                                     Object value,
+                                                     boolean isSelected,
+                                                     boolean hasFocus,
+                                                     int row,
+                                                     int column) {
+        super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+        setBorder(noFocusBorder);
+        return this;
+      }
+    });
     mConstraintSetTable.getSelectionModel().addListSelectionListener(e -> {
       if (!e.getValueIsAdjusting()  && !mBuildingTable) {
         tableSelection();
