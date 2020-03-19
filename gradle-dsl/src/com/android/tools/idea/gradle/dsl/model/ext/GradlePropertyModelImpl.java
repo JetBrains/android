@@ -97,10 +97,6 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     myIsMethodCall = true;
   }
 
-  public void markAsSet() {
-    myIsSet = true;
-  }
-
   public void addTransform(@NotNull PropertyTransform transform) {
     myTransforms.add(0, transform);
   }
