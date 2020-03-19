@@ -20,13 +20,18 @@ import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
 import com.android.sdklib.SdkVersionInfo
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.ddms.DevicePropertyUtil
 import com.android.tools.idea.layoutinspector.LayoutInspectorPreferredProcess
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
+import com.android.tools.idea.stats.AndroidStudioUsageTracker
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.android.tools.profiler.proto.Common
 import com.google.common.annotations.VisibleForTesting
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.concurrency.JobScheduler
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
@@ -48,7 +53,13 @@ class LegacyClient(private val project: Project) : InspectorClient {
   var selectedClient: Client? = null
 
   override var selectedStream: Common.Stream = Common.Stream.getDefaultInstance()
-    private set
+    private set(value) {
+      if (value != field) {
+        loggedInitialRender = false
+      }
+      field = value
+    }
+
   override var selectedProcess: Common.Process = Common.Process.getDefaultInstance()
     private set
 
@@ -59,9 +70,39 @@ class LegacyClient(private val project: Project) : InspectorClient {
 
   override val provider = LegacyPropertiesProvider()
 
+  private var loggedInitialAttach = false
+  private var loggedInitialRender = false
+
   private val processChangedListeners: MutableList<() -> Unit> = ContainerUtil.createConcurrentList()
 
+  private val streamToDevice: MutableMap<Common.Stream, IDevice> = mutableMapOf()
+
   private val processToClient: MutableMap<Common.Process, Client> = mutableMapOf()
+
+  override fun logEvent(type: DynamicLayoutInspectorEventType) {
+    if (!isRenderEvent(type)) {
+      logEvent(type, selectedStream)
+    }
+    else if (!loggedInitialRender) {
+      logEvent(type, selectedStream)
+      loggedInitialRender = true
+    }
+  }
+
+  private fun logEvent(type: DynamicLayoutInspectorEventType, stream: Common.Stream) {
+    val builder = AndroidStudioEvent.newBuilder()
+      .setKind(AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT)
+      .setDynamicLayoutInspectorEvent(DynamicLayoutInspectorEvent.newBuilder().setType(type))
+    streamToDevice[stream]?.let { builder.setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfo(it)) }
+    UsageTracker.log(builder)
+  }
+
+  private fun isRenderEvent(type: DynamicLayoutInspectorEventType): Boolean =
+    when (type) {
+      DynamicLayoutInspectorEventType.COMPATIBILITY_RENDER,
+      DynamicLayoutInspectorEventType.COMPATIBILITY_RENDER_NO_PICTURE -> true
+      else -> false
+    }
 
   override var treeLoader = LegacyTreeLoader
     @VisibleForTesting set
@@ -93,7 +134,7 @@ class LegacyClient(private val project: Project) : InspectorClient {
       val stream = Common.Stream.newBuilder().run {
         device = deviceProto
         streamId = iDevice.hashCode().toLong()
-        build()
+        build().also { streamToDevice[it] = iDevice }
       }
 
       val processes = iDevice.clients
@@ -101,7 +142,7 @@ class LegacyClient(private val project: Project) : InspectorClient {
         .sortedBy { it.clientData.clientDescription }
         .map { client ->
           Common.Process.newBuilder().run {
-            abiCpuArch = client.clientData.abi
+            abiCpuArch = client.clientData.abi ?: ""
             name = client.clientData.packageName
             pid = client.clientData.pid
             build().also { processToClient[it] = client }
@@ -114,6 +155,7 @@ class LegacyClient(private val project: Project) : InspectorClient {
   }
 
   override fun attachIfSupported(preferredProcess: LayoutInspectorPreferredProcess): Future<*>? {
+    loggedInitialAttach = false
     return ApplicationManager.getApplication().executeOnPooledThread { attachWithRetry(preferredProcess, 0) }
   }
 
@@ -128,7 +170,7 @@ class LegacyClient(private val project: Project) : InspectorClient {
         for (process in processes) {
           if (process.name == preferredProcess.packageName) {
             try {
-              attach(stream, process)
+              doAttach(stream, process)
               return
             }
             catch (ex: StatusRuntimeException) {
@@ -148,6 +190,15 @@ class LegacyClient(private val project: Project) : InspectorClient {
   }
 
   override fun attach(stream: Common.Stream, process: Common.Process) {
+    loggedInitialAttach = false
+    doAttach(stream, process)
+  }
+
+  private fun doAttach(stream: Common.Stream, process: Common.Process) {
+    if (!loggedInitialAttach) {
+      logEvent(DynamicLayoutInspectorEventType.COMPATIBILITY_REQUEST, stream)
+      loggedInitialAttach = true
+    }
     val client = processToClient[process] ?: return
     selectedClient = client
     selectedProcess = process
@@ -166,6 +217,7 @@ class LegacyClient(private val project: Project) : InspectorClient {
     })
 
     reloadAllWindows()
+    logEvent(DynamicLayoutInspectorEventType.COMPATIBILITY_SUCCESS)
   }
 
   fun reloadAllWindows() {

@@ -42,7 +42,9 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.INITIAL_RENDER
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.INITIAL_RENDER_NO_PICTURE
 import com.intellij.concurrency.JobScheduler
 import com.intellij.openapi.Disposable
@@ -73,7 +75,6 @@ import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 import javax.swing.AbstractAction
 import javax.swing.JLabel
-import kotlin.properties.Delegates
 
 private const val MAX_RETRY_COUNT = 60
 
@@ -92,11 +93,14 @@ class DefaultInspectorClient(
                                                           Comparator.comparing(Common.Event::getTimestamp).reversed(),
                                                           scheduler)
 
-  override var selectedStream: Common.Stream by Delegates.observable(Common.Stream.getDefaultInstance()) { _, old, new ->
-    if (old != new) {
-      loggedInitialRender = false
+  override var selectedStream: Common.Stream = Common.Stream.getDefaultInstance()
+    private set(value) {
+      if (value != field) {
+        loggedInitialRender = false
+      }
+      field = value
     }
-  }
+
   override var selectedProcess: Common.Process = Common.Process.getDefaultInstance()
 
   private val listeners: MutableList<TransportEventListener> = mutableListOf()
@@ -275,7 +279,7 @@ class DefaultInspectorClient(
 
   override fun attach(stream: Common.Stream, process: Common.Process) {
     if (attachListener == null) {
-      logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_REQUEST, stream)
+      logEvent(DynamicLayoutInspectorEventType.ATTACH_REQUEST, stream)
     }
     // Remove existing listener if we're retrying
     attachListener?.let { transportPoller.unregisterListener(it) }
@@ -304,7 +308,7 @@ class DefaultInspectorClient(
       filter = { it.agentData.status == Common.AgentData.Status.ATTACHED }
     ) {
       synchronized(SELECTION_LOCK) {
-        logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_SUCCESS, stream)
+        logEvent(DynamicLayoutInspectorEventType.ATTACH_SUCCESS, stream)
         isConnected = true
         selectedStream = stream
         selectedProcess = process
@@ -335,15 +339,25 @@ class DefaultInspectorClient(
     return ApplicationManager.getApplication().executeOnPooledThread { attachWithRetry(preferredProcess, 0) }
   }
 
-  fun logInitialRender(containsPicture: Boolean) {
-    if (!loggedInitialRender) {
-      logEvent(if (containsPicture) INITIAL_RENDER else INITIAL_RENDER_NO_PICTURE, selectedStream)
+  override fun logEvent(type: DynamicLayoutInspectorEventType) {
+    if (!isRenderEvent(type)) {
+      logEvent(type, selectedStream)
+    }
+    else if (!loggedInitialRender) {
+      logEvent(type, selectedStream)
       loggedInitialRender = true
     }
   }
 
+  private fun isRenderEvent(type: DynamicLayoutInspectorEventType): Boolean =
+    when (type) {
+      INITIAL_RENDER,
+      INITIAL_RENDER_NO_PICTURE,
+      INITIAL_RENDER_BITMAPS -> true
+      else -> false
+    }
 
-  private fun logEvent(eventType: DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType, stream: Common.Stream) {
+  private fun logEvent(eventType: DynamicLayoutInspectorEventType, stream: Common.Stream) {
     adb?.let { future ->
       Futures.addCallback(future, object : FutureCallback<AndroidDebugBridge> {
         override fun onFailure(t: Throwable) {
