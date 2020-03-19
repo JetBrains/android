@@ -25,6 +25,7 @@ import java.awt.image.BufferedImage
 import kotlin.properties.Delegates
 
 const val REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY = "android.ddms.notification.layoutinspector.reboot.live.inspector"
+const val DIMMER_QNAME = "DIM_BEHIND"
 
 class InspectorModel(val project: Project) {
   val selectionListeners = mutableListOf<(ViewNode?, ViewNode?) -> Unit>()
@@ -89,7 +90,7 @@ class InspectorModel(val project: Project) {
     for (id in allIds) {
       val viewNode = roots[id] ?: continue
       if (viewNode.isDimBehind) {
-        val dimmer = ViewNode(-1, "DIM_BEHIND", null, 0, 0, 0, 0, maxWidth, maxHeight, null, "", 0)
+        val dimmer = ViewNode(-1, DIMMER_QNAME, null, 0, 0, 0, 0, maxWidth, maxHeight, null, "", 0)
         if (maxWidth > 0 && maxHeight > 0) {
           // TODO: subclass ViewNode so we don't have to create and hold on to this image
           val image = BufferedImage(maxWidth, maxHeight, BufferedImage.TYPE_INT_ARGB)
@@ -173,7 +174,7 @@ class InspectorModel(val project: Project) {
       oldNode.x = newNode.x
       oldNode.y = newNode.y
       oldNode.layoutFlags = newNode.layoutFlags
-      oldNode.fallbackMode = newNode.fallbackMode
+      oldNode.imageType = newNode.imageType
       oldNode.parent = parent
 
       oldNode.children.clear()

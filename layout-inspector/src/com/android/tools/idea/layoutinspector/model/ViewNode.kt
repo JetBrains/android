@@ -16,6 +16,8 @@
 package com.android.tools.idea.layoutinspector.model
 
 import com.android.ide.common.rendering.api.ResourceReference
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.SKP
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
@@ -64,8 +66,8 @@ class ViewNode(var drawId: Long,
   // imageTop: the image painted after the sub views
   var imageTop: Image? = null
 
-  // True if we were unable to generate proper images for this subtree and instead have a single flat image.
-  var fallbackMode = false
+  // The type of image we received from the device.
+  var imageType: LayoutInspectorProto.ComponentTreeEvent.PayloadType = SKP
 
   var tag: XmlTag?
     get() = tagPointer?.element
