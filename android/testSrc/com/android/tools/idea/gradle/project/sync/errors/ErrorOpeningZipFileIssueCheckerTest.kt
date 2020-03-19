@@ -20,22 +20,18 @@ import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 
-class CorruptGradleDependencyIssueCheckerTest : AndroidGradleTestCase() {
-  private val corruptGradleDependencyIssueChecker = CorruptGradleDependencyIssueChecker()
+class ErrorOpeningZipFileIssueCheckerTest : AndroidGradleTestCase() {
+  private val errorOpeningZipFileIssueChecker = ErrorOpeningZipFileIssueChecker()
 
   fun testCheckIssue() {
-    val cause = Throwable("Premature end of Content-Length delimited message body")
-    val issueData = GradleIssueData(projectFolderPath.path, cause, null,null)
-
-    val buildIssue = corruptGradleDependencyIssueChecker.check(issueData)
+    val issueData = GradleIssueData(projectFolderPath.path, Throwable("error in opening zip file"), null, null)
+    val buildIssue = errorOpeningZipFileIssueChecker.check(issueData)
 
     assertThat(buildIssue).isNotNull()
-    assertThat(buildIssue!!.title).contains("Gradle's dependency cache seems to be corrupt or out of sync.")
-
-    // Verify Quickfixes
-    val quickFixes = buildIssue.quickFixes
-    assertThat(quickFixes).hasSize(1)
-    assertThat(quickFixes[0]).isInstanceOf(SyncProjectRefreshingDependenciesQuickFix::class.java)
+    assertThat(buildIssue!!.description).contains("Failed to open zip file.\n" +
+                                                  "Gradle's dependency cache may be corrupt (this sometimes occurs after a network " +
+                                                  "connection timeout.)")
+    assertThat(buildIssue.quickFixes).hasSize(1)
+    assertThat(buildIssue.quickFixes[0]).isInstanceOf(SyncProjectRefreshingDependenciesQuickFix::class.java)
   }
-
 }

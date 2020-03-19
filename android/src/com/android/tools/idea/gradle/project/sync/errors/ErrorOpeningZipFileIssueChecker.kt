@@ -15,35 +15,34 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
+import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler.updateUsageTracker
 import com.android.tools.idea.gradle.project.sync.quickFixes.SyncProjectRefreshingDependenciesQuickFix
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.intellij.build.issue.BuildIssue
-import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.project.Project
-import com.intellij.pom.Navigatable
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 
-class CorruptGradleDependencyIssueChecker: GradleIssueChecker {
+class ErrorOpeningZipFileIssueChecker: GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val message = issueData.error.message ?: return null
-    if (message.isEmpty() || !message.startsWith("Premature end of Content-Length delimited message body")) return null
+    if (!message.contains("error in opening zip file")) return null
 
     // Log metrics.
     invokeLater {
-      SyncErrorHandler.updateUsageTracker(issueData.projectPath, GradleSyncFailure.CORRUPT_GRADLE_DEPENDENCY)
+      updateUsageTracker(issueData.projectPath, GradleSyncFailure.CANNOT_OPEN_ZIP_FILE)
     }
-
     val syncProjectQuickFix = SyncProjectRefreshingDependenciesQuickFix()
     return object : BuildIssue {
-      override val title: String = "Gradle's dependency cache seems to be corrupt or out of sync."
-      override val description: String = buildString {
-        appendln(message)
-        appendln("\n<a href=\"${syncProjectQuickFix.id}\">${syncProjectQuickFix.linkText}</a>")
+      override val title = "Failed to open zip file."
+      override val description = buildString {
+        appendln("Failed to open zip file.")
+        appendln("Gradle's dependency cache may be corrupt (this sometimes occurs after a network connection timeout.)")
+        appendln("<a href=\"${syncProjectQuickFix.id}\">${syncProjectQuickFix.linkText}</a>")
       }
-      override val quickFixes: List<BuildIssueQuickFix> = listOf(syncProjectQuickFix)
-      override fun getNavigatable(project: Project): Navigatable? = null
+      override val quickFixes = listOf(syncProjectQuickFix)
+      override fun getNavigatable(project: Project) = null
     }
   }
 }
