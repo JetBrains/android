@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("NullabilityUtils")
-package com.android.tools.idea.databinding.psiclass
+package com.android.tools.idea.psi
 
 import com.intellij.codeInsight.NullableNotNullManager
 import com.intellij.openapi.project.Project
