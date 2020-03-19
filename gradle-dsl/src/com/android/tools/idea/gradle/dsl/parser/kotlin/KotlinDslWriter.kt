@@ -35,6 +35,7 @@ import com.android.tools.idea.gradle.dsl.parser.maybeTrimForParent
 import com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_LIST
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_SET
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
@@ -566,9 +567,9 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
 
     if (psiElement is KtCallExpression) return psiElement
 
-    val emptyListText = when {
-      expressionList.modelProperty?.type == MUTABLE_LIST -> "mutableListOf()"
-      expressionList.isSet -> "mutableSetOf()"
+    val emptyListText = when (expressionList.modelProperty?.type) {
+      MUTABLE_LIST -> "mutableListOf()"
+      MUTABLE_SET -> "mutableSetOf()"
       else -> "listOf()"
     }
 
