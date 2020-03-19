@@ -120,8 +120,10 @@ public class DiagnosticReportBuilder {
         contributor.generateReport((name, contents) -> {
           Path path = myController.saveReportFile(name, contents);
           // Contributors should not overwrite each other reports.
-          assert !reportPaths.containsKey(name);
-          reportPaths.put(name, path);
+          if (path != null) {
+            assert !reportPaths.containsKey(name);
+            reportPaths.put(name, path);
+          }
         });
       }
       if (!reportPaths.containsKey("hotPathStackTrace")) {

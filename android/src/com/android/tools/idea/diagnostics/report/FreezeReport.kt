@@ -55,7 +55,7 @@ constructor(val threadDumpPath: Path?,
                                          "com.android.ApplicationNotResponding") } ?: EMPTY_ANR_STACKTRACE
 
     val contents = TreeMap<String, String>()
-    reportParts.forEach { name, path -> contents[name] = String(Files.readAllBytes(path)) }
+    reportParts.forEach { (name, path) -> contents[name] = String(Files.readAllBytes(path)) }
 
     return object : DiagnosticCrashReport(type, properties) {
       override fun serialize(builder: MultipartEntityBuilder) {
@@ -90,7 +90,7 @@ constructor(val threadDumpPath: Path?,
         val timedOut = dynamicProperties.remove("timedOut")?.toBoolean() ?: false
 
         val paths = TreeMap<String, Path>()
-        dynamicProperties.forEach { name, pathName ->
+        dynamicProperties.forEach { (name, pathName) ->
           if (name.endsWith("Path")) {
             fixDirectoryPathAndCheckIfReadable(
               Paths.get(pathName))?.let {
