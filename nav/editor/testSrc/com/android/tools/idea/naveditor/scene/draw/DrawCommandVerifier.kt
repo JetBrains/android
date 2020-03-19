@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.tools.idea.naveditor.scene.RefinableImage
+import com.intellij.ui.JreHiDpiUtil
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyFloat
 import org.mockito.ArgumentMatchers.anyInt
@@ -64,6 +65,8 @@ private const val ACTION_ARROW_PARALLEL = 10f
 
 private val LINE_TO_MOUSE_COLOR = Color(0x1886f7)
 private val LINE_TO_MOUSE_STROKE = BasicStroke(3f)
+
+private val EMPTY_DESIGNER_TEXT_COLOR = Color(0xa7a7a7)
 
 fun verifyDrawFragment(inOrder: InOrder,
                        g: Graphics2D,
@@ -159,36 +162,42 @@ fun verifyDrawNavScreen(inOrder: InOrder, g: Graphics2D, rectangle: Rectangle2D.
 }
 
 fun verifyDrawNavScreenImage(inOrder: InOrder, g: Graphics2D, rectangle: Rectangle2D.Float, image: BufferedImage) {
-  inOrder.verify(g).setRenderingHints(any())
-  inOrder.verify(g).clip(argThat(ShapeArgumentMatcher(rectangle)))
-  inOrder.verify(g).drawImage(eq(image), eq(rectangle.x.toInt()), eq(rectangle.y.toInt()), anyInt(), anyInt(), eq(null))
-  inOrder.verify(g).dispose()
+  inOrder.apply {
+    verify(g).setRenderingHints(any())
+    verify(g).clip(argThat(ShapeArgumentMatcher(rectangle)))
+    verify(g).drawImage(eq(image), eq(rectangle.x.toInt()), eq(rectangle.y.toInt()), anyInt(), anyInt(), eq(null))
+    verify(g).dispose()
+  }
 }
 
 fun verifyDrawNavScreenLoading(inOrder: InOrder, g: Graphics2D, rectangle: Rectangle2D.Float) {
-  inOrder.verify(g).setRenderingHints(any())
-  inOrder.verify(g).clip(argThat(ShapeArgumentMatcher(rectangle)))
-  inOrder.verify(g).color = PLACEHOLDER_FILL
-  inOrder.verify(g).fill(argThat(ShapeArgumentMatcher(rectangle)))
-  inOrder.verify(g).color = PLACEHOLDER_TEXT
-  inOrder.verify(g).font = any()
-  inOrder.verify(g).fontMetrics
-  inOrder.verify(g).drawString(eq("Loading..."), anyFloat(), anyFloat())
-  inOrder.verify(g).dispose()
+  inOrder.apply {
+    verify(g).setRenderingHints(any())
+    verify(g).clip(argThat(ShapeArgumentMatcher(rectangle)))
+    verify(g).color = PLACEHOLDER_FILL
+    verify(g).fill(argThat(ShapeArgumentMatcher(rectangle)))
+    verify(g).color = PLACEHOLDER_TEXT
+    verify(g).font = any()
+    verify(g).fontMetrics
+    verify(g).drawString(eq("Loading..."), anyFloat(), anyFloat())
+    verify(g).dispose()
+  }
 }
 
 fun verifyDrawNavScreenPreviewUnavailable(inOrder: InOrder, g: Graphics2D, rectangle: Rectangle2D.Float) {
-  inOrder.verify(g).setRenderingHints(any())
-  inOrder.verify(g).clip(argThat(ShapeArgumentMatcher(rectangle)))
-  inOrder.verify(g).color = PLACEHOLDER_FILL
-  inOrder.verify(g).fill(argThat(ShapeArgumentMatcher(rectangle)))
-  inOrder.verify(g).color = PLACEHOLDER_TEXT
-  inOrder.verify(g).font = any()
-  inOrder.verify(g).fontMetrics
-  inOrder.verify(g).drawString(eq("Preview"), anyFloat(), anyFloat())
-  inOrder.verify(g, times(2)).fontMetrics
-  inOrder.verify(g).drawString(eq("Unavailable"), anyFloat(), anyFloat())
-  inOrder.verify(g).dispose()
+  inOrder.apply {
+    verify(g).setRenderingHints(any())
+    verify(g).clip(argThat(ShapeArgumentMatcher(rectangle)))
+    verify(g).color = PLACEHOLDER_FILL
+    verify(g).fill(argThat(ShapeArgumentMatcher(rectangle)))
+    verify(g).color = PLACEHOLDER_TEXT
+    verify(g).font = any()
+    verify(g).fontMetrics
+    verify(g).drawString(eq("Preview"), anyFloat(), anyFloat())
+    verify(g, times(2)).fontMetrics
+    verify(g).drawString(eq("Unavailable"), anyFloat(), anyFloat())
+    verify(g).dispose()
+  }
 }
 
 fun verifyDrawPlaceholder(inOrder: InOrder, g: Graphics2D, rectangle: Rectangle2D.Float) {
@@ -203,26 +212,32 @@ fun verifyDrawPlaceholder(inOrder: InOrder, g: Graphics2D, rectangle: Rectangle2
 }
 
 fun verifyFillShape(inOrder: InOrder, g: Graphics2D, shape: Shape, color: Color) {
-  inOrder.verify(g).setRenderingHints(any())
-  inOrder.verify(g).color = color
-  inOrder.verify(g).fill(argThat(ShapeArgumentMatcher(shape)))
-  inOrder.verify(g).dispose()
+  inOrder.apply {
+    verify(g).setRenderingHints(any())
+    verify(g).color = color
+    verify(g).fill(argThat(ShapeArgumentMatcher(shape)))
+    verify(g).dispose()
+  }
 }
 
 fun verifyDrawShape(inOrder: InOrder, g: Graphics2D, shape: Shape, color: Color, stroke: Stroke) {
-  inOrder.verify(g).setRenderingHints(any())
-  inOrder.verify(g).color = color
-  inOrder.verify(g).stroke = argThat(StrokeArgumentMatcher(stroke))
-  inOrder.verify(g).draw(argThat(ShapeArgumentMatcher(shape)))
-  inOrder.verify(g).dispose()
+  inOrder.apply {
+    verify(g).setRenderingHints(any())
+    verify(g).color = color
+    verify(g).stroke = argThat(StrokeArgumentMatcher(stroke))
+    verify(g).draw(argThat(ShapeArgumentMatcher(shape)))
+    verify(g).dispose()
+  }
 }
 
 fun verifyDrawTruncatedText(inOrder: InOrder, g: Graphics2D, text: String, color: Color) {
-  inOrder.verify(g).getFontMetrics(any())
-  inOrder.verify(g).color = color
-  inOrder.verify(g).font = any()
-  inOrder.verify(g).drawString(eq(text), anyFloat(), anyFloat())
-  inOrder.verify(g).dispose()
+  inOrder.apply {
+    verify(g).getFontMetrics(any())
+    verify(g).color = color
+    verify(g).font = any()
+    verify(g).drawString(eq(text), anyFloat(), anyFloat())
+    verify(g).dispose()
+  }
 }
 
 fun verifyDrawAction(inOrder: InOrder, g: Graphics2D, color: Color, isPopAction: Boolean) {
@@ -247,24 +262,28 @@ fun verifyDrawHorizontalAction(inOrder: InOrder, g: Graphics2D, rectangle: Recta
 }
 
 fun verifyDrawIcon(inOrder: InOrder, g: Graphics2D, rectangle: Rectangle2D.Float? = null) {
-  inOrder.verify(g).setRenderingHints(any())
-  if (rectangle == null) {
-    inOrder.verify(g).drawImage(any(), anyInt(), anyInt(), anyInt(), anyInt(), eq(null))
+  inOrder.apply {
+    verify(g).setRenderingHints(any())
+    if (rectangle == null) {
+      verify(g).drawImage(any(), anyInt(), anyInt(), anyInt(), anyInt(), eq(null))
+    }
+    else {
+      verify(g).drawImage(any(), eq(rectangle.x.toInt()), eq(rectangle.y.toInt()),
+                          eq(rectangle.width.toInt()), eq(rectangle.height.toInt()), eq(null))
+    }
+    verify(g).dispose()
   }
-  else {
-    inOrder.verify(g).drawImage(any(), eq(rectangle.x.toInt()), eq(rectangle.y.toInt()),
-                                eq(rectangle.width.toInt()), eq(rectangle.height.toInt()), eq(null))
-  }
-  inOrder.verify(g).dispose()
 }
 
 
 fun verifyDrawLineToMouse(inOrder: InOrder, g: Graphics2D, center: Point2D.Float, mouseX: Int, mouseY: Int) {
-  inOrder.verify(g).color = LINE_TO_MOUSE_COLOR
-  inOrder.verify(g).stroke = argThat(StrokeArgumentMatcher(LINE_TO_MOUSE_STROKE))
-  val line = Line2D.Float(center.x, center.y, mouseX.toFloat(), mouseY.toFloat())
-  inOrder.verify(g).draw(argThat(ShapeArgumentMatcher(line)))
-  inOrder.verify(g).dispose()
+  inOrder.apply {
+    verify(g).color = LINE_TO_MOUSE_COLOR
+    verify(g).stroke = argThat(StrokeArgumentMatcher(LINE_TO_MOUSE_STROKE))
+    val line = Line2D.Float(center.x, center.y, mouseX.toFloat(), mouseY.toFloat())
+    verify(g).draw(argThat(ShapeArgumentMatcher(line)))
+    verify(g).dispose()
+  }
 }
 
 fun verifyDrawActionHandle(inOrder: InOrder, g: Graphics2D, center: Point2D.Float, outerRadius: Float, innerRadius: Float,
@@ -286,6 +305,21 @@ fun verifyDrawActionHandleDrag(inOrder: InOrder, g: Graphics2D, center: Point2D.
   verifyFillShape(inOrder, g, innerEllipse, ACTION_HANDLE_INNER_COLOR)
 
   verifyDrawLineToMouse(inOrder, g, center, mouseX, mouseY)
+}
+
+fun verifyDrawEmptyDesigner(inOrder: InOrder, g: Graphics2D, point: Point2D.Float) {
+  inOrder.apply {
+    verify(g).color = EMPTY_DESIGNER_TEXT_COLOR
+    verify(g).font = any()
+    verify(g).drawString("Click ", point.x.toInt(), point.y.toInt())
+    verify(g).fontMetrics
+    if (JreHiDpiUtil.isJreHiDPIEnabled()) {
+      verify(g).deviceConfiguration
+    }
+    verify(g).drawImage(any(), anyInt(), anyInt(), any())
+    verify(g).drawString(eq(" to add a destination"), anyInt(), eq(point.y.toInt()))
+    verify(g).dispose()
+  }
 }
 
 private fun makeCircle(center: Point2D.Float, radius: Float) =

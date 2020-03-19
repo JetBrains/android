@@ -103,7 +103,7 @@ public class NlTreeBadgeHandler {
         int y = pathBounds.y + pathBounds.height / 2;
         Icon firstIcon;
         if (lintAnnotationsModel != null) {
-          firstIcon = lintAnnotationsModel.getIssueIcon(component, false, tree.isRowSelected(i) && tree.hasFocus());
+          firstIcon = lintAnnotationsModel.getIssueIcon(component, tree.isRowSelected(i) && tree.hasFocus());
           if (firstIcon != null) {
             int x = tree.getWidth() - firstIcon.getIconWidth() - BADGE_MARGIN;
             int iy = y - firstIcon.getIconHeight() / 2;
@@ -240,7 +240,7 @@ public class NlTreeBadgeHandler {
     NlComponent component = (NlComponent)last;
     LintAnnotationsModel lintAnnotationsModel = component.getModel().getLintAnnotationsModel();
     if (lintAnnotationsModel != null) {
-      return lintAnnotationsModel.getIssueMessage(component, false);
+      return lintAnnotationsModel.getIssueMessage(component);
     }
     return null;
   }

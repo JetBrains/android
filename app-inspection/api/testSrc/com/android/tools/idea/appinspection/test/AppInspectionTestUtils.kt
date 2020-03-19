@@ -16,9 +16,15 @@
 package com.android.tools.idea.appinspection.test
 
 import com.android.tools.app.inspection.AppInspection
+import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
 import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
+import com.android.tools.idea.appinspection.api.JarCopierCreator
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.protobuf.ByteString
+import com.android.tools.idea.transport.TransportClient
+import com.android.tools.idea.transport.manager.TransportStreamManager
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.TimeUnit
 
 /**
  * The amount of time tests will wait for async calls and events to trigger. It is used primarily in asserting latches and futures.
@@ -63,6 +69,19 @@ object AppInspectionTestUtils {
         .build()
     )
     .build()
+
+  fun createDiscoveryHost(
+    executor: ExecutorService,
+    client: TransportClient,
+    jarCopierCreator: JarCopierCreator = { TestTransportJarCopier }
+  ): AppInspectionDiscoveryHost {
+    return AppInspectionDiscoveryHost(
+      executor, client, TransportStreamManager.createManager(
+        client.transportStub,
+        TimeUnit.MILLISECONDS.toNanos(250)
+      ), jarCopierCreator
+    )
+  }
 
   /**
    * Keeps track of the copied jar so tests could verify the operation happened.

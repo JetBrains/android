@@ -43,6 +43,7 @@ public class StudioIcons {
     public static final Icon CHECKED = load("/studio/icons/common/checked.svg"); // 16x16
     public static final Icon CLEAR = load("/studio/icons/common/clear.svg"); // 16x16
     public static final Icon CLOSE = load("/studio/icons/common/close.svg"); // 16x16
+    public static final Icon CROP = load("/studio/icons/common/crop.svg"); // 16x16
     public static final Icon DELETE = load("/studio/icons/common/delete.svg"); // 16x16
     public static final Icon EDIT = load("/studio/icons/common/edit.svg"); // 16x16
     public static final Icon ERROR_INLINE_SELECTED = load("/studio/icons/common/error-inline-selected.svg"); // 16x16
@@ -104,6 +105,14 @@ public class StudioIcons {
     public static final Icon NESW_RESIZE = load("/studio/icons/cursors/nesw-resize.svg"); // 32x32
     public static final Icon NS_RESIZE = load("/studio/icons/cursors/ns-resize.svg"); // 32x32
     public static final Icon NWSE_RESIZE = load("/studio/icons/cursors/nwse-resize.svg"); // 32x32
+  }
+
+  public static class DatabaseInspector {
+    public static final Icon COLUMN = load("/studio/icons/database-inspector/column.svg"); // 16x16
+    public static final Icon DATABASE = load("/studio/icons/database-inspector/database.svg"); // 16x16
+    public static final Icon PRIMARY_KEY = load("/studio/icons/database-inspector/primary-key.svg"); // 16x16
+    public static final Icon SCHEMA = load("/studio/icons/database-inspector/schema.svg"); // 16x16
+    public static final Icon TABLE = load("/studio/icons/database-inspector/table.svg"); // 16x16
   }
 
   public static class DeviceConfiguration {
@@ -234,6 +243,7 @@ public class StudioIcons {
       public static final Icon CHRONOMETER = load("/studio/icons/layout-editor/palette/chronometer.svg"); // 16x16
       public static final Icon COLLAPSING_TOOLBAR_LAYOUT = load("/studio/icons/layout-editor/palette/collapsing-toolbar-layout.svg"); // 16x16
       public static final Icon CONSTRAINT_LAYOUT = load("/studio/icons/layout-editor/palette/constraint-layout.svg"); // 16x16
+      public static final Icon CONSTRAINT_SET = load("/studio/icons/layout-editor/palette/constraint-set.svg"); // 16x16
       public static final Icon COORDINATOR_LAYOUT = load("/studio/icons/layout-editor/palette/coordinator-layout.svg"); // 16x16
       public static final Icon CUSTOM_VIEW = load("/studio/icons/layout-editor/palette/custom-view.svg"); // 16x16
       public static final Icon DATE_PICKER = load("/studio/icons/layout-editor/palette/date-picker.svg"); // 16x16
@@ -242,11 +252,13 @@ public class StudioIcons {
       public static final Icon EMAIL_TEXTFIELD = load("/studio/icons/layout-editor/palette/email-textfield.svg"); // 16x16
       public static final Icon EXPANDABLE_LIST_VIEW = load("/studio/icons/layout-editor/palette/expandable-list-view.svg"); // 16x16
       public static final Icon FLOATING_ACTION_BUTTON = load("/studio/icons/layout-editor/palette/floating-action-button.svg"); // 16x16
+      public static final Icon FLOW = load("/studio/icons/layout-editor/palette/flow.svg"); // 16x16
       public static final Icon FRAGMENT = load("/studio/icons/layout-editor/palette/fragment.svg"); // 16x16
       public static final Icon FRAME_LAYOUT = load("/studio/icons/layout-editor/palette/frame-layout.svg"); // 16x16
       public static final Icon GRID_LAYOUT_COMPAT = load("/studio/icons/layout-editor/palette/grid-layout-compat.svg"); // 16x16
       public static final Icon GRID_LAYOUT = load("/studio/icons/layout-editor/palette/grid-layout.svg"); // 16x16
       public static final Icon GRID_VIEW = load("/studio/icons/layout-editor/palette/grid-view.svg"); // 16x16
+      public static final Icon GROUP = load("/studio/icons/layout-editor/palette/group.svg"); // 16x16
       public static final Icon GUIDELINE_HORIZONTAL = load("/studio/icons/layout-editor/palette/guideline-horizontal.svg"); // 16x16
       public static final Icon GUIDELINE_VERTICAL = load("/studio/icons/layout-editor/palette/guideline-vertical.svg"); // 16x16
       public static final Icon HORIZONTAL_DIVIDER = load("/studio/icons/layout-editor/palette/horizontal-divider.svg"); // 16x16
@@ -255,6 +267,7 @@ public class StudioIcons {
       public static final Icon IMAGE_SWITCHER = load("/studio/icons/layout-editor/palette/image-switcher.svg"); // 16x16
       public static final Icon IMAGE_VIEW = load("/studio/icons/layout-editor/palette/image-view.svg"); // 16x16
       public static final Icon INCLUDE = load("/studio/icons/layout-editor/palette/include.svg"); // 16x16
+      public static final Icon LAYER = load("/studio/icons/layout-editor/palette/layer.svg"); // 16x16
       public static final Icon LINEAR_LAYOUT_HORZ = load("/studio/icons/layout-editor/palette/linear-layout-horz.svg"); // 16x16
       public static final Icon LINEAR_LAYOUT_VERT = load("/studio/icons/layout-editor/palette/linear-layout-vert.svg"); // 16x16
       public static final Icon LIST_VIEW = load("/studio/icons/layout-editor/palette/list-view.svg"); // 16x16
@@ -386,6 +399,7 @@ public class StudioIcons {
       public static final Icon CONSTRAIN_TO_TOP = load("/studio/icons/layout-editor/toolbar/constrain-to-top.svg"); // 16x16
       public static final Icon CONSTRAIN_TOP_TO_BOTTOM = load("/studio/icons/layout-editor/toolbar/constrain-top-to-bottom.svg"); // 16x16
       public static final Icon CONSTRAIN_TOP_TO_TOP = load("/studio/icons/layout-editor/toolbar/constrain-top-to-top.svg"); // 16x16
+      public static final Icon CONSTRAINT_SET = load("/studio/icons/layout-editor/toolbar/constraint-set.svg"); // 16x16
       public static final Icon CREATE_CONSTRAINTS = load("/studio/icons/layout-editor/toolbar/create-constraints.svg"); // 16x16
       public static final Icon CREATE_HORIZ_CHAIN = load("/studio/icons/layout-editor/toolbar/create-horiz-chain.svg"); // 16x16
       public static final Icon CREATE_VERT_CHAIN = load("/studio/icons/layout-editor/toolbar/create-vert-chain.svg"); // 16x16
@@ -406,6 +420,7 @@ public class StudioIcons {
       public static final Icon EXPAND_HORIZONTAL = load("/studio/icons/layout-editor/toolbar/expand-horizontal.svg"); // 16x16
       public static final Icon EXPAND_TO_FIT = load("/studio/icons/layout-editor/toolbar/expand-to-fit.svg"); // 16x16
       public static final Icon EXPAND_VERTICAL = load("/studio/icons/layout-editor/toolbar/expand-vertical.svg"); // 16x16
+      public static final Icon GROUP = load("/studio/icons/layout-editor/toolbar/group.svg"); // 16x16
       public static final Icon GUIDELINE_HORIZONTAL = load("/studio/icons/layout-editor/toolbar/guideline-horizontal.svg"); // 16x16
       public static final Icon GUIDELINE_VERTICAL = load("/studio/icons/layout-editor/toolbar/guideline-vertical.svg"); // 16x16
       public static final Icon HIDE_CONSTRAINTS = load("/studio/icons/layout-editor/toolbar/hide-constraints.svg"); // 16x16
@@ -415,6 +430,7 @@ public class StudioIcons {
       public static final Icon INSERT_HORIZ_CHAIN = load("/studio/icons/layout-editor/toolbar/insert-horiz-chain.svg"); // 16x16
       public static final Icon INSERT_VERT_CHAIN = load("/studio/icons/layout-editor/toolbar/insert-vert-chain.svg"); // 16x16
       public static final Icon LANGUAGE = load("/studio/icons/layout-editor/toolbar/language.svg"); // 16x16
+      public static final Icon LAYER = load("/studio/icons/layout-editor/toolbar/layer.svg"); // 16x16
       public static final Icon LEFT_ALIGNED_CONSTRAINT = load("/studio/icons/layout-editor/toolbar/left-aligned-constraint.svg"); // 16x16
       public static final Icon LEFT_ALIGNED = load("/studio/icons/layout-editor/toolbar/left-aligned.svg"); // 16x16
       public static final Icon LOCK = load("/studio/icons/layout-editor/toolbar/lock.svg"); // 16x16
@@ -590,8 +606,8 @@ public class StudioIcons {
       public static final Icon ANDROID_MODULE = load("/studio/icons/shell/filetree/android-module.svg"); // 16x16
       public static final Icon ANDROID_PROJECT = load("/studio/icons/shell/filetree/android-project.svg"); // 16x16
       public static final Icon ANDROID_TEST_ROOT = load("/studio/icons/shell/filetree/android-test-root.svg"); // 16x16
-      public static final Icon ANDROID_TREE = load("/studio/icons/shell/filetree/android-tree.svg"); // 24x24
       public static final Icon CONFIG_FILE = load("/studio/icons/shell/filetree/config-file.svg"); // 16x16
+      public static final Icon DATABASE_FILE = load("/studio/icons/shell/filetree/database-file.svg"); // 16x16
       public static final Icon FEATURE_MODULE = load("/studio/icons/shell/filetree/feature-module.svg"); // 16x16
       public static final Icon FONT_FILE = load("/studio/icons/shell/filetree/font-file.svg"); // 16x16
       public static final Icon GRADLE_FILE = load("/studio/icons/shell/filetree/gradle-file.svg"); // 16x16
@@ -604,6 +620,8 @@ public class StudioIcons {
       public static final Icon RENDER_SCRIPT = load("/studio/icons/shell/filetree/render-script.svg"); // 16x16
       public static final Icon SCENEFORM_ASSET_DESCRIPTION_FILE = load("/studio/icons/shell/filetree/sceneform-asset-description-file.svg"); // 16x16
       public static final Icon SCENEFORM_BINARY = load("/studio/icons/shell/filetree/sceneform-binary.svg"); // 16x16
+      public static final Icon SQL_FILE = load("/studio/icons/shell/filetree/sql-file.svg"); // 16x16
+      public static final Icon TFLITE_FILE = load("/studio/icons/shell/filetree/tflite-file.svg"); // 16x16
     }
 
     public static class Menu {
@@ -633,6 +651,7 @@ public class StudioIcons {
       public static final Icon BUILD = load("/studio/icons/shell/tool-windows/build.svg"); // 13x13
       public static final Icon CAPTURES = load("/studio/icons/shell/tool-windows/captures.svg"); // 13x13
       public static final Icon COMPONENT_TREE = load("/studio/icons/shell/tool-windows/component-tree.svg"); // 13x13
+      public static final Icon DATABASE_INSPECTOR = load("/studio/icons/shell/tool-windows/database-inspector.svg"); // 13x13
       public static final Icon DEBUG = load("/studio/icons/shell/tool-windows/debug.svg"); // 13x13
       public static final Icon DEVICE_EXPLORER = load("/studio/icons/shell/tool-windows/device-explorer.svg"); // 13x13
       public static final Icon EMULATOR = load("/studio/icons/shell/tool-windows/emulator.svg"); // 13x13

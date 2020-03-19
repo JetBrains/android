@@ -45,6 +45,10 @@ interface SqliteEvaluatorView {
    * @param index The index at which the database should be added.
    */
   fun addDatabase(database: SqliteDatabase, index: Int)
+
+  /**
+   * Selects the database to run statements on and to use for auto completion.
+   */
   fun selectDatabase(database: SqliteDatabase)
   fun removeDatabase(index: Int)
 
@@ -57,6 +61,11 @@ interface SqliteEvaluatorView {
    * Returns the string corresponding to the SQLite statement currently visible in the UI.
    */
   fun getSqliteStatement(): String
+
+  /**
+   * Notifies the view that the schema associated with [database] has changed.
+   */
+  fun schemaChanged(database: SqliteDatabase)
 
   interface Listener {
     /**

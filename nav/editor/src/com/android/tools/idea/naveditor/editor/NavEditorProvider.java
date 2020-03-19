@@ -59,7 +59,7 @@ public class NavEditorProvider extends DesignerEditorProvider {
     @NotNull
     @Override
     public DefaultActionGroup getSelectionContextToolbar(@NotNull DesignSurface surface, @NotNull List<? extends NlComponent> selection) {
-      return surface.getActionManager().getToolbarActions(null, selection);
+      return surface.getActionManager().getToolbarActions(selection);
     }
 
     @Override

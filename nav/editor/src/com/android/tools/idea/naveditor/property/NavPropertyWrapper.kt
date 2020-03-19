@@ -17,9 +17,14 @@ package com.android.tools.idea.naveditor.property
 
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.CHANGE_PROPERTY
 import com.google.wireless.android.sdk.stats.NavEditorEvent.Source.PROPERTY_INSPECTOR
 
+/**
+ * [NavPropertyWrapper] wraps an underlying NlProperty and logs metrics
+ * whenever the property value is changed.
+ */
 class NavPropertyWrapper(private val toWrap: NlProperty) : NlProperty by toWrap {
   override fun setValue(value: Any?) {
     val orig = getValue()
@@ -32,4 +37,6 @@ class NavPropertyWrapper(private val toWrap: NlProperty) : NlProperty by toWrap 
         .log()
     }
   }
+
+  val isPropertyItem = toWrap is NlPropertyItem
 }

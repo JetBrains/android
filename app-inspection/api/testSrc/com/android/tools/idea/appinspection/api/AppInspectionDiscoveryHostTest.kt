@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.appinspection.api
 
+import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.appinspection.test.ASYNC_TIMEOUT_MS
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils
@@ -67,21 +68,11 @@ class AppInspectionDiscoveryHostTest {
   }
 
   private fun launchFakeProcess(
-    discoveryHost: AppInspectionDiscoveryHost,
     device: Common.Device = FakeTransportService.FAKE_DEVICE,
     process: Common.Process = FakeTransportService.FAKE_PROCESS
   ) {
     transportService.addDevice(device)
     transportService.addProcess(device, process)
-    discoveryHost.addLaunchedProcess(
-      LaunchedProcessDescriptor(
-        device.manufacturer,
-        device.model,
-        device.serial,
-        process.name,
-        AppInspectionTestUtils.TestTransportJarCopier
-      )
-    )
     advanceTimer()
   }
 
@@ -97,7 +88,7 @@ class AppInspectionDiscoveryHostTest {
   @Test
   fun makeNewConnectionFiresListener() {
     val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
-    val discoveryHost = AppInspectionDiscoveryHost(executor, TransportClient(grpcServerRule.name))
+    val discoveryHost = AppInspectionTestUtils.createDiscoveryHost(executor, TransportClient(grpcServerRule.name))
 
     val latch = CountDownLatch(1)
     discoveryHost.addProcessListener(executor, object : AppInspectionDiscoveryHost.ProcessListener {
@@ -109,7 +100,7 @@ class AppInspectionDiscoveryHostTest {
       }
     })
 
-    launchFakeProcess(discoveryHost)
+    launchFakeProcess()
 
     latch.await()
   }
@@ -117,12 +108,12 @@ class AppInspectionDiscoveryHostTest {
   @Test
   fun addListenerReceivesExistingConnections() {
     val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
-    val discoveryHost = AppInspectionDiscoveryHost(executor, TransportClient(grpcServerRule.name))
+    val discoveryHost = AppInspectionTestUtils.createDiscoveryHost(executor, TransportClient(grpcServerRule.name))
 
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, TestInspectorCommandHandler(timer))
 
     // Generate a new process.
-    launchFakeProcess(discoveryHost)
+    launchFakeProcess()
 
     val latch = CountDownLatch(1)
     val processesList = mutableListOf<ProcessDescriptor>()
@@ -141,16 +132,16 @@ class AppInspectionDiscoveryHostTest {
 
     // Verify
     assertThat(processesList).hasSize(1)
-    assertThat(processesList[0].info.manufacturer).isEqualTo(FakeTransportService.FAKE_DEVICE.manufacturer)
-    assertThat(processesList[0].info.model).isEqualTo(FakeTransportService.FAKE_DEVICE.model)
-    assertThat(processesList[0].info.processName).isEqualTo(FakeTransportService.FAKE_PROCESS.name)
+    assertThat(processesList[0].manufacturer).isEqualTo(FakeTransportService.FAKE_DEVICE.manufacturer)
+    assertThat(processesList[0].model).isEqualTo(FakeTransportService.FAKE_DEVICE.model)
+    assertThat(processesList[0].processName).isEqualTo(FakeTransportService.FAKE_PROCESS.name)
   }
 
   @Test
   fun processDisconnectNotifiesListener() {
     // Setup
     val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
-    val discoveryHost = AppInspectionDiscoveryHost(executor, TransportClient(grpcServerRule.name))
+    val discoveryHost = AppInspectionTestUtils.createDiscoveryHost(executor, TransportClient(grpcServerRule.name))
 
     val processConnectLatch = CountDownLatch(1)
     val processDisconnectLatch = CountDownLatch(1)
@@ -165,7 +156,7 @@ class AppInspectionDiscoveryHostTest {
     })
 
     // Wait for process to connect.
-    launchFakeProcess(discoveryHost)
+    launchFakeProcess()
     processConnectLatch.await()
 
     // Wait for process to disconnect.
@@ -177,7 +168,7 @@ class AppInspectionDiscoveryHostTest {
   fun processReconnects() {
     // Setup
     val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
-    val discoveryHost = AppInspectionDiscoveryHost(executor, TransportClient(grpcServerRule.name))
+    val discoveryHost = AppInspectionTestUtils.createDiscoveryHost(executor, TransportClient(grpcServerRule.name))
 
     val firstProcessLatch = CountDownLatch(1)
     val secondProcessLatch = CountDownLatch(1)
@@ -197,7 +188,7 @@ class AppInspectionDiscoveryHostTest {
     })
 
     // Wait for process to connect.
-    launchFakeProcess(discoveryHost)
+    launchFakeProcess()
     firstProcessLatch.await()
 
     // Wait for process to disconnect.
@@ -205,7 +196,7 @@ class AppInspectionDiscoveryHostTest {
     processDisconnectLatch.await()
 
     // Wait for it to connect again.
-    launchFakeProcess(discoveryHost)
+    launchFakeProcess()
     secondProcessLatch.await()
   }
 
@@ -213,7 +204,7 @@ class AppInspectionDiscoveryHostTest {
   fun twoProcessWithSamePidFromDifferentStream() {
     // Setup
     val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
-    val discoveryHost = AppInspectionDiscoveryHost(executor, TransportClient(grpcServerRule.name))
+    val discoveryHost = AppInspectionTestUtils.createDiscoveryHost(executor, TransportClient(grpcServerRule.name))
 
     val latch = CountDownLatch(2)
     discoveryHost.addProcessListener(executor, object : AppInspectionDiscoveryHost.ProcessListener {
@@ -228,12 +219,12 @@ class AppInspectionDiscoveryHostTest {
     // Launch process in stream 1
     val fakeDevice1 = FakeTransportService.FAKE_DEVICE.toBuilder().setDeviceId(1).setModel("fakeModel1").setManufacturer("fakeMan2").build()
     val fakeProcess1 = FakeTransportService.FAKE_PROCESS.toBuilder().setDeviceId(1).build()
-    launchFakeProcess(discoveryHost, fakeDevice1, fakeProcess1)
+    launchFakeProcess(fakeDevice1, fakeProcess1)
 
     // Launch process with same pid in stream 2
     val fakeDevice2 = FakeTransportService.FAKE_DEVICE.toBuilder().setDeviceId(2).setModel("fakeModel2").setManufacturer("fakeMan2").build()
     val fakeProcess2 = FakeTransportService.FAKE_PROCESS.toBuilder().setDeviceId(2).build()
-    launchFakeProcess(discoveryHost, fakeDevice2, fakeProcess2)
+    launchFakeProcess(fakeDevice2, fakeProcess2)
 
     latch.await()
   }
@@ -242,7 +233,7 @@ class AppInspectionDiscoveryHostTest {
   fun processesRunningOnTwoIdenticalDeviceModels() {
     // Setup
     val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
-    val discoveryHost = AppInspectionDiscoveryHost(executor, TransportClient(grpcServerRule.name))
+    val discoveryHost = AppInspectionTestUtils.createDiscoveryHost(executor, TransportClient(grpcServerRule.name))
 
     val latch = CountDownLatch(2)
     discoveryHost.addProcessListener(executor, object : AppInspectionDiscoveryHost.ProcessListener {
@@ -258,39 +249,66 @@ class AppInspectionDiscoveryHostTest {
     val fakeDevice1 =
       FakeTransportService.FAKE_DEVICE.toBuilder().setDeviceId(1).setModel("fakeModel").setManufacturer("fakeMan").setSerial("1").build()
     val fakeProcess1 = FakeTransportService.FAKE_PROCESS.toBuilder().setDeviceId(1).build()
-    launchFakeProcess(discoveryHost, fakeDevice1, fakeProcess1)
+    launchFakeProcess(fakeDevice1, fakeProcess1)
 
     // Launch process with same pid in stream 2
     val fakeDevice2 =
       FakeTransportService.FAKE_DEVICE.toBuilder().setDeviceId(2).setModel("fakeModel").setManufacturer("fakeMan").setSerial("2").build()
     val fakeProcess2 = FakeTransportService.FAKE_PROCESS.toBuilder().setDeviceId(2).build()
-    launchFakeProcess(discoveryHost, fakeDevice2, fakeProcess2)
+    launchFakeProcess(fakeDevice2, fakeProcess2)
 
     latch.await()
   }
 
+
   @Test
-  fun launchInspectableProcessCreatesTarget() {
+  fun discoveryFiltersProcessByDeviceApiLevel() {
     // Setup
     val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
-    val discoveryHost = AppInspectionDiscoveryHost(executor, TransportClient(grpcServerRule.name))
+    val discoveryHost = AppInspectionTestUtils.createDiscoveryHost(executor, TransportClient(grpcServerRule.name))
 
-    val targetReadyLatch = CountDownLatch(1)
-    lateinit var targetToVerify: AppInspectionTarget
-    discoveryHost.discovery.addTargetListener(MoreExecutors.directExecutor()) {
-      targetToVerify = it
-      targetReadyLatch.countDown()
-    }
+    val latch = CountDownLatch(1)
+    lateinit var processDescriptor: ProcessDescriptor
+    discoveryHost.addProcessListener(executor, object : AppInspectionDiscoveryHost.ProcessListener {
+      override fun onProcessConnected(descriptor: ProcessDescriptor) {
+        processDescriptor = descriptor
+        latch.countDown()
+      }
 
-    // Launch the fake process
-    launchFakeProcess(discoveryHost)
+      override fun onProcessDisconnected(descriptor: ProcessDescriptor) {
+      }
+    })
 
-    // Wait to be notified of new AppInspectionTarget
-    targetReadyLatch.await()
+    // Launch process on a device with Api Level < O
+    val oldDevice =
+      FakeTransportService.FAKE_DEVICE.toBuilder()
+        .setDeviceId(1)
+        .setModel("fakeModel")
+        .setManufacturer("fakeMan")
+        .setSerial("1")
+        .setApiLevel(AndroidVersion.VersionCodes.N)
+        .build()
+    val process = FakeTransportService.FAKE_PROCESS.toBuilder()
+      .setDeviceId(1)
+      .build()
+    launchFakeProcess(oldDevice, process)
 
-    // Verify
-    assertThat(targetToVerify.descriptor.info.manufacturer).isEqualTo(FakeTransportService.FAKE_DEVICE.manufacturer)
-    assertThat(targetToVerify.descriptor.info.model).isEqualTo(FakeTransportService.FAKE_DEVICE.model)
-    assertThat(targetToVerify.descriptor.info.processName).isEqualTo(FakeTransportService.FAKE_PROCESS_NAME)
+
+    // Launch process on another device with Api level >= O
+    val newDevice = FakeTransportService.FAKE_DEVICE.toBuilder()
+      .setDeviceId(2)
+      .setModel("fakeModel")
+      .setManufacturer("fakeMan")
+      .setSerial("1")
+      .setApiLevel(AndroidVersion.VersionCodes.O)
+      .build()
+    val newProcess = FakeTransportService.FAKE_PROCESS.toBuilder()
+      .setDeviceId(2)
+      .build()
+    launchFakeProcess(newDevice, newProcess)
+
+    // Verify discovery host has only notified about the process that ran on >= O device.
+    latch.await()
+    assertThat(processDescriptor.stream.device.apiLevel >= AndroidVersion.VersionCodes.O)
   }
 }

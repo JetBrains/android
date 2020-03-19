@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.tools.deployer.ApkFileDatabase;
 import com.android.tools.deployer.DeploymentCacheDatabase;
 import com.android.tools.deployer.SqlApkFileDatabase;
 import com.android.tools.deployer.tasks.TaskRunner;
@@ -39,7 +38,7 @@ public class DeploymentService {
 
   private final TaskRunner runner;
 
-  private final ApkFileDatabase dexDatabase;
+  private final SqlApkFileDatabase dexDatabase;
 
   private final DeploymentCacheDatabase deploymentCacheDatabase;
 
@@ -64,10 +63,9 @@ public class DeploymentService {
     return runner;
   }
 
-  public ApkFileDatabase getDexDatabase() {
+  public SqlApkFileDatabase getDexDatabase() {
     return dexDatabase;
   }
-
 
   public DeploymentCacheDatabase getDeploymentCacheDatabase() {
     return deploymentCacheDatabase;

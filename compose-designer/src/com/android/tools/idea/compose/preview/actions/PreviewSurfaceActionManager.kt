@@ -52,7 +52,7 @@ internal class PreviewSurfaceActionManager(private val surface: DesignSurface) :
     add(copyResultImageAction)
   }
 
-  override fun getToolbarActions(component: NlComponent?, newSelection: MutableList<NlComponent>): DefaultActionGroup =
+  override fun getToolbarActions(selection: MutableList<NlComponent>): DefaultActionGroup =
     DefaultActionGroup()
 
   override fun getSceneViewContextToolbar(sceneView: SceneView): JComponent? =

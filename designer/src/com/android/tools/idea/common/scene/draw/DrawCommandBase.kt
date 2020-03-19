@@ -30,6 +30,8 @@ val HQ_RENDERING_HINTS: Map<RenderingHints.Key, Any> = ImmutableMap.of(
 abstract class DrawCommandBase(private val level: Int = 0) : DrawCommand {
   override fun getLevel(): Int = level
 
+  override fun serialize() = ""
+
   final override fun paint(g: Graphics2D, sceneContext: SceneContext) {
     val g2 = g.create() as Graphics2D
     onPaint(g2, sceneContext)

@@ -23,7 +23,6 @@ import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
 import com.android.tools.idea.appinspection.api.AppInspectionTarget
 import com.android.tools.idea.appinspection.api.ProcessDescriptor
 import com.android.tools.idea.appinspection.api.TargetTerminatedListener
-import com.android.tools.idea.appinspection.api.TransportProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.concurrency.transform
@@ -142,15 +141,16 @@ private class DefaultAppInspectionTarget(
             if (event.appInspectionResponse.status == SUCCESS) {
               connectionFuture.set(AppInspectorConnection(transport, inspectorId, event.timestamp))
             } else {
-              connectionFuture.setException(RuntimeException("Could not launch inspector $inspectorId"))
+              connectionFuture.setException(
+                RuntimeException("Could not launch inspector ${inspectorId}: ${event.appInspectionResponse.errorMessage}")
+              )
             }
           }
         )
         connectionFuture
       },
       transport.executorService
-    )
-      .transform(transport.executorService) { setupEventListener(creator, it) }
+    ).transform(transport.executorService) { setupEventListener(creator, it) }
   }
 
   override fun addTargetTerminatedListener(
@@ -166,9 +166,6 @@ private class DefaultAppInspectionTarget(
       listener
     }
   }
-
-  override val descriptor = TransportProcessDescriptor(transport.stream, transport.process)
-
 }
 
 private fun <T : AppInspectorClient> setupEventListener(creator: (AppInspectorConnection) -> T, connection: AppInspectorConnection): T {

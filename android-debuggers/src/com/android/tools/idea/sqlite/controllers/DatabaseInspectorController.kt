@@ -189,8 +189,9 @@ class DatabaseInspectorControllerImpl(
     val newSchema = readDatabaseSchema(database)
     withContext(uiThread) {
       if (oldSchema != newSchema) {
-        updateExistingDatabaseSchemaView(database, oldSchema, newSchema)
         model.add(database, newSchema)
+        updateExistingDatabaseSchemaView(database, oldSchema, newSchema)
+        resultSetControllers.values.filterIsInstance<SqliteEvaluatorController>().forEach { it.schemaChanged(database) }
       }
     }
   }

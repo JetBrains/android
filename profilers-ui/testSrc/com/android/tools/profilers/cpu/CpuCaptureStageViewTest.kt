@@ -193,7 +193,7 @@ class CpuCaptureStageViewTest {
     assertThat(profilersView.zoomToSelectionButton.isEnabled).isFalse()
     stage.multiSelectionModel.setSelection(setOf(CaptureNodeAnalysisModel(captureNode, stage.capture)))
     assertThat(profilersView.zoomToSelectionButton.isEnabled).isTrue()
-    assertThat(profilersView.stageView.zoomToSelectionRange.isSameAs(Range(0.0, 10.0))).isTrue()
+    assertThat(profilersView.stageView.stage.timeline.selectionRange.isSameAs(Range(0.0, 10.0))).isTrue()
   }
 
   @Test

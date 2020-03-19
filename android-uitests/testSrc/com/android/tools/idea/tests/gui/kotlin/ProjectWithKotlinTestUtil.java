@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.kotlin;
 
-import static com.android.tools.idea.npw.platform.Language.KOTLIN;
+import static com.android.tools.idea.wizard.template.Language.Kotlin;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
@@ -149,7 +149,7 @@ public class ProjectWithKotlinTestUtil {
 
     waitForPackageNameToShow("android.com", configAndroid);
 
-    configAndroid.setSourceLanguage(KOTLIN);
+    configAndroid.setSourceLanguage(Kotlin);
 
     if (hasCppSupport) {
       newProjectWizard.clickNext();

@@ -48,7 +48,7 @@ class VisualizationActionManager(surface: NlDesignSurface,
     return group
   }
 
-  override fun getToolbarActions(component: NlComponent?, newSelection: List<NlComponent>) = DefaultActionGroup()
+  override fun getToolbarActions(newSelection: List<NlComponent>) = DefaultActionGroup()
 
   override fun getSceneViewContextToolbar(sceneView: SceneView): JComponent? {
     val model = sceneView.scene.sceneManager.model

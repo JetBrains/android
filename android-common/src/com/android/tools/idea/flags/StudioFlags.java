@@ -171,17 +171,13 @@ public final class StudioFlags {
     false);
   //endregion
 
-  //region ML Kit
-  private static final FlagGroup MLKIT = new FlagGroup(FLAGS, "mlkit", "ML Kit");
-  public static final Flag<Boolean> MLKIT_TFLITE_MODEL_FILE_TYPE = Flag.create(
-    MLKIT, "modelfiletype", "Enable TFLite model file type",
-    "When enabled, TFLite model file can be recognized as a particular type and has its own viewer.",
-    false);
-  public static final Flag<Boolean> MLKIT_LIGHT_CLASSES = Flag.create(
-    MLKIT, "lightclasses", "Enable light model classes generation",
-    "When enabled, light model classes will be generated for each recognized TFLite model file. Please invalidates file " +
-    "caches after enabling (File -> Invalidate Caches...) in order to reindex model files.",
-    false);
+  //region ML
+  private static final FlagGroup ML = new FlagGroup(FLAGS, "ml", "ML");
+  public static final Flag<Boolean> ML_MODEL_BINDING = Flag.create(
+    ML, "modelbinding", "Enable ML model binding",
+    "When enabled, TFLite model file will be recognized and indexed. Please invalidates file caches after enabling " +
+    "(File -> Invalidate Caches...) in order to reindex model files.",
+    true);
   //endregion
 
   //region Asset Studio
@@ -493,9 +489,21 @@ public final class StudioFlags {
   //region Database Inspector
   private static final FlagGroup DATABASE_INSPECTOR = new FlagGroup(FLAGS, "database.inspector", "Database Inspector");
   public static final Flag<Boolean> DATABASE_INSPECTOR_ENABLED = Flag.create(
-    DATABASE_INSPECTOR, "enabled", "Enable Database Inspector",
-    "If enabled the Database Inspector tool window will appear. SQLite files opened from the Device Explorer will be opened in the inspector.",
-    false);
+    DATABASE_INSPECTOR,
+    "enabled",
+    "Enable Database Inspector",
+    "If enabled the Database Inspector tool window will appear." +
+    "SQLite files opened from the Device Explorer will be opened in the inspector.",
+    false
+  );
+  public static final Flag<Boolean> DATABASE_INSPECTOR_FILE_SUPPORT_ENABLED = Flag.create(
+    DATABASE_INSPECTOR,
+    "files.enabled",
+    "Enable file support in Database Inspector",
+    "If enabled, the Database Inspector tool will be able to open databases from files." +
+    "SQLite files opened from the Device Explorer will open in the inspector.",
+    false
+  );
 
   // TODO(b/144073974) why do we need a separate flag for this?
   public static final Flag<Boolean> SQLITE_APP_INSPECTOR_ENABLED = Flag.create(

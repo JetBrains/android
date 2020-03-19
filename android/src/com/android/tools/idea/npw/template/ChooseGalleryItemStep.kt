@@ -17,11 +17,10 @@ package com.android.tools.idea.npw.template
 
 import com.android.tools.adtui.util.FormScalingUtil
 import com.android.tools.adtui.validation.ValidatorPanel
-import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.device.FormFactor
+import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
-import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.project.getModuleTemplates
 import com.android.tools.idea.npw.ui.WizardGallery
 import com.android.tools.idea.npw.ui.getTemplateIcon
@@ -36,6 +35,7 @@ import com.android.tools.idea.ui.wizard.WizardUtils.hasComposeMinAgpVersion
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.model.SkippableWizardStep
+import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.TemplateConstraint
 import com.google.common.annotations.VisibleForTesting
@@ -90,7 +90,7 @@ abstract class ChooseGalleryItemStep(
   override fun getPreferredFocusComponent(): JComponent? = itemGallery
 
   public override fun createDependentSteps(): Collection<ModelWizardStep<*>> =
-    listOf(ConfigureTemplateParametersStep2(model, message(messageKeys.stepTitle), moduleTemplates))
+    listOf(ConfigureTemplateParametersStep(model, message(messageKeys.stepTitle), moduleTemplates))
 
   override fun dispose() = listeners.releaseAll()
 
@@ -187,7 +187,7 @@ fun Template.validate(moduleApiLevel: Int,
   moduleApiLevel < this.minSdk -> message(messageKeys.invalidMinSdk, this.minSdk)
   moduleBuildApiLevel < this.minCompileSdk -> message(messageKeys.invalidMinBuild, this.minCompileSdk)
   constraints.contains(TemplateConstraint.AndroidX) && !isAndroidxProject -> message(messageKeys.invalidAndroidX)
-  constraints.contains(TemplateConstraint.Kotlin) && language != Language.KOTLIN && isNewModule -> message(messageKeys.invalidNeedsKotlin)
+  constraints.contains(TemplateConstraint.Kotlin) && language != Language.Kotlin && isNewModule -> message(messageKeys.invalidNeedsKotlin)
   else -> ""
 }
 

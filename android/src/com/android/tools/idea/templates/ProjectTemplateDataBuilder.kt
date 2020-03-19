@@ -24,11 +24,11 @@ import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.npw.module.ConfigureAndroidModuleStep
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
-import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.wizard.template.BytecodeLevel
 import com.android.tools.idea.wizard.template.FormFactor
+import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.PackageName
 import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.intellij.openapi.application.runReadAction

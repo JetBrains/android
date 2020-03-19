@@ -72,6 +72,14 @@ class SqliteEvaluatorViewImpl(
     )
   }
 
+  override fun schemaChanged(database: SqliteDatabase) {
+    // A fresh schema is taken from the schema provider each time the selected db changes in the combo box.
+    // Therefore the only case we need to worry about is when the schema that changed belongs to the currently selected db.
+    if ((evaluatorPanel.databaseComboBox.selectedItem as ComboBoxItem).database == database) {
+      setSchemaFromSelectedItem()
+    }
+  }
+
   private fun setSchemaFromSelectedItem() {
     if (evaluatorPanel.databaseComboBox.selectedIndex < 0) return
     val database = (evaluatorPanel.databaseComboBox.selectedItem as ComboBoxItem).database

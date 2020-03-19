@@ -46,7 +46,6 @@ class LightArgsBuilderClassConstructorsAndMethodsTest(private val typeMapping: T
       TypeMapping(PsiType.FLOAT.name),
       TypeMapping(PsiType.LONG.name),
       TypeMapping(PsiType.BOOLEAN.name),
-      TypeMapping(PsiType.FLOAT.name),
       TypeMapping("string", "String"),
       TypeMapping("reference", PsiType.INT.name),
       TypeMapping("test.safeargs.MyCustomType", "MyCustomType"), // e.g Parcelable, Serializable
@@ -74,7 +73,16 @@ class LightArgsBuilderClassConstructorsAndMethodsTest(private val typeMapping: T
                 app:argType="${typeMapping.before}" />
             <argument
                 android:name="arg2"
+                app:argType="${typeMapping.before}"
+                android:defaultValue="someDefaultValue"/>
+            <argument
+                android:name="arg3"
                 app:argType="${typeMapping.before}[]" />
+            <argument
+                android:name="arg4"
+                app:argType="${typeMapping.before}[]"
+                app:nullable="true"
+                android:defaultValue="@null"/>
           </fragment>
         </navigation>
       """.trimIndent())
@@ -103,15 +111,15 @@ class LightArgsBuilderClassConstructorsAndMethodsTest(private val typeMapping: T
         returnType = PsiType.NULL.name,
         parameters = listOf(
           Parameter("arg1", typeMapping.after),
-          Parameter("arg2", "${typeMapping.after}[]")
+          Parameter("arg3", "${typeMapping.after}[]")
         )
       )
     }
 
-    // We expect two constructors - a copy constructor (which is initialized with the parent args
-    // class) and an arg constructor (which takes all arguments specified by <argument> tags)
+    // For the above xml, we expect a getter and setter for each <argument> tag as well as a final
+    // `build()` method that generates its parent args class.
     builderClass.methods.let { methods ->
-      assertThat(methods.size).isEqualTo(5)
+      assertThat(methods.size).isEqualTo(9)
 
       methods[0].checkSignaturesAndReturnType(
         name = "setArg1",
@@ -130,16 +138,43 @@ class LightArgsBuilderClassConstructorsAndMethodsTest(private val typeMapping: T
         name = "setArg2",
         returnType = "Builder",
         parameters = listOf(
-          Parameter("arg2", "${typeMapping.after}[]")
+          Parameter("arg2", typeMapping.after)
         )
       )
 
       methods[3].checkSignaturesAndReturnType(
         name = "getArg2",
-        returnType = "${typeMapping.after}[]"
+        returnType = typeMapping.after
       )
 
       methods[4].checkSignaturesAndReturnType(
+        name = "setArg3",
+        returnType = "Builder",
+        parameters = listOf(
+          Parameter("arg2", "${typeMapping.after}[]")
+        )
+      )
+
+      methods[5].checkSignaturesAndReturnType(
+        name = "getArg3",
+        returnType = "${typeMapping.after}[]"
+      )
+
+      methods[6].checkSignaturesAndReturnType(
+        name = "setArg4",
+        returnType = "Builder",
+        parameters = listOf(
+          Parameter("arg2", "${typeMapping.after}[]")
+        )
+      )
+
+      methods[7].checkSignaturesAndReturnType(
+        name = "getArg4",
+        isReturnTypeNullable = true,
+        returnType = "${typeMapping.after}[]"
+      )
+
+      methods[8].checkSignaturesAndReturnType(
         name = "build",
         returnType = "FragmentArgs"
       )

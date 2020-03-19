@@ -99,7 +99,7 @@ open class NelePropertyItem(
   open val componentName: String,
   open val libraryName: String,
   val model: NelePropertiesModel,
-  val components: List<NlComponent>,
+  open val components: List<NlComponent>,
   val optionalValue1: Any? = null,
   val optionalValue2: Any? = null
 ) : PropertyItem {

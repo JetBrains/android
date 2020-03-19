@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.tests.util;
 
-import static com.android.tools.idea.npw.platform.Language.JAVA;
+import static com.android.tools.idea.wizard.template.Language.Java;
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.wizard.template.Language;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +37,7 @@ public final class WizardUtils {
   }
 
   public static void createNewProject(@NotNull GuiTestRule guiTest, @NotNull String activity) {
-    createNewProject(guiTest, activity, JAVA);
+    createNewProject(guiTest, activity, Java);
   }
 
   public static void createNewProject(@NotNull GuiTestRule guiTest, @NotNull String activity, @NotNull Language language) {

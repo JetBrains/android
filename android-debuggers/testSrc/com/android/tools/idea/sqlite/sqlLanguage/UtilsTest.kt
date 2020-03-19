@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite.sqlLanguage
 
 import com.android.tools.idea.lang.androidSql.parser.AndroidSqlParserDefinition
+import com.android.tools.idea.sqlite.controllers.SqliteParameter
 import com.intellij.testFramework.LightPlatformTestCase
 import junit.framework.TestCase
 
@@ -41,7 +42,7 @@ class UtilsTest : LightPlatformTestCase() {
 
     // Assert
     assertEquals("select * from Foo where id = ?", parsedSqliteStatement.statementText)
-    TestCase.assertEquals(listOf(":anId"), parsedSqliteStatement.parameters)
+    TestCase.assertEquals(listOf(SqliteParameter(":anId")), parsedSqliteStatement.parameters)
   }
 
   fun testReplaceParametersNamedParameters1() {
@@ -53,7 +54,7 @@ class UtilsTest : LightPlatformTestCase() {
 
     // Assert
     assertEquals("select * from Foo where id = ? and name = ?", parsedSqliteStatement.statementText)
-    TestCase.assertEquals(listOf(":anId", ":aName"), parsedSqliteStatement.parameters)
+    TestCase.assertEquals(listOf(SqliteParameter(":anId"), SqliteParameter(":aName")), parsedSqliteStatement.parameters)
   }
 
   fun testReplaceParametersNamedParameter2() {
@@ -65,7 +66,7 @@ class UtilsTest : LightPlatformTestCase() {
 
     // Assert
     assertEquals("select * from Foo where id = ?", parsedSqliteStatement.statementText)
-    TestCase.assertEquals(listOf("@anId"), parsedSqliteStatement.parameters)
+    TestCase.assertEquals(listOf(SqliteParameter("@anId")), parsedSqliteStatement.parameters)
   }
 
   fun testReplaceParametersNamedParameters2() {
@@ -77,7 +78,7 @@ class UtilsTest : LightPlatformTestCase() {
 
     // Assert
     assertEquals("select * from Foo where id = ? and name = ?", parsedSqliteStatement.statementText)
-    TestCase.assertEquals(listOf("@anId", "@aName"), parsedSqliteStatement.parameters)
+    TestCase.assertEquals(listOf(SqliteParameter("@anId"), SqliteParameter("@aName")), parsedSqliteStatement.parameters)
   }
 
   fun testReplaceParametersNamedParameter3() {
@@ -89,7 +90,7 @@ class UtilsTest : LightPlatformTestCase() {
 
     // Assert
     assertEquals("select * from Foo where id = ?", parsedSqliteStatement.statementText)
-    TestCase.assertEquals(listOf("\$anId"), parsedSqliteStatement.parameters)
+    TestCase.assertEquals(listOf(SqliteParameter("\$anId")), parsedSqliteStatement.parameters)
   }
 
   fun testReplaceParametersNamedParameters3() {
@@ -101,19 +102,25 @@ class UtilsTest : LightPlatformTestCase() {
 
     // Assert
     assertEquals("select * from Foo where id = ? and name = ?", parsedSqliteStatement.statementText)
-    TestCase.assertEquals(listOf("\$anId", "\$aName"), parsedSqliteStatement.parameters)
+    TestCase.assertEquals(listOf(SqliteParameter("\$anId"), SqliteParameter("\$aName")), parsedSqliteStatement.parameters)
   }
 
   fun testReplaceParametersMixedNamedParameters() {
     // Prepare
-    val psiFile = AndroidSqlParserDefinition.parseSqlQuery(project, "select * from Foo where id = @anId and name = :aName and other = \$other")
+    val psiFile = AndroidSqlParserDefinition.parseSqlQuery(
+      project,
+      "select * from Foo where id = @anId and name = :aName and other = \$other"
+    )
 
     // Act
     val parsedSqliteStatement = replaceNamedParametersWithPositionalParameters(psiFile)
 
     // Assert
     assertEquals("select * from Foo where id = ? and name = ? and other = ?", parsedSqliteStatement.statementText)
-    TestCase.assertEquals(listOf("@anId", ":aName", "\$other"), parsedSqliteStatement.parameters)
+    TestCase.assertEquals(
+      listOf(SqliteParameter("@anId"), SqliteParameter((":aName")), SqliteParameter("\$other")),
+      parsedSqliteStatement.parameters
+    )
   }
 
   fun testReplacePositionalParameter1() {
@@ -125,7 +132,7 @@ class UtilsTest : LightPlatformTestCase() {
 
     // Assert
     assertEquals("select * from Foo where id = ?", parsedSqliteStatement.statementText)
-    TestCase.assertEquals(listOf("id"), parsedSqliteStatement.parameters)
+    TestCase.assertEquals(listOf(SqliteParameter("id")), parsedSqliteStatement.parameters)
   }
 
   fun testReplacePositionalParameters1() {
@@ -137,7 +144,7 @@ class UtilsTest : LightPlatformTestCase() {
 
     // Assert
     assertEquals("select * from Foo where id = ? and name = ?", parsedSqliteStatement.statementText)
-    TestCase.assertEquals(listOf("id", "name"), parsedSqliteStatement.parameters)
+    TestCase.assertEquals(listOf(SqliteParameter("id"), SqliteParameter("name")), parsedSqliteStatement.parameters)
   }
 
   fun testReplacePositionalParameter2() {
@@ -149,7 +156,7 @@ class UtilsTest : LightPlatformTestCase() {
 
     // Assert
     assertEquals("select * from Foo where id = ?", parsedSqliteStatement.statementText)
-    TestCase.assertEquals(listOf("id"), parsedSqliteStatement.parameters)
+    TestCase.assertEquals(listOf(SqliteParameter("id")), parsedSqliteStatement.parameters)
   }
 
   fun testReplacePositionalParameters2() {
@@ -161,7 +168,7 @@ class UtilsTest : LightPlatformTestCase() {
 
     // Assert
     assertEquals("select * from Foo where id = ? and name = ?", parsedSqliteStatement.statementText)
-    TestCase.assertEquals(listOf("id", "name"), parsedSqliteStatement.parameters)
+    TestCase.assertEquals(listOf(SqliteParameter("id"), SqliteParameter("name")), parsedSqliteStatement.parameters)
   }
 
   fun testReplacePositionalParameterInComparison() {
@@ -173,7 +180,7 @@ class UtilsTest : LightPlatformTestCase() {
 
     // Assert
     assertEquals("select * from Foo where id > ?", parsedSqliteStatement.statementText)
-    TestCase.assertEquals(listOf("id"), parsedSqliteStatement.parameters)
+    TestCase.assertEquals(listOf(SqliteParameter("id")), parsedSqliteStatement.parameters)
   }
 
   fun testReplacePositionalParameterInExpressionAndComparison() {
@@ -185,6 +192,6 @@ class UtilsTest : LightPlatformTestCase() {
 
     // Assert
     assertEquals("select * from Foo where id = (? >> name)", parsedSqliteStatement.statementText)
-    TestCase.assertEquals(listOf("id"), parsedSqliteStatement.parameters)
+    TestCase.assertEquals(listOf(SqliteParameter("id")), parsedSqliteStatement.parameters)
   }
 }

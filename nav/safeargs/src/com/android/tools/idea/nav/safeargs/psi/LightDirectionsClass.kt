@@ -67,16 +67,18 @@ class LightDirectionsClass(facet: AndroidFacet,
   private fun computeMethods(): Array<PsiMethod> {
     if (destination.actions.isEmpty()) return emptyArray()
 
-    val navDirectionsType = parsePsiType(modulePackage, "androidx.navigation.NavDirections", this)
+    val navDirectionsType = parsePsiType(modulePackage, "androidx.navigation.NavDirections", null, this)
     return destination.actions
       .mapNotNull { action ->
         val targetDestination = data.root.allDestinations.firstOrNull { it.id == action.destination } ?: return@mapNotNull null
         val types = targetDestination.arguments.map { arg ->
-          arg to parsePsiType(modulePackage, arg.type, this)
+          arg to parsePsiType(modulePackage, arg.type, arg.defaultValue, this)
         }
 
         val methodName = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, action.id)
-        val method = createMethod(methodName, modifiers = MODIFIERS_STATIC_PUBLIC_METHOD, returnType = navDirectionsType)
+        val method = createMethod(name = methodName,
+                                  modifiers = MODIFIERS_STATIC_PUBLIC_METHOD,
+                                  returnType = annotateNullability(navDirectionsType))
         types.forEach {
           val arg = it.first
           val type = it.second // We know it's non-null because of the "any" check above

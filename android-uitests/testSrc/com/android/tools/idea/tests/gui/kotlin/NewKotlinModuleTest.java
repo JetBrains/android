@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.kotlin;
 
+import static com.android.tools.idea.wizard.template.Language.Java;
+import static com.android.tools.idea.wizard.template.Language.Kotlin;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
@@ -22,12 +26,6 @@ import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.Locale;
-
-import static com.android.tools.idea.npw.platform.Language.JAVA;
-import static com.android.tools.idea.npw.platform.Language.KOTLIN;
-import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class NewKotlinModuleTest {
@@ -57,7 +55,7 @@ public class NewKotlinModuleTest {
       .getConfigureNewAndroidProjectStep()
       .enterName(APP_NAME)
       .enterPackageName("android.com")
-      .setSourceLanguage(hasKotlinSupport ? KOTLIN : JAVA)
+      .setSourceLanguage(hasKotlinSupport ? Kotlin : Java)
       .wizard()
       .clickFinish();
 
@@ -75,7 +73,7 @@ public class NewKotlinModuleTest {
     guiTest.ideFrame().openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
       .clickNextPhoneAndTabletModule()
       .enterModuleName(NEW_KOTLIN_MODULE_NAME)
-      .setSourceLanguage(KOTLIN)
+      .setSourceLanguage(Kotlin)
       .wizard()
       .clickNext() // Default options
       .clickNext() // Default Activity

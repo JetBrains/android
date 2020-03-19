@@ -27,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
 public class MlModelFileTypeFactory extends FileTypeFactory {
   @Override
   public void createFileTypes(@NotNull FileTypeConsumer consumer) {
-    if (StudioFlags.MLKIT_TFLITE_MODEL_FILE_TYPE.get() || ApplicationManager.getApplication().isUnitTestMode()) {
+    if (StudioFlags.ML_MODEL_BINDING.get() || ApplicationManager.getApplication().isUnitTestMode()) {
       consumer.consume(TfliteModelFileType.INSTANCE, TfliteModelFileType.INSTANCE.getDefaultExtension());
     }
   }

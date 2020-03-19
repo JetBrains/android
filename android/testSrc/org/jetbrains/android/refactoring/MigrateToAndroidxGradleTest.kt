@@ -24,6 +24,7 @@ import com.google.common.truth.Truth
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.TextEditor
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
@@ -43,7 +44,7 @@ private fun String.replaceCompileSdkWith(version: String, isGroovy: Boolean) =
 /**
  * This class tests Migration to AndroidX for a Gradle project.
  */
-class MigrateToAndroidxGradleTest : AndroidGradleTestCase() {
+/*class MigrateToAndroidxGradleTest : AndroidGradleTestCase() {
   // Temporary instrumentation for b/148676784.
   override fun tearDown() {
     super.tearDown()
@@ -103,6 +104,7 @@ class MigrateToAndroidxGradleTest : AndroidGradleTestCase() {
 
   fun testMigrationRefactoringKts() {
     loadProject(MIGRATE_TO_ANDROID_X_KTS)
+    Registry.get("platform.random.idempotence.check.rate").setValue(1, getTestRootDisposable())
     val activityMain = "app/src/main/res/layout/activity_main.xml"
     val mainBuildScript = "build.gradle.kts"
     val appBuildScript = "app/build.gradle.kts"
@@ -143,10 +145,10 @@ class MigrateToAndroidxGradleTest : AndroidGradleTestCase() {
     doTestExistingGradleProperties()
   }
 
-  fun testExistingGradlePropertiesKts() {
+  /*fun testExistingGradlePropertiesKts() {
     loadProject(MIGRATE_TO_ANDROID_X_KTS)
     doTestExistingGradleProperties()
-  }
+  }*/
 
   private fun doTestVerifyPrerequisites(mainBuildScript: String, appBuildScript: String, isGroovy: Boolean) {
     val appGradleFile = myFixture.project.baseDir.findFileByRelativePath(appBuildScript)!!
@@ -262,8 +264,8 @@ class MigrateToAndroidxGradleTest : AndroidGradleTestCase() {
   }
 
   private fun setFileContent(file: VirtualFile, content: String) {
+    myFixture.openFileInEditor(file)
     WriteCommandAction.runWriteCommandAction(project) {
-      myFixture.openFileInEditor(file)
       val document = myFixture.editor.document
       document.setText(content)
       PsiDocumentManager.getInstance(project).commitDocument(document)
@@ -277,4 +279,4 @@ class MigrateToAndroidxGradleTest : AndroidGradleTestCase() {
     )
       .invoke(project, null, null, null)
   }
-}
+}*/

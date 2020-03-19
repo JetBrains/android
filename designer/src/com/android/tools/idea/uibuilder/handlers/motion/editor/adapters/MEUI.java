@@ -20,9 +20,11 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
-import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.ui.popup.JBPopupListener;
+import com.intellij.openapi.ui.popup.LightweightWindowEvent;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.IconUtil;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
@@ -40,6 +42,7 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The access to platform independent UI features allow us to run using the JB components as well as the stand alone.
@@ -60,6 +63,12 @@ public class MEUI {
   public static Insets insets(int top, int left, int bottom, int right) {
     return JBUI.insets(top, left, bottom, right);
   }
+
+  public static Insets dialogTitleInsets() { return MEUI.insets(8, 12, 0, 12); }
+  public static Insets dialogSeparatorInsets() { return MEUI.insets(8, 0, 0, 0); }
+  public static Insets dialogLabelInsets() { return MEUI.insets(8, 12, 0, 12); }
+  public static Insets dialogControlInsets() { return MEUI.insets(4, 14, 0, 12); }
+  public static Insets dialogBottomButtonInsets() { return MEUI.insets(12, 12, 12, 12); }
 
   public static MEComboBox<String> makeComboBox(String[] a) {
     return new MEComboBox<String>(a);
@@ -94,6 +103,8 @@ public class MEUI {
   public static final Color ourBorder = makeColor("UIDesigner.motion.borderColor", 0xc9c9c9, 0x242627);
   public static final Color ourBorderLight = makeColor("UIDesigner.motion.light.borderColor", 0xe8e6e6, 0x3c3f41);
   public static final Color ourTextColor = makeColor("UIDesigner.motion.Component.foreground", 0x2C2C2C, 0x9E9E9E);
+  public static final Color ourSecondaryPanelHeaderTitleColor = makeColor("UIDesigner.motion.SecondaryPanel.header.foreground", 0x000000, 0xbababa);
+  public static final Color ourSecondaryHeaderBackgroundColor = makeColor("UIDesigner.motion.SecondaryPanel.header.background", 0xf2f2f2, 0x3c3f40);
 
   //Do we need these below?
   public static final Color myTimeCursorStartColor =
@@ -219,7 +230,7 @@ public class MEUI {
         if (myBalloon == null) {
           myBalloon = create();
         } else {
-          myBalloon.showInCenterOf(myLocal);
+          myBalloon.show(RelativePoint.getSouthOf(myLocal), Balloon.Position.below);
         }
       }
 
@@ -237,7 +248,20 @@ public class MEUI {
           .setRequestFocus(true)
           .setDialogMode(false)
           .createBalloon();
-        balloon.showInCenterOf(myLocal);
+        balloon.addListener(new JBPopupListener() {
+          @Override
+          public void onClosed(@NotNull LightweightWindowEvent event) {
+            MEActionButton button = (myLocal instanceof MEActionButton ? (MEActionButton)myLocal : null);
+            if (button != null) {
+              button.setPopupIsShowing(false);
+            }
+          }
+        });
+        balloon.show(RelativePoint.getSouthOf(myLocal), Balloon.Position.below);
+        MEActionButton button = (myLocal instanceof MEActionButton ? (MEActionButton)myLocal : null);
+        if (button != null) {
+          button.setPopupIsShowing(true);
+        }
         return balloon;
       }
     };

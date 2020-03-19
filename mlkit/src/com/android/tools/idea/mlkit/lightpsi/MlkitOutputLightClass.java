@@ -92,11 +92,13 @@ public class MlkitOutputLightClass extends AndroidLightClassBase {
     Project project = getProject();
     GlobalSearchScope scope = getResolveScope();
     PsiClassType returnType = PsiType.getTypeByName(CodeUtils.getTypeQualifiedName(tensorInfo), project, scope);
-
-    return new LightMethodBuilder(myManager, MlkitNames.formatGetterName(tensorInfo.getName(), returnType.getClassName()))
-      .setMethodReturnType(returnType)
-      .addModifiers(PsiModifier.PUBLIC, PsiModifier.FINAL)
-      .setContainingClass(this);
+    LightMethodBuilder method =
+      new LightMethodBuilder(myManager, MlkitNames.formatGetterName(tensorInfo.getName(), returnType.getClassName()))
+        .setMethodReturnType(returnType)
+        .addModifiers(PsiModifier.PUBLIC, PsiModifier.FINAL)
+        .setContainingClass(this);
+    method.setNavigationElement(this);
+    return method;
   }
 
   @Nullable

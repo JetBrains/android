@@ -27,19 +27,17 @@ import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.impl.source.resolve.reference.impl.manipulators.StringLiteralManipulator;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import java.util.Map;
 import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.lexer.TokenSets;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrReferenceExpression;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrString;
-import org.jetbrains.plugins.groovy.lang.resolve.GroovyStringLiteralManipulator;
 
 public class GroovyDslNameConverter implements GradleDslNameConverter {
   @NotNull
@@ -72,11 +70,11 @@ public class GroovyDslNameConverter implements GradleDslNameConverter {
   @NotNull
   @Override
   public ExternalNameInfo externalNameForParent(@NotNull String modelName, @NotNull GradleDslElement context) {
-    ImmutableMap<Pair<String,Integer>, Pair<ModelPropertyDescription, SemanticsDescription>> map = context.getExternalToModelMap(this);
+    ImmutableMap<Pair<String,Integer>, ModelEffectDescription> map = context.getExternalToModelMap(this);
     ExternalNameInfo result = new ExternalNameInfo(modelName, null);
-    for (Map.Entry<Pair<String,Integer>, Pair<ModelPropertyDescription,SemanticsDescription>> e : map.entrySet()) {
-      if (e.getValue().getFirst().name.equals(modelName)) {
-        SemanticsDescription semantics = e.getValue().getSecond();
+    for (Map.Entry<Pair<String,Integer>, ModelEffectDescription> e : map.entrySet()) {
+      if (e.getValue().property.name.equals(modelName)) {
+        SemanticsDescription semantics = e.getValue().semantics;
         if (semantics == SET || semantics == ADD_AS_LIST || semantics == OTHER) {
           return new ExternalNameInfo(e.getKey().getFirst(), true);
         }
@@ -88,20 +86,15 @@ public class GroovyDslNameConverter implements GradleDslNameConverter {
     return result;
   }
 
-  @NotNull
+  @Nullable
   @Override
-  public String modelNameForParent(@NotNull String externalName, @NotNull GradleDslElement context) {
-    if (externalName.contains(".")) {
-      return modelNameForParent(externalName.substring(0, externalName.lastIndexOf(".")), context.getParent()) +
-             "." +
-             modelNameForParent(externalName.substring(externalName.lastIndexOf(".") + 1), context);
-    }
-    ImmutableMap<Pair<String,Integer>, Pair<ModelPropertyDescription,SemanticsDescription>> map = context.getExternalToModelMap(this);
-    for (Map.Entry<Pair<String,Integer>, Pair<ModelPropertyDescription,SemanticsDescription>> e : map.entrySet()) {
+  public ModelPropertyDescription modelDescriptionForParent(@NotNull String externalName, @NotNull GradleDslElement context) {
+    ImmutableMap<Pair<String,Integer>, ModelEffectDescription> map = context.getExternalToModelMap(this);
+    for (Map.Entry<Pair<String,Integer>, ModelEffectDescription> e : map.entrySet()) {
       if (e.getKey().getFirst().equals(externalName)) {
-        return e.getValue().getFirst().name;
+        return e.getValue().property;
       }
     }
-    return externalName;
+    return null;
   }
 }

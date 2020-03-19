@@ -207,6 +207,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * @param source caller used to keep track of the references to this model. See {@link #deactivate(Object)}
    */
   public void activate(@NotNull Object source) {
+    if (getFacet().isDisposed()) {
+      return;
+    }
+
     // TODO: Tracking the source is just a workaround for the model being shared so the activations and deactivations are
     // handled correctly. This should be solved by moving the removing this responsibility from the model. The model shouldn't
     // need to keep track of activations/deactivation and they should be handled by the caller.

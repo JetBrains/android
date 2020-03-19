@@ -21,12 +21,17 @@ import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
 import com.android.tools.idea.gradle.repositories.OfflineIdeGoogleMavenRepository
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
-import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.template.TemplateResolver
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.IdeComponents
+import com.android.tools.idea.wizard.template.Category
+import com.android.tools.idea.wizard.template.FormFactor
+import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.StringParameter
+import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.openapi.util.SystemInfo
+import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.full.memberFunctions
 import kotlin.system.measureTimeMillis
 
 /**
@@ -78,13 +83,15 @@ open class TemplateTest : AndroidGradleTestCase() {
   protected open fun checkCreateTemplate(
     name: String,
     vararg customizers: ProjectStateCustomizer,
-    templateStateCustomizer: TemplateStateCustomizer = mapOf()
+    templateStateCustomizer: TemplateStateCustomizer = mapOf(),
+    category: Category? = null,
+    formFactor: FormFactor? = null
   ) {
     if (DISABLED) {
       return
     }
     ensureSdkManagerAvailable()
-    val template = TemplateResolver.getTemplateByName(name)!!
+    val template = TemplateResolver.getTemplateByName(name, category, formFactor)!!
 
     templateStateCustomizer.forEach { (parameterName: String, overrideValue: String) ->
       val p = template.parameters.find { it.name == parameterName }!! as StringParameter
@@ -112,7 +119,7 @@ open class TemplateTest : AndroidGradleTestCase() {
   annotation class TemplateCheck
 
   private val withKotlin: ProjectStateCustomizer = { moduleData: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
-    projectData.language = Language.KOTLIN
+    projectData.language = Language.Kotlin
   }
 
   private fun withNewLocation(location: String): TemplateStateCustomizer = mapOf(
@@ -268,12 +275,12 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testGoogleMapsWearActivity() {
-    checkCreateTemplate("Google Maps Wear Activity")
+    checkCreateTemplate("Google Maps Activity", formFactor = FormFactor.Wear)
   }
 
   @TemplateCheck
   fun testGoogleMapsWearActivityWithKotlin() {
-    checkCreateTemplate("Google Maps Wear Activity", withKotlin)
+    checkCreateTemplate("Google Maps Activity", withKotlin, formFactor = FormFactor.Wear)
   }
 
 
@@ -464,13 +471,13 @@ open class TemplateTest : AndroidGradleTestCase() {
   fun testNewFolders() {
     checkCreateTemplate("AIDL Folder", templateStateCustomizer = withNewLocation("foo"))
     checkCreateTemplate("Assets Folder", templateStateCustomizer = withNewLocation("src/main/assets"))
-    checkCreateTemplate("Font Folder", templateStateCustomizer = withNewLocation( "src/main/res/font"))
+    checkCreateTemplate("Font Folder", templateStateCustomizer = withNewLocation("src/main/res/font"))
     checkCreateTemplate("Java Folder", templateStateCustomizer = withNewLocation("src/main/java"))
-    checkCreateTemplate("JNI Folder", templateStateCustomizer = withNewLocation( "src/main/jni"))
-    checkCreateTemplate("Raw Resources Folder", templateStateCustomizer = withNewLocation( "src/main/res/raw"))
-    checkCreateTemplate("Java Resources Folder", templateStateCustomizer = withNewLocation( "src/main/resources"))
-    checkCreateTemplate("RenderScript Folder", templateStateCustomizer = withNewLocation( "src/main/rs"))
-    checkCreateTemplate("XML Resources Folder", templateStateCustomizer = withNewLocation( "src/main/res/xml"))
+    checkCreateTemplate("JNI Folder", templateStateCustomizer = withNewLocation("src/main/jni"))
+    checkCreateTemplate("Raw Resources Folder", templateStateCustomizer = withNewLocation("src/main/res/raw"))
+    checkCreateTemplate("Java Resources Folder", templateStateCustomizer = withNewLocation("src/main/resources"))
+    checkCreateTemplate("RenderScript Folder", templateStateCustomizer = withNewLocation("src/main/rs"))
+    checkCreateTemplate("XML Resources Folder", templateStateCustomizer = withNewLocation("src/main/res/xml"))
   }
 
   @TemplateCheck
@@ -519,6 +526,47 @@ open class TemplateTest : AndroidGradleTestCase() {
   @TemplateCheck
   fun testAutomotiveMediaServiceWithKotlin() {
     checkCreateTemplate("Media service", withKotlin)
+  }
+
+  open fun testAllTemplatesCovered() {
+    CoverageChecker().testAllTemplatesCovered()
+  }
+
+  // Create a dummy version of this class that just collects all the templates it will test when it is run.
+  // It is important that this class is not run by JUnit!
+  class CoverageChecker : TemplateTest() {
+    override fun shouldRunTest(): Boolean = false
+
+    // Set of templates tested with unit test
+    private val templatesChecked = mutableSetOf<String>()
+
+    override fun checkCreateTemplate(
+      name: String,
+      vararg customizers: ProjectStateCustomizer,
+      templateStateCustomizer: TemplateStateCustomizer,
+      category: Category?,
+      formFactor: FormFactor?
+    ) {
+      templatesChecked.add(name)
+    }
+
+    // The actual implementation of the test
+    override fun testAllTemplatesCovered() {
+      this::class.memberFunctions
+        .filter { it.findAnnotation<TemplateCheck>() != null }
+        .forEach { it.call(this) }
+
+      val templatesWhichShouldBeCovered = TemplateResolver.getAllTemplates().map { it.name }.toSet()
+
+      val notCoveredTemplates = templatesWhichShouldBeCovered.minus(templatesWhichShouldBeCovered)
+
+      val failurePrefix = """
+        The following templates were not covered by TemplateTest. Please ensure that tests are added to cover
+        these templates and that they are annotated with @TemplateCheck.
+        """.trimIndent()
+
+      assertWithMessage(failurePrefix).that(notCoveredTemplates).isEmpty()
+    }
   }
 }
 

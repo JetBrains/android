@@ -195,6 +195,16 @@ public class NavDesignSurface extends DesignSurface {
     }
   }
 
+  @NotNull
+  @Override
+  public CompletableFuture<Void> requestRender() {
+    // TODO: According to the documentation of this function -- "Invalidates all models and request a render of the layout. This will
+    //  re-inflate the NlModel ...", we should implement NavSceneManager#requestLayoutAndRender() and call it because
+    //  SceneManager#requestRender() doesn't re-inflate the NlModel.
+    SceneManager manager = Iterables.getFirst(getSceneManagers(), null);
+    return manager != null ? manager.requestRender() : CompletableFuture.completedFuture(null);
+  }
+
   @Override
   public void dispose() {
     Future<?> future = getScheduleRef().get();

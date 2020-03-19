@@ -21,7 +21,7 @@ import com.android.tools.idea.appinspection.api.ProcessDescriptor
 import com.intellij.util.concurrency.EdtExecutorService
 
 //TODO(b/148546243): separate view and model code into independent modules.
-class AppInspectionProcessesComboBoxModel(appInspectionDiscoveryHost: AppInspectionDiscoveryHost) :
+class AppInspectionProcessesComboBoxModel(appInspectionDiscoveryHost: AppInspectionDiscoveryHost, preferredProcessNames: List<String>) :
   DefaultCommonComboBoxModel<ProcessDescriptor>("") {
   override var editable = false
 
@@ -30,7 +30,11 @@ class AppInspectionProcessesComboBoxModel(appInspectionDiscoveryHost: AppInspect
       EdtExecutorService.getInstance(),
       object : AppInspectionDiscoveryHost.ProcessListener {
         override fun onProcessConnected(descriptor: ProcessDescriptor) {
-          addElement(descriptor)
+          if (preferredProcessNames.contains(descriptor.processName)) {
+            insertElementAt(descriptor, 0)
+          } else {
+            insertElementAt(descriptor, size)
+          }
           selectedItem = descriptor
         }
 

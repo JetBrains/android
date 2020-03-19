@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.npw.template.components
 
-import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.observable.AbstractProperty
 import com.android.tools.idea.observable.ui.SelectedItemProperty
+import com.android.tools.idea.wizard.template.Language
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.SimpleListCellRenderer
 import org.jetbrains.android.util.AndroidBundle.message

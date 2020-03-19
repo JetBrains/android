@@ -15,19 +15,18 @@
  */
 package com.android.tools.idea.npw.model
 
+import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.PROPERTIES_ANDROID_PACKAGE_KEY
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.PROPERTIES_KOTLIN_SUPPORT_KEY
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.PROPERTIES_NPW_ASKED_LANGUAGE_KEY
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.PROPERTIES_NPW_LANGUAGE_KEY
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.nameToJavaPackage
-import com.android.tools.idea.npw.platform.Language.JAVA
-import com.android.tools.idea.npw.platform.Language.KOTLIN
+import com.android.tools.idea.wizard.template.Language
+import com.android.tools.idea.wizard.template.Language.Java
+import com.android.tools.idea.wizard.template.Language.Kotlin
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
-
-import com.android.tools.adtui.workbench.PropertiesComponentMock
-import com.android.tools.idea.npw.platform.Language
 import org.junit.Test
 
 class NewProjectModelTest {
@@ -56,32 +55,32 @@ class NewProjectModelTest {
     // Is a new User? => {true, false}
 
     // There are 3x2x2=12 combinations:
-    testInitialLanguage(KOTLIN, false, false, KOTLIN)
-    testInitialLanguage(KOTLIN, false, true, KOTLIN)
-    testInitialLanguage(KOTLIN, true, false, KOTLIN)
-    testInitialLanguage(KOTLIN, true, true, KOTLIN)
+    testInitialLanguage(Kotlin, false, false, Kotlin)
+    testInitialLanguage(Kotlin, false, true, Kotlin)
+    testInitialLanguage(Kotlin, true, false, Kotlin)
+    testInitialLanguage(Kotlin, true, true, Kotlin)
 
-    testInitialLanguage(JAVA, false, false, JAVA)
-    testInitialLanguage(JAVA, false, true, JAVA)
-    testInitialLanguage(JAVA, true, false, JAVA)
-    testInitialLanguage(JAVA, true, true, JAVA)
+    testInitialLanguage(Java, false, false, Java)
+    testInitialLanguage(Java, false, true, Java)
+    testInitialLanguage(Java, true, false, Java)
+    testInitialLanguage(Java, true, true, Java)
 
-    testInitialLanguage(null, false, false, JAVA)
-    testInitialLanguage(null, false, true, KOTLIN)
-    testInitialLanguage(null, true, false, KOTLIN)
-    testInitialLanguage(null, true, true, KOTLIN)
+    testInitialLanguage(null, false, false, Java)
+    testInitialLanguage(null, false, true, Kotlin)
+    testInitialLanguage(null, true, false, Kotlin)
+    testInitialLanguage(null, true, true, Kotlin)
   }
 
   @Test
   fun initialLanguageAndAskedUser() {
     val props = PropertiesComponentMock()
 
-    props.setValue(PROPERTIES_NPW_LANGUAGE_KEY, KOTLIN.toString())
+    props.setValue(PROPERTIES_NPW_LANGUAGE_KEY, Kotlin.toString())
     var language = NewProjectModel.calculateInitialLanguage(props)
     assertTrue(language.isPresent)
-    assertEquals(KOTLIN, language.get())
+    assertEquals(Kotlin, language.get())
 
-    props.setValue(PROPERTIES_NPW_LANGUAGE_KEY, JAVA.toString())
+    props.setValue(PROPERTIES_NPW_LANGUAGE_KEY, Java.toString())
     language = NewProjectModel.calculateInitialLanguage(props)
     assertFalse(language.isPresent)
   }

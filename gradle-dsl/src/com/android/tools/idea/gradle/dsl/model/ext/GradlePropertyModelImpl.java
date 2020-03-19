@@ -234,7 +234,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
 
   @Override
   public void setValue(@NotNull Object value) {
-    GradleDslExpression newElement = getTransform().bind(myPropertyHolder, myElement, value, myName);
+    GradleDslExpression newElement = getTransform().bind(myPropertyHolder, myElement, value, getName());
     bindToNewElement(newElement);
   }
 
@@ -443,7 +443,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
       holder = (GradlePropertiesDslElement)myPropertyHolder;
     }
 
-    GradleDslElement originalElement = holder.getOriginalElementForNameAndType(myName, myPropertyType);
+    GradleDslElement originalElement = holder.getOriginalElementForNameAndType(getName(), myPropertyType);
     GradleDslElement holderOriginalElement = findOriginalElement(holder.getParent(), holder);
     // For a property element to be modified : it should either be under a modified state itself, or should have made a modification
     // to the original state of the dsl tree.
@@ -615,11 +615,11 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
   }
 
   private void makeEmptyMap() {
-    bindToNewElement(getTransform().bindMap(myPropertyHolder, myElement, myName, myIsMethodCall));
+    bindToNewElement(getTransform().bindMap(myPropertyHolder, myElement, getName(), myIsMethodCall));
   }
 
   private void makeEmptyList() {
-    bindToNewElement(getTransform().bindList(myPropertyHolder, myElement, myName, myIsMethodCall, myIsSet));
+    bindToNewElement(getTransform().bindList(myPropertyHolder, myElement, getName(), myIsMethodCall, myIsSet));
   }
 
   private void bindToNewElement(@NotNull GradleDslExpression newElement) {
@@ -632,9 +632,14 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
       throw new UnsupportedOperationException("Can't bind from a fake element!");
     }
 
-    GradleDslElement element = getTransform().replace(myPropertyHolder, myElement, newElement, myName);
+    GradleDslElement element = getTransform().replace(myPropertyHolder, myElement, newElement, getName());
     element.setElementType(myPropertyType);
     element.setUseAssignment(!myIsMethodCall); // TODO(b/141970574): myElement.useAssignment
+    // TODO(b/...): this is necessary until models store the properties they're associated with: for now, the models have only names
+    //  while the Dsl elements are annotated with model effect / properties.
+    if (myElement != null) {
+      element.setModelEffect(myElement.getModelEffect());
+    }
     // We need to ensure the parent will be modified so this change takes effect.
     element.setModified();
     myElement = element;

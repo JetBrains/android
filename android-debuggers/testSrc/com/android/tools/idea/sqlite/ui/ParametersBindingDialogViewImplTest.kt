@@ -16,7 +16,8 @@
 package com.android.tools.idea.sqlite.ui
 
 import com.android.tools.adtui.TreeWalker
-import com.android.tools.idea.sqlite.toSqliteValue
+import com.android.tools.idea.sqlite.controllers.SqliteParameter
+import com.android.tools.idea.sqlite.controllers.SqliteParameterValue
 import com.android.tools.idea.sqlite.ui.parametersBinding.ParametersBindingDialogView
 import com.android.tools.idea.sqlite.ui.parametersBinding.ParametersBindingDialogViewImpl
 import com.intellij.testFramework.LightPlatformTestCase
@@ -39,7 +40,7 @@ class ParametersBindingDialogViewImplTest : LightPlatformTestCase() {
     // Prepare
     val mockListener = mock(ParametersBindingDialogView.Listener::class.java)
     view.addListener(mockListener)
-    view.showNamedParameters(setOf("p1", "p2"))
+    view.showNamedParameters(setOf(SqliteParameter("p1"), SqliteParameter("p2")))
 
     val checkBoxes = TreeWalker(view.component).descendants().filterIsInstance<JBCheckBox>().filter { it.name == "null-check-box" }
     val textFields = TreeWalker(view.component).descendants().filterIsInstance<JBTextField>().filter { it.name == "value-text-field" }
@@ -50,6 +51,9 @@ class ParametersBindingDialogViewImplTest : LightPlatformTestCase() {
     view.doOKAction()
 
     // Assert
-    verify(mockListener).bindingCompletedInvoked(mapOf(Pair("p1", null), Pair("p2", "null")).toSqliteValue())
+    verify(mockListener).bindingCompletedInvoked(mapOf(
+      Pair(SqliteParameter("p1"), SqliteParameterValue.fromAny(null)),
+      Pair(SqliteParameter("p2"), SqliteParameterValue.fromAny("null"))
+    ))
   }
 }

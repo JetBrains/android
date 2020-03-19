@@ -21,7 +21,6 @@ import com.android.tools.idea.device.FormFactor
 import com.android.tools.idea.npw.bindExpression
 import com.android.tools.idea.npw.invokeLater
 import com.android.tools.idea.npw.model.RenderTemplateModel
-import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.project.getSourceProvider
 import com.android.tools.idea.npw.template.components.CheckboxProvider2
 import com.android.tools.idea.npw.template.components.ComponentProvider
@@ -63,6 +62,7 @@ import com.android.tools.idea.wizard.template.Constraint.STRING
 import com.android.tools.idea.wizard.template.Constraint.URI_AUTHORITY
 import com.android.tools.idea.wizard.template.EnumParameter
 import com.android.tools.idea.wizard.template.EnumWidget
+import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.LanguageWidget
 import com.android.tools.idea.wizard.template.PackageNameWidget
 import com.android.tools.idea.wizard.template.Parameter
@@ -114,7 +114,7 @@ fun Parameter<*>.isRelated(p: Parameter<*>): Boolean =
  * Far from being generic data, the template edited by this step is very Android specific, and  needs to be aware of things like
  * the current project/module, package name, min supported API, previously configured values, etc.
  */
-class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String, private val templates: List<NamedModuleTemplate>)
+class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String, private val templates: List<NamedModuleTemplate>)
   : ModelWizardStep<RenderTemplateModel>(model, title) {
   private val bindings = BindingsManager()
   private val listeners = ListenerManager()
@@ -153,11 +153,7 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
   }
 
   private val validatorPanel: ValidatorPanel = ValidatorPanel(this, wrappedWithVScroll(rootPanel))
-
   private var evaluationState = EvaluationState.NOT_EVALUATING
-
-  private val widgets: Collection<Widget<*>> get() = model.newTemplate.widgets
-
   private val parameters: Collection<Parameter<*>> get() = model.newTemplate.parameters
 
   /**
@@ -166,7 +162,6 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
   private val thumbnailPath: String
     get() = model.newTemplate.thumb().path().path
 
-  // TODO(qumeric): probably model.project should be nullable instead of lateinit.
   private val project: Project? get() = if (model.isNewProject) null else model.project
 
   /**
@@ -201,7 +196,7 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
     thumbPath.set(thumbnailPath)
     templateThumbLabel.text = newTemplate.name
 
-    for (widget in widgets) {
+    for (widget in model.newTemplate.widgets) {
       val row = createRowForWidget(model.module, widget).apply { addToPanel(parametersPanel) }
 
       if (widget !is ParameterWidget<*>) {
@@ -236,7 +231,6 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
           model.wizardParameterData.sourceProviderName = (property.get() as Optional<NamedModuleTemplate>).get().name
         }
       }
-
 
       val template = (row.property as SelectedItemProperty<NamedModuleTemplate>)
       // ModuleTemplateComboProvider always sets this
@@ -273,14 +267,15 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
       val language = (it.property as SelectedItemProperty<Language>)
       bindings.bindTwoWay(language, model.language)
       if (TemplateConstraint.Kotlin in model.newTemplate.constraints) {
-        model.language.value = Language.KOTLIN
+        model.language.value = Language.Kotlin
         it.setEnabled(false)
       }
     }
     is PackageNameWidget -> {
       val rowEntry = if (module != null)
-        RowEntry(widget.p.name,
-                 PackageComboProvider2(module.project, widget.p, model.packageName.get(), getRecentsKeyForParameter(widget.p)))
+        RowEntry(
+          widget.p.name, PackageComboProvider2(module.project, widget.p, model.packageName.get(), getRecentsKeyForParameter(widget.p))
+        )
       else
         RowEntry(widget.p.name, LabelWithEditButtonProvider2(widget.p))
 
@@ -314,20 +309,15 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
   /**
    * Run through all parameters for our current template and update their values,
    * including visibility, enabled state, and actual values.
-   *
-   * Because our templating system is opaque to us, this operation is relatively overkill
-   * (we evaluate all parameters every time, not just ones we suspect have changed),
-   * but this should only get run in response to user input, which isn't too often.
    */
   private fun evaluateParameters() {
     evaluationState = EvaluationState.EVALUATING
 
-    parameters.forEach {
-      val enabled = it.enabled
-      parameterRows[it]!!.setEnabled(enabled)
-
-      val visible = it.isVisibleAndEnabled
-      parameterRows[it]!!.setVisible(visible)
+    parameters.forEach { p ->
+      parameterRows[p]!!.apply {
+        setEnabled(p.enabled)
+        setVisible(p.isVisibleAndEnabled)
+      }
     }
 
     val parameterValues = parameters.filterIsInstance<StringParameter>()
@@ -351,16 +341,12 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
   private fun validateAllParameters(): String? {
     val sourceProvider = model.template.get().getSourceProvider()
 
-    return parameters.firstNotNullResult { parameter ->
-      val property = parameterRows[parameter]?.property
-      if (property == null || !parameter.isVisibleAndEnabled) {
-        return@firstNotNullResult null
-      }
-      when (parameter) {
-        is StringParameter -> parameter.validate(
-          project, model.module, sourceProvider, model.packageName.get(), property.get(), getRelatedValues(parameter))
-        else -> null
-      }
+    return parameters
+      .filterIsInstance<StringParameter>()
+      .filter { it.isVisibleAndEnabled }
+      .firstNotNullResult { parameter ->
+        val property = parameterRows[parameter as Parameter<in Any>]?.property ?: return@firstNotNullResult null
+        parameter.validate(project, model.module, sourceProvider, model.packageName.get(), property.get(), getRelatedValues(parameter))
     }
   }
 

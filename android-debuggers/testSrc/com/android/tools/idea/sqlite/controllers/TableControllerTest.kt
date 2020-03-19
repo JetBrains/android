@@ -162,7 +162,7 @@ class TableControllerTest : PlatformTestCase() {
     orderVerifier.verify(tableView).stopTableLoading()
 
     verify(tableView, times(0)).reportError(any(String::class.java), any(Throwable::class.java))
-    verify(tableView, times(2)).setEditable(true)
+    verify(tableView, times(3)).setEditable(true)
   }
 
   fun testSetUpTableNameIsNull() {
@@ -178,7 +178,7 @@ class TableControllerTest : PlatformTestCase() {
 
     // Assert
     verify(tableView).startTableLoading()
-    verify(tableView, times(2)).setEditable(false)
+    verify(tableView, times(3)).setEditable(false)
   }
 
   fun testRowIdColumnIsNotShownInView() {
@@ -249,7 +249,7 @@ class TableControllerTest : PlatformTestCase() {
     pumpEventsAndWaitForFutureException(tableController.setUp())
   }
 
-  fun testReloadData() {
+  fun testRefreshData() {
     // Prepare
     `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
     tableController = TableController(
@@ -287,6 +287,33 @@ class TableControllerTest : PlatformTestCase() {
 
     // Assert
     pumpEventsAndWaitForFutureException(future)
+  }
+
+  fun testSortByColumnShowsLoadingScreen() {
+    // Prepare
+    tableController = TableController(
+      project,
+      2,
+      tableView,
+      { sqliteTable },
+      realDatabaseConnection,
+      SqliteStatement("SELECT * FROM author"),
+      edtExecutor
+    )
+    Disposer.register(testRootDisposable, tableController)
+
+    // Act
+    pumpEventsAndWaitForFuture(tableController.setUp())
+    tableView.listeners.first().toggleOrderByColumnInvoked(authorIdColumn)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    // setup loading
+    orderVerifier.verify(tableView).startTableLoading()
+    orderVerifier.verify(tableView).stopTableLoading()
+    // sort loading
+    orderVerifier.verify(tableView).startTableLoading()
+    orderVerifier.verify(tableView).stopTableLoading()
   }
 
   fun testReloadDataAfterSortReturnsSortedData() {
@@ -380,6 +407,25 @@ class TableControllerTest : PlatformTestCase() {
     assertRowSequence(mockResultSet.invocations, expectedInvocations)
   }
 
+  fun `test Next ShowsLoadingUi`() {
+    // Prepare
+    val mockResultSet = MockSqliteResultSet()
+    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(
+      project, 10, tableView, { sqliteTable }, mockDatabaseConnection, SqliteStatement(""), edtExecutor
+    )
+    Disposer.register(testRootDisposable, tableController)
+
+    // Act
+    pumpEventsAndWaitForFuture(tableController.setUp())
+    tableView.listeners.first().loadNextRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    verify(tableView, times(2)).startTableLoading()
+    verify(tableView, times(2)).stopTableLoading()
+  }
+
   fun `test NextBatchOf5`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet()
@@ -436,6 +482,25 @@ class TableControllerTest : PlatformTestCase() {
     ).map { it.toSqliteValues() }
 
     assertRowSequence(mockResultSet.invocations, expectedInvocations)
+  }
+
+  fun `test Prev ShowsLoadingUi`() {
+    // Prepare
+    val mockResultSet = MockSqliteResultSet()
+    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(
+      project, 10, tableView, { sqliteTable }, mockDatabaseConnection, SqliteStatement(""), edtExecutor
+    )
+    Disposer.register(testRootDisposable, tableController)
+
+    // Act
+    pumpEventsAndWaitForFuture(tableController.setUp())
+    tableView.listeners.first().loadPreviousRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    verify(tableView, times(2)).startTableLoading()
+    verify(tableView, times(2)).stopTableLoading()
   }
 
   fun `test Next Prev Next`() {
@@ -746,6 +811,25 @@ class TableControllerTest : PlatformTestCase() {
     assertRowSequence(mockResultSet.invocations, expectedInvocations)
   }
 
+  fun `test First ShowsLoadingUi`() {
+    // Prepare
+    val mockResultSet = MockSqliteResultSet()
+    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(
+      project, 10, tableView, { sqliteTable }, mockDatabaseConnection, SqliteStatement(""), edtExecutor
+    )
+    Disposer.register(testRootDisposable, tableController)
+
+    // Act
+    pumpEventsAndWaitForFuture(tableController.setUp())
+    tableView.listeners.first().loadNextRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    verify(tableView, times(2)).startTableLoading()
+    verify(tableView, times(2)).stopTableLoading()
+  }
+
   fun `test First ChangeBatchSize`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet()
@@ -796,6 +880,25 @@ class TableControllerTest : PlatformTestCase() {
     ).map { it.toSqliteValues() }
 
     assertRowSequence(mockResultSet.invocations, expectedInvocations)
+  }
+
+  fun `test Last ShowsLoadingUi`() {
+    // Prepare
+    val mockResultSet = MockSqliteResultSet(50)
+    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(
+      project, 10, tableView, { sqliteTable }, mockDatabaseConnection, SqliteStatement(""), edtExecutor
+    )
+    Disposer.register(testRootDisposable, tableController)
+
+    // Act
+    pumpEventsAndWaitForFuture(tableController.setUp())
+    tableView.listeners.first().loadLastRowsInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    verify(tableView, times(2)).startTableLoading()
+    verify(tableView, times(2)).stopTableLoading()
   }
 
   fun `test Last LastPage Not Full`() {
@@ -1018,6 +1121,7 @@ class TableControllerTest : PlatformTestCase() {
       )
     )
     orderVerifier.verify(tableView).startTableLoading()
+    orderVerifier.verify(tableView).stopTableLoading()
   }
 
   fun testUpdateCellOnRealDbIsSuccessfulWith_rowid_() {

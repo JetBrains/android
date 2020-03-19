@@ -97,10 +97,11 @@ public class TutorialCard extends CardViewPanel {
     add(myContentsScroller, BorderLayout.CENTER);
 
     // add nav for step by step tutorials
-    if (myBundle.isStepByStep()) {
+    if (tutorial.shouldLoadLazily()) {
+      // This card can be loaded later. Draw when visibility changes.
       add(new StepByStepFooter(), BorderLayout.SOUTH);
     } else {
-      // If no steps, it's visible from the start.
+      // Draw now. Cards initially visible will not go through the {@link #setVisibility} calls.
       myFirstTimeDrawn = true;
       redraw();
     }

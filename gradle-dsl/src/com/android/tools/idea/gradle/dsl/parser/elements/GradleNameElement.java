@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser.elements;
 import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.text.StringUtil;
@@ -121,7 +122,10 @@ public class GradleNameElement {
                                GradleDslNameConverter converter,
                                GradleDslElement context) {
     setUpFrom(nameElement, converter);
-    canonize(converter.modelNameForParent(fullName(), context));  // NOTYPO
+    ModelPropertyDescription property = converter.modelDescriptionForParent(fullName(), context);
+    String newName = property == null ? fullName() : property.name;
+    rename(newName);
+    myOriginalName = newName;
   }
 
   @NotNull
@@ -194,17 +198,6 @@ public class GradleNameElement {
       myFakeName = newName;
     }
     myName = null;
-  }
-
-  /**
-   * Arranges that this element have the name given by its argument, and also that that name be considered canonical (which in practice
-   * means preventing any client from detecting a difference between its current name and its original name).
-   *
-   * @param newName the new name to be considered canonical
-   */
-  public void canonize(@NotNull String newName) { // NOTYPO
-    rename(newName);
-    myOriginalName = newName;
   }
 
   public boolean isEmpty() {

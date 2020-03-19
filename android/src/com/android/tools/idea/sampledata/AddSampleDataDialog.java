@@ -48,7 +48,7 @@ import java.io.*;
 import java.util.function.Function;
 
 public class AddSampleDataDialog extends DialogWrapper {
-  private static Logger LOG = Logger.getInstance(AddSampleDataDialog.class);
+  private static final Logger LOG = Logger.getInstance(AddSampleDataDialog.class);
   private VirtualFile myCreatedFile;
 
   private static class SampleDataSource {

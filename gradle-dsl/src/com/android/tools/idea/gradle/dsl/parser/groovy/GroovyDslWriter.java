@@ -121,7 +121,7 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
     Project project = parentPsiElement.getProject();
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(project);
 
-    ExternalNameInfo externalNameInfo = maybeTrimForParent(element.getNameElement(), element.getParent(), this);
+    ExternalNameInfo externalNameInfo = maybeTrimForParent(element, this);
     String statementText = quotePartsIfNecessary(externalNameInfo);
     assert !statementText.isEmpty() : "Element name can't be empty! This will cause statement creation to error.";
 
@@ -276,7 +276,7 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
     PsiElement anchor = getPsiElementForAnchor(parentPsiElement, anchorAfter);
 
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(parentPsiElement.getProject());
-    String elementName = !methodCall.getFullName().isEmpty() ? quotePartsIfNecessary(maybeTrimForParent(methodCall.getNameElement(), methodCall.getParent(), this)) + " " : "";
+    String elementName = !methodCall.getFullName().isEmpty() ? quotePartsIfNecessary(maybeTrimForParent(methodCall, this)) + " " : "";
     String methodCallText = (methodCall.isConstructor() ? "new ": "") + methodCall.getMethodName() + "()";
     String statementText = (methodCall.shouldUseAssignment()) ? elementName + "= " + methodCallText : elementName + methodCallText;
     GrStatement statement = factory.createStatementFromText(statementText);

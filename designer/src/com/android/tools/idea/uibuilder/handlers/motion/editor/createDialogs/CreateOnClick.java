@@ -51,33 +51,40 @@ public class CreateOnClick extends BaseCreatePanel {
     int y = 0;
     grid(gbc, 0, y++, 1, 1);
     gbc.weighty = 0;
-    gbc.insets = new Insets(2, 5, 1, 5);
+    gbc.ipadx = MEUI.scale(60);
+    gbc.insets = MEUI.dialogTitleInsets();
 
     gbc.fill = GridBagConstraints.HORIZONTAL;
     add(new JLabel("CREATE ONCLICK"), gbc);
     grid(gbc, 0, y++);
     gbc.weighty = 0;
+    gbc.insets = MEUI.dialogSeparatorInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(new JSeparator(), gbc);
 
     grid(gbc, 0, y++);
     gbc.weighty = 0;
+    gbc.insets = MEUI.dialogLabelInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(new JLabel("In Transition"), gbc);
     grid(gbc, 0, y++);
+    gbc.insets = MEUI.dialogControlInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(mTransitions, gbc);
 
     grid(gbc, 0, y++);
     gbc.weighty = 0;
+    gbc.insets = MEUI.dialogLabelInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(new JLabel("View To Click"), gbc);
     grid(gbc, 0, y++);
+    gbc.insets = MEUI.dialogControlInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(viewIds, gbc);
 
     grid(gbc, 0, y++);
     gbc.weighty = 0;
+    gbc.insets = MEUI.dialogLabelInsets();
     gbc.anchor = GridBagConstraints.CENTER;
     add(new JLabel("Action"), gbc);
 
@@ -89,6 +96,7 @@ public class CreateOnClick extends BaseCreatePanel {
     }, gbc);
     gbc.weighty = 0;
     gbc.weightx = 1;
+    gbc.insets = MEUI.dialogBottomButtonInsets();
     gbc.anchor = GridBagConstraints.SOUTHEAST;
     grid(gbc, 0, y++, 2, 1);
     JButton ok = new JButton("Add");

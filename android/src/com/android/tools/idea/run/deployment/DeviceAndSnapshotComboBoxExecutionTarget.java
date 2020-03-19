@@ -16,11 +16,13 @@
 package com.android.tools.idea.run.deployment;
 
 import com.android.ddmlib.IDevice;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.configurations.RunConfiguration;
 import icons.StudioIcons;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -47,14 +49,21 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
   }
 
   DeviceAndSnapshotComboBoxExecutionTarget(@NotNull List<Device> devices) {
-    assert !devices.isEmpty();
-    myDevices = devices;
+    myDevices = devices.stream()
+      .filter(Device::isConnected)
+      .sorted(Comparator.comparing(Device::getKey))
+      .collect(Collectors.toList());
 
     myId = myDevices.stream()
       .map(Device::getKey)
       .map(Key::toString)
-      .sorted()
-      .collect(Collectors.joining(", ", "[", "]"));
+      .collect(Collectors.joining(", ", "device_and_snapshot_combo_box_target[", "]"));
+  }
+
+  @NotNull
+  @VisibleForTesting
+  Object getDeploymentDevices() {
+    return myDevices;
   }
 
   @Override
@@ -80,11 +89,14 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
   @NotNull
   @Override
   public String getDisplayName() {
-    if (myDevices.size() == 1) {
-      return myDevices.get(0).getName();
+    switch (myDevices.size()) {
+      case 0:
+        return "No Devices";
+      case 1:
+        return myDevices.get(0).getName();
+      default:
+        return "Multiple Devices";
     }
-
-    return "Multiple Devices";
   }
 
   @NotNull

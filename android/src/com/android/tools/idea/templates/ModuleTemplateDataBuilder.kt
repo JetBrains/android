@@ -21,11 +21,11 @@ import com.android.SdkConstants.FD_UNIT_TEST
 import com.android.sdklib.AndroidTargetHash
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.AndroidVersion.VersionCodes.P
-import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
-import com.android.tools.idea.gradle.util.DynamicAppUtils
+import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
+import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.model.MergedManifestManager
@@ -38,12 +38,13 @@ import com.android.tools.idea.wizard.template.ApiVersion
 import com.android.tools.idea.wizard.template.BaseFeature
 import com.android.tools.idea.wizard.template.BytecodeLevel
 import com.android.tools.idea.wizard.template.FormFactor
+import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.PackageName
-import com.android.tools.idea.wizard.template.ThemesData
-import com.intellij.openapi.module.Module
 import com.android.tools.idea.wizard.template.ThemeData
+import com.android.tools.idea.wizard.template.ThemesData
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.io.FileUtil
@@ -259,7 +260,7 @@ fun getDummyModuleTemplateDataBuilder(project: Project): ModuleTemplateDataBuild
   val projectStateBuilder = ProjectTemplateDataBuilder(true).apply {
     androidXSupport = true
     setProjectDefaults(project)
-    language = com.android.tools.idea.npw.platform.Language.JAVA
+    language = Language.Java
     bytecodeLevel = BytecodeLevel.L7
     topOut = project.guessProjectDir()!!.toIoFile()
     debugKeyStoreSha1 = KeystoreUtils.sha1(KeystoreUtils.getOrCreateDefaultDebugKeystore())

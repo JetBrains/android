@@ -33,7 +33,6 @@ import com.android.tools.idea.actions.AndroidNewModuleInGroupAction;
 import com.android.tools.idea.actions.AndroidNewProjectAction;
 import com.android.tools.idea.actions.AndroidOpenFileAction;
 import com.android.tools.idea.actions.CreateLibraryFromFilesAction;
-import com.android.tools.idea.deploy.DeployActionsInitializer;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectSettingsGroup;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction;
 import com.android.tools.idea.sdk.AndroidSdks;
@@ -100,7 +99,6 @@ public class GradleSpecificInitializer implements Runnable {
   @Override
   public void run() {
     setUpNewProjectActions();
-    DeployActionsInitializer.installActions();
     setUpWelcomeScreenActions();
     replaceProjectPopupActions();
     // Replace "TemplateProjectSettingsGroup" to cause "Find Action" menu use AndroidTemplateProjectSettingsGroup (b/37141013)
@@ -182,12 +180,12 @@ public class GradleSpecificInitializer implements Runnable {
     replaceAction("TemplateProjectStructure", new AndroidTemplateProjectStructureAction("Default Project Structure..."));
 
     moveAction("WelcomeScreen.ImportProject", "WelcomeScreen.QuickStart.IDEA",
-               "WelcomeScreen.QuickStart", new Constraints(AFTER, "WelcomeScreen.GetFromVcs"));
+               "WelcomeScreen.QuickStart", new Constraints(AFTER, "Vcs.VcsClone"));
 
     ActionManager actionManager = ActionManager.getInstance();
-    AnAction getFromVcsAction = actionManager.getAction("WelcomeScreen.GetFromVcs");
+    AnAction getFromVcsAction = actionManager.getAction("Vcs.VcsClone");
     if (getFromVcsAction != null) {
-      getFromVcsAction.getTemplatePresentation().setText("Check out Project from Version Control");
+      getFromVcsAction.getTemplatePresentation().setText("Get project from Version Control");
     }
   }
 

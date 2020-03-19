@@ -23,8 +23,12 @@ import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.findClass
 import com.google.common.truth.Truth.assertThat
+import com.intellij.codeInsight.NullableNotNullManager
 import com.intellij.facet.FacetManager
 import com.intellij.lang.jvm.JvmModifier
+import com.intellij.psi.PsiParameter
+import com.intellij.psi.PsiPrimitiveType
+import com.intellij.psi.PsiType
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
@@ -216,4 +220,109 @@ class LightViewBindingClassTest {
       assertThat(fixture.findClass("test.db.databinding.ActivityMainBindingLandImpl", context)).isNull()
     }
   }
+
+  @Test
+  fun fieldsAreAnnotatedNonNullAndNullableCorrectly() {
+    fixture.addFileToProject("src/main/res/layout/activity_main.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+         android:id="@+id/always_present">
+        <TextView android:id="@+id/sometimes_present" />
+      </LinearLayout>
+    """.trimIndent())
+
+    fixture.addFileToProject("src/main/res/layout-land/activity_main.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/always_present" />
+    """.trimIndent())
+
+    val context = fixture.addClass("public class MainActivity {}")
+
+    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
+    assertThat(binding.fields).hasLength(2)
+    val alwaysPresentField = binding.fields.first { it.name == "alwaysPresent" }
+    val sometimesPresentField = binding.fields.first { it.name == "sometimesPresent" }
+
+    val nullabilityManager = NullableNotNullManager.getInstance(fixture.project)
+    assertThat(nullabilityManager.isNotNull(alwaysPresentField, false)).isTrue()
+    assertThat(nullabilityManager.isNullable(sometimesPresentField, false)).isTrue()
+  }
+
+  @Test
+  fun methodsAreAnnotatedNonNullAndNullableCorrectly_regularLayouts() {
+    fixture.addFileToProject("src/main/res/layout/activity_main.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <LinearLayout />
+    """.trimIndent())
+
+    val context = fixture.addClass("public class MainActivity {}")
+    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
+
+    binding.methods.filter { it.name == "inflate" }.let { inflateMethods ->
+      assertThat(inflateMethods).hasSize(2)
+      inflateMethods.first { it.parameters.size == 3 }.let { inflateMethod ->
+        (inflateMethod.parameters[0] as PsiParameter).assertExpected("LayoutInflater", "inflater")
+        (inflateMethod.parameters[1] as PsiParameter).assertExpected("ViewGroup", "parent", isNullable = true)
+        (inflateMethod.parameters[2] as PsiParameter).assertExpected("boolean", "attachToParent")
+        inflateMethod.returnType!!.assertExpected("ActivityMainBinding")
+      }
+
+      inflateMethods.first { it.parameters.size == 1 }.let { inflateMethod ->
+        (inflateMethod.parameters[0] as PsiParameter).assertExpected("LayoutInflater", "inflater")
+        inflateMethod.returnType!!.assertExpected("ActivityMainBinding")
+      }
+    }
+
+    binding.methods.filter { it.name == "bind" }.let { bindMethods ->
+      assertThat(bindMethods).hasSize(1)
+      bindMethods.first { it.parameters.size == 1 }.let { bindMethod ->
+        (bindMethod.parameters[0] as PsiParameter).assertExpected("View", "view")
+        bindMethod.returnType!!.assertExpected("ActivityMainBinding")
+      }
+    }
+  }
+
+  @Test
+  fun methodsAreAnnotatedNonNullAndNullableCorrectly_mergeLayouts() {
+    fixture.addFileToProject("src/main/res/layout/activity_main.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <merge />
+    """.trimIndent())
+
+    val context = fixture.addClass("public class MainActivity {}")
+    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
+
+    binding.methods.filter { it.name == "inflate" }.let { inflateMethods ->
+      assertThat(inflateMethods).hasSize(1)
+      inflateMethods.first { it.parameters.size == 2 }.let { inflateMethod ->
+        (inflateMethod.parameters[0] as PsiParameter).assertExpected("LayoutInflater", "inflater")
+        (inflateMethod.parameters[1] as PsiParameter).assertExpected("ViewGroup", "parent") // Not nullable due to <merge> root!
+        inflateMethod.returnType!!.assertExpected("ActivityMainBinding")
+      }
+    }
+
+    binding.methods.filter { it.name == "bind" }.let { bindMethods ->
+      assertThat(bindMethods).hasSize(1)
+      bindMethods.first { it.parameters.size == 1 }.let { bindMethod ->
+        (bindMethod.parameters[0] as PsiParameter).assertExpected("View", "view")
+        bindMethod.returnType!!.assertExpected("ActivityMainBinding")
+      }
+    }
+  }
+
+  private fun PsiType.assertExpected(typeName: String, isNullable: Boolean = false) {
+    assertThat(presentableText).isEqualTo(typeName)
+    if (this !is PsiPrimitiveType) {
+      val nullabilityManager = NullableNotNullManager.getInstance(fixture.project)
+      val nullabilityAnnotation = if (isNullable) nullabilityManager.defaultNullable else nullabilityManager.defaultNotNull
+      assertThat(annotations.map { it.text }).contains("@$nullabilityAnnotation")
+    }
+  }
+
+  private fun PsiParameter.assertExpected(typeName: String, name: String, isNullable: Boolean = false) {
+    type.assertExpected(typeName, isNullable)
+    assertThat(name).isEqualTo(name)
+  }
+
 }

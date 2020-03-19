@@ -112,6 +112,7 @@ public class WhatsNewSidePanelAction extends OpenAssistSidePanelAction {
             isOpen = false;
           }
           myProjectToListenerMap.remove(project);
+          WhatsNewMetricsTracker.getInstance().clearCachedActionKeys(myProject);
         }
       });
     }
@@ -124,6 +125,7 @@ public class WhatsNewSidePanelAction extends OpenAssistSidePanelAction {
     public void toolWindowUnregistered(@NotNull String id, @NotNull ToolWindow toolWindow) {
       if (id.equals(OpenAssistSidePanelAction.TOOL_WINDOW_TITLE)) {
         myProjectToListenerMap.remove(myProject);
+        WhatsNewMetricsTracker.getInstance().clearCachedActionKeys(myProject);
       }
     }
 
@@ -152,7 +154,7 @@ public class WhatsNewSidePanelAction extends OpenAssistSidePanelAction {
           fireClosedEvent(myProject);
           isOpen = false;
         }
-        else if (!isOpen && window.isVisible()){
+        else if (!isOpen && window.isVisible()) {
           // TODO b/139709466: Cannot detect WNA window not having a scrollbar if it is reopened from side tab
           fireOpenEvent(myProject, false);
           isOpen = true;

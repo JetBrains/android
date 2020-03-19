@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.npw.template
 
-import com.android.tools.idea.npw.platform.Language.JAVA
-import com.google.common.truth.Truth.assertThat
-import org.jetbrains.android.util.AndroidBundle.message
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
-
+import com.android.tools.idea.wizard.template.Language.Java
 import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.TemplateConstraint
+import com.google.common.truth.Truth.assertThat
+import org.jetbrains.android.util.AndroidBundle.message
 import org.junit.Test
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.mock
 
 /**
  * Tests for [ChooseFragmentTypeStep].
@@ -35,7 +34,7 @@ class ChooseFragmentTypeStepTest {
   fun testNoTemplateForExistingModule() {
     assertThat(Template.NoActivity.validate(
       moduleApiLevel = 5, moduleBuildApiLevel = 5,
-      isNewModule = false, isAndroidxProject = false, language = JAVA,
+      isNewModule = false, isAndroidxProject = false, language = Java,
       messageKeys = messageKeys)).isEqualTo("No fragment template was selected")
   }
 
@@ -44,7 +43,7 @@ class ChooseFragmentTypeStepTest {
     val template = mock(Template::class.java)
     assertThat(template.validate(
       moduleApiLevel = 5, moduleBuildApiLevel = 5,
-      isNewModule = true, isAndroidxProject = false, language = JAVA,
+      isNewModule = true, isAndroidxProject = false, language = Java,
       messageKeys = messageKeys)).isEqualTo("")
   }
 
@@ -55,7 +54,7 @@ class ChooseFragmentTypeStepTest {
 
     assertThat(template.validate(
       moduleApiLevel = 5, moduleBuildApiLevel = 5,
-      isNewModule = true, isAndroidxProject = true, language = JAVA,
+      isNewModule = true, isAndroidxProject = true, language = Java,
       messageKeys = messageKeys))
       .isEqualTo(message("android.wizard.fragment.invalid.min.sdk", 9))
   }
@@ -67,7 +66,7 @@ class ChooseFragmentTypeStepTest {
 
     assertThat(template.validate(
       moduleApiLevel = 5, moduleBuildApiLevel = 5,
-      isNewModule = true, isAndroidxProject = true, language = JAVA,
+      isNewModule = true, isAndroidxProject = true, language = Java,
       messageKeys = messageKeys))
       .isEqualTo(message("android.wizard.fragment.invalid.min.build", 9))
   }
@@ -79,7 +78,7 @@ class ChooseFragmentTypeStepTest {
 
     assertThat(template.validate(
       moduleApiLevel = 5, moduleBuildApiLevel = 5,
-      isNewModule = false, isAndroidxProject = false, language = JAVA,
+      isNewModule = false, isAndroidxProject = false, language = Java,
       messageKeys = messageKeys))
       .isEqualTo(message("android.wizard.fragment.invalid.androidx"))
   }

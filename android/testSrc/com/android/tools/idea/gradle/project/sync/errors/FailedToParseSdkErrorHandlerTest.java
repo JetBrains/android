@@ -65,8 +65,7 @@ public class FailedToParseSdkErrorHandlerTest extends AndroidGradleTestCase {
   public void testHandleErrorWithoutBrokenSdk() throws Exception {
     when(myAndroidSdks.findPathOfSdkWithoutAddonsFolder(getProject())).thenReturn(null);
 
-    Throwable cause = new RuntimeException("failed to parse SDK");
-    registerSyncErrorToSimulate(cause);
+    registerSyncErrorToSimulate(new RuntimeException("failed to parse SDK"));
     loadProjectAndExpectSyncError(SIMPLE_APPLICATION);
 
     GradleSyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
@@ -90,8 +89,7 @@ public class FailedToParseSdkErrorHandlerTest extends AndroidGradleTestCase {
     };
     when(myAndroidSdks.findPathOfSdkWithoutAddonsFolder(getProject())).thenReturn(sdkPath);
 
-    Throwable cause = new RuntimeException("failed to parse SDK");
-    registerSyncErrorToSimulate(cause);
+    registerSyncErrorToSimulate(new RuntimeException("failed to parse SDK"));
     loadProjectAndExpectSyncError(SIMPLE_APPLICATION);
 
     GradleSyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
@@ -118,8 +116,7 @@ public class FailedToParseSdkErrorHandlerTest extends AndroidGradleTestCase {
     };
     when(myAndroidSdks.findPathOfSdkWithoutAddonsFolder(getProject())).thenReturn(sdkPath);
 
-    Throwable cause = new RuntimeException("failed to parse SDK");
-    registerSyncErrorToSimulate(cause);
+    registerSyncErrorToSimulate(new RuntimeException("failed to parse SDK"));
     loadProjectAndExpectSyncError(SIMPLE_APPLICATION);
 
     GradleSyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();

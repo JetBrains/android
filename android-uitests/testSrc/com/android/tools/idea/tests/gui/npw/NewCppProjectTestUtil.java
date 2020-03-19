@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.npw;
 
-import static com.android.tools.idea.npw.platform.Language.JAVA;
+import static com.android.tools.idea.wizard.template.Language.Java;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.dsl.api.android.productFlavors.externalNati
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.npw.cpp.CppStandardType;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.testing.TestModuleUtil;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
@@ -31,15 +32,14 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
-import org.fest.swing.timing.Wait;
-import org.fest.swing.util.PatternTextMatcher;
-import org.jetbrains.annotations.NotNull;
-import org.junit.Assert;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
+import org.fest.swing.timing.Wait;
+import org.fest.swing.util.PatternTextMatcher;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Assert;
 
 public class NewCppProjectTestUtil {
 
@@ -102,7 +102,7 @@ public class NewCppProjectTestUtil {
       .wizard()
       .clickNext()
       .getConfigureNewAndroidProjectStep()
-      .setSourceLanguage(JAVA)
+      .setSourceLanguage(Java)
       .enterPackageName("com.example.myapplication")
       .wizard()
       .clickNext()
@@ -128,7 +128,8 @@ public class NewCppProjectTestUtil {
     ideFrame.runApp(APP_NAME, "Google Nexus 5X");
 
     // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.
-    ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrame.getRunToolWindow().findContent(APP_NAME);
+    String appModuleName = TestModuleUtil.findModule(ideFrame.getProject(), APP_NAME).getName();
+    ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrame.getRunToolWindow().findContent(appModuleName);
     contentFixture.waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);
     contentFixture.waitForOutput(new PatternTextMatcher(RUN_OUTPUT), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);
   }

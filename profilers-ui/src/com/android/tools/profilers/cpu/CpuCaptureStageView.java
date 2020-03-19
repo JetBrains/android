@@ -131,28 +131,6 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   }
 
   @Override
-  public boolean shouldEnableZoomToSelection() {
-    // Zoom to Selection only works for trace event (i.e. CaptureNodeAnalysisModel) selection.
-    ImmutableList<CpuAnalyzable> selection = getStage().getMultiSelectionModel().getSelection();
-    return !selection.isEmpty() && selection.get(0) instanceof CaptureNodeAnalysisModel;
-  }
-
-  @NotNull
-  @Override
-  public Range getZoomToSelectionRange() {
-    assert shouldEnableZoomToSelection();
-    // Zoom to Selection works on the range of the selected trace event.
-    CaptureNodeAnalysisModel selectedNode = (CaptureNodeAnalysisModel)getStage().getMultiSelectionModel().getSelection().get(0);
-    return selectedNode.getNodeRange();
-  }
-
-  @Override
-  public void addTimelineControlUpdater(@NotNull Runnable timelineControlUpdater) {
-    getStage().getMultiSelectionModel().addDependency(getProfilersView()).onChange(MultiSelectionModel.Aspect.CHANGE_SELECTION,
-                                                                                   timelineControlUpdater);
-  }
-
-  @Override
   public boolean shouldShowDeselectAllLabel() {
     return !getStage().getMultiSelectionModel().getSelection().isEmpty();
   }
@@ -368,6 +346,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
     }
 
     // Merge all selected items' analysis models and provide one combined model to the analysis panel.
+    ImmutableList<CpuAnalyzable> selection = getStage().getMultiSelectionModel().getSelection();
     getStage().getMultiSelectionModel().getSelection().stream()
       .map(CpuAnalyzable::getAnalysisModel)
       .reduce(CpuAnalysisModel::mergeWith)
@@ -375,6 +354,16 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
 
     // Now update track groups.
     updateTrackGroupList();
+
+    // Update selection range
+    if (selection.isEmpty()) {
+      getStage().getTimeline().getSelectionRange().clear();
+    }
+    else if (selection.get(0) instanceof CaptureNodeAnalysisModel) {
+      // Use the first item to determine selection type as all items in the selection model are of the same type.
+      Range selectedNodeRange = ((CaptureNodeAnalysisModel)selection.get(0)).getNodeRange();
+      getStage().getTimeline().getSelectionRange().set(selectedNodeRange);
+    }
   }
 
   @VisibleForTesting

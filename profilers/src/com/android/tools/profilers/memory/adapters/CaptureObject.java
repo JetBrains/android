@@ -26,6 +26,7 @@ import com.android.tools.profilers.memory.MemoryProfilerConfiguration;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
+import com.android.tools.profilers.memory.adapters.instancefilters.ActivityFragmentLeakInstanceFilter;
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -190,6 +191,15 @@ public interface CaptureObject extends MemoryObject {
   @NotNull
   default Set<CaptureObjectInstanceFilter> getSupportedInstanceFilters() {
     return Collections.EMPTY_SET;
+  }
+
+  /**
+   * @return the filter of leaked activities and fragments if that is supported, or null otherwise
+   * An implementation of this method should only return a filter in `getSupportedInstanceFilters`
+   */
+  @Nullable
+  default ActivityFragmentLeakInstanceFilter getActivityFragmentLeakFilter() {
+    return null;
   }
 
   @NotNull

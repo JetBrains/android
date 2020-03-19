@@ -94,6 +94,19 @@ class AndroidGradleProjectRule : NamedExternalResource() {
     }
   }
 
+  /**
+   * Triggers loading the target Android Gradle project. Be sure to call [fixture]'s
+   * [CodeInsightTestFixture.setTestDataPath] method before calling this method.
+   *
+   * @param chosenModuleName If specified, which module will be used.
+   * @param gradleVersion If specified, which Gradle version will be used.
+   * @param agpVersion If specified, which AGP version will be used.
+   */
+  @JvmOverloads
+  fun loadProject(projectPath: String, chosenModuleName: String? = null, gradleVersion: String? = null, agpVersion: String? = null) {
+      delegateTestCase.loadProject(projectPath, chosenModuleName, gradleVersion, agpVersion)
+  }
+
   fun requestSyncAndWait() {
     delegateTestCase.requestSyncAndWait()
   }
@@ -113,6 +126,8 @@ class AndroidGradleProjectRule : NamedExternalResource() {
   fun invokeTasks(vararg tasks: String): GradleInvocationResult {
     return delegateTestCase.invokeTasks(project, *tasks)
   }
+
+  fun resolveTestDataPath(relativePath: String): File = delegateTestCase.resolveTestDataPath(relativePath)
 }
 
 private fun gradleModuleNotFound(gradlePath: String): Nothing =

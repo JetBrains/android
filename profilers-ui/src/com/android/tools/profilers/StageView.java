@@ -160,28 +160,6 @@ public abstract class StageView<T extends Stage> extends AspectObserver {
   }
 
   /**
-   * @return true if the zoom-to-selection action should be enabled.
-   */
-  public boolean shouldEnableZoomToSelection() {
-    return !getStage().getTimeline().getSelectionRange().isEmpty();
-  }
-
-  /**
-   * @return the range for the zoom-to-selection action to use.
-   */
-  @NotNull
-  public Range getZoomToSelectionRange() {
-    return getStage().getTimeline().getSelectionRange();
-  }
-
-  /**
-   * Register a {@link Runnable} that will update the timeline controls' (e.g. Zoom to Selection button) states.
-   */
-  public void addTimelineControlUpdater(@NotNull Runnable timelineControlUpdater) {
-    getStage().getTimeline().getSelectionRange().addDependency(getProfilersView()).onChange(Range.Aspect.RANGE, timelineControlUpdater);
-  }
-
-  /**
    * @return true if the Deselect All label should be visible.
    */
   public boolean shouldShowDeselectAllLabel() {

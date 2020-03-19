@@ -10,6 +10,7 @@ public final class TestProjectPaths {
   public static final String APP_WITH_BUILDSRC = "projects/appWithBuildSrc";
   public static final String APP_WITH_LIB_WITH_SAMPLES = "projects/appWithLibWithSamples";
   public static final String APP_WITH_ML_MODELS = "projects/appWithMlModels";
+  public static final String APPLICATION_ID_SUFFIX = "projects/applicationIdSuffix";
   public static final String BASIC = "projects/basic";
   public static final String BUDDY_APKS = "projects/buddyApks";
   public static final String CENTRAL_BUILD_DIRECTORY = "projects/centralBuildDirectory";

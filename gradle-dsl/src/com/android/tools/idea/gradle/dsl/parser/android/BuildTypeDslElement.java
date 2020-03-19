@@ -27,9 +27,8 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainEle
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
-import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
-import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
 import kotlin.Pair;
@@ -41,9 +40,9 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement impl
     new PropertiesElementDescription<>(null, BuildTypeDslElement.class, BuildTypeDslElement::new);
 
   @NotNull
-  private static final ImmutableMap<Pair<String, Integer>, Pair<ModelPropertyDescription, SemanticsDescription>> ktsToModelNameMap = Stream.concat(
+  private static final ImmutableMap<Pair<String, Integer>, ModelEffectDescription> ktsToModelNameMap = Stream.concat(
     AbstractFlavorTypeDslElement.ktsToModelNameMap.entrySet().stream().map(data -> new Object[]{
-      data.getKey().getFirst(), data.getKey().getSecond(), data.getValue().getFirst(), data.getValue().getSecond()
+      data.getKey().getFirst(), data.getKey().getSecond(), data.getValue().property, data.getValue().semantics
     }),
     Stream.of(new Object[][]{
       {"isDebuggable", property, DEBUGGABLE, VAR},
@@ -65,9 +64,9 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement impl
     .collect(toModelMap());
 
   @NotNull
-  private static final ImmutableMap<Pair<String, Integer>, Pair<ModelPropertyDescription, SemanticsDescription>> groovyToModelNameMap = Stream.concat(
+  private static final ImmutableMap<Pair<String, Integer>, ModelEffectDescription> groovyToModelNameMap = Stream.concat(
     AbstractFlavorTypeDslElement.groovyToModelNameMap.entrySet().stream().map(data -> new Object[]{
-      data.getKey().getFirst(), data.getKey().getSecond(), data.getValue().getFirst(), data.getValue().getSecond()
+      data.getKey().getFirst(), data.getKey().getSecond(), data.getValue().property, data.getValue().semantics
     }),
     Stream.of(new Object[][]{
       {"debuggable", property, DEBUGGABLE, VAR},
@@ -98,7 +97,7 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement impl
 
   @Override
   @NotNull
-  public ImmutableMap<Pair<String, Integer>, Pair<ModelPropertyDescription, SemanticsDescription>> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
+  public ImmutableMap<Pair<String, Integer>, ModelEffectDescription> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
     if (converter instanceof KotlinDslNameConverter) {
       return ktsToModelNameMap;
     }
@@ -117,7 +116,7 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement impl
   @Override
   public boolean isInsignificantIfEmpty() {
     // "release" and "debug" Build Type blocks can be deleted if empty
-    return myName.name().equals("release") || myName.name().equals("debug");
+    return getName().equals("release") || getName().equals("debug");
   }
 
   @Override

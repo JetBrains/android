@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,7 +56,7 @@ public class MlkitClassFinder extends PsiElementFinder {
   @NotNull
   @Override
   public PsiClass[] findClasses(@NotNull String qualifiedName, @NotNull GlobalSearchScope scope) {
-    if (!StudioFlags.MLKIT_LIGHT_CLASSES.get() || !qualifiedName.contains(MlkitNames.PACKAGE_SUFFIX)) {
+    if (!StudioFlags.ML_MODEL_BINDING.get() || !qualifiedName.contains(MlkitNames.PACKAGE_SUFFIX)) {
       return PsiClass.EMPTY_ARRAY;
     }
 
@@ -99,15 +100,18 @@ public class MlkitClassFinder extends PsiElementFinder {
   @Nullable
   @Override
   public PsiPackage findPackage(@NotNull String packageName) {
-    if (!StudioFlags.MLKIT_LIGHT_CLASSES.get() || !packageName.endsWith(MlkitNames.PACKAGE_SUFFIX)) {
+    if (!StudioFlags.ML_MODEL_BINDING.get() || !packageName.endsWith(MlkitNames.PACKAGE_SUFFIX)) {
       return null;
     }
 
     String modulePackageName = StringUtil.substringBeforeLast(packageName, MlkitNames.PACKAGE_SUFFIX);
-    boolean moduleFound = !ProjectSystemUtil.getProjectSystem(myProject)
-      .getAndroidFacetsWithPackageName(myProject, modulePackageName, GlobalSearchScope.projectScope(myProject))
-      .isEmpty();
+    for (AndroidFacet facet : ProjectSystemUtil.getProjectSystem(myProject)
+      .getAndroidFacetsWithPackageName(myProject, modulePackageName, GlobalSearchScope.projectScope(myProject))) {
+      if (MlkitUtils.isMlModelBindingBuildFeatureEnabled(facet.getModule())) {
+        return AndroidLightPackage.withName(packageName, myProject);
+      }
+    }
 
-    return moduleFound ? AndroidLightPackage.withName(packageName, myProject) : null;
+    return null;
   }
 }

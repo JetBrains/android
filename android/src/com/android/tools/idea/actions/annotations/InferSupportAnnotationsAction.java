@@ -483,10 +483,6 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
     }
 
     @Override
-    public void prepare() {
-    }
-
-    @Override
     public boolean isDone() {
       return myCount > myTotal - 1;
     }
@@ -510,10 +506,6 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
         }
       }
       return done;
-    }
-
-    @Override
-    public void stop() {
     }
 
     public void showReport() {
