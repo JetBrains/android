@@ -99,6 +99,5 @@ dependencies {
     implementation("com.android.support.constraint:constraint-layout:1.1.0")
     implementation("com.android.support.test:runner:1.0.2")
     implementation("com.android.support.test.espresso:espresso-core:3.0.2")
-    // This is to work around the issue in Gradle 6.0 RC, where the line below fails. See b/144281891.
-    //api(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
+    api(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 }
