@@ -147,6 +147,7 @@ class ConstraintSetPanel extends JPanel {
     JPanel top = new JPanel(new BorderLayout());
     top.add(left, BorderLayout.WEST);
     top.add(right, BorderLayout.EAST);
+    top.setBorder(MEUI.getPanelBottomBorder());
     mConstraintSetTable.setShowHorizontalLines(false);
     mConstraintSetTable.setAlignmentY(0.0f);
     mConstraintSetTable.getColumnModel().getColumn(0).setPreferredWidth(MEUI.scale(32));
