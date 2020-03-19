@@ -17,11 +17,16 @@ package com.android.tools.idea.emulator
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
+import com.intellij.ide.util.PropertiesComponent
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.ui.content.ContentFactory
 import com.intellij.ui.content.ContentManager
@@ -33,13 +38,14 @@ import java.text.Collator
  * Manages contents of the Emulator tool window. Listens to changes in [RunningEmulatorCatalog]
  * and maintains [EmulatorToolWindowPanel]s, one per running Emulator.
  */
-class EmulatorToolWindowManager(private val project: Project) : RunningEmulatorCatalog.Listener, DumbAware {
+internal class EmulatorToolWindowManager(private val project: Project) : RunningEmulatorCatalog.Listener, DumbAware {
   private val ID_KEY = Key.create<EmulatorId>("emulator-id")
 
   private var initialized = false
-  private val myPanels: MutableList<EmulatorToolWindowPanel> = arrayListOf()
-  private var myActivePanel: EmulatorToolWindowPanel? = null
+  private val panels: MutableList<EmulatorToolWindowPanel> = arrayListOf()
+  private var activePanel: EmulatorToolWindowPanel? = null
   private val emulators: MutableSet<EmulatorController> = hashSetOf()
+  private val properties = PropertiesComponent.getInstance(project)
 
   private var contentManagerListener = object : ContentManagerAdapter() {
     @UiThread
@@ -49,6 +55,9 @@ class EmulatorToolWindowManager(private val project: Project) : RunningEmulatorC
       }
     }
   }
+
+  private val frameIsCropped
+    get() = properties.getBoolean(FRAME_CROPPED_PROPERTY, FRAME_CROPPED_DEFAULT)
 
   init {
     // Lazily initialize content since we can only have one frame.
@@ -60,6 +69,7 @@ class EmulatorToolWindowManager(private val project: Project) : RunningEmulatorC
         }
         // We need to query the tool window again, because it might have been unregistered when closing the project.
         val toolWindow = getToolWindow()
+
         if (toolWindow.isVisible) {
           if (!initialized) {
             initialized = true
@@ -75,6 +85,11 @@ class EmulatorToolWindowManager(private val project: Project) : RunningEmulatorC
 
   private fun createContent(toolWindow: ToolWindow) {
     initialized = true
+
+    val actionGroup = DefaultActionGroup()
+    actionGroup.addAction(ToggleFrameCropAction())
+    (toolWindow as ToolWindowEx).setAdditionalGearActions(actionGroup)
+
     val emulatorCatalog = RunningEmulatorCatalog.getInstance()
     emulatorCatalog.updateNow()
     emulatorCatalog.addListener(this, EMULATOR_DISCOVERY_INTERVAL_MILLIS)
@@ -90,9 +105,9 @@ class EmulatorToolWindowManager(private val project: Project) : RunningEmulatorC
     initialized = false
     toolWindow.contentManager.removeContentManagerListener(contentManagerListener)
     RunningEmulatorCatalog.getInstance().removeListener(this)
-    myActivePanel?.destroyContent()
-    myActivePanel = null
-    myPanels.clear()
+    activePanel?.destroyContent()
+    activePanel = null
+    panels.clear()
   }
 
   private fun addEmulatorPanel(emulator: EmulatorController) {
@@ -108,14 +123,14 @@ class EmulatorToolWindowManager(private val project: Project) : RunningEmulatorC
     content.popupIcon = panel.icon
     content.putUserData(ID_KEY, panel.id)
 
-    val index = myPanels.binarySearch(panel, PANEL_COMPARATOR).inv()
+    val index = panels.binarySearch(panel, PANEL_COMPARATOR).inv()
     assert(index >= 0)
 
     if (index >= 0) {
-      myPanels.add(index, panel)
+      panels.add(index, panel)
       getContentManager().addContent(content, index)
-      if (myActivePanel == null) {
-        myActivePanel = panel
+      if (activePanel == null) {
+        activePanel = panel
       }
     }
   }
@@ -123,7 +138,7 @@ class EmulatorToolWindowManager(private val project: Project) : RunningEmulatorC
   private fun removeEmulatorPanel(emulator: EmulatorController) {
     val panel = findPanelByGrpcPort(emulator.emulatorId.grpcPort)
     if (panel != null) {
-      myPanels.remove(panel)
+      panels.remove(panel)
       val contentManager = getContentManager()
       val content = contentManager.getContent(panel.component)
       contentManager.removeContent(content, true)
@@ -133,19 +148,19 @@ class EmulatorToolWindowManager(private val project: Project) : RunningEmulatorC
   private fun viewSelectionChanged() {
     val content = getContentManager().selectedContent
     val id = content?.getUserData(ID_KEY)
-    if (id != myActivePanel?.id) {
-      myActivePanel?.destroyContent()
-      myActivePanel = null
+    if (id != activePanel?.id) {
+      activePanel?.destroyContent()
+      activePanel = null
 
       if (id != null) {
-        myActivePanel = findPanelByGrpcPort(id.grpcPort)
-        myActivePanel?.createContent()
+        activePanel = findPanelByGrpcPort(id.grpcPort)
+        activePanel?.createContent(frameIsCropped)
       }
     }
   }
 
   private fun findPanelByGrpcPort(grpcPort: Int): EmulatorToolWindowPanel? {
-    return myPanels.firstOrNull { it.id.grpcPort == grpcPort }
+    return panels.firstOrNull { it.id.grpcPort == grpcPort }
   }
 
   private fun getContentManager(): ContentManager {
@@ -174,11 +189,26 @@ class EmulatorToolWindowManager(private val project: Project) : RunningEmulatorC
     }
   }
 
+  private inner class ToggleFrameCropAction : ToggleAction("Crop Device Frame"), DumbAware {
+    override fun isSelected(event: AnActionEvent): Boolean {
+      return frameIsCropped
+    }
+
+    override fun setSelected(event: AnActionEvent, state: Boolean) {
+      properties.setValue(FRAME_CROPPED_PROPERTY, state, FRAME_CROPPED_DEFAULT)
+      for (panel in panels) {
+        panel.emulatorView?.cropFrame = state
+      }
+    }
+  }
+
   companion object {
     const val ID = "Emulator"
 
+    private const val FRAME_CROPPED_PROPERTY = "com.android.tools.idea.emulator.frame.cropped"
+    private const val FRAME_CROPPED_DEFAULT = true
     private const val EMULATOR_DISCOVERY_INTERVAL_MILLIS = 1000
-    private const val SHUTDOWN_CAPABLE = false
+    private const val SHUTDOWN_CAPABLE = false // TODO: Change to true.
 
     @JvmStatic
     private val COLLATOR = Collator.getInstance()

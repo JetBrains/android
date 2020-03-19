@@ -18,13 +18,16 @@ package com.android.tools.idea.emulator
 import com.android.annotations.concurrency.UiThread
 import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.KeyboardEvent.KeyEventType
+import com.android.emulator.control.Rotation.SkinRotation
+import com.android.tools.idea.npw.assetstudio.roundToInt
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
+import kotlin.math.ceil
 
 /**
  * Invokes given function on the UI thread regardless of the modality state.
  */
-fun invokeLater(@UiThread action: () -> Unit) {
+internal fun invokeLater(@UiThread action: () -> Unit) {
   ApplicationManager.getApplication().invokeLater(action, ModalityState.any())
 }
 
@@ -32,9 +35,45 @@ fun invokeLater(@UiThread action: () -> Unit) {
  * Creates a [KeyboardEvent] for the given hardware key.
  * Key names are defined in https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values.
  */
-fun createHardwareKeyEvent(keyName: String, eventType: KeyEventType = KeyEventType.keypress): KeyboardEvent {
+internal fun createHardwareKeyEvent(keyName: String, eventType: KeyEventType = KeyEventType.keypress): KeyboardEvent {
   return KeyboardEvent.newBuilder()
     .setKey(keyName)
     .setEventType(eventType)
     .build()
 }
+
+/**
+ * True if the rotation is 90 degrees clockwise or counterclockwise.
+ */
+internal inline val SkinRotation.is90Degrees
+  get() = ordinal % 2 != 0
+
+/**
+ * Returns the rotation that is that is less than this one by 90 degrees.
+ */
+internal fun SkinRotation.decrementedBy90Degrees(): SkinRotation =
+  SkinRotation.forNumber((ordinal + 3) % 4)
+
+/**
+ * Returns this integer scaled and rounded to the closest integer.
+ *
+ * @param scale the scale factor
+ */
+internal fun Int.scale(scale: Double): Int =
+  (this * scale).roundToInt()
+
+/**
+ * Returns this integer scaled and rounded down towards zero.
+ *
+ * @param scale the scale factor
+ */
+internal fun Int.scaleDown(scale: Double): Int =
+  (this * scale).toInt()
+
+/**
+ * Returns this integer scaled and rounded up away from zero.
+ *
+ * @param scale the scale factor
+ */
+internal fun Int.scaleUp(scale: Double): Int =
+  ceil(this * scale).roundToInt()
