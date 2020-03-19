@@ -164,22 +164,11 @@ public class SimpleperfTraceParser implements TraceParser {
   public CpuCapture parse(File trace, long traceId) throws IOException {
     parseTraceFile(trace);
     parseSampleData();
-    return new BaseCpuCapture(this, traceId, Cpu.CpuTraceType.SIMPLEPERF);
+    return new BaseCpuCapture(traceId, Cpu.CpuTraceType.SIMPLEPERF, myRange, getCaptureTrees());
   }
 
-  @Override
-  public boolean supportsDualClock() {
-    return false;
-  }
-
-  @Override
   public Map<CpuThreadInfo, CaptureNode> getCaptureTrees() {
     return myCaptureTrees;
-  }
-
-  @Override
-  public Range getRange() {
-    return myRange;
   }
 
   public long getLostSampleCount() {

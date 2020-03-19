@@ -28,18 +28,14 @@ import com.google.common.annotations.VisibleForTesting;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import trebuchet.model.CpuModel;
@@ -168,7 +164,7 @@ public class AtraceParser implements TraceParser {
     buildThreadStateData();
     buildCpuStateData();
     myFrameInfo = new AtraceFrameManager(myProcessModel, convertToUserTimeUsFunction(), findRenderThreadId(myProcessModel));
-    return new AtraceCpuCapture(this, myFrameInfo, traceId);
+    return new AtraceCpuCapture(traceId, myRange, this, myFrameInfo);
   }
 
   /**
@@ -275,11 +271,6 @@ public class AtraceParser implements TraceParser {
     }).collect(Collectors.toList());
   }
 
-  @Override
-  public boolean supportsDualClock() {
-    return false;
-  }
-
   /**
    * @param time as given to us from atrace file. Time in the atrace file is defined as
    *             systemTime(CLOCK_MONOTONIC) / 1000000000.0f returning the time in fractions of a second.
@@ -289,7 +280,6 @@ public class AtraceParser implements TraceParser {
     return (time * 1000000.0);
   }
 
-  @Override
   public Map<CpuThreadInfo, CaptureNode> getCaptureTrees() {
     return myCaptureTreeNodes;
   }
@@ -318,7 +308,7 @@ public class AtraceParser implements TraceParser {
    * the order and hierarchy.
    */
   private void buildCaptureTreeNodes() {
-    Range range = getRange();
+    Range range = myRange;
     for (ThreadModel thread : myProcessModel.getThreads()) {
       CpuThreadSliceInfo threadInfo =
         new CpuThreadSliceInfo(thread.getId(), thread.getName(), thread.getProcess().getId(), thread.getProcess().getName());
@@ -454,11 +444,6 @@ public class AtraceParser implements TraceParser {
       default:
         return CpuProfilerStage.ThreadState.UNKNOWN;
     }
-  }
-
-  @Override
-  public Range getRange() {
-    return myRange;
   }
 
   private long convertToUserTimeUs(double timestampInSeconds) {

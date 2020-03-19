@@ -23,6 +23,7 @@ import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.visualtests.VisualTest;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.cpu.CaptureNode;
+import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.CpuThreadInfo;
 import com.android.tools.profilers.cpu.TraceParser;
 import com.android.tools.profilers.cpu.art.ArtTraceParser;
@@ -34,7 +35,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 
@@ -101,15 +101,18 @@ public class CaptureNodeModelRendererVisualTest extends VisualTest {
     else {
       throw new IllegalArgumentException("There is no parser available for profiler type " + profilerType);
     }
+
+    CpuCapture capture = null;
     try {
-      parser.parse(file, traceId);
+      capture = parser.parse(file, traceId);
     }
     catch (IOException e) {
       e.printStackTrace();
     }
-    for (Map.Entry<CpuThreadInfo, CaptureNode> entry : parser.getCaptureTrees().entrySet()) {
-      if (entry.getKey().getName().equals(nodeName)) {
-        return entry.getValue();
+
+    for (CpuThreadInfo thread : capture.getThreads()) {
+      if (thread.getName().equals(nodeName)) {
+        return capture.getCaptureNode(thread.getId());
       }
     }
     return null;
