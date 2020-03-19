@@ -205,7 +205,7 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
       }
       else if (element.name.isEmpty()){
         // This is the case where we are handling a list element
-        statementText += if (element.isSet) "mutableSetOf()" else "listOf()"
+        statementText += "listOf()"
         isRealList = true
       }
       else {

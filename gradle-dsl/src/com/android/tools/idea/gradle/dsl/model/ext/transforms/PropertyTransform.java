@@ -106,17 +106,16 @@ public abstract class PropertyTransform {
   public GradleDslExpression bindList(@NotNull GradleDslElement holder,
                                       @Nullable GradleDslElement oldElement,
                                       @NotNull String name,
-                                      boolean isMethodCall,
-                                      boolean isSet) {
-    return new GradleDslExpressionList(holder, GradleNameElement.create(name), !isMethodCall, isSet);
+                                      boolean isMethodCall) {
+    return new GradleDslExpressionList(holder, GradleNameElement.create(name), !isMethodCall);
   }
 
+  @NotNull
   public GradleDslExpression bindList(@NotNull GradleDslElement holder,
                                       @Nullable GradleDslElement oldElement,
                                       @NotNull ModelPropertyDescription propertyDescription,
-                                      boolean isMethodCall,
-                                      boolean isSet) {
-    GradleDslExpression result = bindList(holder, oldElement, propertyDescription.name, isMethodCall, isSet);
+                                      boolean isMethodCall) {
+    GradleDslExpression result = bindList(holder, oldElement, propertyDescription.name, isMethodCall);
     result.setModelEffect(new ModelEffectDescription(propertyDescription, CREATE_WITH_VALUE));
     return result;
   }
