@@ -896,7 +896,14 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     assertTrue(appModel.isKaptEnabled());
 
     GradleModuleModel rootModel = GradleFacet.getInstance(getModule("lib")).getGradleModuleModel();
-    assertFalse(rootModel.isKaptEnabled());
+    assertTrue(rootModel.isKaptEnabled());
+  }
+
+  public void testKaptIsNotEnabled() throws Exception {
+    loadProject(SIMPLE_APPLICATION);
+
+    GradleModuleModel appModel = GradleFacet.getInstance(getModule("app")).getGradleModuleModel();
+    assertFalse(appModel.isKaptEnabled());
   }
 
   public void testExceptionsCreateFailedBuildFinishedEvent() throws Exception {

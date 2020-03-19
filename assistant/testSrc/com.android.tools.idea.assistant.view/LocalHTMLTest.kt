@@ -42,8 +42,8 @@ class LocalHTMLTest : TestCase() {
       <html>
       <body>
       <img src="anotherImage.png"/>
-      <img src="file:///test/image.png" />
-      <img src="file:///test/folder/image2.png" />
+      <img src="file:/test/image.png" />
+      <img src="file:/test/folder/image2.png" />
       </body>
       </html>
     """.trimIndent(), processed)

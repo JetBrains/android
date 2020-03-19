@@ -1,3 +1,4 @@
 rootProject.name='MainActivity'
 include ':app'
 include ':lib'
+include ':jlib'

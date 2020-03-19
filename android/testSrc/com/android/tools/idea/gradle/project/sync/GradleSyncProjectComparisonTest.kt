@@ -312,6 +312,11 @@ abstract class GradleSyncProjectComparisonTest(
       assertIsEqualToSnapshot(text)
     }
 
+    fun testKapt() {
+      val text = importSyncAndDumpProject(TestProjectPaths.KOTLIN_KAPT)
+      assertIsEqualToSnapshot(text)
+    }
+
     fun testSwitchingVariants_simpleApplication() {
       val debugBefore = importSyncAndDumpProject(SIMPLE_APPLICATION)
       BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, "app", "release")

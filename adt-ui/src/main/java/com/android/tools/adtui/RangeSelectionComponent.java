@@ -40,10 +40,6 @@ import org.jetbrains.annotations.NotNull;
  * A component for performing/rendering selection.
  */
 public final class RangeSelectionComponent extends AnimatedComponent {
-
-  // TODO: support using different colors for selection, border and handle
-  private static final Color DEFAULT_SELECTION_COLOR = new JBColor(new Color(0x330478DA, true), new Color(0x4C2395F5, true));
-
   private static final Color DRAG_BAR_COLOR = new JBColor(new Color(0x260478DA, true), new Color(0x3374B7FF, true));
 
   private static final int DEFAULT_DRAG_BAR_HEIGHT = 26;
@@ -431,7 +427,7 @@ public final class RangeSelectionComponent extends AnimatedComponent {
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
     // Draw selection area.
-    g.setColor(DEFAULT_SELECTION_COLOR);
+    g.setColor(StudioColorsKt.getContentSelectionBackground());
     Rectangle2D.Float rect = new Rectangle2D.Float(startXPos + HANDLE_WIDTH, 0, handleDistance, dim.height);
     g.fill(rect);
 

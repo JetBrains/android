@@ -18,10 +18,12 @@ package com.android.tools.idea.gradle.project;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.settings.LocationSettingType;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.ui.*;
+import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.components.JBLabel;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +33,6 @@ import org.jetbrains.plugins.gradle.util.GradleBundle;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import java.io.File;
 
 import static com.android.SdkConstants.GRADLE_MINIMUM_VERSION;
@@ -82,19 +83,17 @@ public class ChooseGradleHomeDialog extends DialogWrapper {
     getPeer().getWindow().pack();
 
     myGradleHomePathField.setText(getLastUsedGradleHome());
-    myGradleHomePathField.getTextField().getDocument().addDocumentListener(new DocumentListener() {
+    myGradleHomePathField.getTextField().getDocument().addDocumentListener(new DocumentAdapter() {
       @Override
-      public void insertUpdate(DocumentEvent e) {
-        initValidation();
-      }
-
-      @Override
-      public void removeUpdate(DocumentEvent e) {
-        initValidation();
-      }
-
-      @Override
-      public void changedUpdate(DocumentEvent e) {
+      protected void textChanged(@NotNull DocumentEvent e) {
+          String fixedPath = myInstallationManager.suggestBetterGradleHomePath(myGradleHomePathField.getText());
+          if (fixedPath != null) {
+            ApplicationManager.getApplication().invokeLater(()-> {
+              myGradleHomePathField.setText(fixedPath);
+            });
+          } else {
+            initValidation();
+          }
       }
     });
   }
