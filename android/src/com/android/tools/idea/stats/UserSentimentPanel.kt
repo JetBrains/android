@@ -118,7 +118,7 @@ class UserSentimentPanel(private var myProject: Project?,
                                            "Please share <a href='file bug'>detailed feedback</a>."
 
     @JvmField
-    val NOTIFICATIONS =
-      NotificationGroup(AndroidBundle.message("feedback.notifications.title"), NotificationDisplayType.BALLOON, true)
+    val NOTIFICATIONS = NotificationGroup("Thanks for the feedback!", NotificationDisplayType.BALLOON, true, null, null,
+                                          AndroidBundle.message("feedback.notifications.title"))
   }
 }
