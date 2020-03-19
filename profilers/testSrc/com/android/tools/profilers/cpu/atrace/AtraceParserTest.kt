@@ -39,7 +39,7 @@ class AtraceParserTest {
   fun testGetParseRange() {
     // Value comes from atrace.ctrace file first entry and last entry.
     val expected = Range(EXPECTED_MIN_RANGE, EXPECTED_MAX_RANGE)
-    val actual = myParser.range
+    val actual = myCapture.range
     assertThat(actual.min).isWithin(DELTA).of(expected.min)
     assertThat(actual.max).isWithin(DELTA).of(expected.max)
     assertThat(actual.length).isWithin(DELTA).of(expected.length)
@@ -47,10 +47,11 @@ class AtraceParserTest {
 
   @Test
   fun testGetCaptureTrees() {
-    val range = myParser.range
-    val result = myParser.captureTrees
-    assertThat(result).hasSize(20)
-    val cpuThreadInfo = Iterables.find(result.keys, { key -> key?.id == TEST_PID })
+    val range = myCapture.range
+
+    assertThat(myCapture.captureNodes).hasSize(20)
+
+    val cpuThreadInfo = Iterables.find(myCapture.threads) { t -> t?.id == TEST_PID }
     assertThat(cpuThreadInfo.id).isEqualTo(TEST_PID)
     // Atrace only contains the last X characters, in the log file.
     assertThat(cpuThreadInfo.name).isEqualTo("splayingbitmaps")
@@ -62,8 +63,8 @@ class AtraceParserTest {
     assertThat(cpuProcessInfo.processId).isEqualTo(TEST_PID)
     assertThat(cpuProcessInfo.isMainThread).isTrue()
 
-    // Base node is a root node that is equivlant to the length of capture.
-    val captureNode = result.get(cpuThreadInfo)!!
+    // Base node is a root node that is equivalent to the length of capture.
+    val captureNode = myCapture.getCaptureNode(TEST_PID)!!
     assertThat(captureNode.startGlobal).isEqualTo(range.min.toLong())
     assertThat(captureNode.endGlobal).isEqualTo(range.max.toLong())
     assertThat(captureNode.childCount).isEqualTo(EXPECTED_CHILD_COUNT)
@@ -80,10 +81,7 @@ class AtraceParserTest {
 
   @Test
   fun testGetCaptureTreesSetsThreadTime() {
-    val result = myParser.captureTrees
-    val cpuThreadInfo = Iterables.find(result.keys, { key -> key?.id == TEST_PID })
-
-    val captureNode = result[cpuThreadInfo]!!
+    val captureNode = myCapture.getCaptureNode(TEST_PID)!!
     // Grab the element at index 1 and use its child because, the child is the element that has idle cpu time.
     val child = captureNode.getChildAt(1)
     // Validate our child's thread time starts at our global start.

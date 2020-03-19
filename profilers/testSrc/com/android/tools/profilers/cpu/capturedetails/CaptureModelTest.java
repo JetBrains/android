@@ -26,7 +26,6 @@ import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.FakeFeatureTracker;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
-import com.android.tools.profilers.FakeTraceParser;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.BaseCpuCapture;
@@ -36,7 +35,6 @@ import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils;
 import com.android.tools.profilers.cpu.CpuThreadInfo;
 import com.android.tools.profilers.cpu.FakeCpuService;
-import com.android.tools.profilers.cpu.TraceParser;
 import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
 import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.memory.FakeMemoryService;
@@ -77,18 +75,11 @@ public class CaptureModelTest {
     CaptureNode root = new CaptureNode(new JavaMethodModel("methodName", "className"));
 
     CpuThreadInfo info = new CpuThreadInfo(101, "main");
-    TraceParser globalOnlyClockSupported = new FakeTraceParser(new Range(0, 30),
-                                                               new ImmutableMap.Builder<CpuThreadInfo, CaptureNode>()
-                                                                 .put(info, root)
-                                                                 .build(), false);
-    TraceParser dualClockSupported = new FakeTraceParser(new Range(0, 30),
-                                                         new ImmutableMap.Builder<CpuThreadInfo, CaptureNode>()
-                                                           .put(info, root)
-                                                           .build(), true);
+    Range range = new Range(0, 30);
 
-    CpuCapture globalOnlyCapture = new BaseCpuCapture(globalOnlyClockSupported, 200, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
-    CpuCapture dualCapture1 = new BaseCpuCapture(dualClockSupported, 200, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
-    CpuCapture dualCapture2 = new BaseCpuCapture(dualClockSupported, 200, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
+    CpuCapture globalOnlyCapture = new BaseCpuCapture(200, Cpu.CpuTraceType.ATRACE, range, ImmutableMap.of(info, root));
+    CpuCapture dualCapture1 = new BaseCpuCapture(200, Cpu.CpuTraceType.ART, range, ImmutableMap.of(info, root));
+    CpuCapture dualCapture2 = new BaseCpuCapture(200, Cpu.CpuTraceType.ART, range, ImmutableMap.of(info, root));
     myModel.setCapture(globalOnlyCapture);
     assertThat(myModel.getClockType()).isEqualTo(ClockType.GLOBAL);
     myModel.setClockType(ClockType.THREAD);
