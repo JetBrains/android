@@ -18,11 +18,15 @@ package com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.SkiaParser
 import com.android.tools.idea.layoutinspector.SkiaParserService
+import com.android.tools.idea.layoutinspector.UnsupportedPictureVersionException
 import com.android.tools.idea.layoutinspector.common.StringTableImpl
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_AS_REQUESTED
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_SKP_TOO_LARGE
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.SKP
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.ui.UIUtil
@@ -74,31 +78,43 @@ private class ComponentTreeLoaderImpl(
       return null
     }
     return try {
-      val rootView = loadRootView()
+      val rootView = loadRootView() ?: return null
+      rootView.imageType = tree.payloadType
       val bytes = defaultClient.getPayload(tree.payloadId)
       var rootViewFromSkiaImage: InspectorView? = null
       if (bytes.isNotEmpty()) {
         try {
-          if (tree.payloadType == LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG && rootView != null) {
+          if (tree.payloadType == PNG_SKP_TOO_LARGE || tree.payloadType == PNG_AS_REQUESTED) {
             ImageIO.read(ByteArrayInputStream(bytes))?.let {
               rootView.imageBottom = it
-              rootView.fallbackMode = true
             }
           }
-          else if (tree.payloadType == LayoutInspectorProto.ComponentTreeEvent.PayloadType.SKP) {
-            rootViewFromSkiaImage = skiaParser.getViewTree(bytes)
-            if (rootViewFromSkiaImage != null && rootViewFromSkiaImage.id.isEmpty()) {
-              // We were unable to parse the skia image. Allow the user to interact with the component tree.
-              rootViewFromSkiaImage = null
+          else if (tree.payloadType == SKP) {
+            try {
+              rootViewFromSkiaImage = skiaParser.getViewTree(bytes)
+              if (rootViewFromSkiaImage != null && rootViewFromSkiaImage.id.isEmpty()) {
+                // We were unable to parse the skia image. Allow the user to interact with the component tree.
+                rootViewFromSkiaImage = null
+              }
+              defaultClient.logInitialRender(rootViewFromSkiaImage != null)
             }
-            defaultClient.logInitialRender(rootViewFromSkiaImage != null)
+            catch (ex: UnsupportedPictureVersionException) {
+              // We can't find an appropriate skia parser. Fallback to screenshot mode.
+              // TODO: metrics
+              val inspectorCommand = LayoutInspectorProto.LayoutInspectorCommand.newBuilder()
+                .setType(LayoutInspectorProto.LayoutInspectorCommand.Type.USE_SCREENSHOT_MODE)
+                .setScreenshotMode(true)
+                .build()
+              client.execute(inspectorCommand)
+              return null
+            }
           }
         }
         catch (ex: Exception) {
           Logger.getInstance(LayoutInspector::class.java).warn(ex)
         }
       }
-      if (rootViewFromSkiaImage != null && rootView != null) {
+      if (rootViewFromSkiaImage != null) {
         val imageLoader = ComponentImageLoader(rootView, rootViewFromSkiaImage)
         imageLoader.loadImages()
       }

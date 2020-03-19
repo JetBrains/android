@@ -23,6 +23,9 @@ import com.android.tools.adtui.actions.ZoomResetAction
 import com.android.tools.adtui.actions.ZoomToFitAction
 import com.android.tools.editor.EditorActionsFloatingToolbar
 import com.android.tools.editor.EditorActionsToolbarActionGroups
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_AS_REQUESTED
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_SKP_TOO_LARGE
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
@@ -68,7 +71,8 @@ object Toggle3dAction : AnAction(MODE_3D) {
       event.presentation.text =
         when {
           model?.overlay != null -> "Rotation not available when overlay is active"
-          model?.isFallbackMode == true -> "Device image too large, rotation not available"
+          model?.pictureType == PNG_SKP_TOO_LARGE -> "Device image too large, rotation not available"
+          model?.pictureType == PNG_AS_REQUESTED -> "No compatible renderer found for device image version, falling back to screenshot"
           else -> "Rotation not available for devices below API 29"
         }
     }
