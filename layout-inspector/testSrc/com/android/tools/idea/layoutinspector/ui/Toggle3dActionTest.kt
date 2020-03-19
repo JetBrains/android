@@ -17,6 +17,8 @@ package com.android.tools.idea.layoutinspector.ui
 
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.view
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_AS_REQUESTED
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_SKP_TOO_LARGE
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
 import icons.StudioIcons
@@ -82,4 +84,25 @@ class Toggle3dActionTest {
     verify(presentation).text = "Rotation not available for devices below API 29"
   }
 
+  @Test
+  fun testNoRendererFallback() {
+    val root = view(3, imageBottom = mock(Image::class.java), imageType = PNG_AS_REQUESTED) {
+      view(2)
+    }
+    inspectorModel.update(root, 3, listOf(3))
+    Toggle3dAction.update(event)
+    verify(presentation).isEnabled = false
+    verify(presentation).text = "No compatible renderer found for device image version, falling back to screenshot"
+  }
+
+  @Test
+  fun testSkpTooLargeFallback() {
+    val root = view(3, imageBottom = mock(Image::class.java), imageType = PNG_SKP_TOO_LARGE) {
+      view(2)
+    }
+    inspectorModel.update(root, 3, listOf(3))
+    Toggle3dAction.update(event)
+    verify(presentation).isEnabled = false
+    verify(presentation).text = "Device image too large, rotation not available"
+  }
 }

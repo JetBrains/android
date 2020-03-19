@@ -28,6 +28,7 @@ import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.sdk.StudioSettingsController
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.OSProcessHandler
 import com.intellij.execution.process.ProcessAdapter
@@ -68,6 +69,7 @@ private const val MAX_DELAY_MILLI_SECONDS = 1000L
 private const val MAX_TIMES_TO_RETRY = 10
 
 class InvalidPictureException : Exception()
+class UnsupportedPictureVersionException : Exception()
 
 interface SkiaParserService {
   @Throws(InvalidPictureException::class)
@@ -87,7 +89,7 @@ object SkiaParser : SkiaParserService {
   @Slow
   @Throws(InvalidPictureException::class)
   override fun getViewTree(data: ByteArray): InspectorView? {
-    val server = runServer(data)
+    val server = runServer(data) ?: throw UnsupportedPictureVersionException()
     val response = server.getViewTree(data)
     return response?.root?.let { buildTree(it) }
   }
@@ -118,14 +120,18 @@ object SkiaParser : SkiaParserService {
     return res
   }
 
+  /**
+   * Run a server that can parse the given [data], or null if no appropriate server version is available.
+   */
   @Slow
-  private fun runServer(data: ByteArray): ServerInfo {
-    val server = findServerInfoForSkpVersion(getSkpVersion(data))
+  private fun runServer(data: ByteArray): ServerInfo? {
+    val server = findServerInfoForSkpVersion(getSkpVersion(data)) ?: return null
     server.runServer()
     return server
   }
 
-  private fun getSkpVersion(data: ByteArray): Int {
+  @VisibleForTesting
+  fun getSkpVersion(data: ByteArray): Int {
     // SKPs start with "skiapict" in ascii
     if (data.slice(0..7) != "skiapict".toByteArray(Charsets.US_ASCII).asList() || data.size < 12) {
       throw InvalidPictureException()
@@ -141,7 +147,11 @@ object SkiaParser : SkiaParserService {
     return skpVersion
   }
 
-  private fun findServerInfoForSkpVersion(skpVersion: Int): ServerInfo {
+  /**
+   * Get the [ServerInfo] for a server that can render SKPs of the given [skpVersion], or null if no valid server is found.
+   */
+  @VisibleForTesting
+  fun findServerInfoForSkpVersion(skpVersion: Int): ServerInfo? {
     if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_USE_DEVBUILD_SKIA_SERVER.get()) {
       return devbuildServerInfo
     }
@@ -155,9 +165,7 @@ object SkiaParser : SkiaParserService {
       serverInfo = findVersionInMap(skpVersion)
     }
 
-    // We didn't find it. Maybe it hasn't been published yet, but is supported by the latest checked-in code. Try using the locally-built
-    // server.
-    return serverInfo ?: devbuildServerInfo
+    return serverInfo
   }
 
   private fun findVersionInMap(skpVersion: Int): ServerInfo? {
@@ -202,12 +210,14 @@ object SkiaParser : SkiaParserService {
   }
 
   private fun readVersionMapping() {
-    val latestPackage = AndroidSdks.getInstance().tryToChooseSdkHandler().getLatestLocalPackageForPrefix(
+    val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
+    val latestPackage = sdkHandler.getLatestLocalPackageForPrefix(
       PARSER_PACKAGE_NAME, { true }, true, progressIndicator)
     if (latestPackage != null) {
       val mappingFile = File(latestPackage.location, VERSION_MAP_FILE_NAME)
       try {
-        val map = unmarshaller.unmarshal(FileReader(mappingFile)) as VersionMap
+        val mapInputStream = sdkHandler.fileOp.newFileInputStream(mappingFile)
+        val map = unmarshaller.unmarshal(mapInputStream) as VersionMap
         synchronized(mapLock) {
           val newMap = mutableMapOf<Int?, ServerInfo>()
           for (spec in map.servers) {
@@ -233,7 +243,8 @@ object SkiaParser : SkiaParserService {
  * Metadata for a skia parser server version. May or may not correspond to a server on disk, but has the capability to download it if not.
  * If [serverVersion] is null, corresponds to the locally-built1 server (in a dev build).
  */
-private class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
+@VisibleForTesting
+class ServerInfo(val serverVersion: Int?, skpStart: Int, skpEnd: Int?) {
   private val serverName = "skia-grpc-server" + if (isWindows) ".exe" else ""
 
   val skpVersionRange: IntRange = IntRange(skpStart, skpEnd ?: Int.MAX_VALUE)
