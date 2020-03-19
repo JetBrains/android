@@ -18,7 +18,6 @@ package com.android.tools.idea.nav.safeargs.cache
 import com.android.tools.idea.nav.safeargs.module.SafeArgsCacheModuleService
 import com.android.tools.idea.nav.safeargs.project.SafeArgsProjectComponent
 import com.android.tools.idea.nav.safeargs.psi.LightArgsClass
-import com.android.tools.idea.nav.safeargs.psi.LightDirectionsClass
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiField
@@ -37,7 +36,7 @@ import com.intellij.util.Processor
 class ArgsShortNamesCache(project: Project) : PsiShortNamesCache() {
   private val component = project.getComponent(SafeArgsProjectComponent::class.java)
 
-  private val lightClassesCache: CachedValue<Map<String, LightArgsClass>>
+  private val lightClassesCache: CachedValue<Map<String, List<LightArgsClass>>>
 
   private val allClassNamesCache: CachedValue<Array<String>>
 
@@ -45,14 +44,13 @@ class ArgsShortNamesCache(project: Project) : PsiShortNamesCache() {
     val cachedValuesManager = CachedValuesManager.getManager(project)
 
     lightClassesCache = cachedValuesManager.createCachedValue {
-      val listOfMaps = component.modulesUsingSafeArgs.map { facet ->
-        val argsCache = SafeArgsCacheModuleService.getInstance(facet)
-        argsCache.args.associateBy { lightArgs -> lightArgs.name }
-      }
-
-      // Convert List<Map<String, ...>> to Map<String, ...> by folding down all maps into a single one
-      val maps: Map<String, LightArgsClass> = listOfMaps.fold(mutableMapOf()) { acc, curr -> acc.putAll(curr); acc }
-      CachedValueProvider.Result.create(maps, component)
+      val lightClasses = component.modulesUsingSafeArgs
+        .asSequence()
+        .flatMap { facet ->
+          SafeArgsCacheModuleService.getInstance(facet).args.asSequence()
+        }
+        .groupBy { lightClass -> lightClass.name }
+      CachedValueProvider.Result.create(lightClasses, component)
     }
 
     allClassNamesCache = cachedValuesManager.createCachedValue {
@@ -64,8 +62,13 @@ class ArgsShortNamesCache(project: Project) : PsiShortNamesCache() {
   override fun getAllClassNames(): Array<String> = allClassNamesCache.value
 
   override fun getClassesByName(name: String, scope: GlobalSearchScope): Array<PsiClass> {
-    val matchingClass = lightClassesCache.value[name]?.takeUnless { PsiSearchScopeUtil.isInScope(scope, it) } ?: return PsiClass.EMPTY_ARRAY
-    return arrayOf(matchingClass)
+    return lightClassesCache.value[name]
+             ?.asSequence()
+             ?.filter { PsiSearchScopeUtil.isInScope(scope, it) }
+             ?.map { it as PsiClass }
+             ?.toList()
+             ?.toTypedArray()
+           ?: PsiClass.EMPTY_ARRAY
   }
 
   override fun getAllMethodNames() = arrayOf<String>()

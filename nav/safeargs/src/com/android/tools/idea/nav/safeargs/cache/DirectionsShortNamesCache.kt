@@ -37,7 +37,7 @@ import com.intellij.util.Processor
 class DirectionsShortNamesCache(project: Project) : PsiShortNamesCache() {
   private val component = project.getComponent(SafeArgsProjectComponent::class.java)
 
-  private val lightClassesCache: CachedValue<Map<String, LightDirectionsClass>>
+  private val lightClassesCache: CachedValue<Map<String, List<LightDirectionsClass>>>
 
   private val allClassNamesCache: CachedValue<Array<String>>
 
@@ -45,14 +45,13 @@ class DirectionsShortNamesCache(project: Project) : PsiShortNamesCache() {
     val cachedValuesManager = CachedValuesManager.getManager(project)
 
     lightClassesCache = cachedValuesManager.createCachedValue {
-      val listOfMaps = component.modulesUsingSafeArgs.map { facet ->
-        val directionsCache = SafeArgsCacheModuleService.getInstance(facet)
-        directionsCache.directions.associateBy { lightDirections -> lightDirections.name }
-      }
-
-      // Convert List<Map<String, ...>> to Map<String, ...> by folding down all maps into a single one
-      val maps: Map<String, LightDirectionsClass> = listOfMaps.fold(mutableMapOf()) { acc, curr -> acc.putAll(curr); acc }
-      CachedValueProvider.Result.create(maps, component)
+      val lightClasses = component.modulesUsingSafeArgs
+        .asSequence()
+        .flatMap { facet ->
+          SafeArgsCacheModuleService.getInstance(facet).directions.asSequence()
+        }
+        .groupBy { lightClass -> lightClass.name }
+      CachedValueProvider.Result.create(lightClasses, component)
     }
 
     allClassNamesCache = cachedValuesManager.createCachedValue {
@@ -63,8 +62,13 @@ class DirectionsShortNamesCache(project: Project) : PsiShortNamesCache() {
 
   override fun getAllClassNames(): Array<String> = allClassNamesCache.value
   override fun getClassesByName(name: String, scope: GlobalSearchScope): Array<PsiClass> {
-    val matchingClass = lightClassesCache.value[name]?.takeUnless { PsiSearchScopeUtil.isInScope(scope, it) } ?: return PsiClass.EMPTY_ARRAY
-    return arrayOf(matchingClass)
+    return lightClassesCache.value[name]
+             ?.asSequence()
+             ?.filter { PsiSearchScopeUtil.isInScope(scope, it) }
+             ?.map { it as PsiClass }
+             ?.toList()
+             ?.toTypedArray()
+           ?: PsiClass.EMPTY_ARRAY
   }
 
   override fun getAllMethodNames() = arrayOf<String>()

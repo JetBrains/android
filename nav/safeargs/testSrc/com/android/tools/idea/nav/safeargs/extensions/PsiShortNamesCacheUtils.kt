@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.nav.safeargs
+package com.android.tools.idea.nav.safeargs.extensions
 
-import com.android.testutils.TestUtils
+import com.intellij.openapi.project.Project
+import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.search.PsiShortNamesCache
 
-/**
- * Constants for safe args test project paths.
- */
-object TestDataPaths {
-  val TEST_DATA_ROOT: String = TestUtils.getWorkspaceFile("tools/adt/idea/nav/safeargs/testData").path
-
-  const val PROJECT_USING_JAVA_PLUGIN = "projects/safeArgsWithJavaPlugin"
-  const val PROJECT_USING_KOTLIN_PLUGIN = "projects/safeArgsWithKotlinPlugin"
-  const val SIMPLE_JAVA_PROJECT = "projects/SimpleJavaProject"
+fun PsiShortNamesCache.getContents(className: String, project: Project): Set<String> {
+  return this.getClassesByName(className, GlobalSearchScope.everythingScope(project))
+    .asSequence()
+    .mapNotNull { it.qualifiedName }
+    .toSortedSet()
 }
