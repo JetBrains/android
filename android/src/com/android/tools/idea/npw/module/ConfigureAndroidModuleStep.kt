@@ -75,7 +75,7 @@ class ConfigureAndroidModuleStep(
   private val minSdkLevel: Int,
   basePackage: String?,
   title: String
-) : SkippableWizardStep<NewAndroidModuleModel?>(model, title, formFactor.icon) {
+) : SkippableWizardStep<NewAndroidModuleModel>(model, title, formFactor.icon) {
   private val bindings = BindingsManager()
   private val listeners = ListenerManager()
 
