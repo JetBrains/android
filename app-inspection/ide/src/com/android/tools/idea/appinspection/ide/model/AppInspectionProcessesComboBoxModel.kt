@@ -20,6 +20,9 @@ import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
 import com.android.tools.idea.appinspection.api.ProcessDescriptor
 import com.intellij.util.concurrency.EdtExecutorService
 
+// TODO(b/152215087): This text needs to live in an Android Bundle and be internationalized.
+private const val DEFAULT_SELECTION_TEXT = "No Inspection Target Available"
+
 //TODO(b/148546243): separate view and model code into independent modules.
 class AppInspectionProcessesComboBoxModel(appInspectionDiscoveryHost: AppInspectionDiscoveryHost, preferredProcessNames: List<String>) :
   DefaultCommonComboBoxModel<ProcessDescriptor>("") {
@@ -35,7 +38,9 @@ class AppInspectionProcessesComboBoxModel(appInspectionDiscoveryHost: AppInspect
           } else {
             insertElementAt(descriptor, size)
           }
-          selectedItem = descriptor
+          if (selectedItem !is ProcessDescriptor) {
+            selectedItem = descriptor
+          }
         }
 
         override fun onProcessDisconnected(descriptor: ProcessDescriptor) {
@@ -44,5 +49,5 @@ class AppInspectionProcessesComboBoxModel(appInspectionDiscoveryHost: AppInspect
       })
   }
 
-  override fun getSelectedItem() = super.getSelectedItem() ?: "No Inspection Target Available"
+  override fun getSelectedItem() = super.getSelectedItem() ?: DEFAULT_SELECTION_TEXT
 }
