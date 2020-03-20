@@ -93,7 +93,7 @@ interface ModuleModelData : ProjectModelData {
 class NewAndroidModuleModel(
   projectModelData: ProjectModelData,
   template: NamedModuleTemplate,
-  val moduleParent: String?,
+  moduleParent: String?,
   override val formFactor: ObjectProperty<FormFactor>,
   commandName: String = "New Module",
   override val isLibrary: Boolean = false
@@ -102,7 +102,8 @@ class NewAndroidModuleModel(
   commandName,
   isLibrary,
   projectModelData,
-  template
+  template,
+  moduleParent
 ) {
   override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(projectTemplateDataBuilder)
   override val renderer = ModuleTemplateRenderer()
