@@ -21,6 +21,7 @@ import com.google.common.util.concurrent.SettableFuture
 import junit.framework.Assert.fail
 import org.junit.Test
 import java.util.concurrent.ExecutionException
+import java.util.concurrent.Executor
 
 /**
  * Tests for [com.android.tools.idea.concurrency.FutureUtils].
@@ -127,5 +128,16 @@ class FutureUtilsTest {
       fail("Future should have thrown")
     } catch (expected: ExecutionException) {
     }
+  }
+
+  @Test
+  fun testExecuteAsyncCancellation() {
+    val tasks = mutableListOf<Runnable>()
+    val delayedExecutor = Executor { command -> tasks.add(command) }
+    var ignored = true
+    val future = delayedExecutor.executeAsync { ignored = false }
+    future.cancel(true)
+    tasks.removeAt(0).run()
+    Truth.assertThat(ignored).isTrue()
   }
 }
