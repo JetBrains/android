@@ -67,18 +67,6 @@ public class ConfigureDynamicFeatureDeliveryStepFixture<W extends AbstractWizard
   }
 
   @NotNull
-  public ConfigureDynamicFeatureDeliveryStepFixture<W> checkMinimumSdkApiCheckBox() {
-    selectCheckBoxWithName("ModuleDownloadConditions.myMinimumSDKLevelCheckBox", true);
-    return this;
-  }
-
-  @NotNull
-  public ConfigureDynamicFeatureDeliveryStepFixture<W> uncheckMinimumSdkApiCheckBox() {
-    selectCheckBoxWithName("ModuleDownloadConditions.myMinimumSDKLevelCheckBox", false);
-    return this;
-  }
-
-  @NotNull
   public ConfigureDynamicFeatureDeliveryStepFixture<W> selectMinimumSdkApi(int minSdkApi) {
     ApiLevelComboBoxFixture apiLevelComboBox =
       new ApiLevelComboBoxFixture(robot(), robot().finder().findByName(target(), "minSdkComboBox", JComboBox.class));
