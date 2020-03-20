@@ -16,6 +16,7 @@
 package com.android.tools.idea.appinspection.ide
 
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.idea.appinspection.api.ProcessDescriptor
 import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessesComboBoxModel
 import com.android.tools.idea.appinspection.test.ASYNC_TIMEOUT_MS
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils
@@ -142,5 +143,38 @@ class AppInspectionProcessesComboBoxModelTest {
     with(model.getElementAt(1)) {
       assertThat(this.processName).isEqualTo("non-preferred")
     }
+  }
+
+  @Test
+  fun newProcessDoesNotCauseSelectionToChange() {
+    val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
+    val discoveryHost = AppInspectionTestUtils.createDiscoveryHost(executor, TransportClient(grpcServerRule.name))
+
+    val processReadyLatch = CountDownLatch(2)
+
+    val model = AppInspectionProcessesComboBoxModel(discoveryHost, emptyList())
+    model.addListDataListener(object : ListDataListener {
+      override fun contentsChanged(e: ListDataEvent?) {}
+
+      override fun intervalRemoved(e: ListDataEvent?) {}
+
+      override fun intervalAdded(e: ListDataEvent?) {
+        processReadyLatch.countDown()
+      }
+    })
+
+    val processA = FakeTransportService.FAKE_PROCESS.toBuilder().setName("A").setPid(100).build()
+    val processB = FakeTransportService.FAKE_PROCESS.toBuilder().setName("B").setPid(101).build()
+
+    // Launch process A
+    transportService.addDevice(FakeTransportService.FAKE_DEVICE)
+    transportService.addProcess(FakeTransportService.FAKE_DEVICE, processA)
+
+    // Launch process B
+    transportService.addProcess(FakeTransportService.FAKE_DEVICE, processB)
+    processReadyLatch.await()
+
+    // Verify combobox's selection is set to the first process (A)
+    assertThat((model.selectedItem as ProcessDescriptor).processName).isEqualTo("A")
   }
 }
