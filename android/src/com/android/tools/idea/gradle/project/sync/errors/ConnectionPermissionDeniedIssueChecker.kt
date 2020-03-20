@@ -40,22 +40,25 @@ class ConnectionPermissionDeniedIssueChecker: GradleIssueChecker {
       updateUsageTracker(issueData.projectPath, CONNECTION_DENIED)
     }
 
-    val openLinkQuickFix = OpenLinkQuickFix("https://developer.android.com/studio/troubleshoot.html#project-sync")
+    val openLinkQuickFix = OpenLinkQuickFix("https://developer.android.com/studio/troubleshoot.html#project-sync",
+                                            "More details (and potential fix)")
     return object : BuildIssue {
       override val title: String = "Connection to the Internet denied."
       override val description: String = buildString {
         appendln(message)
-        appendln("\n <a href=\"${openLinkQuickFix.id}\">More details (and potential fix)</a>")
+        appendln("\n <a href=\"${openLinkQuickFix.id}\">${openLinkQuickFix.linkText}</a>")
       }
       override val quickFixes: List<BuildIssueQuickFix> = listOf(openLinkQuickFix)
       override fun getNavigatable(project: Project): Navigatable?  = null
     }
   }
 
-  class OpenLinkQuickFix(val link: String) : BuildIssueQuickFix {
+  class OpenLinkQuickFix(val link: String, val linkText: String) : BuildIssueQuickFix {
     override val id = "OPEN_MORE_DETAILS"
     override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
-      BrowserUtil.browse(link)
+      invokeLater {
+        BrowserUtil.browse(link)
+      }
       return CompletableFuture.completedFuture<Any>(null)
     }
   }
