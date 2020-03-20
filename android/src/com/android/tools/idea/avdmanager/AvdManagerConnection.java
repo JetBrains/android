@@ -461,7 +461,7 @@ public class AvdManagerConnection {
                                      "If that is not the case, delete the files at\n" +
                                      "   %2$s/%1$s.avd/*.lock\n" +
                                      "and try again.", avdName, baseFolder);
-      Messages.showErrorDialog(project, message, "AVD Manager");
+
       return Futures.immediateFailedFuture(new RuntimeException(message));
     }
 
