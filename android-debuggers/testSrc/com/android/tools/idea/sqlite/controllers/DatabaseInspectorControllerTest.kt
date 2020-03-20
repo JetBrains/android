@@ -497,7 +497,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     }
 
     // Assert
-    val table = mockDatabaseInspectorModel.openDatabases[sqliteDatabase]!!.tables.find { it.name == "t2" }!!
+    val table = mockDatabaseInspectorModel.getDatabaseSchema(sqliteDatabase)!!.tables.find { it.name == "t2" }!!
     assertSize(1, table.columns)
     assertEquals(SqliteColumn("c1", SqliteAffinity.INTEGER, false, true), table.columns.first())
   }

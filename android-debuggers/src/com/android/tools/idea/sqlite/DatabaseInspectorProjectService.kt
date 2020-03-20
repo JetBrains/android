@@ -118,7 +118,7 @@ interface DatabaseInspectorProjectService {
    * Returns a list of the currently open [SqliteDatabase].
    */
   @AnyThread
-  fun getOpenDatabases(): Set<SqliteDatabase>
+  fun getOpenDatabases(): List<SqliteDatabase>
 
   /**
    * Shows the error in the Database Inspector.
@@ -267,10 +267,10 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
   }
 
   @AnyThread
-  override fun hasOpenDatabase() = model.openDatabases.isNotEmpty()
+  override fun hasOpenDatabase() = model.getOpenDatabases().isNotEmpty()
 
   @AnyThread
-  override fun getOpenDatabases(): Set<SqliteDatabase> = model.openDatabases.keys
+  override fun getOpenDatabases(): List<SqliteDatabase> = model.getOpenDatabases()
 
   @AnyThread
   override fun handleError(message: String, throwable: Throwable?) {
@@ -287,9 +287,15 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
     private val listeners = mutableListOf<DatabaseInspectorController.Model.Listener>()
 
     @GuardedBy("lock")
-    override val openDatabases: TreeMap<SqliteDatabase, SqliteSchema> = TreeMap(
+    private val openDatabases: TreeMap<SqliteDatabase, SqliteSchema> = TreeMap(
       Comparator.comparing { database: SqliteDatabase -> database.name }
     )
+
+    @AnyThread
+    override fun getOpenDatabases() = lock.withLock { openDatabases.keys.toList() }
+
+    @AnyThread
+    override fun getDatabaseSchema(database: SqliteDatabase) = lock.withLock { openDatabases[database] }
 
     @AnyThread
     override fun getSortedIndexOf(database: SqliteDatabase) = lock.withLock { openDatabases.headMap(database).size }

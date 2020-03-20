@@ -23,9 +23,13 @@ import java.util.TreeMap
 open class MockDatabaseInspectorModel : DatabaseInspectorController.Model {
   private val listeners = mutableListOf<DatabaseInspectorController.Model.Listener>()
 
-  override val openDatabases: TreeMap<SqliteDatabase, SqliteSchema> = TreeMap(
+  private val openDatabases: TreeMap<SqliteDatabase, SqliteSchema> = TreeMap(
     Comparator.comparing { database: SqliteDatabase -> database.name }
   )
+
+  override fun getOpenDatabases() = openDatabases.keys.toList()
+
+  override fun getDatabaseSchema(database: SqliteDatabase) = openDatabases[database]
 
   override fun getSortedIndexOf(database: SqliteDatabase) = openDatabases.headMap(database).size
 
