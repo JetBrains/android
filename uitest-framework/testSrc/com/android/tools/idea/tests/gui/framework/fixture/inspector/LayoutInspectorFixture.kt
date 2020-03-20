@@ -25,7 +25,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentTreeFixture
 import com.android.tools.idea.tests.gui.framework.fixture.ToolWindowFixture
 import com.android.tools.idea.tests.gui.framework.fixture.properties.PropertiesPanelFixture
-import com.android.tools.idea.tests.gui.framework.fixture.properties.SelectedViewPanelFixture
+import com.android.tools.idea.tests.gui.framework.fixture.properties.SelectedComponentPanelFixture
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import com.android.tools.idea.tests.gui.framework.waitUntilFound
 import com.intellij.openapi.actionSystem.AnAction
@@ -130,7 +130,7 @@ class LayoutInspectorFixture(project: Project, robot: Robot) : ToolWindowFixture
   }
 
   private fun getCurrentIdInPropertyPanel(): String? =
-    (properties.findHeader()?.components?.firstOrNull() as? SelectedViewPanelFixture)?.id
+    (properties.findHeader()?.components?.firstOrNull() as? SelectedComponentPanelFixture)?.id
 
   private fun findSubItemInActivePopup(subTitle: String): JMenuItemFixture =
     JMenuItemFixture(robot(), waitUntilFound("the menu \"$subTitle\" to show up", { findSubItem(robot().findActivePopupMenu(), subTitle) }))
