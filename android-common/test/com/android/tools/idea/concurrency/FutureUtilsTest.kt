@@ -90,6 +90,26 @@ class FutureUtilsTest {
   }
 
   @Test
+  fun testFinallySyncCancelled() {
+    val future = SettableFuture.create<Int>()
+    var executionCounter = 0
+    val result = future.finallySync(directExecutor()) { executionCounter++ }
+    result.cancel(true)
+    Truth.assertThat(executionCounter).isEqualTo(1)
+    Truth.assertThat(future.isCancelled).isTrue()
+  }
+
+  @Test
+  fun testFinallySyncInputCancelled() {
+    val future = SettableFuture.create<Int>()
+    var executionCounter = 0
+    val result = future.finallySync(directExecutor()) { executionCounter++ }
+    future.cancel(true)
+    Truth.assertThat(executionCounter).isEqualTo(1)
+    Truth.assertThat(result.isCancelled).isTrue()
+  }
+
+  @Test
   fun testCatching() {
     val future = SettableFuture.create<Int>()
     val result = future.catching(directExecutor(), RuntimeException::class.java, { t ->

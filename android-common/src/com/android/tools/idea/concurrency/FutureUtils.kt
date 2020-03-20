@@ -106,7 +106,7 @@ fun <I> ListenableFuture<I>.addCallback(executor: Executor = directExecutor(), f
   Futures.addCallback(this, futureCallback, executor)
 }
 
-fun <T> executeOnPooledThread(action: ()->T): ListenableFuture<T> {
+fun <T> executeOnPooledThread(action: () -> T): ListenableFuture<T> {
   val futureTask = ListenableFutureTask.create(action)
   ApplicationManager.getApplication().executeOnPooledThread(futureTask)
   return futureTask
@@ -208,7 +208,7 @@ fun <V> pumpEventsAndWaitForFuture(future: Future<V>, timeout: Long, unit: TimeU
  */
 fun <I> ListenableFuture<I>.finallySync(executor: Executor, finallyBlock: () -> Unit): ListenableFuture<I> {
   val futureResult = SettableFuture.create<I>()
-
+  val inputFuture = this
   addCallback(executor, object : FutureCallback<I> {
     override fun onSuccess(result: I?) {
       try {
@@ -223,15 +223,27 @@ fun <I> ListenableFuture<I>.finallySync(executor: Executor, finallyBlock: () -> 
     override fun onFailure(t: Throwable) {
       try {
         finallyBlock()
-        futureResult.setException(t)
       }
-      catch (finallyError: Throwable) {
-        // Prefer original error over error from finally block
-        t.addSuppressed(finallyError)
-        futureResult.setException(t)
+      catch (finallyThrowable: Throwable) {
+        t.addSuppressed(finallyThrowable)
       }
+
+      if (inputFuture.isCancelled) {
+        // respect cancellation cause, though we swallow
+        // finallyThrowable in this situation
+        futureResult.setFuture(inputFuture)
+        return
+      }
+      // propagate original exception with finallyThrowableSuppressed
+      futureResult.setException(t)
     }
   })
+
+  futureResult.addCallback(directExecutor(), {}) {
+    if (futureResult.isCancelled) {
+      inputFuture.cancel(true)
+    }
+  }
   return futureResult
 }
 
