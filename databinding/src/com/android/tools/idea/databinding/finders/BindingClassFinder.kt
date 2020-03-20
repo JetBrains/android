@@ -18,8 +18,7 @@ package com.android.tools.idea.databinding.finders
 import com.android.tools.idea.databinding.LayoutBindingProjectComponent
 import com.android.tools.idea.databinding.ModuleDataBinding
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
-import com.android.tools.idea.util.androidFacet
-import com.intellij.openapi.module.ModuleManager
+import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElementFinder
@@ -39,8 +38,7 @@ import org.jetbrains.android.facet.AndroidFacet
 class BindingClassFinder(private val project: Project) : PsiElementFinder() {
   companion object {
     fun findAllBindingClasses(project: Project): List<LightBindingClass> {
-      return ModuleManager.getInstance(project).modules
-        .mapNotNull { module -> module.androidFacet }
+      return ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID)
         .flatMap { facet -> findAllBindingClasses(facet) }
     }
 
