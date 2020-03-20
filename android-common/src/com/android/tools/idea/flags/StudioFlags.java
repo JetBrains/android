@@ -504,12 +504,6 @@ public final class StudioFlags {
     "SQLite files opened from the Device Explorer will open in the inspector.",
     false
   );
-
-  // TODO(b/144073974) why do we need a separate flag for this?
-  public static final Flag<Boolean> SQLITE_APP_INSPECTOR_ENABLED = Flag.create(
-    DATABASE_INSPECTOR, "sqlite.app.inspector", "Enable experimental SQLite inspector",
-    "SQLite inspector runs and executes all operations in app process",
-    false);
   //endregion
 
   //region Layout Inspector
