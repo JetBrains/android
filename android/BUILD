@@ -239,9 +239,19 @@ iml_module(
         "navigator": {
             "shard_count": 2,
             "data": ["//prebuilts/studio/sdk:ndk"],
+            "test_filter": "com.android.tools.idea.navigator",
+        },
+        "navigator.AndroidGradleProjectViewSnapshotComparisonTest": {
+            "data": ["//prebuilts/studio/sdk:ndk"],
             # testDependentNativeModules (ag/9872410)
             "tags": ["no_windows"],
-            "test_filter": "com.android.tools.idea.navigator",
+            "test_filter": "com.android.tools.idea.navigator.AndroidGradleProjectViewSnapshotComparisonTest",
+        },
+        "navigator.SourceProvidersSnapshotComparisonTest": {
+            "data": ["//prebuilts/studio/sdk:ndk"],
+            # testDependentNativeModules (ag/9872410)
+            "tags": ["no_windows"],
+            "test_filter": "com.android.tools.idea.navigator.SourceProvidersSnapshotComparisonTest",
         },
         "imports": {
             "shard_count": 2,
