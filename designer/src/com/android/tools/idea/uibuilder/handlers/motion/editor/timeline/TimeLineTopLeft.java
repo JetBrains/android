@@ -51,6 +51,21 @@ public class TimeLineTopLeft extends JPanel {
 
   boolean mIsPlaying = false;
 
+  @Override
+  public void updateUI() {
+    super.updateUI();
+    if (buttons == null) {
+      return;
+    }
+    setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, MEUI.ourBorder));
+    setPreferredSize(new Dimension(MEUI.ourLeftColumnWidth, MEUI.ourHeaderHeight));
+    Dimension size = new Dimension(MEUI.scale(13), MEUI.scale(13));
+    for (int i = 0; i < buttons.length; i++) {
+      JButton button = buttons[i];
+      button.setPreferredSize(size);
+    }
+  }
+
   TimeLineTopLeft() {
     super(new GridBagLayout());
     setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, MEUI.ourBorder));
@@ -61,7 +76,7 @@ public class TimeLineTopLeft extends JPanel {
     gbc.gridy = 0;
     gbc.weightx = 1;
     gbc.insets = new Insets(MEUI.scale(1), MEUI.scale(1), MEUI.scale(1), MEUI.scale(1));
-    
+
     for (int i = 0; i < buttons.length; i++) {
       JButton button = buttons[i];
       button.setBackground(this.getBackground());
