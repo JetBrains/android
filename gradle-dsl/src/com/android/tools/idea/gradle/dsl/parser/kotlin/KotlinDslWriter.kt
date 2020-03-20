@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.KTS_KNOWN_CONFIGURATIONS
 import com.android.tools.idea.gradle.dsl.parser.elements.FakeElement
+import com.android.tools.idea.gradle.dsl.parser.elements.FakeMethodElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
@@ -423,24 +424,7 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
     val anchor = getPsiElementForAnchor(parentPsiElement, anchorAfter)
     val psiFactory = KtPsiFactory(parentPsiElement.project)
 
-    // TODO(xof): this is a bit heavyweight, but we need it to use the maybeTrimForParent interface.
-    val fakeElement = object : FakeElement(methodCall.parent, GradleNameElement.fake(methodCall.methodName), methodCall, true) {
-      override fun copy(): GradleDslSimpleExpression {
-        throw UnsupportedOperationException("not implemented")
-      }
-
-      override fun extractValue(): Any? {
-        throw UnsupportedOperationException("not implemented")
-      }
-
-      override fun consumeValue(value: Any?) {
-        throw UnsupportedOperationException("not implemented")
-      }
-
-      override fun produceRawValue(): Any? {
-        throw UnsupportedOperationException("not implemented")
-      }
-    }
+    val fakeElement = FakeMethodElement(methodCall)
 
     val statementText =
       if (methodCall.fullName.isNotEmpty() && methodCall.fullName != methodCall.methodName) {
