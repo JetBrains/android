@@ -87,6 +87,12 @@ public final class RenderParamsFlags {
     public static final Key<Boolean> FLAG_KEY_ENABLE_SHADOW =
         new Key<>("enableShadow", Boolean.class);
 
+    /**
+     * Enables layout validation calls within rendering.
+     */
+    public static final Key<Boolean> FLAG_KEY_ENABLE_LAYOUT_VALIDATOR =
+      new Key<>("enableLayoutValidator", Boolean.class);
+
     // Disallow instances.
     private RenderParamsFlags() {}
 }

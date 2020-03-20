@@ -337,6 +337,11 @@ public final class StudioFlags {
     " Tools",
     true
   );
+
+  public static final Flag<Boolean> NELE_LAYOUT_VALIDATOR_IN_EDITOR = Flag.create(
+    NELE, "toggle.layout.editor.validator.a11y", "Toggle layout validator for layout editor.",
+    "When the model changes, layout editor will run the series of layout validations and update lint output",
+    false);
   //endregion
 
   //region Navigation Editor
