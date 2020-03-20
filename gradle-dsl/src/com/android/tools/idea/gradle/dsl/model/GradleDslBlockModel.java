@@ -92,11 +92,11 @@ public abstract class GradleDslBlockModel implements GradleDslModel {
 
   @NotNull
   protected ResolvedPropertyModel getFileModelForProperty(@NotNull String property) {
-    return GradlePropertyModelBuilder.create(myDslElement, property).asMethod(true).addTransform(PropertyUtil.FILE_TRANSFORM).buildResolved();
+    return GradlePropertyModelBuilder.create(myDslElement, property).addTransform(PropertyUtil.FILE_TRANSFORM).buildResolved();
   }
 
   @NotNull
   protected PasswordPropertyModel getPasswordModelForProperty(@NotNull String property) {
-    return GradlePropertyModelBuilder.create(myDslElement, property).asMethod(true).buildPassword();
+    return GradlePropertyModelBuilder.create(myDslElement, property).buildPassword();
   }
 }
