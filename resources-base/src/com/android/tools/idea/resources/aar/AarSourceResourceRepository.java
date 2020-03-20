@@ -371,7 +371,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
      */
     private void createResourcesForRTxtIds(@NotNull AarSourceResourceRepository repository) {
       if (!myRTxtIds.isEmpty()) {
-        RepositoryConfiguration configuration = getConfiguration(repository, FolderConfiguration.createDefault());
+        RepositoryConfiguration configuration = getConfiguration(repository, ResourceItem.DEFAULT_CONFIGURATION);
         ResourceSourceFile sourceFile = new ResourceSourceFileImpl(null, configuration);
         for (String name : myRTxtIds) {
           addIdResourceItem(name, sourceFile);
