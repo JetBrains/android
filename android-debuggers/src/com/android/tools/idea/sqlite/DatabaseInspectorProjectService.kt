@@ -57,6 +57,7 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.ide.PooledThreadExecutor
 import java.util.TreeMap
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.Executor
 import java.util.concurrent.locks.ReentrantLock
 import java.util.function.Consumer
@@ -206,12 +207,14 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
 
   init {
     model.addListener(object : DatabaseInspectorController.Model.Listener {
+      @AnyThread
       override fun onDatabaseAdded(database: SqliteDatabase) {
         if (database is FileSqliteDatabase) {
           openFileSqliteDatabases.add(database)
         }
       }
 
+      @AnyThread
       override fun onDatabaseRemoved(database: SqliteDatabase) {
         if (database is FileSqliteDatabase) {
           openFileSqliteDatabases.remove(database)
@@ -298,8 +301,7 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
 
     private val lock = ReentrantLock()
 
-    @GuardedBy("lock")
-    private val listeners = mutableListOf<DatabaseInspectorController.Model.Listener>()
+    private val listeners = CopyOnWriteArrayList<DatabaseInspectorController.Model.Listener>()
 
     @GuardedBy("lock")
     private val openDatabases: TreeMap<SqliteDatabase, SqliteSchema> = TreeMap(
@@ -316,22 +318,26 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
     override fun getSortedIndexOf(database: SqliteDatabase) = lock.withLock { openDatabases.headMap(database).size }
 
     @AnyThread
-    override fun add(database: SqliteDatabase, sqliteSchema: SqliteSchema): Unit = lock.withLock {
-      openDatabases[database] = sqliteSchema
+    override fun add(database: SqliteDatabase, sqliteSchema: SqliteSchema) {
+      lock.withLock { openDatabases[database] = sqliteSchema }
+
       listeners.forEach { it.onDatabaseAdded(database) }
     }
 
     @AnyThread
-    override fun remove(database: SqliteDatabase): Unit = lock.withLock {
-      openDatabases.remove(database)
+    override fun remove(database: SqliteDatabase) {
+      lock.withLock { openDatabases.remove(database) }
+
       listeners.forEach { it.onDatabaseRemoved(database) }
     }
 
-    override fun addListener(modelListener: DatabaseInspectorController.Model.Listener): Unit = lock.withLock {
+    @AnyThread
+    override fun addListener(modelListener: DatabaseInspectorController.Model.Listener) {
       listeners.add(modelListener)
     }
 
-    override fun removeListener(modelListener: DatabaseInspectorController.Model.Listener): Unit = lock.withLock {
+    @AnyThread
+    override fun removeListener(modelListener: DatabaseInspectorController.Model.Listener) {
       listeners.remove(modelListener)
     }
   }
