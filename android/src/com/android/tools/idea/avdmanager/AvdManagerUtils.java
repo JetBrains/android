@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.ddmlib.IDevice;
 import com.android.prefs.AndroidLocation;
 import com.android.sdklib.internal.avd.AvdManager;
+import com.google.common.util.concurrent.FutureCallback;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
@@ -53,5 +55,12 @@ public class AvdManagerUtils {
     catch (AndroidLocation.AndroidLocationException ignored) {
     }
     return null;
+  }
+
+  @NotNull
+  static FutureCallback<IDevice> newCallback(@Nullable Project project) {
+    return new ShowErrorDialogCallback<>("AVD Manager",
+                                         "There was an unspecified error in the AVD Manager. Please consult idea.log for more information.",
+                                         project);
   }
 }
