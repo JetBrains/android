@@ -104,6 +104,16 @@ public class TimeLinePanel extends JPanel {
   private MTagActionListener mListener;
   Timer myMouseDownTimer;
 
+  @Override
+  public void updateUI() {
+    super.updateUI();
+    if (mTimeLineTopLeft != null) {
+      mTimeLineTopLeft.updateUI();
+    }
+    if (mTimeLine != null) {
+      mTimeLine.updateUI();
+    }
+  }
   public TimeLinePanel() {
     super(new BorderLayout());
     JPanel top = new JPanel(new BorderLayout());
@@ -1068,7 +1078,7 @@ public class TimeLinePanel extends JPanel {
         for (int i = n; i < list.size(); i++) {
           TimeLineRow child = new TimeLineRow(mTimelineStructure);
           TimeLineRowData data = list.get(i);
-          boolean showTitle = true;
+          boolean showTitle = !(data.mName != null && data.mName.equals(lastName));
           if (data == null || data.mName == null) {
             showTitle = false;
           } else {
