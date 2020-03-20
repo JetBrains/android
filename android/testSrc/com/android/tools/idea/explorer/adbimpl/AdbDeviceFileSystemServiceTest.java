@@ -61,6 +61,9 @@ public class AdbDeviceFileSystemServiceTest extends AndroidTestCase {
       // We need this call so that we don't leak a thread (the ADB Monitor thread)
       AdbService.getInstance().terminateDdmlib();
     }
+    catch (Throwable e) {
+      addSuppressedException(e);
+    }
     finally {
       super.tearDown();
     }
