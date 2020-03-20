@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.nav.safeargs
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
@@ -74,6 +75,8 @@ private fun AndroidFacet.updateSafeArgsMode(): SafeArgsMode {
 
 var AndroidFacet.safeArgsMode: SafeArgsMode
   get() {
+    if (!StudioFlags.NAV_SAFE_ARGS_SUPPORT.get()) return SafeArgsMode.NONE
+
     var safeArgsMode = getUserData(SAFE_ARGS_MODE_KEY)
     if (safeArgsMode == null) {
       val connection = module.messageBus.connect(this)

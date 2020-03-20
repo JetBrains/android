@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.nav.safeargs.gradle
 
+import com.android.flags.junit.RestoreFlagRule
 import com.android.tools.idea.databinding.DataBindingMode
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.TestDataPaths
 import com.android.tools.idea.nav.safeargs.safeArgsMode
@@ -55,11 +57,17 @@ class KotlinSyncGradlePluginTest(val params: TestParams) {
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
+  @get:Rule
+  val restoreSafeArgsFlagRule = RestoreFlagRule(StudioFlags.NAV_SAFE_ARGS_SUPPORT)
+
+
   private val fixture get() = projectRule.fixture as JavaCodeInsightTestFixture
   private var modificationCountBaseline = Long.MIN_VALUE
 
   @Before
   fun setUp() {
+    StudioFlags.NAV_SAFE_ARGS_SUPPORT.override(true)
+
     modificationCountBaseline = projectRule.project.safeArgsModeTracker.modificationCount
 
     fixture.testDataPath = TestDataPaths.TEST_DATA_ROOT
