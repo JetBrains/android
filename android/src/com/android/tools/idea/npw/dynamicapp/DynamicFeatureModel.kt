@@ -34,10 +34,9 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer
 
 class DynamicFeatureModel(
   project: Project, projectSyncInvoker: ProjectSyncInvoker, val isInstant: Boolean,
-  @JvmField
   val templateName: String,
-  @JvmField
-  val templateDescription: String
+  val templateDescription: String,
+  val moduleParent: String? = null // TODO
 ) : ModuleModel(
   "dynamicfeature",
   "New Dynamic Feature Module",
@@ -46,9 +45,7 @@ class DynamicFeatureModel(
 ) {
   @JvmField
   val featureTitle = StringValueProperty("Module Title")
-  @JvmField
   val baseApplication = OptionalValueProperty<Module>()
-  @JvmField
   val featureOnDemand = BoolValueProperty(true)
   @JvmField
   val featureFusing = BoolValueProperty(true)
