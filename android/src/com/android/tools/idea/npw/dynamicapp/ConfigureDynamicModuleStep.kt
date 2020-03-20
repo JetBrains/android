@@ -100,6 +100,7 @@ class ConfigureDynamicModuleStep(
   private val apiLevelCombo: AndroidApiLevelComboBox = AndroidApiLevelComboBox()
 
   // specific to dynamic modules
+  // TODO(qumeric): unify with ConfigureModuleDownloadOptionsStep
   private val moduleTitle: JTextField = JBTextField()
   private val fusingCheckbox: JCheckBox = JBCheckBox("Fusing (install module on pre-Lollipop devices)")
 
