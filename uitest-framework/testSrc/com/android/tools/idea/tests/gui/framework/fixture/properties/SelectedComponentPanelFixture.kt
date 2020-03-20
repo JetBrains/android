@@ -15,19 +15,19 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.properties
 
-import com.android.tools.idea.layoutinspector.ui.SelectedViewPanel
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture
+import com.android.tools.property.panel.api.SelectedComponentPanel
 import org.fest.swing.core.Robot
 import javax.swing.Icon
 import javax.swing.JLabel
 
 /**
- * Fixture for a [SelectedViewPanel] which is the header component in the properties panel for a layout inspector.
+ * Fixture for a [SelectedComponentPanel] which is the header component in the properties panel for a layout inspector.
  */
-class SelectedViewPanelFixture(
-  panel: SelectedViewPanel,
+class SelectedComponentPanelFixture(
+  panel: SelectedComponentPanel,
   robot: Robot
-) : ComponentFixture<SelectedViewPanelFixture, SelectedViewPanel>(SelectedViewPanelFixture::class.java, robot, panel) {
+) : ComponentFixture<SelectedComponentPanelFixture, SelectedComponentPanel>(SelectedComponentPanelFixture::class.java, robot, panel) {
 
   val id: String
     get() = (target().components[0] as JLabel).text

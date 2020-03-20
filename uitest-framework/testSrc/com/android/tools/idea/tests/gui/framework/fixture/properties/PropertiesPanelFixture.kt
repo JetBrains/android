@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.properties
 
-import com.android.tools.idea.layoutinspector.ui.SelectedViewPanel
 import com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import com.android.tools.property.panel.api.PROPERTIES_PANEL_NAME
 import com.android.tools.property.panel.api.PropertiesPanel
 import com.android.tools.property.panel.api.PropertyItem
+import com.android.tools.property.panel.api.SelectedComponentPanel
 import com.android.tools.property.panel.impl.model.TitleLineModel
 import com.android.tools.property.panel.impl.ui.CollapsibleLabelPanel
 import com.android.tools.property.panel.impl.ui.GenericLinePanel
@@ -96,7 +96,7 @@ class PropertiesPanelFixture<P : PropertyItem>(private val propertiesPanel: Prop
       val child = panel.components.singleOrNull() ?: return
       when {
         child is JPanel && child.componentCount == 0 -> return // ignore spacers
-        child is SelectedViewPanel -> addComponent(SelectedViewPanelFixture(child, robot))
+        child is SelectedComponentPanel -> addComponent(SelectedComponentPanelFixture(child, robot))
         child is PTableImpl -> addTable(child)
         else -> error("Missing fixture mapping")
       }
