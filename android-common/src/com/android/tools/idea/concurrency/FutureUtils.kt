@@ -247,14 +247,6 @@ fun <V, X : Throwable> ListenableFuture<V>.catching(executor: Executor, exceptio
  * that completes with the [function] result or the exception thrown from the [function].
  */
 fun <V> Executor.executeAsync(function: () -> V): ListenableFuture<V> {
-  val futureResult = SettableFuture.create<V>()
-  execute(Runnable {
-    try {
-      futureResult.set(function())
-    }
-    catch (t: Throwable) {
-      futureResult.setException(t)
-    }
-  })
-  return futureResult
+  // Should be migrated to Futures.submit(), once guava will be updated to version >= 28.2
+  return Futures.immediateFuture(Unit).transform(this) { function() }
 }
