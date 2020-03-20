@@ -19,9 +19,12 @@ import com.android.AndroidProjectTypes
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.model.AndroidManifestIndex
 import com.android.tools.idea.util.androidFacet
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runUndoTransparentWriteAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.roots.ModuleRootModificationUtil
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import com.intellij.util.indexing.FileBasedIndex
@@ -183,7 +186,7 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
   }
 
   fun testMiddleModule_Java() {
-    runRefactoring(getAdditionalModuleByName("lib")!!.androidFacet!!)
+    MigrateToNonTransitiveRClassesProcessor.forSingleModule(getAdditionalModuleByName("lib")!!.androidFacet!!).run()
 
     myFixture.checkResult(
       "src/com/example/app/AppJavaClass.java",
@@ -228,7 +231,7 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
   }
 
   fun testMiddleModule_Kotlin() {
-    runRefactoring(getAdditionalModuleByName("lib")!!.androidFacet!!)
+    MigrateToNonTransitiveRClassesProcessor.forSingleModule(getAdditionalModuleByName("lib")!!.androidFacet!!).run()
 
     myFixture.checkResult(
       "src/com/example/app/AppKotlinClass.kt",
@@ -273,7 +276,7 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
   }
 
   fun testAppModule_Java() {
-    runRefactoring(myFacet)
+    MigrateToNonTransitiveRClassesProcessor.forSingleModule(myFacet).run()
 
     myFixture.checkResult(
       "src/com/example/app/AppJavaClass.java",
@@ -318,7 +321,7 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
   }
 
   fun testAppModule_Kotlin() {
-    runRefactoring(myFacet)
+    MigrateToNonTransitiveRClassesProcessor.forSingleModule(myFacet).run()
 
     myFixture.checkResult(
       "src/com/example/app/AppKotlinClass.kt",
@@ -362,7 +365,73 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
     )
   }
 
-  private fun runRefactoring(facetToMigrate: AndroidFacet) {
-    MigrateToNonTransitiveRClassesProcessor(facetToMigrate).run()
+  fun testWholeProject() {
+    MigrateToNonTransitiveRClassesProcessor.forEntireProject(project).run()
+
+    myFixture.checkResult(
+      "src/com/example/app/AppJavaClass.java",
+      // language=java
+      """
+        package com.example.app;
+
+        public class AppJavaClass {
+            public void foo() {
+                int[] ids = new int[] {
+                  R.string.from_app,
+                  com.example.lib.R.string.from_lib,
+                  com.example.sublib.R.string.from_sublib,
+                  com.example.lib.R.string.from_lib,
+                  com.example.sublib.R.string.from_sublib,
+                  com.example.sublib.R.string.from_sublib,
+                };
+            }
+        }
+      """.trimIndent(),
+      true
+    )
+
+    myFixture.checkResult(
+      "${getAdditionalModulePath("lib")}/src/com/example/lib/LibJavaClass.java",
+      // language=java
+      """
+        package com.example.lib;
+
+        public class LibJavaClass {
+            public void foo() {
+                int[] ids = new int[] {
+                  R.string.from_lib,
+                  com.example.sublib.R.string.from_sublib,
+                  com.example.sublib.R.string.from_sublib,
+                };
+            }
+        }
+      """.trimIndent(),
+      true
+    )
+
+    myFixture.checkResult(
+      "src/com/example/app/AppKotlinClass.kt",
+      // language=kotlin
+      """
+        package com.example.app
+
+        class AppKotlinClass {
+            fun foo() {
+                val ids = intArrayOf(
+                  R.string.from_app,
+                  com.example.lib.R.string.from_lib,
+                  com.example.sublib.R.string.from_sublib,
+                  com.example.lib.R.string.from_lib,
+                  com.example.sublib.R.string.from_sublib,
+                  com.example.sublib.R.string.from_sublib
+                )
+            }
+        }
+      """.trimIndent(),
+      true
+    )
+
+    val properties = VfsUtil.findRelativeFile(project.guessProjectDir(), "gradle.properties")!!
+    assertThat(FileDocumentManager.getInstance().getDocument(properties)!!.text).isEqualTo("android.nonTransitiveRClass=true")
   }
 }

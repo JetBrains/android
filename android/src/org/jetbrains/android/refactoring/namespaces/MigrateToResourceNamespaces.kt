@@ -179,7 +179,7 @@ class MigrateToResourceNamespacesProcessor(
     progressIndicator.text = "Inferring namespaces..."
     progressIndicator.text2 = null
 
-    inferPackageNames(invokingFacet, result, progressIndicator)
+    inferPackageNames(result, progressIndicator)
 
     progressIndicator.text = null
     return result.toTypedArray()
