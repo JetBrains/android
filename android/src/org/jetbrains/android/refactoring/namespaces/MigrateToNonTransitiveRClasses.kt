@@ -17,6 +17,8 @@ package org.jetbrains.android.refactoring.namespaces
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.google.wireless.android.sdk.stats.GradleSyncStats
+import com.intellij.facet.ProjectFacetManager
 import com.intellij.lang.Language
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.editor.Editor
@@ -34,8 +36,9 @@ import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.refactoring.getProjectProperties
 import org.jetbrains.android.refactoring.module
-import org.jetbrains.android.refactoring.offerToCreateBackupAndRun
+import org.jetbrains.android.refactoring.syncBeforeFinishingRefactoring
 
 const val REFACTORING_NAME = "Migrate to non-transitive R classes"
 
@@ -61,41 +64,56 @@ class MigrateToNonTransitiveRClassesAction : BaseRefactoringAction() {
  * Since there's no user input required to start the refactoring, it just runs a fresh [MigrateToResourceNamespacesProcessor].
  */
 class MigrateToNonTransitiveRClassesHandler : RefactoringActionHandler {
-  override fun invoke(project: Project, editor: Editor?, file: PsiFile?, dataContext: DataContext?) {
-    dataContext?.module?.let(this::invoke)
-  }
+  override fun invoke(project: Project, editor: Editor?, file: PsiFile?, dataContext: DataContext?) = invoke(project)
+  override fun invoke(project: Project, elements: Array<PsiElement>, dataContext: DataContext?) = invoke(project)
 
-  override fun invoke(project: Project, elements: Array<PsiElement>, dataContext: DataContext?) {
-    dataContext?.module?.let(this::invoke)
-  }
-
-  private fun invoke(module: Module) {
-    val processor = MigrateToNonTransitiveRClassesProcessor(AndroidFacet.getInstance(module)!!)
+  private fun invoke(project: Project) {
+    val processor = MigrateToNonTransitiveRClassesProcessor.forEntireProject(project)
     processor.setPreviewUsages(true)
-
-    offerToCreateBackupAndRun(module.project, REFACTORING_NAME) {
-      processor.run()
-    }
+    processor.run()
   }
 }
 
 /**
  * Implements the "migrate to resource namespaces" refactoring by finding all references to resources and rewriting them.
  */
-class MigrateToNonTransitiveRClassesProcessor(
-  private val facetToMigrate: AndroidFacet
-) : BaseRefactoringProcessor(facetToMigrate.module.project) {
+class MigrateToNonTransitiveRClassesProcessor private constructor(
+  project: Project,
+  private val facetsToMigrate: Collection<AndroidFacet>,
+  private val updateTopLevelGradleProperties: Boolean
+) : BaseRefactoringProcessor(project) {
+
+  companion object {
+    fun forSingleModule(facet: AndroidFacet): MigrateToNonTransitiveRClassesProcessor {
+      return MigrateToNonTransitiveRClassesProcessor(facet.module.project, setOf(facet), updateTopLevelGradleProperties = false)
+    }
+
+    fun forEntireProject(project: Project): MigrateToNonTransitiveRClassesProcessor {
+      return MigrateToNonTransitiveRClassesProcessor(
+        project,
+        facetsToMigrate = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).filter { facet ->
+          facet.getModuleSystem().isRClassTransitive
+        },
+        updateTopLevelGradleProperties = true
+      )
+    }
+  }
 
   override fun getCommandName() = REFACTORING_NAME
 
   override fun findUsages(): Array<UsageInfo> {
+    // TODO(b/137180850): handle the case where facetsToMigrate is empty, because the project is already migrated.
+
     val progressIndicator = ProgressManager.getInstance().progressIndicator
     progressIndicator.isIndeterminate = true
     progressIndicator.text = "Finding R class usages..."
-    val usages = findUsagesOfRClassesFromModule(facetToMigrate)
+    val usages = facetsToMigrate.flatMap(::findUsagesOfRClassesFromModule)
+
+    // TODO(b/137180850): handle the case where usages is empty better. Display gradle.properties as the only "usage", so there's something
+    //   in the UI?
 
     progressIndicator.text = "Inferring package names..."
-    inferPackageNames(facetToMigrate, usages, progressIndicator)
+    inferPackageNames(usages, progressIndicator)
 
     progressIndicator.text = null
     return usages.toTypedArray()
@@ -119,8 +137,13 @@ class MigrateToNonTransitiveRClassesProcessor(
       psiMigration.finish()
     }
 
-    // TODO(b/137180850): change gradle.properties and sync
-    //syncBeforeFinishingRefactoring(myProject, GradleSyncStats.Trigger.TRIGGER_REFACTOR_MIGRATE_TO_RESOURCE_NAMESPACES)
+    if (updateTopLevelGradleProperties) {
+      myProject.getProjectProperties(createIfNotExists = true)?.apply {
+        findPropertyByKey(NON_TRANSITIVE_R_CLASSES_PROPERTY)?.setValue("true") ?: addProperty(NON_TRANSITIVE_R_CLASSES_PROPERTY, "true")
+        syncBeforeFinishingRefactoring(myProject, GradleSyncStats.Trigger.TRIGGER_REFACTOR_MIGRATE_TO_RESOURCE_NAMESPACES)
+      }
+    }
+
   }
 
   override fun createUsageViewDescriptor(usages: Array<UsageInfo>): UsageViewDescriptor = object : UsageViewDescriptorAdapter() {

@@ -23,6 +23,7 @@ import com.android.tools.idea.kotlin.getNextInQualifiedChain
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.packageToRClass
+import com.android.tools.idea.util.androidFacet
 import com.google.common.collect.Maps
 import com.google.common.collect.Table
 import com.google.common.collect.Tables
@@ -40,6 +41,8 @@ import org.jetbrains.android.refactoring.findOrCreateClass
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
+
+const val NON_TRANSITIVE_R_CLASSES_PROPERTY = "android.nonTransitiveRClass"
 
 /**
  * Information about an Android resource reference.
@@ -152,11 +155,9 @@ internal fun findUsagesOfRClassesFromModule(facet: AndroidFacet): Collection<Cod
 }
 
 internal fun inferPackageNames(
-  facet: AndroidFacet,
   result: Collection<ResourceUsageInfo>,
   progressIndicator: ProgressIndicator
 ) {
-  val leafRepos = ResourceRepositoryManager.getAppResources(facet).leafResourceRepositories
 
   val inferredNamespaces: Table<ResourceType, String, String> =
     Tables.newCustomTable(Maps.newEnumMap(ResourceType::class.java)) { mutableMapOf<String, String>() }
@@ -166,6 +167,9 @@ internal fun inferPackageNames(
   // TODO(b/78765120): try doing this in parallel using a thread pool.
   result.forEachIndexed { index, resourceUsageInfo ->
     ProgressManager.checkCanceled()
+
+    val facet = resourceUsageInfo.element?.androidFacet ?: return@forEachIndexed
+    val leafRepos = ResourceRepositoryManager.getAppResources(facet).leafResourceRepositories
 
     resourceUsageInfo.inferredPackage = inferredNamespaces.row(resourceUsageInfo.resourceType).computeIfAbsent(resourceUsageInfo.name) {
       for (repo in leafRepos) {

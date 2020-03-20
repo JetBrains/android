@@ -2,9 +2,11 @@
 
 package org.jetbrains.android.refactoring
 
+import com.android.SdkConstants
 import com.android.tools.idea.actions.ExportProjectZip
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.google.wireless.android.sdk.stats.GradleSyncStats
+import com.intellij.lang.properties.psi.PropertiesFile
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.actionSystem.ex.ActionUtil
@@ -13,9 +15,11 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.ui.Messages
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiMigration
 import com.intellij.psi.PsiPackage
 import com.intellij.psi.search.GlobalSearchScope
@@ -164,4 +168,21 @@ fun syncBeforeFinishingRefactoring(project: Project, trigger: GradleSyncStats.Tr
     project,
     GradleSyncInvoker.Request(trigger)
   )
+}
+
+/**
+ * Returns a [PropertiesFile] instance for the `gradle.properties` file in the given project or null if it does not exist.
+ */
+fun Project.getProjectProperties(createIfNotExists: Boolean = false): PropertiesFile? {
+  if (isDisposed) return null
+  val projectBaseDirectory = guessProjectDir()
+  val gradlePropertiesFile = if (createIfNotExists) {
+    projectBaseDirectory?.findOrCreateChildData(this, SdkConstants.FN_GRADLE_PROPERTIES)
+  }
+  else {
+    projectBaseDirectory?.findChild(SdkConstants.FN_GRADLE_PROPERTIES)
+  }
+  val psiPropertiesFile = PsiManager.getInstance(this).findFile(gradlePropertiesFile ?: return null)
+
+  return if (psiPropertiesFile is PropertiesFile) psiPropertiesFile else null
 }
