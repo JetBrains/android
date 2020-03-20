@@ -48,7 +48,11 @@ public class AdbDeviceFileSystemRendererFactoryTest extends AndroidTestCase {
     try {
       // We need this call so that we don't leak a thread (the ADB Monitor thread)
       AdbService.getInstance().terminateDdmlib();
-    } finally {
+    }
+    catch (Throwable e) {
+      addSuppressedException(e);
+    }
+    finally {
       super.tearDown();
     }
   }
