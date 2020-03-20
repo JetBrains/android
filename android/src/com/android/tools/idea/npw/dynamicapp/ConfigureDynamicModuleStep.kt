@@ -31,6 +31,7 @@ import com.android.tools.idea.npw.module.AppNameToModuleNameExpression
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.template.components.BytecodeLevelComboProvider
 import com.android.tools.idea.npw.template.components.LanguageComboProvider
+import com.android.tools.idea.npw.template.components.ModuleComboProvider
 import com.android.tools.idea.npw.validator.ApiVersionValidator
 import com.android.tools.idea.npw.validator.ModuleValidator
 import com.android.tools.idea.npw.validator.PackageNameValidator
@@ -52,13 +53,9 @@ import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.android.tools.idea.wizard.template.BytecodeLevel
 import com.android.tools.idea.wizard.template.Language
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleType
-import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.ContextHelpLabel
-import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.components.JBCheckBox
-import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.layout.panel
@@ -66,7 +63,6 @@ import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.android.util.AndroidBundle
 import java.util.Optional
 import java.util.function.Consumer
-import javax.swing.DefaultComboBoxModel
 import javax.swing.JCheckBox
 import javax.swing.JComboBox
 import javax.swing.JComponent
@@ -84,17 +80,7 @@ class ConfigureDynamicModuleStep(
 
   private val androidVersionsInfo = AndroidVersionsInfo()
 
-  private val baseApplication: JComboBox<Module> = ComboBox<Module>(DefaultComboBoxModel()).apply {
-    setRenderer(SimpleListCellRenderer.create { label: JBLabel, module: Module?, _: Int ->
-      if (module == null) {
-        label.text = AndroidBundle.message("android.wizard.module.config.new.base.missing")
-      }
-      else {
-        label.icon = ModuleType.get(module).icon
-        label.text = module.name
-      }
-    })
-  }
+  private val baseApplication: JComboBox<Module> = ModuleComboProvider().createComponent()
   private val moduleName: JTextField = JBTextField()
   private val packageName: LabelWithEditButton = LabelWithEditButton()
   private val languageCombo: JComboBox<Language> = LanguageComboProvider().createComponent()

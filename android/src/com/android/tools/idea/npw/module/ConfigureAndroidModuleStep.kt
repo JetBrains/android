@@ -100,8 +100,7 @@ class ConfigureAndroidModuleStep(
 
     row {
       cell {
-        labelFor("Module name", moduleName)
-        ContextHelpLabel.create(message("android.wizard.module.help.name"))()
+        labelFor("Module name", moduleName, message("android.wizard.module.help.name"))
       }
       moduleName()
     }
