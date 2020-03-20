@@ -15,7 +15,7 @@ package com.android.tools.idea.compose.preview
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import com.android.tools.idea.kotlin.getQualifiedName
+import com.android.tools.idea.kotlin.fqNameMatches
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
@@ -63,7 +63,7 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
     PsiTreeUtil.findChildrenOfType(psiFile, KtImportDirective::class.java)
       .any { PREVIEW_ANNOTATION_FQN == it.importedFqName?.asString() } ||
     PsiTreeUtil.findChildrenOfType(psiFile, KtAnnotationEntry::class.java)
-      .any { PREVIEW_ANNOTATION_FQN == it.getQualifiedName() }
+      .any { it.fqNameMatches(PREVIEW_ANNOTATION_FQN) }
   }
 
   /**

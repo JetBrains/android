@@ -25,7 +25,7 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.kotlin.getQualifiedName
+import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.ReadAction
@@ -161,7 +161,7 @@ internal fun KtNamedFunction.isValidPreviewLocation(): Boolean {
  *  @see [isValidPreviewLocation]
  */
 fun KtNamedFunction.isValidComposePreview() =
-  isValidPreviewLocation() && annotationEntries.any { annotation -> annotation.getQualifiedName() == PREVIEW_ANNOTATION_FQN }
+  isValidPreviewLocation() && annotationEntries.any { annotation -> annotation.fqNameMatches(PREVIEW_ANNOTATION_FQN) }
 
 /**
  * Truncates the given dimension value to fit between the [min] and [max] values. If the receiver is null,

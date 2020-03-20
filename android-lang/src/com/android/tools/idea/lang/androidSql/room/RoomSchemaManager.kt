@@ -17,7 +17,7 @@ package com.android.tools.idea.lang.androidSql.room
 
 import com.android.support.AndroidxName
 import com.android.tools.idea.kotlin.findArgumentExpression
-import com.android.tools.idea.kotlin.getQualifiedName
+import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.kotlin.tryEvaluateConstant
 import com.android.tools.idea.lang.androidSql.resolution.AndroidSqlColumn
 import com.android.tools.idea.lang.androidSql.resolution.PRIMARY_KEY_NAMES
@@ -264,7 +264,7 @@ class RoomSchemaManager(val module: Module, private val cachedValuesManager: Cac
     val annotationEntry =
       kotlinOrigin
         ?.annotationEntries
-        ?.firstOrNull { annotationName.isEquals(it.getQualifiedName()) }
+        ?.firstOrNull { it.fqNameMatches(annotationName.oldName()) || it.fqNameMatches(annotationName.newName()) }
       ?: return null
 
     // Property annotation it is annotation without target

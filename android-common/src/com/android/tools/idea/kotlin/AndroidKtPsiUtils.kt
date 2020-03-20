@@ -57,9 +57,23 @@ fun KtProperty.hasBackingField(): Boolean {
   return analyze(BodyResolveMode.PARTIAL)[BindingContext.BACKING_FIELD_REQUIRED, propertyDescriptor] ?: false
 }
 
-/** Computes the qualified name of this [KtAnnotationEntry]. */
+/**
+ * Computes the qualified name of this [KtAnnotationEntry].
+ * Prefer to use [fqNameMatches], which checks the short name first and thus has better performance.
+ */
 fun KtAnnotationEntry.getQualifiedName(): String? {
   return analyze(BodyResolveMode.PARTIAL).get(BindingContext.ANNOTATION, this)?.fqName?.asString()
+}
+
+/**
+ * Determines whether this [KtAnnotationEntry] has the specified qualified name.
+ * Careful: this does *not* currently take into account Kotlin type aliases (https://kotlinlang.org/docs/reference/type-aliases.html).
+ *   Fortunately, type aliases are extremely uncommon for simple annotation types.
+ */
+fun KtAnnotationEntry.fqNameMatches(fqName: String): Boolean {
+  // For inspiration, see IDELightClassGenerationSupport.KtUltraLightSupportImpl.findAnnotation in the Kotlin plugin.
+  val shortName = shortName?.asString() ?: return false
+  return fqName.endsWith(shortName) && fqName == getQualifiedName()
 }
 
 /** Computes the qualified name for a Kotlin Class. Returns null if the class is a kotlin built-in. */

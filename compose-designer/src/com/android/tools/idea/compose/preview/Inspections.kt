@@ -17,7 +17,7 @@ package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.findValueArgument
-import com.android.tools.idea.kotlin.getQualifiedName
+import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.util.androidFacet
 import com.intellij.codeInspection.LocalInspectionToolSession
 import com.intellij.codeInspection.ProblemHighlightType
@@ -25,16 +25,12 @@ import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
-import com.intellij.psi.util.parentOfType
 import org.jetbrains.kotlin.idea.inspections.AbstractKotlinInspection
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
-import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtVisitorVoid
-import org.jetbrains.kotlin.psi.allConstructors
-import org.jetbrains.kotlin.psi.psiUtil.containingClass
 
 private const val INSPECTIONS_GROUP_NAME = "Compose Preview"
 
@@ -57,8 +53,7 @@ abstract class BasePreviewAnnotationInspection : AbstractKotlinInspection() {
    */
   abstract fun visitPreviewAnnotatedFunction(holder: ProblemsHolder,
                                              function: KtNamedFunction,
-                                             previewAnnotation: KtAnnotationEntry,
-                                             functionAnnotations: Map<String, KtAnnotationEntry>)
+                                             previewAnnotation: KtAnnotationEntry)
 
   final override fun buildVisitor(holder: ProblemsHolder,
                                   isOnTheFly: Boolean,
@@ -75,7 +70,7 @@ abstract class BasePreviewAnnotationInspection : AbstractKotlinInspection() {
         override fun visitAnnotationEntry(annotationEntry: KtAnnotationEntry) {
           super.visitAnnotationEntry(annotationEntry)
 
-          isPreviewFile = isPreviewFile || PREVIEW_ANNOTATION_FQN == annotationEntry.getQualifiedName()
+          isPreviewFile = isPreviewFile || annotationEntry.fqNameMatches(PREVIEW_ANNOTATION_FQN)
         }
 
         override fun visitNamedFunction(function: KtNamedFunction) {
@@ -85,13 +80,8 @@ abstract class BasePreviewAnnotationInspection : AbstractKotlinInspection() {
             return
           }
 
-          val annotationNames = function.annotationEntries
-            .filter { it.getQualifiedName() != null }
-            .associateBy { it.getQualifiedName()!! }
-
-          val previewAnnotation = annotationNames[PREVIEW_ANNOTATION_FQN] ?: return
-
-          visitPreviewAnnotatedFunction(holder, function, previewAnnotation, annotationNames)
+          val previewAnnotation = function.annotationEntries.firstOrNull { it.fqNameMatches(PREVIEW_ANNOTATION_FQN) } ?: return
+          visitPreviewAnnotatedFunction(holder, function, previewAnnotation)
         }
       }
     }
@@ -108,8 +98,7 @@ class PreviewAnnotationInFunctionWithParametersInspection : BasePreviewAnnotatio
 
   override fun visitPreviewAnnotatedFunction(holder: ProblemsHolder,
                                              function: KtNamedFunction,
-                                             previewAnnotation: KtAnnotationEntry,
-                                             functionAnnotations: Map<String, KtAnnotationEntry>) {
+                                             previewAnnotation: KtAnnotationEntry) {
     if (function.valueParameters.any { !it.hasDefaultValue() }) {
       holder.registerProblem(previewAnnotation.psiOrParent as PsiElement,
                              message("inspection.no.parameters.description"),
@@ -126,9 +115,9 @@ class PreviewNeedsComposableAnnotationInspection : BasePreviewAnnotationInspecti
 
   override fun visitPreviewAnnotatedFunction(holder: ProblemsHolder,
                                              function: KtNamedFunction,
-                                             previewAnnotation: KtAnnotationEntry,
-                                             functionAnnotations: Map<String, KtAnnotationEntry>) {
-    if (!functionAnnotations.contains(COMPOSABLE_ANNOTATION_FQN)) {
+                                             previewAnnotation: KtAnnotationEntry) {
+    val nonComposable = function.annotationEntries.none { it.fqNameMatches(COMPOSABLE_ANNOTATION_FQN) }
+    if (nonComposable) {
       holder.registerProblem(previewAnnotation.psiOrParent as PsiElement,
                              message("inspection.no.composable.description"),
                              ProblemHighlightType.ERROR)
@@ -145,8 +134,7 @@ class PreviewMustBeTopLevelFunction : BasePreviewAnnotationInspection() {
 
   override fun visitPreviewAnnotatedFunction(holder: ProblemsHolder,
                                              function: KtNamedFunction,
-                                             previewAnnotation: KtAnnotationEntry,
-                                             functionAnnotations: Map<String, KtAnnotationEntry>) {
+                                             previewAnnotation: KtAnnotationEntry) {
     if (function.isValidPreviewLocation()) return
 
     holder.registerProblem(previewAnnotation.psiOrParent as PsiElement,
@@ -164,8 +152,7 @@ class PreviewDimensionRespectsLimit : BasePreviewAnnotationInspection() {
 
   override fun visitPreviewAnnotatedFunction(holder: ProblemsHolder,
                                              function: KtNamedFunction,
-                                             previewAnnotation: KtAnnotationEntry,
-                                             functionAnnotations: Map<String, KtAnnotationEntry>) {
+                                             previewAnnotation: KtAnnotationEntry) {
     previewAnnotation.findValueArgument(WIDTH_PARAMETER)?.let {
       if (it.exceedsLimit(MAX_WIDTH)) {
         holder.registerProblem(it.psiOrParent as PsiElement,
