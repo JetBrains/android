@@ -51,7 +51,6 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.TreeMap
 import java.util.concurrent.Executor
 import javax.swing.JComponent
 
@@ -114,7 +113,7 @@ class DatabaseInspectorControllerImpl(
 
   override suspend fun closeDatabase(database: SqliteDatabase) = withContext(uiThread) {
     // TODO(b/143873070) when a database is closed with the close button the corresponding file is not deleted.
-    if (!model.openDatabases.containsKey(database)) return@withContext
+    if (!model.getOpenDatabases().contains(database)) return@withContext
 
     val tabsToClose = resultSetControllers.keys
       .filterIsInstance<TabId.TableTab>()
@@ -185,7 +184,7 @@ class DatabaseInspectorControllerImpl(
   }
 
   private suspend fun updateDatabaseSchema(database: SqliteDatabase) {
-    val oldSchema = model.openDatabases[database] ?: return
+    val oldSchema = model.getDatabaseSchema(database) ?: return
     val newSchema = readDatabaseSchema(database)
     withContext(uiThread) {
       if (oldSchema != newSchema) {
@@ -249,7 +248,7 @@ class DatabaseInspectorControllerImpl(
 
     val sqliteEvaluatorView = viewFactory.createEvaluatorView(
       project,
-      object : SchemaProvider { override fun getSchema(database: SqliteDatabase) = model.openDatabases[database] },
+      object : SchemaProvider { override fun getSchema(database: SqliteDatabase) = model.getDatabaseSchema(database) },
       viewFactory.createTableView()
     )
 
@@ -269,7 +268,7 @@ class DatabaseInspectorControllerImpl(
 
     resultSetControllers[tabId] = sqliteEvaluatorController
 
-    model.openDatabases.keys.forEachIndexed { index, sqliteDatabase ->
+    model.getOpenDatabases().forEachIndexed { index, sqliteDatabase ->
       sqliteEvaluatorController.addDatabase(sqliteDatabase, index)
     }
 
@@ -296,7 +295,7 @@ class DatabaseInspectorControllerImpl(
       val tableController = TableController(
         project = project,
         view = tableView,
-        tableSupplier = { model.openDatabases[database]?.tables?.firstOrNull{ it.name == table.name } },
+        tableSupplier = { model.getDatabaseSchema(database)?.tables?.firstOrNull{ it.name == table.name } },
         databaseConnection = databaseConnection,
         sqliteStatement = SqliteStatement(selectAllAndRowIdFromTable(table)),
         edtExecutor = edtExecutor,
@@ -353,7 +352,7 @@ class DatabaseInspectorControllerImpl(
 
     override fun refreshAllOpenDatabasesSchemaActionInvoked() {
       scope.launch(uiThread) {
-        model.openDatabases.keys.forEach { updateDatabaseSchema(it) }
+        model.getOpenDatabases().forEach { updateDatabaseSchema(it) }
       }
     }
   }
@@ -399,9 +398,10 @@ interface DatabaseInspectorController : Disposable {
    */
   interface Model {
     /**
-     * A set of open databases sorted in alphabetical order by the name of the database.
+     * A list of open databases sorted in alphabetical order by the name of the database.
      */
-    val openDatabases: TreeMap<SqliteDatabase, SqliteSchema>
+    fun getOpenDatabases(): List<SqliteDatabase>
+    fun getDatabaseSchema(database: SqliteDatabase): SqliteSchema?
 
     fun getSortedIndexOf(database: SqliteDatabase): Int
     fun add(database: SqliteDatabase, sqliteSchema: SqliteSchema)
