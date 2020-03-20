@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.nav.safeargs.module
 
+import com.android.tools.idea.nav.safeargs.safeArgsModeTracker
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.module.Module
@@ -26,13 +27,13 @@ import com.intellij.openapi.util.SimpleModificationTracker
  * A module-wide modification tracker whose modification count is a value incremented by any modifications of
  * corresponding navigation resource files.
  */
-class NavigationResourcesModificationTracker(val module: Module) : ModificationTracker {
+class ModuleNavigationResourcesModificationTracker(val module: Module) : ModificationTracker {
   private val navigationModificationTracker = SimpleModificationTracker()
-  private val LOG get() = Logger.getInstance(NavigationResourcesModificationTracker::class.java)
+  private val LOG get() = Logger.getInstance(ModuleNavigationResourcesModificationTracker::class.java)
 
   companion object {
     @JvmStatic
-    fun getInstance(module: Module) = ModuleServiceManager.getService(module, NavigationResourcesModificationTracker::class.java)!!
+    fun getInstance(module: Module) = ModuleServiceManager.getService(module, ModuleNavigationResourcesModificationTracker::class.java)!!
   }
 
   override fun getModificationCount() = navigationModificationTracker.modificationCount

@@ -93,8 +93,8 @@ class SafeArgsCacheModuleService private constructor(private val module: Module)
     }
 
     synchronized(lock) {
-      val modificationCount =
-        module.project.safeArgsModeTracker.modificationCount + NavigationResourcesModificationTracker.getInstance(module).modificationCount
+      val modificationCount = module.project.safeArgsModeTracker.modificationCount +
+                              ModuleNavigationResourcesModificationTracker.getInstance(module).modificationCount
 
       if (modificationCount != lastResourcesModificationCount) {
         val moduleResources = ResourceRepositoryManager.getModuleResources(facet)
