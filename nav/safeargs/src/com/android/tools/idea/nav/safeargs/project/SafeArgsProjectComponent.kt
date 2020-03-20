@@ -40,8 +40,8 @@ class SafeArgsProjectComponent(val project: Project) : ModificationTracker {
     modulesUsingSafeArgsCache = cachedValuesManager.createCachedValue(
       {
         val facets = moduleManager.modules
-            .mapNotNull { module -> AndroidFacet.getInstance(module) }
-            .filter { facet -> facet.isSafeArgsEnabled() }
+          .mapNotNull { module -> AndroidFacet.getInstance(module) }
+          .filter { facet -> facet.isSafeArgsEnabled() }
 
         CachedValueProvider.Result.create(facets, this)
       }, false)

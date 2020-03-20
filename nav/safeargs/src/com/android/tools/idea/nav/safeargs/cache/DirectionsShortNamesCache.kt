@@ -16,8 +16,10 @@
 package com.android.tools.idea.nav.safeargs.cache
 
 import com.android.tools.idea.nav.safeargs.module.SafeArgsCacheModuleService
+import com.android.tools.idea.nav.safeargs.project.ProjectNavigationResourceModificationTracker
 import com.android.tools.idea.nav.safeargs.project.SafeArgsProjectComponent
 import com.android.tools.idea.nav.safeargs.psi.LightDirectionsClass
+import com.android.tools.idea.nav.safeargs.safeArgsModeTracker
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiField
@@ -36,7 +38,6 @@ import com.intellij.util.Processor
  */
 class DirectionsShortNamesCache(project: Project) : PsiShortNamesCache() {
   private val component = project.getComponent(SafeArgsProjectComponent::class.java)
-
   private val lightClassesCache: CachedValue<Map<String, List<LightDirectionsClass>>>
 
   private val allClassNamesCache: CachedValue<Array<String>>
@@ -51,7 +52,9 @@ class DirectionsShortNamesCache(project: Project) : PsiShortNamesCache() {
           SafeArgsCacheModuleService.getInstance(facet).directions.asSequence()
         }
         .groupBy { lightClass -> lightClass.name }
-      CachedValueProvider.Result.create(lightClasses, component)
+      CachedValueProvider.Result.create(lightClasses,
+                                        ProjectNavigationResourceModificationTracker.getInstance(project),
+                                        project.safeArgsModeTracker)
     }
 
     allClassNamesCache = cachedValuesManager.createCachedValue {
