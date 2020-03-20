@@ -39,8 +39,8 @@ import com.google.common.base.CharMatcher
 import java.io.File
 import javax.swing.Icon
 
-const val DISALLOWED_MESSAGE = "['/', ':', '<', '>', '\"', '?', '*', '|']"
-val DISALLOWED_IN_NAME: CharMatcher = CharMatcher.anyOf("/\\:<>\"?*|")
+const val DISALLOWED_MESSAGE = "['/', ':', '<', '>', '\"', '?', '*', '|', ' ']"
+val DISALLOWED_IN_NAME: CharMatcher = CharMatcher.anyOf("/\\:<>\"?*| ")
 
 class PsAndroidModule(
   parent: PsProject,
