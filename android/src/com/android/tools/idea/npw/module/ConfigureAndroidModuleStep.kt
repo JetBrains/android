@@ -125,8 +125,7 @@ class ConfigureAndroidModuleStep(
       apiLevelCombo()
     }
   }
-  private val validatorPanel: ValidatorPanel = ValidatorPanel(this, panel)
-  private val scrollPanel: JBScrollPane = StudioWizardStepPanel.wrappedWithVScroll(validatorPanel)
+  private val validatorPanel: ValidatorPanel = ValidatorPanel(this, StudioWizardStepPanel.wrappedWithVScroll(panel))
 
   init {
     val moduleValidator = ModuleValidator(model.project)
@@ -194,7 +193,7 @@ class ConfigureAndroidModuleStep(
 
   public override fun canGoForward(): ObservableBool = validatorPanel.hasErrors().not()
 
-  override fun getComponent(): JComponent = scrollPanel
+  override fun getComponent(): JComponent = validatorPanel
 
   override fun getPreferredFocusComponent(): JComponent? = appName
 

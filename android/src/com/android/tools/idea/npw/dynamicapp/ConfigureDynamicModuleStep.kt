@@ -33,14 +33,17 @@ import com.android.tools.idea.npw.template.components.BytecodeLevelComboProvider
 import com.android.tools.idea.npw.template.components.LanguageComboProvider
 import com.android.tools.idea.npw.template.components.ModuleComboProvider
 import com.android.tools.idea.npw.validator.ApiVersionValidator
+import com.android.tools.idea.npw.validator.ModuleSelectedValidator
 import com.android.tools.idea.npw.validator.ModuleValidator
 import com.android.tools.idea.npw.validator.PackageNameValidator
 import com.android.tools.idea.observable.BindingsManager
 import com.android.tools.idea.observable.ListenerManager
+import com.android.tools.idea.observable.ObservableValue
 import com.android.tools.idea.observable.core.BoolProperty
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
 import com.android.tools.idea.observable.core.OptionalProperty
+import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.observable.expressions.Expression
 import com.android.tools.idea.observable.ui.SelectedItemProperty
 import com.android.tools.idea.observable.ui.SelectedProperty
@@ -67,6 +70,7 @@ import javax.swing.JCheckBox
 import javax.swing.JComboBox
 import javax.swing.JComponent
 import javax.swing.JTextField
+import kotlin.properties.ObservableProperty
 
 /**
  * This class configures the Dynamic Feature Module specific data such as the "Base Application Module", "Module Name", "Package Name" and
@@ -136,12 +140,10 @@ class ConfigureDynamicModuleStep(
       fusingCheckbox()
     }
   }
-  private val validatorPanel: ValidatorPanel = ValidatorPanel(this, panel)
-  private val scrollPanel: JBScrollPane = StudioWizardStepPanel.wrappedWithVScroll(validatorPanel)
+  private val validatorPanel: ValidatorPanel = ValidatorPanel(this, StudioWizardStepPanel.wrappedWithVScroll(panel))
 
   init {
     val moduleValidator = ModuleValidator(model.project)
-    moduleName.text = WizardUtils.getUniqueName(model.moduleName.get(), moduleValidator)
 
     bindings.bindTwoWay(SelectedItemProperty(languageCombo), model.language)
     bindings.bindTwoWay(SelectedItemProperty(bytecodeCombo), model.bytecodeLevel)
@@ -158,8 +160,8 @@ class ConfigureDynamicModuleStep(
 
     val isModuleNameSynced: BoolProperty = BoolValueProperty(true)
     val moduleNameText = TextProperty(moduleName)
-    val computedModuleName: Expression<String> =
-      AppNameToModuleNameExpression(model.project, model.applicationName, model.moduleParent)
+    val computedModuleName: ObservableValue<String> =
+      StringValueProperty(WizardUtils.getUniqueName("dynamicfeature", moduleValidator))
     bindings.bind(moduleNameText, computedModuleName, isModuleNameSynced)
     bindings.bind(model.moduleName, moduleNameText)
     listeners.listen(moduleNameText) { value: String -> isModuleNameSynced.set(value == computedModuleName.get()) }
@@ -175,16 +177,7 @@ class ConfigureDynamicModuleStep(
       registerValidator(model.moduleName, moduleValidator)
       registerValidator(model.packageName, PackageNameValidator())
       registerValidator(model.androidSdkInfo, ApiVersionValidator(model.project.isAndroidx(), FormFactor.MOBILE))
-      // TODO(qumeric): consider moving to a separate class
-      registerValidator(
-        baseApplication,
-        object : Validator<Optional<Module>> {
-          override fun validate(value: Optional<Module>): Validator.Result =
-            if (value.isPresent)
-              Validator.Result.OK
-            else
-              Validator.Result(Validator.Severity.ERROR, AndroidBundle.message("android.wizard.module.new.dynamic.select.base"))
-        })
+      registerValidator(baseApplication, ModuleSelectedValidator())
     }
 
     if (model.isInstant) {
@@ -222,7 +215,7 @@ class ConfigureDynamicModuleStep(
 
   override fun canGoForward(): ObservableBool = validatorPanel.hasErrors().not()
 
-  override fun getComponent(): JComponent = scrollPanel
+  override fun getComponent(): JComponent = validatorPanel
 
   override fun getPreferredFocusComponent(): JComponent? = moduleName
 
