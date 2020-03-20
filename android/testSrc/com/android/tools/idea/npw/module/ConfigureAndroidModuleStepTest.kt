@@ -117,7 +117,9 @@ class ConfigureAndroidModuleStepTest : AndroidGradleTestCase() {
    */
   fun testSelectAndroid_Q_onNonAndroidxProjects() {
     val newModuleModel = NewAndroidModuleModel(project, null, ProjectSyncInvoker.DefaultProjectSyncInvoker(), createDummyTemplate())
-    val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, FormFactor.MOBILE, 25, "com.example", "Test Title")
+    val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, FormFactor.MOBILE, 25, "com.example", "Test Title").apply {
+      registerValidators()
+    }
 
     Disposer.register(testRootDisposable, newModuleModel)
     Disposer.register(testRootDisposable, configureAndroidModuleStep)

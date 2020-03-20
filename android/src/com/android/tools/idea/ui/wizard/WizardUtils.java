@@ -116,7 +116,7 @@ public final class WizardUtils {
    * @return The supplied initialValue if its valid (as per the return of {@link Validator}, or the initialValue contatenated with an
    * {@link Integer} value that will be valid.
    */
-  public static String getUniqueName(String initialValue, Validator<String> validator) {
+  public static String getUniqueName(String initialValue, Validator<? super String> validator) {
     int i = 2;
     String uniqueName = initialValue;
     while (i <= 100 && validator.validate(uniqueName).getSeverity() == Validator.Severity.ERROR) {

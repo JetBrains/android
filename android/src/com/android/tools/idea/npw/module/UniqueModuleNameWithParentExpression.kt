@@ -28,7 +28,7 @@ import java.util.Locale
  * Further validation of the module name may be needed, if the name is used to create a directory
  * @see PathValidator
  */
-data class AppNameToModuleNameExpression(
+data class UniqueModuleNameWithParentExpression(
   private val project: Project?,
   private val applicationName: StringProperty,
   private val moduleParent: String?
