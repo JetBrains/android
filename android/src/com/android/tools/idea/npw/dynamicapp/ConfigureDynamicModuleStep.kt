@@ -29,6 +29,7 @@ import com.android.tools.idea.npw.model.NewProjectModel.Companion.nameToJavaPack
 import com.android.tools.idea.npw.module.AndroidApiLevelComboBox
 import com.android.tools.idea.npw.module.AppNameToModuleNameExpression
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
+import com.android.tools.idea.npw.template.components.BytecodeLevelComboProvider
 import com.android.tools.idea.npw.template.components.LanguageComboProvider
 import com.android.tools.idea.npw.validator.ApiVersionValidator
 import com.android.tools.idea.npw.validator.ModuleValidator
@@ -48,6 +49,7 @@ import com.android.tools.idea.ui.wizard.StudioWizardStepPanel
 import com.android.tools.idea.ui.wizard.WizardUtils
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.model.SkippableWizardStep
+import com.android.tools.idea.wizard.template.BytecodeLevel
 import com.android.tools.idea.wizard.template.Language
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleType
@@ -96,7 +98,7 @@ class ConfigureDynamicModuleStep(
   private val moduleName: JTextField = JBTextField()
   private val packageName: LabelWithEditButton = LabelWithEditButton()
   private val languageCombo: JComboBox<Language> = LanguageComboProvider().createComponent()
-  // TODO(qumeric): private val bytecodeCombo: JComboBox<BytecodeLevel> = BytecodeLevelComboProvider().createComponent()
+  private val bytecodeCombo: JComboBox<BytecodeLevel> = BytecodeLevelComboProvider().createComponent()
   private val apiLevelCombo: AndroidApiLevelComboBox = AndroidApiLevelComboBox()
 
   // specific to dynamic modules
@@ -129,6 +131,11 @@ class ConfigureDynamicModuleStep(
     }
 
     row {
+      labelFor("Bytecode Level", bytecodeCombo)
+      bytecodeCombo()
+    }
+
+    row {
       labelFor("Minimum SDK", apiLevelCombo)
       apiLevelCombo()
     }
@@ -151,7 +158,7 @@ class ConfigureDynamicModuleStep(
     moduleName.text = WizardUtils.getUniqueName(model.moduleName.get(), moduleValidator)
 
     bindings.bindTwoWay(SelectedItemProperty(languageCombo), model.language)
-    // TODO(qumeric): bindings.bindTwoWay(SelectedItemProperty(bytecodeCombo), model.bytecodeLevel)
+    bindings.bindTwoWay(SelectedItemProperty(bytecodeCombo), model.bytecodeLevel)
     bindings.bind(model.androidSdkInfo, SelectedItemProperty(apiLevelCombo))
 
     val isPackageNameSynced: BoolProperty = BoolValueProperty(true)
