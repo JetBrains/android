@@ -352,6 +352,7 @@ public class RenderService implements Disposable {
     private int myMaxRenderHeight = -1;
     private boolean isShadowEnabled = StudioFlags.NELE_ENABLE_SHADOW.get();
     private boolean useHighQualityShadows = StudioFlags.NELE_RENDER_HIGH_QUALITY_SHADOW.get();
+    private boolean enableLayoutValidator = StudioFlags.NELE_LAYOUT_VALIDATOR_IN_EDITOR.get();
     private SessionParams.RenderingMode myRenderingMode = null;
     private boolean useTransparentBackground = false;
 
@@ -540,7 +541,8 @@ public class RenderService implements Disposable {
             .setDecorations(showDecorations)
             .setHighQualityShadows(useHighQualityShadows)
             .setShadowEnabled(isShadowEnabled)
-            .setShowWithToolsAttributes(showWithToolsAttributes);
+            .setShowWithToolsAttributes(showWithToolsAttributes)
+            .setEnableLayoutValidator(enableLayoutValidator);
 
           if (myMaxRenderWidth != -1 && myMaxRenderHeight != -1) {
             task.setMaxRenderSize(myMaxRenderWidth, myMaxRenderHeight);
