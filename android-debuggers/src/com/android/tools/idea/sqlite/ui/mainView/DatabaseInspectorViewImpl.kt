@@ -72,7 +72,7 @@ class DatabaseInspectorViewImpl(
   init {
     workBench.init(centerPanel, viewContext, listOf(createToolWindowDefinition()), false)
 
-    setUpEmptyStatePanel()
+    addEmptyStatePanel()
 
     tabs.name = "right-panel-tabs-panel"
     tabs.apply {
@@ -107,6 +107,7 @@ class DatabaseInspectorViewImpl(
     centerPanel.layout = BorderLayout()
     centerPanel.add(tabs, BorderLayout.CENTER)
     centerPanel.revalidate()
+    centerPanel.repaint()
   }
 
   override fun updateDatabaseSchema(database: SqliteDatabase, diffOperations: List<SchemaDiffOperation>) {
@@ -114,7 +115,11 @@ class DatabaseInspectorViewImpl(
   }
 
   override fun removeDatabaseSchema(database: SqliteDatabase) {
-    leftPanelView.removeDatabaseSchema(database)
+    val databaseCount = leftPanelView.removeDatabaseSchema(database)
+
+    if (databaseCount == 0) {
+      addEmptyStatePanel()
+    }
   }
 
   override fun openTab(tableId: TabId, tabName: String, component: JComponent) {
@@ -140,7 +145,7 @@ class DatabaseInspectorViewImpl(
   override fun reportSyncProgress(message: String) {
   }
 
-  private fun setUpEmptyStatePanel() {
+  private fun addEmptyStatePanel() {
     // TODO(b/150307735) replace URL with relevant website.
     val editorPane = JEditorPane(
       "text/html",
@@ -158,8 +163,11 @@ class DatabaseInspectorViewImpl(
     editorPane.isEditable = false
     editorPane.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE)
 
+    centerPanel.removeAll()
     centerPanel.layout = GridBagLayout()
     centerPanel.add(editorPane)
+    centerPanel.revalidate()
+    centerPanel.repaint()
   }
 
   private fun createSqliteExplorerTab(tableId: TabId, tableName: String, tabContent: JComponent): TabInfo {

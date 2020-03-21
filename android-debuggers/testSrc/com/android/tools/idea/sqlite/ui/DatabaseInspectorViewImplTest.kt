@@ -229,15 +229,20 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
   fun testEmptyStateIsShownInitially() {
     // Prepare
     val emptyStateRightPanel = TreeWalker(view.component).descendants().first { it.name == "right-panel-empty-state" }
+    val tree = TreeWalker(view.component).descendants().first { it.name == "left-panel-tree" } as Tree
 
     // Assert
     assertTrue(emptyStateRightPanel.isVisible)
+    // tree.emptyText is shown when the root is null
+    assertNull(tree.model.root)
   }
 
   fun testEmptyStateIsHiddenAfterOpeningADatabase() {
     // Prepare
     val emptyStateRightPanelBeforeAddingDb = TreeWalker(view.component).descendants().first { it.name == "right-panel-empty-state" }
     val tabsPanelBeforeAddingDb = TreeWalker(view.component).descendants().firstOrNull { it.name == "right-panel-tabs-panel" }
+    val tree = TreeWalker(view.component).descendants().first { it.name == "left-panel-tree" } as Tree
+    val treeRootBeforeAddingDb = tree.model.root
     val database = FileSqliteDatabase("name", mock(DatabaseConnection::class.java), mock(VirtualFile::class.java))
 
     // Act
@@ -246,11 +251,41 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     // Assert
     val emptyStateRightPanelAfterAddingDb = TreeWalker(view.component).descendants().firstOrNull { it.name == "right-panel-empty-state" }
     val tabsPanelAfterAddingDb = TreeWalker(view.component).descendants().first { it.name == "right-panel-tabs-panel" }
+    val treeRootAfterAddingDb = tree.model.root
 
     assertNotNull(emptyStateRightPanelBeforeAddingDb)
     assertNull(tabsPanelBeforeAddingDb)
+    assertNull(treeRootBeforeAddingDb)
     assertNull(emptyStateRightPanelAfterAddingDb)
     assertNotNull(tabsPanelAfterAddingDb)
+    // tree.emptyText is shown when the root is null
+    assertNotNull(treeRootAfterAddingDb)
+  }
+
+  fun testEmptyStateIsShownAfterOpenDatabasesAreRemoved() {
+    // Prepare
+    val emptyStateRightPanelBeforeAddingDb = TreeWalker(view.component).descendants().first { it.name == "right-panel-empty-state" }
+    val tabsPanelBeforeAddingDb = TreeWalker(view.component).descendants().firstOrNull { it.name == "right-panel-tabs-panel" }
+    val database = FileSqliteDatabase("name", mock(DatabaseConnection::class.java), mock(VirtualFile::class.java))
+    val tree = TreeWalker(view.component).descendants().first { it.name == "left-panel-tree" } as Tree
+    val treeRootBeforeAddingDb = tree.model.root
+
+    // Act
+    view.addDatabaseSchema(database, SqliteSchema(emptyList()), 0)
+    view.removeDatabaseSchema(database)
+
+    // Assert
+    val emptyStateRightPanelAfterRemovingDb = TreeWalker(view.component).descendants().first { it.name == "right-panel-empty-state" }
+    val tabsPanelAfterRemovingDb = TreeWalker(view.component).descendants().firstOrNull { it.name == "right-panel-tabs-panel" }
+    val treeRootAfterRemovingDb = tree.model.root
+
+    assertNotNull(emptyStateRightPanelBeforeAddingDb)
+    assertNull(tabsPanelBeforeAddingDb)
+    assertNull(treeRootBeforeAddingDb)
+    assertNotNull(emptyStateRightPanelAfterRemovingDb)
+    assertNull(tabsPanelAfterRemovingDb)
+    // tree.emptyText is shown when the root is null
+    assertNull(treeRootAfterRemovingDb)
   }
 
   private fun assertTreeContainsNodes(tree: Tree, databases: Map<SqliteDatabase, List<SqliteTable>>) {

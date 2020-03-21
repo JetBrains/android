@@ -106,10 +106,21 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     }
   }
 
-  fun removeDatabaseSchema(database: SqliteDatabase) {
+  /**
+   * Removes a [SqliteDatabase] from the schema [tree].
+   * @return The number of open databases after [database] has been removed.
+   */
+  fun removeDatabaseSchema(database: SqliteDatabase): Int {
     val treeModel = tree.model as DefaultTreeModel
     val databaseNode = findDatabaseNode(database)
     treeModel.removeNodeFromParent(databaseNode)
+
+    val openDatabaseCount = (tree.model.root as DefaultMutableTreeNode).childCount
+    if (openDatabaseCount == 0) {
+      tree.model = DefaultTreeModel(null)
+    }
+
+    return openDatabaseCount
   }
 
   private fun createNorthPanel(): JPanel {
@@ -159,6 +170,8 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     tree.toggleClickCount = 0
     tree.emptyText.text = "Nothing to show"
     tree.emptyText.isShowAboveCenter = false
+
+    tree.name = "left-panel-tree"
 
     setUpSchemaTreeListeners(tree)
   }
