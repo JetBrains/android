@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.sqlite.sqlLanguage
 
-import com.android.tools.idea.lang.androidSql.parser.AndroidSqlParserDefinition
 import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
+import com.android.tools.idea.lang.androidSql.parser.AndroidSqlParserDefinition
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlBindParameter
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlColumnRefExpression
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlComparisonExpression
@@ -42,7 +42,8 @@ import java.util.Deque
  * @return The text of the SQLite statement with positional parameters and the list of named parameters.
  */
 fun replaceNamedParametersWithPositionalParameters(psiElement: PsiElement): ParsedSqliteStatement {
-  val psiElementCopy = psiElement.copy()
+  // Can't do psiElement.copy because cloning the view provider of the RoomSql PsiFile doesn't work.
+  val psiElementCopy = AndroidSqlParserDefinition.parseSqlQuery(psiElement.project, psiElement.text)
   val parametersNames = mutableListOf<SqliteParameter>()
 
   invokeAndWaitIfNeeded {
@@ -73,7 +74,8 @@ fun replaceNamedParametersWithPositionalParameters(psiElement: PsiElement): Pars
 }
 
 fun expandCollectionParameters(psiElement: PsiElement, parameterValues: Deque<SqliteParameterValue>): PsiElement {
-  val psiElementCopy = psiElement.copy()
+  // Can't do psiElement.copy because cloning the view provider of the RoomSql PsiFile doesn't work.
+  val psiElementCopy = AndroidSqlParserDefinition.parseSqlQuery(psiElement.project, psiElement.text)
 
   invokeAndWaitIfNeeded {
     runUndoTransparentWriteAction {
@@ -108,7 +110,8 @@ fun expandCollectionParameters(psiElement: PsiElement, parameterValues: Deque<Sq
  * matching them by the order they have in the queue.
  */
 fun inlineParameterValues(psiElement: PsiElement, parameterValues: Deque<SqliteValue>): String {
-  val psiElementCopy = psiElement.copy()
+  // Can't do psiElement.copy because cloning the view provider of the RoomSql PsiFile doesn't work.
+  val psiElementCopy = AndroidSqlParserDefinition.parseSqlQuery(psiElement.project, psiElement.text)
 
   invokeAndWaitIfNeeded {
     runUndoTransparentWriteAction {
