@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.naveditor.property
+package com.android.tools.idea.naveditor.model
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.property.NlProperty
+import com.android.tools.idea.naveditor.property.NavPropertyWrapper
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
 

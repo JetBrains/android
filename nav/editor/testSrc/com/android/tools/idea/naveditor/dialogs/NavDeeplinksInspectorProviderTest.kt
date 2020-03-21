@@ -28,7 +28,6 @@ import com.android.tools.idea.naveditor.property.inspector.NAV_LIST_COMPONENT_NA
 import com.android.tools.idea.naveditor.property.inspector.NavDeeplinkInspectorProvider
 import com.android.tools.idea.naveditor.property.inspector.NavInspectorPanel
 import com.android.tools.idea.naveditor.property.inspector.NavInspectorProviders
-import com.android.tools.idea.naveditor.property.inspector.runAndClose
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.google.common.collect.HashBasedTable
 import com.google.common.truth.Truth.assertThat

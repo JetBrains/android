@@ -25,7 +25,6 @@ import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
-import com.android.tools.idea.naveditor.property.inspector.PlaceholderTextField;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.NavEditorEvent;

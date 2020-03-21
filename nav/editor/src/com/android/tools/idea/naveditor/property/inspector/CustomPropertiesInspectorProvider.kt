@@ -22,7 +22,7 @@ import com.android.tools.idea.common.property.inspector.InspectorComponent
 import com.android.tools.idea.common.property.inspector.InspectorProvider
 import com.android.tools.idea.naveditor.model.destinationType
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
-import com.android.tools.idea.naveditor.property.isCustomProperty
+import com.android.tools.idea.naveditor.model.isCustomProperty
 import org.jetbrains.android.dom.navigation.NavigationSchema
 
 class CustomPropertiesInspectorProvider : InspectorProvider<NavPropertiesManager> {
