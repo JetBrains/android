@@ -45,7 +45,7 @@ import com.android.tools.idea.naveditor.model.isNavigation
 import com.android.tools.idea.naveditor.model.layout
 import com.android.tools.idea.naveditor.model.popUpTo
 import com.android.tools.idea.naveditor.model.schema
-import com.android.tools.idea.naveditor.property.isCustomProperty
+import com.android.tools.idea.naveditor.model.isCustomProperty
 import com.android.tools.idea.uibuilder.property.NlProperties
 import com.google.wireless.android.sdk.stats.NavActionInfo
 import com.google.wireless.android.sdk.stats.NavDestinationInfo

@@ -20,6 +20,7 @@ import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.dialogs.AddActionDialog
+import com.android.tools.idea.naveditor.dialogs.runAndClose
 import com.android.tools.idea.naveditor.dialogs.showAndUpdateFromDialog
 import com.android.tools.idea.naveditor.property.NavActionsProperty
 import com.android.tools.idea.naveditor.property.NavPropertiesManager

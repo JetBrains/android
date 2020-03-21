@@ -24,7 +24,7 @@ import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.property.NavPropertiesManager
 import com.android.tools.idea.naveditor.property.NavPropertyWrapper
 import com.android.tools.idea.naveditor.property.editors.TextEditor
-import com.android.tools.idea.naveditor.property.isCustomProperty
+import com.android.tools.idea.naveditor.model.isCustomProperty
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.testing.TestProjectPaths.NAVIGATION_EDITOR_CUSTOMPROPERTIES
 import com.android.tools.idea.uibuilder.property.NlProperties
