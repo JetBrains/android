@@ -174,7 +174,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   }
 
   private static String getSampleCodeSectionBody(@NotNull PsiClass modelClass, @NotNull ModelInfo modelInfo) {
-    return "<h2>Sample Code</h2>\n" +
+    return "<h2 style=\"padding-top:8px;\">Sample Code</h2>\n" +
            "<div id=\"sample_code\"><pre>" + buildSampleCode(modelClass, modelInfo) + "</pre></div>";
   }
 
