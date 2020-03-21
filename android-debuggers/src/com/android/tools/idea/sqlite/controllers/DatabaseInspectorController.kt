@@ -115,9 +115,17 @@ class DatabaseInspectorControllerImpl(
     // TODO(b/143873070) when a database is closed with the close button the corresponding file is not deleted.
     if (!model.getOpenDatabases().contains(database)) return@withContext
 
-    val tabsToClose = resultSetControllers.keys
-      .filterIsInstance<TabId.TableTab>()
-      .filter { it.database == database }
+    val openDatabases = model.getOpenDatabases()
+    val tabsToClose = if (openDatabases.size == 1 && openDatabases.first() == database) {
+      // close all tabs
+      resultSetControllers.keys.toList()
+    }
+    else {
+      // only close tabs associated with this database
+      resultSetControllers.keys
+        .filterIsInstance<TabId.TableTab>()
+        .filter { it.database == database }
+    }
 
     tabsToClose.forEach { closeTab(it) }
 
