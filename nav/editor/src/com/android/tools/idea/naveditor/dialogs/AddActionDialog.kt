@@ -18,6 +18,9 @@ package com.android.tools.idea.naveditor.dialogs
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_ID
 import com.android.SdkConstants.AUTO_URI
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.resources.ResourceType
+import com.android.resources.ResourceVisibility
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
@@ -41,8 +44,8 @@ import com.android.tools.idea.naveditor.model.setSingleTopAndLog
 import com.android.tools.idea.naveditor.model.singleTop
 import com.android.tools.idea.naveditor.model.uiName
 import com.android.tools.idea.naveditor.model.visibleDestinations
-import com.android.tools.idea.naveditor.property.editors.getAnimatorsPopupContent
 import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.getResourceItems
 import com.android.tools.idea.uibuilder.property.editors.support.ValueWithDisplayString
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.NavEditorEvent
@@ -517,6 +520,25 @@ open class AddActionDialog(
 
     init {
       this.component = component
+    }
+  }
+
+  companion object {
+    fun getAnimatorsPopupContent(repoManager: ResourceRepositoryManager, includeAnimators: Boolean): List<ValueWithDisplayString> {
+      // TODO: filter out interpolators
+      val appResources = repoManager.appResources
+      val visibilityLookup = repoManager.resourceVisibility
+      val result: MutableList<ValueWithDisplayString> = appResources
+        .getResourceItems(ResourceNamespace.TODO(), ResourceType.ANIM, visibilityLookup, ResourceVisibility.PUBLIC)
+        .map { ValueWithDisplayString(it, "@${ResourceType.ANIM.getName()}/$it") }
+        .toMutableList()
+      if (includeAnimators) {
+        appResources
+          .getResourceItems(ResourceNamespace.TODO(), ResourceType.ANIMATOR, visibilityLookup, ResourceVisibility.PUBLIC)
+          .mapTo(result) { ValueWithDisplayString(it, "@${ResourceType.ANIMATOR.getName()}/$it") }
+      }
+      result.sortBy { it.displayString }
+      return result
     }
   }
 }

@@ -21,9 +21,6 @@
 
   <project-components>
     <component>
-      <implementation-class>com.android.tools.idea.naveditor.property.editors.NavPropertyEditors</implementation-class>
-    </component>
-    <component>
       <implementation-class>com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm$Storage</implementation-class>
     </component>
   </project-components>

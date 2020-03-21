@@ -346,10 +346,6 @@ public final class StudioFlags {
 
   //region Navigation Editor
   private static final FlagGroup NAV_EDITOR = new FlagGroup(FLAGS, "nav", "Navigation Editor");
-  public static final Flag<Boolean> NAV_NEW_PROPERTY_PANEL = Flag.create(
-    NAV_EDITOR, "new.property", "Enable the new Property Panel",
-    "Enable the new Property Panel",
-    true);
   public static final Flag<Boolean> NAV_NEW_COMPONENT_TREE = Flag.create(
     NAV_EDITOR, "new.component", "Enable the new Component Tree",
     "Enable the new Component Tree",
