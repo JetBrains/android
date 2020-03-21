@@ -348,7 +348,8 @@ public final class StudioFlags {
   public static final Flag<Boolean> NAV_NEW_COMPONENT_TREE = Flag.create(
     NAV_EDITOR, "new.component", "Enable the new Component Tree",
     "Enable the new Component Tree",
-    false);
+    true);
+
   public static final Flag<Boolean> NAV_DYNAMIC_SUPPORT = Flag.create(
     NAV_EDITOR, "dynamic.support", "Support for Dynamic Feature Modules",
     "Support for Dynamic Feature Modules",
