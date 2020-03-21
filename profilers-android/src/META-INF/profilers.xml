@@ -37,8 +37,10 @@
     <executor implementation="com.android.tools.idea.profilers.ProfileRunExecutor" />
     <programRunner implementation="com.android.tools.idea.profilers.AndroidProfilerProgramRunner" />
     <fileEditorProvider implementation="com.android.tools.idea.profilers.capture.AndroidProfilerCaptureEditorProvider" />
-    <fileTypeFactory implementation="com.android.tools.idea.profilers.capture.CpuCaptureFileTypeFactory" />
-    <fileTypeFactory implementation="com.android.tools.idea.profilers.capture.MemoryCaptureFileTypeFactory" />
+    <fileType name="AndroidProfilerCpuCapture" implementationClass="com.android.tools.idea.fileTypes.profiler.CpuCaptureFileType"
+              extensions="trace"/>
+    <fileType name="AndroidProfilerMemoryCapture" implementationClass="com.android.tools.idea.fileTypes.profiler.MemoryCaptureFileType"
+              extensions="hprof"/>
     <fileType name="HeapProfd" implementationClass="com.android.tools.idea.profilers.capture.HeapProfdMemoryCaptureFileType"
               fieldName="INSTANCE" extensions="heapprofd"/>
   </extensions>
