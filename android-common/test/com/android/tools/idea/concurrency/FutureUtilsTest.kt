@@ -18,6 +18,7 @@ package com.android.tools.idea.concurrency
 import com.google.common.truth.Truth
 import com.google.common.util.concurrent.MoreExecutors.directExecutor
 import com.google.common.util.concurrent.SettableFuture
+import junit.framework.Assert.fail
 import org.junit.Test
 import java.util.concurrent.ExecutionException
 
@@ -58,7 +59,7 @@ class FutureUtilsTest {
     Truth.assertThat(result.get()).isEqualTo(1)
   }
 
-  @Test(expected = ExecutionException::class)
+  @Test
   fun testFinallySyncFinallyIsCalledIfFutureFails() {
     val future = SettableFuture.create<Int>()
     var value = 0
@@ -66,16 +67,25 @@ class FutureUtilsTest {
     future.setException(RuntimeException())
 
     Truth.assertThat(value).isEqualTo(42)
-    result.get()
+
+    try {
+      result.get()
+      fail("Future should have thrown")
+    } catch (expected: ExecutionException) {
+    }
   }
 
-  @Test(expected = ExecutionException::class)
+  @Test
   fun testFinallySyncErrorInFinally() {
     val future = SettableFuture.create<Int>()
     val result = future.finallySync(directExecutor()) { throw RuntimeException("fail in finally") }
     future.set(1)
 
-    result.get()
+    try {
+      result.get()
+      fail("Future should have thrown")
+    } catch (expected: ExecutionException) {
+    }
   }
 
   @Test
@@ -107,11 +117,15 @@ class FutureUtilsTest {
     Truth.assertThat(future.get()).isEqualTo(42)
   }
 
-  @Test(expected = ExecutionException::class)
+  @Test
   fun testExecuteAsyncError() {
     val executor = directExecutor()
     val future = executor.executeAsync { throw RuntimeException("my error") }
 
-    future.get()
+    try {
+      future.get()
+      fail("Future should have thrown")
+    } catch (expected: ExecutionException) {
+    }
   }
 }
