@@ -43,6 +43,10 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
   private val rootPanel = JPanel(BorderLayout())
   private val tree = Tree()
 
+  private val closeDatabaseButton = CommonButton("Close db", AllIcons.Diff.Remove)
+  private val syncSchemaButton = CommonButton("Sync schema", AllIcons.Actions.Refresh)
+  private val runSqlButton = CommonButton("Run SQL", AllIcons.RunConfigurations.TestState.Run)
+
   val component = rootPanel
 
   init {
@@ -65,6 +69,10 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     } else {
       treeModel.root as DefaultMutableTreeNode
     }
+
+    closeDatabaseButton.isEnabled = true
+    syncSchemaButton.isEnabled = true
+    runSqlButton.isEnabled = true
 
     val schemaNode = DefaultMutableTreeNode(database)
     schema.tables.sortedBy { it.name }.forEach { table ->
@@ -118,6 +126,10 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     val openDatabaseCount = (tree.model.root as DefaultMutableTreeNode).childCount
     if (openDatabaseCount == 0) {
       tree.model = DefaultTreeModel(null)
+
+      closeDatabaseButton.isEnabled = false
+      syncSchemaButton.isEnabled = false
+      runSqlButton.isEnabled = false
     }
 
     return openDatabaseCount
@@ -126,7 +138,8 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
   private fun createNorthPanel(): JPanel {
     val northPanel = JPanel(FlowLayout(FlowLayout.LEFT))
 
-    val closeDatabaseButton = CommonButton("Close db", AllIcons.Diff.Remove)
+    closeDatabaseButton.name = "close-db-button"
+    closeDatabaseButton.isEnabled = false
     closeDatabaseButton.toolTipText = "Close db"
     northPanel.add(closeDatabaseButton)
 
@@ -135,18 +148,20 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
       mainView.listeners.forEach { databaseToRemove?.forEach { database -> it.removeDatabaseActionInvoked(database) } }
     }
 
-    val refreshSchema = CommonButton("Sync schema", AllIcons.Actions.Refresh)
-    refreshSchema.toolTipText = "Sync schema"
-    northPanel.add(refreshSchema)
-    refreshSchema.addActionListener {
+    syncSchemaButton.name = "sync-schema-button"
+    syncSchemaButton.isEnabled = false
+    syncSchemaButton.toolTipText = "Sync schema"
+    northPanel.add(syncSchemaButton)
+    syncSchemaButton.addActionListener {
       mainView.listeners.forEach { it.refreshAllOpenDatabasesSchemaActionInvoked() }
     }
 
-    val openSqliteEvaluatorButton = CommonButton("Run SQL", AllIcons.RunConfigurations.TestState.Run)
-    openSqliteEvaluatorButton.toolTipText = "Open SQL evaluator tab"
-    northPanel.add(openSqliteEvaluatorButton)
+    runSqlButton.name = "run-sql-button"
+    runSqlButton.isEnabled = false
+    runSqlButton.toolTipText = "Open SQL evaluator tab"
+    northPanel.add(runSqlButton)
 
-    openSqliteEvaluatorButton.addActionListener { mainView.listeners.forEach { it.openSqliteEvaluatorTabActionInvoked() } }
+    runSqlButton.addActionListener { mainView.listeners.forEach { it.openSqliteEvaluatorTabActionInvoked() } }
 
     return northPanel
   }
