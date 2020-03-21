@@ -162,7 +162,7 @@ class DatabaseInspectorViewImpl(
     val editorPane = JEditorPane(
       "text/html",
       "<h2>Database Inspector</h2>" +
-      "Select a process to begin inspecting." +
+      "Waiting for the app to open a connection to the database..." +
       "<p><a href=\"https://developer.android.com/studio\">Learn more</a></p>"
     )
     val document = editorPane.document as HTMLDocument
