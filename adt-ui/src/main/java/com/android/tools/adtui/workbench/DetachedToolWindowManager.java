@@ -117,6 +117,9 @@ public class DetachedToolWindowManager implements ProjectComponent {
 
   @Nullable
   private WorkBench getActiveWorkBench() {
+    if (myProject.isDisposed()){
+      return null;
+    }
     Component focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
     if (focusOwner instanceof WorkBench) {
       return (WorkBench)focusOwner;
