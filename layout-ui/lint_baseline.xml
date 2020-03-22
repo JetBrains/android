@@ -69,14 +69,6 @@
         id="JbUiStored"
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
-            file="src/main/java/com/android/tools/property/panel/impl/ui/InspectorPanelImpl.kt"
-            line="177"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
             file="src/main/java/com/android/tools/property/ptable2/impl/PTableImpl.kt"
             line="97"/>
     </issue>
