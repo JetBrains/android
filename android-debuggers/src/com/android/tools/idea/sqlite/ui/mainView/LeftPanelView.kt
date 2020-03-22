@@ -43,7 +43,6 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
   private val rootPanel = JPanel(BorderLayout())
   private val tree = Tree()
 
-  private val closeDatabaseButton = CommonButton("Close db", AllIcons.Diff.Remove)
   private val syncSchemaButton = CommonButton("Sync schema", AllIcons.Actions.Refresh)
   private val runSqlButton = CommonButton("Run SQL", AllIcons.RunConfigurations.TestState.Run)
 
@@ -70,7 +69,6 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
       treeModel.root as DefaultMutableTreeNode
     }
 
-    closeDatabaseButton.isEnabled = true
     syncSchemaButton.isEnabled = true
     runSqlButton.isEnabled = true
 
@@ -127,7 +125,6 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     if (openDatabaseCount == 0) {
       tree.model = DefaultTreeModel(null)
 
-      closeDatabaseButton.isEnabled = false
       syncSchemaButton.isEnabled = false
       runSqlButton.isEnabled = false
     }
@@ -137,16 +134,6 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
 
   private fun createNorthPanel(): JPanel {
     val northPanel = JPanel(FlowLayout(FlowLayout.LEFT))
-
-    closeDatabaseButton.name = "close-db-button"
-    closeDatabaseButton.isEnabled = false
-    closeDatabaseButton.toolTipText = "Close db"
-    northPanel.add(closeDatabaseButton)
-
-    closeDatabaseButton.addActionListener {
-      val databaseToRemove = tree.selectionPaths?.mapNotNull { findDatabaseNode(it) }
-      mainView.listeners.forEach { databaseToRemove?.forEach { database -> it.removeDatabaseActionInvoked(database) } }
-    }
 
     syncSchemaButton.name = "sync-schema-button"
     syncSchemaButton.isEnabled = false

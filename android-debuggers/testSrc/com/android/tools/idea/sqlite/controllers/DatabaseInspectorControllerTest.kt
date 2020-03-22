@@ -413,46 +413,6 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     verify(evaluatorView).schemaChanged(sqliteDatabase1)
   }
 
-  fun testRemoveDatabase() {
-    // Prepare
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
-    runDispatching {
-      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
-    }
-
-    mockSqliteView.viewListeners.single().openSqliteEvaluatorTabActionInvoked()
-    val evaluatorView = mockViewFactory.createEvaluatorView(project, MockSchemaProvider(), mockViewFactory.tableView)
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-
-    // Act
-    mockSqliteView.viewListeners.first().removeDatabaseActionInvoked(sqliteDatabase1)
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-
-    // Assert
-    verify(mockDatabaseConnection).dispose()
-    verify(evaluatorView).removeDatabase(0)
-    verify(mockSqliteView).removeDatabaseSchema(sqliteDatabase1)
-  }
-
-  fun testTablesAreRemovedWhenDatabasedIsRemoved() {
-    // Prepare
-    val schema = SqliteSchema(listOf(SqliteTable("table1", emptyList(), null, false), testSqliteTable))
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(schema))
-    runDispatching {
-      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
-    }
-
-    mockSqliteView.viewListeners.single().tableNodeActionInvoked(sqliteDatabase1, testSqliteTable)
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-
-    // Act
-    mockSqliteView.viewListeners.first().removeDatabaseActionInvoked(sqliteDatabase1)
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-
-    // Assert
-    verify(mockSqliteView).closeTab(eq(TabId.TableTab(sqliteDatabase1, testSqliteTable.name)))
-  }
-
   fun testUpdateExistingDatabaseAddTables() {
     // Prepare
     val schema = SqliteSchema(emptyList())
