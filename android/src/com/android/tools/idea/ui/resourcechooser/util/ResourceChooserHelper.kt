@@ -23,6 +23,7 @@ import com.android.tools.idea.ui.resourcemanager.ResourceExplorerDialog
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
+import com.intellij.util.nls.NlsContexts
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
@@ -44,7 +45,7 @@ import org.jetbrains.android.facet.AndroidFacet
  * @param xmlFile The context [XmlFile] with a Configuration, used for theme attributes, can use [tag] as a fallback
  * @param tag The context [XmlTag] in a file with a Configuration, used for theme attributes, can use [xmlFile] as a fallback
  */
-fun createResourcePickerDialog(dialogTitle: String,
+fun createResourcePickerDialog(dialogTitle: @NlsContexts.DialogTitle String,
                                currentValue: String?,
                                facet: AndroidFacet,
                                resourceTypes: Set<ResourceType>,
