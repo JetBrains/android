@@ -18,7 +18,6 @@ package com.android.tools.idea.sqlite.mocks
 import com.android.tools.idea.sqlite.controllers.TabId
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
-import com.android.tools.idea.sqlite.ui.logtab.LogTabView
 import com.android.tools.idea.sqlite.ui.mainView.DatabaseInspectorView
 import com.android.tools.idea.sqlite.ui.mainView.DatabaseInspectorView.Listener
 import com.android.tools.idea.sqlite.ui.mainView.SchemaDiffOperation
@@ -39,8 +38,6 @@ open class MockDatabaseInspectorView : DatabaseInspectorView {
   }
 
   override val component: JComponent = mock(JComponent::class.java)
-
-  override fun getLogTabView(): LogTabView = mock(LogTabView::class.java)
 
   override fun startLoading(text: String) { }
 

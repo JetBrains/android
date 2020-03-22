@@ -21,7 +21,6 @@ import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
-import com.android.tools.idea.sqlite.ui.logtab.LogTabView
 import com.android.tools.idea.sqlite.ui.mainView.DatabaseInspectorView.Listener
 import javax.swing.JComponent
 
@@ -39,8 +38,6 @@ interface DatabaseInspectorView {
    * The JComponent containing the view's UI.
    */
   val component: JComponent
-
-  fun getLogTabView(): LogTabView
 
   fun startLoading(text: String)
   fun stopLoading()
