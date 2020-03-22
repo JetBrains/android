@@ -75,6 +75,11 @@ class TableController(
   private var lastExecutedQuery = sqliteStatement
 
   /**
+   * The list of columns currently shown in the view
+   */
+  private var currentCols = emptyList<SqliteColumn>()
+
+  /**
    * The list of rows that is currently shown in the view.
    */
   private var currentRows = emptyList<SqliteRow>()
@@ -120,6 +125,12 @@ class TableController(
   private fun fetchAndDisplayTableData(): ListenableFuture<Unit> {
     val fetchTableDataFuture = resultSet.columns.transformAsync(edtExecutor) { columns ->
       if (Disposer.isDisposed(this)) throw ProcessCanceledException()
+      if (columns != currentCols) {
+        // if the columns changed we cannot use the old list of rows as reference for doing the diff.
+        currentRows = emptyList()
+      }
+      currentCols = columns
+
       val table = tableSupplier()
       view.showTableColumns(columns.filter { it.name != table?.rowIdName?.stringName })
       view.setEditable(isEditable())
