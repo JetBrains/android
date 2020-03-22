@@ -229,15 +229,12 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
   fun testEmptyStateIsShownInitially() {
     // Prepare
     val emptyStateRightPanel = TreeWalker(view.component).descendants().first { it.name == "right-panel-empty-state" }
-    val closeDatabaseButton = TreeWalker(view.component).descendants().first { it.name == "close-db-button" }
     val syncSchemaButton = TreeWalker(view.component).descendants().first { it.name == "sync-schema-button" }
     val runSqlButton = TreeWalker(view.component).descendants().first { it.name == "run-sql-button" }
     val tree = TreeWalker(view.component).descendants().first { it.name == "left-panel-tree" } as Tree
 
     // Assert
     assertTrue(emptyStateRightPanel.isVisible)
-
-    assertFalse(closeDatabaseButton.isEnabled)
     assertFalse(syncSchemaButton.isEnabled)
     assertFalse(runSqlButton.isEnabled)
 
@@ -256,7 +253,6 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     // Assert
     val emptyStateRightPanelAfterAddingDb = TreeWalker(view.component).descendants().firstOrNull { it.name == "right-panel-empty-state" }
     val tabsPanelAfterAddingDb = TreeWalker(view.component).descendants().first { it.name == "right-panel-tabs-panel" }
-    val closeDatabaseButtonAfterAddingDb = TreeWalker(view.component).descendants().first { it.name == "close-db-button" }
     val syncSchemaButtonAfterAddingDb = TreeWalker(view.component).descendants().first { it.name == "sync-schema-button" }
     val runSqlButtonAfterAddingDb = TreeWalker(view.component).descendants().first { it.name == "run-sql-button" }
     val treeRootAfterAddingDb = tree.model.root
@@ -265,7 +261,6 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     assertNotNull(tabsPanelAfterAddingDb)
     // tree.emptyText is shown when the root is null
     assertNotNull(treeRootAfterAddingDb)
-    assertTrue(closeDatabaseButtonAfterAddingDb.isEnabled)
     assertTrue(syncSchemaButtonAfterAddingDb.isEnabled)
     assertTrue(runSqlButtonAfterAddingDb.isEnabled)
   }
@@ -282,7 +277,6 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     // Assert
     val emptyStateRightPanelAfterRemovingDb = TreeWalker(view.component).descendants().first { it.name == "right-panel-empty-state" }
     val tabsPanelAfterRemovingDb = TreeWalker(view.component).descendants().firstOrNull { it.name == "right-panel-tabs-panel" }
-    val closeDatabaseButtonAfterRemovingDb = TreeWalker(view.component).descendants().first { it.name == "close-db-button" }
     val syncSchemaButtonAfterRemovingDb = TreeWalker(view.component).descendants().first { it.name == "sync-schema-button" }
     val runSqlButtonAfterRemovingDb = TreeWalker(view.component).descendants().first { it.name == "run-sql-button" }
     val treeRootAfterRemovingDb = tree.model.root
@@ -292,7 +286,6 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     // tree.emptyText is shown when the root is null
     assertNull(treeRootAfterRemovingDb)
 
-    assertFalse(closeDatabaseButtonAfterRemovingDb.isEnabled)
     assertFalse(syncSchemaButtonAfterRemovingDb.isEnabled)
     assertFalse(runSqlButtonAfterRemovingDb.isEnabled)
   }

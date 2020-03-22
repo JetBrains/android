@@ -321,11 +321,6 @@ class DatabaseInspectorControllerImpl(
       closeTab(tabId)
     }
 
-    override fun removeDatabaseActionInvoked(database: SqliteDatabase) {
-      // TODO: display a spinner UI while closing?
-      scope.launch(uiThread) { closeDatabase(database) }
-    }
-
     override fun reDownloadDatabaseFileActionInvoked(database: FileSqliteDatabase) {
       val downloadFuture = DatabaseInspectorProjectService.getInstance(project).reDownloadAndOpenFile(database, object : DownloadProgress {
         override val isCancelled: Boolean
