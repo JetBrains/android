@@ -1388,6 +1388,57 @@ class TableControllerTest : PlatformTestCase() {
     orderVerifier.verify(tableView).reportError(eq("Error retrieving data from table."), any(Throwable::class.java))
   }
 
+  fun testRowsDiffWorksWhenColumnsChange() {
+    // Prepare
+    val customSqliteFile = sqliteUtil.createAdHocSqliteDatabase(
+      createStatement = "CREATE TABLE t1 (c1 INT)",
+      insertStatement = "INSERT INTO t1 (c1) VALUES (42)"
+    )
+    customDatabaseConnection = pumpEventsAndWaitForFuture(
+      getJdbcDatabaseConnection(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+    )
+
+    val schema = pumpEventsAndWaitForFuture(customDatabaseConnection!!.readSchema())
+    val targetTable = schema.tables.find { it.name == "t1" }!!
+
+    val tableProvider = object {
+      var table: SqliteTable? = targetTable
+    }
+
+    tableController = TableController(
+      project,
+      10,
+      tableView,
+      { tableProvider.table },
+      customDatabaseConnection!!,
+      SqliteStatement("SELECT * FROM ${targetTable.name}"),
+      edtExecutor,
+      edtExecutor
+    )
+    Disposer.register(testRootDisposable, tableController)
+    pumpEventsAndWaitForFuture(tableController.setUp())
+
+    // Act
+    pumpEventsAndWaitForFuture(customDatabaseConnection!!.execute(SqliteStatement("ALTER TABLE t1 ADD COLUMN c2 text")))
+    pumpEventsAndWaitForFuture(tableController.refreshData())
+
+    // Assert
+    val targetTableAfterAlterTable = pumpEventsAndWaitForFuture(customDatabaseConnection!!.readSchema()).tables.find { it.name == "t1" }!!
+
+    orderVerifier.verify(tableView).showTableColumns(targetTable.columns)
+    orderVerifier.verify(tableView).updateRows(listOf(
+      RowDiffOperation.AddRow(SqliteRow(listOf(SqliteColumnValue("c1", SqliteValue.StringValue("42")))))
+    ))
+
+    orderVerifier.verify(tableView).showTableColumns(targetTableAfterAlterTable.columns)
+    orderVerifier.verify(tableView).updateRows(listOf(
+      RowDiffOperation.AddRow(SqliteRow(listOf(
+        SqliteColumnValue("c1", SqliteValue.StringValue("42")),
+        SqliteColumnValue("c2", SqliteValue.NullValue)
+      )))
+    ))
+  }
+
   fun `test ShowTable DropTable EditTableShowsError`() {
     // Prepare
     val customSqliteFile = sqliteUtil.createAdHocSqliteDatabase(
