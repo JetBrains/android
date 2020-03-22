@@ -48,7 +48,6 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.IdeActions;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.ui.OnePixelDivider;
 import com.intellij.openapi.ui.popup.JBPopup;
@@ -63,6 +62,7 @@ import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.navigation.History;
 import com.intellij.ui.navigation.Place;
 import com.intellij.util.IconUtil;
+import com.intellij.util.nls.NlsContexts;
 import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
 import java.awt.Point;
@@ -77,6 +77,7 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -362,7 +363,7 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
   private abstract class AbstractAddDependencyAction extends AbstractPopupAction {
     @NotNull private final String myTitle;
 
-    AbstractAddDependencyAction(@NotNull String title, @NotNull String text, @NotNull Icon icon, int index) {
+    AbstractAddDependencyAction(@NotNull @Nls @NlsContexts.DialogTitle String title, @NotNull String text, @NotNull Icon icon, int index) {
       super(text, icon, index);
       myTitle = title;
     }

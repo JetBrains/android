@@ -26,6 +26,7 @@ import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.Alarm;
 import com.intellij.util.Consumer;
 import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.nls.NlsContexts;
 import com.intellij.util.ui.ColorIcon;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBUI;
@@ -101,6 +102,7 @@ import javax.swing.plaf.basic.BasicButtonUI;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.PlainDocument;
+import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -495,11 +497,11 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
 
   @Nullable
   public static Color showDialog(Component parent,
-          String caption,
-          @Nullable Color preselectedColor,
-          boolean enableOpacity,
-          @Nullable ColorPickerListener[] listeners,
-          boolean opacityInPercent) {
+                                 @Nls @NlsContexts.DialogTitle String caption,
+                                 @Nullable Color preselectedColor,
+                                 boolean enableOpacity,
+                                 @Nullable ColorPickerListener[] listeners,
+                                 boolean opacityInPercent) {
     final ColorPickerDialog dialog = new ColorPickerDialog(parent, caption, preselectedColor, enableOpacity, listeners, opacityInPercent);
     dialog.show();
     if (dialog.getExitCode() == DialogWrapper.OK_EXIT_CODE) {
@@ -1080,11 +1082,11 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     private final boolean myOpacityInPercent;
 
     public ColorPickerDialog(Component parent,
-            String caption,
-            @Nullable Color preselectedColor,
-            boolean enableOpacity,
-            @Nullable ColorPickerListener[] listeners,
-            boolean opacityInPercent) {
+                             @Nls @NlsContexts.DialogTitle String caption,
+                             @Nullable Color preselectedColor,
+                             boolean enableOpacity,
+                             @Nullable ColorPickerListener[] listeners,
+                             boolean opacityInPercent) {
       super(parent, true);
       myListeners = listeners;
       setTitle(caption);
