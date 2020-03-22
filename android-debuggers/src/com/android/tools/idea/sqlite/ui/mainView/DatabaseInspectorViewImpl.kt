@@ -25,8 +25,6 @@ import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.sqlite.controllers.TabId
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
-import com.android.tools.idea.sqlite.ui.logtab.LogTabView
-import com.android.tools.idea.sqlite.ui.logtab.LogTabViewImpl
 import com.android.tools.idea.sqlite.ui.notifyError
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
@@ -66,7 +64,6 @@ class DatabaseInspectorViewImpl(
   private val viewContext = SqliteViewContext(leftPanelView.component)
   private val workBench: WorkBench<SqliteViewContext> = WorkBench(project, "Sqlite", null, parentDisposable)
   private val tabs = JBEditorTabs(project, ActionManager.getInstance(), IdeFocusManager.getInstance(project), project)
-  private val logTabView = LogTabViewImpl(project)
 
   override val component: JComponent = workBench
 
@@ -83,16 +80,6 @@ class DatabaseInspectorViewImpl(
       setUiDecorator { UiDecorator.UiDecoration(null, JBUI.insets(4, 10)) }
       addTabMouseListener(TabMouseListener())
     }
-
-    setUpLogTab()
-  }
-
-  private fun setUpLogTab() {
-    val tab = TabInfo(logTabView.component)
-    tab.text = "Log"
-
-    tabs.addTab(tab)
-    tabs.select(tab, true)
   }
 
   override fun addListener(listener: DatabaseInspectorView.Listener) {
@@ -148,10 +135,6 @@ class DatabaseInspectorViewImpl(
 
   override fun reportError(message: String, throwable: Throwable?) {
     notifyError(message, throwable)
-  }
-
-  override fun getLogTabView(): LogTabView {
-    return logTabView
   }
 
   override fun reportSyncProgress(message: String) {
