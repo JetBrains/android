@@ -21,6 +21,8 @@ import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.Rotation.SkinRotation
 import com.android.ide.common.util.Cancelable
+import com.android.tools.adtui.Zoomable
+import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.idea.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.emulator.EmulatorController.ConnectionStateListener
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_SCREENSHOTS
@@ -59,23 +61,28 @@ import com.android.emulator.control.Image as EmulatorImage
 class EmulatorView(
   private val emulator: EmulatorController,
   cropFrame: Boolean
-) : JPanel(BorderLayout()), ComponentListener, ConnectionStateListener, Disposable {
+) : JPanel(BorderLayout()), ComponentListener, ConnectionStateListener, Zoomable, Disposable {
 
-  private var connectionStateLabel = JLabel(getConnectionStateText(ConnectionState.NOT_INITIALIZED))
+  private var connectionStateLabel: JLabel
   private var screenshotFeed: Cancelable? = null
   private var displayImage: Image? = null
   private var displayWidth = 0
   private var displayHeight = 0
   private var skinLayout: ScaledSkinLayout? = null
-  private var cropFrameInternal: Boolean = cropFrame
   private var displayRotationInternal = SkinRotation.PORTRAIT
+  override var scale = 1.0
+    private set
+  override val screenScalingFactor
+    get() = 1f
   private val displayTransform = AffineTransform()
   @Volatile
   private var screenshotReceiver: ScreenshotReceiver? = null
 
   init {
+    connectionStateLabel = JLabel(getConnectionStateText(ConnectionState.NOT_INITIALIZED))
     connectionStateLabel.border = JBUI.Borders.emptyLeft(20)
     connectionStateLabel.font = connectionStateLabel.font.deriveFont(connectionStateLabel.font.size * 1.2F)
+
     isFocusable = true // Must be focusable to receive keyboard events.
 
     emulator.addConnectionStateListener(this)
@@ -120,22 +127,46 @@ class EmulatorView(
   var displayRotation: SkinRotation
     get() = displayRotationInternal
     set(value) {
-      if (value != displayRotationInternal && !cropFrameInternal) {
+      if (value != displayRotationInternal && !cropFrame) {
         requestScreenshotFeed(value)
       }
     }
 
-  var cropFrame: Boolean
-    get() = cropFrameInternal
+  var cropFrame: Boolean = cropFrame
     set(value) {
-      if (value != cropFrameInternal) {
-        cropFrameInternal = value
+      if (field != value) {
+        field = value
         requestScreenshotFeed()
       }
     }
 
   private inline val skinDefinition
     get() = emulator.skinDefinition
+
+
+  override fun zoom(type: ZoomType): Boolean {
+    TODO("Not yet implemented")
+  }
+
+  override fun canZoomIn(): Boolean {
+    return true
+    // TODO: Implement
+  }
+
+  override fun canZoomOut(): Boolean {
+    return true
+    // TODO: Implement
+  }
+
+  override fun canZoomToFit(): Boolean {
+    return true
+    // TODO: Implement
+  }
+
+  override fun canZoomToActual(): Boolean {
+    return true
+    // TODO: Implement
+  }
 
   private fun sendMouseEvent(x: Int, y: Int, button: Int) {
     val config = emulator.emulatorConfig
@@ -203,25 +234,6 @@ class EmulatorView(
     emulator.removeConnectionStateListener(this)
   }
 
-  /**
-   * Returns the preferred size that depends on the rotation of the Emulator's display.
-   */
-  override fun getPreferredSize(): Dimension {
-    try {
-      val config = emulator.emulatorConfig
-      return if (displayRotationInternal.is90Degrees) {
-        Dimension(config.displayHeight, config.displayWidth)
-      }
-      else {
-        Dimension(config.displayWidth, config.displayHeight)
-      }
-    }
-    catch (e: IllegalStateException) {
-      // Don't have Emulator configuration yet. Return the size of the parent.
-      return parent.size
-    }
-  }
-
   override fun paintComponent(g: Graphics) {
     super.paintComponent(g)
 
@@ -230,7 +242,7 @@ class EmulatorView(
     val skinSize = skin.skinSize
     val baseX: Int
     val baseY: Int
-    if (cropFrameInternal) {
+    if (cropFrame) {
       baseX = (width - displayWidth) / 2 - skin.displayRect.x
       baseY = (height - displayHeight) / 2 - skin.displayRect.y
     }
@@ -268,7 +280,7 @@ class EmulatorView(
       val w: Int
       val h: Int
       val skin = skinDefinition
-      if (cropFrameInternal || skin == null) {
+      if (cropFrame || skin == null) {
         w = width
         h = height
       }
@@ -288,19 +300,19 @@ class EmulatorView(
     }
   }
 
-  override fun componentResized(e: ComponentEvent) {
+  override fun componentResized(event: ComponentEvent) {
     requestScreenshotFeed()
   }
 
-  override fun componentShown(e: ComponentEvent) {
+  override fun componentShown(event: ComponentEvent) {
     requestScreenshotFeed()
   }
 
-  override fun componentHidden(e: ComponentEvent) {
+  override fun componentHidden(event: ComponentEvent) {
     screenshotFeed?.cancel()
   }
 
-  override fun componentMoved(e: ComponentEvent) {
+  override fun componentMoved(event: ComponentEvent) {
   }
 
   override fun connectionStateChanged(emulator: EmulatorController, connectionState: ConnectionState) {
@@ -373,7 +385,7 @@ class EmulatorView(
       val w = screenshot.width
       val h = screenshot.height
 
-      if (!cropFrameInternal) {
+      if (!cropFrame) {
         // If the frame is not cropped, it is possible that the snapshot feed was requested assuming
         // a different device rotation. Check that the dimensions of the received screenshot match
         // our expectations. If they don't, ignore this screenshot request a fresh feed.

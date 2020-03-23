@@ -56,17 +56,29 @@ internal class EmulatorToolWindowManager(private val project: Project) : Running
     }
   }
 
-  private val frameIsCropped
+  private var frameIsCropped
     get() = properties.getBoolean(FRAME_CROPPED_PROPERTY, FRAME_CROPPED_DEFAULT)
+    set(value) {
+      properties.setValue(FRAME_CROPPED_PROPERTY, value, FRAME_CROPPED_DEFAULT)
+      for (panel in panels) {
+        panel.setCropFrame(value)
+      }
+    }
+
+  private var zoomToolbarIsVisible
+    get() = properties.getBoolean(ZOOM_TOOLBAR_VISIBLE_PROPERTY, ZOOM_TOOLBAR_VISIBLE_DEFAULT)
+    set(value) {
+      properties.setValue(ZOOM_TOOLBAR_VISIBLE_PROPERTY, value, ZOOM_TOOLBAR_VISIBLE_DEFAULT)
+      for (panel in panels) {
+        panel.zoomToolbarIsVisible = value
+      }
+    }
 
   init {
     // Lazily initialize content since we can only have one frame.
     project.messageBus.connect(project).subscribe(ToolWindowManagerListener.TOPIC, object : ToolWindowManagerListener {
       @UiThread
       override fun stateChanged() {
-        if (!SHUTDOWN_CAPABLE && initialized) {
-          return
-        }
         // We need to query the tool window again, because it might have been unregistered when closing the project.
         val toolWindow = getToolWindow()
 
@@ -76,7 +88,7 @@ internal class EmulatorToolWindowManager(private val project: Project) : Running
             createContent(toolWindow)
           }
         }
-        else if (SHUTDOWN_CAPABLE && initialized) {
+        else if (initialized) {
           destroyContent(toolWindow)
         }
       }
@@ -87,6 +99,7 @@ internal class EmulatorToolWindowManager(private val project: Project) : Running
     initialized = true
 
     val actionGroup = DefaultActionGroup()
+    actionGroup.addAction(ToggleZoomToolbarAction())
     actionGroup.addAction(ToggleFrameCropAction())
     (toolWindow as ToolWindowEx).setAdditionalGearActions(actionGroup)
 
@@ -115,6 +128,7 @@ internal class EmulatorToolWindowManager(private val project: Project) : Running
   }
 
   private fun addEmulatorPanel(panel: EmulatorToolWindowPanel) {
+    panel.zoomToolbarIsVisible = zoomToolbarIsVisible
     val contentFactory = ContentFactory.SERVICE.getInstance()
     val content = contentFactory.createContent(panel.component, panel.title, false)
     content.putUserData(ToolWindow.SHOW_CONTENT_ICON, true)
@@ -195,10 +209,17 @@ internal class EmulatorToolWindowManager(private val project: Project) : Running
     }
 
     override fun setSelected(event: AnActionEvent, state: Boolean) {
-      properties.setValue(FRAME_CROPPED_PROPERTY, state, FRAME_CROPPED_DEFAULT)
-      for (panel in panels) {
-        panel.emulatorView?.cropFrame = state
-      }
+      frameIsCropped = state
+    }
+  }
+
+  private inner class ToggleZoomToolbarAction : ToggleAction("Show Zoom Controls"), DumbAware {
+    override fun isSelected(event: AnActionEvent): Boolean {
+      return zoomToolbarIsVisible
+    }
+
+    override fun setSelected(event: AnActionEvent, state: Boolean) {
+      zoomToolbarIsVisible = state
     }
   }
 
@@ -207,8 +228,9 @@ internal class EmulatorToolWindowManager(private val project: Project) : Running
 
     private const val FRAME_CROPPED_PROPERTY = "com.android.tools.idea.emulator.frame.cropped"
     private const val FRAME_CROPPED_DEFAULT = true
+    private const val ZOOM_TOOLBAR_VISIBLE_PROPERTY = "com.android.tools.idea.emulator.zoom.toolbar.visible"
+    private const val ZOOM_TOOLBAR_VISIBLE_DEFAULT = true
     private const val EMULATOR_DISCOVERY_INTERVAL_MILLIS = 1000
-    private const val SHUTDOWN_CAPABLE = false // TODO: Change to true.
 
     @JvmStatic
     private val COLLATOR = Collator.getInstance()
