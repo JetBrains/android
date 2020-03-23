@@ -64,6 +64,7 @@ class AppInspectionViewTest {
   private val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("AppInspectionViewTest", transportService, transportService)!!
   private val appInspectionServiceRule = AppInspectionServiceRule(timer, transportService, grpcServerRule)
   private val projectRule = AndroidProjectRule.inMemory().initAndroid(false)
+  private val api29Device = FakeTransportService.FAKE_DEVICE.toBuilder().setApiLevel(29).build()
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(grpcServerRule).around(appInspectionServiceRule)!!.around(projectRule).around(EdtRule())!!
@@ -95,8 +96,8 @@ class AppInspectionViewTest {
       override fun componentRemoved(e: ContainerEvent?) {}
     })
     // Attach to a fake process.
-    transportService.addDevice(FakeTransportService.FAKE_DEVICE)
-    transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
+    transportService.addDevice(api29Device)
+    transportService.addProcess(api29Device, FakeTransportService.FAKE_PROCESS)
     newProcessLatch.await()
     tabAddedLatch.await()
   }
@@ -117,8 +118,7 @@ class AppInspectionViewTest {
     })
 
     // Launch two processes and wait for them to show up in combobox
-    val fakeDevice =
-      FakeTransportService.FAKE_DEVICE.toBuilder().setDeviceId(1).setModel("fakeModel").setManufacturer("fakeMan").setSerial("1").build()
+    val fakeDevice = api29Device.toBuilder().setDeviceId(1).setModel("fakeModel").setManufacturer("fakeMan").setSerial("1").build()
     val fakeProcess1 = FakeTransportService.FAKE_PROCESS.toBuilder().setPid(1).setDeviceId(1).build()
     val fakeProcess2 = FakeTransportService.FAKE_PROCESS.toBuilder().setPid(2).setDeviceId(1).build()
     transportService.addDevice(fakeDevice)
