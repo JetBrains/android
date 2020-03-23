@@ -185,7 +185,8 @@ class AppInspectionDiscoveryHost(
    * guaranteed to be true because transport pipeline only provides debuggable processes, so there is no need to check.
    */
   private fun ProcessDescriptor.isInspectable(): Boolean {
-    return stream.device.apiLevel >= AndroidVersion.VersionCodes.O
+    // TODO(b/152216552): Support O+ (API 26+) devices. Due to device-side issues, we only support API 29+ devices for now.
+    return stream.device.apiLevel >= AndroidVersion.VersionCodes.Q
   }
 
   /**
