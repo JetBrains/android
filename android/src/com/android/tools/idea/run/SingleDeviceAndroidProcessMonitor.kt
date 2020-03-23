@@ -16,7 +16,6 @@
 package com.android.tools.idea.run
 
 import com.android.ddmlib.IDevice
-import com.android.ddmlib.NullOutputReceiver
 import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitor.Companion.APP_PROCESS_DISCOVERY_TIMEOUT_MILLIS
 import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitor.Companion.POLLING_INTERVAL_MILLIS
 import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.PROCESS_DETACHED
@@ -177,7 +176,7 @@ class SingleDeviceAndroidProcessMonitor(
     when (myState) {
       WAITING_FOR_PROCESS, PROCESS_IS_RUNNING -> {
         // Kill target process if it's still running.
-        targetDevice.forceStop(targetApplicationId);
+        targetDevice.forceStop(targetApplicationId)
         deploymentApplicationService.findClient(targetDevice, targetApplicationId).forEach { client ->
           client.kill()
         }
