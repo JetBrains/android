@@ -537,6 +537,12 @@ public class RenderTask {
    */
   @Nullable
   private RenderResult createRenderSession(@NotNull IImageFactory factory) {
+    RenderTaskContext context = getContext();
+    Module module = context.getModule();
+    if (module.isDisposed()) {
+      return null;
+    }
+
     PsiFile psiFile = getXmlFile();
     if (psiFile == null) {
       throw new IllegalStateException("createRenderSession shouldn't be called on RenderTask without PsiFile");
@@ -545,7 +551,8 @@ public class RenderTask {
       return null;
     }
 
-    ResourceResolver resolver = ResourceResolver.copy(getContext().getConfiguration().getResourceResolver());
+    Configuration configuration = context.getConfiguration();
+    ResourceResolver resolver = ResourceResolver.copy(configuration.getResourceResolver());
     if (resolver == null) {
       // Abort the rendering if the resources are not found.
       return null;
@@ -560,23 +567,20 @@ public class RenderTask {
 
     if (modelParser instanceof LayoutPsiPullParser) {
       // For regular layouts, if we use appcompat, we have to emulat the app:srcCompat attribute behaviour.
-      boolean useSrcCompat = DependencyManagementUtil.dependsOn(getContext().getModule(), GoogleMavenArtifactId.APP_COMPAT_V7) ||
-                             DependencyManagementUtil.dependsOn(getContext().getModule(), GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7);
+      boolean useSrcCompat = DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.APP_COMPAT_V7) ||
+                             DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7);
       ((LayoutPsiPullParser)modelParser).setUseSrcCompat(useSrcCompat);
       myLayoutlibCallback.setAaptDeclaredResources(((LayoutPsiPullParser)modelParser).getAaptDeclaredAttrs());
     }
-
 
     ILayoutPullParser includingParser = getIncludingLayoutParser(resolver, modelParser);
     if (includingParser != null) {
       modelParser = includingParser;
     }
 
-    RenderTaskContext context = getContext();
-    IAndroidTarget target = context.getConfiguration().getTarget();
+    IAndroidTarget target = configuration.getTarget();
     int simulatedPlatform = target instanceof CompatibilityRenderTarget ? target.getVersion().getApiLevel() : 0;
 
-    Module module = context.getModule();
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
     SessionParams params =
         new SessionParams(modelParser, myRenderingMode, module /* projectKey */, hardwareConfig, resolver,
@@ -602,7 +606,6 @@ public class RenderTask {
 
     MergedManifestSnapshot manifestInfo = MergedManifestManager.getSnapshot(module);
 
-    Configuration configuration = context.getConfiguration();
     LayoutDirectionQualifier qualifier = configuration.getFullConfig().getLayoutDirectionQualifier();
     if (qualifier != null && qualifier.getValue() == LayoutDirection.RTL && !getLayoutLib().isRtl(myLocale.toLocaleId())) {
       // We don't have a flag to force RTL regardless of locale, so just pick a RTL locale (note that
@@ -664,7 +667,7 @@ public class RenderTask {
       myLayoutlibCallback.setLogger(myLogger);
 
       RenderSecurityManager securityManager =
-          isSecurityManagerEnabled ? RenderSecurityManagerFactory.create(module, getContext().getPlatform()) : null;
+          isSecurityManagerEnabled ? RenderSecurityManagerFactory.create(module, context.getPlatform()) : null;
       if (securityManager != null) {
         securityManager.setActive(true, myCredential);
       }
