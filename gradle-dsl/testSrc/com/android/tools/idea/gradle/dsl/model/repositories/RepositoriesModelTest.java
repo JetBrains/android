@@ -71,6 +71,7 @@ import static org.junit.Assume.assumeTrue;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.TestFileName;
+import com.android.tools.idea.gradle.dsl.ZTestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.MavenCredentialsModel;
@@ -459,7 +460,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     assertEquals("url", "https://jcenter.bintray.com/", jCenterRepository.url().toString());
   }
 
-  private void verifyAddGoogleRepositoryByMethodCall(TestFileName expected) throws IOException {
+  private void verifyAddGoogleRepositoryByMethodCall(ZTestFileName expected) throws IOException {
     GradleBuildModel buildModel = getGradleBuildModel();
 
     RepositoriesModel repositoriesModel = buildModel.repositories();
@@ -479,7 +480,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     verifyGoogleDefaultRepositoryModel(repositories.get(prevSize));
   }
 
-  private void verifyAddGoogleRepositoryByUrl(TestFileName expected) throws IOException {
+  private void verifyAddGoogleRepositoryByUrl(ZTestFileName expected) throws IOException {
     GradleBuildModel buildModel = getGradleBuildModel();
 
     RepositoriesModel repositoriesModel = buildModel.repositories();

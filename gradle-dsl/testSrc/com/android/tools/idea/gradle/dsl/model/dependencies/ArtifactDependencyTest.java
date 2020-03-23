@@ -126,6 +126,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assume.assumeTrue;
 
 import com.android.tools.idea.gradle.dsl.TestFileName;
+import com.android.tools.idea.gradle.dsl.ZTestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
@@ -171,7 +172,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     doTestParsingConfigurationVersion(ARTIFACT_DEPENDENCY_CONFIGURE_CLOSURE_WITH_PARENS);
   }
 
-  private void doTestParsingConfigurationVersion(@NotNull TestFileName fileName) throws IOException {
+  private void doTestParsingConfigurationVersion(@NotNull ZTestFileName fileName) throws IOException {
     writeToBuildFile(fileName);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -224,7 +225,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     doTestSetVersionWithConfigurationClosure(ARTIFACT_DEPENDENCY_CONFIGURE_CLOSURE_WITH_PARENS);
   }
 
-  private void doTestSetVersionWithConfigurationClosure(@NotNull TestFileName fileName) throws IOException {
+  private void doTestSetVersionWithConfigurationClosure(@NotNull ZTestFileName fileName) throws IOException {
     writeToBuildFile(fileName);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -1493,7 +1494,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     }
   }
 
-  private void runSetFullReferencesTest(@NotNull TestFileName testFileName) throws IOException {
+  private void runSetFullReferencesTest(@NotNull ZTestFileName testFileName) throws IOException {
     writeToBuildFile(testFileName);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -1520,7 +1521,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertThat(artifacts.get(0).configurationName()).isEqualTo("testCompile");
   }
 
-  private void runSetFullSingleReferenceTest(@NotNull TestFileName testFileName, @NotNull PropertyType type, @NotNull String name)
+  private void runSetFullSingleReferenceTest(@NotNull ZTestFileName testFileName, @NotNull PropertyType type, @NotNull String name)
     throws IOException {
     writeToBuildFile(testFileName);
 
