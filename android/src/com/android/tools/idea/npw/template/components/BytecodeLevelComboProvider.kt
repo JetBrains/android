@@ -19,7 +19,7 @@ import com.android.tools.idea.observable.AbstractProperty
 import com.android.tools.idea.observable.ui.SelectedItemProperty
 import com.android.tools.idea.wizard.template.BytecodeLevel
 import com.intellij.openapi.ui.ComboBox
-import com.intellij.ui.ListCellRendererWrapper
+import com.intellij.ui.SimpleListCellRenderer
 import org.jetbrains.android.util.AndroidBundle.message
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JList
@@ -27,15 +27,15 @@ import javax.swing.JList
 /**
  * Provides a combobox which presents the user with a list of possible bytecode support levels (e.g. 1.6, 1.8 etc).
  */
-class BytecodeLevelComboProvider : ComponentProvider<ComboBox<*>>() {
+class BytecodeLevelComboProvider : ComponentProvider<ComboBox<BytecodeLevel>>() {
   override fun createComponent(): ComboBox<BytecodeLevel> = ComboBox(DefaultComboBoxModel(BytecodeLevel.values())).apply {
-    renderer = object : ListCellRendererWrapper<BytecodeLevel>() {
-      override fun customize(list: JList<*>, value: BytecodeLevel?, index: Int, selected: Boolean, hasFocus: Boolean) {
-        setText(value?.toString() ?: message("android.wizard.language.combo.empty"))
+    renderer = object : SimpleListCellRenderer<BytecodeLevel>() {
+      override fun customize(list: JList<out BytecodeLevel>, value: BytecodeLevel?, index: Int, selected: Boolean, hasFocus: Boolean) {
+        text = value?.toString() ?: message("android.wizard.language.combo.empty")
       }
     }
     toolTipText = message("android.wizard.language.combo.tooltip")
   }
 
-  override fun createProperty(component: ComboBox<*>): AbstractProperty<*> = SelectedItemProperty<BytecodeLevel>(component)
+  override fun createProperty(component: ComboBox<BytecodeLevel>): AbstractProperty<*> = SelectedItemProperty<BytecodeLevel>(component)
 }
