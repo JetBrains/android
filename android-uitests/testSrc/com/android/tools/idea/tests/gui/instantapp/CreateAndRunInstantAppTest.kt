@@ -105,7 +105,7 @@ class CreateAndRunInstantAppTest {
   @Test
   @RunIn(TestGroup.SANITY_BAZEL)
   fun createAndRun() {
-    val runConfigName = "app"
+    val runConfigName = "My_Application.app"
     val avdName = avdTestRule.myAvd?.name ?: throw IllegalStateException("AVD does not have a name")
 
     guiTest
