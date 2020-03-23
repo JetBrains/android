@@ -22,8 +22,6 @@ import com.intellij.facet.ProjectFacetManager
 import com.intellij.lang.Language
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
@@ -37,10 +35,16 @@ import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.refactoring.getProjectProperties
-import org.jetbrains.android.refactoring.module
+import org.jetbrains.android.refactoring.project
 import org.jetbrains.android.refactoring.syncBeforeFinishingRefactoring
 
 const val REFACTORING_NAME = "Migrate to non-transitive R classes"
+
+private fun findFacetsToMigrate(project: Project): List<AndroidFacet> {
+  return ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).filter { facet ->
+    facet.getModuleSystem().isRClassTransitive
+  }
+}
 
 /**
  * Action to perform the refactoring.
@@ -53,9 +57,14 @@ class MigrateToNonTransitiveRClassesAction : BaseRefactoringAction() {
   override fun isAvailableInEditorOnly() = false
   override fun isAvailableForLanguage(language: Language?) = true
 
-  override fun isEnabledOnDataContext(dataContext: DataContext) = isEnabledOnModule(dataContext.module)
-  override fun isEnabledOnElements(elements: Array<PsiElement>) = isEnabledOnModule(ModuleUtil.findModuleForPsiElement(elements.first()))
-  private fun isEnabledOnModule(module: Module?): Boolean = module?.getModuleSystem()?.isRClassTransitive == true
+  override fun isEnabledOnDataContext(dataContext: DataContext) = dataContext.project?.let(this::isEnabledOnProject) ?: false
+  override fun isEnabledOnElements(elements: Array<PsiElement>) = isEnabledOnProject(elements.first().project)
+
+  override fun isAvailableOnElementInEditorAndFile(element: PsiElement, editor: Editor, file: PsiFile, context: DataContext): Boolean {
+    return isEnabledOnProject(element.project)
+  }
+
+  private fun isEnabledOnProject(project: Project): Boolean = findFacetsToMigrate(project).isNotEmpty()
 }
 
 /**
@@ -91,9 +100,7 @@ class MigrateToNonTransitiveRClassesProcessor private constructor(
     fun forEntireProject(project: Project): MigrateToNonTransitiveRClassesProcessor {
       return MigrateToNonTransitiveRClassesProcessor(
         project,
-        facetsToMigrate = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).filter { facet ->
-          facet.getModuleSystem().isRClassTransitive
-        },
+        facetsToMigrate = findFacetsToMigrate(project),
         updateTopLevelGradleProperties = true
       )
     }
@@ -102,8 +109,6 @@ class MigrateToNonTransitiveRClassesProcessor private constructor(
   override fun getCommandName() = REFACTORING_NAME
 
   override fun findUsages(): Array<UsageInfo> {
-    // TODO(b/137180850): handle the case where facetsToMigrate is empty, because the project is already migrated.
-
     val progressIndicator = ProgressManager.getInstance().progressIndicator
     progressIndicator.isIndeterminate = true
     progressIndicator.text = "Finding R class usages..."
