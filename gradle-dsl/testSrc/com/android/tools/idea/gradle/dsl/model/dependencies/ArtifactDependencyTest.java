@@ -15,99 +15,99 @@
  */
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_ADD_DEPENDENCY;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_ADD_DEPENDENCY_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_ADD_DEPENDENCY_WITH_CONFIGURATION_CLOSURE;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_ADD_DEPENDENCY_WITH_CONFIGURATION_CLOSURE_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_ARTIFACT_NOTATION_EDGE_CASES;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_COMPACT_NOTATION_ELEMENT_UNSUPPORTED_OPERATIONS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_COMPACT_NOTATION_PSI_ELEMENT;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_COMPACT_NOTATION_SET_TO_REFERENCE;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_COMPACT_SET_THROUGH_REFERENCES;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_COMPACT_SET_THROUGH_REFERENCES_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_CONFIGURE_CLOSURE_NO_PARENS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_CONFIGURE_CLOSURE_PARENS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_CONFIGURE_CLOSURE_WITH_PARENS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_CONTAINS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_CORRECT_OBTAIN_RESULT_MODEL;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_DELETE_GROUP_AND_VERSION;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_DELETE_GROUP_AND_VERSION_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_DELETE_IN_METHOD_CALL_WITH_PROPERTIES;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_DELETE_IN_METHOD_CALL_WITH_PROPERTIES_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_DELETE_NAME_AND_RENAME_UNSUPPORTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_EMPTY_FAKE_ARTIFACT_ELEMENT;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_FOLLOW_MULTIPLE_REFERENCES;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_GET_ONLY_ARTIFACTS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_INSERTION_ORDER;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_INSERTION_ORDER_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_MALFORMED_FAKE_ARTIFACT_ELEMENT;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_MAP_NOTATION_PSI_ELEMENT;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_METHOD_CALL_COMPACT_PSI_ELEMENT;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_METHOD_CALL_MULTIPLE_COMPACT_PSI_ELEMENT;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_MISSING_PROPERTIES_COMPACT;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_MISSING_PROPERTIES_MAP;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_MULTIPLE_COMPACT_NOTATION_PSI_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_NON_DEPENDENCY_CODE_IN_DEPENDENCIES_SECTION;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_PARSE_COMPACT_NOTATION_CLOSURE_WITH_VARIABLES;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_PARSE_COMPACT_NOTATION_WITH_VARIABLES;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_PARSE_DEPENDENCIES_WITH_COMPACT_NOTATION_IN_SINGLE_LINE;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_PARSE_DEPENDENCIES_WITH_COMPACT_NOTATION_IN_SINGLE_LINE_WITH_COMMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_PARSE_DEPENDENCIES_WITH_MAP_NOTATION_USING_SINGLE_CONFIGURATION_NAME;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_PARSE_DEPENDENCIES_WITH_MAP_NOTATION_USING_SINGLE_CONFIGURATION_NAME_NO_PARENTHESES;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_PARSE_FULL_REFERENCES_COMPACT_APPLICATION;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_PARSE_FULL_REFERENCE_MAP;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_PARSE_MAP_NOTATION_CLOSURE_WITH_VARIABLES;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_PARSE_MAP_NOTATION_WITH_VARIABLES;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_PARSING_WITH_COMPACT_NOTATION;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_PARSING_WITH_MAP_NOTATION;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REMOVE_DEPENDENCY_WITH_COMPACT_NOTATION;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REMOVE_DEPENDENCY_WITH_COMPACT_NOTATION_AND_SINGLE_CONFIGURATION_NAME;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REMOVE_DEPENDENCY_WITH_COMPACT_NOTATION_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REMOVE_DEPENDENCY_WITH_MAP_NOTATION;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REMOVE_DEPENDENCY_WITH_MAP_NOTATION_AND_SINGLE_CONFIGURATION_NAME;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REMOVE_DEPENDENCY_WITH_MAP_NOTATION_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REMOVE_WHEN_MULTIPLE;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_APPLICATION_DEPENDENCIES;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_APPLICATION_DEPENDENCIES_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_BY_CHILD_ELEMENT;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_BY_CHILD_ELEMENT_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_BY_PSI_ELEMENT;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_BY_PSI_ELEMENT_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_FAILS_IF_PSI_ELEMENT_IS_NOT_FOUND;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_IN_ARGUMENT_LIST;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_USING_MAP_NOTATION_ADDING_FIELDS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_USING_MAP_NOTATION_ADDING_FIELDS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_USING_MAP_NOTATION_DELETE_FIELDS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_USING_MAP_NOTATION_DELETE_FIELDS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_USING_MAP_NOTATION_WITH_COMPACT_NOTATION;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_USING_MAP_NOTATION_WITH_COMPACT_NOTATION_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_METHOD_DEPENDENCY_WITH_CLOSURE;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_METHOD_DEPENDENCY_WITH_CLOSURE_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_RESET;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_CONFIGURATION_TO_EMPTY;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_CONFIGURATION_TO_NON_STANDARD;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_CONFIGURATION_TO_NON_STANDARD_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_CONFIGURATION_WHEN_MULTIPLE;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_CONFIGURATION_WHEN_SINGLE;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_EXCLUDES_BLOCK_TO_REFERENCES;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_EXCLUDES_BLOCK_TO_REFERENCES_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_FULL_REFERENCES_COMPACT_APPLICATION;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_FULL_REFERENCE_COMPACT_METHOD;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_FULL_REFERENCE_MAP;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_I_STR_IN_COMPACT_NOTATION;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_I_STR_IN_COMPACT_NOTATION_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_SINGLE_REFERENCE_COMPACT_APPLICATION;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_SINGLE_REFERENCE_COMPACT_METHOD;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_THROUGH_MAP_REFERENCE;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_THROUGH_MAP_REFERENCE_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_VERSION_ON_DEPENDENCY_WITH_COMPACT_NOTATION;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_VERSION_ON_DEPENDENCY_WITH_COMPACT_NOTATION_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_VERSION_ON_DEPENDENCY_WITH_MAP_NOTATION;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_DEPENDENCY_WITH_COMPACT_NOTATION;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_DEPENDENCY_WITH_COMPACT_NOTATION_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_VERSION_ON_DEPENDENCY_WITH_MAP_NOTATION_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_VERSION_REFERENCE;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_VERSION_REFERENCE_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_ADD_DEPENDENCY;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_ADD_DEPENDENCY_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_ADD_DEPENDENCY_WITH_CONFIGURATION_CLOSURE;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_ADD_DEPENDENCY_WITH_CONFIGURATION_CLOSURE_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_ARTIFACT_NOTATION_EDGE_CASES;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_COMPACT_NOTATION_ELEMENT_UNSUPPORTED_OPERATIONS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_COMPACT_NOTATION_PSI_ELEMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_COMPACT_NOTATION_SET_TO_REFERENCE;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_COMPACT_SET_THROUGH_REFERENCES;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_COMPACT_SET_THROUGH_REFERENCES_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_CONFIGURE_CLOSURE_NO_PARENS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_CONFIGURE_CLOSURE_PARENS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_CONFIGURE_CLOSURE_WITH_PARENS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_CONTAINS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_CORRECT_OBTAIN_RESULT_MODEL;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_DELETE_GROUP_AND_VERSION;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_DELETE_GROUP_AND_VERSION_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_DELETE_IN_METHOD_CALL_WITH_PROPERTIES;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_DELETE_IN_METHOD_CALL_WITH_PROPERTIES_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_DELETE_NAME_AND_RENAME_UNSUPPORTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_EMPTY_FAKE_ARTIFACT_ELEMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_FOLLOW_MULTIPLE_REFERENCES;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_GET_ONLY_ARTIFACTS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_INSERTION_ORDER;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_INSERTION_ORDER_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_MALFORMED_FAKE_ARTIFACT_ELEMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_MAP_NOTATION_PSI_ELEMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_METHOD_CALL_COMPACT_PSI_ELEMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_METHOD_CALL_MULTIPLE_COMPACT_PSI_ELEMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_MISSING_PROPERTIES_COMPACT;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_MISSING_PROPERTIES_MAP;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_MULTIPLE_COMPACT_NOTATION_PSI_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_NON_DEPENDENCY_CODE_IN_DEPENDENCIES_SECTION;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_PARSE_COMPACT_NOTATION_CLOSURE_WITH_VARIABLES;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_PARSE_COMPACT_NOTATION_WITH_VARIABLES;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_PARSE_DEPENDENCIES_WITH_COMPACT_NOTATION_IN_SINGLE_LINE;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_PARSE_DEPENDENCIES_WITH_COMPACT_NOTATION_IN_SINGLE_LINE_WITH_COMMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_PARSE_DEPENDENCIES_WITH_MAP_NOTATION_USING_SINGLE_CONFIGURATION_NAME;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_PARSE_DEPENDENCIES_WITH_MAP_NOTATION_USING_SINGLE_CONFIGURATION_NAME_NO_PARENTHESES;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_PARSE_FULL_REFERENCES_COMPACT_APPLICATION;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_PARSE_FULL_REFERENCE_MAP;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_PARSE_MAP_NOTATION_CLOSURE_WITH_VARIABLES;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_PARSE_MAP_NOTATION_WITH_VARIABLES;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_PARSING_WITH_COMPACT_NOTATION;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_PARSING_WITH_MAP_NOTATION;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_REMOVE_DEPENDENCY_WITH_COMPACT_NOTATION;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_REMOVE_DEPENDENCY_WITH_COMPACT_NOTATION_AND_SINGLE_CONFIGURATION_NAME;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_REMOVE_DEPENDENCY_WITH_COMPACT_NOTATION_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_REMOVE_DEPENDENCY_WITH_MAP_NOTATION;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_REMOVE_DEPENDENCY_WITH_MAP_NOTATION_AND_SINGLE_CONFIGURATION_NAME;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_REMOVE_DEPENDENCY_WITH_MAP_NOTATION_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_REMOVE_WHEN_MULTIPLE;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_REPLACE_APPLICATION_DEPENDENCIES;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_REPLACE_APPLICATION_DEPENDENCIES_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_BY_CHILD_ELEMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_BY_CHILD_ELEMENT_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_BY_PSI_ELEMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_BY_PSI_ELEMENT_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_FAILS_IF_PSI_ELEMENT_IS_NOT_FOUND;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_IN_ARGUMENT_LIST;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_USING_MAP_NOTATION_ADDING_FIELDS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_USING_MAP_NOTATION_ADDING_FIELDS_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_USING_MAP_NOTATION_DELETE_FIELDS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_USING_MAP_NOTATION_DELETE_FIELDS_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_USING_MAP_NOTATION_WITH_COMPACT_NOTATION;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_REPLACE_DEPENDENCY_USING_MAP_NOTATION_WITH_COMPACT_NOTATION_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_REPLACE_METHOD_DEPENDENCY_WITH_CLOSURE;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_REPLACE_METHOD_DEPENDENCY_WITH_CLOSURE_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_RESET;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_SET_CONFIGURATION_TO_EMPTY;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_SET_CONFIGURATION_TO_NON_STANDARD;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_SET_CONFIGURATION_TO_NON_STANDARD_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_SET_CONFIGURATION_WHEN_MULTIPLE;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_SET_CONFIGURATION_WHEN_SINGLE;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_SET_EXCLUDES_BLOCK_TO_REFERENCES;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_SET_EXCLUDES_BLOCK_TO_REFERENCES_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_SET_FULL_REFERENCES_COMPACT_APPLICATION;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_SET_FULL_REFERENCE_COMPACT_METHOD;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_SET_FULL_REFERENCE_MAP;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_SET_I_STR_IN_COMPACT_NOTATION;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_SET_I_STR_IN_COMPACT_NOTATION_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_SET_SINGLE_REFERENCE_COMPACT_APPLICATION;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_SET_SINGLE_REFERENCE_COMPACT_METHOD;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_SET_THROUGH_MAP_REFERENCE;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_SET_THROUGH_MAP_REFERENCE_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_SET_VERSION_ON_DEPENDENCY_WITH_COMPACT_NOTATION;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_SET_VERSION_ON_DEPENDENCY_WITH_COMPACT_NOTATION_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_SET_VERSION_ON_DEPENDENCY_WITH_MAP_NOTATION;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_SET_DEPENDENCY_WITH_COMPACT_NOTATION;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_SET_DEPENDENCY_WITH_COMPACT_NOTATION_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_SET_VERSION_ON_DEPENDENCY_WITH_MAP_NOTATION_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_SET_VERSION_REFERENCE;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ARTIFACT_DEPENDENCY_SET_VERSION_REFERENCE_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.ANDROID_TEST_COMPILE;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.CLASSPATH;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
@@ -126,7 +126,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assume.assumeTrue;
 
 import com.android.tools.idea.gradle.dsl.TestFileName;
-import com.android.tools.idea.gradle.dsl.ZTestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
@@ -172,7 +171,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     doTestParsingConfigurationVersion(ARTIFACT_DEPENDENCY_CONFIGURE_CLOSURE_WITH_PARENS);
   }
 
-  private void doTestParsingConfigurationVersion(@NotNull ZTestFileName fileName) throws IOException {
+  private void doTestParsingConfigurationVersion(@NotNull TestFileName fileName) throws IOException {
     writeToBuildFile(fileName);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -225,7 +224,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     doTestSetVersionWithConfigurationClosure(ARTIFACT_DEPENDENCY_CONFIGURE_CLOSURE_WITH_PARENS);
   }
 
-  private void doTestSetVersionWithConfigurationClosure(@NotNull ZTestFileName fileName) throws IOException {
+  private void doTestSetVersionWithConfigurationClosure(@NotNull TestFileName fileName) throws IOException {
     writeToBuildFile(fileName);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -1494,7 +1493,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     }
   }
 
-  private void runSetFullReferencesTest(@NotNull ZTestFileName testFileName) throws IOException {
+  private void runSetFullReferencesTest(@NotNull TestFileName testFileName) throws IOException {
     writeToBuildFile(testFileName);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -1521,7 +1520,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertThat(artifacts.get(0).configurationName()).isEqualTo("testCompile");
   }
 
-  private void runSetFullSingleReferenceTest(@NotNull ZTestFileName testFileName, @NotNull PropertyType type, @NotNull String name)
+  private void runSetFullSingleReferenceTest(@NotNull TestFileName testFileName, @NotNull PropertyType type, @NotNull String name)
     throws IOException {
     writeToBuildFile(testFileName);
 

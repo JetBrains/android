@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.gradle.dsl.model.util;
 
-import static com.android.tools.idea.gradle.dsl.TestFileName.GOOGLE_MAVEN_REPOSITORY_ADD_GOOGLE_REPOSITORY_EMPTY3DOT5;
-import static com.android.tools.idea.gradle.dsl.TestFileName.GOOGLE_MAVEN_REPOSITORY_ADD_GOOGLE_REPOSITORY_EMPTY4DOT0;
-import static com.android.tools.idea.gradle.dsl.TestFileName.GOOGLE_MAVEN_REPOSITORY_ADD_GOOGLE_REPOSITORY_WITH_GOOGLE_ALREADY3DOT5;
-import static com.android.tools.idea.gradle.dsl.TestFileName.GOOGLE_MAVEN_REPOSITORY_ADD_GOOGLE_REPOSITORY_WITH_GOOGLE_ALREADY4DOT0;
-import static com.android.tools.idea.gradle.dsl.TestFileName.GOOGLE_MAVEN_REPOSITORY_ADD_GOOGLE_REPOSITORY_WITH_URL_ALREADY;
-import static com.android.tools.idea.gradle.dsl.TestFileName.GOOGLE_MAVEN_REPOSITORY_HAS_GOOGLE_MAVEN_REPOSITORY_EMPTY;
-import static com.android.tools.idea.gradle.dsl.TestFileName.GOOGLE_MAVEN_REPOSITORY_HAS_GOOGLE_MAVEN_REPOSITORY_NAME3DOT5;
-import static com.android.tools.idea.gradle.dsl.TestFileName.GOOGLE_MAVEN_REPOSITORY_HAS_GOOGLE_MAVEN_REPOSITORY_NAME4DOT0;
-import static com.android.tools.idea.gradle.dsl.TestFileName.GOOGLE_MAVEN_REPOSITORY_HAS_GOOGLE_MAVEN_REPOSITORY_URL3DOT5;
-import static com.android.tools.idea.gradle.dsl.TestFileName.GOOGLE_MAVEN_REPOSITORY_HAS_GOOGLE_MAVEN_REPOSITORY_URL4DOT0;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.GOOGLE_MAVEN_REPOSITORY_ADD_GOOGLE_REPOSITORY_EMPTY3DOT5;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.GOOGLE_MAVEN_REPOSITORY_ADD_GOOGLE_REPOSITORY_EMPTY4DOT0;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.GOOGLE_MAVEN_REPOSITORY_ADD_GOOGLE_REPOSITORY_WITH_GOOGLE_ALREADY3DOT5;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.GOOGLE_MAVEN_REPOSITORY_ADD_GOOGLE_REPOSITORY_WITH_GOOGLE_ALREADY4DOT0;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.GOOGLE_MAVEN_REPOSITORY_HAS_GOOGLE_MAVEN_REPOSITORY_EMPTY;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.GOOGLE_MAVEN_REPOSITORY_HAS_GOOGLE_MAVEN_REPOSITORY_NAME3DOT5;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.GOOGLE_MAVEN_REPOSITORY_HAS_GOOGLE_MAVEN_REPOSITORY_NAME4DOT0;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.GOOGLE_MAVEN_REPOSITORY_HAS_GOOGLE_MAVEN_REPOSITORY_URL3DOT5;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.GOOGLE_MAVEN_REPOSITORY_HAS_GOOGLE_MAVEN_REPOSITORY_URL4DOT0;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 

@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android
 
-import com.android.tools.idea.gradle.dsl.TestFileName.BUILD_FEATURES_MODEL_ADD_ELEMENTS
-import com.android.tools.idea.gradle.dsl.TestFileName.BUILD_FEATURES_MODEL_ADD_ELEMENTS_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileName.BUILD_FEATURES_MODEL_ADD_ELEMENTS_FROM_EXISTING
-import com.android.tools.idea.gradle.dsl.TestFileName.BUILD_FEATURES_MODEL_ADD_ELEMENTS_FROM_EXISTING_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileName.BUILD_FEATURES_MODEL_EDIT_ELEMENTS
-import com.android.tools.idea.gradle.dsl.TestFileName.BUILD_FEATURES_MODEL_EDIT_ELEMENTS_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileName.BUILD_FEATURES_MODEL_PARSE_ELEMENTS
-import com.android.tools.idea.gradle.dsl.TestFileName.BUILD_FEATURES_MODEL_REMOVE_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_FEATURES_MODEL_ADD_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_FEATURES_MODEL_ADD_ELEMENTS_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_FEATURES_MODEL_ADD_ELEMENTS_FROM_EXISTING
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_FEATURES_MODEL_ADD_ELEMENTS_FROM_EXISTING_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_FEATURES_MODEL_EDIT_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_FEATURES_MODEL_EDIT_ELEMENTS_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_FEATURES_MODEL_PARSE_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_FEATURES_MODEL_REMOVE_ELEMENTS
 import com.android.tools.idea.gradle.dsl.api.android.BuildFeaturesModel
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import org.junit.Test

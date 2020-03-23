@@ -18,11 +18,11 @@ package com.android.tools.idea.gradle.dsl
 import com.intellij.openapi.util.io.FileUtil
 import java.io.File
 
-interface ZTestFileName {
+interface TestFileName {
   fun toFile(basePath: String, extension: String): File
 }
 
-enum class TestFileName(val path: String): ZTestFileName {
+enum class TestFileNameImpl(val path: String): TestFileName {
   AAPT_OPTIONS_PARSE_ELEMENTS_ONE("aaptOptions/parseElementsOne"),
   AAPT_OPTIONS_PARSE_ELEMENTS_TWO("aaptOptions/parseElementsTwo"),
   AAPT_OPTIONS_EDIT_ELEMENTS("aaptOptions/editElements"),

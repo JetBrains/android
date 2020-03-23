@@ -13,16 +13,16 @@
 // limitations under the License.
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPES_ELEMENT_ADD_BUILD_TYPE;
-import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPES_ELEMENT_ADD_BUILD_TYPE_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPES_ELEMENT_ADD_EMPTY_BUILD_TYPE;
-import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPES_ELEMENT_ADD_EMPTY_BUILD_TYPE_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPES_ELEMENT_ADD_PROPERTY_TO_IMPLICIT_BUILD_TYPES;
-import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPES_ELEMENT_ADD_PROPERTY_TO_IMPLICIT_BUILD_TYPES_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPES_ELEMENT_BUILD_TYPES_WITH_APPEND_STATEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPES_ELEMENT_BUILD_TYPES_WITH_APPLICATION_STATEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPES_ELEMENT_BUILD_TYPES_WITH_ASSIGNMENT_STATEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_TYPES_ELEMENT_BUILD_TYPES_WITH_OVERRIDE_STATEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPES_ELEMENT_ADD_BUILD_TYPE;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPES_ELEMENT_ADD_BUILD_TYPE_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPES_ELEMENT_ADD_EMPTY_BUILD_TYPE;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPES_ELEMENT_ADD_EMPTY_BUILD_TYPE_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPES_ELEMENT_ADD_PROPERTY_TO_IMPLICIT_BUILD_TYPES;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPES_ELEMENT_ADD_PROPERTY_TO_IMPLICIT_BUILD_TYPES_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPES_ELEMENT_BUILD_TYPES_WITH_APPEND_STATEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPES_ELEMENT_BUILD_TYPES_WITH_APPLICATION_STATEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPES_ELEMENT_BUILD_TYPES_WITH_ASSIGNMENT_STATEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPES_ELEMENT_BUILD_TYPES_WITH_OVERRIDE_STATEMENTS;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;

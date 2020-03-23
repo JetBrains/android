@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import static com.android.tools.idea.gradle.dsl.TestFileName.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_ADD;
-import static com.android.tools.idea.gradle.dsl.TestFileName.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_ADD_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_APPLICATION_STATEMENT;
-import static com.android.tools.idea.gradle.dsl.TestFileName.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_BLOCK;
-import static com.android.tools.idea.gradle.dsl.TestFileName.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_BLOCK_USING_ASSIGNMENT;
-import static com.android.tools.idea.gradle.dsl.TestFileName.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_BLOCK_WITH_OVERRIDE_STATEMENT;
-import static com.android.tools.idea.gradle.dsl.TestFileName.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_MODIFY;
-import static com.android.tools.idea.gradle.dsl.TestFileName.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_MODIFY_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_MODIFY_LONG_IDENTIFIER;
-import static com.android.tools.idea.gradle.dsl.TestFileName.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_MODIFY_LONG_IDENTIFIER_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_REMOVE_APPLICATION_STATEMENT;
-import static com.android.tools.idea.gradle.dsl.TestFileName.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_REMOVE_APPLICATION_STATEMENT_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_ADD;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_ADD_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_APPLICATION_STATEMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_BLOCK;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_BLOCK_USING_ASSIGNMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_BLOCK_WITH_OVERRIDE_STATEMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_MODIFY;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_MODIFY_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_MODIFY_LONG_IDENTIFIER;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_MODIFY_LONG_IDENTIFIER_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_REMOVE_APPLICATION_STATEMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.COMPILE_OPTIONS_MODEL_COMPILE_OPTIONS_REMOVE_APPLICATION_STATEMENT_EXPECTED;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;

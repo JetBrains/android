@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.gradle.dsl.model.util
 
-import com.android.tools.idea.gradle.dsl.TestFileName
-import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_LIST_VALUE_REMOVE_LIST_VALUES
-import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_LIST_VALUE_REMOVE_LIST_VALUES_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_LIST_VALUE_REPLACE_LIST_VALUE
-import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_LIST_VALUE_REPLACE_LIST_VALUE_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_LIST_VALUE_REPLACE_LIST_VALUE_ON_NONE_LIST
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.GRADLE_PROPERTY_LIST_VALUE_REMOVE_LIST_VALUES
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.GRADLE_PROPERTY_LIST_VALUE_REMOVE_LIST_VALUES_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.GRADLE_PROPERTY_LIST_VALUE_REPLACE_LIST_VALUE
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.GRADLE_PROPERTY_LIST_VALUE_REPLACE_LIST_VALUE_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.GRADLE_PROPERTY_LIST_VALUE_REPLACE_LIST_VALUE_ON_NONE_LIST
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import org.junit.Test

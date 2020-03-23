@@ -15,19 +15,16 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import static com.android.tools.idea.gradle.dsl.TestFileName.PACKAGING_OPTIONS_MODEL_ADD_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.PACKAGING_OPTIONS_MODEL_ADD_ELEMENTS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.PACKAGING_OPTIONS_MODEL_APPEND_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.PACKAGING_OPTIONS_MODEL_APPEND_ELEMENTS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.PACKAGING_OPTIONS_MODEL_PARSE_ELEMENTS_IN_APPLICATION_STATEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.PACKAGING_OPTIONS_MODEL_PARSE_ELEMENTS_IN_ASSIGNMENT_STATEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.PACKAGING_OPTIONS_MODEL_REMOVE_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.PACKAGING_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.PACKAGING_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.PACKAGING_OPTIONS_MODEL_REMOVE_ONLY_ELEMENT;
-import static com.android.tools.idea.gradle.dsl.TestFileName.PACKAGING_OPTIONS_MODEL_REMOVE_ONLY_ELEMENT_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.PACKAGING_OPTIONS_MODEL_REPLACE_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.PACKAGING_OPTIONS_MODEL_REPLACE_ELEMENTS_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.PACKAGING_OPTIONS_MODEL_ADD_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.PACKAGING_OPTIONS_MODEL_ADD_ELEMENTS_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.PACKAGING_OPTIONS_MODEL_APPEND_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.PACKAGING_OPTIONS_MODEL_PARSE_ELEMENTS_IN_APPLICATION_STATEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.PACKAGING_OPTIONS_MODEL_PARSE_ELEMENTS_IN_ASSIGNMENT_STATEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.PACKAGING_OPTIONS_MODEL_REMOVE_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.PACKAGING_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.PACKAGING_OPTIONS_MODEL_REMOVE_ONLY_ELEMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.PACKAGING_OPTIONS_MODEL_REPLACE_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.PACKAGING_OPTIONS_MODEL_REPLACE_ELEMENTS_EXPECTED;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;

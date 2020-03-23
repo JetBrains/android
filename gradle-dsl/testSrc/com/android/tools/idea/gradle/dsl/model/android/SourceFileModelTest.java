@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_FILE_MODEL_SOURCE_FILE;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_FILE_MODEL_SOURCE_FILE_ADD_AND_APPLY;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_FILE_MODEL_SOURCE_FILE_ADD_AND_APPLY_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_FILE_MODEL_SOURCE_FILE_ADD_AND_RESET;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_FILE_MODEL_SOURCE_FILE_EDIT_AND_APPLY;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_FILE_MODEL_SOURCE_FILE_EDIT_AND_APPLY_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_FILE_MODEL_SOURCE_FILE_EDIT_AND_RESET;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_FILE_MODEL_SOURCE_FILE_REMOVE_AND_APPLY;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_FILE_MODEL_SOURCE_FILE_REMOVE_AND_RESET;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_FILE_MODEL_SOURCE_FILE;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_FILE_MODEL_SOURCE_FILE_ADD_AND_APPLY;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_FILE_MODEL_SOURCE_FILE_ADD_AND_APPLY_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_FILE_MODEL_SOURCE_FILE_ADD_AND_RESET;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_FILE_MODEL_SOURCE_FILE_EDIT_AND_APPLY;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_FILE_MODEL_SOURCE_FILE_EDIT_AND_APPLY_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_FILE_MODEL_SOURCE_FILE_EDIT_AND_RESET;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_FILE_MODEL_SOURCE_FILE_REMOVE_AND_APPLY;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_FILE_MODEL_SOURCE_FILE_REMOVE_AND_RESET;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;

@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.gradle.dsl.model.build;
 
-import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_ADD_DEPENDENCY;
-import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_ADD_DEPENDENCY_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_EDIT_DEPENDENCY;
-import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_EDIT_DEPENDENCY_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_EXT_PROPERTIES_FROM_BUILDSCRIPT_BLOCK;
-import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_EXT_PROPERTIES_FROM_BUILDSCRIPT_BLOCK_SUB;
-import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_EXT_PROPERTIES_NOT_VISIBLE_FROM_BUILDSCRIPT_BLOCK;
-import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_EXT_PROPERTIES_NOT_VISIBLE_FROM_BUILDSCRIPT_BLOCK_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_PARSE_DEPENDENCIES;
-import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_PARSE_REPOSITORIES;
-import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_REMOVE_REPOSITORIES_MULTIPLE_BLOCKS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_REMOVE_REPOSITORIES_SINGLE_BLOCK;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_SCRIPT_MODEL_ADD_DEPENDENCY;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_SCRIPT_MODEL_ADD_DEPENDENCY_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_SCRIPT_MODEL_EDIT_DEPENDENCY;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_SCRIPT_MODEL_EDIT_DEPENDENCY_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_SCRIPT_MODEL_EXT_PROPERTIES_FROM_BUILDSCRIPT_BLOCK;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_SCRIPT_MODEL_EXT_PROPERTIES_FROM_BUILDSCRIPT_BLOCK_SUB;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_SCRIPT_MODEL_EXT_PROPERTIES_NOT_VISIBLE_FROM_BUILDSCRIPT_BLOCK;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_SCRIPT_MODEL_EXT_PROPERTIES_NOT_VISIBLE_FROM_BUILDSCRIPT_BLOCK_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_SCRIPT_MODEL_PARSE_DEPENDENCIES;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_SCRIPT_MODEL_PARSE_REPOSITORIES;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_SCRIPT_MODEL_REMOVE_REPOSITORIES_MULTIPLE_BLOCKS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_SCRIPT_MODEL_REMOVE_REPOSITORIES_SINGLE_BLOCK;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
 import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl.GOOGLE_DEFAULT_REPO_NAME;
@@ -44,7 +44,6 @@ import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.UrlBasedRepositoryModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
-import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyTest.ExpectedArtifactDependency;
 import com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl;
 import java.io.IOException;

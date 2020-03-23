@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.gradle.dsl.model.dependencies
 
-import com.android.tools.idea.gradle.dsl.TestFileName.DEPENDENCIES_ADD_NON_IDENTIFIER_CONFIGURATION_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileName.DEPENDENCIES_ALL_DEPENDENCIES
-import com.android.tools.idea.gradle.dsl.TestFileName.DEPENDENCIES_KOTLIN_DEPENDENCIES
-import com.android.tools.idea.gradle.dsl.TestFileName.DEPENDENCIES_NON_IDENTIFIER_CONFIGURATION
-import com.android.tools.idea.gradle.dsl.TestFileName.DEPENDENCIES_REMOVE_JAR_DEPENDENCIES
-import com.android.tools.idea.gradle.dsl.TestFileName.DEPENDENCIES_SET_NON_IDENTIFIER_CONFIGURATION_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.DEPENDENCIES_ADD_NON_IDENTIFIER_CONFIGURATION_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.DEPENDENCIES_ALL_DEPENDENCIES
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.DEPENDENCIES_KOTLIN_DEPENDENCIES
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.DEPENDENCIES_NON_IDENTIFIER_CONFIGURATION
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.DEPENDENCIES_REMOVE_JAR_DEPENDENCIES
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.DEPENDENCIES_SET_NON_IDENTIFIER_CONFIGURATION_EXPECTED
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.FileDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.FileTreeDependencyModel
