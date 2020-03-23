@@ -20,6 +20,7 @@ import com.android.tools.adtui.util.FormScalingUtil
 import com.android.tools.adtui.validation.ValidatorPanel
 import com.android.tools.idea.device.FormFactor.MOBILE
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt
+import com.android.tools.idea.npw.labelFor
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getInitialDomain
 import com.android.tools.idea.npw.module.AndroidApiLevelComboBox
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
@@ -38,19 +39,13 @@ import com.android.tools.idea.ui.wizard.StudioWizardStepPanel
 import com.android.tools.idea.ui.wizard.WizardUtils
 import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.android.tools.idea.wizard.template.Language
-import com.intellij.ui.ContextHelpLabel
+import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.components.JBLabel
-import com.intellij.uiDesigner.core.GridConstraints
-import com.intellij.uiDesigner.core.GridConstraints.ANCHOR_NORTH
-import com.intellij.uiDesigner.core.GridConstraints.ANCHOR_NORTHWEST
-import com.intellij.uiDesigner.core.GridLayoutManager
+import com.intellij.ui.layout.panel
 import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.android.util.AndroidBundle.message
-import java.awt.Dimension
-import java.awt.FlowLayout
 import java.awt.Font
 import java.util.function.Consumer
-import javax.swing.JPanel
 import javax.swing.JTextField
 
 class ConfigureBenchmarkModuleStep(
@@ -64,50 +59,43 @@ class ConfigureBenchmarkModuleStep(
     font = Font(null, Font.BOLD, 18)
   }
   private val moduleName = JTextField()
-  private val moduleNameLabel = JBLabel("Module name:").apply {
-    labelFor = moduleName
-  }
-  private val moduleNameContextHelp = ContextHelpLabel.create(message("android.wizard.module.help.name"))
-  private val moduleNameLabelWithHelp = JPanel(FlowLayout(FlowLayout.LEFT)).apply {
-    add(moduleNameLabel)
-    add(moduleNameContextHelp)
-  }
   private val packageName = LabelWithEditButton()
-  private val packageNameLabel = JBLabel("Package name:").apply {
-    labelFor = packageName
-  }
-  private val languageComboBox = LanguageComboProvider().createComponent()
-  private val languageComboBoxLabel = JBLabel("Language:").apply {
-    labelFor = languageComboBox
-  }
-  private val apiLevelComboBox = AndroidApiLevelComboBox()
-  private val apiLevelComboBoxLabel = JBLabel("Minimum SDK:").apply {
-    labelFor = apiLevelComboBox
+  private val languageCombo = LanguageComboProvider().createComponent()
+  private val apiLevelCombo = AndroidApiLevelComboBox()
+
+  private val panel: DialogPanel = panel {
+    row {
+      screenTitle()
+    }
+    row {
+      cell {
+        labelFor("Module name:", moduleName, message("android.wizard.module.help.name"))
+      }
+      moduleName()
+    }
+
+    row {
+      labelFor("Package name:", packageName)
+      packageName()
+    }
+
+    row {
+      labelFor("Language:", languageCombo)
+      languageCombo()
+    }
+
+    row {
+      labelFor("Minimum SDK:", apiLevelCombo)
+      apiLevelCombo()
+    }
   }
 
-  // TODO(qumeric): replace with TabularLayout
-  private val panel = JPanel(GridLayoutManager(6, 3)).apply {
-    val anySize = Dimension(-1, -1)
-    val lcSize = Dimension(150, -1)
-    add(screenTitle, GridConstraints(0, 0, 1, 3, ANCHOR_NORTH, 0, 0, 0, anySize, anySize, anySize))
-
-    add(moduleNameLabelWithHelp, GridConstraints(1, 0, 1, 1, ANCHOR_NORTHWEST, 0, 0, 0, lcSize, lcSize, anySize))
-    add(packageNameLabel, GridConstraints(2, 0, 1, 1, ANCHOR_NORTHWEST, 0, 0, 0, lcSize, lcSize, anySize))
-    add(languageComboBoxLabel, GridConstraints(3, 0, 1, 1, ANCHOR_NORTHWEST, 0, 0, 0, lcSize, lcSize, anySize))
-    add(apiLevelComboBoxLabel, GridConstraints(4, 0, 1, 1, ANCHOR_NORTHWEST, 0, 0, 0, lcSize, lcSize, anySize))
-    add(moduleName, GridConstraints(1, 1, 1, 2, ANCHOR_NORTH, 1, 6, 0, anySize, anySize, anySize))
-    add(packageName, GridConstraints(2, 1, 1, 2, ANCHOR_NORTH, 1, 6, 0, anySize, anySize, anySize))
-    add(languageComboBox, GridConstraints(3, 1, 1, 2, ANCHOR_NORTH, 1, 6, 0, anySize, anySize, anySize))
-    add(apiLevelComboBox, GridConstraints(4, 1, 1, 2, ANCHOR_NORTH, 1, 6, 0, anySize, anySize, anySize))
-  }
-
-  private val validatorPanel = ValidatorPanel(this, panel)
-  private val rootPanel = StudioWizardStepPanel(validatorPanel)
+  private val validatorPanel = ValidatorPanel(this, StudioWizardStepPanel.wrappedWithVScroll(panel))
 
   init {
     val moduleNameText = TextProperty(moduleName)
     val packageNameText = TextProperty(packageName)
-    val language = SelectedItemProperty<Language>(languageComboBox)
+    val language = SelectedItemProperty<Language>(languageCombo)
     val isPackageNameSynced = BoolValueProperty(true)
 
     val moduleValidator = ModuleValidator(model.project)
@@ -125,18 +113,18 @@ class ConfigureBenchmarkModuleStep(
       bind(packageNameText, computedPackageName, isPackageNameSynced)
       bind(model.packageName, packageNameText)
       bindTwoWay(language, model.language)
-      bind(model.androidSdkInfo, SelectedItemProperty(apiLevelComboBox))
+      bind(model.androidSdkInfo, SelectedItemProperty(apiLevelCombo))
     }
     listeners.listen(packageNameText) { value: String -> isPackageNameSynced.set(value == computedPackageName.get()) }
 
-    FormScalingUtil.scaleComponentTree(this.javaClass, rootPanel)
+    FormScalingUtil.scaleComponentTree(this.javaClass, validatorPanel)
   }
 
   override fun onEntering() {
     androidVersionsInfo.loadLocalVersions()
-    apiLevelComboBox.init(MOBILE, androidVersionsInfo.getKnownTargetVersions(MOBILE, minSdkLevel))
+    apiLevelCombo.init(MOBILE, androidVersionsInfo.getKnownTargetVersions(MOBILE, minSdkLevel))
     androidVersionsInfo.loadRemoteTargetVersions(
-      MOBILE, minSdkLevel, Consumer { items -> apiLevelComboBox.init(MOBILE, items) }
+      MOBILE, minSdkLevel, Consumer { items -> apiLevelCombo.init(MOBILE, items) }
     )
   }
 
@@ -147,7 +135,7 @@ class ConfigureBenchmarkModuleStep(
 
   override fun canGoForward() = validatorPanel.hasErrors().not()
 
-  override fun getComponent() = rootPanel
+  override fun getComponent() = validatorPanel
 
   override fun getPreferredFocusComponent() = packageName
 
