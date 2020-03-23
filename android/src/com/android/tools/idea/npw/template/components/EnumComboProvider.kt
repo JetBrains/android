@@ -15,15 +15,12 @@
  */
 package com.android.tools.idea.npw.template.components
 
-import com.android.SdkConstants.ATTR_ID
 import com.android.tools.idea.observable.AbstractProperty
 import com.android.tools.idea.ui.ApiComboBoxItem
 import com.android.tools.idea.wizard.template.EnumParameter
 import com.android.tools.idea.wizard.template.Parameter
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.ComboBox
-import com.intellij.openapi.util.text.StringUtil
-import org.w3c.dom.Element
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 import javax.swing.DefaultComboBoxModel
@@ -37,21 +34,6 @@ class EnumComboProvider(parameter: EnumParameter<*>) : ParameterComponentProvide
   // TODO add support for min api, or better yet custom availability condition
   private fun createItemForOption(parameter: EnumParameter<*>, value: Enum<*>): ApiComboBoxItem<String> =
     ApiComboBoxItem(value.name, value.name, 1, 1)
-
-  /**
-   * Helper method to parse any integer attributes found in an option enumeration.
-   */
-  @Suppress("SameParameterValue")
-  private fun getIntegerOptionValue(option: Element, attribute: String, parameterName: String?, defaultValue: Int): Int {
-    val stringValue = option.getAttribute(attribute)
-    try {
-      return if (StringUtil.isEmpty(stringValue)) defaultValue else stringValue.toInt()
-    }
-    catch (e: NumberFormatException) {
-      log.warn("Invalid $attribute value ($stringValue) for option ${option.getAttribute(ATTR_ID)} in parameter $parameterName", e)
-      return defaultValue
-    }
-  }
 
   override fun createComponent(parameter: Parameter<*>): ComboBox<*> {
     val options = (parameter as EnumParameter<*>).options // FIXME EnumParameterComponentProvider?
