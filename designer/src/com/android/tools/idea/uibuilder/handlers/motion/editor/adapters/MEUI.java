@@ -258,6 +258,7 @@ public class MEUI {
           public void onClosed(@NotNull LightweightWindowEvent event) {
             MEActionButton button = (myLocal instanceof MEActionButton ? (MEActionButton)myLocal : null);
             if (button != null) {
+              button.getRootPane().requestFocusInWindow();
               button.setPopupIsShowing(false);
             }
           }
