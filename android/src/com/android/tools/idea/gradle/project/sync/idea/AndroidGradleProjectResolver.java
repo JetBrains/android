@@ -78,6 +78,7 @@ import com.android.tools.idea.gradle.project.sync.SelectedVariantCollector;
 import com.android.tools.idea.gradle.project.sync.SelectedVariants;
 import com.android.tools.idea.gradle.project.sync.SyncActionOptions;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
+import com.android.tools.idea.gradle.project.sync.errors.GradleDistributionInstallIssueChecker;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel;
 import com.android.tools.idea.gradle.project.sync.idea.issues.AgpUpgradeRequiredException;
 import com.android.tools.idea.gradle.project.sync.idea.issues.AndroidSyncException;

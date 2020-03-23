@@ -24,6 +24,10 @@ class MessageComposer(baseMessage: String) {
   private val messageBuilder = StringBuilder(baseMessage)
   val quickFixes = mutableListOf<BuildIssueQuickFix>()
 
+  fun addDescription(message: String) {
+    messageBuilder.appendln(message)
+  }
+
   fun addQuickFix(quickFix: DescribedBuildIssueQuickFix) {
     quickFixes.add(quickFix)
     messageBuilder.appendln()

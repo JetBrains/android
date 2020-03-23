@@ -27,11 +27,9 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.io.FileUtil
 import org.gradle.StartParameter
 import org.gradle.wrapper.PathAssembler
-import org.jetbrains.kotlin.idea.versions.LOG
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.util.GradleUtil
-import java.awt.EventQueue
 import java.io.File
 import java.util.concurrent.CompletableFuture
 
