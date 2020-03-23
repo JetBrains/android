@@ -161,7 +161,6 @@ public class StudioIcons {
     public static final Icon SCREENSHOT = load("/studio/icons/emulator/screenshot.svg"); // 16x16
     public static final Icon VOLUME_DOWN = load("/studio/icons/emulator/volume-down.svg"); // 16x16
     public static final Icon VOLUME_UP = load("/studio/icons/emulator/volume-up.svg"); // 16x16
-    public static final Icon ZOOM_IN = load("/studio/icons/emulator/zoom-in.svg"); // 16x16
   }
 
   public static class LayoutEditor {
