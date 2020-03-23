@@ -44,7 +44,8 @@ import javax.swing.JTextField
 class ConfigureDynamicModuleStep(
   model: DynamicFeatureModel, basePackage: String
 ) : ConfigureModuleStep<DynamicFeatureModel>(
-  model, FormFactor.MOBILE, SdkVersionInfo.LOWEST_ACTIVE_API, basePackage, AndroidBundle.message("android.wizard.module.config.title")
+  model, FormFactor.MOBILE, SdkVersionInfo.LOWEST_ACTIVE_API, basePackage,
+  AndroidBundle.message("android.wizard.module.config.title")
 ) {
   private val baseApplication: JComboBox<Module> = ModuleComboProvider().createComponent()
 
