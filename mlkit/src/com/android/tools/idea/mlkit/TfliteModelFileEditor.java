@@ -261,8 +261,8 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   private static String buildSampleCodeStyle() {
     return "#sample_code {\n" +
            "  font-family: 'Source Sans Pro', sans-serif; \n" +
-           "  background-color: " + (StartupUiUtil.isUnderDarcula() ? "#2A3141" : "#F1F3F4") + ";\n" +
-           "  color: " + (StartupUiUtil.isUnderDarcula() ? "#EDEFF1" : "#3A474E") + ";\n" +
+           "  background-color: " + (StartupUiUtil.isUnderDarcula() ? "#2B2B2B" : "#F1F3F4") + ";\n" +
+           "  color: " + (StartupUiUtil.isUnderDarcula() ? "#DDDDDD" : "#3A474E") + ";\n" +
            "  margin-left: 20px;\n" +
            "  display: block;\n" +
            "  width: 60%;\n" +
