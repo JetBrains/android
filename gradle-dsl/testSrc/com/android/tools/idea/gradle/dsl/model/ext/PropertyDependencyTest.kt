@@ -37,6 +37,7 @@ import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_REFERE
 import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_ROOT_PROJECT_IN_APPLIED_FILES
 import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_ROOT_PROJECT_IN_APPLIED_FILES_APPLIED
 import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_ROOT_PROJECT_IN_APPLIED_FILES_SUB
+import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_SETUP_PARENT_AND_APPLIED_FILES_CHILD
 import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_SETUP_PARENT_AND_APPLIED_FILES_DEFAULTS
 import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_SETUP_PARENT_AND_APPLIED_FILES_PARENT
 import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_SETUP_SINGLE_FILE
@@ -98,7 +99,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
 
   private fun setupParentAndAppliedFiles() {
     writeToBuildFile(PROPERTY_DEPENDENCY_SETUP_PARENT_AND_APPLIED_FILES_PARENT)
-    writeToSubModuleBuildFile(TestFileName.PROPERTY_DEPENDENCY_SETUP_PARENT_AND_APPLIED_FILES_CHILD)
+    writeToSubModuleBuildFile(PROPERTY_DEPENDENCY_SETUP_PARENT_AND_APPLIED_FILES_CHILD)
     writeToNewProjectFile("defaults", PROPERTY_DEPENDENCY_SETUP_PARENT_AND_APPLIED_FILES_DEFAULTS)
     writeToSettingsFile(subModuleSettingsText)
   }

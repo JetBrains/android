@@ -15,7 +15,15 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import com.android.tools.idea.gradle.dsl.TestFileName;
+import static com.android.tools.idea.gradle.dsl.TestFileName.VIEW_BINDING_MODEL_ADD_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.VIEW_BINDING_MODEL_ADD_ELEMENTS_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileName.VIEW_BINDING_MODEL_ADD_ELEMENTS_FROM_EXISTING;
+import static com.android.tools.idea.gradle.dsl.TestFileName.VIEW_BINDING_MODEL_ADD_ELEMENTS_FROM_EXISTING_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileName.VIEW_BINDING_MODEL_EDIT_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.VIEW_BINDING_MODEL_EDIT_ELEMENTS_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileName.VIEW_BINDING_MODEL_PARSE_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.VIEW_BINDING_MODEL_REMOVE_ELEMENTS;
+
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.ViewBindingModel;
@@ -28,7 +36,7 @@ import org.junit.Test;
 public class ViewBindingModelTest extends GradleFileModelTestCase {
   @Test
   public void testParseElements() throws Exception {
-    writeToBuildFile(TestFileName.VIEW_BINDING_MODEL_PARSE_ELEMENTS);
+    writeToBuildFile(VIEW_BINDING_MODEL_PARSE_ELEMENTS);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -39,7 +47,7 @@ public class ViewBindingModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testEditElements() throws Exception {
-    writeToBuildFile(TestFileName.VIEW_BINDING_MODEL_EDIT_ELEMENTS);
+    writeToBuildFile(VIEW_BINDING_MODEL_EDIT_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -51,7 +59,7 @@ public class ViewBindingModelTest extends GradleFileModelTestCase {
     viewBinding.enabled().setValue(true);
 
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, TestFileName.VIEW_BINDING_MODEL_EDIT_ELEMENTS_EXPECTED);
+    verifyFileContents(myBuildFile, VIEW_BINDING_MODEL_EDIT_ELEMENTS_EXPECTED);
 
     android = buildModel.android();
     assertNotNull(android);
@@ -62,7 +70,7 @@ public class ViewBindingModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddElements() throws Exception {
-    writeToBuildFile(TestFileName.VIEW_BINDING_MODEL_ADD_ELEMENTS);
+    writeToBuildFile(VIEW_BINDING_MODEL_ADD_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -74,7 +82,7 @@ public class ViewBindingModelTest extends GradleFileModelTestCase {
     viewBinding.enabled().setValue(false);
 
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, TestFileName.VIEW_BINDING_MODEL_ADD_ELEMENTS_EXPECTED);
+    verifyFileContents(myBuildFile, VIEW_BINDING_MODEL_ADD_ELEMENTS_EXPECTED);
 
     android = buildModel.android();
     assertNotNull(android);
@@ -85,7 +93,7 @@ public class ViewBindingModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddElementsFromExisting() throws Exception {
-    writeToBuildFile(TestFileName.VIEW_BINDING_MODEL_ADD_ELEMENTS_FROM_EXISTING);
+    writeToBuildFile(VIEW_BINDING_MODEL_ADD_ELEMENTS_FROM_EXISTING);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -97,7 +105,7 @@ public class ViewBindingModelTest extends GradleFileModelTestCase {
     viewBinding.enabled().setValue(false);
 
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, TestFileName.VIEW_BINDING_MODEL_ADD_ELEMENTS_FROM_EXISTING_EXPECTED);
+    verifyFileContents(myBuildFile, VIEW_BINDING_MODEL_ADD_ELEMENTS_FROM_EXISTING_EXPECTED);
 
     android = buildModel.android();
     assertNotNull(android);
@@ -108,7 +116,7 @@ public class ViewBindingModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveElements() throws Exception {
-    writeToBuildFile(TestFileName.VIEW_BINDING_MODEL_REMOVE_ELEMENTS);
+    writeToBuildFile(VIEW_BINDING_MODEL_REMOVE_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();

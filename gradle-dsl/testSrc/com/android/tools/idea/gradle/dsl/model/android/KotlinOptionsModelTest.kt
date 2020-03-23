@@ -15,7 +15,14 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android
 
-import com.android.tools.idea.gradle.dsl.TestFileName
+import com.android.tools.idea.gradle.dsl.TestFileName.KOTLIN_OPTIONS_MODEL_ADD
+import com.android.tools.idea.gradle.dsl.TestFileName.KOTLIN_OPTIONS_MODEL_ADD_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileName.KOTLIN_OPTIONS_MODEL_ADD_UNKNOWN_TARGET
+import com.android.tools.idea.gradle.dsl.TestFileName.KOTLIN_OPTIONS_MODEL_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileName.KOTLIN_OPTIONS_MODEL_MODIFY
+import com.android.tools.idea.gradle.dsl.TestFileName.KOTLIN_OPTIONS_MODEL_MODIFY_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileName.KOTLIN_OPTIONS_MODEL_REMOVE
+import com.android.tools.idea.gradle.dsl.TestFileName.KOTLIN_OPTIONS_MODEL_REMOVE_EXPECTED
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.intellij.pom.java.LanguageLevel
 import org.junit.Test
@@ -24,7 +31,7 @@ import java.lang.IllegalArgumentException
 class KotlinOptionsModelTest : GradleFileModelTestCase() {
   @Test
   fun parse() {
-    writeToBuildFile(TestFileName.KOTLIN_OPTIONS_MODEL_BLOCK)
+    writeToBuildFile(KOTLIN_OPTIONS_MODEL_BLOCK)
 
     val android = gradleBuildModel.android()
     val kotlinOptions = android.kotlinOptions()
@@ -33,7 +40,7 @@ class KotlinOptionsModelTest : GradleFileModelTestCase() {
 
   @Test
   fun `add valid JVM target`() {
-    writeToBuildFile(TestFileName.KOTLIN_OPTIONS_MODEL_ADD)
+    writeToBuildFile(KOTLIN_OPTIONS_MODEL_ADD)
 
     val buildModel = gradleBuildModel
     var android = buildModel.android()
@@ -41,7 +48,7 @@ class KotlinOptionsModelTest : GradleFileModelTestCase() {
     assertMissingProperty(kotlinOptions.jvmTarget())
     kotlinOptions.jvmTarget().setLanguageLevel(LanguageLevel.JDK_1_8)
     applyChangesAndReparse(buildModel)
-    verifyFileContents(myBuildFile, TestFileName.KOTLIN_OPTIONS_MODEL_ADD_EXPECTED)
+    verifyFileContents(myBuildFile, KOTLIN_OPTIONS_MODEL_ADD_EXPECTED)
     android = buildModel.android()
     kotlinOptions = android.kotlinOptions()
     assertEquals("jvmTarget", LanguageLevel.JDK_1_8, kotlinOptions.jvmTarget().toLanguageLevel())
@@ -49,7 +56,7 @@ class KotlinOptionsModelTest : GradleFileModelTestCase() {
 
   @Test
   fun `add unknown JVM target`() {
-    writeToBuildFile(TestFileName.KOTLIN_OPTIONS_MODEL_ADD_UNKNOWN_TARGET)
+    writeToBuildFile(KOTLIN_OPTIONS_MODEL_ADD_UNKNOWN_TARGET)
 
     val android = gradleBuildModel.android()
     val kotlinOptions = android.kotlinOptions()
@@ -61,14 +68,14 @@ class KotlinOptionsModelTest : GradleFileModelTestCase() {
 
   @Test
   fun remove() {
-    writeToBuildFile(TestFileName.KOTLIN_OPTIONS_MODEL_REMOVE)
+    writeToBuildFile(KOTLIN_OPTIONS_MODEL_REMOVE)
 
     val buildModel = gradleBuildModel
     var android = buildModel.android()
     var kotlinOptions = android.kotlinOptions()
     kotlinOptions.jvmTarget().delete()
     applyChangesAndReparse(buildModel)
-    verifyFileContents(myBuildFile, TestFileName.KOTLIN_OPTIONS_MODEL_REMOVE_EXPECTED)
+    verifyFileContents(myBuildFile, KOTLIN_OPTIONS_MODEL_REMOVE_EXPECTED)
     android = buildModel.android()
     kotlinOptions = android.kotlinOptions()
     checkForInValidPsiElement(kotlinOptions, KotlinOptionsModelImpl::class.java)
@@ -77,7 +84,7 @@ class KotlinOptionsModelTest : GradleFileModelTestCase() {
 
   @Test
   fun modify() {
-    writeToBuildFile(TestFileName.KOTLIN_OPTIONS_MODEL_MODIFY)
+    writeToBuildFile(KOTLIN_OPTIONS_MODEL_MODIFY)
 
     val buildModel = gradleBuildModel
     var android = buildModel.android()
@@ -85,7 +92,7 @@ class KotlinOptionsModelTest : GradleFileModelTestCase() {
     assertEquals("jvmTarget", LanguageLevel.JDK_1_6, kotlinOptions.jvmTarget().toLanguageLevel())
     kotlinOptions.jvmTarget().setLanguageLevel(LanguageLevel.JDK_1_9)
     applyChangesAndReparse(buildModel)
-    verifyFileContents(myBuildFile, TestFileName.KOTLIN_OPTIONS_MODEL_MODIFY_EXPECTED)
+    verifyFileContents(myBuildFile, KOTLIN_OPTIONS_MODEL_MODIFY_EXPECTED)
     android = buildModel.android()
     kotlinOptions = android.kotlinOptions()
     assertEquals("jvmTarget", LanguageLevel.JDK_1_9, kotlinOptions.jvmTarget().toLanguageLevel())
