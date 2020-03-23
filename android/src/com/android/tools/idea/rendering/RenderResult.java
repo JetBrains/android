@@ -23,6 +23,8 @@ import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.psi.PsiFile;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,6 +42,7 @@ public class RenderResult {
   @NotNull private final Map<Object, Map<ResourceReference, ResourceValue>> myDefaultProperties;
   @NotNull private final Map<Object, String> myDefaultStyles;
   @NotNull private final Module myModule;
+  private final ReadWriteLock myDisposeLock = new ReentrantReadWriteLock();
   private boolean isDisposed;
 
   protected RenderResult(@NotNull PsiFile file,
@@ -65,8 +68,13 @@ public class RenderResult {
   }
 
   public void dispose() {
-    isDisposed = true;
-    myImage.dispose();
+    myDisposeLock.writeLock().lock();
+    try {
+      isDisposed = true;
+      myImage.dispose();
+    } finally {
+      myDisposeLock.writeLock().unlock();
+    }
   }
 
   /**
@@ -169,11 +177,21 @@ public class RenderResult {
 
   @NotNull
   public ImagePool.Image getRenderedImage() {
-    return !isDisposed ? myImage : ImagePool.NULL_POOLED_IMAGE;
+    myDisposeLock.readLock().lock();
+    try {
+      return !isDisposed ? myImage : ImagePool.NULL_POOLED_IMAGE;
+    } finally {
+      myDisposeLock.readLock().unlock();
+    }
   }
 
   public boolean hasImage() {
-    return !isDisposed && myImage != ImagePool.NULL_POOLED_IMAGE;
+    myDisposeLock.readLock().lock();
+    try {
+      return !isDisposed && myImage != ImagePool.NULL_POOLED_IMAGE;
+    } finally {
+      myDisposeLock.readLock().unlock();
+    }
   }
 
   @NotNull
