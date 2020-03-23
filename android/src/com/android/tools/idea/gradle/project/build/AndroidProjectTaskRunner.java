@@ -94,8 +94,14 @@ public class AndroidProjectTaskRunner extends ProjectTaskRunner {
     GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
 
     Set<Path> rootPaths = tasks.keys().elementSet();
-    ProjectTaskNotification aggregatedCallback = callback == null ? null : new MergedProjectTaskNotification(callback, rootPaths.size());
+    if (rootPaths.isEmpty()){
+      if (callback != null) {
+        callback.finished(new ProjectTaskResult(false, 1, 0));
+      }
+      return;
+    }
 
+    ProjectTaskNotification aggregatedCallback = callback == null ? null : new MergedProjectTaskNotification(callback, rootPaths.size());
     for (Path projectRootPath : rootPaths) {
       GradleBuildInvoker.Request request = new GradleBuildInvoker.Request(project, projectRootPath.toFile(), tasks.get(projectRootPath));
 
