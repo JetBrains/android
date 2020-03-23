@@ -15,9 +15,13 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.repositories;
 
+import static com.android.tools.idea.gradle.dsl.model.repositories.FlatDirRepositoryModel.DIRS;
 import static com.android.tools.idea.gradle.dsl.model.repositories.RepositoryModelImpl.NAME;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.atLeast;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.ADD_AS_LIST;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.OTHER;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
@@ -42,12 +46,16 @@ public class FlatDirRepositoryDslElement extends GradleDslBlockElement {
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, ModelEffectDescription> ktsToModelNameMap = Stream.of(new Object[][]{
     {"name", property, NAME, VAR},
+    {"dirs", atLeast(0), DIRS, OTHER},
+    {"dir", exactly(1), DIRS, OTHER}
   }).collect(toModelMap());
 
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, ModelEffectDescription> groovyToModelNameMap = Stream.of(new Object[][]{
     {"name", property, NAME, VAR},
     {"name", exactly(1), NAME, SET},
+    {"dirs", atLeast(0), DIRS, OTHER},
+    {"dir", atLeast(0), DIRS, OTHER}
   }).collect(toModelMap());
 
   @Override
