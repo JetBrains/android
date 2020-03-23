@@ -15,61 +15,17 @@
  */
 package com.android.tools.idea.naveditor.surface
 
-import com.android.tools.adtui.actions.ZoomActualAction
-import com.android.tools.adtui.actions.ZoomInAction
-import com.android.tools.adtui.actions.ZoomOutAction
-import com.android.tools.adtui.actions.ZoomToFitAction
+import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.idea.naveditor.NavTestCase
-import com.android.tools.idea.uibuilder.LayoutTestUtilities.findActionForKey
-import com.intellij.openapi.util.SystemInfo
-import java.awt.Event
-import java.awt.Event.SHIFT_MASK
-import java.awt.event.KeyEvent
-
-private val ACTION_MASK = if (SystemInfo.isMac) Event.META_MASK else Event.CTRL_MASK
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataContext
 
 class NavDesignSurfaceShortcutTest : NavTestCase() {
-  fun testZoomIn() {
-    val zoomClass = ZoomInAction::class.java
-    testActionForKey(KeyEvent.VK_PLUS, ACTION_MASK, zoomClass)
-    testActionForKey(KeyEvent.VK_PLUS, ACTION_MASK + SHIFT_MASK, zoomClass)
-    testActionForKey(KeyEvent.VK_EQUALS, ACTION_MASK, zoomClass)
-    testActionForKey(KeyEvent.VK_EQUALS, ACTION_MASK + SHIFT_MASK, zoomClass)
-    testActionForKey(KeyEvent.VK_ADD, ACTION_MASK, zoomClass)
-    testActionForKey(KeyEvent.VK_ADD, ACTION_MASK + SHIFT_MASK, zoomClass)
-  }
 
-  fun testZoomOut() {
-    val zoomClass = ZoomOutAction::class.java
-    testActionForKey(KeyEvent.VK_MINUS, ACTION_MASK, zoomClass)
-    testActionForKey(KeyEvent.VK_MINUS, ACTION_MASK + SHIFT_MASK, zoomClass)
-    testActionForKey(KeyEvent.VK_UNDERSCORE, ACTION_MASK, zoomClass)
-    testActionForKey(KeyEvent.VK_UNDERSCORE, ACTION_MASK + SHIFT_MASK, zoomClass)
-    testActionForKey(KeyEvent.VK_SUBTRACT, ACTION_MASK, zoomClass)
-    testActionForKey(KeyEvent.VK_SUBTRACT, ACTION_MASK + SHIFT_MASK, zoomClass)
-  }
-
-  fun testZoomToFit() {
-    val zoomClass = ZoomToFitAction::class.java
-    testActionForKey(KeyEvent.VK_0, ACTION_MASK, zoomClass)
-    testActionForKey(KeyEvent.VK_0, ACTION_MASK + SHIFT_MASK, zoomClass)
-    testActionForKey(KeyEvent.VK_RIGHT_PARENTHESIS, ACTION_MASK, zoomClass)
-    testActionForKey(KeyEvent.VK_RIGHT_PARENTHESIS, ACTION_MASK + SHIFT_MASK, zoomClass)
-    testActionForKey(KeyEvent.VK_NUMPAD0, ACTION_MASK, zoomClass)
-    testActionForKey(KeyEvent.VK_NUMPAD0, ACTION_MASK + SHIFT_MASK, zoomClass)
-  }
-
-  fun testZoomToActual() {
-    val zoomClass = ZoomActualAction::class.java
-    testActionForKey(KeyEvent.VK_SLASH, ACTION_MASK, zoomClass)
-    testActionForKey(KeyEvent.VK_SLASH, ACTION_MASK + SHIFT_MASK, zoomClass)
-    testActionForKey(KeyEvent.VK_DIVIDE, ACTION_MASK, zoomClass)
-    testActionForKey(KeyEvent.VK_DIVIDE, ACTION_MASK + SHIFT_MASK, zoomClass)
-  }
-
-  private fun <T> testActionForKey(keyCode: Int, modifiers: Int, aClass: Class<T>) {
+  fun testNavDesignSurfaceProvideTheZoomableContext() {
+    // Simply test NavDesignSurface provide data for ZOOMABLE_KEY
     val surface = NavDesignSurface(project, myRootDisposable)
-    val action = findActionForKey(surface, keyCode, modifiers)
-    assertInstanceOf(action, aClass)
+    val event = AnActionEvent.createFromDataContext("", null, DataContext { id -> surface.getData(id) })
+    assertNotNull(event.getData(ZOOMABLE_KEY))
   }
 }

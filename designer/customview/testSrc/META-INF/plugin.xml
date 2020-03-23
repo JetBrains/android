@@ -22,5 +22,6 @@
   -->
   <name>Tests for Android custom view handling code</name>
   <id>com.android.tools.idea.customview.tests</id>
+  <xi:include href="/META-INF/adt-ui.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/customview.xml" xpointer="xpointer(/idea-plugin/*)"/>
 </idea-plugin>

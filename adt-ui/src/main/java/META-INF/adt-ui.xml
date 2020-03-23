@@ -23,4 +23,55 @@
       <implementation-class>com.android.tools.adtui.workbench.DetachedToolWindowManager</implementation-class>
     </component>
   </project-components>
+
+  <actions>
+    <group id="Adtui.ZoomActions">
+      <action id="Adtui.ZoomInAction"
+              icon="AllIcons.General.ZoomIn"
+              class="com.android.tools.adtui.actions.ZoomInAction"
+              text="Zoom In"
+              description="Zoom in preview" >
+        <keyboard-shortcut keymap="$default" first-keystroke="control EQUALS" />
+        <keyboard-shortcut keymap="$default" first-keystroke="control ADD" />
+        <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta EQUALS" replace-all="true"/>
+        <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta ADD" />
+      </action>
+      <action id="Adtui.ZoomOutAction"
+              icon="AllIcons.General.ZoomOut"
+              class="com.android.tools.adtui.actions.ZoomOutAction"
+              text="Zoom Out"
+              description="Zoom out preview">
+        <keyboard-shortcut keymap="$default" first-keystroke="control MINUS" />
+        <keyboard-shortcut keymap="$default" first-keystroke="control SUBTRACT" />
+        <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta MINUS" replace-all="true"/>
+        <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta SUBTRACT" />
+      </action>
+      <action id="Adtui.ZoomToActualAction"
+              icon="AllIcons.General.ActualZoom"
+              class="com.android.tools.adtui.actions.ZoomActualAction"
+              text="Zoom to Actual Size (100%)"
+              description="Zoom to actual size of preview">
+        <keyboard-shortcut keymap="$default" first-keystroke="control 0" />
+        <keyboard-shortcut keymap="$default" first-keystroke="control NUMPAD0" />
+        <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta 0" replace-all="true"/>
+        <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta NUMPAD0" />
+      </action>
+      <action id="Adtui.ZoomToFitAction"
+              icon="AllIcons.General.FitContent"
+              class="com.android.tools.adtui.actions.ZoomToFitAction"
+              text="Zoom to Fit Screen"
+              description="Zoom the preview to fit the screen size">
+        <keyboard-shortcut keymap="$default" first-keystroke="control SLASH" />
+        <keyboard-shortcut keymap="$default" first-keystroke="control DIVIDE" />
+        <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta SLASH" replace-all="true"/>
+        <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta DIVIDE" />
+      </action>
+      <action id="Adtui.ZoomResetAction"
+              class="com.android.tools.adtui.actions.ZoomResetAction"
+              text="Reset Zoom"
+              description="Reset zoom level to default">
+      </action>
+    </group>
+  </actions>
+
 </idea-plugin>

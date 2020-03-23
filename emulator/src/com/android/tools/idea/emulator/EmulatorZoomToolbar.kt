@@ -29,7 +29,7 @@ class EmulatorZoomToolbar private constructor(
     updateToolbar()
   }
 
-  override fun getActionGroups() = BasicDesignSurfaceActionGroups(component)
+  override fun getActionGroups() = BasicDesignSurfaceActionGroups()
 
   companion object {
     @JvmStatic
