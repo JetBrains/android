@@ -31,6 +31,7 @@ import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.android.util.ErrorReporter
 import javax.swing.JCheckBox
 
+internal val DataContext.project: Project? get() = LangDataKeys.PROJECT.getData(this)
 internal val DataContext.module: Module? get() = LangDataKeys.MODULE.getData(this)
 
 internal fun getParentStyle(style: Style): StyleRefData? {
