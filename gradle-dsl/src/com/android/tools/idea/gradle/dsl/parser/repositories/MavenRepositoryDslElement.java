@@ -16,9 +16,12 @@
 package com.android.tools.idea.gradle.dsl.parser.repositories;
 
 import static com.android.tools.idea.gradle.dsl.model.repositories.RepositoryModelImpl.NAME;
+import static com.android.tools.idea.gradle.dsl.model.repositories.UrlBasedRepositoryModelImpl.ARTIFACT_URLS;
 import static com.android.tools.idea.gradle.dsl.model.repositories.UrlBasedRepositoryModelImpl.URL;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.atLeast;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.OTHER;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
@@ -51,7 +54,8 @@ public class MavenRepositoryDslElement extends GradleDslBlockElement {
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, ModelEffectDescription> ktsToModelNameMap = Stream.of(new Object[][]{
     {"name", property, NAME, VAR},
-    {"url", property, URL, VAR}
+    {"url", property, URL, VAR},
+    {"artifactUrls", atLeast(0), ARTIFACT_URLS, OTHER}
   }).collect(toModelMap());
 
   @NotNull
@@ -60,6 +64,7 @@ public class MavenRepositoryDslElement extends GradleDslBlockElement {
     {"name", exactly(1), NAME, SET},
     {"url", property, URL, VAR},
     {"url", exactly(1), URL, SET},
+    {"artifactUrls", atLeast(0), ARTIFACT_URLS, OTHER}
   }).collect(toModelMap());
 
   @Override
@@ -91,7 +96,7 @@ public class MavenRepositoryDslElement extends GradleDslBlockElement {
 
   @Override
   public void addParsedElement(@NotNull GradleDslElement element) {
-    if (element.getName().equals("artifactUrls")) {
+    if (element.getName().equals(ARTIFACT_URLS)) {
       addToParsedExpressionList(element.getName() ,element);
       return;
     }
