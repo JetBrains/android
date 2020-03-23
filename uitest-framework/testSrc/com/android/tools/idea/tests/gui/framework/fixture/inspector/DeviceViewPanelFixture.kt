@@ -56,15 +56,15 @@ class DeviceViewPanelFixture(
 
   val zoomInButton: ActionButtonFixture
     get() = ActionButtonFixture.findByActionInstance(
-      ZoomInAction, robot(), target())
+      ZoomInAction.getInstance(), robot(), target())
 
   val zoomOutButton: ActionButtonFixture
     get() = ActionButtonFixture.findByActionInstance(
-      ZoomOutAction, robot(), target())
+      ZoomOutAction.getInstance(), robot(), target())
 
   val zoomToFitButton: ActionButtonFixture
     get() = ActionButtonFixture.findByActionInstance(
-      ZoomToFitAction, robot(), target())
+      ZoomToFitAction.getInstance(), robot(), target())
 
   val panButton: ActionButtonFixture
     get() = ActionButtonFixture.findByActionInstance(

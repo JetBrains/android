@@ -16,12 +16,25 @@
 package com.android.tools.adtui.actions
 
 import com.android.tools.adtui.ZOOMABLE_KEY
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-object ZoomActualAction : SetZoomAction(ZoomType.ACTUAL) {
-  // TODO: register shortcuts
+/**
+ * TODO(b/149212539): make constructor private after resolving failed test cases.
+ */
+class ZoomActualAction : SetZoomAction(ZoomType.ACTUAL) {
+
+  companion object {
+    @JvmStatic
+    fun getInstance() = ActionManager.getInstance().getAction(AdtuiActions.ZOOM_TO_ACTUAL_ACTION) as ZoomActualAction
+  }
+
   override fun update(event: AnActionEvent) {
     super.update(event)
     event.presentation.isEnabled = event.getData(ZOOMABLE_KEY)?.canZoomToActual() ?: false
+    if (event.place.contains("Surface")) {
+      // Use different label when it is in floating action bar.
+      event.presentation.text = ZoomType.ACTUAL.label
+    }
   }
 }

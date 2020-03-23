@@ -82,15 +82,15 @@ object Toggle3dAction : AnAction(MODE_3D) {
 object LayoutInspectorToolbarGroups : EditorActionsToolbarActionGroups {
   override val zoomLabelGroup = DefaultActionGroup().apply {
     add(ZoomLabelAction)
-    add(ZoomResetAction)
+    add(ZoomResetAction())
   }
 
   override val otherGroups: List<ActionGroup> = listOf(DefaultActionGroup().apply { add(PanSurfaceAction) },
                                                        DefaultActionGroup().apply { add(Toggle3dAction) })
 
   override val zoomControlsGroup = DefaultActionGroup().apply {
-    add(ZoomInAction)
-    add(ZoomOutAction)
-    add(ZoomToFitAction)
+    add(ZoomInAction())
+    add(ZoomOutAction())
+    add(ZoomToFitAction())
   }
 }

@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.visual
 
 import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomOutAction
-import com.android.tools.adtui.actions.ZoomShortcut
 import com.android.tools.adtui.actions.ZoomToFitAction
 import com.android.tools.adtui.stdui.CommonButton
 import com.android.tools.idea.common.model.NlComponent
@@ -34,9 +33,9 @@ import javax.swing.JPanel
 
 class VisualizationActionManager(surface: NlDesignSurface,
                                  private val visualizationModelsProvider: () -> VisualizationModelsProvider) : NlActionManager(surface) {
-  private val zoomInAction: AnAction = ZoomShortcut.ZOOM_IN.registerForAction(ZoomInAction, surface, surface)
-  private val zoomOutAction: AnAction = ZoomShortcut.ZOOM_OUT.registerForAction(ZoomOutAction, surface, surface)
-  private val zoomToFitAction: AnAction = ZoomShortcut.ZOOM_FIT.registerForAction(ZoomToFitAction, surface, surface)
+  private val zoomInAction: AnAction = ZoomInAction.getInstance()
+  private val zoomOutAction: AnAction = ZoomOutAction.getInstance()
+  private val zoomToFitAction: AnAction = ZoomToFitAction.getInstance()
 
   override fun registerActionsShortcuts(component: JComponent) = Unit
 

@@ -17,7 +17,6 @@ package com.android.tools.idea.naveditor.editor
 
 import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomOutAction
-import com.android.tools.adtui.actions.ZoomShortcut
 import com.android.tools.adtui.actions.ZoomToFitAction
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.idea.common.actions.GotoComponentAction
@@ -63,9 +62,9 @@ import javax.swing.KeyStroke
 open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesignSurface>(surface) {
   private val gotoComponentAction: AnAction = GotoComponentAction(surface)
   private val autoArrangeAction: AnAction = AutoArrangeAction(surface)
-  private val zoomInAction: AnAction = ZoomShortcut.ZOOM_IN.registerForAction(ZoomInAction, surface, surface)
-  private val zoomOutAction: AnAction = ZoomShortcut.ZOOM_OUT.registerForAction(ZoomOutAction, surface, surface)
-  private val zoomToFitAction: AnAction = ZoomShortcut.ZOOM_FIT.registerForAction(ZoomToFitAction, surface, surface)
+  private val zoomInAction: AnAction = ZoomInAction.getInstance()
+  private val zoomOutAction: AnAction = ZoomOutAction.getInstance()
+  private val zoomToFitAction: AnAction = ZoomToFitAction.getInstance()
   private val selectNextAction: AnAction = SelectNextAction(surface)
   private val selectPreviousAction: AnAction = SelectPreviousAction(surface)
   private val selectAllAction: AnAction = SelectAllAction(surface)
