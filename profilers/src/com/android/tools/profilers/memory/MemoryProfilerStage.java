@@ -59,6 +59,7 @@ import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingS
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.Transport.TimeResponse;
+import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.StreamingStage;
 import com.android.tools.profilers.StudioProfilers;
@@ -442,7 +443,8 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
   }
 
   private Transport.ExecuteResponse startNativeAllocationTracking() {
-    getStudioProfilers().getIdeServices().getFeatureTracker().trackRecordAllocations();
+    IdeProfilerServices ide = getStudioProfilers().getIdeServices();
+    ide.getFeatureTracker().trackRecordAllocations();
     getStudioProfilers().setMemoryLiveAllocationEnabled(false);
     Common.Process process = getStudioProfilers().getProcess();
     String traceFilePath = String.format(Locale.getDefault(), "%s/%s.trace", DAEMON_DEVICE_DIR_PATH, process.getName());
@@ -451,7 +453,9 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
       .setPid(mySessionData.getPid())
       .setType(Commands.Command.CommandType.START_NATIVE_HEAP_SAMPLE)
       .setStartNativeSample(Memory.StartNativeSample.newBuilder()
-                              .setSamplingIntervalBytes(32)
+                              // Note: This will use the config for the one that is loaded (in the drop down) vs the one used to launch
+                              // the app.
+                              .setSamplingIntervalBytes(ide.getFeatureConfig().getNativeMemorySamplingRateForCurrentConfig())
                               .setSharedMemoryBufferBytes(64 * 1024 * 1024)
                               .setAbiCpuArch(process.getAbiCpuArch())
                               .setTempPath(traceFilePath)

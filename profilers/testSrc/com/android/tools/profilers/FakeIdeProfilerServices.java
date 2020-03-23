@@ -251,6 +251,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   public FeatureConfig getFeatureConfig() {
     return new FeatureConfig() {
       @Override
+      public int getNativeMemorySamplingRateForCurrentConfig() {
+        return 0;
+      }
+
+      @Override
       public boolean isCpuApiTracingEnabled() {
         return myIsCpuApiTracingEnabled;
       }
