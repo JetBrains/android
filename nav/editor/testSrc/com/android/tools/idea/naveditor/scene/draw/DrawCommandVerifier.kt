@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
-import com.android.tools.idea.naveditor.scene.RefinableImage
 import com.intellij.ui.JreHiDpiUtil
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyFloat
@@ -23,19 +22,23 @@ import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.ArgumentMatchers.argThat
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.InOrder
+import org.mockito.Mockito
 import org.mockito.Mockito.times
 import java.awt.BasicStroke
 import java.awt.Color
+import java.awt.FontMetrics
 import java.awt.Graphics2D
+import java.awt.GraphicsConfiguration
+import java.awt.GraphicsDevice
 import java.awt.Shape
 import java.awt.Stroke
+import java.awt.geom.AffineTransform
 import java.awt.geom.Ellipse2D
 import java.awt.geom.Line2D
 import java.awt.geom.Path2D
 import java.awt.geom.Point2D
 import java.awt.geom.Rectangle2D
 import java.awt.geom.RoundRectangle2D
-import java.awt.image.BufferedImage
 
 private val PLACEHOLDER_FILL = Color(0xfdfdfd)
 private val PLACEHOLDER_COLOR = Color(0xcccccc)
@@ -68,15 +71,22 @@ private val LINE_TO_MOUSE_STROKE = BasicStroke(3f)
 
 private val EMPTY_DESIGNER_TEXT_COLOR = Color(0xa7a7a7)
 
+enum class PreviewType {
+  PLACEHOLDER,
+  LOADING,
+  UNAVAILABLE,
+  IMAGE
+}
+
 fun verifyDrawFragment(inOrder: InOrder,
                        g: Graphics2D,
                        rectangle: Rectangle2D.Float,
                        scale: Double,
                        highlightColor: Color? = null,
-                       image: RefinableImage? = null) {
+                       previewType: PreviewType = PreviewType.PLACEHOLDER) {
   verifyDrawShape(inOrder, g, rectangle, FRAME_COLOR, FRAME_STROKE)
   val imageRectangle = Rectangle2D.Float(rectangle.x + 1f, rectangle.y + 1f, rectangle.width - 2f, rectangle.height - 2f)
-  verifyDrawNavScreen(inOrder, g, imageRectangle, image)
+  verifyDrawNavScreen(inOrder, g, imageRectangle, previewType)
 
   if (highlightColor != null) {
     val spacing = 2 * SPACING * scale.toFloat()
@@ -111,18 +121,18 @@ fun verifyDrawActivity(inOrder: InOrder,
                        frameColor: Color,
                        frameThickness: Float,
                        textColor: Color,
-                       image: RefinableImage?) {
+                       previewType: PreviewType = PreviewType.PLACEHOLDER) {
   val arcSize = ARC_SIZE * scale.toFloat()
   val roundRectangle = RoundRectangle2D.Float(rectangle.x, rectangle.y, rectangle.width, rectangle.height, arcSize, arcSize)
   verifyFillShape(inOrder, g, roundRectangle, BACKGROUND)
   verifyDrawShape(inOrder, g, roundRectangle, frameColor, BasicStroke(frameThickness))
-  verifyDrawNavScreen(inOrder, g, imageRectangle, image)
+  verifyDrawNavScreen(inOrder, g, imageRectangle, previewType)
   verifyDrawShape(inOrder, g, imageRectangle, ACTIVITY_BORDER_COLOR, ACTIVITY_BORDER_STROKE)
   verifyDrawTruncatedText(inOrder, g, "Activity", textColor)
 }
 
 fun verifyDrawHeader(inOrder: InOrder, g: Graphics2D, rectangle: Rectangle2D.Float,
-                     scale: Double, text: String, isStart: Boolean, hasDeepLink: Boolean) {
+                     scale: Double, text: String, isStart: Boolean = false, hasDeepLink: Boolean = false) {
 
   var textX = rectangle.x
   var textWidth = rectangle.width
@@ -145,27 +155,20 @@ fun verifyDrawHeader(inOrder: InOrder, g: Graphics2D, rectangle: Rectangle2D.Flo
   verifyDrawTruncatedText(inOrder, g, text, HEADER_TEXT)
 }
 
-fun verifyDrawNavScreen(inOrder: InOrder, g: Graphics2D, rectangle: Rectangle2D.Float, image: RefinableImage?) {
-  if (image == null) {
-    verifyDrawPlaceholder(inOrder, g, rectangle)
-    return
-  }
-
-  val lastCompleted = image.lastCompleted
-  val bufferedImage = lastCompleted.image
-
-  when {
-    bufferedImage != null -> verifyDrawNavScreenImage(inOrder, g, rectangle, bufferedImage)
-    lastCompleted.refined == null -> verifyDrawNavScreenPreviewUnavailable(inOrder, g, rectangle)
-    else -> verifyDrawNavScreenLoading(inOrder, g, rectangle)
+fun verifyDrawNavScreen(inOrder: InOrder, g: Graphics2D, rectangle: Rectangle2D.Float, previewType: PreviewType) {
+  when (previewType) {
+    PreviewType.PLACEHOLDER -> verifyDrawPlaceholder(inOrder, g, rectangle)
+    PreviewType.LOADING -> verifyDrawNavScreenLoading(inOrder, g, rectangle)
+    PreviewType.UNAVAILABLE -> verifyDrawNavScreenPreviewUnavailable(inOrder, g, rectangle)
+    PreviewType.IMAGE -> verifyDrawNavScreenImage(inOrder, g, rectangle)
   }
 }
 
-fun verifyDrawNavScreenImage(inOrder: InOrder, g: Graphics2D, rectangle: Rectangle2D.Float, image: BufferedImage) {
+fun verifyDrawNavScreenImage(inOrder: InOrder, g: Graphics2D, rectangle: Rectangle2D.Float) {
   inOrder.apply {
     verify(g).setRenderingHints(any())
     verify(g).clip(argThat(ShapeArgumentMatcher(rectangle)))
-    verify(g).drawImage(eq(image), eq(rectangle.x.toInt()), eq(rectangle.y.toInt()), anyInt(), anyInt(), eq(null))
+    verify(g).drawImage(any(), eq(rectangle.x.toInt()), eq(rectangle.y.toInt()), anyInt(), anyInt(), eq(null))
     verify(g).dispose()
   }
 }
@@ -240,7 +243,7 @@ fun verifyDrawTruncatedText(inOrder: InOrder, g: Graphics2D, text: String, color
   }
 }
 
-fun verifyDrawAction(inOrder: InOrder, g: Graphics2D, color: Color, isPopAction: Boolean) {
+fun verifyDrawAction(inOrder: InOrder, g: Graphics2D, color: Color, isPopAction: Boolean = false) {
   verifyDrawShape(inOrder, g, Path2D.Float(), color, ACTION_STROKE)
   verifyFillShape(inOrder, g, Path2D.Float(), color)
   if (isPopAction) {
@@ -249,7 +252,7 @@ fun verifyDrawAction(inOrder: InOrder, g: Graphics2D, color: Color, isPopAction:
 }
 
 fun verifyDrawHorizontalAction(inOrder: InOrder, g: Graphics2D, rectangle: Rectangle2D.Float,
-                               scale: Double, color: Color, isPopAction: Boolean) {
+                               scale: Double, color: Color, isPopAction: Boolean = false) {
   val x1 = rectangle.x
   val x2 = x1 + rectangle.width - ACTION_ARROW_PARALLEL * scale.toFloat()
   val y = rectangle.centerY.toFloat()
@@ -320,6 +323,23 @@ fun verifyDrawEmptyDesigner(inOrder: InOrder, g: Graphics2D, point: Point2D.Floa
     verify(g).drawString(eq(" to add a destination"), anyInt(), eq(point.y.toInt()))
     verify(g).dispose()
   }
+}
+
+fun makeGraphicsMock() : Graphics2D {
+  val graphics = Mockito.mock(Graphics2D::class.java)
+
+  val metrics = Mockito.mock(FontMetrics::class.java)
+  Mockito.`when`(graphics.fontMetrics).thenReturn(metrics)
+  Mockito.`when`(graphics.getFontMetrics(any())).thenReturn(metrics)
+
+  val configuration = Mockito.mock(GraphicsConfiguration::class.java)
+  Mockito.`when`(graphics.deviceConfiguration).thenReturn(configuration)
+  val device = Mockito.mock(GraphicsDevice::class.java)
+  Mockito.`when`(configuration.device).thenReturn(device)
+  val transform = Mockito.mock(AffineTransform::class.java)
+  Mockito.`when`(configuration.defaultTransform).thenReturn(transform)
+
+  return graphics
 }
 
 private fun makeCircle(center: Point2D.Float, radius: Float) =
