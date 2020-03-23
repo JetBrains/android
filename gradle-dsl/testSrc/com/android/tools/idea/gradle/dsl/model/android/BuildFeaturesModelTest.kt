@@ -15,7 +15,14 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android
 
-import com.android.tools.idea.gradle.dsl.TestFileName
+import com.android.tools.idea.gradle.dsl.TestFileName.BUILD_FEATURES_MODEL_ADD_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.BUILD_FEATURES_MODEL_ADD_ELEMENTS_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileName.BUILD_FEATURES_MODEL_ADD_ELEMENTS_FROM_EXISTING
+import com.android.tools.idea.gradle.dsl.TestFileName.BUILD_FEATURES_MODEL_ADD_ELEMENTS_FROM_EXISTING_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileName.BUILD_FEATURES_MODEL_EDIT_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.BUILD_FEATURES_MODEL_EDIT_ELEMENTS_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileName.BUILD_FEATURES_MODEL_PARSE_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.BUILD_FEATURES_MODEL_REMOVE_ELEMENTS
 import com.android.tools.idea.gradle.dsl.api.android.BuildFeaturesModel
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import org.junit.Test
@@ -26,7 +33,7 @@ import org.junit.Test
 class BuildFeaturesModelTest : GradleFileModelTestCase() {
   @Test
   fun testParseElements() {
-    writeToBuildFile(TestFileName.BUILD_FEATURES_MODEL_PARSE_ELEMENTS)
+    writeToBuildFile(BUILD_FEATURES_MODEL_PARSE_ELEMENTS)
 
     val buildModel = gradleBuildModel
     val buildFeatures = buildModel.android().buildFeatures()
@@ -35,49 +42,49 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testEditElements() {
-    writeToBuildFile(TestFileName.BUILD_FEATURES_MODEL_EDIT_ELEMENTS)
+    writeToBuildFile(BUILD_FEATURES_MODEL_EDIT_ELEMENTS)
 
     val buildModel = gradleBuildModel
     var buildFeatures = buildModel.android().buildFeatures()
     assertEquals("compose", false, buildFeatures.compose())
     buildFeatures.compose().setValue(true)
     applyChangesAndReparse(buildModel)
-    verifyFileContents(myBuildFile, TestFileName.BUILD_FEATURES_MODEL_EDIT_ELEMENTS_EXPECTED)
+    verifyFileContents(myBuildFile, BUILD_FEATURES_MODEL_EDIT_ELEMENTS_EXPECTED)
     buildFeatures = buildModel.android().buildFeatures()
     assertEquals("compose", true, buildFeatures.compose())
   }
 
   @Test
   fun testAddElements() {
-    writeToBuildFile(TestFileName.BUILD_FEATURES_MODEL_ADD_ELEMENTS)
+    writeToBuildFile(BUILD_FEATURES_MODEL_ADD_ELEMENTS)
 
     val buildModel = gradleBuildModel
     var buildFeatures = buildModel.android().buildFeatures()
     assertMissingProperty("compose", buildFeatures.compose())
     buildFeatures.compose().setValue(false)
     applyChangesAndReparse(buildModel)
-    verifyFileContents(myBuildFile, TestFileName.BUILD_FEATURES_MODEL_ADD_ELEMENTS_EXPECTED)
+    verifyFileContents(myBuildFile, BUILD_FEATURES_MODEL_ADD_ELEMENTS_EXPECTED)
     buildFeatures = buildModel.android().buildFeatures()
     assertEquals("compose", false, buildFeatures.compose())
   }
 
   @Test
   fun testAddElementsFromExisting() {
-    writeToBuildFile(TestFileName.BUILD_FEATURES_MODEL_ADD_ELEMENTS_FROM_EXISTING)
+    writeToBuildFile(BUILD_FEATURES_MODEL_ADD_ELEMENTS_FROM_EXISTING)
 
     val buildModel = gradleBuildModel
     var buildFeatures = buildModel.android().buildFeatures()
     assertMissingProperty("compose", buildFeatures.compose())
     buildFeatures.compose().setValue(false)
     applyChangesAndReparse(buildModel)
-    verifyFileContents(myBuildFile, TestFileName.BUILD_FEATURES_MODEL_ADD_ELEMENTS_FROM_EXISTING_EXPECTED)
+    verifyFileContents(myBuildFile, BUILD_FEATURES_MODEL_ADD_ELEMENTS_FROM_EXISTING_EXPECTED)
     buildFeatures = buildModel.android().buildFeatures()
     assertEquals("compose", false, buildFeatures.compose())
   }
 
   @Test
   fun testRemoveElements() {
-    writeToBuildFile(TestFileName.BUILD_FEATURES_MODEL_REMOVE_ELEMENTS)
+    writeToBuildFile(BUILD_FEATURES_MODEL_REMOVE_ELEMENTS)
 
     val buildModel = gradleBuildModel
     var buildFeatures = buildModel.android().buildFeatures()
