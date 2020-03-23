@@ -29,6 +29,16 @@ import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.TestNavEditor
 import com.android.tools.idea.naveditor.model.popUpTo
+import com.android.tools.idea.naveditor.scene.draw.PreviewType
+import com.android.tools.idea.naveditor.scene.draw.verifyDrawAction
+import com.android.tools.idea.naveditor.scene.draw.verifyDrawActionHandle
+import com.android.tools.idea.naveditor.scene.draw.verifyDrawActionHandleDrag
+import com.android.tools.idea.naveditor.scene.draw.verifyDrawActivity
+import com.android.tools.idea.naveditor.scene.draw.verifyDrawEmptyDesigner
+import com.android.tools.idea.naveditor.scene.draw.verifyDrawFragment
+import com.android.tools.idea.naveditor.scene.draw.verifyDrawHeader
+import com.android.tools.idea.naveditor.scene.draw.verifyDrawHorizontalAction
+import com.android.tools.idea.naveditor.scene.draw.verifyDrawNestedGraph
 import com.android.tools.idea.naveditor.scene.targets.ScreenDragTarget
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.surface.NavView
@@ -40,6 +50,8 @@ import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.psi.PsiDocumentManager
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import java.awt.Color
+import java.awt.geom.Point2D
 import java.awt.geom.Rectangle2D
 
 /**
@@ -68,28 +80,25 @@ class NavSceneTest : NavTestCase() {
     moveComponentTo(scene.getSceneComponent("activity")!!, 20, 20)
     scene.sceneManager.layout(false)
 
-    val list = DisplayList()
     scene.layout(0, scene.sceneManager.sceneViews.first().context)
-    scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
-    assertEquals(
-      "Clip,0,0,1050,928\n" +
-      "DrawAction,580.0x400.0x70.0x19.0,400.0x400.0x76.5x128.0,0.5,b2a7a7a7,false\n" +
-      "\n" +
-      "DrawAction,490.0x400.0x76.5x128.0,580.0x400.0x70.0x19.0,0.5,b2a7a7a7,false\n" +
-      "\n" +
-      "DrawAction,490.0x400.0x76.5x128.0,400.0x400.0x76.5x128.0,0.5,b2a7a7a7,false\n" +
-      "\n" +
-      "DrawHeader,490.0x389.0x76.5x11.0,0.5,fragment1,true,false\n" +
-      "DrawFragment,490.0x400.0x76.5x128.0,0.5,null\n" +
-      "\n" +
-      "DrawHeader,580.0x389.0x70.0x11.0,0.5,nested,false,false\n" +
-      "DrawNestedGraph,580.0x400.0x70.0x19.0,0.5,ffa7a7a7,1.0,Nested Graph,ffa7a7a7\n" +
-      "\n" +
-      "DrawHeader,400.0x389.0x76.5x11.0,0.5,activity,false,false\n" +
-      "DrawActivity,400.0x400.0x76.5x128.0,404.0x404.0x68.5x111.0,0.5,ffa7a7a7,1.0,ffa7a7a7\n" +
-      "\n" +
-      "UNClip\n", list.generateSortedDisplayList()
-    )
+
+    verifyScene(model.surface) { inOrder, g ->
+      verifyDrawAction(inOrder, g, ACTION_COLOR)
+      verifyDrawAction(inOrder, g, ACTION_COLOR)
+      verifyDrawAction(inOrder, g, ACTION_COLOR)
+
+      verifyDrawHeader(inOrder, g, Rectangle2D.Float(490f, 389f, 76.5f, 11f), 0.5, "fragment1", isStart = true)
+      verifyDrawFragment(inOrder, g, Rectangle2D.Float(490f, 400f, 76.5f, 128f), 0.5, previewType = PreviewType.LOADING)
+
+      verifyDrawHeader(inOrder, g, Rectangle2D.Float(580f, 389f, 76.5f, 11f), 0.5, "nested")
+      verifyDrawNestedGraph(inOrder, g, Rectangle2D.Float(580f, 400f, 70f, 19f), 0.5,
+                            FRAME_COLOR, 1f, "Nested Graph", FRAME_COLOR)
+
+      verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5, "activity")
+      verifyDrawActivity(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f),
+                         Rectangle2D.Float(404.0f, 404.0f, 68.5f, 111.0f),
+                         0.5, FRAME_COLOR, 1f, FRAME_COLOR)
+    }
   }
 
   fun testInclude() {
@@ -106,21 +115,18 @@ class NavSceneTest : NavTestCase() {
     moveComponentTo(scene.getSceneComponent("nav")!!, 320, 20)
     scene.sceneManager.layout(false)
 
-    val list = DisplayList()
     scene.layout(0, scene.sceneManager.sceneViews.first().context)
-    scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
-    assertEquals(
-      "Clip,0,0,960,928\n" +
-      "DrawAction,400.0x400.0x76.5x128.0,490.0x400.0x70.0x19.0,0.5,b2a7a7a7,false\n" +
-      "\n" +
-      "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
-      "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
-      "\n" +
-      "DrawHeader,490.0x389.0x70.0x11.0,0.5,nav,false,false\n" +
-      "DrawNestedGraph,490.0x400.0x70.0x19.0,0.5,ffa7a7a7,1.0,navigation.xml,ffa7a7a7\n" +
-      "\n" +
-      "UNClip\n", list.generateSortedDisplayList()
-    )
+
+    verifyScene(model.surface) { inOrder, g ->
+      verifyDrawAction(inOrder, g, ACTION_COLOR)
+
+      verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5, "fragment1")
+      verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5)
+
+      verifyDrawHeader(inOrder, g, Rectangle2D.Float(490f, 389f, 70f, 11f), 0.5, "nav")
+      verifyDrawNestedGraph(inOrder, g, Rectangle2D.Float(490f, 400f, 70f, 19f), 0.5,
+                            FRAME_COLOR, 1f, "navigation.xml", FRAME_COLOR)
+    }
   }
 
   fun testNegativePositions() {
@@ -311,17 +317,12 @@ class NavSceneTest : NavTestCase() {
     }
     val scene = model.surface.scene!!
 
-    val list = DisplayList()
     scene.layout(0, scene.sceneManager.sceneViews.first().context)
-    scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
 
-    assertEquals(
-      "Clip,0,0,877,928\n" +
-      "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
-      "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
-      "\n" +
-      "UNClip\n", list.generateSortedDisplayList()
-    )
+    verifyScene(model.surface) { inOrder, g ->
+      verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5, "fragment1")
+      verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5, previewType = PreviewType.UNAVAILABLE)
+    }
   }
 
   fun testSelectedNlComponentSelectedInScene() {
@@ -364,23 +365,19 @@ class NavSceneTest : NavTestCase() {
     moveComponentTo(scene.getSceneComponent("nav1")!!, 320, 20)
     scene.sceneManager.layout(false)
 
-    val list = DisplayList()
     scene.layout(0, scene.sceneManager.sceneViews.first().context)
-    scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
 
-    assertEquals(
-      "Clip,0,0,960,928\n" +
-      "DrawSelfAction,490.0x400.0x70.0x19.0,0.5,b2a7a7a7,false\n" +
-      "\n" +
-      "DrawSelfAction,400.0x400.0x76.5x128.0,0.5,b2a7a7a7,false\n" +
-      "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,true,false\n" +
-      "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
-      "\n" +
-      "DrawHeader,490.0x389.0x70.0x11.0,0.5,nav1,false,false\n" +
-      "DrawNestedGraph,490.0x400.0x70.0x19.0,0.5,ffa7a7a7,1.0,Nested Graph,ffa7a7a7\n" +
-      "\n" +
-      "UNClip\n", list.generateSortedDisplayList()
-    )
+    verifyScene(model.surface) { inOrder, g ->
+      verifyDrawAction(inOrder, g, ACTION_COLOR)
+      verifyDrawAction(inOrder, g, ACTION_COLOR)
+
+      verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5, "fragment1", isStart = true)
+      verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5, previewType = PreviewType.LOADING)
+
+      verifyDrawHeader(inOrder, g, Rectangle2D.Float(490f, 389f, 70f, 11f), 0.5, "nav1")
+      verifyDrawNestedGraph(inOrder, g, Rectangle2D.Float(490f, 400f, 70f, 19f), 0.5,
+                            FRAME_COLOR, 1f, "Nested Graph", FRAME_COLOR)
+    }
   }
 
   fun testDeepLinks() {
@@ -392,18 +389,13 @@ class NavSceneTest : NavTestCase() {
       }
     }
     val scene = model.surface.scene!!
-
-    val list = DisplayList()
     scene.layout(0, scene.sceneManager.sceneViews.first().context)
-    scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
 
-    assertEquals(
-      "Clip,0,0,877,928\n" +
-      "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,true,true\n" +
-      "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
-      "\n" +
-      "UNClip\n", list.generateSortedDisplayList()
-    )
+    verifyScene(model.surface) { inOrder, g ->
+      verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5,
+                       "fragment1", isStart = true, hasDeepLink = true)
+      verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5, previewType = PreviewType.LOADING)
+    }
   }
 
   fun testSelectedComponent() {
@@ -423,62 +415,48 @@ class NavSceneTest : NavTestCase() {
     moveComponentTo(scene.getSceneComponent("nested")!!, 320, 20)
 
     scene.sceneManager.layout(false)
-    var list = DisplayList()
     scene.layout(0, scene.sceneManager.sceneViews.first().context)
-    val view = NavView(model.surface as NavDesignSurface, scene.sceneManager)
-    scene.buildDisplayList(list, 0, view)
 
-    assertEquals(
-      "Clip,0,0,960,928\n" +
-      "DrawHeader,490.0x389.0x70.0x11.0,0.5,nested,false,false\n" +
-      "DrawNestedGraph,490.0x400.0x70.0x19.0,0.5,ffa7a7a7,1.0,Nested Graph,ffa7a7a7\n" +
-      "\n" +
-      "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,true,false\n" +
-      "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
-      "DrawHorizontalAction,384.0x461.0x12.0x6.0,0.5,ff1886f7,false\n" +
-      "\n" +
-      "UNClip\n", list.generateSortedDisplayList()
-    )
+    verifyScene(model.surface) { inOrder, g ->
+      verifyDrawHeader(inOrder, g, Rectangle2D.Float(490f, 389f, 70f, 11f), 0.5, "nested")
+      verifyDrawNestedGraph(inOrder, g, Rectangle2D.Float(490f, 400f, 70f, 19f), 0.5,
+                            FRAME_COLOR, 1f, "Nested Graph", FRAME_COLOR)
+
+      verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5, "fragment1", isStart = true)
+      verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5)
+      verifyDrawHorizontalAction(inOrder, g, Rectangle2D.Float(384f, 461f, 12f, 6f), 0.5, SELECTED_COLOR)
+    }
 
     // now "nested" is in the front
     val nested = model.find("nested")!!
     model.surface.selectionModel.setSelection(ImmutableList.of(nested))
-    list.clear()
     scene.layout(0, scene.sceneManager.sceneViews.first().context)
-    scene.buildDisplayList(list, 0, view)
 
-    assertEquals(
-      "Clip,0,0,960,928\n" +
-      "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,true,false\n" +
-      "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
-      "DrawHorizontalAction,384.0x461.0x12.0x6.0,0.5,b2a7a7a7,false\n" +
-      "\n" +
-      "DrawHeader,490.0x389.0x70.0x11.0,0.5,nested,false,false\n" +
-      "DrawNestedGraph,490.0x400.0x70.0x19.0,0.5,ff1886f7,2.0,Nested Graph,ff1886f7\n" +
-      "DrawActionHandle,560.0x409.5,0.0,3.5,0.0,2.5,127,ff1886f7,fff5f5f5\n" +
-      "\n" +
-      "UNClip\n", list.generateSortedDisplayList()
-    )
+    verifyScene(model.surface) { inOrder, g ->
+      verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5, "fragment1", isStart = true)
+      verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5)
+      verifyDrawHorizontalAction(inOrder, g, Rectangle2D.Float(384f, 461f, 12f, 6f), 0.5, ACTION_COLOR)
+
+      verifyDrawHeader(inOrder, g, Rectangle2D.Float(490f, 389f, 70f, 11f), 0.5, "nested")
+      verifyDrawNestedGraph(inOrder, g, Rectangle2D.Float(490f, 400f, 70f, 19f), 0.5,
+                            SELECTED_COLOR, 2f, "Nested Graph", SELECTED_COLOR)
+      verifyDrawActionHandle(inOrder, g, Point2D.Float(560f, 409.5f), 0f, 0f, SELECTED_COLOR, HANDLE_COLOR)
+    }
 
     // test multi select
     model.surface.selectionModel.setSelection(ImmutableList.of(model.find("fragment1")!!, nested))
-
-    list = DisplayList()
     scene.layout(0, scene.sceneManager.sceneViews.first().context)
-    scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
 
-    assertEquals(
-      "Clip,0,0,960,928\n" +
-      "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,true,false\n" +
-      "DrawFragment,400.0x400.0x76.5x128.0,0.5,ff1886f7\n" +
-      "DrawHorizontalAction,384.0x461.0x12.0x6.0,0.5,b2a7a7a7,false\n" +
-      "\n" +
-      "DrawHeader,490.0x389.0x70.0x11.0,0.5,nested,false,false\n" +
-      "DrawNestedGraph,490.0x400.0x70.0x19.0,0.5,ff1886f7,2.0,Nested Graph,ff1886f7\n" +
-      "DrawActionHandle,560.0x409.5,3.5,0.0,2.5,0.0,127,ff1886f7,fff5f5f5\n" +
-      "\n" +
-      "UNClip\n", list.generateSortedDisplayList()
-    )
+    verifyScene(model.surface) { inOrder, g ->
+      verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5, "fragment1", isStart = true)
+      verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5, SELECTED_COLOR)
+      verifyDrawHorizontalAction(inOrder, g, Rectangle2D.Float(384f, 461f, 12f, 6f), 0.5, ACTION_COLOR)
+
+      verifyDrawHeader(inOrder, g, Rectangle2D.Float(490f, 389f, 70f, 11f), 0.5, "nested")
+      verifyDrawNestedGraph(inOrder, g, Rectangle2D.Float(490f, 400f, 70f, 19f), 0.5,
+                            SELECTED_COLOR, 2f, "Nested Graph", SELECTED_COLOR)
+      verifyDrawActionHandle(inOrder, g, Point2D.Float(560f, 409.5f), 3.5f, 2.5f, SELECTED_COLOR, HANDLE_COLOR)
+    }
   }
 
   fun testHoveredComponent() {
@@ -497,63 +475,48 @@ class NavSceneTest : NavTestCase() {
     moveComponentTo(scene.getSceneComponent("nested")!!, 320, 20)
     scene.sceneManager.layout(false)
 
-    val list = DisplayList()
     val transform = scene.sceneManager.sceneViews.first().context
     scene.layout(0, transform)
     scene.mouseHover(transform, 150, 30, 0)
-    scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
 
-    assertEquals(
-      "Clip,0,0,960,928\n" +
-      "DrawAction,400.0x400.0x76.5x128.0,490.0x400.0x70.0x19.0,0.5,b2a7a7a7,false\n" +
-      "\n" +
-      "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
-      "DrawFragment,400.0x400.0x76.5x128.0,0.5,ffa7a7a7\n" +
-      "DrawHorizontalAction,384.0x461.0x12.0x6.0,0.5,b2a7a7a7,false\n" +
-      "DrawActionHandle,478.5x464.0,0.0,3.5,0.0,2.5,127,ffa7a7a7,fff5f5f5\n" +
-      "\n" +
-      "DrawHeader,490.0x389.0x70.0x11.0,0.5,nested,false,false\n" +
-      "DrawNestedGraph,490.0x400.0x70.0x19.0,0.5,ffa7a7a7,1.0,Nested Graph,ffa7a7a7\n" +
-      "\n" +
-      "UNClip\n", list.generateSortedDisplayList()
-    )
+    verifyScene(model.surface) { inOrder, g ->
+      verifyDrawAction(inOrder, g, ACTION_COLOR)
+      verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5, "fragment1")
+      verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5, FRAME_COLOR)
+      verifyDrawHorizontalAction(inOrder, g, Rectangle2D.Float(384f, 461f, 12f, 6f), 0.5, ACTION_COLOR)
+      verifyDrawActionHandle(inOrder, g, Point2D.Float(478.5f, 464f), 0f, 0f, FRAME_COLOR, HANDLE_COLOR)
+
+      verifyDrawHeader(inOrder, g, Rectangle2D.Float(490f, 389f, 70f, 11f), 0.5, "nested")
+      verifyDrawNestedGraph(inOrder, g, Rectangle2D.Float(490f, 400f, 70f, 19f), 0.5,
+                            FRAME_COLOR, 1f, "Nested Graph", FRAME_COLOR)
+    }
 
     scene.mouseHover(transform, 552, 440, 0)
-    list.clear()
-    scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
 
-    assertEquals(
-      "Clip,0,0,960,928\n" +
-      "DrawAction,400.0x400.0x76.5x128.0,490.0x400.0x70.0x19.0,0.5,b2a7a7a7,false\n" +
-      "\n" +
-      "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
-      "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
-      "DrawHorizontalAction,384.0x461.0x12.0x6.0,0.5,b2a7a7a7,false\n" +
-      "DrawActionHandle,478.5x464.0,3.5,0.0,2.5,0.0,127,ffa7a7a7,fff5f5f5\n" +
-      "\n" +
-      "DrawHeader,490.0x389.0x70.0x11.0,0.5,nested,false,false\n" +
-      "DrawNestedGraph,490.0x400.0x70.0x19.0,0.5,ffa7a7a7,1.0,Nested Graph,ffa7a7a7\n" +
-      "\n" +
-      "UNClip\n", list.generateSortedDisplayList()
-    )
+    verifyScene(model.surface) { inOrder, g ->
+      verifyDrawAction(inOrder, g, ACTION_COLOR)
+      verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5, "fragment1")
+      verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5)
+      verifyDrawHorizontalAction(inOrder, g, Rectangle2D.Float(384f, 461f, 12f, 6f), 0.5, ACTION_COLOR)
+      verifyDrawActionHandle(inOrder, g, Point2D.Float(478.5f, 464f), 3.5f, 2.5f, FRAME_COLOR, HANDLE_COLOR)
+
+      verifyDrawHeader(inOrder, g, Rectangle2D.Float(490f, 389f, 70f, 11f), 0.5, "nested")
+      verifyDrawNestedGraph(inOrder, g, Rectangle2D.Float(490f, 400f, 70f, 19f), 0.5,
+                            FRAME_COLOR, 1f, "Nested Graph", FRAME_COLOR)
+    }
 
     scene.mouseHover(transform, 120, 148, 0)
-    list.clear()
-    scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
 
-    assertEquals(
-      "Clip,0,0,960,928\n" +
-      "DrawAction,400.0x400.0x76.5x128.0,490.0x400.0x70.0x19.0,0.5,b2a7a7a7,false\n" +
-      "\n" +
-      "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
-      "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
-      "DrawHorizontalAction,384.0x461.0x12.0x6.0,0.5,ffa7a7a7,false\n" +
-      "\n" +
-      "DrawHeader,490.0x389.0x70.0x11.0,0.5,nested,false,false\n" +
-      "DrawNestedGraph,490.0x400.0x70.0x19.0,0.5,ffa7a7a7,1.0,Nested Graph,ffa7a7a7\n" +
-      "\n" +
-      "UNClip\n", list.generateSortedDisplayList()
-    )
+    verifyScene(model.surface) { inOrder, g ->
+      verifyDrawAction(inOrder, g, ACTION_COLOR)
+      verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5, "fragment1")
+      verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5)
+      verifyDrawHorizontalAction(inOrder, g, Rectangle2D.Float(384f, 461f, 12f, 6f), 0.5, FRAME_COLOR)
+
+      verifyDrawHeader(inOrder, g, Rectangle2D.Float(490f, 389f, 70f, 11f), 0.5, "nested")
+      verifyDrawNestedGraph(inOrder, g, Rectangle2D.Float(490f, 400f, 70f, 19f), 0.5,
+                            FRAME_COLOR, 1f, "Nested Graph", FRAME_COLOR)
+    }
   }
 
   fun testHoveredHandle() {
@@ -567,23 +530,18 @@ class NavSceneTest : NavTestCase() {
     moveComponentTo(scene.getSceneComponent("fragment1")!!, 20, 20)
     scene.sceneManager.layout(false)
 
-    val list = DisplayList()
     val transform = scene.sceneManager.sceneViews.first().context
     scene.layout(0, transform)
 
     // If rectangle extends from (20, 20) to (173, 276), then the handle should be at (173, 148)
     // Hover over a point to the right of that so that we're over the handle but not the rectangle
     scene.mouseHover(transform, 177, 148, 0)
-    scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
 
-    assertEquals(
-      "Clip,0,0,877,928\n" +
-      "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
-      "DrawFragment,400.0x400.0x76.5x128.0,0.5,ffa7a7a7\n" +
-      "DrawActionHandle,478.5x464.0,0.0,5.5,0.0,4.0,200,ffa7a7a7,fff5f5f5\n" +
-      "\n" +
-      "UNClip\n", list.generateSortedDisplayList()
-    )
+    verifyScene(model.surface) { inOrder, g ->
+      verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5, "fragment1")
+      verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5, FRAME_COLOR)
+      verifyDrawActionHandle(inOrder, g, Point2D.Float(478.5f, 464f), 0f, 0f, FRAME_COLOR, HANDLE_COLOR)
+    }
   }
 
   fun testHoverDuringDrag() {
@@ -603,7 +561,6 @@ class NavSceneTest : NavTestCase() {
     moveComponentTo(scene.getSceneComponent("nested")!!, 320, 20)
     scene.sceneManager.layout(false)
 
-    val list = DisplayList()
     val sceneContext = scene.sceneManager.sceneViews.first().context
 
     scene.layout(0, sceneContext)
@@ -618,22 +575,17 @@ class NavSceneTest : NavTestCase() {
     val drawRect2 = scene.getSceneComponent("nested")!!
     scene.mouseDrag(sceneContext, drawRect2.centerX, drawRect2.centerY, 0)
 
-    scene.buildDisplayList(list, 0, NavView(surface as NavDesignSurface, scene.sceneManager))
+    verifyScene(model.surface) { inOrder, g ->
+      verifyDrawAction(inOrder, g, ACTION_COLOR)
+      verifyDrawHeader(inOrder, g, Rectangle2D.Float(490f, 389f, 76.5f, 11f), 0.5, "nested")
+      verifyDrawNestedGraph(inOrder, g, Rectangle2D.Float(490f, 400f, 70f, 19f), 0.5,
+                            SELECTED_COLOR, 2f, "Nested Graph", FRAME_COLOR)
 
-    assertEquals(
-      "Clip,0,0,960,928\n" +
-      "DrawAction,400.0x400.0x76.5x128.0,490.0x400.0x70.0x19.0,0.5,b2a7a7a7,false\n" +
-      "\n" +
-      "DrawHeader,490.0x389.0x70.0x11.0,0.5,nested,false,false\n" +
-      "DrawNestedGraph,490.0x400.0x70.0x19.0,0.5,ff1886f7,2.0,Nested Graph,ffa7a7a7\n" +
-      "\n" +
-      "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
-      "DrawFragment,400.0x400.0x76.5x128.0,0.5,ff1886f7\n" +
-      "DrawHorizontalAction,384.0x461.0x12.0x6.0,0.5,b2a7a7a7,false\n" +
-      "DrawActionHandleDrag,478.5x464.0,0.0,3.5,2.5,127\n" +
-      "\n" +
-      "UNClip\n", list.generateSortedDisplayList()
-    )
+      verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5, "fragment1")
+      verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5, SELECTED_COLOR)
+      verifyDrawHorizontalAction(inOrder, g, Rectangle2D.Float(384f, 461f, 12f, 6f), 0.5, ACTION_COLOR)
+      verifyDrawActionHandleDrag(inOrder, g, Point2D.Float(478.5f, 464f), 0f, 2.5f, -1, -1)
+    }
   }
 
   // TODO: this should test the different "Simulated Layouts", once that's implemented.
@@ -734,7 +686,6 @@ class NavSceneTest : NavTestCase() {
         }
       }
     }
-    val list = DisplayList()
     val surface = model.surface
     val scene = surface.scene!!
     moveComponentTo(scene.getSceneComponent("fragment1")!!, 200, 20)
@@ -742,19 +693,16 @@ class NavSceneTest : NavTestCase() {
     scene.sceneManager.layout(false)
 
     scene.layout(0, SceneContext.get())
-    scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
-    assertEquals(
-      "Clip,0,0,967,928\n" +
-      "DrawAction,400.0x400.0x76.5x128.0,490.0x400.0x76.5x128.0,0.5,b2a7a7a7,true\n" +
-      "\n" +
-      "DrawHeader,490.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
-      "DrawFragment,490.0x400.0x76.5x128.0,0.5,null\n" +
-      "\n" +
-      "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment2,false,false\n" +
-      "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
-      "\n" +
-      "UNClip\n", list.generateSortedDisplayList()
-    )
+
+    verifyScene(model.surface) { inOrder, g ->
+      verifyDrawAction(inOrder, g, ACTION_COLOR, isPopAction = true)
+
+      verifyDrawHeader(inOrder, g, Rectangle2D.Float(490f, 389f, 76.5f, 11f), 0.5, "fragment1")
+      verifyDrawFragment(inOrder, g, Rectangle2D.Float(490f, 400f, 76.5f, 128f), 0.5)
+
+      verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5, "fragment2")
+      verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5)
+    }
   }
 
   fun testExitActions() {
@@ -798,43 +746,6 @@ class NavSceneTest : NavTestCase() {
     moveComponentTo(scene.getSceneComponent("fragment5")!!, 200, 320)
     moveComponentTo(scene.getSceneComponent("nav2")!!, 20, 20)
     scene.sceneManager.layout(false)
-
-    val view = NavView(surface, surface.sceneManager!!)
-    scene.layout(0, scene.sceneManager.sceneViews.first().context)
-
-    val list = DisplayList()
-    scene.buildDisplayList(list, 0, view)
-
-    assertEquals(
-      "Clip,0,0,1057,1078\n" +
-      "DrawAction,400.0x520.0x76.5x128.0,490.0x400.0x76.5x128.0,0.5,b2a7a7a7,false\n" +
-      "\n" +
-      "DrawHeader,490.0x389.0x76.5x11.0,0.5,fragment2,false,false\n" +
-      "DrawFragment,490.0x400.0x76.5x128.0,0.5,null\n" +
-      "DrawHorizontalAction,570.5x461.0x12.0x6.0,0.5,b2a7a7a7,false\n" +
-      "\n" +
-      "DrawHeader,580.0x389.0x76.5x11.0,0.5,fragment3,false,false\n" +
-      "DrawFragment,580.0x400.0x76.5x128.0,0.5,null\n" +
-      "DrawHorizontalAction,660.5x452.0x12.0x6.0,0.5,b2a7a7a7,false\n" +
-      "DrawHorizontalAction,660.5x461.0x12.0x6.0,0.5,b2a7a7a7,false\n" +
-      "\n" +
-      "DrawHeader,400.0x509.0x76.5x11.0,0.5,fragment4,false,false\n" +
-      "DrawFragment,400.0x520.0x76.5x128.0,0.5,null\n" +
-      "DrawHorizontalAction,480.5x563.0x12.0x6.0,0.5,b2a7a7a7,false\n" +
-      "DrawHorizontalAction,480.5x572.0x12.0x6.0,0.5,b2a7a7a7,false\n" +
-      "DrawHorizontalAction,480.5x590.0x12.0x6.0,0.5,b2a7a7a7,false\n" +
-      "\n" +
-      "DrawSelfAction,490.0x550.0x76.5x128.0,0.5,b2a7a7a7,false\n" +
-      "DrawHeader,490.0x539.0x76.5x11.0,0.5,fragment5,false,false\n" +
-      "DrawFragment,490.0x550.0x76.5x128.0,0.5,null\n" +
-      "DrawHorizontalAction,570.5x602.0x12.0x6.0,0.5,b2a7a7a7,false\n" +
-      "\n" +
-      "DrawHeader,400.0x389.0x70.0x11.0,0.5,nav2,false,false\n" +
-      "DrawNestedGraph,400.0x400.0x70.0x19.0,0.5,ffa7a7a7,1.0,Nested Graph,ffa7a7a7\n" +
-      "DrawHorizontalAction,474.0x406.5x12.0x6.0,0.5,b2a7a7a7,false\n" +
-      "\n" +
-      "UNClip\n", list.generateSortedDisplayList()
-    )
 
     val sceneView = scene.sceneManager.sceneViews.first()
     scene.layout(0, sceneView.context)
@@ -984,40 +895,31 @@ class NavSceneTest : NavTestCase() {
     val scene = surface.scene!!
     scene.layout(0, scene.sceneManager.sceneViews.first().context)
 
-    val list = DisplayList()
     val sceneManager = scene.sceneManager as NavSceneManager
-    scene.buildDisplayList(list, 0, NavView(surface, sceneManager))
 
-    assertEquals(
-      "DrawEmptyDesigner,130.0x251.0\n", list.generateSortedDisplayList()
-    )
     assertTrue(sceneManager.isEmpty)
+    verifyScene(model.surface) { inOrder, g ->
+      verifyDrawEmptyDesigner(inOrder, g, Point2D.Float(130f, 251f))
+    }
 
     root?.fragment("fragment1")
 
     modelBuilder.updateModel(model)
     model.notifyModified(NlModel.ChangeType.EDIT)
     scene.layout(0, scene.sceneManager.sceneViews.first().context)
-    list.clear()
-    scene.buildDisplayList(list, 0, NavView(surface, sceneManager))
 
-    assertEquals(
-      "Clip,0,0,877,928\n" +
-      "DrawHeader,400.0x389.0x76.5x11.0,0.5,fragment1,false,false\n" +
-      "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
-      "\n" +
-      "UNClip\n", list.generateSortedDisplayList()
-    )
+    verifyScene(model.surface) { inOrder, g ->
+      verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5, "fragment1")
+      verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5)
+    }
     assertFalse(sceneManager.isEmpty)
 
     model.delete(listOf(model.find("fragment1")!!))
     scene.layout(0, scene.sceneManager.sceneViews.first().context)
-    list.clear()
-    scene.buildDisplayList(list, 0, NavView(surface, sceneManager))
 
-    assertEquals(
-      "DrawEmptyDesigner,130.0x251.0\n", list.generateSortedDisplayList()
-    )
+    verifyScene(model.surface) { inOrder, g ->
+      verifyDrawEmptyDesigner(inOrder, g, Point2D.Float(130f, 251f))
+    }
     assertTrue(sceneManager.isEmpty)
   }
 
@@ -1079,16 +981,10 @@ class NavSceneTest : NavTestCase() {
     val scene = surface.scene!!
     scene.layout(0, SceneContext.get())
 
-    val list = DisplayList()
-    scene.buildDisplayList(list, 0, NavView(surface as NavDesignSurface, scene.sceneManager))
-
-    assertEquals(
-      "Clip,0,0,877,928\n" +
-      "DrawHeader,400.0x389.0x76.5x11.0,0.5,customComponent,false,false\n" +
-      "DrawFragment,400.0x400.0x76.5x128.0,0.5,null\n" +
-      "\n" +
-      "UNClip\n", list.generateSortedDisplayList()
-    )
+    verifyScene(model.surface) { inOrder, g ->
+      verifyDrawHeader(inOrder, g, Rectangle2D.Float(400f, 389f, 76.5f, 11f), 0.5, "customComponent")
+      verifyDrawFragment(inOrder, g, Rectangle2D.Float(400f, 400f, 76.5f, 128f), 0.5)
+    }
   }
 
   /**
