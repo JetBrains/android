@@ -1,5 +1,6 @@
 package com.android.tools.idea.gradle.project.build;
 
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder;
@@ -14,8 +15,10 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.registry.Registry;
 import com.intellij.task.*;
 import one.util.streamex.StreamEx;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,8 +56,13 @@ public class AndroidProjectTaskRunner extends ProjectTaskRunner {
   public boolean canRun(@NotNull ProjectTask projectTask) {
     if (projectTask instanceof ModuleBuildTask) {
       Module module = ((ModuleBuildTask)projectTask).getModule();
-      if (GradleFacet.getInstance(module) != null || JavaFacet.getInstance(module) != null/* || AndroidModuleModel.get(module) != null*/) {
-        return true;
+      if (Registry.is("android.task.runner.restricted")){
+        assert !IdeInfo.getInstance().isAndroidStudio() : "This code is not expected to be executed in Android Studio";
+        return AndroidFacet.getInstance(module) != null;
+      } else {
+        if (GradleFacet.getInstance(module) != null || JavaFacet.getInstance(module) != null/* || AndroidModuleModel.get(module) != null*/){
+          return true;
+        }
       }
     }
     return false;
