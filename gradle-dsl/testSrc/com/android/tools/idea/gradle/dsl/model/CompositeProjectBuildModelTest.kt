@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.dsl.TestFileName.COMPOSITE_BUILD_MAIN_PROJE
 import com.android.tools.idea.gradle.dsl.TestFileName.COMPOSITE_BUILD_MAIN_PROJECT_ROOT_BUILD
 import com.android.tools.idea.gradle.dsl.TestFileName.COMPOSITE_BUILD_MAIN_PROJECT_SETTINGS
 import com.android.tools.idea.gradle.dsl.TestFileName.COMPOSITE_BUILD_MAIN_PROJECT_SUB_MODULE_BUILD
+import com.android.tools.idea.gradle.dsl.ZTestFileName
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl
 import com.intellij.openapi.vfs.VirtualFile
@@ -100,7 +101,7 @@ class CompositeProjectBuildModelTest : GradleFileModelTestCase() {
     assertSize(2, compositeBuildModels)
   }
 
-  private fun createFileAndWriteContent(file: VirtualFile, content: TestFileName) {
+  private fun createFileAndWriteContent(file: VirtualFile, content: ZTestFileName) {
     assertTrue(file.exists())
     prepareAndInjectInformationForTest(content, file)
   }

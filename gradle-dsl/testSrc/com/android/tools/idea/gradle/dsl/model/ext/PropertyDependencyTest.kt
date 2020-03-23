@@ -43,6 +43,7 @@ import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_SETUP_
 import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_SETUP_SINGLE_FILE
 import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_SUBPROJECTS_APPLIED_DEPENDENCIES
 import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_VARIABLE_IN_BUILDSCRIPT
+import com.android.tools.idea.gradle.dsl.ZTestFileName
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
@@ -564,7 +565,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     runApplyFileToChildrenTest(PROPERTY_DEPENDENCY_ALLPROJECTS_APPLIED_DEPENDENCIES)
   }
 
-  private fun runApplyFileToChildrenTest(fileName: TestFileName) {
+  private fun runApplyFileToChildrenTest(fileName: ZTestFileName) {
     writeToNewProjectFile("versions", PROPERTY_DEPENDENCY_PROJECTS_APPLIED_DEPENDENCIES_APPLIED)
     writeToBuildFile(fileName)
     writeToSubModuleBuildFile(PROPERTY_DEPENDENCY_PROJECTS_APPLIED_DEPENDENCIES_SUB)

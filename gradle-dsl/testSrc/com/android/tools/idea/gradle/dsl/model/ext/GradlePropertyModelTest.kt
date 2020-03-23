@@ -163,6 +163,7 @@ import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_VARI
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_VARIABLE_DEPENDENCY
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_VARIABLE_PROPERTY_DEPENDENCY
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_VARIABLE_SET_VALUE
+import com.android.tools.idea.gradle.dsl.ZTestFileName
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BIG_DECIMAL_TYPE
@@ -3112,7 +3113,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     assertMissingProperty(buildModel.ext().findProperty("prop"))
   }
 
-  private fun runSetPropertyTest(fileName: TestFileName, type: PropertyType) {
+  private fun runSetPropertyTest(fileName: ZTestFileName, type: PropertyType) {
     writeToBuildFile(fileName)
 
     val buildModel = gradleBuildModel
@@ -3395,7 +3396,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     }
   }
 
-  private fun verifyDeletePropertyInMap(buildModel: GradleBuildModel, testFileName: TestFileName) {
+  private fun verifyDeletePropertyInMap(buildModel: GradleBuildModel, testFileName: ZTestFileName) {
     run {
       val propertyModel = buildModel.ext().findProperty("prop1")
       assertEquals(MAP, propertyModel.valueType)
@@ -3650,7 +3651,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     }
   }
 
-  private fun verifyMapsInMap(buildModel: GradleBuildModel, fileName: TestFileName) {
+  private fun verifyMapsInMap(buildModel: GradleBuildModel, fileName: ZTestFileName) {
     run {
       val propertyModel = buildModel.ext().findProperty("prop1")
       assertEquals(MAP, propertyModel.valueType)

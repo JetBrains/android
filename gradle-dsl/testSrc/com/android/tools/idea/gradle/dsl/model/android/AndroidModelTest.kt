@@ -95,6 +95,7 @@ import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_FROM_
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REPLACE_AND_APPLY_LIST_ELEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REPLACE_AND_APPLY_LIST_ELEMENTS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REPLACE_AND_RESET_LIST_ELEMENTS
+import com.android.tools.idea.gradle.dsl.ZTestFileName
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.VARIABLE
@@ -108,7 +109,7 @@ import org.junit.Test
  */
 class AndroidModelTest : GradleFileModelTestCase() {
 
-  private fun runBasicAndroidBlockTest(buildFile: TestFileName) {
+  private fun runBasicAndroidBlockTest(buildFile: ZTestFileName) {
     writeToBuildFile(buildFile)
 
     val buildModel = gradleBuildModel
@@ -795,7 +796,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("defaultConfig", "foo.bar", android.defaultConfig().applicationId())
   }
 
-  private fun doTestAddAndApplyOneBuildTypeBlock(name : String, expected : TestFileName) {
+  private fun doTestAddAndApplyOneBuildTypeBlock(name : String, expected : ZTestFileName) {
     writeToBuildFile(ANDROID_MODEL_ADD_AND_APPLY_BUILD_TYPE_BLOCK)
     val buildModel = gradleBuildModel
     val android = buildModel.android()

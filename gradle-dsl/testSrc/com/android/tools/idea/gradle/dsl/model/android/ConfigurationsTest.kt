@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.model.android
 
 import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.TestFileName.*
+import com.android.tools.idea.gradle.dsl.ZTestFileName
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.BOOLEAN
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
@@ -180,7 +181,7 @@ class ConfigurationsTest : GradleFileModelTestCase() {
     assertSize(0, buildModel.configurations().all())
   }
 
-  private fun checkParseNonEmptyConfiguration(testFileName: TestFileName, vararg expectedConfigurations: String) {
+  private fun checkParseNonEmptyConfiguration(testFileName: ZTestFileName, vararg expectedConfigurations: String) {
     writeToBuildFile(testFileName)
     val buildModel = gradleBuildModel
 

@@ -18,7 +18,11 @@ package com.android.tools.idea.gradle.dsl
 import com.intellij.openapi.util.io.FileUtil
 import java.io.File
 
-enum class TestFileName(val path: String) {
+interface ZTestFileName {
+  fun toFile(basePath: String, extension: String): File
+}
+
+enum class TestFileName(val path: String): ZTestFileName {
   AAPT_OPTIONS_PARSE_ELEMENTS_ONE("aaptOptions/parseElementsOne"),
   AAPT_OPTIONS_PARSE_ELEMENTS_TWO("aaptOptions/parseElementsTwo"),
   AAPT_OPTIONS_EDIT_ELEMENTS("aaptOptions/editElements"),
@@ -1116,7 +1120,7 @@ enum class TestFileName(val path: String) {
 
   ;
 
-  fun toFile(basePath: String, extension: String): File {
+  override fun toFile(basePath: String, extension: String): File {
     val path = FileUtil.toSystemDependentName(basePath) + File.separator + FileUtil.toSystemDependentName(path) + extension
     return File(path)
   }
