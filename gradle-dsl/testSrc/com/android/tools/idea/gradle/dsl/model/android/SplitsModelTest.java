@@ -15,21 +15,21 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import static com.android.tools.idea.gradle.dsl.TestFileName.SPLITS_MODEL_ADD_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SPLITS_MODEL_ADD_ELEMENTS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SPLITS_MODEL_ADD_RESET_STATEMENT;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SPLITS_MODEL_ADD_RESET_STATEMENT_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SPLITS_MODEL_REMOVE_BLOCK_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SPLITS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SPLITS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SPLITS_MODEL_REMOVE_ONLY_ELEMENTS_IN_THE_LIST;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SPLITS_MODEL_REMOVE_RESET_STATEMENT;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SPLITS_MODEL_REMOVE_RESET_STATEMENT_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SPLITS_MODEL_RESET_AND_INITIALIZE;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SPLITS_MODEL_RESET_NONE_EXISTING;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SPLITS_MODEL_RESET_STATEMENT;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SPLITS_MODEL_SPLITS_EDIT_ELEMENTS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SPLITS_MODEL_SPLITS_TEXT;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SPLITS_MODEL_ADD_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SPLITS_MODEL_ADD_ELEMENTS_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SPLITS_MODEL_ADD_RESET_STATEMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SPLITS_MODEL_ADD_RESET_STATEMENT_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SPLITS_MODEL_REMOVE_BLOCK_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SPLITS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SPLITS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SPLITS_MODEL_REMOVE_ONLY_ELEMENTS_IN_THE_LIST;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SPLITS_MODEL_REMOVE_RESET_STATEMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SPLITS_MODEL_REMOVE_RESET_STATEMENT_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SPLITS_MODEL_RESET_AND_INITIALIZE;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SPLITS_MODEL_RESET_NONE_EXISTING;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SPLITS_MODEL_RESET_STATEMENT;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SPLITS_MODEL_SPLITS_EDIT_ELEMENTS_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SPLITS_MODEL_SPLITS_TEXT;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;

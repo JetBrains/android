@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import static com.android.tools.idea.gradle.dsl.TestFileName.DEPENDENCIES_INFO_MODEL_ADD_AND_APPLY;
-import static com.android.tools.idea.gradle.dsl.TestFileName.DEPENDENCIES_INFO_MODEL_ADD_AND_APPLY_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.DEPENDENCIES_INFO_MODEL_EDIT_AND_APPLY;
-import static com.android.tools.idea.gradle.dsl.TestFileName.DEPENDENCIES_INFO_MODEL_EDIT_AND_APPLY_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.DEPENDENCIES_INFO_MODEL_PARSE;
-import static com.android.tools.idea.gradle.dsl.TestFileName.DEPENDENCIES_INFO_MODEL_REMOVE_AND_APPLY;
-import static com.android.tools.idea.gradle.dsl.TestFileName.DEPENDENCIES_INFO_MODEL_REMOVE_AND_APPLY_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.DEPENDENCIES_INFO_MODEL_ADD_AND_APPLY;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.DEPENDENCIES_INFO_MODEL_ADD_AND_APPLY_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.DEPENDENCIES_INFO_MODEL_EDIT_AND_APPLY;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.DEPENDENCIES_INFO_MODEL_EDIT_AND_APPLY_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.DEPENDENCIES_INFO_MODEL_PARSE;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.DEPENDENCIES_INFO_MODEL_REMOVE_AND_APPLY;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.DEPENDENCIES_INFO_MODEL_REMOVE_AND_APPLY_EXPECTED;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;

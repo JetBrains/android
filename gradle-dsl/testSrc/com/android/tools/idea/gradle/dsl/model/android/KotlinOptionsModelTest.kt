@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android
 
-import com.android.tools.idea.gradle.dsl.TestFileName.KOTLIN_OPTIONS_MODEL_ADD
-import com.android.tools.idea.gradle.dsl.TestFileName.KOTLIN_OPTIONS_MODEL_ADD_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileName.KOTLIN_OPTIONS_MODEL_ADD_UNKNOWN_TARGET
-import com.android.tools.idea.gradle.dsl.TestFileName.KOTLIN_OPTIONS_MODEL_BLOCK
-import com.android.tools.idea.gradle.dsl.TestFileName.KOTLIN_OPTIONS_MODEL_MODIFY
-import com.android.tools.idea.gradle.dsl.TestFileName.KOTLIN_OPTIONS_MODEL_MODIFY_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileName.KOTLIN_OPTIONS_MODEL_REMOVE
-import com.android.tools.idea.gradle.dsl.TestFileName.KOTLIN_OPTIONS_MODEL_REMOVE_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.KOTLIN_OPTIONS_MODEL_ADD
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.KOTLIN_OPTIONS_MODEL_ADD_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.KOTLIN_OPTIONS_MODEL_ADD_UNKNOWN_TARGET
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.KOTLIN_OPTIONS_MODEL_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.KOTLIN_OPTIONS_MODEL_MODIFY
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.KOTLIN_OPTIONS_MODEL_MODIFY_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.KOTLIN_OPTIONS_MODEL_REMOVE
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.KOTLIN_OPTIONS_MODEL_REMOVE_EXPECTED
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.intellij.pom.java.LanguageLevel
 import org.junit.Test

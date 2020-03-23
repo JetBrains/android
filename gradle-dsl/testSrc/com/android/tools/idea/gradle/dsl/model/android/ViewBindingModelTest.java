@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import static com.android.tools.idea.gradle.dsl.TestFileName.VIEW_BINDING_MODEL_ADD_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.VIEW_BINDING_MODEL_ADD_ELEMENTS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.VIEW_BINDING_MODEL_ADD_ELEMENTS_FROM_EXISTING;
-import static com.android.tools.idea.gradle.dsl.TestFileName.VIEW_BINDING_MODEL_ADD_ELEMENTS_FROM_EXISTING_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.VIEW_BINDING_MODEL_EDIT_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.VIEW_BINDING_MODEL_EDIT_ELEMENTS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.VIEW_BINDING_MODEL_PARSE_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.VIEW_BINDING_MODEL_REMOVE_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.VIEW_BINDING_MODEL_ADD_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.VIEW_BINDING_MODEL_ADD_ELEMENTS_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.VIEW_BINDING_MODEL_ADD_ELEMENTS_FROM_EXISTING;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.VIEW_BINDING_MODEL_ADD_ELEMENTS_FROM_EXISTING_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.VIEW_BINDING_MODEL_EDIT_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.VIEW_BINDING_MODEL_EDIT_ELEMENTS_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.VIEW_BINDING_MODEL_PARSE_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.VIEW_BINDING_MODEL_REMOVE_ELEMENTS;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;

@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import static com.android.tools.idea.gradle.dsl.TestFileName.ADB_OPTIONS_MODEL_ADD_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ADB_OPTIONS_MODEL_ADD_ELEMENTS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ADB_OPTIONS_MODEL_EDIT_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ADB_OPTIONS_MODEL_EDIT_ELEMENTS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ADB_OPTIONS_MODEL_PARSE_ELEMENTS_ONE;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ADB_OPTIONS_MODEL_PARSE_ELEMENTS_TWO;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ADB_OPTIONS_MODEL_REMOVE_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ADB_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ADB_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ADB_OPTIONS_MODEL_REMOVE_ONLY_ELEMENT_IN_THE_LIST;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ADB_OPTIONS_MODEL_ADD_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ADB_OPTIONS_MODEL_ADD_ELEMENTS_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ADB_OPTIONS_MODEL_EDIT_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ADB_OPTIONS_MODEL_EDIT_ELEMENTS_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ADB_OPTIONS_MODEL_PARSE_ELEMENTS_ONE;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ADB_OPTIONS_MODEL_PARSE_ELEMENTS_TWO;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ADB_OPTIONS_MODEL_REMOVE_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ADB_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ADB_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ADB_OPTIONS_MODEL_REMOVE_ONLY_ELEMENT_IN_THE_LIST;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;

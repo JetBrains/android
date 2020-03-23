@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_DIRECTORY_MODEL_SOURCE_DIRECTORY_ENTRIES_ADD_AND_APPLY_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_DIRECTORY_MODEL_SOURCE_DIRECTORY_ENTRIES_REMOVE_AND_APPLY_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_DIRECTORY_MODEL_SOURCE_DIRECTORY_ENTRIES_REPLACE_AND_APPLY_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_DIRECTORY_MODEL_SOURCE_DIRECTORY_TEXT;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_DIRECTORY_MODEL_SOURCE_DIRECTORY_ENTRIES_ADD_AND_APPLY_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_DIRECTORY_MODEL_SOURCE_DIRECTORY_ENTRIES_REMOVE_AND_APPLY_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_DIRECTORY_MODEL_SOURCE_DIRECTORY_ENTRIES_REPLACE_AND_APPLY_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_DIRECTORY_MODEL_SOURCE_DIRECTORY_TEXT;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;

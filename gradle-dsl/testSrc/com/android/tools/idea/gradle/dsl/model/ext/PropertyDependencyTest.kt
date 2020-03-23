@@ -15,35 +15,34 @@
  */
 package com.android.tools.idea.gradle.dsl.model.ext
 
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_DEPENDENCY_ALLPROJECTS_APPLIED_DEPENDENCIES
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_DEPENDENCY_APPLY_FILE_WITH_ROOT_DIR_VARIABLES
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_DEPENDENCY_APPLY_FILE_WITH_ROOT_DIR_VARIABLES_APPLIED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_DEPENDENCY_APPLY_FILE_WITH_VARIABLES
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_DEPENDENCY_APPLY_FILE_WITH_VARIABLES_APPLIED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_DEPENDENCY_BUILD_SCRIPT_APPLIED_DEPENDENCIES
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_DEPENDENCY_BUILD_SCRIPT_APPLIED_DEPENDENCIES_APPLIED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_DEPENDENCY_BUILD_SCRIPT_APPLIED_DEPENDENCIES_APPLIED_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_DEPENDENCY_BUILD_SCRIPT_APPLIED_IN_PARENT_MODULE
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_DEPENDENCY_BUILD_SCRIPT_APPLIED_IN_PARENT_MODULE_APPLIED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_DEPENDENCY_BUILD_SCRIPT_APPLIED_IN_PARENT_MODULE_SUB
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_DEPENDENCY_MULTIPLE_ALL_PROJECT_BLOCKS
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_DEPENDENCY_MULTIPLE_ALL_PROJECT_BLOCKS_APPLIED_ONE
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_DEPENDENCY_MULTIPLE_ALL_PROJECT_BLOCKS_APPLIED_TWO
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_DEPENDENCY_MULTIPLE_ALL_PROJECT_BLOCKS_SUB
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_DEPENDENCY_PROJECTS_APPLIED_DEPENDENCIES_APPLIED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_DEPENDENCY_PROJECTS_APPLIED_DEPENDENCIES_SUB
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_DEPENDENCY_REFERENCE_BLOCK_ELEMENT
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_DEPENDENCY_ROOT_PROJECT_IN_APPLIED_FILES
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_DEPENDENCY_ROOT_PROJECT_IN_APPLIED_FILES_APPLIED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_DEPENDENCY_ROOT_PROJECT_IN_APPLIED_FILES_SUB
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_DEPENDENCY_SETUP_PARENT_AND_APPLIED_FILES_CHILD
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_DEPENDENCY_SETUP_PARENT_AND_APPLIED_FILES_DEFAULTS
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_DEPENDENCY_SETUP_PARENT_AND_APPLIED_FILES_PARENT
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_DEPENDENCY_SETUP_SINGLE_FILE
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_DEPENDENCY_SUBPROJECTS_APPLIED_DEPENDENCIES
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_DEPENDENCY_VARIABLE_IN_BUILDSCRIPT
 import com.android.tools.idea.gradle.dsl.TestFileName
-import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_ALLPROJECTS_APPLIED_DEPENDENCIES
-import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_APPLY_FILE_WITH_ROOT_DIR_VARIABLES
-import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_APPLY_FILE_WITH_ROOT_DIR_VARIABLES_APPLIED
-import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_APPLY_FILE_WITH_VARIABLES
-import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_APPLY_FILE_WITH_VARIABLES_APPLIED
-import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_BUILD_SCRIPT_APPLIED_DEPENDENCIES
-import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_BUILD_SCRIPT_APPLIED_DEPENDENCIES_APPLIED
-import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_BUILD_SCRIPT_APPLIED_DEPENDENCIES_APPLIED_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_BUILD_SCRIPT_APPLIED_IN_PARENT_MODULE
-import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_BUILD_SCRIPT_APPLIED_IN_PARENT_MODULE_APPLIED
-import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_BUILD_SCRIPT_APPLIED_IN_PARENT_MODULE_SUB
-import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_MULTIPLE_ALL_PROJECT_BLOCKS
-import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_MULTIPLE_ALL_PROJECT_BLOCKS_APPLIED_ONE
-import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_MULTIPLE_ALL_PROJECT_BLOCKS_APPLIED_TWO
-import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_MULTIPLE_ALL_PROJECT_BLOCKS_SUB
-import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_PROJECTS_APPLIED_DEPENDENCIES_APPLIED
-import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_PROJECTS_APPLIED_DEPENDENCIES_SUB
-import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_REFERENCE_BLOCK_ELEMENT
-import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_ROOT_PROJECT_IN_APPLIED_FILES
-import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_ROOT_PROJECT_IN_APPLIED_FILES_APPLIED
-import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_ROOT_PROJECT_IN_APPLIED_FILES_SUB
-import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_SETUP_PARENT_AND_APPLIED_FILES_CHILD
-import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_SETUP_PARENT_AND_APPLIED_FILES_DEFAULTS
-import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_SETUP_PARENT_AND_APPLIED_FILES_PARENT
-import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_SETUP_SINGLE_FILE
-import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_SUBPROJECTS_APPLIED_DEPENDENCIES
-import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_DEPENDENCY_VARIABLE_IN_BUILDSCRIPT
-import com.android.tools.idea.gradle.dsl.ZTestFileName
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
@@ -565,7 +564,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     runApplyFileToChildrenTest(PROPERTY_DEPENDENCY_ALLPROJECTS_APPLIED_DEPENDENCIES)
   }
 
-  private fun runApplyFileToChildrenTest(fileName: ZTestFileName) {
+  private fun runApplyFileToChildrenTest(fileName: TestFileName) {
     writeToNewProjectFile("versions", PROPERTY_DEPENDENCY_PROJECTS_APPLIED_DEPENDENCIES_APPLIED)
     writeToBuildFile(fileName)
     writeToSubModuleBuildFile(PROPERTY_DEPENDENCY_PROJECTS_APPLIED_DEPENDENCIES_SUB)

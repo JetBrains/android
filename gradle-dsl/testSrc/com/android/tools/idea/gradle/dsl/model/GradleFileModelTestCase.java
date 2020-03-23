@@ -52,7 +52,6 @@ import static org.junit.runners.Parameterized.Parameters;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.dsl.TestFileName;
-import com.android.tools.idea.gradle.dsl.ZTestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
@@ -62,14 +61,12 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference;
-import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
@@ -289,7 +286,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     });
   }
 
-  protected void prepareAndInjectInformationForTest(@NotNull ZTestFileName testFileName, @NotNull VirtualFile destination)
+  protected void prepareAndInjectInformationForTest(@NotNull TestFileName testFileName, @NotNull VirtualFile destination)
     throws IOException {
     final File testFile = testFileName.toFile(myTestDataPath, myTestDataExtension);
     assumeTrue(testFile.exists());
@@ -303,7 +300,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     saveFileUnderWrite(mySettingsFile, text);
   }
 
-  protected void writeToSettingsFile(@NotNull ZTestFileName fileName) throws IOException {
+  protected void writeToSettingsFile(@NotNull TestFileName fileName) throws IOException {
     prepareAndInjectInformationForTest(fileName, mySettingsFile);
   }
 
@@ -311,11 +308,11 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     saveFileUnderWrite(myBuildFile, text);
   }
 
-  protected void writeToBuildFile(@NotNull ZTestFileName fileName) throws IOException {
+  protected void writeToBuildFile(@NotNull TestFileName fileName) throws IOException {
     prepareAndInjectInformationForTest(fileName, myBuildFile);
   }
 
-  protected String getContents(@NotNull ZTestFileName fileName) throws IOException {
+  protected String getContents(@NotNull TestFileName fileName) throws IOException {
     final File testFile = fileName.toFile(myTestDataPath, myTestDataExtension);
     assumeTrue(testFile.exists());
     return loadFile(testFile);
@@ -329,7 +326,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     return getSubModuleSettingsText(SUB_MODULE_NAME);
   }
 
-  protected Module writeToNewSubModule(@NotNull String name, @NotNull ZTestFileName fileName, @NotNull String propertiesFileText)
+  protected Module writeToNewSubModule(@NotNull String name, @NotNull TestFileName fileName, @NotNull String propertiesFileText)
     throws IOException {
     return writeToNewSubModule(name, getContents(fileName), propertiesFileText);
   }
@@ -353,7 +350,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   }
 
 
-  protected String writeToNewProjectFile(@NotNull String newFileBasename, @NotNull ZTestFileName testFileName) throws IOException {
+  protected String writeToNewProjectFile(@NotNull String newFileBasename, @NotNull TestFileName testFileName) throws IOException {
     String newFileName = newFileBasename + myTestDataExtension;
     runWriteAction(() -> {
       VirtualFile newFile = myProjectBasePath.createChildData(this, newFileName);
@@ -363,7 +360,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     return newFileName;
   }
 
-  protected String writeToNewSubModuleFile(@NotNull String newFileBasename, @NotNull ZTestFileName testFileName) throws IOException {
+  protected String writeToNewSubModuleFile(@NotNull String newFileBasename, @NotNull TestFileName testFileName) throws IOException {
     String newFileName = newFileBasename + myTestDataExtension;
     runWriteAction(() -> {
       VirtualFile newFile = mySubModuleBuildFile.getParent().createChildData(this, newFileName);
@@ -386,7 +383,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     saveFileUnderWrite(mySubModuleBuildFile, text);
   }
 
-  protected void writeToSubModuleBuildFile(@NotNull ZTestFileName fileName) throws IOException {
+  protected void writeToSubModuleBuildFile(@NotNull TestFileName fileName) throws IOException {
     prepareAndInjectInformationForTest(fileName, mySubModuleBuildFile);
   }
 
@@ -460,7 +457,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     assertEquals(contents.replaceAll("[ \\r\\t]+", "").trim(), loadText(file).replaceAll("[ \\r\\t]+", "").trim());
   }
 
-  protected void verifyFileContents(@NotNull VirtualFile file, @NotNull ZTestFileName expected) throws IOException {
+  protected void verifyFileContents(@NotNull VirtualFile file, @NotNull TestFileName expected) throws IOException {
     verifyFileContents(file, loadFile(expected.toFile(myTestDataPath, myTestDataExtension)));
   }
 

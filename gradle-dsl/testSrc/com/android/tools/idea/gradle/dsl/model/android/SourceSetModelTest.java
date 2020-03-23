@@ -15,20 +15,20 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_ADD_AND_APPLY_BLOCK_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_ADD_AND_APPLY_BLOCK_ELEMENTS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_REMOVE_AND_APPLY_BLOCK_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_SET_ROOT_ADD_AND_APPLY;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_SET_ROOT_ADD_AND_APPLY_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_SET_ROOT_ADD_AND_RESET;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_SET_ROOT_EDIT_AND_APPLY;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_SET_ROOT_EDIT_AND_APPLY_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_SET_ROOT_EDIT_AND_RESET;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_SET_ROOT_IN_SOURCE_SET_BLOCK;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_SET_ROOT_OVERRIDE_STATEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_SET_ROOT_REMOVE_AND_APPLY;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_SET_ROOT_REMOVE_AND_RESET;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_SET_ROOT_STATEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_SET_MODEL_ADD_AND_APPLY_BLOCK_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_SET_MODEL_ADD_AND_APPLY_BLOCK_ELEMENTS_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_SET_MODEL_REMOVE_AND_APPLY_BLOCK_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_SET_MODEL_SET_ROOT_ADD_AND_APPLY;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_SET_MODEL_SET_ROOT_ADD_AND_APPLY_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_SET_MODEL_SET_ROOT_ADD_AND_RESET;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_SET_MODEL_SET_ROOT_EDIT_AND_APPLY;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_SET_MODEL_SET_ROOT_EDIT_AND_APPLY_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_SET_MODEL_SET_ROOT_EDIT_AND_RESET;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_SET_MODEL_SET_ROOT_IN_SOURCE_SET_BLOCK;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_SET_MODEL_SET_ROOT_OVERRIDE_STATEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_SET_MODEL_SET_ROOT_REMOVE_AND_APPLY;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_SET_MODEL_SET_ROOT_REMOVE_AND_RESET;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SOURCE_SET_MODEL_SET_ROOT_STATEMENTS;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
