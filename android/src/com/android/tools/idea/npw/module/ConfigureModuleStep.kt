@@ -77,9 +77,8 @@ abstract class ConfigureModuleStep<ModuleModelKind: ModuleModel>(
 
   abstract val validatorPanel: ValidatorPanel
 
-  private val moduleValidator = ModuleValidator(model.project)
+  protected val moduleValidator = ModuleValidator(model.project)
   init {
-
     bindings.bindTwoWay(SelectedItemProperty(languageCombo), model.language)
     bindings.bindTwoWay(SelectedItemProperty(bytecodeCombo), model.bytecodeLevel)
     bindings.bind(model.androidSdkInfo, SelectedItemProperty(apiLevelCombo))
