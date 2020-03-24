@@ -461,6 +461,8 @@ enum class TestFileName(val path: String) {
   SIGNING_CONFIG_MODEL_SET_AND_APPLY_SIGNING_CONFIG("signingConfigModel/setAndApplySigningConfig"),
   SIGNING_CONFIG_MODEL_SET_AND_APPLY_SIGNING_CONFIG_EXPECTED("signingConfigModel/setAndApplySigningConfigExpected"),
   SIGNING_CONFIG_MODEL_REMOVE_AND_APPLY_SIGNING_CONFIG("signingConfigModel/removeAndApplySigningConfig"),
+  SIGNING_CONFIG_MODEL_REMOVE_STORE_FILE_AND_APPLY_SIGNING_CONFIG("signingConfigModel/removeStoreFileAndApplySigningConfig"),
+  SIGNING_CONFIG_MODEL_REMOVE_STORE_FILE_AND_APPLY_SIGNING_CONFIG_EXPECTED("signingConfigModel/removeStoreFileAndApplySigningConfigExpected"),
   SIGNING_CONFIG_MODEL_ADD_AND_APPLY_SIGNING_CONFIG("signingConfigModel/addAndApplySigningConfig"),
   SIGNING_CONFIG_MODEL_ADD_AND_APPLY_SIGNING_CONFIG_EXPECTED("signingConfigModel/addAndApplySigningConfigExpected"),
   SIGNING_CONFIG_MODEL_PARSE_ENVIRONMENT_VARIABLE_PASSWORD_ELEMENTS("signingConfigModel/parseEnvironmentVariablePasswordElements"),

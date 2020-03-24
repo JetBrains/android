@@ -64,7 +64,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
-import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
@@ -291,8 +290,13 @@ public final class GroovyDslUtil {
       // Give the parent a chance to adapt to the missing child.
       handleElementRemoved(parent, element);
       // If this element is deleted, also delete the parent if it is empty.
-      if (dslParent != null && dslParent.isInsignificantIfEmpty()) {
-        maybeDeleteIfEmpty(parent, element == dslParent.getPsiElement() ? dslParent : containingDslElement);
+      if (dslParent != null) {
+        if (element == dslParent.getPsiElement() && dslParent.isInsignificantIfEmpty()) {
+          maybeDeleteIfEmpty(parent, dslParent);
+        }
+        else {
+          maybeDeleteIfEmpty(parent, containingDslElement);
+        }
       }
     }
   }

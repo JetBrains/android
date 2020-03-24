@@ -35,6 +35,8 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODE
 import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_PARSE_CONSOLE_READ_PASSWORD_ELEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_PARSE_ENVIRONMENT_VARIABLE_PASSWORD_ELEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_REMOVE_AND_APPLY_SIGNING_CONFIG;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_REMOVE_STORE_FILE_AND_APPLY_SIGNING_CONFIG;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_REMOVE_STORE_FILE_AND_APPLY_SIGNING_CONFIG_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_RENAME_SIGNING_CONFIG_MODEL_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_SET_AND_APPLY_SIGNING_CONFIG;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_SET_AND_APPLY_SIGNING_CONFIG_EXPECTED;
@@ -207,6 +209,29 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertEquals("signingConfig", "debug_type", signingConfig.storeType());
     assertEquals("signingConfig", "myDebugKey", signingConfig.keyAlias());
     verifyPasswordModel(signingConfig.keyPassword(), "debugKeyPassword", PLAIN_TEXT);
+  }
+
+  @Test
+  public void testRemoveStoreFileAndApplySigningConfig() throws Exception {
+    writeToBuildFile(SIGNING_CONFIG_MODEL_REMOVE_STORE_FILE_AND_APPLY_SIGNING_CONFIG);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel android = buildModel.android();
+    assertNotNull(android);
+    List<SigningConfigModel> signingConfigs = android.signingConfigs();
+
+    assertThat(signingConfigs).hasSize(1);
+    SigningConfigModel signingConfig = signingConfigs.get(0);
+
+    assertEquals("signingConfig", "release.keystore", signingConfig.storeFile());
+    verifyPasswordModel(signingConfig.storePassword(), "password", PLAIN_TEXT);
+    assertEquals("signingConfig", "type", signingConfig.storeType());
+    assertEquals("signingConfig", "myReleaseKey", signingConfig.keyAlias());
+    verifyPasswordModel(signingConfig.keyPassword(), "releaseKeyPassword", PLAIN_TEXT);
+
+    signingConfig.storeFile().delete();
+
+    applyChanges(buildModel);
+    verifyFileContents(myBuildFile, SIGNING_CONFIG_MODEL_REMOVE_STORE_FILE_AND_APPLY_SIGNING_CONFIG_EXPECTED);
   }
 
   @Test
