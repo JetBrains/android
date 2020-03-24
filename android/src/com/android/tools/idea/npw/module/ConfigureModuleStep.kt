@@ -17,11 +17,13 @@ package com.android.tools.idea.npw.module
 
 import com.android.repository.api.RemotePackage
 import com.android.repository.api.UpdatablePackage
+import com.android.sdklib.SdkVersionInfo
 import com.android.tools.adtui.LabelWithEditButton
 import com.android.tools.adtui.util.FormScalingUtil
 import com.android.tools.adtui.validation.ValidatorPanel
 import com.android.tools.idea.device.FormFactor
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
+import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedProjectPackage
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.nameToJavaPackage
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.platform.sdkManagerLocalPath
@@ -58,8 +60,8 @@ import javax.swing.JTextField
 abstract class ConfigureModuleStep<ModuleModelKind: ModuleModel>(
   model: ModuleModelKind,
   private val formFactor: FormFactor,
-  private val minSdkLevel: Int,
-  basePackage: String?,
+  private val minSdkLevel: Int = SdkVersionInfo.LOWEST_ACTIVE_API,
+  basePackage: String? = getSuggestedProjectPackage(),
   title: String
 ) : SkippableWizardStep<ModuleModelKind>(model, title, formFactor.icon) {
   protected val bindings = BindingsManager()
