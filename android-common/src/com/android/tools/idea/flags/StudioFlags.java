@@ -496,7 +496,7 @@ public final class StudioFlags {
     "Enable Database Inspector",
     "If enabled the Database Inspector tool window will appear." +
     "SQLite files opened from the Device Explorer will be opened in the inspector.",
-    false
+    true
   );
   public static final Flag<Boolean> DATABASE_INSPECTOR_FILE_SUPPORT_ENABLED = Flag.create(
     DATABASE_INSPECTOR,
@@ -877,7 +877,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> ENABLE_APP_INSPECTION_TOOL_WINDOW = Flag.create(
     APP_INSPECTION, "enable.tool.window", "Enable App Inspection Tool Window",
     "Enables the top-level App Inspection tool window, which will contain tabs to various feature inspectors",
-    false
+    true
   );
   // endregion
 
