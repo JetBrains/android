@@ -1112,13 +1112,6 @@ enum class TestFileNameImpl(val path: String): TestFileName {
   COMPOSITE_BUILD_MAIN_PROJECT_ROOT_BUILD("compositeBuild/mainProjectRootBuild"),
   COMPOSITE_BUILD_MAIN_PROJECT_SETTINGS("compositeBuild/mainProjectSettings"),
   COMPOSITE_BUILD_MAIN_PROJECT_SUB_MODULE_BUILD("compositeBuild/mainProjectSubModuleBuild"),
-  DEPENDENCIES_INFO_MODEL_PARSE("dependenciesInfoModel/parse"),
-  DEPENDENCIES_INFO_MODEL_ADD_AND_APPLY("dependenciesInfoModel/addAndApply"),
-  DEPENDENCIES_INFO_MODEL_ADD_AND_APPLY_EXPECTED("dependenciesInfoModel/addAndApplyExpected"),
-  DEPENDENCIES_INFO_MODEL_EDIT_AND_APPLY("dependenciesInfoModel/editAndApply"),
-  DEPENDENCIES_INFO_MODEL_EDIT_AND_APPLY_EXPECTED("dependenciesInfoModel/editAndApplyExpected"),
-  DEPENDENCIES_INFO_MODEL_REMOVE_AND_APPLY("dependenciesInfoModel/removeAndApply"),
-  DEPENDENCIES_INFO_MODEL_REMOVE_AND_APPLY_EXPECTED("dependenciesInfoModel/removeAndApplyExpected"),
 
   ;
 
