@@ -19,10 +19,12 @@ import com.android.tools.idea.run.applychanges.ApplyChangesUtilsKt;
 import com.android.tools.idea.run.applychanges.ExistingSession;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.stats.RunStats;
+import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType;
 import com.intellij.execution.DefaultExecutionResult;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ExecutionResult;
 import com.intellij.execution.Executor;
+import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.execution.process.ProcessHandler;
@@ -69,7 +71,8 @@ public class AndroidRunState implements RunProfileState {
     ExecutionConsole console = prevHandler.getExecutionConsole();
 
     if (processHandler == null) {
-      processHandler = new AndroidProcessHandler(myEnv.getProject(), getApplicationId());
+      processHandler = new AndroidProcessHandler(
+        myEnv.getProject(), getApplicationId(), shouldCaptureLogcat(myEnv.getRunnerAndConfigurationSettings()));
     }
     if (console == null) {
       console = myConsoleProvider.createAndAttach(myModule.getProject(), processHandler, executor);
@@ -92,6 +95,19 @@ public class AndroidRunState implements RunProfileState {
                                                  hyperlinkConsumer);
     ProgressManager.getInstance().run(task);
     return new DefaultExecutionResult(console, processHandler);
+  }
+
+  private static boolean shouldCaptureLogcat(@Nullable RunnerAndConfigurationSettings runnerAndConfigurationSettings) {
+    if (runnerAndConfigurationSettings == null) {
+      // Enable logcat captor when the run configuration is unknown to maintain the previous version's behavior.
+      return true;
+    }
+    boolean isInstrumentationTest =
+      AndroidTestRunConfigurationType.getInstance().equals(runnerAndConfigurationSettings.getType());
+    // Don't capture logcat message in AndroidProcessHandler if this run is an instrumentation test because
+    // a test application process is often a short lived process and it finishes before the handler finds
+    // the process. We cannot display logcat messages reliably, thus disable it at all.
+    return !isInstrumentationTest;
   }
 
   private RunStats createRunStats() throws ExecutionException {

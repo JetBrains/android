@@ -35,6 +35,33 @@ class AndroidGotoRelatedLineMarkerTest : AndroidTestCase() {
     return true
   }
 
+  fun testJavaAnonymousInnerClassToNothing() {
+    myFixture.addFileToProject("res/layout/activity_main.xml", BASIC_LAYOUT).virtualFile
+    val file = myFixture.addFileToProject(
+      "src/p1/p2/Util.java",
+      //language=Java
+      """
+        package p1.p2;
+        import android.app.Activity;
+        import android.os.Bundle;
+        import android.support.annotation.Nullable;
+        public class Util  {
+            void foo() {
+                Activity blank = new Activity() {
+                    @Override
+                    protected void onCreate(@Nullable Bundle savedInstanceState) {
+                        super.onCreate(savedInstanceState);
+                        setContentView(R.layout.activity_main);
+                    }
+                };
+            }
+        }
+      """.trimIndent()).virtualFile
+    myFixture.configureFromExistingVirtualFile(file)
+    assertThat(doGotoRelatedFile(file)).isEmpty()
+    doCheckNoLineMarkers()
+  }
+
   fun testKotlinActivityToLayout() {
     createManifest()
     val layoutFile = myFixture.addFileToProject("res/layout/layout.xml", BASIC_LAYOUT).virtualFile
@@ -189,6 +216,11 @@ class AndroidGotoRelatedLineMarkerTest : AndroidTestCase() {
     val presentation = e.presentation
     assertThat(presentation.isEnabled && presentation.isVisible).isTrue()
     return GotoRelatedSymbolAction.getItems(myFixture.file, myFixture.editor, null)
+  }
+
+  private fun doCheckNoLineMarkers() {
+    val relatedMarkers = doGetRelatedLineMarkers()
+    assertThat(relatedMarkers).hasSize(0)
   }
 
   private fun doCheckLineMarkers(expectedTargetFiles: Set<VirtualFile>, targetElementClass: Class<*>) {

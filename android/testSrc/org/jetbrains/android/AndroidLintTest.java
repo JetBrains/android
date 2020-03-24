@@ -21,6 +21,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.repository.StubGoogleMavenRepository;
 import com.android.testutils.VirtualTimeScheduler;
 import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.AnalyticsSettingsData;
@@ -128,13 +129,14 @@ import com.android.tools.idea.lint.SuppressLintIntentionAction;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.TestProjectSystem;
-import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.idea.testing.AndroidTestUtils;
-import com.android.tools.idea.testing.Sdks;
+import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.lint.checks.CommentDetector;
 import com.android.tools.lint.checks.IconDetector;
 import com.android.tools.lint.checks.TextViewDetector;
 import com.android.utils.CharSequences;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
@@ -151,29 +153,27 @@ import com.intellij.codeInspection.reference.RefEntity;
 import com.intellij.codeInspection.ui.util.SynchronizedBidiMultiMap;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.ProjectViewPane;
-import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.ProjectViewTestUtil;
 import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -182,7 +182,6 @@ import org.jetbrains.android.inspections.lint.AndroidAddStringResourceQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidLintExternalAnnotator;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -618,30 +617,28 @@ public class AndroidLintTest extends AndroidTestCase {
   */
 
   public void testGradlePlus() throws Exception {
-    // Needs a valid SDK; can't use the mock one in the test data.
-    AndroidSdkData prevSdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
-    if (prevSdkData == null) {
-      Sdk androidSdk = Sdks.createLatestAndroidSdk();
-      AndroidPlatform androidPlatform = AndroidPlatform.getInstance(androidSdk);
-      assertNotNull(androidPlatform);
-      // Put default platforms in the list before non-default ones so they'll be looked at first.
-      AndroidSdks.getInstance().setSdkData(androidPlatform.getSdkData());
-    }
+    Map<String, String> cache =
+      ImmutableMap.of("master-index.xml",
+                      "<metadata>\n" +
+                      "  <com.android.support/>\n" +
+                      "</metadata>",
 
-    //noinspection ConstantConditions
-    File sdk = AndroidSdks.getInstance().tryToChooseAndroidSdk().getLocation();
-    File appcompat = new File(sdk, "extras/android/m2repository/com/android/support/appcompat-v7/19.0.1".replace('/', File.separatorChar));
-    if (!appcompat.exists()) {
-      System.out.println("Not running " + this.getClass() + "#" + getName() + ": Needs SDK with Support Repo installed and " +
-                         "expected to find " + appcompat);
-      return;
-    }
+                      "com/android/support/group-index.xml",
+                      "<com.android.support>\n" +
+                      "  <support-v4 versions=\"26.0.2,26.0.2\"/>\n" +
+                      "  <appcompat-v7 versions=\"18.0.0,19.0.0,19.0.1,19.1.0,20.0.0,21.0.0,21.0.2,22.0.0-alpha1\"/>\n" +
+                      "</com.android.support>\n");
+    StubGoogleMavenRepository repository = new StubGoogleMavenRepository(cache);
 
-    // NOTE: The android support repository must be installed in the SDK used by the test!
+    Disposable disposable = Disposer.newDisposable();
+    new IdeComponents(null, disposable).replaceApplicationService(
+      RepositoryUrlManager.class,
+      new RepositoryUrlManager(repository, repository, true)
+    );
     doTestWithFix(new AndroidLintGradleDynamicVersionInspection(),
                   "Replace with specific version", "build.gradle", "gradle");
 
-    AndroidSdks.getInstance().setSdkData(prevSdkData);
+    Disposer.dispose(disposable);
   }
 
   public void testGradleDeprecation() throws Exception {

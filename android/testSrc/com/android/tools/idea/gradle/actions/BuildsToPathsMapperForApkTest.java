@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import static com.android.tools.idea.gradle.actions.BuildsToPathsMapper.tryToGetOutputPreBuild;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP;
 import static org.mockito.ArgumentMatchers.eq;
@@ -26,6 +27,7 @@ import com.android.builder.model.InstantAppProjectBuildOutput;
 import com.android.builder.model.InstantAppVariantBuildOutput;
 import com.android.builder.model.ProjectBuildOutput;
 import com.android.builder.model.VariantBuildOutput;
+import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.OutputBuildAction;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -113,6 +115,17 @@ public class BuildsToPathsMapperForApkTest extends AndroidGradleTestCase {
     File expectedOutput =
       AndroidModuleModel.get(myModule).getSelectedVariant().getMainArtifact().getOutputs().iterator().next().getOutputFile();
     assertEquals(expectedOutput, myBuildsAndBundlePaths.get(myModule.getName()));
+  }
+
+  public void testEmptyOutputFromPreBuildModel() {
+    // Simulate the case that output files are empty.
+    AndroidModuleModel androidModel = mock(AndroidModuleModel.class);
+    IdeAndroidArtifact artifact = mock(IdeAndroidArtifact.class);
+    when(androidModel.getMainArtifact()).thenReturn(artifact);
+    when(artifact.getOutputs()).thenReturn(Collections.emptyList());
+
+    // Verify tryToGetOutputPreBuild returns null.
+    assertNull(tryToGetOutputPreBuild(androidModel));
   }
 
   private void initSimpleAppForSignedApk() throws Exception {

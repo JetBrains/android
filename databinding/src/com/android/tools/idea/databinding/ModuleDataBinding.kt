@@ -138,7 +138,7 @@ class ModuleDataBinding private constructor(private val module: Module) {
   private var lastResourcesModificationCount = Long.MIN_VALUE
 
   @GuardedBy("lock")
-  private var _bindingLayoutGroups = mutableSetOf<BindingLayoutGroup>()
+  private var _bindingLayoutGroups = emptySet<BindingLayoutGroup>()
   /**
    * Returns all [BindingLayoutGroup] instances associated with this module, representing all layouts
    * that should have bindings generated for them.
@@ -155,6 +155,7 @@ class ModuleDataBinding private constructor(private val module: Module) {
         if (modificationCount != lastResourcesModificationCount) {
           lastResourcesModificationCount = modificationCount
 
+          // Grab the latest snapshot of layout resources and group them by name
           val layoutResources = moduleResources.getResources(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT)
           val latestGroups = layoutResources.values()
             .mapNotNull { resource -> BindingLayout.tryCreate(facet, resource) }
@@ -162,9 +163,12 @@ class ModuleDataBinding private constructor(private val module: Module) {
             .map { entry -> BindingLayoutGroup(entry.value) }
             .associateBy { group -> group.layoutFileName }
 
+          // Organize our existing groups and group them by name, so we can compare with the data
+          // structure we just created above.
           val currGroups = _bindingLayoutGroups.associateBy { group -> group.layoutFileName }
 
-          _bindingLayoutGroups.clear()
+          // Prepare a new set, which will use our old data when possible or new data if anything was updated.
+          val bindingLayoutGroups = mutableSetOf<BindingLayoutGroup>()
           for (latestGroup in latestGroups.values) {
             val currGroup = currGroups[latestGroup.layoutFileName]
             val groupToAdd = when {
@@ -177,8 +181,10 @@ class ModuleDataBinding private constructor(private val module: Module) {
               // No change, so keep the same group instance as before (as it may have user data cached against it)
               else -> currGroup
             }
-            _bindingLayoutGroups.add(groupToAdd)
+            bindingLayoutGroups.add(groupToAdd)
           }
+
+          _bindingLayoutGroups = bindingLayoutGroups
         }
 
         return _bindingLayoutGroups

@@ -58,7 +58,7 @@ public final class SmaliFileNotificationProvider extends EditorNotifications.Pro
       if (isAncestor(outputFolderPath, filePath, false)) {
         // The smali file is inside the folder where baksmali generated the smali files by disassembling classes.dex.
         EditorNotificationPanel panel = new EditorNotificationPanel();
-        panel.setText("Disassembled classes.dex file. To set up breakpoints for debugging, please attach Java source files.");
+        panel.setText("Disassembled classes.dex file. To set up breakpoints for debugging, please attach Kotlin/Java source files.");
 
         PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
         if (psiFile instanceof SmaliFile) {
@@ -66,10 +66,10 @@ public final class SmaliFileNotificationProvider extends EditorNotifications.Pro
           if (isNotEmpty(classFqn)) {
             PsiClass javaPsiClass = dexSourceFiles.findJavaPsiClass(classFqn);
             if (javaPsiClass != null) {
-              panel.createActionLabel("Open Java file", () -> openFileWithPsiElement(javaPsiClass, true, true));
+              panel.createActionLabel("Open Kotlin/Java file", () -> openFileWithPsiElement(javaPsiClass, true, true));
             }
             else {
-              panel.createActionLabel("Attach Java Sources...", new ChooseAndAttachJavaSourcesTask(classFqn, module, dexSourceFiles));
+              panel.createActionLabel("Attach Kotlin/Java Sources...", new ChooseAndAttachJavaSourcesTask(classFqn, module, dexSourceFiles));
             }
           }
         }
