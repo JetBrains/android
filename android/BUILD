@@ -504,16 +504,11 @@ filegroup(
 
 filegroup(
     name = "transport-artifacts",
-    srcs = select({
-        "//tools/base/bazel:windows": [
-            "//tools/base/transport/proto:transport_java_proto",
-        ],
-        "//conditions:default": [
-            "//tools/base/transport:android",
-            "//tools/base/transport/native/agent:android",
-            "//tools/base/transport/proto:transport_java_proto",
-        ],
-    }),
+    srcs = [
+        "//tools/base/transport:android",
+        "//tools/base/transport/native/agent:android",
+        "//tools/base/transport/proto:transport_java_proto",
+    ],
     visibility = ["//visibility:public"],
 )
 
