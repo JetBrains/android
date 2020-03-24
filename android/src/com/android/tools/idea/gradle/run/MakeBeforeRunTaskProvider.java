@@ -264,44 +264,56 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   }
 
   @VisibleForTesting
-  @Nullable
-  String runGradleSyncIfNeeded(@NotNull RunConfiguration configuration, @NotNull DataContext context) {
-    boolean syncNeeded = false;
-    boolean forceFullVariantsSync = false;
-    AtomicReference<String> errorMsgRef = new AtomicReference<>();
+  enum SyncNeeded {
+    NOT_NEEDED(false),
+    SINGLE_VARIANT_SYNC_NEEDED(false),
+    FULL_SYNC_NEEDED(true);
+
+    public final boolean isFullSync;
+
+    SyncNeeded(boolean isFullSync) {
+      this.isFullSync = isFullSync;
+    }
+  }
+
+  @VisibleForTesting
+  @NotNull
+  SyncNeeded isSyncNeeded(@NotNull DataContext context, @NotNull RunConfiguration configuration) {
 
     // Invoke Gradle Sync if build files have been changed since last sync, and Sync-before-build option is enabled OR post build sync
     // if not supported. The later case requires Gradle Sync, because deploy relies on the models from Gradle Sync to get Apk locations.
     if (GradleSyncState.getInstance(myProject).isSyncNeeded() != ThreeState.NO &&
         (AndroidGradleBuildConfiguration.getInstance(myProject).SYNC_PROJECT_BEFORE_BUILD ||
          !isPostBuildSyncSupported(context, configuration))) {
-      syncNeeded = true;
+      return SyncNeeded.SINGLE_VARIANT_SYNC_NEEDED;
     }
 
     // If the project has native modules, and there're any un-synced variants.
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       NdkModuleModel ndkModel = NdkModuleModel.get(module);
       if (ndkModel != null && ndkModel.getVariants().size() < ndkModel.getNdkVariantNames().size()) {
-        syncNeeded = true;
-        forceFullVariantsSync = true;
-        break;
+        return SyncNeeded.FULL_SYNC_NEEDED;
       }
     }
+    return SyncNeeded.NOT_NEEDED;
+  }
 
-    if (syncNeeded) {
-      GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_RUN_SYNC_NEEDED_BEFORE_RUNNING);
-      request.runInBackground = false;
-      request.forceFullVariantsSync = forceFullVariantsSync;
+  @Nullable
+  private String runSync(@NotNull SyncNeeded syncNeeded) {
+    String result;
+    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_RUN_SYNC_NEEDED_BEFORE_RUNNING);
+    request.runInBackground = false;
+    request.forceFullVariantsSync = syncNeeded.isFullSync;
 
-      GradleSyncInvoker.getInstance().requestProjectSync(myProject, request, new GradleSyncListener() {
-        @Override
-        public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
-          errorMsgRef.set(errorMessage);
-        }
-      });
-    }
-
-    return errorMsgRef.get();
+    AtomicReference<String> errorMsgRef = new AtomicReference<>();
+    GradleSyncInvoker.getInstance().requestProjectSync(myProject, request, new GradleSyncListener() {
+      @Override
+      public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
+        errorMsgRef.set(errorMessage);
+      }
+    });
+    result = errorMsgRef.get();
+    return result;
   }
 
   /**
@@ -326,12 +338,16 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     }
 
     // If the model needs a sync, we need to sync "synchronously" before running.
-    String errorMsg = runGradleSyncIfNeeded(configuration, context);
-    if (errorMsg != null) {
-      // Sync failed. There is no point on continuing, because most likely the model is either not there, or has stale information,
-      // including the path of the APK.
-      getLog().info("Unable to launch '" + TASK_NAME + "' task. Project sync failed with message: " + errorMsg);
-      return false;
+    SyncNeeded syncNeeded = isSyncNeeded(context, configuration);
+
+    if (syncNeeded != SyncNeeded.NOT_NEEDED) {
+      String errorMsg = runSync(syncNeeded);
+      if (errorMsg != null) {
+        // Sync failed. There is no point on continuing, because most likely the model is either not there, or has stale information,
+        // including the path of the APK.
+        getLog().info("Unable to launch '" + TASK_NAME + "' task. Project sync failed with message: " + errorMsg);
+        return false;
+      }
     }
 
     if (myProject.isDisposed()) {
