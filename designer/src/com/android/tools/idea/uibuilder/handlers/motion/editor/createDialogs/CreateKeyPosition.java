@@ -29,6 +29,7 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JSeparator;
 import javax.swing.JTextField;
 import java.awt.GridBagConstraints;
 import java.util.Arrays;
@@ -60,6 +61,12 @@ public class CreateKeyPosition extends BaseCreateKey {
 
     GridBagConstraints gbc = new GridBagConstraints();
     int y = createTop(gbc, "CREATE KEY POSITION");
+
+    grid(gbc, 0, y++, 2, 1);
+    gbc.weighty = 0;
+    gbc.insets = MEUI.dialogSeparatorInsets();
+    gbc.anchor = GridBagConstraints.CENTER;
+    add(new JSeparator(), gbc);
 
     grid(gbc, 0, y++, 2, 1);
     gbc.weighty = 0;
