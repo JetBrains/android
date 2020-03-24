@@ -21,7 +21,7 @@ import com.intellij.openapi.ui.NamedConfigurable
 import com.intellij.openapi.util.Disposer
 
 /**
- * A container of configurables for type [T].
+ * A container of configurables for type [ModelT].
  */
 interface ContainerConfigurable<ModelT> : Disposable {
   fun getChildrenModels(): Collection<ModelT>
@@ -30,7 +30,7 @@ interface ContainerConfigurable<ModelT> : Disposable {
 }
 
 /**
- * A [NamedConfigurable] container without an options panel holding configurables for type [T].
+ * A [NamedConfigurable] container without an options panel holding configurables for type [ModelT].
  */
 abstract class NamedContainerConfigurableBase<ModelT>(
   private val name: String
