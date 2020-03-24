@@ -35,6 +35,7 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODE
 import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_PARSE_CONSOLE_READ_PASSWORD_ELEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_PARSE_ENVIRONMENT_VARIABLE_PASSWORD_ELEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_REMOVE_AND_APPLY_SIGNING_CONFIG;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_REMOVE_AND_APPLY_SIGNING_CONFIG_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_REMOVE_STORE_FILE_AND_APPLY_SIGNING_CONFIG;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_REMOVE_STORE_FILE_AND_APPLY_SIGNING_CONFIG_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_RENAME_SIGNING_CONFIG_MODEL_EXPECTED;
@@ -258,7 +259,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     signingConfig.storePassword().delete();
 
     applyChanges(buildModel);
-    verifyFileContents(myBuildFile, "");
+    verifyFileContents(myBuildFile, SIGNING_CONFIG_MODEL_REMOVE_AND_APPLY_SIGNING_CONFIG_EXPECTED);
 
     android = buildModel.android();
     assertNotNull(android);
@@ -275,9 +276,15 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     buildModel.reparse();
     android = buildModel.android();
     assertNotNull(android);
-
     signingConfigs = android.signingConfigs();
-    assertThat(signingConfigs).isEmpty(); // empty blocks are deleted automatically.
+    assertThat(signingConfigs).hasSize(1);
+    signingConfig = signingConfigs.get(0);
+
+    assertMissingProperty(signingConfig.storeFile());
+    assertMissingProperty(signingConfig.storePassword());
+    assertMissingProperty(signingConfig.storeType());
+    assertMissingProperty(signingConfig.keyAlias());
+    assertMissingProperty(signingConfig.keyPassword());
   }
 
   @Test
