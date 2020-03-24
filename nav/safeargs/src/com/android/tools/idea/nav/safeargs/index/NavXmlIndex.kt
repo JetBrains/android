@@ -112,7 +112,12 @@ class NavXmlIndex : FileBasedIndexExtension<String, NavXmlData>() {
         val rootNav = jaxbDeserializer.unmarshal(StringReader(inputData.contentAsText.toString())) as NavNavigationData
         mapOf(getKeyForFile(inputData.file) to NavXmlData(rootNav))
       }
-      catch (e: UnmarshalException) {
+      // Normally we'd just catch explicit exceptions, like UnmarshalException, but JAXB also
+      // throws AssertionErrors, which isn't documented. Since we don't really care why the parse
+      // failed, and we definitely don't want any exceptions to leak to our users here, to be safe
+      // we just catch and log all possible problems.
+      catch (e: Throwable) {
+        getLog().info("${NavXmlIndex::class.java.simpleName} skipping over \"${inputData.file.path}\"", e)
         mapOf()
       }
     }
