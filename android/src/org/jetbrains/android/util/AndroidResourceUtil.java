@@ -121,6 +121,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiReferenceExpression;
 import com.intellij.psi.ResolveResult;
+import com.intellij.psi.SyntaxTraverser;
 import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.search.PsiElementProcessor;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -1299,22 +1300,14 @@ public class AndroidResourceUtil {
     String resourceName = idResource.getName();
 
     // TODO(b/113646219): find the right one, if there are multiple, not the first one.
-    PsiElementProcessor.FindFilteredElement processor = new PsiElementProcessor.FindFilteredElement(element -> {
-      if (element instanceof XmlAttribute) {
-        XmlAttribute attr = (XmlAttribute)element;
-        String attrValue = attr.getValue();
-        if (isIdDeclaration(attrValue)) {
-          ResourceUrl resourceUrl = ResourceUrl.parse(attrValue);
-          if (resourceUrl != null && resourceUrl.name.equals(resourceName)) {
-            return true;
-          }
-        }
+    return SyntaxTraverser.psiTraverser(xmlFile).filter(XmlAttribute.class).filter(attr -> {
+      String attrValue = attr.getValue();
+      if (isIdDeclaration(attrValue)) {
+        ResourceUrl resourceUrl = ResourceUrl.parse(attrValue);
+        return resourceUrl != null && resourceUrl.name.equals(resourceName);
       }
       return false;
-    });
-    PsiTreeUtil.processElements(xmlFile, processor);
-
-    return (XmlAttribute)processor.getFoundElement();
+    }).first();
   }
 
   /**
