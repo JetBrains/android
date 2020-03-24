@@ -127,6 +127,9 @@ public abstract class PaletteComponentHandler {
     else if (tagName.startsWith(ANDROIDX_APPCOMPAT_PKG)) {
       return ANDROIDX_APPCOMPAT_LIB_ARTIFACT;
     }
+    else if (tagName.startsWith(ANDROIDX_COORDINATOR_LAYOUT_PKG)) {
+      return ANDROIDX_COORDINATOR_LAYOUT_LIB_ARTIFACT;
+    }
     return IN_PLATFORM;
   }
 
