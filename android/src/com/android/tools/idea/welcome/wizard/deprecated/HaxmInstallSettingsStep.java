@@ -20,6 +20,7 @@ import static com.android.tools.idea.welcome.install.HaxmKt.UI_UNITS;
 import com.android.sdklib.devices.Storage;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.observable.BindingsManager;
+import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.IntProperty;
 import com.android.tools.idea.observable.ui.DeprecatedSpinnerValueProperty;
 import com.android.tools.idea.observable.ui.SliderValueProperty;
@@ -59,7 +60,7 @@ public final class HaxmInstallSettingsStep extends FirstRunWizardStep {
   private final IntProperty myEmulatorMemory;
   private final int myRecommendedMemorySize;
   private final ScopedStateStore.Key<Boolean> myKeyCustomInstall;
-  private final ScopedStateStore.Key<Boolean> myKeyInstallHaxm;
+  private final BoolProperty myInstallHaxm;
   private JBScrollPane myRoot;
   private HyperlinkLabel myIntelHAXMDocumentationButton;
   private JSlider myMemorySlider;
@@ -69,12 +70,12 @@ public final class HaxmInstallSettingsStep extends FirstRunWizardStep {
 
   public HaxmInstallSettingsStep(
     @NotNull ScopedStateStore.Key<Boolean> keyCustomInstall,
-    @NotNull ScopedStateStore.Key<Boolean> keyInstallHaxm,
+    @NotNull BoolProperty installHaxm,
     @NotNull IntProperty emulatorMemory
   ) {
     super("Emulator Settings");
     myKeyCustomInstall = keyCustomInstall;
-    myKeyInstallHaxm = keyInstallHaxm;
+    myInstallHaxm = installHaxm;
     myUnitLabel.setText(UI_UNITS.toString());
     myEmulatorMemory = emulatorMemory;
     myIntelHAXMDocumentationButton.setHyperlinkText("Intel® HAXM Documentation");
@@ -158,14 +159,13 @@ public final class HaxmInstallSettingsStep extends FirstRunWizardStep {
   public boolean isStepVisible() {
     return !SystemInfo.isLinux &&
            Boolean.TRUE.equals(myState.get(myKeyCustomInstall)) &&
-           !Boolean.FALSE.equals(myState.get(myKeyInstallHaxm));
+           myInstallHaxm.get();
   }
 
   @Override
   public void init() {
     myBindings.bindTwoWay(new DeprecatedSpinnerValueProperty(myMemorySize), myEmulatorMemory);
     myBindings.bindTwoWay(new SliderValueProperty(myMemorySlider), myEmulatorMemory);
-
   }
 
   @Nullable

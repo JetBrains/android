@@ -27,9 +27,8 @@ import com.intellij.openapi.util.SystemInfo
  */
 class Gvm(
   installationIntention: InstallationIntention,
-  store: ScopedStateStore,
   isCustomInstall: ScopedStateStore.Key<Boolean>
-) : Vm(Gvm, store, installationIntention, isCustomInstall) {
+) : Vm(Gvm, installationIntention, isCustomInstall) {
   override val filePrefix = "gvm"
   override val installUrl = GVM_WINDOWS_INSTALL_URL
 

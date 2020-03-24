@@ -27,7 +27,6 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.welcome.wizard.deprecated.InstallComponentsPath;
-import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
@@ -52,27 +51,25 @@ public class Platform extends InstallableComponent {
   private final AndroidVersion myVersion;
   private final boolean myIsDefaultPlatform;
 
-  public Platform(@NotNull ScopedStateStore store,
-                  @NotNull String name,
+  public Platform(@NotNull String name,
                   @NotNull String description,
                   AndroidVersion version,
                   boolean isDefaultPlatform,
                   boolean installUpdates) {
-    super(store, name, description, installUpdates, FileOpUtils.create());
+    super(name, description, installUpdates, FileOpUtils.create());
     myVersion = version;
     myIsDefaultPlatform = isDefaultPlatform;
   }
 
   @Nullable
-  private static Platform getLatestPlatform(@NotNull ScopedStateStore store,
-                                            @Nullable Map<String, RemotePackage> remotePackages,
+  private static Platform getLatestPlatform(@Nullable Map<String, RemotePackage> remotePackages,
                                             boolean installUpdates) {
     RemotePackage latest = InstallComponentsPath.findLatestPlatform(remotePackages);
     if (latest != null) {
       AndroidVersion version = ((DetailsTypes.PlatformDetailsType)latest.getTypeDetails()).getAndroidVersion();
       String versionName = SdkVersionInfo.getAndroidName(version.getFeatureLevel());
       final String description = "Android platform libraries for targeting " + versionName + " platform";
-      return new Platform(store, versionName, description, version, !version.isPreview(), installUpdates);
+      return new Platform(versionName, description, version, !version.isPreview(), installUpdates);
     }
     return null;
   }
@@ -92,10 +89,10 @@ public class Platform extends InstallableComponent {
   }
 
   @Nullable
-  public static ComponentTreeNode createSubtree(@NotNull ScopedStateStore store, @Nullable Map<String, RemotePackage> remotePackages,
+  public static ComponentTreeNode createSubtree(@Nullable Map<String, RemotePackage> remotePackages,
                                                 boolean installUpdates) {
     // Previously we also installed a preview platform, but no longer (see http://b.android.com/175343 for more).
-    ComponentTreeNode latestPlatform = getLatestPlatform(store, remotePackages, installUpdates);
+    ComponentTreeNode latestPlatform = getLatestPlatform(remotePackages, installUpdates);
     if (latestPlatform != null) {
       return new ComponentCategory("Android SDK Platform", "SDK components for creating applications for different Android platforms",
                                    ImmutableList.of(latestPlatform));
