@@ -23,8 +23,8 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.project.DefaultModuleSystem;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderBuilder;
-import com.android.tools.idea.projectsystem.SourceProviders;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.SourceProviders;
 import com.android.tools.idea.testing.AndroidTestUtils;
 import com.google.common.collect.ImmutableList;
 import com.intellij.codeInsight.completion.CompletionType;
@@ -88,8 +88,11 @@ public class MlkitLightClassTest extends AndroidTestCase {
   }
 
   public void testHighlighting_java() {
-    VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/ml/my_model.tflite");
-    PsiTestUtil.addSourceContentToRoots(myModule, modelVirtualFile.getParent());
+    VirtualFile mobilenetModelFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/ml/mobilenet_model.tflite");
+    VirtualFile ssdModelFile = myFixture.copyFileToProject("ssd_mobilenet_odt_metadata.tflite", "/ml/ssd_model.tflite");
+    VirtualFile styleTransferModelFile =
+      myFixture.copyFileToProject("style_transfer_quant_metadata.tflite", "/ml/style_transfer_model.tflite");
+    PsiTestUtil.addSourceContentToRoots(myModule, ssdModelFile.getParent());
 
     PsiFile activityFile = myFixture.addFileToProject(
       "/src/p1/p2/MainActivity.java",
@@ -98,23 +101,38 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "\n" +
       "import android.app.Activity;\n" +
       "import android.os.Bundle;\n" +
-      "import p1.p2.ml.MyModel;\n" +
       "import java.lang.String;\n" +
       "import java.lang.Float;\n" +
       "import java.util.Map;\n" +
       "import org.tensorflow.lite.support.image.TensorImage;\n" +
       "import org.tensorflow.lite.support.label.TensorLabel;\n" +
+      "import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;\n" +
       "import java.io.IOException;\n" +
+      "import p1.p2.ml.MobilenetModel;\n" +
+      "import p1.p2.ml.SsdModel;\n" +
+      "import p1.p2.ml.StyleTransferModel;\n" +
       "\n" +
       "public class MainActivity extends Activity {\n" +
       "    @Override\n" +
       "    protected void onCreate(Bundle savedInstanceState) {\n" +
       "        super.onCreate(savedInstanceState);\n" +
       "        try {\n" +
-      "            MyModel myModel = MyModel.newInstance(this);\n" +
+      "            MobilenetModel mobilenetModel = MobilenetModel.newInstance(this);\n" +
       "            TensorImage image = null;\n" +
-      "            MyModel.Outputs output = myModel.process(image);\n" +
-      "            TensorLabel tensorLabel = output.getProbabilityAsTensorLabel();\n" +
+      "            MobilenetModel.Outputs mobilenetOutputs = mobilenetModel.process(image);\n" +
+      "            TensorLabel tensorLabel = mobilenetOutputs.getProbabilityAsTensorLabel();\n" +
+      "\n" +
+      "            SsdModel ssdModel = SsdModel.newInstance(this);\n" +
+      "            SsdModel.Outputs ssdOutputs = ssdModel.process(image);\n" +
+      "            TensorBuffer locations = ssdOutputs.getLocationsAsTensorBuffer();\n" +
+      "            TensorBuffer classes = ssdOutputs.getClassesAsTensorBuffer();\n" +
+      "            TensorBuffer scores = ssdOutputs.getScoresAsTensorBuffer();\n" +
+      "            TensorBuffer numberofdetections = ssdOutputs.getNumberofdetectionsAsTensorBuffer();\n" +
+      "\n" +
+      "            TensorBuffer stylearray = null;\n" +
+      "            StyleTransferModel styleTransferModel = StyleTransferModel.newInstance(this);\n" +
+      "            StyleTransferModel.Outputs outputs = styleTransferModel.process(image, stylearray);\n" +
+      "            TensorBuffer styledimage = outputs.getStyledimageAsTensorBuffer();" +
       "        } catch (IOException e) {};\n" +
       "    }\n" +
       "}"
@@ -230,8 +248,11 @@ public class MlkitLightClassTest extends AndroidTestCase {
   }
 
   public void testHighlighting_kotlin() {
-    VirtualFile modelVirtualFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/ml/my_model.tflite");
-    PsiTestUtil.addSourceContentToRoots(myModule, modelVirtualFile.getParent());
+    VirtualFile mobilenetModelFile = myFixture.copyFileToProject("mobilenet_quant_metadata.tflite", "/ml/mobilenet_model.tflite");
+    VirtualFile ssdModelFile = myFixture.copyFileToProject("ssd_mobilenet_odt_metadata.tflite", "/ml/ssd_model.tflite");
+    VirtualFile styleTransferModelFile =
+      myFixture.copyFileToProject("style_transfer_quant_metadata.tflite", "/ml/style_transfer_model.tflite");
+    PsiTestUtil.addSourceContentToRoots(myModule, ssdModelFile.getParent());
 
     PsiFile activityFile = myFixture.addFileToProject(
       "/src/p1/p2/MainActivity.kt",
@@ -240,19 +261,37 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "\n" +
       "import android.app.Activity\n" +
       "import android.os.Bundle\n" +
-      "import p1.p2.ml.MyModel\n" +
       "import android.util.Log\n" +
       "import org.tensorflow.lite.support.image.TensorImage;\n" +
       "import org.tensorflow.lite.support.label.TensorLabel;\n" +
+      "import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;\n" +
+      "import p1.p2.ml.MobilenetModel;\n" +
+      "import p1.p2.ml.SsdModel;\n" +
+      "import p1.p2.ml.StyleTransferModel;\n" +
       "\n" +
       "class MainActivity : Activity() {\n" +
       "    override fun onCreate(savedInstanceState: Bundle?) {\n" +
       "        super.onCreate(savedInstanceState)\n" +
       "        val tensorImage = TensorImage()\n" +
-      "        val mymodel = MyModel.newInstance(this)\n" +
-      "        val outputs = mymodel.process(tensorImage)\n" +
-      "        val probability = outputs.probabilityAsTensorLabel\n" +
-      "        Log.d(\"TAG\", probability.toString())\n" +
+      "        val tensorBuffer = TensorBuffer()\n" +
+      "\n" +
+      "        val mobilenetModel = MobilenetModel.newInstance(this)\n" +
+      "        val mobilenetOutputs = mobilenetModel.process(tensorImage)\n" +
+      "        val probability = mobilenetOutputs.probabilityAsTensorLabel\n" +
+      "        Log.d(\"TAG\", \"Result\" + probability)\n" +
+      "\n" +
+      "        val ssdModel = SsdModel.newInstance(this)\n" +
+      "        val ssdOutputs = ssdModel.process(tensorImage)\n" +
+      "        val locations = ssdOutputs.locationsAsTensorBuffer\n" +
+      "        val classes = ssdOutputs.classesAsTensorBuffer\n" +
+      "        val scores = ssdOutputs.scoresAsTensorBuffer\n" +
+      "        val numberofdetections = ssdOutputs.numberofdetectionsAsTensorBuffer\n" +
+      "        Log.d(\"TAG\", \"Result\" + locations + classes + scores + numberofdetections)\n" +
+      "\n" +
+      "        val styleTransferModel = StyleTransferModel.newInstance(this)\n" +
+      "        val styleTransferOutputs = styleTransferModel.process(tensorImage, tensorBuffer)\n" +
+      "        val styledimage = styleTransferOutputs.styledimageAsTensorBuffer\n" +
+      "        Log.d(\"TAG\", \"Result\" + styledimage)\n" +
       "    }\n" +
       "}"
     );
