@@ -15,25 +15,22 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.DEPENDENCIES_INFO_MODEL_ADD_AND_APPLY;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.DEPENDENCIES_INFO_MODEL_ADD_AND_APPLY_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.DEPENDENCIES_INFO_MODEL_EDIT_AND_APPLY;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.DEPENDENCIES_INFO_MODEL_EDIT_AND_APPLY_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.DEPENDENCIES_INFO_MODEL_PARSE;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.DEPENDENCIES_INFO_MODEL_REMOVE_AND_APPLY;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.DEPENDENCIES_INFO_MODEL_REMOVE_AND_APPLY_EXPECTED;
-
+import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.DependenciesInfoModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
+import java.io.File;
 import java.io.IOException;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.SystemDependent;
 import org.junit.Test;
+
 
 public class DependenciesInfoModelTest extends GradleFileModelTestCase {
   @Test
   public void testParse() throws IOException {
-    writeToBuildFile(DEPENDENCIES_INFO_MODEL_PARSE);
+    writeToBuildFile(TestFile.PARSE);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -45,7 +42,7 @@ public class DependenciesInfoModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddAndApply() throws IOException {
-    writeToBuildFile(DEPENDENCIES_INFO_MODEL_ADD_AND_APPLY);
+    writeToBuildFile(TestFile.ADD_AND_APPLY);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesInfoModel dependenciesInfo = buildModel.android().dependenciesInfo();
@@ -53,7 +50,7 @@ public class DependenciesInfoModelTest extends GradleFileModelTestCase {
     dependenciesInfo.includeInBundle().setValue(false);
 
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, DEPENDENCIES_INFO_MODEL_ADD_AND_APPLY_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_EXPECTED);
 
     dependenciesInfo = buildModel.android().dependenciesInfo();
     assertEquals("includeInApk", Boolean.TRUE, dependenciesInfo.includeInApk());
@@ -62,7 +59,7 @@ public class DependenciesInfoModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testEditAndApply() throws IOException {
-    writeToBuildFile(DEPENDENCIES_INFO_MODEL_EDIT_AND_APPLY);
+    writeToBuildFile(TestFile.EDIT_AND_APPLY);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesInfoModel dependenciesInfo = buildModel.android().dependenciesInfo();
@@ -70,7 +67,7 @@ public class DependenciesInfoModelTest extends GradleFileModelTestCase {
     dependenciesInfo.includeInBundle().setValue(false);
 
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, DEPENDENCIES_INFO_MODEL_EDIT_AND_APPLY_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.EDIT_AND_APPLY_EXPECTED);
 
     dependenciesInfo = buildModel.android().dependenciesInfo();
     assertEquals("includeInApk", Boolean.TRUE, dependenciesInfo.includeInApk());
@@ -79,7 +76,7 @@ public class DependenciesInfoModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveAndApply() throws IOException {
-    writeToBuildFile(DEPENDENCIES_INFO_MODEL_REMOVE_AND_APPLY);
+    writeToBuildFile(TestFile.REMOVE_AND_APPLY);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     DependenciesInfoModel dependenciesInfo = buildModel.android().dependenciesInfo();
@@ -89,6 +86,28 @@ public class DependenciesInfoModelTest extends GradleFileModelTestCase {
     dependenciesInfo.includeInBundle().delete();
 
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, DEPENDENCIES_INFO_MODEL_REMOVE_AND_APPLY_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.REMOVE_AND_APPLY_EXPECTED);
+  }
+
+  enum TestFile implements TestFileName {
+    PARSE("parse"),
+    ADD_AND_APPLY("addAndApply"),
+    ADD_AND_APPLY_EXPECTED("addAndApplyExpected"),
+    EDIT_AND_APPLY("editAndApply"),
+    EDIT_AND_APPLY_EXPECTED("editAndApplyExpected"),
+    REMOVE_AND_APPLY("removeAndApply"),
+    REMOVE_AND_APPLY_EXPECTED("removeAndApplyExpected"),
+    ;
+
+    @NotNull private @SystemDependent String path;
+    TestFile(@NotNull @SystemDependent String path) {
+      this.path = path;
+    }
+
+    @NotNull
+    @Override
+    public File toFile(@NotNull @SystemDependent String basePath, @NotNull String extension) {
+      return TestFileName.super.toFile(basePath + "/dependenciesInfoModel/" + path, extension);
+    }
   }
 }
