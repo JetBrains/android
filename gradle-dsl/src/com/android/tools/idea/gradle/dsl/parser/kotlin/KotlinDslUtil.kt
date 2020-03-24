@@ -220,7 +220,7 @@ fun convertToExternalTextValue(
 internal fun isValidBlockName(blockName : String?) =
   blockName != null && blockName in listOf("configure", "create", "maybeCreate", "register", "getByName")
 /**
- * Check if the caller psiElement is one of the parents for the given psiElement.
+ * Check if the caller psiElement is a transitive parent for the given psiElement.
  */
 internal fun PsiElement?.isParentOf(psiElement: PsiElement) : Boolean {
   var psiElement = psiElement
