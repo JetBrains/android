@@ -20,11 +20,9 @@ import com.android.tools.idea.kotlin.getQualifiedName
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionResultSet
-import com.intellij.codeInsight.completion.impl.CompletionServiceImpl
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementDecorator
 import com.intellij.codeInsight.lookup.LookupElementPresentation
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.PsiElement
 import com.intellij.ui.LayeredIcon
 import icons.AndroidIcons
@@ -46,15 +44,6 @@ private val COMPOSABLE_FUNCTION_ICON = LayeredIcon(AndroidIcons.Android)
 class AndroidComposeCompletionContributor : CompletionContributor() {
   override fun fillCompletionVariants(parameters: CompletionParameters, resultSet: CompletionResultSet) {
     if (!customizeCompletionForCompose() || !isInsideComposableCode(parameters)) return
-
-    ApplicationManager.getApplication().invokeLater {
-      val completionProgress = CompletionServiceImpl.getCurrentCompletionProgressIndicator()
-      if (completionProgress != null) {
-        val advertiser = completionProgress.lookup.advertiser
-        advertiser.clearAdvertisements()
-        advertiser.addAdvertisement("Hello from Compose!", AndroidIcons.Android)
-      }
-    }
 
     resultSet.runRemainingContributors(parameters) { completionResult ->
       val psi = completionResult.lookupElement.psiElement
