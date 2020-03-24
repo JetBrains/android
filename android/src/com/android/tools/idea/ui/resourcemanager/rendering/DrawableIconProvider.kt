@@ -182,7 +182,7 @@ class DrawableIconProvider(
           .thenApplyAsync { image -> image ?: throw Exception("Failed to resolve resource") }
           .thenApply { image -> scaleToFitIfNeeded(image, targetSize) }
           .exceptionally { throwable ->
-            LOG.error("Error while rendering $designAsset", throwable); ERROR_ICON
+            LOG.warn("Error while rendering $designAsset", throwable); ERROR_ICON
           }
       }
       else CompletableFuture.completedFuture(null)

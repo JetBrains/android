@@ -207,17 +207,10 @@ internal fun TemplateMetadata.validateTemplate(currentMinSdk: Int, buildApi: Int
 
 private const val specialChars = "!@#$^&()_+=-.`~"
 private const val nonAsciiChars = "你所有的基地都属于我们"
-internal fun getModifiedProjectName(projectName: String, activityState: TestTemplateWizardState?): String = when {
+internal fun getModifiedProjectName(projectName: String): String = when {
   SystemInfo.isWindows -> "app"
-  // Bug 137161906
-  usesSafeArgs(projectName) && activityState != null && Language.KOTLIN.toString() == activityState.getString(ATTR_LANGUAGE) -> projectName
   else -> "$projectName$specialChars,$nonAsciiChars"
 }
-
-private fun usesSafeArgs(projectName: String) =
-  projectName.startsWith("BasicActivity") ||
-  projectName.startsWith("NavigationDrawerActivity") ||
-  projectName.startsWith("BottomNavigationActivity")
 
 /**
  * Checks that the most recent log in usageTracker is a [EventKind.TEMPLATE_RENDER] event with expected info.

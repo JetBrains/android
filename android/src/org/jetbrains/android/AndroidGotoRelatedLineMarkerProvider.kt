@@ -77,12 +77,13 @@ class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
     when (element) {
       is PsiClass -> {
         val gotoList = getItemsForClass(element, facet) ?: return
-        result.add(createRelatedItemLineMarkerInfo(element.nameIdentifier as PsiElement, gotoList, XmlFileType.INSTANCE.icon!!,
-                                                   "Related XML file"))
+        val nameIdentifier = element.nameIdentifier ?: return
+        result.add(createRelatedItemLineMarkerInfo(nameIdentifier, gotoList, XmlFileType.INSTANCE.icon!!, "Related XML file"))
       }
       is KtClass -> {
         val gotoList = element.toLightClass()?.let { getItemsForClass(it, facet) } ?: return
-        result.add(createRelatedItemLineMarkerInfo(element.nameIdentifier as PsiElement, gotoList, XmlFileType.INSTANCE.icon!!,
+        val nameIdentifier = element.nameIdentifier ?: return
+        result.add(createRelatedItemLineMarkerInfo(nameIdentifier, gotoList, XmlFileType.INSTANCE.icon!!,
                                                    "Related XML file"))
       }
       is XmlFile -> {

@@ -7,7 +7,7 @@
     ]]>
   </description>
   <category>Android</category>
-  <version>10.3.6 RC 1</version>
+  <version>10.3.6</version>
   <vendor>JetBrains, Google</vendor>
   <depends>com.intellij.platform.images</depends>
   <depends>com.intellij.modules.java-capable</depends>

@@ -19,14 +19,14 @@
     resourceRoot="/"
     stepByStep="false"
     hideStepIndex="true"
-    version="3.6.00">
+    version="3620">
   <feature
       name="What's New in 3.6">
     <tutorial
         key="whats-new"
         label=" What's New in 3.6"
-        icon="preview/whats_new_icon.png"
-        remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/canary-release-notes.html#3.6"
+        icon="stable/whats_new_icon.png"
+        remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/stable-release-notes.html"
         remoteLinkLabel="Read in a browser">
       <description>
         <![CDATA[
@@ -38,20 +38,198 @@
           from the main menu.
           ]]>
       </description>
+      <step label="Design tools">
+        <stepElement>
+          <section>
+            <![CDATA[
+            <br>
+            This version of Android Studio includes updates to several design tools, including the Layout Editor and Resource Manager.
+            <br><br>
+            <b>Color picker resource tab</b>
+            <br><br>
+            In the color picker for XML or design tools, Android Studio now populates the color resources in your app for you to quickly choose and replace color resources values.
+            <br><br>
+            <img src="https://d.android.com/studio/releases/assistant/3.6.0/color_picker_resource_tab.png" width="428">
+            <br><br>
+            <b>Split view and zoom in design editors</b>
+            <br><br>
+            Design editors, such as the Layout Editor and Navigation Editor, now provide a <b>Split</b> view that enables you to see both the <b>Design</b> and <b>Code</b> views of your UI at the same time. To enable split view, click the <b>Split</b> icon <img src="https://d.android.com/studio/images/buttons/split-view-icon.png" width="19" height="19" /> in the top-right corner of the editor window.
+            <br><br>
+            <img src="https://d.android.com/studio/releases/assistant/3.6.0/split-view.png" width="428">
+            <br><br>
+            <br>
+            <b>Resource Manager updates</b>
+            <br><br>
+            The Resource Manager now supports most resource types and includes improved filter and search options.
+            <br><br>
+            <a href="https://d.android.com/r/studio-wna/3.6.0/resource-manager">Learn more</a>
+            <br><br>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Android Gradle plugin 3.6.0 updates">
+        <stepElement>
+          <section>
+            <![CDATA[
+            The latest version of the Android Gradle plugin includes many updates, including optimizations for build speed, support for the Maven publishing plugin, and support for View Binding. To learn more, read the <a href="https://d.android.com/studio/releases/gradle-plugin?utm_source=android-studio-3-6&utm_medium=studio-assistant-stable#3-6-0">full release notes</a>.
+            <br><br>
+            <b>View binding</b>
+            <br><br>
+            View binding provides compile-time safety when referencing views in your code. You can
+            now replace <code><span style="font-family:monospace;">findViewById()</span></code>
+            with the auto-generated binding class reference.
+            <br><br>
+            To start using View binding, include the following in each module's
+            <code><span style="font-family:monospace;">build.gradle</span></code> file:
+            <div style="border:1px solid gray; margin-top:8px; padding-left:10px;"><pre>
+            android {
+              viewBinding.enabled = true
+            }</pre></div>
+            <br>
+            <a href="https://d.android.com/r/studio-wna/3.6.0/view-binding">Learn more</a>
+            <br><br>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Emulators">
+        <stepElement>
+          <section>
+            <![CDATA[
+            Enhancements to the emulators include the following. <a href="https://d.android.com/r/studio-wna/3.6.0/emulators">Learn more</a>
+            <br>
+            <br>
+            <ul>
+              <li>Multi-display support.
+                <br><br>
+            <img src="https://d.android.com/studio/releases/assistant/3.6.0/multi-display.png" width="428">
+            <br><br>
+              </li>
+              <li>Improved location support, with options for Single Points and Routes.
+                <br><br>
+            <img src="https://d.android.com/studio/releases/assistant/3.6.0/emulator-routes.png" width="428">
+            <br><br>
+              </li>
+              <li>New virtual devices and project templates for Android Automotive OS.
+                <br><br>
+            <img src="https://d.android.com/studio/releases/assistant/3.6.0/automotive-project-template.png" width="428">
+              </li>
+            </ul>
+            <br><br>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Native tooling">
+        <stepElement>
+          <section>
+            <![CDATA[
+            The following updates support native (C/C++) development in Android Studio:
+            <br><br>
+            <ul>
+              <li>Extended Kotlin support, including improved error-checking and navigation between Kotlin JNI declarations and their C/C++ implementations.
+              </li>
+              <li>Overall JNI improvements, including enhanced autocompletion and inspection.
+              </li>
+            </ul>
+            <br>
+            <a href="https://d.android.com/r/studio-wna/3.6.0/native-tooling">Learn more</a>
+            <br><br>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Leak detection in Memory Profiler">
+        <stepElement>
+          <section>
+            <![CDATA[
+            When analyzing a heap dump in the Memory Profiler, you can now filter profiling data that Android Studio thinks might indicate memory leaks for Activity and Fragment instances in your app.
+            <br><br>To use this feature, first capture a heap dump or import a heap dump file into Android Studio.
+            <br><br>To display the fragments and activities that may be leaking memory, select the Activity/Fragment Leaks checkbox in the heap dump pane of the Memory Profiler.
+            <br><br>
+            <img src="https://d.android.com/studio/releases/assistant/3.6.0/profiler-memory-leak-detection.png" width="428">
+            <br>
+            <a href="https://d.android.com/r/studio-wna/3.6.0/leak-detection">Learn more</a>
+            <br><br>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
       <step label="Push new classes with Apply Changes">
         <stepElement>
           <section>
             <![CDATA[
             You can now add a class and then deploy that code change to your running app by clicking
             either <b>Apply Code Changes</b>&nbsp;
-            <img src="https://d.android.com/studio/releases/assistant/3.5.0/toolbar-apply-code-changes.png" width="19" height="19" />
+            <img src="https://d.android.com/studio/releases/assistant/3.6.0/toolbar-apply-code-changes.png" width="19" height="19" />
             or <b>Apply Changes and Restart Activity</b>&nbsp;
-            <img src="https://d.android.com/studio/releases/assistant/3.5.0/toolbar-apply-changes.png" width="19" height="19" />.
+            <img src="https://d.android.com/studio/releases/assistant/3.6.0/toolbar-apply-changes.png" width="19" height="19" />.
             <br><br>
             <a href="https://d.android.com/r/studio-wna/3.6.0/apply-changes">Learn more</a>
-            <br><br><hr><br>
-            <em>Last updated 7/25/2019</em>
             <br><br>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="APK reloading for native libraries">
+        <stepElement>
+          <section>
+            <![CDATA[
+            You no longer need to create a new project when an APK containing native code is updated outside the IDE. Android Studio detects changes in the APK and gives you the option to re-import it.
+            <br><br>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Toggle Gradle offline mode">
+        <stepElement>
+          <section>
+            <![CDATA[
+            To enable or disable Gradle's offline mode, first select <b>View > Tool Windows > Gradle</b> from the menu bar. Then, near the top of the <b>Gradle</b> window, click <b>Toggle Offline Mode</b> <img src="https://d.android.com/studio/images/buttons/gradle-offline.png" alt="Gradle offline button in the Gradle panel."  width="19" height="19" />.
+            <br><br>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Resumable SDK downloads">
+        <stepElement>
+          <section>
+            <![CDATA[
+            When downloading SDK components and tools using the SDK Manager, Android Studio now
+            allows you to resume downloads that were interrupted (for example, due to a network
+            issue) instead of restarting the download from the beginning. This enhancement is
+            especially helpful for large downloads, such as the Android Emulator or system images,
+            when internet connectivity is unreliable.
+            <br><br>
+            <a href="https://d.android.com/r/studio-wna/3.6.0/resumable-downloads">Learn more</a>
+            <br><br>
+           ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Attach Kotlin-only APK sources">
+        <stepElement>
+          <section>
+            <![CDATA[
+            It is now possible to attach Kotlin-only external APK sources when you profile and debug pre-built APKs.
+            <br><br>
+            <a href="https://d.android.com/r/studio-wna/3.6.0/attach-sources">Learn more</a>
+            <br><br>
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="IntelliJ IDEA 2019.2">
+        <stepElement>
+          <section>
+            <![CDATA[
+           The core Android Studio IDE has been updated with improvements from IntelliJ IDEA through
+           the <a href="https://blog.jetbrains.com/idea/2019/07/intellij-idea-2019-2-java-13-preview-features-profiling-tools-services-tool-window-and-more/">
+           2019.2 release</a>.
+           <br><br><hr><br>
+           <em>Last updated 1/27/20</em>
+           <br><br>
            ]]>
           </section>
         </stepElement>
