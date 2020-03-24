@@ -16,10 +16,12 @@
 package com.android.tools.idea.gradle.dsl
 
 import com.intellij.openapi.util.io.FileUtil
+import org.jetbrains.annotations.SystemIndependent
 import java.io.File
 
 interface TestFileName {
-  fun toFile(basePath: String, extension: String): File
+  @JvmDefault
+  fun toFile(basePath: @SystemIndependent String, extension: String): File = File(FileUtil.toSystemDependentName(basePath) + extension)
 }
 
 enum class TestFileNameImpl(val path: String): TestFileName {
@@ -1120,8 +1122,5 @@ enum class TestFileNameImpl(val path: String): TestFileName {
 
   ;
 
-  override fun toFile(basePath: String, extension: String): File {
-    val path = FileUtil.toSystemDependentName(basePath) + File.separator + FileUtil.toSystemDependentName(path) + extension
-    return File(path)
-  }
+  override fun toFile(basePath: String, extension: String): File = super.toFile("$basePath/$path", extension)
 }
