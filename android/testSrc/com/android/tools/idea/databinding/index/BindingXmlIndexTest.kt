@@ -23,8 +23,7 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import com.intellij.psi.search.PsiElementProcessor
-import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.psi.SyntaxTraverser
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlTag
 import com.intellij.testFramework.EdtRule
@@ -473,11 +472,7 @@ class BindingXmlIndexTest {
   }
 
   private fun findChild(predicate: (PsiElement) -> Boolean): PsiElement? {
-    val processor = PsiElementProcessor.FindFilteredElement<PsiElement> {
-      predicate(it)
-    }
-    PsiTreeUtil.processElements(psiFile, processor)
-    return processor.foundElement
+    return SyntaxTraverser.psiTraverser(psiFile).traverse().filter(predicate).firstOrNull()
   }
 
   private fun insertXml(offset: Int, xml: String) {
