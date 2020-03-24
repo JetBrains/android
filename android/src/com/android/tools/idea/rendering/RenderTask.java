@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.rendering;
 
-import static com.android.SdkConstants.CLASS_COMPOSE;
 import static com.android.SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 
@@ -85,7 +84,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.WeakHashMap;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -96,6 +94,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.uipreview.ModuleClassLoader;
+import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -330,31 +330,22 @@ public class RenderTask {
     }
 
     try {
-      Class<?> composeClass = myLayoutlibCallback.findClass(CLASS_COMPOSE);
-      Field emittableRootField = composeClass.getDeclaredField("EMITTABLE_ROOT_COMPONENT");
-      Field viewGroupRootField = composeClass.getDeclaredField("VIEWGROUP_ROOT_COMPONENT");
+      Class<?> adapterClass = myLayoutlibCallback.findClass(CLASS_COMPOSE_VIEW_ADAPTER);
+      ClassLoader adapterClassClassLoader = adapterClass.getClassLoader();
+      if (!(adapterClassClassLoader instanceof ModuleClassLoader)) {
+        LOG.warn("Unexpected ClassLoader for " + CLASS_COMPOSE_VIEW_ADAPTER + ": " + adapterClassClassLoader);
+        return;
+      }
 
-      emittableRootField.setAccessible(true);
-      viewGroupRootField.setAccessible(true);
-
-      // Because we are clearing-up a ThreadLocal, the code must run on the Layoutlib Thread
-      RenderService.runAsyncRenderAction(() -> {
-        try {
-          WeakHashMap emittable = (WeakHashMap)emittableRootField.get(null);
-          emittable.clear();
-
-          WeakHashMap viewGroup = (WeakHashMap)viewGroupRootField.get(null);
-          viewGroup.clear();
-        }
-        catch (IllegalAccessException e) {
-          LOG.debug(e);
-        }
-      });
+      // Let ModuleClassLoaderManager know we are no longer using this ClassLoader
+      ModuleClassLoaderManager.get().release((ModuleClassLoader)adapterClassClassLoader);
     }
     catch (Throwable t) {
-      LOG.debug(t);
+      LOG.warn(t); // Failure detected here will most probably cause a memory leak
     }
   }
+
+
 
   /**
    * Disposes the RenderTask and releases the allocated resources. The execution of the dispose operation will run asynchronously.
@@ -392,10 +383,7 @@ public class RenderTask {
       myImageFactoryDelegate = null;
       myAssetRepository = null;
 
-      // TODO(b/146552571): Fix this by properly managing the session
-      if (!StudioFlags.COMPOSE_ANIMATED_PREVIEW.get()) {
-        clearCompose();
-      }
+      clearCompose();
 
       return null;
     });
