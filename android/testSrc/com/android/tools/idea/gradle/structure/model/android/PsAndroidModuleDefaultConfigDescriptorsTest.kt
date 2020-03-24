@@ -140,7 +140,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
       assertThat(resConfigs.resolved.asTestValue(), equalTo(listOf()))
       assertThat(resConfigs.parsedValue.asTestValue(), nullValue())
 
-      assertThat(manifestPlaceholders.resolved.asTestValue(), equalTo(mapOf("aa" to "aaa", "bb" to "bbb", "cc" to true)))
+      assertThat(manifestPlaceholders.resolved.asTestValue(), equalTo(mapOf<String, Any>("aa" to "aaa", "bb" to "bbb", "cc" to "true")))
       assertThat(manifestPlaceholders.parsedValue.asTestValue(), equalTo(mapOf("aa" to "aaa", "bb" to "bbb", "cc" to true)))
 
       assertThat(editableManifestPlaceholders["aa"]?.resolved?.asTestValue(), equalTo<Any>("aaa"))
@@ -149,7 +149,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
       assertThat(editableManifestPlaceholders["bb"]?.resolved?.asTestValue(), equalTo<Any>("bbb"))
       assertThat(editableManifestPlaceholders["bb"]?.parsedValue?.asTestValue(), equalTo<Any>("bbb"))
 
-      assertThat(editableManifestPlaceholders["cc"]?.resolved?.asTestValue(), equalTo<Any>(true))
+      assertThat(editableManifestPlaceholders["cc"]?.resolved?.asTestValue(), equalTo<Any>("true"))
       assertThat(editableManifestPlaceholders["cc"]?.parsedValue?.asTestValue(), equalTo<Any>(true))
     }
 
@@ -279,7 +279,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
         // assertThat(versionCode.parsedValue.asTestValue(), equalTo(versionCode.resolved.asTestValue()))
         assertThat(versionName.parsedValue.asTestValue(), equalTo(versionName.resolved.asTestValue()))
         assertThat(versionNameSuffix.parsedValue.asTestValue(), equalTo(versionNameSuffix.resolved.asTestValue()))
-        assertThat(manifestPlaceholders.parsedValue.asTestValue(), equalTo(manifestPlaceholders.resolved.asTestValue()))
+        assertThat(manifestPlaceholders.resolved.asTestValue(), equalTo(mapOf<String, Any>("bb" to "bbb", "ee" to "EEE", "nn" to "999")))
       }
     }
     verifyValues(defaultConfig)
@@ -322,7 +322,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
       assertThat(manifestPlaceholders.parsedValue.asTestValue(), equalTo(mapOf("aa" to "aaa", "cc" to true)))
 
       if (afterSync) {
-        assertThat(manifestPlaceholders.parsedValue.asTestValue(), equalTo(manifestPlaceholders.resolved.asTestValue()))
+        assertThat(manifestPlaceholders.resolved.asTestValue(), equalTo(mapOf<String, Any>("aa" to "aaa", "cc" to "true")))
       }
     }
 
@@ -367,7 +367,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
       assertThat(manifestPlaceholders.parsedValue.asTestValue(), equalTo(mapOf("aa" to "aaa", "bb" to "bbb", "cc" to true, "q" to "q")))
 
       if (afterSync) {
-        assertThat(manifestPlaceholders.parsedValue.asTestValue(), equalTo(manifestPlaceholders.resolved.asTestValue()))
+        assertThat(manifestPlaceholders.resolved.asTestValue(), equalTo(mapOf<String, Any>("aa" to "aaa", "bb" to "bbb", "cc" to "true", "q" to "q")))
       }
     }
 
