@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPL
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_DEREF_BUILD_TYPE_BLOCK_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_DOTTED_BUILD_TYPE_BLOCK_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_EMPTY_SIGNING_CONFIG_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_EMPTY_SIGNING_CONFIG_BLOCK_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_EMPTY_SOURCE_SET_BLOCK
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS_EXPECTED
@@ -739,16 +740,13 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("signingConfigs", "config", signingConfigs[0].name())
 
     applyChanges(buildModel)
-    // TODO(xof): empty blocks, as the comments below say, are not saved to the file.  Arguably this is wrong for Kotlin, which
-    //  requires explicit creation of signingConfigs (and sourceSets, below)
-    verifyFileContents(myBuildFile, ANDROID_MODEL_ADD_AND_APPLY_EMPTY_SIGNING_CONFIG_BLOCK)
-
-    assertThat(android.signingConfigs()).isEmpty() // Empty blocks are not saved to the file.
+    verifyFileContents(myBuildFile, ANDROID_MODEL_ADD_AND_APPLY_EMPTY_SIGNING_CONFIG_BLOCK_EXPECTED)
 
     buildModel.reparse()
     android = buildModel.android()
     assertNotNull(android)
-    assertThat(android.signingConfigs()).isEmpty() // Empty blocks are not saved to the file.
+    assertThat(android.signingConfigs()).hasSize(1)
+    assertEquals("signingConfigs", "config", android.signingConfigs()[0].name())
   }
 
   @Test
@@ -764,7 +762,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("sourceSets", "set", sourceSets[0].name())
 
     applyChanges(buildModel)
-    // TODO(xof): see comment in testAddAndApplyEmptySigningConfigBlock
+    // TODO(xof): empty blocks, as the comments below say, are not saved to the file.  Arguably this is wrong for Kotlin, which
+    //  requires explicit creation of sourceSets
     verifyFileContents(myBuildFile, ANDROID_MODEL_ADD_AND_APPLY_EMPTY_SOURCE_SET_BLOCK)
 
     assertThat(android.sourceSets()).isEmpty() // Empty blocks are not saved to the file.
