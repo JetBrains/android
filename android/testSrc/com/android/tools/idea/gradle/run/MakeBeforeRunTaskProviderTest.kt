@@ -20,9 +20,8 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.IShellOutputReceiver
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
+import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider.SyncNeeded
 import com.android.tools.idea.run.AndroidDevice
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
@@ -41,9 +40,9 @@ import com.intellij.util.ThreeState
 import org.apache.commons.io.FileUtils
 import org.mockito.ArgumentMatchers
 import org.mockito.Mock
-import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.doAnswer
+import org.mockito.Mockito.mock
 import org.mockito.MockitoAnnotations.initMocks
 import org.mockito.invocation.InvocationOnMock
 import java.io.File
@@ -118,7 +117,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
 
   fun testPreviewDeviceArgumentsForBundleConfiguration() {
     setUpTestProject()
-    myRunConfiguration = Mockito.mock(AndroidRunConfiguration::class.java)
+    myRunConfiguration = mock(AndroidRunConfiguration::class.java)
     `when`(myDevice.version).thenReturn(AndroidVersion(23, "N"))
     `when`(myDevice.density).thenReturn(640)
     `when`(myDevice.abis).thenReturn(ImmutableList.of(Abi.ARMEABI))
@@ -170,8 +169,8 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
 
   fun testMultipleDeviceArguments() {
     setUpTestProject()
-    val device1 = Mockito.mock(AndroidDevice::class.java)
-    val device2 = Mockito.mock(AndroidDevice::class.java)
+    val device1 = mock(AndroidDevice::class.java)
+    val device2 = mock(AndroidDevice::class.java)
     `when`(device1.version).thenReturn(AndroidVersion(23, null))
     `when`(device1.density).thenReturn(640)
     `when`(device1.abis).thenReturn(ImmutableList.of(Abi.ARMEABI, Abi.X86))
@@ -190,50 +189,31 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
   fun testRunGradleSyncWithPostBuildSyncSupported() {
     setUpTestProject("3.5.0", ":" to AndroidProjectBuilder())
     `when`(myRunConfiguration.modules).thenReturn(arrayOf(module))
-    val syncInvoker = IdeComponents(myProject).mockApplicationService(GradleSyncInvoker::class.java)
     val syncState = IdeComponents(myProject).mockProjectService(GradleSyncState::class.java)
     `when`(syncState.isSyncNeeded()).thenReturn(ThreeState.YES)
     val provider = MakeBeforeRunTaskProvider(myProject)
-    // Invoke method to test.
-    provider.runGradleSyncIfNeeded(myRunConfiguration, Mockito.mock(DataContext::class.java))
     // Gradle sync should not be invoked.
-    Mockito.verify(syncInvoker, Mockito.never()).requestProjectSync(
-      ArgumentMatchers.eq(myProject), ArgumentMatchers.any(
-      GradleSyncInvoker.Request::class.java), ArgumentMatchers.any<GradleSyncListener>())
+    assertThat(provider.isSyncNeeded(mock(DataContext::class.java), myRunConfiguration)).isEqualTo(SyncNeeded.NOT_NEEDED)
   }
 
   fun testRunGradleSyncWithBuildOutputFileSupported() {
     setUpTestProject("4.1.0", ":" to AndroidProjectBuilder())
-    val syncInvoker = IdeComponents(myProject).mockApplicationService(GradleSyncInvoker::class.java)
-    val syncState = IdeComponents(
-      myProject).mockProjectService(
-      GradleSyncState::class.java)
+    val syncState = IdeComponents(myProject).mockProjectService(GradleSyncState::class.java)
     `when`(syncState.isSyncNeeded()).thenReturn(ThreeState.YES)
     `when`(myRunConfiguration.modules).thenReturn(myModules)
     val provider = MakeBeforeRunTaskProvider(myProject)
-    // Invoke method to test.
-    provider.runGradleSyncIfNeeded(myRunConfiguration, Mockito.mock(DataContext::class.java))
     // Gradle sync should be invoked to make sure Android models are up-to-date.
-    Mockito.verify(syncInvoker, Mockito.times(1)).requestProjectSync(
-      ArgumentMatchers.eq(myProject), ArgumentMatchers.any(
-      GradleSyncInvoker.Request::class.java), ArgumentMatchers.any<GradleSyncListener>())
+    assertThat(provider.isSyncNeeded(mock(DataContext::class.java), myRunConfiguration)).isEqualTo(SyncNeeded.SINGLE_VARIANT_SYNC_NEEDED)
   }
 
   fun testRunGradleSyncWithPostBuildSyncNotSupported() {
     setUpTestProject("2.0.0", ":" to AndroidProjectBuilder())
-    val syncInvoker = IdeComponents(myProject).mockApplicationService(GradleSyncInvoker::class.java)
-    val syncState = IdeComponents(
-      myProject).mockProjectService(
-      GradleSyncState::class.java)
+    val syncState = IdeComponents(myProject).mockProjectService(GradleSyncState::class.java)
     `when`(syncState.isSyncNeeded()).thenReturn(ThreeState.YES)
     `when`(myRunConfiguration.modules).thenReturn(myModules)
     val provider = MakeBeforeRunTaskProvider(myProject)
-    // Invoke method to test.
-    provider.runGradleSyncIfNeeded(myRunConfiguration, Mockito.mock(DataContext::class.java))
     // Gradle sync should be invoked to make sure Android models are up-to-date.
-    Mockito.verify(syncInvoker, Mockito.times(1)).requestProjectSync(
-      ArgumentMatchers.eq(myProject), ArgumentMatchers.any(
-      GradleSyncInvoker.Request::class.java), ArgumentMatchers.any<GradleSyncListener>())
+    assertThat(provider.isSyncNeeded(mock(DataContext::class.java), myRunConfiguration)).isEqualTo(SyncNeeded.SINGLE_VARIANT_SYNC_NEEDED)
   }
 
   companion object {
