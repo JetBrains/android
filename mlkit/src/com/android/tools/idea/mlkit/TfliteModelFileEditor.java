@@ -20,6 +20,7 @@ import com.android.tools.mlkit.MlkitNames;
 import com.android.tools.mlkit.ModelInfo;
 import com.android.tools.mlkit.ModelParsingException;
 import com.android.tools.mlkit.TensorInfo;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.primitives.Floats;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.openapi.diagnostic.Logger;
@@ -87,7 +88,8 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   private final JBScrollPane myRootPane;
   private final JEditorPane myHtmlEditorPane;
   private boolean myUnderDarcula;
-  private boolean myIsSampleCodeSectionVisible;
+  @VisibleForTesting
+  boolean myIsSampleCodeSectionVisible;
 
   public TfliteModelFileEditor(@NotNull Project project, @NotNull VirtualFile file) {
     myFile = file;
@@ -108,7 +110,8 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   }
 
   @NotNull
-  private String createHtmlBody() {
+  @VisibleForTesting
+  String createHtmlBody() {
     StringBuilder htmlBodyBuilder = new StringBuilder();
     try {
       ModelInfo modelInfo = ModelInfo.buildFrom(new MetadataExtractor(ByteBuffer.wrap(myFile.contentsToByteArray())));
