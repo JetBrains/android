@@ -1,5 +1,205 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 26.6.0-alpha01">
+<issues format="5" by="lint 4.1.0-dev">
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/main/java/com/android/tools/adtui/instructions/InstructionsPanel.java"
+            line="202"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/main/java/com/android/tools/adtui/LegendComponent.java"
+            line="49"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/main/java/com/android/tools/adtui/LegendComponent.java"
+            line="54"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/main/java/com/android/tools/adtui/LegendComponent.java"
+            line="59"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/main/java/com/android/tools/adtui/LegendComponent.java"
+            line="276"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/main/java/com/android/tools/adtui/LegendComponent.java"
+            line="277"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/main/java/com/android/tools/adtui/LegendComponent.java"
+            line="278"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/main/java/com/android/tools/adtui/instructions/NewRowInstruction.java"
+            line="27"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/main/java/com/android/tools/adtui/stdui/StandardDimensions.kt"
+            line="26"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/main/java/com/android/tools/adtui/stdui/StandardDimensions.kt"
+            line="27"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/main/java/com/android/tools/adtui/stdui/StandardDimensions.kt"
+            line="28"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/main/java/com/android/tools/adtui/stdui/StandardDimensions.kt"
+            line="29"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/main/java/com/android/tools/adtui/stdui/StandardDimensions.kt"
+            line="30"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/main/java/com/android/tools/adtui/stdui/StandardDimensions.kt"
+            line="31"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/main/java/com/android/tools/adtui/stdui/StandardDimensions.kt"
+            line="32"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/main/java/com/android/tools/adtui/stdui/StandardDimensions.kt"
+            line="33"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/main/java/com/android/tools/adtui/stdui/StandardDimensions.kt"
+            line="34"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/main/java/com/android/tools/adtui/stdui/StandardDimensions.kt"
+            line="35"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/main/java/com/android/tools/adtui/stdui/StandardDimensions.kt"
+            line="36"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/main/java/com/android/tools/adtui/stdui/StandardDimensions.kt"
+            line="37"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/main/java/com/android/tools/adtui/stdui/StandardDimensions.kt"
+            line="38"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/main/java/com/android/tools/adtui/stdui/StandardDimensions.kt"
+            line="39"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/main/java/com/android/tools/adtui/stdui/StandardDimensions.kt"
+            line="40"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/main/java/com/android/tools/adtui/workbench/ToolWindowDefinition.java"
+            line="34"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/main/java/com/android/tools/adtui/workbench/WorkBench.java"
+            line="575"/>
+    </issue>
 
     <issue
         id="VisibleForTests"
@@ -14,7 +214,7 @@
         message="Do not use `SwingUtilities.invokeLater`; use `Application.invokeLater` instead. See `go/do-not-freeze`.">
         <location
             file="src/main/java/com/android/tools/adtui/TooltipComponent.java"
-            line="97"/>
+            line="100"/>
     </issue>
 
 </issues>
