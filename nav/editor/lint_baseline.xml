@@ -6,7 +6,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
         <location
             file="src/com/android/tools/idea/naveditor/editor/AddDestinationMenu.kt"
-            line="306"/>
+            line="307"/>
     </issue>
 
     <issue
@@ -14,7 +14,103 @@
         message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
         <location
             file="src/com/android/tools/idea/naveditor/editor/AddDestinationMenu.kt"
-            line="306"/>
+            line="307"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/com/android/tools/idea/naveditor/scene/draw/DrawEmptyDesigner.kt"
+            line="34"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/com/android/tools/idea/naveditor/scene/draw/DrawEmptyDesigner.kt"
+            line="36"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/com/android/tools/idea/naveditor/scene/draw/DrawNavScreen.kt"
+            line="40"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/com/android/tools/idea/naveditor/scene/draw/DrawNavScreen.kt"
+            line="42"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/com/android/tools/idea/naveditor/scene/NavSceneManager.kt"
+            line="69"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/com/android/tools/idea/naveditor/scene/NavSceneManager.kt"
+            line="72"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/com/android/tools/idea/naveditor/scene/NavSceneManager.kt"
+            line="74"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/com/android/tools/idea/naveditor/scene/NavSceneManager.kt"
+            line="77"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/com/android/tools/idea/naveditor/scene/NavSceneManager.kt"
+            line="79"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/com/android/tools/idea/naveditor/scene/layout/NewDestinationLayoutAlgorithm.kt"
+            line="27"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/com/android/tools/idea/naveditor/scene/layout/NewDestinationLayoutAlgorithm.kt"
+            line="28"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/com/android/tools/idea/naveditor/scene/layout/NewDestinationLayoutAlgorithm.kt"
+            line="29"/>
     </issue>
 
     <issue
@@ -38,7 +134,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/editor/AddDestinationMenu.kt"
-            line="139"/>
+            line="140"/>
     </issue>
 
     <issue
@@ -46,7 +142,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/editor/AddDestinationMenu.kt"
-            line="146"/>
+            line="147"/>
     </issue>
 
     <issue
@@ -54,7 +150,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/editor/AddDestinationMenu.kt"
-            line="379"/>
+            line="380"/>
     </issue>
 
     <issue
