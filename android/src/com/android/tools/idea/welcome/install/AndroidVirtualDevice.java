@@ -78,11 +78,12 @@ public class AndroidVirtualDevice extends InstallableComponent {
   @Nullable
   private final AndroidVersion myLatestVersion;
 
-  public AndroidVirtualDevice(@NotNull ScopedStateStore store,
-                              @NotNull Map<String, RemotePackage> remotePackages,
-                              boolean installUpdates,
-                              @NotNull FileOp fop) {
-    super(store, "Android Virtual Device",
+  public AndroidVirtualDevice(
+    @NotNull Map<String, RemotePackage> remotePackages,
+    boolean installUpdates,
+    @NotNull FileOp fop
+  ) {
+    super("Android Virtual Device",
           "A preconfigured and optimized Android Virtual Device for app testing on the emulator. (Recommended)", installUpdates, fop);
     RemotePackage latestInfo = InstallComponentsPath.findLatestPlatform(remotePackages);
     if (latestInfo != null) {
