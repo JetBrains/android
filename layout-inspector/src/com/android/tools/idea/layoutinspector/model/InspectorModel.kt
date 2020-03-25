@@ -15,17 +15,22 @@
  */
 package com.android.tools.idea.layoutinspector.model
 
+import com.android.tools.idea.layoutinspector.legacydevice.LegacyClient
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.intellij.openapi.project.Project
+import org.jetbrains.android.util.AndroidBundle
 import java.awt.Color
 import java.awt.image.BufferedImage
 import kotlin.properties.Delegates
+
+const val REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY = "android.ddms.notification.layoutinspector.reboot.live.inspector"
 
 class InspectorModel(val project: Project) {
   val selectionListeners = mutableListOf<(ViewNode?, ViewNode?) -> Unit>()
   val modificationListeners = mutableListOf<(ViewNode?, ViewNode?, Boolean) -> Unit>()
   val connectionListeners = mutableListOf<(InspectorClient?) -> Unit>()
+  val notificationListeners = mutableListOf<(StatusNotification?) -> Unit>()
   val resourceLookup = ResourceLookup(project)
 
   private fun findSubimages(root: ViewNode?) =
@@ -41,6 +46,12 @@ class InspectorModel(val project: Project) {
   var hoveredNode: ViewNode? by Delegates.observable(null as ViewNode?) { _, old, new ->
     if (new != old) {
       hoverListeners.forEach { it(old, new) }
+    }
+  }
+
+  var notification: StatusNotification? by Delegates.observable(null as StatusNotification?) { _, old, new ->
+    if (new != old) {
+      notificationListeners.forEach { it(new) }
     }
   }
 
@@ -97,6 +108,14 @@ class InspectorModel(val project: Project) {
 
   fun updateConnection(client: InspectorClient?) {
     connectionListeners.forEach { it(client) }
+    updateConnectionNotification(client)
+  }
+
+  private fun updateConnectionNotification(client: InspectorClient?) {
+    notification =
+      if (client is LegacyClient && client.selectedStream.device.apiLevel >= 29)
+        StatusNotificationImpl(AndroidBundle.message(REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY), emptyList())
+      else null
   }
 
   /**

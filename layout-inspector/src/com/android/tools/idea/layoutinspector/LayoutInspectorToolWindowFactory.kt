@@ -32,6 +32,8 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
+import java.awt.BorderLayout
+import javax.swing.JPanel
 
 
 const val LAYOUT_INSPECTOR_TOOL_WINDOW_ID = "Layout Inspector"
@@ -56,14 +58,19 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
     }
     val contentManager = toolWindow.contentManager
 
+    val model = InspectorModel(project)
+    val banner = InspectorBanner(model)
     val workbench = WorkBench<LayoutInspector>(project, LAYOUT_INSPECTOR_TOOL_WINDOW_ID, null, project)
     val viewSettings = DeviceViewSettings()
-    val layoutInspector = LayoutInspector(InspectorModel(project), workbench)
+    val layoutInspector = LayoutInspector(model, workbench)
     val deviceViewPanel = DeviceViewPanel(layoutInspector, viewSettings, project)
     workbench.init(deviceViewPanel, layoutInspector, listOf(
       LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition()), false)
 
-    val content = contentManager.factory.createContent(workbench, "", true)
+    val contentPanel = JPanel(BorderLayout())
+    contentPanel.add(banner, BorderLayout.NORTH)
+    contentPanel.add(workbench, BorderLayout.CENTER)
+    val content = contentManager.factory.createContent(contentPanel, "", true)
     content.putUserData(LAYOUT_INSPECTOR, layoutInspector)
     contentManager.addContent(content)
     project.messageBus.connect(project).subscribe(ToolWindowManagerListener.TOPIC, LayoutInspectorToolWindowManagerListener(project))
