@@ -73,7 +73,6 @@ class CpuThreadTrackRendererTest {
     Mockito.`when`(mockCapture.getCaptureNode(1)).thenReturn(captureNode)
     val threadTrackModel = TrackModel.newBuilder(
       CpuThreadTrackModel(
-        Range(),
         mockCapture,
         threadInfo,
         DefaultTimeline(),
@@ -104,7 +103,6 @@ class CpuThreadTrackRendererTest {
     Mockito.`when`(mockCapture.getCaptureNode(1)).thenReturn(CaptureNode(StubCaptureNodeModel()))
     val threadTrackModel = TrackModel.newBuilder(
       CpuThreadTrackModel(
-        Range(),
         mockCapture,
         CpuThreadInfo(1, "Thread-1"),
         DefaultTimeline(),
