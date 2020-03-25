@@ -231,9 +231,7 @@ iml_module(
             "shard_count": 6,
             "test_filter": "org.jetbrains.android",
         },
-        "jetbrains.android.AndroidLintCustomCheckTest": {
-            # Could not initialize Mockito when run as a separate target
-            "tags": ["no_windows"],
+        "AndroidLintCustomCheckTest": {
             "test_filter": "org.jetbrains.android.AndroidLintCustomCheckTest",
         },
         "navigator": {
