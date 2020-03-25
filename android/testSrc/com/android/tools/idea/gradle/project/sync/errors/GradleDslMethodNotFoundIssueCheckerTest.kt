@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.SdkConstants
 import com.android.SdkConstants.FN_SETTINGS_GRADLE
+import com.android.tools.idea.gradle.project.sync.quickFixes.OpenFileAtLocationQuickFix
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
 import com.intellij.build.FilePosition
@@ -40,8 +41,8 @@ class GradleDslMethodNotFoundIssueCheckerTest : AndroidGradleTestCase() {
     // Verify quickFixes.
     assertThat(buildIssue.quickFixes).hasSize(1)
     val quickFix = buildIssue.quickFixes[0]
-    assertThat(quickFix).isInstanceOf(GradleDslMethodNotFoundIssueChecker.OpenFileAtLocationQuickFix::class.java)
-    assertThat((quickFix as GradleDslMethodNotFoundIssueChecker.OpenFileAtLocationQuickFix).myFilePosition.file.path).isEqualTo(settingsFile.path)
+    assertThat(quickFix).isInstanceOf(OpenFileAtLocationQuickFix::class.java)
+    assertThat((quickFix as OpenFileAtLocationQuickFix).myFilePosition.file.path).isEqualTo(settingsFile.path)
   }
 
   fun testCheckIssueWithMethodNotFoundInBuildFile() {
