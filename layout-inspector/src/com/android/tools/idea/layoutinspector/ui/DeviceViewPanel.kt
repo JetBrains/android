@@ -25,7 +25,9 @@ import com.android.tools.adtui.ui.AdtUiCursors
 import com.android.tools.editor.ActionToolbarUtil
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.legacydevice.CaptureAction
+import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand
 import com.google.common.annotations.VisibleForTesting
@@ -40,6 +42,7 @@ import com.intellij.openapi.actionSystem.ex.CheckboxAction
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
+import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
 import java.awt.Container
@@ -318,9 +321,16 @@ class DeviceViewPanel(
   private class PauseLayoutInspectorAction(val client: () -> InspectorClient) : CheckboxAction("Live updates") {
 
     override fun update(event: AnActionEvent) {
-      event.presentation.isEnabled = client().isConnected && client().selectedStream.device.featureLevel >= 29
+      val currentClient = client()
+      val isLiveInspector = currentClient.isConnected && currentClient is DefaultInspectorClient
+      val isLowerThenApi29 = currentClient.isConnected && currentClient.selectedStream.device.featureLevel < 29
+      event.presentation.isEnabled = isLiveInspector
       super.update(event)
-      event.presentation.description = if (event.presentation.isEnabled) null else "Live updates not available for devices below API 29"
+      event.presentation.description = when {
+        isLowerThenApi29 -> "Live updates not available for devices below API 29"
+        !isLiveInspector -> AndroidBundle.message(REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY)
+        else -> null
+      }
     }
 
     // Display as "Live updates ON" when disconnected to indicate the default value after the inspector is connected to the device.
