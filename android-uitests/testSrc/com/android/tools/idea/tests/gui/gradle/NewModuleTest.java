@@ -172,25 +172,16 @@ public class NewModuleTest {
   public void addNewWearModule() {
     WizardUtils.createNewProject(guiTest); // Use androidx
     final String moduleName = "wearModule";
-    NewModuleWizardFixture chooseWearActivityScreen =
       guiTest.ideFrame()
         .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
         .clickNextWearModule()
         .enterModuleName(moduleName)
         .wizard()
-        .clickNext();
-
-    // check if templates are properly filtered
-    assertThrows(
-      LocationUnavailableException.class,
-      () -> chooseWearActivityScreen.chooseActivity(getBasicActivityTemplate().getName())
-    );
-
-    chooseWearActivityScreen
-      .chooseActivity(getBlankWearActivityTemplate().getName())
-      .clickNext()
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish();
+        .clickNext()
+        .chooseActivity(getBlankWearActivityTemplate().getName())
+        .clickNext()
+        .clickFinish()
+        .waitForGradleProjectSyncToFinish();
 
     String gradleFileContents = guiTest.getProjectFileText(moduleName + "/build.gradle");
     assertThat(gradleFileContents).contains("id 'com.android.application'");
