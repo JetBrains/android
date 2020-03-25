@@ -33,6 +33,5 @@ abstract class ComponentTreeNode(val description: String) {
   open fun init(progressStep: ProgressStep) {  }
   abstract fun updateState(handler: AndroidSdkHandler)
   abstract fun createSteps(): Collection<DynamicWizardStep>
-  abstract fun componentStateChanged(modified: Set<ScopedStateStore.Key<*>>): Boolean
   abstract fun toggle(isSelected: Boolean)
 }
