@@ -15,24 +15,24 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
-import com.android.tools.idea.gradle.project.sync.quickFixes.ToggleOfflineModeQuickFix
+import com.android.tools.idea.gradle.project.sync.quickFixes.OpenFileAtLocationQuickFix
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 
-class CachedDependencyNotFoundIssueCheckerTest : AndroidGradleTestCase() {
-  private val cachedDependencyNotFoundIssueChecker = CachedDependencyNotFoundIssueChecker()
+class MissingAndroidSdkIssueCheckerTest : AndroidGradleTestCase() {
+  private val missingAndroidSdkIssueChecker = MissingAndroidSdkIssueChecker()
 
   fun testCheckIssue() {
-    val expectedNotificationMessage = "No cached version of dependency, available for offline mode."
-    val error = "$expectedNotificationMessage\nExtra error message."
-
-    val issueData = GradleIssueData(projectFolderPath.path, Throwable(error), null, null)
-    val buildIssue = cachedDependencyNotFoundIssueChecker.check(issueData)
+    loadSimpleApplication()
+    val issueData = GradleIssueData(projectFolderPath.path, RuntimeException("No sdk.dir property defined in local.properties file."), null,
+                                    null)
+    val buildIssue = missingAndroidSdkIssueChecker.check(issueData)
 
     assertThat(buildIssue).isNotNull()
-    assertThat(buildIssue!!.quickFixes.size).isEqualTo(1)
-    assertThat(buildIssue.description).contains(expectedNotificationMessage)
-    assertThat(buildIssue.quickFixes[0]).isInstanceOf(ToggleOfflineModeQuickFix::class.java)
+    assertThat(buildIssue!!.description).contains("No sdk.dir property defined in local.properties file.\nPlease fix the 'sdk.dir' property in the local.properties file.")
+    // Verify quickFix
+    assertThat(buildIssue.quickFixes).hasSize(1)
+    assertThat(buildIssue.quickFixes[0]).isInstanceOf(OpenFileAtLocationQuickFix::class.java)
   }
 }

@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler.updateUsageTracker
 import com.android.tools.idea.gradle.project.sync.idea.issues.MessageComposer
+import com.android.tools.idea.gradle.project.sync.quickFixes.OpenFileAtLocationQuickFix
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.utils.isDefaultGradleBuildFile
@@ -39,7 +40,6 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.playback.commands.ActionCommand
 import com.intellij.openapi.vfs.LocalFileSystem
-import com.intellij.pom.Navigatable
 import org.jetbrains.plugins.gradle.codeInsight.actions.AddGradleDslPluginAction
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
@@ -92,24 +92,6 @@ class GradleDslMethodNotFoundIssueChecker : GradleIssueChecker {
     description.addQuickFix("Apply Gradle plugin", ApplyGradlePluginQuickFix(filePosition))
   }
 
-  class OpenFileAtLocationQuickFix(val myFilePosition: FilePosition) : BuildIssueQuickFix {
-    override val id = "OPEN_FILE"
-
-    override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
-      val projectFile = project.projectFile ?: return CompletableFuture.completedFuture<Any>(null)
-      invokeLater {
-        val file = projectFile.parent.fileSystem.findFileByPath(myFilePosition.file.path)
-        if (file != null) {
-          val openFile: Navigatable = OpenFileDescriptor(project, file, myFilePosition.startLine, myFilePosition.startColumn, false)
-          if (openFile.canNavigate()) {
-            openFile.navigate(true)
-          }
-        }
-      }
-      return CompletableFuture.completedFuture<Any>(null)
-    }
-  }
-
   /**
    * This QuickFix upgrades the Gradle model to the version in [SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION] and Gradle
    * to the version in [SdkConstants.GRADLE_LATEST_VERSION].
@@ -158,8 +140,7 @@ class GradleDslMethodNotFoundIssueChecker : GradleIssueChecker {
 
     override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
       invokeLater {
-        val virtualFile =
-          LocalFileSystem.getInstance().findFileByIoFile(myFilePosition.file) ?: return@invokeLater
+        val virtualFile = LocalFileSystem.getInstance().findFileByIoFile(myFilePosition.file) ?: return@invokeLater
         OpenFileDescriptor(project, virtualFile, myFilePosition.startLine, myFilePosition.startColumn).navigate(true)
 
         val actionManager = ActionManager.getInstance()
