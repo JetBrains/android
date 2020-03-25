@@ -151,7 +151,7 @@ class DatabaseInspectorViewImpl(
       "text/html",
       "<h2>Database Inspector</h2>" +
       "Waiting for the app to open a connection to the database..." +
-      "<p><a href=\"https://developer.android.com/studio\">Learn more</a></p>"
+      "<p><a href=\"https://d.android.com/r/studio-ui/db-inspector-help\">Learn more</a></p>"
     )
     val document = editorPane.document as HTMLDocument
     document.styleSheet.addRule(
