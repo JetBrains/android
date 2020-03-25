@@ -71,7 +71,7 @@ public class ProjectStructure {
     return ServiceManager.getService(project, ProjectStructure.class);
   }
 
-  public ProjectStructure(@NotNull Project project) {
+  private ProjectStructure(@NotNull Project project) {
     myProject = project;
   }
 
