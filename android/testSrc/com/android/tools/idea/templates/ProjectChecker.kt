@@ -64,7 +64,7 @@ data class ProjectChecker(
   private val moduleState: TestTemplateWizardState get() = projectState.moduleTemplateState
 
   fun checkProject(projectName: String) {
-    val modifiedProjectName = getModifiedProjectName(projectName, activityState)
+    val modifiedProjectName = getModifiedProjectName(projectName)
     val fixture = setUpFixtureForProject(modifiedProjectName)
     val project = fixture.project!!
     IdeComponents(project).replaceProjectService(PostProjectBuildTasksExecutor::class.java, mock(PostProjectBuildTasksExecutor::class.java))

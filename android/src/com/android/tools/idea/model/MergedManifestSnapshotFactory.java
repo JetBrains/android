@@ -68,6 +68,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.util.text.StringUtil;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Set;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -207,7 +208,7 @@ class MergedManifestSnapshotFactory {
       boolean supportsRtl = false;
       Boolean isAppDebuggable = null;
       boolean appHasCode = true;
-      ImmutableMap.Builder<String, ActivityAttributesSnapshot> activityAttributesMapBuilder = ImmutableMap.builder();
+      HashMap<String, ActivityAttributesSnapshot> activityAttributesMap = new HashMap<>();
       ArrayList<Element> activities = new ArrayList<>();
       ArrayList<Element> activityAliases = new ArrayList<>(4);
       ArrayList<Element> services = new ArrayList<>(4);
@@ -240,7 +241,7 @@ class MergedManifestSnapshotFactory {
                 if (NODE_ACTIVITY.equals(childNodeName)) {
                   Element element = (Element)child;
                   ActivityAttributesSnapshot attributes = createActivityAttributesSnapshot(element, appId, namespace);
-                  activityAttributesMapBuilder.put(attributes.getName(), attributes);
+                  activityAttributesMap.put(attributes.getName(), attributes);
                   activities.add(element);
                 }
                 else if (NODE_ACTIVITY_ALIAS.equals(childNodeName)) {
@@ -302,7 +303,7 @@ class MergedManifestSnapshotFactory {
       Actions actions = mergedManifestInfo.getActions();
       ImmutableList<MergingReport.Record> loggingRecords = mergedManifestInfo.getLoggingRecords();
       return new MergedManifestSnapshot(facet.getModule(), packageName, appId, versionCode, manifestTheme,
-                                        activityAttributesMapBuilder.build(),
+                                        ImmutableMap.copyOf(activityAttributesMap),
                                         mergedManifestInfo, minSdk, targetSdk, appIcon, appLabel, supportsRtl, isAppDebuggable, document,
                                         ImmutableList.copyOf(mergedManifestInfo.getFiles()),
                                         permissionHolder, appHasCode,

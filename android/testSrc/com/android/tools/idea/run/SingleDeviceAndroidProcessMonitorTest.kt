@@ -18,6 +18,7 @@ package com.android.tools.idea.run
 import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
+import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.PROCESS_DETACHED
 import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.PROCESS_FINISHED
 import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.PROCESS_IS_RUNNING
@@ -25,7 +26,6 @@ import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.PROCESS
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Test
-import org.mockito.ArgumentMatchers.eq
 import org.mockito.ArgumentMatchers.same
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
@@ -55,6 +55,8 @@ class SingleDeviceAndroidProcessMonitorTest {
   lateinit var mockLogcatCaptor: AndroidLogcatOutputCapture
   @Mock
   lateinit var mockTextEmitter: TextEmitter
+  @Mock
+  lateinit var mockListener: SingleDeviceAndroidProcessMonitorStateListener
 
   @Before
   fun setUp() {
@@ -201,6 +203,28 @@ class SingleDeviceAndroidProcessMonitorTest {
     )
     assertThat(latch.await(TEST_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)).isTrue()
     verify(mockLogcatCaptor, timeout(TEST_TIMEOUT_MILLIS)).stopCapture(same(mockDevice))
+  }
+
+  @Test
+  fun monitorShouldWorkWithoutLogcatCaptor() {
+    val monitor = SingleDeviceAndroidProcessMonitor(
+      TARGET_APP_NAME,
+      mockDevice,
+      mockListener,
+      mockDeploymentAppService,
+      /*logcatCaptor=*/null,
+      mockTextEmitter,
+      TEST_POLLING_INTERVAL_MILLIS,
+      TEST_TIMEOUT_MILLIS
+    )
+    val mockClients = listOf(createMockClient(123))
+    `when`(mockDeploymentAppService.findClient(same(mockDevice), eq(TARGET_APP_NAME))).thenReturn(mockClients)
+
+    verify(mockListener, timeout(TEST_TIMEOUT_MILLIS)).onStateChanged(eq(monitor), eq(PROCESS_IS_RUNNING))
+
+    monitor.close()
+
+    verify(mockListener, timeout(TEST_TIMEOUT_MILLIS)).onStateChanged(eq(monitor), eq(PROCESS_FINISHED))
   }
 
   private fun createMockClient(pid: Int): Client {

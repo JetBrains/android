@@ -1,440 +1,440 @@
 [
-{
-  "name": "Ice Cream Sandwich",
-  "version": "4.0",
-  "apiLevel": 15,
-  "distributionPercentage": 0.003,
-  "url": "https://developer.android.com/about/versions/android-4.0.html",
-  "descriptionBlocks" : [
-                          {
-                            "title": "Contacts Provider",
-                            "body": "Social APIs<br>User profile<br>Invite intent<br>Large photos"
-                          },
-                          {
-                            "title": "Calendar Provider",
-                            "body": "Calendar APIs<br>Event intents"
-                          },
-                          {
-                            "title": "Voicemail Provider",
-                            "body": "Add voicemails to the device"
-                          },
-                          {
-                            "title": "Multimedia",
-                            "body": "Media effects for images and videos<br>Remote control client<br>Improved media player"
-                          },
-                          {
-                            "title": "Camera",
-                            "body": "Face detection<br>Focus and metering areas<br>Continuous auto focus<br>Camera broadcast intents"
-                          },
-                          {
-                            "title": "Connectivity",
-                            "body": "Android Beam for NDEF push with NFC<br>Wi-Fi P2P connections<br>Bluetooth health profile<br>Network usage and controls"
-                          },
-                          {
-                            "title": "Accessibility",
-                            "body": "Explore-by-touch mode<br>Accessibility for views<br>Accessibility services<br>Improved text-to-speech engine support"
-                          },
-                          {
-                            "title": "User Interface",
-                            "body": "Spell checker services<br>Improved action bar<br>Grid layout<br>Texture view<br>Switch widget<br>Improved popup menus<br>System themes<br>Controls for system UI visibility<br>Hover event support<br>Hardware acceleration for all windows"
-                          },
-                          {
-                            "title": "Enterprise",
-                            "body": "VPN services<br>Device policies<br>Certificate management"
-                          },
-                          {
-                            "title": "Device Sensors",
-                            "body": "Improved sensors<br>Temperature sensor<br>Humidity sensor"
-                          }
-                        ]
-},
-{
-  "name": "Jelly Bean",
-  "version": "4.1",
-  "apiLevel": 16,
-  "distributionPercentage": 0.011,
-  "url": "https://developer.android.com/about/versions/android-4.1.html",
-  "descriptionBlocks" : [
-                          {
-                            "title": "App Components",
-                            "body": "Isolated services<br>Memory management<br>Content providers<br>Live wallpapers<br>App stack navigation"
-                          },
-                          {
-                            "title": "Multimedia",
-                            "body": "Media codecs<br>Record audio on cue<br>Timed text tracks<br>Gapless playback"
-                          },
-                          {
-                            "title": "Camera",
-                            "body": "Auto focus movement<br>Camera sounds"
-                          },
-                          {
-                            "title": "Connectivity",
-                            "body": "Android Beam over Bluetooth<br>Network service discovery<br>Wi-Fi P2P service discovery<br>Detect metered networks"
-                          },
-                          {
-                            "title": "Accessibility",
-                            "body": "Accessibility service APIs<br>Customizable app navigation<br>More accessible widgets"
-                          },
-                          {
-                            "title": "Copy and Paste",
-                            "body": "Copy and paste with intents"
-                          },
-                          {
-                            "title": "Multimedia",
-                            "body": "Enhanced RenderScript functionality"
-                          },
-                          {
-                            "title": "Animations",
-                            "body": "Activity launch animations<br>Time animator"
-                          },
-                          {
-                            "title": "User Interface",
-                            "body": "Improved notifications<br>Controls for system UI<br>Remote views<br>More font families"
-                          },
-                          {
-                            "title": "Input Framework",
-                            "body": "Multiple input devices<br>Vibrate for input controllers"
-                          }
-                        ]
-},
-{
-  "name": "Jelly Bean",
-  "version": "4.2",
-  "apiLevel": 17,
-  "distributionPercentage": 0.015,
-  "url": "https://developer.android.com/about/versions/android-4.2.html",
-  "descriptionBlocks" : [
-                          {
-                            "title": "Screensaver",
-                            "body": "Daydream interactive screensaver"
-                          },
-                          {
-                            "title": "Secondary Displays",
-                            "body": "Display content on additional screens"
-                          },
-                          {
-                            "title": "Lockscreen Widgets",
-                            "body": "Add widgets to the lock screen"
-                          },
-                          {
-                            "title": "Multiple Users",
-                            "body": "Save data in a multi-user environment<br>Identify users in a multi-user environment<br>Global settings"
-                          },
-                          {
-                            "title": "User Interface",
-                            "body": "Layout orientation for right-to-left (RTL) UIs<br>Nested fragments"
-                          },
-                          {
-                            "title": "Multimedia",
-                            "body": "RenderScript script intrinsics<br>RenderScript script groups<br>RenderScript Filterscript"
-                          }
-                        ]
-},
-{
-  "name": "Jelly Bean",
-  "version": "4.3",
-  "apiLevel": 18,
-  "distributionPercentage": 0.004,
-  "url": "https://developer.android.com/about/versions/android-4.3.html",
-  "descriptionBlocks" : [
-                          {
-                            "title": "Restricted Profiles",
-                            "body": "App restrictions in profiles<br>Supporting accounts"
-                          },
-                          {
-                            "title": "Wireless and Connectivity",
-                            "body": "Bluetooth Low Energy (BLE)<br>Wi-Fi scan-only mode<br>Managed Wi-Fi configuration<br>Quick response for incoming calls"
-                          },
-                          {
-                            "title": "Multimedia",
-                            "body": "MediaExtractor and MediaCodec enhancements<br>Media DRM<br>Video encoding from a Surface<br>Media muxing<br>RemoteControlClient progress and scrubbing"
-                          },
-                          {
-                            "title": "Graphics",
-                            "body": "Support for OpenGL ES 3.0<br>Mipmapping for drawables"
-                          },
-                          {
-                            "title": "User Interface",
-                            "body": "View overlays<br>Optical bounds layout<br>Window attach and focus listener<br>TV overscan support<br>Screen orientation preference<br>Rotation animations"
-                          },
-                          {
-                            "title": "User Input",
-                            "body": "Uncalibrated sensors<br>Game rotation vector sensor"
-                          },
-                          {
-                            "title": "Notifications",
-                            "body": "Notification listener"
-                          },
-                          {
-                            "title": "Contacts Provider",
-                            "body": "Contacts provider query"
-                          },
-                          {
-                            "title": "Localization",
-                            "body": "Improved support for bidirectional text"
-                          },
-                          {
-                            "title": "Accessibility",
-                            "body": "Handle key events<br>Select text and copy/paste<br>Declare accessibility features"
-                          },
-                          {
-                            "title": "Testing and Debugging",
-                            "body": "Automated UI testing<br>Systrace events for apps"
-                          },
-                          {
-                            "title": "Security",
-                            "body": "Android key store for app-private keys<br>Hardware credential storage"
-                          }
-                        ]
-},
-{
-  "name": "KitKat",
-  "version": "4.4",
-  "apiLevel": 19,
-  "distributionPercentage": 0.076,
-  "url": "https://developer.android.com/about/versions/android-4.4.html",
-  "descriptionBlocks" : [
-                            {
-                                "title": "Printing Framework",
-                                "body": "Print generic content<br>Print images<br>OEM print services"
-                            },
-                            {
-                                "title": "SMS Provider",
-                                "body": "Read and write SMS and MMS messages<br>Select default SMS app"
-                            },
-                            {
-                                "title": "Wireless and Connectivity",
-                                "body": "Host NFC card emulation<br>NFC reader mode<br>Infrared support"
-                            },
-                            {
-                                "title": "Multimedia",
-                                "body": "Adaptive video playback<br>On-demand audio timestamps<br>Surface image reader<br>Peak and RMS audio measurements<br>Loudness enhancer<br>Remote controllers<br>Closed captions"
-                            },
-                            {
-                                "title": "Animation and Graphics",
-                                "body": "Scenes and transitions<br>Animator pausing<br>Reusable bitmaps"
-                            },
-                            {
-                                "title": "User Content",
-                                "body": "Storage access framework<br>External storage access<br>Sync adapters"
-                            },
-                            {
-                                "title": "User Input",
-                                "body": "New sensor types, including step detector<br>Batched sensor events<br>Controller identities"
-                            },
-                            {
-                                "title": "User Interface",
-                                "body": "Immersive full-screen mode<br>Translucent system bars<br>Enhanced notification listener<br>Live regions for accessibility"
-                            }
-                        ]
-},
-{
-  "name": "Lollipop",
-  "version": "5.0",
-  "apiLevel": 21,
-  "distributionPercentage": 0.035,
-  "url": "https://developer.android.com/about/versions/android-5.0.html",
-  "descriptionBlocks" : [
+  {
+    "name": "Ice Cream Sandwich",
+    "version": "4.0",
+    "apiLevel": 15,
+    "distributionPercentage": 0.002,
+    "url": "https://developer.android.com/about/versions/android-4.0.html",
+    "descriptionBlocks" : [
+      {
+        "title": "Contacts Provider",
+        "body": "Social APIs<br>User profile<br>Invite intent<br>Large photos"
+      },
+      {
+        "title": "Calendar Provider",
+        "body": "Calendar APIs<br>Event intents"
+      },
+      {
+        "title": "Voicemail Provider",
+        "body": "Add voicemails to the device"
+      },
+      {
+        "title": "Multimedia",
+        "body": "Media effects for images and videos<br>Remote control client<br>Improved media player"
+      },
+      {
+        "title": "Camera",
+        "body": "Face detection<br>Focus and metering areas<br>Continuous auto focus<br>Camera broadcast intents"
+      },
+      {
+        "title": "Connectivity",
+        "body": "Android Beam for NDEF push with NFC<br>Wi-Fi P2P connections<br>Bluetooth health profile<br>Network usage and controls"
+      },
+      {
+        "title": "Accessibility",
+        "body": "Explore-by-touch mode<br>Accessibility for views<br>Accessibility services<br>Improved text-to-speech engine support"
+      },
+      {
+        "title": "User Interface",
+        "body": "Spell checker services<br>Improved action bar<br>Grid layout<br>Texture view<br>Switch widget<br>Improved popup menus<br>System themes<br>Controls for system UI visibility<br>Hover event support<br>Hardware acceleration for all windows"
+      },
+      {
+        "title": "Enterprise",
+        "body": "VPN services<br>Device policies<br>Certificate management"
+      },
+      {
+        "title": "Device Sensors",
+        "body": "Improved sensors<br>Temperature sensor<br>Humidity sensor"
+      }
+    ]
+  },
+  {
+    "name": "Jelly Bean",
+    "version": "4.1",
+    "apiLevel": 16,
+    "distributionPercentage": 0.007,
+    "url": "https://developer.android.com/about/versions/android-4.1.html",
+    "descriptionBlocks" : [
+      {
+        "title": "App Components",
+        "body": "Isolated services<br>Memory management<br>Content providers<br>Live wallpapers<br>App stack navigation"
+      },
+      {
+        "title": "Multimedia",
+        "body": "Media codecs<br>Record audio on cue<br>Timed text tracks<br>Gapless playback"
+      },
+      {
+        "title": "Camera",
+        "body": "Auto focus movement<br>Camera sounds"
+      },
+      {
+        "title": "Connectivity",
+        "body": "Android Beam over Bluetooth<br>Network service discovery<br>Wi-Fi P2P service discovery<br>Detect metered networks"
+      },
+      {
+        "title": "Accessibility",
+        "body": "Accessibility service APIs<br>Customizable app navigation<br>More accessible widgets"
+      },
+      {
+        "title": "Copy and Paste",
+        "body": "Copy and paste with intents"
+      },
+      {
+        "title": "Multimedia",
+        "body": "Enhanced RenderScript functionality"
+      },
+      {
+        "title": "Animations",
+        "body": "Activity launch animations<br>Time animator"
+      },
+      {
+        "title": "User Interface",
+        "body": "Improved notifications<br>Controls for system UI<br>Remote views<br>More font families"
+      },
+      {
+        "title": "Input Framework",
+        "body": "Multiple input devices<br>Vibrate for input controllers"
+      }
+    ]
+  },
+  {
+    "name": "Jelly Bean",
+    "version": "4.2",
+    "apiLevel": 17,
+    "distributionPercentage": 0.009,
+    "url": "https://developer.android.com/about/versions/android-4.2.html",
+    "descriptionBlocks" : [
+      {
+        "title": "Screensaver",
+        "body": "Daydream interactive screensaver"
+      },
+      {
+        "title": "Secondary Displays",
+        "body": "Display content on additional screens"
+      },
+      {
+        "title": "Lockscreen Widgets",
+        "body": "Add widgets to the lock screen"
+      },
+      {
+        "title": "Multiple Users",
+        "body": "Save data in a multi-user environment<br>Identify users in a multi-user environment<br>Global settings"
+      },
+      {
+        "title": "User Interface",
+        "body": "Layout orientation for right-to-left (RTL) UIs<br>Nested fragments"
+      },
+      {
+        "title": "Multimedia",
+        "body": "RenderScript script intrinsics<br>RenderScript script groups<br>RenderScript Filterscript"
+      }
+    ]
+  },
+  {
+    "name": "Jelly Bean",
+    "version": "4.3",
+    "apiLevel": 18,
+    "distributionPercentage": 0.003,
+    "url": "https://developer.android.com/about/versions/android-4.3.html",
+    "descriptionBlocks" : [
+      {
+        "title": "Restricted Profiles",
+        "body": "App restrictions in profiles<br>Supporting accounts"
+      },
+      {
+        "title": "Wireless and Connectivity",
+        "body": "Bluetooth Low Energy (BLE)<br>Wi-Fi scan-only mode<br>Managed Wi-Fi configuration<br>Quick response for incoming calls"
+      },
+      {
+        "title": "Multimedia",
+        "body": "MediaExtractor and MediaCodec enhancements<br>Media DRM<br>Video encoding from a Surface<br>Media muxing<br>RemoteControlClient progress and scrubbing"
+      },
+      {
+        "title": "Graphics",
+        "body": "Support for OpenGL ES 3.0<br>Mipmapping for drawables"
+      },
+      {
+        "title": "User Interface",
+        "body": "View overlays<br>Optical bounds layout<br>Window attach and focus listener<br>TV overscan support<br>Screen orientation preference<br>Rotation animations"
+      },
+      {
+        "title": "User Input",
+        "body": "Uncalibrated sensors<br>Game rotation vector sensor"
+      },
+      {
+        "title": "Notifications",
+        "body": "Notification listener"
+      },
+      {
+        "title": "Contacts Provider",
+        "body": "Contacts provider query"
+      },
+      {
+        "title": "Localization",
+        "body": "Improved support for bidirectional text"
+      },
+      {
+        "title": "Accessibility",
+        "body": "Handle key events<br>Select text and copy/paste<br>Declare accessibility features"
+      },
+      {
+        "title": "Testing and Debugging",
+        "body": "Automated UI testing<br>Systrace events for apps"
+      },
+      {
+        "title": "Security",
+        "body": "Android key store for app-private keys<br>Hardware credential storage"
+      }
+    ]
+  },
+  {
+    "name": "KitKat",
+    "version": "4.4",
+    "apiLevel": 19,
+    "distributionPercentage": 0.045,
+    "url": "https://developer.android.com/about/versions/android-4.4.html",
+    "descriptionBlocks" : [
+      {
+        "title": "Printing Framework",
+        "body": "Print generic content<br>Print images<br>OEM print services"
+      },
+      {
+        "title": "SMS Provider",
+        "body": "Read and write SMS and MMS messages<br>Select default SMS app"
+      },
+      {
+        "title": "Wireless and Connectivity",
+        "body": "Host NFC card emulation<br>NFC reader mode<br>Infrared support"
+      },
+      {
+        "title": "Multimedia",
+        "body": "Adaptive video playback<br>On-demand audio timestamps<br>Surface image reader<br>Peak and RMS audio measurements<br>Loudness enhancer<br>Remote controllers<br>Closed captions"
+      },
+      {
+        "title": "Animation and Graphics",
+        "body": "Scenes and transitions<br>Animator pausing<br>Reusable bitmaps"
+      },
+      {
+        "title": "User Content",
+        "body": "Storage access framework<br>External storage access<br>Sync adapters"
+      },
+      {
+        "title": "User Input",
+        "body": "New sensor types, including step detector<br>Batched sensor events<br>Controller identities"
+      },
+      {
+        "title": "User Interface",
+        "body": "Immersive full-screen mode<br>Translucent system bars<br>Enhanced notification listener<br>Live regions for accessibility"
+      }
+    ]
+  },
+  {
+    "name": "Lollipop",
+    "version": "5.0",
+    "apiLevel": 21,
+    "distributionPercentage": 0.020,
+    "url": "https://developer.android.com/about/versions/android-5.0.html",
+    "descriptionBlocks" : [
 
-                            {
-                                "title": "User Interface",
-                                "body": "Material design support<br>Concurrent documents and activities in the recents screen<br>WebView updates<br>Screen capturing and sharing"
-                            },
-                            {
-                                "title": "Notifications",
-                                "body": "Lock screen notifications<br>Notifications metadata"
-                            },
-                            {
-                                "title": "Graphics",
-                                "body": "Support for OpenGL ES 3.1<br>Android Extension Pack"
-                            },
-                            {
-                                "title": "Media",
-                                "body": "Camera API for advanced camera capabilities<br>Audio playback<br>Media playback control<br>Media browsing"
-                            },
-                            {
-                                "title": "Storage",
-                                "body": "Directory selection"
-                            },
-                            {
-                                "title": "Wireless & Connectivity",
-                                "body": "Multiple network connections<br>Bluetooth Low Energy<br>NFC enhancements"
-                            },
-                            {
-                                "title": "Battery - Project Volta",
-                                "body": "Scheduling jobs<br>Developer tools for battery usage"
-                            },
-                            {
-                                "title": "Android in the Workplace and in Education",
-                                "body": "Managed provisioning<br>Device owner<br>Screen pinning"
-                            },
-                            {
-                                "title": "Printing Framework",
-                                "body": "Render PDF as bitmap"
-                            },
-                            {
-                                "title": "System",
-                                "body": "App usage statistics"
-                            },
-                            {
-                                "title": "Testing & Accessibility",
-                                "body": "Testing and accessibility improvements"
-                            },
-                            {
-                                "title": "IME",
-                                "body": "Easier switching between input languages"
-                            },
-                            {
-                                "title": "Manifest Declarations",
-                                "body": "Declarable required features<br>User permissions"
-                            }
-                        ]
-},
-{
-  "name": "Lollipop",
-  "version": "5.1",
-  "apiLevel": 22,
-  "distributionPercentage": 0.144,
-  "url": "https://developer.android.com/about/versions/android-5.1.html",
-  "descriptionBlocks" : [
-                          {
-                            "title": "Wireless & Connectivity",
-                            "body": "Multiple SIM Card Support<br>Carrier Provisioning"
-                          },
-                          {
-                            "title": "API Change",
-                            "body": "Deprecated HTTP Classes"
-                          }
-  ]
-},
-{
-  "name": "Marshmallow",
-  "version": "6.0",
-  "apiLevel": 23,
-  "distributionPercentage": 0.213,
-  "url": "https://developer.android.com/about/versions/marshmallow/android-6.0.html",
-  "descriptionBlocks" : [
-                          {
-                            "title": "Security",
-                            "body": "Fingerprint Authentication<br>Confirm Credential"
-                          },
-                          {
-                            "title": "System",
-                            "body": "App Linking<br>Adoptable Storage Devices"
-                          },
-                          {
-                            "title": "Multimedia",
-                            "body": "4K Display Mode<br>Support for MIDI<br>Create digital audio capture and playback objects<br>APIs to associate audio and input devices<br>List of all audio devices<br>Updated video processing APIs<br>Flashlight API<br>Reprocessing Camera2 API<br>Updated ImageWriter objects and Image Reader class"
-                          },
-                          {
-                            "title": "User Input",
-                            "body": "Voice Interactions<br>Assist API<br>Bluetooth Stylus Support"
-                          },
-                          {
-                            "title": "User Interface",
-                            "body": "Themeable ColorStateLists"
-                          },
-                          {
-                            "title": "Wireless & Connectivity",
-                            "body": "Hotspot 2.0<br>Improved Bluetooth Low Energy Scanning"
-                          },
-                          {
-                            "title": "Android for Work",
-                            "body": "Controls for Corporate-Owned, Single-Use devices<br>Silent install and uninstall of apps by Device Owner<br>Silent enterprise certificate access<br>Auto-acceptance of system updates<br>Delegated certificate installation<br>Data usage tracking<br>Runtime permission management<br>Work status notification"
-                          }
-  ]
-},
-{
-  "name": "Nougat",
-  "version": "7.0",
-  "apiLevel": 24,
-  "distributionPercentage": 0.181,
-  "url": "https://developer.android.com/about/versions/nougat/android-7.0.html",
-  "descriptionBlocks" : [
-    {
-      "title": "User Interface",
-      "body": "Multi-window Support<br>Notifications<br>Quick Settings Tile API<br>Custom Pointer API"
-    },
-    {
-      "title": "Performance",
-      "body": "Profile-guided JIT/AOT Compilation<br>Quick Path to App Install<br>Sustained Performance API<br>Frame Metrics API"
-    },
-    {
-      "title": "Battery Life",
-      "body": "Doze on the Go<br>Project Svelte: Background Optimizations<br>SurfaceView"
-    },
-    {
-      "title": "Wireless & Connectivity",
-      "body": "Data Saver<br>Number Blocking<br>Call Screening"
-    },
-    {
-      "title": "Graphics",
-      "body": "Vulkan API"
-    },
-    {
-      "title": "System",
-      "body": "Direct Boot<br>Multi-locale Support, More Languages<br>ICU4J APIs in Android<br>APK Signature Scheme v2<br>Scoped Directory Access<br>Keyboard Shortcuts Helper<br>Virtual Files"
-    },
-    {
-      "title": "Android for Work",
-      "body": "Work profile security challenge<br>Turn off work<br>Always on VPN<br>Customized provisioning"
-    },
-    {
-      "title": "Accessiblity",
-      "body": "Vision Settings on the Welcome screen"
-    },
-    {
-      "title": "Security",
-      "body": "Key Attestation<br>Network Security Config<br>Default Trusted Certificate Authority"
-    },
-    {
-      "title": "VR",
-      "body": "Platform support and optimizations for VR Mode"
-    },
-    {
-      "title": "Printing Framework",
-      "body": "Print service enhancements"
-    }
-  ]
-},
-{
-  "name": "Nougat",
-  "version": "7.1",
-  "apiLevel": 25,
-  "distributionPercentage": 0.101,
-  "url": "https://developer.android.com/about/versions/nougat/android-7.1.html",
-  "descriptionBlocks" : [
-    {
-      "title": "System",
-      "body": "Enhanced Live Wallpaper Metadata<br>Storage Manager Intent<br>Demo User Hint"
-    },
-    {
-      "title": "VR",
-      "body": "Improved VR Thread Scheduling"
-    },
-    {
-      "title": "User Interface",
-      "body": "App Shortcuts<br>Round Icon Resources"
-    },
-    {
-      "title": "User Input",
-      "body": "Image Keyboard Support<br>New Professional Emoji"
-    },
-    {
-      "title": "Wireless & Connectivity",
-      "body": "APIs for Carriers and Calling Apps"
-    },
-    {
-      "title": "Wear",
-      "body": "New Screen Densities for Wear Devices"
-    }
-  ]
-},
+      {
+        "title": "User Interface",
+        "body": "Material design support<br>Concurrent documents and activities in the recents screen<br>WebView updates<br>Screen capturing and sharing"
+      },
+      {
+        "title": "Notifications",
+        "body": "Lock screen notifications<br>Notifications metadata"
+      },
+      {
+        "title": "Graphics",
+        "body": "Support for OpenGL ES 3.1<br>Android Extension Pack"
+      },
+      {
+        "title": "Media",
+        "body": "Camera API for advanced camera capabilities<br>Audio playback<br>Media playback control<br>Media browsing"
+      },
+      {
+        "title": "Storage",
+        "body": "Directory selection"
+      },
+      {
+        "title": "Wireless & Connectivity",
+        "body": "Multiple network connections<br>Bluetooth Low Energy<br>NFC enhancements"
+      },
+      {
+        "title": "Battery - Project Volta",
+        "body": "Scheduling jobs<br>Developer tools for battery usage"
+      },
+      {
+        "title": "Android in the Workplace and in Education",
+        "body": "Managed provisioning<br>Device owner<br>Screen pinning"
+      },
+      {
+        "title": "Printing Framework",
+        "body": "Render PDF as bitmap"
+      },
+      {
+        "title": "System",
+        "body": "App usage statistics"
+      },
+      {
+        "title": "Testing & Accessibility",
+        "body": "Testing and accessibility improvements"
+      },
+      {
+        "title": "IME",
+        "body": "Easier switching between input languages"
+      },
+      {
+        "title": "Manifest Declarations",
+        "body": "Declarable required features<br>User permissions"
+      }
+    ]
+  },
+  {
+    "name": "Lollipop",
+    "version": "5.1",
+    "apiLevel": 22,
+    "distributionPercentage": 0.081,
+    "url": "https://developer.android.com/about/versions/android-5.1.html",
+    "descriptionBlocks" : [
+      {
+        "title": "Wireless & Connectivity",
+        "body": "Multiple SIM Card Support<br>Carrier Provisioning"
+      },
+      {
+        "title": "API Change",
+        "body": "Deprecated HTTP Classes"
+      }
+    ]
+  },
+  {
+    "name": "Marshmallow",
+    "version": "6.0",
+    "apiLevel": 23,
+    "distributionPercentage": 0.123,
+    "url": "https://developer.android.com/about/versions/marshmallow/android-6.0.html",
+    "descriptionBlocks" : [
+      {
+        "title": "Security",
+        "body": "Fingerprint Authentication<br>Confirm Credential"
+      },
+      {
+        "title": "System",
+        "body": "App Linking<br>Adoptable Storage Devices"
+      },
+      {
+        "title": "Multimedia",
+        "body": "4K Display Mode<br>Support for MIDI<br>Create digital audio capture and playback objects<br>APIs to associate audio and input devices<br>List of all audio devices<br>Updated video processing APIs<br>Flashlight API<br>Reprocessing Camera2 API<br>Updated ImageWriter objects and Image Reader class"
+      },
+      {
+        "title": "User Input",
+        "body": "Voice Interactions<br>Assist API<br>Bluetooth Stylus Support"
+      },
+      {
+        "title": "User Interface",
+        "body": "Themeable ColorStateLists"
+      },
+      {
+        "title": "Wireless & Connectivity",
+        "body": "Hotspot 2.0<br>Improved Bluetooth Low Energy Scanning"
+      },
+      {
+        "title": "Android for Work",
+        "body": "Controls for Corporate-Owned, Single-Use devices<br>Silent install and uninstall of apps by Device Owner<br>Silent enterprise certificate access<br>Auto-acceptance of system updates<br>Delegated certificate installation<br>Data usage tracking<br>Runtime permission management<br>Work status notification"
+      }
+    ]
+  },
+  {
+    "name": "Nougat",
+    "version": "7.0",
+    "apiLevel": 24,
+    "distributionPercentage": 0.082,
+    "url": "https://developer.android.com/about/versions/nougat/android-7.0.html",
+    "descriptionBlocks" : [
+      {
+        "title": "User Interface",
+        "body": "Multi-window Support<br>Notifications<br>Quick Settings Tile API<br>Custom Pointer API"
+      },
+      {
+        "title": "Performance",
+        "body": "Profile-guided JIT/AOT Compilation<br>Quick Path to App Install<br>Sustained Performance API<br>Frame Metrics API"
+      },
+      {
+        "title": "Battery Life",
+        "body": "Doze on the Go<br>Project Svelte: Background Optimizations<br>SurfaceView"
+      },
+      {
+        "title": "Wireless & Connectivity",
+        "body": "Data Saver<br>Number Blocking<br>Call Screening"
+      },
+      {
+        "title": "Graphics",
+        "body": "Vulkan API"
+      },
+      {
+        "title": "System",
+        "body": "Direct Boot<br>Multi-locale Support, More Languages<br>ICU4J APIs in Android<br>APK Signature Scheme v2<br>Scoped Directory Access<br>Keyboard Shortcuts Helper<br>Virtual Files"
+      },
+      {
+        "title": "Android for Work",
+        "body": "Work profile security challenge<br>Turn off work<br>Always on VPN<br>Customized provisioning"
+      },
+      {
+        "title": "Accessiblity",
+        "body": "Vision Settings on the Welcome screen"
+      },
+      {
+        "title": "Security",
+        "body": "Key Attestation<br>Network Security Config<br>Default Trusted Certificate Authority"
+      },
+      {
+        "title": "VR",
+        "body": "Platform support and optimizations for VR Mode"
+      },
+      {
+        "title": "Printing Framework",
+        "body": "Print service enhancements"
+      }
+    ]
+  },
+  {
+    "name": "Nougat",
+    "version": "7.1",
+    "apiLevel": 25,
+    "distributionPercentage": 0.059,
+    "url": "https://developer.android.com/about/versions/nougat/android-7.1.html",
+    "descriptionBlocks" : [
+      {
+        "title": "System",
+        "body": "Enhanced Live Wallpaper Metadata<br>Storage Manager Intent<br>Demo User Hint"
+      },
+      {
+        "title": "VR",
+        "body": "Improved VR Thread Scheduling"
+      },
+      {
+        "title": "User Interface",
+        "body": "App Shortcuts<br>Round Icon Resources"
+      },
+      {
+        "title": "User Input",
+        "body": "Image Keyboard Support<br>New Professional Emoji"
+      },
+      {
+        "title": "Wireless & Connectivity",
+        "body": "APIs for Carriers and Calling Apps"
+      },
+      {
+        "title": "Wear",
+        "body": "New Screen Densities for Wear Devices"
+      }
+    ]
+  },
   {
     "name": "Oreo",
     "version": "8.0",
     "apiLevel": 26,
-    "distributionPercentage": 0.140,
+    "distributionPercentage": 0.078,
     "url": "https://developer.android.com/about/versions/oreo/android-8.0",
     "descriptionBlocks" : [
       {
@@ -467,7 +467,7 @@
     "name": "Oreo",
     "version": "8.1",
     "apiLevel": 27,
-    "distributionPercentage": 0.075,
+    "distributionPercentage": 0.143,
     "url": "https://developer.android.com/about/versions/oreo/android-8.1",
     "descriptionBlocks" : [
       {
@@ -485,6 +485,60 @@
       {
         "title": "Security & Privacy",
         "body": "Fingerprint updates<br>Cryptography updates"
+      }
+    ]
+  },
+  {
+    "name": "Pie",
+    "version": "9.0",
+    "apiLevel": 28,
+    "distributionPercentage": 0.320,
+    "url": "https://developer.android.com/about/versions/pie/android-9.0",
+    "descriptionBlocks" : [
+      {
+        "title": "System",
+        "body": "Indoor positioning with Wi-Fi RTT<br>Multi-camera support<br>Display cutout support"
+      },
+      {
+        "title": "User Interface",
+        "body": "Improved notifications<br>Improved text support<br>ImageDecoder and new animation classes"
+      },
+      {
+        "title": "Media",
+        "body": "HDR VP9 video<br>HEIF image compression<br>Improved media APIs"
+      },
+      {
+        "title": "Security and privacy",
+        "body": "Android Protected Confirmation<br>Biometric authentication dialogs<br>Hardware security module<br>Secure key import<br>Client-side encryption backups"
+      },
+      {
+        "title": "Accessibility",
+        "body": "Navigation semantics<br>Convenience actions<br>Magnifier"
+      }
+    ]
+  },
+  {
+    "name": "Q",
+    "version": "10.0",
+    "apiLevel": 29,
+    "distributionPercentage": 0.028,
+    "url": "https://developer.android.com/about/versions/10",
+    "descriptionBlocks" : [
+      {
+        "title": "System",
+        "body": "Foldables support<br>5G support<br>Gesture navigation<br>ART optimizations<br>Neural Networks API 1.2<br>Thermal API"
+      },
+      {
+        "title": "User Interface",
+        "body": "Smart Reply in notifications<br>Dark theme<br>Settings panels<br>Sharing shortcuts"
+      },
+      {
+        "title": "Camera and media",
+        "body": "Dynamic depth for photos<br>Audio playback capture<br>New codecs<br>Native MIDI API<br>Vulkan everywhere<br>Directional microphones"
+      },
+      {
+        "title": "Security and privacy",
+        "body": "New location permissions<br>Storage encryption<br>TLS 1.3 by default<br>Platform hardening<br>Improved biometrics"
       }
     ]
   }

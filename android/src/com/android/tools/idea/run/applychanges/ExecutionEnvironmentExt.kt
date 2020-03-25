@@ -28,9 +28,12 @@ import com.intellij.execution.runners.ExecutionEnvironment
  */
 fun ExecutionEnvironment.findExistingProcessHandler(devices: DeviceFutures): ProcessHandler? {
   // 1) We have an existing session to reuse.
-  val existingSessionInfo = AndroidSessionInfo.findOldSession(project, null, runProfile as AndroidRunConfigurationBase, executionTarget)
-  if (existingSessionInfo != null) {
-    return existingSessionInfo.processHandler
+  val runConfiguration = runProfile as? AndroidRunConfigurationBase
+  if (runConfiguration != null) {
+    val existingSessionInfo = AndroidSessionInfo.findOldSession(project, null, runConfiguration, executionTarget)
+    if (existingSessionInfo != null) {
+      return existingSessionInfo.processHandler
+    }
   }
 
   // 2) We're swapping to an existing regular Android Run/Debug tab, then use what was provided.

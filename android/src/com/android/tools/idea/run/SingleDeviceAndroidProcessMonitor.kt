@@ -48,7 +48,8 @@ import kotlin.properties.Delegates
  * @param targetDevice a target android device to be monitored
  * @param listener a listener to listen events from this class
  * @param deploymentApplicationService a service to be used to look up running processes on a device
- * @param androidLogcatOutputCapture a controller to start and stop listening logcat messages for a device
+ * @param androidLogcatOutputCapture a controller to start and stop listening logcat messages for a device.
+ *   A collected logcat messages are emitted to [textEmitter]. You can set null if you don't need them.
  * @param textEmitter a text emitter to output debug messages to be displayed
  * @param pollingIntervalMillis a polling interval to check running remote android processes in milliseconds
  * @param appProcessDiscoveryTimeoutMillis a timeout for the target application discovery used in milliseconds
@@ -58,7 +59,7 @@ class SingleDeviceAndroidProcessMonitor(
   val targetDevice: IDevice,
   private val listener: SingleDeviceAndroidProcessMonitorStateListener,
   private val deploymentApplicationService: DeploymentApplicationService,
-  private val androidLogcatOutputCapture: AndroidLogcatOutputCapture,
+  private val androidLogcatOutputCapture: AndroidLogcatOutputCapture?,
   private val textEmitter: TextEmitter,
   pollingIntervalMillis: Long = POLLING_INTERVAL_MILLIS,
   appProcessDiscoveryTimeoutMillis: Long = APP_PROCESS_DISCOVERY_TIMEOUT_MILLIS
@@ -115,7 +116,7 @@ class SingleDeviceAndroidProcessMonitor(
     clients.forEach { client ->
       myMonitoringPids.computeIfAbsent(client.clientData.pid) { pid ->
         textEmitter.emit("Connected to process ${pid} on device '${targetDevice.name}'.\n", ProcessOutputTypes.STDOUT)
-        androidLogcatOutputCapture.startCapture(targetDevice, pid, targetApplicationId)
+        androidLogcatOutputCapture?.startCapture(targetDevice, pid, targetApplicationId)
       }
     }
     val isTargetProcessFound = clients.isNotEmpty()
@@ -167,7 +168,7 @@ class SingleDeviceAndroidProcessMonitor(
    */
   @Synchronized
   override fun close() {
-    androidLogcatOutputCapture.stopCapture(targetDevice)
+    androidLogcatOutputCapture?.stopCapture(targetDevice)
 
     when (myState) {
       WAITING_FOR_PROCESS, PROCESS_IS_RUNNING -> {

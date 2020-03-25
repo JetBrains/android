@@ -173,7 +173,10 @@ public class LightBindingClass extends AndroidLightClassBase {
       // IDs are present in every layout (there's only the one!), so the fields generated for it
       // are always non-null.
       Collection<ViewIdData> viewIds = scopedViewIds.values().stream().findFirst().get();
-      return viewIds.stream().map(viewId -> createPsiField(viewId, true)).toArray(PsiField[]::new);
+      return viewIds.stream()
+        .map(viewId -> createPsiField(viewId, true))
+        .filter(field -> field != null)
+        .toArray(PsiField[]::new);
     }
 
     // If here, we have multiple layouts. Generated fields are non-null only if their source IDs
@@ -192,6 +195,7 @@ public class LightBindingClass extends AndroidLightClassBase {
 
     return dedupedViewIds.stream()
       .map(viewId -> createPsiField(viewId, idCounts.get(viewId.getId()) == numLayouts))
+      .filter(field -> field != null)
       .toArray(PsiField[]::new);
   }
 

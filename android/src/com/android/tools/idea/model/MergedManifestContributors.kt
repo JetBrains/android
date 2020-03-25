@@ -45,11 +45,11 @@ data class MergedManifestContributors(
   @JvmField val flavorAndBuildTypeManifestsOfLibs: List<VirtualFile>) {
 
   @JvmField
-  val allFiles = listOfNotNull(primaryManifest) +
-    flavorAndBuildTypeManifests +
-    libraryManifests +
-    navigationFiles +
-    flavorAndBuildTypeManifestsOfLibs
+  val allFiles = flavorAndBuildTypeManifests +
+                 listOfNotNull(primaryManifest) +
+                 libraryManifests +
+                 navigationFiles +
+                 flavorAndBuildTypeManifestsOfLibs
 
   companion object {
     @JvmStatic

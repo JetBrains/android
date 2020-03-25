@@ -487,11 +487,13 @@ internal fun maybeUpdateName(element : GradleDslElement) {
     newElement = oldName
   }
   else {
-    val psiElement : PsiElement = if (oldName.node.elementType == IDENTIFIER) {
-      KtPsiFactory(element.psiElement?.project).createNameIdentifier(newName)
-    } else {
-      KtPsiFactory(element.psiElement?.project).createExpression(newName)
-    }
+    val project = element.psiElement?.project ?: return
+    val factory = KtPsiFactory(project)
+    val psiElement: PsiElement =
+      when (oldName.node.elementType) {
+        IDENTIFIER -> factory.createNameIdentifierIfPossible(newName)
+        else -> factory.createExpressionIfPossible(newName)
+      } ?: throw IllegalStateException("Can't create new KtExpression for name element \"$newName\"")
 
     // For Kotlin, committing changes is a bit different, and if the psiElement is invalid, it throws an exception (unlike Groovy), so we
     // need to check if the oldName is still valid, otherwise, we use the psiElement created to update the name.

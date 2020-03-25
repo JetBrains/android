@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency
 import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsGeneralIssue
 import com.android.tools.idea.gradle.structure.model.PsIssue
+import com.android.tools.idea.gradle.structure.model.PsIssue.Severity.ERROR
 import com.android.tools.idea.gradle.structure.model.PsIssue.Severity.WARNING
 import com.android.tools.idea.gradle.structure.model.PsIssueType.PROJECT_ANALYSIS
 import com.android.tools.idea.gradle.structure.model.PsModuleType
@@ -88,6 +89,13 @@ fun analyzeDependencyScope(dependency: PsDeclaredDependency): Iterable<PsIssue> 
 
   val issues = mutableListOf<PsIssue>()
   val configurationName = dependency.configurationName
+  if (configurationName == "") {
+    val path = dependency.path
+    if (path != null) {
+      val issue = PsGeneralIssue("Empty configuration", "", path, PROJECT_ANALYSIS, ERROR)
+      issues.add(issue)
+    }
+  }
   if (configurationName == "compile" || configurationName.endsWith("Compile")) {
     val text = "Obsolete dependency configuration found: <b>$configurationName</b>"
     val fixes = fixesFor(configurationName)

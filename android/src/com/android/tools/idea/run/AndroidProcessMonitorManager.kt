@@ -32,6 +32,7 @@ import javax.annotation.concurrent.GuardedBy
  * @param targetApplicationId a target application id to be monitored
  * @param deploymentApplicationService a service to be used to look up running processes on a device
  * @param textEmitter a text emitter to be used to output message from this class such as logcat message and error messages
+ * @param captureLogcat true if you need logcat message to be captured and emitted to [textEmitter], false otherwise
  * @param listener a listener to listen events from this manager
  * @param singleDeviceAndroidProcessMonitorFactory a factory method to constructor single device android process monitor
  */
@@ -39,6 +40,7 @@ class AndroidProcessMonitorManager(
   private val targetApplicationId: String,
   private val deploymentApplicationService: DeploymentApplicationService,
   private val textEmitter: TextEmitter,
+  captureLogcat: Boolean,
   private val listener: AndroidProcessMonitorManagerListener,
   private val singleDeviceAndroidProcessMonitorFactory: SingleDeviceAndroidProcessMonitorFactory =
     { _, device, monitorListener, _, logcatCaptor ->
@@ -67,7 +69,11 @@ class AndroidProcessMonitorManager(
     }
   }
 
-  private val logcatCaptor = AndroidLogcatOutputCapture(textEmitter)
+  private val logcatCaptor: AndroidLogcatOutputCapture? = if (captureLogcat) {
+    AndroidLogcatOutputCapture(textEmitter)
+  } else {
+    null
+  }
 
   /**
    * Adds a [device] and starts monitoring processes on the device. If the given device has been added already, it will be no-op.
@@ -76,7 +82,7 @@ class AndroidProcessMonitorManager(
   @Synchronized
   fun add(device: IDevice) {
     myMonitors.computeIfAbsent(device) {
-      singleDeviceAndroidProcessMonitorFactory.invoke(
+      singleDeviceAndroidProcessMonitorFactory(
         targetApplicationId, device, myMonitorListener, deploymentApplicationService, logcatCaptor)
     }
   }
@@ -112,7 +118,7 @@ class AndroidProcessMonitorManager(
   override fun close() {
     myMonitors.values.forEach { it.close() }
     myMonitors.clear()
-    logcatCaptor.stopAll()
+    logcatCaptor?.stopAll()
   }
 
   /**
@@ -141,4 +147,4 @@ private typealias SingleDeviceAndroidProcessMonitorFactory =
    targetDevice: IDevice,
    listener: SingleDeviceAndroidProcessMonitorStateListener,
    deploymentApplicationService: DeploymentApplicationService,
-   androidLogcatOutputCapture: AndroidLogcatOutputCapture) -> SingleDeviceAndroidProcessMonitor
+   androidLogcatOutputCapture: AndroidLogcatOutputCapture?) -> SingleDeviceAndroidProcessMonitor
