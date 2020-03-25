@@ -17,11 +17,12 @@ package com.android.tools.profilers.cpu;
 
 import java.io.File;
 import java.io.IOException;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Parses a trace file into a {@link CpuCapture}.
  */
 public interface TraceParser {
 
-  CpuCapture parse(File file, long traceId) throws IOException;
+  CpuCapture parse(@NotNull File file, long traceId) throws IOException;
 }
