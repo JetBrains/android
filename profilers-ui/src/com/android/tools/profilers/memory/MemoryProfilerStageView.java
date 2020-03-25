@@ -113,6 +113,7 @@ import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import kotlin.jvm.functions.Function0;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -166,14 +167,17 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     // In this case, myRangeSelectionComponent is null and we will not build the context menu.
     JPanel monitorUi = getStage().isMemoryCaptureOnly() ? null : buildMonitorUi();
     CapturePanel capturePanel = new CapturePanel(this);
-    LoadingPanel loadingPanel = getProfilersView().getIdeProfilerComponents().createLoadingPanel(-1);
-    loadingPanel.setLoadingText("Fetching results");
+    Function0<LoadingPanel> makeLoadingPanel = () -> {
+      LoadingPanel loadingPanel = getProfilersView().getIdeProfilerComponents().createLoadingPanel(-1);
+      loadingPanel.setLoadingText("Fetching results");
+      return loadingPanel;
+    };
     myLayout = getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled() ?
-               new SeparateHeapDumpMemoryProfilerStageLayout(monitorUi, capturePanel, loadingPanel, stage,
+               new SeparateHeapDumpMemoryProfilerStageLayout(monitorUi, capturePanel, makeLoadingPanel, stage,
                                                              this::setUpToolbarForTimeline,
                                                              this::setUpToolbarForCapture,
                                                              this::setUpToolbarForLoading) :
-               new LegacyMemoryProfilerStageLayout(monitorUi, capturePanel, loadingPanel);
+               new LegacyMemoryProfilerStageLayout(monitorUi, capturePanel, makeLoadingPanel);
     getComponent().add(myLayout.getComponent(), BorderLayout.CENTER);
 
     myForceGarbageCollectionButton = new CommonButton(StudioIcons.Profiler.Toolbar.FORCE_GARBAGE_COLLECTION);
@@ -905,7 +909,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       myAllocationButton.setEnabled(false);
       myNativeAllocationButton.setEnabled(false);
       myHeapDumpButton.setEnabled(false);
-      myLayout.setShowingLoadingUi(true);
+      myLayout.setLoadingUiVisible(true);
     }
   }
 
@@ -927,8 +931,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   }
 
   private void stopLoadingUi() {
-    if (myCaptureObject != null && myLayout.isShowingLoadingUi()) {
-      myLayout.setShowingLoadingUi(false);
+    if (myCaptureObject != null && myLayout.isLoadingUiVisible()) {
+      myLayout.setLoadingUiVisible(false);
     }
   }
 

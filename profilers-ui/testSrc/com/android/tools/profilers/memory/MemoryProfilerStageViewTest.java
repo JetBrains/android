@@ -96,7 +96,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Assume;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -1037,6 +1036,16 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
       .isEqualTo(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.RECORD));
   }
 
+  @Test
+  public void loadingPanelAvailabilityAndVisibility() {
+    MemoryProfilerStageLayout layout = ((MemoryProfilerStageView)myProfilersView.getStageView()).getLayout();
+    layout.setLoadingUiVisible(true);
+    assertThat(layout.getLoadingPanel()).isNotNull();
+    assertThat(layout.getLoadingPanel().getComponent().isVisible()).isTrue();
+    layout.setLoadingUiVisible(false);
+    assertThat(layout.getLoadingPanel()).isNull();
+  }
+
   private static void validateRegion(Rectangle2D.Float rect, float xStart, float yStart, float width, float height) {
     final float EPSILON = 1e-6f;
     assertThat(rect.x).isWithin(EPSILON).of(xStart);
@@ -1067,7 +1076,7 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     MemoryProfilerStageLayout layout = stageView.getLayout();
 
     if (expectedCaptureObject == null) {
-      assertThat(layout.isShowingLoadingUi()).isFalse();
+      assertThat(layout.isLoadingUiVisible()).isFalse();
       assertThat(layout.isShowingCaptureUi()).isFalse();
       assertThat(heapObjectComboBoxModel.getSize()).isEqualTo(0);
       assertThat(stageView.getClassifierView().getTree()).isNull();

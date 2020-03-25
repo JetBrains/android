@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.memory
 
-import com.android.tools.adtui.common.AdtUiUtils.DEFAULT_BORDER_COLOR
 import com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS
 import com.android.tools.adtui.common.AdtUiUtils.DEFAULT_VERTICAL_BORDERS
 import com.android.tools.adtui.model.AspectObserver
@@ -29,7 +28,6 @@ import com.intellij.ui.components.JBPanel
 import com.intellij.util.ui.JBEmptyBorder
 import java.awt.BorderLayout
 import java.awt.CardLayout
-import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JPanel
 
@@ -43,27 +41,34 @@ import javax.swing.JPanel
  * The right solution in the long run should be separating the heap-dump out into its own stage.
  */
 internal abstract class MemoryProfilerStageLayout(val capturePanel: CapturePanel,
-                                                  private val loadingPanel: LoadingPanel) {
+                                                  private val makeLoadingPanel: () -> LoadingPanel) {
   abstract val component: JComponent
   val toolbar = JPanel(createToolbarLayout())
 
+  protected var loadingPanel: LoadingPanel? = null
 
-  var isShowingLoadingUi: Boolean = false
+  var isLoadingUiVisible: Boolean
+    get() = loadingPanel != null
     set(isShown) {
-      field = isShown
-      if (isShown) {
-        loadingPanel.startLoading()
-        showLoadingView()
-      } else {
-        loadingPanel.stopLoading()
-        hideLoadingView()
+      val currentLoadingPanel = loadingPanel
+      when {
+        currentLoadingPanel == null && isShown -> {
+          val newLoadingPanel = makeLoadingPanel()
+          loadingPanel = newLoadingPanel
+          newLoadingPanel.startLoading()
+          showLoadingView(newLoadingPanel)
+        }
+        currentLoadingPanel != null && !isShown -> {
+          currentLoadingPanel.stopLoading()
+          hideLoadingView(currentLoadingPanel)
+          loadingPanel = null
+        }
       }
     }
   abstract var isShowingCaptureUi: Boolean
 
-  protected val myLoadingView = loadingPanel.component
-  protected abstract fun showLoadingView()
-  protected abstract fun hideLoadingView()
+  protected abstract fun showLoadingView(loadingPanel: LoadingPanel)
+  protected abstract fun hideLoadingView(loadingPanel: LoadingPanel)
 
   // TODO: Below are just for legacy tests. Remove them once fully migrated to new Ui
   abstract val chartCaptureSplitter: Splitter
@@ -72,12 +77,12 @@ internal abstract class MemoryProfilerStageLayout(val capturePanel: CapturePanel
 
 internal class SeparateHeapDumpMemoryProfilerStageLayout(timelineView: JComponent?,
                                                          capturePanel: CapturePanel,
-                                                         loadingPanel: LoadingPanel,
+                                                         makeLoadingPanel: () -> LoadingPanel,
                                                          private val myStage: MemoryProfilerStage,
                                                          private val myTimelineShowingCallback: Runnable,
                                                          private val myCaptureShowingCallback: Runnable,
                                                          private val myLoadingShowingCallback: Runnable)
-      : MemoryProfilerStageLayout(capturePanel, loadingPanel) {
+      : MemoryProfilerStageLayout(capturePanel, makeLoadingPanel) {
   private val myLayout = CardLayout()
   private val myTitle = JBLabel().apply {
     border = JBEmptyBorder(0, 5, 0, 0)
@@ -110,7 +115,6 @@ internal class SeparateHeapDumpMemoryProfilerStageLayout(timelineView: JComponen
       add(timelineView, CARD_TIMELINE)
     }
     add(chartCaptureSplitter, CARD_CAPTURE)
-    add(loadingPanel.component, CARD_LOADING)
     myLayout.show(this, CARD_TIMELINE)
   }
 
@@ -134,12 +138,14 @@ internal class SeparateHeapDumpMemoryProfilerStageLayout(timelineView: JComponen
       }
     }
 
-  override fun showLoadingView() {
+  override fun showLoadingView(loadingPanel: LoadingPanel) {
+    component.add(loadingPanel.component, CARD_LOADING)
     myLayout.show(component, CARD_LOADING)
     myLoadingShowingCallback.run()
   }
 
-  override fun hideLoadingView() = myLayout.show(component, CARD_TIMELINE)
+  override fun hideLoadingView(loadingPanel: LoadingPanel) = component.remove(loadingPanel.component)
+
 
   override val mainSplitter: Splitter
     get() = TODO("remove on full migration")
@@ -161,8 +167,8 @@ internal class SeparateHeapDumpMemoryProfilerStageLayout(timelineView: JComponen
 
 internal class LegacyMemoryProfilerStageLayout(timelineView: JComponent?,
                                                capturePanel: CapturePanel,
-                                               loadingPanel: LoadingPanel)
-      : MemoryProfilerStageLayout(capturePanel, loadingPanel) {
+                                               makeLoadingPanel: () -> LoadingPanel)
+      : MemoryProfilerStageLayout(capturePanel, makeLoadingPanel) {
   private val instanceDetailsSplitter = JBSplitter(true).apply {
     border = DEFAULT_VERTICAL_BORDERS
     isOpaque = true
@@ -186,11 +192,11 @@ internal class LegacyMemoryProfilerStageLayout(timelineView: JComponent?,
       chartCaptureSplitter.secondComponent = if (isShown) capturePanel.component else null
     }
 
-  override fun showLoadingView() {
-    chartCaptureSplitter.secondComponent = myLoadingView
+  override fun showLoadingView(loadingPanel: LoadingPanel) {
+    chartCaptureSplitter.secondComponent = loadingPanel.component
   }
 
-  override fun hideLoadingView() {
+  override fun hideLoadingView(loadingPanel: LoadingPanel) {
     chartCaptureSplitter.secondComponent = null
   }
 
