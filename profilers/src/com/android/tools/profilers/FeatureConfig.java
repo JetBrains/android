@@ -29,7 +29,6 @@ public interface FeatureConfig {
   boolean isLiveAllocationsSamplingEnabled();
   boolean isNativeMemorySampleEnabled(); // Added in 4.1.
   boolean isMemorySnapshotEnabled();
-  boolean isPerfettoEnabled();
   boolean isPerformanceMonitoringEnabled();
   boolean isCustomEventVisualizationEnabled();
   boolean isStartupCpuProfilingEnabled();
