@@ -35,7 +35,8 @@ import java.util.concurrent.TimeUnit
  */
 const val ASYNC_TIMEOUT_MS: Long = 10000
 
-const val INSPECTOR_ID = "test.inspector"
+const val INSPECTOR_ID = "test.inspector.1"
+const val INSPECTOR_ID_2 = "test.inspector.2"
 
 /**
  * A collection of utility functions for inspection tests.

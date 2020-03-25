@@ -18,6 +18,7 @@ package com.android.tools.idea.appinspection.ide.ui
 import com.android.tools.idea.appinspection.ide.AppInspectionHostService
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectionCallbacks
 import com.android.tools.idea.model.AndroidModuleInfo
+import com.intellij.notification.NotificationGroup
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
@@ -41,7 +42,8 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
     project,
     AppInspectionHostService.instance.discoveryHost,
     appInspectionCallbacks,
-    ::getPreferredProcesses
+    ::getPreferredProcesses,
+    DefaultAppInspectionNotificationFactory(NotificationGroup.toolWindowGroup(APP_INSPECTION_TITLE, APP_INSPECTION_ID))
   )
   val component: JComponent = appInspectionView.component
 

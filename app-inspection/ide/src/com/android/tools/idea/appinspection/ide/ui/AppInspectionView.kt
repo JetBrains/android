@@ -30,6 +30,9 @@ import com.android.tools.idea.concurrency.transform
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.MoreExecutors
+import com.intellij.notification.Notification
+import com.intellij.notification.NotificationListener
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diagnostic.Logger
@@ -38,6 +41,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
+import org.jetbrains.android.util.AndroidBundle
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.event.ItemEvent
@@ -45,12 +49,14 @@ import java.util.concurrent.CopyOnWriteArrayList
 import javax.swing.JPanel
 import javax.swing.JSeparator
 import javax.swing.SwingConstants
+import javax.swing.event.HyperlinkEvent
 
 class AppInspectionView(
   private val project: Project,
   private val appInspectionDiscoveryHost: AppInspectionDiscoveryHost,
   private val appInspectionCallbacks: AppInspectionCallbacks,
-  getPreferredProcesses: () -> List<String>
+  getPreferredProcesses: () -> List<String>,
+  private val notificationFactory: AppInspectionNotificationFactory
 ) : Disposable {
   val component = JPanel(TabularLayout("*", "Fit,Fit,*"))
   private val inspectorPanel = JPanel(BorderLayout())
@@ -64,6 +70,22 @@ class AppInspectionView(
         foreground = UIUtil.getInactiveTextColor()
       })
     }
+
+  private fun createCrashNotification(inspectorName: String): Notification {
+    return notificationFactory.createNotification(
+      AndroidBundle.message("android.appinspection.notification.crash", inspectorName),
+      "",
+      NotificationType.ERROR,
+      object : NotificationListener.Adapter() {
+        override fun hyperlinkActivated(notification: Notification, e: HyperlinkEvent) {
+          launchInspectorTabsForCurrentProcess()
+          notification.expire()
+        }
+      }
+    )
+  }
+
+  private lateinit var currentProcess: ProcessDescriptor
 
   private val activeClients = CopyOnWriteArrayList<AppInspectorClient.CommandMessenger>()
 
@@ -100,25 +122,34 @@ class AppInspectionView(
       it.disposeInspector()
       true
     }
-    (itemEvent.item as? ProcessDescriptor)?.let { descriptor ->
-      appInspectionDiscoveryHost.attachToProcess(descriptor).transform { target ->
-        AppInspectorTabProvider.EP_NAME.extensionList
-          .filter { provider -> provider.isApplicable() }
-          .forEach { provider ->
-            target.launchInspector(provider.inspectorId, provider.inspectorAgentJar, project.name) { messenger ->
-              val tab = invokeAndWaitIfNeeded {
-                provider.createTab(project, messenger, appInspectionCallbacks)
-                  .also { tab -> inspectorTabs.addTab(provider.displayName, tab.component) }
-                  .also { updateUi() }
+    currentProcess = itemEvent.item as? ProcessDescriptor ?: return
+    launchInspectorTabsForCurrentProcess()
+  }
+
+  private fun launchInspectorTabsForCurrentProcess() {
+    appInspectionDiscoveryHost.attachToProcess(currentProcess).transform { target ->
+      AppInspectorTabProvider.EP_NAME.extensionList
+        .filter { provider -> provider.isApplicable() }
+        .forEach { provider ->
+          target.launchInspector(provider.inspectorId, provider.inspectorAgentJar, project.name) { messenger ->
+            val tab = invokeAndWaitIfNeeded {
+              provider.createTab(project, messenger, appInspectionCallbacks)
+                .also { tab -> inspectorTabs.addTab(provider.displayName, tab.component) }
+                .also { updateUi() }
+            }
+            activeClients.add(tab.client.messenger)
+            tab.client
+          }.transform {
+            it.addServiceEventListener(object : AppInspectorClient.ServiceEventListener {
+              override fun onCrashEvent(message: String) {
+                createCrashNotification(provider.displayName).notify(project)
               }
-              activeClients.add(messenger)
-              tab.client
-            }.addCallback(MoreExecutors.directExecutor(), object : FutureCallback<AppInspectorClient> {
-              override fun onSuccess(result: AppInspectorClient?) {}
-              override fun onFailure(t: Throwable) = Logger.getInstance(AppInspectionView::class.java).error(t)
-            })
-          }
-      }
+            }, MoreExecutors.directExecutor())
+          }.addCallback(MoreExecutors.directExecutor(), object : FutureCallback<Unit> {
+            override fun onSuccess(result: Unit?) {}
+            override fun onFailure(t: Throwable) = Logger.getInstance(AppInspectionView::class.java).error(t)
+          })
+        }
     }
 
     updateUi()
