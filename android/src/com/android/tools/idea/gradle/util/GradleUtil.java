@@ -38,6 +38,7 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE_TRANSLATE;
+import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutputFileOrFolderFromListingFile;
 import static com.android.tools.idea.gradle.util.GradleBuilds.ENABLE_TRANSLATION_JVM_ARG;
 import static com.google.common.base.Splitter.on;
 import static com.google.common.collect.Iterables.getOnlyElement;
@@ -169,17 +170,24 @@ public final class GradleUtil {
   }
 
   /**
-   * This is temporary, until the model returns more outputs per artifact.
-   * Deprecating since the model 0.13 provides multiple outputs per artifact if split apks are enabled.
+   * Get the main output APK file for the selected variant.
+   * The method uses output listing file if it is supported, in which case, the output file will be empty if the project is never built.
+   * If build output listing file is not supported, then AndroidArtifact::getOutputs will be used.
+   *
+   * @return the main output file for selected variant.
    */
-  @Deprecated
-  @NotNull
-  public static AndroidArtifactOutput getOutput(@NotNull AndroidArtifact artifact) {
-    Collection<AndroidArtifactOutput> outputs = artifact.getOutputs();
-    assert !outputs.isEmpty();
-    AndroidArtifactOutput output = getFirstItem(outputs);
-    assert output != null;
-    return output;
+  @Nullable
+  public static File getOutputFile(@NotNull AndroidModuleModel androidModel) {
+    if (androidModel.getFeatures().isBuildOutputFileSupported()) {
+      return getOutputFileOrFolderFromListingFile(androidModel, androidModel.getSelectedVariant().getName(), OutputType.Apk, false);
+    }
+    else {
+      Collection<AndroidArtifactOutput> outputs = androidModel.getMainArtifact().getOutputs();
+      assert !outputs.isEmpty();
+      AndroidArtifactOutput output = getFirstItem(outputs);
+      assert output != null;
+      return output.getMainOutputFile().getOutputFile();
+    }
   }
 
   @NotNull
