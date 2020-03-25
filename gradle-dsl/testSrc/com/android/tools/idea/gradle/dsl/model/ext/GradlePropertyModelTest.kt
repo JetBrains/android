@@ -1228,6 +1228,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.SET_REFERENCE_VALUE_EXPECTED)
 
     // Check the the reference has changed.
     run {
@@ -1476,7 +1477,6 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
 
     applyChangesAndReparse(buildModel)
-
     verifyFileContents(myBuildFile, TestFile.UPDATE_PROPERTY_WITHOUT_SYNTAX_CHANGE_EXPECTED)
   }
 
@@ -1494,6 +1494,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, "")
 
     run {
       val propertyModel = buildModel.ext().findProperty("coolpropertyname")
@@ -1545,6 +1546,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.CHECK_SETTING_DELETED_MODEL_EXPECTED)
 
     // Check this is still the case after a reparse.
     run {
@@ -1617,6 +1619,8 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
 
     applyChangesAndReparse(buildModel)
+    // TODO(b/148198247): we need type decorators on the empty map in KotlinScript
+    verifyFileContents(myBuildFile, TestFile.CREATE_NEW_EMPTY_MAP_VALUE_EXPECTED)
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop1")
@@ -1803,6 +1807,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.DELETE_MAP_VARIABLE_EXPECTED)
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop")
@@ -1914,6 +1919,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.SET_MAP_IN_MAP_EXPECTED)
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop1")
@@ -1946,6 +1952,8 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
 
     applyChangesAndReparse(buildModel)
+    // TODO(b/148198247): we need type decorators on the empty list in KotlinScript
+    verifyFileContents(myBuildFile, TestFile.CREATE_NEW_EMPTY_LIST_EXPECTED)
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop1")
@@ -1984,6 +1992,8 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
 
     applyChangesAndReparse(buildModel)
+    // TODO(b/148198247): we need type decorators on the empty map in KotlinScript
+    verifyFileContents(myBuildFile, TestFile.CONVERT_TO_EMPTY_LIST_EXPECTED)
 
     run {
       val firstModel = buildModel.ext().findProperty("prop1")
@@ -2070,6 +2080,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     }
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.SET_LIST_IN_MAP_EXPECTED)
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop1")
@@ -2179,6 +2190,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     }
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ADD_SINGLE_ELEMENT_TO_EMPTY_EXPECTED)
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop1")
@@ -2227,6 +2239,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     }
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ADD_TO_AND_DELETE_LIST_FROM_EMPTY_EXPECTED)
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop1")
@@ -2261,6 +2274,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     }
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ADD_AND_REMOVE_FROM_NON_LITERAL_LIST_EXPECTED)
 
     run {
       val proguardFiles = buildModel.android().defaultConfig().proguardFiles()
@@ -2299,6 +2313,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     }
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.SET_LIST_EXPECTED)
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop1")
@@ -2331,6 +2346,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     }
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ADD_MIDDLE_OF_LIST_EXPECTED)
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop1")
@@ -2355,6 +2371,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     }
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.SET_IN_MIDDLE_OF_LIST_EXPECTED)
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop1")
@@ -2368,7 +2385,8 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     writeToSubModuleBuildFile(TestFile.RESOLVE_VARIABLES_IN_PARENT_MODULE_SUB)
     writeToSettingsFile(subModuleSettingsText)
 
-    val buildModel = subModuleGradleBuildModel
+    val projectBuildModel = projectBuildModel
+    val buildModel = projectBuildModel.getModuleBuildModel(mySubModule)!!
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop1")
@@ -2387,6 +2405,13 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     }
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(mySubModuleBuildFile, TestFile.RESOLVE_VARIABLES_IN_PARENT_MODULE_SUB)
+    // the above applyChanges does not write the change to the parent, as it is the submodule's build model
+    verifyFileContents(myBuildFile, TestFile.RESOLVE_AND_SET_VARIABLES_IN_PARENT_MODULE)
+
+    applyChangesAndReparse(projectBuildModel)
+    verifyFileContents(myBuildFile, TestFile.RESOLVE_AND_SET_VARIABLES_IN_PARENT_MODULE_EXPECTED)
+    verifyFileContents(mySubModuleBuildFile, TestFile.RESOLVE_VARIABLES_IN_PARENT_MODULE_SUB)
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop1")
@@ -2428,7 +2453,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       verifyPropertyModel(propertyModel, STRING_TYPE, "hello, lion!", STRING, REGULAR, 1)
       verifyPropertyModel(propertyModel.dependencies[0], STRING_TYPE, "lion", STRING, PROPERTIES_FILE, 0)
 
-      // Properties file can't be edited directed.
+      // Properties file can't be edited directly.
       writeToSubModulePropertiesFile("")
       // Applying changes and reparsing does not affect properties files, need to completely remake the build model.
       buildModel = subModuleGradleBuildModel
@@ -2496,6 +2521,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     }
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.SET_VALUE_IN_MAP_EXPECTED)
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop1")
@@ -2565,6 +2591,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     }
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.OUTER_SCOPE_VARIABLES_RESOLVED_EXPECTED)
 
     run {
       val defaultConfig = buildModel.android().defaultConfig()
@@ -2689,7 +2716,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
 
   @Test
   fun testVariablesFromApply() {
-    writeToNewProjectFile("vars", TestFile.VARIABLES_FROM_APPLY_APPLIED)
+    val vars = writeToNewProjectFile("vars", TestFile.VARIABLES_FROM_APPLY_APPLIED)
     writeToBuildFile(TestFile.VARIABLES_FROM_APPLY)
 
     val buildModel = gradleBuildModel
@@ -2712,6 +2739,8 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     }
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.VARIABLES_FROM_APPLY)
+    verifyFileContents(myProjectBasePath.findChild(vars)!!, TestFile.VARIABLES_FROM_APPLY_APPLIED_EXPECTED)
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop4")
@@ -2724,9 +2753,9 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     writeToBuildFile(TestFile.ADD_REMOVE_REFERENCE_VALUES)
 
     val buildModel = gradleBuildModel
-    var extModel = buildModel.ext()
 
     run {
+      val extModel = buildModel.ext()
       val propertyModel = extModel.findProperty("propList")
       verifyListProperty(propertyModel, listOf("1", "2", "3", "2", "2nd"), REGULAR, 4)
       propertyModel.toList()!![0].setValue(ReferenceTo("propC"))
@@ -2734,9 +2763,10 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     }
 
     applyChangesAndReparse(buildModel)
-    extModel = buildModel.ext()
+    verifyFileContents(myBuildFile, TestFile.ADD_REMOVE_REFERENCE_VALUES_EXPECTED)
 
     run {
+      val extModel = buildModel.ext()
       val propertyModel = extModel.findProperty("propList")
       verifyListProperty(propertyModel, listOf("3", "2", "3", "2", "2nd"), REGULAR, 5)
     }
@@ -2915,6 +2945,8 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     }
 
     applyChangesAndReparse(buildModel)
+    // TODO(b/148198247): we need type decorators on the empty list in KotlinScript
+    verifyFileContents(myBuildFile, TestFile.DELETE_ITEMS_FROM_LIST_EXPECTED)
 
     verifyListProperty(buildModel.ext().findProperty("prop"), "ext.prop", listOf())
   }
@@ -2930,6 +2962,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     }
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, "")
 
     assertMissingProperty(buildModel.ext().findProperty("prop"))
   }
@@ -2947,6 +2980,8 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     }
 
     applyChangesAndReparse(buildModel)
+    // TODO(b/148198247): we need type decorators on the empty map in KotlinScript
+    verifyFileContents(myBuildFile, TestFile.DELETE_ITEMS_IN_MAP_EXPECTED)
 
     verifyMapProperty(buildModel.ext().findProperty("prop"), mapOf())
   }
@@ -2962,6 +2997,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     }
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, "")
 
     assertMissingProperty(buildModel.ext().findProperty("prop"))
   }
@@ -3123,7 +3159,6 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     verifyPropertyModel(secondProperty, BIG_DECIMAL_TYPE, BigDecimal(4.2), BIG_DECIMAL, REGULAR, 0)
     val thirdProperty = buildModel.ext().findProperty("newProp")
     verifyPropertyModel(thirdProperty, INTEGER_TYPE, 3, INTEGER, REGULAR, 0)
-
   }
 
   @Test
@@ -3549,7 +3584,6 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     }
 
     applyChangesAndReparse(buildModel)
-
     verifyFileContents(myBuildFile, fileName)
 
     // Check everything is in order after a reparse.
@@ -3629,6 +3663,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     QUOTES_WITHIN_QUOTES("quotesWithinQuotes"),
     QUOTES_WITHIN_QUOTES_EXPECTED("quotesWithinQuotesExpected"),
     SET_REFERENCE_VALUE("setReferenceValue"),
+    SET_REFERENCE_VALUE_EXPECTED("setReferenceValueExpected"),
     CHANGE_PROPERTY_TYPE_TO_REFERENCE("changePropertyTypeToReference"),
     CHANGE_PROPERTY_TYPE_TO_REFERENCE_EXPECTED("changePropertyTypeToReferenceExpected"),
     CHANGE_PROPERTY_TYPE_TO_LITERAL("changePropertyTypeToLiteral"),
@@ -3650,8 +3685,10 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     DELETE_VARIABLE_DEPENDENCY("deleteVariableDependency"),
     DELETE_VARIABLE_DEPENDENCY_EXPECTED("deleteVariableDependencyExpected"),
     CHECK_SETTING_DELETED_MODEL("checkSettingDeletedModel"),
+    CHECK_SETTING_DELETED_MODEL_EXPECTED("checkSettingDeletedModelExpected"),
     DELETE_PROPERTY_IN_LIST("deletePropertyInList"),
     DELETE_ARRAY_EXPRESSION_PROPERTY_IN_LIST("deleteArrayExpressionPropertyInList"),
+    CREATE_NEW_EMPTY_MAP_VALUE_EXPECTED("createNewEmptyMapValueExpected"),
     ADD_MAP_VALUE_TO_STRING("addMapValueToString"),
     SET_NEW_VALUE_IN_MAP("setNewValueInMap"),
     SET_NEW_VALUE_IN_MAP_FOR_ARRAY_EXPRESSION("setNewValueInMapForArrayExpression"),
@@ -3672,6 +3709,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     DELETE_MAP_PROPERTY("deleteMapProperty"),
     DELETE_MAP_PROPERTY_FOR_KTS_ARRAY_EXPRESSION("deleteMapPropertyForKTSArrayExpression"),
     DELETE_MAP_VARIABLE("deleteMapVariable"),
+    DELETE_MAP_VARIABLE_EXPECTED("deleteMapVariableExpected"),
     DELETE_EMPTY_MAP("deleteEmptyMap"),
     DELETE_EMPTY_MAP_FOR_KTS_ARRAY_EXPRESSION("deleteEmptyMapForKTSArrayExpression"),
     SET_LITERAL_TO_MAP_VALUE("setLiteralToMapValue"),
@@ -3684,20 +3722,32 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     MAPS_IN_MAP_FOR_KTS_ARRAY_EXPRESSION_EXPECTED("mapsInMapForKTSArrayExpressionExpected"),
     MAP_ORDER("mapOrder"),
     SET_MAP_IN_MAP("setMapInMap"),
+    SET_MAP_IN_MAP_EXPECTED("setMapInMapExpected"),
+    CREATE_NEW_EMPTY_LIST_EXPECTED("createNewEmptyListExpected"),
     CONVERT_TO_EMPTY_LIST("convertToEmptyList"),
+    CONVERT_TO_EMPTY_LIST_EXPECTED("convertToEmptyListExpected"),
     ADD_TO_NONE_LIST("addToNoneList"),
     ADD_OUT_OF_BOUNDS("addOutOfBounds"),
     SET_LIST_IN_MAP("setListInMap"),
+    SET_LIST_IN_MAP_EXPECTED("setListInMapExpected"),
     SET_TO_LIST_VALUES("setToListValues"),
     ADD_SINGLE_ELEMENT_TO_EMPTY("addSingleElementToEmpty"),
+    ADD_SINGLE_ELEMENT_TO_EMPTY_EXPECTED("addSingleElementToEmptyExpected"),
     ADD_TO_AND_DELETE_LIST_FROM_EMPTY("addToAndDeleteListFromEmpty"),
+    ADD_TO_AND_DELETE_LIST_FROM_EMPTY_EXPECTED("addToAndDeleteListFromEmptyExpected"),
     ADD_AND_REMOVE_FROM_NON_LITERAL_LIST("addAndRemoveFromNonLiteralList"),
+    ADD_AND_REMOVE_FROM_NON_LITERAL_LIST_EXPECTED("addAndRemoveFromNonLiteralListExpected"),
     SET_LIST("setList"),
+    SET_LIST_EXPECTED("setListExpected"),
     ADD_MIDDLE_OF_LIST("addMiddleOfList"),
+    ADD_MIDDLE_OF_LIST_EXPECTED("addMiddleOfListExpected"),
     SET_IN_MIDDLE_OF_LIST("setInMiddleOfList"),
+    SET_IN_MIDDLE_OF_LIST_EXPECTED("setInMiddleOfListExpected"),
     SET_VALUE_IN_MAP("setValueInMap"),
+    SET_VALUE_IN_MAP_EXPECTED("setValueInMapExpected"),
     SET_MAP_VALUE_ON_NONE_MAP("setMapValueOnNoneMap"),
     OUTER_SCOPE_VARIABLES_RESOLVED("outerScopeVariablesResolved"),
+    OUTER_SCOPE_VARIABLES_RESOLVED_EXPECTED("outerScopeVariablesResolvedExpected"),
     VARIABLES_FROM_NESTED_APPLY("variablesFromNestedApply"),
     VARIABLES_FROM_NESTED_APPLY_EXPECTED("variablesFromNestedApplyExpected"),
     VARIABLES_FROM_NESTED_APPLY_APPLIED_FILE_ONE("variablesFromNestedApplyAppliedFileOne"),
@@ -3707,7 +3757,9 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     APPLICATION_CYCLE_APPLIED("applicationCycleApplied"),
     VARIABLES_FROM_APPLY("variablesFromApply"),
     VARIABLES_FROM_APPLY_APPLIED("variablesFromApplyApplied"),
+    VARIABLES_FROM_APPLY_APPLIED_EXPECTED("variablesFromApplyAppliedExpected"),
     ADD_REMOVE_REFERENCE_VALUES("addRemoveReferenceValues"),
+    ADD_REMOVE_REFERENCE_VALUES_EXPECTED("addRemoveReferenceValuesExpected"),
     RENAME("rename"),
     RENAME_EXPECTED("renameExpected"),
     RENAME_MAP_PROPERTY_AND_KEYS("renameMapPropertyAndKeys"),
@@ -3716,13 +3768,16 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     RENAME_LIST_VALUE_THROWS_EXPECTED("renameListValueThrowsExpected"),
     GET_DECLARED_PROPERTIES("getDeclaredProperties"),
     DELETE_ITEMS_FROM_LIST("deleteItemsFromList"),
+    DELETE_ITEMS_FROM_LIST_EXPECTED("deleteItemsFromListExpected"),
     DELETE_LIST_WITH_ITEMS("deleteListWithItems"),
     DELETE_ITEMS_IN_MAP("deleteItemsInMap"),
+    DELETE_ITEMS_IN_MAP_EXPECTED("deleteItemsInMapExpected"),
     DELETE_MAP_WITH_ITEMS("deleteMapWithItems"),
     OBTAIN_EXPRESSION_PSI_ELEMENT("obtainExpressionPsiElement"),
     ADD_TO_VARIABLE("addToVariable"),
     REFERENCE_TO_RETURN_OBJECT("referenceToReturnObject"),
     RESOLVE_AND_SET_VARIABLES_IN_PARENT_MODULE("resolveAndSetVariablesInParentModule"),
+    RESOLVE_AND_SET_VARIABLES_IN_PARENT_MODULE_EXPECTED("resolveAndSetVariablesInParentModuleExpected"),
     RESOLVE_VARIABLES_IN_PARENT_MODULE_SUB("resolveAndSetVariablesInParentModule_sub"),
     RESOLVE_VARIABLES_IN_PROPERTIES_FILE("resolveVariablesInPropertiesFile"),
     RESOLVE_VARIABLES_IN_PROPERTIES_FILE_SUB("resolveVariablesInPropertiesFile_sub"),
