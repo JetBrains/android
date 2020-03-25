@@ -34,6 +34,7 @@ public interface FeatureConfig {
   boolean isSeparateHeapDumpUiEnabled();
   boolean isStartupCpuProfilingEnabled();
   boolean isUnifiedPipelineEnabled();
+  boolean isUseTraceProcessor();
   // Add new features alphabetically instead of at the end of the list
   // This reduces the chance of having to deal with an annoying merge conflict.
 }

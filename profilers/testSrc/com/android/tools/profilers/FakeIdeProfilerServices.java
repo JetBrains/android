@@ -140,6 +140,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myNativeMemorySampleEnabled = false;
 
   /**
+   * Whether we use TraceProcessor to parse Perfetto traces.
+   */
+  private boolean myUseTraceProcessor = false;
+
+  /**
    * List of custom CPU profiling configurations.
    */
   private final List<ProfilingConfiguration> myCustomProfilingConfigurations = new ArrayList<>();
@@ -294,6 +299,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
+      public boolean isUseTraceProcessor() {
+        return myUseTraceProcessor;
+      }
+
+      @Override
       public boolean isSeparateHeapDumpUiEnabled() {
         return false;
       }
@@ -429,4 +439,8 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   public void enableCpuCaptureStage(boolean enabled) { myIsCaptureStageEnabled = enabled; }
 
   public void enableCustomEventVisualization(boolean enabled) { myCustomEventVisualizationEnabled = enabled; }
+
+  public void enableUseTraceProcessor(boolean enabled) {
+    myUseTraceProcessor = enabled;
+  }
 }
