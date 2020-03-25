@@ -154,5 +154,5 @@ public class VariantStub implements IdeVariant {
 
   @NotNull
   @Override
-  public Collection<File> getDesugarLibLintFiles() { return Collections.emptyList(); }
+  public List<String> getDesugaredMethods() { return Collections.emptyList(); }
 }
