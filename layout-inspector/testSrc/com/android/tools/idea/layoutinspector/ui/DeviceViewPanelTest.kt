@@ -20,9 +20,13 @@ import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeMouse.Button
 import com.android.tools.adtui.swing.FakeMouse.Button.LEFT
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.layoutinspector.DEFAULT_DEVICE
+import com.android.tools.idea.layoutinspector.DEFAULT_PROCESS
+import com.android.tools.idea.layoutinspector.DEFAULT_STREAM
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorTransportRule
 import com.android.tools.idea.layoutinspector.model
+import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
@@ -33,6 +37,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.components.JBScrollPane
 import junit.framework.TestCase
+import org.jetbrains.android.util.AndroidBundle
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -125,7 +130,6 @@ class DeviceViewPanelTest {
     fakeUi.mouse.drag(20, 20, -10, -10)
     TestCase.assertEquals(-0.01, contentPanel.model.xOff)
     TestCase.assertEquals(-0.01, contentPanel.model.yOff)
-
   }
 }
 
@@ -147,6 +151,29 @@ class DeviceViewPanelLegacyTest {
     val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
     assertThat(checkbox.isEnabled).isFalse()
     assertThat(checkbox.toolTipText).isEqualTo("Live updates not available for devices below API 29")
+  }
+}
+
+@RunsInEdt
+class DeviceViewPanelLegacyWithApi29DeviceTest {
+  @get:Rule
+  val disposableRule = DisposableRule()
+
+  @get:Rule
+  val edtRule = EdtRule()
+
+  @get:Rule
+  val inspectorRule = LayoutInspectorTransportRule().withLegacyClient()
+
+  @Test
+  fun testLiveControlDisabled() {
+    inspectorRule.addProcess(DEFAULT_DEVICE, DEFAULT_PROCESS)
+    inspectorRule.attachTo(DEFAULT_STREAM, DEFAULT_PROCESS)
+    val settings = DeviceViewSettings()
+    val toolbar = getToolbar(DeviceViewPanel(inspectorRule.inspector, settings, disposableRule.disposable))
+    val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
+    assertThat(checkbox.isEnabled).isFalse()
+    assertThat(checkbox.toolTipText).isEqualTo(AndroidBundle.message(REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY))
   }
 }
 

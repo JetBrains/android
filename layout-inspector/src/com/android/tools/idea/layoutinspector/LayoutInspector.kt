@@ -34,7 +34,7 @@ const val SHOW_ERROR_MESSAGES_IN_DIALOG = false
 
 class LayoutInspector(val layoutInspectorModel: InspectorModel, parentDisposable: Disposable) : Disposable {
   var currentClient: InspectorClient = DisconnectedClient
-    private set(client) {
+    set(client) {
       if (field != client) {
         field.disconnect()
       }
