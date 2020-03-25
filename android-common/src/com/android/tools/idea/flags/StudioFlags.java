@@ -162,6 +162,11 @@ public final class StudioFlags {
     PROFILER, "memory.heapdump.separate", "Show heap dump separately",
     "Show heap dump as a separate view instead of sharing with the memory monitor",
     false);
+
+  public static final Flag<Boolean> PROFILER_USE_TRACEPROCESSOR = Flag.create(
+    PROFILER, "perfetto.traceprocessor", "Enable TraceProcessorDaemon",
+    "Use TraceProcessor to parse Perfetto captures instead of Trebuchet/Atrace backend.",
+    false);
   //endregion
 
   //region ML
