@@ -19,6 +19,7 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
+import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutputFileOrFolderFromListingFile;
 import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutputListingFile;
 import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
 
@@ -48,6 +49,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
+import com.android.tools.idea.gradle.util.GradleBuildOutputUtil;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.OutputType;
 import com.android.tools.idea.log.LogWrapper;
@@ -472,9 +474,9 @@ public class GradleApkProvider implements ApkProvider {
       return ImmutableList.of();
     }
 
-    AndroidArtifactOutput output = GradleUtil.getOutput(androidModuleModel.getMainArtifact());
-    final String message = AndroidBundle.message("run.error.apk.not.signed", output.getMainOutputFile().getOutputFile().getName(),
-                                                 androidModuleModel.getSelectedVariant().getDisplayName());
+    File outputFile = GradleUtil.getOutputFile(androidModuleModel);
+    String outputFileName = outputFile == null ? "Unknown output" : outputFile.getName();
+    final String message = AndroidBundle.message("run.error.apk.not.signed", outputFileName, androidModuleModel.getSelectedVariant().getDisplayName());
 
     Runnable quickFix = () -> {
       Module module = myFacet.getModule();

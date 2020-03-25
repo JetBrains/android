@@ -37,6 +37,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import org.jetbrains.android.facet.AndroidFacet;
 
 /**
  * Tests for {@link GradleApkProvider}.
@@ -192,5 +193,22 @@ public class GradleApkProviderTest extends GradleApkProviderTestCase {
 
     // Check that we don't leak the NIO filesystem, which would prevent us from doing this twice in a row:
     provider.getApks(mock(IDevice.class));
+  }
+
+  public void testValidate() throws Exception {
+    loadProject(DYNAMIC_APP);
+
+    // Run build task for main variant and android test variant.
+    String taskName = AndroidModuleModel.get(myAndroidFacet).getSelectedVariant().getMainArtifact().getAssembleTaskName();
+    invokeGradleTasks(getProject(), taskName);
+    AndroidFacet featureFacet = AndroidFacet.getInstance(getModule("feature1"));
+    GradleApkProvider provider = new GradleApkProvider(featureFacet, new GradleApplicationIdProvider(featureFacet), true);
+
+    // Invoke method to test. Validation should fail because the feature module is not signed.
+    List<ValidationError> errors = provider.validate();
+    assertThat(errors).hasSize(1);
+    // Verify that the message contain correct output file name.
+    assertThat(errors.get(0).getMessage()).isEqualTo(
+      "The apk for your currently selected variant (feature1-debug.apk) is not signed. Please specify a signing configuration for this variant (debug).");
   }
 }
