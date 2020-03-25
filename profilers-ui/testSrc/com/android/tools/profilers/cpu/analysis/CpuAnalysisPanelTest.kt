@@ -60,7 +60,6 @@ class CpuAnalysisPanelTest {
 
   @Before
   fun setUp() {
-    services.enablePerfetto(true)
     profilers = StudioProfilers(profilerClient, services, timer)
     stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
                                    TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_TRACE_PATH))

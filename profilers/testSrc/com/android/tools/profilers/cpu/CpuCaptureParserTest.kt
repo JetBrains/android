@@ -253,7 +253,6 @@ class CpuCaptureParserTest {
   @Test
   fun parsingPerfetto_userCancelDialog() {
     val services = FakeIdeProfilerServices()
-    services.enablePerfetto(true)
     services.setListBoxOptionsIndex(-1) // Assume the user canceled the dialog.
     val parser = CpuCaptureParser(services)
     val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
@@ -275,7 +274,6 @@ class CpuCaptureParserTest {
   @Test
   fun parsingPerfetto_userSelectFirst() {
     val services = FakeIdeProfilerServices()
-    services.enablePerfetto(true)
     services.setListBoxOptionsIndex(0)
 
     val parser = CpuCaptureParser(services)
@@ -297,7 +295,6 @@ class CpuCaptureParserTest {
     val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
     // Try to parse the file, assume the user canceled the dialog. If the dialog is shown.
     services.setListBoxOptionsIndex(-1)
-    services.enablePerfetto(true)
     val futureCapture = parser.parseForTest(traceFile, CpuCaptureParser.IMPORTED_TRACE_ID, nameHint = "surfaceflinger")
     assertThat(futureCapture.isCompletedExceptionally).isFalse()
     val capture = futureCapture.get()

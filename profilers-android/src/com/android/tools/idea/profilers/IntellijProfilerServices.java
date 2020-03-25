@@ -269,9 +269,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
       }
 
       @Override
-      public boolean isPerfettoEnabled() { return StudioFlags.PROFILER_USE_PERFETTO.get(); }
-
-      @Override
       public boolean isPerformanceMonitoringEnabled() {
         return StudioFlags.PROFILER_PERFORMANCE_MONITORING.get();
       }

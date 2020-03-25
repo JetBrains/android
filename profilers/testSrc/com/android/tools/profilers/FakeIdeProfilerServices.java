@@ -70,11 +70,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private final TracePreProcessor myFakeTracePreProcessor = new FakeTracePreProcessor();
 
   /**
-   * Can toggle for tests via {@link #enablePerfetto(boolean)}, but each test starts with this defaulted to false.
-   */
-  private boolean myPerfettoEnabled = false;
-
-  /**
    * Toggle for including an energy profiler in our profiler view.
    */
   private boolean myEnergyProfilerEnabled = false;
@@ -279,9 +274,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
-      public boolean isPerfettoEnabled() { return myPerfettoEnabled; }
-
-      @Override
       public boolean isPerformanceMonitoringEnabled() {
         return false;
       }
@@ -398,10 +390,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void setNativeProfilingConfigurationPreferred(boolean nativeProfilingConfigurationPreferred) {
     myNativeProfilingConfigurationPreferred = nativeProfilingConfigurationPreferred;
-  }
-
-  public void enablePerfetto(boolean enabled) {
-    myPerfettoEnabled = enabled;
   }
 
   public void enableEnergyProfiler(boolean enabled) {
