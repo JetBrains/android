@@ -113,6 +113,4 @@ abstract class InstallableComponent(
   override val immediateChildren: Collection<ComponentTreeNode> get() = emptySet()
 
   override val isChecked: Boolean get() = stateStore.getNotNull(key, true)
-
-  override fun componentStateChanged(modified: Set<ScopedStateStore.Key<*>>): Boolean = modified.contains(key)
 }

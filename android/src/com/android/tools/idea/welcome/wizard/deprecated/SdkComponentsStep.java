@@ -197,17 +197,10 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
   @Override
   public void deriveValues(Set<? extends ScopedStateStore.Key> modified) {
     super.deriveValues(modified);
-    // TODO(qumeric) remove it. This is a hack for Kotlin-Java generics interop.
-    Set<ScopedStateStore.Key<?>> m = new HashSet<>();
-    for (ScopedStateStore.Key v: modified) {
-      m.add(v);
-    }
-    if (modified.contains(mySdkDownloadPathKey) || myRootNode.componentStateChanged(m)) {
-      String path = myState.get(mySdkDownloadPathKey);
-      myAvailableSpace.setText(getDiskSpace(path));
-      long selected = getComponentsSize();
-      myNeededSpace.setText(String.format("Total download size: %s", WelcomeUiUtils.getSizeLabel(selected)));
-    }
+    String path = myState.get(mySdkDownloadPathKey);
+    myAvailableSpace.setText(getDiskSpace(path));
+    long selected = getComponentsSize();
+    myNeededSpace.setText(String.format("Total download size: %s", WelcomeUiUtils.getSizeLabel(selected)));
   }
 
   private long getComponentsSize() {
