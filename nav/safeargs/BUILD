@@ -22,6 +22,7 @@ iml_module(
         "//tools/idea:platform-build-info",
         "//tools/idea/java/jdkAnnotations",
     ],
+    test_resources = ["testData"],
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/.idea/libraries:delight-rhino-sandbox",
