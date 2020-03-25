@@ -16,7 +16,6 @@
 package com.android.tools.idea.nav.safeargs.gradle
 
 import com.android.flags.junit.RestoreFlagRule
-import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.TestDataPaths
@@ -40,15 +39,17 @@ import org.junit.runners.Parameterized
 @RunsInEdt
 @RunWith(Parameterized::class)
 class KotlinSyncGradlePluginTest(val params: TestParams) {
-  data class TestParams(val project: String, val mode: SafeArgsMode)
+  data class TestParams(val project: String, val flagEnabled: Boolean, val mode: SafeArgsMode)
 
   companion object {
     @Suppress("unused") // Accessed via reflection by JUnit
     @JvmStatic
     @get:Parameterized.Parameters(name = "{0}")
     val parameters = listOf(
-      TestParams(TestDataPaths.PROJECT_USING_JAVA_PLUGIN, SafeArgsMode.JAVA),
-      TestParams(TestDataPaths.PROJECT_USING_KOTLIN_PLUGIN, SafeArgsMode.KOTLIN))
+      TestParams(TestDataPaths.PROJECT_USING_JAVA_PLUGIN, true, SafeArgsMode.JAVA),
+      TestParams(TestDataPaths.PROJECT_USING_KOTLIN_PLUGIN, true, SafeArgsMode.KOTLIN),
+      TestParams(TestDataPaths.PROJECT_USING_JAVA_PLUGIN, false, SafeArgsMode.NONE),
+      TestParams(TestDataPaths.PROJECT_USING_KOTLIN_PLUGIN, false, SafeArgsMode.NONE))
   }
 
   private val projectRule = AndroidGradleProjectRule()
@@ -66,7 +67,7 @@ class KotlinSyncGradlePluginTest(val params: TestParams) {
 
   @Before
   fun setUp() {
-    StudioFlags.NAV_SAFE_ARGS_SUPPORT.override(true)
+    StudioFlags.NAV_SAFE_ARGS_SUPPORT.override(params.flagEnabled)
 
     modificationCountBaseline = projectRule.project.safeArgsModeTracker.modificationCount
 
@@ -80,6 +81,12 @@ class KotlinSyncGradlePluginTest(val params: TestParams) {
 
     val facet = projectRule.androidFacet(":app")
     assertThat(facet.safeArgsMode).isEqualTo(params.mode)
-    assertThat(projectRule.project.safeArgsModeTracker.modificationCount).isGreaterThan(modificationCountBaseline)
+
+    if (params.flagEnabled) {
+      assertThat(projectRule.project.safeArgsModeTracker.modificationCount).isGreaterThan(modificationCountBaseline)
+    }
+    else {
+      assertThat(projectRule.project.safeArgsModeTracker.modificationCount).isEqualTo(0)
+    }
   }
 }
