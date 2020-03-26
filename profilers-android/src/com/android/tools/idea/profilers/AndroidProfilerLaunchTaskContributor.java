@@ -198,7 +198,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       case SAMPLED_NATIVE:
         cpuAbi = getAbiDependentLibraryName("simpleperf", "simpleperf", device);
         break;
-      case ATRACE:
+      case SYSTEM_TRACE:
         cpuAbi = getAbiDependentLibraryName("perfetto", "perfetto", device);
         break;
       default:

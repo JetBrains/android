@@ -17,7 +17,6 @@ package com.android.tools.idea.profilers.profilingconfig
 
 import com.android.tools.idea.run.profiler.CpuProfilerConfig
 import com.android.tools.profiler.proto.Cpu
-import com.android.tools.profiler.proto.CpuProfiler
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
@@ -73,7 +72,7 @@ class CpuProfilerConfigConverterTest {
       .setTraceMode(Cpu.CpuTraceMode.SAMPLED)
       .build()
     val config = CpuProfilerConfigConverter.fromProto(proto)
-    assertThat(config.technology).isEqualTo(CpuProfilerConfig.Technology.ATRACE)
+    assertThat(config.technology).isEqualTo(CpuProfilerConfig.Technology.SYSTEM_TRACE)
   }
 
   @Test
@@ -119,7 +118,7 @@ class CpuProfilerConfigConverterTest {
   @Test
   fun toProtoAtrace() {
     val config = CpuProfilerConfig().apply {
-      technology = CpuProfilerConfig.Technology.ATRACE
+      technology = CpuProfilerConfig.Technology.SYSTEM_TRACE
     }
 
     val proto = CpuProfilerConfigConverter.toProto(config)

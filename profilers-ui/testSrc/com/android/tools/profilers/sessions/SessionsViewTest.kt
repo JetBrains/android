@@ -694,7 +694,7 @@ class SessionsViewTest(private val useUnifiedEvents: Boolean) {
     assertThat(sessionItem.artifact.session).isEqualTo(session)
     assertThat(cpuCaptureItem.artifact.session).isEqualTo(session)
     assertThat(cpuCaptureItem.artifact.isOngoing).isTrue()
-    assertThat(cpuCaptureItem.artifact.name).isEqualTo(ProfilingTechnology.ATRACE.getName())
+    assertThat(cpuCaptureItem.artifact.name).isEqualTo(ProfilingTechnology.SYSTEM_TRACE.getName())
     assertThat(cpuCaptureItem.artifact.subtitle).isEqualTo(SessionArtifact.CAPTURING_SUBTITLE)
     assertThat(cpuCaptureItem.exportLabel).isNull()
 
