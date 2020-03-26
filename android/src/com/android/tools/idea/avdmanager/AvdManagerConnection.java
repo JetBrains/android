@@ -91,6 +91,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -575,9 +576,12 @@ public class AvdManagerConnection {
 
     commandLine.addParameters("-avd", info.getName());
     if (StudioFlags.EMBEDDED_EMULATOR_ENABLED.get()) {
-      commandLine.addParameters("-grpc", "8554"); // TODO: Remove after ag/1245952 has been submitted.
+      int port = 8554 + grpcPortCounter.getAndIncrement() % 32;
+      commandLine.addParameters("-grpc", Integer.toString(port)); // TODO: Remove after ag/1245952 has been submitted.
     }
   }
+
+  private static final AtomicInteger grpcPortCounter = new AtomicInteger();
 
   /**
    * Indicates if the Emulator's version is at least {@code desired}
