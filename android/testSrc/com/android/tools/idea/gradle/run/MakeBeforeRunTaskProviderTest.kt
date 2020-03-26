@@ -130,6 +130,25 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     assertExpectedJsonFile(arguments, expectedJson)
   }
 
+  fun testDeviceArgumentsForBundleConfigurationWithEnabledDynamicFeatures() {
+    // Setup additional Dynamic Feature modules
+    setUpTestProject(
+      ":" to AndroidProjectBuilder(dynamicFeatures = { listOf(":feature1", ":feature2") }),
+      ":feature1" to AndroidProjectBuilder(projectType = { AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE }),
+      ":feature2" to AndroidProjectBuilder(projectType = { AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE })
+    )
+
+    `when`(myDevice.version).thenReturn(AndroidVersion(23, "N"))
+    `when`(myDevice.density).thenReturn(640)
+    `when`(myDevice.abis).thenReturn(ImmutableList.of(Abi.ARMEABI))
+    myRunConfiguration.DEPLOY = true
+    myRunConfiguration.DEPLOY_APK_FROM_BUNDLE = true
+
+    val arguments =
+      MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules, myRunConfiguration, listOf(myDevice))
+    assertTrue(arguments.contains("-Pandroid.injected.modules.install.list=feature1,feature2"))
+  }
+
   /**
    * For a pre-L device, deploying an app with at least a dynamic feature should result
    * in using the "select apks from bundle" task (as opposed to the regular "assemble" task.
