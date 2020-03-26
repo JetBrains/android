@@ -412,6 +412,19 @@ class CpuCaptureParserTest {
     assertThat(fakeFeatureTracker.lastCpuCaptureMetadata).isNull()
   }
 
+  @Test
+  fun importedTracesAreNotCached() {
+    CpuCaptureParser.clearPreviouslyLoadedCaptures()
+    val parser = CpuCaptureParser(FakeIdeProfilerServices())
+
+    val traceFile = CpuProfilerTestUtils.getTraceFile("valid_trace.trace")
+
+    val firstFuture = parser.parseForTest(traceFile, CpuCaptureParser.IMPORTED_TRACE_ID)
+    assertThat(parser.getCapture(CpuCaptureParser.IMPORTED_TRACE_ID)).isNull()
+    val secondFuture = parser.parseForTest(traceFile, CpuCaptureParser.IMPORTED_TRACE_ID)
+    assertThat(firstFuture).isNotSameAs(secondFuture)
+  }
+
   /**
    * Check some fields of a [CpuCapture] to see if it was properly built.
    */
