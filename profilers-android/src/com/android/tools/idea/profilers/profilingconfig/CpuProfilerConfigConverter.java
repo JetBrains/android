@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.profilers.profilingconfig;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.profiler.proto.Cpu;
 import com.intellij.util.containers.ContainerUtil;
@@ -27,14 +28,14 @@ public class CpuProfilerConfigConverter {
   /**
    * Converts from list of {@link CpuProfilerConfig} to list of {@link Cpu.CpuTraceConfiguration}
    */
-  public static List<Cpu.CpuTraceConfiguration.UserOptions> toProto(List<CpuProfilerConfig> configs) {
-    return ContainerUtil.map(configs, CpuProfilerConfigConverter::toProto);
+  public static List<Cpu.CpuTraceConfiguration.UserOptions> toProto(List<CpuProfilerConfig> configs, int deviceApi) {
+    return ContainerUtil.map(configs, config -> toProto(config, deviceApi));
   }
 
   /**
    * Converts from {@link CpuProfilerConfig} to {@link Cpu.CpuTraceConfiguration.UserOptions}
    */
-  public static Cpu.CpuTraceConfiguration.UserOptions toProto(CpuProfilerConfig config) {
+  public static Cpu.CpuTraceConfiguration.UserOptions toProto(CpuProfilerConfig config, int deviceApi) {
     Cpu.CpuTraceConfiguration.UserOptions.Builder protoBuilder = Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
       .setName(config.getName())
       .setBufferSizeInMb(config.getBufferSizeMb())
@@ -55,8 +56,12 @@ public class CpuProfilerConfigConverter {
         protoBuilder.setTraceMode(Cpu.CpuTraceMode.SAMPLED);
         break;
       case SYSTEM_TRACE:
-        protoBuilder.setTraceType(Cpu.CpuTraceType.ATRACE);
-        protoBuilder.setTraceMode(Cpu.CpuTraceMode.SAMPLED);
+        if (deviceApi >= AndroidVersion.VersionCodes.P) {
+          protoBuilder.setTraceType(Cpu.CpuTraceType.PERFETTO);
+        } else {
+          protoBuilder.setTraceType(Cpu.CpuTraceType.ATRACE);
+        }
+        protoBuilder.setTraceMode(Cpu.CpuTraceMode.INSTRUMENTED);
         break;
     }
 
@@ -85,7 +90,8 @@ public class CpuProfilerConfigConverter {
       case SIMPLEPERF:
         config.setTechnology(CpuProfilerConfig.Technology.SAMPLED_NATIVE);
         break;
-      case ATRACE:
+      case ATRACE: // fall-through
+      case PERFETTO:
         config.setTechnology(CpuProfilerConfig.Technology.SYSTEM_TRACE);
         break;
       default:

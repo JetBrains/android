@@ -125,7 +125,8 @@ public enum ProfilingTechnology {
         }
       case SIMPLEPERF:
         return SIMPLEPERF;
-      case ATRACE:
+      case ATRACE: // fall-through
+      case PERFETTO:
         return SYSTEM_TRACE;
       default:
         throw new IllegalStateException("Error while trying to get the name of an unknown profiling configuration");
