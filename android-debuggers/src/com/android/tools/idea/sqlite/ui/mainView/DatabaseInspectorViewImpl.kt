@@ -122,11 +122,11 @@ class DatabaseInspectorViewImpl(
     }
   }
 
-  override fun openTab(tableId: TabId, tabName: String, component: JComponent) {
-    val tab = createSqliteExplorerTab(tableId, tabName, component)
+  override fun openTab(tabId: TabId, tabName: String, component: JComponent) {
+    val tab = createTab(tabId, tabName, component)
     tabs.addTab(tab)
     tabs.select(tab, true)
-    openTabs[tableId] = tab
+    openTabs[tabId] = tab
   }
 
   override fun focusTab(tabId: TabId) {
@@ -170,13 +170,13 @@ class DatabaseInspectorViewImpl(
     centerPanel.repaint()
   }
 
-  private fun createSqliteExplorerTab(tableId: TabId, tableName: String, tabContent: JComponent): TabInfo {
+  private fun createTab(tabId: TabId, tableName: String, tabContent: JComponent): TabInfo {
     val tab = TabInfo(tabContent)
 
     val tabActionGroup = DefaultActionGroup()
     tabActionGroup.add(object : AnAction("Close tabs", "Click to close tab", AllIcons.Actions.Close) {
       override fun actionPerformed(e: AnActionEvent) {
-        listeners.forEach { it.closeTabActionInvoked(tableId) }
+        listeners.forEach { it.closeTabActionInvoked(tabId) }
       }
 
       override fun update(e: AnActionEvent) {

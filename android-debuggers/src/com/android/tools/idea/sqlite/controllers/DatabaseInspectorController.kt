@@ -289,16 +289,16 @@ class DatabaseInspectorControllerImpl(
     private val scope = AndroidCoroutineScope(this@DatabaseInspectorControllerImpl)
 
     override fun tableNodeActionInvoked(database: SqliteDatabase, table: SqliteTable) {
-      val tableId = TabId.TableTab(database, table.name)
-      if (tableId in resultSetControllers) {
-        view.focusTab(tableId)
+      val tabId = TabId.TableTab(database, table.name)
+      if (tabId in resultSetControllers) {
+        view.focusTab(tabId)
         return
       }
 
       val databaseConnection = database.databaseConnection
 
       val tableView = viewFactory.createTableView()
-      view.openTab(tableId, table.name, tableView.component)
+      view.openTab(tabId, table.name, tableView.component)
 
       val tableController = TableController(
         project = project,
@@ -313,7 +313,7 @@ class DatabaseInspectorControllerImpl(
 
       tableController.setUp().addCallback(edtExecutor, object : FutureCallback<Unit> {
         override fun onSuccess(result: Unit?) {
-          resultSetControllers[tableId] = tableController
+          resultSetControllers[tabId] = tableController
         }
 
         override fun onFailure(t: Throwable) {
