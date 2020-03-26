@@ -36,8 +36,8 @@ import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStu
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.project.messages.SyncMessage;
-import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.ServiceContainerUtil;
 import java.io.File;
@@ -47,6 +47,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Assume;
 
 public class GradleSyncExecutorTest extends GradleSyncIntegrationTestCase {
   protected GradleSyncExecutor mySyncExecutor;
@@ -95,6 +96,7 @@ public class GradleSyncExecutorTest extends GradleSyncIntegrationTestCase {
   }
 
   public void testLibrariesAndProjectRootsAreNotRecreatedOnSync() throws Exception {
+    ignoreTestUnderWorkspaceModel();
     loadSimpleApplication();
 
     long libraryTableModCount = getLibraryTableModeCount(getProject());
@@ -193,5 +195,9 @@ public class GradleSyncExecutorTest extends GradleSyncIntegrationTestCase {
     for (Class<?> type : expectedModelTypes) {
       assertNotNull("Failed to find model of type " + type.getSimpleName(), models.findModel(type));
     }
+  }
+
+  private static void ignoreTestUnderWorkspaceModel() {
+    Assume.assumeFalse("Not applicable to workspace model", Registry.is("ide.new.project.model"));
   }
 }
