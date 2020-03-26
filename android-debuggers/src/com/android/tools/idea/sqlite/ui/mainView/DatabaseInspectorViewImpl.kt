@@ -39,7 +39,7 @@ import com.intellij.ui.BrowserHyperlinkListener
 import com.intellij.ui.UIBundle
 import com.intellij.ui.tabs.TabInfo
 import com.intellij.ui.tabs.UiDecorator
-import com.intellij.ui.tabs.impl.JBEditorTabs
+import com.intellij.ui.tabs.impl.JBTabsImpl
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
@@ -63,7 +63,7 @@ class DatabaseInspectorViewImpl(
   private val leftPanelView = LeftPanelView(this)
   private val viewContext = SqliteViewContext(leftPanelView.component)
   private val workBench: WorkBench<SqliteViewContext> = WorkBench(project, "Sqlite", null, parentDisposable)
-  private val tabs = JBEditorTabs(project, ActionManager.getInstance(), IdeFocusManager.getInstance(project), project)
+  private val tabs = JBTabsImpl(project, ActionManager.getInstance(), IdeFocusManager.getInstance(project), project)
 
   override val component: JComponent = workBench
 
@@ -78,7 +78,15 @@ class DatabaseInspectorViewImpl(
     tabs.apply {
       isTabDraggingEnabled = true
       setUiDecorator { UiDecorator.UiDecoration(null, JBUI.insets(5, 10, 6, 10)) }
-      addTabMouseListener(TabMouseListener())
+      addTabMouseListener(object : MouseAdapter() {
+        override fun mousePressed(e: MouseEvent) {
+          if (UIUtil.isCloseClick(e)) {
+            val targetTabInfo = findInfo(e)
+            val tabId = targetTabInfo?.`object` as? TabId ?: return
+            listeners.forEach { it.closeTabActionInvoked(tabId) }
+          }
+        }
+      })
     }
   }
 
@@ -172,6 +180,7 @@ class DatabaseInspectorViewImpl(
 
   private fun createTab(tabId: TabId, tableName: String, tabContent: JComponent): TabInfo {
     val tab = TabInfo(tabContent)
+    tab.`object` = tabId
 
     val tabActionGroup = DefaultActionGroup()
     tabActionGroup.add(object : AnAction("Close tabs", "Click to close tab", AllIcons.Actions.Close) {
@@ -200,16 +209,6 @@ class DatabaseInspectorViewImpl(
       Split.TOP,
       AutoHide.DOCKED
     ) { SchemaPanelToolContent() }
-  }
-
-  private inner class TabMouseListener : MouseAdapter() {
-    override fun mouseReleased(e: MouseEvent) {
-      if(e.button == 2) {
-        // TODO (b/135525331)
-        // mouse wheel click
-        //tabs.removeTab()
-      }
-    }
   }
 
   inner class SchemaPanelToolContent : ToolContent<SqliteViewContext> {
