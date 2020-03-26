@@ -2649,6 +2649,9 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     }
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myProjectBasePath.findChild(a)!!, TestFile.VARIABLES_FROM_NESTED_APPLY_APPLIED_FILE_TWO)
+    verifyFileContents(myProjectBasePath.findChild(b)!!, TestFile.VARIABLES_FROM_NESTED_APPLY_APPLIED_FILE_ONE_EXPECTED)
+    verifyFileContents(myBuildFile, TestFile.VARIABLES_FROM_NESTED_APPLY_EXPECTED)
 
     run {
       val properties = buildModel.ext().inScopeProperties
@@ -3697,7 +3700,9 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     SET_MAP_VALUE_ON_NONE_MAP("setMapValueOnNoneMap"),
     OUTER_SCOPE_VARIABLES_RESOLVED("outerScopeVariablesResolved"),
     VARIABLES_FROM_NESTED_APPLY("variablesFromNestedApply"),
+    VARIABLES_FROM_NESTED_APPLY_EXPECTED("variablesFromNestedApplyExpected"),
     VARIABLES_FROM_NESTED_APPLY_APPLIED_FILE_ONE("variablesFromNestedApplyAppliedFileOne"),
+    VARIABLES_FROM_NESTED_APPLY_APPLIED_FILE_ONE_EXPECTED("variablesFromNestedApplyAppliedFileOneExpected"),
     VARIABLES_FROM_NESTED_APPLY_APPLIED_FILE_TWO("variablesFromNestedApplyAppliedFileTwo"),
     APPLICATION_CYCLE("applicationCycle"),
     APPLICATION_CYCLE_APPLIED("applicationCycleApplied"),
