@@ -28,23 +28,26 @@ import org.jetbrains.annotations.NotNull;
  * Preferences set when start a profiling session.
  */
 public class ProfilingConfiguration {
+  public static final String DEFAULT_CONFIGURATION_NAME = "Unnamed";
   public static final int DEFAULT_BUFFER_SIZE_MB = 8;
-
   public static final int DEFAULT_SAMPLING_INTERVAL_US = 1000;
 
   /**
    * Name to identify the profiling preference. It should be displayed in the preferences list.
    */
+  @NotNull
   private String myName;
 
   /**
-   * Profiler type (ART or simpleperf).
+   * Profiler type.
    */
+  @NotNull
   private CpuTraceType myProfilerType;
 
   /**
    * Profiling mode (Sampled or Instrumented).
    */
+  @NotNull
   private CpuTraceMode myMode;
 
   private int myProfilingBufferSizeInMb = DEFAULT_BUFFER_SIZE_MB;
@@ -60,38 +63,41 @@ public class ProfilingConfiguration {
   private boolean myDisableLiveAllocation = true;
 
   public ProfilingConfiguration() {
-    // Default constructor to be used by CpuProfilingConfigService
+    this(DEFAULT_CONFIGURATION_NAME, CpuTraceType.UNSPECIFIED_TYPE, CpuTraceMode.UNSPECIFIED_MODE);
   }
 
-  public ProfilingConfiguration(String name,
-                                CpuTraceType profilerType,
-                                CpuTraceMode mode) {
+  public ProfilingConfiguration(@NotNull String name,
+                                @NotNull CpuTraceType profilerType,
+                                @NotNull CpuTraceMode mode) {
     myName = name;
     myProfilerType = profilerType;
     myMode = mode;
   }
 
+  @NotNull
   public CpuTraceMode getMode() {
     return myMode;
   }
 
-  public void setMode(CpuTraceMode mode) {
+  public void setMode(@NotNull CpuTraceMode mode) {
     myMode = mode;
   }
 
+  @NotNull
   public CpuTraceType getTraceType() {
     return myProfilerType;
   }
 
-  public void setTraceType(CpuTraceType traceType) {
+  public void setTraceType(@NotNull CpuTraceType traceType) {
     myProfilerType = traceType;
   }
 
+  @NotNull
   public String getName() {
     return myName;
   }
 
-  public void setName(String name) {
+  public void setName(@NotNull String name) {
     myName = name;
   }
 
