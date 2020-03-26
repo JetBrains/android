@@ -35,6 +35,7 @@ import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
 import com.android.builder.model.Variant;
 import com.android.ide.common.gradle.model.IdeNativeAndroidProject;
+import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -55,7 +56,7 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
 import com.intellij.openapi.externalSystem.model.task.TaskData;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.LightPlatformTestCase;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.util.Arrays;
@@ -76,7 +77,7 @@ import org.mockito.Mock;
 /**
  * Tests for {@link AndroidGradleProjectResolver}.
  */
-public class AndroidGradleProjectResolverIdeaTest extends PlatformTestCase {
+public class AndroidGradleProjectResolverTest extends LightPlatformTestCase {
   @Mock private CommandLineArgs myCommandLineArgs;
   @Mock private ProjectFinder myProjectFinder;
   @Mock private VariantSelector myVariantSelector;
@@ -288,6 +289,54 @@ public class AndroidGradleProjectResolverIdeaTest extends PlatformTestCase {
     AndroidModuleModel androidModuleModel = androidModelNodes.iterator().next().getData();
     Variant variant = androidModuleModel.findVariantByName("debug");
     assertThat(variant.getMainArtifact().getGeneratedSourceFolders()).contains(debugGeneratedSourceFile);
+  }
+
+  public void testKaptTestSourcesAreAddedToAndroidModuleModel() {
+    DataNode<ProjectData> projectNode = createProjectNode();
+    File androidTestGeneratedSourceFile = new File("/gen/debugAndroidTest");
+    File unitTestGeneratedSourceFile = new File("/gen/debugUnitTest");
+
+    KaptGradleModel mockKaptModel = new KaptGradleModel() {
+      @Override
+      public boolean isEnabled() {
+        return true;
+      }
+
+      @NotNull
+      @Override
+      public File getBuildDirectory() {
+        return null;
+      }
+
+      @NotNull
+      @Override
+      public List<KaptSourceSetModel> getSourceSets() {
+        KaptSourceSetModel androidTestSetModel = mock(KaptSourceSetModel.class);
+        when(androidTestSetModel.getGeneratedKotlinSourcesDirFile()).thenReturn(androidTestGeneratedSourceFile);
+        when(androidTestSetModel.getSourceSetName()).thenReturn("debugAndroidTest");
+        when(androidTestSetModel.isTest()).thenReturn(true);
+        KaptSourceSetModel unitTestSetModel = mock(KaptSourceSetModel.class);
+        when(unitTestSetModel.getGeneratedKotlinSourcesDirFile()).thenReturn(unitTestGeneratedSourceFile);
+        when(unitTestSetModel.getSourceSetName()).thenReturn("debugUnitTest");
+        when(unitTestSetModel.isTest()).thenReturn(true);
+        return ImmutableList.of(androidTestSetModel, unitTestSetModel);
+      }
+    };
+
+    when(myVariantSelector.findVariantToSelect(any())).thenReturn(myAndroidProjectStub.getFirstVariant());
+
+    ProjectImportAction.AllModels allModels = new ProjectImportAction.AllModels(myProjectModel);
+    allModels.addModel(myAndroidProjectStub, AndroidProject.class, myAndroidModuleModel);
+    allModels.addModel(mockKaptModel, KaptGradleModel.class, myAndroidModuleModel);
+    myResolverCtx.setModels(allModels);
+
+    DataNode<ModuleData> moduleDataNode = myProjectResolver.createModule(myAndroidModuleModel, projectNode);
+    Collection<DataNode<AndroidModuleModel>> androidModelNodes = getChildren(moduleDataNode, ANDROID_MODEL);
+    assertThat(androidModelNodes).hasSize(1);
+    AndroidModuleModel androidModuleModel = androidModelNodes.iterator().next().getData();
+    IdeVariant variant = androidModuleModel.findVariantByName("debug");
+    assertThat(variant.getAndroidTestArtifact().getGeneratedSourceFolders()).contains(androidTestGeneratedSourceFile);
+    assertThat(variant.getUnitTestArtifact().getGeneratedSourceFolders()).contains(unitTestGeneratedSourceFile);
   }
 
   @NotNull
