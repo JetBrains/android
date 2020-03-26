@@ -16,18 +16,12 @@
 package com.android.tools.idea.run.deployment;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.util.containers.ContainerUtil;
 import java.awt.Component;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.function.Function;
 import java.util.stream.IntStream;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Group;
@@ -40,19 +34,20 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class ModifyDeviceSetDialog extends DialogWrapper {
-  private static final String SELECTED_DEVICES = "SelectDeploymentTargetsDialog.selectedDevices";
-
   @NotNull
   private final Project myProject;
 
   @NotNull
   private final TableModel myTableModel;
 
+  @NotNull
+  private final Function<Project, SelectedDevicesService> mySelectedDevicesServiceGetInstance;
+
   @Nullable
   private ModifyDeviceSetDialogTable myTable;
 
   ModifyDeviceSetDialog(@NotNull Project project) {
-    this(project, newModifyDeviceSetDialogTableModel(project));
+    this(project, newModifyDeviceSetDialogTableModel(project), SelectedDevicesService::getInstance);
   }
 
   @NotNull
@@ -61,11 +56,14 @@ final class ModifyDeviceSetDialog extends DialogWrapper {
   }
 
   @VisibleForTesting
-  ModifyDeviceSetDialog(@NotNull Project project, @NotNull TableModel tableModel) {
+  ModifyDeviceSetDialog(@NotNull Project project,
+                        @NotNull TableModel tableModel,
+                        @NotNull Function<Project, SelectedDevicesService> selectedDevicesServiceGetInstance) {
     super(project);
 
     myProject = project;
     myTableModel = tableModel;
+    mySelectedDevicesServiceGetInstance = selectedDevicesServiceGetInstance;
 
     initTable();
     init();
@@ -83,7 +81,7 @@ final class ModifyDeviceSetDialog extends DialogWrapper {
     myTable = new ModifyDeviceSetDialogTable();
 
     myTable.setModel(myTableModel);
-    myTable.setSelectedDevices(getSelectedKeys(myProject));
+    myTable.setSelectedDevices(mySelectedDevicesServiceGetInstance.apply(myProject).getSelectedDeviceKeys());
   }
 
   @NotNull
@@ -132,34 +130,8 @@ final class ModifyDeviceSetDialog extends DialogWrapper {
   @Override
   protected void doOKAction() {
     super.doOKAction();
+
     assert myTable != null;
-
-    String[] keys = myTable.getSelectedDevices().stream()
-      .map(Device::getKey)
-      .map(Key::toString)
-      .toArray(String[]::new);
-
-    PropertiesComponent.getInstance(myProject).setValues(SELECTED_DEVICES, keys);
-  }
-
-  @NotNull
-  static List<Device> getSelectedDevices(@NotNull Project project) {
-    Collection<Device> devices = ServiceManager.getService(project, AsyncDevicesGetter.class).get();
-    Collection<Key> keys = getSelectedKeys(project);
-
-    return ContainerUtil.filter(devices, device -> keys.contains(device.getKey()));
-  }
-
-  @NotNull
-  private static Collection<Key> getSelectedKeys(@NotNull Project project) {
-    String[] keys = PropertiesComponent.getInstance(project).getValues(SELECTED_DEVICES);
-
-    if (keys == null) {
-      return Collections.emptySet();
-    }
-
-    return Arrays.stream(keys)
-      .map(Key::new)
-      .collect(Collectors.toSet());
+    mySelectedDevicesServiceGetInstance.apply(myProject).setSelectedDevices(myTable.getSelectedDevices());
   }
 }

@@ -683,10 +683,13 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
+    SelectedDevicesService service = Mockito.mock(SelectedDevicesService.class);
+    Mockito.when(service.getSelectedDevices()).thenReturn(Collections.singletonList(device));
+
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
       .setGetProperties(project -> properties)
       .setClock(myClock)
-      .setGetSelectedDevices(project -> Collections.singletonList(device))
+      .setSelectedDevicesServiceGetInstance(project -> service)
       .setGetRunManager(project -> myRunManager)
       .setGetExecutionTargetManager(project -> myExecutionTargetManager)
       .build();
