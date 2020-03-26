@@ -27,6 +27,7 @@ import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteValue
 import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.LightPlatformTestCase.assertThrows
@@ -104,7 +105,7 @@ class LiveSqliteResultSetTest : LightPlatformTestCase() {
 
     val mockMessenger = Mockito.mock(AppInspectorClient.CommandMessenger::class.java)
     `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java)))
-      .thenReturn(Futures.immediateFuture(cursor.toByteArray()))
+      .thenReturn(SettableFuture.create())
 
     val resultSet = createLiveSqliteResultSet(SqliteStatement("SELECT COUNT(*) FROM (query)"), mockMessenger)
     Disposer.register(project, resultSet)
@@ -158,7 +159,7 @@ class LiveSqliteResultSetTest : LightPlatformTestCase() {
 
     val mockMessenger = Mockito.mock(AppInspectorClient.CommandMessenger::class.java)
     `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java)))
-      .thenReturn(Futures.immediateFuture(cursor.toByteArray()))
+      .thenReturn(SettableFuture.create())
 
     val resultSet = createLiveSqliteResultSet(SqliteStatement("SELECT"), mockMessenger)
     Disposer.register(project, resultSet)
