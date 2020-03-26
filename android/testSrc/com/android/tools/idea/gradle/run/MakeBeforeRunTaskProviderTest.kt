@@ -202,8 +202,8 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     `when`(syncState.isSyncNeeded()).thenReturn(ThreeState.YES)
     `when`(myRunConfiguration.modules).thenReturn(myModules)
     val provider = MakeBeforeRunTaskProvider(myProject)
-    // Gradle sync should be invoked to make sure Android models are up-to-date.
-    assertThat(provider.isSyncNeeded(mock(DataContext::class.java), myRunConfiguration)).isEqualTo(SyncNeeded.SINGLE_VARIANT_SYNC_NEEDED)
+    // Gradle sync should not be invoked since the build output file is expected to be available.
+    assertThat(provider.isSyncNeeded(mock(DataContext::class.java), myRunConfiguration)).isEqualTo(SyncNeeded.NOT_NEEDED)
   }
 
   fun testRunGradleSyncWithPostBuildSyncNotSupported() {
