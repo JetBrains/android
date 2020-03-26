@@ -47,8 +47,8 @@ open class MockDatabaseInspectorView : DatabaseInspectorView {
 
   override fun removeDatabaseSchema(database: SqliteDatabase) { }
 
-  override fun openTab(tableId: TabId, tabName: String, component: JComponent) {
-    lastDisplayedResultSetTabId = tableId
+  override fun openTab(tabId: TabId, tabName: String, component: JComponent) {
+    lastDisplayedResultSetTabId = tabId
   }
 
   override fun reportSyncProgress(message: String) {}
