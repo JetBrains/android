@@ -19,8 +19,6 @@ import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.profiler.proto.Cpu;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.List;
-import java.util.stream.Collectors;
-import org.jetbrains.annotations.NotNull;
 
 public class CpuProfilerConfigConverter {
 
@@ -56,7 +54,7 @@ public class CpuProfilerConfigConverter {
         protoBuilder.setTraceType(Cpu.CpuTraceType.SIMPLEPERF);
         protoBuilder.setTraceMode(Cpu.CpuTraceMode.SAMPLED);
         break;
-      case ATRACE:
+      case SYSTEM_TRACE:
         protoBuilder.setTraceType(Cpu.CpuTraceType.ATRACE);
         protoBuilder.setTraceMode(Cpu.CpuTraceMode.SAMPLED);
         break;
@@ -88,7 +86,7 @@ public class CpuProfilerConfigConverter {
         config.setTechnology(CpuProfilerConfig.Technology.SAMPLED_NATIVE);
         break;
       case ATRACE:
-        config.setTechnology(CpuProfilerConfig.Technology.ATRACE);
+        config.setTechnology(CpuProfilerConfig.Technology.SYSTEM_TRACE);
         break;
       default:
         throw new IllegalArgumentException("Unsupported trace type: " + proto.getTraceType());

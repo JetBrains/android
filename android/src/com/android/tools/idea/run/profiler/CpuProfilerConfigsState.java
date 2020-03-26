@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.profiler;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.ServiceManager;
@@ -80,7 +79,7 @@ public class CpuProfilerConfigsState implements PersistentStateComponent<CpuProf
       .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.SAMPLED_JAVA))
       .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.INSTRUMENTED_JAVA))
       .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.SAMPLED_NATIVE))
-      .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.ATRACE));
+      .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.SYSTEM_TRACE));
     return configs.build();
   }
 

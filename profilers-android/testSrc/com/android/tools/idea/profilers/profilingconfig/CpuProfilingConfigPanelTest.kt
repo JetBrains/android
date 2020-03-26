@@ -50,7 +50,7 @@ class CpuProfilingConfigPanelTest {
 
   @Before
   fun setUp() {
-    setUp(AndroidVersion.VersionCodes.O);
+    setUp(AndroidVersion.VersionCodes.O)
   }
 
   @Test
@@ -239,7 +239,7 @@ class CpuProfilingConfigPanelTest {
                              artEnabled: Boolean,
                              simplePerfEnabled: Boolean,
                              artInstEnabled: Boolean,
-                             aTraceEnabled: Boolean) {
+                             systemTraceEnabled: Boolean) {
     val artSampledButton = treeWalker.descendants().filterIsInstance<JRadioButton>().first {
       it.text == CpuProfilerConfig.Technology.SAMPLED_JAVA.getName()
     }
@@ -249,8 +249,8 @@ class CpuProfilingConfigPanelTest {
     val simpleperfButton = treeWalker.descendants().filterIsInstance<JRadioButton>().first {
       it.text == CpuProfilerConfig.Technology.SAMPLED_NATIVE.getName()
     }
-    val atraceButton = treeWalker.descendants().filterIsInstance<JRadioButton>().first {
-      it.text == CpuProfilerConfig.Technology.ATRACE.getName()
+    val systemTraceButton = treeWalker.descendants().filterIsInstance<JRadioButton>().first {
+      it.text == CpuProfilerConfig.Technology.SYSTEM_TRACE.getName()
     }
     val artSampledDescription = treeWalker.descendants().filterIsInstance<JLabel>().first {
       it.text == ProfilingTechnology.ART_SAMPLED.longDescription
@@ -261,17 +261,17 @@ class CpuProfilingConfigPanelTest {
     val simpleperfDescription = treeWalker.descendants().filterIsInstance<JLabel>().first {
       it.text == ProfilingTechnology.SIMPLEPERF.longDescription
     }
-    val aTraceDescription = treeWalker.descendants().filterIsInstance<JLabel>().first {
-      it.text == ProfilingTechnology.ATRACE.longDescription
+    val systemTraceDescription = treeWalker.descendants().filterIsInstance<JLabel>().first {
+      it.text == ProfilingTechnology.SYSTEM_TRACE.longDescription
     }
     assertThat(artSampledButton.isEnabled).isSameAs(artEnabled)
     assertThat(artInstrumentedButton.isEnabled).isSameAs(artInstEnabled)
     assertThat(simpleperfButton.isEnabled).isSameAs(simplePerfEnabled)
-    assertThat(atraceButton.isEnabled).isSameAs(aTraceEnabled)
+    assertThat(systemTraceButton.isEnabled).isSameAs(systemTraceEnabled)
     assertThat(artSampledDescription.isEnabled).isSameAs(artEnabled)
     assertThat(artInstrumentedDescription.isEnabled).isSameAs(artInstEnabled)
     assertThat(simpleperfDescription.isEnabled).isSameAs(simplePerfEnabled)
-    assertThat(aTraceDescription.isEnabled).isSameAs(aTraceEnabled)
+    assertThat(systemTraceDescription.isEnabled).isSameAs(systemTraceEnabled)
   }
 
   @Test

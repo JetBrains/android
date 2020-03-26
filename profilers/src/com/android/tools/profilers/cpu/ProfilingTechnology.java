@@ -34,9 +34,9 @@ public enum ProfilingTechnology {
              "Samples native code using simpleperf.",
              "Available for Android 8.0 (API level 26) and higher."),
 
-  ATRACE("System Trace Recording",
-         "Traces Java and native code at the Android platform level.",
-         "Available for Android 7.0 (API level 24) and higher.");
+  SYSTEM_TRACE("System Trace Recording",
+               "Traces Java and native code at the Android platform level.",
+               "Available for Android 7.0 (API level 24) and higher.");
 
   @NotNull private final String myName;
 
@@ -86,7 +86,7 @@ public enum ProfilingTechnology {
         return Cpu.CpuTraceType.ART;
       case SIMPLEPERF:
         return Cpu.CpuTraceType.SIMPLEPERF;
-      case ATRACE:
+      case SYSTEM_TRACE:
         return Cpu.CpuTraceType.ATRACE;
     }
     throw new IllegalArgumentException("Unreachable code");
@@ -103,7 +103,7 @@ public enum ProfilingTechnology {
         return Cpu.CpuTraceMode.UNSPECIFIED_MODE;
       case SIMPLEPERF:
         return Cpu.CpuTraceMode.SAMPLED;
-      case ATRACE:
+      case SYSTEM_TRACE:
         return Cpu.CpuTraceMode.INSTRUMENTED;
     }
     throw new IllegalArgumentException("Unreachable code");
@@ -126,7 +126,7 @@ public enum ProfilingTechnology {
       case SIMPLEPERF:
         return SIMPLEPERF;
       case ATRACE:
-        return ATRACE;
+        return SYSTEM_TRACE;
       default:
         throw new IllegalStateException("Error while trying to get the name of an unknown profiling configuration");
     }

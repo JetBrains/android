@@ -132,7 +132,7 @@ class CpuCaptureSessionArtifactTest {
     myCpuService.clearTraceInfo()
     myCpuService.addTraceInfo(atraceInfo)
     mySessionsManager.update()
-    assertThat(mySessionItem.subtitle).isEqualTo(ProfilingTechnology.ATRACE.getName())
+    assertThat(mySessionItem.subtitle).isEqualTo(ProfilingTechnology.SYSTEM_TRACE.getName())
   }
 
   @Test

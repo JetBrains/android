@@ -94,7 +94,7 @@ class CpuProfilerStageCpuUsageTooltipViewTest {
     labels = TreeWalker(usageTooltipView.tooltipPanel).descendants().filterIsInstance<JLabel>()
     assertThat(labels).hasSize(2) // time, name, state, details unavailable
     assertThat(labels[0].text).isEqualTo("00:03.000")
-    assertThat(labels[1].text).isEqualTo(ProfilingTechnology.ATRACE.getName())
+    assertThat(labels[1].text).isEqualTo(ProfilingTechnology.SYSTEM_TRACE.getName())
   }
 
   private class FakeCpuUsageTooltipView(

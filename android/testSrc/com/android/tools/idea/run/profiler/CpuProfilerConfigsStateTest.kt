@@ -15,11 +15,8 @@
  */
 package com.android.tools.idea.run.profiler
 
-import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.*
 import org.junit.Test
-
-import org.junit.Before
 
 class CpuProfilerConfigsStateTest {
   private val myConfigsState = CpuProfilerConfigsState()
@@ -31,7 +28,7 @@ class CpuProfilerConfigsStateTest {
         CpuProfilerConfig.Technology.SAMPLED_JAVA.getName(),
         CpuProfilerConfig.Technology.INSTRUMENTED_JAVA.getName(),
         CpuProfilerConfig.Technology.SAMPLED_NATIVE.getName(),
-        CpuProfilerConfig.Technology.ATRACE.getName()
+        CpuProfilerConfig.Technology.SYSTEM_TRACE.getName()
     ).inOrder()
   }
 
@@ -43,8 +40,8 @@ class CpuProfilerConfigsStateTest {
       .isEqualTo(CpuProfilerConfig.Technology.SAMPLED_NATIVE)
     assertThat(myConfigsState.getConfigByName(CpuProfilerConfig.Technology.INSTRUMENTED_JAVA.getName())?.technology)
       .isEqualTo(CpuProfilerConfig.Technology.INSTRUMENTED_JAVA)
-    assertThat(myConfigsState.getConfigByName(CpuProfilerConfig.Technology.ATRACE.getName())?.technology)
-      .isEqualTo(CpuProfilerConfig.Technology.ATRACE)
+    assertThat(myConfigsState.getConfigByName(CpuProfilerConfig.Technology.SYSTEM_TRACE.getName())?.technology)
+      .isEqualTo(CpuProfilerConfig.Technology.SYSTEM_TRACE)
   }
 
   @Test
