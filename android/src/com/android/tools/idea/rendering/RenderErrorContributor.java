@@ -59,6 +59,7 @@ import com.intellij.compiler.impl.javaCompiler.javac.JavacConfiguration;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPointName;
@@ -210,7 +211,14 @@ public class RenderErrorContributor {
       return Collections.emptyList();
     }
     if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
-      return ApplicationManager.getApplication().runReadAction((Computable<Collection<String>>)() -> getAllViews(module));
+      return ReadAction.compute(() -> getAllViews(module));
+    }
+
+    if (DumbService.getInstance(module.getProject()).isDumb()) {
+      // This method should not be called in dumb mode, but if it is, we can just return an empty list. This will disable the feature
+      // where we return suggestions for correcting views.
+      LOG.warn("getAllViews called in Dumb mode, no views will be returned");
+      return Collections.emptyList();
     }
 
     return TagToClassMapper.getInstance(module).getClassMap(CLASS_VIEW).values().stream()
