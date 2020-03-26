@@ -32,7 +32,9 @@ import java.util.HashMap
  */
 class HeapProfdConverter(private val abi: String,
                          private val symbolizer: NativeFrameSymbolizer,
-                         private val memorySet: NativeMemoryHeapSet) {
+                         private val memorySet: NativeMemoryHeapSet,
+                         private val demangler: NameDemangler) {
+
   companion object {
     private val UNKNOWN_FRAME = Memory.AllocationStack.StackFrame.newBuilder().setMethodName("unknown").build()
   }
@@ -44,7 +46,7 @@ class HeapProfdConverter(private val abi: String,
    * Symbol (File:Line) eg.. operator new (new.cpp:256)
    * The file name and line number are also populated if available.
    */
-  private fun toBestAvailableStackFrame(rawFrame: StackFrame): Memory.AllocationStack.StackFrame {
+  private fun toBestAvailableStackFrame(rawFrame: StackFrame): Memory.AllocationStack.StackFrame.Builder {
     val module = String(Base64.decode(rawFrame.module))
     val symbolizedFrame = symbolizer.symbolize(abi, Memory.NativeCallStack.NativeFrame.newBuilder()
       .setModuleName(module)
@@ -52,21 +54,20 @@ class HeapProfdConverter(private val abi: String,
       // see IntellijNativeFrameSymbolizer:getOffsetOfPreviousInstruction
       .setModuleOffset(rawFrame.relPc + 1)
       .build())
-    if (symbolizedFrame.symbolName.startsWith("0x")) {
-      val methodName = if (rawFrame.name.isNullOrBlank()) UNKNOWN_FRAME.methodName else String(Base64.decode(rawFrame.name))
+    val symbolName = symbolizedFrame.symbolName
+    if (symbolName.startsWith("0x")) {
+      val methodName = if (rawFrame.name.isNullOrBlank()) UNKNOWN_FRAME.toBuilder().methodName else String(Base64.decode(rawFrame.name))
       return Memory.AllocationStack.StackFrame.newBuilder()
         .setMethodName(methodName)
         .setModuleName(module)
-        .build()
     }
     val file = File(symbolizedFrame.fileName).name
-    val formattedName = "${symbolizedFrame.symbolName} (${file}:${symbolizedFrame.lineNumber})"
+    val formattedName = "${symbolName} (${file}:${symbolizedFrame.lineNumber})"
     return Memory.AllocationStack.StackFrame.newBuilder()
       .setMethodName(formattedName)
       .setFileName(symbolizedFrame.fileName)
       .setLineNumber(symbolizedFrame.lineNumber)
       .setModuleName(symbolizedFrame.moduleName)
-      .build()
   }
 
   /**
@@ -74,16 +75,19 @@ class HeapProfdConverter(private val abi: String,
    * a count > 0 it will be added as an allocation. If the count is <= 0 it will be added as a free.
    */
   fun populateHeapSet(context: NativeAllocationContext) {
-    val frameIdToFrame: MutableMap<Long, Memory.AllocationStack.StackFrame> = HashMap()
+    val frameIdToFrame: MutableMap<Long, Memory.AllocationStack.StackFrame.Builder> = HashMap()
     val stackPointerIdToParentId: MutableMap<Long, Long> = HashMap()
     val stackPointerIdToFrameName: MutableMap<Long, Memory.AllocationStack.StackFrame> = HashMap()
     val callSites: Map<Long, NativeAllocationInstanceObject?> = HashMap()
     val classDb = ClassDb()
+
     context.framesList.forEach {
       frameIdToFrame[it.id] = toBestAvailableStackFrame(it)
     }
+    // Demangle in place is significantly faster than passing in names 1 by 1
+    demangler.demangleInplace(frameIdToFrame.values)
     context.pointersList.forEach {
-      stackPointerIdToFrameName[it.id] = frameIdToFrame[it.frameId] ?: UNKNOWN_FRAME
+      stackPointerIdToFrameName[it.id] = frameIdToFrame[it.frameId]?.build() ?: UNKNOWN_FRAME
       stackPointerIdToParentId[it.id] = it.parentId
     }
     context.allocationsList.forEach {

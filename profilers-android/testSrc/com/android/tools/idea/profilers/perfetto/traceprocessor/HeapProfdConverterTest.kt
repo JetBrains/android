@@ -73,7 +73,7 @@ class HeapProfdConverterTest {
     val nativeHeapSet = NativeMemoryHeapSet(FakeCaptureObject.Builder().build())
     val symbolizer = FakeFrameSymbolizer()
     symbolizer.addValidSymbol("TestModule", "ValidSymbol")
-    val heapProfdConverter = HeapProfdConverter("", symbolizer, nativeHeapSet)
+    val heapProfdConverter = HeapProfdConverter("", symbolizer, nativeHeapSet, FakeNameDemangler())
     heapProfdConverter.populateHeapSet(context.build())
     assertThat(nativeHeapSet.deltaAllocationCount).isEqualTo(7)
     assertThat(nativeHeapSet.deltaDeallocationCount).isEqualTo(4)
@@ -106,6 +106,11 @@ class HeapProfdConverterTest {
       // Lookup symbol else return as if the symbolizer failed.
       val symbolName = symbols[unsymbolizedFrame!!.moduleName] ?: "0x00"
       return unsymbolizedFrame.toBuilder().setSymbolName(symbolName).setFileName(symbolName).setLineNumber(123).build()
+    }
+  }
+
+  class FakeNameDemangler : NameDemangler {
+    override fun demangleInplace(stackFrames: Collection<com.android.tools.profiler.proto.Memory.AllocationStack.StackFrame.Builder>) {
     }
   }
 }
