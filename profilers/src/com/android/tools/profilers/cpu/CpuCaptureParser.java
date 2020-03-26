@@ -202,7 +202,10 @@ public class CpuCaptureParser {
           myServices.getPoolExecutor())
         .whenCompleteAsync(new TraceResultHandler(traceFile, traceId, isImportedTrace), myServices.getMainExecutor());
 
-    myCaptures.put(traceId, cpuCapture);
+    // Currently we cannot cache imported traces because all of them shares the same id.
+    if (traceId != IMPORTED_TRACE_ID) {
+      myCaptures.put(traceId, cpuCapture);
+    }
     return cpuCapture;
   }
 
