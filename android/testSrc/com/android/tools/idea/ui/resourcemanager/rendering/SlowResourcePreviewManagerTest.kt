@@ -17,7 +17,6 @@ package com.android.tools.idea.ui.resourcemanager.rendering
 
 import com.android.resources.ResourceType
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.ui.resourcemanager.rendering.ImageCacheRule
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.util.androidFacet
@@ -29,7 +28,6 @@ import org.junit.Rule
 import org.junit.Test
 import java.awt.Color
 import java.awt.image.BufferedImage
-import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertFalse
@@ -102,7 +100,7 @@ private object TestSlowPreviewProvider : SlowResourcePreviewProvider {
     }
   }
 
-  override fun getSlowPreview(width: Int, height: Int, asset: Asset): CompletableFuture<out BufferedImage?> {
-    return CompletableFuture.completedFuture(createTestImage())
+  override fun getSlowPreview(width: Int, height: Int, asset: Asset): BufferedImage? {
+    return createTestImage()
   }
 }

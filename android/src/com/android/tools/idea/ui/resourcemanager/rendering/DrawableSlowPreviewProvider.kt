@@ -43,25 +43,25 @@ class DrawableSlowPreviewProvider(
 
   override val previewPlaceholder: BufferedImage = createDrawablePlaceholderImage(JBUIScale.scale(20), JBUIScale.scale(20))
 
-  override fun getSlowPreview(width: Int, height: Int, asset: Asset): CompletableFuture<out BufferedImage?> {
-    val designAsset = asset as? DesignAsset ?: return CompletableFuture.completedFuture(null)
+  override fun getSlowPreview(width: Int, height: Int, asset: Asset): BufferedImage? {
+    val designAsset = asset as? DesignAsset ?: return null
     val configContext = contextFile ?: designAsset.file
     val dimension = Dimension(width, height)
     if (designAsset.resourceItem is SampleDataResourceItem) {
       // Do not try to resolve SampleData, it will return an iterable resourceValue that will generate different previews.
       val file = designAsset.file
-      return DesignAssetRendererManager.getInstance().getViewer(file).getImage(file, facet.module, dimension, configContext)
+      return DesignAssetRendererManager.getInstance().getViewer(file).getImage(file, facet.module, dimension, configContext).get()
     }
-    val resolveValue = resourceResolver.resolveValue(designAsset) ?: return CompletableFuture.completedFuture(null)
+    val resolveValue = resourceResolver.resolveValue(designAsset) ?: return null
     if (resolveValue.isFramework) {
       // Delegate framework resources to FrameworkDrawableRenderer. DesignAssetRendererManager fails to provide an image for framework xml
       // resources, it tries to just use the file reference in ResourceValue but it needs a whole ResourceValue from the ResourceResolver
       // that also points to LayoutLib's framework resources instead of the local Android Sdk.
-      return renderFrameworkDrawable(resolveValue, configContext, designAsset, dimension) ?: return CompletableFuture.completedFuture(null)
+      return renderFrameworkDrawable(resolveValue, configContext, designAsset, dimension)?.get() ?: return null
     }
 
     val file = resourceResolver.resolveDrawable(resolveValue, project) ?: designAsset.file
-    return DesignAssetRendererManager.getInstance().getViewer(file).getImage(file, facet.module, dimension, configContext)
+    return DesignAssetRendererManager.getInstance().getViewer(file).getImage(file, facet.module, dimension, configContext).get()
   }
 
   private fun renderFrameworkDrawable(resolvedValue: ResourceValue,
