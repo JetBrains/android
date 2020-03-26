@@ -16,24 +16,13 @@
 package com.android.tools.idea.gradle.project.sync.issues;
 
 import com.android.builder.model.SyncIssue;
-import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
-import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
-import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-
-import static com.android.builder.model.SyncIssue.TYPE_DEPRECATED_CONFIGURATION;
 
 public class DeprecatedConfigurationReporter extends SimpleDeduplicatingSyncIssueReporter {
   @Override
   int getSupportedIssueType() {
-    return TYPE_DEPRECATED_CONFIGURATION;
+    return SyncIssue.TYPE_DEPRECATED_CONFIGURATION;
   }
 
   @Override

@@ -16,8 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.issues
 
 import com.android.builder.model.SyncIssue
-import com.android.builder.model.SyncIssue.SEVERITY_ERROR
-import com.android.builder.model.SyncIssue.TYPE_THIRD_PARTY_GRADLE_PLUGIN_TOO_OLD
 import com.android.tools.idea.gradle.project.sync.hyperlink.UpdatePluginHyperlink
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub
 import com.android.tools.idea.testing.AndroidGradleTestCase
@@ -80,14 +78,14 @@ class OutOfDateThirdPartyPluginIssueReporterTest : AndroidGradleTestCase() {
   }
 
   private fun setUpMockSyncIssue(name: String, group: String, minVersion: String, paths: List<String>): SyncIssue = object : SyncIssue {
-    override fun getSeverity(): Int = SEVERITY_ERROR
+    override val severity: Int = SyncIssue.SEVERITY_ERROR
 
-    override fun getType(): Int = TYPE_THIRD_PARTY_GRADLE_PLUGIN_TOO_OLD
+    override val type: Int = SyncIssue.TYPE_THIRD_PARTY_GRADLE_PLUGIN_TOO_OLD
 
-    override fun getData(): String? = listOf("Some Plugin", group, name, minVersion, paths.joinToString(",", "[", "]")).joinToString(";")
+    override val data: String? = listOf("Some Plugin", group, name, minVersion, paths.joinToString(",", "[", "]")).joinToString(";")
 
-    override fun getMessage(): String = "This is some message"
+    override val message: String = "This is some message"
 
-    override fun getMultiLineMessage(): List<String> = listOf(message)
+    override val multiLineMessage: List<String> = listOf(message)
   }
 }

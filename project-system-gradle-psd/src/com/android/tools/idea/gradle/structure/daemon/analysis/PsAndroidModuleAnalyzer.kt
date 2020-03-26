@@ -17,8 +17,6 @@ package com.android.tools.idea.gradle.structure.daemon.analysis
 
 import com.android.SdkConstants.GRADLE_PATH_SEPARATOR
 import com.android.builder.model.SyncIssue
-import com.android.builder.model.SyncIssue.SEVERITY_ERROR
-import com.android.builder.model.SyncIssue.SEVERITY_WARNING
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.structure.configurables.PsPathRenderer
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
@@ -141,8 +139,8 @@ fun createIssueFrom(syncIssue: SyncIssue, path: PsPath): PsIssue {
 private fun getSeverity(issue: SyncIssue): PsIssue.Severity {
   val severity = issue.severity
   when (severity) {
-    SEVERITY_ERROR -> return ERROR
-    SEVERITY_WARNING -> return WARNING
+    SyncIssue.SEVERITY_ERROR -> return ERROR
+    SyncIssue.SEVERITY_WARNING -> return WARNING
   }
   return INFO
 }

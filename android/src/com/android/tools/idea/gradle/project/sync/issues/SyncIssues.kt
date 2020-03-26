@@ -61,11 +61,11 @@ class SyncIssueDataService : AbstractProjectDataService<SyncIssueData, Void>() {
       val module = modelsProvider.findIdeModule(moduleNode.data) ?: return@forEach
       // TODO: Make the reporter handle SyncIssueData instead, but for now to just use an adapter.
       val mappedSyncIssues : List<SyncIssue> = syncIssues.map { node -> object : SyncIssue {
-        override fun getSeverity(): Int = node.data.severity
-        override fun getType(): Int = node.data.type
-        override fun getData(): String? = node.data.data
-        override fun getMessage(): String = node.data.message
-        override fun getMultiLineMessage(): List<String>? = node.data.multiLineMessage
+        override val severity: Int = node.data.severity
+        override val type: Int = node.data.type
+        override val data: String? = node.data.data
+        override val message: String = node.data.message
+        override val multiLineMessage: List<String>? = node.data.multiLineMessage
       }}
       moduleToSyncIssueMap[module] = mappedSyncIssues
     }
