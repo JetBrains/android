@@ -40,6 +40,10 @@ public class HeapSet extends ClassifierSet {
     setClassGrouping(ClassGrouping.ARRANGE_BY_CLASS);
   }
 
+  public ClassGrouping getClassGrouping() {
+    return myClassGrouping;
+  }
+
   public void setClassGrouping(@NotNull ClassGrouping classGrouping) {
     if (myClassGrouping == classGrouping) {
       return;

@@ -88,7 +88,7 @@ import javax.swing.tree.TreeSelectionModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class MemoryClassifierView extends AspectObserver {
+final class MemoryClassifierView extends AspectObserver implements CapturePanelTabContainer {
   private static final int LABEL_COLUMN_WIDTH = 800;
   private static final int MODULE_COLUMN_WIDTH = 100;
   private static final int HEAP_UPDATING_DELAY_MS = 250;
@@ -244,8 +244,14 @@ final class MemoryClassifierView extends AspectObserver {
   }
 
   @NotNull
-  JComponent getComponent() {
+  @Override
+  public JComponent getComponent() {
     return myPanel;
+  }
+
+  @Override
+  public void onSelectionChanged(boolean selected) {
+    // Default
   }
 
   @VisibleForTesting
