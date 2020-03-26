@@ -25,6 +25,7 @@ import com.android.ddmlib.DdmPreferences;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.Log;
 import com.android.ddmlib.TimeoutRemainder;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -186,7 +187,7 @@ public class AdbService implements Disposable, AdbOptionsService.AdbOptionsListe
       Future<BridgeConnectionResult> future = ApplicationManager.getApplication().executeOnPooledThread(new CreateBridgeTask(adb, () -> {
         if (terminateDdmlibFirst) {
           try {
-            terminateDdmlib();
+            shutdownAndroidDebugBridge(ADB_TERMINATE_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
           }
           catch (TimeoutException e) {
             throw new RuntimeException(e);
@@ -214,27 +215,29 @@ public class AdbService implements Disposable, AdbOptionsService.AdbOptionsListe
   }
 
   public synchronized void terminateDdmlib() throws TimeoutException {
-    if (!terminateDdmlib(ADB_TERMINATE_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)) {
-      throw new TimeoutException("ADB did not terminate within the specified timeout");
-    }
+    cancelCurrentFuture();
+    shutdownAndroidDebugBridge(ADB_TERMINATE_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
   }
 
-  public synchronized boolean terminateDdmlib(long timeout, @NotNull TimeUnit unit) {
+  private static void shutdownAndroidDebugBridge(long timeout, @NotNull TimeUnit unit) throws TimeoutException {
     LOG.info("Terminating ADB connection");
-    cancelCurrentFuture();
 
     synchronized (ADB_INIT_LOCK) {
       if (!AndroidDebugBridge.disconnectBridge(timeout, unit)) {
         LOG.warn("ADB connection did not terminate within specified timeout");
-        return false;
+        throw new TimeoutException("ADB did not terminate within the specified timeout");
       }
 
       AndroidDebugBridge.terminate();
       LOG.info("ADB connection successfully terminated");
-      return true;
     }
   }
 
+  @VisibleForTesting
+  synchronized void cancelFutureForTesting() {
+    assert myFuture != null;
+    myFuture.cancel(true);
+  }
 
   private synchronized void cancelCurrentFuture() {
     if (myFuture != null) {
