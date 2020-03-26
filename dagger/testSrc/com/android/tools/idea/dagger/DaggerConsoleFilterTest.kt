@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.dagger
 
-import com.android.tools.idea.dagger.DaggerOutputParser.Companion.ERROR_PREFIX
+import com.android.tools.idea.dagger.DaggerConsoleFilter.Companion.ERROR_PREFIX
 import com.android.tools.idea.kotlin.getQualifiedName
 import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.testing.moveCaret
