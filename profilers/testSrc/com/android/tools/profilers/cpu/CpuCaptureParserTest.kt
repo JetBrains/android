@@ -160,28 +160,48 @@ class CpuCaptureParserTest {
   }
 
   @Test
-  fun traceTypeInferredFromUnspecified() {
+  fun traceTypeInferredFromMissingType_SimplePerf() {
     val parser = CpuCaptureParser(FakeIdeProfilerServices())
 
     val traceFile = CpuProfilerTestUtils.getTraceFile("simpleperf.trace")
     val futureCapture = parser.parseForTest(traceFile, idHint = ProfilersTestData.SESSION_DATA.pid)
 
     // Parsing should create a valid CpuCapture object
-    checkValidCapture(futureCapture.get())
+    val capture = futureCapture.get()
+    checkValidCapture(capture)
+    assertThat(capture.type).isEqualTo(Cpu.CpuTraceType.SIMPLEPERF)
 
     // getCapture(traceId) should return the same object created by calling parse.
     assertThat(parser.getCapture(ANY_TRACE_ID)).isEqualTo(futureCapture)
   }
 
   @Test
-  fun traceTypeInferredFromMissingType() {
+  fun traceTypeInferredFromMissingType_Atrace() {
     val parser = CpuCaptureParser(FakeIdeProfilerServices())
 
-    val traceFile = CpuProfilerTestUtils.getTraceFile("simpleperf.trace")
+    val traceFile = CpuProfilerTestUtils.getTraceFile("atrace.ctrace")
     val futureCapture = parser.parseForTest(traceFile, idHint = ProfilersTestData.SESSION_DATA.pid)
 
     // Parsing should create a valid CpuCapture object
-    checkValidCapture(futureCapture.get())
+    val capture = futureCapture.get()
+    checkValidCapture(capture)
+    assertThat(capture.type).isEqualTo(Cpu.CpuTraceType.ATRACE)
+
+    // getCapture(traceId) should return the same object created by calling parse.
+    assertThat(parser.getCapture(ANY_TRACE_ID)).isEqualTo(futureCapture)
+  }
+
+  @Test
+  fun traceTypeInferredFromMissingType_Perfetto() {
+    val parser = CpuCaptureParser(FakeIdeProfilerServices())
+
+    val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
+    val futureCapture = parser.parseForTest(traceFile, idHint = ProfilersTestData.SESSION_DATA.pid)
+
+    // Parsing should create a valid CpuCapture object
+    val capture = futureCapture.get()
+    checkValidCapture(capture)
+    assertThat(capture.type).isEqualTo(Cpu.CpuTraceType.PERFETTO)
 
     // getCapture(traceId) should return the same object created by calling parse.
     assertThat(parser.getCapture(ANY_TRACE_ID)).isEqualTo(futureCapture)

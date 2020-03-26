@@ -40,8 +40,12 @@ public class AtraceCpuCapture extends BaseCpuCapture {
   @NotNull
   private final AtraceFrameManager myFrameManager;
 
-  public AtraceCpuCapture(long traceId, @NotNull Range range, @NotNull AtraceParser parser, @NotNull AtraceFrameManager frameManager) {
-    super(traceId, Cpu.CpuTraceType.ATRACE, range, parser.getCaptureTrees());
+  public AtraceCpuCapture(long traceId,
+                          @NotNull Cpu.CpuTraceType type,
+                          @NotNull Range range,
+                          @NotNull AtraceParser parser,
+                          @NotNull AtraceFrameManager frameManager) {
+    super(traceId, type, range, parser.getCaptureTrees());
 
     myThreadStateDataSeries = parser.getThreadStateDataSeries();
     myCpuThreadSliceInfoStates = parser.getCpuThreadSliceInfoStates();

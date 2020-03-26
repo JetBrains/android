@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu.atrace
 
 import com.android.tools.adtui.model.Range
+import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
@@ -221,7 +222,7 @@ class AtraceParserTest {
 
   @Test
   fun perfettoCaptureGetsProcessList() {
-    val parser = AtraceParser()
+    val parser = AtraceParser(Cpu.CpuTraceType.PERFETTO, MainProcessSelector())
     parser.parse(CpuProfilerTestUtils.getTraceFile("perfetto.trace"), 0)
 
     assertThat(parser.getProcessList("")).isNotEmpty()
