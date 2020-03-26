@@ -16,7 +16,6 @@
 package com.android.tools.idea.dagger
 
 import com.android.tools.idea.dagger.DaggerConsoleFilter.Companion.FQCN_WITH_METHOD
-import com.android.tools.idea.dagger.DaggerOutputParser.Companion.ERROR_PREFIX
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.execution.filters.ConsoleFilterProvider
 import com.intellij.execution.filters.Filter
@@ -34,8 +33,7 @@ import com.intellij.util.PsiNavigateUtil
  * Note: Implementation expects that [DaggerConsoleFilterProvider.getDefaultFilters] is called for every new ConsoleView.
  * see [com.intellij.execution.impl.ConsoleViewUtil.computeConsoleFilters]. Therefore Filter has internal state [isDaggerMessage].
  *
- * It also relies on the fact that every Dagger error has [ERROR_PREFIX] in message before any string that needs links,
- * see [DaggerOutputParser]
+ * It also relies on the fact that every Dagger error has [ERROR_PREFIX] in message before any string that needs links
  */
 class DaggerConsoleFilter : Filter {
   private var isDaggerMessage = false
@@ -43,6 +41,7 @@ class DaggerConsoleFilter : Filter {
   companion object {
     private const val ID_PATTERN = "\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*"
     private const val FQCN_PATTERN = "$ID_PATTERN(?:\\.$ID_PATTERN)+"
+    const val ERROR_PREFIX = "[Dagger/"
 
     // Matches in groups [full match, fully-qualified-class-name-followed-by-method, method-name, fully-qualified-class-name].
     private val FQCN_WITH_METHOD = Regex("(?:($FQCN_PATTERN)(?:\\.($ID_PATTERN)\\())|($FQCN_PATTERN)")
