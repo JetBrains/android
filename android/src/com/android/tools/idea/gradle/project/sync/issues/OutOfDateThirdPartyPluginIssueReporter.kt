@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.issues
 
 import com.android.builder.model.SyncIssue
-import com.android.builder.model.SyncIssue.*
 import com.android.tools.idea.gradle.project.sync.hyperlink.UpdatePluginHyperlink
 import com.android.tools.idea.gradle.project.sync.issues.processor.GradlePluginInfo
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
@@ -62,7 +61,7 @@ class OutOfDateThirdPartyPluginIssueReporter : SimpleDeduplicatingSyncIssueRepor
     return notificationData
   }
 
-  override fun getSupportedIssueType(): Int = TYPE_THIRD_PARTY_GRADLE_PLUGIN_TOO_OLD
+  override fun getSupportedIssueType(): Int = SyncIssue.TYPE_THIRD_PARTY_GRADLE_PLUGIN_TOO_OLD
 
   override fun getDeduplicationKey(issue: SyncIssue): Any = issue.issueData()?.displayName ?: issue
 
