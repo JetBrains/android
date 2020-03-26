@@ -98,8 +98,8 @@ internal class EmulatorToolWindowPanel(private val emulator: EmulatorController)
 
     scrollPane = MyScrollPane()
     scrollPane.border = null
-    scrollPane.verticalScrollBarPolicy = ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
-    scrollPane.horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS
+    scrollPane.verticalScrollBarPolicy = ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
+    scrollPane.horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
     scrollPane.viewport.background = background
 
     layeredPane = JLayeredPane()
@@ -135,7 +135,7 @@ internal class EmulatorToolWindowPanel(private val emulator: EmulatorController)
   fun createContent(cropSkin: Boolean) {
     try {
       val disposable = Disposer.newDisposable()
-      val toolbar = EmulatorZoomToolbar.getToolbar(this, disposable)
+      val toolbar = EmulatorZoomToolbar.createToolbar(this, disposable)
       toolbar.isVisible = zoomToolbarIsVisible
       floatingToolbar = toolbar
       zoomControlsLayerPane.add(toolbar, BorderLayout.EAST)

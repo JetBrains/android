@@ -92,7 +92,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
       }
     }
 
-  var emulatorController: EmulatorControllerGrpc.EmulatorControllerStub
+  private var emulatorController: EmulatorControllerGrpc.EmulatorControllerStub
     get() {
       return emulatorControllerInternal ?: throw IllegalStateException()
     }
@@ -135,7 +135,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     val channel = NettyChannelBuilder
       .forAddress("localhost", emulatorId.grpcPort)
       .usePlaintext() // TODO(sprigogin): Add proper authentication.
-      .maxInboundMessageSize(16 * 1024 * 1024)
+      .maxInboundMessageSize(20 * 1024 * 1024)
       .build()
     emulatorController = EmulatorControllerGrpc.newStub(channel)
     channel.notifyWhenStateChanged(channel.getState(false), connectivityStateWatcher)
