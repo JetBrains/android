@@ -284,7 +284,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     // if not supported. The later case requires Gradle Sync, because deploy relies on the models from Gradle Sync to get Apk locations.
     if (GradleSyncState.getInstance(myProject).isSyncNeeded() != ThreeState.NO &&
         (AndroidGradleBuildConfiguration.getInstance(myProject).SYNC_PROJECT_BEFORE_BUILD ||
-         !isPostBuildSyncSupported(context, configuration))) {
+         !isPostBuildModelsSupported(context, configuration))) {
       return SyncNeeded.SINGLE_VARIANT_SYNC_NEEDED;
     }
 
@@ -317,14 +317,16 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   }
 
   /**
-   * Returns true if there is no Android module, or all of Android modules support post build sync.
+   * Returns true if there is no Android module, or all of Android modules support post build models (via sync or the build output file).
    */
-  private boolean isPostBuildSyncSupported(@NotNull DataContext context,
-                                           @NotNull RunConfiguration configuration) {
+  private boolean isPostBuildModelsSupported(@NotNull DataContext context,
+                                             @NotNull RunConfiguration configuration) {
     Module[] modules = getModules(context, configuration);
     for (Module module : modules) {
       AndroidModuleModel androidModuleModel = AndroidModuleModel.get(module);
-      if (androidModuleModel != null && !androidModuleModel.getFeatures().isPostBuildSyncSupported()) {
+      if (androidModuleModel != null &&
+          !androidModuleModel.getFeatures().isPostBuildSyncSupported() &&
+          !androidModuleModel.getFeatures().isBuildOutputFileSupported()) {
         return false;
       }
     }
