@@ -69,34 +69,6 @@ internal class SkinDefinition private constructor(
   }
 
   /**
-   * Returns the Emulator display size such that the Emulator skin fits into the [width] by [height] rectangle.
-   *
-   * @param width the width of the available screen area
-   * @param height the height of the available screen area
-   * @param rotation the orientation of the display
-   */
-  fun getScaledDisplaySize(width: Int, height: Int, rotation: SkinRotation): Dimension {
-    val layout: Layout
-    if (rotation.is90Degrees) {
-      if (rotatedLayout == null) {
-        val skinSize = primaryLayout.skinSize
-        val displayRect = primaryLayout.displayRect
-        val scale = min(width.toDouble() / skinSize.height, height.toDouble() / skinSize.width)
-        return Dimension((displayRect.height * scale).toInt(), (displayRect.width * scale).toInt())
-      }
-      layout = rotatedLayout
-    }
-    else {
-      layout = primaryLayout
-    }
-
-    val skinSize = layout.skinSize
-    val displayRect = layout.displayRect
-    val scale = min(width.toDouble() / skinSize.width, height.toDouble() / skinSize.height)
-    return Dimension((displayRect.width * scale).toInt(), (displayRect.height * scale).toInt())
-  }
-
-  /**
    * Creates a [ScaledSkinLayout] for the given display dimensions and rotation.
    *
    * @param displayWidth the width of the rotated display
@@ -127,18 +99,6 @@ internal class SkinDefinition private constructor(
     val mask = getTransformedPartImage(part.maskFile, rotation, scale, layout.displayRect.x, layout.displayRect.y, layout.skinSize)
 
     return ScaledSkinLayout(skinSize, displayRect, background, mask)
-  }
-
-  /**
-   * Returns the display dimensions for the given display orientation.
-   */
-  fun getRotatedDisplaySize(displayRotation: SkinRotation): Dimension {
-    return if (displayRotation.is90Degrees) {
-      rotatedLayout?.displayRect?.size ?: Dimension(primaryLayout.displayRect.height, primaryLayout.displayRect.width)
-    }
-    else {
-      primaryLayout.displayRect.size
-    }
   }
 
   /**
