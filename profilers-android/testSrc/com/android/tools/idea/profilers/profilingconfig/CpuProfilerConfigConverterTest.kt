@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.profilers.profilingconfig
 
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.run.profiler.CpuProfilerConfig
 import com.android.tools.profiler.proto.Cpu
 import com.google.common.truth.Truth.assertThat
@@ -69,7 +70,18 @@ class CpuProfilerConfigConverterTest {
     val proto = Cpu.CpuTraceConfiguration.UserOptions
       .newBuilder()
       .setTraceType(Cpu.CpuTraceType.ATRACE)
-      .setTraceMode(Cpu.CpuTraceMode.SAMPLED)
+      .setTraceMode(Cpu.CpuTraceMode.INSTRUMENTED)
+      .build()
+    val config = CpuProfilerConfigConverter.fromProto(proto)
+    assertThat(config.technology).isEqualTo(CpuProfilerConfig.Technology.SYSTEM_TRACE)
+  }
+
+  @Test
+  fun fromProtoPerfetto() {
+    val proto = Cpu.CpuTraceConfiguration.UserOptions
+      .newBuilder()
+      .setTraceType(Cpu.CpuTraceType.PERFETTO)
+      .setTraceMode(Cpu.CpuTraceMode.INSTRUMENTED)
       .build()
     val config = CpuProfilerConfigConverter.fromProto(proto)
     assertThat(config.technology).isEqualTo(CpuProfilerConfig.Technology.SYSTEM_TRACE)
@@ -83,7 +95,7 @@ class CpuProfilerConfigConverterTest {
       isDisableLiveAllocation = true
     }
 
-    val proto = CpuProfilerConfigConverter.toProto(config)
+    val proto = CpuProfilerConfigConverter.toProto(config, AndroidVersion.VersionCodes.N)
     assertThat(proto.name).isEqualTo("MySampledJava")
     assertThat(proto.traceType).isEqualTo(Cpu.CpuTraceType.ART)
     assertThat(proto.traceMode).isEqualTo(Cpu.CpuTraceMode.SAMPLED)
@@ -98,7 +110,7 @@ class CpuProfilerConfigConverterTest {
       technology = CpuProfilerConfig.Technology.INSTRUMENTED_JAVA
     }
 
-    val proto = CpuProfilerConfigConverter.toProto(config)
+    val proto = CpuProfilerConfigConverter.toProto(config, AndroidVersion.VersionCodes.N)
     assertThat(proto.traceType).isEqualTo(Cpu.CpuTraceType.ART)
     assertThat(proto.traceMode).isEqualTo(Cpu.CpuTraceMode.INSTRUMENTED)
   }
@@ -110,19 +122,52 @@ class CpuProfilerConfigConverterTest {
       technology = CpuProfilerConfig.Technology.SAMPLED_NATIVE
     }
 
-    val proto = CpuProfilerConfigConverter.toProto(config)
+    val proto = CpuProfilerConfigConverter.toProto(config, AndroidVersion.VersionCodes.N)
     assertThat(proto.traceType).isEqualTo(Cpu.CpuTraceType.SIMPLEPERF)
     assertThat(proto.traceMode).isEqualTo(Cpu.CpuTraceMode.SAMPLED)
   }
 
   @Test
-  fun toProtoAtrace() {
+  fun toProtoSystemTraceOnN() {
     val config = CpuProfilerConfig().apply {
       technology = CpuProfilerConfig.Technology.SYSTEM_TRACE
     }
 
-    val proto = CpuProfilerConfigConverter.toProto(config)
+    val proto = CpuProfilerConfigConverter.toProto(config, AndroidVersion.VersionCodes.N)
     assertThat(proto.traceType).isEqualTo(Cpu.CpuTraceType.ATRACE)
-    assertThat(proto.traceMode).isEqualTo(Cpu.CpuTraceMode.SAMPLED)
+    assertThat(proto.traceMode).isEqualTo(Cpu.CpuTraceMode.INSTRUMENTED)
+  }
+
+  @Test
+  fun toProtoSystemTraceOnO() {
+    val config = CpuProfilerConfig().apply {
+      technology = CpuProfilerConfig.Technology.SYSTEM_TRACE
+    }
+
+    val proto = CpuProfilerConfigConverter.toProto(config, AndroidVersion.VersionCodes.O)
+    assertThat(proto.traceType).isEqualTo(Cpu.CpuTraceType.ATRACE)
+    assertThat(proto.traceMode).isEqualTo(Cpu.CpuTraceMode.INSTRUMENTED)
+  }
+
+  @Test
+  fun toProtoSystemTraceOnP() {
+    val config = CpuProfilerConfig().apply {
+      technology = CpuProfilerConfig.Technology.SYSTEM_TRACE
+    }
+
+    val proto = CpuProfilerConfigConverter.toProto(config, AndroidVersion.VersionCodes.P)
+    assertThat(proto.traceType).isEqualTo(Cpu.CpuTraceType.PERFETTO)
+    assertThat(proto.traceMode).isEqualTo(Cpu.CpuTraceMode.INSTRUMENTED)
+  }
+
+  @Test
+  fun toProtoSystemTraceOnQ() {
+    val config = CpuProfilerConfig().apply {
+      technology = CpuProfilerConfig.Technology.SYSTEM_TRACE
+    }
+
+    val proto = CpuProfilerConfigConverter.toProto(config, AndroidVersion.VersionCodes.Q)
+    assertThat(proto.traceType).isEqualTo(Cpu.CpuTraceType.PERFETTO)
+    assertThat(proto.traceMode).isEqualTo(Cpu.CpuTraceMode.INSTRUMENTED)
   }
 }

@@ -129,6 +129,9 @@ public class ProfilingConfiguration {
       // Simpleperf is supported from Android 8.0 (O)
       case SIMPLEPERF:
         return AndroidVersion.VersionCodes.O;
+      // Perfetto is supported from Android 9.0 (P)
+      case PERFETTO:
+        return AndroidVersion.VersionCodes.P;
       default:
         return 0;
     }
