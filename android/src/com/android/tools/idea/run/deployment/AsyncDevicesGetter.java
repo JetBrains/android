@@ -91,6 +91,11 @@ final class AsyncDevicesGetter {
     myGetName = getName;
   }
 
+  @NotNull
+  static AsyncDevicesGetter getInstance(@NotNull Project project) {
+    return project.getService(AsyncDevicesGetter.class);
+  }
+
   /**
    * @return a list of devices including the virtual devices ready to be launched, virtual devices that have been launched, and the
    * connected physical devices
