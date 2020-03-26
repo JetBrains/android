@@ -28,6 +28,8 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.project.DumbService;
+import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -212,7 +214,27 @@ public class RenderErrorContributorTest extends AndroidTestCase {
     return null;
   }
 
+  /**
+   * Obtains the render issues for the given layout
+   * @param file the layout file
+   * @param logOperation optional {@link LogOperation} to intercept rendering errors
+   */
+  @NotNull
   private List<RenderErrorModel.Issue> getRenderOutput(@NotNull VirtualFile file, @Nullable LogOperation logOperation) {
+    return getRenderOutput(file, logOperation, false);
+  }
+
+  /**
+   * Obtains the render issues for the given layout
+   * @param file the layout file
+   * @param logOperation optional {@link LogOperation} to intercept rendering errors
+   * @param useDumbMode when true, the render error model will be generated in dumb mode
+   */
+  @NotNull
+  private List<RenderErrorModel.Issue> getRenderOutput(
+    @NotNull VirtualFile file,
+    @Nullable LogOperation logOperation,
+    boolean useDumbMode) {
     assertNotNull(file);
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
     PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
@@ -246,11 +268,22 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       logOperation.addErrors(logger, render);
     }
 
-    // The error model must be created on a background thread.
-    Future<RenderErrorModel> errorModel = ApplicationManager.getApplication().executeOnPooledThread(
-      () -> RenderErrorModelFactory.createErrorModel(null, render, null));
+    if (useDumbMode) {
+      DumbServiceImpl.getInstance(myFixture.getProject()).setDumb(true);
+    }
 
-    return Futures.getUnchecked(errorModel).getIssues().stream().sorted().collect(Collectors.toList());
+    try {
+      // The error model must be created on a background thread.
+      Future<RenderErrorModel> errorModel = ApplicationManager.getApplication().executeOnPooledThread(
+        () -> RenderErrorModelFactory.createErrorModel(null, render, null));
+
+      return Futures.getUnchecked(errorModel).getIssues().stream().sorted().collect(Collectors.toList());
+    }
+    finally {
+      if (useDumbMode) {
+        DumbServiceImpl.getInstance(myFixture.getProject()).setDumb(false);
+      }
+    }
   }
 
   public void testPanel() {
@@ -821,6 +854,30 @@ public class RenderErrorContributorTest extends AndroidTestCase {
                      "Disabling it by clicking <A HREF=\"disableLayoutlibNative\">here</A> may fix the issue.<BR/>" +
                      "It can later be enabled again using the Settings > Experimental dialog.", issues.get(1));
   }
+
+  /**
+   * Regression test for b/149357583
+   *
+   * The {@link RenderErrorContributor} should not throw an {@link com.intellij.openapi.project.IndexNotReadyException} when executed in dumb mode.
+   */
+  public void testDumbModeRenderErrorContributor() {
+    List<RenderErrorModel.Issue> issues =
+      getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout3.xml", "res/layout/layout3.xml"), null, true);
+    assertSize(2, issues);
+    assertHtmlEquals(
+      "The following classes could not be found:<DL>" +
+      "<DD>-&NBSP;Bitton (<A HREF=\"action:classpath\">Fix Build Path</A>" +
+      ", <A HREF=\"showTag:Bitton\">Edit XML</A>)" +
+      "</DL>Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/><BR/>" +
+      "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/><BR/>" +
+      "<BR/>",
+      issues.get(0));
+    assertHtmlEquals(
+      "Rendering errors might be caused by the new Layout Rendering Engine.<BR/>" +
+      "Disabling it by clicking <A HREF=\"disableLayoutlibNative\">here</A> may fix the issue.<BR/>" +
+      "It can later be enabled again using the Settings > Experimental dialog.", issues.get(1));
+  }
+
 
   private String stripSdkHome(@NotNull String html) {
     AndroidPlatform platform = AndroidPlatform.getInstance(myModule);
