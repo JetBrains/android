@@ -139,6 +139,8 @@ PROJECT             : testSyncKotlinProject
             JavaSource (test)   : file://<PROJECT>/app/build/generated/source/kapt/debugAndroidTest
             JavaSource (test)   : file://<PROJECT>/app/build/generated/source/kapt/debugUnitTest
             JavaSource          : file://<PROJECT>/app/build/generated/source/kaptKotlin/debug
+            JavaSource (test)   : file://<PROJECT>/app/build/generated/source/kaptKotlin/debugAndroidTest
+            JavaSource (test)   : file://<PROJECT>/app/build/generated/source/kaptKotlin/debugUnitTest
             JavaResource (test) : file://<PROJECT>/app/src/androidTest
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/aidl
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/assets

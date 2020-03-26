@@ -57,6 +57,7 @@ import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.ide.common.gradle.model.IdeNativeAndroidProject;
 import com.android.ide.common.gradle.model.IdeNativeAndroidProjectImpl;
 import com.android.ide.common.gradle.model.IdeNativeVariantAbi;
+import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.gradle.model.GradlePluginModel;
@@ -78,7 +79,6 @@ import com.android.tools.idea.gradle.project.sync.SelectedVariantCollector;
 import com.android.tools.idea.gradle.project.sync.SelectedVariants;
 import com.android.tools.idea.gradle.project.sync.SyncActionOptions;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
-import com.android.tools.idea.gradle.project.sync.errors.GradleDistributionInstallIssueChecker;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel;
 import com.android.tools.idea.gradle.project.sync.idea.issues.AgpUpgradeRequiredException;
 import com.android.tools.idea.gradle.project.sync.idea.issues.AndroidSyncException;
@@ -132,6 +132,7 @@ import org.gradle.tooling.model.idea.IdeaProject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.kapt.idea.KaptGradleModel;
+import org.jetbrains.kotlin.kapt.idea.KaptSourceSetModel;
 import org.jetbrains.plugins.gradle.model.Build;
 import org.jetbrains.plugins.gradle.model.BuildScriptClasspathModel;
 import org.jetbrains.plugins.gradle.model.ExternalProject;
@@ -219,7 +220,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       moduleDataNode.getData().setSourceCompatibility(androidProject.getJavaCompileOptions().getSourceCompatibility());
       moduleDataNode.getData().setTargetCompatibility(androidProject.getJavaCompileOptions().getTargetCompatibility());
       CompilerOutputUtilKt.setupCompilerOutputPaths(moduleDataNode);
-    } else {
+    }
+    else {
       // Workaround BaseGradleProjectResolverExtension since the IdeaJavaLanguageSettings doesn't contain any information.
       // For this we set the language level based on the "main" source set of the module.
       // TODO: Remove once we have switched to module per source set. The base resolver should handle that correctly.
@@ -251,10 +253,10 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
    * @param androidProject the android project obtained from this module (null is none found)
    */
   private void createAndAttachModelsToDataNode(@NotNull DataNode<ModuleData> moduleNode,
-                                                      @NotNull IdeaModule gradleModule,
-                                                      @Nullable AndroidProject androidProject) {
+                                               @NotNull IdeaModule gradleModule,
+                                               @Nullable AndroidProject androidProject) {
     String moduleName = moduleNode.getData().getInternalName();
-    File rootModulePath =  toSystemDependentPath(moduleNode.getData().getLinkedExternalProjectPath());
+    File rootModulePath = toSystemDependentPath(moduleNode.getData().getLinkedExternalProjectPath());
 
     VariantGroup variantGroup = resolverCtx.getExtraProject(gradleModule, VariantGroup.class);
     // The ProjectSyncIssues model was introduced in the Android Gradle plugin 3.6, it contains all the
@@ -307,7 +309,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       List<IdeNativeVariantAbi> ideNativeVariantAbis;
       if (variantGroup != null) {
         ideNativeVariantAbis = ContainerUtil.map(variantGroup.getNativeVariants(), IdeNativeVariantAbi::new);
-      } else {
+      }
+      else {
         ideNativeVariantAbis = new ArrayList<>();
       }
 
@@ -331,7 +334,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     File buildScriptPath;
     try {
       buildScriptPath = gradleModule.getGradleProject().getBuildScript().getSourceFile();
-    } catch (UnsupportedOperationException e) {
+    }
+    catch (UnsupportedOperationException e) {
       buildScriptPath = null;
     }
 
@@ -438,15 +442,40 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       return;
     }
 
-    kaptGradleModel.getSourceSets().forEach((sourceSet ->  {
-      Variant variant = androidModel.findVariantByName(sourceSet.getSourceSetName());
-      if (variant != null) {
-        File kotlinGenSourceDir = sourceSet.getGeneratedKotlinSourcesDirFile();
-        if (kotlinGenSourceDir != null && variant.getMainArtifact() instanceof IdeBaseArtifact) {
-          ((IdeBaseArtifact)variant.getMainArtifact()).addGeneratedSourceFolder(kotlinGenSourceDir);
-        }
+    kaptGradleModel.getSourceSets().forEach(sourceSet -> {
+      File kotlinGenSourceDir = sourceSet.getGeneratedKotlinSourcesDirFile();
+      IdeBaseArtifact artifact = findArtifact(sourceSet, androidModel);
+      if (artifact != null && kotlinGenSourceDir != null) {
+        artifact.addGeneratedSourceFolder(kotlinGenSourceDir);
       }
-    }));
+    });
+  }
+
+  @Nullable
+  private static IdeBaseArtifact findArtifact(@NotNull KaptSourceSetModel sourceSetModel, @NotNull AndroidModuleModel androidModel) {
+    String sourceSetName = sourceSetModel.getSourceSetName();
+    if (!sourceSetModel.isTest()) {
+      IdeVariant variant = androidModel.findVariantByName(sourceSetName);
+      return variant == null ? null : variant.getMainArtifact();
+    }
+
+    // Check if it's android test source set.
+    String androidTestSuffix = "AndroidTest";
+    if (sourceSetName.endsWith(androidTestSuffix)) {
+      String variantName = sourceSetName.substring(0, sourceSetName.length() - androidTestSuffix.length());
+      IdeVariant variant = androidModel.findVariantByName(variantName);
+      return variant == null ? null : variant.getAndroidTestArtifact();
+    }
+
+    // Check if it's unit test source set.
+    String unitTestSuffix = "UnitTest";
+    if (sourceSetName.endsWith(unitTestSuffix)) {
+      String variantName = sourceSetName.substring(0, sourceSetName.length() - unitTestSuffix.length());
+      IdeVariant variant = androidModel.findVariantByName(variantName);
+      return variant == null ? null : variant.getUnitTestArtifact();
+    }
+
+    return null;
   }
 
   private void populateAdditionalClassifierArtifactsModel(@NotNull IdeaModule gradleModule) {
@@ -460,7 +489,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @Override
   public void populateModuleContentRoots(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
     nextResolver.populateModuleContentRoots(gradleModule, ideModule);
-    
+
     ContentRootUtilKt.setupAndroidContentEntries(ideModule);
   }
 
