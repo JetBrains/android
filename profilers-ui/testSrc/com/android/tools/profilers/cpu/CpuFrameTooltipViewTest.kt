@@ -59,7 +59,7 @@ class CpuFrameTooltipViewTest {
     fakeTransportService.addProcess(device, Common.Process.newBuilder().setDeviceId(1).setPid(1).build())
     val profilers = StudioProfilers(ProfilerClient(grpcChannel.name), FakeIdeProfilerServices(), timer)
     stage = CpuProfilerStage(profilers)
-    capture = AtraceParser(1).parse(TestUtils.getWorkspaceFile(ATRACE_TRACE_PATH), 0)
+    capture = AtraceParser(MainProcessSelector(idHint = 1)).parse(TestUtils.getWorkspaceFile(ATRACE_TRACE_PATH), 0)
     stage.capture = capture
     timer.tick(TimeUnit.SECONDS.toNanos(1))
     profilers.stage = stage

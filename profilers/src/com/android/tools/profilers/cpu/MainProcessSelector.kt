@@ -27,18 +27,18 @@ import kotlin.RuntimeException as RuntimeException1
  * <p>Can return null if not process were found with the methods/hints passed.
  */
 class MainProcessSelector(
-  val nameHint: String?,
-  val idHint: Int?,
-  private val profilerServices: IdeProfilerServices?): Function<List<CpuThreadSliceInfo>, Int?> {
+  val nameHint: String = "",
+  val idHint: Int = 0,
+  private val profilerServices: IdeProfilerServices? = null): Function<List<CpuThreadSliceInfo>, Int?> {
 
   override fun apply(processList: List<CpuThreadSliceInfo>): Int? {
     // 1) Use name hint if available.
-    if (nameHint != null) {
+    if (nameHint.isNotBlank()) {
       processList.find { nameHint.endsWith(it.processName) }?.let { return it.processId }
     }
 
     // 2) If we don't have a process based on named find one based on id.
-    if (idHint != null && idHint > 0) {
+    if (idHint > 0) {
       processList.find { idHint == it.processId }?.let { return it.processId }
     }
 

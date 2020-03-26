@@ -58,7 +58,7 @@ class MergeCaptureDataSeriesTest {
     val profilers = StudioProfilers(myProfilerClient, services, myTimer)
     myStage = CpuProfilerStage(profilers)
     myStage.studioProfilers.stage = myStage
-    val myParser = AtraceParser(1)
+    val myParser = AtraceParser(MainProcessSelector(idHint = 1))
     val capture = myParser.parse(CpuProfilerTestUtils.getTraceFile("atrace_processid_1.ctrace"), 0)
     capture.range.set(TimeUnit.MILLISECONDS.toMicros(50).toDouble(), TimeUnit.MILLISECONDS.toMicros(150).toDouble())
     myStage.capture = capture

@@ -48,7 +48,7 @@ class CpuUsageTest {
 
   @Test
   fun atraceCaptureCreatesMergedDataSeries() {
-    val parser = AtraceParser(1)
+    val parser = AtraceParser(MainProcessSelector(idHint = 1))
     val capture = parser.parse(CpuProfilerTestUtils.getTraceFile("atrace.ctrace"), 0)
     val usage = CpuUsage(profilers, capture.range, capture.range, capture)
     assertThat(usage.cpuSeries.series).isNotEmpty()
