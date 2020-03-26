@@ -42,13 +42,12 @@ class LayoutSlowPreviewProvider(private val facet: AndroidFacet,
 
   override val previewPlaceholder: BufferedImage = createLayoutPlaceholderImage(JBUIScale.scale(100), JBUIScale.scale(100))
 
-  override fun getSlowPreview(width: Int, height: Int, asset: Asset): CompletableFuture<BufferedImage?> {
-    val designAsset = asset as? DesignAsset ?: return CompletableFuture.completedFuture(null)
-    val file = resourceResolver.getResolvedLayoutFile(designAsset) ?: return CompletableFuture.completedFuture(null)
-    val psiFile = AndroidPsiUtils.getPsiFileSafely(facet.module.project, file) as? XmlFile ?: return CompletableFuture.completedFuture(null)
-    return CompletableFuture.supplyAsync(
-      Supplier { ConfigurationManager.getOrCreateInstance(facet).getConfiguration(file) }, PooledThreadExecutor.INSTANCE)
-      .thenCompose { configuration -> LayoutRenderer.getInstance(facet).getLayoutRender(psiFile, configuration) }
+  override fun getSlowPreview(width: Int, height: Int, asset: Asset): BufferedImage? {
+    val designAsset = asset as? DesignAsset ?: return null
+    val file = resourceResolver.getResolvedLayoutFile(designAsset) ?: return null
+    val psiFile = AndroidPsiUtils.getPsiFileSafely(facet.module.project, file) as? XmlFile ?: return null
+    val configuration = ConfigurationManager.getOrCreateInstance(facet).getConfiguration(file)
+    return LayoutRenderer.getInstance(facet).getLayoutRender(psiFile, configuration).get()
   }
 
   private fun ResourceResolver.getResolvedLayoutFile(designAsset: DesignAsset): VirtualFile? =
