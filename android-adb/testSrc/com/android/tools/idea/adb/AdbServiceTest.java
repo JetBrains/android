@@ -74,4 +74,28 @@ public class AdbServiceTest extends LightPlatformTestCase {
     // Assert
     Truth.assertThat(bridge).isNull();
   }
+
+  /**
+   * Tests that if the connection to the bridge is broken, re-initing works.
+   */
+  public void testReinit() throws ExecutionException {
+    // Prepare
+    Path adb = TestUtils.getSdk().toPath().resolve("platform-tools").resolve(SdkConstants.FN_ADB);
+
+    // Act
+    ListenableFuture<AndroidDebugBridge> future = AdbService.getInstance().getDebugBridge(adb.toFile());
+    AndroidDebugBridge bridge = Uninterruptibles.getUninterruptibly(future);
+
+    // Assert
+    Truth.assertThat(bridge.isConnected()).isTrue();
+
+    // Simulate disconnect
+    AdbService.getInstance().cancelFutureForTesting();
+
+    // Reinit
+    Uninterruptibles.getUninterruptibly(AdbService.getInstance().getDebugBridge(adb.toFile()));
+
+    // Get again
+    Uninterruptibles.getUninterruptibly(AdbService.getInstance().getDebugBridge(adb.toFile()));
+  }
 }
