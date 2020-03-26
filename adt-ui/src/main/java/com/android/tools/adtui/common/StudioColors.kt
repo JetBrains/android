@@ -71,7 +71,7 @@ val primaryContentBackground = JBColor.namedColor("Content.background", JBColor(
  *
  * Example: text color of "Leak" button
  */
-val clickableTextColor = JBColor.namedColor("Content.clickable", JBColor(0x268bd2, 0x268bd2))
+val clickableTextColor = JBColor.namedColor("Content.clickable", JBColor(0x397FE4, 0x7CAEFE))
 
 /**
  * Background color for selected content.
