@@ -87,7 +87,7 @@ class CpuFramesViewTest {
     val hideablePanel = TreeWalker(framesView.component).descendants().filterIsInstance<HideablePanel>().first()
 
     val traceFile = TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_TRACE_PATH)
-    val capture = AtraceParser(1).parse(traceFile, 0)
+    val capture = AtraceParser(MainProcessSelector(idHint = 1)).parse(traceFile, 0)
 
     assertThat(framesView.component.isVisible).isFalse()
     assertThat(hideablePanel.isExpanded).isFalse()

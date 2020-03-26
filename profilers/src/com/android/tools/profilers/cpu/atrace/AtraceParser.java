@@ -100,17 +100,11 @@ public class AtraceParser implements TraceParser {
   private final MainProcessSelector processSelector;
 
   /**
-   * This constructor assumes we know what process we want to focus on.
+   * For testing purposes, when we don't care about which process in going to be selected as the main one.
    */
-  public AtraceParser(String processName) {
-    this(new MainProcessSelector(processName, null, null));
-  }
-
-  /**
-   * This constructor assumes we know what process we want to focus on.
-   */
-  public AtraceParser(int processId) {
-    this(new MainProcessSelector(null, processId, null));
+  @VisibleForTesting
+  public AtraceParser() {
+    this(new MainProcessSelector("", 0, null));
   }
 
   /**

@@ -333,7 +333,7 @@ public class CpuCaptureParser {
 
     private final int processIdHint;
 
-    @Nullable
+    @NotNull
     private final String processNameHint;
 
     @NotNull
@@ -357,7 +357,7 @@ public class CpuCaptureParser {
       this.traceId = traceId;
       this.preferredProfilerType = preferredProfilerType;
       this.processIdHint = processIdHint;
-      this.processNameHint = processNameHint;
+      this.processNameHint = processNameHint != null ? processNameHint : "";
       this.services = services;
     }
 

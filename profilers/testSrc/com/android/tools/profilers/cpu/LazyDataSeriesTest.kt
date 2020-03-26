@@ -38,7 +38,7 @@ class LazyDataSeriesTest {
 
   @Before
   fun setup() {
-    val parser = AtraceParser(1)
+    val parser = AtraceParser(MainProcessSelector(idHint = 1))
     capture = parser.parse(CpuProfilerTestUtils.getTraceFile("atrace_processid_1.ctrace"), 2)
   }
 
