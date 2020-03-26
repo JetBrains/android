@@ -129,6 +129,8 @@ PROJECT             : MainActivity
             JavaSource (test)   : file://<PROJECT>/app/build/generated/source/kapt/debugAndroidTest [-]
             JavaSource (test)   : file://<PROJECT>/app/build/generated/source/kapt/debugUnitTest [-]
             JavaSource          : file://<PROJECT>/app/build/generated/source/kaptKotlin/debug
+            JavaSource (test)   : file://<PROJECT>/app/build/generated/source/kaptKotlin/debugAndroidTest
+            JavaSource (test)   : file://<PROJECT>/app/build/generated/source/kaptKotlin/debugUnitTest
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/aidl [-]
             JavaResource (test) : file://<PROJECT>/app/src/androidTest/assets [-]
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/java
@@ -632,6 +634,8 @@ PROJECT             : MainActivity
             JavaSource (test)   : file://<PROJECT>/lib/build/generated/source/kapt/debugAndroidTest [-]
             JavaSource (test)   : file://<PROJECT>/lib/build/generated/source/kapt/debugUnitTest [-]
             JavaSource          : file://<PROJECT>/lib/build/generated/source/kaptKotlin/debug
+            JavaSource (test)   : file://<PROJECT>/lib/build/generated/source/kaptKotlin/debugAndroidTest
+            JavaSource (test)   : file://<PROJECT>/lib/build/generated/source/kaptKotlin/debugUnitTest
             JavaSource (test)   : file://<PROJECT>/lib/src/androidTest/aidl [-]
             JavaResource (test) : file://<PROJECT>/lib/src/androidTest/assets [-]
             JavaSource (test)   : file://<PROJECT>/lib/src/androidTest/java [-]
