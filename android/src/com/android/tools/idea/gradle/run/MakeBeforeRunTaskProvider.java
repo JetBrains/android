@@ -22,6 +22,7 @@ import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_API_CODENA
 import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_DENSITY;
 import static com.android.builder.model.AndroidProject.PROPERTY_DEPLOY_AS_INSTANT_APP;
 import static com.android.builder.model.AndroidProject.PROPERTY_EXTRACT_INSTANT_APK;
+import static com.android.builder.model.AndroidProject.PROPERTY_INJECTED_DYNAMIC_MODULES_LIST;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
 import static com.android.tools.idea.run.editor.ProfilerState.ANDROID_ADVANCED_PROFILING_TRANSFORMS;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_RUN_SYNC_NEEDED_BEFORE_RUNNING;
@@ -89,13 +90,16 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 import javax.swing.Icon;
 import one.util.streamex.StreamEx;
 import org.jetbrains.annotations.NotNull;
@@ -439,15 +443,24 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       return Collections.emptyList();
     }
 
-    List<String> properties = new ArrayList<>(2);
+    List<String> properties = new ArrayList<>(3);
     if (useSelectApksFromBundleBuilder(modules, configuration, devices)) {
       // For the bundle tool, we create a temporary json file with the device spec and
       // pass the file path to the gradle task.
       File deviceSpecFile = deviceSpec.writeToJsonTempFile();
       properties.add(createProjectProperty(PROPERTY_APK_SELECT_CONFIG, deviceSpecFile.getAbsolutePath()));
       if (configuration instanceof AndroidRunConfiguration) {
-        if (((AndroidRunConfiguration)configuration).DEPLOY_AS_INSTANT) {
+        AndroidRunConfiguration androidRunConfiguration = (AndroidRunConfiguration)configuration;
+
+        if (androidRunConfiguration.DEPLOY_AS_INSTANT) {
           properties.add(createProjectProperty(PROPERTY_EXTRACT_INSTANT_APK, true));
+        }
+
+        if (androidRunConfiguration.DEPLOY_APK_FROM_BUNDLE) {
+          String featureList = getEnabledDynamicFeatureList(modules, androidRunConfiguration);
+          if (!featureList.isEmpty()) {
+            properties.add(createProjectProperty(PROPERTY_INJECTED_DYNAMIC_MODULES_LIST, featureList));
+          }
         }
       }
     }
@@ -471,6 +484,22 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       }
     }
     return properties;
+  }
+
+  @NotNull
+  private static String getEnabledDynamicFeatureList(@NotNull Module[] modules,
+                                                     @NotNull AndroidRunConfiguration configuration) {
+    Set<String> disabledFeatures = new HashSet<>(configuration.getDisabledDynamicFeatures());
+    return Arrays.stream(modules)
+      .flatMap(module -> DynamicAppUtils.getDependentFeatureModulesForBase(module).stream())
+      .map(Module::getName)
+      .filter(name -> !disabledFeatures.contains(name))
+      .map(moduleName -> {
+        // e.g name = "MyApplication.dynamicfeature"
+        int index = moduleName.lastIndexOf('.');
+        return index < 0 ? moduleName : moduleName.substring(index + 1);
+      })
+      .collect(Collectors.joining(","));
   }
 
   @NotNull
