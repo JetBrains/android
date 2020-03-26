@@ -792,6 +792,12 @@
     <projectStructureDetector implementation="com.android.tools.idea.apk.debugging.KotlinProjectStructureDetector" />
 
     <runningApplicationUpdaterProvider implementation="com.android.tools.idea.run.ui.ApplyChangesAction$UpdaterProvider"/>
+    <notificationWhitelist groupIds="Heap Dump Analysis;Memory Settings Notification;Android Gradle Upgrade Notification;
+    Render error panel notifications;Convert to WebP;SDK Install;Gradle Initializer;Thanks for the feedback!;Wrote Baseline;
+    Gradle Build (Balloon);Gradle Build (Logging);Gradle KTS build files;Android Notification Group;Android Notification Log-Only Group;
+    Android Property Files Updating;Android Module Importing;APK Analyzer (Important);APK Analyzer (Info);UnifiedDeployTask;
+    JDK Location different to JAVA_HOME;Gradle Sync;Android;Invalid Sketch file;Device File Explorer;Emulator;Screen Capture;
+    Low Memory;Importing Error;Android Autogeneration;"/>
   </extensions>
 
   <projectListeners>
