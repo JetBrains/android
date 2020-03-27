@@ -16,25 +16,16 @@
 package com.android.tools.idea.layoutinspector.legacydevice
 
 import com.android.ddmlib.ByteBufferUtil
-import com.android.ddmlib.Client
 import com.android.ddmlib.FakeClientBuilder
-import com.android.ddmlib.HandleViewDebug
 import com.android.ddmlib.HandleViewDebug.CHUNK_VULW
-import com.android.ddmlib.HandleViewDebug.CHUNK_VURT
 import com.android.ddmlib.JdwpPacket
 import com.android.tools.idea.layoutinspector.FakeAdbRule
 import com.android.tools.idea.layoutinspector.model.ViewNode
-import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.project.Project
 import com.intellij.testFramework.DisposableRule
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentMatcher
-import org.mockito.ArgumentMatchers.any
-import org.mockito.ArgumentMatchers.argThat
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
 import java.nio.ByteBuffer
 
 class LegacyTreeLoaderTest {

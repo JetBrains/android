@@ -23,12 +23,16 @@ import com.android.tools.idea.layoutinspector.common.StringTableImpl
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
+import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_AS_REQUESTED
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_SKP_TOO_LARGE
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.SKP
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.project.Project
 import com.intellij.util.ui.UIUtil
 import java.awt.Image
 import java.awt.Rectangle
@@ -45,17 +49,17 @@ private val LOAD_TIMEOUT = TimeUnit.SECONDS.toMillis(20)
 object ComponentTreeLoader : TreeLoader {
 
   override fun loadComponentTree(
-    maybeEvent: Any?, resourceLookup: ResourceLookup, client: InspectorClient
+    maybeEvent: Any?, resourceLookup: ResourceLookup, client: InspectorClient, project: Project
   ): Pair<ViewNode, Long>? {
-    return loadComponentTree(maybeEvent, resourceLookup, client, SkiaParser)?.let { Pair(it, it.drawId) }
+    return loadComponentTree(maybeEvent, resourceLookup, client, SkiaParser, project)?.let { Pair(it, it.drawId) }
   }
 
   @VisibleForTesting
   fun loadComponentTree(
-    maybeEvent: Any?, resourceLookup: ResourceLookup, client: InspectorClient, skiaParser: SkiaParserService
+    maybeEvent: Any?, resourceLookup: ResourceLookup, client: InspectorClient, skiaParser: SkiaParserService, project: Project
   ): ViewNode? {
     val event = maybeEvent as? LayoutInspectorProto.LayoutInspectorEvent ?: return null
-    return ComponentTreeLoaderImpl(event.tree, resourceLookup).loadComponentTree(client, skiaParser)
+    return ComponentTreeLoaderImpl(event.tree, resourceLookup).loadComponentTree(client, skiaParser, project)
   }
 
   override fun getAllWindowIds(maybeEvent: Any?, client: InspectorClient): List<Long>? {
@@ -70,7 +74,7 @@ private class ComponentTreeLoaderImpl(
   private val loadStartTime = AtomicLong(-1)
   private val stringTable = StringTableImpl(tree.stringList)
 
-  fun loadComponentTree(client: InspectorClient, skiaParser: SkiaParserService): ViewNode? {
+  fun loadComponentTree(client: InspectorClient, skiaParser: SkiaParserService, project: Project): ViewNode? {
     val defaultClient = client as? DefaultInspectorClient ?: throw UnsupportedOperationException(
       "ComponentTreeLoaderImpl requires a DefaultClient")
     val time = System.currentTimeMillis()
@@ -106,6 +110,14 @@ private class ComponentTreeLoaderImpl(
                 .setScreenshotMode(true)
                 .build()
               client.execute(inspectorCommand)
+              InspectorBannerService.getInstance(project).setNotification(
+                "No renderer supporting SKP version ${ex.version} found. Rotation disabled.",
+                listOf(object : AnAction("Dismiss") {
+                  override fun actionPerformed(e: AnActionEvent) {
+                    InspectorBannerService.getInstance(project).notification = null
+                  }
+                })
+              )
               return null
             }
           }

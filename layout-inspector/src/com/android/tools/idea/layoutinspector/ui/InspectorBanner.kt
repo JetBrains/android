@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector
+package com.android.tools.idea.layoutinspector.ui
 
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.StatusNotification
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.components.ServiceManager
+import com.intellij.openapi.project.Project
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
@@ -37,11 +40,13 @@ private const val VERTICAL_BORDER_SIZE = 3
 /**
  * A banner for showing notifications in the Layout Inspector.
  */
-class InspectorBanner(model: InspectorModel) : JPanel(BorderLayout()) {
+class InspectorBanner(project: Project) : JPanel(BorderLayout()) {
   private val bannerBackground = JBColor.namedColor("Notification.background", JBColor(0xfff8d1, 0x1d3857))
   private val bannerForeground = JBColor.namedColor("Notification.foreground", JBColor(0x555555, 0xaaaaaa))
-  private val text = JLabel()
-  private val actionLayout = FlowLayout(FlowLayout.CENTER, JBUI.scale(HORIZONTAL_BORDER_SIZE), 0)
+  @VisibleForTesting
+  val text = JLabel()
+  private val actionLayout = FlowLayout(FlowLayout.CENTER, JBUI.scale(
+    HORIZONTAL_BORDER_SIZE), 0)
   private val actionPanel = JPanel(actionLayout)
   private var classInitialized = true
 
@@ -53,7 +58,7 @@ class InspectorBanner(model: InspectorModel) : JPanel(BorderLayout()) {
     add(text, BorderLayout.WEST)
     add(actionPanel, BorderLayout.EAST)
     applyUISettings()
-    model.notificationListeners.add(::applyNewNotification)
+    InspectorBannerService.getInstance(project).notificationListeners.add(::applyNewNotification)
   }
 
   private fun applyUISettings() {
