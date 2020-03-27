@@ -199,10 +199,12 @@ class LegacyProcessManager(parentDisposable: Disposable) : InspectorProcessManag
    *  - for a new relevant [client] a ProcessSpec is simply created and returned
    *  - for a known [client] return the ProcessSpec already associated with the [client]
    *  - a known [client] where the properties have changed, create a new [Common.Process]
-   *  - exception: return <code>null</code> if we don't want to keep track of the [client]
+   *  - exception: return <code>null</code> if we don't want to keep track of this [client]
    */
   private fun toWantedProcess(client: Client): ProcessSpec? {
-    if (!client.clientData.hasFeature(ClientData.FEATURE_VIEW_HIERARCHY)) {
+    if (!client.clientData.hasFeature(ClientData.FEATURE_VIEW_HIERARCHY) ||
+         client.clientData.packageName.isNullOrEmpty() ||
+         client.clientData.packageName == ClientData.PRE_INITIALIZED) {
       return null
     }
     val deviceSpec = devices[client.device.serialNumber]
