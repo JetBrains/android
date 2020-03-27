@@ -28,6 +28,7 @@ import com.android.tools.profiler.proto.Common.Event.EventGroupIds
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.project.Project
 import java.util.concurrent.Future
 
 /**
@@ -131,7 +132,9 @@ interface InspectorClient {
 
 object DisconnectedClient : InspectorClient {
   override val treeLoader: TreeLoader = object: TreeLoader {
-    override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup, client: InspectorClient): Pair<ViewNode, Any>? = null
+    override fun loadComponentTree(
+      data: Any?, resourceLookup: ResourceLookup, client: InspectorClient, project: Project
+    ): Pair<ViewNode, Any>? = null
     override fun getAllWindowIds(data: Any?, client: InspectorClient) = listOf<Any>()
   }
   override fun register(groupId: EventGroupIds, callback: (Any) -> Unit) {}

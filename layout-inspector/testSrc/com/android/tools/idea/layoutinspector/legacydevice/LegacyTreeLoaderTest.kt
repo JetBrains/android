@@ -149,7 +149,7 @@ DONE.
                                     any(DebugViewDumpHandler::class.java))).thenCallRealMethod()
     val (viewNode, windowId) = LegacyTreeLoader.loadComponentTree(
       LegacyEvent("window1", LegacyPropertiesProvider.Updater(), listOf("window1")),
-      mock(ResourceLookup::class.java), legacyClient)!!
+      mock(ResourceLookup::class.java), legacyClient, mock(Project::class.java))!!
     assertThat(windowId).isEqualTo("window1")
     assertThat(viewNode.drawId).isEqualTo(0x41673e3)
   }
