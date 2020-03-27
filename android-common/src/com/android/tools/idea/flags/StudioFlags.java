@@ -417,6 +417,13 @@ public final class StudioFlags {
     "So the new Instant Run can use the combo box",
     false);
 
+  public static final Flag<Boolean> ADB_CONNECTION_STATUS_ACTION_VISIBLE = Flag.create(
+    RUNDEBUG,
+    "adb.connection.status.action.visible",
+    "Show the adb connection status icon",
+    "To help developers with a remote adb setup",
+    false);
+
   /**
    * The strategy that {@link com.android.tools.idea.run.activity.DefaultActivityLocator}
    * uses to obtain a list of activities from a given module's merged manifest.
