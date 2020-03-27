@@ -26,6 +26,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Charsets
 import com.google.common.collect.Lists
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
+import com.intellij.openapi.project.Project
 import java.io.BufferedReader
 import java.io.ByteArrayInputStream
 import java.io.IOException
@@ -46,7 +47,9 @@ import javax.imageio.ImageIO
  */
 object LegacyTreeLoader : TreeLoader {
 
-  override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup, client: InspectorClient): Pair<ViewNode, String>? {
+  override fun loadComponentTree(
+    data: Any?, resourceLookup: ResourceLookup, client: InspectorClient, project: Project
+  ): Pair<ViewNode, String>? {
     val (windowName, updater, _) = data as? LegacyEvent ?: return null
     return capture(client, windowName, updater)?.let { Pair(it, windowName) }
   }

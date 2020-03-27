@@ -70,7 +70,7 @@ private const val MAX_DELAY_MILLI_SECONDS = 1000L
 private const val MAX_TIMES_TO_RETRY = 10
 
 class InvalidPictureException : Exception()
-class UnsupportedPictureVersionException : Exception()
+class UnsupportedPictureVersionException(val version: Int) : Exception()
 
 interface SkiaParserService {
   @Throws(InvalidPictureException::class)
@@ -91,7 +91,7 @@ object SkiaParser : SkiaParserService {
   @Slow
   @Throws(InvalidPictureException::class)
   override fun getViewTree(data: ByteArray): InspectorView? {
-    val server = runServer(data) ?: throw UnsupportedPictureVersionException()
+    val server = runServer(data) ?: throw UnsupportedPictureVersionException(getSkpVersion(data))
     val response = server.getViewTree(data)
     return response?.root?.let { buildTree(it) }
   }
