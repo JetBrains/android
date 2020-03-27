@@ -16,8 +16,10 @@
 package com.android.tools.idea.layoutinspector
 
 import com.android.annotations.concurrency.Slow
+import com.android.repository.api.LocalPackage
 import com.android.repository.api.RepoManager
 import com.android.repository.api.RepoPackage
+import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.model.InspectorView
 import com.android.tools.idea.layoutinspector.proto.SkiaParser
@@ -53,7 +55,6 @@ import java.awt.image.DirectColorModel
 import java.awt.image.Raster
 import java.awt.image.SinglePixelPackedSampleModel
 import java.io.File
-import java.io.FileReader
 import java.nio.ByteOrder
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
@@ -82,6 +83,7 @@ object SkiaParser : SkiaParserService {
   private val unmarshaller = JAXBContext.newInstance(VersionMap::class.java).createUnmarshaller()
   private val devbuildServerInfo = ServerInfo(null, -1, -1)
   private var supportedVersionMap: Map<Int?, ServerInfo>? = null
+  private var latestPackagePath: String? = null
   private val mapLock = Any()
   private const val VERSION_MAP_FILE_NAME = "version-map.xml"
   private val progressIndicator = StudioLoggerProgressIndicator(SkiaParser::class.java)
@@ -161,8 +163,15 @@ object SkiaParser : SkiaParserService {
 
     var serverInfo = findVersionInMap(skpVersion)
     // If we didn't find it in the map, maybe we have an old map. Download the latest and look again.
-    if (serverInfo == null && downloadLatestVersion()) {
-      serverInfo = findVersionInMap(skpVersion)
+    if (serverInfo == null) {
+      val latest = getLatestParserPackage(AndroidSdks.getInstance().tryToChooseSdkHandler())
+      if (latest?.path?.equals(latestPackagePath) != true) {
+        readVersionMapping()
+        serverInfo = findVersionInMap(skpVersion)
+      }
+      if (serverInfo == null && downloadLatestVersion()) {
+        serverInfo = findVersionInMap(skpVersion)
+      }
     }
 
     return serverInfo
@@ -211,8 +220,7 @@ object SkiaParser : SkiaParserService {
 
   private fun readVersionMapping() {
     val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
-    val latestPackage = sdkHandler.getLatestLocalPackageForPrefix(
-      PARSER_PACKAGE_NAME, { true }, true, progressIndicator)
+    val latestPackage = getLatestParserPackage(sdkHandler)
     if (latestPackage != null) {
       val mappingFile = File(latestPackage.location, VERSION_MAP_FILE_NAME)
       try {
@@ -230,12 +238,17 @@ object SkiaParser : SkiaParserService {
             }
           }
           supportedVersionMap = newMap
+          latestPackagePath = latestPackage.path
         }
       }
       catch (e: Exception) {
         Logger.getInstance(SkiaParser::class.java).warn("Failed to parse mapping file", e)
       }
     }
+  }
+
+  private fun getLatestParserPackage(sdkHandler: AndroidSdkHandler): LocalPackage? {
+    return sdkHandler.getLatestLocalPackageForPrefix(PARSER_PACKAGE_NAME, { true }, true, progressIndicator)
   }
 }
 

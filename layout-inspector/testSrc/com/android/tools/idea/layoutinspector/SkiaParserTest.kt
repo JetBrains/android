@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector
 import com.android.repository.testframework.MockFileOp
 import com.android.tools.idea.FakeSdkRule
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.google.common.truth.Truth.assertThat
 import junit.framework.Assert.assertEquals
 import junit.framework.Assert.fail
 import org.junit.Rule
@@ -25,6 +26,7 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import java.io.File
 
+// TODO(152816022): testBuildTree
 class SkiaParserTest {
 
   @Test
@@ -43,6 +45,7 @@ class SkiaParserTest {
   }
 }
 
+// TODO: test with downloading (currently no way to mock out installation)
 class SkiaParserTest2 {
   val projectRule = AndroidProjectRule.inMemory()
   val fakeSdkRule = FakeSdkRule(projectRule)
@@ -63,7 +66,20 @@ class SkiaParserTest2 {
       </versionMapping>
     """.trimIndent())
 
-    val info: ServerInfo = SkiaParser.findServerInfoForSkpVersion(13)!!
-    assertEquals(2, info.serverVersion)
+    assertThat(SkiaParser.findServerInfoForSkpVersion(13)!!.serverVersion).isEqualTo(2)
+    assertThat(SkiaParser.findServerInfoForSkpVersion(25)).isNull()
+
+    fakeSdkRule.addLocalPackage("skiaparser;2")
+    fileOp.recordExistingFile(File(fakeSdkRule.sdkPath, "skiaparser/2/version-map.xml").path, """
+      <?xml version="1.0" encoding="utf-8"?>
+      <versionMapping>
+        <server version="1" skpStart="1" skpEnd="10"/>
+        <server version="2" skpStart="11" skpEnd="15"/>
+        <server version="3" skpStart="16" skpEnd="20"/>
+        <server version="4" skpStart="21" skpEnd="25"/>
+      </versionMapping>
+    """.trimIndent())
+
+    assertThat(SkiaParser.findServerInfoForSkpVersion(25)!!.serverVersion).isEqualTo(4)
   }
 }
