@@ -20,7 +20,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThat
 import org.junit.Test
 
-class Filtering {
+class FilteringTest {
   @Test
   fun testGroupFiltering() {
     val groupPreviewProvider = GroupNameFilteredPreviewProvider(StaticPreviewProvider(listOf(
