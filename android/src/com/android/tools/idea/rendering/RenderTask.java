@@ -1174,24 +1174,25 @@ public class RenderTask {
    *
    * @param tag the child to measure
    * @param filter the filter to apply to the attribute values
-   * @return a view info, if found
+   * @return a {@link CompletableFuture} that will return the {@link ViewInfo} if found.
    */
-  @Nullable
-  public ViewInfo measureChild(@NotNull XmlTag tag, @Nullable AttributeFilter filter) {
+  @NotNull
+  public CompletableFuture<ViewInfo> measureChild(@NotNull XmlTag tag, @Nullable AttributeFilter filter) {
     XmlTag parent = tag.getParentTag();
-    if (parent != null) {
-      // This should be asynchronous too
-      Map<XmlTag, ViewInfo> map = Futures.getUnchecked(measureChildren(parent, filter));
-      if (map != null) {
+    if (parent == null) {
+      return CompletableFuture.completedFuture(null);
+    }
+
+    return measureChildren(parent, filter)
+      .thenApply(map -> {
         for (Map.Entry<XmlTag, ViewInfo> entry : map.entrySet()) {
           if (entry.getKey() == tag) {
             return entry.getValue();
           }
         }
-      }
-    }
 
-    return null;
+        return null;
+      });
   }
 
   @Nullable
