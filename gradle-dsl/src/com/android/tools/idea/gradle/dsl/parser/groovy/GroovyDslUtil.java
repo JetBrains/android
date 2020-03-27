@@ -48,6 +48,7 @@ import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiNamedElement;
@@ -67,6 +68,7 @@ import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
+import org.jetbrains.plugins.groovy.lang.psi.GrNamedElement;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyElementVisitor;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
@@ -366,6 +368,7 @@ public final class GroovyDslUtil {
       unsavedValueText = unsavedValue.toString();
     }
     else if (unsavedValue instanceof ReferenceTo) {
+      // FIXME(xof): need to do work here to rename / quote things
       unsavedValueText = ((ReferenceTo)unsavedValue).getText();
     }
     else if (unsavedValue instanceof RawText) {
@@ -382,6 +385,33 @@ public final class GroovyDslUtil {
     }
 
     return factory.createExpressionFromText(unsavedValueText);
+  }
+
+  public static String gradleNameFor(GrExpression expression) {
+    final boolean[] allValid = {true};
+    StringBuilder result = new StringBuilder();
+
+    expression.accept(new GroovyPsiElementVisitor(new GroovyElementVisitor() {
+      @Override
+      public void visitReferenceExpression(@NotNull GrReferenceExpression referenceExpression) {
+        GrExpression qualifierExpression = referenceExpression.getQualifierExpression();
+        if (qualifierExpression != null) {
+          qualifierExpression.accept(this);
+          result.append(".");
+        }
+        String name = referenceExpression.getReferenceName();
+        if (name != null) {
+          result.append(GradleNameElement.escape(name));
+        }
+      }
+
+      @Override
+      public void visitElement(@NotNull GroovyPsiElement element) {
+        allValid[0] = false;
+      }
+    }));
+
+    return allValid[0] ? result.toString() : null;
   }
 
   /**
@@ -805,11 +835,7 @@ public final class GroovyDslUtil {
   }
 
   @NotNull
-  static String quotePartsIfNecessary(ExternalNameInfo info) {
-    List<String> parts = info.externalNameParts;
-    if (info.verbatim) {
-      return String.join(".", parts);
-    }
+  public static String quotePartsIfNecessary(@NotNull List<String> parts) {
     StringBuilder sb = new StringBuilder();
     boolean firstPart = true;
     for (String part: parts) {
@@ -822,6 +848,15 @@ public final class GroovyDslUtil {
       sb.append(quotePartIfNecessary(part));
     }
     return sb.toString();
+  }
+
+  @NotNull
+  static String quotePartsIfNecessary(@NotNull ExternalNameInfo info) {
+    List<String> parts = info.externalNameParts;
+    if (info.verbatim) {
+      return String.join(".", parts);
+    }
+    return quotePartsIfNecessary(parts);
   }
 
   @Nullable
