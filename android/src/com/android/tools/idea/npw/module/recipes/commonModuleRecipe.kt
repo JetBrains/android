@@ -43,6 +43,7 @@ fun RecipeExecutor.generateCommonModule(
   includeCppSupport: Boolean = false,
   iconsGenerationStyle: IconsGenerationStyle = IconsGenerationStyle.ALL,
   stylesXml: String? = androidModuleStyles(data.projectTemplateData.androidXSupport),
+  stylesXmlNight: String? = null,
   colorsXml: String? = androidModuleColors(),
   cppFlags: String = "",
   addLintOptions: Boolean = false
@@ -112,6 +113,9 @@ fun RecipeExecutor.generateCommonModule(
       if (colorsXml != null) {
         save(colorsXml, resolve("colors.xml"))
       }
+    }
+    stylesXmlNight?.let {
+      save(it, resOut.resolve(SdkConstants.FD_RES_VALUES_NIGHT).resolve("styles.xml"))
     }
   }
 

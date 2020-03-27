@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.npw.module.recipes.androidModule
 
+import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleStyles
+import com.android.tools.idea.npw.module.recipes.androidModule.res.values_night.androidModuleStyles as androidModuleStylesNight
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.npw.module.recipes.generateCommonModule
 import com.android.tools.idea.npw.module.recipes.generateManifest
 import com.android.tools.idea.wizard.template.BytecodeLevel
 import com.android.tools.idea.wizard.template.FormFactor
-import com.android.tools.idea.wizard.template.JavaVersion
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.has
 
@@ -33,8 +34,17 @@ fun RecipeExecutor.generateAndroidModule(
   cppFlags: String,
   bytecodeLevel: BytecodeLevel = BytecodeLevel.L7
 ) {
+  val useAndroidX = data.projectTemplateData.androidXSupport
   generateCommonModule(
-    data, appTitle, useKts, generateManifest(data.packageName, !data.isLibrary), true, includeCppSupport, cppFlags = cppFlags
+    data = data,
+    appTitle = appTitle,
+    useKts = useKts,
+    manifestXml = generateManifest(data.packageName, !data.isLibrary),
+    generateTests= true,
+    includeCppSupport = includeCppSupport,
+    stylesXml = androidModuleStyles(useAndroidX),
+    stylesXmlNight = androidModuleStylesNight(useAndroidX),
+    cppFlags = cppFlags
   )
   val projectData = data.projectTemplateData
   val formFactorNames = projectData.includedFormFactorNames
