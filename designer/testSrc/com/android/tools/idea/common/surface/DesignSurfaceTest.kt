@@ -28,10 +28,12 @@ import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
 import java.awt.Container
 import java.awt.Dimension
+import java.awt.datatransfer.DataFlavor
 import java.awt.event.ComponentEvent
 import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
@@ -155,6 +157,18 @@ class TestLayoutManager(private val surface: DesignSurface) : PositionableConten
 
 }
 
+class TestActionHandler(surface: DesignSurface) : DesignSurfaceActionHandler(surface) {
+  override fun getPasteTarget(): NlComponent? = null
+  override fun canHandleChildren(component: NlComponent, pasted: MutableList<NlComponent>): Boolean = false
+  override fun getFlavor(): DataFlavor = ItemTransferable.DESIGNER_FLAVOR
+  override fun canDeleteElement(dataContext: DataContext): Boolean = false
+  override fun isPasteEnabled(dataContext: DataContext): Boolean = false
+  override fun isCopyEnabled(dataContext: DataContext): Boolean = false
+  override fun isCopyVisible(dataContext: DataContext): Boolean = false
+  override fun isCutVisible(dataContext: DataContext): Boolean = false
+  override fun isPastePossible(dataContext: DataContext): Boolean = false
+}
+
 private class TestDesignSurface(project: Project, disposible: Disposable)
   : DesignSurface(project,
                   disposible,
@@ -162,16 +176,13 @@ private class TestDesignSurface(project: Project, disposible: Disposable)
                   java.util.function.Function { TestInteractionHandler(it) },
                   State.FULL,
                   true,
-                  java.util.function.Function { TestLayoutManager(it) }) {
+                  java.util.function.Function { TestLayoutManager(it) },
+                  java.util.function.Function { TestActionHandler(it) }) {
   override fun getSelectionAsTransferable(): ItemTransferable {
     return ItemTransferable(DnDTransferItem(0, ImmutableList.of()))
   }
 
   override fun getComponentRegistrar() = Consumer<NlComponent> {}
-
-  override fun createActionHandler(): DesignSurfaceActionHandler {
-    throw UnsupportedOperationException("Action handler not implemented for TestDesignSurface")
-  }
 
   override fun createSceneManager(model: NlModel) = SyncLayoutlibSceneManager(model as SyncNlModel)
 
