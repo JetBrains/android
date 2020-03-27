@@ -27,7 +27,6 @@ import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.WizardUiContext
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.vfs.VirtualFile
-import org.jetbrains.annotations.Contract
 
 /**
  * Step for the gallery for Activity templates.
