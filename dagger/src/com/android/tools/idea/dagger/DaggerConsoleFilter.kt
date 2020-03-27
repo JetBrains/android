@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.dagger
 
+import com.android.tools.idea.dagger.DaggerConsoleFilter.Companion.ERROR_PREFIX
 import com.android.tools.idea.dagger.DaggerConsoleFilter.Companion.FQCN_WITH_METHOD
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.execution.filters.ConsoleFilterProvider
@@ -93,7 +94,7 @@ private fun createLinkToClass(fqcn: String): HyperlinkInfo {
   return object : HyperlinkInfo {
     override fun navigate(project: Project?) {
       if (project == null) return
-      PsiNavigateUtil.navigate(getClass(fqcn, project))
+      PsiNavigateUtil.navigate(getClass(fqcn, project)?.navigationElement)
     }
   }
 }
@@ -111,7 +112,7 @@ private fun createLinkToMethod(fqcn: String, methodName: String): HyperlinkInfo 
       else {
         method = getClass(fqcn, project)?.findMethodsByName(methodName, true)?.firstOrNull()
       }
-      PsiNavigateUtil.navigate(method)
+      PsiNavigateUtil.navigate(method?.navigationElement)
     }
   }
 }
