@@ -38,7 +38,6 @@ import com.intellij.openapi.fileTypes.FileTypeExtensionPoint;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.testFramework.PsiTestUtil;
@@ -133,7 +132,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "            TensorBuffer stylearray = null;\n" +
       "            StyleTransferModel styleTransferModel = StyleTransferModel.newInstance(this);\n" +
       "            StyleTransferModel.Outputs outputs = styleTransferModel.process(image, stylearray);\n" +
-      "            TensorBuffer styledImage = outputs.getStyledImageAsTensorBuffer();" +
+      "            TensorImage styledimage = outputs.getStyledImageAsTensorImage();" +
       "        } catch (IOException e) {};\n" +
       "    }\n" +
       "}"
@@ -291,7 +290,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "\n" +
       "        val styleTransferModel = StyleTransferModel.newInstance(this)\n" +
       "        val styleTransferOutputs = styleTransferModel.process(tensorImage, tensorBuffer)\n" +
-      "        val styledImage = styleTransferOutputs.styledImageAsTensorBuffer\n" +
+      "        val styledImage = styleTransferOutputs.styledImageAsTensorImage\n" +
       "        Log.d(\"TAG\", \"Result\" + styledImage)\n" +
       "    }\n" +
       "}"
