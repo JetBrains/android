@@ -16,6 +16,9 @@
 package com.android.tools.idea.gradle.dsl.parser.groovy;
 
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.getGradleNameForPsiElement;
+import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.getPsiElementFactory;
+import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.gradleNameFor;
+import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.quotePartsIfNecessary;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.ADD_AS_LIST;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.OTHER;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
@@ -31,13 +34,20 @@ import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.lexer.TokenSets;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
 
 public class GroovyDslNameConverter implements GradleDslNameConverter {
   @NotNull
@@ -55,7 +65,12 @@ public class GroovyDslNameConverter implements GradleDslNameConverter {
   @NotNull
   @Override
   public String convertReferenceText(@NotNull GradleDslElement context, @NotNull String referenceText) {
-    return referenceText;
+    String result = ApplicationManager.getApplication().runReadAction((Computable<String>)() -> {
+      GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(context.getDslFile().getProject());
+      GrExpression expression = factory.createExpressionFromText(referenceText);
+      return gradleNameFor(expression);
+    });
+    return result != null ? result : referenceText;
   }
 
   @NotNull
