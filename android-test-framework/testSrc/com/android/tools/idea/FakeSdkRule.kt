@@ -47,6 +47,10 @@ class FakeSdkRule(val projectRule: AndroidProjectRule, val fileOp: FileOp = Mock
   fun withLocalPackage(path: String) = apply { localPackages.add(FakePackage.FakeLocalPackage(path)) }
   fun withRemotePackage(remotePackage: RemotePackage) = apply { remotePackages.add(remotePackage) }
 
+  fun addLocalPackage(path: String) {
+    packages.setLocalPkgInfos(packages.localPackages.values.plus(FakePackage.FakeLocalPackage(path)))
+  }
+
   override fun before(description: Description) {
     packages = RepositoryPackages(localPackages, remotePackages)
     val sdkFile = File(sdkPath)
