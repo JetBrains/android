@@ -778,7 +778,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     // Verify that FinishBuildEvent was created only once.
     List<BuildEvent> buildEvents = buildEventCaptor.getAllValues().stream().filter(FinishBuildEvent.class::isInstance).collect(toList());
     assertThat(buildEvents).hasSize(1);
-    assertThat(buildEvents.get(0).getMessage()).isEqualTo("successful");
+    assertThat(buildEvents.get(0).getMessage()).isEqualTo("finished");
   }
 
   public void testStartAndFinishBuildEventHasSameBuildId() throws Exception {
