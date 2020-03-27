@@ -25,7 +25,8 @@ import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.ui.content.ContentFactory
 import icons.StudioIcons
 
-private const val APP_INSPECTION_TITLE = "App Inspection"
+// TODO(b/152556591): Rename back to "App Inspection"
+private const val APP_INSPECTION_TITLE = "Database Inspector"
 
 class AppInspectionToolWindowFactory : DumbAware, ToolWindowFactory, Condition<Project> {
 
@@ -35,7 +36,8 @@ class AppInspectionToolWindowFactory : DumbAware, ToolWindowFactory, Condition<P
     val contentFactory = ContentFactory.SERVICE.getInstance()
     val content = contentFactory.createContent(appInspectionToolWindow.component, "", false)
     toolWindow.contentManager.addContent(content)
-    toolWindow.setIcon(StudioIcons.Shell.ToolWindows.INSPECTION)
+    // TODO(b/152556591): Update to app inspection icon and move database icon down to the tab
+    toolWindow.setIcon(StudioIcons.Shell.ToolWindows.DATABASE_INSPECTOR)
     Disposer.register(project, appInspectionToolWindow)
     toolWindow.show(null)
   }

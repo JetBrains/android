@@ -17,7 +17,6 @@ package com.android.tools.idea.appinspection.ide
 
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.idea.appinspection.api.TestInspectorCommandHandler
 import com.android.tools.idea.appinspection.ide.ui.AppInspectionProcessesComboBox
 import com.android.tools.idea.appinspection.ide.ui.AppInspectionView
@@ -37,6 +36,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import java.awt.event.ContainerAdapter
 import java.awt.event.ContainerEvent
 import java.awt.event.ContainerListener
 import java.util.concurrent.CountDownLatch
@@ -86,14 +86,8 @@ class AppInspectionViewTest {
     discoveryHost.discovery.addTargetListener(appInspectionServiceRule.executorService) {
       newProcessLatch.countDown()
     }
-    val tabbedPane = TreeWalker(inspectionView.component).descendants().filterIsInstance<CommonTabbedPane>().first()
-    tabbedPane.addContainerListener(object : ContainerListener {
-      override fun componentAdded(e: ContainerEvent) {
-
-        tabAddedLatch.countDown()
-      }
-
-      override fun componentRemoved(e: ContainerEvent?) {}
+    inspectionView.inspectorTabs.addContainerListener(object : ContainerAdapter() {
+      override fun componentAdded(e: ContainerEvent) = tabAddedLatch.countDown()
     })
     // Attach to a fake process.
     transportService.addDevice(api29Device)
@@ -109,12 +103,8 @@ class AppInspectionViewTest {
 
     val inspectionView = AppInspectionView(projectRule.project, discoveryHost)
     val tabAddedLatch = CountDownLatch(2)
-    val tabbedPane = TreeWalker(inspectionView.component).descendants().filterIsInstance<CommonTabbedPane>().first()
-    tabbedPane.addContainerListener(object : ContainerListener {
-      override fun componentAdded(e: ContainerEvent) {
-        tabAddedLatch.countDown()
-      }
-      override fun componentRemoved(e: ContainerEvent?) {}
+    inspectionView.inspectorTabs.addContainerListener(object : ContainerAdapter() {
+      override fun componentAdded(e: ContainerEvent) = tabAddedLatch.countDown()
     })
 
     // Launch two processes and wait for them to show up in combobox
