@@ -1010,6 +1010,13 @@
 
   <!-- End new deployment target selection -->
 
+  <actions>
+    <!--suppress PluginXmlCapitalization -->
+    <action id="AdbConnectionStatus" class="com.android.tools.idea.run.AdbConnectionStatusAction" text="adb Connection Status">
+      <add-to-group group-id="ToolbarRunGroup" relative-to-action="DeviceAndSnapshotComboBox" anchor="after"/>
+    </action>
+  </actions>
+
   <extensions defaultExtensionNs="com.android.run">
     <androidDebugger implementation="com.android.tools.idea.run.editor.AndroidJavaDebugger"/>
   </extensions>
