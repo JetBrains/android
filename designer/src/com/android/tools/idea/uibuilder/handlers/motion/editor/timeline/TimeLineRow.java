@@ -118,7 +118,9 @@ public class TimeLineRow extends JPanel {
     int sy = 0;
     if (mShowTitle) {
       g.setColor(MEUI.ourTextColor);
+      g.setClip(0,0, MEUI.ourLeftColumnWidth, getHeight());
       g.drawString(mRow.mRef + ":" + mRow.mName, sx, fontAscent);
+      g.setClip(null);
       sy += myTitleHeight;
     }
     ((Graphics2D) g)
@@ -131,7 +133,9 @@ public class TimeLineRow extends JPanel {
     sx = MEUI.scale(22);
     int rowTypeEnd  = 0;
     if (mRow.mType != null) {
+      g.setClip(0,0, MEUI.ourLeftColumnWidth, getHeight());
       g.drawString(mRow.mType, sx, sy);
+      g.setClip(null);
       rowTypeEnd  =  sx + metrics.stringWidth(mRow.mType);
     }
     if (mRow.mKeyProp != null) {
