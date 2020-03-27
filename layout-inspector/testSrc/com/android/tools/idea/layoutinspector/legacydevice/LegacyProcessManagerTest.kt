@@ -28,12 +28,15 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.util.concurrent.TimeUnit
 
 private const val DEVICE1 = "1234"
 
 private const val PROCESS1 = 12345
 private const val PROCESS2 = 12346
 private const val PROCESS3 = 12347
+private const val PROCESS4 = 12348
+private const val PROCESS5 = 12349
 
 private const val MANUFACTURER = "Google"
 
@@ -57,7 +60,7 @@ class LegacyProcessManagerTest {
     adbServer?.start()
     AndroidDebugBridge.enableFakeAdbServerMode(adbServer!!.port)
     AndroidDebugBridge.initIfNeeded(true)
-    bridge = AndroidDebugBridge.createBridge()
+    bridge = AndroidDebugBridge.createBridge(10, TimeUnit.SECONDS) ?: error("Could not create ADB bridge")
   }
 
   @After
@@ -96,10 +99,12 @@ class LegacyProcessManagerTest {
   }
 
   /**
-   * Starts one [DEVICE1] with 3 processes: [PROCESS1], [PROCESS2], [PROCESS3]
+   * Starts one [DEVICE1] with 5 processes: [PROCESS1], [PROCESS2], [PROCESS3], [PROCESS4], [PROCESS5]
    *
    * Only the first 2 processes are available for use with the Layout Inspector: [PROCESS1] & [PROCESS2].
-   * [PROCESS3] does not have a view hierarchy feature and is therefore ignored.
+   * [PROCESS3] does not have a view hierarchy feature and is ignored.
+   * [PROCESS4] has an empty package name and ignored.
+   * [PROCESS5] has a package name of "<pre-initialized>" indicating it is not fully initialized and is ignored.
    */
   private fun startProcesses(): LegacyProcessManager {
     val manager = LegacyProcessManager(disposableRule.disposable)
@@ -110,6 +115,8 @@ class LegacyProcessManagerTest {
     device1.startClient(PROCESS1, 123, "com.example.myapplication", true)
     device1.startClient(PROCESS2, 234, "com.example.basic_app", true)
     device1.startClient(PROCESS3, 345, "com.example.compose_app", true)
+    device1.startClient(PROCESS4, 456, "", true)
+    device1.startClient(PROCESS5, 567, ClientData.PRE_INITIALIZED, true)
 
     val waiter = ProcessManagerSync(manager)
     waiter.waitUntilReady(DEVICE1, PROCESS1, PROCESS2)
