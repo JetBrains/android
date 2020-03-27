@@ -465,6 +465,53 @@ class ProguardR8CompletionContributorTest : ProguardR8TestCase() {
     myFixture.completeBasic()
     assertThat(myFixture.lookupElementStrings).doesNotContain("static")
   }
+
+  fun testCompletionForInnerClass() {
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+
+      public class MyClass {
+        class InnerClass {}
+      }
+    """.trimIndent()
+    )
+
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE, """
+        -keep class test.MyClass${"$"}${caret} {
+        }
+    """.trimIndent()
+    )
+
+    val classes = myFixture.completeBasic()
+    assertThat(classes).isNotEmpty()
+    assertThat(classes.map { it.lookupString }).containsExactly("InnerClass")
+
+
+    // Test that ProguardR8CompletionContributor doesn't duplicate static classes.
+    // Static classes are provided by JavaClassReferenceCompletionContributor
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+
+      public class MyClass2 {
+        static class StaticInnerClass {}
+      }
+    """.trimIndent()
+    )
+
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE, """
+        -keep class test.MyClass2${"$"}${caret} {
+        }
+    """.trimIndent()
+    )
+
+    assertThat(myFixture.completeBasic()).hasLength(1)
+  }
 }
 
 class ProguardR8FlagsCodeCompletion : AndroidTestCase() {
