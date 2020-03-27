@@ -20,6 +20,7 @@ import com.android.tools.mlkit.MlkitNames;
 import com.android.tools.mlkit.ModelInfo;
 import com.android.tools.mlkit.ModelParsingException;
 import com.android.tools.mlkit.TensorInfo;
+import com.google.common.primitives.Floats;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -84,7 +85,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   private final Module myModule;
   private final VirtualFile myFile;
   private final JBScrollPane myRootPane;
-  private final JEditorPane myEditorPane;
+  private final JEditorPane myHtmlEditorPane;
   private boolean myUnderDarcula;
   private boolean myIsSampleCodeSectionVisible;
 
@@ -99,8 +100,9 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     contentPanel.setBackground(UIUtil.getTextFieldBackground());
     contentPanel.setBorder(JBUI.Borders.empty(20));
 
-    myEditorPane = createPaneFromHtml(createHtmlBody());
-    contentPanel.add(myEditorPane);
+    myHtmlEditorPane = new JEditorPane();
+    setHtml(myHtmlEditorPane, createHtmlBody());
+    contentPanel.add(myHtmlEditorPane);
 
     myRootPane = new JBScrollPane(contentPanel);
   }
@@ -135,12 +137,22 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     return htmlBodyBuilder.toString();
   }
 
-  private static JEditorPane createPaneFromHtml(@NotNull String html) {
-    JEditorPane modelPane = new JEditorPane();
-    modelPane.setAlignmentX(Component.LEFT_ALIGNMENT);
-    setHtml(modelPane, html);
-
-    return modelPane;
+  private static void setHtml(@NotNull JEditorPane pane, @NotNull String bodyContent) {
+    String html =
+      "<html><head><style>" +
+      MODEL_TABLE_STYLE +
+      TENSORS_TABLE_STYLE +
+      buildSampleCodeStyle() +
+      "</style></head><body>" +
+      bodyContent +
+      "</body></html>";
+    pane.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE);
+    pane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
+    pane.setAlignmentX(Component.LEFT_ALIGNMENT);
+    pane.setBackground(UIUtil.getTextFieldBackground());
+    pane.setContentType("text/html");
+    pane.setEditable(false);
+    pane.setText(html);
   }
 
   @NotNull
@@ -171,11 +183,6 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     bodyBuilder.append("</table>\n");
 
     return bodyBuilder.toString();
-  }
-
-  private static String getSampleCodeSectionBody(@NotNull PsiClass modelClass, @NotNull ModelInfo modelInfo) {
-    return "<h2 style=\"padding-top:8px;\">Sample Code</h2>\n" +
-           "<div id=\"sample_code\"><pre>" + buildSampleCode(modelClass, modelInfo) + "</pre></div>";
   }
 
   private static String getTensorsSectionBody(@NotNull ModelInfo modelInfo) {
@@ -212,8 +219,8 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   @NotNull
   private static String[] getTensorsRow(@NotNull TensorInfo tensorInfo) {
     MetadataExtractor.NormalizationParams params = tensorInfo.getNormalizationParams();
-    String meanStdColumn = params != null ? Arrays.toString(params.getMean()) + "/" + Arrays.toString(params.getStd()) : "";
-    String minMaxColumn = isValidMinMaxColumn(params) ? Arrays.toString(params.getMin()) + "/" + Arrays.toString(params.getMax()) : "";
+    String meanStdColumn = params != null ? Arrays.toString(params.getMean()) + " / " + Arrays.toString(params.getStd()) : "";
+    String minMaxColumn = isValidMinMaxColumn(params) ? Arrays.toString(params.getMin()) + " / " + Arrays.toString(params.getMax()) : "";
 
     return new String[]{tensorInfo.getName(), tensorInfo.getContentType().toString(), tensorInfo.getDescription(),
       Arrays.toString(tensorInfo.getShape()), meanStdColumn, minMaxColumn};
@@ -224,52 +231,25 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       return false;
     }
 
-    boolean isValid = false;
     for (float min : params.getMin()) {
-      if (min != Float.MIN_VALUE) {
-        isValid = true;
+      if (Floats.compare(min, Float.MIN_VALUE) != 0) {
+        return true;
       }
     }
 
     for (float max : params.getMax()) {
-      if (max != Float.MAX_VALUE) {
-        isValid = true;
+      if (Floats.compare(max, Float.MAX_VALUE) != 0) {
+        return true;
       }
     }
 
-    return isValid;
+    return false;
   }
 
-  private static void setHtml(@NotNull JEditorPane pane, @NotNull String bodyContent) {
-    String html =
-      "<html><head><style>" +
-      MODEL_TABLE_STYLE +
-      TENSORS_TABLE_STYLE +
-      buildSampleCodeStyle() +
-      "</style></head><body>" +
-      bodyContent +
-      "</body></html>";
-    pane.setContentType("text/html");
-    pane.setEditable(false);
-    pane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
-    pane.setText(html);
-    pane.setBackground(UIUtil.getTextFieldBackground());
-    pane.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE);
-  }
 
-  @NotNull
-  private static String buildSampleCodeStyle() {
-    return "#sample_code {\n" +
-           "  font-family: 'Source Sans Pro', sans-serif; \n" +
-           "  background-color: " + (StartupUiUtil.isUnderDarcula() ? "#2B2B2B" : "#F1F3F4") + ";\n" +
-           "  color: " + (StartupUiUtil.isUnderDarcula() ? "#DDDDDD" : "#3A474E") + ";\n" +
-           "  margin-left: 20px;\n" +
-           "  display: block;\n" +
-           "  width: 60%;\n" +
-           "  padding: 5px;\n" +
-           "  padding-left: 10px;\n" +
-           "  margin-top: 10px;\n" +
-           "}";
+  private static String getSampleCodeSectionBody(@NotNull PsiClass modelClass, @NotNull ModelInfo modelInfo) {
+    return "<h2 style=\"padding-top:8px;\">Sample Code</h2>\n" +
+           "<div id=\"sample_code\"><pre>" + buildSampleCode(modelClass, modelInfo) + "</pre></div>";
   }
 
   @NotNull
@@ -284,7 +264,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
         .append(String.format("%s.%s outputs = model.%s(", modelClassName, processMethod.getReturnType().getPresentableText(),
                               processMethod.getName()));
       for (PsiParameter parameter : processMethod.getParameterList().getParameters()) {
-        stringBuilder.append(parameter.getType().getPresentableText() + " " + parameter.getName() + ",");
+        stringBuilder.append(parameter.getType().getPresentableText()).append(" ").append(parameter.getName()).append(",");
       }
       stringBuilder.deleteCharAt(stringBuilder.length() - 1);
 
@@ -315,13 +295,28 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   }
 
   @NotNull
+  private static String buildSampleCodeStyle() {
+    return "#sample_code {\n" +
+           "  font-family: 'Source Sans Pro', sans-serif; \n" +
+           "  background-color: " + (StartupUiUtil.isUnderDarcula() ? "#2B2B2B" : "#F1F3F4") + ";\n" +
+           "  color: " + (StartupUiUtil.isUnderDarcula() ? "#DDDDDD" : "#3A474E") + ";\n" +
+           "  margin-left: 20px;\n" +
+           "  display: block;\n" +
+           "  width: 60%;\n" +
+           "  padding: 5px;\n" +
+           "  padding-left: 10px;\n" +
+           "  margin-top: 10px;\n" +
+           "}";
+  }
+
+  @NotNull
   @Override
   public JComponent getComponent() {
     if (myUnderDarcula != StartupUiUtil.isUnderDarcula() || myIsSampleCodeSectionVisible != shouldDisplaySampleCodeSection()) {
       myUnderDarcula = StartupUiUtil.isUnderDarcula();
       myIsSampleCodeSectionVisible = shouldDisplaySampleCodeSection();
       // Refresh UI
-      setHtml(myEditorPane, createHtmlBody());
+      setHtml(myHtmlEditorPane, createHtmlBody());
     }
     return myRootPane;
   }
