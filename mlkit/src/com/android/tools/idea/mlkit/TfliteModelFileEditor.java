@@ -65,7 +65,6 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   private static final String MODEL_TABLE_STYLE = "#model {\n" +
                                                   "  border-collapse: collapse;\n" +
                                                   "  margin-left: 12px;\n" +
-                                                  "  width: 60%;\n" +
                                                   "}\n" +
                                                   "#model td, #model th {\n" +
                                                   "  border: 0;\n" +
@@ -76,12 +75,12 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
                                                     "  border-collapse: collapse;\n" +
                                                     "  border: 1px solid #dddddd;\n" +
                                                     "  margin-left: 20px;\n" +
-                                                    "  width: 60%;\n" +
                                                     "}\n" +
                                                     "#tensors td, #tensors th {\n" +
                                                     "  text-align: left;\n" +
                                                     "  padding: 6px;\n" +
                                                     "}\n";
+  private static final int MAX_LINE_LENGTH = 100;
 
   private final Module myModule;
   private final VirtualFile myFile;
@@ -142,11 +141,11 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
 
   private static void setHtml(@NotNull JEditorPane pane, @NotNull String bodyContent) {
     String html =
-      "<html><head><style>" +
+      "<html><head><style>\n" +
       MODEL_TABLE_STYLE +
       TENSORS_TABLE_STYLE +
       buildSampleCodeStyle() +
-      "</style></head><body>" +
+      "</style></head><body>\n" +
       bodyContent +
       "</body></html>";
     pane.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE);
@@ -173,7 +172,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   private static String getModelSectionBody(@NotNull ModelInfo modelInfo) {
     List<String[]> table = new ArrayList<>();
     table.add(new String[]{"Name", modelInfo.getModelName()});
-    table.add(new String[]{"Description", modelInfo.getModelDescription()});
+    table.add(new String[]{"Description", breakLineIfTooLong(modelInfo.getModelDescription())});
     table.add(new String[]{"Version", modelInfo.getModelVersion()});
     table.add(new String[]{"Author", modelInfo.getModelAuthor()});
     table.add(new String[]{"License", modelInfo.getModelLicense()});
@@ -189,7 +188,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   }
 
   private static String getTensorsSectionBody(@NotNull ModelInfo modelInfo) {
-    StringBuilder bodyBuilder = new StringBuilder("<h2>Tensors</h2>");
+    StringBuilder bodyBuilder = new StringBuilder("<h2>Tensors</h2>\n");
     List<String[]> inputsTable = new ArrayList<>();
     inputsTable.add(new String[]{"Name", "Type", "Description", "Shape", "Mean / Std", "Min / Max"});
     for (TensorInfo tensorInfo : modelInfo.getInputs()) {
@@ -209,7 +208,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
 
   @NotNull
   private static String getTensorTableBody(@NotNull List<String[]> table, @NotNull String title) {
-    StringBuilder bodyBuilder = new StringBuilder("<p style=\"margin-left:20px;margin-bottom:10px;\">" + title + "</p>");
+    StringBuilder bodyBuilder = new StringBuilder("<p style=\"margin-left:20px;margin-bottom:10px;\">" + title + "</p>\n");
     bodyBuilder.append("<table id=\"tensors\">\n").append(createHtmlRow(table.get(0), false));
     for (String[] row : table.subList(1, table.size())) {
       bodyBuilder.append(createHtmlRow(row, false));
@@ -225,7 +224,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     String meanStdColumn = params != null ? Arrays.toString(params.getMean()) + " / " + Arrays.toString(params.getStd()) : "";
     String minMaxColumn = isValidMinMaxColumn(params) ? Arrays.toString(params.getMin()) + " / " + Arrays.toString(params.getMax()) : "";
 
-    return new String[]{tensorInfo.getName(), tensorInfo.getContentType().toString(), tensorInfo.getDescription(),
+    return new String[]{tensorInfo.getName(), tensorInfo.getContentType().toString(), breakLineIfTooLong(tensorInfo.getDescription()),
       Arrays.toString(tensorInfo.getShape()), meanStdColumn, minMaxColumn};
   }
 
@@ -249,10 +248,9 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     return false;
   }
 
-
   private static String getSampleCodeSectionBody(@NotNull PsiClass modelClass, @NotNull ModelInfo modelInfo) {
     return "<h2 style=\"padding-top:8px;\">Sample Code</h2>\n" +
-           "<div id=\"sample_code\"><pre>" + buildSampleCode(modelClass, modelInfo) + "</pre></div>";
+           "<table id=\"sample_code\"><tr><td><pre>\n" + buildSampleCode(modelClass, modelInfo) + "</pre></td></tr></table>\n";
   }
 
   @NotNull
@@ -304,12 +302,9 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
            "  background-color: " + (StartupUiUtil.isUnderDarcula() ? "#2B2B2B" : "#F1F3F4") + ";\n" +
            "  color: " + (StartupUiUtil.isUnderDarcula() ? "#DDDDDD" : "#3A474E") + ";\n" +
            "  margin-left: 20px;\n" +
-           "  display: block;\n" +
-           "  width: 60%;\n" +
            "  padding: 5px;\n" +
-           "  padding-left: 10px;\n" +
            "  margin-top: 10px;\n" +
-           "}";
+           "}\n";
   }
 
   @NotNull
@@ -384,5 +379,24 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
 
   private boolean shouldDisplaySampleCodeSection() {
     return MlkitUtils.isMlModelBindingBuildFeatureEnabled(myModule) && MlkitUtils.isModelFileInMlModelsFolder(myModule, myFile);
+  }
+
+  private static String breakLineIfTooLong(String text) {
+    String[] words = text.split(" ");
+    StringBuilder result = new StringBuilder();
+    StringBuilder tmp = new StringBuilder();
+    for (String word : words) {
+      tmp.append(word);
+      if (tmp.length() > MAX_LINE_LENGTH) {
+        tmp.append("<br>");
+        result.append(tmp);
+        tmp = new StringBuilder();
+      }
+      else {
+        tmp.append(" ");
+      }
+    }
+    result.append(tmp);
+    return result.toString().trim();
   }
 }
