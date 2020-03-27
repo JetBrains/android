@@ -25,4 +25,4 @@ interface StatusNotification {
   val actions: List<AnAction>
 }
 
-class StatusNotificationImpl(override val message: String, override val actions: List<AnAction>): StatusNotification
+class StatusNotificationImpl(override val message: String, override val actions: List<AnAction> = listOf()): StatusNotification

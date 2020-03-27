@@ -15,49 +15,53 @@
  */
 package com.android.tools.idea.layoutinspector
 
-import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.StatusNotificationImpl
+import com.android.tools.idea.layoutinspector.ui.InspectorBanner
+import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.testFramework.ProjectRule
+import org.junit.Rule
 import org.junit.Test
 import java.awt.Dimension
 
 class InspectorBannerTest {
 
-  @Test
-  fun testInitiallyHidden() {
-    val model = model { view(ROOT, 1, 2, 3, 4, "rootType") }
-    val banner = InspectorBanner(model)
-    assertThat(banner.isVisible).isFalse()
-  }
+  @get:Rule
+  val projectRule = ProjectRule()
 
   @Test
+  fun testInitiallyHidden() {
+    val banner = InspectorBanner(projectRule.project)
+    assertThat(banner.isVisible).isFalse()
+  }
+  @Test
   fun testVisibleWithStatus() {
-    val model = model { view(ROOT, 1, 2, 3, 4, "rootType") }
-    val banner = InspectorBanner(model)
-    model.notification = StatusNotificationImpl("There is an error somewhere", emptyList())
+    val banner = InspectorBanner(projectRule.project)
+    InspectorBannerService.getInstance(projectRule.project).notification =
+      StatusNotificationImpl ("There is an error somewhere", emptyList())
     assertThat(banner.isVisible).isTrue()
   }
 
   @Test
   fun testInvisibleAfterEmptyStatus() {
-    val model = model { view(ROOT, 1, 2, 3, 4, "rootType") }
-    val banner = InspectorBanner(model)
-    model.notification = StatusNotificationImpl("There is an error somewhere", emptyList())
-    model.notification = null
+    val banner = InspectorBanner(projectRule.project)
+    val bannerService = InspectorBannerService.getInstance(projectRule.project)
+    bannerService.notification = StatusNotificationImpl("There is an error somewhere", emptyList())
+    bannerService.notification = null
     assertThat(banner.isVisible).isFalse()
   }
 
   @Test
   fun testMessageShortenedOnLimitedSpace() {
-    val model = model { view(ROOT, 1, 2, 3, 4, "rootType") }
-    val banner = InspectorBanner(model)
+    val banner = InspectorBanner(projectRule.project)
     val label = banner.getComponent(0)
     val action = object: AnAction("Fix") {
       override fun actionPerformed(event: AnActionEvent) {}
     }
-    model.notification = StatusNotificationImpl("There is an error somewhere", listOf(action))
+    val bannerService = InspectorBannerService.getInstance(projectRule.project)
+    bannerService.notification = StatusNotificationImpl("There is an error somewhere", listOf(action))
     banner.size = banner.preferredSize
     banner.doLayout()
     assertThat(label.size).isEqualTo(label.preferredSize)

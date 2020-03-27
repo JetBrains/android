@@ -70,7 +70,7 @@ private const val MAX_TIMES_TO_RETRY = 10
 private const val DYNAMIC_LAYOUT_INSPECTOR_USE_DEVBUILD_SKIA_SERVER = false
 
 class InvalidPictureException : Exception()
-class UnsupportedPictureVersionException : Exception()
+class UnsupportedPictureVersionException(val version: Int) : Exception()
 
 interface SkiaParserService {
   @Throws(InvalidPictureException::class)
@@ -90,7 +90,7 @@ object SkiaParser : SkiaParserService {
 
   @Throws(InvalidPictureException::class)
   override fun getViewTree(data: ByteArray): InspectorView? {
-    val server = runServer(data) ?: throw UnsupportedPictureVersionException()
+    val server = runServer(data) ?: throw UnsupportedPictureVersionException(getSkpVersion(data))
     val response = server.getViewTree(data)
     return response?.root?.let { buildTree(it) }
   }
