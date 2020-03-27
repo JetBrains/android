@@ -23,6 +23,6 @@ public final class AdtImportInitializer implements Runnable {
   @Override
   public void run() {
     replaceAction("ImportProject", new AndroidImportProjectAction());
-    replaceAction("WelcomeScreen.ImportProject", new AndroidImportProjectAction("Import project (Gradle, Eclipse ADT, etc.)"));
+    replaceAction("WelcomeScreen.ImportProject", new AndroidImportProjectAction("Import Project (Gradle, Eclipse ADT, etc.)"));
   }
 }
