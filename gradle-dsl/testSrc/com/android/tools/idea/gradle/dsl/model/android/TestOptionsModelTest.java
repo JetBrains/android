@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import static com.android.tools.idea.gradle.dsl.TestFileName.TEST_OPTIONS_MODEL_ADD_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.TEST_OPTIONS_MODEL_ADD_ELEMENTS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.TEST_OPTIONS_MODEL_EDIT_ELEMENTS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.TEST_OPTIONS_MODEL_TEST_OPTIONS_TEXT;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.TEST_OPTIONS_MODEL_ADD_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.TEST_OPTIONS_MODEL_ADD_ELEMENTS_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.TEST_OPTIONS_MODEL_EDIT_ELEMENTS_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.TEST_OPTIONS_MODEL_TEST_OPTIONS_TEXT;
 
 import com.android.builder.model.TestOptions;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;

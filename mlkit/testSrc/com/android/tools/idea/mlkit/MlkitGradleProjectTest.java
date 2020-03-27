@@ -64,7 +64,8 @@ public class MlkitGradleProjectTest {
     assertFalse(MlkitUtils.isMlModelBindingBuildFeatureEnabled(module2));
 
     JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(project);
-    assertNotNull(javaPsiFacade.findClass("google.withmlmodelbinding.ml.MyModel", GlobalSearchScope.moduleScope(appModule)));
-    assertNull(javaPsiFacade.findClass("google.nomlmodelbinding.ml.MyModel2", GlobalSearchScope.moduleScope(module2)));
+    assertNotNull(
+      javaPsiFacade.findClass("google.withmlmodelbinding.ml.MobilenetV1025160Quantized", GlobalSearchScope.moduleScope(appModule)));
+    assertNull(javaPsiFacade.findClass("google.nomlmodelbinding.ml.MobilenetV1025160Quantized", GlobalSearchScope.moduleScope(module2)));
   }
 }

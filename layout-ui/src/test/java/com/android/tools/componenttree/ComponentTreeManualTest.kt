@@ -101,7 +101,7 @@ private class ComponentTreeTest {
     frame.isVisible = true
   }
 
-  private fun getSelectedItem() = selectionModel.selection.singleOrNull() as? Item
+  private fun getSelectedItem() = selectionModel.currentSelection.singleOrNull() as? Item
 
   private fun showPopup(component: JComponent, x: Int, y: Int) {
     displayPopup(popup, component, x, y)

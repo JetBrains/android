@@ -24,6 +24,7 @@ import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.project.getModuleTemplates
 import com.android.tools.idea.npw.ui.WizardGallery
 import com.android.tools.idea.npw.ui.getTemplateIcon
+import com.android.tools.idea.npw.ui.getTemplateTitle
 import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.core.ObservableBool
 import com.android.tools.idea.observable.core.OptionalProperty
@@ -154,7 +155,7 @@ abstract class ChooseGalleryItemStep(
 
   open class NewTemplateRenderer(internal val template: Template) : TemplateRenderer {
     override val label: String
-      get() = template.name
+      get() = getTemplateTitle(template)
 
     override val icon: Icon?
       get() = getTemplateIcon(template)

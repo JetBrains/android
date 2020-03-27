@@ -15,23 +15,22 @@
  */
 package com.android.tools.idea.gradle.dsl.model.java;
 
-import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_ADD_NON_EXISTED_LANGUAGE_LEVEL;
-import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_ADD_NON_EXISTED_LANGUAGE_LEVEL_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_ADD_NON_EXISTED_TARGET_COMPATIBILITY;
-import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_ADD_NON_EXISTED_TARGET_COMPATIBILITY_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_DELETE_LANGUAGE_LEVEL;
-import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_READ_JAVA_VERSIONS_AS_DOUBLE_QUOTE_STRINGS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_READ_JAVA_VERSIONS_AS_NUMBERS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_READ_JAVA_VERSIONS_AS_QUALIFIED_REFERENCE_STRING;
-import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_READ_JAVA_VERSIONS_AS_REFERENCE_STRING;
-import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_READ_JAVA_VERSIONS_AS_SINGLE_QUOTE_STRINGS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_READ_JAVA_VERSION_LITERAL_FROM_EXT_PROPERTY;
-import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_READ_JAVA_VERSION_REFERENCE_FROM_EXT_PROPERTY;
-import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_RESET_TARGET_COMPATIBILITY;
-import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_SET_SOURCE_COMPATIBILITY;
-import static com.android.tools.idea.gradle.dsl.TestFileName.JAVA_MODEL_SET_SOURCE_COMPATIBILITY_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.JAVA_MODEL_ADD_NON_EXISTED_LANGUAGE_LEVEL;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.JAVA_MODEL_ADD_NON_EXISTED_LANGUAGE_LEVEL_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.JAVA_MODEL_ADD_NON_EXISTED_TARGET_COMPATIBILITY;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.JAVA_MODEL_ADD_NON_EXISTED_TARGET_COMPATIBILITY_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.JAVA_MODEL_DELETE_LANGUAGE_LEVEL;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.JAVA_MODEL_READ_JAVA_VERSIONS_AS_DOUBLE_QUOTE_STRINGS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.JAVA_MODEL_READ_JAVA_VERSIONS_AS_NUMBERS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.JAVA_MODEL_READ_JAVA_VERSIONS_AS_QUALIFIED_REFERENCE_STRING;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.JAVA_MODEL_READ_JAVA_VERSIONS_AS_REFERENCE_STRING;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.JAVA_MODEL_READ_JAVA_VERSIONS_AS_SINGLE_QUOTE_STRINGS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.JAVA_MODEL_READ_JAVA_VERSION_LITERAL_FROM_EXT_PROPERTY;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.JAVA_MODEL_READ_JAVA_VERSION_REFERENCE_FROM_EXT_PROPERTY;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.JAVA_MODEL_RESET_TARGET_COMPATIBILITY;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.JAVA_MODEL_SET_SOURCE_COMPATIBILITY;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.JAVA_MODEL_SET_SOURCE_COMPATIBILITY_EXPECTED;
 
-import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;

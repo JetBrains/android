@@ -30,6 +30,7 @@ import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_HIGH_VOL
 import com.android.tools.idea.protobuf.Empty
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.containers.ConcurrentList
@@ -51,6 +52,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   private var channel: ManagedChannel? = null
   @Volatile private var emulatorControllerInternal: EmulatorControllerGrpc.EmulatorControllerStub? = null
   @Volatile private var emulatorConfigInternal: EmulatorConfiguration? = null
+  @Volatile private var skinDefinitionInternal: SkinDefinition? = null
   private var stateInternal = AtomicReference(ConnectionState.NOT_INITIALIZED)
   private val connectionStateListeners: ConcurrentList<ConnectionStateListener> = ContainerUtil.createConcurrentList()
   private val connectivityStateWatcher = object : Runnable {
@@ -96,6 +98,17 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     }
     private inline set(stub) {
       emulatorControllerInternal = stub
+    }
+
+  internal var skinDefinition: SkinDefinition?
+    get() {
+      if (connectionState == ConnectionState.CONNECTING) {
+        throw IllegalStateException()
+      }
+      return skinDefinitionInternal
+    }
+    private inline set(value) {
+      skinDefinitionInternal = value
     }
 
   @AnyThread
@@ -200,7 +213,11 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
         }
         else {
           emulatorConfig = config
-          connectionState = ConnectionState.CONNECTED
+          // Asynchronously read skin definition.
+          ApplicationManager.getApplication().executeOnPooledThread {
+            skinDefinition = SkinDefinitionCache.getInstance().getSkinDefinition(config.avdFolder)
+            connectionState = ConnectionState.CONNECTED
+          }
         }
       }
 

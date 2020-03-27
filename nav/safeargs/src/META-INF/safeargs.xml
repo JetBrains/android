@@ -34,10 +34,18 @@
   <project-components>
     <component>
       <implementation-class>com.android.tools.idea.nav.safeargs.project.SafeArgsProjectComponent</implementation-class>
-      <loadForDefaultProject/>
     </component>
     <component>
-    <implementation-class>com.android.tools.idea.nav.safeargs.project.NavigationResourcesModificationListener$SubscriptionComponent</implementation-class>
+      <implementation-class>com.android.tools.idea.nav.safeargs.project.NavigationResourcesModificationListener$SubscriptionComponent</implementation-class>
+    </component>
+    <component>
+      <implementation-class>com.android.tools.idea.nav.safeargs.project.SafeArgsModeTrackerProjectComponent</implementation-class>
     </component>
   </project-components>
+
+  <module-components>
+    <component>
+      <implementation-class>com.android.tools.idea.nav.safeargs.module.SafeArgsModeModuleComponent</implementation-class>
+    </component>
+  </module-components>
 </idea-plugin>

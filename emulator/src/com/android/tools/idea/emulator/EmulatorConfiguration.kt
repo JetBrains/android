@@ -16,6 +16,7 @@
 package com.android.tools.idea.emulator
 
 import com.android.emulator.control.EntryList
+import com.android.sdklib.internal.avd.AvdManager.AVD_FOLDER_EXTENSION
 import java.lang.Boolean.parseBoolean
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -24,7 +25,7 @@ import java.nio.file.Paths
  * Represents configuration of a running Emulator.
  */
 class EmulatorConfiguration private constructor(
-  val avdPath: Path,
+  val avdFolder: Path,
   val displayWidth: Int,
   val displayHeight: Int,
   val hasAudioOutput: Boolean,
@@ -67,7 +68,8 @@ class EmulatorConfiguration private constructor(
       }
       return if (avdHome != null && avdId != null &&
                  displayWidth != null && displayWidth > 0 && displayHeight != null && displayHeight > 0) {
-        EmulatorConfiguration(avdPath = Paths.get(avdHome, avdId), displayWidth = displayWidth, displayHeight = displayHeight,
+        EmulatorConfiguration(avdFolder = Paths.get(avdHome, avdId + AVD_FOLDER_EXTENSION),
+                              displayWidth = displayWidth, displayHeight = displayHeight,
                               hasOrientationSensors = hasOrientationSensors, hasAudioOutput = hasAudioOutput)
       }
       else {

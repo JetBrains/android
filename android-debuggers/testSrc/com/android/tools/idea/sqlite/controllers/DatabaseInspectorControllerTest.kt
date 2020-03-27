@@ -69,6 +69,7 @@ import org.mockito.Mockito.`when`
 import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
+import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import java.util.concurrent.Executor
 import javax.swing.JComponent
@@ -418,6 +419,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
     runDispatching {
       sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase2))
     }
 
     mockSqliteView.viewListeners.single().openSqliteEvaluatorTabActionInvoked()
@@ -425,8 +427,9 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Act
-    mockSqliteView.viewListeners.first().removeDatabaseActionInvoked(sqliteDatabase1)
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    runDispatching {
+      sqliteController.closeDatabase(sqliteDatabase1)
+    }
 
     // Assert
     verify(mockDatabaseConnection).dispose()
@@ -434,23 +437,61 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     verify(mockSqliteView).removeDatabaseSchema(sqliteDatabase1)
   }
 
-  fun testTablesAreRemovedWhenDatabasedIsRemoved() {
+  fun testTabsAssociatedWithDatabaseAreRemovedWhenDatabasedIsRemoved() {
     // Prepare
     val schema = SqliteSchema(listOf(SqliteTable("table1", emptyList(), null, false), testSqliteTable))
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(schema))
     runDispatching {
       sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase2))
     }
 
     mockSqliteView.viewListeners.single().tableNodeActionInvoked(sqliteDatabase1, testSqliteTable)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    mockSqliteView.viewListeners.single().tableNodeActionInvoked(sqliteDatabase2, testSqliteTable)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Act
-    mockSqliteView.viewListeners.first().removeDatabaseActionInvoked(sqliteDatabase1)
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    runDispatching {
+      sqliteController.closeDatabase(sqliteDatabase1)
+    }
 
     // Assert
     verify(mockSqliteView).closeTab(eq(TabId.TableTab(sqliteDatabase1, testSqliteTable.name)))
+    verify(mockSqliteView, times(0)).closeTab(eq(TabId.TableTab(sqliteDatabase2, testSqliteTable.name)))
+  }
+
+  fun testAllTabsAreRemovedWhenLastDatabasedIsRemoved() {
+    // Prepare
+    val schema = SqliteSchema(listOf(SqliteTable("table1", emptyList(), null, false), testSqliteTable))
+    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(schema))
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase2))
+    }
+
+    mockSqliteView.viewListeners.single().tableNodeActionInvoked(sqliteDatabase1, testSqliteTable)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    mockSqliteView.viewListeners.single().tableNodeActionInvoked(sqliteDatabase2, testSqliteTable)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    mockSqliteView.viewListeners.single().openSqliteEvaluatorTabActionInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    val evaluatorTabId = mockSqliteView.lastDisplayedResultSetTabId!!
+    assert(evaluatorTabId is TabId.AdHocQueryTab)
+
+    // Act
+    runDispatching {
+      sqliteController.closeDatabase(sqliteDatabase1)
+    }
+    runDispatching {
+      sqliteController.closeDatabase(sqliteDatabase2)
+    }
+
+    // Assert
+    verify(mockSqliteView).closeTab(eq(TabId.TableTab(sqliteDatabase1, testSqliteTable.name)))
+    verify(mockSqliteView).closeTab(eq(TabId.TableTab(sqliteDatabase2, testSqliteTable.name)))
+    verify(mockSqliteView).closeTab(evaluatorTabId)
   }
 
   fun testUpdateExistingDatabaseAddTables() {
@@ -497,7 +538,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     }
 
     // Assert
-    val table = mockDatabaseInspectorModel.openDatabases[sqliteDatabase]!!.tables.find { it.name == "t2" }!!
+    val table = mockDatabaseInspectorModel.getDatabaseSchema(sqliteDatabase)!!.tables.find { it.name == "t2" }!!
     assertSize(1, table.columns)
     assertEquals(SqliteColumn("c1", SqliteAffinity.INTEGER, false, true), table.columns.first())
   }
@@ -729,7 +770,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
     val mockSqliteExplorerProjectService = mock(DatabaseInspectorProjectService::class.java)
     `when`(mockSqliteExplorerProjectService.reDownloadAndOpenFile(any(FileSqliteDatabase::class.java), any(DownloadProgress::class.java)))
-      .thenReturn(Futures.immediateFuture(null))
+      .thenReturn(Futures.immediateFuture(Unit))
     project.registerServiceInstance(DatabaseInspectorProjectService::class.java, mockSqliteExplorerProjectService)
 
     // Act

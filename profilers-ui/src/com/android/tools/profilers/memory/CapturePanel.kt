@@ -84,8 +84,8 @@ private class LegacyCapturePanelUi(stageView: MemoryProfilerStageView,
                                    filterComponent: FilterComponent,
                                    captureInfoMessage: JLabel)
   : JPanel(BorderLayout()) {
+  private val instanceFilterView = MemoryInstanceFilterView(stageView.stage)
   init {
-    val instanceFilterView = MemoryInstanceFilterView(stageView.stage)
     val toolbar = JPanel(createToolbarLayout()).apply {
       add(captureView.component)
       add(heapView.component)

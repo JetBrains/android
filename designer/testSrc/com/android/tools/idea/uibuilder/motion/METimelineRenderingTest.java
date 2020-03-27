@@ -156,7 +156,6 @@ public class METimelineRenderingTest extends BaseMotionEditorTest {
 
       topLeft.notifyTimeLineListeners(TimeLineTopLeft.TimelineCommands.END, 0);
       topLeft.notifyTimeLineListeners(TimeLineTopLeft.TimelineCommands.PLAY, 0);
-      topLeft.notifyTimeLineListeners(TimeLineTopLeft.TimelineCommands.SPEED, 0);
       topLeft.notifyTimeLineListeners(TimeLineTopLeft.TimelineCommands.END, 0);
 
       assertTrue(time < 1E9);

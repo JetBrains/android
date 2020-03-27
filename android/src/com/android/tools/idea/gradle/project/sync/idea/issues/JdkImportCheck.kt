@@ -19,7 +19,6 @@ package com.android.tools.idea.gradle.project.sync.idea.issues
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
-import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler
 import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler.updateUsageTracker
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService
@@ -109,33 +108,6 @@ class JdkImportIssueChecker : GradleIssueChecker {
       override fun getNavigatable(project: Project): Navigatable? = null
     }
   }
-}
-
-/**
- * Helper class to conditionally construct the message containing all the links.
- * This is scoped to only this class since most build issues should not be using this many quick fixes.
- */
-private class MessageComposer(baseMessage: String) {
-  private val messageBuilder = StringBuilder(baseMessage)
-  val quickFixes = mutableListOf<BuildIssueQuickFix>()
-
-  fun addQuickFix(quickFix: DescribedBuildIssueQuickFix) {
-    quickFixes.add(quickFix)
-    messageBuilder.appendln()
-    messageBuilder.append(quickFix.html)
-  }
-
-  fun buildMessage() = messageBuilder.toString()
-}
-
-
-/**
- * A [BuildIssueQuickFix] that contains an associated description which is used to display the quick fix.
- */
-private interface DescribedBuildIssueQuickFix : BuildIssueQuickFix {
-  val description : String
-  val html: String
-    get() = "<a href=\"${id}\">$description</a>"
 }
 
 private class UseJavaHomeAsJdkQuickFix(val javaHome: String) : DescribedBuildIssueQuickFix {

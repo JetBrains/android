@@ -16,16 +16,16 @@
 package com.android.tools.idea.gradle.dsl.model.build;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.dsl.TestFileName.REFERENCE_RESOLUTION_RESOLVE_OTHER_PROJECT_PATH;
-import static com.android.tools.idea.gradle.dsl.TestFileName.REFERENCE_RESOLUTION_RESOLVE_OTHER_PROJECT_PATH_SUB;
-import static com.android.tools.idea.gradle.dsl.TestFileName.REFERENCE_RESOLUTION_RESOLVE_PARENT;
-import static com.android.tools.idea.gradle.dsl.TestFileName.REFERENCE_RESOLUTION_RESOLVE_PARENT_SUB;
-import static com.android.tools.idea.gradle.dsl.TestFileName.REFERENCE_RESOLUTION_RESOLVE_PROJECT;
-import static com.android.tools.idea.gradle.dsl.TestFileName.REFERENCE_RESOLUTION_RESOLVE_PROJECT_DIR_SUB;
-import static com.android.tools.idea.gradle.dsl.TestFileName.REFERENCE_RESOLUTION_RESOLVE_PROJECT_PATH_SUB;
-import static com.android.tools.idea.gradle.dsl.TestFileName.REFERENCE_RESOLUTION_RESOLVE_ROOT_DIR_SUB;
-import static com.android.tools.idea.gradle.dsl.TestFileName.REFERENCE_RESOLUTION_RESOLVE_ROOT_PROJECT;
-import static com.android.tools.idea.gradle.dsl.TestFileName.REFERENCE_RESOLUTION_RESOLVE_ROOT_PROJECT_SUB;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REFERENCE_RESOLUTION_RESOLVE_OTHER_PROJECT_PATH;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REFERENCE_RESOLUTION_RESOLVE_OTHER_PROJECT_PATH_SUB;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REFERENCE_RESOLUTION_RESOLVE_PARENT;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REFERENCE_RESOLUTION_RESOLVE_PARENT_SUB;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REFERENCE_RESOLUTION_RESOLVE_PROJECT;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REFERENCE_RESOLUTION_RESOLVE_PROJECT_DIR_SUB;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REFERENCE_RESOLUTION_RESOLVE_PROJECT_PATH_SUB;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REFERENCE_RESOLUTION_RESOLVE_ROOT_DIR_SUB;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REFERENCE_RESOLUTION_RESOLVE_ROOT_PROJECT;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REFERENCE_RESOLUTION_RESOLVE_ROOT_PROJECT_SUB;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
 

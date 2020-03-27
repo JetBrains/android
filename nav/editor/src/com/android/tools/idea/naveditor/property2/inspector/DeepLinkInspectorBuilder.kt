@@ -19,7 +19,7 @@ import com.android.SdkConstants.TAG_DEEP_LINK
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker
 import com.android.tools.idea.naveditor.model.supportsDeeplinks
-import com.android.tools.idea.naveditor.property.inspector.AddDeeplinkDialog
+import com.android.tools.idea.naveditor.dialogs.AddDeeplinkDialog
 import com.android.tools.idea.naveditor.property2.ui.DeepLinkCellRenderer
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.CREATE_DEEP_LINK

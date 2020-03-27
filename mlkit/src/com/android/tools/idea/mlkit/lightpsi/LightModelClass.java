@@ -18,6 +18,7 @@ package com.android.tools.idea.mlkit.lightpsi;
 import com.android.SdkConstants;
 import com.android.tools.idea.mlkit.LightModelClassConfig;
 import com.android.tools.idea.mlkit.MlkitModuleService;
+import com.android.tools.idea.psi.NullabilityUtils;
 import com.android.tools.mlkit.MlkitNames;
 import com.android.tools.mlkit.TensorInfo;
 import com.google.common.collect.ImmutableSet;
@@ -112,10 +113,13 @@ public class LightModelClass extends AndroidLightClassBase {
 
   @NotNull
   private PsiMethod buildNewInstanceStaticMethod() {
-    PsiType returnType = PsiType.getTypeByName(getQualifiedName(), getProject(), getResolveScope());
+    PsiType nonNullReturnType =
+      NullabilityUtils.annotateType(getProject(), PsiType.getTypeByName(getQualifiedName(), getProject(), getResolveScope()), true, this);
+    PsiType nonNullContext =
+      NullabilityUtils.annotateType(getProject(), PsiType.getTypeByName(ClassNames.CONTEXT, getProject(), getResolveScope()), true, this);
     LightMethodBuilder method = new LightMethodBuilder(getManager(), "newInstance")
-      .setMethodReturnType(returnType)
-      .addParameter("context", ClassNames.CONTEXT)
+      .setMethodReturnType(nonNullReturnType)
+      .addParameter("context", nonNullContext)
       .addException(ClassNames.IO_EXCEPTION)
       .addModifiers(PsiModifier.PUBLIC, PsiModifier.FINAL, PsiModifier.STATIC)
       .setContainingClass(this);
@@ -162,9 +166,11 @@ public class LightModelClass extends AndroidLightClassBase {
   @Override
   public PsiMethod[] getConstructors() {
     if (myConstructors == null) {
-      myConstructors = new PsiMethod[] {
+      PsiType nonNullContext =
+        NullabilityUtils.annotateType(getProject(), PsiType.getTypeByName(ClassNames.CONTEXT, getProject(), getResolveScope()), true, this);
+      myConstructors = new PsiMethod[]{
         new LightMethodBuilder(this, JavaLanguage.INSTANCE)
-          .addParameter("context", PsiType.getTypeByName(ClassNames.CONTEXT, getProject(), getResolveScope()))
+          .addParameter("context", nonNullContext)
           .setConstructor(true)
           .addException(ClassNames.IO_EXCEPTION)
           .addModifier(PsiModifier.PRIVATE)
@@ -180,15 +186,19 @@ public class LightModelClass extends AndroidLightClassBase {
     String outputClassName =
       String.join(".", myClassConfig.myPackageName, myClassConfig.myModelMetadata.myClassName, MlkitNames.OUTPUTS);
 
-    PsiType returnType = PsiType.getTypeByName(outputClassName, getProject(), scope);
+    PsiType nonNullReturnType =
+      NullabilityUtils.annotateType(getProject(), PsiType.getTypeByName(outputClassName, getProject(), scope), true, this);
 
     LightMethodBuilder method = new LightMethodBuilder(getManager(), "process")
-      .setMethodReturnType(returnType)
+      .setMethodReturnType(nonNullReturnType)
       .addModifiers(PsiModifier.PUBLIC, PsiModifier.FINAL)
       .setContainingClass(this);
 
     for (TensorInfo tensorInfo : tensorInfos) {
-      method.addParameter(tensorInfo.getName(), CodeUtils.getTypeQualifiedName(tensorInfo));
+      PsiType nonNullPsiType = NullabilityUtils
+        .annotateType(getProject(), PsiType.getTypeByName(CodeUtils.getTypeQualifiedName(tensorInfo), getProject(), getResolveScope()),
+                      true, this);
+      method.addParameter(tensorInfo.getName(), nonNullPsiType);
     }
     method.setNavigationElement(this);
 

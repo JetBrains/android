@@ -17,7 +17,7 @@ package com.android.tools.idea.sqlite.databaseConnection.live
 
 import androidx.sqlite.inspection.SqliteInspectorProtocol
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
-import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.databaseConnection.checkOffsetAndSize
 import com.android.tools.idea.sqlite.model.SqliteAffinity
@@ -34,21 +34,20 @@ import java.util.concurrent.Executor
  * @param _columns The list of columns for this result set.
  * @param sqliteStatement The original [SqliteStatement] this result set is for.
  * @param messenger Used to send messages to an on-device inspector.
- * @param executor Used to execute IO operation on a background thread.
+ * @param taskExecutor Used to execute IO operation on a background thread.
  */
 class LiveSqliteResultSet(
   private val sqliteStatement: SqliteStatement,
   private val messenger: AppInspectorClient.CommandMessenger,
   private val connectionId: Int,
-  executor: Executor
+  private val taskExecutor: Executor
 ) : SqliteResultSet {
-  private val taskExecutor = FutureCallbackExecutor.wrap(executor)
 
   override val columns: ListenableFuture<List<SqliteColumn>> get() {
     val queryCommand = buildQueryCommand(sqliteStatement, connectionId)
     val responseFuture = messenger.sendRawCommand(queryCommand.toByteArray())
 
-    return taskExecutor.transform(responseFuture) {
+    return responseFuture.transform(taskExecutor) {
       val response = SqliteInspectorProtocol.Response.parseFrom(it)
 
       if (response.hasErrorOccurred()) {
@@ -68,7 +67,7 @@ class LiveSqliteResultSet(
     val queryCommand = buildQueryCommand(sqliteStatement.toRowCountStatement(), connectionId)
     val responseFuture = messenger.sendRawCommand(queryCommand.toByteArray())
 
-    return taskExecutor.transform(responseFuture) {
+    return responseFuture.transform(taskExecutor) {
       check(!Disposer.isDisposed(this)) { "ResultSet has already been disposed." }
 
       val response = SqliteInspectorProtocol.Response.parseFrom(it)
@@ -87,7 +86,7 @@ class LiveSqliteResultSet(
     val queryCommand = buildQueryCommand(sqliteStatement.toSelectLimitOffset(rowOffset, rowBatchSize), connectionId)
     val responseFuture = messenger.sendRawCommand(queryCommand.toByteArray())
 
-    return taskExecutor.transform(responseFuture) { byteArray ->
+    return responseFuture.transform(taskExecutor) { byteArray ->
       check(!Disposer.isDisposed(this)) { "ResultSet has already been disposed." }
 
       val response = SqliteInspectorProtocol.Response.parseFrom(byteArray)

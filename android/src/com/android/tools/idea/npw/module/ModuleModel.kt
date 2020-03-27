@@ -20,7 +20,9 @@ import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.cre
 import com.android.tools.idea.device.FormFactor
 import com.android.tools.idea.npw.model.ModuleModelData
 import com.android.tools.idea.npw.model.MultiTemplateRenderer
+import com.android.tools.idea.npw.model.PROPERTIES_BYTECODE_LEVEL_KEY
 import com.android.tools.idea.npw.model.ProjectModelData
+import com.android.tools.idea.npw.model.properties
 import com.android.tools.idea.npw.model.render
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.toTemplateFormFactor
@@ -60,6 +62,7 @@ abstract class ModuleModel(
   abstract val renderer: MultiTemplateRenderer.TemplateRenderer
 
   public override fun handleFinished() {
+    saveWizardState()
     multiTemplateRenderer.requestRender(renderer)
   }
 
@@ -128,6 +131,10 @@ abstract class ModuleModel(
       val executor = if (dryRun) FindReferencesRecipeExecutor(context) else DefaultRecipeExecutor(context)
       return recipe.render(context, executor, loggingEvent)
     }
+  }
+
+  private fun saveWizardState() = with(properties) {
+    setValue(PROPERTIES_BYTECODE_LEVEL_KEY, bytecodeLevel.value.toString())
   }
 }
 /**

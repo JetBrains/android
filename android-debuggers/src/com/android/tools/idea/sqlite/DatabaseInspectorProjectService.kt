@@ -21,7 +21,7 @@ import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.device.fs.DeviceFileDownloaderService
 import com.android.tools.idea.device.fs.DeviceFileId
 import com.android.tools.idea.device.fs.DownloadProgress
@@ -45,15 +45,9 @@ import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.vfs.VirtualFileManager
-import com.intellij.openapi.vfs.newvfs.BulkFileListener
-import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent
-import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.serviceContainer.NonInjectable
 import com.intellij.util.concurrency.EdtExecutorService
-import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.async
 import kotlinx.coroutines.guava.await
@@ -63,6 +57,7 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.ide.PooledThreadExecutor
 import java.util.TreeMap
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.Executor
 import java.util.concurrent.locks.ReentrantLock
 import java.util.function.Consumer
@@ -103,6 +98,12 @@ interface DatabaseInspectorProjectService {
   fun openSqliteDatabase(messenger: AppInspectorClient.CommandMessenger, id: Int, name: String): ListenableFuture<SqliteDatabase>
 
   /**
+   * Closes all open live databases in [DatabaseInspectorController].
+   */
+  @AnyThread
+  fun closeAllLiveDatabase()
+
+  /**
    * Runs the query passed as argument in the Sqlite Inspector.
    */
   @UiThread
@@ -124,7 +125,7 @@ interface DatabaseInspectorProjectService {
    * Returns a list of the currently open [SqliteDatabase].
    */
   @AnyThread
-  fun getOpenDatabases(): Set<SqliteDatabase>
+  fun getOpenDatabases(): List<SqliteDatabase>
 
   /**
    * Shows the error in the Database Inspector.
@@ -141,8 +142,8 @@ interface DatabaseInspectorProjectService {
 
 class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
   private val project: Project,
-  edtExecutor: Executor = EdtExecutorService.getInstance(),
-  taskExecutor: Executor = PooledThreadExecutor.INSTANCE,
+  private val edtExecutor: Executor = EdtExecutorService.getInstance(),
+  private val taskExecutor: Executor = PooledThreadExecutor.INSTANCE,
   private val databaseConnectionFactory: DatabaseConnectionFactory = DatabaseConnectionFactoryImpl(),
   private val fileOpener: Consumer<VirtualFile> = Consumer { OpenFileAction.openFile(it, project) },
   private val viewFactory: DatabaseInspectorViewsFactory = DatabaseInspectorViewsFactoryImpl(),
@@ -190,8 +191,6 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
     PooledThreadExecutor.INSTANCE, DatabaseInspectorViewsFactoryImpl()
   )
 
-  private val edtExecutor: FutureCallbackExecutor = FutureCallbackExecutor.wrap(edtExecutor)
-  private val taskExecutor: FutureCallbackExecutor = FutureCallbackExecutor.wrap(taskExecutor)
   private val uiThread = edtExecutor.asCoroutineDispatcher()
   private val workerThread = taskExecutor.asCoroutineDispatcher()
   private val projectScope = AndroidCoroutineScope(project, workerThread)
@@ -207,44 +206,21 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
     @UiThread get() = controller.component
 
   init {
-    // TODO(b/145341040) investigate performance impact.
     model.addListener(object : DatabaseInspectorController.Model.Listener {
+      @AnyThread
       override fun onDatabaseAdded(database: SqliteDatabase) {
         if (database is FileSqliteDatabase) {
           openFileSqliteDatabases.add(database)
         }
       }
 
+      @AnyThread
       override fun onDatabaseRemoved(database: SqliteDatabase) {
         if (database is FileSqliteDatabase) {
           openFileSqliteDatabases.remove(database)
         }
       }
     })
-
-    val virtualFileListener = object : BulkFileListener {
-      override fun before(events: MutableList<out VFileEvent>) {
-        if (openFileSqliteDatabases.isEmpty()) return
-
-        val toClose = mutableListOf<SqliteDatabase>()
-        for (event in events) {
-          if (event !is VFileDeleteEvent) continue
-
-          for (database in openFileSqliteDatabases) {
-            if (VfsUtil.isAncestor(event.file, database.virtualFile, false)) {
-              toClose.add(database)
-            }
-          }
-        }
-
-        for (database in toClose) {
-          projectScope.launch(NonCancellable) { controller.closeDatabase(database) }
-        }
-      }
-    }
-
-    val messageBusConnection = project.messageBus.connect(project)
-    messageBusConnection.subscribe(VirtualFileManager.VFS_CHANGES, virtualFileListener)
   }
 
   @AnyThread
@@ -282,6 +258,15 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
     database.await()
   }
 
+  @AnyThread
+  override fun closeAllLiveDatabase() {
+    projectScope.launch(uiThread) {
+      model.getOpenDatabases().filterIsInstance<LiveSqliteDatabase>().forEach {
+        controller.closeDatabase(it)
+      }
+    }
+  }
+
   @UiThread
   override fun runSqliteStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement) {
     projectScope.launch { controller.runSqlStatement(database, sqliteStatement) }
@@ -293,17 +278,17 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
                        ?: return Futures.immediateFailedFuture(IllegalStateException("DeviceFileId not found"))
     val downloadFuture = DeviceFileDownloaderService.getInstance(project).downloadFile(deviceFileId, progress)
 
-    return edtExecutor.transform(downloadFuture) { downloadedFileData ->
+    return downloadFuture.transform(edtExecutor) { downloadedFileData ->
       fileOpener.accept(downloadedFileData.virtualFile)
       return@transform
     }
   }
 
   @AnyThread
-  override fun hasOpenDatabase() = model.openDatabases.isNotEmpty()
+  override fun hasOpenDatabase() = model.getOpenDatabases().isNotEmpty()
 
   @AnyThread
-  override fun getOpenDatabases(): Set<SqliteDatabase> = model.openDatabases.keys
+  override fun getOpenDatabases(): List<SqliteDatabase> = model.getOpenDatabases()
 
   @AnyThread
   override fun handleError(message: String, throwable: Throwable?) {
@@ -316,34 +301,43 @@ class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
 
     private val lock = ReentrantLock()
 
-    @GuardedBy("lock")
-    private val listeners = mutableListOf<DatabaseInspectorController.Model.Listener>()
+    private val listeners = CopyOnWriteArrayList<DatabaseInspectorController.Model.Listener>()
 
     @GuardedBy("lock")
-    override val openDatabases: TreeMap<SqliteDatabase, SqliteSchema> = TreeMap(
+    private val openDatabases: TreeMap<SqliteDatabase, SqliteSchema> = TreeMap(
       Comparator.comparing { database: SqliteDatabase -> database.name }
     )
+
+    @AnyThread
+    override fun getOpenDatabases() = lock.withLock { openDatabases.keys.toList() }
+
+    @AnyThread
+    override fun getDatabaseSchema(database: SqliteDatabase) = lock.withLock { openDatabases[database] }
 
     @AnyThread
     override fun getSortedIndexOf(database: SqliteDatabase) = lock.withLock { openDatabases.headMap(database).size }
 
     @AnyThread
-    override fun add(database: SqliteDatabase, sqliteSchema: SqliteSchema): Unit = lock.withLock {
-      openDatabases[database] = sqliteSchema
+    override fun add(database: SqliteDatabase, sqliteSchema: SqliteSchema) {
+      lock.withLock { openDatabases[database] = sqliteSchema }
+
       listeners.forEach { it.onDatabaseAdded(database) }
     }
 
     @AnyThread
-    override fun remove(database: SqliteDatabase): Unit = lock.withLock {
-      openDatabases.remove(database)
+    override fun remove(database: SqliteDatabase) {
+      lock.withLock { openDatabases.remove(database) }
+
       listeners.forEach { it.onDatabaseRemoved(database) }
     }
 
-    override fun addListener(modelListener: DatabaseInspectorController.Model.Listener): Unit = lock.withLock {
+    @AnyThread
+    override fun addListener(modelListener: DatabaseInspectorController.Model.Listener) {
       listeners.add(modelListener)
     }
 
-    override fun removeListener(modelListener: DatabaseInspectorController.Model.Listener): Unit = lock.withLock {
+    @AnyThread
+    override fun removeListener(modelListener: DatabaseInspectorController.Model.Listener) {
       listeners.remove(modelListener)
     }
   }

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model.ext
 
-import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_MODIFIED_TEST_FILE
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_MODIFIED_TEST_FILE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr
 import com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo

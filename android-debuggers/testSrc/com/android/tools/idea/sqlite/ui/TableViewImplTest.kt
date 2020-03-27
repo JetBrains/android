@@ -460,7 +460,8 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       { sqliteTable },
       realDatabaseConnection!!,
       SqliteStatement(selectAllAndRowIdFromTable(sqliteTable)),
-      FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+      EdtExecutorService.getInstance(),
+      EdtExecutorService.getInstance()
     )
     Disposer.register(testRootDisposable, controller)
     pumpEventsAndWaitForFuture(controller.setUp())
@@ -499,7 +500,8 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       { sqliteTable },
       realDatabaseConnection!!,
       SqliteStatement(selectAllAndRowIdFromTable(sqliteTable)),
-      FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+      EdtExecutorService.getInstance(),
+      EdtExecutorService.getInstance()
     )
     Disposer.register(testRootDisposable, controller)
     pumpEventsAndWaitForFuture(controller.setUp())
@@ -538,7 +540,8 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       { sqliteTable },
       realDatabaseConnection!!,
       SqliteStatement(selectAllAndRowIdFromTable(sqliteTable)),
-      FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+      EdtExecutorService.getInstance(),
+      EdtExecutorService.getInstance()
     )
     Disposer.register(testRootDisposable, controller)
     pumpEventsAndWaitForFuture(controller.setUp())
@@ -577,7 +580,8 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       { sqliteTable },
       realDatabaseConnection!!,
       SqliteStatement(selectAllAndRowIdFromTable(sqliteTable)),
-      FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+      EdtExecutorService.getInstance(),
+      EdtExecutorService.getInstance()
     )
     Disposer.register(testRootDisposable, controller)
     pumpEventsAndWaitForFuture(controller.setUp())
@@ -780,7 +784,8 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       { SqliteTable("tab", emptyList(), null, false) },
       realDatabaseConnection!!,
       SqliteStatement("SELECT * FROM t1"),
-      FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+      EdtExecutorService.getInstance(),
+      EdtExecutorService.getInstance()
     )
     Disposer.register(testRootDisposable, controller)
     pumpEventsAndWaitForFuture(controller.setUp())

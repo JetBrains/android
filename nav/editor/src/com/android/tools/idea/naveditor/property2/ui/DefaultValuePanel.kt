@@ -16,11 +16,10 @@
 package com.android.tools.idea.naveditor.property2.ui
 
 import com.android.tools.adtui.common.AdtSecondaryPanel
-import com.android.tools.idea.naveditor.property.inspector.NAV_ACTION_ARGUMENTS_COMPONENT_NAME
-import com.android.tools.idea.naveditor.property.inspector.NAV_ARGUMENTS_ROW_HEIGHT
 import com.android.tools.property.ptable2.PFormTable
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBTextField
+import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import javax.swing.BorderFactory
 import javax.swing.table.TableCellRenderer
@@ -34,8 +33,6 @@ class DefaultValuePanel(model: DefaultValueTableModel) : AdtSecondaryPanel(Borde
       add(JBList<DefaultValueModel>(listOf()))
     }
     else {
-      table.name = NAV_ACTION_ARGUMENTS_COMPONENT_NAME
-      table.rowHeight = NAV_ARGUMENTS_ROW_HEIGHT
       table.isOpaque = false
 
       addCellRenderer(false, "name", 0)

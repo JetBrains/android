@@ -19,7 +19,10 @@ import com.android.annotations.NonNull;
 import org.jetbrains.annotations.NotNull;
 
 public class CpuThreadInfo implements Comparable<CpuThreadInfo> {
-  private static final String RENDER_THREAD_NAME = "RenderThread";
+  /**
+   * The platform RenderThread is hard coded to have this name.
+   */
+  public static final String RENDER_THREAD_NAME = "RenderThread";
 
   /** Thread id */
   private final int myId;

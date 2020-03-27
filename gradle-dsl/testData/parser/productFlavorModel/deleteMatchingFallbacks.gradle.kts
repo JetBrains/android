@@ -3,7 +3,7 @@ android {
   productFlavors {
     create("demo") {
       setDimension("tier")
-      matchingFallbacks = listOf("trial")
+      matchingFallbacks = mutableListOf("trial")
     }
   }
 }

@@ -4,10 +4,21 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "intellij.android.nav.safeargs.tests",
     iml_files = ["intellij.android.nav.safeargs.tests.iml"],
+    tags = [
+        "no_test_windows",
+    ],
     test_class = "com.android.tools.idea.nav.safeargs.SafeArgsTestSuite",
     # keep sorted
     test_data = [
+        ":testdeps_repo.zip",
+        "//prebuilts/studio/jdk",
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/tools/common/kotlin-plugin:Kotlin/kotlinc/build.txt",
+        "//tools/adt/idea/android:test_deps.zip",
         "//tools/adt/idea/nav/safeargs/testData",
+        "//tools/base/build-system:gradle-distrib",
+        "//tools/base/build-system:studio_repo.zip",
         "//tools/idea:platform-build-info",
         "//tools/idea/java/jdkAnnotations",
     ],
@@ -109,5 +120,16 @@ iml_module(
         "//tools/idea/.idea/libraries:NanoXML",
         "//tools/idea/.idea/libraries:jcip",
         "//tools/idea/.idea/libraries:Guava",
+    ],
+)
+
+load("//tools/base/bazel:maven.bzl", "maven_repo")
+
+maven_repo(
+    # Dependencies needed for on-disk test projects, e.g. Gradle tests
+    name = "testdeps_repo",
+    # keep sorted
+    artifacts = [
+        "//prebuilts/tools/common/m2/repository/org/jetbrains/intellij/deps/trove4j/1.0.20181211:jar",
     ],
 )

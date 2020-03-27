@@ -35,13 +35,13 @@ class AppInspectionToolWindowFactory : DumbAware, ToolWindowFactory, Condition<P
     val contentFactory = ContentFactory.SERVICE.getInstance()
     val content = contentFactory.createContent(appInspectionToolWindow.component, "", false)
     toolWindow.contentManager.addContent(content)
-    toolWindow.icon = StudioIcons.Shell.ToolWindows.INSPECTION
+    toolWindow.setIcon(StudioIcons.Shell.ToolWindows.INSPECTION)
     Disposer.register(project, appInspectionToolWindow)
     toolWindow.show(null)
   }
 
   override fun init(toolWindow: ToolWindow) {
-    toolWindow.isToHideOnEmptyContent = true
+    toolWindow.setToHideOnEmptyContent(true)
     toolWindow.hide(null)
     toolWindow.isShowStripeButton = false
     toolWindow.stripeTitle = APP_INSPECTION_TITLE

@@ -21,7 +21,6 @@ import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
-import com.android.tools.idea.sqlite.ui.logtab.LogTabView
 import com.android.tools.idea.sqlite.ui.mainView.DatabaseInspectorView.Listener
 import javax.swing.JComponent
 
@@ -39,8 +38,6 @@ interface DatabaseInspectorView {
    * The JComponent containing the view's UI.
    */
   val component: JComponent
-
-  fun getLogTabView(): LogTabView
 
   fun startLoading(text: String)
   fun stopLoading()
@@ -79,8 +76,6 @@ interface DatabaseInspectorView {
     fun closeTabActionInvoked(tabId: TabId)
     /** Called when the user wants to open the evaluator tab */
     fun openSqliteEvaluatorTabActionInvoked()
-    /** Called when the user wants to remove a database from the list of open databases */
-    fun removeDatabaseActionInvoked(database: SqliteDatabase)
     /** Called when the user wants to sync a database */
     fun reDownloadDatabaseFileActionInvoked(database: FileSqliteDatabase)
     /** Called when the user wants to refresh the schema of all open databases */

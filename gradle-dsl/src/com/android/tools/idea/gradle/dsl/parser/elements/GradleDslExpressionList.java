@@ -40,18 +40,10 @@ public final class GradleDslExpressionList extends GradlePropertiesDslElement im
   // like "prop = ['value1', 'value2']" but can also be used for thing such as lint options "check 'check-id-1', 'check-id-2'"
   private boolean myIsLiteralList;
 
-  // Does this GradleDslExpressionList represent a model property of type Set?
-  private boolean isSet;
-
   public GradleDslExpressionList(@Nullable GradleDslElement parent, @NotNull GradleNameElement name, boolean isLiteralList) {
     super(parent, null, name);
     myAppendToArgumentListWithOneElement = false;
     myIsLiteralList = isLiteralList;
-  }
-
-  public GradleDslExpressionList(@Nullable GradleDslElement parent, @NotNull GradleNameElement name, boolean isLiteralList, boolean isSet) {
-    this(parent, name, isLiteralList);
-    this.isSet = isSet;
   }
 
   public GradleDslExpressionList(@NotNull GradleDslElement parent,
@@ -61,15 +53,6 @@ public final class GradleDslExpressionList extends GradlePropertiesDslElement im
     super(parent, psiElement, name);
     myAppendToArgumentListWithOneElement = false;
     myIsLiteralList = isLiteralList;
-  }
-
-  public GradleDslExpressionList(@NotNull GradleDslElement parent,
-                                 @NotNull PsiElement psiElement,
-                                 boolean isLiteralList,
-                                 boolean isSet,
-                                 @NotNull GradleNameElement name) {
-    this(parent, psiElement, isLiteralList, name);
-    this.isSet = isSet;
   }
 
   public GradleDslExpressionList(@NotNull GradleDslElement parent,
@@ -139,10 +122,6 @@ public final class GradleDslExpressionList extends GradlePropertiesDslElement im
 
   public boolean isLiteralList() {
     return myIsLiteralList;
-  }
-
-  public boolean isSet() {
-    return isSet;
   }
 
   public boolean isAppendToArgumentListWithOneElement() {

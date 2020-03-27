@@ -21,19 +21,16 @@ import static org.junit.Assert.fail;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Cpu;
-import com.android.tools.idea.protobuf.ByteString;
-import com.android.tools.profilers.FakeTraceParser;
-import com.android.tools.profilers.cpu.art.ArtTraceParser;
-import com.android.tools.profilers.cpu.atrace.AtraceParser;
 import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
-import com.android.tools.profilers.cpu.simpleperf.SimpleperfTraceParser;
 import com.google.common.collect.ImmutableMap;
+import java.io.File;
 import java.io.IOException;
 import java.nio.BufferUnderflowException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import org.junit.Test;
 
@@ -41,7 +38,7 @@ import org.junit.Test;
 public class CpuCaptureTest {
 
   @Test
-  public void validCapture() throws IOException, ExecutionException, InterruptedException {
+  public void validCapture() throws ExecutionException, InterruptedException {
     CpuCapture capture = CpuProfilerTestUtils.getValidCapture();
     assertThat(capture).isNotNull();
 
@@ -76,7 +73,7 @@ public class CpuCaptureTest {
     Map<CpuThreadInfo, CaptureNode> captureTrees =
       new ImmutableMap.Builder<CpuThreadInfo, CaptureNode>().put(info, new CaptureNode(new SingleNameModel("Thread1"))).build();
     CpuCapture capture =
-      new BaseCpuCapture(new FakeTraceParser(range, captureTrees, true), 20, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
+      new BaseCpuCapture(20, Cpu.CpuTraceType.UNSPECIFIED_TYPE, range, captureTrees);
     // Test if we don't have an actual main thread, we still get a main thread id.
     assertThat(capture.getMainThreadId()).isEqualTo(10);
     assertThat(capture.getCaptureNode(10).getData().getName()).isEqualTo("Thread1");
@@ -91,7 +88,7 @@ public class CpuCaptureTest {
       new ImmutableMap.Builder<CpuThreadInfo, CaptureNode>().put(valid, new CaptureNode(new SingleNameModel("Valid")))
         .put(other, new CaptureNode(new SingleNameModel("Other"))).build();
     CpuCapture capture =
-      new BaseCpuCapture(new FakeTraceParser(range, captureTrees, true), 20, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
+      new BaseCpuCapture(20, Cpu.CpuTraceType.UNSPECIFIED_TYPE, range, captureTrees);
     // Test if we don't have a main thread, and we pass in an invalid name we still get a main thread id.
     assertThat(capture.getMainThreadId()).isEqualTo(10);
     assertThat(capture.getCaptureNode(10).getData().getName()).isEqualTo("Valid");
@@ -108,114 +105,87 @@ public class CpuCaptureTest {
         .put(other, new CaptureNode(new SingleNameModel("Other")))
         .put(main, new CaptureNode(new SingleNameModel("MainThread"))).build();
     CpuCapture capture =
-      new BaseCpuCapture(new FakeTraceParser(range, captureTrees, true), 20, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
+      new BaseCpuCapture(20, Cpu.CpuTraceType.UNSPECIFIED_TYPE, range, captureTrees);
     // Test if we don't have a main thread, and we pass in an invalid name we still get a main thread id.
     assertThat(capture.getMainThreadId()).isEqualTo(main.getProcessId());
     assertThat(capture.getCaptureNode(main.getProcessId()).getData().getName()).isEqualTo(main.getProcessName());
   }
 
   @Test
-  public void corruptedTraceFileThrowsException() throws IOException, InterruptedException {
-    CpuCapture capture = null;
+  public void corruptedTraceFileThrowsException() throws InterruptedException {
+    File corruptedTrace = CpuProfilerTestUtils.getTraceFile("corrupted_trace.trace"); // Malformed trace file.
+    CompletableFuture<CpuCapture> future = CpuProfilerTestUtils.getCaptureFuture(corruptedTrace, Cpu.CpuTraceType.ART);
     try {
-      ByteString corruptedTrace = CpuProfilerTestUtils.traceFileToByteString("corrupted_trace.trace"); // Malformed trace file.
-      capture = CpuProfilerTestUtils.getCapture(corruptedTrace, Cpu.CpuTraceType.ART);
+      future.get();
       fail();
     }
     catch (ExecutionException e) {
       // An ExecutionException should happen when trying to get a capture.
       // It should be caused by an expected IllegalStateException thrown while parsing the trace bytes.
       Throwable executionExceptionCause = e.getCause();
-      assertThat(executionExceptionCause).isInstanceOf(IllegalStateException.class);
+      assertThat(executionExceptionCause).isInstanceOf(CpuCaptureParser.ParsingFailureException.class);
 
       // Expected BufferUnderflowException to be thrown in VmTraceParser.
       assertThat(executionExceptionCause.getCause()).isInstanceOf(BufferUnderflowException.class);
       // CpuCaptureParser#traceBytesToCapture catches the BufferUnderflowException and throw an IllegalStateException instead.
     }
-    assertThat(capture).isNull();
   }
 
   @Test
-  public void emptyTraceFileThrowsException() throws IOException, InterruptedException {
-    CpuCapture capture = null;
+  public void emptyTraceFileThrowsException() throws InterruptedException {
+    File emptyTrace = CpuProfilerTestUtils.getTraceFile("empty_trace.trace");
+    CompletableFuture<CpuCapture> future = CpuProfilerTestUtils.getCaptureFuture(emptyTrace, Cpu.CpuTraceType.ART);
+    assertThat(future).isNotNull();
+
     try {
-      ByteString emptyTrace = CpuProfilerTestUtils.traceFileToByteString("empty_trace.trace");
-      capture = CpuProfilerTestUtils.getCapture(emptyTrace, Cpu.CpuTraceType.ART);
+      future.get();
       fail();
     }
     catch (ExecutionException e) {
+      assertThat(future.isCompletedExceptionally()).isTrue();
       // An ExecutionException should happen when trying to get a capture.
       // It should be caused by an expected IllegalStateException thrown while parsing the trace bytes.
       Throwable executionExceptionCause = e.getCause();
-      assertThat(executionExceptionCause).isInstanceOf(IllegalStateException.class);
+      assertThat(executionExceptionCause).isInstanceOf(CpuCaptureParser.ParsingFailureException.class);
 
       // Expected IOException to be thrown in VmTraceParser.
       assertThat(executionExceptionCause.getCause()).isInstanceOf(IOException.class);
       // CpuCaptureParser#traceBytesToCapture catches the IOException and throw an IllegalStateException instead.
     }
-    assertThat(capture).isNull();
   }
 
   @Test
-  public void missingCaptureDataThrowsException() throws IOException, InterruptedException {
+  public void missingCaptureDataThrowsException() {
     CpuCapture capture = null;
     try {
       Range range = new Range(0, 30);
       Map<CpuThreadInfo, CaptureNode> captureTrees = new HashMap<>();
-      capture = new BaseCpuCapture(new FakeTraceParser(range, captureTrees, true), 20, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
+      capture = new BaseCpuCapture(20, Cpu.CpuTraceType.UNSPECIFIED_TYPE, range, captureTrees);
       fail();
     }
     catch (IllegalStateException e) {
-      assertEquals(e.getMessage(), "Trace file contained no CPU data.");
+      assertEquals("Trace file contained no CPU data.", e.getMessage());
     }
     assertThat(capture).isNull();
   }
 
   @Test
-  public void profilerTypeMustBeSpecified() throws IOException, InterruptedException {
+  public void parsingTraceWithWrongProfilerTypeShouldFail() throws InterruptedException {
+    // Try to create a capture by passing an ART trace and simpleperf profiler type
+    File artTrace = CpuProfilerTestUtils.getTraceFile("valid_trace.trace"); /* Valid ART trace */
+    CompletableFuture<CpuCapture> future = CpuProfilerTestUtils.getCaptureFuture(artTrace, Cpu.CpuTraceType.SIMPLEPERF);
+
     try {
-      CpuProfilerTestUtils.getCapture(CpuProfilerTestUtils.readValidTrace(), Cpu.CpuTraceType.UNSPECIFIED_TYPE);
+      future.get();
       fail();
     }
     catch (ExecutionException e) {
       // An ExecutionException should happen when trying to get a capture.
       // It should be caused by an expected IllegalStateException thrown while parsing the trace bytes.
       Throwable executionExceptionCause = e.getCause();
-      assertThat(executionExceptionCause).isInstanceOf(IllegalStateException.class);
-
-      // Exception expected to be thrown because a valid profiler type was not set.
-      assertThat(executionExceptionCause.getMessage()).contains("Trace file cannot be parsed");
+      assertThat(executionExceptionCause).isInstanceOf(CpuCaptureParser.ParsingFailureException.class);
+      assertThat(executionExceptionCause).hasCauseThat().hasMessageThat().contains("magic number mismatch");
     }
-  }
-
-  @Test
-  public void parsingTraceWithWrongProfilerTypeShouldFail() throws IOException, InterruptedException {
-    try {
-      // Try to create a capture by passing an ART trace and simpleperf profiler type
-      CpuProfilerTestUtils.getCapture(CpuProfilerTestUtils.readValidTrace() /* Valid ART trace */, Cpu.CpuTraceType.SIMPLEPERF);
-      fail();
-    }
-    catch (ExecutionException e) {
-      // An ExecutionException should happen when trying to get a capture.
-      // It should be caused by an expected IllegalStateException thrown while parsing the trace bytes.
-      Throwable executionExceptionCause = e.getCause();
-      assertThat(executionExceptionCause).isInstanceOf(IllegalStateException.class);
-      assertThat(executionExceptionCause.getMessage()).contains("magic number mismatch");
-    }
-  }
-
-  @Test
-  public void dualClockPassedInConstructor() {
-    CpuThreadInfo info = new CpuThreadInfo(10, "main");
-    Range range = new Range(0, 30);
-    Map<CpuThreadInfo, CaptureNode> captureTrees =
-      new ImmutableMap.Builder<CpuThreadInfo, CaptureNode>().put(info, new CaptureNode(new StubCaptureNodeModel())).build();
-    CpuCapture capture =
-      new BaseCpuCapture(new FakeTraceParser(range, captureTrees, true), 20, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
-    assertThat(capture.isDualClock()).isTrue();
-
-    capture = new BaseCpuCapture(new FakeTraceParser(range, captureTrees, false), 20, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
-    assertThat(capture.isDualClock()).isFalse();
   }
 
   @Test
@@ -225,13 +195,12 @@ public class CpuCaptureTest {
     Range range = new Range(0, 30);
     Map<CpuThreadInfo, CaptureNode> captureTrees =
       new ImmutableMap.Builder<CpuThreadInfo, CaptureNode>().put(info, new CaptureNode(new StubCaptureNodeModel())).build();
-    TraceParser parser = new FakeTraceParser(range, captureTrees, false);
 
-    CpuCapture capture = new BaseCpuCapture(parser, traceId1, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
+    CpuCapture capture = new BaseCpuCapture(traceId1, Cpu.CpuTraceType.UNSPECIFIED_TYPE, range, captureTrees);
     assertThat(capture.getTraceId()).isEqualTo(traceId1);
 
     int traceId2 = 50;
-    capture = new BaseCpuCapture(parser, traceId2, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
+    capture = new BaseCpuCapture(traceId2, Cpu.CpuTraceType.UNSPECIFIED_TYPE, range, captureTrees);
     assertThat(capture.getTraceId()).isEqualTo(traceId2);
   }
 
@@ -242,30 +211,21 @@ public class CpuCaptureTest {
     Range range = new Range(0, 30);
     Map<CpuThreadInfo, CaptureNode> captureTrees =
       new ImmutableMap.Builder<CpuThreadInfo, CaptureNode>().put(info, new CaptureNode(new StubCaptureNodeModel())).build();
-    TraceParser parser = new FakeTraceParser(range, captureTrees, false);
 
-    CpuCapture capture = new BaseCpuCapture(parser, traceId, Cpu.CpuTraceType.ART);
+    CpuCapture capture = new BaseCpuCapture(traceId, Cpu.CpuTraceType.ART, range, captureTrees);
     assertThat(capture.getType()).isEqualTo(Cpu.CpuTraceType.ART);
+    assertThat(capture.isDualClock()).isTrue();
 
-    capture = new BaseCpuCapture(parser, traceId, Cpu.CpuTraceType.SIMPLEPERF);
+    capture = new BaseCpuCapture(traceId, Cpu.CpuTraceType.SIMPLEPERF, range, captureTrees);
     assertThat(capture.getType()).isEqualTo(Cpu.CpuTraceType.SIMPLEPERF);
+    assertThat(capture.isDualClock()).isFalse();
 
-    capture = new BaseCpuCapture(parser, traceId, Cpu.CpuTraceType.ATRACE);
+    capture = new BaseCpuCapture(traceId, Cpu.CpuTraceType.ATRACE, range, captureTrees);
     assertThat(capture.getType()).isEqualTo(Cpu.CpuTraceType.ATRACE);
+    assertThat(capture.isDualClock()).isFalse();
 
-    capture = new BaseCpuCapture(parser, traceId, Cpu.CpuTraceType.UNSPECIFIED_TYPE);
+    capture = new BaseCpuCapture(traceId, Cpu.CpuTraceType.UNSPECIFIED_TYPE, range, captureTrees);
     assertThat(capture.getType()).isEqualTo(Cpu.CpuTraceType.UNSPECIFIED_TYPE);
-  }
-
-  @Test
-  public void dualClockSupportDiffersFromParser() {
-    ArtTraceParser artParser = new ArtTraceParser();
-    assertThat(artParser.supportsDualClock()).isTrue();
-
-    SimpleperfTraceParser simpleperfTraceParser = new SimpleperfTraceParser();
-    assertThat(simpleperfTraceParser.supportsDualClock()).isFalse();
-
-    AtraceParser atraceParser = new AtraceParser(123);
-    assertThat(atraceParser.supportsDualClock()).isFalse();
+    assertThat(capture.isDualClock()).isFalse();
   }
 }

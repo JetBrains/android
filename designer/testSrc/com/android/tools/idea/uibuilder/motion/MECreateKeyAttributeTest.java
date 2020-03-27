@@ -44,18 +44,19 @@ public class MECreateKeyAttributeTest extends BaseMotionEditorTest {
   public void testCreateKeyAttributeLayout() {
     CreatorAccess panel = new CreatorAccess();
     String layout = "0,CreatorAccess      ,0,0,99,99\n" +
-      "1,JLabel             ,4,3,90,6\n" +
-      "1,JSeparator         ,0,12,99,0\n" +
-      "1,JRadioButton       ,4,16,42,9\n" +
-      "1,JRadioButton       ,57,16,37,9\n" +
-      "1,JPanel             ,5,27,89,9\n" +
-      "2,PromptedTextField  ,0,0,0,0\n" +
-      "2,MEComboBox         ,0,0,0,0\n" +
-      "1,JLabel             ,4,41,90,6\n" +
-      "1,PromptedTextField  ,5,48,89,7\n" +
-      "1,JLabel             ,4,60,90,6\n" +
-      "1,MEComboBox         ,5,67,89,9\n" +
-      "1,JButton            ,4,84,90,10\n";
+                    "1,JLabel             ,4,3,90,5\n" +
+                    "1,JSeparator         ,0,12,99,0\n" +
+                    "1,JRadioButton       ,4,16,42,9\n" +
+                    "1,JRadioButton       ,57,15,37,9\n" +
+                    "1,JPanel             ,5,26,89,9\n" +
+                    "2,PromptedTextField  ,0,0,0,0\n" +
+                    "2,MEComboBox         ,0,0,0,0\n" +
+                    "1,JSeparator         ,0,39,99,0\n" +
+                    "1,JLabel             ,4,43,90,5\n" +
+                    "1,PromptedTextField  ,5,50,89,7\n" +
+                    "1,JLabel             ,4,61,90,5\n" +
+                    "1,MEComboBox         ,5,69,89,9\n" +
+                    "1,JButton            ,4,84,90,9\n";
     Dimension size = panel.getPreferredSize();
     panel.setBounds(0, 0, size.width, size.height);
     panel.doLayout();
@@ -83,6 +84,7 @@ public class MECreateKeyAttributeTest extends BaseMotionEditorTest {
                   "1,JPanel,\n" +
                   "2,PromptedTextField,tag or regex\n" +
                   "2,MEComboBox,number,dial_pad,dialtitle,button1,button2,button3,button4,button5,button6,button7,button8,button9,button10,button11,button12,people_pad,people_title,people1,people2,people3,people4,people5,people6,people7,people8\n" +
+                  "1,JSeparator,\n" +
                   "1,JLabel,Position\n" +
                   "1,PromptedTextField,0-100\n" +
                   "1,JLabel,Attribute\n" +

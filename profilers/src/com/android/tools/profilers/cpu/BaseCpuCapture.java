@@ -48,8 +48,6 @@ public class BaseCpuCapture implements CpuCapture {
   @NotNull
   private final Timeline myTimeline = new DefaultTimeline();
 
-  private final boolean myCaptureSupportsDualClock;
-
   /**
    * ID of the trace used to generate the capture.
    */
@@ -61,17 +59,19 @@ public class BaseCpuCapture implements CpuCapture {
   @NotNull
   private final Cpu.CpuTraceType myType;
 
-  public BaseCpuCapture(@NotNull TraceParser parser, long traceId, @NotNull Cpu.CpuTraceType type) {
+  public BaseCpuCapture(long traceId,
+                        @NotNull Cpu.CpuTraceType type,
+                        @NotNull Range range,
+                        @NotNull Map<CpuThreadInfo, CaptureNode> captureTrees) {
     myTraceId = traceId;
     myType = type;
-    myTimeline.getDataRange().set(parser.getRange());
-    myTimeline.getViewRange().set(parser.getRange());
-    myCaptureSupportsDualClock = parser.supportsDualClock();
+    myTimeline.getDataRange().set(range);
+    myTimeline.getViewRange().set(range);
 
     // Sometimes a capture may fail and return a file that is incomplete. This results in the parser not having any capture trees.
     // If this happens then we don't have any thread info to determine which is the main thread
     // so we throw an error and let the capture pipeline handle this and present a dialog to the user.
-    Preconditions.checkState(!parser.getCaptureTrees().isEmpty(), "Trace file contained no CPU data.");
+    Preconditions.checkState(!captureTrees.isEmpty(), "Trace file contained no CPU data.");
 
     ImmutableSet.Builder<CpuThreadInfo> availableThreadsBuilder = ImmutableSet.builder();
     ImmutableMap.Builder<Integer, CaptureNode> threadIdToNodesBuilder = ImmutableMap.builder();
@@ -80,7 +80,7 @@ public class BaseCpuCapture implements CpuCapture {
     Integer longestThreadId = null;
     Long longestThreadSpan = null;
 
-    for (Map.Entry<CpuThreadInfo, CaptureNode> entry : parser.getCaptureTrees().entrySet()) {
+    for (Map.Entry<CpuThreadInfo, CaptureNode> entry : captureTrees.entrySet()) {
       // Fill out DataStructures.
       availableThreadsBuilder.add(entry.getKey());
       threadIdToNodesBuilder.put(entry.getKey().getId(), entry.getValue());
@@ -173,7 +173,10 @@ public class BaseCpuCapture implements CpuCapture {
 
   @Override
   public boolean isDualClock() {
-    return myCaptureSupportsDualClock;
+    // It would be better if we have this type of information embedded in the enum
+    // but the enum comes from a proto definition for now.
+    // Right now, the only trace technology that supports dual clock is ART.
+    return  myType == Cpu.CpuTraceType.ART;
   }
 
   @Override

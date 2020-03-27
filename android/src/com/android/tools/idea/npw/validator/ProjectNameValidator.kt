@@ -29,7 +29,7 @@ class ProjectNameValidator : Validator<String> {
   override fun validate(value: String): Result {
     val firstIllegalSymbolIx = value.indexOfFirst { it in bannedSymbols }
     return when {
-      value.isEmpty() -> Result(Severity.ERROR, message("android.wizard.validate.empty.application.name"))
+      value.isBlank() -> Result(Severity.ERROR, message("android.wizard.validate.empty.application.name"))
       firstIllegalSymbolIx >= 0 ->
         Result(Severity.ERROR, message("android.wizard.validate.project.illegal.character", value[firstIllegalSymbolIx], value))
       !Character.isUpperCase(value[0]) -> Result(Severity.INFO, message("android.wizard.validate.lowercase.application.name"))

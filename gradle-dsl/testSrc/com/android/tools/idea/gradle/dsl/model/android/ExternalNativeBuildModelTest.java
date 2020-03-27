@@ -15,22 +15,22 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import static com.android.tools.idea.gradle.dsl.TestFileName.EXTERNAL_NATIVE_BUILD_MODEL_ADD_C_MAKE_PATH_AND_APPLY_CHANGES;
-import static com.android.tools.idea.gradle.dsl.TestFileName.EXTERNAL_NATIVE_BUILD_MODEL_ADD_C_MAKE_PATH_AND_APPLY_CHANGES_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.EXTERNAL_NATIVE_BUILD_MODEL_ADD_C_MAKE_PATH_AND_RESET;
-import static com.android.tools.idea.gradle.dsl.TestFileName.EXTERNAL_NATIVE_BUILD_MODEL_ADD_NDK_BUILD_PATH_AND_APPLY_CHANGES;
-import static com.android.tools.idea.gradle.dsl.TestFileName.EXTERNAL_NATIVE_BUILD_MODEL_ADD_NDK_BUILD_PATH_AND_APPLY_CHANGES_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.EXTERNAL_NATIVE_BUILD_MODEL_ADD_NDK_BUILD_PATH_AND_RESET;
-import static com.android.tools.idea.gradle.dsl.TestFileName.EXTERNAL_NATIVE_BUILD_MODEL_C_MAKE;
-import static com.android.tools.idea.gradle.dsl.TestFileName.EXTERNAL_NATIVE_BUILD_MODEL_C_MAKE_WITH_NEW_FILE_PATH;
-import static com.android.tools.idea.gradle.dsl.TestFileName.EXTERNAL_NATIVE_BUILD_MODEL_NDK_BUILD;
-import static com.android.tools.idea.gradle.dsl.TestFileName.EXTERNAL_NATIVE_BUILD_MODEL_NDK_BUILD_WITH_NEW_FILE_PATH;
-import static com.android.tools.idea.gradle.dsl.TestFileName.EXTERNAL_NATIVE_BUILD_MODEL_REMOVE_C_MAKE_AND_APPLY_CHANGES;
-import static com.android.tools.idea.gradle.dsl.TestFileName.EXTERNAL_NATIVE_BUILD_MODEL_REMOVE_C_MAKE_AND_RESET;
-import static com.android.tools.idea.gradle.dsl.TestFileName.EXTERNAL_NATIVE_BUILD_MODEL_REMOVE_NDK_BUILD_AND_APPLY_CHANGES;
-import static com.android.tools.idea.gradle.dsl.TestFileName.EXTERNAL_NATIVE_BUILD_MODEL_REMOVE_NDK_BUILD_AND_RESET;
-import static com.android.tools.idea.gradle.dsl.TestFileName.EXTERNAL_NATIVE_BUILD_MODEL_SET_CONSTRUCTOR_TO_FUNCTION;
-import static com.android.tools.idea.gradle.dsl.TestFileName.EXTERNAL_NATIVE_BUILD_MODEL_SET_CONSTRUCTOR_TO_FUNCTION_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.EXTERNAL_NATIVE_BUILD_MODEL_ADD_C_MAKE_PATH_AND_APPLY_CHANGES;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.EXTERNAL_NATIVE_BUILD_MODEL_ADD_C_MAKE_PATH_AND_APPLY_CHANGES_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.EXTERNAL_NATIVE_BUILD_MODEL_ADD_C_MAKE_PATH_AND_RESET;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.EXTERNAL_NATIVE_BUILD_MODEL_ADD_NDK_BUILD_PATH_AND_APPLY_CHANGES;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.EXTERNAL_NATIVE_BUILD_MODEL_ADD_NDK_BUILD_PATH_AND_APPLY_CHANGES_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.EXTERNAL_NATIVE_BUILD_MODEL_ADD_NDK_BUILD_PATH_AND_RESET;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.EXTERNAL_NATIVE_BUILD_MODEL_C_MAKE;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.EXTERNAL_NATIVE_BUILD_MODEL_C_MAKE_WITH_NEW_FILE_PATH;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.EXTERNAL_NATIVE_BUILD_MODEL_NDK_BUILD;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.EXTERNAL_NATIVE_BUILD_MODEL_NDK_BUILD_WITH_NEW_FILE_PATH;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.EXTERNAL_NATIVE_BUILD_MODEL_REMOVE_C_MAKE_AND_APPLY_CHANGES;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.EXTERNAL_NATIVE_BUILD_MODEL_REMOVE_C_MAKE_AND_RESET;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.EXTERNAL_NATIVE_BUILD_MODEL_REMOVE_NDK_BUILD_AND_APPLY_CHANGES;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.EXTERNAL_NATIVE_BUILD_MODEL_REMOVE_NDK_BUILD_AND_RESET;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.EXTERNAL_NATIVE_BUILD_MODEL_SET_CONSTRUCTOR_TO_FUNCTION;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.EXTERNAL_NATIVE_BUILD_MODEL_SET_CONSTRUCTOR_TO_FUNCTION_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED;

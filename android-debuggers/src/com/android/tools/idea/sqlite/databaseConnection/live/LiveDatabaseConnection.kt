@@ -19,7 +19,7 @@ import androidx.sqlite.inspection.SqliteInspectorProtocol
 import androidx.sqlite.inspection.SqliteInspectorProtocol.Command
 import androidx.sqlite.inspection.SqliteInspectorProtocol.GetSchemaCommand
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
-import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.EmptySqliteResultSet
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
@@ -28,7 +28,6 @@ import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.util.Disposer
-import java.lang.RuntimeException
 import java.util.concurrent.Executor
 
 /**
@@ -37,9 +36,8 @@ import java.util.concurrent.Executor
 class LiveDatabaseConnection(
   private val messenger: AppInspectorClient.CommandMessenger,
   private val id: Int,
-  executor: Executor
+  private val taskExecutor: Executor
 ) : DatabaseConnection {
-  private val taskExecutor = FutureCallbackExecutor.wrap(executor)
 
   override fun close(): ListenableFuture<Unit> {
     // TODO(blocked) not yet implemented in on-device inspector
@@ -52,7 +50,7 @@ class LiveDatabaseConnection(
       .build()
     val responseFuture = messenger.sendRawCommand(commands.toByteArray())
 
-    return taskExecutor.transform(responseFuture) {
+    return responseFuture.transform(taskExecutor) {
       val response = SqliteInspectorProtocol.Response.parseFrom(it)
 
       if (response.hasErrorOccurred()) {
@@ -67,7 +65,7 @@ class LiveDatabaseConnection(
     val queryCommand = buildQueryCommand(sqliteStatement, id)
     val responseFuture = messenger.sendRawCommand(queryCommand.toByteArray())
 
-    return taskExecutor.transform(responseFuture) {
+    return responseFuture.transform(taskExecutor) {
       val response = SqliteInspectorProtocol.Response.parseFrom(it)
 
       if (response.hasErrorOccurred()) {

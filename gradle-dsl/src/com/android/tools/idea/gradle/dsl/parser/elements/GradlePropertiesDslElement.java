@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.google.common.annotations.VisibleForTesting;
@@ -39,6 +41,7 @@ import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.isPropertiesElementOrMap;
 import static com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.PROPERTY_PLACEMENT;
 import static com.android.tools.idea.gradle.dsl.parser.elements.ElementState.*;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelSemanticsDescription.CREATE_WITH_VALUE;
 
 /**
  * Base class for {@link GradleDslElement}s that represent a closure block or a map element. It provides the functionality to store the
@@ -238,36 +241,73 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     addPropertyInternal(literalList, EXISTING);
   }
 
-  public void addToParsedExpressionList(@NotNull String property, @NotNull GradleDslElement element) {
-    if (element.getPsiElement() == null) {
-      return;
+  @Nullable
+  private static PsiElement mungeElementsForAddToParsedExpressionList(@NotNull GradleDslElement dslElement,
+                                                                      @NotNull List<GradleDslElement> newDslElements) {
+    PsiElement psiElement = dslElement.getPsiElement();
+    if (psiElement == null) {
+      return null;
     }
 
-    List<GradleDslElement> newElements = new ArrayList<>();
-    PsiElement psiElement = element.getPsiElement();
-    if (element instanceof GradleDslMethodCall) {
-      List<GradleDslExpression> args = ((GradleDslMethodCall)element).getArguments();
+    if (dslElement instanceof GradleDslMethodCall) {
+      List<GradleDslExpression> args = ((GradleDslMethodCall)dslElement).getArguments();
       if (!args.isEmpty()) {
         if (args.size() == 1 && args.get(0) instanceof GradleDslExpressionList) {
-          newElements.addAll(((GradleDslExpressionList)args.get(0)).getExpressions());
+          newDslElements.addAll(((GradleDslExpressionList)args.get(0)).getExpressions());
           PsiElement newElement = args.get(0).getPsiElement();
-          psiElement = newElement != null ? newElement : psiElement;
+          return newElement != null ? newElement : psiElement;
         }
         else {
-          newElements.addAll(args);
+          newDslElements.addAll(args);
+          return psiElement;
         }
       }
+      else {
+        return psiElement;
+      }
     }
-    else if (element instanceof GradleDslSimpleExpression) {
-      newElements.add(element);
+    else if (dslElement instanceof GradleDslSimpleExpression) {
+      newDslElements.add(dslElement);
+      return psiElement;
     }
-    else if (element instanceof GradleDslExpressionList) {
-      newElements.addAll(((GradleDslExpressionList)element).getExpressions());
+    else if (dslElement instanceof GradleDslExpressionList) {
+      newDslElements.addAll(((GradleDslExpressionList)dslElement).getExpressions());
+      return psiElement;
+    }
+    else {
+      return null;
+    }
+  }
+
+  public void addToParsedExpressionList(@NotNull String property, @NotNull GradleDslElement element) {
+    List<GradleDslElement> newElements = new ArrayList<>();
+    PsiElement psiElement = mungeElementsForAddToParsedExpressionList(element, newElements);
+    if (psiElement == null) {
+      return;
     }
 
     GradleDslExpressionList gradleDslExpressionList = getPropertyElement(property, GradleDslExpressionList.class);
     if (gradleDslExpressionList == null) {
       gradleDslExpressionList = new GradleDslExpressionList(this, psiElement, GradleNameElement.create(property), false);
+      addPropertyInternal(gradleDslExpressionList, EXISTING);
+    }
+    else {
+      gradleDslExpressionList.setPsiElement(psiElement);
+    }
+    newElements.forEach(gradleDslExpressionList::addParsedElement);
+  }
+
+  public void addToParsedExpressionList(@NotNull ModelPropertyDescription property, @NotNull GradleDslElement element) {
+    List<GradleDslElement> newElements = new ArrayList<>();
+    PsiElement psiElement = mungeElementsForAddToParsedExpressionList(element, newElements);
+    if (psiElement == null) {
+      return;
+    }
+
+    GradleDslExpressionList gradleDslExpressionList = getPropertyElement(property, GradleDslExpressionList.class);
+    if (gradleDslExpressionList == null) {
+      gradleDslExpressionList = new GradleDslExpressionList(this, psiElement, GradleNameElement.create(property.name), false);
+      gradleDslExpressionList.setModelEffect(new ModelEffectDescription(property, CREATE_WITH_VALUE));
       addPropertyInternal(gradleDslExpressionList, EXISTING);
     }
     else {
@@ -361,6 +401,10 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     return getElementWhere(e -> predicate.test(e) && e.myElement.getName().equals(name));
   }
 
+  private GradleDslElement getElementWhere(@NotNull ModelPropertyDescription property, @NotNull Predicate<ElementList.ElementItem> predicate) {
+    return getElementWhere(e -> predicate.test(e) && property.equals(e.myElement.getModelProperty()));
+  }
+
   protected GradleDslElement getElementWhere(@NotNull Predicate<ElementList.ElementItem> predicate) {
     return myProperties.getElementWhere(predicate);
   }
@@ -389,6 +433,11 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
    */
   @Nullable
   public GradleDslElement getPropertyElement(@NotNull String property) {
+    return getElementWhere(property, PROPERTY_FILTER);
+  }
+
+  @Nullable
+  public GradleDslElement getPropertyElement(@NotNull ModelPropertyDescription property) {
     return getElementWhere(property, PROPERTY_FILTER);
   }
 
@@ -426,6 +475,13 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     GradleDslElement propertyElement = getPropertyElement(property);
     return clazz.isInstance(propertyElement) ? clazz.cast(propertyElement) : null;
   }
+
+  @Nullable
+  public <T extends GradleDslElement> T getPropertyElement(@NotNull ModelPropertyDescription property, @NotNull Class<T> clazz) {
+    GradleDslElement propertyElement = getPropertyElement(property);
+    return clazz.isInstance(propertyElement) ? clazz.cast(propertyElement) : null;
+  }
+
 
   @Nullable
   public <T extends GradlePropertiesDslElement> T getPropertyElement(@NotNull PropertiesElementDescription<T> description) {

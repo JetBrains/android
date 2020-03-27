@@ -15,19 +15,20 @@
  */
 package com.android.tools.profilers.cpu.atrace;
 
+import static com.android.tools.profilers.cpu.CpuThreadInfo.RENDER_THREAD_NAME;
+
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profilers.cpu.CpuFramesModel;
 import com.google.common.annotations.VisibleForTesting;
-import java.util.function.Function;
-import org.jetbrains.annotations.NotNull;
-import trebuchet.model.ProcessModel;
-import trebuchet.model.ThreadModel;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.regex.Pattern;
+import org.jetbrains.annotations.NotNull;
+import trebuchet.model.ProcessModel;
+import trebuchet.model.ThreadModel;
 
 /**
  * This class builds {@link AtraceFrame}s for each {@code AtraceFrame.FrameThread} types.
@@ -40,6 +41,8 @@ public class AtraceFrameManager {
   private final List<AtraceFrame> myMainThreadFrames;
   private final List<AtraceFrame> myRenderThreadFrames;
 
+  private final int myRenderThreadId;
+
   /**
    * Constructs a default manager, the constructor finds the main thread and will assert if one is not found.
    *
@@ -47,10 +50,12 @@ public class AtraceFrameManager {
    * @param bootClockSecondsToMonoUs function to convert trace boot time in seconds to mono time micros.
    * @param renderThreadId The id of the render thread
    */
-  public AtraceFrameManager(@NotNull ProcessModel process, @NotNull Function<Double, Long> bootClockSecondsToMonoUs, int renderThreadId) {
+  public AtraceFrameManager(@NotNull ProcessModel process, @NotNull Function<Double, Long> bootClockSecondsToMonoUs) {
     myBootClockSecondsToMonoUs = bootClockSecondsToMonoUs;
     myMainThreadFrames = buildFramesList(AtraceFrame.FrameThread.MAIN, process, process.getId());
-    myRenderThreadFrames = buildFramesList(AtraceFrame.FrameThread.RENDER, process, renderThreadId);
+
+    myRenderThreadId = findRenderThreadId(process);
+    myRenderThreadFrames = buildFramesList(AtraceFrame.FrameThread.RENDER, process, myRenderThreadId);
     findAssociatedFrames();
   }
 
@@ -116,6 +121,14 @@ public class AtraceFrameManager {
   }
 
   /**
+   * Returns the render thread id associated with this FrameManager.
+   * If a render thread was not found, the value will be {@code Integer.MAX_VALUE}.
+   */
+  public int getRenderThreadId() {
+    return myRenderThreadId;
+  }
+
+  /**
    * Returns a series of frames where gaps between frames are filled with empty frames. This allows the caller to determine the
    * frame length by looking at the delta between a valid frames series and the empty frame series that follows it. The delta between
    * an empty frame series and the following frame is idle time between frames.
@@ -149,5 +162,17 @@ public class AtraceFrameManager {
       framesSeries.add(new SeriesData<>(myBootClockSecondsToMonoUs.apply(lastFrame.getTotalRangeSeconds().getMax()), AtraceFrame.EMPTY));
     }
     return framesSeries;
+  }
+
+  /**
+   * Helper function used to find the main and render threads.
+   */
+  private static int findRenderThreadId(@NotNull ProcessModel process) {
+    Optional<ThreadModel> renderThread =
+      process.getThreads().stream().filter((thread) -> thread.getName().equalsIgnoreCase(RENDER_THREAD_NAME)).findFirst();
+
+    // The max process id values we can have is max short, and some invalid process names can be -1
+    // so to avoid confusion we use int max.
+    return renderThread.map(ThreadModel::getId).orElse(Integer.MAX_VALUE);
   }
 }

@@ -21,24 +21,20 @@ import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.CpuThreadInfo;
+import com.android.tools.profilers.cpu.MainProcessSelector;
 import com.android.tools.profilers.cpu.TraceParser;
 import com.android.tools.profilers.cpu.nodemodel.AtraceNodeModel;
 import com.google.common.annotations.VisibleForTesting;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import trebuchet.model.CpuModel;
@@ -60,16 +56,6 @@ import trebuchet.util.PrintlnImportFeedback;
 public class AtraceParser implements TraceParser {
   @VisibleForTesting
   static final long UTILIZATION_BUCKET_LENGTH_US = TimeUnit.MILLISECONDS.toMicros(50);
-  /**
-   * A value to be used when we don't know the process we want to parse.
-   * Note: The max process id values we can have is max short, and some invalid process names can be -1 so
-   * to avoid confusion we use int max.
-   */
-  public static final int INVALID_PROCESS = Integer.MAX_VALUE;
-  /**
-   * The platform RenderThread is hard coded to have this name.
-   */
-  public static final String RENDER_THREAD_NAME = "RenderThread";
 
   /**
    * SurfaceFlinger is responsible for compositing all the application and system surfaces into a single buffer
@@ -109,24 +95,30 @@ public class AtraceParser implements TraceParser {
   // Trebuchet.Model is what Trebuchet uses to represent all captured data.
   private Model myModel;
   private Range myRange;
-  private AtraceFrameManager myFrameInfo;
+
+  @NotNull
+  private final MainProcessSelector processSelector;
 
   /**
-   * This constructor parses the atrace model from the file and should be used for getting the list
-   * of processes from the capture. After calling this construct the contract expects {@link #setSelectProcess}
-   * to be called before parse.
+   * This constructor assumes we know what process we want to focus on.
    */
-  public AtraceParser(@NotNull File file) throws IOException {
-    this(INVALID_PROCESS);
-    parseModelIfNeeded(file);
+  public AtraceParser(String processName) {
+    this(new MainProcessSelector(processName, null, null));
   }
 
   /**
-   * This constructor assumes we know what process we want to focus on. It caches off the process id,
-   * and expects parse with the proper file to be called.
+   * This constructor assumes we know what process we want to focus on.
    */
   public AtraceParser(int processId) {
-    myProcessId = processId;
+    this(new MainProcessSelector(null, processId, null));
+  }
+
+  /**
+   * This constructor assumes we don't know which process we want to focus on and will use the passed {@code processSelector} to find it.
+   */
+  public AtraceParser(@NotNull MainProcessSelector processSelector) {
+    this.processSelector = processSelector;
+
     myCaptureTreeNodes = new HashMap<>();
     myThreadStateData = new HashMap<>();
     myCpuSchedulingToCpuData = new HashMap<>();
@@ -139,8 +131,19 @@ public class AtraceParser implements TraceParser {
     double startTimestampUs = convertToUserTimeUs(myModel.getBeginTimestamp());
     double endTimestampUs = convertToUserTimeUs(myModel.getEndTimestamp());
     myRange = new Range(startTimestampUs, endTimestampUs);
+
+    List<CpuThreadSliceInfo> processList = getProcessList(processSelector.getNameHint());
+    if (processList.isEmpty()) {
+      throw new IllegalStateException("Invalid trace without any process information.");
+    }
+
+    Integer selectedProcess = processSelector.apply(processList);
+    if (selectedProcess == null) {
+      throw new IllegalStateException("It was not possible to select a process for this trace.");
+    }
+    myProcessId = selectedProcess;
+
     myProcessModel = myModel.getProcesses().get(myProcessId);
-    // TODO (b/69910215): Handle case capture does not contain process we are looking for.
     // Throw an exception instead of assert as the caller expects we will throw an exception if we failed to parse.
     if (myProcessModel == null) {
       throw new IllegalArgumentException(String.format("A process with the id %s was not found while parsing the capture.", myProcessId));
@@ -148,8 +151,9 @@ public class AtraceParser implements TraceParser {
     buildCaptureTreeNodes();
     buildThreadStateData();
     buildCpuStateData();
-    myFrameInfo = new AtraceFrameManager(myProcessModel, convertToUserTimeUsFunction(), findRenderThreadId(myProcessModel));
-    return new AtraceCpuCapture(this, myFrameInfo, traceId);
+
+    AtraceFrameManager frameManager = new AtraceFrameManager(myProcessModel, convertToUserTimeUsFunction());
+    return new AtraceCpuCapture(traceId, myRange, this, frameManager);
   }
 
   /**
@@ -201,13 +205,13 @@ public class AtraceParser implements TraceParser {
    * 4) Processes without names.
    */
   @NotNull
-  public CpuThreadSliceInfo[] getProcessList(String hint) {
+  @VisibleForTesting
+  List<CpuThreadSliceInfo> getProcessList(@Nullable String hint) {
     assert myModel != null;
-    CpuThreadSliceInfo[] processList = new CpuThreadSliceInfo[myModel.getProcesses().size()];
-    Stream<ProcessModel> processStream = myModel.getProcesses().values().stream();
-    int index = 0;
-    String hintLower = hint.toLowerCase(Locale.getDefault());
-    processStream = processStream.sorted((a, b) -> {
+
+    String hintLower = hint == null ? "" : hint.toLowerCase(Locale.getDefault());
+
+    return myModel.getProcesses().values().stream().sorted((a, b) -> {
       String aNameLower = getMainThreadForProcess(a).toLowerCase(Locale.getDefault());
       String bNameLower = getMainThreadForProcess(b).toLowerCase(Locale.getDefault());
 
@@ -250,24 +254,10 @@ public class AtraceParser implements TraceParser {
         return b.getId() - a.getId();
       }
       return name;
-    });
-    List<ProcessModel> processes = processStream.collect(Collectors.toList());
-    for (ProcessModel process : processes) {
-      String name = getMainThreadForProcess(process);
-      processList[index++] = new CpuThreadSliceInfo(process.getId(), name, process.getId(), name);
-    }
-    return processList;
-  }
-
-  public void setSelectProcess(@NotNull CpuThreadSliceInfo process) {
-    assert myModel != null;
-    assert myModel.getProcesses().containsKey(process.getProcessId());
-    myProcessId = process.getProcessId();
-  }
-
-  @Override
-  public boolean supportsDualClock() {
-    return false;
+    }).map( p -> {
+      String name = getMainThreadForProcess(p);
+      return new CpuThreadSliceInfo(p.getId(), name, p.getId(), name);
+    }).collect(Collectors.toList());
   }
 
   /**
@@ -279,7 +269,6 @@ public class AtraceParser implements TraceParser {
     return (time * 1000000.0);
   }
 
-  @Override
   public Map<CpuThreadInfo, CaptureNode> getCaptureTrees() {
     return myCaptureTreeNodes;
   }
@@ -299,16 +288,12 @@ public class AtraceParser implements TraceParser {
     return myCpuUtilizationSeries;
   }
 
-  public int getRenderThreadId() {
-    return findRenderThreadId(myProcessModel);
-  }
-
   /**
    * @return Returns a map of {@link CpuThreadInfo} to {@link CaptureNode}. The capture nodes are built from {@link SliceGroup} maintaining
    * the order and hierarchy.
    */
   private void buildCaptureTreeNodes() {
-    Range range = getRange();
+    Range range = myRange;
     for (ThreadModel thread : myProcessModel.getThreads()) {
       CpuThreadSliceInfo threadInfo =
         new CpuThreadSliceInfo(thread.getId(), thread.getName(), thread.getProcess().getId(), thread.getProcess().getName());
@@ -446,11 +431,6 @@ public class AtraceParser implements TraceParser {
     }
   }
 
-  @Override
-  public Range getRange() {
-    return myRange;
-  }
-
   private long convertToUserTimeUs(double timestampInSeconds) {
     return (long)secondsToUs((timestampInSeconds - myModel.getBeginTimestamp()) + myMonoTimeAtBeginningSeconds);
   }
@@ -481,20 +461,9 @@ public class AtraceParser implements TraceParser {
     return name;
   }
 
-  /**
-   * Helper function used to find the main and render threads.
-   *
-   * @return ui thread model as this element is required to be non-null.
-   */
-  private static int findRenderThreadId(@NotNull ProcessModel process) {
-    Optional<ThreadModel> renderThread =
-      process.getThreads().stream().filter((thread) -> thread.getName().equalsIgnoreCase(RENDER_THREAD_NAME)).findFirst();
-    return renderThread.map(ThreadModel::getId).orElse(INVALID_PROCESS);
-  }
-
   @Nullable
   public ProcessModel getSurfaceflingerProcessModel() {
-    return Arrays.stream(getProcessList(SURFACE_FLINGER_PROCESS_NAME)).findFirst()
+    return getProcessList(SURFACE_FLINGER_PROCESS_NAME).stream().findFirst()
       .map(threadInfo -> myModel.getProcesses().get(threadInfo.getProcessId())).orElse(null);
   }
 }

@@ -44,8 +44,9 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
       }
 
       private val handleError: (String) -> Unit = { databaseInspectorProjectService.handleError(it, null) }
+      private val onDisposeListener: () -> Unit = { databaseInspectorProjectService.closeAllLiveDatabase() }
 
-      override val client = DatabaseInspectorClient(messenger, handleError, openDatabase)
+      override val client = DatabaseInspectorClient(messenger, handleError, openDatabase, onDisposeListener)
       override val component: JComponent = databaseInspectorProjectService.sqliteInspectorComponent
 
       init {

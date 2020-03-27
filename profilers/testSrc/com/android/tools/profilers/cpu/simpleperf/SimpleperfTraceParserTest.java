@@ -15,28 +15,30 @@
  */
 package com.android.tools.profilers.cpu.simpleperf;
 
+import static com.android.tools.profilers.cpu.CpuProfilerTestUtils.traceFileToByteString;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import com.android.tools.adtui.model.Range;
-import com.android.tools.profiler.proto.SimpleperfReport;
 import com.android.tools.idea.protobuf.ByteString;
+import com.android.tools.profiler.proto.SimpleperfReport;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.CpuThreadInfo;
 import com.android.tools.profilers.cpu.nodemodel.CppFunctionModel;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.io.FileUtil;
-import java.util.ArrayList;
-import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import static com.android.tools.profilers.cpu.CpuProfilerTestUtils.traceFileToByteString;
-import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.Test;
 
 public class SimpleperfTraceParserTest {
 
@@ -64,22 +66,20 @@ public class SimpleperfTraceParserTest {
 
   @Test
   public void allTreesShouldStartWithThreadName() throws IOException {
-    myParser.parse(myTraceFile, 0);
-    Map<CpuThreadInfo, CaptureNode> callTrees = myParser.getCaptureTrees();
+    CpuCapture capture = myParser.parse(myTraceFile, 0);
 
-    for (Map.Entry<CpuThreadInfo, CaptureNode> entry : callTrees.entrySet()) {
-      CaptureNode tree = entry.getValue();
-      assertNotNull(tree.getData());
-      assertEquals(entry.getKey().getName(), tree.getData().getName());
+    for (CpuThreadInfo thread : capture.getThreads()) {
+      CaptureNode tree = capture.getCaptureNode(thread.getId());
+      assertNotNull(tree);
+      assertEquals(thread.getName(), tree.getData().getName());
     }
   }
 
   @Test
   public void checkKnownThreadsPresenceAndCount() throws IOException {
-    myParser.parse(myTraceFile, 0);
-    Map<CpuThreadInfo, CaptureNode> callTrees = myParser.getCaptureTrees();
+    CpuCapture capture = myParser.parse(myTraceFile, 0);
 
-    assertFalse(callTrees.values().isEmpty());
+    assertFalse(capture.getCaptureNodes().isEmpty());
 
     // Studio:Heartbeat
     int studioHeartbeatCount = 0;
@@ -90,32 +90,33 @@ public class SimpleperfTraceParserTest {
     // JVMTI Agent thread
     int jvmtiAgentCount = 0;
 
-    for (Map.Entry<CpuThreadInfo, CaptureNode> tree : callTrees.entrySet()) {
-      String thread = tree.getKey().getName();
+    for (CpuThreadInfo thread : capture.getThreads()) {
+      String threadName = thread.getName();
+      CaptureNode tree = capture.getCaptureNode(thread.getId());
       // Using contains instead of equals because native thread names are limited to 15 characters
       // and there is no way to predict where they are going to be trimmed.
-      if ("Studio:Heartbeat".contains(thread)) {
+      if ("Studio:Heartbeat".contains(threadName)) {
         studioHeartbeatCount++;
         // libjvmtiagent should be the entry point
         // TODO: Update file name along with the trace files
-        validateRootNodesAndGetEntryPoint(tree.getValue(),"libperfa_arm64.so");
+        validateRootNodesAndGetEntryPoint(tree,"libperfa_arm64.so");
       }
-      else if ("Studio:MemoryAgent".contains(thread)) {
+      else if ("Studio:MemoryAgent".contains(threadName)) {
         studioMemoryAgentCount++;
         // libjvmtiagent should be the entry point
         // TODO: Update file name along with the trace files
-        validateRootNodesAndGetEntryPoint(tree.getValue(),"libperfa_arm64.so");
+        validateRootNodesAndGetEntryPoint(tree,"libperfa_arm64.so");
       }
-      else if ("Studio:Socket".contains(thread)) {
+      else if ("Studio:Socket".contains(threadName)) {
         studioSocketCount++;
         // libjvmtiagent should be the entry point
         // TODO: Update file name along with the trace files
-        validateRootNodesAndGetEntryPoint(tree.getValue(),"libperfa_arm64.so");
+        validateRootNodesAndGetEntryPoint(tree,"libperfa_arm64.so");
       }
-      else if ("JVMTI Agent thread".contains(thread)) {
+      else if ("JVMTI Agent thread".contains(threadName)) {
         jvmtiAgentCount++;
         // openjdkjvmti should be the entry point
-        validateRootNodesAndGetEntryPoint(tree.getValue(),"openjdkjvmti::AgentCallback");
+        validateRootNodesAndGetEntryPoint(tree,"openjdkjvmti::AgentCallback");
       }
     }
 
@@ -127,8 +128,8 @@ public class SimpleperfTraceParserTest {
 
   @Test
   public void nodeDepthsShouldBeCoherent() throws IOException {
-    myParser.parse(myTraceFile, 0);
-    CaptureNode anyTree = myParser.getCaptureTrees().values().iterator().next();
+    CpuCapture capture = myParser.parse(myTraceFile, 0);
+    CaptureNode anyTree = capture.getCaptureNodes().iterator().next();
     assertEquals(0, anyTree.getDepth());
 
     // Just go as deep as possible in one branch per child and check the depths of each node in the branch
@@ -149,20 +150,14 @@ public class SimpleperfTraceParserTest {
     try (FileOutputStream out = new FileOutputStream(trace)) {
       out.write(traceBytes.toByteArray());
     }
-    myParser.parse(trace, 1);
+    CpuCapture capture = myParser.parse(trace, 1);
 
     int mainThread = 7056;
     SimpleperfReport.Sample mainFirstSample =
       myParser.mySamples.stream().filter((sample -> sample.getThreadId() == mainThread)).findFirst().orElse(null);
     assertNotNull(mainFirstSample);
 
-    CaptureNode mainThreadTree = null;
-    for (Map.Entry<CpuThreadInfo, CaptureNode> entry : myParser.getCaptureTrees().entrySet()) {
-      if (entry.getKey().getId() == mainFirstSample.getThreadId()) {
-        mainThreadTree = entry.getValue();
-        break;
-      }
-    }
+    CaptureNode mainThreadTree = capture.getCaptureNode(mainFirstSample.getThreadId());
     assertNotNull(mainThreadTree);
 
     List<SimpleperfReport.Sample.CallChainEntry> firstCallChain = Lists.reverse(mainFirstSample.getCallchainList());
@@ -195,13 +190,8 @@ public class SimpleperfTraceParserTest {
   public void mainProcessShouldBePresent() throws IOException {
     CpuCapture capture = myParser.parse(myTraceFile, 0);
     int appPid = 8589;
-    CaptureNode mainThread = myParser.getCaptureTrees().entrySet().stream()
-      .filter(entry -> entry.getKey().getId() == appPid)
-      .map(Map.Entry::getValue)
-      .findAny()
-      .orElse(null);
+    CaptureNode mainThread = capture.getCaptureNode(appPid);
     assertNotNull(mainThread);
-
     assertEquals(appPid, capture.getMainThreadId());
   }
 
@@ -225,12 +215,12 @@ public class SimpleperfTraceParserTest {
 
   @Test
   public void rangeShouldBeFromFirstToLastTimestamp() throws IOException {
-    myParser.parse(myTraceFile, 0);
+    CpuCapture capture = myParser.parse(myTraceFile, 0);
     long startTimeUs = TimeUnit.NANOSECONDS.toMicros(myParser.mySamples.get(0).getTime());
-    long endTimeUs = TimeUnit.NANOSECONDS.toMicros( myParser.mySamples.get(myParser.mySamples.size() - 1).getTime());
+    long endTimeUs = TimeUnit.NANOSECONDS.toMicros(myParser.mySamples.get(myParser.mySamples.size() - 1).getTime());
     Range expected = new Range(startTimeUs, endTimeUs);
-    assertEquals(expected.getMin(), myParser.getRange().getMin(), 0);
-    assertEquals(expected.getMax(), myParser.getRange().getMax(), 0);
+    assertEquals(expected.getMin(), capture.getRange().getMin(), 0);
+    assertEquals(expected.getMax(), capture.getRange().getMax(), 0);
   }
 
   /**

@@ -40,12 +40,13 @@ import org.jetbrains.kotlin.idea.caches.resolve.util.KotlinResolveScopeEnlarger
 class SafeArgsScopeEnlarger : ResolveScopeEnlarger() {
   override fun getAdditionalResolveScope(file: VirtualFile, project: Project): SearchScope? {
     val module = ModuleUtil.findModuleForFile(file, project) ?: return null
-    val facet = module.androidFacet?.takeIf { it.isSafeArgsEnabled() } ?: return null
-
+    val facet = module.androidFacet ?: return null
     return getAdditionalResolveScope(facet)
   }
 
   internal fun getAdditionalResolveScope(facet: AndroidFacet): SearchScope? {
+    if (!facet.isSafeArgsEnabled()) return null
+
     val module = facet.module
     val project = module.project
     return CachedValuesManager.getManager(project).getCachedValue(module) {
@@ -83,7 +84,7 @@ class SafeArgsKotlinScopeEnlarger : KotlinResolveScopeEnlarger() {
   private val delegateEnlarger = ResolveScopeEnlarger.EP_NAME.findExtensionOrFail(SafeArgsScopeEnlarger::class.java)
 
   override fun getAdditionalResolveScope(module: Module, isTestScope: Boolean): SearchScope? {
-    val facet = module.androidFacet?.takeIf { it.isSafeArgsEnabled() } ?: return null
+    val facet = module.androidFacet ?: return null
     return delegateEnlarger.getAdditionalResolveScope(facet)
   }
 }

@@ -30,6 +30,7 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.JBColor
 import com.intellij.util.IconUtil
 import icons.StudioIcons
+import org.jetbrains.annotations.TestOnly
 
 val NO_PROCESS_ACTION = object : AnAction("No debuggable processes detected") {
   override fun actionPerformed(event: AnActionEvent) {}
@@ -53,6 +54,11 @@ class SelectProcessAction(val layoutInspector: LayoutInspector) :
       currentProcess = layoutInspector.currentClient.selectedProcess
       event.presentation.text = actionName
     }
+  }
+
+  @TestOnly
+  fun updateDropDownActions(context: DataContext) {
+    updateActions(context)
   }
 
   override fun updateActions(context: DataContext): Boolean {
@@ -111,7 +117,8 @@ class SelectProcessAction(val layoutInspector: LayoutInspector) :
     }
   }
 
-  private class DeviceAction(
+  @VisibleForTesting
+  class DeviceAction(
     deviceName: String, processesMap: Map<Common.Stream, List<Common.Process>>, stream: Common.Stream, client: InspectorClient
   ) : DropDownAction(deviceName, null, null) {
     override fun displayTextInToolbar() = true

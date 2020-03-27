@@ -50,7 +50,7 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
 
     ideComponents = IdeComponents(myFixture)
     mockDatabaseInspectorProjectService = ideComponents.mockProjectService(DatabaseInspectorProjectService::class.java)
-    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(setOf(sqliteDatabase1))
+    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(listOf(sqliteDatabase1))
   }
 
   override fun tearDown() {

@@ -15,85 +15,86 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android
 
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ADD_AND_APPLY_BLOCK_STATEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ADD_AND_APPLY_BLOCK_STATEMENTS_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ADD_AND_APPLY_BUILD_TYPE_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ADD_AND_APPLY_BUILD_TYPE_BLOCK_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ADD_AND_APPLY_DEFAULT_CONFIG_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ADD_AND_APPLY_DEFAULT_CONFIG_BLOCK_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ADD_AND_APPLY_DEREF_BUILD_TYPE_BLOCK_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ADD_AND_APPLY_DOTTED_BUILD_TYPE_BLOCK_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ADD_AND_APPLY_EMPTY_SIGNING_CONFIG_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ADD_AND_APPLY_EMPTY_SIGNING_CONFIG_BLOCK_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ADD_AND_APPLY_EMPTY_SOURCE_SET_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ADD_AND_APPLY_LANGUAGE_KEYWORD_BUILD_TYPE_BLOCK_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ADD_AND_APPLY_LIST_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ADD_AND_APPLY_LIST_ELEMENTS_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ADD_AND_APPLY_LITERAL_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ADD_AND_APPLY_LITERAL_ELEMENTS_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ADD_AND_APPLY_NON_ASCII_BUILD_TYPE_BLOCK_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ADD_AND_APPLY_NUMERIC_BUILD_TYPE_BLOCK_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ADD_AND_APPLY_OPERATOR_BUILD_TYPE_BLOCK_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ADD_AND_APPLY_PRODUCT_FLAVOR_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ADD_AND_APPLY_PRODUCT_FLAVOR_BLOCK_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ADD_AND_APPLY_SIGNING_CONFIG_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ADD_AND_APPLY_SIGNING_CONFIG_BLOCK_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ADD_AND_APPLY_SOURCE_SET_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ADD_AND_APPLY_SOURCE_SET_BLOCK_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ADD_AND_APPLY_SPACE_BUILD_TYPE_BLOCK_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ADD_AND_REMOVE_BUILD_TYPE_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ADD_AND_REMOVE_PRODUCT_FLAVOR_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ADD_AND_RESET_BUILD_TYPE_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ADD_AND_RESET_DEFAULT_CONFIG_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ADD_AND_RESET_LIST_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ADD_AND_RESET_LITERAL_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ADD_AND_RESET_PRODUCT_FLAVOR_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ADD_TO_AND_APPLY_LIST_ELEMENTS_WITH_MULTIPLE_ARGUMENTS
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ADD_TO_AND_APPLY_LIST_ELEMENTS_WITH_MULTIPLE_ARGUMENTS_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ADD_TO_AND_APPLY_LIST_ELEMENTS_WITH_ONE_ARGUMENT
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ADD_TO_AND_APPLY_LIST_ELEMENTS_WITH_ONE_ARGUMENT_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ADD_TO_AND_RESET_LIST_ELEMENTS_WITH_ARGUMENT
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ADD_TO_AND_RESET_LIST_ELEMENTS_WITH_MULTIPLE_ARGUMENTS
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ANDROID_APPLICATION_STATEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ANDROID_ASSIGNMENT_STATEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ANDROID_BLOCK_WITH_APPLICATION_STATEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ANDROID_BLOCK_WITH_APPLICATION_STATEMENTS_WITH_PARENTHESES
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ANDROID_BLOCK_WITH_ASSIGNMENT_STATEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ANDROID_BLOCK_WITH_BUILD_TYPE_BLOCKS
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ANDROID_BLOCK_WITH_DEFAULT_CONFIG_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ANDROID_BLOCK_WITH_EXTERNAL_NATIVE_BUILD_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ANDROID_BLOCK_WITH_NO_DIMENSIONS
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ANDROID_BLOCK_WITH_NO_DIMENSIONS_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ANDROID_BLOCK_WITH_OVERRIDE_STATEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_ANDROID_BLOCK_WITH_PRODUCT_FLAVOR_BLOCKS
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_EDIT_AND_APPLY_INTEGER_LITERAL_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_EDIT_AND_APPLY_INTEGER_LITERAL_ELEMENTS_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_EDIT_AND_APPLY_LITERAL_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_EDIT_AND_APPLY_LITERAL_ELEMENTS_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_EDIT_AND_RESET_LITERAL_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_PARSE_NO_RESCONFIGS_PROPERTY
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_REMOVE_AND_APPLY_BLOCK_APPLICATION_STATEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_REMOVE_AND_APPLY_BUILD_TYPE_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_REMOVE_AND_APPLY_BUILD_TYPE_BLOCK_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_REMOVE_AND_APPLY_DEFAULT_CONFIG_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_REMOVE_AND_APPLY_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_REMOVE_AND_APPLY_PRODUCT_FLAVOR_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_REMOVE_AND_APPLY_PRODUCT_FLAVOR_BLOCK_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_REMOVE_AND_APPLY_SIGNING_CONFIG_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_REMOVE_AND_APPLY_SIGNING_CONFIG_BLOCK_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_REMOVE_AND_APPLY_SOURCE_SET_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_REMOVE_AND_APPLY_SOURCE_SET_BLOCK_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_REMOVE_AND_RESET_BUILD_TYPE_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_REMOVE_AND_RESET_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_REMOVE_AND_RESET_PRODUCT_FLAVOR_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_REMOVE_FROM_AND_RESET_LIST_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_REPLACE_AND_APPLY_LIST_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_REPLACE_AND_APPLY_LIST_ELEMENTS_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.ANDROID_MODEL_REPLACE_AND_RESET_LIST_ELEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileName
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_BLOCK_STATEMENTS
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_BLOCK_STATEMENTS_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_BUILD_TYPE_BLOCK
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_BUILD_TYPE_BLOCK_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_DEFAULT_CONFIG_BLOCK
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_DEFAULT_CONFIG_BLOCK_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_DEREF_BUILD_TYPE_BLOCK_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_DOTTED_BUILD_TYPE_BLOCK_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_EMPTY_SIGNING_CONFIG_BLOCK
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_EMPTY_SOURCE_SET_BLOCK
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_LANGUAGE_KEYWORD_BUILD_TYPE_BLOCK_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_LIST_ELEMENTS
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_LIST_ELEMENTS_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_LITERAL_ELEMENTS
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_LITERAL_ELEMENTS_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_NON_ASCII_BUILD_TYPE_BLOCK_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_NUMERIC_BUILD_TYPE_BLOCK_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_OPERATOR_BUILD_TYPE_BLOCK_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_PRODUCT_FLAVOR_BLOCK
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_PRODUCT_FLAVOR_BLOCK_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_SIGNING_CONFIG_BLOCK
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_SIGNING_CONFIG_BLOCK_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_SOURCE_SET_BLOCK
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_SOURCE_SET_BLOCK_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_SPACE_BUILD_TYPE_BLOCK_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_REMOVE_BUILD_TYPE_BLOCK
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_REMOVE_PRODUCT_FLAVOR_BLOCK
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_RESET_BUILD_TYPE_BLOCK
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_RESET_DEFAULT_CONFIG_BLOCK
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_RESET_LIST_ELEMENTS
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_RESET_LITERAL_ELEMENTS
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_RESET_PRODUCT_FLAVOR_BLOCK
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_TO_AND_APPLY_LIST_ELEMENTS_WITH_MULTIPLE_ARGUMENTS
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_TO_AND_APPLY_LIST_ELEMENTS_WITH_MULTIPLE_ARGUMENTS_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_TO_AND_APPLY_LIST_ELEMENTS_WITH_ONE_ARGUMENT
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_TO_AND_APPLY_LIST_ELEMENTS_WITH_ONE_ARGUMENT_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_TO_AND_RESET_LIST_ELEMENTS_WITH_ARGUMENT
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_TO_AND_RESET_LIST_ELEMENTS_WITH_MULTIPLE_ARGUMENTS
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ANDROID_APPLICATION_STATEMENTS
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ANDROID_ASSIGNMENT_STATEMENTS
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ANDROID_BLOCK_WITH_APPLICATION_STATEMENTS
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ANDROID_BLOCK_WITH_APPLICATION_STATEMENTS_WITH_PARENTHESES
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ANDROID_BLOCK_WITH_ASSIGNMENT_STATEMENTS
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ANDROID_BLOCK_WITH_BUILD_TYPE_BLOCKS
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ANDROID_BLOCK_WITH_DEFAULT_CONFIG_BLOCK
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ANDROID_BLOCK_WITH_EXTERNAL_NATIVE_BUILD_BLOCK
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ANDROID_BLOCK_WITH_NO_DIMENSIONS
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ANDROID_BLOCK_WITH_NO_DIMENSIONS_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ANDROID_BLOCK_WITH_OVERRIDE_STATEMENTS
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ANDROID_BLOCK_WITH_PRODUCT_FLAVOR_BLOCKS
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_EDIT_AND_APPLY_INTEGER_LITERAL_ELEMENTS
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_EDIT_AND_APPLY_INTEGER_LITERAL_ELEMENTS_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_EDIT_AND_APPLY_LITERAL_ELEMENTS
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_EDIT_AND_APPLY_LITERAL_ELEMENTS_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_EDIT_AND_RESET_LITERAL_ELEMENTS
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_PARSE_NO_RESCONFIGS_PROPERTY
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_AND_APPLY_BLOCK_APPLICATION_STATEMENTS
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_AND_APPLY_BUILD_TYPE_BLOCK
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_AND_APPLY_BUILD_TYPE_BLOCK_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_AND_APPLY_DEFAULT_CONFIG_BLOCK
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_AND_APPLY_ELEMENTS
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_AND_APPLY_PRODUCT_FLAVOR_BLOCK
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_AND_APPLY_PRODUCT_FLAVOR_BLOCK_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_AND_APPLY_SIGNING_CONFIG_BLOCK
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_AND_APPLY_SIGNING_CONFIG_BLOCK_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_AND_APPLY_SOURCE_SET_BLOCK
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_AND_APPLY_SOURCE_SET_BLOCK_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_AND_RESET_BUILD_TYPE_BLOCK
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_AND_RESET_ELEMENTS
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_AND_RESET_PRODUCT_FLAVOR_BLOCK
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REMOVE_FROM_AND_RESET_LIST_ELEMENTS
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REPLACE_AND_APPLY_LIST_ELEMENTS
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REPLACE_AND_APPLY_LIST_ELEMENTS_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_REPLACE_AND_RESET_LIST_ELEMENTS
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.VARIABLE
@@ -739,16 +740,13 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("signingConfigs", "config", signingConfigs[0].name())
 
     applyChanges(buildModel)
-    // TODO(xof): empty blocks, as the comments below say, are not saved to the file.  Arguably this is wrong for Kotlin, which
-    //  requires explicit creation of signingConfigs (and sourceSets, below)
-    verifyFileContents(myBuildFile, ANDROID_MODEL_ADD_AND_APPLY_EMPTY_SIGNING_CONFIG_BLOCK)
-
-    assertThat(android.signingConfigs()).isEmpty() // Empty blocks are not saved to the file.
+    verifyFileContents(myBuildFile, ANDROID_MODEL_ADD_AND_APPLY_EMPTY_SIGNING_CONFIG_BLOCK_EXPECTED)
 
     buildModel.reparse()
     android = buildModel.android()
     assertNotNull(android)
-    assertThat(android.signingConfigs()).isEmpty() // Empty blocks are not saved to the file.
+    assertThat(android.signingConfigs()).hasSize(1)
+    assertEquals("signingConfigs", "config", android.signingConfigs()[0].name())
   }
 
   @Test
@@ -764,7 +762,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("sourceSets", "set", sourceSets[0].name())
 
     applyChanges(buildModel)
-    // TODO(xof): see comment in testAddAndApplyEmptySigningConfigBlock
+    // TODO(xof): empty blocks, as the comments below say, are not saved to the file.  Arguably this is wrong for Kotlin, which
+    //  requires explicit creation of sourceSets
     verifyFileContents(myBuildFile, ANDROID_MODEL_ADD_AND_APPLY_EMPTY_SOURCE_SET_BLOCK)
 
     assertThat(android.sourceSets()).isEmpty() // Empty blocks are not saved to the file.

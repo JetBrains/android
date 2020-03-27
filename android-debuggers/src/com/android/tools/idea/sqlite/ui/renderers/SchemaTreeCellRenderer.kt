@@ -18,8 +18,8 @@ package com.android.tools.idea.sqlite.ui.renderers
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteTable
-import com.intellij.icons.AllIcons
 import com.intellij.ui.SimpleColoredComponent
+import icons.StudioIcons
 import java.awt.Component
 import java.util.Locale
 import javax.swing.JTree
@@ -45,18 +45,18 @@ class SchemaTreeCellRenderer : TreeCellRenderer {
     if (value is DefaultMutableTreeNode) {
       when (val userObject = value.userObject) {
         is SqliteDatabase -> {
-          component.icon = AllIcons.Nodes.DataTables
+          component.icon = StudioIcons.DatabaseInspector.DATABASE
           component.append(userObject.name)
         }
 
         is SqliteTable -> {
-          component.icon = AllIcons.Nodes.DataTables
+          component.icon = StudioIcons.DatabaseInspector.TABLE
           component.append(userObject.name)
         }
 
         is SqliteColumn -> {
-          if (userObject.inPrimaryKey) component.icon = AllIcons.Nodes.EjbPrimaryKeyClass
-          else component.icon = AllIcons.Nodes.DataColumn
+          if (userObject.inPrimaryKey) component.icon = StudioIcons.DatabaseInspector.PRIMARY_KEY
+          else component.icon = StudioIcons.DatabaseInspector.COLUMN
           component.append(userObject.name)
           component.append(" : ")
           component.append(userObject.affinity.name.toLowerCase(Locale.US))

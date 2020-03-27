@@ -21,6 +21,7 @@ import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvide
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID
 import com.android.tools.idea.appinspection.test.TEST_JAR
 import com.intellij.openapi.project.Project
+import org.mockito.Mockito.mock
 import javax.swing.JPanel
 
 /**
@@ -33,9 +34,12 @@ class StubTestAppInspectorTabProvider : AppInspectorTabProvider {
 
   override fun createTab(project: Project, messenger: AppInspectorClient.CommandMessenger): AppInspectorTab {
     return object : AppInspectorTab {
-      override val client: AppInspectorClient
-        get() = TODO("not implemented")
+      override val client: AppInspectorClient = StubTestAppInspectorClient(messenger)
       override val component = JPanel()
     }
   }
+}
+
+class StubTestAppInspectorClient(messenger: CommandMessenger) : AppInspectorClient(messenger) {
+  override val eventListener: EventListener = mock(EventListener::class.java)
 }

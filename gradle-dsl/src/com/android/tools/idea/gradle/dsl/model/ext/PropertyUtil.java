@@ -35,6 +35,7 @@ import java.util.function.BiFunction;
 
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.REFERENCE;
 import static com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement.convertNameToKey;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelSemanticsDescription.CREATE_WITH_VALUE;
 
 public class PropertyUtil {
   @NonNls public static final String FILE_METHOD_NAME = "file";
@@ -44,7 +45,8 @@ public class PropertyUtil {
   public static GradleDslSimpleExpression createOrReplaceBasicExpression(@NotNull GradleDslElement parent,
                                                                          @Nullable GradleDslElement oldElement,
                                                                          @NotNull Object value,
-                                                                         @NotNull GradleNameElement name) {
+                                                                         @NotNull GradleNameElement name,
+                                                                         @Nullable ModelPropertyDescription propertyDescription) {
     // Check if we can reuse the element.
     ModelEffectDescription effect = null;
     if (oldElement instanceof GradleDslLiteral) {
@@ -56,6 +58,8 @@ public class PropertyUtil {
       if (oldElement != null) {
         name = oldElement.getNameElement();
         effect = oldElement.getModelEffect();
+      } else if (propertyDescription != null) {
+        effect = new ModelEffectDescription(propertyDescription, CREATE_WITH_VALUE);
       }
 
       GradleDslSimpleExpression expression = createBasicExpression(parent, value, name);

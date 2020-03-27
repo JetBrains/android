@@ -44,7 +44,7 @@ class ToolWindowWrapperImpl(project: Project, private val toolWindow: ToolWindow
   override var icon: Icon?
     get() = toolWindow.icon
     set(value) {
-      toolWindow.icon = value
+      value?.let { icon -> toolWindow.setIcon(icon) }
     }
 
   override fun removeContent() {

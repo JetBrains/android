@@ -535,7 +535,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
   private static final class TextLabelAction extends AnAction {
 
     TextLabelAction(@NotNull String text) {
-      super(null, null, null);
+      super((String)null);
       getTemplatePresentation().setText(text, false);
       getTemplatePresentation().setEnabled(false);
     }

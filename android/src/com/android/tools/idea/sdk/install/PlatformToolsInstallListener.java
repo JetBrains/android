@@ -21,6 +21,7 @@ import com.android.annotations.Nullable;
 import com.android.repository.api.*;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.adb.AdbService;
+import java.util.concurrent.TimeoutException;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -48,7 +49,12 @@ public class PlatformToolsInstallListener implements PackageOperation.StatusChan
         progress.logWarning("Failed to get ADB instance", e);
       }
     }
-    adbService.terminateDdmlib();
+    try {
+      adbService.terminateDdmlib();
+    }
+    catch (TimeoutException e) {
+      progress.logWarning("Failed to terminate running ADB instance", e);
+    }
   }
 
   @Nullable

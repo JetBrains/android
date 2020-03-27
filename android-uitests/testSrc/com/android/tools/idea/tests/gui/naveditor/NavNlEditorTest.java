@@ -139,6 +139,10 @@ public class NavNlEditorTest {
     menuFixture.selectDestination("fragment_my");
 
     ComponentTreeFixture<NlComponent> treeFixture = navEditor.navComponentTree();
+    List<NlComponent> selected = treeFixture.selectedComponents();
+    assertEquals(1, selected.size());
+    assertEquals("myFragment", selected.get(0).getId());
+
     treeFixture.showPopupMenuAt(1).menuItemWithPath("Delete").click();
 
     navEditor.getAllComponents().forEach(component -> assertNotEquals("main_activity", component.getComponent().getId()));

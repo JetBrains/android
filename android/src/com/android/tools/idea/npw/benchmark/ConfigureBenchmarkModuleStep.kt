@@ -15,22 +15,19 @@
  */
 package com.android.tools.idea.npw.benchmark
 
-import com.android.sdklib.AndroidVersion.VersionCodes
 import com.android.tools.adtui.LabelWithEditButton
 import com.android.tools.adtui.util.FormScalingUtil
-import com.android.tools.adtui.validation.Validator
-import com.android.tools.adtui.validation.Validator.Result
-import com.android.tools.adtui.validation.Validator.Severity
 import com.android.tools.adtui.validation.ValidatorPanel
 import com.android.tools.idea.device.FormFactor.MOBILE
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getInitialDomain
 import com.android.tools.idea.npw.module.AndroidApiLevelComboBox
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
-import com.android.tools.idea.npw.platform.AndroidVersionsInfo.VersionItem
 import com.android.tools.idea.npw.project.DomainToPackageExpression
 import com.android.tools.idea.npw.template.components.LanguageComboProvider
+import com.android.tools.idea.npw.validator.ApiVersionValidator
 import com.android.tools.idea.npw.validator.ModuleValidator
+import com.android.tools.idea.npw.validator.PackageNameValidator
 import com.android.tools.idea.observable.BindingsManager
 import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.core.BoolValueProperty
@@ -52,7 +49,6 @@ import org.jetbrains.android.util.AndroidBundle.message
 import java.awt.Dimension
 import java.awt.FlowLayout
 import java.awt.Font
-import java.util.Optional
 import java.util.function.Consumer
 import javax.swing.JPanel
 import javax.swing.JTextField
@@ -115,25 +111,14 @@ class ConfigureBenchmarkModuleStep(
     val isPackageNameSynced = BoolValueProperty(true)
 
     val moduleValidator = ModuleValidator(model.project)
-    val packageNameValidator = object: Validator<String> {
-      override fun validate(value: String) = Result.fromNullableMessage(WizardUtils.validatePackageName(value))
-    }
-    val minSdkValidator = object: Validator<Optional<VersionItem>> {
-      override fun validate(value: Optional<VersionItem>): Result = when {
-        !value.isPresent -> Result(Severity.ERROR, message("select.target.dialog.text"))
-        value.get().targetApiLevel >= VersionCodes.Q && !model.project.isAndroidx() ->
-          Result(Severity.ERROR, message("android.wizard.validate.module.needs.androidx"))
-        else -> Result.OK
-      }
-    }
 
     moduleName.text = WizardUtils.getUniqueName(model.moduleName.get(), moduleValidator)
     val computedPackageName = DomainToPackageExpression(StringValueProperty(getInitialDomain()), model.moduleName)
 
     validatorPanel.apply {
       registerValidator(moduleNameText, moduleValidator)
-      registerValidator(model.packageName, packageNameValidator)
-      registerValidator(model.androidSdkInfo, minSdkValidator)
+      registerValidator(model.packageName, PackageNameValidator())
+      registerValidator(model.androidSdkInfo, ApiVersionValidator(model.project.isAndroidx(), MOBILE))
     }
     bindings.apply {
       bind(model.moduleName, moduleNameText, validatorPanel.hasErrors().not())

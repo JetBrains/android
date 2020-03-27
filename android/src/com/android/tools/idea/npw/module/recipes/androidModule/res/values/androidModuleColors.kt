@@ -18,8 +18,8 @@ package com.android.tools.idea.npw.module.recipes.androidModule.res.values
 fun androidModuleColors() = """
   <?xml version="1.0" encoding="utf-8"?>
   <resources>
-      <color name="colorPrimary">#6200EE</color>
-      <color name="colorPrimaryDark">#3700B3</color>
-      <color name="colorAccent">#03DAC5</color>
+      <color name="purple500">#6200EE</color>
+      <color name="purple700">#3700B3</color>
+      <color name="teal200">#03DAC5</color>
   </resources>
 """

@@ -18,6 +18,8 @@ package com.android.tools.idea.emulator
 import com.android.annotations.concurrency.UiThread
 import com.android.emulator.control.ParameterValue
 import com.android.emulator.control.PhysicalModelValue
+import com.android.emulator.control.Rotation
+import com.android.emulator.control.Rotation.SkinRotation
 import com.intellij.openapi.actionSystem.AnActionEvent
 import kotlin.math.roundToInt
 
@@ -28,16 +30,19 @@ abstract class EmulatorRotateAction : AbstractEmulatorAction() {
   @UiThread
   fun rotate(event: AnActionEvent, degrees: Float) {
     val emulatorController = getEmulatorController(event) ?: return
-    val rotation = getEmulatorView(event)?.screenRotation ?: return
+    val emulatorView = getEmulatorView(event)
+    val rotation = emulatorView?.displayRotation ?: return
+    val angle = canonicalizeRotationAngle(rotation.ordinal * 90F + degrees)
     val parameters = ParameterValue.newBuilder()
       .addData(0F)
       .addData(0F)
-      .addData(canonicalizeRotationAngle(rotation.ordinal * 90F + degrees))
+      .addData(angle)
     val rotationModel = PhysicalModelValue.newBuilder()
       .setTarget(PhysicalModelValue.PhysicalType.ROTATION)
       .setValue(parameters)
       .build()
     emulatorController.setPhysicalModel(rotationModel)
+    emulatorView.displayRotation = SkinRotation.forNumber(((angle / 90).toInt() + 4) % 4)
   }
 
   /**

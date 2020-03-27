@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu.atrace;
 
+import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.cpu.BaseCpuCapture;
@@ -34,20 +35,17 @@ public class AtraceCpuCapture extends BaseCpuCapture {
   @NotNull
   private final List<SeriesData<Long>> myCpuUtilizationSeries;
 
-  private final int myRenderThreadId;
   private final boolean myIsMissingData;
 
   @NotNull
   private final AtraceFrameManager myFrameManager;
 
-  public AtraceCpuCapture(@NotNull AtraceParser parser, @NotNull AtraceFrameManager frameManager, long traceId) {
-    super(parser, traceId, Cpu.CpuTraceType.ATRACE);
+  public AtraceCpuCapture(long traceId, @NotNull Range range, @NotNull AtraceParser parser, @NotNull AtraceFrameManager frameManager) {
+    super(traceId, Cpu.CpuTraceType.ATRACE, range, parser.getCaptureTrees());
 
     myThreadStateDataSeries = parser.getThreadStateDataSeries();
     myCpuThreadSliceInfoStates = parser.getCpuThreadSliceInfoStates();
     myCpuUtilizationSeries = parser.getCpuUtilizationSeries();
-
-    myRenderThreadId = parser.getRenderThreadId();
     myIsMissingData = parser.isMissingData();
 
     myFrameManager = frameManager;
@@ -97,6 +95,6 @@ public class AtraceCpuCapture extends BaseCpuCapture {
 
   @Override
   public int getRenderThreadId() {
-    return myRenderThreadId;
+    return myFrameManager.getRenderThreadId();
   }
 }

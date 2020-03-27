@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu.atrace
 
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
+import com.android.tools.profilers.cpu.CpuThreadInfo
 import com.android.tools.profilers.cpu.atrace.AtraceTestUtils.Companion.TEST_PID
 import com.android.tools.profilers.cpu.atrace.AtraceTestUtils.Companion.TEST_RENDER_ID
 import com.android.tools.profilers.cpu.atrace.AtraceTestUtils.Companion.convertTimeStamps
@@ -45,7 +46,7 @@ class AtraceFrameManagerTest {
 
   @Test
   fun filterReturnsFramesOfSameThread() {
-    val frameManager = AtraceFrameManager(process, ::convertTimeStamps, TEST_RENDER_ID)
+    val frameManager = AtraceFrameManager(process, ::convertTimeStamps)
     val frames = frameManager.getFramesList(AtraceFrame.FrameThread.MAIN)
     // Validation metrics come from systrace for the same file.
     assertThat(frames).hasSize(122)
@@ -56,7 +57,7 @@ class AtraceFrameManagerTest {
 
   @Test
   fun noMatchingThreadReturnsEmptyList() {
-    val frameManager = AtraceFrameManager(process, ::convertTimeStamps, TEST_RENDER_ID)
+    val frameManager = AtraceFrameManager(process, ::convertTimeStamps)
     assertThat(frameManager.getFramesList(AtraceFrame.FrameThread.OTHER)).hasSize(0)
   }
 
@@ -78,8 +79,8 @@ class AtraceFrameManagerTest {
         }
       }
 
-      threadFor(TEST_RENDER_ID, "Render").apply {
-        hint(TEST_RENDER_ID, "Render", TEST_PID, "Test")
+      threadFor(TEST_RENDER_ID, CpuThreadInfo.RENDER_THREAD_NAME).apply {
+        hint(TEST_RENDER_ID, CpuThreadInfo.RENDER_THREAD_NAME, TEST_PID, "Test")
         slicesBuilder.slices.apply {
           add(getSlice(4.0, 7.0, "DrawFrame"))
           add(getSlice(10.0, 13.0, "doFrame"))
@@ -92,7 +93,7 @@ class AtraceFrameManagerTest {
 
     model = Model(fragment)
     process = model.processes[TEST_PID]!!
-    val frameManager = AtraceFrameManager(process, ::convertTimeStamps, TEST_RENDER_ID)
+    val frameManager = AtraceFrameManager(process, ::convertTimeStamps)
 
     val mainThreadFrames = frameManager.getFramesList(AtraceFrame.FrameThread.MAIN)
     val renderThreadFrames = frameManager.getFramesList(AtraceFrame.FrameThread.RENDER)
@@ -114,7 +115,7 @@ class AtraceFrameManagerTest {
 
   @Test
   fun framesEndWithEmptyFrame() {
-    val frameManager = AtraceFrameManager(process, ::convertTimeStamps, TEST_RENDER_ID)
+    val frameManager = AtraceFrameManager(process, ::convertTimeStamps)
     val frames = frameManager.getFrames(AtraceFrame.FrameThread.MAIN)
     // Each frame has a empty frame after it for spacing.
     assertThat(frames).hasSize(122 * 2)

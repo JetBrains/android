@@ -589,7 +589,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
                                 valueArguments : List<KtElement>,
                                 isLiteral : Boolean,
                                 isSet : Boolean = false) : GradleDslExpressionList {
-    val expressionList = GradleDslExpressionList(parentElement, listPsiElement, isLiteral, isSet, propertyName)
+    val expressionList = GradleDslExpressionList(parentElement, listPsiElement, isLiteral, propertyName)
     valueArguments.map {
       expression -> expression as KtValueArgument
     }.filter {

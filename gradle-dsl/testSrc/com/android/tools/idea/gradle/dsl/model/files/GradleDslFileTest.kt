@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.gradle.dsl.model.files
 
-import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_DSL_FILE_APPLY_FROM_BLOCK
-import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_DSL_FILE_APPLY_FROM_BLOCK_APPLIED
-import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_DSL_FILE_INVOLVED_APPLIED_FILES
-import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_DSL_FILE_INVOLVED_APPLIED_FILES_APPLIED_FILE_ONE
-import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_DSL_FILE_INVOLVED_APPLIED_FILES_APPLIED_FILE_TWO
-import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_DSL_FILE_INVOLVED_FILES
-import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_DSL_FILE_INVOLVED_FILES_SUB
-import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_DSL_FILE_LIST_PROPERTIES_FROM_APPLIED_FILES
-import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_DSL_FILE_LIST_PROPERTIES_FROM_APPLIED_FILES_APPLIED_FILE_ONE
-import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_DSL_FILE_LIST_PROPERTIES_FROM_APPLIED_FILES_APPLIED_FILE_TWO
-import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_DSL_FILE_PROPERTIES_LIST
-import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_DSL_FILE_PROPERTIES_LIST_SUB
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.GRADLE_DSL_FILE_APPLY_FROM_BLOCK
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.GRADLE_DSL_FILE_APPLY_FROM_BLOCK_APPLIED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.GRADLE_DSL_FILE_INVOLVED_APPLIED_FILES
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.GRADLE_DSL_FILE_INVOLVED_APPLIED_FILES_APPLIED_FILE_ONE
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.GRADLE_DSL_FILE_INVOLVED_APPLIED_FILES_APPLIED_FILE_TWO
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.GRADLE_DSL_FILE_INVOLVED_FILES
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.GRADLE_DSL_FILE_INVOLVED_FILES_SUB
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.GRADLE_DSL_FILE_LIST_PROPERTIES_FROM_APPLIED_FILES
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.GRADLE_DSL_FILE_LIST_PROPERTIES_FROM_APPLIED_FILES_APPLIED_FILE_ONE
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.GRADLE_DSL_FILE_LIST_PROPERTIES_FROM_APPLIED_FILES_APPLIED_FILE_TWO
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.GRADLE_DSL_FILE_PROPERTIES_LIST
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.GRADLE_DSL_FILE_PROPERTIES_LIST_SUB
 import com.android.tools.idea.gradle.dsl.api.GradleFileModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTEGER_TYPE

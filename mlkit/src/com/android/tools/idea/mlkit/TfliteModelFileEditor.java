@@ -174,7 +174,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   }
 
   private static String getSampleCodeSectionBody(@NotNull PsiClass modelClass, @NotNull ModelInfo modelInfo) {
-    return "<h2>Sample Code</h2>\n" +
+    return "<h2 style=\"padding-top:8px;\">Sample Code</h2>\n" +
            "<div id=\"sample_code\"><pre>" + buildSampleCode(modelClass, modelInfo) + "</pre></div>";
   }
 
@@ -261,8 +261,8 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   private static String buildSampleCodeStyle() {
     return "#sample_code {\n" +
            "  font-family: 'Source Sans Pro', sans-serif; \n" +
-           "  background-color: " + (StartupUiUtil.isUnderDarcula() ? "#2A3141" : "#F1F3F4") + ";\n" +
-           "  color: " + (StartupUiUtil.isUnderDarcula() ? "#EDEFF1" : "#3A474E") + ";\n" +
+           "  background-color: " + (StartupUiUtil.isUnderDarcula() ? "#2B2B2B" : "#F1F3F4") + ";\n" +
+           "  color: " + (StartupUiUtil.isUnderDarcula() ? "#DDDDDD" : "#3A474E") + ";\n" +
            "  margin-left: 20px;\n" +
            "  display: block;\n" +
            "  width: 60%;\n" +

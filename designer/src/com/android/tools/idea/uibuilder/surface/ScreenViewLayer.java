@@ -28,6 +28,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.scale.ScaleContext;
 import com.intellij.util.JBHiDPIScaledImage;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -187,30 +188,31 @@ public class ScreenViewLayer extends Layer {
     if (drawNewImg || currentScale != myLastScale || !myScreenViewVisibleRect.equals(myCachedScreenViewDisplayRect)) {
       if (myLastRenderResult != null && myLastRenderResult.hasImage()) {
         BufferedImage renderedImage = myLastRenderResult.getRenderedImage().getCopy();
-        assert renderedImage != null : "Image was already disposed";
-        int resultImageWidth = renderedImage.getWidth();
-        int resultImageHeight = renderedImage.getHeight();
+        if (renderedImage != null) {
+          int resultImageWidth = renderedImage.getWidth();
+          int resultImageHeight = renderedImage.getHeight();
 
-        myCachedScreenViewDisplayRect.setBounds(myScreenViewVisibleRect);
-        // Obtain the factors to convert from screen view coordinates to our result image coordinates
-        double xScaleFactor = (double)resultImageWidth / myScreenViewSize.width;
-        double yScaleFactor = (double)resultImageHeight / myScreenViewSize.height;
-        cancelHighQualityScaleRequests();
-        // There is no point in requesting high quality image while in animated mode
-        if (xScaleFactor > 1.2 && yScaleFactor > 1.2 && !myScreenView.isAnimated()) {
-          // This means that the result image is bigger than the ScreenView by more than a 20%. For this cases, we need to scale down the
-          // result image to make it fit in the ScreenView and we use a higher quality (but slow) process. We will issue a request to obtain
-          // the high quality version but paint the low quality version below. Once it's ready, we'll repaint.
+          myCachedScreenViewDisplayRect.setBounds(myScreenViewVisibleRect);
+          // Obtain the factors to convert from screen view coordinates to our result image coordinates
+          double xScaleFactor = (double)resultImageWidth / myScreenViewSize.width;
+          double yScaleFactor = (double)resultImageHeight / myScreenViewSize.height;
+          cancelHighQualityScaleRequests();
+          // There is no point in requesting high quality image while in animated mode
+          if (xScaleFactor > 1.2 && yScaleFactor > 1.2 && !myScreenView.isAnimated()) {
+            // This means that the result image is bigger than the ScreenView by more than a 20%. For this cases, we need to scale down the
+            // result image to make it fit in the ScreenView and we use a higher quality (but slow) process. We will issue a request to obtain
+            // the high quality version but paint the low quality version below. Once it's ready, we'll repaint.
 
-          requestHighQualityScaledImage(ScaleContext.create(g));
+            requestHighQualityScaledImage(ScaleContext.create(g));
+          }
+
+          cachedVisibleImage = getPreviewImage(g.getDeviceConfiguration(), renderedImage,
+                                               myScreenView.getX(), myScreenView.getY(),
+                                               myScreenViewVisibleRect, xScaleFactor, yScaleFactor,
+                                               previousVisibleImage, myScreenView.hasBorderLayer());
+          myCachedVisibleImage = cachedVisibleImage;
+          myLastScale = currentScale;
         }
-
-        cachedVisibleImage = getPreviewImage(g.getDeviceConfiguration(), renderedImage,
-                                             myScreenView.getX(), myScreenView.getY(),
-                                             myScreenViewVisibleRect, xScaleFactor, yScaleFactor,
-                                             previousVisibleImage, myScreenView.hasBorderLayer());
-        myCachedVisibleImage = cachedVisibleImage;
-        myLastScale = currentScale;
       }
     }
 
@@ -219,7 +221,7 @@ public class ScreenViewLayer extends Layer {
       if (screenShape != null) {
         g.clip(screenShape);
       }
-      UIUtil.drawImage(g, cachedVisibleImage, myScreenViewVisibleRect.x, myScreenViewVisibleRect.y, null);
+      StartupUiUtil.drawImage(g, cachedVisibleImage, myScreenViewVisibleRect.x, myScreenViewVisibleRect.y, null);
     }
     g.dispose();
   }
@@ -339,7 +341,7 @@ public class ScreenViewLayer extends Layer {
                                           double yScaleFactor,
                                           @NotNull ScaleContext ctx) {
     BufferedImage scaledImage = null;
-    if (UIUtil.isJreHiDPI(ctx) && ImageUtils.supportsRetina()) {
+    if (StartupUiUtil.isJreHiDPI(ctx) && ImageUtils.supportsRetina()) {
       scaledImage = getRetinaScaledImage(source, 1 / xScaleFactor, 1 / yScaleFactor, ctx, false);
     }
     if (scaledImage == null) {

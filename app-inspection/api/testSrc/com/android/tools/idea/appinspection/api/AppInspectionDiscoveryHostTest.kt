@@ -57,6 +57,8 @@ class AppInspectionDiscoveryHostTest {
   @get:Rule
   val timeoutRule = Timeout(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)
 
+  private val api29Device = FakeTransportService.FAKE_DEVICE.toBuilder().setApiLevel(29).build()
+
   init {
     transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, ATTACH_HANDLER)
   }
@@ -68,7 +70,7 @@ class AppInspectionDiscoveryHostTest {
   }
 
   private fun launchFakeProcess(
-    device: Common.Device = FakeTransportService.FAKE_DEVICE,
+    device: Common.Device = api29Device,
     process: Common.Process = FakeTransportService.FAKE_PROCESS
   ) {
     transportService.addDevice(device)
@@ -217,12 +219,12 @@ class AppInspectionDiscoveryHostTest {
     })
 
     // Launch process in stream 1
-    val fakeDevice1 = FakeTransportService.FAKE_DEVICE.toBuilder().setDeviceId(1).setModel("fakeModel1").setManufacturer("fakeMan2").build()
+    val fakeDevice1 = api29Device.toBuilder().setDeviceId(1).setModel("fakeModel1").setManufacturer("fakeMan2").build()
     val fakeProcess1 = FakeTransportService.FAKE_PROCESS.toBuilder().setDeviceId(1).build()
     launchFakeProcess(fakeDevice1, fakeProcess1)
 
     // Launch process with same pid in stream 2
-    val fakeDevice2 = FakeTransportService.FAKE_DEVICE.toBuilder().setDeviceId(2).setModel("fakeModel2").setManufacturer("fakeMan2").build()
+    val fakeDevice2 = api29Device.toBuilder().setDeviceId(2).setModel("fakeModel2").setManufacturer("fakeMan2").build()
     val fakeProcess2 = FakeTransportService.FAKE_PROCESS.toBuilder().setDeviceId(2).build()
     launchFakeProcess(fakeDevice2, fakeProcess2)
 
@@ -246,14 +248,12 @@ class AppInspectionDiscoveryHostTest {
     })
 
     // Launch process in stream 1
-    val fakeDevice1 =
-      FakeTransportService.FAKE_DEVICE.toBuilder().setDeviceId(1).setModel("fakeModel").setManufacturer("fakeMan").setSerial("1").build()
+    val fakeDevice1 = api29Device.toBuilder().setDeviceId(1).setModel("fakeModel").setManufacturer("fakeMan").setSerial("1").build()
     val fakeProcess1 = FakeTransportService.FAKE_PROCESS.toBuilder().setDeviceId(1).build()
     launchFakeProcess(fakeDevice1, fakeProcess1)
 
     // Launch process with same pid in stream 2
-    val fakeDevice2 =
-      FakeTransportService.FAKE_DEVICE.toBuilder().setDeviceId(2).setModel("fakeModel").setManufacturer("fakeMan").setSerial("2").build()
+    val fakeDevice2 = api29Device.toBuilder().setDeviceId(2).setModel("fakeModel").setManufacturer("fakeMan").setSerial("2").build()
     val fakeProcess2 = FakeTransportService.FAKE_PROCESS.toBuilder().setDeviceId(2).build()
     launchFakeProcess(fakeDevice2, fakeProcess2)
 
@@ -281,7 +281,7 @@ class AppInspectionDiscoveryHostTest {
 
     // Launch process on a device with Api Level < O
     val oldDevice =
-      FakeTransportService.FAKE_DEVICE.toBuilder()
+      api29Device.toBuilder()
         .setDeviceId(1)
         .setModel("fakeModel")
         .setManufacturer("fakeMan")
@@ -294,13 +294,13 @@ class AppInspectionDiscoveryHostTest {
     launchFakeProcess(oldDevice, process)
 
 
-    // Launch process on another device with Api level >= O
-    val newDevice = FakeTransportService.FAKE_DEVICE.toBuilder()
+    // Launch process on another device with Api level >= Q
+    val newDevice = api29Device.toBuilder()
       .setDeviceId(2)
       .setModel("fakeModel")
       .setManufacturer("fakeMan")
       .setSerial("1")
-      .setApiLevel(AndroidVersion.VersionCodes.O)
+      .setApiLevel(AndroidVersion.VersionCodes.Q)
       .build()
     val newProcess = FakeTransportService.FAKE_PROCESS.toBuilder()
       .setDeviceId(2)

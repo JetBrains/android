@@ -53,6 +53,7 @@ import org.junit.runner.RunWith
 import java.awt.Color
 import java.awt.event.KeyEvent.VK_SPACE
 import java.net.Socket
+import java.util.concurrent.TimeUnit
 
 private const val PROJECT_NAME = "LayoutTest"
 private const val LAYOUT_ID = 1L
@@ -77,7 +78,7 @@ class BasicLayoutInspectorUITest {
   private val button4Id = ResourceReference(namespace, ResourceType.ID, "button4")
 
   @get:Rule
-  val guiTest = GuiTestRule().apply { }
+  val guiTest = GuiTestRule().withTimeout(5, TimeUnit.MINUTES)
 
   @get:Rule
   val transportRule = TransportRule()

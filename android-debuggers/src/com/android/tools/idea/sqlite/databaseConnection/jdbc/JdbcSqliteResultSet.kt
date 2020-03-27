@@ -16,6 +16,8 @@
 package com.android.tools.idea.sqlite.databaseConnection.jdbc
 
 import com.android.annotations.concurrency.WorkerThread
+import com.android.tools.idea.concurrency.executeAsync
+import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.databaseConnection.checkOffsetAndSize
 import com.android.tools.idea.sqlite.model.SqliteAffinity
@@ -77,7 +79,7 @@ class JdbcSqliteResultSet(
   override fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<List<SqliteRow>> {
     checkOffsetAndSize(rowOffset, rowBatchSize)
 
-    return service.sequentialTaskExecutor.transform(columns) { columns ->
+    return columns.transform(service.sequentialTaskExecutor) { columns ->
       check(!Disposer.isDisposed(this)) { "ResultSet has already been closed." }
       check(!connection.isClosed) { "The connection has been closed." }
 

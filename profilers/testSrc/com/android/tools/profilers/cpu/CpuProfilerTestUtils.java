@@ -33,6 +33,7 @@ import com.android.tools.profilers.ProfilersTestData;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -69,23 +70,40 @@ public class CpuProfilerTestUtils {
     return TestUtils.getWorkspaceFile(CPU_TRACES_DIR + filename);
   }
 
-  public static CpuCapture getValidCapture() throws IOException, ExecutionException, InterruptedException {
-    return getCapture(readValidTrace(), CpuTraceType.ART);
+  public static CpuCapture getValidCapture() throws ExecutionException, InterruptedException {
+    return getCapture(getTraceFile("valid_trace.trace"), CpuTraceType.ART);
   }
 
   public static CpuCapture getCapture(@NotNull String fullFileName) {
     try {
       File file = TestUtils.getWorkspaceFile(fullFileName);
-      return getCapture(traceFileToByteString(file), CpuTraceType.ART);
+      return getCapture(file, CpuTraceType.ART);
     }
     catch (Exception e) {
       throw new RuntimeException("Failed with exception", e);
     }
   }
 
-  public static CpuCapture getCapture(ByteString traceBytes, CpuTraceType profilerType) throws ExecutionException, InterruptedException {
+  public static CompletableFuture<CpuCapture> getCaptureFuture(File traceFile, CpuTraceType profilerType) {
     CpuCaptureParser parser = new CpuCaptureParser(new FakeIdeProfilerServices());
-    return parser.parse(ProfilersTestData.SESSION_DATA, FakeCpuService.FAKE_TRACE_ID, traceBytes, profilerType).get();
+    return parser.parse(traceFile, FakeCpuService.FAKE_TRACE_ID, profilerType, 0, "");
+  }
+
+  public static CompletableFuture<CpuCapture> getCaptureFuture(File traceFile,
+                                                               CpuTraceType profilerType,
+                                                               int processIdHint,
+                                                               String processNameHint) {
+    CpuCaptureParser parser = new CpuCaptureParser(new FakeIdeProfilerServices());
+    return parser.parse(traceFile, FakeCpuService.FAKE_TRACE_ID, profilerType, processIdHint, processNameHint);
+  }
+
+  public static CpuCapture getCapture(File traceFile, CpuTraceType profilerType) throws ExecutionException, InterruptedException {
+    return getCaptureFuture(traceFile, profilerType, 0, "").get();
+  }
+
+  public static CpuCapture getCapture(File traceFile, CpuTraceType profilerType, int processIdHint, String processNameHint)
+    throws ExecutionException, InterruptedException {
+    return getCaptureFuture(traceFile, profilerType, processIdHint, processNameHint).get();
   }
 
   /**

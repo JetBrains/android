@@ -35,20 +35,20 @@ public class ConfigureAndroidModuleStepFixture<W extends AbstractWizardFixture>
 
   @NotNull
   public ConfigureAndroidModuleStepFixture<W> enterModuleName(@NotNull String text) {
-    new JTextComponentFixture(robot(), robot().finder().findByName(target(), "ModuleName", JTextField.class)).setText(text);
+    new JTextComponentFixture(robot(), robot().finder().findByLabel(target(), "Module name", JTextField.class)).setText(text);
     return this;
   }
 
   @NotNull
   public ConfigureAndroidModuleStepFixture<W> selectMinimumSdkApi(int minSdkApi) {
-    new ApiLevelComboBoxFixture(robot(), robot().finder().findByName(target(), "minSdkComboBox", JComboBox.class))
+    new ApiLevelComboBoxFixture(robot(), robot().finder().findByLabel(target(), "Minimum SDK", JComboBox.class))
       .selectApiLevel(minSdkApi);
     return this;
   }
 
   @NotNull
   public ConfigureAndroidModuleStepFixture<W> selectBytecodeLevel(@NotNull String bytecodeLevel) {
-    new JComboBoxFixture(robot(), robot().finder().findByName(target(), "bytecodeLevelComboBox", JComboBox.class))
+    new JComboBoxFixture(robot(), robot().finder().findByLabel(target(), "Bytecode Level", JComboBox.class))
       .selectItem(bytecodeLevel);
     return this;
   }
