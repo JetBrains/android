@@ -96,7 +96,6 @@ class TableViewImpl : TableView {
   private val tableScrollPane = JBScrollPane(table)
   private val loadingMessageEditorPane = JEditorPane("text/html", "")
 
-  private val tableActionsPanel = JPanel(FlowLayout(FlowLayout.LEFT))
   private val centerPanel = JPanel(BorderLayout())
 
   private var isLoading = false
@@ -107,6 +106,7 @@ class TableViewImpl : TableView {
 
   init {
     val southPanel = JPanel(BorderLayout())
+    val tableActionsPanel = JPanel(FlowLayout(FlowLayout.LEFT))
     rootPanel.add(tableActionsPanel, BorderLayout.NORTH)
     rootPanel.add(centerPanel, BorderLayout.CENTER)
     rootPanel.add(southPanel, BorderLayout.SOUTH)
@@ -154,6 +154,7 @@ class TableViewImpl : TableView {
 
     refreshButton.disabledIcon = IconLoader.getDisabledIcon(AllIcons.Actions.Refresh)
     refreshButton.toolTipText = "Refresh table"
+    refreshButton.isEnabled = false
     tableActionsPanel.add(refreshButton)
     refreshButton.addActionListener { listeners.forEach { it.refreshDataInvoked() } }
 
@@ -194,11 +195,6 @@ class TableViewImpl : TableView {
     setUpLoadingPanel()
     setUpPopUp()
   }
-
-  override var isTableActionsRowVisible: Boolean = true
-    set(value) {
-      tableActionsPanel.isVisible = value; field = value
-    }
 
   override fun showPageSizeValue(maxRowCount: Int) {
     // Avoid setting the item if it's already selected, so we don't trigger the action listener for now reason.
