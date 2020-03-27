@@ -278,6 +278,9 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
 
     private boolean canHaveCustomAttributes(@NotNull MotionSceneTag tag) {
       XmlTag xml = tag.getXmlTag();
+      if (xml == null) {
+        return false;
+      }
       XmlElementDescriptor elementDescriptor = myDescriptorProvider.getDescriptor(xml);
       if (elementDescriptor == null) {
         return false;

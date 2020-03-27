@@ -105,6 +105,8 @@ public class GradleSpecificInitializer implements Runnable {
     replaceProjectPopupActions();
     // Replace "TemplateProjectSettingsGroup" to cause "Find Action" menu use AndroidTemplateProjectSettingsGroup (b/37141013)
     replaceAction(TEMPLATE_PROJECT_SETTINGS_GROUP_ID, new AndroidTemplateProjectSettingsGroup());
+    hideAction("Groovy.CheckResources.Rebuild");
+    hideAction("Groovy.CheckResources.Make");
     setUpGradleViewToolbarActions();
     checkInstallPath();
 

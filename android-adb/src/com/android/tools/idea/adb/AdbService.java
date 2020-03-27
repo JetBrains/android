@@ -110,12 +110,20 @@ public class AdbService implements Disposable, AdbOptionsService.AdbOptionsListe
     myAdb.set(adb);
 
     // Cancel previous requests if they were unsuccessful
+    boolean terminateDdmlibFirst;
     if (myFuture != null && myFuture.isDone() && !wasSuccessful(myFuture)) {
-      terminateDdmlib();
+      cancelCurrentFuture();
+      terminateDdmlibFirst = true;
+    } else {
+      terminateDdmlibFirst = false;
     }
 
     if (myFuture == null) {
-      Future<BridgeConnectionResult> future = ApplicationManager.getApplication().executeOnPooledThread(new CreateBridgeTask(adb));
+      Future<BridgeConnectionResult> future = ApplicationManager.getApplication().executeOnPooledThread(new CreateBridgeTask(adb, () -> {
+        if (terminateDdmlibFirst) {
+          terminateDdmlib();
+        }
+      }));
       // TODO: expose connection timeout in some settings UI? Also see TIMEOUT which is way too long
       myFuture = makeTimedFuture(future, 20, TimeUnit.SECONDS);
     }
@@ -124,14 +132,18 @@ public class AdbService implements Disposable, AdbOptionsService.AdbOptionsListe
   }
 
   public synchronized void terminateDdmlib() {
-    if (myFuture != null) {
-      myFuture.cancel(true);
-      myFuture = null;
-    }
+    cancelCurrentFuture();
 
     synchronized (ADB_INIT_LOCK) {
       AndroidDebugBridge.disconnectBridge();
       AndroidDebugBridge.terminate();
+    }
+  }
+
+  private synchronized void cancelCurrentFuture() {
+    if (myFuture != null) {
+      myFuture.cancel(true);
+      myFuture = null;
     }
   }
 
@@ -188,9 +200,11 @@ public class AdbService implements Disposable, AdbOptionsService.AdbOptionsListe
 
   private static class CreateBridgeTask implements Callable<BridgeConnectionResult> {
     private final File myAdb;
+    private Runnable myPreCreateAction;
 
-    public CreateBridgeTask(@NotNull File adb) {
+    public CreateBridgeTask(@NotNull File adb, Runnable preCreateAction) {
       myAdb = adb;
+      myPreCreateAction = preCreateAction;
     }
 
     @Override
@@ -204,6 +218,12 @@ public class AdbService implements Disposable, AdbOptionsService.AdbOptionsListe
       }
       else {
         env = ImmutableMap.of();
+      }
+
+      try {
+        myPreCreateAction.run();
+      } catch (Exception e) {
+        return BridgeConnectionResult.make("Unable to prepare for adb server creation: " + e.getMessage());
       }
 
       AndroidDebugBridge bridge;

@@ -62,7 +62,7 @@ public final class AdtModuleImporter extends ModuleImporter {
     VirtualFile target = ProjectImportUtil.findImportTarget(importSource);
     VirtualFile targetDir = target.isDirectory() ? target : target.getParent();
     File targetDirFile = virtualToIoFile(targetDir);
-    return isAdtProjectDir(targetDirFile) && findGradleBuildFile(targetDirFile).isFile();
+    return isAdtProjectDir(targetDirFile) && !findGradleBuildFile(targetDirFile).isFile();
   }
 
   @Override
