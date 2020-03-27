@@ -37,7 +37,6 @@ class NavComponentTreeTest {
   val flagRule = SetFlagRule(StudioFlags.NAV_NEW_COMPONENT_TREE, true)
 
   @Test
-  @RunIn(TestGroup.UNRELIABLE)
   fun testSelectComponent() {
     val frame = guiTest.importProject("Navigation")
     // Open file as XML and switch to design tab, wait for successful render

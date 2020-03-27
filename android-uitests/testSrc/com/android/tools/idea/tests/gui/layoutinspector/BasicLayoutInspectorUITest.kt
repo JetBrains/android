@@ -95,7 +95,6 @@ class BasicLayoutInspectorUITest {
   val flagRule = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_USE_DEVBUILD_SKIA_SERVER, true)
 
   @Test
-  @RunIn(TestGroup.UNRELIABLE) // new test - wait and investigate test results before moving to default
   fun testLayoutInspector() {
     basicLayoutInspectorOperations(init())
   }

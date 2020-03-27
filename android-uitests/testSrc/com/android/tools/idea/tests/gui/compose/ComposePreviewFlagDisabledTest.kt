@@ -47,7 +47,6 @@ class ComposePreviewFlagDisabledTest {
   }
 
   @Test
-  @RunIn(TestGroup.UNRELIABLE) // b/150637365
   fun noComposePreview() {
     val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
     // Open the main compose activity and check that the preview is present
