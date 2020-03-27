@@ -24,7 +24,7 @@ import com.intellij.lang.annotation.HighlightSeverity.ERROR
 import com.intellij.lang.annotation.HighlightSeverity.WARNING
 import org.jetbrains.android.AndroidTestCase
 
-class InspectionTest : ProguardR8TestCase() {
+class ProguardR8InspectionsTest : ProguardR8TestCase() {
   fun testUnresolvedClassName() {
     myFixture.configureByText(
       ProguardR8FileType.INSTANCE,
@@ -50,12 +50,76 @@ class InspectionTest : ProguardR8TestCase() {
       ProguardR8FileType.INSTANCE,
       """
       -keep class java.lang.String {
-        ${"test.MyNotExistingClass".highlightedAs(ERROR, "Unresolved class name")} 
+        ${"test.MyNotExistingClass".highlightedAs(ERROR, "Unresolved class name")}
         ${"myVal".highlightedAs(ERROR, "The rule matches no class members")};
       }
       """.trimIndent())
 
     myFixture.checkHighlighting()
+  }
+
+  fun testInnerClasses() {
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package example;
+
+      class MyClass {
+        class Inner {}
+      }
+    """.trimIndent())
+
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+      -keep class example.MyClass${'$'}Inner
+      """
+    )
+    myFixture.checkHighlighting()
+  }
+
+  fun testInnerClassesSeparatorInspection() {
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package example;
+
+      class MyClass {
+        class Inner {
+          class SecondInner {}
+        }
+      }
+    """.trimIndent())
+
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+      -keep class example.MyClass.Inner
+      """
+    )
+    var highlights = myFixture.doHighlighting(ERROR).map { it.description }
+
+    highlights.contains("Inner classes should be separated by a dollar sign \"\$\"")
+
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+      -keep class example.MyClass.Inner${'$'}SecondInner
+      """
+    )
+    highlights = myFixture.doHighlighting(ERROR).map { it.description }
+
+    highlights.contains("Inner classes should be separated by a dollar sign \"\$\"")
+
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+      -keep class example.MyClass${'$'}Inner.SecondInner
+      """
+    )
+    highlights = myFixture.doHighlighting(ERROR).map { it.description }
+
+    highlights.contains("Inner classes should be separated by a dollar sign \"\$\"")
   }
 
   fun testInvalidFlag() {

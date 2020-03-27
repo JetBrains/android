@@ -26,6 +26,7 @@ abstract class ProguardR8TestCase : JavaCodeInsightFixtureTestCase() {
     myFixture.enableInspections(ProguardR8InvalidFlagInspection::class.java)
     myFixture.enableInspections(ProguardR8IgnoredFlagInspection::class.java)
     myFixture.enableInspections(ProguardR8ArrayTypeInspection::class.java)
+    myFixture.enableInspections(ProguardR8InnerClassSeparatorInspection::class.java)
   }
 
   override fun tearDown() {

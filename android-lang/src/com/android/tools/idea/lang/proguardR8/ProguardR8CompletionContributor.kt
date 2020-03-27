@@ -32,12 +32,14 @@ import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.codeInsight.completion.JavaClassNameCompletionContributor
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.codeInsight.lookup.PackageLookupItem
+import com.intellij.lang.jvm.JvmModifier
 import com.intellij.patterns.PlatformPatterns.psiElement
 import com.intellij.patterns.StandardPatterns.and
 import com.intellij.patterns.StandardPatterns.or
 import com.intellij.patterns.StandardPatterns.string
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.impl.source.tree.CompositeElement
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.parentOfType
 import com.intellij.util.ProcessingContext
@@ -49,6 +51,10 @@ import com.intellij.util.ProcessingContext
  */
 class ProguardR8CompletionContributor : CompletionContributor() {
   companion object {
+
+    private const val lowerCaseDummy = "lowercasedummy"
+
+    private const val beforeInnerClass = "\$$lowerCaseDummy"
 
     private val FIELD_METHOD_MODIFIERS = setOf(
       "abstract",
@@ -170,6 +176,19 @@ class ProguardR8CompletionContributor : CompletionContributor() {
       }
     }
 
+    private val nonStaticInnerClassProvider = object : CompletionProvider<CompletionParameters>() {
+      override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, resultSet: CompletionResultSet) {
+        val originalClassName = parameters.position.parentOfType(ProguardR8QualifiedName::class)!!.text.substringBefore(beforeInnerClass)
+        val project = parameters.position.project
+        val clazz = JavaPsiFacade.getInstance(project).findClass(originalClassName, GlobalSearchScope.allScope(project)) ?: return
+        resultSet.addAllElements(
+          clazz.innerClasses
+            .filter { !it.hasModifier(JvmModifier.STATIC) }
+            .map { JavaClassNameCompletionContributor.createClassLookupItem(it, false) }
+        )
+      }
+    }
+
     private val anyProguardElement = psiElement().withLanguage(ProguardR8Language.INSTANCE)
 
     private val insideClassSpecification = psiElement().inside(psiElement(ProguardR8PsiTypes.CLASS_SPECIFICATION_BODY))
@@ -250,12 +269,19 @@ class ProguardR8CompletionContributor : CompletionContributor() {
       ),
       primitiveTypeCompletionProvider
     )
+
+    // Add completion for non-static inner classes. Static inner classes provided by [JavaClassReferenceCompletionContributor].
+    extend(
+      CompletionType.BASIC,
+      psiElement().inside(psiElement(ProguardR8QualifiedName::class.java)).withText(string().endsWith(beforeInnerClass)),
+      nonStaticInnerClassProvider
+    )
   }
 
   override fun beforeCompletion(context: CompletionInitializationContext) {
     if (context.file is ProguardR8PsiFile) {
       // We need lower case dummy because original ("IntellijIdeaRulezzz") breaks lexer for flags (flags can be only lowercase).
-      context.dummyIdentifier = "lowercasedummy"
+      context.dummyIdentifier = lowerCaseDummy
     }
     super.beforeCompletion(context)
   }
