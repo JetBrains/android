@@ -139,6 +139,7 @@ public class StudioIcons {
   }
 
   public static class DeviceExplorer {
+    public static final Icon MULTIPLE_DEVICES = load("/studio/icons/device-explorer/multiple-devices.svg"); // 16x16
     public static final Icon PHYSICAL_DEVICE_CAR = load("/studio/icons/device-explorer/physical-device-car.svg"); // 16x16
     public static final Icon PHYSICAL_DEVICE_PHONE = load("/studio/icons/device-explorer/physical-device-phone.svg"); // 16x16
     public static final Icon PHYSICAL_DEVICE_TV = load("/studio/icons/device-explorer/physical-device-tv.svg"); // 16x16
@@ -491,6 +492,8 @@ public class StudioIcons {
   public static class Misc {
     public static final Icon BUILD_TYPE = load("/studio/icons/misc/build-type.svg"); // 16x16
     public static final Icon COMPOSABLE_FUNCTION = load("/studio/icons/misc/composable-function.svg"); // 16x16
+    public static final Icon DEPENDENCY_CONSUMER = load("/studio/icons/misc/dependency-consumer.svg"); // 16x16
+    public static final Icon DEPENDENCY_PROVIDER = load("/studio/icons/misc/dependency-provider.svg"); // 16x16
     public static final Icon GRADLE_VARIABLE = load("/studio/icons/misc/gradle-variable.svg"); // 16x16
     public static final Icon PRODUCT_FLAVOR_DIMENSION = load("/studio/icons/misc/product-flavor-dimension.svg"); // 16x16
     public static final Icon PRODUCT_FLAVOR = load("/studio/icons/misc/product-flavor.svg"); // 16x16
