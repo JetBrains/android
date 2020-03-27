@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.navigator;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.ide.util.treeView.AbstractTreeBuilder;
@@ -23,32 +22,10 @@ import com.intellij.ide.util.treeView.TreeVisitor;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AndroidViewNodes {
-  @Nullable
-  public <T> T selectNodeOfType(@NotNull Class<T> nodeType, @NotNull Project project) {
-    ToolWindow projectToolWindow = ToolWindowManager.getInstance(project).getToolWindow("Project");
-    if (projectToolWindow != null) {
-      return selectNodeOfType(nodeType, project, projectToolWindow);
-    }
-    return null;
-  }
-
-  @VisibleForTesting
-  <T> T selectNodeOfType(@NotNull Class<T> nodeType, @NotNull Project project, @NotNull ToolWindow projectToolWindow) {
-    Ref<T> nodeRef = new Ref<>();
-    // Activate (show) the  "Project" view, select the "Android" panel, and look for the node.
-    projectToolWindow.activate(() -> {
-      T found = performOnNodeOfType(nodeType, (node, treeBuilder) -> treeBuilder.select(node), project);
-      nodeRef.set(found);
-    });
-    return nodeRef.get();
-  }
-
   @Nullable
   public <T> T findAndRefreshNodeOfType(@NotNull Class<T> nodeType, @NotNull Project project) {
     return performOnNodeOfType(nodeType, (node, treeBuilder) -> treeBuilder.queueUpdateFrom(node, false), project);
