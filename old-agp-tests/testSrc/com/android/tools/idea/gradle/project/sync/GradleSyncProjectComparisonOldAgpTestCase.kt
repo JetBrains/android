@@ -45,9 +45,12 @@ abstract class GradleSyncProjectComparisonOldAgpTestCase(singleVariantSync: Bool
   class SingleVariantGradleSyncProjectComparisonOldAgpTest : GradleSyncProjectComparisonOldAgpTestCase(singleVariantSync = true)
 
   fun testSimpleApplicationWithAgp3_3_2() {
-    val text = importSyncAndDumpProject(TestProjectPaths.SIMPLE_APPLICATION) {
-      AndroidGradleTests.defaultPatchPreparedProject(it, "5.5", "3.3.2")
-    }
+    val text = importSyncAndDumpProject(
+      projectDir = TestProjectPaths.SIMPLE_APPLICATION,
+      patch = {
+        AndroidGradleTests.defaultPatchPreparedProject(it, "5.5", "3.3.2")
+      }
+    )
     assertIsEqualToSnapshot(text)
   }
 }

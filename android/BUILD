@@ -450,6 +450,7 @@ iml_module(
         "//tools/adt/idea/lint:intellij.lint[module, test]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
         "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd[module]",
+        "//tools/base/build-system/builder-model:studio.android.sdktools.builder-model[module]",
     ],
 )
 

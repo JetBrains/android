@@ -207,6 +207,7 @@ fun Int.toGradleSyncIssueType(): AndroidStudioEvent.GradleSyncIssueType? =
       SyncIssue.TYPE_USING_DEPRECATED_CONFIGURATION -> AndroidStudioEvent.GradleSyncIssueType.TYPE_USING_DEPRECATED_CONFIGURATION
       SyncIssue.TYPE_USING_DEPRECATED_DSL_VALUE -> AndroidStudioEvent.GradleSyncIssueType.TYPE_USING_DEPRECATED_DSL_VALUE
       SyncIssue.TYPE_EDIT_LOCKED_DSL_VALUE -> AndroidStudioEvent.GradleSyncIssueType.TYPE_EDIT_LOCKED_DSL_VALUE
+      SyncIssue.TYPE_MISSING_ANDROID_MANIFEST -> AndroidStudioEvent.GradleSyncIssueType.TYPE_MISSING_ANDROID_MANIFEST
       else -> null.also { LOG.warn("Unknown sync issue type: $this") }
     }
 

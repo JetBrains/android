@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.nav.safeargs.gradle
 
+import com.android.builder.model.SyncIssue
 import com.android.flags.junit.RestoreFlagRule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
@@ -22,6 +23,7 @@ import com.android.tools.idea.nav.safeargs.TestDataPaths
 import com.android.tools.idea.nav.safeargs.safeArgsMode
 import com.android.tools.idea.nav.safeargs.safeArgsModeTracker
 import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.testing.AndroidGradleTests
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -72,12 +74,21 @@ class KotlinSyncGradlePluginTest(val params: TestParams) {
     modificationCountBaseline = projectRule.project.safeArgsModeTracker.modificationCount
 
     fixture.testDataPath = TestDataPaths.TEST_DATA_ROOT
-    projectRule.load(params.project)
+    projectRule.load(
+      projectPath = params.project,
+      issueFilter = AndroidGradleTests.SyncIssueFilter {
+        // ignore missing manifest errors
+        it.type == SyncIssue.TYPE_MISSING_ANDROID_MANIFEST
+      })
   }
 
   @Test
   fun verifyExpectedSafeMode() {
-    projectRule.requestSyncAndWait()
+    projectRule.requestSyncAndWait(
+      issueFilter = AndroidGradleTests.SyncIssueFilter {
+        // ignore missing manifest errors
+        it.type == SyncIssue.TYPE_MISSING_ANDROID_MANIFEST
+      })
 
     val facet = projectRule.androidFacet(":app")
     assertThat(facet.safeArgsMode).isEqualTo(params.mode)
