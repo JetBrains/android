@@ -52,20 +52,6 @@ public class AndroidViewNodesTest extends AndroidGradleTestCase {
     assertNotNull(node);
   }
 
-  public void testSelectNodeOfType() throws Exception {
-    Project project = getProject();
-    ToolWindow projectToolWindow = new MyToolWindow(project);
-
-    loadSimpleApplication();
-    AndroidProjectViewPane projectViewPane = createAndroidProjectViewPane();
-
-    AndroidManifestFileNode node = myAndroidViewNodes.selectNodeOfType(AndroidManifestFileNode.class, project, projectToolWindow);
-    assertNotNull(node);
-
-    Set<Object> elements = projectViewPane.getTreeBuilder().getSelectedElements();
-    assertThat(elements).containsExactly(node);
-  }
-
   @NotNull
   private AndroidProjectViewPane createAndroidProjectViewPane() {
     Project project = getProject();
