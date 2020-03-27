@@ -289,6 +289,40 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     verify(sqliteEvaluatorView.tableView).reportError("Error executing SQLite statement", exception)
   }
 
+  fun testRefreshData() {
+    // Prepare
+    val mockSqliteResultSet = MockSqliteResultSet(10)
+    `when`(databaseConnection.execute(SqliteStatement("SELECT"))).thenReturn(Futures.immediateFuture(mockSqliteResultSet))
+
+    sqliteEvaluatorController.setUp()
+    pumpEventsAndWaitForFuture(sqliteEvaluatorController.evaluateSqlStatement(sqliteDatabase, SqliteStatement("SELECT")))
+
+    // Act
+    pumpEventsAndWaitForFuture(sqliteEvaluatorController.refreshData())
+
+    // Assert
+    verify(sqliteEvaluatorView.tableView, times(2)).startTableLoading()
+  }
+
+  fun testRefreshDataScheduledOneAtATime() {
+    // Prepare
+    val mockSqliteResultSet = MockSqliteResultSet(10)
+    `when`(databaseConnection.execute(SqliteStatement("SELECT"))).thenReturn(Futures.immediateFuture(mockSqliteResultSet))
+
+    sqliteEvaluatorController.setUp()
+    pumpEventsAndWaitForFuture(sqliteEvaluatorController.evaluateSqlStatement(sqliteDatabase, SqliteStatement("SELECT")))
+
+    // Act
+    val future1 = sqliteEvaluatorController.refreshData()
+    val future2 = sqliteEvaluatorController.refreshData()
+    pumpEventsAndWaitForFuture(future2)
+    val future3 = sqliteEvaluatorController.refreshData()
+
+    // Assert
+    assertEquals(future1, future2)
+    assertTrue(future2 != future3)
+  }
+
   fun testDisposeCancelsExecution() {
     // Prepare
     val executeFuture = SettableFuture.create<SqliteResultSet>()

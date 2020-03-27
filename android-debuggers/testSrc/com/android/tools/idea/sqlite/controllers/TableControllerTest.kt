@@ -18,8 +18,8 @@ package com.android.tools.idea.sqlite.controllers
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.refEq
-import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFutureCancellation
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture
+import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFutureCancellation
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFutureException
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
@@ -271,6 +271,27 @@ class TableControllerTest : PlatformTestCase() {
     orderVerifier.verify(tableView).stopTableLoading()
 
     verify(tableView, times(0)).reportError(any(String::class.java), any(Throwable::class.java))
+  }
+
+  fun testRefreshDataScheduledOneAtATime() {
+    // Prepare
+    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(
+      project, 10, tableView, { sqliteTable }, mockDatabaseConnection, SqliteStatement(""), edtExecutor, edtExecutor
+    )
+    Disposer.register(testRootDisposable, tableController)
+
+    pumpEventsAndWaitForFuture(tableController.setUp())
+
+    // Act
+    val future1 = tableController.refreshData()
+    val future2 = tableController.refreshData()
+    pumpEventsAndWaitForFuture(future2)
+    val future3 = tableController.refreshData()
+
+    // Assert
+    assertEquals(future1, future2)
+    assertTrue(future2 != future3)
   }
 
   fun testReloadDataFailsWhenControllerIsDisposed() {

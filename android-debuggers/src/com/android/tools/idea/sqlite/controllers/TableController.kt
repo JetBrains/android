@@ -18,7 +18,6 @@ package com.android.tools.idea.sqlite.controllers
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.concurrency.cancelOnDispose
-import com.android.tools.idea.concurrency.catching
 import com.android.tools.idea.concurrency.finallySync
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.concurrency.transformAsync
@@ -86,6 +85,11 @@ class TableController(
    */
   private var currentRows = emptyList<SqliteRow>()
 
+  /**
+   * Future corresponding to a [refreshData] operation. If the future is done, the refresh operation is over.
+   */
+  private var refreshDataFuture: ListenableFuture<Unit> = Futures.immediateFuture(Unit)
+
   fun setUp(): ListenableFuture<Unit> {
     view.startTableLoading()
     return databaseConnection.execute(sqliteStatement).transform(edtExecutor) { newResultSet ->
@@ -104,8 +108,10 @@ class TableController(
   }
 
   override fun refreshData(): ListenableFuture<Unit> {
+    if (!refreshDataFuture.isDone) return refreshDataFuture
     view.startTableLoading()
-    return fetchAndDisplayTableData()
+    refreshDataFuture = fetchAndDisplayTableData()
+    return refreshDataFuture
   }
 
   override fun dispose() {

@@ -431,6 +431,11 @@ interface DatabaseInspectorController : Disposable {
   }
 
   interface TabController : Disposable {
+    /**
+     * Triggers a refresh operation in this tab.
+     * If called multiple times in sequence, this method is re-executed only once the future from the first invocation completes.
+     * While the future of the first invocation is not completed, the future from the first invocation is returned to following invocations.
+     */
     fun refreshData(): ListenableFuture<Unit>
   }
 }
