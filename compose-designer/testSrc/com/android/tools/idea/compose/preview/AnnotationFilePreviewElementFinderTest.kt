@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.impl.source.tree.injected.changesHandler.range
 import com.intellij.util.concurrency.AppExecutorUtil
@@ -226,5 +227,38 @@ class AnnotationFilePreviewElementFinderTest : ComposeLightJavaCodeInsightFixtur
       """.trimIndent())
 
     assertEquals(0, AnnotationFilePreviewElementFinder.findPreviewMethods(composeTest.toUElement() as UFile).size)
+  }
+
+  /**
+   * Ensures that calling findPreviewMethods returns an empty. Although the method is guaranteed to be called under smart mode,
+   *
+   */
+  fun testDumbMode() {
+    val composeTest = myFixture.addFileToProject(
+      "src/Test.kt",
+      // language=kotlin
+      """
+        import androidx.ui.tooling.preview.Preview
+        import androidx.compose.Composable
+
+        @Composable
+        @Preview
+        fun Preview1() {
+        }
+
+        @Composable
+        @Preview(name = "preview2", apiLevel = 12)
+        fun Preview1() {
+        }
+      """.trimIndent()).toUElement() as UFile
+
+    DumbServiceImpl.getInstance(myFixture.project).isDumb = true
+    try {
+      val elements = AnnotationFilePreviewElementFinder.findPreviewMethods(composeTest)
+      assertEquals(0, elements.size)
+    }
+    finally {
+      DumbServiceImpl.getInstance(myFixture.project).isDumb = false
+    }
   }
 }

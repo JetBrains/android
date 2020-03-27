@@ -54,6 +54,7 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlInteractionHandler
 import com.android.tools.idea.uibuilder.surface.SceneMode
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
+import com.intellij.application.subscribe
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
@@ -356,6 +357,12 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     project.runWhenSmartAndSyncedOnEdt(this, Consumer {
       refresh()
     })
+
+    DumbService.DUMB_MODE.subscribe(this, object : DumbService.DumbModeListener {
+      override fun exitDumbMode() {
+        refresh()
+      }
+    })
   }
 
   override val component = workbench
@@ -575,6 +582,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    */
   override fun refresh() {
     launch(uiThread) {
+      if (DumbService.isDumb(project)) {
+        LOG.debug("Project is in dumb mode, not able to refresh")
+        return@launch
+      }
+
       isContentBeingRendered = true
       val filePreviewElements = withContext(workerThread) {
         memoizedElementsProvider.refresh()
