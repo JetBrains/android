@@ -57,7 +57,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataProvider;
@@ -100,6 +99,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import javax.annotation.concurrent.GuardedBy;
 import javax.swing.JComponent;
 import javax.swing.JLayeredPane;
@@ -210,6 +210,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     repaint();
   });
 
+  @NotNull
+  private final Function<DesignSurface, DesignSurfaceActionHandler> myActionHandlerProvider;
+
   public DesignSurface(
     @NotNull Project project,
     @NotNull Disposable parentDisposable,
@@ -217,9 +220,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     @NotNull Function<DesignSurface, InteractionHandler> interactionProviderCreator,
     @NotNull State defaultSurfaceState,
     boolean isEditable,
-    @NotNull Function<DesignSurface, PositionableContentLayoutManager> positionableLayoutManagerProvider) {
+    @NotNull Function<DesignSurface, PositionableContentLayoutManager> positionableLayoutManagerProvider,
+    @NotNull Function<DesignSurface, DesignSurfaceActionHandler> designSurfaceActionHandlerProvider) {
     this(project, parentDisposable, actionManagerProvider, interactionProviderCreator, defaultSurfaceState, isEditable, ZoomType.FIT_INTO,
-         positionableLayoutManagerProvider);
+         positionableLayoutManagerProvider, designSurfaceActionHandlerProvider);
   }
 
   public DesignSurface(
@@ -230,7 +234,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     @NotNull State defaultSurfaceState,
     boolean isEditable,
     @NotNull ZoomType onChangedZoom,
-    @NotNull Function<DesignSurface, PositionableContentLayoutManager> positionableLayoutManagerProvider) {
+    @NotNull Function<DesignSurface, PositionableContentLayoutManager> positionableLayoutManagerProvider,
+    @NotNull Function<DesignSurface, DesignSurfaceActionHandler> actionHandlerProvider) {
     super(new BorderLayout());
     myConfigurationListener = flags -> {
       if ((flags & (ConfigurationListener.CFG_DEVICE | ConfigurationListener.CFG_DEVICE_STATE)) != 0 && !isLayoutDisabled()) {
@@ -248,6 +253,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     setFocusable(false);
 
     myAnalyticsManager = new DesignerAnalyticsManager(this);
+
+    myActionHandlerProvider = actionHandlerProvider;
 
     // TODO: handle the case when selection are from different NlModels.
     // Manager can be null if the selected component is not part of NlModel. For example, a temporarily NlMode.
@@ -1611,7 +1618,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
              PlatformDataKeys.CUT_PROVIDER.is(dataId) ||
              PlatformDataKeys.COPY_PROVIDER.is(dataId) ||
              PlatformDataKeys.PASTE_PROVIDER.is(dataId)) {
-      return createActionHandler();
+      return myActionHandlerProvider.apply(this);
     }
     else if (PlatformDataKeys.CONTEXT_MENU_POINT.is(dataId)) {
       SceneView view = getFocusedSceneView();
@@ -1656,9 +1663,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     return null;
   }
-
-  @NotNull
-  abstract protected DesignSurfaceActionHandler createActionHandler();
 
   /**
    * Returns true we shouldn't currently try to relayout our content (e.g. if some other operations is in progress).

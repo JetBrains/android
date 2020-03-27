@@ -162,7 +162,8 @@ public class NavDesignSurface extends DesignSurface {
    */
   public NavDesignSurface(@NotNull Project project, @Nullable DesignerEditorPanel editorPanel, @NotNull Disposable parentDisposable) {
     super(project, parentDisposable, surface -> new NavActionManager((NavDesignSurface)surface), NavInteractionHandler::new,
-          getDefaultSurfaceState(), true, (surface) -> new SinglePositionableContentLayoutManager());
+          getDefaultSurfaceState(), true, (surface) -> new SinglePositionableContentLayoutManager(),
+          (surface) -> new NavDesignSurfaceActionHandler((NavDesignSurface)surface));
     setBackground(JBColor.white);
 
     // TODO: add nav-specific issues
@@ -721,12 +722,6 @@ public class NavDesignSurface extends DesignSurface {
       myCurrentNavigation = match;
       getSelectionModel().setSelection((ImmutableList.of(myCurrentNavigation)));
     }
-  }
-
-  @NotNull
-  @Override
-  protected DesignSurfaceActionHandler createActionHandler() {
-    return new NavDesignSurfaceActionHandler(this);
   }
 
   @NotNull
