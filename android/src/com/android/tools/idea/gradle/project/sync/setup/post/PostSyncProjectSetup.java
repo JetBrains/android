@@ -22,7 +22,6 @@ import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIG
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static java.lang.System.currentTimeMillis;
 
-import com.android.annotations.concurrency.Slow;
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
@@ -30,19 +29,16 @@ import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncFailure;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.model.AndroidModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.build.DefaultBuildDescriptor;
 import com.intellij.build.SyncViewManager;
-import com.intellij.build.events.EventResult;
 import com.intellij.build.events.Failure;
 import com.intellij.build.events.impl.FailureResultImpl;
 import com.intellij.build.events.impl.FinishBuildEventImpl;
 import com.intellij.build.events.impl.StartBuildEventImpl;
-import com.intellij.build.events.impl.SuccessResultImpl;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
@@ -64,7 +60,6 @@ public class PostSyncProjectSetup {
   @NotNull private final GradleProjectInfo myGradleProjectInfo;
   @NotNull private final GradleSyncInvoker mySyncInvoker;
   @NotNull private final GradleSyncState mySyncState;
-  @NotNull private final ProjectSetup myProjectSetup;
 
   @NotNull
   public static PostSyncProjectSetup getInstance(@NotNull Project project) {
@@ -77,7 +72,7 @@ public class PostSyncProjectSetup {
                               @NotNull GradleSyncInvoker syncInvoker,
                               @NotNull GradleSyncState syncState,
                               @NotNull GradleSyncMessages syncMessages) {
-    this(project, gradleProjectInfo, syncInvoker, syncState, new ProjectSetup(project));
+    this(project, gradleProjectInfo, syncInvoker, syncState);
   }
 
   @NonInjectable
@@ -85,76 +80,11 @@ public class PostSyncProjectSetup {
   PostSyncProjectSetup(@NotNull Project project,
                        @NotNull GradleProjectInfo gradleProjectInfo,
                        @NotNull GradleSyncInvoker syncInvoker,
-                       @NotNull GradleSyncState syncState,
-                       @NotNull ProjectSetup projectSetup) {
+                       @NotNull GradleSyncState syncState) {
     myProject = project;
     myGradleProjectInfo = gradleProjectInfo;
     mySyncInvoker = syncInvoker;
     mySyncState = syncState;
-    myProjectSetup = projectSetup;
-  }
-
-  /**
-   * Invoked after a project has been synced with Gradle.
-   */
-  @Slow
-  public void setUpProject(@NotNull Request request,
-                           @Nullable ExternalSystemTaskId taskId,
-                           @Nullable GradleSyncListener syncListener) {
-    try {
-      boolean syncFailed = mySyncState.lastSyncFailed();
-
-      if (syncFailed && request.usingCachedGradleModels) {
-        onCachedModelsSetupFailure(taskId, request);
-        return;
-      }
-
-      if (mySyncState.lastSyncFailed()) {
-        failTestsIfSyncIssuesPresent();
-
-        myProjectSetup.setUpProject(true /* sync failed */);
-        // Notify "sync end" event first, to register the timestamp. Otherwise the cache (ProjectBuildFileChecksums) will store the date of the
-        // previous sync, and not the one from the sync that just ended.
-        String message = "Sync issues found";
-        mySyncState.syncFailed(message, new RuntimeException(message), syncListener);
-        finishFailedSync(taskId, myProject, message);
-        return;
-      }
-
-
-      notifySyncFinished(request);
-
-      finishSuccessfulSync(taskId);
-    }
-    catch (Throwable t) {
-      mySyncState.syncFailed("setup project failed: " + t.getMessage(), t, syncListener);
-      finishFailedSync(taskId, myProject, t.getMessage());
-    }
-  }
-
-  private void finishSuccessfulSync(@Nullable ExternalSystemTaskId taskId) {
-    if (taskId == null) {
-      return;
-    }
-
-    // Even if the sync was successful it may have warnings or non error messages, need to put in the correct kind of result
-    EventResult result;
-    GradleSyncMessages messages = GradleSyncMessages.getInstance(myProject);
-    List<Failure> failures = messages.showEvents(taskId);
-
-    if (failures.isEmpty()) {
-      result = new SuccessResultImpl();
-    }
-    else {
-      result = new FailureResultImpl(failures);
-    }
-
-    FinishBuildEventImpl finishBuildEvent = new FinishBuildEventImpl(taskId, null, currentTimeMillis(), "successful", result);
-    ApplicationManager.getApplication().invokeLater(() -> {
-      if (!myProject.isDisposed()) {
-        ServiceManager.getService(myProject, SyncViewManager.class).onEvent(taskId, finishBuildEvent);
-      }
-    });
   }
 
   public static void finishFailedSync(@Nullable ExternalSystemTaskId taskId, @NotNull Project project, @Nullable String exceptionMessage) {
@@ -188,27 +118,7 @@ public class PostSyncProjectSetup {
     mySyncInvoker.requestProjectSync(myProject, TRIGGER_PROJECT_CACHED_SETUP_FAILED);
   }
 
-  private void failTestsIfSyncIssuesPresent() {
-    if (ApplicationManager.getApplication().isUnitTestMode() && GradleSyncMessages.getInstance(myProject).getErrorCount() > 0) {
-      StringBuilder buffer = new StringBuilder();
-      buffer.append("Sync issues found!").append('\n');
-      myGradleProjectInfo.forEachAndroidModule(facet -> {
-        AndroidModel androidModel = AndroidModel.get(facet);
-        if (androidModel instanceof AndroidModuleModel) {
-          Collection<SyncIssue> issues = ((AndroidModuleModel)androidModel).getSyncIssues();
-          if (issues != null && !issues.isEmpty()) {
-            buffer.append("Module '").append(facet.getModule().getName()).append("':").append('\n');
-            for (SyncIssue issue : issues) {
-              buffer.append(issue.getMessage()).append('\n');
-            }
-          }
-        }
-      });
-      throw new IllegalStateException(buffer.toString());
-    }
-  }
-
-  private void notifySyncFinished(@NotNull Request request) {
+  public void notifySyncFinished(@NotNull Request request) {
     // Notify "sync end" event first, to register the timestamp. Otherwise the cache (ProjectBuildFileChecksums) will store the date of the
     // previous sync, and not the one from the sync that just ended.
     if (request.usingCachedGradleModels) {

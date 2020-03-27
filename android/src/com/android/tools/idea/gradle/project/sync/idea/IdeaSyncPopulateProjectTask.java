@@ -73,7 +73,7 @@ public class IdeaSyncPopulateProjectTask {
         }
       }
       if (setupRequest != null) {
-        PostSyncProjectSetup.getInstance(myProject).setUpProject(setupRequest, taskId, syncListener);
+        myProjectSetup.notifySyncFinished(setupRequest);
       }
     } catch (Throwable unexpected) {
       // See https://code.google.com/p/android/issues/detail?id=268806
