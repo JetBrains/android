@@ -20,6 +20,7 @@ import com.android.tools.adtui.common.AdtPrimaryPanel;
 import com.android.tools.adtui.workbench.ToolWindowDefinition;
 import com.android.tools.adtui.workbench.WorkBench;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.common.error.IssuePanelSplitter;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
@@ -33,6 +34,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -204,6 +206,13 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
             Logger.getInstance(DesignerEditorPanel.class).info(cause.getMessage());
             SyncUtil.listenUntilNextSync(myProject, this, ignore -> initNeleModel());
             myWorkBench.loadingStopped("Design editor is unavailable until next gradle sync.");
+            return;
+          }
+
+          if (cause instanceof ProcessCanceledException){
+            // e.g. when IDEA user clicks 'cancel' button while required resources are downloaded from the Internet .
+            myWorkBench.loadingStopped("Failed to initialize editor (operation canceled).");
+            assert !IdeInfo.getInstance().isAndroidStudio(): "AndroidStudio has all the resources bundled with the IDE.";
             return;
           }
 
