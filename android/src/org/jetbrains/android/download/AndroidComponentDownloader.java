@@ -8,6 +8,10 @@ import com.intellij.notification.Notifications;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.PerformInBackgroundOption;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
@@ -23,6 +27,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.swing.SwingUtilities;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class AndroidComponentDownloader {
@@ -91,28 +96,44 @@ public abstract class AndroidComponentDownloader {
       if (isAlreadyDownloaded()) return true;
 
       File pluginDir = getPluginDir();
-      return doDownload(pluginDir, downloader);
+      return downloadWithProgress(() -> doDownload(pluginDir, downloader));
     }
     finally {
       downloadLock.writeLock().unlock();
     }
   }
 
+  private boolean downloadWithProgress(Computable<Boolean> downloadTask) {
+    if (ProgressManager.getInstance().hasProgressIndicator()) {
+      return downloadTask.compute();
+    }
+    else {
+      BackgroundableProcessIndicator indicator =
+        new BackgroundableProcessIndicator(null, AndroidBundle.message("downloading.android.plugin.components"),
+                                           PerformInBackgroundOption.ALWAYS_BACKGROUND, null, null, true);
+      return ProgressManager.getInstance().runProcess(downloadTask, indicator);
+    }
+  }
+
   protected boolean doDownload(File pluginDir, FileDownloader downloader) {
+    Path tempDir = null;
     try {
-      Path tempDir = Files.createTempDirectory("android-component-download");
+      tempDir = Files.createTempDirectory("android-component-download");
       List<Pair<File, DownloadableFileDescription>> list = downloader.download(tempDir.toFile());
       File file = list.get(0).first;
       ZipUtil.extract(file, getTargetDir(pluginDir), null);
-      FileUtil.delete(tempDir.toFile());
       return true;
     }
     catch (IOException e) {
       String message = "Can't download Android Plugin component: " + getArtifactName();
       LOG.warn(message, e);
-      FileUtil.delete(pluginDir);
       Notifications.Bus.notify(new Notification(ANDROID_GROUP_DISPLAY_ID, message, "Check logs for details", NotificationType.ERROR));
       return false;
+    }
+    finally {
+      if (tempDir != null) {
+        FileUtil.delete(tempDir.toFile());
+      }
     }
   }
 
