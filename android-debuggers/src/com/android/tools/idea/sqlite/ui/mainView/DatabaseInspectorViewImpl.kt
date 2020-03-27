@@ -25,8 +25,6 @@ import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.sqlite.controllers.TabId
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
-import com.android.tools.idea.sqlite.ui.logtab.LogTabView
-import com.android.tools.idea.sqlite.ui.logtab.LogTabViewImpl
 import com.android.tools.idea.sqlite.ui.notifyError
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
@@ -44,6 +42,7 @@ import com.intellij.ui.tabs.UiDecorator
 import com.intellij.ui.tabs.impl.JBEditorTabs
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
+import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.GridBagLayout
 import java.awt.event.MouseAdapter
@@ -65,7 +64,6 @@ class DatabaseInspectorViewImpl(
   private val viewContext = SqliteViewContext(leftPanelView.component)
   private val workBench: WorkBench<SqliteViewContext> = WorkBench(project, "Sqlite", null, parentDisposable)
   private val tabs = JBEditorTabs(project, ActionManager.getInstance(), IdeFocusManager.getInstance(project), project)
-  private val logTabView = LogTabViewImpl(project)
 
   override val component: JComponent = workBench
 
@@ -74,7 +72,7 @@ class DatabaseInspectorViewImpl(
   init {
     workBench.init(centerPanel, viewContext, listOf(createToolWindowDefinition()), false)
 
-    setUpEmptyStatePanel()
+    addEmptyStatePanel()
 
     tabs.name = "right-panel-tabs-panel"
     tabs.apply {
@@ -82,16 +80,6 @@ class DatabaseInspectorViewImpl(
       setUiDecorator { UiDecorator.UiDecoration(null, JBUI.insets(4, 10)) }
       addTabMouseListener(TabMouseListener())
     }
-
-    setUpLogTab()
-  }
-
-  private fun setUpLogTab() {
-    val tab = TabInfo(logTabView.component)
-    tab.text = "Log"
-
-    tabs.addTab(tab)
-    tabs.select(tab, true)
   }
 
   override fun addListener(listener: DatabaseInspectorView.Listener) {
@@ -119,6 +107,7 @@ class DatabaseInspectorViewImpl(
     centerPanel.layout = BorderLayout()
     centerPanel.add(tabs, BorderLayout.CENTER)
     centerPanel.revalidate()
+    centerPanel.repaint()
   }
 
   override fun updateDatabaseSchema(database: SqliteDatabase, diffOperations: List<SchemaDiffOperation>) {
@@ -126,7 +115,11 @@ class DatabaseInspectorViewImpl(
   }
 
   override fun removeDatabaseSchema(database: SqliteDatabase) {
-    leftPanelView.removeDatabaseSchema(database)
+    val databaseCount = leftPanelView.removeDatabaseSchema(database)
+
+    if (databaseCount == 0) {
+      addEmptyStatePanel()
+    }
   }
 
   override fun openTab(tableId: TabId, tabName: String, component: JComponent) {
@@ -149,20 +142,16 @@ class DatabaseInspectorViewImpl(
     notifyError(message, throwable)
   }
 
-  override fun getLogTabView(): LogTabView {
-    return logTabView
-  }
-
   override fun reportSyncProgress(message: String) {
   }
 
-  private fun setUpEmptyStatePanel() {
+  private fun addEmptyStatePanel() {
     // TODO(b/150307735) replace URL with relevant website.
     val editorPane = JEditorPane(
       "text/html",
       "<h2>Database Inspector</h2>" +
-      "Select a process to begin inspecting." +
-      "<p><a href=\"https://developer.android.com/studio\">Learn more</a></p>"
+      "Waiting for the app to open a connection to the database..." +
+      "<p><a href=\"https://d.android.com/r/studio-ui/db-inspector-help\">Learn more</a></p>"
     )
     val document = editorPane.document as HTMLDocument
     document.styleSheet.addRule(
@@ -174,8 +163,11 @@ class DatabaseInspectorViewImpl(
     editorPane.isEditable = false
     editorPane.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE)
 
+    centerPanel.removeAll()
     centerPanel.layout = GridBagLayout()
     centerPanel.add(editorPane)
+    centerPanel.revalidate()
+    centerPanel.repaint()
   }
 
   private fun createSqliteExplorerTab(tableId: TabId, tableName: String, tabContent: JComponent): TabInfo {
@@ -194,7 +186,7 @@ class DatabaseInspectorViewImpl(
       }
     })
     tab.setTabLabelActions(tabActionGroup, ActionPlaces.EDITOR_TAB)
-    tab.icon = AllIcons.Nodes.DataTables
+    tab.icon = StudioIcons.DatabaseInspector.TABLE
     tab.text = tableName
     return tab
   }
@@ -202,7 +194,7 @@ class DatabaseInspectorViewImpl(
   private fun createToolWindowDefinition(): ToolWindowDefinition<SqliteViewContext> {
     return ToolWindowDefinition(
       "Open Databases",
-      AllIcons.Nodes.DataTables,
+      StudioIcons.DatabaseInspector.TABLE,
       "OPEN_DATABASES",
       Side.LEFT,
       Split.TOP,

@@ -15,15 +15,16 @@
  */
 package com.android.tools.idea.sqlite.ui.sqliteEvaluator
 
-import com.android.tools.idea.sqlite.sqlLanguage.SqliteSchemaContext
-import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.ui.EditorTextField
 import com.intellij.ui.Expandable
 import com.intellij.ui.ExpandableEditorSupport
 
-internal class ExpandableEditor(internal val editor: EditorTextField) : Expandable {
+internal class ExpandableEditor(internal val collapsedEditor: EditorTextField) : Expandable {
 
-  private val support = MyEditorTextSupport(editor)
+  private val support = MyEditorTextSupport(collapsedEditor)
+  internal val expandedEditor = support.expandedEditorTextField
+
+  internal val activeEditor get() = if (isExpanded) expandedEditor else collapsedEditor
 
   override fun collapse() {
     support.collapse()
@@ -39,19 +40,15 @@ internal class ExpandableEditor(internal val editor: EditorTextField) : Expandab
 }
 
 /**
- * This extension of [ExpandableEditorSupport] doesn't use the same document instance for both [EditorTextField]s.
- * Using the same instance causes a bug when the expanded [EditorTextField] is opened,
- * its text is correctly formatted (with expanded [FoldRegion]s) but immediately replaced with the text from the collapsed [EditorTextField].
+ * This extension of [ExpandableEditorSupport] always uses the same instance of [EditorTextField] for the expanded editor.
+ * This instance is made available to clients of this class. This allows us to keep the collapsed and expanded editors in sync.
+ * eg. by setting the document on both when necessary, setting keyboard shortcuts on both etc.
  */
 private class MyEditorTextSupport(editor: EditorTextField) : ExpandableEditorSupport(editor) {
+  internal val expandedEditorTextField = EditorTextField(editor.project, editor.fileType)
+
   override fun createPopupEditor(field: EditorTextField, text: String): EditorTextField {
-    val newEditorTextFiled = EditorTextField(field.project, field.fileType)
-    newEditorTextFiled.text = text
-
-    val documentManager = FileDocumentManager.getInstance()
-    val schema = documentManager.getFile(field.document)?.getUserData(SqliteSchemaContext.SQLITE_SCHEMA_KEY)
-    documentManager.getFile(newEditorTextFiled.document)?.putUserData(SqliteSchemaContext.SQLITE_SCHEMA_KEY, schema)
-
-    return newEditorTextFiled
+    expandedEditorTextField.text = text
+    return expandedEditorTextField
   }
 }

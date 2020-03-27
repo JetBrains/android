@@ -38,7 +38,7 @@ import kotlin.math.min
  * Representations of all Android hardware devices we can target when building an app.
  */
 enum class FormFactor(@JvmField val id: String,
-                      @JvmField private val displayName: String?,
+                      val displayName: String,
                       @JvmField val defaultApi: Int,
                       val minOfflineApiLevel: Int,
                       maxOfflineApiLevel: Int,
@@ -50,7 +50,7 @@ enum class FormFactor(@JvmField val id: String,
          FormFactors.MOBILE_LARGE, listOf(DEFAULT_TAG, GOOGLE_APIS_TAG, GOOGLE_APIS_X86_TAG)),
   WEAR("Wear", "Wear OS", 21, LOWEST_ACTIVE_API_WEAR, HIGHEST_KNOWN_API_WEAR, FormFactors.WEAR,
        FormFactors.WEAR_LARGE, listOf(WEAR_TAG)),
-  TV("TV", "TV", 21, LOWEST_ACTIVE_API_TV, HIGHEST_KNOWN_API_TV, FormFactors.TV,
+  TV("TV", "Android TV", 21, LOWEST_ACTIVE_API_TV, HIGHEST_KNOWN_API_TV, FormFactors.TV,
      FormFactors.TV_LARGE, listOf(TV_TAG)),
   AUTOMOTIVE("Automotive", "Automotive", 28, 28, HIGHEST_KNOWN_API, FormFactors.CAR,
              FormFactors.CAR_LARGE, listOf(AUTOMOTIVE_TAG)),
@@ -59,7 +59,7 @@ enum class FormFactor(@JvmField val id: String,
 
   val maxOfflineApiLevel: Int = min(maxOfflineApiLevel, HIGHEST_KNOWN_STABLE_API)
 
-  override fun toString(): String = displayName ?: id
+  override fun toString(): String = displayName
 
   fun isSupported(tag: IdDisplay?, targetSdkLevel: Int): Boolean {
     if (this == MOBILE && targetSdkLevel == KITKAT_WATCH) {
@@ -70,11 +70,4 @@ enum class FormFactor(@JvmField val id: String,
 
   // Currently all form factors have emulators, but we keep this method to ease introduction of new form factors
   fun hasEmulator(): Boolean = true
-
-  companion object {
-    private val FORM_FACTORS = values().associateBy({ it.id }, { it })
-
-    @JvmStatic
-    operator fun get(id: String): FormFactor = FORM_FACTORS[id] ?: MOBILE
-  }
 }

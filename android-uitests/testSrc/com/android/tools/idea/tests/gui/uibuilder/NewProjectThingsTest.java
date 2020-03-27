@@ -42,7 +42,7 @@ public class NewProjectThingsTest {
       .createNewProject()
       .getChooseAndroidProjectStep()
       .selectTab(FormFactor.THINGS)
-      .chooseActivity("Android Things Empty Activity")
+      .chooseActivity("Empty Activity")
       .wizard()
       .clickNext()
       .clickNext()

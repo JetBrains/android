@@ -19,8 +19,6 @@ import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.refEq
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture
-import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFutureException
-import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.EmptySqliteResultSet
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
@@ -43,12 +41,13 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import java.util.concurrent.Executor
 
 class SqliteEvaluatorControllerTest : PlatformTestCase() {
 
   private lateinit var sqliteEvaluatorView: MockSqliteEvaluatorView
   private lateinit var databaseConnection: DatabaseConnection
-  private lateinit var edtExecutor: FutureCallbackExecutor
+  private lateinit var edtExecutor: Executor
   private lateinit var sqliteEvaluatorController: SqliteEvaluatorController
   private lateinit var sqliteDatabase: SqliteDatabase
   private lateinit var viewFactory: MockDatabaseInspectorViewsFactory
@@ -57,12 +56,13 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     super.setUp()
     sqliteEvaluatorView = spy(MockSqliteEvaluatorView::class.java)
     databaseConnection = mock(DatabaseConnection::class.java)
-    edtExecutor = FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+    edtExecutor = EdtExecutorService.getInstance()
     viewFactory = MockDatabaseInspectorViewsFactory()
     sqliteEvaluatorController = SqliteEvaluatorController(
       myProject,
       sqliteEvaluatorView,
       viewFactory,
+      edtExecutor,
       edtExecutor
     )
     Disposer.register(testRootDisposable, sqliteEvaluatorController)
@@ -273,15 +273,19 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
 
   fun testErrorFromRowCountAreHandled() {
     // Prepare
+    val exception = RuntimeException()
     val mockResultSet = mock(SqliteResultSet::class.java)
-    `when`(mockResultSet.totalRowCount).thenReturn(Futures.immediateFailedFuture(RuntimeException()))
+    `when`(mockResultSet.totalRowCount).thenReturn(Futures.immediateFailedFuture(exception))
 
     `when`(databaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
 
     sqliteEvaluatorController.setUp()
 
-    // Act/Assert
-    pumpEventsAndWaitForFutureException(sqliteEvaluatorController.evaluateSqlStatement(sqliteDatabase, SqliteStatement("fake stmt")))
+    // Act
+    pumpEventsAndWaitForFuture(sqliteEvaluatorController.evaluateSqlStatement(sqliteDatabase, SqliteStatement("fake stmt")))
+
+    // Assert
+    verify(sqliteEvaluatorView.tableView).reportError("Error executing SQLite statement", exception)
   }
 
   private fun evaluateSqlActionSuccess(action: String) {

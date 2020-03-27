@@ -337,18 +337,20 @@ public final class StudioFlags {
     " Tools",
     true
   );
+
+  public static final Flag<Boolean> NELE_LAYOUT_VALIDATOR_IN_EDITOR = Flag.create(
+    NELE, "toggle.layout.editor.validator.a11y", "Toggle layout validator for layout editor.",
+    "When the model changes, layout editor will run the series of layout validations and update lint output",
+    false);
   //endregion
 
   //region Navigation Editor
   private static final FlagGroup NAV_EDITOR = new FlagGroup(FLAGS, "nav", "Navigation Editor");
-  public static final Flag<Boolean> NAV_NEW_PROPERTY_PANEL = Flag.create(
-    NAV_EDITOR, "new.property", "Enable the new Property Panel",
-    "Enable the new Property Panel",
-    true);
   public static final Flag<Boolean> NAV_NEW_COMPONENT_TREE = Flag.create(
     NAV_EDITOR, "new.component", "Enable the new Component Tree",
     "Enable the new Component Tree",
-    false);
+    true);
+
   public static final Flag<Boolean> NAV_DYNAMIC_SUPPORT = Flag.create(
     NAV_EDITOR, "dynamic.support", "Support for Dynamic Feature Modules",
     "Support for Dynamic Feature Modules",
@@ -494,7 +496,7 @@ public final class StudioFlags {
     "Enable Database Inspector",
     "If enabled the Database Inspector tool window will appear." +
     "SQLite files opened from the Device Explorer will be opened in the inspector.",
-    false
+    true
   );
   public static final Flag<Boolean> DATABASE_INSPECTOR_FILE_SUPPORT_ENABLED = Flag.create(
     DATABASE_INSPECTOR,
@@ -504,12 +506,6 @@ public final class StudioFlags {
     "SQLite files opened from the Device Explorer will open in the inspector.",
     false
   );
-
-  // TODO(b/144073974) why do we need a separate flag for this?
-  public static final Flag<Boolean> SQLITE_APP_INSPECTOR_ENABLED = Flag.create(
-    DATABASE_INSPECTOR, "sqlite.app.inspector", "Enable experimental SQLite inspector",
-    "SQLite inspector runs and executes all operations in app process",
-    false);
   //endregion
 
   //region Layout Inspector
@@ -560,8 +556,13 @@ public final class StudioFlags {
 
   //region Refactorings
   private static final FlagGroup REFACTORINGS = new FlagGroup(FLAGS, "refactor", "Refactor menu");
+
   public static final Flag<Boolean> MIGRATE_TO_RESOURCE_NAMESPACES_REFACTORING_ENABLED = Flag.create(
     REFACTORINGS, "migrateto.resourcenamespaces.enabled", "Enable the Migrate to Resource Namespaces refactoring",
+    "If enabled, show the action in the refactoring menu", false);
+
+  public static final Flag<Boolean> MIGRATE_TO_NON_TRANSITIVE_R_CLASSES_REFACTORING_ENABLED = Flag.create(
+    REFACTORINGS, "migrateto.nontransitiverclasses.enabled", "Enable the Migrate to non-transitive R classes refactoring",
     "If enabled, show the action in the refactoring menu", false);
   //endregion
 
@@ -876,7 +877,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> ENABLE_APP_INSPECTION_TOOL_WINDOW = Flag.create(
     APP_INSPECTION, "enable.tool.window", "Enable App Inspection Tool Window",
     "Enables the top-level App Inspection tool window, which will contain tabs to various feature inspectors",
-    false
+    true
   );
   // endregion
 

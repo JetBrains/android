@@ -100,4 +100,10 @@ public final class SigningConfigDslElement extends GradleDslBlockElement impleme
   public SigningConfigDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
   }
+
+  @Override
+  public boolean isInsignificantIfEmpty() {
+    // the debug signingConfig is automatically created
+    return getName().equals("debug");
+  }
 }

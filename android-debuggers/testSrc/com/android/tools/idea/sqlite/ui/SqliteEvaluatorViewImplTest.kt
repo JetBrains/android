@@ -17,7 +17,6 @@ package com.android.tools.idea.sqlite.ui
 
 import com.android.testutils.MockitoKt.any
 import com.android.tools.adtui.TreeWalker
-import com.android.tools.idea.concurrency.AsyncTestUtils
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.SchemaProvider
@@ -163,7 +162,8 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       project,
       view,
       MockDatabaseInspectorViewsFactory(),
-      FutureCallbackExecutor(EdtExecutorService.getInstance())
+      EdtExecutorService.getInstance(),
+      EdtExecutorService.getInstance()
     )
 
     // Act
@@ -179,7 +179,7 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       createStatement = "CREATE TABLE t1 (c1 INT)",
       insertStatement = "INSERT INTO t1 (c1) VALUES (42)"
     )
-    realDatabaseConnection = AsyncTestUtils.pumpEventsAndWaitForFuture(
+    realDatabaseConnection = pumpEventsAndWaitForFuture(
       getJdbcDatabaseConnection(sqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
 
@@ -189,7 +189,8 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       project,
       view,
       MockDatabaseInspectorViewsFactory(),
-      FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+      EdtExecutorService.getInstance(),
+      EdtExecutorService.getInstance()
     )
     controller.setUp()
     Disposer.register(testRootDisposable, controller)

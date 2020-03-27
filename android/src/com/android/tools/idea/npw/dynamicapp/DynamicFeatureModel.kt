@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.dynamicapp
 
+import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.npw.model.ExistingProjectModelData
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.module.ModuleModel
@@ -34,29 +35,21 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer
 
 class DynamicFeatureModel(
   project: Project, projectSyncInvoker: ProjectSyncInvoker, val isInstant: Boolean,
-  @JvmField
   val templateName: String,
-  @JvmField
-  val templateDescription: String
+  val templateDescription: String,
+  val moduleParent: String? = null // TODO
 ) : ModuleModel(
   "dynamicfeature",
   "New Dynamic Feature Module",
   false,
   ExistingProjectModelData(project, projectSyncInvoker)
 ) {
-  @JvmField
   val featureTitle = StringValueProperty("Module Title")
-  @JvmField
   val baseApplication = OptionalValueProperty<Module>()
-  @JvmField
   val featureOnDemand = BoolValueProperty(true)
-  @JvmField
   val featureFusing = BoolValueProperty(true)
-  @JvmField
   val instantModule = BoolValueProperty(false)
-  @JvmField
   val deviceFeatures = ObservableList<DeviceFeatureModel>()
-  @JvmField
   val downloadInstallKind =
     OptionalValueProperty(if (isInstant) DownloadInstallKind.INCLUDE_AT_INSTALL_TIME else DownloadInstallKind.ON_DEMAND_ONLY)
 
@@ -75,6 +68,7 @@ class DynamicFeatureModel(
     override val loggingEvent: AndroidStudioEvent.TemplateRenderer
       get() = if (isInstant) RenderLoggingEvent.INSTANT_DYNAMIC_FEATURE_MODULE else RenderLoggingEvent.DYNAMIC_FEATURE_MODULE
 
+    @WorkerThread
     override fun init() {
       super.init()
 

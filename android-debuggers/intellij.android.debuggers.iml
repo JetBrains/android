@@ -27,5 +27,6 @@
     <orderEntry type="library" name="kotlinx-coroutines-guava" level="project" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspector.api" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspector.ide" />
+    <orderEntry type="module" module-name="intellij.android.artwork" />
   </component>
 </module>

@@ -21,9 +21,10 @@ import com.android.tools.idea.avdmanager.AvdWizardUtils.USE_COLD_BOOT
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
+import com.google.common.util.concurrent.Futures
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.diagnostic.Logger
-
+import com.intellij.util.concurrency.EdtExecutorService
 import java.awt.event.ActionEvent
 
 /**
@@ -34,6 +35,7 @@ class ColdBootNowAction(avdInfoProvider: AvdUiAction.AvdInfoProvider) :
     AvdUiAction(avdInfoProvider, "Cold Boot Now", "Force one cold boot", AllIcons.Actions.Menu_open) {
 
   override fun actionPerformed(actionEvent: ActionEvent) {
+    val project = myAvdInfoProvider.project
 
     val origAvdInfo = avdInfo ?: return
     val origSystemImage = origAvdInfo.systemImage ?: return
@@ -43,7 +45,9 @@ class ColdBootNowAction(avdInfoProvider: AvdUiAction.AvdInfoProvider) :
     coldBootProperties.put(USE_COLD_BOOT, COLD_BOOT_ONCE_VALUE)
     val coldBootAvdInfo = AvdInfo(origAvdInfo.name, origAvdInfo.iniFile, origAvdInfo.dataFolderPath,
         origSystemImage, coldBootProperties)
-    AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(myAvdInfoProvider.project, coldBootAvdInfo)
+
+    val deviceFuture = AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(project, coldBootAvdInfo)
+    Futures.addCallback(deviceFuture, AvdManagerUtils.newCallback(project), EdtExecutorService.getInstance())
   }
 
   override fun isEnabled(): Boolean {

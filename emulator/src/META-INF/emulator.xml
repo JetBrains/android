@@ -40,8 +40,6 @@
               icon="StudioIcons.Emulator.OVERVIEW" text="Overview" description="Press Overview button"/>
       <action id="android.emulator.screenshot" class="com.android.tools.idea.emulator.EmulatorScreenshotAction"
               icon="StudioIcons.Emulator.SCREENSHOT" text="Take Screenshot" description="Take screenshot"/>
-      <action id="android.emulator.zoom.in" class="com.android.tools.idea.emulator.EmulatorZoomInAction"
-              icon="StudioIcons.Emulator.ZOOM_IN" text="Enter Zoom Mode" description="Enter zoom mode"/>
     </group>
   </actions>
 </idea-plugin>

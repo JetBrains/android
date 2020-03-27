@@ -43,7 +43,7 @@ class DatabaseInspectorClientTest : PlatformTestCase() {
     handleErrorInvoked = false
     handleErrorFunction = { _ -> handleErrorInvoked = true }
 
-    databaseInspectorClient = DatabaseInspectorClient(mockMessenger, handleErrorFunction, openDatabaseFunction)
+    databaseInspectorClient = DatabaseInspectorClient(mockMessenger, handleErrorFunction, openDatabaseFunction, { })
   }
 
   fun testStartTrackingDatabaseConnectionSendsMessage() {

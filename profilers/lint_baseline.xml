@@ -21,40 +21,8 @@
         id="DefaultLocale"
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
-            file="src/com/android/tools/profilers/cpu/CpuCaptureParser.java"
-            line="226"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
-        <location
-            file="src/com/android/tools/profilers/cpu/CpuCaptureParser.java"
-            line="233"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
-        <location
-            file="src/com/android/tools/profilers/cpu/CpuCaptureParser.java"
-            line="363"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
-        <location
-            file="src/com/android/tools/profilers/cpu/CpuCaptureParser.java"
-            line="371"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
-        <location
             file="src/com/android/tools/profilers/cpu/CpuProfiler.java"
-            line="210"/>
+            line="213"/>
     </issue>
 
     <issue
@@ -214,7 +182,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/profilers/cpu/simpleperf/SimpleperfTraceParser.java"
-            line="342"/>
+            line="343"/>
     </issue>
 
     <issue
@@ -224,4 +192,5 @@
             file="src/com/android/tools/profilers/energy/EnergyEventsTableTooltipInfoModel.java"
             line="100"/>
     </issue>
+
 </issues>

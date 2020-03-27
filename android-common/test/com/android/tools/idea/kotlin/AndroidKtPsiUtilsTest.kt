@@ -18,8 +18,11 @@ package com.android.tools.idea.kotlin
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.psi.util.elementsAtOffsetUp
+import com.intellij.psi.util.parents
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import org.intellij.lang.annotations.Language
+import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.junit.Test
 
@@ -27,6 +30,8 @@ class AndroidKtPsiUtilsTest : LightJavaCodeInsightFixtureTestCase() {
 
   @Test
   fun testClassName() {
+    fun PsiFile.findFunction(name: String) = PsiTreeUtil.findChildrenOfType(this, KtNamedFunction::class.java).first { it.name == name }
+
     @Language("kotlin")
     val file = myFixture.addFileToProject("src/com/android/example/MyFile.kt", """
       package com.android.example
@@ -44,6 +49,51 @@ class AndroidKtPsiUtilsTest : LightJavaCodeInsightFixtureTestCase() {
     assertThat(file.findFunction("innerFun").getClassName()).isEqualTo("com.android.example.SomeClass")
     assertThat(file.findFunction("nestedFun").getClassName()).isEqualTo("com.android.example.SomeClass")
   }
-}
 
-private fun PsiFile.findFunction(name: String) = PsiTreeUtil.findChildrenOfType(this, KtNamedFunction::class.java).first { it.name == name }
+  fun testGetPreviousInQualifiedChain() {
+    val file = myFixture.addFileToProject(
+      "src/com/android/example/MyFile.kt",
+      """
+      package com.android.example
+      
+      fun foo() {
+        val id = R.layout.<caret>activity
+      }
+      """.trimIndent()
+    )
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val fieldReference: KtExpression = PsiTreeUtil.findElementOfClassAtOffset(
+      file,
+      myFixture.caretOffset,
+      KtExpression::class.java,
+      false
+    )!!
+    assertThat(fieldReference.text).isEqualTo("activity")
+    assertThat(fieldReference.getPreviousInQualifiedChain()!!.text).isEqualTo("layout")
+  }
+
+  fun testGetNextInQualifiedChain() {
+    val file = myFixture.addFileToProject(
+      "src/com/android/example/MyFile.kt",
+      """
+      package com.android.example
+      
+      fun foo() {
+        val id = <caret>R.layout.activity
+      }
+      """.trimIndent()
+    )
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val classReference: KtExpression = PsiTreeUtil.findElementOfClassAtOffset(
+      file,
+      myFixture.caretOffset,
+      KtExpression::class.java,
+      false
+    )!!
+    assertThat(classReference.text).isEqualTo("R")
+    assertThat(classReference.getNextInQualifiedChain()!!.text).isEqualTo("layout")
+    assertThat(classReference.getNextInQualifiedChain()!!.getNextInQualifiedChain()!!.text).isEqualTo("activity")
+  }
+}

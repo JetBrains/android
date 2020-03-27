@@ -34,8 +34,6 @@ public class MavenRepositoryModelImpl extends UrlBasedRepositoryModelImpl implem
   @NotNull
   private GradlePropertiesDslElement myPropertiesDslElement;
 
-  @NonNls private static final String ARTIFACT_URLS = "artifactUrls";
-
   public MavenRepositoryModelImpl(@NotNull GradlePropertiesDslElement holder, @NotNull MavenRepositoryDslElement dslElement) {
     this(holder, dslElement, "maven", "https://repo1.maven.org/maven2/");
     myPropertiesDslElement = dslElement;
@@ -51,7 +49,7 @@ public class MavenRepositoryModelImpl extends UrlBasedRepositoryModelImpl implem
 
   @NotNull
   public ResolvedPropertyModel artifactUrls() {
-    return GradlePropertyModelBuilder.create(myPropertiesDslElement, ARTIFACT_URLS).asMethod(true).buildResolved();
+    return GradlePropertyModelBuilder.create(myPropertiesDslElement, ARTIFACT_URLS).buildResolved();
   }
 
   @NotNull

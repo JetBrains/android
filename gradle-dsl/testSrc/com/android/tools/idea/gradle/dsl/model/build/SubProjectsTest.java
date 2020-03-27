@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.gradle.dsl.model.build;
 
-import static com.android.tools.idea.gradle.dsl.TestFileName.SUB_PROJECTS_APPLY_PLUGINS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SUB_PROJECTS_APPLY_PLUGINS_SUB;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SUB_PROJECTS_APPLY_PLUGINS_SUB2;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SUB_PROJECTS_OVERRIDE_SUB_PROJECT_SECTION;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SUB_PROJECTS_OVERRIDE_SUB_PROJECT_SECTION_SUB;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SUB_PROJECTS_SUB_PROJECTS_SECTION;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SUB_PROJECTS_SUB_PROJECTS_SECTION_WITH_LOCAL_PROPERTIES;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SUB_PROJECTS_APPLY_PLUGINS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SUB_PROJECTS_APPLY_PLUGINS_SUB;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SUB_PROJECTS_APPLY_PLUGINS_SUB2;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SUB_PROJECTS_OVERRIDE_SUB_PROJECT_SECTION;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SUB_PROJECTS_OVERRIDE_SUB_PROJECT_SECTION_SUB;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SUB_PROJECTS_SUB_PROJECTS_SECTION;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SUB_PROJECTS_SUB_PROJECTS_SECTION_WITH_LOCAL_PROPERTIES;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.PluginModel;

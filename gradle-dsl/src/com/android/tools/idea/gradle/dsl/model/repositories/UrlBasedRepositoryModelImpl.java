@@ -30,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public abstract class UrlBasedRepositoryModelImpl extends RepositoryModelImpl implements UrlBasedRepositoryModel {
   @NonNls public static final String URL = "url";
+  @NonNls public static final String ARTIFACT_URLS = "artifactUrls";
 
   @NotNull private final String myDefaultRepoUrl;
 

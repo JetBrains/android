@@ -157,6 +157,7 @@ public class RenderTask {
   private boolean myShowDecorations = true;
   private boolean myShadowEnabled = true;
   private boolean myHighQualityShadow = true;
+  private boolean myEnableLayoutValidator = false;
   private boolean myShowWithToolsAttributes = true;
   private AssetRepositoryImpl myAssetRepository;
   private long myTimeout;
@@ -501,6 +502,16 @@ public class RenderTask {
   }
 
   /**
+   * Sets the value of the  {@link com.android.layoutlib.bridge.android.RenderParamsFlags#FLAG_KEY_ENABLE_LAYOUT_VALIDATOR}
+   * which enables layout validation during the render process. The validation includes accessibility checks (whether the layout properly
+   * support accessibilty cases), and various other layout sanity checks.
+   */
+  public RenderTask setEnableLayoutValidator(boolean enableLayoutValidator) {
+    myEnableLayoutValidator = enableLayoutValidator;
+    return this;
+  }
+
+  /**
    * Sets whether the rendering should use 'tools' namespaced attributes. Including substituting 'android' and 'app' attributes with their
    * 'tools' variants.
    * <p>
@@ -580,7 +591,7 @@ public class RenderTask {
     params.setFlag(RenderParamsFlags.FLAG_KEY_RESULT_IMAGE_AUTO_SCALE, true);
     params.setFlag(RenderParamsFlags.FLAG_KEY_ENABLE_SHADOW, myShadowEnabled);
     params.setFlag(RenderParamsFlags.FLAG_KEY_RENDER_HIGH_QUALITY_SHADOW, myHighQualityShadow);
-
+    params.setFlag(RenderParamsFlags.FLAG_KEY_ENABLE_LAYOUT_VALIDATOR, myEnableLayoutValidator);
 
     // Request margin and baseline information.
     // TODO: Be smarter about setting this; start without it, and on the first request

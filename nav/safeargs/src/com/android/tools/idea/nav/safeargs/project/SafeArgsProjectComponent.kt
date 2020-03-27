@@ -16,6 +16,7 @@
 package com.android.tools.idea.nav.safeargs.project
 
 import com.android.tools.idea.nav.safeargs.isSafeArgsEnabled
+import com.android.tools.idea.nav.safeargs.safeArgsModeTracker
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker
@@ -42,9 +43,9 @@ class SafeArgsProjectComponent(val project: Project) : ModificationTracker {
             .mapNotNull { module -> AndroidFacet.getInstance(module) }
             .filter { facet -> facet.isSafeArgsEnabled() }
 
-        CachedValueProvider.Result.create(facets, moduleManager)
+        CachedValueProvider.Result.create(facets, this)
       }, false)
   }
 
-  override fun getModificationCount() = ModuleManager.getInstance(project).modificationCount
+  override fun getModificationCount() = ModuleManager.getInstance(project).modificationCount + project.safeArgsModeTracker.modificationCount
 }

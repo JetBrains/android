@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.openapi.project.Project;
+import com.intellij.util.concurrency.EdtExecutorService;
 import icons.StudioIcons;
-import org.jetbrains.annotations.NotNull;
-
 import java.awt.event.ActionEvent;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Run an Android virtual device
@@ -33,7 +37,10 @@ public class RunAvdAction extends AvdUiAction {
   public void actionPerformed(ActionEvent e) {
     AvdInfo avdInfo = getAvdInfo();
     if (avdInfo != null) {
-      AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(myAvdInfoProvider.getProject(), avdInfo);
+      Project project = myAvdInfoProvider.getProject();
+
+      ListenableFuture<IDevice> deviceFuture = AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(project, avdInfo);
+      Futures.addCallback(deviceFuture, AvdManagerUtils.newCallback(project), EdtExecutorService.getInstance());
     }
   }
 

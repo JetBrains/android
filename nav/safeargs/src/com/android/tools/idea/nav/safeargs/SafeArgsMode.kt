@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.nav.safeargs
 
-import com.android.tools.idea.flags.StudioFlags
-import com.intellij.openapi.util.Key
+import com.android.tools.idea.nav.safeargs.module.SafeArgsModeModuleComponent
+import com.android.tools.idea.nav.safeargs.project.SafeArgsModeTrackerProjectComponent
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.ModificationTracker
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.annotations.TestOnly
 
 enum class SafeArgsMode {
   /**
@@ -36,11 +39,24 @@ enum class SafeArgsMode {
   KOTLIN,
 }
 
-val AndroidFacet.safeArgsMode: SafeArgsMode
-  get() {
-    // TODO: Use GradleModuleModel + listener to get a real value here
-    return if (StudioFlags.NAV_SAFE_ARGS_SUPPORT.get()) SafeArgsMode.JAVA else SafeArgsMode.NONE
+
+var AndroidFacet.safeArgsMode: SafeArgsMode
+  get() = module.getComponent(SafeArgsModeModuleComponent::class.java).safeArgsMode
+  /**
+   * Allow tests to set the [SafeArgsMode] directly -- however, this value may get overwritten if
+   * testing with a Gradle project. In that case, you should control the mode by applying the
+   * appropriate safeargs plugin instead.
+   */
+  @TestOnly
+  set(value) {
+    module.getComponent(SafeArgsModeModuleComponent::class.java).safeArgsMode = value
   }
 
-// TODO: Check the current Android model or list of dependencies to see if safe args is enabled?
+/**
+ * A project-wide tracker which gets updated whenever [safeArgsMode] is updated on any of its
+ * modules.
+ */
+val Project.safeArgsModeTracker: ModificationTracker
+  get() = getComponent(SafeArgsModeTrackerProjectComponent::class.java).tracker
+
 fun AndroidFacet.isSafeArgsEnabled() = safeArgsMode != SafeArgsMode.NONE

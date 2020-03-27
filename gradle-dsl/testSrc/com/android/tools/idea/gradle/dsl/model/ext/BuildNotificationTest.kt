@@ -15,19 +15,18 @@
  */
 package com.android.tools.idea.gradle.dsl.model.ext
 
-import com.android.tools.idea.gradle.dsl.TestFileName.BUILD_NOTIFICATION_INCOMPLETE_PARSING_NOTIFICATION
-import com.android.tools.idea.gradle.dsl.TestFileName.BUILD_NOTIFICATION_INCOMPLETE_PARSING_NOTIFICATION_IN_SUBMODULE_BUILD
-import com.android.tools.idea.gradle.dsl.TestFileName.BUILD_NOTIFICATION_INCOMPLETE_PARSING_NOTIFICATION_IN_SUBMODULE_SUB
-import com.android.tools.idea.gradle.dsl.TestFileName.BUILD_NOTIFICATION_NO_PROPERTY_PLACEMENT_NOTIFICATION
-import com.android.tools.idea.gradle.dsl.TestFileName.BUILD_NOTIFICATION_NO_PROPERTY_PLACEMENT_NOTIFICATION_EXPECTED
-import com.android.tools.idea.gradle.dsl.TestFileName.BUILD_NOTIFICATION_PROPERTY_PLACEMENT_NOTIFICATION
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_NOTIFICATION_INCOMPLETE_PARSING_NOTIFICATION
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_NOTIFICATION_INCOMPLETE_PARSING_NOTIFICATION_IN_SUBMODULE_BUILD
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_NOTIFICATION_INCOMPLETE_PARSING_NOTIFICATION_IN_SUBMODULE_SUB
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_NOTIFICATION_NO_PROPERTY_PLACEMENT_NOTIFICATION
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_NOTIFICATION_NO_PROPERTY_PLACEMENT_NOTIFICATION_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_NOTIFICATION_PROPERTY_PLACEMENT_NOTIFICATION
 import com.android.tools.idea.gradle.dsl.api.BuildModelNotification.NotificationType.INCOMPLETE_PARSE
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.model.notifications.PropertyPlacementNotification
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Assume.assumeTrue
 import org.junit.Test
 
 class BuildNotificationTest : GradleFileModelTestCase() {

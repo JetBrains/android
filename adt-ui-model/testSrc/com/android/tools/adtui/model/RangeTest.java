@@ -149,11 +149,37 @@ public class RangeTest {
   }
 
   @Test
+  public void testIntersectsWith() {
+    // Inner intersection
+    assertThat(new Range(1, 10).intersectsWith(new Range(3, 5))).isTrue();
+    // Outer intersection
+    assertThat(new Range(3, 5).intersectsWith(new Range(1, 10))).isTrue();
+    // Left intersection
+    assertThat(new Range(1, 10).intersectsWith(new Range(-3, 5))).isTrue();
+    // Right intersection
+    assertThat(new Range(1, 10).intersectsWith(new Range(5, 15))).isTrue();
+    // Point intersection
+    assertThat(new Range(1, 10).intersectsWith(new Range(5, 5))).isTrue();
+    assertThat(new Range(5, 5).intersectsWith(new Range(1, 10))).isTrue();
+    assertThat(new Range(1, 10).intersectsWith(new Range(10, 20))).isTrue();
+    // No intersection
+    assertThat(new Range(1, 10).intersectsWith(new Range(15, 25))).isFalse();
+    // Intersection with [min, max]
+    assertThat(new Range(3, 5).intersectsWith(1, 10)).isTrue();
+  }
+
+  @Test
   public void testIntersectionLength() {
     Range range = new Range(0, 10);
+    // Inner intersection
     assertThat(range.getIntersectionLength(2, 3)).isWithin(DELTA).of(1);
+    // Left intersection
     assertThat(range.getIntersectionLength(-1, 1)).isWithin(DELTA).of(1);
+    // Right intersection
     assertThat(range.getIntersectionLength(9, 11)).isWithin(DELTA).of(1);
+    // Point intersection
+    assertThat(range.getIntersectionLength(10, 20)).isEqualTo(0.0);
+    // No intersection
     assertThat(range.getIntersectionLength(15, 20)).isEqualTo(0.0);
   }
 
@@ -163,6 +189,7 @@ public class RangeTest {
     assertThat(range.getIntersectionLength(new Range(2, 3))).isWithin(DELTA).of(1);
     assertThat(range.getIntersectionLength(new Range(-1, 1))).isWithin(DELTA).of(1);
     assertThat(range.getIntersectionLength(new Range(9, 11))).isWithin(DELTA).of(1);
+    assertThat(range.getIntersectionLength(new Range(10, 20))).isEqualTo(0.0);
     assertThat(range.getIntersectionLength(new Range(15, 20))).isEqualTo(0.0);
   }
 

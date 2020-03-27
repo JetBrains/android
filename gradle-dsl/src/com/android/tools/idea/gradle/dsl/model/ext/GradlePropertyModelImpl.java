@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.util.TypeReference;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.PropertyTransform;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -45,17 +46,16 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
   // assignments require "prop = ["file.txt", "file.pro"]". If the method syntax is required #markAsMethodCall should be used.
   private boolean myIsMethodCall;
 
-  // Indicates whether this property, if list-like, is a List or a Set
-  private boolean myIsSet;
-
   // The list of transforms to be checked for this property model. Only the first transform that has its PropertyTransform#condition
   // return true will be used.
   @NotNull
   private List<PropertyTransform> myTransforms = new ArrayList<>();
 
-  // The following properties should always be kept up to date with the values given by myElement.getElementType() and myElement.getName().
+  // The following properties should always be kept up to date with the values given by myElement.getElementType(), myElement.getName()
+  // and myElement.getModelProperty().
   @NotNull private final PropertyType myPropertyType;
   @NotNull protected String myName;
+  @Nullable protected ModelPropertyDescription myPropertyDescription;
 
   public GradlePropertyModelImpl(@NotNull GradleDslElement element) {
     myElement = element;
@@ -68,26 +68,30 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
 
     myPropertyType = myElement.getElementType();
     myName = myElement.getName();
+    myPropertyDescription = myElement.getModelProperty();
 
     myIsMethodCall = false;
   }
 
   // Used to create an empty property with no backing element.
-  public GradlePropertyModelImpl(@NotNull GradleDslElement element, @NotNull PropertyType type, @NotNull String name) {
-    myPropertyHolder = element;
+  public GradlePropertyModelImpl(@NotNull GradleDslElement holder, @NotNull PropertyType type, @NotNull String name) {
+    myPropertyHolder = holder;
     myPropertyType = type;
     myName = name;
     myTransforms.add(DEFAULT_TRANSFORM);
 
     myIsMethodCall = false;
+
+    myPropertyDescription = null; // TODO(xof): this does not actually mean (yet, during transition) that this is not a model property
+  }
+
+  public GradlePropertyModelImpl(@NotNull GradleDslElement holder, @NotNull PropertyType type, @NotNull ModelPropertyDescription description) {
+    this(holder, type, description.name);
+    myPropertyDescription = description;
   }
 
   public void markAsMethodCall() {
     myIsMethodCall = true;
-  }
-
-  public void markAsSet() {
-    myIsSet = true;
   }
 
   public void addTransform(@NotNull PropertyTransform transform) {
@@ -234,7 +238,13 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
 
   @Override
   public void setValue(@NotNull Object value) {
-    GradleDslExpression newElement = getTransform().bind(myPropertyHolder, myElement, value, getName());
+    GradleDslExpression newElement;
+    if (myPropertyDescription == null) {
+      newElement = getTransform().bind(myPropertyHolder, myElement, value, getName());
+    }
+    else {
+      newElement = getTransform().bind(myPropertyHolder, myElement, value, myPropertyDescription);
+    }
     bindToNewElement(newElement);
   }
 
@@ -615,11 +625,21 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
   }
 
   private void makeEmptyMap() {
-    bindToNewElement(getTransform().bindMap(myPropertyHolder, myElement, getName(), myIsMethodCall));
+    if (myPropertyDescription == null) {
+      bindToNewElement(getTransform().bindMap(myPropertyHolder, myElement, getName(), myIsMethodCall));
+    }
+    else {
+      bindToNewElement(getTransform().bindMap(myPropertyHolder, myElement, myPropertyDescription, myIsMethodCall));
+    }
   }
 
   private void makeEmptyList() {
-    bindToNewElement(getTransform().bindList(myPropertyHolder, myElement, getName(), myIsMethodCall, myIsSet));
+    if (myPropertyDescription == null) {
+      bindToNewElement(getTransform().bindList(myPropertyHolder, myElement, getName(), myIsMethodCall));
+    }
+    else {
+      bindToNewElement(getTransform().bindList(myPropertyHolder, myElement, myPropertyDescription, myIsMethodCall));
+    }
   }
 
   private void bindToNewElement(@NotNull GradleDslExpression newElement) {

@@ -23,6 +23,7 @@ import com.android.tools.idea.nav.safeargs.index.NavXmlIndex
 import com.android.tools.idea.nav.safeargs.isSafeArgsEnabled
 import com.android.tools.idea.nav.safeargs.psi.LightArgsClass
 import com.android.tools.idea.nav.safeargs.psi.LightDirectionsClass
+import com.android.tools.idea.nav.safeargs.safeArgsModeTracker
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.intellij.openapi.diagnostic.Logger
@@ -92,7 +93,9 @@ class SafeArgsCacheModuleService private constructor(private val module: Module)
     }
 
     synchronized(lock) {
-      val modificationCount = NavigationResourcesModificationTracker.getInstance(module).modificationCount
+      val modificationCount =
+        module.project.safeArgsModeTracker.modificationCount + NavigationResourcesModificationTracker.getInstance(module).modificationCount
+
       if (modificationCount != lastResourcesModificationCount) {
         val moduleResources = ResourceRepositoryManager.getModuleResources(facet)
         val navResources = moduleResources.getResources(ResourceNamespace.RES_AUTO, ResourceType.NAVIGATION)

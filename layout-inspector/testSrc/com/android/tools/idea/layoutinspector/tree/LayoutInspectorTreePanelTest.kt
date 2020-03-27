@@ -74,7 +74,7 @@ class LayoutInspectorTreePanelTest {
     val model = model(projectRule.project, DemoExample.setUpDemo(projectRule.fixture))
     val inspector = LayoutInspector(model, projectRule.fixture.projectDisposable)
     tree.setToolContext(inspector)
-    tree.componentTreeSelectionModel.selection = listOf(model["title"]!!)
+    tree.componentTreeSelectionModel.currentSelection = listOf(model["title"]!!)
     val treeComponent = UIUtil.findComponentOfType(tree.component, JTree::class.java)
 
     val fileManager = FileEditorManager.getInstance(projectRule.project)

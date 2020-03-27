@@ -24,6 +24,8 @@ import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.google.common.annotations.VisibleForTesting
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.ui.UIUtil
 import java.awt.Image
@@ -84,14 +86,18 @@ private class ComponentTreeLoaderImpl(
               rootView.imageBottom = it
               rootView.fallbackMode = true
             }
+            client.logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS)
           }
           else if (tree.payloadType == LayoutInspectorProto.ComponentTreeEvent.PayloadType.SKP) {
             rootViewFromSkiaImage = skiaParser.getViewTree(bytes)
             if (rootViewFromSkiaImage != null && rootViewFromSkiaImage.id.isEmpty()) {
               // We were unable to parse the skia image. Allow the user to interact with the component tree.
               rootViewFromSkiaImage = null
+              client.logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER_NO_PICTURE)
             }
-            defaultClient.logInitialRender(rootViewFromSkiaImage != null)
+            else {
+              client.logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER)
+            }
           }
         }
         catch (ex: Exception) {

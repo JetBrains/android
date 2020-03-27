@@ -121,12 +121,14 @@ public interface IdeProfilerServices {
   ProfilerPreferences getPersistentProfilerPreferences();
 
   /**
-   * Displays a yes/no dialog warning the user the trace file is too large to be parsed and asking them if parsing should proceed.
+   * Displays a yes/no dialog warning the user and asking them if they want to proceed.
    *
+   * @param message the message content
+   * @param title the title
    * @param yesCallback callback to be run if user clicks "Yes"
    * @param noCallback  callback to be run if user clicks "No"
    */
-  void openParseLargeTracesDialog(Runnable yesCallback, Runnable noCallback);
+  void openYesNoDialog(String message, String title, Runnable yesCallback, Runnable noCallback);
 
   /**
    * Opens a dialog giving the user to select items from the listbox.
@@ -137,9 +139,10 @@ public interface IdeProfilerServices {
    * @param listBoxPresentationAdapter adapter that takes in an option and returns a string to be presented to the user.
    * @return The option the user selected. If the user cancels the return value will be null.
    */
+  @Nullable
   <T> T openListBoxChooserDialog(@NotNull String title,
                                  @Nullable String message,
-                                 @NotNull T[] options,
+                                 @NotNull List<T> options,
                                  @NotNull Function<T, String> listBoxPresentationAdapter);
 
   /**

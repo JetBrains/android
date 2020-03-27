@@ -15,33 +15,36 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_ADDED_TO_TOP_OF_ANDROID_BLOCK;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_ADDED_TO_TOP_OF_ANDROID_BLOCK_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_ADD_AND_APPLY_SIGNING_CONFIG;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_ADD_AND_APPLY_SIGNING_CONFIG_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_ADD_CONSOLE_READ_PASSWORD_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_ADD_CONSOLE_READ_PASSWORD_ELEMENTS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_ADD_ENVIRONMENT_VARIABLE_PASSWORD_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_ADD_ENVIRONMENT_VARIABLE_PASSWORD_ELEMENTS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_CHANGE_CONSOLE_READ_PASSWORD_ELEMENTS_TO_PLAIN_TEXT_PASSWORD_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_CHANGE_CONSOLE_READ_PASSWORD_ELEMENTS_TO_PLAIN_TEXT_PASSWORD_ELEMENTS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_CHANGE_ENVIRONMENT_VARIABLE_PASSWORD_TO_CONSOLE_READ_PASSWORD;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_CHANGE_ENVIRONMENT_VARIABLE_PASSWORD_TO_CONSOLE_READ_PASSWORD_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_EDIT_CONSOLE_READ_PASSWORD_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_EDIT_CONSOLE_READ_PASSWORD_ELEMENTS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_EDIT_ENVIRONMENT_VARIABLE_PASSWORD_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_EDIT_ENVIRONMENT_VARIABLE_PASSWORD_ELEMENTS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_MULTIPLE_SIGNING_CONFIGS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_PARSE_CONSOLE_READ_PASSWORD_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_PARSE_ENVIRONMENT_VARIABLE_PASSWORD_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_REMOVE_AND_APPLY_SIGNING_CONFIG;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_RENAME_SIGNING_CONFIG_MODEL_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_SET_AND_APPLY_SIGNING_CONFIG;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_SET_AND_APPLY_SIGNING_CONFIG_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_SIGNING_CONFIG_APPLICATION_STATEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_SIGNING_CONFIG_ASSIGNMENT_STATEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_SIGNING_CONFIG_BLOCK_WITH_APPLICATION_STATEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_SIGNING_CONFIG_BLOCK_WITH_ASSIGNMENT_STATEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SIGNING_CONFIG_MODEL_ADDED_TO_TOP_OF_ANDROID_BLOCK;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SIGNING_CONFIG_MODEL_ADDED_TO_TOP_OF_ANDROID_BLOCK_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SIGNING_CONFIG_MODEL_ADD_AND_APPLY_SIGNING_CONFIG;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SIGNING_CONFIG_MODEL_ADD_AND_APPLY_SIGNING_CONFIG_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SIGNING_CONFIG_MODEL_ADD_CONSOLE_READ_PASSWORD_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SIGNING_CONFIG_MODEL_ADD_CONSOLE_READ_PASSWORD_ELEMENTS_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SIGNING_CONFIG_MODEL_ADD_ENVIRONMENT_VARIABLE_PASSWORD_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SIGNING_CONFIG_MODEL_ADD_ENVIRONMENT_VARIABLE_PASSWORD_ELEMENTS_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SIGNING_CONFIG_MODEL_CHANGE_CONSOLE_READ_PASSWORD_ELEMENTS_TO_PLAIN_TEXT_PASSWORD_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SIGNING_CONFIG_MODEL_CHANGE_CONSOLE_READ_PASSWORD_ELEMENTS_TO_PLAIN_TEXT_PASSWORD_ELEMENTS_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SIGNING_CONFIG_MODEL_CHANGE_ENVIRONMENT_VARIABLE_PASSWORD_TO_CONSOLE_READ_PASSWORD;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SIGNING_CONFIG_MODEL_CHANGE_ENVIRONMENT_VARIABLE_PASSWORD_TO_CONSOLE_READ_PASSWORD_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SIGNING_CONFIG_MODEL_EDIT_CONSOLE_READ_PASSWORD_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SIGNING_CONFIG_MODEL_EDIT_CONSOLE_READ_PASSWORD_ELEMENTS_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SIGNING_CONFIG_MODEL_EDIT_ENVIRONMENT_VARIABLE_PASSWORD_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SIGNING_CONFIG_MODEL_EDIT_ENVIRONMENT_VARIABLE_PASSWORD_ELEMENTS_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SIGNING_CONFIG_MODEL_MULTIPLE_SIGNING_CONFIGS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SIGNING_CONFIG_MODEL_PARSE_CONSOLE_READ_PASSWORD_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SIGNING_CONFIG_MODEL_PARSE_ENVIRONMENT_VARIABLE_PASSWORD_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SIGNING_CONFIG_MODEL_REMOVE_AND_APPLY_SIGNING_CONFIG;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SIGNING_CONFIG_MODEL_REMOVE_AND_APPLY_SIGNING_CONFIG_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SIGNING_CONFIG_MODEL_REMOVE_STORE_FILE_AND_APPLY_SIGNING_CONFIG;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SIGNING_CONFIG_MODEL_REMOVE_STORE_FILE_AND_APPLY_SIGNING_CONFIG_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SIGNING_CONFIG_MODEL_RENAME_SIGNING_CONFIG_MODEL_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SIGNING_CONFIG_MODEL_SET_AND_APPLY_SIGNING_CONFIG;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SIGNING_CONFIG_MODEL_SET_AND_APPLY_SIGNING_CONFIG_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SIGNING_CONFIG_MODEL_SIGNING_CONFIG_APPLICATION_STATEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SIGNING_CONFIG_MODEL_SIGNING_CONFIG_ASSIGNMENT_STATEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SIGNING_CONFIG_MODEL_SIGNING_CONFIG_BLOCK_WITH_APPLICATION_STATEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.SIGNING_CONFIG_MODEL_SIGNING_CONFIG_BLOCK_WITH_ASSIGNMENT_STATEMENTS;
 import static com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel.PasswordType.CONSOLE_READ;
 import static com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel.PasswordType.ENVIRONMENT_VARIABLE;
 import static com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel.PasswordType.PLAIN_TEXT;
@@ -210,6 +213,29 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
   }
 
   @Test
+  public void testRemoveStoreFileAndApplySigningConfig() throws Exception {
+    writeToBuildFile(SIGNING_CONFIG_MODEL_REMOVE_STORE_FILE_AND_APPLY_SIGNING_CONFIG);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel android = buildModel.android();
+    assertNotNull(android);
+    List<SigningConfigModel> signingConfigs = android.signingConfigs();
+
+    assertThat(signingConfigs).hasSize(1);
+    SigningConfigModel signingConfig = signingConfigs.get(0);
+
+    assertEquals("signingConfig", "release.keystore", signingConfig.storeFile());
+    verifyPasswordModel(signingConfig.storePassword(), "password", PLAIN_TEXT);
+    assertEquals("signingConfig", "type", signingConfig.storeType());
+    assertEquals("signingConfig", "myReleaseKey", signingConfig.keyAlias());
+    verifyPasswordModel(signingConfig.keyPassword(), "releaseKeyPassword", PLAIN_TEXT);
+
+    signingConfig.storeFile().delete();
+
+    applyChanges(buildModel);
+    verifyFileContents(myBuildFile, SIGNING_CONFIG_MODEL_REMOVE_STORE_FILE_AND_APPLY_SIGNING_CONFIG_EXPECTED);
+  }
+
+  @Test
   public void testRemoveAndApplySigningConfig() throws Exception {
     writeToBuildFile(SIGNING_CONFIG_MODEL_REMOVE_AND_APPLY_SIGNING_CONFIG);
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -233,7 +259,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     signingConfig.storePassword().delete();
 
     applyChanges(buildModel);
-    verifyFileContents(myBuildFile, "");
+    verifyFileContents(myBuildFile, SIGNING_CONFIG_MODEL_REMOVE_AND_APPLY_SIGNING_CONFIG_EXPECTED);
 
     android = buildModel.android();
     assertNotNull(android);
@@ -250,9 +276,15 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     buildModel.reparse();
     android = buildModel.android();
     assertNotNull(android);
-
     signingConfigs = android.signingConfigs();
-    assertThat(signingConfigs).isEmpty(); // empty blocks are deleted automatically.
+    assertThat(signingConfigs).hasSize(1);
+    signingConfig = signingConfigs.get(0);
+
+    assertMissingProperty(signingConfig.storeFile());
+    assertMissingProperty(signingConfig.storePassword());
+    assertMissingProperty(signingConfig.storeType());
+    assertMissingProperty(signingConfig.keyAlias());
+    assertMissingProperty(signingConfig.keyPassword());
   }
 
   @Test

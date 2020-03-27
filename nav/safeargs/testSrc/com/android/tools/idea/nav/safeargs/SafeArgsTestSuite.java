@@ -27,4 +27,10 @@ import org.junit.runner.RunWith;
 })
 public final class SafeArgsTestSuite extends IdeaTestSuiteBase {
   @ClassRule public static GradleDaemonsRule gradle = new GradleDaemonsRule();
+
+  static {
+    unzipIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.zip");
+    unzipIntoOfflineMavenRepo("tools/adt/idea/nav/safeargs/testdeps_repo.zip");
+    unzipIntoOfflineMavenRepo("tools/base/build-system/studio_repo.zip");
+  }
 }

@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.KTS_KNOWN_CONFIGURATIONS
 import com.android.tools.idea.gradle.dsl.parser.elements.FakeElement
+import com.android.tools.idea.gradle.dsl.parser.elements.FakeMethodElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
@@ -33,6 +34,9 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElem
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement
 import com.android.tools.idea.gradle.dsl.parser.maybeTrimForParent
 import com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_LIST
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_SET
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
@@ -202,7 +206,7 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
       }
       else if (element.name.isEmpty()){
         // This is the case where we are handling a list element
-        statementText += if (element.isSet) "mutableSetOf()" else "listOf()"
+        statementText += "listOf()"
         isRealList = true
       }
       else {
@@ -420,24 +424,7 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
     val anchor = getPsiElementForAnchor(parentPsiElement, anchorAfter)
     val psiFactory = KtPsiFactory(parentPsiElement.project)
 
-    // TODO(xof): this is a bit heavyweight, but we need it to use the maybeTrimForParent interface.
-    val fakeElement = object : FakeElement(methodCall.parent, GradleNameElement.fake(methodCall.methodName), methodCall, true) {
-      override fun copy(): GradleDslSimpleExpression {
-        throw UnsupportedOperationException("not implemented")
-      }
-
-      override fun extractValue(): Any? {
-        throw UnsupportedOperationException("not implemented")
-      }
-
-      override fun consumeValue(value: Any?) {
-        throw UnsupportedOperationException("not implemented")
-      }
-
-      override fun produceRawValue(): Any? {
-        throw UnsupportedOperationException("not implemented")
-      }
-    }
+    val fakeElement = FakeMethodElement(methodCall)
 
     val statementText =
       if (methodCall.fullName.isNotEmpty() && methodCall.fullName != methodCall.methodName) {
@@ -564,7 +551,12 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
 
     if (psiElement is KtCallExpression) return psiElement
 
-    val emptyListText = if (expressionList.isSet) "mutableSetOf()" else "listOf()"
+    val emptyListText = when (expressionList.modelProperty?.type) {
+      MUTABLE_LIST -> "mutableListOf()"
+      MUTABLE_SET -> "mutableSetOf()"
+      else -> "listOf()"
+    }
+
     if (psiElement is KtBinaryExpression) {
       val emptyList = KtPsiFactory(psiElement.project).createExpression(emptyListText)
       val added = psiElement.addAfter(emptyList, psiElement.lastChild)

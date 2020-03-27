@@ -17,7 +17,6 @@ package com.android.tools.idea.naveditor.property2.ui
 
 import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.naveditor.property.inspector.NAV_LIST_COMPONENT_NAME
 import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.components.JBList
 import java.awt.BorderLayout
@@ -38,7 +37,6 @@ class ComponentList(model: ListModel<NlComponent>, cellRenderer: ColoredListCell
 
   init {
     list.isOpaque = false
-    list.name = NAV_LIST_COMPONENT_NAME
     list.selectionMode = ListSelectionModel.MULTIPLE_INTERVAL_SELECTION
     list.fixedCellWidth = 1
     list.cellRenderer = cellRenderer

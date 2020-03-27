@@ -31,6 +31,7 @@ import com.android.tools.idea.npw.toTemplateFormFactor
 import com.android.tools.idea.npw.ui.WizardGallery
 import com.android.tools.idea.npw.ui.cppIcon
 import com.android.tools.idea.npw.ui.getTemplateIcon
+import com.android.tools.idea.npw.ui.getTemplateTitle
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
 import com.android.tools.idea.wizard.model.ModelWizard.Facade
@@ -209,7 +210,7 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
   private class NewTemplateRendererWithDescription(
     template: Template
   ) : TemplateRendererWithDescription, ChooseGalleryItemStep.NewTemplateRenderer(template) {
-    override val label: String get() = template.name
+    override val label: String get() = getTemplateTitle(template)
     override val icon: Icon? get() = getTemplateIcon(template)
     override val description: String get() = template.description
   }

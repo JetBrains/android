@@ -20,7 +20,6 @@ import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
-import com.intellij.util.messages.Topic
 
 /**
  * Abstraction over operations allowed on a single underlying sqlite database.
@@ -28,11 +27,6 @@ import com.intellij.util.messages.Topic
  * All operations are asynchronous, where completion is communicated through [ListenableFuture] return values.
  */
 interface DatabaseConnection : Disposable {
-  companion object {
-    @JvmField
-    val TOPIC = Topic<DatabaseConnectionListener>("DatabaseConnectionListenerTopic", DatabaseConnectionListener::class.java)
-  }
-
   fun close(): ListenableFuture<Unit>
   fun readSchema(): ListenableFuture<SqliteSchema>
 

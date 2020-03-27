@@ -2,6 +2,7 @@ package org.jetbrains.android.augment
 
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.resourceNameToFieldName
+import com.android.resources.ResourceType
 import com.google.common.base.MoreObjects
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.navigation.NavigationItem
@@ -96,7 +97,8 @@ class ResourceLightField(
   override fun getName(): String = resourceNameToFieldName(_name)
   override fun toString(): String = "ResourceLightField:$_name"
 
-  fun getResourceName(): String = super._name
+  val resourceName: String get() = super._name
+  val resourceType: ResourceType get() = ResourceType.fromClassName(containingClass.name!!)!!
 }
 
 class ManifestLightField(

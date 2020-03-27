@@ -21,6 +21,7 @@ import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import java.util.concurrent.TimeoutException;
 import org.jetbrains.annotations.NotNull;
 
 public class TerminateAdbAction extends AnAction {
@@ -30,8 +31,13 @@ public class TerminateAdbAction extends AnAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
-    Notifications.Bus.notify(new Notification("Android", "ADB", "ADB terminated", NotificationType.INFORMATION));
-    AdbService.getInstance().terminateDdmlib();
+    try {
+      AdbService.getInstance().terminateDdmlib();
+      Notifications.Bus.notify(new Notification("Android", "ADB", "ADB terminated", NotificationType.INFORMATION));
+    }
+    catch (TimeoutException ex) {
+      Notifications.Bus.notify(new Notification("Android", "ADB", "Failed to terminate ADB", NotificationType.WARNING));
+    }
   }
 }
 

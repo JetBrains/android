@@ -17,26 +17,22 @@
 
 package org.jetbrains.android.compose
 
-import com.android.tools.idea.kotlin.getQualifiedName
-import com.intellij.openapi.application.ReadAction
+import com.android.tools.idea.kotlin.fqNameMatches
 import com.intellij.openapi.roots.ProjectRootModificationTracker
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.parentOfType
 import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
-const val COMPOSABLE_SHORT_NAME = "Composable"
-const val COMPOSABLE_FQ_NAME = "androidx.compose.$COMPOSABLE_SHORT_NAME"
+const val COMPOSABLE_FQ_NAME = "androidx.compose.Composable"
 
 fun PsiElement.isComposableFunction(): Boolean {
   if (this !is KtNamedFunction) return false
 
   return CachedValuesManager.getCachedValue(this) {
-    val hasComposableAnnotation =
-      annotationEntries.any { it.shortName?.asString() == COMPOSABLE_SHORT_NAME && it.getQualifiedName() == COMPOSABLE_FQ_NAME }
+    val hasComposableAnnotation = annotationEntries.any { it.fqNameMatches(COMPOSABLE_FQ_NAME) }
     val containingKtFile = this.containingKtFile
 
     CachedValueProvider.Result.create(

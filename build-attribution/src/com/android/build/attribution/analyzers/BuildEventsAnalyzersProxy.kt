@@ -18,6 +18,7 @@ package com.android.build.attribution.analyzers
 import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.data.AlwaysRunTaskData
 import com.android.build.attribution.data.AnnotationProcessorData
+import com.android.build.attribution.data.GarbageCollectionData
 import com.android.build.attribution.data.PluginBuildData
 import com.android.build.attribution.data.PluginConfigurationData
 import com.android.build.attribution.data.PluginContainer
@@ -46,6 +47,16 @@ interface BuildEventsAnalysisResult {
   fun getAlwaysRunTasks(): List<AlwaysRunTaskData>
   fun getNonCacheableTasks(): List<TaskData>
   fun getTasksSharingOutput(): List<TasksSharingOutputData>
+
+  /**
+   * List of garbage collection data for this build.
+   */
+  fun getGarbageCollectionData(): List<GarbageCollectionData>
+
+  /**
+   * Total time spent in garbage collection for this build.
+   */
+  fun getTotalGarbageCollectionTimeMs(): Long
 }
 
 /**
@@ -61,6 +72,7 @@ class BuildEventsAnalyzersProxy(
   private val annotationProcessorsAnalyzer = AnnotationProcessorsAnalyzer(warningsFilter)
   private val criticalPathAnalyzer = CriticalPathAnalyzer(warningsFilter, taskContainer, pluginContainer)
   private val noncacheableTasksAnalyzer = NoncacheableTasksAnalyzer(warningsFilter, taskContainer, pluginContainer)
+  private val garbageCollectionAnalyzer = GarbageCollectionAnalyzer(warningsFilter)
   private val projectConfigurationAnalyzer = ProjectConfigurationAnalyzer(warningsFilter, taskContainer, pluginContainer)
   private val tasksConfigurationIssuesAnalyzer = TasksConfigurationIssuesAnalyzer(warningsFilter, taskContainer, pluginContainer)
 
@@ -72,7 +84,7 @@ class BuildEventsAnalyzersProxy(
   )
 
   fun getBuildAttributionReportAnalyzers(): List<BuildAttributionReportAnalyzer> = listOf(
-    noncacheableTasksAnalyzer,
+    garbageCollectionAnalyzer,
     tasksConfigurationIssuesAnalyzer
   )
 
@@ -102,6 +114,14 @@ class BuildEventsAnalyzersProxy(
 
   override fun getPluginsDeterminingBuildDuration(): List<PluginBuildData> {
     return criticalPathAnalyzer.pluginsDeterminingBuildDuration
+  }
+
+  override fun getGarbageCollectionData(): List<GarbageCollectionData> {
+    return garbageCollectionAnalyzer.garbageCollectionData
+  }
+
+  override fun getTotalGarbageCollectionTimeMs(): Long {
+    return getGarbageCollectionData().sumByLong { it.collectionTimeMs }
   }
 
   override fun getTotalConfigurationData(): ProjectConfigurationData {

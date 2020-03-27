@@ -28,6 +28,8 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslGlobalValue;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,6 +55,17 @@ public class GradlePropertyModelBuilder {
   }
 
   /**
+   * Creates a builder.
+   *
+   * @param holder   the GradlePropertiesDslElement that the property belongs to
+   * @param property a description of the model property
+   * @return new builder for model.
+   */
+  @NotNull
+  public static GradlePropertyModelBuilder create(@NotNull GradlePropertiesDslElement holder, @NotNull ModelPropertyDescription property) {
+    return new GradlePropertyModelBuilder(holder, property);
+  }
+  /**
    * Creates a builder from an element.
    * This is used for things such as {@link FakeElement}s as these can't be created in the normal way since they are not visible from
    * their parents. See {@link FakeElement} for more information.
@@ -71,13 +84,14 @@ public class GradlePropertyModelBuilder {
   @NotNull
   private final String myName;
   @Nullable
+  private final ModelPropertyDescription myProperty;
+  @Nullable
   private final GradleDslElement myElement;
   @Nullable
   private GradleDslElement myDefault;
   @NotNull
   private PropertyType myType = REGULAR;
   private boolean myIsMethod = false;
-  private boolean myIsSet = false;
   @NotNull
   private List<PropertyTransform> myTransforms = new ArrayList<>();
 
@@ -85,6 +99,14 @@ public class GradlePropertyModelBuilder {
     myHolder = holder;
     myName = name;
     myElement = null;
+    myProperty = null;
+  }
+
+  private GradlePropertyModelBuilder(@NotNull GradlePropertiesDslElement holder, @NotNull ModelPropertyDescription property) {
+    myHolder = holder;
+    myName = property.name;
+    myElement = null;
+    myProperty = property;
   }
 
   private GradlePropertyModelBuilder(@NotNull GradleDslElement element) {
@@ -92,8 +114,12 @@ public class GradlePropertyModelBuilder {
     myName = element.getName();
     myElement = element;
     myIsMethod = !myElement.shouldUseAssignment();
-    if (element instanceof GradleDslExpressionList) {
-      myIsSet = ((GradleDslExpressionList) element).isSet();
+    ModelEffectDescription effect = element.getModelEffect();
+    if (effect == null) {
+      myProperty = null;
+    }
+    else {
+      myProperty = effect.property;
     }
   }
 
@@ -114,11 +140,6 @@ public class GradlePropertyModelBuilder {
    */
   public GradlePropertyModelBuilder asMethod(boolean bool) {
     myIsMethod = bool;
-    return this;
-  }
-
-  public GradlePropertyModelBuilder asSet(boolean bool) {
-    myIsSet = bool;
     return this;
   }
 
@@ -183,9 +204,16 @@ public class GradlePropertyModelBuilder {
    */
   public GradlePropertyModelImpl build() {
     GradleDslElement currentElement = getElement();
-    GradlePropertyModelImpl model = currentElement == null
-                                    ? new GradlePropertyModelImpl(getParentElement(), myType, myName)
-                                    : new GradlePropertyModelImpl(currentElement);
+    GradlePropertyModelImpl model;
+    if (currentElement != null) {
+      model = new GradlePropertyModelImpl(currentElement);
+    }
+    else if(myProperty != null) {
+      model = new GradlePropertyModelImpl(getParentElement(), myType, myProperty);
+    }
+    else {
+      model = new GradlePropertyModelImpl(getParentElement(), myType, myName);
+    }
     return setUpModel(model);
   }
 
@@ -237,10 +265,6 @@ public class GradlePropertyModelBuilder {
   private <T extends GradlePropertyModelImpl> T setUpModel(@NotNull T model) {
     if (myIsMethod) {
       model.markAsMethodCall();
-    }
-
-    if (myIsSet) {
-      model.markAsSet();
     }
 
     if (myDefault != null) {

@@ -55,4 +55,12 @@ public class GradleSpecificInitializerTest extends AndroidGradleTestCase {
     AnAction selectProjectToImportAction = ActionManager.getInstance().getAction("ExternalSystem.SelectProjectDataToImport");
     assertThat(selectProjectToImportAction).isInstanceOf(EmptyAction.class);
   }
+
+  public void testGroovyResourceActionsAreHidden() {
+    AnAction rebuildResourcesAction = ActionManager.getInstance().getAction("Groovy.CheckResources.Rebuild");
+    assertThat(rebuildResourcesAction).isInstanceOf(EmptyAction.class);
+
+    AnAction buildResourcesAction = ActionManager.getInstance().getAction("Groovy.CheckResources.Make");
+    assertThat(buildResourcesAction).isInstanceOf(EmptyAction.class);
+  }
 }

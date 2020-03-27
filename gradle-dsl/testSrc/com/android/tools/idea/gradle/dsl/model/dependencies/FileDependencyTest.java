@@ -15,24 +15,24 @@
  */
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
-import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_ADD_FILE_DEPENDENCY;
-import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_ADD_FILE_DEPENDENCY_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_INSERTION_ORDER;
-import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_INSERTION_ORDER_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_PARSE_FILE_DEPENDENCIES_WITH_CLOSURE;
-import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_PARSE_MULTIPLE_FILE_DEPENDENCIES;
-import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_PARSE_SINGLE_FILE_DEPENDENCY;
-import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_REMOVE_FILE_DEPENDENCY;
-import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_REMOVE_ONE_OF_FILE_DEPENDENCY;
-import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_REMOVE_ONE_OF_FILE_DEPENDENCY_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_REMOVE_WHEN_MULTIPLE;
-import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_SET_CONFIGURATION_WHEN_MULTIPLE;
-import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_SET_CONFIGURATION_WHEN_SINGLE;
-import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_SET_CONFIGURATION_WHEN_SINGLE_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_SET_FILE;
-import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_SET_FILE_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_UPDATE_SOME_OF_FILE_DEPENDENCIES;
-import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_UPDATE_SOME_OF_FILE_DEPENDENCIES_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.FILE_DEPENDENCY_ADD_FILE_DEPENDENCY;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.FILE_DEPENDENCY_ADD_FILE_DEPENDENCY_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.FILE_DEPENDENCY_INSERTION_ORDER;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.FILE_DEPENDENCY_INSERTION_ORDER_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.FILE_DEPENDENCY_PARSE_FILE_DEPENDENCIES_WITH_CLOSURE;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.FILE_DEPENDENCY_PARSE_MULTIPLE_FILE_DEPENDENCIES;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.FILE_DEPENDENCY_PARSE_SINGLE_FILE_DEPENDENCY;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.FILE_DEPENDENCY_REMOVE_FILE_DEPENDENCY;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.FILE_DEPENDENCY_REMOVE_ONE_OF_FILE_DEPENDENCY;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.FILE_DEPENDENCY_REMOVE_ONE_OF_FILE_DEPENDENCY_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.FILE_DEPENDENCY_REMOVE_WHEN_MULTIPLE;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.FILE_DEPENDENCY_SET_CONFIGURATION_WHEN_MULTIPLE;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.FILE_DEPENDENCY_SET_CONFIGURATION_WHEN_SINGLE;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.FILE_DEPENDENCY_SET_CONFIGURATION_WHEN_SINGLE_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.FILE_DEPENDENCY_SET_FILE;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.FILE_DEPENDENCY_SET_FILE_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.FILE_DEPENDENCY_UPDATE_SOME_OF_FILE_DEPENDENCIES;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.FILE_DEPENDENCY_UPDATE_SOME_OF_FILE_DEPENDENCIES_EXPECTED;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;

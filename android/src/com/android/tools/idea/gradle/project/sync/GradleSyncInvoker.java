@@ -36,8 +36,6 @@ import com.android.tools.idea.gradle.project.importing.OpenMigrationToGradleUrlH
 import com.android.tools.idea.gradle.project.sync.cleanup.PreSyncProjectCleanUp;
 import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
-import com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult;
-import com.android.tools.idea.gradle.project.sync.precheck.PreSyncChecks;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.google.common.annotations.VisibleForTesting;
@@ -78,7 +76,6 @@ public class GradleSyncInvoker {
 
   @NotNull private final FileDocumentManager myFileDocumentManager;
   @NotNull private final PreSyncProjectCleanUp myPreSyncProjectCleanUp;
-  @NotNull private final PreSyncChecks myPreSyncChecks;
 
   @NotNull
   public static GradleSyncInvoker getInstance() {
@@ -86,15 +83,13 @@ public class GradleSyncInvoker {
   }
 
   public GradleSyncInvoker(@NotNull FileDocumentManager fileDocumentManager) {
-    this(fileDocumentManager, new PreSyncProjectCleanUp(), new PreSyncChecks());
+    this(fileDocumentManager, new PreSyncProjectCleanUp());
   }
 
   private GradleSyncInvoker(@NotNull FileDocumentManager fileDocumentManager,
-                            @NotNull PreSyncProjectCleanUp preSyncProjectCleanUp,
-                            @NotNull PreSyncChecks preSyncChecks) {
+                            @NotNull PreSyncProjectCleanUp preSyncProjectCleanUp) {
     myFileDocumentManager = fileDocumentManager;
     myPreSyncProjectCleanUp = preSyncProjectCleanUp;
-    myPreSyncChecks = preSyncChecks;
   }
 
   /**
@@ -201,16 +196,6 @@ public class GradleSyncInvoker {
   @WorkerThread
   private void sync(@NotNull Project project, @NotNull Request request, @Nullable GradleSyncListener listener) {
     invokeAndWaitIfNeeded((Runnable)() -> GradleSyncMessages.getInstance(project).removeAllMessages());
-    // Do not sync Sdk/Jdk when running from tests, these will be set up by the test infra.
-    if (!request.skipPreSyncChecks) {
-      PreSyncCheckResult checkResult = runPreSyncChecks(project);
-      if (!checkResult.isSuccess()) {
-        // User should have already warned that something is not right and sync cannot continue.
-        String cause = nullToEmpty(checkResult.getFailureCause());
-        handlePreSyncCheckFailure(project, cause, listener, request);
-        return;
-      }
-    }
 
     // Do clean up tasks before calling sync started.
     // During clean up, we might change some gradle files, for example, gradle property files based on http settings, gradle wrappers and etc.
@@ -222,12 +207,6 @@ public class GradleSyncInvoker {
     }
 
     new GradleSyncExecutor(project).sync(request, listener);
-  }
-
-  @VisibleForTesting
-  @NotNull
-  PreSyncCheckResult runPreSyncChecks(@NotNull Project project) {
-    return myPreSyncChecks.canSyncAndTryToFix(project);
   }
 
   private static void handlePreSyncCheckFailure(@NotNull Project project,

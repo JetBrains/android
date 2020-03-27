@@ -779,8 +779,14 @@ public class AndroidJavaDocRenderer {
       builder.addHtml("<hr>");
       builder.addBold(styleValue.getName()).add(":").newline();
 
+      Set<String> visitedStyleValues = new HashSet<>();
       Set<String> masked = new HashSet<>();
       while (styleValue != null) {
+        if (!visitedStyleValues.add(styleValue.asReference().getQualifiedName())) {
+          // We have detected a loop in the styles inheritance
+          break;
+        }
+
         // Make sure the contents for the style are always generated in the same order. Helps with testing and the
         // user will know where to find attributes.
         ImmutableList<StyleItemResourceValue> values = Ordering.usingToString().immutableSortedCopy(styleValue.getDefinedItems());

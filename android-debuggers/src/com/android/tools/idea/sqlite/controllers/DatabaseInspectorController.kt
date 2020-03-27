@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.sqlite.controllers
 
+import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.concurrency.addCallback
+import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.device.fs.DownloadProgress
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.android.tools.idea.sqlite.SchemaProvider
@@ -50,7 +52,6 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.TreeMap
 import java.util.concurrent.Executor
 import javax.swing.JComponent
 
@@ -63,15 +64,13 @@ class DatabaseInspectorControllerImpl(
   private val project: Project,
   private val model: DatabaseInspectorController.Model,
   private val viewFactory: DatabaseInspectorViewsFactory,
-  edtExecutor: Executor,
-  taskExecutor: Executor
+  private val edtExecutor: Executor,
+  private val taskExecutor: Executor
 ) : DatabaseInspectorController {
 
-  private val edtExecutor = FutureCallbackExecutor.wrap(edtExecutor)
   private val uiThread = edtExecutor.asCoroutineDispatcher()
   private val workerThread = taskExecutor.asCoroutineDispatcher()
   private val view = viewFactory.createDatabaseInspectorView(project)
-  private val logTabController = LogTabController(view.getLogTabView())
 
   /**
    * Controllers for all open tabs, keyed by id.
@@ -114,11 +113,19 @@ class DatabaseInspectorControllerImpl(
 
   override suspend fun closeDatabase(database: SqliteDatabase) = withContext(uiThread) {
     // TODO(b/143873070) when a database is closed with the close button the corresponding file is not deleted.
-    if (!model.openDatabases.containsKey(database)) return@withContext
+    if (!model.getOpenDatabases().contains(database)) return@withContext
 
-    val tabsToClose = resultSetControllers.keys
-      .filterIsInstance<TabId.TableTab>()
-      .filter { it.database == database }
+    val openDatabases = model.getOpenDatabases()
+    val tabsToClose = if (openDatabases.size == 1 && openDatabases.first() == database) {
+      // close all tabs
+      resultSetControllers.keys.toList()
+    }
+    else {
+      // only close tabs associated with this database
+      resultSetControllers.keys
+        .filterIsInstance<TabId.TableTab>()
+        .filter { it.database == database }
+    }
 
     tabsToClose.forEach { closeTab(it) }
 
@@ -185,7 +192,7 @@ class DatabaseInspectorControllerImpl(
   }
 
   private suspend fun updateDatabaseSchema(database: SqliteDatabase) {
-    val oldSchema = model.openDatabases[database] ?: return
+    val oldSchema = model.getDatabaseSchema(database) ?: return
     val newSchema = readDatabaseSchema(database)
     withContext(uiThread) {
       if (oldSchema != newSchema) {
@@ -249,7 +256,7 @@ class DatabaseInspectorControllerImpl(
 
     val sqliteEvaluatorView = viewFactory.createEvaluatorView(
       project,
-      object : SchemaProvider { override fun getSchema(database: SqliteDatabase) = model.openDatabases[database] },
+      object : SchemaProvider { override fun getSchema(database: SqliteDatabase) = model.getDatabaseSchema(database) },
       viewFactory.createTableView()
     )
 
@@ -259,7 +266,8 @@ class DatabaseInspectorControllerImpl(
       project,
       sqliteEvaluatorView,
       viewFactory,
-      edtExecutor
+      edtExecutor,
+      taskExecutor
     )
     Disposer.register(project, sqliteEvaluatorController)
     sqliteEvaluatorController.setUp()
@@ -268,7 +276,7 @@ class DatabaseInspectorControllerImpl(
 
     resultSetControllers[tabId] = sqliteEvaluatorController
 
-    model.openDatabases.keys.forEachIndexed { index, sqliteDatabase ->
+    model.getOpenDatabases().forEachIndexed { index, sqliteDatabase ->
       sqliteEvaluatorController.addDatabase(sqliteDatabase, index)
     }
 
@@ -295,14 +303,15 @@ class DatabaseInspectorControllerImpl(
       val tableController = TableController(
         project = project,
         view = tableView,
-        tableSupplier = { model.openDatabases[database]?.tables?.firstOrNull{ it.name == table.name } },
+        tableSupplier = { model.getDatabaseSchema(database)?.tables?.firstOrNull{ it.name == table.name } },
         databaseConnection = databaseConnection,
         sqliteStatement = SqliteStatement(selectAllAndRowIdFromTable(table)),
-        edtExecutor = edtExecutor
+        edtExecutor = edtExecutor,
+        taskExecutor = taskExecutor
       )
       Disposer.register(project, tableController)
 
-      edtExecutor.addCallback(tableController.setUp(), object : FutureCallback<Unit> {
+      tableController.setUp().addCallback(edtExecutor, object : FutureCallback<Unit> {
         override fun onSuccess(result: Unit?) {
           resultSetControllers[tableId] = tableController
         }
@@ -319,11 +328,6 @@ class DatabaseInspectorControllerImpl(
 
     override fun closeTabActionInvoked(tabId: TabId) {
       closeTab(tabId)
-    }
-
-    override fun removeDatabaseActionInvoked(database: SqliteDatabase) {
-      // TODO: display a spinner UI while closing?
-      scope.launch(uiThread) { closeDatabase(database) }
     }
 
     override fun reDownloadDatabaseFileActionInvoked(database: FileSqliteDatabase) {
@@ -344,14 +348,14 @@ class DatabaseInspectorControllerImpl(
         }
       })
 
-      edtExecutor.transform(downloadFuture) {
+      downloadFuture.transform(edtExecutor) {
         view.reportSyncProgress("")
       }
     }
 
     override fun refreshAllOpenDatabasesSchemaActionInvoked() {
       scope.launch(uiThread) {
-        model.openDatabases.keys.forEach { updateDatabaseSchema(it) }
+        model.getOpenDatabases().forEach { updateDatabaseSchema(it) }
       }
     }
   }
@@ -393,23 +397,34 @@ interface DatabaseInspectorController : Disposable {
   fun showError(message: String, throwable: Throwable?)
 
   /**
-   * Model for Database Inspector. Used to store and access currently open [SqliteDatabase]s and their [SqliteSchema]s.
+   * Model for DatabaseInspectorController. Used to store and access currently open [SqliteDatabase]s and their [SqliteSchema]s.
+   * Implementations of this interface can be accessed from different threads, therefore should be thread-safe.
    */
   interface Model {
     /**
-     * A set of open databases sorted in alphabetical order by the name of the database.
+     * A list of open databases sorted in alphabetical order by the name of the database.
      */
-    val openDatabases: TreeMap<SqliteDatabase, SqliteSchema>
+    @AnyThread
+    fun getOpenDatabases(): List<SqliteDatabase>
+    @AnyThread
+    fun getDatabaseSchema(database: SqliteDatabase): SqliteSchema?
 
+    @AnyThread
     fun getSortedIndexOf(database: SqliteDatabase): Int
+    @AnyThread
     fun add(database: SqliteDatabase, sqliteSchema: SqliteSchema)
+    @AnyThread
     fun remove(database: SqliteDatabase)
 
+    @AnyThread
     fun addListener(modelListener: Listener)
+    @AnyThread
     fun removeListener(modelListener: Listener)
 
     interface Listener {
+      @AnyThread
       fun onDatabaseAdded(database: SqliteDatabase)
+      @AnyThread
       fun onDatabaseRemoved(database: SqliteDatabase)
     }
   }

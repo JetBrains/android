@@ -15,18 +15,30 @@
  */
 package com.android.tools.idea.sqlite.ui.parametersBinding
 
+import com.android.tools.adtui.stdui.CommonButton
 import com.android.tools.idea.sqlite.controllers.SqliteParameter
 import com.android.tools.idea.sqlite.controllers.SqliteParameterValue
 import com.android.tools.idea.sqlite.model.SqliteValue
+import com.intellij.icons.AllIcons
+import com.intellij.openapi.actionSystem.CustomShortcutSet
+import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
-import com.intellij.ui.components.JBCheckBox
+import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBTextField
+import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
+import java.awt.Component
+import java.awt.event.ActionEvent
+import java.awt.event.KeyEvent
+import javax.swing.AbstractAction
 import javax.swing.BoxLayout
+import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.JTextField
+import javax.swing.KeyStroke
 
 /**
  * @see ParametersBindingDialogView
@@ -36,28 +48,40 @@ class ParametersBindingDialogViewImpl(
   canBeParent: Boolean
 ) : DialogWrapper(project, canBeParent), ParametersBindingDialogView {
 
-  val component = JPanel()
-  private val namedParameterResolutionPanels = mutableListOf<NamedParameterResolutionPanel>()
+  val component = JPanel(BorderLayout())
+  private val parameterResolutionPanelsContainer = JPanel()
+  private val parameterResolutionPanels = mutableListOf<ParameterResolutionPanel>()
 
   private val listeners = mutableListOf<ParametersBindingDialogView.Listener>()
 
   init {
-    component.layout = BoxLayout(component, BoxLayout.Y_AXIS)
+    parameterResolutionPanelsContainer.layout = BoxLayout(parameterResolutionPanelsContainer, BoxLayout.Y_AXIS)
+    component.add(parameterResolutionPanelsContainer, BorderLayout.NORTH)
 
     isModal = false
-    title = "Parameters Resolution"
-    setOKButtonText("Run query")
-    setCancelButtonText("Close")
+    title = "Query parameters"
+    setOKButtonText("Run")
+    setCancelButtonText("Cancel")
 
     init()
   }
 
   override fun showNamedParameters(parameters: Set<SqliteParameter>) {
     parameters.forEach {
-      val namedParameterResolutionPanel = NamedParameterResolutionPanel(it)
-      namedParameterResolutionPanels.add(namedParameterResolutionPanel)
-      component.add(namedParameterResolutionPanel.panel)
+      val namedParameterResolutionPanel = if (it.isCollection) {
+        MultiValueParameterResolutionPanel(it)
+      }
+      else {
+        SingleValueParameterResolutionPanel(it)
+      }
+
+      parameterResolutionPanels.add(namedParameterResolutionPanel)
+      parameterResolutionPanelsContainer.add(namedParameterResolutionPanel.component)
     }
+
+    val maxLabelWidth = parameterResolutionPanels.map { it.parameterNameLabel.preferredSize.width }.max() ?: 0
+    val finalMaxLabelWidth = boundMaxLabelWidth(maxLabelWidth)
+    parameterResolutionPanels.forEach { it.parameterNameLabel.setFixedWidth(finalMaxLabelWidth) }
   }
 
   override fun addListener(listener: ParametersBindingDialogView.Listener) {
@@ -71,41 +95,202 @@ class ParametersBindingDialogViewImpl(
   override fun createCenterPanel() = component
 
   public override fun doOKAction() {
-    val parametersNameValueMap = namedParameterResolutionPanels.map { it.namedParameter to it.getVariableValue() }.toMap()
+    val parametersNameValueMap = parameterResolutionPanels.map { it.sqliteParameter to it.getValue() }.toMap()
     listeners.forEach { it.bindingCompletedInvoked(parametersNameValueMap) }
 
     super.doOKAction()
   }
 
   override fun getPreferredFocusedComponent(): JComponent? {
-    return namedParameterResolutionPanels.firstOrNull()?.namedParameterValueTextField
+    return parameterResolutionPanels.firstOrNull()?.preferredFocusedComponent
   }
 
-  private inner class NamedParameterResolutionPanel(val namedParameter: SqliteParameter) {
-    private val namedParameterLabel = JLabel(namedParameter.name)
-    private val isNullCheckBox = JBCheckBox("Is null")
-    val namedParameterValueTextField = JBTextField()
-    val panel = JPanel(BorderLayout())
+  private fun boundMaxLabelWidth(maxLabelWidth: Int): Int {
+    val minWidth = JBUI.scale(50)
+    val maxWidth = JBUI.scale(150)
 
-    init {
-      panel.add(namedParameterLabel, BorderLayout.WEST)
-      panel.add(namedParameterValueTextField, BorderLayout.CENTER)
-      panel.add(isNullCheckBox, BorderLayout.EAST)
-
-      namedParameterValueTextField.name = "value-text-field"
-      isNullCheckBox.name = "null-check-box"
+    return when {
+      maxLabelWidth in minWidth..maxWidth -> maxLabelWidth
+      maxLabelWidth < minWidth -> minWidth
+      else -> maxWidth
     }
+  }
 
-    // TODO(next CL): add UI to insert multiple values.
-    fun getVariableValue() : SqliteParameterValue {
-      return if (namedParameter.isCollection) {
-        val value = if (isNullCheckBox.isSelected) SqliteValue.NullValue else SqliteValue.StringValue(namedParameterValueTextField.text)
-        SqliteParameterValue.CollectionValue(listOf(value))
+  /**
+   * Interface defining a component used to assign values to a [SqliteParameter].
+   */
+  private interface ParameterResolutionPanel {
+    val sqliteParameter: SqliteParameter
+    val component: JComponent
+    val preferredFocusedComponent: JComponent
+    fun getValue(): SqliteParameterValue
+
+    val parameterNameLabel: JLabel
+
+    fun getSqliteValue(inputComponent: InputComponent): SqliteValue {
+      return if (inputComponent.isNull) {
+        SqliteValue.NullValue
       }
       else {
-        val value = if (isNullCheckBox.isSelected) SqliteValue.NullValue else SqliteValue.StringValue(namedParameterValueTextField.text)
-        SqliteParameterValue.SingleValue(value)
+        SqliteValue.StringValue(inputComponent.valueTextField.text)
       }
     }
   }
+
+  /**
+   * UI component used to assign a list value to a [SqliteParameter].
+   * The list assigned to the parameter must have at least one value, therefore the first input field is not optional.
+   * It is possible to add additional input fields by clicking the "add" button, located in the first input field.
+   * Each additional field has a button to remove itself.
+   */
+  private class MultiValueParameterResolutionPanel(override val sqliteParameter: SqliteParameter) : ParameterResolutionPanel {
+    private val additionalInputComponentsPanel = JPanel()
+    private val additionalInputComponents = mutableListOf<InputComponent>()
+
+    // At least one value must be in the list, therefore mainInputComponent is not optional.
+    private val mainInputComponent = InputComponent(
+      sqliteParameter.name,
+      InputComponent.Action.Add(true, this::createRemovableInputComponent)
+    )
+
+    override val component = JPanel()
+    override val preferredFocusedComponent: JTextField = mainInputComponent.valueTextField
+    override val parameterNameLabel = mainInputComponent.nameLabel
+
+    init {
+      component.layout = BoxLayout(component, BoxLayout.Y_AXIS)
+      additionalInputComponentsPanel.layout = BoxLayout(additionalInputComponentsPanel, BoxLayout.Y_AXIS)
+
+      component.add(mainInputComponent.component)
+      component.add(additionalInputComponentsPanel)
+    }
+
+    override fun getValue(): SqliteParameterValue {
+      return SqliteParameterValue.CollectionValue(
+        listOf(getSqliteValue(mainInputComponent)) + additionalInputComponents.map { getSqliteValue(it) }
+      )
+    }
+
+    /**
+     * Adds an InputComponent to the view, that is capable of removing itself.
+     */
+    private fun createRemovableInputComponent(parent: InputComponent) {
+      val removableInputComponent = InputComponent("", InputComponent.Action.Remove {
+        additionalInputComponents.remove(it)
+        additionalInputComponentsPanel.remove(it.component)
+        additionalInputComponentsPanel.revalidate()
+      })
+      removableInputComponent.nameLabel.setFixedWidth(parent.nameLabel.preferredSize.width)
+
+      additionalInputComponents.add(removableInputComponent)
+      additionalInputComponentsPanel.add(removableInputComponent.component)
+      additionalInputComponentsPanel.revalidate()
+    }
+  }
+
+  /**
+   * UI component used to assign a single value to a [SqliteParameter]
+   */
+  private class SingleValueParameterResolutionPanel(override val sqliteParameter: SqliteParameter) : ParameterResolutionPanel {
+    private val inputComponent = InputComponent(sqliteParameter.name, InputComponent.Action.Add(false) {})
+
+    override val component = JPanel(BorderLayout())
+    override val preferredFocusedComponent: JTextField = inputComponent.valueTextField
+    override val parameterNameLabel = inputComponent.nameLabel
+
+    init {
+      component.add(inputComponent.component, BorderLayout.CENTER)
+    }
+
+    override fun getValue(): SqliteParameterValue = SqliteParameterValue.SingleValue(getSqliteValue(inputComponent))
+  }
+
+  private class InputComponent(labelText: String, action: Action) {
+    internal val component = JPanel()
+    internal val nameLabel = JBLabel(labelText)
+    internal val valueTextField = JBTextField(20)
+
+    internal var isNull = false
+      private set
+
+    init {
+      component.layout = BoxLayout(component, BoxLayout.X_AXIS)
+      component.add(nameLabel)
+      component.add(valueTextField)
+
+      val setToNullButton = createSetToNullButton()
+      component.add(setToNullButton)
+
+      val actionButton = createActionButton(action)
+      component.add(actionButton)
+    }
+
+    private fun createActionButton(action: Action): Component {
+      val actionKeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_B, KeyEvent.CTRL_DOWN_MASK)
+      val actionShortcutText = KeymapUtil.getFirstKeyboardShortcutText(CustomShortcutSet(actionKeyStroke))
+      valueTextField.inputMap.put(actionKeyStroke, "myCustomActionButton")
+      valueTextField.actionMap.put("myCustomActionButton", object : AbstractAction() {
+        override fun actionPerformed(e: ActionEvent) {
+          action.action(this@InputComponent)
+        }
+      })
+
+      val actionButton = CommonButton(action.text, action.icon)
+      actionButton.toolTipText = "${action.description} ($actionShortcutText)"
+      actionButton.addActionListener { action.action(this) }
+      actionButton.isEnabled = action.enabled
+      return actionButton
+    }
+
+    private fun createSetToNullButton(): Component {
+      val setToNullKeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_N, KeyEvent.CTRL_DOWN_MASK)
+      val setToNullShortcutText = KeymapUtil.getFirstKeyboardShortcutText(CustomShortcutSet(setToNullKeyStroke))
+
+      valueTextField.inputMap.put(setToNullKeyStroke, "setToNull")
+      valueTextField.actionMap.put("setToNull", object : AbstractAction() {
+        override fun actionPerformed(e: ActionEvent) {
+          setTextFieldToNull()
+        }
+      })
+
+      val setToNullButton = CommonButton("Set to null", AllIcons.RunConfigurations.ShowIgnored)
+      setToNullButton.toolTipText = "Set value to null ($setToNullShortcutText)"
+      setToNullButton.addActionListener { setTextFieldToNull() }
+
+      return setToNullButton
+    }
+
+    private fun setTextFieldToNull() {
+      isNull = !isNull
+      valueTextField.text = if (isNull) "<null>" else ""
+      valueTextField.isEnabled = !isNull
+    }
+
+    internal sealed class Action {
+      internal abstract val text: String
+      internal abstract val description: String
+      internal abstract val icon: Icon
+      internal abstract val enabled: Boolean
+      internal abstract val action: (InputComponent) -> Unit
+
+      internal data class Add(override val enabled: Boolean, override val action: (InputComponent) -> Unit) : Action() {
+        override val text = "Add"
+        override val description = "Add value"
+        override val icon = AllIcons.General.Add
+      }
+
+      internal data class Remove(override val action: (InputComponent) -> Unit) : Action() {
+        override val text = "Rmv"
+        override val description = "Remove value"
+        override val icon = AllIcons.General.Remove
+        override val enabled = true
+      }
+    }
+  }
+}
+
+private fun JLabel.setFixedWidth(width: Int) {
+  preferredSize = JBUI.size(width, preferredSize.height)
+  maximumSize = JBUI.size(width, preferredSize.height)
+  minimumSize = JBUI.size(width, preferredSize.height)
 }

@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import static com.android.tools.idea.gradle.dsl.TestFileName.LINT_OPTIONS_MODEL_ADD_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileName.LINT_OPTIONS_MODEL_ADD_ELEMENTS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.LINT_OPTIONS_MODEL_EDIT_ELEMENTS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.LINT_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST;
-import static com.android.tools.idea.gradle.dsl.TestFileName.LINT_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileName.LINT_OPTIONS_MODEL_REMOVE_ONLY_ELEMENTS_IN_THE_LIST;
-import static com.android.tools.idea.gradle.dsl.TestFileName.LINT_OPTIONS_MODEL_TEXT;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.LINT_OPTIONS_MODEL_ADD_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.LINT_OPTIONS_MODEL_ADD_ELEMENTS_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.LINT_OPTIONS_MODEL_EDIT_ELEMENTS_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.LINT_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.LINT_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.LINT_OPTIONS_MODEL_REMOVE_ONLY_ELEMENTS_IN_THE_LIST;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.LINT_OPTIONS_MODEL_TEXT;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;

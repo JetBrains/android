@@ -56,6 +56,7 @@ internal class DeployToDeviceAction(private val dataContextProvider: () -> DataC
       setModule(module)
     }
 
+    // TODO(b/152186687): select the configuration in the run configurations combobox.
     val configurationAndSettings = RunManager.getInstance(project).findSettings(composePreviewRunConfiguration)
                                    ?: RunManager.getInstance(project).createConfiguration(composePreviewRunConfiguration, factory).apply {
                                      isTemporary = true
@@ -63,15 +64,14 @@ internal class DeployToDeviceAction(private val dataContextProvider: () -> DataC
                                      RunManager.getInstance(project).addConfiguration(configAndSettings)
                                    }
 
-    // TODO(b/150391302): select the configuration in the run configurations combobox.
-    // TODO(b/150391302): consider stopping all the ComposePreviewRunConfiguration before running this one.
+    // TODO(b/152185907): consider stopping all the ComposePreviewRunConfiguration before running this one.
     RunManager.getInstance(project).selectedConfiguration = configurationAndSettings
     ProgramRunnerUtil.executeConfiguration(configurationAndSettings, DefaultRunExecutor.getRunExecutorInstance())
   }
 
   override fun update(e: AnActionEvent) {
     super.update(e)
-    // TODO(b/150391302): listen to gradle events to disable the button when build is in progress.
+    // TODO(b/152183978): listen to gradle events to disable the button when build is in progress.
     e.presentation.isEnabled =
       dataContextProvider().getData(COMPOSE_PREVIEW_ELEMENT)?.previewBodyPsi?.element?.module?.isNonLibraryAndroidModule() == true
   }

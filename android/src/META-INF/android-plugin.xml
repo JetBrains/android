@@ -253,8 +253,14 @@
             description="Migrates to AndroidX package names">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
-    <action id="AndroidMigrateToResourceNamespacesAction" class="org.jetbrains.android.refactoring.MigrateToResourceNamespacesAction" text="Migrate to Resource Namespaces..."
+    <action id="AndroidMigrateToResourceNamespacesAction" class="org.jetbrains.android.refactoring.namespaces.MigrateToResourceNamespacesAction" text="Migrate to Resource Namespaces..."
             description="Migrates to resource namespaces">
+      <add-to-group group-id="RefactoringMenu"/>
+    </action>
+    <action id="AndroidMigrateToNonTransitiveRClassesAction"
+            class="org.jetbrains.android.refactoring.namespaces.MigrateToNonTransitiveRClassesAction"
+            text="Migrate to Non-Transitive R Classes..."
+            description="Migrates one more modules to use non-transitive R classes">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
     <action id="AndroidEnableInstantAppsSupport" class="com.android.tools.idea.gradle.actions.EnableInstantAppsSupportAction" text="Enable Instant Apps Support..."
@@ -375,7 +381,6 @@
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.importing.GradleProjectImporter"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.service.repo.ExternalRepository"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.SdkSync"/>
-    <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.precheck.PreSyncChecks"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleSyncInvoker"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.cleanup.PreSyncProjectCleanUp"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporter"/>
@@ -625,12 +630,6 @@
                       conditionClass="com.android.tools.idea.explorer.DeviceExplorerToolWindowCondition"
                       icon="StudioIcons.Shell.ToolWindows.DEVICE_EXPLORER"
                       factoryClass="com.android.tools.idea.explorer.DeviceExplorerToolWindowFactory"/>
-    <facet.toolWindow id="Captures"
-                      facetIdList="android"
-                      anchor="left"
-                      secondary="true"
-                      icon="StudioIcons.Shell.ToolWindows.CAPTURES"
-                      factoryClass="com.android.tools.idea.profiling.view.CapturesToolWindowFactory"/>
     <facet.toolWindow id="Emulator"
                       facetIdList="android,apk"
                       anchor="right"
@@ -835,7 +834,7 @@
     <externalSystemOutputParserProvider implementation="com.android.tools.idea.gradle.project.build.output.GradleOutputParserProvider"
                                         id="gradle" order="first"/>
 
-    <usageGroupingRuleProvider implementation="org.jetbrains.android.refactoring.ResourcePackageGroupingRuleProvider"/>
+    <usageGroupingRuleProvider implementation="org.jetbrains.android.refactoring.namespaces.ResourcePackageGroupingRuleProvider"/>
     <projectService serviceImplementation="com.android.tools.idea.stats.ToolWindowTrackerService"/>
 
     <projectImportProvider implementation="com.android.tools.idea.gradle.project.importing.AndroidGradleProjectImportProvider"/>
@@ -1049,6 +1048,7 @@
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.idea.issues.AgpUpgradeRequiredIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.idea.issues.SdkPlatformNotFoundIssueChecker"/>
     <issueChecker implementation="com.android.tools.idea.gradle.project.sync.idea.issues.JdkImportIssueChecker"/>
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.idea.issues.GradleWrapperImportChecker"/>
   </extensions>
 
   <module-components>

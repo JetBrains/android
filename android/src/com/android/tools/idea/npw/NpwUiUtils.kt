@@ -21,6 +21,11 @@ import com.android.tools.idea.observable.SettableValue
 import com.android.tools.idea.observable.expressions.Expression
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
+import com.intellij.ui.ContextHelpLabel
+import com.intellij.ui.components.Label
+import com.intellij.ui.layout.Cell
+import java.awt.Component
+import javax.swing.JLabel
 
 fun <T, O> BindingsManager.bindExpression(dest: SettableValue<T>, listenTo: ObservableValue<O>, supplier: () -> T) {
   bind(dest, object: Expression<T>(listenTo) {
@@ -30,3 +35,20 @@ fun <T, O> BindingsManager.bindExpression(dest: SettableValue<T>, listenTo: Obse
 
 fun invokeLater(modalityState: ModalityState = ModalityState.any(), f: () -> Unit) =
   ApplicationManager.getApplication().invokeLater(f, modalityState)
+
+/**
+ * Creates a [JLabel], sets [JLabel.labelFor] and an optional [ContextHelpLabel].
+ * It is recommended to create it inside of a cell if context help is used.
+ */
+fun Cell.labelFor(text: String, forComponent: Component, contextHelpText: String? = null): JLabel {
+  val label = Label(text).apply {
+    labelFor = forComponent
+  }
+  label()
+
+  if (contextHelpText != null) {
+    ContextHelpLabel.create(contextHelpText)()
+  }
+  return label
+}
+

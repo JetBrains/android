@@ -134,7 +134,7 @@ class ComponentTreeModelImplTest {
 
   @RunsInEdt
   @Test
-  fun testSelectionNotificationFromModel() {
+  fun testNoSelectionNotificationFromModel() {
     // setup
     var selectionChangeCount = 0
     var treeSelectionChangeCount = 0
@@ -145,11 +145,11 @@ class ComponentTreeModelImplTest {
     selectionModel.addTreeSelectionListener { treeSelectionChangeCount++ }
 
     // test
-    selectionModel.selection = listOf(item2)
-    assertThat(selectionChangeCount).isEqualTo(1)
+    selectionModel.currentSelection = listOf(item2)
+    assertThat(selectionChangeCount).isEqualTo(0)
     assertThat(treeSelectionChangeCount).isEqualTo(1)
     assertThat(count.anyChanges()).isFalse()
-    assertThat(selectionModel.selection).containsExactly(item2)
+    assertThat(selectionModel.currentSelection).containsExactly(item2)
   }
 
   private class NotificationCount : ComponentTreeModelListener {

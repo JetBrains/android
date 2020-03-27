@@ -17,6 +17,7 @@ package com.android.tools.idea.diagnostics;
 
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Ordering;
+import com.intellij.openapi.diagnostic.Logger;
 import java.util.function.BiConsumer;
 import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.annotations.NotNull;
@@ -32,6 +33,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 public class ThreadSamplingReportContributor implements DiagnosticReportContributor {
+  private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.diagnostics.ThreadSamplingReportContributor");
 
   private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
   private final ThreadMXBean myThreadMXBean = ManagementFactory.getThreadMXBean();
@@ -116,6 +118,7 @@ public class ThreadSamplingReportContributor implements DiagnosticReportContribu
     final Map<Long, ThreadCallTree> threadMap = new HashMap<>();
     long intervalMs = myConfiguration.getIntervalMs();
     synchronized (mySampledStacks) {
+      LOG.info("Collected " + mySampledStacks.size() + " samples");
       for (ThreadInfo[] sampledThreads : mySampledStacks) {
         for (ThreadInfo ti : sampledThreads) {
           ThreadCallTree callTree = threadMap.get(ti.getThreadId());
@@ -126,10 +129,6 @@ public class ThreadSamplingReportContributor implements DiagnosticReportContribu
           callTree.addThreadInfo(ti, intervalMs);
         }
       }
-    }
-
-    for (ThreadCallTree callTree : threadMap.values()) {
-      callTree.computeTimeSpent();
     }
 
     // First, include hot path stack (for AWT thread) in the report.
@@ -213,10 +212,6 @@ public class ThreadSamplingReportContributor implements DiagnosticReportContribu
 
     public void addThreadInfo(ThreadInfo ti, long timeSpent) {
       myRootFrame.addThreadInfo(ti, timeSpent);
-    }
-
-    public void computeTimeSpent() {
-      myRootFrame.computeTimeSpent();
     }
 
     public String getReportString(long frameTimeIgnoreThresholdMs) {
@@ -315,6 +310,7 @@ public class ThreadSamplingReportContributor implements DiagnosticReportContribu
       FrameInfo currentFrameInfo = this;
       int index = stackTrace.length - 1;
       while (index >= 0) {
+        currentFrameInfo.myTimeSpent += timeSpent;
         StackTraceElement element = stackTrace[index];
         FrameInfo fi = currentFrameInfo.myChildren.get(element);
         if (fi == null) {
@@ -325,18 +321,6 @@ public class ThreadSamplingReportContributor implements DiagnosticReportContribu
         index--;
       }
       currentFrameInfo.myTimeSpent += timeSpent;
-    }
-
-    public long computeTimeSpent() {
-      if (myChildren.isEmpty()) {
-        return myTimeSpent;
-      }
-      long sum = 0;
-      for (FrameInfo fi : myChildren.values()) {
-        sum += fi.computeTimeSpent();
-      }
-      myTimeSpent = sum;
-      return sum;
     }
 
     public String getReportString(long frameTimeIgnoreThreshold) {

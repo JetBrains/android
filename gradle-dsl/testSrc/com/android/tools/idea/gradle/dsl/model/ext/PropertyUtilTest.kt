@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model.ext
 
-import com.android.tools.idea.gradle.dsl.TestFileName
-import com.android.tools.idea.gradle.dsl.TestFileName.PROPERTY_UTIL_WRITE_BACK_ELEMENT_WITH_TRIMMED_NAME
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_UTIL_WRITE_BACK_ELEMENT_WITH_TRIMMED_NAME
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType
 import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.TransformTestCase
@@ -25,7 +24,6 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Assume.assumeTrue
 import org.junit.Test
 
 

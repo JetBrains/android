@@ -15,16 +15,8 @@
  */
 package com.android.tools.idea.sqlite.ui
 
-import com.android.tools.adtui.TreeWalker
-import com.android.tools.idea.sqlite.controllers.SqliteParameter
-import com.android.tools.idea.sqlite.controllers.SqliteParameterValue
-import com.android.tools.idea.sqlite.ui.parametersBinding.ParametersBindingDialogView
 import com.android.tools.idea.sqlite.ui.parametersBinding.ParametersBindingDialogViewImpl
 import com.intellij.testFramework.LightPlatformTestCase
-import com.intellij.ui.components.JBCheckBox
-import com.intellij.ui.components.JBTextField
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.verify
 import java.awt.Dimension
 
 class ParametersBindingDialogViewImplTest : LightPlatformTestCase() {
@@ -36,24 +28,36 @@ class ParametersBindingDialogViewImplTest : LightPlatformTestCase() {
     view.component.size = Dimension(600, 200)
   }
 
-  fun testUserCanSetValueToNull() {
-    // Prepare
-    val mockListener = mock(ParametersBindingDialogView.Listener::class.java)
-    view.addListener(mockListener)
-    view.showNamedParameters(setOf(SqliteParameter("p1"), SqliteParameter("p2")))
-
-    val checkBoxes = TreeWalker(view.component).descendants().filterIsInstance<JBCheckBox>().filter { it.name == "null-check-box" }
-    val textFields = TreeWalker(view.component).descendants().filterIsInstance<JBTextField>().filter { it.name == "value-text-field" }
-
-    // Act
-    checkBoxes[0].isSelected = true
-    textFields[1].text = "null"
+  override fun tearDown() {
     view.doOKAction()
+    super.tearDown()
+  }
 
-    // Assert
-    verify(mockListener).bindingCompletedInvoked(mapOf(
-      Pair(SqliteParameter("p1"), SqliteParameterValue.fromAny(null)),
-      Pair(SqliteParameter("p2"), SqliteParameterValue.fromAny("null"))
-    ))
+  fun testUserCanSetValueToNull() {
+    // TODO(b/151922426)
+  }
+
+  fun testCanAssignListToCollectionParameters() {
+    // TODO(b/151922426)
+  }
+
+  fun testCanRemoveAdditionalValues() {
+    // TODO(b/151922426)
+  }
+
+  fun testAddAdditionalValueIsDisabledForNonCollectionParameters() {
+    // TODO(b/151922426)
+  }
+
+  fun testKeyboardShortcutSetsToNull() {
+    // TODO(b/151922426)
+  }
+
+  fun testKeyboardShortcutAddsValue() {
+    // TODO(b/151922426)
+  }
+
+  fun testKeyboardShortcutRemovesValue() {
+    // TODO(b/151922426)
   }
 }

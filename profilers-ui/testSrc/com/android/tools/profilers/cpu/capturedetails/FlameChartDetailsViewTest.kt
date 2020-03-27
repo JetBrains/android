@@ -105,11 +105,10 @@ class FlameChartDetailsViewTest {
   @Test
   fun flameChartHasCpuTraceEventTooltipView() {
     val parser = CpuCaptureParser(FakeIdeProfilerServices())
-    val atraceCapture = parser.parse(ProfilersTestData.SESSION_DATA.toBuilder().setPid(1).build(),
-                                     FakeCpuService.FAKE_TRACE_ID,
-                                     CpuProfilerTestUtils.traceFileToByteString(
-                                       TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_PID1_PATH)),
-                                     Cpu.CpuTraceType.ATRACE)!!.get()
+
+    val traceFile = TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_PID1_PATH)
+    val atraceCapture = parser.parse(traceFile, FakeCpuService.FAKE_TRACE_ID, Cpu.CpuTraceType.ATRACE, 1, null).get()
+
     val flameChart = CaptureDetails.Type.FLAME_CHART.build(Range(Double.MIN_VALUE, Double.MAX_VALUE),
                                                            listOf(atraceCapture.getCaptureNode(atraceCapture.mainThreadId)),
                                                            atraceCapture) as CaptureDetails.FlameChart

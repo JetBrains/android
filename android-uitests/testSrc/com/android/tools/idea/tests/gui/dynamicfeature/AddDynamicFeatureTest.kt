@@ -383,7 +383,8 @@ class AddDynamicFeatureTest {
     val fixture = NewModuleWizardFixture.find(ideFrame)
       .clickNextToInstantDynamicFeature()
 
-    validateInstantizeBaseManifestWarningIsVisible(fixture)
+    // TODO(qumeric): this icon was temporarily removed. It will be added after redesign. See b/139475118
+    // validateInstantizeBaseManifestWarningIsVisible(fixture)
     fixture.wizard().clickCancel()
   }
 

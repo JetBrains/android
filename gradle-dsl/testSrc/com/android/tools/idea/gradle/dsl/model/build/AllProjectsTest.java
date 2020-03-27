@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.gradle.dsl.model.build;
 
-import static com.android.tools.idea.gradle.dsl.TestFileName.ALL_PROJECTS_ALL_PROJECTS_SECTION;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ALL_PROJECTS_OVERRIDE_ALL_PROJECTS_SECTION;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ALL_PROJECTS_OVERRIDE_ALL_PROJECTS_SECTION_IN_SUBPROJECT;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ALL_PROJECTS_OVERRIDE_ALL_PROJECTS_SECTION_IN_SUBPROJECT_SUB;
-import static com.android.tools.idea.gradle.dsl.TestFileName.ALL_PROJECTS_OVERRIDE_WITH_ALL_PROJECTS_SECTION;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ALL_PROJECTS_ALL_PROJECTS_SECTION;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ALL_PROJECTS_OVERRIDE_ALL_PROJECTS_SECTION;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ALL_PROJECTS_OVERRIDE_ALL_PROJECTS_SECTION_IN_SUBPROJECT;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ALL_PROJECTS_OVERRIDE_ALL_PROJECTS_SECTION_IN_SUBPROJECT_SUB;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ALL_PROJECTS_OVERRIDE_WITH_ALL_PROJECTS_SECTION;
 
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;

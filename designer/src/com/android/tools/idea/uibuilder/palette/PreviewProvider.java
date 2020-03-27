@@ -52,7 +52,7 @@ import com.intellij.ui.scale.ScaleContext;
 import com.intellij.util.IconUtil;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.ui.ImageUtil;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.StartupUiUtil;
 import java.awt.Dimension;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
@@ -122,7 +122,7 @@ public class PreviewProvider implements Disposable {
     size = new Dimension(width, height);
 
     // Workaround for https://youtrack.jetbrains.com/issue/JRE-224
-    boolean inUserScale = !SystemInfo.isWindows || !UIUtil.isJreHiDPI(component);
+    boolean inUserScale = !SystemInfo.isWindows || !StartupUiUtil.isJreHiDPI(component);
     BufferedImage bufferedImage = ImageUtil.toBufferedImage(image, inUserScale);
 
     return new ImageAndDimension(bufferedImage, size);
