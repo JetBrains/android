@@ -235,7 +235,7 @@ public class CpuCaptureParser {
       };
 
       // Open the dialog warning the user the file is too large and asking them if they want to proceed with parsing.
-      myServices.openParseLargeTracesDialog(yesCallback, noCallback);
+      openParseLargeTracesDialog(yesCallback, noCallback);
     }
     else {
       // Trace file is not too big to be parsed. Parse it normally.
@@ -372,7 +372,7 @@ public class CpuCaptureParser {
           myCaptures.put(traceId, null);
         };
         // Open the dialog warning the user the trace is too large and asking them if they want to proceed with parsing.
-        myServices.openParseLargeTracesDialog(yesCallback, noCallback);
+        openParseLargeTracesDialog(yesCallback, noCallback);
       }
     }
 
@@ -496,5 +496,15 @@ public class CpuCaptureParser {
     catch (IOException | BufferUnderflowException e) {
       throw new IllegalStateException(e);
     }
+  }
+
+  private void openParseLargeTracesDialog(Runnable yesCallback, Runnable noCallback) {
+    myServices.openYesNoDialog("The trace file generated is large, and Android Studio may become unresponsive while " +
+                               "it parses the data. Do you want to continue?\n\n" +
+                               "Warning: If you select \"No\", Android Studio discards the trace data and you will need " +
+                               "to capture a new method trace.",
+                               "Trace File Too Large",
+                               yesCallback,
+                               noCallback);
   }
 }

@@ -25,7 +25,7 @@ import com.android.utils.FileUtils
 import com.intellij.openapi.project.Project
 import java.io.File
 
-private val minimumSupportedAgpVersion = GradleVersion.tryParseAndroidGradlePluginVersion("4.0.0-alpha03")!!
+private val minimumSupportedAgpVersion = GradleVersion.tryParseAndroidGradlePluginVersion("4.0.0-beta05")!!
 
 fun isBuildAttributionEnabledForProject(project: Project): Boolean {
   return StudioFlags.BUILD_ATTRIBUTION_ENABLED.get()

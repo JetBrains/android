@@ -35,15 +35,15 @@ import static com.intellij.util.ui.update.UiNotifyConnector.doWhenFirstShown;
 public class FirstRunWizardFrameProvider implements WelcomeFrameProvider {
   @Override
   public IdeFrame createFrame() {
-    WelcomeFrame frame = WelcomeScreenProvider.EP_NAME.computeSafeIfAny(provider -> {
+    for (WelcomeScreenProvider provider : WelcomeScreenProvider.EP_NAME.getExtensions()) {
       if (provider instanceof AndroidStudioWelcomeScreenProvider && provider.isAvailable()) {
         // If we need to show the first run wizard, return a normal WelcomeFrame (which will initialize the wizard via the
         // WelcomeScreenProvider extension point).
         return new WelcomeFrame();
       }
-      return null;
-    });
-    return frame == null ? null : customizeFlatWelcomeFrame();
+    }
+
+    return customizeFlatWelcomeFrame();
   }
 
   /**
@@ -56,30 +56,30 @@ public class FirstRunWizardFrameProvider implements WelcomeFrameProvider {
    */
   @Nullable
   private IdeFrame customizeFlatWelcomeFrame() {
-    return WelcomeFrame.EP.computeSafeIfAny(provider -> {
+    for (WelcomeFrameProvider provider : WelcomeFrame.EP.getExtensions()) {
       if (provider == this) {
         // Avoid infinite recursion, since we are one of the providers.
-        return null;
+        continue;
       }
 
       IdeFrame frame = provider.createFrame();
-      if (frame == null) {
-        return null;
+      if (frame != null) {
+        // Customize if FlatWelcomeFrame
+        if (frame instanceof FlatWelcomeFrame) {
+          FlatWelcomeFrame welcomeFrame = (FlatWelcomeFrame)frame;
+          doWhenFirstShown(welcomeFrame, () -> {
+            Logger.getInstance(this.getClass()).info("Overriding welcome frame to be resizable");
+            welcomeFrame.setResizable(true);
+            Rectangle newBounds = welcomeFrame.getBounds();
+            ScreenUtil.fitToScreen(newBounds);
+            welcomeFrame.setBounds(newBounds);
+          });
+        }
+        // Always return the first available frame
+        return frame;
       }
+    }
 
-      // Customize if FlatWelcomeFrame
-      if (frame instanceof FlatWelcomeFrame) {
-        FlatWelcomeFrame welcomeFrame = (FlatWelcomeFrame)frame;
-        doWhenFirstShown(welcomeFrame, () -> {
-          Logger.getInstance(this.getClass()).info("Overriding welcome frame to be resizable");
-          welcomeFrame.setResizable(true);
-          Rectangle newBounds = welcomeFrame.getBounds();
-          ScreenUtil.fitToScreen(newBounds);
-          welcomeFrame.setBounds(newBounds);
-        });
-      }
-      // Always return the first available frame
-      return frame;
-    });
+    return null;
   }
 }

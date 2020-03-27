@@ -29,6 +29,8 @@ import static com.android.SdkConstants.SHERPA_URI;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.common.api.InsertType;
+import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.Placeholder;
 import com.android.tools.idea.common.scene.SceneComponent;
@@ -41,9 +43,11 @@ import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface;
 import com.android.tools.idea.uibuilder.api.CustomPanel;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.handlers.assistant.MotionLayoutAssistantPanel;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.MotionConstraintPanel;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutComponentNotchProvider;
@@ -248,6 +252,20 @@ public class MotionLayoutHandler extends ViewGroupHandler {
       }
     }
     return null;
+  }
+
+  @Override
+  public void cleanUpAttributes(@NotNull NlComponent component, @NotNull NlAttributesHolder attributes) {
+    ConstraintComponentUtilities.cleanup(attributes, component);
+  }
+
+  @Override
+  public void onChildInserted(@NotNull ViewEditor editor,
+                              @NotNull NlComponent layout,
+                              @NotNull NlComponent newChild,
+                              @NotNull InsertType insertType) {
+    newChild.ensureId();
+    super.onChildInserted(editor, layout, newChild, insertType);
   }
 
   @Override

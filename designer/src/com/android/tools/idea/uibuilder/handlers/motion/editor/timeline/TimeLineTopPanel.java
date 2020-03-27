@@ -51,6 +51,15 @@ public class TimeLineTopPanel extends JPanel {
     });
   }
 
+  @Override
+  public void updateUI() {
+    super.updateUI();
+    if (mTickMarkCalculator !=  null) {
+      setPreferredSize(new Dimension(MEUI.scale(100), MEUI.ourHeaderHeight));
+      resize();
+    }
+  }
+
   private void resize() {
     int w = getWidth();
     int h = getHeight();
