@@ -228,6 +228,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       interactionHandler = SwitchingInteractionHandler(interactionHandlers, InteractionMode.DEFAULT)
       interactionHandler
     }
+    .setActionHandler { surface -> PreviewSurfaceActionHandler(surface) }
     .setEditable(true)
     .build()
     .apply {
