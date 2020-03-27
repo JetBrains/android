@@ -29,6 +29,7 @@ import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.RenderSession;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.ResourceValueImpl;
 import com.android.ide.common.rendering.api.Result;
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.rendering.api.SessionParams.RenderingMode;
@@ -38,6 +39,7 @@ import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
 import com.android.ide.common.util.PathString;
 import com.android.resources.LayoutDirection;
 import com.android.resources.ResourceFolderType;
+import com.android.resources.ResourceType;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
@@ -50,7 +52,6 @@ import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderParamsFlags;
 import com.android.tools.idea.model.ActivityAttributesSnapshot;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
@@ -60,8 +61,8 @@ import com.android.tools.idea.rendering.parsers.LayoutFilePullParser;
 import com.android.tools.idea.rendering.parsers.LayoutPsiPullParser;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.res.AssetRepositoryImpl;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.IdeResourcesUtil;
+import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.util.DependencyManagementUtil;
@@ -92,6 +93,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
@@ -172,6 +174,7 @@ public class RenderTask {
   private final List<CompletableFuture<?>> myRunningFutures = new LinkedList<>();
   @NotNull private final AtomicBoolean isDisposed = new AtomicBoolean(false);
   @Nullable private XmlFile myXmlFile;
+  @NotNull private final Function<Module, MergedManifestSnapshot> myManifestProvider;
 
   /**
    * Don't create this task directly; obtain via {@link RenderService}
@@ -191,7 +194,8 @@ public class RenderTask {
              @Nullable ILayoutPullParserFactory parserFactory,
              boolean isSecurityManagerEnabled,
              float quality,
-             @NotNull AllocationStackTrace allocationStackTraceElement) {
+             @NotNull AllocationStackTrace allocationStackTraceElement,
+             @NotNull Function<Module, MergedManifestSnapshot> manifestProvider) {
     this.isSecurityManagerEnabled = isSecurityManagerEnabled;
 
     if (!isSecurityManagerEnabled) {
@@ -227,6 +231,7 @@ public class RenderTask {
                                       renderService.getPlatform(facet));
     myDefaultQuality = quality;
     restoreDefaultQuality();
+    myManifestProvider = manifestProvider;
 
     allocationStackTraceElement.bind(this);
   }
@@ -604,8 +609,6 @@ public class RenderTask {
     // same session.
     params.setExtendedViewInfoMode(true);
 
-    MergedManifestSnapshot manifestInfo = MergedManifestManager.getSnapshot(module);
-
     LayoutDirectionQualifier qualifier = configuration.getFullConfig().getLayoutDirectionQualifier();
     if (qualifier != null && qualifier.getValue() == LayoutDirection.RTL && !getLayoutLib().isRtl(myLocale.toLocaleId())) {
       // We don't have a flag to force RTL regardless of locale, so just pick a RTL locale (note that
@@ -615,7 +618,8 @@ public class RenderTask {
       params.setLocale(myLocale.toLocaleId());
     }
     try {
-      params.setRtlSupport(manifestInfo.isRtlSupported());
+      @Nullable MergedManifestSnapshot manifestInfo = myManifestProvider.apply(module);
+      params.setRtlSupport(manifestInfo != null && manifestInfo.isRtlSupported());
     } catch (Exception e) {
       // ignore.
     }
@@ -627,12 +631,17 @@ public class RenderTask {
     }
     else {
       try {
-        ResourceValue appLabel = manifestInfo.getApplicationLabel();
-        params.setAppIcon(manifestInfo.getApplicationIcon());
+        @Nullable MergedManifestSnapshot manifestInfo = myManifestProvider.apply(module);
+        ResourceValue appLabel = manifestInfo != null
+                                 ? manifestInfo.getApplicationLabel()
+                                 : new ResourceValueImpl(ResourceNamespace.RES_AUTO, ResourceType.STRING, "appName", "");
+        if (manifestInfo != null)  {
+          params.setAppIcon(manifestInfo.getApplicationIcon());
+        }
         String activity = configuration.getActivity();
         if (activity != null) {
           params.setActivityName(activity);
-          ActivityAttributesSnapshot attributes = manifestInfo.getActivityAttributes(activity);
+          ActivityAttributesSnapshot attributes = manifestInfo != null ? manifestInfo.getActivityAttributes(activity) : null;
           if (attributes != null) {
             if (attributes.getLabel() != null) {
               appLabel = attributes.getLabel();
@@ -1220,11 +1229,8 @@ public class RenderTask {
     params.setLocale(myLocale.toLocaleId());
     params.setAssetRepository(myAssetRepository);
     params.setFlag(RenderParamsFlags.FLAG_KEY_RECYCLER_VIEW_SUPPORT, true);
-    MergedManifestSnapshot manifestInfo = MergedManifestManager.getSnapshot(module);
-    try {
-      params.setRtlSupport(manifestInfo.isRtlSupported());
-    } catch (Exception ignore) {
-    }
+    @Nullable MergedManifestSnapshot manifestInfo = myManifestProvider.apply(module);
+    params.setRtlSupport(manifestInfo != null && manifestInfo.isRtlSupported());
 
     try {
       myLayoutlibCallback.setLogger(myLogger);
