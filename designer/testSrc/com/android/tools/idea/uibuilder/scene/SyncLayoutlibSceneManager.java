@@ -21,6 +21,7 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleItemResourceValueImpl;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -73,7 +74,10 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
   @Override
   @NotNull
   protected RenderService.RenderTaskBuilder setupRenderTaskBuilder(@NotNull RenderService.RenderTaskBuilder taskBuilder) {
-    return super.setupRenderTaskBuilder(taskBuilder).disableSecurityManager();
+    return super.setupRenderTaskBuilder(taskBuilder)
+      .disableSecurityManager()
+      // For testing, we do not need to wait for the full merged manifest
+      .setMergedManifestProvider(module -> MergedManifestManager.getMergedManifestSupplier(module).getNow());
   }
 
   @Override
