@@ -28,7 +28,6 @@ import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.ui.notifyError
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -63,7 +62,7 @@ class DatabaseInspectorViewImpl(
   private val leftPanelView = LeftPanelView(this)
   private val viewContext = SqliteViewContext(leftPanelView.component)
   private val workBench: WorkBench<SqliteViewContext> = WorkBench(project, "Sqlite", null, parentDisposable)
-  private val tabs = JBTabsImpl(project, ActionManager.getInstance(), IdeFocusManager.getInstance(project), project)
+  private val tabs = JBTabsImpl(project, IdeFocusManager.getInstance(project), project)
 
   override val component: JComponent = workBench
 
