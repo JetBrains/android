@@ -56,6 +56,7 @@ public class NavNlEditorTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
   @Rule public final SetFlagRule<Boolean> flagRule = new SetFlagRule<>(StudioFlags.NAV_NEW_COMPONENT_TREE, false);
 
+  @RunIn(TestGroup.UNRELIABLE) // b/152621347
   @Test
   public void testSelectComponent() throws Exception {
     IdeFrameFixture frame = guiTest.importProject("Navigation").waitForGradleProjectSyncToFinish();
