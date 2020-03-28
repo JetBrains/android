@@ -330,7 +330,7 @@ abstract class GradleSyncProjectComparisonTest(
     }
 
     // Disabled due to b/151845330
-    fun /*test*/ReimportSimpleApplication() {
+    fun testReimportSimpleApplication() {
       var root: String? = null
       val before = openGradleProject(SIMPLE_APPLICATION, "project") { project ->
         val snapshot = project.saveAndDump()
