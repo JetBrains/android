@@ -32,6 +32,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager
+import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.UsefulTestCase
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
@@ -46,6 +47,8 @@ import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.AndroidTestCase.applyAndroidCodeStyleSettings
 import org.jetbrains.android.AndroidTestCase.initializeModuleFixtureBuilderWithSrcAndGen
 import org.jetbrains.android.facet.AndroidFacet
+import org.junit.rules.RuleChain
+import org.junit.rules.TestRule
 import org.junit.runner.Description
 import java.io.File
 
@@ -293,3 +296,10 @@ class AndroidProjectRule private constructor(
     fixture.tearDown()
   }
 }
+
+class EdtAndroidProjectRule(val projectRule: AndroidProjectRule) : TestRule by RuleChain.outerRule(projectRule).around(EdtRule())!! {
+  val project: Project get() = projectRule.project
+  val fixture: CodeInsightTestFixture get() = projectRule.fixture
+}
+
+fun AndroidProjectRule.onEdt(): EdtAndroidProjectRule = EdtAndroidProjectRule(this)
