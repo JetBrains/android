@@ -146,7 +146,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   public void setUpFixture() throws Exception {
-    AndroidTempDirTestFixture tempDirFixture = new AndroidTempDirTestFixture(getName(), true);
+    AndroidTempDirTestFixture tempDirFixture = new AndroidTempDirTestFixture(getName());
     TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder =
       IdeaTestFixtureFactory.getFixtureFactory()
         .createFixtureBuilder(getName(), tempDirFixture.getProjectDir().getParentFile().toPath(), true);
