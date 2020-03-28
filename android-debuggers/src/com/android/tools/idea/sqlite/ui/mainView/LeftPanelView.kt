@@ -22,6 +22,7 @@ import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.ui.renderers.SchemaTreeCellRenderer
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.DoubleClickListener
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.SideBorder
@@ -135,6 +136,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
   private fun createNorthPanel(): JPanel {
     val northPanel = JPanel(FlowLayout(FlowLayout.LEFT))
 
+    refreshSchemaButton.disabledIcon = IconLoader.getDisabledIcon(AllIcons.Actions.Refresh)
     refreshSchemaButton.name = "refresh-schema-button"
     refreshSchemaButton.isEnabled = false
     refreshSchemaButton.toolTipText = "Refresh schema"
@@ -143,6 +145,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
       mainView.listeners.forEach { it.refreshAllOpenDatabasesSchemaActionInvoked() }
     }
 
+    runSqlButton.disabledIcon = IconLoader.getDisabledIcon(AllIcons.RunConfigurations.TestState.Run)
     runSqlButton.name = "run-sql-button"
     runSqlButton.isEnabled = false
     runSqlButton.toolTipText = "Open SQL evaluator tab"
