@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.navigator.nodes;
+package com.android.tools.idea.navigator.nodes
 
-import com.intellij.psi.PsiFile;
-import org.jetbrains.annotations.NotNull;
+import com.intellij.psi.PsiDirectory
+import com.intellij.psi.PsiFile
 
-public interface FileGroupNode {
-  @NotNull
-  PsiFile[] getFiles();
+/**
+ * A node that represents a group of files in a merged form.
+ */
+interface FileGroupNode {
+  /**
+   * A list of files represented by the node.
+   */
+  val files: List<PsiFile>
 }
+
+/**
+ * A node whose children are selected from multiple folders.
+ */
+interface FolderGroupNode {
+  /**
+   * A list of folders from which its children are/can be selected.
+   */
+  val folders: List<PsiDirectory>
+}
+

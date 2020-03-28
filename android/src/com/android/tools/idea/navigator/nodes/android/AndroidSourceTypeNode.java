@@ -219,8 +219,7 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
 
   @Override
   @NotNull
-  public PsiDirectory[] getFolders() {
-    List<PsiDirectory> folders = getSourceFolders();
-    return folders.toArray(PsiDirectory.EMPTY_ARRAY);
+  public List<PsiDirectory> getFolders() {
+    return getSourceFolders();
   }
 }
