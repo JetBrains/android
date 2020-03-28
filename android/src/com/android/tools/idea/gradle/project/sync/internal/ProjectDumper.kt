@@ -181,8 +181,6 @@ class ProjectDumper(
     println("<PROJECT>     <== ${currentRootDirectory}")
     head("PROJECT") { project.name }
     nest {
-      val languageLevelExtension = LanguageLevelProjectExtension.getInstance(project)
-      prop("LanguageLevel" ) { languageLevelExtension.languageLevel.presentableText }
       head("PROJECT_JDK") { ProjectRootManager.getInstance(project).projectSdk?.name }
       nest {
         prop("Version") { ProjectRootManager.getInstance(project).projectSdk?.versionString?.replaceJdkVersion() }

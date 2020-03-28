@@ -1,5 +1,4 @@
 PROJECT             : project
-    LanguageLevel       : 13 - No new language features
     PROJECT_JDK         : 1.8
         Version             : java version "<JDK_VERSION>"
     MODULE              : project
