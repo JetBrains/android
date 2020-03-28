@@ -87,7 +87,7 @@ class AndroidProjectRule private constructor(
      *
      * See also: [withAndroidModels].
      */
-    private val projectModuleBuilders: List<ModuleModelBuilder> = emptyList(),
+  private val projectModuleBuilders: List<ModuleModelBuilder>? = null,
 
     /**
      * Name of the fixture used to create the project directory when not
@@ -200,13 +200,15 @@ class AndroidProjectRule private constructor(
     if (initAndroid) {
       addFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME)
     }
-    if (projectModuleBuilders.isNotEmpty()) {
+    if (projectModuleBuilders != null) {
       invokeAndWaitIfNeeded {
         // Similarly to AndroidGradleTestCase, sync (fake sync here) requires SDKs to be set up and cleaned after the test to behave
         // properly.
         AndroidGradleTests.setUpSdks(fixture, TestUtils.getSdk())
         val basePath = File(fixture.tempDirPath)
-        setupTestProjectFromAndroidModel(project, basePath, *projectModuleBuilders.toTypedArray())
+        if (projectModuleBuilders.isNotEmpty()) {
+          setupTestProjectFromAndroidModel(project, basePath, *projectModuleBuilders.toTypedArray())
+        }
       }
     }
     mocks = IdeComponents(fixture)
@@ -256,7 +258,7 @@ class AndroidProjectRule private constructor(
       .getFixtureFactory()
       .createCodeInsightFixture(projectBuilder.fixture, tempDirFixture)
 
-    if (projectModuleBuilders.isEmpty()) {
+    if (projectModuleBuilders == null) {
       val moduleFixtureBuilder = projectBuilder.addModule(AndroidTestCase.AndroidModuleFixtureBuilder::class.java)
       initializeModuleFixtureBuilderWithSrcAndGen(moduleFixtureBuilder, javaCodeInsightTestFixture.tempDirPath)
     }
@@ -282,6 +284,11 @@ class AndroidProjectRule private constructor(
     return facet
   }
 
+  fun setupProjectFrom(vararg moduleBuilders: ModuleModelBuilder) {
+    val basePath = File(fixture.tempDirPath)
+    setupTestProjectFromAndroidModel(project, basePath, *moduleBuilders)
+  }
+
   override fun after(description: Description) {
     runInEdtAndWait {
       val facetManager = FacetManager.getInstance(module)
@@ -300,6 +307,7 @@ class AndroidProjectRule private constructor(
 class EdtAndroidProjectRule(val projectRule: AndroidProjectRule) : TestRule by RuleChain.outerRule(projectRule).around(EdtRule())!! {
   val project: Project get() = projectRule.project
   val fixture: CodeInsightTestFixture get() = projectRule.fixture
+  fun setupProjectFrom(vararg moduleBuilders: ModuleModelBuilder) = projectRule.setupProjectFrom(*moduleBuilders)
 }
 
 fun AndroidProjectRule.onEdt(): EdtAndroidProjectRule = EdtAndroidProjectRule(this)
