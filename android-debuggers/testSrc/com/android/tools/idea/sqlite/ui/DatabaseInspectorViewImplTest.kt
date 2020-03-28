@@ -229,7 +229,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
   fun testEmptyStateIsShownInitially() {
     // Prepare
     val emptyStateRightPanel = TreeWalker(view.component).descendants().first { it.name == "right-panel-empty-state" }
-    val syncSchemaButton = TreeWalker(view.component).descendants().first { it.name == "sync-schema-button" }
+    val syncSchemaButton = TreeWalker(view.component).descendants().first { it.name == "refresh-schema-button" }
     val runSqlButton = TreeWalker(view.component).descendants().first { it.name == "run-sql-button" }
     val tree = TreeWalker(view.component).descendants().first { it.name == "left-panel-tree" } as Tree
 
@@ -253,7 +253,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     // Assert
     val emptyStateRightPanelAfterAddingDb = TreeWalker(view.component).descendants().firstOrNull { it.name == "right-panel-empty-state" }
     val tabsPanelAfterAddingDb = TreeWalker(view.component).descendants().first { it.name == "right-panel-tabs-panel" }
-    val syncSchemaButtonAfterAddingDb = TreeWalker(view.component).descendants().first { it.name == "sync-schema-button" }
+    val syncSchemaButtonAfterAddingDb = TreeWalker(view.component).descendants().first { it.name == "refresh-schema-button" }
     val runSqlButtonAfterAddingDb = TreeWalker(view.component).descendants().first { it.name == "run-sql-button" }
     val treeRootAfterAddingDb = tree.model.root
 
@@ -277,7 +277,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     // Assert
     val emptyStateRightPanelAfterRemovingDb = TreeWalker(view.component).descendants().first { it.name == "right-panel-empty-state" }
     val tabsPanelAfterRemovingDb = TreeWalker(view.component).descendants().firstOrNull { it.name == "right-panel-tabs-panel" }
-    val syncSchemaButtonAfterRemovingDb = TreeWalker(view.component).descendants().first { it.name == "sync-schema-button" }
+    val syncSchemaButtonAfterRemovingDb = TreeWalker(view.component).descendants().first { it.name == "refresh-schema-button" }
     val runSqlButtonAfterRemovingDb = TreeWalker(view.component).descendants().first { it.name == "run-sql-button" }
     val treeRootAfterRemovingDb = tree.model.root
 

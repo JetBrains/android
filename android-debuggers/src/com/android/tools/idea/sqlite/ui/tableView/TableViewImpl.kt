@@ -30,6 +30,7 @@ import com.intellij.openapi.actionSystem.CustomShortcutSet
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.ui.ComboBox
+import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.ColoredTableCellRenderer
 import com.intellij.ui.HyperlinkAdapter
 import com.intellij.ui.PopupHandler
@@ -121,11 +122,11 @@ class TableViewImpl : TableView {
     val pagingControlsPanel = JPanel(FlowLayout(FlowLayout.LEFT))
     southPanel.add(pagingControlsPanel, BorderLayout.EAST)
 
-    firstRowsPageButton.toolTipText = "First"
+    firstRowsPageButton.toolTipText = "Go to first page"
     pagingControlsPanel.add(firstRowsPageButton)
     firstRowsPageButton.addActionListener { listeners.forEach { it.loadFirstRowsInvoked() } }
 
-    previousRowsPageButton.toolTipText = "Previous"
+    previousRowsPageButton.toolTipText = "Go to previous page"
     pagingControlsPanel.add(previousRowsPageButton)
     previousRowsPageButton.addActionListener { listeners.forEach { it.loadPreviousRowsInvoked() } }
 
@@ -139,15 +140,15 @@ class TableViewImpl : TableView {
     pagingControlsPanel.add(pageSizeComboBox)
     pageSizeComboBox.addActionListener { listeners.forEach { it.rowCountChanged((pageSizeComboBox.selectedItem as Int)) } }
 
-    nextRowsPageButton.toolTipText = "Next"
+    nextRowsPageButton.toolTipText = "Go to next page"
     pagingControlsPanel.add(nextRowsPageButton)
     nextRowsPageButton.addActionListener { listeners.forEach { it.loadNextRowsInvoked() } }
 
-    lastRowsPageButton.toolTipText = "Last"
+    lastRowsPageButton.toolTipText = "Go to last page"
     pagingControlsPanel.add(lastRowsPageButton)
     lastRowsPageButton.addActionListener { listeners.forEach { it.loadLastRowsInvoked() } }
 
-    refreshButton.toolTipText = "Sync table"
+    refreshButton.toolTipText = "Refresh table"
     tableActionsPanel.add(refreshButton)
     refreshButton.addActionListener { listeners.forEach { it.refreshDataInvoked() } }
 
