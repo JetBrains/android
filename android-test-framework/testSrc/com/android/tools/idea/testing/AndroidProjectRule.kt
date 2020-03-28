@@ -16,7 +16,6 @@
 package com.android.tools.idea.testing
 
 import com.android.testutils.TestUtils
-import com.android.tools.idea.io.FilePaths.toSystemDependentPath
 import com.android.tools.idea.testing.AndroidProjectRule.Companion.withAndroidModels
 import com.intellij.application.options.CodeStyle
 import com.intellij.facet.Facet
@@ -24,20 +23,25 @@ import com.intellij.facet.FacetConfiguration
 import com.intellij.facet.FacetManager
 import com.intellij.facet.FacetType
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager
+import com.intellij.testFramework.UsefulTestCase
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import com.intellij.testFramework.fixtures.impl.LightTempDirTestFixtureImpl
-import com.intellij.testFramework.fixtures.impl.TempDirTestFixtureImpl
 import com.intellij.testFramework.registerExtension
 import com.intellij.testFramework.runInEdtAndWait
+import org.jetbrains.android.AndroidTempDirTestFixture
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.AndroidTestCase.applyAndroidCodeStyleSettings
 import org.jetbrains.android.AndroidTestCase.initializeModuleFixtureBuilderWithSrcAndGen
@@ -226,33 +230,24 @@ class AndroidProjectRule private constructor(
         AndroidTestCase.AndroidModuleFixtureBuilder::class.java,
         AndroidTestCase.AndroidModuleFixtureBuilderImpl::class.java)
 
-    val projectBuilder = IdeaTestFixtureFactory
-        .getFixtureFactory()
-        .createFixtureBuilder(fixtureName ?: description.testClass.simpleName)
-
-    val tempDirFixture =
-      if (projectModuleBuilders.isEmpty()) {
-        // Use a default temp dir fixture for simple tests which do not require an AndroidModel.
-        TempDirTestFixtureImpl()
-      }
-      else {
-        // Projects set up to match the provided AndroidModel require content files to be located under the project directory.
-        // Otherwise adding a new directory may require re-(fake)syncing to make it visible to the project.
-        object : TempDirTestFixtureImpl() {
-          private val tempDir by lazy { toSystemDependentPath(projectBuilder.fixture.project.basePath)!! }
-
-          override fun getTempHome(): File = tempDir
-
-          override fun tearDown() {
-            val existed = tempDir.exists()
-            super.tearDown()
-            // TempDirTestFixtureImpl re-creates parent directories on tear down. Delete tempDir if it was re-created.
-            if (!existed && tempDir.exists()) {
-              tempDir.delete()
-            }
-          }
+    val name = fixtureName ?: description.testClass.simpleName
+    val tempDirFixture = object: AndroidTempDirTestFixture(name) {
+      private val tempRoot: String = FileUtil.createTempDirectory(UsefulTestCase.TEMP_DIR_MARKER + name, "", false).path
+      override fun getRootTempDirectory(): String = tempRoot
+      override fun tearDown() {
+        super.tearDown()  // Deletes the project directory.
+        try {
+          // Delete the temp directory where the project directory was created.
+          runWriteAction { VfsUtil.createDirectories(tempRoot).delete(this) }
+        }
+        catch (e: Throwable) {
+          addSuppressedException(e);
         }
       }
+    }
+    val projectBuilder = IdeaTestFixtureFactory
+        .getFixtureFactory()
+        .createFixtureBuilder(name, tempDirFixture.projectDir.parentFile.toPath(), true)
 
     val javaCodeInsightTestFixture = JavaTestFixtureFactory
       .getFixtureFactory()
