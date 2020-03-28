@@ -29,6 +29,9 @@ import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiManager
 import com.intellij.ui.EditorTextField
+import com.intellij.ui.IdeBorderFactory
+import com.intellij.ui.SideBorder
+import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.Toolkit
 import java.awt.event.KeyEvent
@@ -52,6 +55,11 @@ class SqliteEvaluatorViewImpl(
   private val listeners = ArrayList<SqliteEvaluatorView.Listener>()
 
   init {
+    evaluatorPanel.controlsContainer.border = JBUI.Borders.merge(
+      JBUI.Borders.empty(2, 0, 2, 0),
+      IdeBorderFactory.createBorder(SideBorder.BOTTOM),
+      true
+    )
     evaluatorPanel.controlsContainer.add(expandableEditor.collapsedEditor, BorderLayout.CENTER)
     evaluatorPanel.root.add(tableView.component, BorderLayout.CENTER)
     evaluatorPanel.evaluateButton.addActionListener { evaluateSqliteExpression() }
