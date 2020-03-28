@@ -25,6 +25,7 @@ import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.model.SqliteValue
 import com.android.tools.idea.sqlite.model.getRowIdName
 import com.google.common.io.BaseEncoding
+import com.intellij.openapi.diagnostic.Logger
 
 /**
  * Builds a [SqliteInspectorProtocol.Command] from a [SqliteStatement] and a database connection id.
@@ -72,6 +73,7 @@ internal fun List<SqliteInspectorProtocol.Table>.toSqliteSchema(): SqliteSchema 
 
 /**
  * This method is used to handle synchronous errors from the on-device inspector.
+ * All errors are logged, except for recoverable errors.
  *
  * An on-device inspector can send an error as a response to a command (synchronous) or as an event (asynchronous).
  * When detected, synchronous errors are thrown as exceptions so that they become part of the usual flow for errors:
@@ -79,7 +81,21 @@ internal fun List<SqliteInspectorProtocol.Table>.toSqliteSchema(): SqliteSchema 
  *
  * Asynchronous errors are delivered to DatabaseInspectorProjectService that takes care of showing them.
  */
-internal fun handleError(errorContent: SqliteInspectorProtocol.ErrorContent): Nothing {
+internal fun handleError(errorContent: SqliteInspectorProtocol.ErrorContent, logger: Logger): Nothing {
+  when(errorContent.recoverability.oneOfCase) {
+    SqliteInspectorProtocol.ErrorRecoverability.OneOfCase.IS_RECOVERABLE -> {
+      // log when isRecoverable is set and is false.
+      if (!errorContent.recoverability.isRecoverable) {
+        logger.warn("Unrecoverable error from on-device inspector: ${errorContent.message}\n${errorContent.stackTrace}")
+      }
+    }
+    SqliteInspectorProtocol.ErrorRecoverability.OneOfCase.ONEOF_NOT_SET -> {
+      // log when isRecoverable is not set ("unknown if recoverable error").
+      logger.warn("Unknown if recoverable error from on-device inspector: ${errorContent.message}\n${errorContent.stackTrace}")
+    }
+    null -> { }
+  }
+
   val message = getErrorMessage(errorContent)
   throw LiveInspectorException(message, errorContent.stackTrace)
 }

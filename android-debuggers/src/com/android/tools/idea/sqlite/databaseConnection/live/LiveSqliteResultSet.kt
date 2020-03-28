@@ -17,8 +17,8 @@ package com.android.tools.idea.sqlite.databaseConnection.live
 
 import androidx.sqlite.inspection.SqliteInspectorProtocol
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
-import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.concurrency.cancelOnDispose
+import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.databaseConnection.checkOffsetAndSize
 import com.android.tools.idea.sqlite.model.SqliteAffinity
@@ -26,7 +26,7 @@ import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.google.common.util.concurrent.ListenableFuture
-import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.diagnostic.logger
 import java.util.concurrent.Executor
 
 /**
@@ -51,7 +51,7 @@ class LiveSqliteResultSet(
       val response = SqliteInspectorProtocol.Response.parseFrom(it)
 
       if (response.hasErrorOccurred()) {
-        handleError(response.errorOccurred.content)
+        handleError(response.errorOccurred.content, logger<LiveSqliteResultSet>())
       }
 
       return@transform response.query.columnNamesList.map { columnName ->
@@ -71,7 +71,7 @@ class LiveSqliteResultSet(
       val response = SqliteInspectorProtocol.Response.parseFrom(it)
 
       if (response.hasErrorOccurred()) {
-        handleError(response.errorOccurred.content)
+        handleError(response.errorOccurred.content, logger<LiveSqliteResultSet>())
       }
 
       response.query.rowsList.firstOrNull()?.valuesList?.firstOrNull()?.intValue ?: 0
@@ -88,7 +88,7 @@ class LiveSqliteResultSet(
       val response = SqliteInspectorProtocol.Response.parseFrom(byteArray)
 
       if (response.hasErrorOccurred()) {
-        handleError(response.errorOccurred.content)
+        handleError(response.errorOccurred.content, logger<LiveSqliteResultSet>())
       }
 
       val columnNames = response.query.columnNamesList
