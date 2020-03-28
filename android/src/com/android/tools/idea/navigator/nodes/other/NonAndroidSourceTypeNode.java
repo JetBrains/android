@@ -163,7 +163,7 @@ public class NonAndroidSourceTypeNode extends ProjectViewNode<Module> implements
 
   @Override
   @NotNull
-  public PsiDirectory[] getFolders() {
+  public List<PsiDirectory> getFolders() {
     assert myProject != null;
     PsiManager psiManager = PsiManager.getInstance(myProject);
     List<VirtualFile> sourceFolders = getSourceFolders();
@@ -175,6 +175,6 @@ public class NonAndroidSourceTypeNode extends ProjectViewNode<Module> implements
         folders.add(dir);
       }
     }
-    return folders.toArray(PsiDirectory.EMPTY_ARRAY);
+    return folders;
   }
 }

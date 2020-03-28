@@ -320,7 +320,7 @@ public class NdkLibraryNode extends ProjectViewNode<Collection<NativeArtifact>> 
 
   @Override
   @NotNull
-  public PsiDirectory[] getFolders() {
+  public List<PsiDirectory> getFolders() {
     PsiManager psiManager = PsiManager.getInstance(getNotNullProject());
     List<PsiDirectory> folders = new ArrayList<>();
 
@@ -332,7 +332,7 @@ public class NdkLibraryNode extends ProjectViewNode<Collection<NativeArtifact>> 
         }
       }
     }
-    return folders.toArray(PsiDirectory.EMPTY_ARRAY);
+    return folders;
   }
 
   @NotNull

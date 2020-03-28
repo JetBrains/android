@@ -247,7 +247,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
 
     NodeDescriptor descriptor = getSelectedDescriptor();
     if (descriptor instanceof FolderGroupNode) {
-      return ((FolderGroupNode)descriptor).getFolders();
+      return ((FolderGroupNode)descriptor).getFolders().toArray(PsiDirectory.EMPTY_ARRAY);
     }
 
     PsiDirectory[] selectedDirectories = super.getSelectedDirectories();
@@ -333,9 +333,9 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
     if (VIRTUAL_FILE_ARRAY.is(dataId)) {
       NodeDescriptor selectedDescriptor = getSelectedDescriptor();
       if (selectedDescriptor instanceof FileGroupNode) {
-        PsiFile[] files = ((FileGroupNode)selectedDescriptor).getFiles();
-        if (files.length > 0) {
-          List<VirtualFile> virtualFiles = new ArrayList<>(files.length);
+        List<PsiFile> files = ((FileGroupNode)selectedDescriptor).getFiles();
+        if (!files.isEmpty()) {
+          List<VirtualFile> virtualFiles = new ArrayList<>(files.size());
           for (PsiFile file : files) {
             if (file.isValid()) {
               virtualFiles.add(file.getVirtualFile());
@@ -346,9 +346,9 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
       }
 
       if (selectedDescriptor instanceof FolderGroupNode) {
-        PsiDirectory[] directories = ((FolderGroupNode)selectedDescriptor).getFolders();
-        if (directories.length > 0) {
-          List<VirtualFile> virtualFiles = new ArrayList<>(directories.length);
+        List<PsiDirectory> directories = ((FolderGroupNode)selectedDescriptor).getFolders();
+        if (!directories.isEmpty()) {
+          List<VirtualFile> virtualFiles = new ArrayList<>(directories.size());
           for (PsiDirectory directory : directories) {
             if (directory.isValid()) {
               virtualFiles.add(directory.getVirtualFile());
@@ -373,16 +373,16 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
 
       NodeDescriptor selectedDescriptor = getSelectedDescriptor();
       if (selectedDescriptor instanceof FileGroupNode) {
-        PsiFile[] files = ((FileGroupNode)selectedDescriptor).getFiles();
-        if (files.length > 0) {
-          return files[0];
+        List<PsiFile> files = ((FileGroupNode)selectedDescriptor).getFiles();
+        if (!files.isEmpty()) {
+          return files.get(0);
         }
       }
 
       if (selectedDescriptor instanceof FolderGroupNode) {
-        PsiDirectory[] directories = ((FolderGroupNode)selectedDescriptor).getFolders();
-        if (directories.length > 0) {
-          return directories[0];
+        List<PsiDirectory> directories = ((FolderGroupNode)selectedDescriptor).getFolders();
+        if (!directories.isEmpty()) {
+          return directories.get(0);
         }
       }
     }

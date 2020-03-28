@@ -76,7 +76,7 @@ public class AndroidJniFolderNode extends ProjectViewNode<NdkModuleModel> implem
 
   @Override
   @NotNull
-  public PsiDirectory[] getFolders() {
+  public List<PsiDirectory> getFolders() {
     Collection<File> sourceFolderPaths = getNdkModel().getSelectedVariant().getSourceFolders();
     List<PsiDirectory> folders = new ArrayList<>(sourceFolderPaths.size());
 
@@ -94,7 +94,7 @@ public class AndroidJniFolderNode extends ProjectViewNode<NdkModuleModel> implem
       }
     }
 
-    return folders.toArray(PsiDirectory.EMPTY_ARRAY);
+    return folders;
   }
 
   @Override

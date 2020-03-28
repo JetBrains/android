@@ -26,6 +26,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
+import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,6 +36,7 @@ import static com.android.tools.idea.projectsystem.SourceProvidersKt.findByFile;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
+import static java.util.Collections.emptyList;
 
 public class AndroidManifestFileNode extends PsiFileNode implements FolderGroupNode {
   @NotNull private final AndroidFacet myAndroidFacet;
@@ -97,8 +99,8 @@ public class AndroidManifestFileNode extends PsiFileNode implements FolderGroupN
 
   @Override
   @NotNull
-  public PsiDirectory[] getFolders() {
-    return PsiDirectory.EMPTY_ARRAY;
+  public List<PsiDirectory> getFolders() {
+    return emptyList();
   }
 
   @Override

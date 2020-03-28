@@ -331,7 +331,7 @@ public class NdkLibraryEnhancedHeadersNode extends ProjectViewNode<Collection<Na
 
   @Override
   @NotNull
-  public PsiDirectory[] getFolders() {
+  public List<PsiDirectory> getFolders() {
     PsiManager psiManager = PsiManager.getInstance(getNotNullProject());
     List<PsiDirectory> folders = new ArrayList<>();
 
@@ -343,7 +343,7 @@ public class NdkLibraryEnhancedHeadersNode extends ProjectViewNode<Collection<Na
         }
       }
     }
-    return folders.toArray(PsiDirectory.EMPTY_ARRAY);
+    return folders;
   }
 
   @NotNull
