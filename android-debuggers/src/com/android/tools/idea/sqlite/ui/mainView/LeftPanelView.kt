@@ -43,7 +43,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
   private val rootPanel = JPanel(BorderLayout())
   private val tree = Tree()
 
-  private val syncSchemaButton = CommonButton("Sync schema", AllIcons.Actions.Refresh)
+  private val syncSchemaButton = CommonButton("Refresh schema", AllIcons.Actions.Refresh)
   private val runSqlButton = CommonButton("Run SQL", AllIcons.RunConfigurations.TestState.Run)
 
   val component = rootPanel
@@ -62,7 +62,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     val treeModel = tree.model as DefaultTreeModel
 
     val root = if (treeModel.root == null) {
-      val root = DefaultMutableTreeNode("Schemas")
+      val root = DefaultMutableTreeNode("Databases")
       treeModel.setRoot(root)
       root
     } else {

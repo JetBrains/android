@@ -202,9 +202,9 @@ class DatabaseInspectorViewImpl(
 
   private fun createToolWindowDefinition(): ToolWindowDefinition<SqliteViewContext> {
     return ToolWindowDefinition(
-      "Open Databases",
+      "Databases",
       StudioIcons.DatabaseInspector.TABLE,
-      "OPEN_DATABASES",
+      "DATABASES",
       Side.LEFT,
       Split.TOP,
       AutoHide.DOCKED
