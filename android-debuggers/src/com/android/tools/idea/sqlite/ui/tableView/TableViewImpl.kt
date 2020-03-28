@@ -81,11 +81,11 @@ class TableViewImpl : TableView {
 
   private val readOnlyLabel = JLabel("Results are read-only")
 
-  private val firstRowsPageButton = CommonButton("First", AllIcons.Actions.Play_first)
-  private val lastRowsPageButton = CommonButton("Last", AllIcons.Actions.Play_last)
+  private val firstRowsPageButton = CommonButton("First", StudioIcons.LayoutEditor.Motion.GO_TO_START)
+  private val lastRowsPageButton = CommonButton("Last", StudioIcons.LayoutEditor.Motion.GO_TO_END)
 
-  private val previousRowsPageButton = CommonButton("Previous", AllIcons.Actions.Play_back)
-  private val nextRowsPageButton = CommonButton("Next", AllIcons.Actions.Play_forward)
+  private val previousRowsPageButton = CommonButton("Previous", StudioIcons.LayoutEditor.Motion.PREVIOUS_TICK)
+  private val nextRowsPageButton = CommonButton("Next", StudioIcons.LayoutEditor.Motion.NEXT_TICK)
 
   private val pageSizeComboBox = ComboBox<Int>().apply { name = "page-size-combo-box" }
 
