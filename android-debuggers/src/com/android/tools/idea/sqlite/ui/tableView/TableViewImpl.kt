@@ -82,11 +82,11 @@ class TableViewImpl : TableView {
 
   private val readOnlyLabel = JLabel("Results are read-only")
 
-  private val firstRowsPageButton = CommonButton("First", StudioIcons.LayoutEditor.Motion.GO_TO_START)
-  private val lastRowsPageButton = CommonButton("Last", StudioIcons.LayoutEditor.Motion.GO_TO_END)
+  private val firstRowsPageButton = CommonButton(StudioIcons.LayoutEditor.Motion.GO_TO_START)
+  private val lastRowsPageButton = CommonButton(StudioIcons.LayoutEditor.Motion.GO_TO_END)
 
-  private val previousRowsPageButton = CommonButton("Previous", StudioIcons.LayoutEditor.Motion.PREVIOUS_TICK)
-  private val nextRowsPageButton = CommonButton("Next", StudioIcons.LayoutEditor.Motion.NEXT_TICK)
+  private val previousRowsPageButton = CommonButton(StudioIcons.LayoutEditor.Motion.PREVIOUS_TICK)
+  private val nextRowsPageButton = CommonButton(StudioIcons.LayoutEditor.Motion.NEXT_TICK)
 
   private val pageSizeComboBox = ComboBox<Int>().apply { name = "page-size-combo-box" }
 
@@ -122,10 +122,12 @@ class TableViewImpl : TableView {
     val pagingControlsPanel = JPanel(FlowLayout(FlowLayout.LEFT))
     southPanel.add(pagingControlsPanel, BorderLayout.EAST)
 
+    firstRowsPageButton.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.LayoutEditor.Motion.GO_TO_START)
     firstRowsPageButton.toolTipText = "Go to first page"
     pagingControlsPanel.add(firstRowsPageButton)
     firstRowsPageButton.addActionListener { listeners.forEach { it.loadFirstRowsInvoked() } }
 
+    previousRowsPageButton.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.LayoutEditor.Motion.PREVIOUS_TICK)
     previousRowsPageButton.toolTipText = "Go to previous page"
     pagingControlsPanel.add(previousRowsPageButton)
     previousRowsPageButton.addActionListener { listeners.forEach { it.loadPreviousRowsInvoked() } }
@@ -140,14 +142,17 @@ class TableViewImpl : TableView {
     pagingControlsPanel.add(pageSizeComboBox)
     pageSizeComboBox.addActionListener { listeners.forEach { it.rowCountChanged((pageSizeComboBox.selectedItem as Int)) } }
 
+    nextRowsPageButton.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.LayoutEditor.Motion.NEXT_TICK)
     nextRowsPageButton.toolTipText = "Go to next page"
     pagingControlsPanel.add(nextRowsPageButton)
     nextRowsPageButton.addActionListener { listeners.forEach { it.loadNextRowsInvoked() } }
 
+    lastRowsPageButton.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.LayoutEditor.Motion.GO_TO_END)
     lastRowsPageButton.toolTipText = "Go to last page"
     pagingControlsPanel.add(lastRowsPageButton)
     lastRowsPageButton.addActionListener { listeners.forEach { it.loadLastRowsInvoked() } }
 
+    refreshButton.disabledIcon = IconLoader.getDisabledIcon(AllIcons.Actions.Refresh)
     refreshButton.toolTipText = "Refresh table"
     tableActionsPanel.add(refreshButton)
     refreshButton.addActionListener { listeners.forEach { it.refreshDataInvoked() } }

@@ -24,6 +24,7 @@ import com.intellij.openapi.actionSystem.CustomShortcutSet
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBTextField
 import com.intellij.util.ui.JBUI
@@ -235,7 +236,8 @@ class ParametersBindingDialogViewImpl(
         }
       })
 
-      val actionButton = CommonButton(action.text, action.icon)
+      val actionButton = CommonButton(action.icon)
+      actionButton.disabledIcon = IconLoader.getDisabledIcon(action.icon)
       actionButton.toolTipText = "${action.description} ($actionShortcutText)"
       actionButton.addActionListener { action.action(this) }
       actionButton.isEnabled = action.enabled
@@ -253,7 +255,8 @@ class ParametersBindingDialogViewImpl(
         }
       })
 
-      val setToNullButton = CommonButton("Set to null", AllIcons.RunConfigurations.ShowIgnored)
+      val setToNullButton = CommonButton(AllIcons.RunConfigurations.ShowIgnored)
+      setToNullButton.disabledIcon = IconLoader.getDisabledIcon(AllIcons.RunConfigurations.ShowIgnored)
       setToNullButton.toolTipText = "Set value to null ($setToNullShortcutText)"
       setToNullButton.addActionListener { setTextFieldToNull() }
 
@@ -267,20 +270,17 @@ class ParametersBindingDialogViewImpl(
     }
 
     internal sealed class Action {
-      internal abstract val text: String
       internal abstract val description: String
       internal abstract val icon: Icon
       internal abstract val enabled: Boolean
       internal abstract val action: (InputComponent) -> Unit
 
       internal data class Add(override val enabled: Boolean, override val action: (InputComponent) -> Unit) : Action() {
-        override val text = "Add"
         override val description = "Add value"
         override val icon = AllIcons.General.Add
       }
 
       internal data class Remove(override val action: (InputComponent) -> Unit) : Action() {
-        override val text = "Rmv"
         override val description = "Remove value"
         override val icon = AllIcons.General.Remove
         override val enabled = true
