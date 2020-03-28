@@ -31,7 +31,7 @@ import org.jetbrains.kotlin.psi.KtProperty
 
 class DaggerUtilTest : DaggerTestCase() {
 
-  private fun getProvidersForInjectedField_kotlin(fieldType: String): Collection<PsiMethod> {
+  private fun getProvidersForInjectedField_kotlin(fieldType: String, qualifier: String = ""): Collection<PsiMethod> {
     myFixture.configureByText(
       KotlinFileType.INSTANCE,
       //language=kotlin
@@ -39,7 +39,9 @@ class DaggerUtilTest : DaggerTestCase() {
         import javax.inject.Inject
 
         class MyClass {
-          @Inject val injectedField:${fieldType}
+          @Inject
+          $qualifier
+          val injectedField:${fieldType}
         }
       """.trimIndent()
     )
@@ -47,7 +49,7 @@ class DaggerUtilTest : DaggerTestCase() {
     return getDaggerProvidersFor(myFixture.moveCaret("injectedF|ield").parentOfType<KtProperty>()!!)
   }
 
-  private fun getProvidersForInjectedField(fieldType: String): Collection<PsiMethod> {
+  private fun getProvidersForInjectedField(fieldType: String, qualifier: String = ""): Collection<PsiMethod> {
     myFixture.configureByText(
       //language=JAVA
       JavaFileType.INSTANCE,
@@ -55,7 +57,9 @@ class DaggerUtilTest : DaggerTestCase() {
         import javax.inject.Inject;
 
         class MyClass {
-          @Inject ${fieldType} injectedField;
+          @Inject
+          $qualifier
+          ${fieldType} injectedField;
         }
       """.trimIndent()
     )
@@ -465,5 +469,146 @@ class DaggerUtilTest : DaggerTestCase() {
     val providers = getDaggerProvidersFor(myFixture.moveCaret("consum|er").parentOfType<KtParameter>()!!)
     assertThat(providers).hasSize(1)
     assertThat(providers.first()).isEqualTo(provider)
+  }
+
+  fun testSimpleQualifier() {
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+
+      import javax.inject.Qualifier;
+
+      @Qualifier
+      public @interface MyQualifier {}
+    """.trimIndent())
+
+    // JAVA providers.
+    myFixture.configureByText(
+      //language=JAVA
+      JavaFileType.INSTANCE,
+      """
+        import dagger.Provides;
+        import dagger.Module;
+        import test.MyQualifier;
+
+        @Module
+        class MyClass {
+          @Provides @MyQualifier String providerWithQualifier() {}
+          @Provides String provider() {}
+        }
+      """.trimIndent()
+    )
+
+    // Kotlin providers.
+    myFixture.configureByText(
+      //language=kotlin
+      KotlinFileType.INSTANCE,
+      """
+        import dagger.Provides
+        import dagger.Module
+        import test.MyQualifier
+
+        @Module
+        class MyClass {
+          @Provides @MyQualifier fun providerWithQualifier_kotlin():String {}
+          @Provides fun provider_kotlin():String {}
+        }
+      """.trimIndent()
+    )
+
+    val providersForJavaConsumer = getProvidersForInjectedField("String", "@test.MyQualifier").map { it.name }
+    assertThat(providersForJavaConsumer).containsExactly("providerWithQualifier", "providerWithQualifier_kotlin")
+
+    val providersForKotlinConsumer = getProvidersForInjectedField_kotlin("String", "@test.MyQualifier").map { it.name }
+    assertThat(providersForKotlinConsumer).containsExactly("providerWithQualifier", "providerWithQualifier_kotlin")
+  }
+
+  fun testQualifier() {
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+
+      public enum MyEnum { ONE, TWO }
+    """.trimIndent()
+    )
+
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+
+      import javax.inject.Qualifier;
+
+      @Qualifier
+      public @interface ComplicatedQualifier {
+
+        Class classAttr();
+        String stringAttr();
+        test.MyEnum enumAttr();
+        Class[] classArrayAttr();
+    }
+    """.trimIndent())
+
+    val javaQualifier = """
+      @test.ComplicatedQualifier(
+        stringAttr = "value",
+        // java.lang.String
+        classAttr = String.class,
+        enumAttr = test.MyEnum.ONE,
+        classArrayAttr = {String.class}
+      )
+    """.trimIndent()
+
+    val kotlinQualifier = """
+      @test.ComplicatedQualifier(
+        stringAttr = "value",
+        // kotlin.String
+        classAttr = String::class,
+        enumAttr = test.MyEnum.ONE,
+        classArrayAttr = [String::class]
+      )
+    """.trimIndent()
+
+    // JAVA providers.
+    myFixture.configureByText(
+      //language=JAVA
+      JavaFileType.INSTANCE,
+      """
+        import dagger.Provides;
+        import dagger.Module;
+        import test.MyQualifier;
+
+        @Module
+        class MyClass {
+          @Provides $javaQualifier String providerWithQualifier() {}
+          @Provides String provider() {}
+        }
+      """.trimIndent()
+    )
+
+    // Kotlin providers.
+    myFixture.configureByText(
+      //language=kotlin
+      KotlinFileType.INSTANCE,
+      """
+        import dagger.Provides
+        import dagger.Module
+        import test.MyQualifier
+
+        @Module
+        class MyClass {
+          @Provides $kotlinQualifier fun providerWithQualifier_kotlin():String {}
+          @Provides fun provider_kotlin():String {}
+        }
+      """.trimIndent()
+    )
+
+    val providersForJavaConsumer = getProvidersForInjectedField("String", javaQualifier).map { it.name }
+    assertThat(providersForJavaConsumer).containsExactly("providerWithQualifier", "providerWithQualifier_kotlin")
+
+    val providersForKotlinConsumer = getProvidersForInjectedField_kotlin("String", kotlinQualifier).map { it.name }
+    assertThat(providersForKotlinConsumer).containsExactly("providerWithQualifier", "providerWithQualifier_kotlin")
   }
 }
