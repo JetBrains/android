@@ -118,24 +118,30 @@ fun taskInfoPanel(
   // Use tabular layout of two columns two make things wrap nicely.
   // Elements with fixed width are just added to the first column and determine it's width.
   // Elements that can and should wrap are added with 'colSpan=2' so that they can grab extra horizontal space when available.
-  val infoPanel = JBPanel<JBPanel<*>>(TabularLayout("Fit,*").setVGap(10))
+  val infoPanel = JBPanel<JBPanel<*>>(TabularLayout("Fit,*"))
   var row = 0
   infoPanel.add(taskDescription, TabularLayout.Constraint(row++, 0, colSpan = 2))
-  infoPanel.add(taskInfo, TabularLayout.Constraint(row++, 0))
-  infoPanel.add(JBLabel("Warnings").withFont(JBUI.Fonts.label().asBold()), TabularLayout.Constraint(row++, 0))
+  infoPanel.add(taskInfo.withBorder(JBUI.Borders.emptyTop(10)), TabularLayout.Constraint(row++, 0))
+  infoPanel.add(
+    JBLabel("Warnings").withFont(JBUI.Fonts.label().asBold()).withBorder(JBUI.Borders.emptyTop(22)),
+    TabularLayout.Constraint(row++, 0)
+  )
   if (taskData.issues.isEmpty()) {
     infoPanel.add(JLabel("No warnings found"), TabularLayout.Constraint(row++, 0))
   }
   else {
-    for ((index, issue) in taskData.issues.withIndex()) {
-      infoPanel.add(taskWarningDescriptionPanel(issue, analytics, index > 0), TabularLayout.Constraint(row++, 0, colSpan = 2))
-    }
     if (taskData.sourceType != PluginSourceType.BUILD_SRC) {
       infoPanel.add(generateReportLinkLabel(analytics, issueReporter, taskData), TabularLayout.Constraint(row++, 0))
     }
+    for ((index, issue) in taskData.issues.withIndex()) {
+      infoPanel.add(
+        taskWarningDescriptionPanel(issue, analytics, index > 0),
+        TabularLayout.Constraint(row++, 0, colSpan = 2)
+      )
+    }
   }
-  infoPanel.add(reasonsToRunHeader, TabularLayout.Constraint(row++, 0))
-  infoPanel.add(reasonsList, TabularLayout.Constraint(row, 0, colSpan = 2))
+  infoPanel.add(reasonsToRunHeader.withBorder(JBUI.Borders.emptyTop(22)), TabularLayout.Constraint(row++, 0))
+  infoPanel.add(reasonsList.withBorder(JBUI.Borders.emptyTop(8)), TabularLayout.Constraint(row, 0, colSpan = 2))
 
   return infoPanel
 }
@@ -144,8 +150,10 @@ private fun taskWarningDescriptionPanel(
   issue: TaskIssueUiData,
   analytics: BuildAttributionUiAnalytics,
   needSeparatorInFront: Boolean
-): JComponent = JPanel(TabularLayout("Fit,*").setVGap(10)).apply {
+): JComponent = JPanel().apply {
   name = "warning-${issue.type.name}"
+  border = JBUI.Borders.emptyTop(8)
+  layout = TabularLayout("Fit,*").setVGap(8)
   if (needSeparatorInFront) {
     add(horizontalRuler(), TabularLayout.Constraint(0, 1))
   }
