@@ -54,6 +54,15 @@ abstract class DaggerTestCase : JavaCodeInsightFixtureTestCase() {
       public @interface Inject {}
       """.trimIndent()
     )
+
+    myFixture.addClass(
+      // language=JAVA
+      """
+      package javax.inject;
+
+      public @interface Qualifier {}
+      """.trimIndent()
+    )
   }
 
   override fun tearDown() {

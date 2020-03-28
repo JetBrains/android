@@ -62,12 +62,14 @@ private fun getDaggerModules(scope: GlobalSearchScope): Query<PsiClass> {
 }
 
 /**
- * Returns all Dagger providers (@Provide/@Binds-annotated methods, @Inject-annotated constructors) for given [type] within given [scope].
+ * Returns all Dagger providers (see [isDaggerProvider] for a [type] with a [qualifierInfo] within a [scope].
+ *
+ * Null [qualifierInfo] means that binding has not qualifier or has more then one.
  */
-private fun getDaggerProvidersForType(type: PsiType, scope: GlobalSearchScope): Collection<PsiMethod> {
-  return getDaggerProvidesMethodsForType(type, scope) +
-         getDaggerBindsMethodsForType(type, scope) +
-         getDaggerInjectedConstructorsForType(type, scope)
+private fun getDaggerProvidersForBinding(type: PsiType, qualifierInfo: QualifierInfo?, scope: GlobalSearchScope): Collection<PsiMethod> {
+  return getDaggerProvidesMethodsForType(type, scope).filterByQualifier(qualifierInfo) +
+         getDaggerBindsMethodsForType(type, scope).filterByQualifier(qualifierInfo) +
+         getDaggerInjectedConstructorsForType(type)
 }
 
 /**
@@ -84,8 +86,9 @@ fun getDaggerProvidersFor(element: PsiElement): Collection<PsiMethod> {
     } ?: return emptyList()
 
   val scope = ModuleUtil.findModuleForPsiElement(element)?.getModuleSystem()?.getResolveScope(element) ?: return emptyList()
+  val qualifierInfo = element.getQualifierInfo()
 
-  return getDaggerProvidersForType(type, scope)
+  return getDaggerProvidersForBinding(type, qualifierInfo, scope)
 }
 
 /**
@@ -107,10 +110,13 @@ private fun getParamsOfDaggerProvidersForType(type: PsiType, scope: GlobalSearch
 }
 
 /**
- * Returns all Dagger consumers (see [isDaggerConsumer]) for given [type] within given [scope].
+ * Returns all Dagger consumers (see [isDaggerConsumer]) for given [type] with given [qualifierInfo] within [scope].
+ *
+ * Null [qualifierInfo] means that binding has not qualifier or has more then one.
  */
-private fun getDaggerConsumersForType(type: PsiType, scope: GlobalSearchScope): Collection<PsiVariable> {
-  return getInjectedFieldsForType(type, scope) + getParamsOfDaggerProvidersForType(type, scope)
+private fun getDaggerConsumersForBinding(type: PsiType, qualifierInfo: QualifierInfo?, scope: GlobalSearchScope): Collection<PsiVariable> {
+  return getInjectedFieldsForType(type, scope).filterByQualifier(qualifierInfo) +
+         getParamsOfDaggerProvidersForType(type, scope).filterByQualifier(qualifierInfo)
 }
 
 /**
@@ -125,13 +131,15 @@ fun getDaggerConsumersFor(element: PsiElement): Collection<PsiVariable> {
     } ?: return emptyList()
 
   val scope = ModuleUtil.findModuleForPsiElement(element)?.getModuleSystem()?.getResolveScope(element) ?: return emptyList()
-  return getDaggerConsumersForType(type, scope)
+  val qualifierInfo = element.getQualifierInfo()
+
+  return getDaggerConsumersForBinding(type, qualifierInfo, scope)
 }
 
 /**
  * Returns all @Inject-annotated constructors for given [type] within [scope].
  */
-private fun getDaggerInjectedConstructorsForType(type: PsiType, scope: GlobalSearchScope): Collection<PsiMethod> {
+private fun getDaggerInjectedConstructorsForType(type: PsiType): Collection<PsiMethod> {
   val clazz = (type as? PsiClassType)?.resolve() ?: return emptyList()
   return clazz.constructors.filter { it.isInjected }
 }
