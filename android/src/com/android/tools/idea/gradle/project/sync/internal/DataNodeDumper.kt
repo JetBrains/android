@@ -20,6 +20,8 @@ package com.android.tools.idea.gradle.project.sync.internal
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.model.JavaModuleModel
+import com.android.tools.idea.gradle.project.model.NdkModuleModel
+import com.android.tools.idea.gradle.project.model.NdkVariant
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
@@ -74,6 +76,7 @@ fun <T : Any> DataNode<T>.dump(): String = buildString {
       configurations = ${configurations}
       """.replaceIndent("    ")
     is AndroidModuleModel -> format()
+    is NdkModuleModel -> format()
     else -> toString()
   }
 
@@ -88,6 +91,28 @@ fun <T : Any> DataNode<T>.dump(): String = buildString {
 
   this@dump.dumpNode()
 }
+
+fun NdkModuleModel.format(): String = "\n" + """
+    moduleName = ${moduleName}
+    rootDirPath = ${rootDirPath}
+    androidProject = ${androidProject.format()}
+    variantAbi = ${variantAbi.format()}
+    variants = ${variants.format{ format()}}
+    features = ${features.format()}
+    selectedVariant = ${selectedVariant.format()}
+  """
+
+fun <T> Collection<T>.format(format: T.() -> String): String = """[
+${this.joinToString(separator = "\n") { "      " + (it?.format() ?: "") }.prependIndent("    ")}
+    ]
+  """
+
+fun NdkVariant.format(): String = """{
+        name = ${name}
+        sourceFolders = ${sourceFolders}
+        artifacts = ${artifacts.format("          ")}
+    }
+  """
 
 @Suppress("DEPRECATION")
 fun AndroidModuleModel.format(): String = "\n" + """

@@ -227,6 +227,11 @@ public class NdkModuleModel implements ModuleModel {
   }
 
   @NotNull
+  public List<IdeNativeVariantAbi> getVariantAbi() {
+    return myVariantAbi;
+  }
+
+  @NotNull
   public IdeNativeAndroidProject getAndroidProject() {
     return myAndroidProject;
   }
