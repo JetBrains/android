@@ -98,8 +98,6 @@ abstract class GradleSyncProjectComparisonTest(
 
   class SingleVariantGradleSyncProjectComparisonTest :
     GradleSyncProjectComparisonTestCase(singleVariantSync = true) {
-    /** TODO(b/124504437): Enable this test */
-    override fun testNdkProjectSync() = Unit
   }
 
   abstract class GradleSyncProjectComparisonTestCase(singleVariantSync: Boolean = false
