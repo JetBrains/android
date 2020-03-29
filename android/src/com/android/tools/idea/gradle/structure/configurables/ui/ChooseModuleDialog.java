@@ -41,7 +41,7 @@ public class ChooseModuleDialog extends DialogWrapper {
   private JPanel myPanel;
   private JBList myModuleList;
 
-  public ChooseModuleDialog(@NotNull PsProject project, @NotNull Consumer<PsModule> onOkTask, @NotNull @Nls @NlsContexts.DialogTitle String title) {
+  public ChooseModuleDialog(@NotNull PsProject project, @NotNull Consumer<PsModule> onOkTask, @NotNull @NlsContexts.DialogTitle String title) {
     super(project.getIdeProject());
     myOnOkTask = onOkTask;
     init();

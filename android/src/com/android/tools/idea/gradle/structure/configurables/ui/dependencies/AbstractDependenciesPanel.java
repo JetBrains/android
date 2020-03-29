@@ -363,7 +363,7 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
   private abstract class AbstractAddDependencyAction extends AbstractPopupAction {
     @NotNull private final String myTitle;
 
-    AbstractAddDependencyAction(@NotNull @Nls @NlsContexts.DialogTitle String title, @NotNull String text, @NotNull Icon icon, int index) {
+    AbstractAddDependencyAction(@NotNull @NlsContexts.DialogTitle String title, @NotNull String text, @NotNull Icon icon, int index) {
       super(text, icon, index);
       myTitle = title;
     }
