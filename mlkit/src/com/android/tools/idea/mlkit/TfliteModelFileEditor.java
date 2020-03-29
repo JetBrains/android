@@ -45,6 +45,8 @@ import com.intellij.util.ui.UIUtil;
 import java.awt.Component;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -175,7 +177,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     table.add(new String[]{"Description", breakLineIfTooLong(modelInfo.getModelDescription())});
     table.add(new String[]{"Version", modelInfo.getModelVersion()});
     table.add(new String[]{"Author", modelInfo.getModelAuthor()});
-    table.add(new String[]{"License", modelInfo.getModelLicense()});
+    table.add(new String[]{"License", linkifyUrls(modelInfo.getModelLicense())});
 
     StringBuilder bodyBuilder = new StringBuilder("<h2>Model</h2>");
     bodyBuilder.append("<table id=\"model\">\n");
@@ -400,6 +402,24 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       }
     }
     result.append(tmp);
+    return result.toString().trim();
+  }
+
+  private static String linkifyUrls(String text) {
+    StringBuilder result = new StringBuilder();
+    for (String word : text.split(" ")) {
+      if (!word.isEmpty()) {
+        try {
+          int wordLen = word.length();
+          boolean hasSentenceSeparator = word.charAt(wordLen - 1) == ',' || word.charAt(wordLen - 1) == '.';
+          URL url = new URL(hasSentenceSeparator ? word.substring(0, word.length() - 1) : word);
+          result.append(String.format("<a href=\"%s\">%s</a>%s ", url, url, hasSentenceSeparator ? word.charAt(wordLen - 1) : ""));
+        }
+        catch (MalformedURLException e) {
+          result.append(word).append(" ");
+        }
+      }
+    }
     return result.toString().trim();
   }
 }
