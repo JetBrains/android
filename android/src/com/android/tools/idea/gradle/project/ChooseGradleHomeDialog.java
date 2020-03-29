@@ -44,7 +44,6 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.event.DocumentEvent;
 import org.jdesktop.swingx.JXLabel;
-import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager;
@@ -73,7 +72,7 @@ public class ChooseGradleHomeDialog extends DialogWrapper {
     this("Import Gradle Project", minimumGradleVersion);
   }
 
-  public ChooseGradleHomeDialog(@NotNull @Nls @NlsContexts.DialogTitle String title, @Nullable String minimumGradleVersion) {
+  public ChooseGradleHomeDialog(@NotNull @NlsContexts.DialogTitle String title, @Nullable String minimumGradleVersion) {
     super(null);
     myMinimumGradleVersion = minimumGradleVersion;
     myInstallationManager = ServiceManager.getService(GradleInstallationManager.class);

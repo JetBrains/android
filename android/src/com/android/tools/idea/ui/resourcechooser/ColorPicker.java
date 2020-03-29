@@ -497,7 +497,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
 
   @Nullable
   public static Color showDialog(Component parent,
-                                 @Nls @NlsContexts.DialogTitle String caption,
+                                 @NlsContexts.DialogTitle String caption,
                                  @Nullable Color preselectedColor,
                                  boolean enableOpacity,
                                  @Nullable ColorPickerListener[] listeners,
@@ -1082,7 +1082,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     private final boolean myOpacityInPercent;
 
     public ColorPickerDialog(Component parent,
-                             @Nls @NlsContexts.DialogTitle String caption,
+                             @NlsContexts.DialogTitle String caption,
                              @Nullable Color preselectedColor,
                              boolean enableOpacity,
                              @Nullable ColorPickerListener[] listeners,
