@@ -32,6 +32,7 @@ import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorModel
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorView
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.mocks.MockSchemaProvider
+import com.android.tools.idea.sqlite.mocks.MockSqliteResultSet
 import com.android.tools.idea.sqlite.model.FileSqliteDatabase
 import com.android.tools.idea.sqlite.model.LiveSqliteDatabase
 import com.android.tools.idea.sqlite.model.RowIdName
@@ -316,6 +317,43 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     // Assert
     verify(mockViewFactory).createEvaluatorView(any(Project::class.java), any(SchemaProvider::class.java), any(TableView::class.java))
     verify(mockSqliteView).closeTab(eq(tabId))
+  }
+
+  fun testCloseTabInvokedFromTableViewClosesTab() {
+    // Prepare
+    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
+    }
+
+    // Act
+    mockSqliteView.viewListeners.single().tableNodeActionInvoked(sqliteDatabase1, testSqliteTable)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    mockViewFactory.tableView.listeners.single().cancelRunningStatementInvoked()
+
+    // Assert
+    verify(mockViewFactory).createTableView()
+    verify(mockSqliteView).closeTab(eq(TabId.TableTab(sqliteDatabase1, testSqliteTable.name)))
+  }
+
+  fun testCloseTabInvokedFromEvaluatorViewClosesTab() {
+    // Prepare
+    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
+    `when`(mockDatabaseConnection.execute(SqliteStatement("SELECT * FROM tab")))
+      .thenReturn(Futures.immediateFuture(MockSqliteResultSet()))
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
+    }
+
+    // Act
+    runDispatching {
+      sqliteController.runSqlStatement(sqliteDatabase1, SqliteStatement("SELECT * FROM tab"))
+    }
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    mockViewFactory.tableView.listeners.single().cancelRunningStatementInvoked()
+
+    // Assert
+    verify(mockSqliteView).closeTab(any(TabId.AdHocQueryTab::class.java))
   }
 
   fun testFocusTabIsCalled() {

@@ -300,7 +300,8 @@ class TableViewImpl : TableView {
     loadingMessageEditorPane.isEditable = false
     loadingMessageEditorPane.addHyperlinkListener(object : HyperlinkAdapter() {
       override fun hyperlinkActivated(e: HyperlinkEvent) {
-        listeners.forEach { it.cancelRunningStatementInvoked() }
+        // Copy to a list to avoid ConcurrentModificationException, since listeners can remove themselves when handling the event
+        listeners.toList().forEach { it.cancelRunningStatementInvoked() }
       }
     })
   }

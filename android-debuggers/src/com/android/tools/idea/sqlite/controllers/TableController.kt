@@ -65,6 +65,7 @@ class TableController(
   private val tableSupplier: () -> SqliteTable?,
   private val databaseConnection: DatabaseConnection,
   private val sqliteStatement: SqliteStatement,
+  override val closeTabInvoked: () -> Unit,
   private val edtExecutor: Executor,
   private val taskExecutor: Executor
 ) : DatabaseInspectorController.TabController {
@@ -272,7 +273,8 @@ class TableController(
     }
 
     override fun cancelRunningStatementInvoked() {
-      // TODO(b/151204958): cancel future
+      // Closing a tab triggers its dispose method, which cancels the future, stopping the running query.
+      closeTabInvoked()
     }
 
     override fun rowCountChanged(rowCount: Int) {

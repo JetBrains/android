@@ -160,6 +160,7 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       project,
       view,
       MockDatabaseInspectorViewsFactory(),
+      {},
       EdtExecutorService.getInstance(),
       EdtExecutorService.getInstance()
     )
@@ -187,6 +188,7 @@ class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       project,
       view,
       MockDatabaseInspectorViewsFactory(),
+      {},
       EdtExecutorService.getInstance(),
       EdtExecutorService.getInstance()
     )
