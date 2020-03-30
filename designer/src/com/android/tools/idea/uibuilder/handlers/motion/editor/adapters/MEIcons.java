@@ -17,7 +17,10 @@ package com.android.tools.idea.uibuilder.handlers.motion.editor.adapters;
 
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.Utils;
 import com.intellij.icons.AllIcons;
+import com.intellij.ui.scale.ScaleContext;
+import com.intellij.util.IconUtil;
 import icons.StudioIcons;
+import java.awt.Image;
 import javax.swing.Icon;
 
 /**
@@ -54,4 +57,8 @@ public class MEIcons {
   public static final Icon CREATE_ON_SWIPE = StudioIcons.LayoutEditor.Motion.ADD_GESTURE; // TODO fix
 
   public static final Icon SMALL_DOWN_ARROW = AllIcons.General.ArrowDownSmall;
+
+  public static final Image getUnscaledIconImage(Icon icon) {
+    return IconUtil.toImage(icon, ScaleContext.createIdentity());
+  }
 }

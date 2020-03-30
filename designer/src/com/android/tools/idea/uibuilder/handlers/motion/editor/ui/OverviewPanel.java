@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor.ui;
 
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEIcons;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEScenePicker;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEScenePicker.HitElementListener;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
@@ -30,6 +31,7 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.LinearGradientPaint;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
@@ -614,6 +616,28 @@ class OverviewPanel extends JPanel {
     int line_y = constraintSetY;
     g.setColor(colorNormalLine);
     g.drawLine(line_x, line_y, line_x, line_y + cs_height);
+
+    //  ---------  Draw Empty State (no constraints or transitions) -------------
+    if (mTransitions.length == 0 && mConstraintSet.length == 0) {
+      Image constraintSetImage = MEIcons.getUnscaledIconImage(MEIcons.CREATE_CONSTRAINTSET);
+      Image transitionImage = MEIcons.getUnscaledIconImage(MEIcons.CREATE_TRANSITION);
+      ((Graphics2D)g).drawImage(constraintSetImage,
+                            line_x + 72,
+                            line_y - 30 + cs_height / 2,
+                            constraintSetImage.getWidth(null),
+                            constraintSetImage.getHeight(null),
+                            null);
+      ((Graphics2D)g).drawImage(transitionImage,
+                            line_x + 62,
+                            line_y + 4 + cs_height / 2,
+                            transitionImage.getWidth(null),
+                            transitionImage.getHeight(null),
+                            null);
+      ((Graphics2D)g).drawString("      Use       to create a new", line_x + 20, line_y - 16 + cs_height / 2);
+      ((Graphics2D)g).drawString("     constraint set, and use to", line_x + 20, line_y + cs_height / 2);
+      ((Graphics2D)g).drawString("create       a transition between", line_x + 20, line_y + 16 + cs_height / 2);
+      ((Graphics2D)g).drawString("        two constraint sets", line_x + 20, line_y + 32 + cs_height / 2);
+    }
 
     // ---------  Draw ConstraintSet Rectangles -------------
     for (int i = 0; i <= mConstraintSet.length; i++) {
