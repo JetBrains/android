@@ -85,11 +85,33 @@ internal fun handleError(errorContent: SqliteInspectorProtocol.ErrorContent): No
 }
 
 internal fun getErrorMessage(errorContent: SqliteInspectorProtocol.ErrorContent): String {
-  return if (!errorContent.isRecoverable) {
-    "An error has occurred which requires you to restart your app. \n${errorContent.message}"
-  }
-  else {
-    errorContent.message
+  /**
+   * Errors can be "recoverable", "unrecoverable" or "unknown if recoverable".
+   * 1. "Recoverable" errors are errors after which execution can continue as normal (eg. typo in query).
+   * 2. "Unrecoverable" errors are errors after which the state of on-device inspector is corrupted and app needs restart.
+   * 3. "Unknown if recoverable" means the on-device inspector doesn't have enough information to decide if the error is recoverable or not.
+   *
+   * `errorContent.recoverability.isRecoverable` is:
+   * 1. true for "recoverable" errors
+   * 2. false for "unrecoverable" errors
+   * 3. not set for "unknown if recoverable" errors
+   */
+  return when(errorContent.recoverability.oneOfCase) {
+    SqliteInspectorProtocol.ErrorRecoverability.OneOfCase.IS_RECOVERABLE -> {
+      if (errorContent.recoverability.isRecoverable) {
+        // recoverable
+        errorContent.message
+      }
+      else {
+        // unrecoverable
+        "An error has occurred which requires you to restart your app: ${errorContent.message}"
+      }
+    }
+    SqliteInspectorProtocol.ErrorRecoverability.OneOfCase.ONEOF_NOT_SET -> {
+      // unknown if recoverable
+      "An error has occurred which might require you to restart your app: ${errorContent.message}"
+    }
+    null -> error("value is null")
   }
 }
 

@@ -18,8 +18,8 @@ package com.android.tools.idea.sqlite.databaseConnection.live
 import androidx.sqlite.inspection.SqliteInspectorProtocol
 import com.android.testutils.MockitoKt.any
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
-import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFutureCancellation
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture
+import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFutureCancellation
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFutureException
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.model.SqliteAffinity
@@ -209,12 +209,12 @@ class LiveSqliteResultSetTest : LightPlatformTestCase() {
     }
   }
 
-  fun testThrowsErrorOnErrorOccurredResponse() {
+  fun testThrowsRecoverableErrorOnErrorOccurredResponse() {
     // Prepare
     val errorOccurredEvent = SqliteInspectorProtocol.ErrorOccurredResponse.newBuilder().setContent(
       SqliteInspectorProtocol.ErrorContent.newBuilder()
         .setMessage("errorMessage")
-        .setIsRecoverable(true)
+        .setRecoverability(SqliteInspectorProtocol.ErrorRecoverability.newBuilder().setIsRecoverable(true).build())
         .setStackTrace("stackTrace")
         .build()
     ).build()
@@ -229,9 +229,77 @@ class LiveSqliteResultSetTest : LightPlatformTestCase() {
     val resultSet = createLiveSqliteResultSet(SqliteStatement("SELECT"), mockMessenger)
 
     // Act / Assert
-    pumpEventsAndWaitForFutureException(resultSet.columns)
-    pumpEventsAndWaitForFutureException(resultSet.totalRowCount)
-    pumpEventsAndWaitForFutureException(resultSet.getRowBatch(0, 10))
+    val error1 = pumpEventsAndWaitForFutureException(resultSet.columns)
+    val error2 = pumpEventsAndWaitForFutureException(resultSet.totalRowCount)
+    val error3 = pumpEventsAndWaitForFutureException(resultSet.getRowBatch(0, 10))
+
+    assertEquals(error1.cause, error2.cause)
+    assertEquals(error1.cause, error3.cause)
+    assertInstanceOf(error1.cause, LiveInspectorException::class.java)
+    assertEquals("errorMessage", error1.cause!!.message)
+    assertEquals("stackTrace", (error1.cause as LiveInspectorException).onDeviceStackTrace)
+  }
+
+  fun testThrowsNonRecoverableErrorOnErrorOccurredResponse() {
+    // Prepare
+    val errorOccurredEvent = SqliteInspectorProtocol.ErrorOccurredResponse.newBuilder().setContent(
+      SqliteInspectorProtocol.ErrorContent.newBuilder()
+        .setMessage("errorMessage")
+        .setRecoverability(SqliteInspectorProtocol.ErrorRecoverability.newBuilder().setIsRecoverable(false).build())
+        .setStackTrace("stackTrace")
+        .build()
+    ).build()
+
+    val cursor = SqliteInspectorProtocol.Response.newBuilder()
+      .setErrorOccurred(errorOccurredEvent)
+      .build()
+
+    val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
+    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(cursor.toByteArray()))
+
+    val resultSet = createLiveSqliteResultSet(SqliteStatement("SELECT"), mockMessenger)
+
+    // Act / Assert
+    val error1 = pumpEventsAndWaitForFutureException(resultSet.columns)
+    val error2 = pumpEventsAndWaitForFutureException(resultSet.totalRowCount)
+    val error3 = pumpEventsAndWaitForFutureException(resultSet.getRowBatch(0, 10))
+
+    assertEquals(error1.cause, error2.cause)
+    assertEquals(error1.cause, error3.cause)
+    assertInstanceOf(error1.cause, LiveInspectorException::class.java)
+    assertEquals("An error has occurred which requires you to restart your app: errorMessage", error1.cause!!.message)
+    assertEquals("stackTrace", (error1.cause as LiveInspectorException).onDeviceStackTrace)
+  }
+
+  fun testThrowsUnknownRecoverableErrorOnErrorOccurredResponse() {
+    // Prepare
+    val errorOccurredEvent = SqliteInspectorProtocol.ErrorOccurredResponse.newBuilder().setContent(
+      SqliteInspectorProtocol.ErrorContent.newBuilder()
+        .setMessage("errorMessage")
+        .setRecoverability(SqliteInspectorProtocol.ErrorRecoverability.newBuilder().build())
+        .setStackTrace("stackTrace")
+        .build()
+    ).build()
+
+    val cursor = SqliteInspectorProtocol.Response.newBuilder()
+      .setErrorOccurred(errorOccurredEvent)
+      .build()
+
+    val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
+    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFuture(cursor.toByteArray()))
+
+    val resultSet = createLiveSqliteResultSet(SqliteStatement("SELECT"), mockMessenger)
+
+    // Act / Assert
+    val error1 = pumpEventsAndWaitForFutureException(resultSet.columns)
+    val error2 = pumpEventsAndWaitForFutureException(resultSet.totalRowCount)
+    val error3 = pumpEventsAndWaitForFutureException(resultSet.getRowBatch(0, 10))
+
+    assertEquals(error1.cause, error2.cause)
+    assertEquals(error1.cause, error3.cause)
+    assertInstanceOf(error1.cause, LiveInspectorException::class.java)
+    assertEquals("An error has occurred which might require you to restart your app: errorMessage", error1.cause!!.message)
+    assertEquals("stackTrace", (error1.cause as LiveInspectorException).onDeviceStackTrace)
   }
 
   private fun createLiveSqliteResultSet(statement: SqliteStatement, messenger: AppInspectorClient.CommandMessenger): LiveSqliteResultSet {
