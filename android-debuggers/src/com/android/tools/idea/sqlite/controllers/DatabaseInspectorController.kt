@@ -266,6 +266,7 @@ class DatabaseInspectorControllerImpl(
       project,
       sqliteEvaluatorView,
       viewFactory,
+      { closeTab(tabId) },
       edtExecutor,
       taskExecutor
     )
@@ -301,6 +302,7 @@ class DatabaseInspectorControllerImpl(
       view.openTab(tabId, table.name, tableView.component)
 
       val tableController = TableController(
+        closeTabInvoked = { closeTab(tabId) },
         project = project,
         view = tableView,
         tableSupplier = { model.getDatabaseSchema(database)?.tables?.firstOrNull{ it.name == table.name } },
@@ -431,6 +433,7 @@ interface DatabaseInspectorController : Disposable {
   }
 
   interface TabController : Disposable {
+    val closeTabInvoked: () -> Unit
     /**
      * Triggers a refresh operation in this tab.
      * If called multiple times in sequence, this method is re-executed only once the future from the first invocation completes.

@@ -64,6 +64,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
       myProject,
       sqliteEvaluatorView,
       viewFactory,
+      {},
       edtExecutor,
       edtExecutor
     )

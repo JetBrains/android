@@ -43,6 +43,7 @@ class SqliteEvaluatorController(
   private val project: Project,
   private val view: SqliteEvaluatorView,
   private val viewFactory: DatabaseInspectorViewsFactory,
+  override val closeTabInvoked: () -> Unit,
   private val edtExecutor: Executor,
   private val taskExecutor: Executor
 ) : DatabaseInspectorController.TabController {
@@ -107,6 +108,7 @@ class SqliteEvaluatorController(
 
         if (rowCount > 0) {
           currentTableController = TableController(
+            closeTabInvoked = closeTabInvoked,
             project = project,
             view = view.tableView,
             tableSupplier = { null },

@@ -27,12 +27,13 @@ import javax.swing.JComponent
 
 open class MockDatabaseInspectorViewsFactory : DatabaseInspectorViewsFactory {
   val sqliteEvaluatorView: MockSqliteEvaluatorView = spy(MockSqliteEvaluatorView::class.java)
-  val tableView: TableView = mock(TableView::class.java)
+  val tableView: MockTableView = spy(MockTableView())
   val parametersBindingDialogView: MockParametersBindingDialogView = spy(MockParametersBindingDialogView())
   val databaseInspectorView: MockDatabaseInspectorView = spy(MockDatabaseInspectorView())
 
   init {
     `when`(tableView.component).thenReturn(mock(JComponent::class.java))
+    `when`(sqliteEvaluatorView.tableView).thenReturn(tableView)
   }
 
   override fun createTableView(): TableView = tableView
