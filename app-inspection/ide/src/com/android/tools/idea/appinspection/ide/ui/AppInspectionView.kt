@@ -81,7 +81,6 @@ class AppInspectionView(
     }, TabularLayout.Constraint(1, 0))
     component.add(inspectorPanel, TabularLayout.Constraint(2, 0))
 
-
     inspectionProcessesComboBox.addItemListener { e ->
       if (e.stateChange == ItemEvent.SELECTED) {
         refreshTabs(e)
@@ -104,7 +103,7 @@ class AppInspectionView(
         AppInspectorTabProvider.EP_NAME.extensionList
           .filter { provider -> provider.isApplicable() }
           .forEach { provider ->
-            target.launchInspector(provider.inspectorId, provider.inspectorAgentJar) { messenger ->
+            target.launchInspector(provider.inspectorId, provider.inspectorAgentJar, project.name) { messenger ->
               val tab = invokeAndWaitIfNeeded {
                 provider.createTab(project, messenger)
                   .also { tab -> inspectorTabs.addTab(provider.displayName, tab.component) }

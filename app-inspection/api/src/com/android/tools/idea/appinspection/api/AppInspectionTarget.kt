@@ -41,6 +41,7 @@ interface AppInspectionTarget {
   fun <T : AppInspectorClient> launchInspector(
     inspectorId: String,
     inspectorJar: AppInspectorJar,
+    projectName: String,
     @WorkerThread creator: (AppInspectorClient.CommandMessenger) -> T
   ): ListenableFuture<T>
 
