@@ -296,11 +296,11 @@ class LayoutInspectorTransportRule(
                                            device.featureLevel.toString(), DeviceState.HostConnectionType.USB)
     val uid = System.currentTimeMillis().toInt()
     deviceState.startClient(process.pid, uid, process.name, "${process.name}.com.example.myapplication", true)
-    waitUntilProcessIsAvailable(device, process)
     if (device.featureLevel >= 29) {
       transportService.addDevice(device)
       transportService.addProcess(device, process)
     }
+    waitUntilProcessIsAvailable(device, process)
   }
 
   private fun waitUntilProcessIsAvailable(device: Common.Device, process: Common.Process) {
@@ -314,9 +314,8 @@ class LayoutInspectorTransportRule(
   }
 
   private fun isProcessAvailable(device: Common.Device, process: Common.Process): Boolean {
-    val bridge = AndroidDebugBridge.getBridge()!!
-    val iDevice = bridge.devices.first { it.serialNumber == device.serial } ?: return false
-    return iDevice.clients.any { it.clientData.pid == process.pid && it.clientData.hasFeature(ClientData.FEATURE_VIEW_HIERARCHY) }
+    val stream = inspectorClient.getStreams().find { it.device.serial == device.serial } ?: return false
+    return inspectorClient.getProcesses(stream).find { it.pid == process.pid } != null
   }
 
   override fun apply(base: Statement, description: Description): Statement {
