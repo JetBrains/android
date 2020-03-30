@@ -101,7 +101,7 @@ public class DatabaseBundle implements SchemaEquality<DatabaseBundle> {
    */
   public List<String> buildCreateQueries() {
     List<String> result = new ArrayList<>();
-    Collections.sort(mEntities, new FtsEntityCreateComparator());
+    mEntities.sort(new FtsEntityCreateComparator());
     for (EntityBundle entityBundle : mEntities) {
       result.addAll(entityBundle.buildCreateQueries());
     }

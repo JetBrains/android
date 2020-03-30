@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.scout;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 
 /**
  * Generates the list of valid constraint sets for a given list of widgets and returns
@@ -141,7 +140,7 @@ public class ConstraintSetGenerator {
     ArrayList<ConstrainedWidget> tempValid;
     for (WidgetPossibleConnections widget : this.myConnectionList) {
       tempValid = getValidConnectionCombinations(widget);
-      Collections.sort(tempValid, (a, b) -> b.compareTo(a));
+      tempValid.sort((a, b) -> b.compareTo(a));
       myValidWidgets.add(tempValid);
     }
 
@@ -149,7 +148,7 @@ public class ConstraintSetGenerator {
     for (ConstraintSet set : myConstraintSets) {
       set.calculateError();
     }
-    Collections.sort(myConstraintSets, (a, b) -> b.compareTo(a));
+    myConstraintSets.sort((a, b) -> b.compareTo(a));
     return myConstraintSets.get(0);
   }
 

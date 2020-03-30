@@ -28,7 +28,6 @@ import com.intellij.ui.components.JBLabel;
 import java.awt.Font;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -88,7 +87,7 @@ public class IssuesViewer {
     }
 
     List<PsIssue.Severity> severities = Lists.newArrayList(issuesBySeverity.keySet());
-    Collections.sort(severities, (t1, t2) -> t1.getPriority() - t2.getPriority());
+    severities.sort((t1, t2) -> t1.getPriority() - t2.getPriority());
 
     int typeCount = severities.size();
     assert typeCount < 5; // There are only 4 types of issues

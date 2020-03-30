@@ -18,10 +18,8 @@ package com.android.tools.idea.refactoring.modularize;
 import com.intellij.ui.CheckedTreeNode;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Collections;
 import java.util.Comparator;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class DependencyTreeNode extends CheckedTreeNode {
 
@@ -65,7 +63,7 @@ public abstract class DependencyTreeNode extends CheckedTreeNode {
       node.sort(comparator);
     }
     if (children != null) {
-      Collections.sort(children, comparator);
+      children.sort(comparator);
     }
   }
 }
