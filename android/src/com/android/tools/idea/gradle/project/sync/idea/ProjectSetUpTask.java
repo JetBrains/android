@@ -60,7 +60,7 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
     assert projectInfo != null;
     GradleSyncState.getInstance(myProject).setupStarted();
     boolean importedProject = GradleProjectInfo.getInstance(myProject).isImportedProject();
-    doPopulateProject(projectInfo, taskId);
+    doPopulateProject(projectInfo);
 
     Runnable runnable = () -> {
       boolean isTest = ApplicationManager.getApplication().isUnitTestMode();
@@ -88,10 +88,10 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
   }
 
   @WorkerThread
-  private void doPopulateProject(@NotNull DataNode<ProjectData> projectInfo, @NotNull ExternalSystemTaskId taskId) {
+  private void doPopulateProject(@NotNull DataNode<ProjectData> projectInfo) {
     try {
       IdeaSyncPopulateProjectTask task = new IdeaSyncPopulateProjectTask(myProject);
-      task.populateProject(projectInfo, taskId, mySetupRequest, mySyncListener);
+      task.populateProject(projectInfo, mySetupRequest, mySyncListener);
     }
     finally {
       myProject.putUserData(FORCE_CREATE_DIRS_KEY, null);

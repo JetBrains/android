@@ -757,7 +757,6 @@ fun setupTestProjectFromAndroidModel(
   runWriteAction {
     task.populateProject(
       projectDataNode,
-      ExternalSystemTaskId.create(GRADLE_SYSTEM_ID, ExternalSystemTaskType.RESOLVE_PROJECT, project),
       PostSyncProjectSetup.Request(),
       null
     )

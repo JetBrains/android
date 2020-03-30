@@ -34,58 +34,40 @@ import org.jetbrains.annotations.Nullable;
 public class IdeaSyncPopulateProjectTask {
   @NotNull private final Project myProject;
   @NotNull private final PostSyncProjectSetup myProjectSetup;
-  @NotNull private final GradleSyncState mySyncState;
   @NotNull private final ProjectDataManager myDataManager;
 
   public IdeaSyncPopulateProjectTask(@NotNull Project project) {
-    this(project, PostSyncProjectSetup.getInstance(project), GradleSyncState.getInstance(project),
-         ProjectDataManager.getInstance());
+    this(project, PostSyncProjectSetup.getInstance(project), ProjectDataManager.getInstance());
   }
 
   @VisibleForTesting
   IdeaSyncPopulateProjectTask(@NotNull Project project,
                               @NotNull PostSyncProjectSetup projectSetup,
-                              @NotNull GradleSyncState syncState,
                               @NotNull ProjectDataManager dataManager) {
     myProject = project;
     myProjectSetup = projectSetup;
-    mySyncState = syncState;
     myDataManager = dataManager;
   }
 
   @WorkerThread
   public void populateProject(@NotNull DataNode<ProjectData> projectInfo,
-                              @NotNull ExternalSystemTaskId taskId,
                               @Nullable PostSyncProjectSetup.Request setupRequest,
                               @Nullable GradleSyncListener syncListener) {
     invokeAndWaitIfNeeded((Runnable)() -> {
       if (myProject.isDisposed()) return;
       GradleSyncMessages.getInstance(myProject).removeAllMessages();
     });
-    try {
-      myDataManager.importData(projectInfo, myProject, true /* synchronous */);
-      if (syncListener != null) {
-        if (setupRequest != null && setupRequest.usingCachedGradleModels) {
-          syncListener.syncSkipped(myProject);
-        }
-        else {
-          syncListener.syncSucceeded(myProject);
-        }
-      }
-      if (setupRequest != null) {
-        myProjectSetup.notifySyncFinished(setupRequest);
-      }
-    } catch (Throwable unexpected) {
-      // See https://code.google.com/p/android/issues/detail?id=268806
+    myDataManager.importData(projectInfo, myProject, true /* synchronous */);
+    if (syncListener != null) {
       if (setupRequest != null && setupRequest.usingCachedGradleModels) {
-        // This happened when a newer version of IDEA cannot read the cache of a Gradle project created with an older IDE version.
-        // Request a full sync.
-        myProjectSetup.onCachedModelsSetupFailure(taskId, setupRequest);
-        return;
+        syncListener.syncSkipped(myProject);
       }
-
-      // Notify sync failed, so the "Sync" action is enabled again.
-      mySyncState.syncFailed(unexpected.getMessage(), unexpected, syncListener);
+      else {
+        syncListener.syncSucceeded(myProject);
+      }
+    }
+    if (setupRequest != null) {
+      myProjectSetup.notifySyncFinished(setupRequest);
     }
   }
 }
