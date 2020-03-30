@@ -220,7 +220,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
   @Override
   @NotNull
   public String getFullyQualifiedName() {
-    GradleDslElement element = getElement();
+    GradleDslElement element = getRawElement();
 
     if (element != null && element.getParent() instanceof GradleDslExpressionList) {
       GradleDslExpressionList list = (GradleDslExpressionList)element.getParent();
@@ -672,6 +672,12 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
   @Nullable
   public GradleDslElement getElement() {
     return getTransform().transform(myElement);
+  }
+
+  @Override
+  @Nullable
+  public GradleDslElement getRawElement() {
+    return myElement;
   }
 
   @NotNull
