@@ -15,15 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.google.common.collect.Sets;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
 
 public class NlPropertiesSorter {
   private enum SortOrder {
@@ -61,12 +59,12 @@ public class NlPropertiesSorter {
     final String tagName = NlPropertiesGrouper.getCommonTagName(components);
     final Set<String> modifiedAttributeNames = getModifiedAttributes(components);
 
-    Collections.sort(groupedProperties, Comparator
-      .comparing((NlPropertyItem property) -> SortOrder.of(property.getName(),
-                                                           property.getName().equalsIgnoreCase(tagName),
-                                                           modifiedAttributeNames.contains(property.getName())))
-      .thenComparing(NlPropertyItem::getName)
-      .thenComparing(NlPropertyItem::getNamespace));
+    groupedProperties.sort(Comparator
+                             .comparing((NlPropertyItem property) -> SortOrder.of(property.getName(),
+                                                                                  property.getName().equalsIgnoreCase(tagName),
+                                                                                  modifiedAttributeNames.contains(property.getName())))
+                             .thenComparing(NlPropertyItem::getName)
+                             .thenComparing(NlPropertyItem::getNamespace));
     return groupedProperties;
   }
 

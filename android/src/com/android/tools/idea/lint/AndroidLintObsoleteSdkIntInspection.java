@@ -171,7 +171,7 @@ public class AndroidLintObsoleteSdkIntInspection extends AndroidLintInspectionBa
         }
 
         // Sort numerically, not alphabetically
-        Collections.sort(folders, (f1, f2) -> {
+        folders.sort((f1, f2) -> {
           FolderConfiguration configuration1 = FolderConfiguration.getConfigForFolder(f1.getName());
           FolderConfiguration configuration2 = FolderConfiguration.getConfigForFolder(f2.getName());
           assert configuration1 != null; // because otherwise it wouldn't have made it into the folders list above

@@ -166,7 +166,7 @@ public class CreateXmlResourceSubdirPanel {
       directories = AndroidResourceUtil.getResourceSubdirs(myFolderType, Collections.singleton(resourceDir));
     }
 
-    Collections.sort(directories, (f1, f2) -> f1.getName().compareTo(f2.getName()));
+    directories.sort((f1, f2) -> f1.getName().compareTo(f2.getName()));
 
     final Map<String, JCheckBox> oldCheckBoxes = myCheckBoxes;
     final int selectedIndex = myDirectoriesList.getSelectedIndex();

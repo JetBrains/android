@@ -20,7 +20,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -99,7 +98,7 @@ public interface PowerProfile {
 
       double totalMilliAmps = 0.0;
       List<CpuCoreUsage> usagesList = Arrays.asList(usages);
-      Collections.sort(usagesList, Comparator.comparingInt(o -> o.myMaxFrequencyKhz));
+      usagesList.sort(Comparator.comparingInt(o -> o.myMaxFrequencyKhz));
 
       // TODO(b/75968214): Support more than 2 CPU frequency bins?
       // We only support up to two frequency bins presently.

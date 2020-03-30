@@ -18,10 +18,13 @@ package com.android.tools.idea.run;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.google.common.collect.ImmutableList;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import javax.swing.AbstractListModel;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.util.*;
 
 public class DevicePickerListModel extends AbstractListModel<DevicePickerEntry> {
   private final ImmutableList<DevicePickerEntry> myEntries;
@@ -101,8 +104,8 @@ public class DevicePickerListModel extends AbstractListModel<DevicePickerEntry> 
                                                                 @NotNull List<AndroidDevice> launchable) {
     ImmutableList.Builder<DevicePickerEntry> entries = ImmutableList.builder();
     AndroidDeviceComparator comparator = new AndroidDeviceComparator();
-    Collections.sort(connected, comparator);
-    Collections.sort(launchable, comparator);
+    connected.sort(comparator);
+    launchable.sort(comparator);
 
     entries.add(DevicePickerEntry.CONNECTED_DEVICES_MARKER);
     if (!connected.isEmpty()) {

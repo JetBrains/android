@@ -23,14 +23,24 @@ import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Insets;
+import java.awt.event.ActionListener;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.swing.ComboBoxModel;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JComboBox;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionListener;
-import java.util.*;
-import java.util.List;
 
 public class EditResourcePanel extends JBScrollPane {
   private JPanel myFullPanel;
@@ -107,7 +117,7 @@ public class EditResourcePanel extends JBScrollPane {
   public void setVariant(@NotNull List<ResourceItem> resources, @Nullable ResourceItem defaultValue) {
     if (resources.size() > 1) {
       resources = Lists.newArrayList(resources);
-      Collections.sort(resources, (element1, element2) -> {
+      resources.sort((element1, element2) -> {
         String dirName1 = element1.getSource().getParentFileName();
         String dirName2 = element2.getSource().getParentFileName();
         return dirName1.compareTo(dirName2);

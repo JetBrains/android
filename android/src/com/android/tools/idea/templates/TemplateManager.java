@@ -19,7 +19,6 @@ import static com.android.SdkConstants.FD_ADDONS;
 import static com.android.SdkConstants.FD_EXTRAS;
 import static com.android.SdkConstants.FD_GRADLE_WRAPPER;
 import static com.android.SdkConstants.FD_TEMPLATES;
-import static com.android.SdkConstants.FD_TOOLS;
 import static com.android.SdkConstants.FN_GRADLE_WRAPPER_UNIX;
 import static com.android.tools.idea.npw.project.AndroidPackageUtils.getModuleTemplates;
 import static com.android.tools.idea.npw.project.AndroidPackageUtils.getPackageForPath;
@@ -38,7 +37,6 @@ import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.model.NewModuleModel;
 import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.npw.model.RenderTemplateModel;
-import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.npw.template.ChooseActivityTypeStep;
 import com.android.tools.idea.npw.template.ChooseFragmentTypeStep;
 import com.android.tools.idea.npw.template.ChooseGalleryItemStep;
@@ -323,7 +321,7 @@ public class TemplateManager {
 
     // Sort by file name (not path as is File's default)
     if (templates.size() > 1) {
-      Collections.sort(templates, Comparator.comparing(File::getName));
+      templates.sort(Comparator.comparing(File::getName));
     }
 
     return templates;
@@ -721,7 +719,7 @@ public class TemplateManager {
       templates.addAll(getTemplateList(formFactor, "Wear", excluded));
     }
 
-    Collections.sort(templates, (o1, o2) -> {
+    templates.sort((o1, o2) -> {
       TemplateMetadata m1 = o1.getMetadata();
       TemplateMetadata m2 = o2.getMetadata();
       return StringUtil.naturalCompare(m1.getTitle(), m2.getTitle());

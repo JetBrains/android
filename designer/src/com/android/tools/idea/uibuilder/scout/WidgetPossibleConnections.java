@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.scout;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 
 /**
  * Represents the possible connection points for a widget in each of its directions
@@ -154,11 +153,11 @@ public class WidgetPossibleConnections {
    * Sorts the potential connections in the widget based on cost of the connection
    */
   void sortConnections() {
-    Collections.sort(north, (a, b) -> b.compareTo(a));
-    Collections.sort(south, (a, b) -> b.compareTo(a));
-    Collections.sort(east, (a, b) -> b.compareTo(a));
-    Collections.sort(west, (a, b) -> b.compareTo(a));
-    Collections.sort(baseline, (a, b) -> b.compareTo(a));
+    north.sort((a, b) -> b.compareTo(a));
+    south.sort((a, b) -> b.compareTo(a));
+    east.sort((a, b) -> b.compareTo(a));
+    west.sort((a, b) -> b.compareTo(a));
+    baseline.sort((a, b) -> b.compareTo(a));
   }
 
   public String toString() {
