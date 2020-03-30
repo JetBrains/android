@@ -573,7 +573,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testUpdateSchemaUpdatesModel() {
     // Prepare
-    val sqliteDatabase = FileSqliteDatabase("db", realDatabaseConnection, sqliteFile)
+    val sqliteDatabase = FileSqliteDatabase(realDatabaseConnection, sqliteFile)
 
     runDispatching {
       sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase))
@@ -592,7 +592,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testCreateTableUpdatesSchema() {
     // Prepare
-    val sqliteDatabase = FileSqliteDatabase("db", realDatabaseConnection, sqliteFile)
+    val sqliteDatabase = FileSqliteDatabase(realDatabaseConnection, sqliteFile)
 
     runDispatching {
       sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase))
@@ -615,7 +615,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testAlterTableRenameTableUpdatesSchema() {
     // Prepare
-    val sqliteDatabase = FileSqliteDatabase("db", realDatabaseConnection, sqliteFile)
+    val sqliteDatabase = FileSqliteDatabase(realDatabaseConnection, sqliteFile)
 
     runDispatching {
       sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase))
@@ -639,7 +639,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testAlterTableAddColumnUpdatesSchema() {
     // Prepare
-    val sqliteDatabase = FileSqliteDatabase("db", realDatabaseConnection, sqliteFile)
+    val sqliteDatabase = FileSqliteDatabase(realDatabaseConnection, sqliteFile)
 
     runDispatching {
       sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase))
@@ -664,7 +664,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun `test AlterTableAddColumn AlterTableRenameTable UpdatesSchema`() {
     // Prepare
-    val sqliteDatabase = FileSqliteDatabase("db", realDatabaseConnection, sqliteFile)
+    val sqliteDatabase = FileSqliteDatabase(realDatabaseConnection, sqliteFile)
 
     runDispatching {
       sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase))
@@ -711,7 +711,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testDropTableUpdatesSchema() {
     // Prepare
-    val sqliteDatabase = FileSqliteDatabase("db", realDatabaseConnection, sqliteFile)
+    val sqliteDatabase = FileSqliteDatabase(realDatabaseConnection, sqliteFile)
 
     runDispatching {
       sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase))
@@ -734,7 +734,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun `test CreateTable AddColumn RenameTable AddColumn UpdatesSchema`() {
     // Prepare
-    val sqliteDatabase = FileSqliteDatabase("db", realDatabaseConnection, sqliteFile)
+    val sqliteDatabase = FileSqliteDatabase(realDatabaseConnection, sqliteFile)
 
     runDispatching {
       sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase))
@@ -808,7 +808,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     val deviceFileId = DeviceFileId("deviceId", "filePath")
     val virtualFile = tempDirTestFixture.createFile("db")
     deviceFileId.storeInVirtualFile(virtualFile)
-    val fileDatabase = FileSqliteDatabase("db", mockDatabaseConnection, virtualFile)
+    val fileDatabase = FileSqliteDatabase(mockDatabaseConnection, virtualFile)
 
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
     runDispatching {
@@ -873,7 +873,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
 
   fun testWhenSchemaDiffFailsViewIsRecreated() {
     // Prepare
-    val sqliteDatabase = FileSqliteDatabase("db", mockDatabaseConnection, sqliteFile)
+    val sqliteDatabase = FileSqliteDatabase(mockDatabaseConnection, sqliteFile)
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
 
     runDispatching {

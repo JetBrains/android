@@ -24,6 +24,11 @@ import java.sql.JDBCType
  */
 sealed class SqliteDatabase {
   /**
+   * Full path of database
+   */
+  abstract val path: String
+
+  /**
    * Human readable name of the database.
    */
   abstract val name: String
@@ -37,17 +42,23 @@ sealed class SqliteDatabase {
 /**
  * [SqliteDatabase] accessed through live connection.
  */
-data class LiveSqliteDatabase(override val name: String, override val databaseConnection: DatabaseConnection) : SqliteDatabase()
+data class LiveSqliteDatabase(override val path: String, override val databaseConnection: DatabaseConnection) : SqliteDatabase() {
+  override val name = path.substringAfterLast("/")
+}
 
 /**
  * File based-[SqliteDatabase]. This database is accessed through a [VirtualFile].
  * The [DatabaseConnection] gets closed when the file is deleted.
  */
 data class FileSqliteDatabase(
-  override val name: String,
   override val databaseConnection: DatabaseConnection,
   val virtualFile: VirtualFile
-) : SqliteDatabase()
+) : SqliteDatabase() {
+  // TODO(b/139525976): finalize naming convention
+  override val name = virtualFile.path.split("data/data/").getOrNull(1)?.replace("databases/", "") ?: virtualFile.path
+
+  override val path = virtualFile.path
+}
 
 /** Representation of the Sqlite database schema */
 data class SqliteSchema(val tables: List<SqliteTable>)
