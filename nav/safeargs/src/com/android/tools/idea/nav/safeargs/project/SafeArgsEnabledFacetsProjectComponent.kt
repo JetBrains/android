@@ -26,9 +26,14 @@ import com.intellij.psi.util.CachedValuesManager
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
- * Project-wide properties / utilities for safe args.
+ * Component that tracks / caches all [AndroidFacet] instances that have enabled
+ * safe args on them, for quick iteration in light class short names caches and
+ * class finders.
+ *
+ * This component also serves as a [ModificationTracker] that will allow caches
+ * to know when this list might have been updated.
  */
-class SafeArgsProjectComponent(val project: Project) : ModificationTracker {
+class SafeArgsEnabledFacetsProjectComponent(val project: Project) : ModificationTracker {
   private val modulesUsingSafeArgsCache: CachedValue<List<AndroidFacet>>
   val modulesUsingSafeArgs: List<AndroidFacet>
     get() = modulesUsingSafeArgsCache.value

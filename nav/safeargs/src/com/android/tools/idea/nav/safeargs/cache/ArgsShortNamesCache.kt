@@ -17,7 +17,7 @@ package com.android.tools.idea.nav.safeargs.cache
 
 import com.android.tools.idea.nav.safeargs.module.SafeArgsCacheModuleService
 import com.android.tools.idea.nav.safeargs.project.ProjectNavigationResourceModificationTracker
-import com.android.tools.idea.nav.safeargs.project.SafeArgsProjectComponent
+import com.android.tools.idea.nav.safeargs.project.SafeArgsEnabledFacetsProjectComponent
 import com.android.tools.idea.nav.safeargs.psi.LightArgsClass
 import com.android.tools.idea.nav.safeargs.safeArgsModeTracker
 import com.intellij.openapi.project.Project
@@ -36,7 +36,7 @@ import com.intellij.util.Processor
  * A short names cache for finding any [LightArgsClass] instances by their unqualified name.
  */
 class ArgsShortNamesCache(project: Project) : PsiShortNamesCache() {
-  private val component = project.getComponent(SafeArgsProjectComponent::class.java)
+  private val component = project.getComponent(SafeArgsEnabledFacetsProjectComponent::class.java)
   private val lightClassesCache: CachedValue<Map<String, List<LightArgsClass>>>
 
   private val allClassNamesCache: CachedValue<Array<String>>
