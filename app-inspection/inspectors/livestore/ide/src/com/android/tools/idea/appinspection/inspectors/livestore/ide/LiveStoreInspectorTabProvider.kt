@@ -20,9 +20,9 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTab
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspectors.livestore.model.LiveStoreInspectorClient
-import com.android.tools.idea.appinspection.inspectors.livestore.view.LiveStoreInspectorTab
 import com.intellij.openapi.project.Project
 import javax.swing.JComponent
+import javax.swing.JPanel
 
 class LiveStoreInspectorTabProvider : AppInspectorTabProvider {
   override val inspectorId = "appinspection.demo.livestore"
@@ -34,7 +34,8 @@ class LiveStoreInspectorTabProvider : AppInspectorTabProvider {
   override fun createTab(project: Project, messenger: AppInspectorClient.CommandMessenger): AppInspectorTab {
     return object : AppInspectorTab {
       override val client = LiveStoreInspectorClient(messenger)
-      override val component: JComponent = LiveStoreInspectorTab(client).component
+      override val component: JComponent
+        get() = JPanel()
     }
   }
 }
