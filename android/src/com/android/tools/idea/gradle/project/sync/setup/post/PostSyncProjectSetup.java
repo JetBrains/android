@@ -57,8 +57,6 @@ import org.jetbrains.annotations.Nullable;
 
 public class PostSyncProjectSetup {
   @NotNull private final Project myProject;
-  @NotNull private final GradleProjectInfo myGradleProjectInfo;
-  @NotNull private final GradleSyncInvoker mySyncInvoker;
   @NotNull private final GradleSyncState mySyncState;
 
   @NotNull
@@ -68,54 +66,9 @@ public class PostSyncProjectSetup {
 
   @SuppressWarnings("unused") // Instantiated by IDEA
   public PostSyncProjectSetup(@NotNull Project project,
-                              @NotNull GradleProjectInfo gradleProjectInfo,
-                              @NotNull GradleSyncInvoker syncInvoker,
-                              @NotNull GradleSyncState syncState,
-                              @NotNull GradleSyncMessages syncMessages) {
-    this(project, gradleProjectInfo, syncInvoker, syncState);
-  }
-
-  @NonInjectable
-  @VisibleForTesting
-  PostSyncProjectSetup(@NotNull Project project,
-                       @NotNull GradleProjectInfo gradleProjectInfo,
-                       @NotNull GradleSyncInvoker syncInvoker,
-                       @NotNull GradleSyncState syncState) {
+                              @NotNull GradleSyncState syncState) {
     myProject = project;
-    myGradleProjectInfo = gradleProjectInfo;
-    mySyncInvoker = syncInvoker;
     mySyncState = syncState;
-  }
-
-  public static void finishFailedSync(@Nullable ExternalSystemTaskId taskId, @NotNull Project project, @Nullable String exceptionMessage) {
-    if (taskId != null) {
-      GradleSyncMessages messages = GradleSyncMessages.getInstance(project);
-      List<Failure> failures = new ArrayList<>(messages.showEvents(taskId));
-      // In order to ensure that exception messages are correctly displayed we need to use them to create a failure and pass it to the
-      // FinishBuildEventImpl. If we already have failure messages we don't want to pollute the output so we don't process the message
-      // in these cases.
-      if (exceptionMessage != null && failures.isEmpty()) {
-        NotificationData notificationData =
-          new NotificationData(exceptionMessage, exceptionMessage, NotificationCategory.ERROR, NotificationSource.PROJECT_SYNC);
-        failures.add(AndroidSyncFailure.create(notificationData));
-      }
-      FailureResultImpl failureResult = new FailureResultImpl(failures);
-      FinishBuildEventImpl finishBuildEvent = new FinishBuildEventImpl(taskId, null, currentTimeMillis(), "failed", failureResult);
-      ServiceManager.getService(project, SyncViewManager.class).onEvent(taskId, finishBuildEvent);
-    }
-  }
-
-  public void onCachedModelsSetupFailure(@Nullable ExternalSystemTaskId taskId, @NotNull Request request) {
-    finishFailedSync(taskId, myProject, null);
-    // Sync with cached model failed (e.g. when Studio has a newer embedded builder-model interfaces and the cache is using an older
-    // version of such interfaces.
-    long syncTimestamp = request.lastSyncTimestamp;
-    if (syncTimestamp < 0) {
-      syncTimestamp = currentTimeMillis();
-    }
-    mySyncState.syncSkipped(syncTimestamp, null);
-    // TODO add a new trigger for this?
-    mySyncInvoker.requestProjectSync(myProject, TRIGGER_PROJECT_CACHED_SETUP_FAILED);
   }
 
   public void notifySyncFinished(@NotNull Request request) {
