@@ -32,7 +32,6 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.FixAndroidGradlePlug
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixBuildToolsVersionHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixGradleVersionInWrapperHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallBuildToolsHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.InstallCMakeHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallNdkHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallPlatformHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallSdkPackageHyperlink
@@ -124,7 +123,6 @@ private fun NotificationHyperlink.toSyncIssueQuickFix(): AndroidStudioEvent.Grad
       is FixBuildToolsVersionHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.FIX_BUILD_TOOLS_VERSION_HYPERLINK
       is FixGradleVersionInWrapperHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.FIX_GRADLE_VERSION_IN_WRAPPER_HYPERLINK
       is InstallBuildToolsHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.INSTALL_BUILD_TOOLS_HYPERLINK
-      is InstallCMakeHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.INSTALL_C_MAKE_HYPERLINK
       is InstallNdkHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.INSTALL_NDK_HYPERLINK
       is InstallPlatformHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.INSTALL_PLATFORM_HYPERLINK
       is InstallSdkPackageHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.INSTALL_SDK_PACKAGE_HYPERLINK
