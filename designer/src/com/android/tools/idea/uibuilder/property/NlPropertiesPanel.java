@@ -26,6 +26,7 @@ import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
+import com.android.tools.adtui.util.CausedFocusEventWrapper;
 import com.android.tools.adtui.workbench.ToolWindowCallback;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.NlProperty;
@@ -89,7 +90,6 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
-import sun.awt.CausedFocusEvent;
 
 public class NlPropertiesPanel extends PropertiesPanel implements ViewAllPropertiesAction.Model {
   static final String PROPERTY_MODE = "properties.mode";
@@ -496,21 +496,15 @@ public class NlPropertiesPanel extends PropertiesPanel implements ViewAllPropert
     Component newFocusedComponent = (Component)event.getNewValue();
     if (!isAncestorOf(newFocusedComponent) ||
         !(newFocusedComponent.getParent() instanceof JComponent) ||
-        !(awtEvent instanceof CausedFocusEvent)) {
+        !CausedFocusEventWrapper.isFocusEventWithCause(awtEvent)) {
       return false;
     }
-    CausedFocusEvent focusEvent = (CausedFocusEvent)awtEvent;
-    switch (focusEvent.getCause()) {
-      case TRAVERSAL:
-      case TRAVERSAL_UP:
-      case TRAVERSAL_DOWN:
-      case TRAVERSAL_FORWARD:
-      case TRAVERSAL_BACKWARD:
-        break;
-      default:
-        return false;
-    }
-    return true;
+    CausedFocusEventWrapper focusEvent = CausedFocusEventWrapper.newInstanceOrNull(awtEvent);
+    assert focusEvent != null: "CausedFocusEventWrapper.isFocusEventWithCause==true => CausedFocusEventWrapper.newInstanceOrNull!=null";
+
+    return focusEvent.isTraversal() ||
+        focusEvent.isTraversalUp() || focusEvent.isTraversalDown() ||
+        focusEvent.isTraversalForward() || focusEvent.isTraversalBackward();
   }
 
   @NotNull

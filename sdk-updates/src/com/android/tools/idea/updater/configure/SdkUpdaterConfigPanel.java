@@ -30,6 +30,7 @@ import com.android.repository.impl.meta.TypeDetails;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.repository.meta.DetailsTypes;
+import com.android.tools.adtui.util.CausedFocusEventWrapper;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -121,7 +122,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import sun.awt.CausedFocusEvent;
 
 /**
  * Main panel for {@link SdkUpdaterConfigurable}
@@ -583,24 +583,8 @@ public class SdkUpdaterConfigPanel implements Disposable {
           return;
         }
 
-        boolean traversalBackward = false;
-
-        if (SystemInfoRt.IS_AT_LEAST_JAVA9) {
-          try {
-            Method getCause = FocusEvent.class.getMethod("getCause");
-            Enum<?> cause = (Enum<?>)getCause.invoke(e);
-            traversalBackward = "TRAVERSAL_BACKWARD".equals(cause.name());
-          }
-          catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
-            Logger.getInstance(SdkUpdaterConfigPanel.class).warn(ex);
-          }
-        }
-        else {
-          traversalBackward =
-            (e instanceof CausedFocusEvent && ((CausedFocusEvent)e).getCause() == CausedFocusEvent.Cause.TRAVERSAL_BACKWARD);
-        }
-
-        if (traversalBackward) {
+        CausedFocusEventWrapper causedFocusEvent = CausedFocusEventWrapper.newInstanceOrNull(e);
+        if (causedFocusEvent != null && causedFocusEvent.isTraversalBackward()) {
           backwardAction.doAction(table);
         }
         else {
