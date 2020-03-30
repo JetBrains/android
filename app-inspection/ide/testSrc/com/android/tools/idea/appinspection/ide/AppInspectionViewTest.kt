@@ -38,7 +38,6 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import java.awt.event.ContainerAdapter
 import java.awt.event.ContainerEvent
-import java.awt.event.ContainerListener
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 
@@ -79,7 +78,7 @@ class AppInspectionViewTest {
     val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
     val discoveryHost = AppInspectionTestUtils.createDiscoveryHost(executor, TransportClient(grpcServerRule.name))
 
-    val inspectionView = AppInspectionView(projectRule.project, discoveryHost)
+    val inspectionView = AppInspectionView(projectRule.project, discoveryHost) { listOf(FakeTransportService.FAKE_PROCESS_NAME) }
     val newProcessLatch = CountDownLatch(1)
     val tabAddedLatch = CountDownLatch(2)
     discoveryHost.discovery.addTargetListener(appInspectionServiceRule.executorService) {
@@ -100,7 +99,7 @@ class AppInspectionViewTest {
     val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
     val discoveryHost = AppInspectionTestUtils.createDiscoveryHost(executor, TransportClient(grpcServerRule.name))
 
-    val inspectionView = AppInspectionView(projectRule.project, discoveryHost)
+    val inspectionView = AppInspectionView(projectRule.project, discoveryHost) { listOf(FakeTransportService.FAKE_PROCESS_NAME) }
     val tabAddedLatch = CountDownLatch(2)
     inspectionView.inspectorTabs.addContainerListener(object : ContainerAdapter() {
       override fun componentAdded(e: ContainerEvent) = tabAddedLatch.countDown()

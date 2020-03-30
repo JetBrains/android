@@ -23,8 +23,11 @@ import com.intellij.util.concurrency.EdtExecutorService
 // TODO(b/152215087): This text needs to live in an Android Bundle and be internationalized.
 private const val DEFAULT_SELECTION_TEXT = "No Inspection Target Available"
 
+private const val NO_SELECTION_TEXT = "No Process Selected"
+
 //TODO(b/148546243): separate view and model code into independent modules.
-class AppInspectionProcessesComboBoxModel(appInspectionDiscoveryHost: AppInspectionDiscoveryHost, preferredProcessNames: List<String>) :
+class AppInspectionProcessesComboBoxModel(appInspectionDiscoveryHost: AppInspectionDiscoveryHost,
+                                          getPreferredProcesses: () -> List<String>) :
   DefaultCommonComboBoxModel<ProcessDescriptor>("") {
   override var editable = false
 
@@ -33,12 +36,13 @@ class AppInspectionProcessesComboBoxModel(appInspectionDiscoveryHost: AppInspect
       EdtExecutorService.getInstance(),
       object : AppInspectionDiscoveryHost.ProcessListener {
         override fun onProcessConnected(descriptor: ProcessDescriptor) {
+          val preferredProcessNames = getPreferredProcesses()
           if (preferredProcessNames.contains(descriptor.processName)) {
             insertElementAt(descriptor, 0)
           } else {
             insertElementAt(descriptor, size)
           }
-          if (selectedItem !is ProcessDescriptor) {
+          if (selectedItem !is ProcessDescriptor && preferredProcessNames.contains(descriptor.processName)) {
             selectedItem = descriptor
           }
         }
@@ -49,5 +53,6 @@ class AppInspectionProcessesComboBoxModel(appInspectionDiscoveryHost: AppInspect
       })
   }
 
-  override fun getSelectedItem() = super.getSelectedItem() ?: DEFAULT_SELECTION_TEXT
+  override fun getSelectedItem() = super.getSelectedItem() ?: if (size == 0) DEFAULT_SELECTION_TEXT else NO_SELECTION_TEXT
+
 }

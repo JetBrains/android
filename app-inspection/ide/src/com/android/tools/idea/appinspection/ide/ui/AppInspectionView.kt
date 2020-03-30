@@ -26,13 +26,11 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.concurrency.transform
-import com.android.tools.idea.model.AndroidModuleInfo
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
@@ -45,7 +43,11 @@ import javax.swing.JPanel
 import javax.swing.JSeparator
 import javax.swing.SwingConstants
 
-class AppInspectionView(private val project: Project, private val appInspectionDiscoveryHost: AppInspectionDiscoveryHost) {
+class AppInspectionView(
+  private val project: Project,
+  private val appInspectionDiscoveryHost: AppInspectionDiscoveryHost,
+  getPreferredProcesses: () -> List<String>
+) {
   val component = JPanel(TabularLayout("*", "Fit,Fit,*"))
   private val inspectorPanel = JPanel(BorderLayout())
 
@@ -59,21 +61,13 @@ class AppInspectionView(private val project: Project, private val appInspectionD
       })
     }
 
-  /**
-   * This dictates the names of the preferred processes. They are drawn from the android applicationIds of the modules in this [project].
-   */
-  private val preferredProcesses: List<String>
-    get() = ModuleManager.getInstance(project).modules
-      .mapNotNull { AndroidModuleInfo.getInstance(it)?.`package` }
-      .toList()
-
   private val activeClients = CopyOnWriteArrayList<AppInspectorClient.CommandMessenger>()
 
   init {
     component.border = AdtUiUtils.DEFAULT_RIGHT_BORDER
 
     val inspectionProcessesComboBox =
-      AppInspectionProcessesComboBox(AppInspectionProcessesComboBoxModel(appInspectionDiscoveryHost, preferredProcesses))
+      AppInspectionProcessesComboBox(AppInspectionProcessesComboBoxModel(appInspectionDiscoveryHost, getPreferredProcesses))
     val toolbar = JPanel(BorderLayout())
     toolbar.add(inspectionProcessesComboBox, BorderLayout.WEST)
     component.add(toolbar, TabularLayout.Constraint(0, 0))
