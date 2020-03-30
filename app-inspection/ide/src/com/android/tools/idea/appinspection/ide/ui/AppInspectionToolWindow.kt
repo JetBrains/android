@@ -16,13 +16,22 @@
 package com.android.tools.idea.appinspection.ide.ui
 
 import com.android.tools.idea.appinspection.ide.AppInspectionHostService
+import com.android.tools.idea.model.AndroidModuleInfo
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import javax.swing.JComponent
 
-class AppInspectionToolWindow(window: ToolWindow, project: Project) : Disposable {
-  private val appInspectionView = AppInspectionView(project, AppInspectionHostService.instance.discoveryHost)
+class AppInspectionToolWindow(window: ToolWindow, private val project: Project) : Disposable {
+  /**
+   * This dictates the names of the preferred processes. They are drawn from the android applicationIds of the modules in this [project].
+   */
+  private fun getPreferredProcesses(): List<String> = ModuleManager.getInstance(project).modules
+    .mapNotNull { AndroidModuleInfo.getInstance(it)?.`package` }
+    .toList()
+
+  private val appInspectionView = AppInspectionView(project, AppInspectionHostService.instance.discoveryHost, ::getPreferredProcesses)
   val component: JComponent = appInspectionView.component
 
   override fun dispose() {

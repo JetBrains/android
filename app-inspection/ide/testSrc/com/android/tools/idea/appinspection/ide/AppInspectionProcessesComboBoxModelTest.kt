@@ -71,7 +71,7 @@ class AppInspectionProcessesComboBoxModelTest {
     val addedLatch = CountDownLatch(1)
     val removedLatch = CountDownLatch(1)
 
-    val model = AppInspectionProcessesComboBoxModel(discoveryHost, emptyList())
+    val model = AppInspectionProcessesComboBoxModel(discoveryHost) { emptyList() }
     model.addListDataListener(object : ListDataListener {
       override fun contentsChanged(e: ListDataEvent?) {}
 
@@ -111,7 +111,7 @@ class AppInspectionProcessesComboBoxModelTest {
 
     val addedLatch = CountDownLatch(2)
 
-    val model = AppInspectionProcessesComboBoxModel(discoveryHost, listOf("preferred"))
+    val model = AppInspectionProcessesComboBoxModel(discoveryHost) { listOf("preferred") }
     model.addListDataListener(object : ListDataListener {
       override fun contentsChanged(e: ListDataEvent?) {}
 
@@ -152,7 +152,7 @@ class AppInspectionProcessesComboBoxModelTest {
 
     val processReadyLatch = CountDownLatch(2)
 
-    val model = AppInspectionProcessesComboBoxModel(discoveryHost, emptyList())
+    val model = AppInspectionProcessesComboBoxModel(discoveryHost) { listOf("A", "B") }
     model.addListDataListener(object : ListDataListener {
       override fun contentsChanged(e: ListDataEvent?) {}
 
@@ -176,5 +176,75 @@ class AppInspectionProcessesComboBoxModelTest {
 
     // Verify combobox's selection is set to the first process (A)
     assertThat((model.selectedItem as ProcessDescriptor).processName).isEqualTo("A")
+  }
+
+  @Test
+  fun noPreferredProcesses_noSelection() {
+    val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
+    val discoveryHost = AppInspectionTestUtils.createDiscoveryHost(executor, TransportClient(grpcServerRule.name))
+
+    val processReadyLatch = CountDownLatch(1)
+
+    val model = AppInspectionProcessesComboBoxModel(discoveryHost) { emptyList() }
+    model.addListDataListener(object : ListDataListener {
+      override fun contentsChanged(e: ListDataEvent?) {}
+
+      override fun intervalRemoved(e: ListDataEvent?) {}
+
+      override fun intervalAdded(e: ListDataEvent?) {
+        processReadyLatch.countDown()
+      }
+    })
+
+    val process = FakeTransportService.FAKE_PROCESS.toBuilder().setName("A").setPid(100).build()
+
+    // Launch process
+    transportService.addDevice(FakeTransportService.FAKE_DEVICE)
+    transportService.addProcess(FakeTransportService.FAKE_DEVICE, process)
+
+    processReadyLatch.await()
+
+    // Verify combobox's selection is set to No Process Selected.
+    assertThat(model.selectedItem).isEqualTo("No Process Selected")
+  }
+
+  @Test
+  fun noInspectionTargetAvailable() {
+    val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
+    val discoveryHost = AppInspectionTestUtils.createDiscoveryHost(executor, TransportClient(grpcServerRule.name))
+
+    val processReadyLatch = CountDownLatch(1)
+    val processRemovedLatch = CountDownLatch(1)
+
+    val model = AppInspectionProcessesComboBoxModel(discoveryHost) { emptyList() }
+    model.addListDataListener(object : ListDataListener {
+      override fun contentsChanged(e: ListDataEvent?) {}
+
+      override fun intervalRemoved(e: ListDataEvent?) {
+        processRemovedLatch.countDown()
+      }
+
+      override fun intervalAdded(e: ListDataEvent?) {
+        processReadyLatch.countDown()
+      }
+    })
+
+    // Verify combobox's selection is set to the correct text.
+    assertThat(model.selectedItem).isEqualTo("No Inspection Target Available")
+
+    val process = FakeTransportService.FAKE_PROCESS.toBuilder().setName("A").setPid(100).build()
+    val deadProcess = process.toBuilder().setState(Common.Process.State.DEAD).build()
+
+    // Launch process
+    transportService.addDevice(FakeTransportService.FAKE_DEVICE)
+    transportService.addProcess(FakeTransportService.FAKE_DEVICE, process)
+    processReadyLatch.await()
+
+    // Remove the process
+    transportService.addProcess(FakeTransportService.FAKE_DEVICE, deadProcess)
+    processRemovedLatch.await()
+
+    // Verify combobox's selection is set to the correct text.
+    assertThat(model.selectedItem).isEqualTo("No Inspection Target Available")
   }
 }
