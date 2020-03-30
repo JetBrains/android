@@ -45,8 +45,8 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
     return object : AppInspectorTab {
 
       private val databaseInspectorProjectService = DatabaseInspectorProjectService.getInstance(project)
-      private val openDatabase: (AppInspectorClient.CommandMessenger, Int, String) -> Unit = { messenger, databaseId, databaseName ->
-        databaseInspectorProjectService.openSqliteDatabase(messenger, databaseId, databaseName)
+      private val openDatabase: (AppInspectorClient.CommandMessenger, Int, String) -> Unit = { messenger, databaseId, databasePath ->
+        databaseInspectorProjectService.openSqliteDatabase(messenger, databaseId, databasePath)
       }
 
       private val handleError: (String) -> Unit = { databaseInspectorProjectService.handleError(it, null) }

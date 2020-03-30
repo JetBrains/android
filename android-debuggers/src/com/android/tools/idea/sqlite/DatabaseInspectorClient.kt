@@ -29,7 +29,7 @@ import com.intellij.openapi.application.ApplicationManager
 class DatabaseInspectorClient constructor(
   messenger: CommandMessenger,
   private val handleError: (errorMessage: String) -> Unit,
-  private val openDatabase: (messenger: CommandMessenger, databaseConnectionId: Int, databaseName: String) -> Unit,
+  private val openDatabase: (messenger: CommandMessenger, databaseConnectionId: Int, databasePath: String) -> Unit,
   private val onDatabasePossiblyChanged: () -> Unit
 ) : AppInspectorClient(messenger) {
   override val rawEventListener = object : RawEventListener {

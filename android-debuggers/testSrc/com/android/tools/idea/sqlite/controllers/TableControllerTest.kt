@@ -81,7 +81,6 @@ class TableControllerTest : PlatformTestCase() {
   private lateinit var authorsRow4: SqliteRow
   private lateinit var authorsRow5: SqliteRow
 
-  private val database = FileSqliteDatabase("db", mock(DatabaseConnection::class.java), mock(VirtualFile::class.java))
   private val sqliteTable = SqliteTable("tableName", emptyList(), null, false)
 
   override fun setUp() {
