@@ -16,12 +16,12 @@
 package com.android.tools.idea.appinspection.internal
 
 import com.android.annotations.concurrency.GuardedBy
+import com.android.tools.app.inspection.AppInspection
 import com.android.tools.app.inspection.AppInspection.AppInspectionCommand
 import com.android.tools.app.inspection.AppInspection.AppInspectionResponse.Status.SUCCESS
 import com.android.tools.app.inspection.AppInspection.CreateInspectorCommand
 import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
 import com.android.tools.idea.appinspection.api.AppInspectionTarget
-import com.android.tools.idea.appinspection.api.ProcessDescriptor
 import com.android.tools.idea.appinspection.api.TargetTerminatedListener
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
@@ -116,6 +116,7 @@ private class DefaultAppInspectionTarget(
   override fun <T : AppInspectorClient> launchInspector(
     inspectorId: String,
     inspectorJar: AppInspectorJar,
+    projectName: String,
     creator: (AppInspectorClient.CommandMessenger) -> T
   ): ListenableFuture<T> {
     val launchResultFuture = MoreExecutors.listeningDecorator(transport.executorService)
@@ -126,6 +127,7 @@ private class DefaultAppInspectionTarget(
         val connectionFuture = SettableFuture.create<AppInspectorConnection>()
         val createInspectorCommand = CreateInspectorCommand.newBuilder()
           .setDexPath(fileDevicePath)
+          .setLaunchMetadata(AppInspection.LaunchMetadata.newBuilder().setLaunchedByName(projectName).build())
           .build()
         val appInspectionCommand = AppInspectionCommand.newBuilder()
           .setInspectorId(inspectorId)
