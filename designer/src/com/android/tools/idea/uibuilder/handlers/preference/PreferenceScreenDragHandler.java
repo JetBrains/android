@@ -23,6 +23,8 @@ import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -104,8 +106,7 @@ final class PreferenceScreenDragHandler extends PreferenceGroupDragHandler {
 
   @Override
   void drawDropRecipientLines(@NotNull NlGraphics graphics) {
-    List<SceneComponent> preferences = myGroup.getChildren();
-
+    ImmutableList<SceneComponent> preferences = ImmutableList.copyOf(myGroup.getChildren());
     if (preferences.isEmpty()) {
       return;
     }
@@ -120,7 +121,7 @@ final class PreferenceScreenDragHandler extends PreferenceGroupDragHandler {
     graphics.drawLeftDp(bounds);
     graphics.drawRightDp(bounds);
 
-    if (lastY < getMidpointY(preferences.get(preferences.size() - 1))) {
+    if (lastY < getMidpointY(Iterables.getLast(preferences))) {
       graphics.drawBottomDp(bounds);
     }
   }
