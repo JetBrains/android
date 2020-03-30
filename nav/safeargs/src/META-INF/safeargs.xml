@@ -34,7 +34,7 @@
 
   <project-components>
     <component>
-      <implementation-class>com.android.tools.idea.nav.safeargs.project.SafeArgsProjectComponent</implementation-class>
+      <implementation-class>com.android.tools.idea.nav.safeargs.project.SafeArgsEnabledFacetsProjectComponent</implementation-class>
     </component>
     <component>
       <implementation-class>com.android.tools.idea.nav.safeargs.project.NavigationResourcesModificationListener$SubscriptionComponent</implementation-class>
