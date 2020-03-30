@@ -23,7 +23,7 @@ import com.android.tools.idea.ui.resourcemanager.ResourceExplorerDialog
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
-import com.intellij.util.nls.NlsContexts
+import com.intellij.openapi.util.NlsContexts
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
