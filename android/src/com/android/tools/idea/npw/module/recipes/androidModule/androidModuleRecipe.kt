@@ -40,9 +40,6 @@ fun RecipeExecutor.generateAndroidModule(
   val formFactorNames = projectData.includedFormFactorNames
   requireJavaVersion(bytecodeLevel.versionString, data.projectTemplateData.language == Language.Kotlin)
   addDependency("com.android.support:appcompat-v7:${data.apis.appCompatVersion}.+")
-  // Though addDependency should not be called from a module recipe, adding this library because it's used for the default theme
-  // (Theme.MaterialComponents.DayNight)
-  addDependency("com.google.android.material:material:+")
   // TODO(qumeric): currently only works for a new project
   if (formFactorNames.has(FormFactor.Mobile) && formFactorNames.has(FormFactor.Wear)) {
     addDependency("com.google.android.gms:play-services-wearable:+", "compile")

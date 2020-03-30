@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.npw.module.recipes.androidModule.res.values
 
-// TODO: Check if App can be replaced with an actual app name
+
 fun androidModuleStyles(): String = """
 <resources>
   <!-- Base application theme. -->
-  <style name="Theme.App" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+  <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
       <!-- Customize your theme here. -->
       <item name="colorPrimary">@color/purple500</item>
       <item name="colorPrimaryDark">@color/purple700</item>

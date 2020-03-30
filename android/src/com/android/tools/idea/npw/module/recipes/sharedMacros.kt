@@ -31,7 +31,7 @@ import java.io.File
 fun generateManifest(
   packageName: String,
   hasApplicationBlock: Boolean = false,
-  theme: String = "@style/Theme.App",
+  theme: String = "@style/AppTheme",
   usesFeatureBlock: String = "",
   hasRoundIcon: Boolean = true
 ): String {
@@ -233,7 +233,7 @@ plugins {
 
 fun basicStylesXml(parent: String) = """
 <resources>
-    <style name="Theme.App" parent="$parent" />
+    <style name="AppTheme" parent="$parent" />
 </resources>
 """
 
