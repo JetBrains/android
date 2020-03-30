@@ -29,12 +29,15 @@ class SetCmakeDirQuickFix(private val myPath: File) : BuildIssueQuickFix {
   override val id = "SET_CMAKE_DIR"
 
   override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+    val future = CompletableFuture<Any>()
+
     invokeLater {
       val localProperties = LocalProperties(project)
       localProperties.androidCmakePath = myPath
       localProperties.save()
       GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_QF_CMAKE_INSTALLED)
+      future.complete(null)
     }
-    return CompletableFuture.completedFuture<Any>(null)
+    return future
   }
 }

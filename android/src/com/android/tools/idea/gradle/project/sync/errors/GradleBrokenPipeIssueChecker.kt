@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler.updateUsageTracker
+import com.android.tools.idea.gradle.project.sync.idea.issues.MessageComposer
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
@@ -33,17 +34,15 @@ class GradleBrokenPipeIssueChecker : GradleIssueChecker {
     invokeLater {
       updateUsageTracker(issueData.projectPath, GradleSyncFailure.BROKEN_PIPE)
     }
-    val openLinkQuickFix =
-      ConnectionPermissionDeniedIssueChecker.OpenLinkQuickFix("https://developer.android.com/r/studio-ui/known-issues.html",
-                                                              "More info (including workarounds)")
+    val description = MessageComposer("Broken pipe.").apply {
+      addDescription("The Gradle daemon may be trying to use ipv4 instead of ipv6.")
+      addQuickFix("More info (including workarounds)", ConnectionPermissionDeniedIssueChecker.OpenLinkQuickFix("https://developer.android.com/r/studio-ui/known-issues.html"
+      ))
+    }
     return return object : BuildIssue {
       override val title = "Gradle Sync Issues."
-      override val description = buildString {
-        appendln("Broken pipe.")
-        appendln("The Gradle daemon may be trying to use ipv4 instead of ipv6.")
-        appendln("<a href=\"${openLinkQuickFix.id}\">${openLinkQuickFix.linkText}</a>")
-      }
-      override val quickFixes = listOf(openLinkQuickFix)
+      override val description = description.buildMessage()
+      override val quickFixes = description.quickFixes
       override fun getNavigatable(project: Project) = null
     }
   }

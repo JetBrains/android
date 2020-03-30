@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.android.tools.idea.gradle.project.sync.idea.issues.MessageComposer
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.build.issue.BuildIssue
@@ -46,9 +47,7 @@ class GradleDistributionInstallIssueChecker : GradleIssueChecker {
       SyncErrorHandler.updateUsageTracker(issueData.projectPath, GradleSyncFailure.GRADLE_DISTRIBUTION_INSTALL_ERROR)
     }
 
-    val quickFixes : MutableList<BuildIssueQuickFix> = mutableListOf()
-    val description = StringBuilder()
-    description.append(message)
+    val description = MessageComposer(message)
     val wrapperConfiguration = GradleUtil.getWrapperConfiguration(issueData.projectPath)
     if (wrapperConfiguration != null) {
 
@@ -60,26 +59,26 @@ class GradleDistributionInstallIssueChecker : GradleIssueChecker {
           zipFile = zipFile.canonicalFile
         } catch (e : Exception) {}
 
-        val deleteFileAndSyncQuickFix = DeleteFileAndSyncQuickFix(zipFile, GradleSyncStats.Trigger.TRIGGER_QF_GRADLE_DISTRIBUTION_DELETED)
-        description.append("The cached zip file ${zipFile} may be corrupted.")
-        description.append("<a href=\"${deleteFileAndSyncQuickFix.id}\"> ${deleteFileAndSyncQuickFix.linkText}</a>")
-        quickFixes.add(deleteFileAndSyncQuickFix)
+        description.addDescription("The cached zip file ${zipFile} may be corrupted.")
+        description.addQuickFix(
+          "Delete file and sync project", DeleteFileAndSyncQuickFix(zipFile, GradleSyncStats.Trigger.TRIGGER_QF_GRADLE_DISTRIBUTION_DELETED))
       }
     }
 
     return object : BuildIssue {
       override val title = "Gradle Sync Issues."
-      override val description = description.toString()
-      override val quickFixes = quickFixes
+      override val description = description.buildMessage()
+      override val quickFixes = description.quickFixes
       override fun getNavigatable(project: Project) = null
     }
   }
 
   class DeleteFileAndSyncQuickFix(val file: File, private val syncTrigger: GradleSyncStats.Trigger) : BuildIssueQuickFix {
-    override val id = "DELETE_FILE_AND_SYNC"
-    val linkText = "Delete file and sync project"
+    override val id = "delete.file.and.sync"
 
     override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+      val future = CompletableFuture<Any>()
+
       invokeLater {
         if (Messages.showYesNoDialog(project, "Are you sure you want to delete this file?\n\n" + file.path, "Delete File",
                                      null) == Messages.YES) {
@@ -90,8 +89,9 @@ class GradleDistributionInstallIssueChecker : GradleIssueChecker {
             Messages.showErrorDialog(project, "Could not delete " + file.path, "Delete File")
           }
         }
+        future.complete(null)
       }
-      return CompletableFuture.completedFuture<Any>(null)
+      return future
     }
   }
 }

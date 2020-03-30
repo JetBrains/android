@@ -25,14 +25,17 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings
 import java.util.concurrent.CompletableFuture
 
 class ToggleOfflineModeQuickFix(private val myEnableOfflineMode: Boolean) : BuildIssueQuickFix {
-  override val id = "ENABLE_OFFLINE_MODE"
+  override val id = "enable.disable.offline.mode"
 
   override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+    val future = CompletableFuture<Any>()
+
     invokeLater {
       GradleSettings.getInstance(project).isOfflineWork = myEnableOfflineMode
       val trigger = GradleSyncStats.Trigger.TRIGGER_QF_OFFLINE_MODE_DISABLED
       GradleSyncInvoker.getInstance().requestProjectSync(project, trigger)
+      future.complete(null)
     }
-    return CompletableFuture.completedFuture<Any>(null)
+    return future
   }
 }

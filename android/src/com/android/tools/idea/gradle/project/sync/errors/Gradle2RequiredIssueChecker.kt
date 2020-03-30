@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.tools.idea.Projects
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler.updateUsageTracker
+import com.android.tools.idea.gradle.project.sync.idea.issues.MessageComposer
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
@@ -44,39 +45,41 @@ class Gradle2RequiredIssueChecker : GradleIssueChecker {
     invokeLater {
       updateUsageTracker(issueData.projectPath, GradleSyncFailure.GRADLE2_REQUIRED)
     }
-    val createGradleWrapperQuickFix = CreateGradleWrapperQuickFix()
+    val description = MessageComposer("Gradle ${SdkConstants.GRADLE_MINIMUM_VERSION} is required.").apply {
+      addDescription(message)
+      addQuickFix("Migrate to Gradle wrapper and sync project", CreateGradleWrapperQuickFix())
+    }
     return object : BuildIssue {
-      override val title = "Gradle ${SdkConstants.GRADLE_MINIMUM_VERSION} is required."
-      override val description = buildString {
-        appendln("Gradle ${SdkConstants.GRADLE_MINIMUM_VERSION} is required.")
-        append(message)
-        appendln()
-        append("<a href=\"${createGradleWrapperQuickFix.id}\">${createGradleWrapperQuickFix.linkText}</a>")
-      }
-      override val quickFixes = listOf(createGradleWrapperQuickFix)
+      override val title = "Gradle Sync issues."
+      override val description = description.buildMessage()
+      override val quickFixes = description.quickFixes
       override fun getNavigatable(project: Project) = null
     }
   }
 
   companion object class CreateGradleWrapperQuickFix() : BuildIssueQuickFix {
-    override val id = "MIGRATE_GRADLE_WRAPPER"
-    val linkText = "Migrate to Gradle wrapper and sync project"
+    override val id = "migrate.gradle.wrapper"
 
     override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
-      val projectDirPath = Projects.getBaseDirPath(project)
-      try {
-        GradleWrapper.create(projectDirPath)
-        val settings = GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(project)
-        if (settings != null) {
-          settings.distributionType = DistributionType.DEFAULT_WRAPPED
-        }
+      val future = CompletableFuture<Any>()
+      invokeLater {
+        val projectDirPath = Projects.getBaseDirPath(project)
+        try {
+          GradleWrapper.create(projectDirPath)
+          val settings = GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(project)
+          if (settings != null) {
+            settings.distributionType = DistributionType.DEFAULT_WRAPPED
+          }
 
-        GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncStats.Trigger.TRIGGER_QF_WRAPPER_CREATED)
+          GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncStats.Trigger.TRIGGER_QF_WRAPPER_CREATED)
+          future.complete(null)
+        }
+        catch (e: IOException) {
+          Messages.showErrorDialog(project, "Failed to create Gradle wrapper: " + e.message, "Quick Fix")
+          future.completeExceptionally(e)
+        }
       }
-      catch (e: IOException) {
-        Messages.showErrorDialog(project, "Failed to create Gradle wrapper: " + e.message, "Quick Fix")
-      }
-      return CompletableFuture.completedFuture<Any>(null)
+      return future
     }
   }
 

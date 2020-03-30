@@ -24,7 +24,7 @@ import com.intellij.openapi.util.Key
 import java.util.concurrent.CompletableFuture
 
 class SyncProjectRefreshingDependenciesQuickFix : BuildIssueQuickFix {
-  override val id = "SYNC_PROJECT"
+  override val id = "sync.project"
   val linkText = "Re-download dependencies and sync project (requires network)"
   private val EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY = Key.create<Array<String>>("extra.gradle.command.line.options")
 

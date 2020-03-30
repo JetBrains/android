@@ -25,9 +25,11 @@ import java.util.concurrent.CompletableFuture
 
 
 class OpenFileAtLocationQuickFix(val myFilePosition: FilePosition) : BuildIssueQuickFix {
-  override val id = "OPEN_FILE"
+  override val id = "open.file"
 
   override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+    val future = CompletableFuture<Any>()
+
     val projectFile = project.projectFile ?: return CompletableFuture.completedFuture<Any>(null)
     invokeLater {
       val file = projectFile.parent.fileSystem.findFileByPath(myFilePosition.file.path)
@@ -37,7 +39,8 @@ class OpenFileAtLocationQuickFix(val myFilePosition: FilePosition) : BuildIssueQ
           openFile.navigate(true)
         }
       }
+      future.complete(null)
     }
-    return CompletableFuture.completedFuture<Any>(null)
+    return future
   }
 }
