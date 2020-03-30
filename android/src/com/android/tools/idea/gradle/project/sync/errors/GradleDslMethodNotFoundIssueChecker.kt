@@ -97,24 +97,29 @@ class GradleDslMethodNotFoundIssueChecker : GradleIssueChecker {
    * to the version in [SdkConstants.GRADLE_LATEST_VERSION].
    */
   class FixAndroidGradlePluginVersionQuickFix(val pluginVersion: GradleVersion, val gradleVersion: GradleVersion) : BuildIssueQuickFix {
-    override val id = "FIX_GRADLE_ELEMENTS"
+    override val id = "fix.gradle.elements"
 
     override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+      val future = CompletableFuture<Any>()
+
       invokeLater {
         val updater = AndroidPluginVersionUpdater.getInstance(project)
         if (updater.updatePluginVersion(pluginVersion, gradleVersion)) {
           val request = GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATED)
           GradleSyncInvoker.getInstance().requestProjectSync(project, request)
         }
+        future.complete(null)
       }
-      return CompletableFuture.completedFuture<Any>(null)
+      return future
     }
   }
 
   class GetGradleSettingsQuickFix : BuildIssueQuickFix {
-    override val id = "OPEN_GRADLE_SETTINGS"
+    override val id = "open.gradle.settings"
 
     override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+      val future = CompletableFuture<Any>()
+
       invokeLater {
         if (isUsingWrapper(project)) {
           val gradleWrapper = GradleWrapper.find(project) ?: return@invokeLater
@@ -123,8 +128,9 @@ class GradleDslMethodNotFoundIssueChecker : GradleIssueChecker {
           val descriptor = OpenFileDescriptor(project, propertiesFile)
           FileEditorManager.getInstance(project).openTextEditor(descriptor, true)
         }
+        future.complete(null)
       }
-      return CompletableFuture.completedFuture<Any>(null)
+      return future
     }
 
     private fun isUsingWrapper(project: Project) : Boolean {
@@ -136,9 +142,11 @@ class GradleDslMethodNotFoundIssueChecker : GradleIssueChecker {
   }
 
   class ApplyGradlePluginQuickFix(private val myFilePosition: FilePosition) : BuildIssueQuickFix {
-    override val id = "APPLY_GRADLE_PLUGIN"
+    override val id = "apply.gradle.plugin"
 
     override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+      val future = CompletableFuture<Any>()
+
       invokeLater {
         val virtualFile = LocalFileSystem.getInstance().findFileByIoFile(myFilePosition.file) ?: return@invokeLater
         OpenFileDescriptor(project, virtualFile, myFilePosition.startLine, myFilePosition.startColumn).navigate(true)
@@ -148,8 +156,9 @@ class GradleDslMethodNotFoundIssueChecker : GradleIssueChecker {
         assert(action is AddGradleDslPluginAction)
         actionManager.tryToExecute(action, ActionCommand.getInputEvent(AddGradleDslPluginAction.ID), null,
                                    ActionPlaces.UNKNOWN, true)
+        future.complete(null)
       }
-      return CompletableFuture.completedFuture<Any>(null)
+      return future
     }
   }
 }

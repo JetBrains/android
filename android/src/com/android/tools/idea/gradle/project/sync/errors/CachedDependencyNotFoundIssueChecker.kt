@@ -15,20 +15,15 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler.updateUsageTracker
+import com.android.tools.idea.gradle.project.sync.idea.issues.MessageComposer
 import com.android.tools.idea.gradle.project.sync.quickFixes.ToggleOfflineModeQuickFix
-import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.build.issue.BuildIssue
-import com.intellij.build.issue.BuildIssueQuickFix
-import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
-import org.jetbrains.plugins.gradle.settings.GradleSettings
-import java.util.concurrent.CompletableFuture
 
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.CACHED_DEPENDENCY_NOT_FOUND
 
@@ -42,11 +37,13 @@ class CachedDependencyNotFoundIssueChecker: GradleIssueChecker {
       updateUsageTracker(issueData.projectPath, CACHED_DEPENDENCY_NOT_FOUND)
     }
 
-    val quickFix = ToggleOfflineModeQuickFix(true)
+    val description = MessageComposer(message).apply {
+      addQuickFix("Disable Gradle 'offline mode' and sync project", ToggleOfflineModeQuickFix(true))
+    }
     return object : BuildIssue {
       override val title: String = "Cached dependency not found"
-      override val description: String = "$message\n\n<a href=\"${quickFix.id}\">Disable Gradle 'offline mode' and sync project</a>"
-      override val quickFixes = listOf(quickFix)
+      override val description: String = description.buildMessage()
+      override val quickFixes = description.quickFixes
       override fun getNavigatable(project: Project): Navigatable? = null
     }
   }

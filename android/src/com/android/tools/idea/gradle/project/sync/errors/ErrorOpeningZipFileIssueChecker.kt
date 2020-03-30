@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler.updateUsageTracker
+import com.android.tools.idea.gradle.project.sync.idea.issues.MessageComposer
 import com.android.tools.idea.gradle.project.sync.quickFixes.SyncProjectRefreshingDependenciesQuickFix
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.intellij.build.issue.BuildIssue
@@ -34,14 +35,14 @@ class ErrorOpeningZipFileIssueChecker: GradleIssueChecker {
       updateUsageTracker(issueData.projectPath, GradleSyncFailure.CANNOT_OPEN_ZIP_FILE)
     }
     val syncProjectQuickFix = SyncProjectRefreshingDependenciesQuickFix()
+    val description = MessageComposer("Failed to open zip file.").apply {
+      addDescription("Gradle's dependency cache may be corrupt (this sometimes occurs after a network connection timeout.)")
+      addQuickFix(syncProjectQuickFix.linkText, syncProjectQuickFix)
+    }
     return object : BuildIssue {
-      override val title = "Failed to open zip file."
-      override val description = buildString {
-        appendln("Failed to open zip file.")
-        appendln("Gradle's dependency cache may be corrupt (this sometimes occurs after a network connection timeout.)")
-        appendln("<a href=\"${syncProjectQuickFix.id}\">${syncProjectQuickFix.linkText}</a>")
-      }
-      override val quickFixes = listOf(syncProjectQuickFix)
+      override val title = "Gradle Sync issues."
+      override val description = description.buildMessage()
+      override val quickFixes = description.quickFixes
       override fun getNavigatable(project: Project) = null
     }
   }

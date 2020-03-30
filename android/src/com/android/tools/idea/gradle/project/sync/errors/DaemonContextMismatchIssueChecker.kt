@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler.updateUsageTracker
+import com.android.tools.idea.gradle.project.sync.idea.issues.MessageComposer
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenProjectStructureQuickfix
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.intellij.build.issue.BuildIssue
@@ -40,16 +41,15 @@ class DaemonContextMismatchIssueChecker : GradleIssueChecker {
       invokeLater {
         updateUsageTracker(issueData.projectPath, GradleSyncFailure.DAEMON_CONTEXT_MISMATCH)
       }
-      val openProjectStructureQuickfix = OpenProjectStructureQuickfix("Open JDK Settings")
+      val description = MessageComposer(messageLines[2]).apply {
+        addDescription(expectedAndActual)
+        addDescription("Please configure the JDK to match the expected one.")
+        addQuickFix("Open JDK Settings", OpenProjectStructureQuickfix())
+      }
       return object : BuildIssue {
-        override val title = ""
-        override val description = buildString {
-          appendln("\n${messageLines[2]}")
-          appendln(expectedAndActual)
-          appendln("Please configure the JDK to match the expected one.")
-          append("<a href=\"${openProjectStructureQuickfix.id}>${openProjectStructureQuickfix.linkText}</a>")
-        }
-        override val quickFixes = listOf(openProjectStructureQuickfix)
+        override val title = "Gradle Sync Issues."
+        override val description = description.buildMessage()
+        override val quickFixes = description.quickFixes
         override fun getNavigatable(project: Project) = null
       }
     }

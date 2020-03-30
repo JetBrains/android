@@ -22,8 +22,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService
 import java.util.concurrent.CompletableFuture
 
-class OpenProjectStructureQuickfix(val linkText: String) : BuildIssueQuickFix {
-  override val id = "OPEN_JDK_NDK_SETTINGS"
+class OpenProjectStructureQuickfix : BuildIssueQuickFix {
+  override val id = "open.jdk.ndk.settings"
 
   override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
     val service = ProjectSettingsService.getInstance(project)

@@ -81,6 +81,8 @@ class MissingAndroidPluginIssueChecker : GradleIssueChecker {
     override val id = "open.plugin.build.file"
 
     override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
+      val future = CompletableFuture<Any>()
+
       invokeLater {
         if (project.isInitialized) {
           val pluginInfo = findFromBuildFiles(project) ?: return@invokeLater
@@ -90,8 +92,9 @@ class MissingAndroidPluginIssueChecker : GradleIssueChecker {
           }
         }
         else Messages.showErrorDialog(project, "Failed to find plugin version on Gradle files.", "Quick Fix")
+        future.complete(null)
       }
-      return CompletableFuture.completedFuture<Any>(null)
+      return future
     }
   }
 }

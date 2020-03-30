@@ -47,8 +47,9 @@ public class InstallCmakeQuickFix(cmakeVersion: Revision?) : BuildIssueQuickFix 
   public val myCmakeVersion: Revision? = cmakeVersion
 
   override fun runQuickFix(project: Project, dataProvider: DataProvider): CompletableFuture<*> {
-    val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
+    val future = CompletableFuture<Any>()
 
+    val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
     val progressIndicator = StudioLoggerProgressIndicator(javaClass)
     val sdkManager = sdkHandler.getSdkManager(progressIndicator)
     val progressRunner = StudioProgressRunner(false, false, "Loading Remote SDK", project)
@@ -80,17 +81,20 @@ public class InstallCmakeQuickFix(cmakeVersion: Revision?) : BuildIssueQuickFix 
           if (dialog != null && dialog.showAndGet()) {
             GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncStats.Trigger.TRIGGER_QF_CMAKE_INSTALLED)
           }
+          future.complete(null)
           return@invokeLater
         }
 
         // Either no CMake versions were found, or the requested CMake version was not found.
         notifyCmakePackageNotFound(project)
+        future.complete(null)
       }
     }
 
     val onError = Runnable {
       invokeLater(ModalityState.any()) {
         Messages.showErrorDialog(project, "Failed to install CMake package", "Gradle Sync")
+        future.complete(null)
       }
     }
     sdkManager.load(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null,
@@ -98,7 +102,7 @@ public class InstallCmakeQuickFix(cmakeVersion: Revision?) : BuildIssueQuickFix 
                     ImmutableList.of(onError), progressRunner,
                     StudioDownloader(), StudioSettingsController.getInstance(), false)
 
-    return CompletableFuture.completedFuture<Any>(null)
+    return future
   }
 
   /**
