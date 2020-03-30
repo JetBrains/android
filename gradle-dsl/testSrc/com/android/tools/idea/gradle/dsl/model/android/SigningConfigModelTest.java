@@ -15,15 +15,19 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
 import static com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel.PasswordType.CONSOLE_READ;
 import static com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel.PasswordType.ENVIRONMENT_VARIABLE;
 import static com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel.PasswordType.PLAIN_TEXT;
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
+import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
 import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
@@ -555,6 +559,63 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
   }
 
   @Test
+  public void testRenameWithReferences() throws Exception {
+    writeToBuildFile(TestFile.RENAME_WITH_REFERENCES);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel androidModel = buildModel.android();
+
+    List<SigningConfigModel> signingConfigs = androidModel.signingConfigs();
+    assertThat(signingConfigs).hasSize(1);
+    SigningConfigModel release = signingConfigs.get(0);
+    assertEquals("release", release.name());
+    assertEquals("release.keystore", release.storeFile().toString());
+    assertEquals("storePassword", release.storePassword().toString());
+    assertEquals("PKCS12", release.storeType().toString());
+    assertEquals("myReleaseKey", release.keyAlias().toString());
+    assertEquals("keyPassword", release.keyPassword().toString());
+
+    ProductFlavorModel defaultConfig = androidModel.defaultConfig();
+    assertEquals(release.name(), defaultConfig.signingConfig().toSigningConfig().name());
+
+    // TODO(xof): I'm really not convinced that this is what the property *should* look like.  The SingleArgumentMethodTransform is
+    //  presumably not firing on the value of the reference.  Also, writing out the renamed reference is currently broken
+    // verifyPropertyModel(defaultConfig.multiDexKeepFile(), STRING_TYPE, "file(\"release.keystore\")", UNKNOWN, REGULAR, 1);
+
+    //  ... these are OK though
+    verifyPropertyModel(defaultConfig.applicationIdSuffix(), STRING_TYPE, "storePassword", STRING, REGULAR, 1);
+    verifyPropertyModel(defaultConfig.testInstrumentationRunner(), STRING_TYPE, "PKCS12", STRING, REGULAR, 1);
+    verifyPropertyModel(defaultConfig.testApplicationId(), STRING_TYPE, "myReleaseKey", STRING, REGULAR, 1);
+    verifyPropertyModel(defaultConfig.versionName(), STRING_TYPE, "keyPassword", STRING, REGULAR, 1);
+
+    release.rename("newRelease", true);
+
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.RENAME_WITH_REFERENCES_EXPECTED);
+
+    androidModel = buildModel.android();
+    signingConfigs = androidModel.signingConfigs();
+    assertThat(signingConfigs).hasSize(1);
+    SigningConfigModel newRelease = signingConfigs.get(0);
+    assertEquals("newRelease", newRelease.name());
+    assertEquals("release.keystore", newRelease.storeFile().toString());
+    assertEquals("storePassword", newRelease.storePassword().toString());
+    assertEquals("PKCS12", newRelease.storeType().toString());
+    assertEquals("myReleaseKey", newRelease.keyAlias().toString());
+    assertEquals("keyPassword", newRelease.keyPassword().toString());
+
+    defaultConfig = androidModel.defaultConfig();
+    assertEquals(newRelease.name(), defaultConfig.signingConfig().toSigningConfig().name());
+
+    // TODO(xof): see above
+    // verifyPropertyModel(defaultConfig.multiDexKeepFile(), STRING_TYPE, "file(\"release.keystore\")", UNKNOWN, REGULAR, 1);
+    verifyPropertyModel(defaultConfig.applicationIdSuffix(), STRING_TYPE, "storePassword", STRING, REGULAR, 1);
+    verifyPropertyModel(defaultConfig.testInstrumentationRunner(), STRING_TYPE, "PKCS12", STRING, REGULAR, 1);
+    verifyPropertyModel(defaultConfig.testApplicationId(), STRING_TYPE, "myReleaseKey", STRING, REGULAR, 1);
+    verifyPropertyModel(defaultConfig.versionName(), STRING_TYPE, "keyPassword", STRING, REGULAR, 1);
+  }
+
+  @Test
   public void testSigningConfigAddedToTopOfAndroidBlock() throws Exception {
     writeToBuildFile(TestFile.ADDED_TO_TOP_OF_ANDROID_BLOCK);
 
@@ -579,6 +640,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
   enum TestFile implements TestFileName {
     SIGNING_CONFIG_BLOCK_WITH_APPLICATION_STATEMENTS("signingConfigBlockWithApplicationStatements"),
     RENAME_EXPECTED("renameSigningConfigModelExpected"),
+    RENAME_WITH_REFERENCES("renameWithReferences"),
+    RENAME_WITH_REFERENCES_EXPECTED("renameWithReferencesExpected"),
     SIGNING_CONFIG_BLOCK_WITH_ASSIGNMENT_STATEMENTS("signingConfigBlockWithAssignmentStatements"),
     SIGNING_CONFIG_APPLICATION_STATEMENTS("signingConfigApplicationStatements"),
     SIGNING_CONFIG_ASSIGNMENT_STATEMENTS("signingConfigAssignmentStatements"),

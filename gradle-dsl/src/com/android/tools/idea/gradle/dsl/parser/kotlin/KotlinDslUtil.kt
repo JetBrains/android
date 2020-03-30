@@ -219,6 +219,12 @@ fun convertToExternalTextValue(
       }
       is GradleDslNamedDomainContainer -> externalName.append("$elementExternalName.")
       is GradleDslNamedDomainElement -> externalName.append("getByName(\"$elementExternalName\").")
+      else -> {
+        // if we have a model property with a transform (so not directly a GradleDslLiteral)
+        if (currentElement.modelEffect?.property != null) {
+          externalName.append("$elementExternalName.")
+        }
+      }
     }
   }
 
