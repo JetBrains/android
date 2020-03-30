@@ -35,7 +35,9 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.containers.ConcurrentList
 import com.intellij.util.containers.ContainerUtil
+import io.grpc.CompressorRegistry
 import io.grpc.ConnectivityState
+import io.grpc.DecompressorRegistry
 import io.grpc.ManagedChannel
 import io.grpc.MethodDescriptor
 import io.grpc.Status
@@ -136,6 +138,8 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
       .forAddress("localhost", emulatorId.grpcPort)
       .usePlaintext() // TODO(sprigogin): Add proper authentication.
       .maxInboundMessageSize(20 * 1024 * 1024)
+      .compressorRegistry(CompressorRegistry.newEmptyInstance()) // Disable data compression
+      .decompressorRegistry(DecompressorRegistry.emptyInstance())
       .build()
     emulatorController = EmulatorControllerGrpc.newStub(channel)
     channel.notifyWhenStateChanged(channel.getState(false), connectivityStateWatcher)
