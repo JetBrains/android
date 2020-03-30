@@ -257,12 +257,13 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   private static String buildSampleCode(@NotNull PsiClass modelClass, @NotNull ModelInfo modelInfo) {
     StringBuilder stringBuilder = new StringBuilder();
     String modelClassName = modelClass.getName();
-    stringBuilder.append(String.format("%s model = %s.newInstance(context);\n\n", modelClassName, modelClassName));
+    stringBuilder.append("try {\n");
+    stringBuilder.append(String.format("  %s model = %s.newInstance(context);\n\n", modelClassName, modelClassName));
 
     PsiMethod processMethod = modelClass.findMethodsByName("process", false)[0];
     if (processMethod != null && processMethod.getReturnType() != null) {
       stringBuilder
-        .append(String.format("%s.%s outputs = model.%s(", modelClassName, processMethod.getReturnType().getPresentableText(),
+        .append(String.format("  %s.%s outputs = model.%s(", modelClassName, processMethod.getReturnType().getPresentableText(),
                               processMethod.getName()));
       for (PsiParameter parameter : processMethod.getParameterList().getParameters()) {
         stringBuilder.append(parameter.getType().getPresentableText()).append(" ").append(parameter.getName()).append(",");
@@ -277,10 +278,12 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     if (outputsClass != null) {
       for (PsiMethod psiMethod : outputsClass.getMethods()) {
         stringBuilder.append(
-          String.format("%s %s = outputs.%s();\n", psiMethod.getReturnType().getPresentableText(),
+          String.format("  %s %s = outputs.%s();\n", psiMethod.getReturnType().getPresentableText(),
                         modelInfo.getOutputs().get(index++).getName(), psiMethod.getName()));
       }
     }
+
+    stringBuilder.append("} catch (IOException e) {\n  // Handles exception here.\n}");
 
     return stringBuilder.toString();
   }
