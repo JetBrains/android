@@ -201,7 +201,7 @@ public class GradleNameElement {
   }
 
   public void rename(@NotNull String newName) {
-    internalRename(newName);
+    internalRename(escape(newName));
   }
 
   public void rename(@NotNull List<String> hierarchicalName) {
