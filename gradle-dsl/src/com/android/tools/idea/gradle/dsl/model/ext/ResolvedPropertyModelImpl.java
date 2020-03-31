@@ -226,6 +226,11 @@ public class ResolvedPropertyModelImpl implements ResolvedPropertyModel {
   }
 
   @Override
+  public void rename(@NotNull List<String> hierarchicalName) {
+    myRealModel.rename(hierarchicalName);
+  }
+
+  @Override
   public boolean isModified() {
     return myRealModel.isModified();
   }

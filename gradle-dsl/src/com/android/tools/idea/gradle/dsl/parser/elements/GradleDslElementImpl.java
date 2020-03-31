@@ -161,7 +161,12 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
 
   @Override
   public void rename(@NotNull String newName) {
-    myName.rename(newName);
+    rename(Arrays.asList(newName));
+  }
+
+  @Override
+  public void rename(@NotNull List<String> hierarchicalName) {
+    myName.rename(hierarchicalName);
     setModified();
 
     // If we are a GradleDslSimpleExpression we need to ensure our dependencies are correct.

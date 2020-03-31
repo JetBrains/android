@@ -190,7 +190,7 @@ public class GradleNameElement {
     return myOriginalName;
   }
 
-  public void rename(@NotNull String newName) {
+  private void internalRename(@NotNull String newName) {
     if (!isFake()) {
       myLocalName = newName;
     }
@@ -198,6 +198,14 @@ public class GradleNameElement {
       myFakeName = newName;
     }
     myName = null;
+  }
+
+  public void rename(@NotNull String newName) {
+    internalRename(newName);
+  }
+
+  public void rename(@NotNull List<String> hierarchicalName) {
+    internalRename(join(hierarchicalName));
   }
 
   public boolean isEmpty() {

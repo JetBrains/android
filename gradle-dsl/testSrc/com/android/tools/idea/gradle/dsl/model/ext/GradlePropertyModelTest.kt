@@ -2785,7 +2785,12 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       verifyPropertyModel(varModel, STRING_TYPE, "hello", STRING, VARIABLE, 0, "var1")
 
       // Rename the properties.
-      propertyModel.rename(if (isGroovy) "prop2" else "ext.prop2")
+      if (isGroovy) {
+        propertyModel.rename("prop2")
+      }
+      else {
+        propertyModel.rename(listOf("ext", "prop2"))
+      }
       varModel.rename("var2")
 
       verifyPropertyModel(propertyModel, STRING_TYPE, "${'$'}{var1} hello", STRING, REGULAR, 1, "prop2", "ext.prop2")
