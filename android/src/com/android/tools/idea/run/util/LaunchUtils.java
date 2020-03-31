@@ -39,6 +39,7 @@ import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
@@ -202,7 +203,7 @@ public class LaunchUtils {
         String displayId = "Launch Notifications for " + toolWindowId;
         NotificationGroup group = NotificationGroup.findRegisteredGroup(displayId);
         if (group == null) {
-          group = NotificationGroup.toolWindowGroup(displayId, toolWindowId);
+          group = NotificationGroup.toolWindowGroup(displayId, toolWindowId, true, PluginId.getId("org.jetbrains.android"));
         }
         return group;
       }

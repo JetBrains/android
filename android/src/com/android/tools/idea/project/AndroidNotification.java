@@ -25,6 +25,7 @@ import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,8 +34,10 @@ import org.jetbrains.annotations.Nullable;
  * Creates balloon notifications related to Android projects.
  */
 public class AndroidNotification {
-  public static final NotificationGroup BALLOON_GROUP = NotificationGroup.balloonGroup("Android Notification Group");
-  public static final NotificationGroup LOG_ONLY_GROUP = NotificationGroup.logOnlyGroup("Android Notification Log-Only Group");
+  public static final NotificationGroup BALLOON_GROUP =
+    NotificationGroup.balloonGroup("Android Notification Group", PluginId.getId("org.jetbrains.android"));
+  public static final NotificationGroup LOG_ONLY_GROUP =
+    NotificationGroup.logOnlyGroup("Android Notification Log-Only Group", PluginId.getId("org.jetbrains.android"));
 
   @Nullable private Notification myNotification;
   @NotNull private final Project myProject;

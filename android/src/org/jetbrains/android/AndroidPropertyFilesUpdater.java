@@ -16,6 +16,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.command.CommandProcessor;
+import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -60,7 +61,7 @@ import org.jetbrains.annotations.Nullable;
 @SuppressWarnings("deprecation")
 public final class AndroidPropertyFilesUpdater implements Disposable {
   private static final NotificationGroup PROPERTY_FILES_UPDATING_NOTIFICATION =
-    NotificationGroup.balloonGroup("Android Property Files Updating");
+    NotificationGroup.balloonGroup("Android Property Files Updating", PluginId.getId("org.jetbrains.android"));
   private static final Key<List<Object>> ANDROID_PROPERTIES_STATE_KEY = Key.create("ANDROID_PROPERTIES_STATE");
   private Notification myNotification;
   private final SingleAlarm myAlarm;
