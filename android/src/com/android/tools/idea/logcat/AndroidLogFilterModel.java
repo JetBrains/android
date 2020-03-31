@@ -25,7 +25,6 @@ import com.intellij.diagnostic.logging.LogFilter;
 import com.intellij.diagnostic.logging.LogFilterListener;
 import com.intellij.diagnostic.logging.LogFilterModel;
 import com.intellij.execution.process.ProcessOutputTypes;
-import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.containers.ContainerUtil;
@@ -33,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
@@ -214,7 +214,7 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
       return;
     }
     String newFilterName = ((AndroidLogLevelFilter)filter).myLogLevel.getStringValue();
-    if (!Comparing.equal(newFilterName, getSelectedLogLevelName())) {
+    if (!Objects.equals(newFilterName, getSelectedLogLevelName())) {
       saveLogLevel(newFilterName);
       fireFilterChange(filter);
     }

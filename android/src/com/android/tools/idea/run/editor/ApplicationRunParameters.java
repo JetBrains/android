@@ -24,7 +24,6 @@ import com.intellij.openapi.options.ex.ConfigurableCardPanel;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.LabeledComponent;
-import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.packaging.artifacts.Artifact;
 import com.intellij.packaging.artifacts.ArtifactManager;
@@ -41,6 +40,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -285,7 +285,7 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
       newArtifact = (Artifact)item;
     }
 
-    if (Comparing.equal(newArtifact, myLastSelectedArtifact)) {
+    if (Objects.equals(newArtifact, myLastSelectedArtifact)) {
       return;
     }
 

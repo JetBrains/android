@@ -28,7 +28,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.libraries.Library;
-import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -109,7 +108,7 @@ public class AndroidRootUtil {
       VirtualFile moduleFileParentDir = LocalFileSystem.getInstance().findFileByPath(moduleFileParentDirPath);
       if (moduleFileParentDir != null) {
         for (VirtualFile contentRoot : contentRoots) {
-          if (Comparing.equal(contentRoot, moduleFileParentDir)) {
+          if (Objects.equals(contentRoot, moduleFileParentDir)) {
             root = contentRoot;
           }
         }

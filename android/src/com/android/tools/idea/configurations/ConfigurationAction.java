@@ -26,7 +26,6 @@ import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx;
 import com.intellij.openapi.fileEditor.ex.FileEditorWithProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -36,6 +35,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.io.File;
 import java.util.List;
+import java.util.Objects;
 
 import static com.android.SdkConstants.FD_RES_LAYOUT;
 
@@ -145,7 +145,7 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
     sb.append(FILE_ARROW);
     String folderName = better.getParent().getName();
     if (folderName.equals(FD_RES_LAYOUT)) {
-      if (file != null && !Comparing.equal(file.getParent(), better.getParent())) {
+      if (file != null && !Objects.equals(file.getParent(), better.getParent())) {
         sb.append(FD_RES_LAYOUT);
         sb.append(File.separatorChar);
       }

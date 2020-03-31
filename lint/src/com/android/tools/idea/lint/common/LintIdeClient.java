@@ -59,7 +59,6 @@ import com.intellij.openapi.progress.util.AbstractProgressIndicatorExBase;
 import com.intellij.openapi.progress.util.ProgressIndicatorUtils;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.TextRange;
@@ -86,6 +85,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -639,7 +639,7 @@ public class LintIdeClient extends LintClient implements Disposable {
 
   @Nullable
   private String getFileContent(@NonNull LintEditorResult lintResult, final VirtualFile vFile) {
-    if (Comparing.equal(lintResult.getMainFile(), vFile)) {
+    if (Objects.equals(lintResult.getMainFile(), vFile)) {
       return lintResult.getMainFileContent();
     }
 
