@@ -48,6 +48,7 @@ public class MemorySettingsPostSyncChecker {
     true,
     null,
     null,
+    null,
     PluginId.getId("org.jetbrains.android"));
 
   /**

@@ -244,7 +244,7 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
     if (group == null) {
       // This shouldn't happen
       group = new NotificationGroup(
-        "Gradle Initializer", NotificationDisplayType.STICKY_BALLOON, true, null, null, PluginId.getId("org.jetbrains.android"));
+        "Gradle Initializer", NotificationDisplayType.STICKY_BALLOON, true, null, null, null, PluginId.getId("org.jetbrains.android"));
     }
     return group;
   }

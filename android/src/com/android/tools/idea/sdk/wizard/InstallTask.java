@@ -338,7 +338,7 @@ class InstallTask extends Task.Backgroundable {
     NotificationGroup group = NotificationGroup.findRegisteredGroup(NOTIFICATION_GROUP_NAME);
     if (group == null) {
       group = new NotificationGroup(
-        NOTIFICATION_GROUP_NAME, NotificationDisplayType.STICKY_BALLOON, false, null, null, PluginId.getId("org.jetbrains.android"));
+        NOTIFICATION_GROUP_NAME, NotificationDisplayType.STICKY_BALLOON, false, null, null, null, PluginId.getId("org.jetbrains.android"));
     }
     return group;
   }
