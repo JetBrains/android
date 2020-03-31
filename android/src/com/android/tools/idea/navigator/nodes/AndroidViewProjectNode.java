@@ -45,7 +45,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.List;
 
-import static com.android.tools.idea.flags.StudioFlags.ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 
 public class AndroidViewProjectNode extends ProjectViewNode<Project> {
@@ -123,13 +122,11 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
       return true;
     }
 
-    if (ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT.get()) {
-      // Include files may be out-of-project so check for them.
-      for (Module module : ModuleManager.getInstance(myProject).getModules()) {
-        NdkFacet ndkFacet = NdkFacet.getInstance(module);
-        if (ndkFacet != null && ndkFacet.getNdkModuleModel() != null) {
-          return NdkModuleNode.containedInIncludeFolders(ndkFacet.getNdkModuleModel(), file);
-        }
+    // Include files may be out-of-project so check for them.
+    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+      NdkFacet ndkFacet = NdkFacet.getInstance(module);
+      if (ndkFacet != null && ndkFacet.getNdkModuleModel() != null) {
+        return NdkModuleNode.containedInIncludeFolders(ndkFacet.getNdkModuleModel(), file);
       }
     }
     return false;

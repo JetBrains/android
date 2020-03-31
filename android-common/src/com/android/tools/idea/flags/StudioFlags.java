@@ -580,10 +580,6 @@ public final class StudioFlags {
     NDK, "debugging.assembly", "Enable assembly debugging",
     "If enabled, frames without sources will show the assembly of the function and allow breakpoints to be set there", false);
 
-  public static final Flag<Boolean> ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT = Flag.create(
-    NDK, "enhancednativeheadersupport", "Enable enhanced native header support",
-    "If enabled, project system view will show a new include node with organized header files", true);
-
   public static final Flag<Boolean> APK_DEBUG_BUILD_ID_CHECK = Flag.create(
     NDK, "apkdebugbuildidcheck", "Enable build ID check in APK debugging",
     "If enabled, the build ID of user-provided symbol files are compared against the binaries inside the APK.", true);
