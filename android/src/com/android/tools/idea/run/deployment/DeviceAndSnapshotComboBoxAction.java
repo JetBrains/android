@@ -54,6 +54,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
 import java.util.function.Supplier;
@@ -72,7 +73,8 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   @VisibleForTesting
   static final String SELECTED_DEVICE = "DeviceAndSnapshotComboBoxAction.selectedDevice";
 
-  private static final String SELECTION_TIME = "DeviceAndSnapshotComboBoxAction.selectionTime";
+  @VisibleForTesting
+  static final String SELECTION_TIME = "DeviceAndSnapshotComboBoxAction.selectionTime";
 
   /**
    * This <a href="http://www.jetbrains.org/intellij/sdk/docs/basics/persisting_state_of_components.html">persisted value</a> is true when a
@@ -326,23 +328,40 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
    * {@link SelectDeviceAction#actionPerformed} calls this when a developer selects a single device with the combo box. Unit tests also call
    * this to simulate the same thing.
    */
-  void setSelectedDevice(@NotNull Project project, @NotNull Device selectedDevice) {
+  void setSelectedDevice(@NotNull Project project, @Nullable Device selectedDevice) {
     PropertiesComponent properties = myGetProperties.apply(project);
     properties.unsetValue(MULTIPLE_DEVICES_SELECTED);
 
-    properties.setValue(SELECTED_DEVICE, selectedDevice.getKey().toString());
-    properties.setValue(SELECTION_TIME, myClock.instant().toString());
+    ExecutionTarget target;
 
-    updateExecutionTargetManager(project, new DeviceAndSnapshotComboBoxExecutionTarget(selectedDevice));
+    if (selectedDevice == null) {
+      properties.unsetValue(SELECTED_DEVICE);
+      properties.unsetValue(SELECTION_TIME);
+
+      target = new DeviceAndSnapshotComboBoxExecutionTarget();
+    }
+    else {
+      properties.setValue(SELECTED_DEVICE, selectedDevice.getKey().toString());
+      properties.setValue(SELECTION_TIME, myClock.instant().toString());
+
+      target = new DeviceAndSnapshotComboBoxExecutionTarget(selectedDevice);
+    }
+
+    updateExecutionTargetManager(project, target);
   }
 
   @NotNull
   List<Device> getSelectedDevices(@NotNull Project project) {
+    return getSelectedDevices(project, getDevices(project));
+  }
+
+  @NotNull
+  private List<Device> getSelectedDevices(@NotNull Project project, @NotNull List<Device> devices) {
     if (isMultipleDevicesSelected(project)) {
       return mySelectedDevicesServiceGetInstance.apply(project).getSelectedDevices();
     }
 
-    Device device = getSelectedDevice(project);
+    Device device = getSelectedDevice(project, devices);
 
     if (device == null) {
       return Collections.emptyList();
@@ -355,16 +374,24 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     return myGetProperties.apply(project).getBoolean(MULTIPLE_DEVICES_SELECTED);
   }
 
-  void setMultipleDevicesSelected(@NotNull Project project, @SuppressWarnings("SameParameterValue") boolean multipleDevicesSelected) {
+  void setMultipleDevicesSelected(@NotNull Project project, boolean multipleDevicesSelected) {
     PropertiesComponent properties = myGetProperties.apply(project);
 
     properties.unsetValue(SELECTION_TIME);
     properties.unsetValue(SELECTED_DEVICE);
 
-    properties.setValue(MULTIPLE_DEVICES_SELECTED, multipleDevicesSelected);
+    ExecutionTarget target;
 
-    SelectedDevicesService service = mySelectedDevicesServiceGetInstance.apply(project);
-    updateExecutionTargetManager(project, new DeviceAndSnapshotComboBoxExecutionTarget(service.getSelectedDevices()));
+    if (!multipleDevicesSelected) {
+      properties.unsetValue(MULTIPLE_DEVICES_SELECTED);
+      target = new DeviceAndSnapshotComboBoxExecutionTarget();
+    }
+    else {
+      properties.setValue(MULTIPLE_DEVICES_SELECTED, true);
+      target = new DeviceAndSnapshotComboBoxExecutionTarget(mySelectedDevicesServiceGetInstance.apply(project).getSelectedDevices());
+    }
+
+    updateExecutionTargetManager(project, target);
   }
 
   void modifyDeviceSet(@NotNull Project project) {
@@ -564,6 +591,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     updatePresentation(presentation, myGetRunManager.apply(project).getSelectedConfiguration());
 
     String place = event.getPlace();
+    List<Device> devices = getDevices(project);
 
     switch (place) {
       case ActionPlaces.MAIN_MENU:
@@ -574,13 +602,19 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
         break;
       case ActionPlaces.MAIN_TOOLBAR:
       case ActionPlaces.NAVIGATION_BAR_TOOLBAR:
-        updateInToolbar(presentation, project);
+        if (isMultipleDevicesSelected(project)) {
+          updateInToolbarForMultipleDevices(presentation, project, devices);
+        }
+        else {
+          updateInToolbarForSingleDevice(presentation, project, devices);
+        }
+
         break;
       default:
         assert false : place;
     }
 
-    updateExecutionTargetManager(project, new DeviceAndSnapshotComboBoxExecutionTarget(getSelectedDevices(project)));
+    updateExecutionTargetManager(project, new DeviceAndSnapshotComboBoxExecutionTarget(getSelectedDevices(project, devices)));
   }
 
   @VisibleForTesting
@@ -616,16 +650,33 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     presentation.setEnabled(true);
   }
 
-  private void updateInToolbar(@NotNull Presentation presentation, @NotNull Project project) {
-    if (isMultipleDevicesSelected(project)) {
-      presentation.setIcon(null);
-      presentation.setText("Multiple Devices");
+  private void updateInToolbarForMultipleDevices(@NotNull Presentation presentation,
+                                                 @NotNull Project project,
+                                                 @NotNull List<Device> devices) {
+    SelectedDevicesService service = mySelectedDevicesServiceGetInstance.apply(project);
+    Set<Key> selectedKeys = service.getSelectedDeviceKeys();
 
-      return;
+    Set<Key> keys = devices.stream()
+      .map(Device::getKey)
+      .collect(Collectors.toSet());
+
+    if (selectedKeys.retainAll(keys)) {
+      service.setSelectedDeviceKeys(selectedKeys);
+
+      if (selectedKeys.isEmpty()) {
+        setMultipleDevicesSelected(project, false);
+        setSelectedDevice(project, getSelectedDevice(project, devices));
+
+        updateInToolbarForSingleDevice(presentation, project, devices);
+        return;
+      }
     }
 
-    List<Device> devices = getDevices(project);
+    presentation.setIcon(null);
+    presentation.setText("Multiple Devices");
+  }
 
+  private void updateInToolbarForSingleDevice(@NotNull Presentation presentation, @NotNull Project project, @NotNull List<Device> devices) {
     if (devices.isEmpty()) {
       presentation.setIcon(null);
       presentation.setText("No Devices");

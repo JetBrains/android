@@ -44,6 +44,10 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
   @NotNull
   private final String myId;
 
+  DeviceAndSnapshotComboBoxExecutionTarget() {
+    this(Collections.emptyList());
+  }
+
   DeviceAndSnapshotComboBoxExecutionTarget(@NotNull Device device) {
     this(Collections.singletonList(device));
   }
