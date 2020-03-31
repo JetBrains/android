@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project
 
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
 import com.android.tools.idea.gradle.util.GradleProjects
 import com.android.tools.idea.util.toPathString
@@ -25,9 +26,9 @@ import com.intellij.ide.impl.ProjectUtil.confirmOpenNewProject
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.projectImport.ProjectOpenProcessor
-import javax.swing.Icon
 
 
 /**
@@ -39,6 +40,7 @@ class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
   override fun getName(): String = "Android Gradle"
 
   override fun canOpenProject(file: VirtualFile): Boolean =
+      (Registry.`is`("android.gradle.importer.enabled") || IdeInfo.getInstance().isAndroidStudio) &&
       GradleProjects.canImportAsGradleProject(file)
 
   override fun doOpenProject(virtualFile: VirtualFile, projectToClose: Project?, forceOpenInNewFrame: Boolean): Project? {
@@ -46,7 +48,7 @@ class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
 
     val importTarget = ProjectImportUtil.findImportTarget(virtualFile)
     val adjustedOpenTarget =
-        if (importTarget.isDirectory)importTarget
+        if (importTarget.isDirectory) importTarget
         else importTarget.parent
 
     if (!canOpenAsExistingProject(adjustedOpenTarget)) {
