@@ -27,9 +27,10 @@ import org.jetbrains.android.util.AndroidUtils
  * [ToolWindowFactory] implementation for Emulator tool window.
  */
 class EmulatorToolWindowFactory : ToolWindowFactory, DumbAware {
+
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     toolWindow.setDefaultContentUiType(ToolWindowContentUiType.COMBO)
-    EmulatorToolWindowManager(project)
+    EmulatorToolWindowManager.initializeForProject(project)
   }
 
   // After restarting the IDE don't automatically unless visible.
@@ -37,6 +38,10 @@ class EmulatorToolWindowFactory : ToolWindowFactory, DumbAware {
 
   // Only show in Android projects.
   override fun shouldBeAvailable(project: Project): Boolean {
-    return StudioFlags.EMBEDDED_EMULATOR_ENABLED.get() && AndroidUtils.hasAndroidFacets(project)
+    val available = StudioFlags.EMBEDDED_EMULATOR_ENABLED.get() && AndroidUtils.hasAndroidFacets(project)
+    if (available) {
+      EmulatorToolWindowManager.initializeForProject(project)
+    }
+    return available
   }
 }
