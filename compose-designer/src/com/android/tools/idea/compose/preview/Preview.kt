@@ -199,7 +199,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     if (oldValue != newValue) {
       LOG.debug("New group preview element selection: $newValue")
       this.groupNameFilteredProvider.groupName = newValue.name
-      ApplicationManager.getApplication().invokeLater { refresh() }
+      refresh()
     }
   }
   override val availableGroups: Set<PreviewGroup> get() = groupNameFilteredProvider.availableGroups.map {
@@ -209,7 +209,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     if (oldValue != newValue) {
       LOG.debug("New single preview element focus: $newValue")
       this.singleElementFilteredProvider.composableMethodFqn = newValue
-      ApplicationManager.getApplication().invokeLater { refresh() }
+      refresh()
     }
   }
 
