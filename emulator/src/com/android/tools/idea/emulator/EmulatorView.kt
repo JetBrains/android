@@ -144,11 +144,17 @@ class EmulatorView(
   private val emulatorConfig
     get() = emulator.emulatorConfig
 
+  private val connected
+    get() = emulator.connectionState == ConnectionState.CONNECTED
+
   override val screenScalingFactor
     get() = 1f
 
   override val scale: Double
     get() {
+      if (!connected) {
+        return 1.0
+      }
       val rotatedDisplaySize = computeRotatedDisplaySize(emulatorConfig, displayRotationInternal)
       return min(displayWidth.toDouble() / rotatedDisplaySize.width, displayHeight.toDouble() / rotatedDisplaySize.height)
     }
@@ -164,19 +170,19 @@ class EmulatorView(
   }
 
   override fun canZoomIn(): Boolean {
-    return computeZoomedSize(ZoomType.IN) != explicitlySetPreferredSize
+    return connected && computeZoomedSize(ZoomType.IN) != explicitlySetPreferredSize
   }
 
   override fun canZoomOut(): Boolean {
-    return computeZoomedSize(ZoomType.OUT) != explicitlySetPreferredSize
+    return connected && computeZoomedSize(ZoomType.OUT) != explicitlySetPreferredSize
   }
 
   override fun canZoomToActual(): Boolean {
-    return computeZoomedSize(ZoomType.ACTUAL) != explicitlySetPreferredSize
+    return connected && computeZoomedSize(ZoomType.ACTUAL) != explicitlySetPreferredSize
   }
 
   override fun canZoomToFit(): Boolean {
-    return isPreferredSizeSet
+    return connected && isPreferredSizeSet
   }
 
   private val explicitlySetPreferredSize: Dimension?
@@ -369,7 +375,7 @@ class EmulatorView(
   private fun requestScreenshotFeed(rotation: SkinRotation) {
     screenshotFeed?.cancel()
     screenshotReceiver = null
-    if (width != 0 && height != 0 && emulator.connectionState == ConnectionState.CONNECTED) {
+    if (width != 0 && height != 0 && connected) {
       val rotatedDisplaySize = computeRotatedDisplaySize(emulatorConfig, rotation)
       val scale = computeScaleToFit(size, rotation)
       val scaledDisplaySize = rotatedDisplaySize.scaled(scale)
