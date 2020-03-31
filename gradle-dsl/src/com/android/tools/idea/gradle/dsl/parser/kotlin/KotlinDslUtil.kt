@@ -774,7 +774,7 @@ internal fun maybeUpdateName(element : GradleDslElement, writer: KotlinDslWriter
     }
   }
 
-  val newName = localName
+  val newName = GradleNameElement.unescape(localName)
 
   val newElement : PsiElement
   if (oldName is PsiNamedElement) {

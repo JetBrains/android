@@ -862,7 +862,7 @@ public final class GroovyDslUtil {
         }
       }
     }
-    String newName = localName;
+    String newName = GradleNameElement.unescape(localName);
 
     PsiElement newElement;
     if (oldName instanceof PsiNamedElement) {
