@@ -44,6 +44,7 @@ import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.editors.notifications.NotificationPanel
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_PREVIEW_AUTO_BUILD
 import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
@@ -80,6 +81,7 @@ import org.jetbrains.kotlin.backend.common.pop
 import java.awt.BorderLayout
 import java.time.Duration
 import java.util.EnumMap
+import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -455,6 +457,19 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   }
 
   /**
+   * Utility method that requests a given [LayoutlibSceneManager] to render. It applies logic that specific to compose to render components
+   * that do not simply render in a first pass.
+   */
+  private fun LayoutlibSceneManager.requestComposeRender(): CompletableFuture<Void> = if (StudioFlags.COMPOSE_PREVIEW_DOUBLE_RENDER.get()) {
+    requestRender()
+      .thenCompose { executeCallbacks() }
+      .thenCompose { requestRender() }
+  }
+  else {
+    requestRender()
+  }
+
+  /**
    * Refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
    * The call will block until all the given [PreviewElement]s have completed rendering.
    */
@@ -539,7 +554,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         // this will trigger a new render which is exactly what we want.
         configureLayoutlibSceneManager(surface.addModelWithoutRender(model) as LayoutlibSceneManager,
                                        showDecorations = previewElement.displaySettings.showDecoration)
-          .requestRender()
+          .requestComposeRender()
           .await()
       }.ifEmpty {
         showModalErrorMessage(message("panel.no.previews.defined"))
@@ -610,8 +625,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
               val (previewElement, sceneManager) = it
               // When showing decorations, show the full device size
               configureLayoutlibSceneManager(sceneManager, showDecorations = previewElement.displaySettings.showDecoration)
+                .requestComposeRender()
+                .await()
             }
-          surface.requestRender().await()
         }.join()
       }
       else {

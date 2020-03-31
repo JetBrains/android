@@ -778,6 +778,12 @@ public final class StudioFlags {
     "If enabled, it will be possible to create run configurations that launch a Compose Preview directly to the device/emulator.",
     true);
 
+  public static final Flag<Boolean> COMPOSE_PREVIEW_DOUBLE_RENDER = Flag.create(
+    COMPOSE, "preview.double.render", "Enable the Compose double render mode",
+    "If enabled, preview components will be rendered twice so components depending on a recompose (like tableDecoration) " +
+    "render correctly.",
+    false);
+
   public static final Flag<Boolean> COMPOSE_EDITOR_SUPPORT = Flag.create(
     COMPOSE, "editor",
     "Compose-specific support in the code editor",
