@@ -176,8 +176,7 @@ internal fun maybeTrimForParent(element: GradleDslElement, converter: GradleDslN
     null -> part
     else -> effect.property.name
   }
-  // TODO(xof): this Splitter is unlikely to be correct
-  val parentParts = Splitter.on(".").splitToList(parent.qualifiedName)
+  val parentParts = GradleNameElement.split(parent.qualifiedName)
   var i = 0
   while (i < parentParts.size && !parts.isEmpty() && parentParts[i] == parts[0]) {
     parts.removeAt(0)

@@ -133,11 +133,11 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
   public String getQualifiedName() {
     // Don't include the name of the parent if this element is a direct child of the file.
     if (myParent == null || myParent instanceof GradleDslFile) {
-      return getName();
+      return GradleNameElement.escape(getName());
     }
 
     String ourName = getName();
-    return myParent.getQualifiedName() + (ourName.isEmpty() ? "" : "." + getName());
+    return myParent.getQualifiedName() + (ourName.isEmpty() ? "" : "." + GradleNameElement.escape(ourName));
   }
 
   @Override
