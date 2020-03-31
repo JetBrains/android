@@ -29,9 +29,11 @@ import com.android.tools.idea.concurrency.transform
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.MoreExecutors
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -47,7 +49,7 @@ class AppInspectionView(
   private val project: Project,
   private val appInspectionDiscoveryHost: AppInspectionDiscoveryHost,
   getPreferredProcesses: () -> List<String>
-) {
+) : Disposable {
   val component = JPanel(TabularLayout("*", "Fit,Fit,*"))
   private val inspectorPanel = JPanel(BorderLayout())
 
@@ -65,9 +67,11 @@ class AppInspectionView(
 
   init {
     component.border = AdtUiUtils.DEFAULT_RIGHT_BORDER
+    
+    val comboBoxModel = AppInspectionProcessesComboBoxModel(appInspectionDiscoveryHost, getPreferredProcesses)
+    Disposer.register(this, comboBoxModel)
 
-    val inspectionProcessesComboBox =
-      AppInspectionProcessesComboBox(AppInspectionProcessesComboBoxModel(appInspectionDiscoveryHost, getPreferredProcesses))
+    val inspectionProcessesComboBox = AppInspectionProcessesComboBox(comboBoxModel)
     val toolbar = JPanel(BorderLayout())
     toolbar.add(inspectionProcessesComboBox, BorderLayout.WEST)
     component.add(toolbar, TabularLayout.Constraint(0, 0))
@@ -129,5 +133,8 @@ class AppInspectionView(
       else -> inspectorTabs
     }
     inspectorPanel.add(inspectorComponent)
+  }
+
+  override fun dispose() {
   }
 }

@@ -20,6 +20,7 @@ import com.android.tools.idea.model.AndroidModuleInfo
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindow
 import javax.swing.JComponent
 
@@ -33,6 +34,10 @@ class AppInspectionToolWindow(window: ToolWindow, private val project: Project) 
 
   private val appInspectionView = AppInspectionView(project, AppInspectionHostService.instance.discoveryHost, ::getPreferredProcesses)
   val component: JComponent = appInspectionView.component
+
+  init {
+    Disposer.register(this, appInspectionView)
+  }
 
   override fun dispose() {
     // Although we do nothing here, because this class is disposable, other components can register

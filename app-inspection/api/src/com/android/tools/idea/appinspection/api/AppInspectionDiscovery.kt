@@ -113,6 +113,11 @@ class AppInspectionDiscoveryHost(
   }
 
   /**
+   * Removes a [ProcessListener] and so stops it from hearing future process events.
+   */
+  fun removeProcessListener(listener: ProcessListener) = synchronized(processData) { processData.processListeners.remove(listener) }
+
+  /**
    * Attaches to a process on device and creates an [AppInspectionTarget] which will be passed to clients via [TargetListener].
    *
    * This is meant to be called by the frontend when it needs to obtain an [AppInspectionTarget]. For example, when user selects a process
