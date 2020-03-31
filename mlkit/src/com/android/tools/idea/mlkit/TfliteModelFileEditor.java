@@ -31,6 +31,8 @@ import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.JBMenuItem;
+import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.util.io.FileTooBigException;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -42,7 +44,9 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiParameter;
 import com.intellij.ui.BrowserHyperlinkListener;
+import com.intellij.ui.PopupHandler;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.PlatformIcons;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.StartupUiUtil;
@@ -109,6 +113,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
 
     myHtmlEditorPane = new JEditorPane();
     contentPanel.add(myHtmlEditorPane);
+    setUpPopupMenu(myHtmlEditorPane);
     updateHtmlContent();
 
     myRootPane = new JBScrollPane(contentPanel);
@@ -123,6 +128,20 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
             return;
           }
         }
+      }
+    });
+  }
+
+  private void setUpPopupMenu(@NotNull JEditorPane editorPane) {
+    JBPopupMenu popupMenu = new JBPopupMenu();
+    JBMenuItem menuItem = new JBMenuItem("Copy", PlatformIcons.COPY_ICON);
+    menuItem.addActionListener(event -> myHtmlEditorPane.copy());
+    popupMenu.add(menuItem);
+
+    editorPane.addMouseListener(new PopupHandler() {
+      @Override
+      public void invokePopup(@NotNull Component component, int x, int y) {
+        popupMenu.show(component, x, y);
       }
     });
   }
@@ -342,7 +361,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   private static String buildIntArray(@NotNull int[] array) {
     StringBuilder stringBuilder = new StringBuilder("new int[]{");
     for (int value : array) {
-      stringBuilder.append(value + ",");
+      stringBuilder.append(value).append(",");
     }
     stringBuilder.deleteCharAt(stringBuilder.length() - 1).append("}");
 
