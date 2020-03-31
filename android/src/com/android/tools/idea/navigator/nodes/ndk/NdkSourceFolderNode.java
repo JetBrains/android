@@ -23,38 +23,23 @@ import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
-import static com.android.tools.idea.flags.StudioFlags.ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT;
 import static com.intellij.icons.AllIcons.Nodes.Folder;
 import static com.intellij.openapi.util.io.FileUtil.getLocationRelativeToUserHome;
-import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 
 public class NdkSourceFolderNode extends PsiDirectoryNode {
-  @NotNull private final Collection<String> myFileExtensions;
-  @NotNull private final Collection<VirtualFile> mySourceFolders;
-  @NotNull private final Collection<VirtualFile> mySourceFiles;
-
   private boolean myShowFolderPath;
 
   public NdkSourceFolderNode(@NotNull Project project,
                              @NotNull PsiDirectory folder,
-                             @NotNull ViewSettings settings,
-                             @NotNull Collection<String> fileExtensions,
-                             @NotNull Collection<VirtualFile> sourceFolders,
-                             @NotNull Collection<VirtualFile> sourceFiles) {
+                             @NotNull ViewSettings settings) {
     super(project, folder, settings);
-    myFileExtensions = fileExtensions;
-    mySourceFolders = sourceFolders;
-    mySourceFiles = sourceFiles;
   }
 
   @Override
@@ -87,57 +72,7 @@ public class NdkSourceFolderNode extends PsiDirectoryNode {
       return Collections.emptyList();
     }
 
-    Collection<AbstractTreeNode> folderChildren =
-      ProjectViewDirectoryHelper.getInstance(myProject).getDirectoryChildren(folder, getSettings(), true /* with subdirectories */);
-    if (ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT.get()) {
-      return folderChildren;
-    }
-    List<AbstractTreeNode> result = new ArrayList<>();
-    for (AbstractTreeNode child : folderChildren) {
-      Object value = child.getValue();
-      if (value instanceof PsiFile) {
-        VirtualFile file = ((PsiFile)value).getVirtualFile();
-        if ((mySourceFolders.contains(folder.getVirtualFile()) && myFileExtensions.contains(file.getExtension())) ||
-            mySourceFiles.contains(file)) {
-          result.add(child);
-        }
-      }
-      else if (value instanceof PsiDirectory) {
-        VirtualFile childFolder = ((PsiDirectory)value).getVirtualFile();
-
-        Project project = getNotNullProject();
-        if (mySourceFolders.contains(childFolder) || mySourceFolders.contains(folder.getVirtualFile())) {
-          result.add(new NdkSourceFolderNode(project, (PsiDirectory)value, getSettings(), myFileExtensions,
-                                             Collections.singletonList(childFolder), Collections.emptyList()));
-          continue;
-        }
-
-        List<VirtualFile> childFolders = new ArrayList<>();
-        for (VirtualFile sourceFolder : mySourceFolders) {
-          if (isAncestor(childFolder, sourceFolder, true)) {
-            childFolders.add(sourceFolder);
-          }
-        }
-        List<VirtualFile> childFiles = new ArrayList<>();
-        for (VirtualFile file : mySourceFiles) {
-          if (isAncestor(childFolder, file, true)) {
-            childFiles.add(file);
-          }
-        }
-
-        if (!childFolders.isEmpty() || !childFiles.isEmpty()) {
-          result.add(new NdkSourceFolderNode(project, (PsiDirectory)value, getSettings(), myFileExtensions, childFolders, childFiles));
-        }
-      }
-    }
-
-    return result;
-  }
-
-  @NotNull
-  private Project getNotNullProject() {
-    assert myProject != null;
-    return myProject;
+    return ProjectViewDirectoryHelper.getInstance(myProject).getDirectoryChildren(folder, getSettings(), true /* with subdirectories */);
   }
 
   void setShowFolderPath(boolean showFolderPath) {

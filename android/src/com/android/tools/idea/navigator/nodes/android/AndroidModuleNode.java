@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.navigator.nodes.android;
 
-import static com.android.tools.idea.flags.StudioFlags.ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT;
 import static com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon;
 import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -33,7 +32,6 @@ import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.navigator.nodes.AndroidViewModuleNode;
 import com.android.tools.idea.navigator.nodes.ndk.NdkModuleNode;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
-import com.android.tools.idea.projectsystem.IdeaSourceProvider;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.google.common.collect.HashMultimap;
@@ -258,21 +256,18 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
     if (super.contains(file)) {
       return true;
     }
-    if (ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT.get()) {
 
-      // If there is a native-containing module then check it for externally referenced header files
-      if (getModule() == null) {
-        return false;
-      }
-      AndroidFacet facet = AndroidFacet.getInstance(getModule());
-      if (facet == null || AndroidModel.get(facet) == null) {
-        return false;
-      }
-      NdkModuleModel ndkModuleModel = NdkModuleModel.get(facet.getModule());
-      if (ndkModuleModel != null) {
-        return NdkModuleNode.containedInIncludeFolders(ndkModuleModel, file);
-      }
+    // If there is a native-containing module then check it for externally referenced header files
+    if (getModule() == null) {
       return false;
+    }
+    AndroidFacet facet = AndroidFacet.getInstance(getModule());
+    if (facet == null || AndroidModel.get(facet) == null) {
+      return false;
+    }
+    NdkModuleModel ndkModuleModel = NdkModuleModel.get(facet.getModule());
+    if (ndkModuleModel != null) {
+      return NdkModuleNode.containedInIncludeFolders(ndkModuleModel, file);
     }
     return false;
   }
