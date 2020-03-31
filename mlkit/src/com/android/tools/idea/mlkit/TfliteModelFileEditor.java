@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.mlkit;
 
+import com.android.tools.idea.mlkit.lightpsi.ClassNames;
 import com.android.tools.mlkit.MetadataExtractor;
 import com.android.tools.mlkit.MlkitNames;
 import com.android.tools.mlkit.ModelInfo;
@@ -284,13 +285,14 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
 
     PsiMethod processMethod = modelClass.findMethodsByName("process", false)[0];
     if (processMethod != null && processMethod.getReturnType() != null) {
+      stringBuilder.append(buildTensorInputSampleCode(processMethod, modelInfo));
       stringBuilder
         .append(String.format("  %s.%s outputs = model.%s(", modelClassName, processMethod.getReturnType().getPresentableText(),
                               processMethod.getName()));
       for (PsiParameter parameter : processMethod.getParameterList().getParameters()) {
-        stringBuilder.append(parameter.getType().getPresentableText()).append(" ").append(parameter.getName()).append(",");
+        stringBuilder.append(parameter.getName()).append(", ");
       }
-      stringBuilder.deleteCharAt(stringBuilder.length() - 1);
+      stringBuilder.delete(stringBuilder.length() - 2, stringBuilder.length());
 
       stringBuilder.append(");\n\n");
     }
@@ -299,15 +301,57 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     PsiClass outputsClass = getInnerClass(modelClass, MlkitNames.OUTPUTS);
     if (outputsClass != null) {
       for (PsiMethod psiMethod : outputsClass.getMethods()) {
+        String tensorName = modelInfo.getOutputs().get(index++).getName();
         stringBuilder.append(
-          String.format("  %s %s = outputs.%s();\n", psiMethod.getReturnType().getPresentableText(),
-                        modelInfo.getOutputs().get(index++).getName(), psiMethod.getName()));
+          String.format("  %s %s = outputs.%s();\n", psiMethod.getReturnType().getPresentableText(), tensorName, psiMethod.getName()));
+        if (ClassNames.TENSOR_LABEL.equals(psiMethod.getReturnType().getCanonicalText())) {
+          stringBuilder.append(String.format("  Map&lt;String, Float&gt; %sMap = %s.getMapWithFloatValue();\n", tensorName, tensorName));
+        }
+        else if (ClassNames.TENSOR_IMAGE.equals(psiMethod.getReturnType().getCanonicalText())) {
+          stringBuilder.append(String.format("  Bitmap %sBitmap = %s.getBitmap();\n", tensorName, tensorName));
+        }
       }
     }
 
     stringBuilder.append("} catch (IOException e) {\n  // Handles exception here.\n}");
 
     return stringBuilder.toString();
+  }
+
+  @NotNull
+  private static String buildTensorInputSampleCode(@NotNull PsiMethod processMethod, @NotNull ModelInfo modelInfo) {
+    StringBuilder stringBuilder = new StringBuilder();
+    int index = 0;
+    for (PsiParameter parameter : processMethod.getParameterList().getParameters()) {
+      TensorInfo tensorInfo = modelInfo.getInputs().get(index++);
+      if (ClassNames.TENSOR_IMAGE.equals(parameter.getType().getCanonicalText())) {
+        stringBuilder.append(String.format("  TensorImage %s = new TensorImage();\n", parameter.getName()))
+          .append(String.format("  %s.load(bitmap);\n", parameter.getName()));
+      }
+      else if (ClassNames.TENSOR_BUFFER.equals(parameter.getType().getCanonicalText())) {
+        stringBuilder.append(String.format("  TensorBuffer %s = TensorBuffer.createFixedSize(%s, %s);\n", parameter.getName(),
+                                           buildIntArray(tensorInfo.getShape()), buildDataType(tensorInfo.getDataType())));
+      }
+    }
+
+    return stringBuilder.toString();
+  }
+
+  /** Returns string representation of int array (e.g. new int[] {1,2,3}.) */
+  @NotNull
+  private static String buildIntArray(@NotNull int[] array) {
+    StringBuilder stringBuilder = new StringBuilder("new int[]{");
+    for (int value : array) {
+      stringBuilder.append(value + ",");
+    }
+    stringBuilder.deleteCharAt(stringBuilder.length() - 1).append("}");
+
+    return stringBuilder.toString();
+  }
+
+  @NotNull
+  private static String buildDataType(@NotNull TensorInfo.DataType dataType) {
+    return "DataType." + dataType.toString();
   }
 
   @Nullable
