@@ -33,6 +33,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainCon
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSettableExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT
@@ -430,7 +431,7 @@ fun gradleNameFor(expression: KtExpression): String? {
           allValid = false
         }
         else {
-          sb.append(name)
+          sb.append(GradleNameElement.escape(name))
         }
       }
     }

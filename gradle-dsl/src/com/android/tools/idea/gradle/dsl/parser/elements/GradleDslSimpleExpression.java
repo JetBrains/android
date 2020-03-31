@@ -218,7 +218,7 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
       }
     }
 
-    List<String> referenceTextSegments = Splitter.on('.').trimResults().omitEmptyStrings().splitToList(referenceText);
+    List<String> referenceTextSegments = GradleNameElement.split(referenceText);
     int index = 0;
     int segmentCount = referenceTextSegments.size();
     for (; index < segmentCount; index++) {
