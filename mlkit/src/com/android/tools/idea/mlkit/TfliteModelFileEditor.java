@@ -190,10 +190,12 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   private static String getModelSectionBody(@NotNull ModelInfo modelInfo) {
     List<String[]> table = new ArrayList<>();
     table.add(new String[]{"Name", modelInfo.getModelName()});
-    table.add(new String[]{"Description", breakLineIfTooLong(modelInfo.getModelDescription())});
+    String modelDescription = modelInfo.getModelDescription();
+    table.add(new String[]{"Description", modelDescription != null ? breakLineIfTooLong(modelDescription) : "null"});
     table.add(new String[]{"Version", modelInfo.getModelVersion()});
     table.add(new String[]{"Author", modelInfo.getModelAuthor()});
-    table.add(new String[]{"License", linkifyUrls(modelInfo.getModelLicense())});
+    String modelLicense = modelInfo.getModelLicense();
+    table.add(new String[]{"License", modelLicense != null ? linkifyUrls(modelLicense) : "null"});
 
     StringBuilder bodyBuilder = new StringBuilder("<h2>Model</h2>");
     bodyBuilder.append("<table id=\"model\">\n");
@@ -242,7 +244,9 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     String meanStdColumn = params != null ? Arrays.toString(params.getMean()) + " / " + Arrays.toString(params.getStd()) : "";
     String minMaxColumn = isValidMinMaxColumn(params) ? Arrays.toString(params.getMin()) + " / " + Arrays.toString(params.getMax()) : "";
 
-    return new String[]{tensorInfo.getName(), tensorInfo.getContentType().toString(), breakLineIfTooLong(tensorInfo.getDescription()),
+    String description = tensorInfo.getDescription();
+    return new String[]{tensorInfo.getName(), tensorInfo.getContentType().toString(),
+      description != null ? breakLineIfTooLong(description) : "null",
       Arrays.toString(tensorInfo.getShape()), meanStdColumn, minMaxColumn};
   }
 
@@ -402,7 +406,8 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     return MlkitUtils.isMlModelBindingBuildFeatureEnabled(myModule) && MlkitUtils.isModelFileInMlModelsFolder(myModule, myFile);
   }
 
-  private static String breakLineIfTooLong(String text) {
+  @NotNull
+  private static String breakLineIfTooLong(@NotNull String text) {
     String[] words = text.split(" ");
     StringBuilder result = new StringBuilder();
     StringBuilder tmp = new StringBuilder();
@@ -421,7 +426,8 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     return result.toString().trim();
   }
 
-  private static String linkifyUrls(String text) {
+  @NotNull
+  private static String linkifyUrls(@NotNull String text) {
     StringBuilder result = new StringBuilder();
     for (String word : text.split(" ")) {
       if (!word.isEmpty()) {

@@ -87,4 +87,13 @@ public class TfliteModelFileEditorTest extends AndroidTestCase {
     // At least contains Model section.
     assertThat(html).contains("<td valign=\"top\">Name</td>\n<td valign=\"top\">mobilenet_v1_1.0_224_quant</td>\n");
   }
+
+  public void testCreateHtmlBody_modelWithoutMetadata() {
+    modelFile = myFixture.copyFileToProject("mobilenet_quant_no_metadata.tflite", "/ml/my_model.tflite");
+    TfliteModelFileEditor editor = new TfliteModelFileEditor(myFixture.getProject(), modelFile);
+    String html = editor.createHtmlBody();
+
+    // At least contains Model section.
+    assertThat(html).contains("<h2>Model</h2>");
+  }
 }
