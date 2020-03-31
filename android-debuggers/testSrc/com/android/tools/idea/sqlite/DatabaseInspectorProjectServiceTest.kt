@@ -38,6 +38,7 @@ import com.intellij.testFramework.registerServiceInstance
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
+import org.mockito.Mockito.verify
 import java.util.function.Consumer
 
 class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
@@ -171,5 +172,15 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
     // Assert
     assertSize(1, model.getOpenDatabases())
     assertEquals(fileDatabase, model.getOpenDatabases().first())
+  }
+
+  fun testDatabasePossiblyChangedNotifiesController() {
+    // Act
+    databaseInspectorProjectService.databasePossiblyChanged()
+
+    // Assert
+    runDispatching {
+      verify(mockSqliteController).databasePossiblyChanged()
+    }
   }
 }
