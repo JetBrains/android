@@ -276,6 +276,23 @@ public class GradleNameElement {
   }
 
   @NotNull
+  public static String unescape(@NotNull String part) {
+    StringBuilder buf = new StringBuilder();
+    for (int i = 0; i < part.length(); i++) {
+      char c = part.charAt(i);
+      if (c == '\\') {
+        assert i < part.length() - 1;
+        buf.append(part.charAt(++i));
+      }
+      else {
+        buf.append(c);
+      }
+    }
+    String result = buf.toString();
+    return result;
+  }
+
+  @NotNull
   @VisibleForTesting
   public static String join (@NotNull List<String> parts) {
     String result = parts.stream().map(GradleNameElement::escape).collect(Collectors.joining("."));
