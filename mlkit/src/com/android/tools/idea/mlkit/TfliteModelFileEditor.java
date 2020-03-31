@@ -34,11 +34,15 @@ import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.util.io.FileTooBigException;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.openapi.vfs.newvfs.BulkFileListener;
+import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiParameter;
 import com.intellij.ui.BrowserHyperlinkListener;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
@@ -61,7 +65,6 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Editor for the TFLite mode file.
  */
-// TODO(b/148866418): complete this based on the UX spec.
 public class TfliteModelFileEditor extends UserDataHolderBase implements FileEditor {
   private static final String NAME = "TFLite Model File";
   private static final String MODEL_TABLE_STYLE = "#model {\n" +
@@ -104,10 +107,41 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     contentPanel.setBorder(JBUI.Borders.empty(20));
 
     myHtmlEditorPane = new JEditorPane();
-    setHtml(myHtmlEditorPane, createHtmlBody());
     contentPanel.add(myHtmlEditorPane);
+    updateHtmlContent();
 
     myRootPane = new JBScrollPane(contentPanel);
+
+    MessageBusConnection connection = myModule.getMessageBus().connect(myModule);
+    connection.subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
+      @Override
+      public void after(@NotNull List<? extends VFileEvent> events) {
+        for (VFileEvent event : events) {
+          if (myFile.equals(event.getFile())) {
+            updateHtmlContent();
+            return;
+          }
+        }
+      }
+    });
+  }
+
+  private void updateHtmlContent() {
+    String html =
+      "<html><head><style>\n" +
+      MODEL_TABLE_STYLE +
+      TENSORS_TABLE_STYLE +
+      buildSampleCodeStyle() +
+      "</style></head><body>\n" +
+      createHtmlBody() +
+      "</body></html>";
+    myHtmlEditorPane.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE);
+    myHtmlEditorPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
+    myHtmlEditorPane.setAlignmentX(Component.LEFT_ALIGNMENT);
+    myHtmlEditorPane.setBackground(UIUtil.getTextFieldBackground());
+    myHtmlEditorPane.setContentType("text/html");
+    myHtmlEditorPane.setEditable(false);
+    myHtmlEditorPane.setText(html);
   }
 
   @NotNull
@@ -139,24 +173,6 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
     }
 
     return htmlBodyBuilder.toString();
-  }
-
-  private static void setHtml(@NotNull JEditorPane pane, @NotNull String bodyContent) {
-    String html =
-      "<html><head><style>\n" +
-      MODEL_TABLE_STYLE +
-      TENSORS_TABLE_STYLE +
-      buildSampleCodeStyle() +
-      "</style></head><body>\n" +
-      bodyContent +
-      "</body></html>";
-    pane.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE);
-    pane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
-    pane.setAlignmentX(Component.LEFT_ALIGNMENT);
-    pane.setBackground(UIUtil.getTextFieldBackground());
-    pane.setContentType("text/html");
-    pane.setEditable(false);
-    pane.setText(html);
   }
 
   @NotNull
@@ -319,7 +335,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       myUnderDarcula = StartupUiUtil.isUnderDarcula();
       myIsSampleCodeSectionVisible = shouldDisplaySampleCodeSection();
       // Refresh UI
-      setHtml(myHtmlEditorPane, createHtmlBody());
+      updateHtmlContent();
     }
     return myRootPane;
   }
