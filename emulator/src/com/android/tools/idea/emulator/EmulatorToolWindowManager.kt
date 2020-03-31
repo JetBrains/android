@@ -17,13 +17,22 @@ package com.android.tools.idea.emulator
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
+import com.android.ddmlib.IDevice
+import com.android.tools.idea.run.AppDeploymentListener
+import com.android.tools.idea.avdmanager.AvdLaunchListener
+import com.android.tools.idea.concurrency.addCallback
+import com.google.common.cache.CacheBuilder
+import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowEx
@@ -32,26 +41,32 @@ import com.intellij.ui.content.ContentFactory
 import com.intellij.ui.content.ContentManager
 import com.intellij.ui.content.ContentManagerAdapter
 import com.intellij.ui.content.ContentManagerEvent
+import com.intellij.util.Alarm
+import com.intellij.util.concurrency.EdtExecutorService
 import java.text.Collator
+import java.time.Duration
 
 /**
  * Manages contents of the Emulator tool window. Listens to changes in [RunningEmulatorCatalog]
  * and maintains [EmulatorToolWindowPanel]s, one per running Emulator.
  */
-internal class EmulatorToolWindowManager(private val project: Project) : RunningEmulatorCatalog.Listener, DumbAware {
+internal class EmulatorToolWindowManager private constructor(private val project: Project) : RunningEmulatorCatalog.Listener, DumbAware {
   private val ID_KEY = Key.create<EmulatorId>("emulator-id")
 
-  private var initialized = false
+  private var contentInitialized = false
   private val panels: MutableList<EmulatorToolWindowPanel> = arrayListOf()
   private var activePanel: EmulatorToolWindowPanel? = null
   private val emulators: MutableSet<EmulatorController> = hashSetOf()
   private val properties = PropertiesComponent.getInstance(project)
+  // IDs of recently launched AVDs keyed by themselves.
+  private val recentLaunches = CacheBuilder.newBuilder().expireAfterWrite(LAUNCH_INFO_EXPIRATION).build<String, String>()
+  private val alarm = Alarm(Alarm.ThreadToUse.SWING_THREAD, project)
 
   private var contentManagerListener = object : ContentManagerAdapter() {
     @UiThread
     override fun selectionChanged(event: ContentManagerEvent) {
       if (event.operation == ContentManagerEvent.ContentOperation.add) {
-        viewSelectionChanged()
+        viewSelectionChanged(event.source as ContentManager)
       }
     }
   }
@@ -76,27 +91,81 @@ internal class EmulatorToolWindowManager(private val project: Project) : Running
 
   init {
     // Lazily initialize content since we can only have one frame.
-    project.messageBus.connect(project).subscribe(ToolWindowManagerListener.TOPIC, object : ToolWindowManagerListener {
+    val messageBusConnection = project.messageBus.connect(project)
+    messageBusConnection.subscribe(ToolWindowManagerListener.TOPIC, object : ToolWindowManagerListener {
       @UiThread
       override fun stateChanged() {
         // We need to query the tool window again, because it might have been unregistered when closing the project.
         val toolWindow = getToolWindow()
 
         if (toolWindow.isVisible) {
-          if (!initialized) {
-            initialized = true
+          if (!contentInitialized) {
             createContent(toolWindow)
           }
         }
-        else if (initialized) {
+        else if (contentInitialized) {
           destroyContent(toolWindow)
         }
       }
     })
+
+    messageBusConnection.subscribe(AvdLaunchListener.TOPIC,
+                                   AvdLaunchListener { avd, commandLine, project ->
+                                     if (project == this.project && isEmbeddedEmulator(commandLine)) {
+                                       RunningEmulatorCatalog.getInstance().updateNow()
+                                       invokeLater { onEmulatorUsed(avd.name) }
+                                     }
+                                   })
+
+    messageBusConnection.subscribe(AppDeploymentListener.TOPIC,
+                                   AppDeploymentListener { device, project ->
+                                     if (project == this.project && device.isEmulator) {
+                                       onDeploymentToEmulator(device)
+                                     }
+                                   })
+  }
+
+  @AnyThread
+  private fun onDeploymentToEmulator(device: IDevice) {
+    val future = RunningEmulatorCatalog.getInstance().updateNow()
+    future.addCallback(EdtExecutorService.getInstance(),
+                       success = { emulators ->
+                         if (emulators != null) {
+                           onDeploymentToEmulator(device, emulators)
+                         }},
+                       failure = {})
+  }
+
+  private fun onDeploymentToEmulator(device: IDevice, runningEmulators: Set<EmulatorController>) {
+    val serialPort = device.serialPort
+    val emulator = runningEmulators.find { it.emulatorId.serialPort == serialPort } ?: return
+    onEmulatorUsed(emulator.emulatorId.avdId)
+  }
+
+  private fun onEmulatorUsed(avdId: String) {
+    val toolWindow = getToolWindow()
+    if (!toolWindow.isVisible) {
+      toolWindow.show(null)
+      if (!toolWindow.isActive) {
+        toolWindow.activate(null)
+      }
+    }
+
+    val panel = findPanelByAvdId(avdId)
+    if (panel == null) {
+      RunningEmulatorCatalog.getInstance().updateNow()
+      recentLaunches.put(avdId, avdId)
+      alarm.addRequest(recentLaunches::cleanUp, LAUNCH_INFO_EXPIRATION.toMillis())
+    }
+    else if (activePanel != panel) {
+      val contentManager = toolWindow.contentManager
+      val content = contentManager.getContent(panel.component)
+      contentManager.setSelectedContent(content)
+    }
   }
 
   private fun createContent(toolWindow: ToolWindow) {
-    initialized = true
+    contentInitialized = true
 
     val actionGroup = DefaultActionGroup()
     actionGroup.addAction(ToggleZoomToolbarAction())
@@ -110,12 +179,13 @@ internal class EmulatorToolWindowManager(private val project: Project) : Running
       addEmulatorPanel(emulator)
     }
 
-    toolWindow.contentManager.addContentManagerListener(contentManagerListener)
-    viewSelectionChanged()
+    val contentManager = toolWindow.contentManager
+    contentManager.addContentManagerListener(contentManagerListener)
+    viewSelectionChanged(contentManager)
   }
 
   private fun destroyContent(toolWindow: ToolWindow) {
-    initialized = false
+    contentInitialized = false
     toolWindow.contentManager.removeContentManagerListener(contentManagerListener)
     RunningEmulatorCatalog.getInstance().removeListener(this)
     activePanel?.destroyContent()
@@ -142,9 +212,16 @@ internal class EmulatorToolWindowManager(private val project: Project) : Running
 
     if (index >= 0) {
       panels.add(index, panel)
-      getContentManager().addContent(content, index)
-      if (activePanel == null) {
-        activePanel = panel
+      val contentManager = getContentManager()
+      contentManager.addContent(content, index)
+
+      if (activePanel != panel) {
+        // Activate the newly added panel if it corresponds to a recently launched or used Emulator.
+        val avdId = panel.id.avdId
+        if (recentLaunches.getIfPresent(panel.id.avdId) != null) {
+          recentLaunches.invalidate(avdId)
+          contentManager.setSelectedContent(content)
+        }
       }
     }
   }
@@ -159,8 +236,8 @@ internal class EmulatorToolWindowManager(private val project: Project) : Running
     }
   }
 
-  private fun viewSelectionChanged() {
-    val content = getContentManager().selectedContent
+  private fun viewSelectionChanged(contentManager: ContentManager) {
+    val content = contentManager.selectedContent
     val id = content?.getUserData(ID_KEY)
     if (id != activePanel?.id) {
       activePanel?.destroyContent()
@@ -177,6 +254,10 @@ internal class EmulatorToolWindowManager(private val project: Project) : Running
     return panels.firstOrNull { it.id.grpcPort == grpcPort }
   }
 
+  private fun findPanelByAvdId(avdId: String): EmulatorToolWindowPanel? {
+    return panels.firstOrNull { it.id.avdId == avdId }
+  }
+
   private fun getContentManager(): ContentManager {
     return getToolWindow().contentManager
   }
@@ -188,7 +269,7 @@ internal class EmulatorToolWindowManager(private val project: Project) : Running
   @AnyThread
   override fun emulatorAdded(emulator: EmulatorController) {
     invokeLater {
-      if (initialized && emulators.add(emulator)) {
+      if (contentInitialized && emulators.add(emulator)) {
         addEmulatorPanel(emulator)
       }
     }
@@ -197,7 +278,7 @@ internal class EmulatorToolWindowManager(private val project: Project) : Running
   @AnyThread
   override fun emulatorRemoved(emulator: EmulatorController) {
     invokeLater {
-      if (initialized && emulators.remove(emulator)) {
+      if (contentInitialized && emulators.remove(emulator)) {
         removeEmulatorPanel(emulator)
       }
     }
@@ -223,6 +304,17 @@ internal class EmulatorToolWindowManager(private val project: Project) : Running
     }
   }
 
+  /**
+   * Extracts and returns the port number from the serial number of an Emulator device,
+   * or zero if the serial number doesn't have an expected format, "emulator-<port_number>".
+   */
+  private val IDevice.serialPort: Int
+    get() {
+      require(isEmulator)
+      val pos = serialNumber.indexOf('-')
+      return StringUtil.parseInt(serialNumber.substring(pos + 1), 0)
+    }
+
   companion object {
     const val ID = "Emulator"
 
@@ -231,11 +323,34 @@ internal class EmulatorToolWindowManager(private val project: Project) : Running
     private const val ZOOM_TOOLBAR_VISIBLE_PROPERTY = "com.android.tools.idea.emulator.zoom.toolbar.visible"
     private const val ZOOM_TOOLBAR_VISIBLE_DEFAULT = true
     private const val EMULATOR_DISCOVERY_INTERVAL_MILLIS = 1000
+    @JvmStatic
+    private val LAUNCH_INFO_EXPIRATION = Duration.ofSeconds(30)
 
     @JvmStatic
     private val COLLATOR = Collator.getInstance()
 
     @JvmStatic
     private val PANEL_COMPARATOR = compareBy<EmulatorToolWindowPanel, Any?>(COLLATOR) { it.title }.thenBy { it.id.grpcPort }
+
+    @JvmStatic
+    private val registeredProjects: MutableSet<Project> = hashSetOf()
+
+    /**
+     * Initializes [EmulatorToolWindowManager] for the given project. Repeated calls for the same project
+     * are ignored.
+     */
+    @JvmStatic
+    fun initializeForProject(project: Project) {
+      if (registeredProjects.add(project)) {
+        Disposer.register(project, Disposable { registeredProjects.remove(project) })
+        EmulatorToolWindowManager(project)
+      }
+    }
+
+    @JvmStatic
+    private fun isEmbeddedEmulator(commandLine: GeneralCommandLine): Boolean {
+      // TODO: Distinguish between embedded and standalone emulators.
+      return true
+    }
   }
 }

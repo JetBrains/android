@@ -76,6 +76,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.messages.MessageBus;
 import com.intellij.util.net.HttpConfigurable;
 import java.awt.Dimension;
 import java.io.BufferedWriter;
@@ -467,7 +468,8 @@ public class AvdManagerConnection {
       return Futures.immediateFailedFuture(new RuntimeException(message));
     }
 
-    EmulatorRunner runner = new EmulatorRunner(newEmulatorCommand(emulatorBinary, info, parameters), info);
+    GeneralCommandLine commandLine = newEmulatorCommand(emulatorBinary, info, parameters);
+    EmulatorRunner runner = new EmulatorRunner(commandLine, info);
     addListeners(runner);
 
     final ProcessHandler processHandler;
@@ -509,6 +511,10 @@ public class AvdManagerConnection {
         p.processFinish();
       }
     });
+
+    // Send notification that the device has been launched.
+    MessageBus messageBus = project != null ? project.getMessageBus() : ApplicationManager.getApplication().getMessageBus();
+    messageBus.syncPublisher(AvdLaunchListener.TOPIC).avdLaunched(info, commandLine, project);
 
     return EmulatorConnectionListener.getDeviceForEmulator(project, info.getName(), processHandler, 5, TimeUnit.MINUTES);
   }

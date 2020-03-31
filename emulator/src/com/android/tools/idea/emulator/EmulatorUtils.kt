@@ -22,6 +22,7 @@ import com.android.emulator.control.Rotation.SkinRotation
 import com.android.tools.idea.npw.assetstudio.roundToInt
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.diagnostic.Logger
 import java.awt.Dimension
 import kotlin.math.ceil
 
@@ -95,3 +96,6 @@ internal fun Dimension.rotated(rotation: SkinRotation): Dimension {
     else -> this
   }
 }
+
+internal inline val <reified T> T.logger: Logger
+  get() = Logger.getInstance(T::class.java)
