@@ -584,7 +584,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   @Nullable
-  public Variant findVariantByName(@NotNull String variantName) {
+  public IdeVariant findVariantByName(@NotNull String variantName) {
     return myVariantsByName.get(variantName);
   }
 

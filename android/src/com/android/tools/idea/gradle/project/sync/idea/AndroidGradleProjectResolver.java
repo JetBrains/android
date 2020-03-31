@@ -40,7 +40,6 @@ import static com.intellij.util.ExceptionUtil.getRootCause;
 import static com.intellij.util.PathUtil.getJarPathForClass;
 import static java.util.Collections.emptyList;
 
-import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
@@ -52,6 +51,7 @@ import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.ide.common.gradle.model.IdeNativeAndroidProject;
 import com.android.ide.common.gradle.model.IdeNativeAndroidProjectImpl;
 import com.android.ide.common.gradle.model.IdeNativeVariantAbi;
+import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.gradle.model.GradlePluginModel;
@@ -391,15 +391,39 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     }
 
     for (KaptSourceSetModel sourceSetModel : kaptGradleModel.getSourceSets()) {
-      Variant variant = androidModuleModel.findVariantByName(sourceSetModel.getSourceSetName());
       File kotlinGenSourceDir = sourceSetModel.getGeneratedKotlinSourcesDirFile();
-      if (variant != null && kotlinGenSourceDir != null) {
-        AndroidArtifact mainArtifact = variant.getMainArtifact();
-        if (mainArtifact instanceof IdeBaseArtifact) {
-          ((IdeBaseArtifact)mainArtifact).addGeneratedSourceFolder(kotlinGenSourceDir);
-        }
+      IdeBaseArtifact artifact = findArtifact(sourceSetModel, androidModuleModel);
+      if (artifact != null && kotlinGenSourceDir != null) {
+        artifact.addGeneratedSourceFolder(kotlinGenSourceDir);
       }
     }
+  }
+
+  @Nullable
+  private static IdeBaseArtifact findArtifact(@NotNull KaptSourceSetModel sourceSetModel, @NotNull AndroidModuleModel androidModel) {
+    String sourceSetName = sourceSetModel.getSourceSetName();
+    if (!sourceSetModel.isTest()) {
+      IdeVariant variant = androidModel.findVariantByName(sourceSetName);
+      return variant == null ? null : variant.getMainArtifact();
+    }
+
+    // Check if it's android test source set.
+    String androidTestSuffix = "AndroidTest";
+    if (sourceSetName.endsWith(androidTestSuffix)) {
+      String variantName = sourceSetName.substring(0, sourceSetName.length() - androidTestSuffix.length());
+      IdeVariant variant = androidModel.findVariantByName(variantName);
+      return variant == null ? null : variant.getAndroidTestArtifact();
+    }
+
+    // Check if it's unit test source set.
+    String unitTestSuffix = "UnitTest";
+    if (sourceSetName.endsWith(unitTestSuffix)) {
+      String variantName = sourceSetName.substring(0, sourceSetName.length() - unitTestSuffix.length());
+      IdeVariant variant = androidModel.findVariantByName(variantName);
+      return variant == null ? null : variant.getUnitTestArtifact();
+    }
+
+    return null;
   }
 
   /**

@@ -27,10 +27,13 @@ import static com.intellij.openapi.roots.DependencyScope.PROVIDED;
 import static com.intellij.openapi.util.io.FileUtil.createTempDirectory;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 
+import com.android.builder.model.AndroidArtifactOutput;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import java.io.File;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
@@ -69,6 +72,17 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
   public void testWithPluginOneDotFive() throws Exception {
     // We are verifying that sync succeeds without errors.
     loadProjectWithOlderPlugin(PROJECT_WITH1_DOT5);
+  }
+
+  public void testGetOutputFileWithPluginOneDotFive() throws Exception {
+    loadProjectWithOlderPlugin(PROJECT_WITH1_DOT5);
+    Module appModule = myModules.getAppModule();
+    AndroidModuleModel androidModel = AndroidModuleModel.get(appModule);
+    assertNotNull(androidModel);
+    @SuppressWarnings("deprecation")
+    Collection<AndroidArtifactOutput> outputs = androidModel.getMainArtifact().getOutputs();
+    assertNotEmpty(outputs);
+    assertThat(outputs.iterator().next().getMainOutputFile().getOutputFile().getName()).isEqualTo("app-debug.apk");
   }
 
   public void testWithInterAndroidModuleDependencies() throws Exception {

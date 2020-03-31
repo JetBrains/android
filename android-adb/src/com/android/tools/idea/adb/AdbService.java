@@ -22,6 +22,7 @@ import com.android.ddmlib.ClientData;
 import com.android.ddmlib.DdmPreferences;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.Log;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -34,7 +35,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerListener;
-import com.intellij.util.messages.MessageBusConnection;
 import java.io.File;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -121,7 +121,7 @@ public class AdbService implements Disposable, AdbOptionsService.AdbOptionsListe
     if (myFuture == null) {
       Future<BridgeConnectionResult> future = ApplicationManager.getApplication().executeOnPooledThread(new CreateBridgeTask(adb, () -> {
         if (terminateDdmlibFirst) {
-          terminateDdmlib();
+          shutdownAndroidDebugBridge();
         }
       }));
       // TODO: expose connection timeout in some settings UI? Also see TIMEOUT which is way too long
@@ -133,11 +133,23 @@ public class AdbService implements Disposable, AdbOptionsService.AdbOptionsListe
 
   public synchronized void terminateDdmlib() {
     cancelCurrentFuture();
+    shutdownAndroidDebugBridge();
+  }
+
+  private static void shutdownAndroidDebugBridge() {
+    LOG.info("Terminating ADB connection");
 
     synchronized (ADB_INIT_LOCK) {
       AndroidDebugBridge.disconnectBridge();
       AndroidDebugBridge.terminate();
+      LOG.info("ADB connection successfully terminated");
     }
+  }
+
+  @VisibleForTesting
+  synchronized void cancelFutureForTesting() {
+    assert myFuture != null;
+    myFuture.cancel(true);
   }
 
   private synchronized void cancelCurrentFuture() {
