@@ -22,10 +22,9 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.intellij.execution.testframework.sm.ServiceMessageBuilder;
-import com.intellij.openapi.util.Comparing;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Map;
+import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Eugene.Kudelevsky
@@ -75,7 +74,7 @@ public class AndroidTestListener implements ITestRunListener {
 
   @Override
   public void testStarted(TestIdentifier test) {
-    if (!Comparing.equal(test.getClassName(), myTestClassName)) {
+    if (!Objects.equals(test.getClassName(), myTestClassName)) {
       if (myTestClassName != null) {
         testSuiteFinished();
       }

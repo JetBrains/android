@@ -1,4 +1,4 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android;
 
 import com.android.SdkConstants;
@@ -33,6 +33,16 @@ import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.Processor;
 import com.intellij.util.SingleAlarm;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Properties;
+import java.util.Set;
+import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.importDependencies.ImportDependenciesUtil;
@@ -40,9 +50,6 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.event.HyperlinkEvent;
-import java.util.*;
 
 /**
  * @author Eugene.Kudelevsky
@@ -312,7 +319,7 @@ public final class AndroidPropertyFilesUpdater implements Disposable {
         });
       }
       else {
-        if (!Comparing.equal(property.getValue(), targetPropertyValue)) {
+        if (!Objects.equals(property.getValue(), targetPropertyValue)) {
           final PsiElement element = property.getPsiElement();
           changes.add(new Runnable() {
             @Override
