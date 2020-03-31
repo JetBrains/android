@@ -15,15 +15,12 @@
  */
 package com.android.tools.idea.naveditor.dialogs;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_AUTO_VERIFY;
-import static com.android.SdkConstants.ATTR_URI;
-import static com.android.SdkConstants.AUTO_URI;
 import static com.android.SdkConstants.TAG_DEEP_LINK;
 
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.google.common.annotations.VisibleForTesting;
@@ -32,6 +29,8 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.ValidationInfo;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBTextField;
 import java.net.URI;
 import java.net.URISyntaxException;
 import javax.swing.Action;
@@ -46,6 +45,14 @@ public class AddDeeplinkDialog extends DialogWrapper {
   PlaceholderTextField myUriField;
   @VisibleForTesting
   JCheckBox myAutoVerify;
+  @VisibleForTesting
+  JBTextField myMimeTypeField;
+  @VisibleForTesting
+  JBTextField myActionField;
+
+  JBLabel myMimeTypeLabel;
+  JBLabel myActionLabel;
+
   private JPanel myContentPanel;
   @Nullable private final NlComponent myExistingComponent;
   @NotNull private final NlComponent myParent;
@@ -54,8 +61,10 @@ public class AddDeeplinkDialog extends DialogWrapper {
     super(false);
     myUriField.setPlaceHolderText("Enter URI - https://www.example.com/person/{id}");
     if (existing != null) {
-      myUriField.setText(existing.getAttribute(AUTO_URI, ATTR_URI));
-      myAutoVerify.setSelected(Boolean.parseBoolean(existing.getAttribute(ANDROID_URI, ATTR_AUTO_VERIFY)));
+      myUriField.setText(NavComponentHelperKt.getUri(existing));
+      myAutoVerify.setSelected(NavComponentHelperKt.getAutoVerify(existing));
+      myMimeTypeField.setText(NavComponentHelperKt.getDeepLinkMimeType(existing));
+      myActionField.setText(NavComponentHelperKt.getDeepLinkAction(existing));
     }
     init();
     if (existing == null) {
@@ -68,6 +77,13 @@ public class AddDeeplinkDialog extends DialogWrapper {
     }
     myExistingComponent = existing;
     myParent = parent;
+
+    if(!StudioFlags.NAV_DEEP_LINK_EXTENDED.get()) {
+      myMimeTypeField.setVisible(false);
+      myActionField.setVisible(false);
+      myMimeTypeLabel.setVisible(false);
+      myActionLabel.setVisible(false);
+    }
   }
 
   @Nullable
@@ -102,6 +118,16 @@ public class AddDeeplinkDialog extends DialogWrapper {
     return myAutoVerify.isSelected();
   }
 
+  @VisibleForTesting
+  public String getMimeType() {
+    return myMimeTypeField.getText();
+  }
+
+  @VisibleForTesting
+  public String getAction() {
+    return myActionField.getText();
+  }
+
   @NotNull
   @Override
   protected Action[] createActions() {
@@ -131,6 +157,8 @@ public class AddDeeplinkDialog extends DialogWrapper {
 
       NavComponentHelperKt.setUriAndLog(realComponent, getUri(), NavEditorEvent.Source.PROPERTY_INSPECTOR);
       NavComponentHelperKt.setAutoVerifyAndLog(realComponent, getAutoVerify(), NavEditorEvent.Source.PROPERTY_INSPECTOR);
+      NavComponentHelperKt.setDeeplinkMimeTypeAndLog(realComponent, getMimeType(), NavEditorEvent.Source.PROPERTY_INSPECTOR);
+      NavComponentHelperKt.setDeeplinkActionAndLog(realComponent, getAction(), NavEditorEvent.Source.PROPERTY_INSPECTOR);
     });
   }
 }

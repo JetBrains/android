@@ -358,6 +358,11 @@ public final class StudioFlags {
     NAV_EDITOR, "safe.args.enabled", "Enable support for Safe Args",
     "Generate in-memory Safe Args classes if the current module is using the feature.",
     false);
+
+  public static final Flag<Boolean> NAV_DEEP_LINK_EXTENDED = Flag.create(
+    NAV_EDITOR, "deep.link.ex", "Extended fields for deep link dialog",
+    "Add new fields to the navigation editor's deep link dialog",
+    false);
   //endregion
 
   //region Resource Manager
