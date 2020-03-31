@@ -616,6 +616,38 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
   }
 
   @Test
+  public void testRenameTrickyWithReferences() throws Exception {
+    writeToBuildFile(TestFile.RENAME_TRICKY_WITH_REFERENCES);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel androidModel = buildModel.android();
+
+    List<SigningConfigModel> signingConfigs = androidModel.signingConfigs();
+    assertThat(signingConfigs).hasSize(1);
+    SigningConfigModel release = signingConfigs.get(0);
+    assertEquals("my release.", release.name());
+    assertEquals("release.keystore", release.storeFile().toString());
+    assertEquals("storePassword", release.storePassword().toString());
+    assertEquals("PKCS12", release.storeType().toString());
+    assertEquals("myReleaseKey", release.keyAlias().toString());
+    assertEquals("keyPassword", release.keyPassword().toString());
+
+    ProductFlavorModel defaultConfig = androidModel.defaultConfig();
+    assertEquals(release.name(), defaultConfig.signingConfig().toSigningConfig().name());
+
+    // TODO(xof): see above
+    // verifyPropertyModel(defaultConfig.multiDexKeepFile(), STRING_TYPE, "file(\"release.keystore\")", UNKNOWN, REGULAR, 1);
+    verifyPropertyModel(defaultConfig.applicationIdSuffix(), STRING_TYPE, "storePassword", STRING, REGULAR, 1);
+    verifyPropertyModel(defaultConfig.testInstrumentationRunner(), STRING_TYPE, "PKCS12", STRING, REGULAR, 1);
+    verifyPropertyModel(defaultConfig.testApplicationId(), STRING_TYPE, "myReleaseKey", STRING, REGULAR, 1);
+    verifyPropertyModel(defaultConfig.versionName(), STRING_TYPE, "keyPassword", STRING, REGULAR, 1);
+
+    release.rename("my new release.", true);
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.RENAME_TRICKY_WITH_REFERENCES_EXPECTED);
+  }
+
+  @Test
   public void testSigningConfigAddedToTopOfAndroidBlock() throws Exception {
     writeToBuildFile(TestFile.ADDED_TO_TOP_OF_ANDROID_BLOCK);
 
@@ -642,6 +674,8 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     RENAME_EXPECTED("renameSigningConfigModelExpected"),
     RENAME_WITH_REFERENCES("renameWithReferences"),
     RENAME_WITH_REFERENCES_EXPECTED("renameWithReferencesExpected"),
+    RENAME_TRICKY_WITH_REFERENCES("renameTrickyWithReferences"),
+    RENAME_TRICKY_WITH_REFERENCES_EXPECTED("renameTrickyWithReferencesExpected"),
     SIGNING_CONFIG_BLOCK_WITH_ASSIGNMENT_STATEMENTS("signingConfigBlockWithAssignmentStatements"),
     SIGNING_CONFIG_APPLICATION_STATEMENTS("signingConfigApplicationStatements"),
     SIGNING_CONFIG_ASSIGNMENT_STATEMENTS("signingConfigAssignmentStatements"),
