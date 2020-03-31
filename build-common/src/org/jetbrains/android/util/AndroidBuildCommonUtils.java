@@ -31,7 +31,6 @@ import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
@@ -64,6 +63,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.regex.Pattern;
@@ -476,7 +476,7 @@ public class AndroidBuildCommonUtils {
       File child1 = children1[i];
       File child2 = children2[i];
 
-      if (!Comparing.equal(child1.getName(), child2.getName())) {
+      if (!Objects.equals(child1.getName(), child2.getName())) {
         return false;
       }
 
@@ -494,7 +494,7 @@ public class AndroidBuildCommonUtils {
         String content1 = readFile(child1);
         String content2 = readFile(child2);
 
-        if (!Comparing.equal(content1, content2)) {
+        if (!Objects.equals(content1, content2)) {
           return false;
         }
       }

@@ -71,7 +71,6 @@ import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
@@ -87,6 +86,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -749,7 +749,7 @@ public class RenderTask {
 
     ILayoutPullParser topParser = null;
     if (myIncludedWithin != IncludeReference.NONE) {
-      assert Comparing.equal(myIncludedWithin.getToFile(), xmlFile.getVirtualFile());
+      assert Objects.equals(myIncludedWithin.getToFile(), xmlFile.getVirtualFile());
       // TODO: Validate that we're really including the same layout here!
       //ResourceValue contextLayout = resolver.findResValue(myIncludedWithin.getFromResourceUrl(), false  /* forceFrameworkOnly*/);
       //if (contextLayout != null) {

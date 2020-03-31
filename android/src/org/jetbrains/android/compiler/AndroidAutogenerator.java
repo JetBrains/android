@@ -17,7 +17,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.*;
-import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.*;
@@ -427,7 +426,7 @@ public class AndroidAutogenerator {
     final List<VirtualFile> filesToDelete = new ArrayList<VirtualFile>();
 
     for (final VirtualFile f : files) {
-      if (!Comparing.equal(f, vFile) && VfsUtilCore.isAncestor(genDir, f, true)) {
+      if (!Objects.equals(f, vFile) && VfsUtilCore.isAncestor(genDir, f, true)) {
         filesToDelete.add(f);
       }
     }
@@ -739,7 +738,7 @@ public class AndroidAutogenerator {
     VirtualFile resDir = facet != null ? AndroidRootUtil.getResourceDir(facet) : null;
     ModuleRootManager manager = ModuleRootManager.getInstance(module);
     for (VirtualFile sourceRoot : manager.getSourceRoots(includingTests)) {
-      if (!Comparing.equal(resDir, sourceRoot)) {
+      if (!Objects.equals(resDir, sourceRoot)) {
         result.add(sourceRoot);
       }
     }
@@ -776,7 +775,7 @@ public class AndroidAutogenerator {
     }
 
     final VirtualFile parent = sourceFile.getParent();
-    if (Comparing.equal(parent, sourceRoot)) {
+    if (Objects.equals(parent, sourceRoot)) {
       return genFolder.getPath();
     }
 

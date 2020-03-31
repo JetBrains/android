@@ -35,7 +35,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ModuleRootListener;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
@@ -54,6 +53,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.List;
+import java.util.Objects;
 
 public class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAware {
   public static final Key<DevicePanel> DEVICES_PANEL_KEY = Key.create("DevicePanel");
@@ -215,7 +215,7 @@ public class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAw
 
       AndroidPlatform newPlatform = getPlatform();
 
-      if (!Comparing.equal(myPrevPlatform, newPlatform)) {
+      if (!Objects.equals(myPrevPlatform, newPlatform)) {
         myPrevPlatform = newPlatform;
         ApplicationManager.getApplication().invokeLater(() -> {
           if (!window.isDisposed() && window.isVisible()) {

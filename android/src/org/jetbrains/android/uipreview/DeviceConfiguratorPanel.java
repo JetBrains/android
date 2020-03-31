@@ -10,7 +10,6 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.VerticalFlowLayout;
-import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Ref;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBCheckBox;
@@ -35,6 +34,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static com.android.ide.common.resources.configuration.LocaleQualifier.FAKE_VALUE;
 
@@ -288,7 +288,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
 
   private ResourceQualifier getActualQualifier(ResourceQualifier qualifier) {
     for (ResourceQualifier qualifier1 : myActualQualifiersConfig.getQualifiers()) {
-      if (Comparing.equal(qualifier1.getShortName(), qualifier.getShortName())) {
+      if (Objects.equals(qualifier1.getShortName(), qualifier.getShortName())) {
         return qualifier1;
       }
     }

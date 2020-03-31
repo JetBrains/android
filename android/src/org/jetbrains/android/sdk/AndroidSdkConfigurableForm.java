@@ -37,6 +37,7 @@ import java.awt.event.ItemEvent;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 
@@ -187,7 +188,7 @@ class AndroidSdkConfigurableForm {
       if (currentSdk != null && AndroidSdks.getInstance().isAndroidSdk(currentSdk)) {
         AndroidSdkAdditionalData data = AndroidSdks.getInstance().getAndroidSdkAdditionalData(currentSdk);
         Sdk internalJava = data != null ? data.getJavaSdk() : null;
-        if (internalJava != null && Comparing.equal(internalJava.getName(), previousName)) {
+        if (internalJava != null && Objects.equals(internalJava.getName(), previousName)) {
           data.setJavaSdk(sdk);
         }
       }
