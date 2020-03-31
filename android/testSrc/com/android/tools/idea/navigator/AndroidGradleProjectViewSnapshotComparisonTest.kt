@@ -28,6 +28,7 @@ import com.intellij.ide.impl.ProjectUtil
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.projectView.ProjectView
 import com.intellij.ide.projectView.impl.GroupByTypeComparator
+import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode
 import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.ide.util.treeView.AbstractTreeStructure
@@ -98,15 +99,14 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
     assertIsEqualToSnapshot(text)
   }
 
+  fun testNdkProject() {
+    val text = importSyncAndDumpProject(TestProjectPaths.HELLO_JNI, initialState = false, filter = this::filterOutMostIncludeFiles)
+    assertIsEqualToSnapshot(text)
+  }
+
   fun testDependentNativeModules() {
-    val text = importSyncAndDumpProject(TestProjectPaths.DEPENDENT_NATIVE_MODULES, initialState = false) { element, state ->
-      // Drop any file nodes under IncludesViewNode node.
-      when {
-        element is IncludesViewNode -> true
-        state && element is PsiFileNode -> null
-        else -> state
-      }
-    }
+    val text = importSyncAndDumpProject(TestProjectPaths.DEPENDENT_NATIVE_MODULES, initialState = false,
+                                        filter = this::filterOutMostIncludeFiles)
     assertIsEqualToSnapshot(text)
   }
 
@@ -261,6 +261,17 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
     }
     finally {
       applySettings(oldSettings)
+    }
+  }
+
+  private fun filterOutMostIncludeFiles(element: AbstractTreeNode<*>, state: Boolean): Boolean? {
+    return when {
+      element is IncludesViewNode -> true
+      state && element is PsiDirectoryNode && element.name == "android" -> state
+      state && element is PsiDirectoryNode -> null
+      state && element is PsiFileNode && element.name?.endsWith("native_activity.h") == true -> state
+      state && element is PsiFileNode -> null
+      else -> state
     }
   }
 }
