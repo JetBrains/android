@@ -20,14 +20,14 @@ import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.NlsUI.*
+import com.intellij.openapi.util.NlsContexts
 
 class ProvideLintFeedbackFix(private val myIssue: String) : LocalQuickFix {
-  override fun getName(): @ListItem String {
+  override fun getName(): @NlsContexts.ListItem String {
     return "Provide feedback on this warning"
   }
 
-  override fun getFamilyName(): @ListItem String {
+  override fun getFamilyName(): @NlsContexts.ListItem String {
     // Don't want to collapse these across issue types so ensure that the message is unique for each
     return "Provide feedback on issues of type $myIssue"
   }
