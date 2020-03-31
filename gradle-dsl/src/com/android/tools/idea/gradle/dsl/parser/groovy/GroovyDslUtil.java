@@ -937,7 +937,7 @@ public final class GroovyDslUtil {
 
     if (psiElement instanceof GrReferenceExpression || psiElement instanceof GrIndexProperty) {
       String text = psiElement.getText();
-      GradleDslElement element = context.resolveReference(text, true);
+      GradleDslElement element = context.resolveExternalSyntaxReference(text, true);
       return ImmutableList.of(new GradleReferenceInjection(context, element, psiElement, text));
     }
 
@@ -951,7 +951,7 @@ public final class GroovyDslUtil {
       if (injection != null) {
         String name = getInjectionName(injection);
         if (name != null) {
-          GradleDslElement referenceElement = context.resolveReference(name, true);
+          GradleDslElement referenceElement = context.resolveExternalSyntaxReference(name, true);
           if (includeUnresolved || referenceElement != null) {
             injections.add(new GradleReferenceInjection(context, referenceElement, injection, name));
           }

@@ -172,7 +172,7 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
 
     if (literal instanceof GrReferenceExpression || literal instanceof GrIndexProperty) {
       if (resolve) {
-        GradleDslElement e = context.resolveReference(literal.getText(), true);
+        GradleDslElement e = context.resolveExternalSyntaxReference(literal.getText(), true);
         // Only attempt to get the value if it is a simple expression.
         if (e instanceof GradleDslSimpleExpression) {
           return ((GradleDslSimpleExpression)e).getValue();

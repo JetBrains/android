@@ -114,7 +114,7 @@ fun convertToExternalTextValue(
   referenceText : String,
   forInjection: Boolean
 ) : String {
-  val resolvedReference = context.resolveReference(referenceText, false) ?: return referenceText
+  val resolvedReference = context.resolveInternalSyntaxReference(referenceText, false) ?: return referenceText
   // Get the resolvedReference value type that might be used for the final cast.
   // TODO(karimai): what if the type needs to be imported ?
   val className = if (resolvedReference is GradleDslLiteral) resolvedReference.value?.javaClass?.kotlin?.simpleName else null
@@ -478,14 +478,14 @@ internal fun findInjections(
     // foo, KotlinCompilerVersion, android.compileSdkVersion
     is KtNameReferenceExpression, is KtDotQualifiedExpression -> {
       val text = psiElement.text
-      val element = context.resolveReference(text, true)
+      val element = context.resolveExternalSyntaxReference(text, true)
       return mutableListOf(GradleReferenceInjection(context, element, injectionPsiElement, text))
     }
     // extra["PROPERTY_NAME"], someMap["MAP_KEY"], someList[0], rootProject.extra["kotlin_version"]
     is KtArrayAccessExpression -> {
       if (psiElement.arrayExpression == null) return noInjections
       val text = psiElement.text
-      val element = context.resolveReference(text, true)
+      val element = context.resolveExternalSyntaxReference(text, true)
       return mutableListOf(GradleReferenceInjection(context, element, injectionPsiElement, text))
     }
     // "foo bar", "foo $bar", "foo ${extra["PROPERTY_NAME"]}"

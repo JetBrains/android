@@ -151,7 +151,7 @@ public class FakeArtifactElement extends FakeElement {
     }
 
     GradleDslSimpleExpression resolved = PropertyUtil.resolveElement(myRealExpression);
-    GradleDslElement element = resolved.resolveReference(referenceText, true);
+    GradleDslElement element = resolved.resolveExternalSyntaxReference(referenceText, true);
     return ImmutableList.of(new GradleReferenceInjection(this, element, realExpression /* Used as a placeholders */, referenceText));
   }
 

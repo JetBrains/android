@@ -203,10 +203,18 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
   }
 
   @Nullable
-  public GradleDslElement resolveReference(@NotNull String referenceText, boolean resolveWithOrder) {
+  public GradleDslElement resolveExternalSyntaxReference(@NotNull String referenceText, boolean resolveWithOrder) {
     GradleDslElement searchStartElement = this;
     GradleDslParser parser = getDslFile().getParser();
     referenceText = parser.convertReferenceText(searchStartElement, referenceText);
+
+    return resolveInternalSyntaxReference(referenceText, resolveWithOrder);
+  }
+
+  @Nullable
+  public GradleDslElement resolveInternalSyntaxReference(@NotNull String referenceText, boolean resolveWithOrder) {
+    GradleDslElement searchStartElement = this;
+    GradleDslParser parser = getDslFile().getParser();
 
     boolean withinBuildscript = false;
     GradleDslElement element = this;

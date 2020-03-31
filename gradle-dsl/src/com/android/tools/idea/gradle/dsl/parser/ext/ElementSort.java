@@ -84,7 +84,7 @@ public final class ElementSort {
       }
 
       if (newElement == null) {
-        newElement = e.getOriginElement().resolveReference(e.getName(), false);
+        newElement = e.getOriginElement().resolveExternalSyntaxReference(e.getName(), false);
       }
 
       while (newElement != null && newElement.getParent() != myParent) {
