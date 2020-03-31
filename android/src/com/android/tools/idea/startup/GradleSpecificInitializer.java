@@ -60,6 +60,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -242,7 +243,8 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
     NotificationGroup group = NotificationGroup.findRegisteredGroup("System Health");
     if (group == null) {
       // This shouldn't happen
-      group = new NotificationGroup("Gradle Initializer", NotificationDisplayType.STICKY_BALLOON, true);
+      group = new NotificationGroup(
+        "Gradle Initializer", NotificationDisplayType.STICKY_BALLOON, true, null, null, PluginId.getId("org.jetbrains.android"));
     }
     return group;
   }

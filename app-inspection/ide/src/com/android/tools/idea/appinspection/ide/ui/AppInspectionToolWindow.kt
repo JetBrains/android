@@ -24,6 +24,7 @@ import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationListener
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -46,7 +47,8 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
     .toList()
 
   private val ideServices = object : AppInspectionIdeServices {
-    private val notificationGroup = NotificationGroup.toolWindowGroup(APP_INSPECTION_ID, APP_INSPECTION_ID)
+    private val notificationGroup =
+      NotificationGroup.toolWindowGroup(APP_INSPECTION_ID, APP_INSPECTION_ID, true, PluginId.getId("org.jetbrains.android"))
 
     override fun showToolWindow(callback: () -> Unit) = toolWindow.show(Runnable { callback() })
     override fun showNotification(title: String,

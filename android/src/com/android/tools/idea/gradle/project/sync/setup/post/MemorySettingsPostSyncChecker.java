@@ -30,6 +30,7 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ex.ApplicationEx;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
 import java.util.Locale;
@@ -44,7 +45,10 @@ public class MemorySettingsPostSyncChecker {
   private static final NotificationGroup NOTIFICATION_GROUP = new NotificationGroup(
     "Memory Settings Notification",
     NotificationDisplayType.STICKY_BALLOON,
-    true);
+    true,
+    null,
+    null,
+    PluginId.getId("org.jetbrains.android"));
 
   /**
    * Checks memory settings and shows a notification if new memory settings

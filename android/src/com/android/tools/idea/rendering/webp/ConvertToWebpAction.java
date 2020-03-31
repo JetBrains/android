@@ -55,6 +55,7 @@ import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
@@ -311,7 +312,8 @@ public class ConvertToWebpAction extends DumbAwareAction {
           sb.append("<br>").append(Integer.toString(mySkipped)).append(" files were skipped because there was no net space savings");
         }
         String message = sb.toString();
-        new NotificationGroup("Convert to WebP", NotificationDisplayType.BALLOON, true)
+        new NotificationGroup(
+          "Convert to WebP", NotificationDisplayType.BALLOON, true, null, null, PluginId.getId("org.jetbrains.android"))
           .createNotification(message, NotificationType.INFORMATION)
           .notify(myProject);
       }

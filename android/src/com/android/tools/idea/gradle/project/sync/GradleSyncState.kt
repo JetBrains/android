@@ -53,6 +53,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.module.ModuleManager
@@ -72,7 +73,7 @@ import kotlin.concurrent.withLock
 
 private val LOG = Logger.getInstance(GradleSyncState::class.java)
 
-private val SYNC_NOTIFICATION_GROUP = NotificationGroup.logOnlyGroup("Gradle Sync")
+private val SYNC_NOTIFICATION_GROUP = NotificationGroup.logOnlyGroup("Gradle Sync", PluginId.getId("org.jetbrains.android"))
 
 open class StateChangeNotification(private val project: Project) {
   open fun notifyStateChanged() {
